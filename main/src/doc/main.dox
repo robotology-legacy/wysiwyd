@@ -1,0 +1,36 @@
+/**
+@mainpage notitle
+
+\image html logo.jpg ""
+
+\section wysiwyd_software_documentation The WYSIWYD Software Repository
+
+What You Say Is What You Did project, software repository documentation.
+This is the documentation extracted from
+the software repository of the WYSIWYD project.  
+Its intended audience is developers within the consortium.  
+
+Topics:
+
+ - \ref wysiwyd_libraries - a list of documented libraries
+ - \ref wysiwyd_modules - a list of documented modules
+
+ - Reference material:
+  - The <a href="http://efaa.upf.edu//">WYSIWYD project website</a>.
+  - \ref module_documentation - a template for documenting modules
+
+This documentation is developed by scanning all source code 
+in the src directory of the repository. You can produce this documentation on 
+your computer by running:
+
+\verbatim
+  doxygen conf/Doxyfile.txt
+\endverbatim
+
+locally on your repository, to figure out what's going on.
+The output can be browsed at doc/html/index.html.
+
+This page can be edited at wysiwyd/main/src/doc/main.dox.
+*
+*/
+

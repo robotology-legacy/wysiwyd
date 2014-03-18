@@ -1,0 +1,278 @@
+﻿<!-- The grammar tag surrounds the entire CFG description
+       Specify the language of the grammar as
+       English-American ('409') -->
+<GRAMMAR LANGID="409">
+   <!-- Specify a set of easy-to-read strings to
+            represent specific values. Similar to
+            constants or #define in Visual Basic or
+            C/++ programming languages -->
+   <DEFINE>
+      <ID NAME="FROM" VAL="1"/>
+      <ID NAME="TO" VAL="2"/>
+      <ID NAME="location" VAL="3"/>
+      <ID NAME="color" VAL="4"/>
+      <ID NAME="name" VAL="5"/>
+      <ID NAME="OBJECT" VAL="6"/>
+      <ID NAME="action_adjective" VAL="7"/>
+      <ID NAME="temporal" VAL="8"/>
+      <ID NAME="interrogative" VAL="9"/>
+      <ID NAME="BE" VAL="10"/>
+      <ID NAME="DO" VAL="11"/>
+      <ID NAME="PASSIVE" VAL="12"/>
+   </DEFINE>
+
+   <!-- TEST MICROPHONE -->
+   <RULE NAME="newgame" TOPLEVEL="ACTIVE">
+      <P>test microphone</P>
+      <O>-please</O>
+   </RULE>
+
+   <!-- ORDER PROPOSITION -->
+   <RULE NAME="order" TOPLEVEL="ACTIVE" EXPORT="1">
+      <RULEREF NAME="AGENT"/>
+      <RULEREF NAME="ACTION"/>
+      <RULEREF NAME="OBJECT"/>
+      <O>
+         <L>
+            <RULEREF NAME="location"/>
+            <RULEREF NAME="action_adjective"/>
+         </L>
+      </O>
+      <O>
+         <L>
+            <RULEREF NAME="location"/>
+            <RULEREF NAME="action_adjective"/>
+         </L>
+      </O>
+      <O>please</O>
+   </RULE>
+
+   <RULE NAME="proposition_is" TOPLEVEL="ACTIVE" EXPORT="1">
+      <!-- Subject -->
+      <L>
+         <RULEREF NAME="AGENT"/>
+         <RULEREF NAME="OBJECT"/>
+      </L>
+      <RULEREF NAME="BE"/>
+      <L>
+         <RULEREF NAME="location"/>
+         <RULEREF NAME="color"/>
+      </L>
+   </RULE>
+
+   <RULE NAME="proposition_verb" TOPLEVEL="ACTIVE" EXPORT="1">
+      <!-- Subject -->
+      <RULEREF NAME="AGENT"/>
+      <RULEREF NAME="ACTION"/>
+      <L>
+         <RULEREF NAME="AGENT"/>
+         <RULEREF NAME="OBJECT"/>
+      </L>
+      <O>
+         <L>
+            <RULEREF NAME="location"/>
+            <RULEREF NAME="action_adjective"/>
+         </L>
+      </O>
+      <O>
+         <L>
+            <RULEREF NAME="location"/>
+            <RULEREF NAME="action_adjective"/>
+         </L>
+      </O>
+   </RULE>
+
+   <RULE NAME="affirmation" TOPLEVEL="ACTIVE" EXPORT="1">
+      <!-- Subject -->
+      <L>
+         <RULEREF NAME="AGENT"/>
+         <RULEREF NAME="OBJECT"/>
+      </L>
+
+      <!-- Verb -->
+      <L>
+         <RULEREF NAME="BE"/>
+         <RULEREF NAME="ACTION"/>
+      </L>
+      <RULEREF NAME="color"/>
+   </RULE>
+
+   <RULE NAME="question" TOPLEVEL="ACTIVE" EXPORT="1">
+      <!-- Subject -->
+      <O>
+         <RULEREF NAME="interrogative"/>
+      </O>
+      <L>
+         <RULEREF NAME="BE"/>
+         <RULEREF NAME="DO"/>
+      </L>
+      <L>
+         <RULEREF NAME="AGENT"/>
+         <RULEREF NAME="OBJECT"/>
+      </L>
+      <O>
+         <RULEREF NAME="PASSIVE"/>
+         <O>
+            <L>
+               <RULEREF NAME="OBJECT"/>
+               <RULEREF NAME="AGENT"/>               
+            </L>
+         </O>
+      </O>
+      <O>
+         <L>
+            <RULEREF NAME="location"/>
+            <RULEREF NAME="action_adjective"/>
+         </L>
+      </O>
+      <O>
+         <RULEREF NAME="temporal"/>
+      </O>
+   </RULE>
+
+   <!-- DICTIONNARY -->
+   
+   <RULE NAME="ACTION">
+      <O>
+         <RULEREF NAME="action_adjective"/>
+      </O>
+      <P>
+         <L>
+            <P>move</P>
+            <P>put</P>
+            <P>push</P>
+            <P>grasp</P>
+            <P>take</P>
+            <P>release</P>
+            <P>point</P>
+            <P>play</P>
+         </L>
+      </P>
+      <O>
+         <RULEREF NAME="action_adjective"/>
+      </O>
+   </RULE>
+   
+   <RULE NAME="PASSIVE">
+      <P>
+         <L>
+            <P>move</P>
+            <P>put</P>
+            <P>pushed</P>
+            <P>grasp</P>
+            <P>took</P>
+            <P>released</P>
+            <P>pointed</P>
+            <P>played</P>
+         </L>
+      </P>
+   </RULE>
+
+   <RULE NAME="location">
+      <L>
+         <P>on</P>
+         <P>to</P>
+      </L>
+      <P>the</P>
+      <L PROPNAME="location" PROPID="location">
+         <P VAL="0">north</P>
+         <P VAL="1">south</P>
+         <P VAL="2">east</P>
+         <P VAL="3">west</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="name">
+      <L PROPNAME="name" PROPID="name">
+         <P VAL="1">Maxime</P>
+         <P VAL="1">Max</P>
+         <P VAL="2">Greg</P>
+         <P VAL="3">Peter</P>
+         <P VAL="4">you</P>
+         <P VAL="4">I cub</P>
+         <P VAL="5">I</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="AGENT">
+      <RULEREF NAME="name"/>
+      <O>
+         <P>and</P>
+         <RULEREF NAME="name"/>
+      </O>
+   </RULE>
+
+   <RULE NAME="OBJECT">
+      <P>the</P>
+      <O>
+         <RULEREF NAME="color"/>
+      </O>
+      <L PROPNAME="OBJECT" PROPID="OBJECT">
+         <P VAL="1">cross</P>
+         <P VAL="2">circle</P>
+         <P VAL="3">eraser</P>
+         <P VAL="4">toy</P>
+         <P VAL="5">box</P>
+         <P VAL="6">dice</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="action_adjective">
+      <L PROPNAME="action_adjective" PROPID="action_adjective">
+         <P VAL="1">softly</P>
+         <P VAL="2">hardly</P>
+         <P VAL="3">quickly</P>
+         <P VAL="4">slowly</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="temporal">
+      <L PROPNAME="temporal" PROPID="temporal">
+         <P VAL="1">before</P>
+         <P VAL="2">after</P>
+         <P VAL="3">then</P>
+         <P VAL="4">today</P>
+         <P VAL="5">yesterday</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="interrogative">
+      <L PROPNAME="interrogative" PROPID="interrogative">
+         <P VAL="1">what</P>
+         <P VAL="2">where</P>
+         <P VAL="3">who</P>
+         <P VAL="3">when</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="BE">
+      <L PROPNAME="BE" PROPID="BE">
+         <P VAL="1">is</P>
+         <P VAL="2">was</P>
+         <P VAL="3">are</P>
+         <P VAL="4">were</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="DO">
+      <L PROPNAME="DO" PROPID="DO">
+         <P VAL="1">do</P>
+         <P VAL="2">did</P>
+      </L>
+   </RULE>
+
+   <RULE NAME="color">
+      <L PROPNAME="color" PROPID="color">
+         <P VAL="1">blue</P>
+         <P VAL="2">pink</P>
+         <P VAL="3">yellow</P>
+         <P VAL="4">green</P>
+         <P VAL="5">red</P>
+         <P VAL="6">orange</P>
+         <P VAL="7">white</P>
+         <P VAL="8">black</P>
+      </L>
+   </RULE>
+
+   <!-- End of Grammar definition -->
+</GRAMMAR>

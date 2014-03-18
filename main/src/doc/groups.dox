@@ -1,0 +1,56 @@
+/**
+*
+* \defgroup wysiwyd_software_all Software
+*
+* A container for all software. For clarity this is further divided in groups.
+*
+* (This page can be edited at wysiwyd/main/src/doc/groups.dox)
+*/
+
+/**
+* \defgroup wysiwyd_modules WYSIWYD modules
+* @ingroup wysiwyd_software_all
+*
+*
+* This is the list of WYSIWYD modules in the wysiwyd/main/src/modules directory.
+* To add your own module to this list,
+* just add a comment like the following anywhere in your source
+* code (replacing "your_module_name" with the name of your module):
+\verbatim
+  /**
+   *
+   * \defgroup wysiwyd_your_module_name your_module_name
+   * @ingroup wysiwyd_modules
+   *
+   */
+\endverbatim
+*
+* For convenience, try to keep the module name the same
+* as the directory it is placed in. If you have a good reason
+* to do something different, of course you can do that too.
+*/
+
+
+/**
+* \defgroup wysiwyd_libraries WYSIWYD libraries
+* @ingroup wysiwyd_software_all
+*
+*
+* This is the list of WYSIWYD libraries in the wysiwyd/main/src/libraires directory.
+* To add your own library to this list,
+* just add a comment like the following anywhere in your source
+* code (replacing "your_library_name" with the name of your module):
+\verbatim
+  /**
+   *
+   * \defgroup wysiwyd_your_library_name your_library_name
+   * @ingroup wysiwyd_libraries
+   *
+   */
+\endverbatim
+*
+* For convenience, try to keep the library name the same
+* as the directory it is placed in.  If you've a good reason
+* to do something different, of course you can do that too.
+*/
+

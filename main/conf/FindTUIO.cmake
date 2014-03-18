@@ -1,0 +1,41 @@
+# Copyright: 2008-2010 RobotCub Consortium
+# Author: Stéphane Lallée && André Luvizotto
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
+
+# Created:
+# TUIO_INCLUDE_DIRS - Directories to include to use TUIO
+# TUIO_LIBRARIES    - Default library to link against to use TUIO
+# TUIO_FOUND        - If false, don't try to use TUIO
+
+IF (NOT TUIO_DIR)
+	SET (TUIO_ENV_DIR $ENV{TUIO_DIR})
+	IF (TUIO_ENV_DIR)
+		FIND_PATH(TUIO_DIR /TUIO/TuioClient.h "$ENV{TUIO_DIR}")
+	ELSE (TUIO_ENV_DIR)
+		FIND_PATH(TUIO_DIR /TUIO/TuioClient.h ${CMAKE_PROJECT_DIR})
+	ENDIF (TUIO_ENV_DIR)
+ENDIF (NOT TUIO_DIR)
+
+SET (TUIO_INCLUDE_DIR ${TUIO_DIR}/TUIO)
+SET (OSC_INCLUDE_DIR ${TUIO_DIR}/oscpack)
+
+#FIND_PATH(TUIO_INCLUDE_DIRS /TUIO/TuioClient.h "${TUIO_DIR}")
+#FIND_PATH(TUIO_INCLUDE_DIRS /oscpack "${TUIO_DIR}")
+MARK_AS_ADVANCED(TUIO_INCLUDE_DIRS)
+#message(${TUIO_INCLUDE_DIR})
+#message(${OSC_INCLUDE_DIR})
+SET (TUIO_FOUND FALSE)
+
+FIND_LIBRARY(TUIO_LIBRARIES libTUIO.a "${TUIO_DIR}")
+
+if (TUIO_INCLUDE_DIR AND TUIO_LIBRARIES)
+	set(TUIO_FOUND TRUE)
+endif(TUIO_INCLUDE_DIR AND TUIO_LIBRARIES)
+
+
+if (TUIO_FOUND)
+    set(TUIO_INCLUDE_DIRS ${TUIO_INCLUDE_DIR} ${OSC_INCLUDE_DIR})
+else(TUIO_FOUND)
+    set(TUIO_LIBRARIES "")
+    set(TUIO_INCLUDE_DIRS "")
+endif(TUIO_FOUND)
