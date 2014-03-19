@@ -13,93 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
- */
-
-/** 
-\defgroup slidingController Sliding Motor Controller
- 
-@ingroup wysiwyd_modules
- 
-A simple cartesian controller that lets the iCub slide a paddle
-on the table. 
-
-\section intro_sec Description 
-Self-explaining :) 
- 
-\section lib_sec Libraries 
-- YARP libraries
-
-\section parameters_sec Parameters
---name <string> 
-- To specify the module's name; all the open ports will be 
-  tagged with the prefix /<moduleName>.
- 
---robot <string> 
-- To specify the robot's name. 
- 
---arm <string> 
-- To specify the arm used ("left"|"right"). 
- 
---vel <double> 
-- To specify the speed in [m/s].
- 
---elbow_height <double> 
-- To specify the elbow's height in meters.
- 
---elbow_weight <double> 
-- To specify how to weigh the task to keep the elbow high.
-
---arm_roll <double> 
-- To specify how many degrees to rotate the roll of the arm's 
-  wrist with respect to the baseline.
- 
---arm_pitch <double> 
-- To specify how many degrees to rotate the pitch of the arm's 
-  wrist with respect to the baseline.
- 
---arm_yaw <double> 
-- To specify how many degrees to rotate the yaw of the arm's 
-  wrist with respect to the baseline.
- 
---exploration_height <double> 
-- To specify the minimum z-coordinate of the finger while 
-  exploring the table.
- 
---exploration_max_force <double> 
-- To specify the maximum external force excerting on the finger 
-  in order to stop approaching the table. Note that this force
-  will basically account for the maximum threshold used by the
-  grasp model. High values of this parameter will disable this
-  detection.
- 
---max_dist <double> 
-- To specify the maximum affordable distance in meters that
-  can be reached in one step.
-
---impedance <string> 
-- To specify whether to enable ("on") or disable ("off") the 
-  impedance mode.
-
-\section portsa_sec Ports Accessed
-None.
-
-\section portsc_sec Ports Created
- 
-- \e /<moduleName>:i accepts a triplet of number representing 
-  the cartesian position where to steer the paddle. If an integer
-  equal to 1 is provided as fourth number then skip interpolation.
-
-- \e /<moduleName>:rpc accepts keys to control the hand. Keys 
-  are defined within the hand sequences configuration file.
-  Optionally, the second key "wait" can be provided to wait for
-  action completion. \n Further accepted commands are:
-  - "calibrate": calibrate the grasp model.
-  - "impedance" "on"|"off": switch impedance on/off.
-  - "explore": start off table exploration.
-  - "stop": stop any ongoing movements (except exploration).
- 
-\author Ugo Pattacini
-*/ 
+*/
 
 #include <stdio.h>
 #include <string>
@@ -115,6 +29,8 @@ None.
 #include <iCub/iKin/iKinFwd.h>
 #include <iCub/perception/models.h>
 #include <iCub/action/actionPrimitives.h>
+
+#include "slidingController_IDLServer.h"
 
 #define EXPLORATION_TOL     5e-3
 
@@ -132,7 +48,7 @@ using namespace iCub::action;
 
 
 /***************************************************************/
-class ControlModule: public RFModule
+class ControlModule: public RFModule, public slidingController_IDLServer
 {
 protected:
     ActionPrimitivesLayer1  action;
@@ -598,7 +514,13 @@ public:
         return 0.1;
     }
 
-    /************************************************************************/
+    /***************************************************************/
+    bool attach(RpcServer &source)
+    {
+        return this->yarp().attachAsServer(source);
+    }
+
+    /***************************************************************/
     bool respond(const Bottle &command, Bottle &reply)
     {
         string cmd=command.get(0).asString().c_str();
