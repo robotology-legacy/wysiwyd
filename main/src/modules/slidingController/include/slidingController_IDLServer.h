@@ -41,9 +41,10 @@ public:
 /**
  * Execute an hand posture.
  * @param key the tag of the hand posture.
+ * @param wait if true wait until posture is reached.
  * @return true/false on success/failure.
  */
-  virtual bool hand(const std::string& key);
+  virtual bool hand(const std::string& key, const bool wait = 0);
 /**
  * Quit the module.
  * @return true/false on success/failure.

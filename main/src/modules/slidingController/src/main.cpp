@@ -61,7 +61,8 @@ protected:
     deque<string> handKeys;
 
     Mutex mainMutex;
-    bool impedance,oldImpedance;
+    bool closing;
+    bool impedanceSw,oldImpedanceSw;
     double max_dist;
     int context_startup;
     int context;
@@ -125,7 +126,7 @@ protected:
     /***************************************************************/
     void setImpedance(const bool sw, const bool forceSet=false)
     {
-        if (!forceSet && (sw==impedance))
+        if (!forceSet && (sw==impedanceSw))
             return;
 
         IControlMode *imode;
@@ -148,7 +149,7 @@ protected:
                 imode->setVelocityMode(j);
         }
 
-        impedance=sw;
+        impedanceSw=sw;
     }
 
 public:
@@ -165,7 +166,7 @@ public:
         double arm_pitch=rf.check("arm_yaw",Value(10.0)).asDouble();        
         double arm_yaw=rf.check("arm_pitch",Value(0.0)).asDouble();
         max_dist=rf.check("max_dist",Value(0.02)).asDouble();
-        impedance=rf.check("impedance",Value("off")).asString()=="on";
+        impedanceSw=rf.check("impedance",Value("off")).asString()=="on";
         exploration_height=rf.check("exploration_height",Value(0.0)).asDouble();
         exploration_max_force=rf.check("exploration_max_force",Value(1000.0)).asDouble();
 
@@ -228,7 +229,7 @@ public:
         iarm->tweakSet(changeElbowHeight(elbow_height,elbow_weight));
         iarm->storeContext(&context);
 
-        setImpedance(impedance,true);
+        setImpedance(impedanceSw,true);
 
         Matrix R=zeros(4,4);
         R(0,0)=-1.0; R(2,1)=-1.0; R(1,2)=-1.0; R(3,3)=1.0;
@@ -254,6 +255,8 @@ public:
 
         state=idle;
         expState=idle;
+        closing=false;
+
         return true;
     }
 
@@ -273,7 +276,7 @@ public:
         expMutex.lock();
         if (expState==start)
         {
-            oldImpedance=impedance;
+            oldImpedanceSw=impedanceSw;
             setImpedance(false);
             action.pushAction("point");
 
@@ -393,7 +396,7 @@ public:
                     iarm->waitMotionDone();
                     iarm->restoreContext(context);
 
-                    if (oldImpedance)
+                    if (oldImpedanceSw)
                         setImpedance(true);
 
                     action.pushAction("open");
@@ -505,7 +508,7 @@ public:
         }
 
         mainMutex.unlock();
-        return true;
+        return !closing;
     }
 
     /***************************************************************/
@@ -521,81 +524,71 @@ public:
     }
 
     /***************************************************************/
-    bool respond(const Bottle &command, Bottle &reply)
+    bool stop()
     {
-        string cmd=command.get(0).asString().c_str();
-        int ack=Vocab::encode("ack");
-        int nack=Vocab::encode("nack");
+        mainMutex.lock();
+        iarm->stopControl();
+        state=idle;
+        printf("asynchronous stop received\n");
+        mainMutex.unlock();
+        return true;
+    }
 
-        // asynchronous stop
-        if (cmd=="stop")
-        {
-            mainMutex.lock();
-            iarm->stopControl();
-            state=idle;
-            printf("asynchronous stop received\n");
-            mainMutex.unlock();
-            reply.addVocab(ack);
-            return true;
-        }
+    /***************************************************************/
+    bool calibrate()
+    {
+        calibrateGraspModel(true);
+        return true;
+    }
 
-        // fingers calibration
-        if (cmd=="calibrate")
-        {
-            calibrateGraspModel(true);
-            reply.addVocab(ack);
-            return true;
-        }
+    /***************************************************************/
+    bool impedance(const string &sw)
+    {
+        if ((sw!="on") && (sw!="off"))
+            return false;
 
-        // impedance setting
-        if (cmd=="impedance")
-        {
-            if (command.size()>1)
-            {
-                bool sw=command.get(1).asString()=="on";
-                setImpedance(sw);
-                reply.addVocab(ack);
-            }
-            else
-                reply.addVocab(nack);
+        setImpedance(sw=="on");
+        return true;
+    }
 
-            return true;
-        }
+    /***************************************************************/
+    bool explore()
+    {
+        expMutex.lock();
+        expState=start;
+        expEndEvent.reset();
+        expMutex.unlock();
 
-        // exploration
-        if (cmd=="explore")
-        {
-            expMutex.lock();
-            expState=start;
-            expEndEvent.reset();
-            expMutex.unlock();
+        printf("starting exploration...\n");
+        expEndEvent.wait();
 
-            printf("starting exploration...\n");
-            expEndEvent.wait();
+        return true;
+    }
 
-            reply.addVocab(ack);
-            return true;
-        }
-
-        // fingers closure
+    /***************************************************************/
+    bool hand(const string &key, const bool wait)
+    {
         for (size_t i=0; i<handKeys.size(); i++)
         {
-            if (cmd==handKeys[i])
+            if (key==handKeys[i])
             {
-                action.pushAction(cmd);
-
-                bool done;
-                if (command.size()>1)
-                    if (command.get(1).asString()=="wait")
-                        action.checkActionsDone(done,true);
-
-                reply.addVocab(ack);
+                action.pushAction(key);
+                if (wait)
+                {
+                    bool done;
+                    action.checkActionsDone(done,true);
+                }
                 return true;
             }
         }
 
-        // default behavior
-        return RFModule::respond(command,reply); 
+        return false;
+    }
+
+    /***************************************************************/
+    bool quit()
+    {
+        return closing=true;
     }
 
     /***************************************************************/
@@ -629,7 +622,7 @@ int main(int argc, char *argv[])
     YARP_REGISTER_DEVICES(icubmod)
 
     ResourceFinder rf;
-    rf.setDefaultContext("slidingController/conf");
+    rf.setDefaultContext("slidingController");
     rf.setDefault("grasp_model_file_left","grasp_model_left.ini");
     rf.setDefault("grasp_model_file_right","grasp_model_right.ini");
     rf.setDefault("hand_sequences_file","hand_sequences.ini");

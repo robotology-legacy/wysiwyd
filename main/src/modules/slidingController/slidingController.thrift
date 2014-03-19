@@ -39,9 +39,10 @@ service slidingController_IDLServer
    /**
    * Execute an hand posture.
    * @param key the tag of the hand posture.
+   * @param wait if true wait until posture is reached.
    * @return true/false on success/failure.
    */
-   bool hand(1:string key);
+   bool hand(1:string key, 2:bool wait=false);
 
    /**
    * Quit the module.

@@ -91,12 +91,14 @@ public:
 class slidingController_IDLServer_hand : public yarp::os::Portable {
 public:
   std::string key;
+  bool wait;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
+    if (!writer.writeListHeader(3)) return false;
     if (!writer.writeTag("hand",1,1)) return false;
     if (!writer.writeString(key)) return false;
+    if (!writer.writeBool(wait)) return false;
     return true;
   }
   virtual bool read(yarp::os::ConnectionReader& connection) {
@@ -167,12 +169,13 @@ bool slidingController_IDLServer::explore() {
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool slidingController_IDLServer::hand(const std::string& key) {
+bool slidingController_IDLServer::hand(const std::string& key, const bool wait) {
   bool _return = false;
   slidingController_IDLServer_hand helper;
   helper.key = key;
+  helper.wait = wait;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::hand(const std::string& key)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::hand(const std::string& key, const bool wait)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -245,12 +248,16 @@ bool slidingController_IDLServer::read(yarp::os::ConnectionReader& connection) {
     }
     if (tag == "hand") {
       std::string key;
+      bool wait;
       if (!reader.readString(key)) {
         reader.fail();
         return false;
       }
+      if (!reader.readBool(wait)) {
+        wait = 0;
+      }
       bool _return;
-      _return = hand(key);
+      _return = hand(key,wait);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -335,9 +342,10 @@ std::vector<std::string> slidingController_IDLServer::help(const std::string& fu
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="hand") {
-      helpString.push_back("bool hand(const std::string& key) ");
+      helpString.push_back("bool hand(const std::string& key, const bool wait = 0) ");
       helpString.push_back("Execute an hand posture. ");
       helpString.push_back("@param key the tag of the hand posture. ");
+      helpString.push_back("@param wait if true wait until posture is reached. ");
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="quit") {
