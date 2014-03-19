@@ -322,7 +322,8 @@ std::vector<std::string> slidingController_IDLServer::help(const std::string& fu
   else {
     if (functionName=="stop") {
       helpString.push_back("bool stop() ");
-      helpString.push_back("Yield an asynchronous stop. ");
+      helpString.push_back("Yield an immediate stop of any ongoing movements ");
+      helpString.push_back("except exploration. ");
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="calibrate") {

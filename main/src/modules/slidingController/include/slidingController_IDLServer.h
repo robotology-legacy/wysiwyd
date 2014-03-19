@@ -18,7 +18,8 @@ class slidingController_IDLServer : public yarp::os::Wire {
 public:
   slidingController_IDLServer() { yarp().setOwner(*this); }
 /**
- * Yield an asynchronous stop.
+ * Yield an immediate stop of any ongoing movements
+ * except exploration.
  * @return true/false on success/failure.
  */
   virtual bool stop();

@@ -12,7 +12,8 @@
 service slidingController_IDLServer
 {
    /**
-   * Yield an asynchronous stop.
+   * Yield an immediate stop of any ongoing movements
+   * except exploration.
    * @return true/false on success/failure.
    */
    bool stop();

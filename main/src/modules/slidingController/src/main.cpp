@@ -249,8 +249,8 @@ public:
         od=dcm2axis(axis2dcm(yaw)*axis2dcm(roll)*axis2dcm(pitch)*R);
         xd.resize(3);
 
-        portIn.open(("/"+name+":i").c_str());
-        portRpc.open(("/"+name+":rpc").c_str());
+        portIn.open(("/"+name+"/input").c_str());
+        portRpc.open(("/"+name+"/rpc").c_str());
         attach(portRpc);
 
         state=idle;
