@@ -5,12 +5,12 @@
 
    <name>slidingController</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>Sliding Motor Controller.</description>
+   <description>Sliding Motor Controller</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    
    <description-long>
-   A simple cartesian controller that lets the iCub slide a paddle on the table.
+   A simple cartesian controller that lets the iCub slide a paddle on the table
    </description-long>
 
    <arguments>
@@ -50,7 +50,7 @@
           <description>
               Accepts a triplet of number representing the cartesian position
               where to steer the paddle. If an integer equal to 1 is provided
-              as fourth number then skip interpolation.
+              as fourth number then interpolation is skipped
           </description>
       </input>
    </data>
