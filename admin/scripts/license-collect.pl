@@ -1,18 +1,18 @@
 #!/usr/bin/perl -w
 
-# Copyright: (C) 2011 RobotCub Consortium
-# Author: Lorenzo Natale
-# CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
+# Copyright: (C) 2014 WYSIWYD Consortium
+# Authors: Ugo Pattacini
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 my $fname = shift @ARGV;
 my $line_num=0;
 my $max_lines=60;
 my %good_licenses= ( # a list of "good" licenses
-		     "Released under the terms of the GNU GPL v2.0"=> "GPL20",
+                "Released under the terms of the GNU GPL v2.0"=> "GPL20",
              "Permission is granted to copy, distribute, and/or modify this program under the terms of the GNU General Public License, version 2 or any later version published by the Free Software Foundation"=>"GPL20 or later",
-			 "This program is free software; you can redistribute it and\/or modify it under the terms of the GNU General Public License version 2 as published by the Free Software Foundation"=>"GPL20",
+                    "This program is free software; you can redistribute it and\/or modify it under the terms of the GNU General Public License version 2 as published by the Free Software Foundation"=>"GPL20",
              "Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. 3. The name of the author may not be used to endorse or promote products derived from this software without specific prior written permission." => "BSD",
-			 "BSD license" => "BSD",
+                    "BSD license" => "BSD",
              "Intel License Agreement For Open Source Computer Vision Library" => "OPENCV"
 );
 
@@ -53,17 +53,17 @@ while(!eof(FILE) && defined (my $line=<FILE>) && $line_num<$max_lines) {
 
     chomp $line;
     
-	# remove comments 
+   # remove comments 
     $line=~s/^\s*//;             #remove empty characters at beginning of line
     $line=~s/\s*$/ /;            #substitute trailing eof or spaces with single space
-	$line =~s/^\#+//;            #remove comments like #
+   $line =~s/^\#+//;            #remove comments like #
     $line =~s/^\/\*+//;          #remove /*
     $line =~s/\**\/*//;          #remove /* or ////
-	$line =~s/^\*+//;            #remove * or ***
+   $line =~s/^\*+//;            #remove * or ***
     $line=~s/^\s*//;             #now remove all empty characters at beginning of line
 
-	
-	$text .= $line;
+   
+   $text .= $line;
 
     # now skip some tricky sentences that contain the word "author"
     # in licensing context
@@ -79,12 +79,12 @@ while(!eof(FILE) && defined (my $line=<FILE>) && $line_num<$max_lines) {
 #       $author=~s/of changes\b*:?\b*//i; #remove pattern "of changes" (could not incoroprate it in prev. match
         $author=~s/\.?\s*$//;  #remove trailing . and eof ...
 
-	# remove email addresses, reg exp from http://www.regular-expressions.info/email.html
+   # remove email addresses, reg exp from http://www.regular-expressions.info/email.html
         # adapted by adding spaces on top and optional quotes <>
-	$author=~s/\s*<?\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b>?//i;
+   $author=~s/\s*<?\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b>?//i;
 
-	# remove html links
-	$author=~s/\s*<A HREF.*?A>\.?//i;
+   # remove html links
+   $author=~s/\s*<A HREF.*?A>\.?//i;
     
         $author=fix_names($author);
     }
@@ -110,11 +110,11 @@ while(!eof(FILE) && defined (my $line=<FILE>) && $line_num<$max_lines) {
 
 #### search for known good licenses
 while ( ($key, $value) = each %good_licenses) {
-		
-		if ($text=~m/$key/i) {
-			#print "Match: $line_num: $line $value\n";
-			$license=$value;
-	}
+           
+           if ($text=~m/$key/i) {
+                   #print "Match: $line_num: $line $value\n";
+                   $license=$value;
+   }
 }
 
 

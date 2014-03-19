@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# Copyright: (C) 2011 RobotCub Consortium
-# Author: Lorenzo Natale 
-# CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
-
-# Inspired from similar script in yarp by Paul Fitzpatrick
+# Copyright: (C) 2014 WYSIWYD Consortium
+# Authors: Ugo Pattacini
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 echo "Make sure you run this as ./admin/scripts/update-license.sh"
 
