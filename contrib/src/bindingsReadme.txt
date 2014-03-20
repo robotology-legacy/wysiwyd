@@ -1,5 +1,5 @@
 Software in contrib is likely to use bindings of yarp in other languages.
-In order to compile them just check yarp2/example/swig for further instructions
+In order to compile them just check yarp/example/swig for further instructions
 or refer to the various pages on yarp wiki.
 
 Python:
