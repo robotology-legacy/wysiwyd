@@ -4,7 +4,7 @@
 *
 * A container for all software. For clarity this is further divided in groups.
 *
-* (This page can be edited at wysiwyd/main/src/doc/groups.dox)
+* (This page can be edited at main/src/doc/groups.dox)
 */
 
 /**
@@ -12,7 +12,7 @@
 * @ingroup wysiwyd_software_all
 *
 *
-* This is the list of WYSIWYD modules in the wysiwyd/main/src/modules directory.
+* This is the list of WYSIWYD modules in the main/src/modules directory.
 * To add your own module to this list,
 * just add a comment like the following anywhere in your source
 * code (replacing "your_module_name" with the name of your module):
@@ -36,7 +36,7 @@
 * @ingroup wysiwyd_software_all
 *
 *
-* This is the list of WYSIWYD libraries in the wysiwyd/main/src/libraires directory.
+* This is the list of WYSIWYD libraries in the main/src/libraires directory.
 * To add your own library to this list,
 * just add a comment like the following anywhere in your source
 * code (replacing "your_library_name" with the name of your module):
