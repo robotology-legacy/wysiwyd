@@ -1,12 +1,12 @@
 // This is an automatically-generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
-#include <slidingController_IDLServer.h>
+#include <slidingController_IDL.h>
 #include <yarp/os/idl/WireTypes.h>
 
 
 
-class slidingController_IDLServer_stop : public yarp::os::Portable {
+class slidingController_IDL_stop : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
@@ -26,7 +26,7 @@ public:
   }
 };
 
-class slidingController_IDLServer_calibrate : public yarp::os::Portable {
+class slidingController_IDL_calibrate : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
@@ -46,7 +46,7 @@ public:
   }
 };
 
-class slidingController_IDLServer_impedance : public yarp::os::Portable {
+class slidingController_IDL_impedance : public yarp::os::Portable {
 public:
   std::string sw;
   bool _return;
@@ -68,7 +68,7 @@ public:
   }
 };
 
-class slidingController_IDLServer_explore : public yarp::os::Portable {
+class slidingController_IDL_explore : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
@@ -88,7 +88,7 @@ public:
   }
 };
 
-class slidingController_IDLServer_hand : public yarp::os::Portable {
+class slidingController_IDL_hand : public yarp::os::Portable {
 public:
   std::string key;
   bool wait;
@@ -112,7 +112,7 @@ public:
   }
 };
 
-class slidingController_IDLServer_quit : public yarp::os::Portable {
+class slidingController_IDL_quit : public yarp::os::Portable {
 public:
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
@@ -132,65 +132,65 @@ public:
   }
 };
 
-bool slidingController_IDLServer::stop() {
+bool slidingController_IDL::stop() {
   bool _return = false;
-  slidingController_IDLServer_stop helper;
+  slidingController_IDL_stop helper;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::stop()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::stop()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool slidingController_IDLServer::calibrate() {
+bool slidingController_IDL::calibrate() {
   bool _return = false;
-  slidingController_IDLServer_calibrate helper;
+  slidingController_IDL_calibrate helper;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::calibrate()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::calibrate()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool slidingController_IDLServer::impedance(const std::string& sw) {
+bool slidingController_IDL::impedance(const std::string& sw) {
   bool _return = false;
-  slidingController_IDLServer_impedance helper;
+  slidingController_IDL_impedance helper;
   helper.sw = sw;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::impedance(const std::string& sw)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::impedance(const std::string& sw)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool slidingController_IDLServer::explore() {
+bool slidingController_IDL::explore() {
   bool _return = false;
-  slidingController_IDLServer_explore helper;
+  slidingController_IDL_explore helper;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::explore()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::explore()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool slidingController_IDLServer::hand(const std::string& key, const bool wait) {
+bool slidingController_IDL::hand(const std::string& key, const bool wait) {
   bool _return = false;
-  slidingController_IDLServer_hand helper;
+  slidingController_IDL_hand helper;
   helper.key = key;
   helper.wait = wait;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::hand(const std::string& key, const bool wait)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::hand(const std::string& key, const bool wait)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool slidingController_IDLServer::quit() {
+bool slidingController_IDL::quit() {
   bool _return = false;
-  slidingController_IDLServer_quit helper;
+  slidingController_IDL_quit helper;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDLServer::quit()");
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
 
-bool slidingController_IDLServer::read(yarp::os::ConnectionReader& connection) {
+bool slidingController_IDL::read(yarp::os::ConnectionReader& connection) {
   yarp::os::idl::WireReader reader(connection);
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
@@ -306,7 +306,7 @@ bool slidingController_IDLServer::read(yarp::os::ConnectionReader& connection) {
   return false;
 }
 
-std::vector<std::string> slidingController_IDLServer::help(const std::string& functionName) {
+std::vector<std::string> slidingController_IDL::help(const std::string& functionName) {
   bool showAll=(functionName=="--all");
   std::vector<std::string> helpString;
   if(showAll) {

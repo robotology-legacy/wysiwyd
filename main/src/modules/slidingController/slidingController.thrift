@@ -5,11 +5,11 @@
 # slidingController.thrift
 
 /**
-* slidingController_IDLServer
+* slidingController_IDL
 *
 * IDL Interface to \ref slidingController services.
 */
-service slidingController_IDLServer
+service slidingController_IDL
 {
    /**
    * Yield an immediate stop of any ongoing movements

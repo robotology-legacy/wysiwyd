@@ -36,6 +36,10 @@ make_directory(${EXECUTABLE_OUTPUT_PATH})
 mark_as_advanced(EXECUTABLE_OUTPUT_PATH)
 message(STATUS "Executables go to ${EXECUTABLE_OUTPUT_PATH}")
 
+set(IDL_GENERATED_CODE_DIR ${PROJECT_SOURCE_DIR}/src/idl_generated_code)
+mark_as_advanced(IDL_GENERATED_CODE_DIR)
+message(STATUS "IDL generated files go to ${IDL_GENERATED_CODE_DIR}")
+
 include(wysiwydFindDependencies)
 include(wysiwydOptions)
 

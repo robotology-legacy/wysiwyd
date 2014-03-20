@@ -1,22 +1,22 @@
 // This is an automatically-generated file.
 // It could get re-generated if the ALLOW_IDL_GENERATION flag is on.
 
-#ifndef YARP_THRIFT_GENERATOR_slidingController_IDLServer
-#define YARP_THRIFT_GENERATOR_slidingController_IDLServer
+#ifndef YARP_THRIFT_GENERATOR_slidingController_IDL
+#define YARP_THRIFT_GENERATOR_slidingController_IDL
 
 #include <yarp/os/Wire.h>
 #include <yarp/os/idl/WireTypes.h>
 
-class slidingController_IDLServer;
+class slidingController_IDL;
 
 
 /**
- * slidingController_IDLServer
+ * slidingController_IDL
  * IDL Interface to \ref slidingController services.
  */
-class slidingController_IDLServer : public yarp::os::Wire {
+class slidingController_IDL : public yarp::os::Wire {
 public:
-  slidingController_IDLServer() { yarp().setOwner(*this); }
+  slidingController_IDL() { yarp().setOwner(*this); }
 /**
  * Yield an immediate stop of any ongoing movements
  * except exploration.

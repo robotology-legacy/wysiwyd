@@ -30,7 +30,7 @@
 #include <iCub/perception/models.h>
 #include <iCub/action/actionPrimitives.h>
 
-#include "slidingController_IDLServer.h"
+#include "slidingController_IDL.h"
 
 #define EXPLORATION_TOL     5e-3
 
@@ -48,7 +48,7 @@ using namespace iCub::action;
 
 
 /***************************************************************/
-class ControlModule: public RFModule, public slidingController_IDLServer
+class ControlModule: public RFModule, public slidingController_IDL
 {
 protected:
     ActionPrimitivesLayer1  action;
