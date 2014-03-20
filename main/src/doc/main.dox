@@ -16,7 +16,7 @@ Topics:
  - \ref wysiwyd_modules - a list of documented modules
 
  - Reference material:
-  - The <a href="http://wysiwyd.upf.edu//">WYSIWYD project website</a>.
+  - The <a href="http://wysiwyd.upf.edu">WYSIWYD project website</a>.
 
 This documentation is developed by scanning all source code 
 in the src directory of the repository. You can produce this documentation on 
