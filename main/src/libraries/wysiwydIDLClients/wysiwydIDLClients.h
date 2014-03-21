@@ -18,6 +18,11 @@
 #ifndef __wysiwydIDLClients_H__
 #define __wysiwydIDLClients_H__
 
+// whenever a new service (e.g. new_service_IDL) becomes available,
+// you have to add up two more lines to this file:
+// 1. #include "new_service_IDL.h"
+// 2. @ref new_service_IDL
+
 #include "slidingController_IDL.h"
 
 /**
@@ -27,14 +32,10 @@
 *  
 * This library contains all the definitions for a client to 
 * interface to the IDL services made available by WYSIWYD 
-* software. 
-*  
+* software. \n 
+* Available services are listed below: \n
+* - @ref slidingController_IDL
 */
-
-// put here group members
-// @{
-class slidingController_IDL;
-// @}
 
 #endif
 
