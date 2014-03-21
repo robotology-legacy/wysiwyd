@@ -57,7 +57,7 @@
    
    <services>
        <server>
-           <type>slidingController_IDLServer</type>
+           <type>slidingController_IDL</type>
            <idl>slidingController.thrift</idl>
            <port>/slidingController/rpc</port>
            <description>Command port</description>
