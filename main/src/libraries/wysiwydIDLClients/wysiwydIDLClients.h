@@ -25,17 +25,16 @@
 * @defgroup wysiwyd_wysiwydIDLClients IDL Client Interfaces
 * @ingroup wysiwyd_libraries 
 *  
-* This library contains all the IDL definitions for a client 
-* to interface to the services made available by WYSIWYD 
+* This library contains all the definitions for a client to 
+* interface to the IDL services made available by WYSIWYD 
 * software. 
 *  
 */
 
-/**
-* @ingroup wysiwyd_wysiwydIDLClients
-*/
+// put here group members
+// @{
 class slidingController_IDL;
-
+// @}
 
 #endif
 
