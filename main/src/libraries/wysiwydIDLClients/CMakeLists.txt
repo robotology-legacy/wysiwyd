@@ -8,6 +8,8 @@ project(${PROJECTNAME})
 file(GLOB header_files ${IDL_GENERATED_CODE_DIR}/include/*.h)
 file(GLOB source_files ${IDL_GENERATED_CODE_DIR}/src/*.cpp)
 
+list(APPEND header_files ${PROJECTNAME}.h)
+
 source_group("Header Files" FILES ${header_files})
 source_group("Source Files" FILES ${source_files})
 
