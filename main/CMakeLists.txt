@@ -61,7 +61,6 @@ set(WYSIWYD_CMAKE_SCRIPTS FindARToolKit.cmake
                           FindNaoQI.cmake
                           FindPGSQL.cmake
                           FindTUIO.cmake
-                          wysiwydFindDependencies.cmake
                           wysiwydOptions.cmake)
 
 foreach(conf_i ${WYSIWYD_CMAKE_SCRIPTS})
