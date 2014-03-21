@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 2.8.7)
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
+endif()
 
 project(wysiwyd)
 
@@ -49,6 +49,27 @@ configure_file("${CMAKE_SOURCE_DIR}/cmake_uninstall.cmake.in"
                @ONLY)
 add_custom_target(uninstall_wysiwyd "${CMAKE_COMMAND}" -P
                   "${CMAKE_BINARY_DIR}/icub-config-uninstall.cmake")
+####
+
+#### install cmake scripts
+message(STATUS "Installing cmake scripts")
+set(WYSIWYD_CMAKE_SCRIPTS FindARToolKit.cmake
+                          FindFFTW3.cmake
+                          FindIQR.cmake
+                          FindKinectSDK.cmake
+                          FindOpenNI.cmake
+                          FindNaoQI.cmake
+                          FindPGSQL.cmake
+                          FindTUIO.cmake
+                          wysiwydFindDependencies.cmake
+                          wysiwydOptions.cmake)
+
+foreach(conf_i ${WYSIWYD_CMAKE_SCRIPTS})
+    configure_file(${CMAKE_SOURCE_DIR}/conf/${conf_i}
+                   ${CMAKE_BINARY_DIR}/conf/${conf_i} COPYONLY IMMEDIATE)
+    install(FILES conf/${conf_i} DESTINATION share/wysiwyd/cmake/ COMPONENT Development)
+endforeach()
+####
 
 add_subdirectory(src)
 add_subdirectory(app)
