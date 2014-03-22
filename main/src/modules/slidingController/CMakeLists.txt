@@ -23,5 +23,5 @@ include_directories(${IDL_GENERATED_CODE_DIR}/include ${ICUB_INCLUDE_DIRS} ${YAR
 add_executable(${PROJECTNAME} ${header_files} ${source_files} ${idl_files} ${doc_files})
 target_link_libraries(${PROJECTNAME} actionPrimitives iKin ctrlLib icubmod ${YARP_LIBRARIES})
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
-yarp_install(FILES ${doc} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
+yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 
