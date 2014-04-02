@@ -367,7 +367,7 @@ public:
 
             Vector x,o;
             iarm->getPose(x,o);
-            if (norm(xd-x)>EXPLORATION_TOL)
+            if (norm(xd-x)<EXPLORATION_TOL)
             {
                 exploreNextPoint(run);
                 expMutex.unlock();
@@ -378,7 +378,7 @@ public:
         {
             Vector x,o;
             iarm->getPose(x,o);
-            if (norm(xd-x)>EXPLORATION_TOL)
+            if (norm(xd-x)<EXPLORATION_TOL)
             {
                 if (expPos.empty())
                 {
