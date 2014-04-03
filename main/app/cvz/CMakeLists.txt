@@ -3,11 +3,6 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(appname cvz)
-icub_app(${appname})
-
-file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.*)
-
-icub_app_install(${appname} 
-                 FILES ${scripts}
-                 DESTINATION conf/)
+file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.*)
+yarp_install(FILES ${conf} DESTINATION ${WYSIWYD_CONTEXTS_INSTALL_DIR}/${appname})
 

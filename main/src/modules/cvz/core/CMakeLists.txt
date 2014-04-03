@@ -24,4 +24,5 @@ target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}
                                    ${GTK2_GTHREAD_LIBRARY})
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
+#yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 

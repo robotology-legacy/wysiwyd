@@ -11,9 +11,9 @@ int main(int argc, char * argv[])
 	Network::init();
 	ResourceFinder rf;
 	rf.setVerbose(true);
+	rf.setDefaultContext("cvz");
 	rf.setDefaultConfigFile("default.ini"); //overridden by --from parameter
-	rf.setDefaultContext("cvz/conf");   //overridden by --context parameter
-	rf.configure("EFAA_ROOT", argc, argv);
+	rf.configure(argc, argv);
 
 	IConvergenceZone* mod = NULL;
 	GuiICvz* gui = NULL;
