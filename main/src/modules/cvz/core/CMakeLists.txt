@@ -12,7 +12,6 @@ file(GLOB folder_source *.cpp)
 file(GLOB folder_header *.h)
 source_group("Header Files" FILES ${folder_header})
 source_group("Source Files" FILES ${folder_source})
-message("GTK2 = " ${GTK2_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${YARP_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
