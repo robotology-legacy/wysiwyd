@@ -100,12 +100,20 @@ class GuiMMCM : public GuiICvz
 			wModalities[m->recurrentModality] = recurrentGuiIModality;
 		}
 
-		//Add the influence slider to every modality
+		//Add the influence/learning slider to every modality
 		for (std::map < IModality*, GuiIModality*>::iterator wMod = wModalities.begin(); wMod != wModalities.end(); wMod++)
 		{
+			GtkWidget* paramModBox = gtk_vbox_new(FALSE, 0);
+			gtk_box_pack_start(GTK_BOX(wMod->second->box), paramModBox, FALSE, FALSE, 0);
+
 			LabelledSlider sliderInf;
-			sliderInf.allocate("Influence", &(m->influence[wMod->first]), 0.0, 1.0, 0.1);
-			gtk_box_pack_start(GTK_BOX(wMod->second->box), sliderInf.box, FALSE, FALSE, 0);
+			sliderInf.allocate("Influence", &(m->modalitiesInfluence[wMod->first]), 0.0, 1.0, 0.1);
+			gtk_box_pack_start(GTK_BOX(paramModBox), sliderInf.box, FALSE, FALSE, 0);
+			LabelledSlider sliderLear;
+			sliderLear.allocate("Learning", &(m->modalitiesLearning[wMod->first]), 0.0, 1.0, 0.1);
+			gtk_box_pack_start(GTK_BOX(paramModBox), sliderLear.box, FALSE, FALSE, 0);
+
+			gtk_widget_show(paramModBox);
 		}
 
 		//Display the map activity for every layer

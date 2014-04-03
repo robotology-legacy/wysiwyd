@@ -32,7 +32,9 @@ public:
 	int W() { return width; }
 	int L() { return layers; }
 
-	map<IModality*, double > influence;
+	map<IModality*, double > modalitiesInfluence;
+	map<IModality*, double > modalitiesLearning;
+
 	IModality* recurrentModality;
 
 	virtual bool interpretRpcCommand(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply)
@@ -78,7 +80,7 @@ public:
 		width = rf.check("width", yarp::os::Value(10)).asInt();
 		layers = rf.check("layers", yarp::os::Value(1)).asInt();
 		lRate = rf.check("learningRate", yarp::os::Value(0.05)).asDouble();
-		weightFilePath = rf.check("weightFilePath", yarp::os::Value(getName()+".mmw")).asString();
+		weightFilePath = rf.check("weightFilePath", yarp::os::Value(getName() + ".mmw")).asString();
 		int recModalitySize = rf.check("recurrentModality", yarp::os::Value(0)).asInt();
 		recurrenceDelay = rf.check("recurrentDelay", yarp::os::Value(10)).asInt();
 		if (recModalitySize > 0)
@@ -91,7 +93,7 @@ public:
 			recModName += getName();
 			recModName += "/recurrent";
 			recurrentModality = new IModality(recModName, recModalitySize, minBounds, maxBounds);
-			influence[recurrentModality] = rf.check("recurrentInfluence", yarp::os::Value(1.0)).asDouble();
+			modalitiesInfluence[recurrentModality] = rf.check("recurrentInfluence", yarp::os::Value(1.0)).asDouble();
 		}
 		else
 			recurrentModality = NULL;
@@ -139,11 +141,17 @@ public:
 			weights[recurrentModality] = w;
 		}
 
-		//Set influence of modalities to 1.0 by default
+		//Set modalitiesInfluence and modalitiesLearning to 1.0 by default
 		for (map<string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
-			influence[it->second] = 1.0;
+		{
+			modalitiesInfluence[it->second] = 1.0;
+			modalitiesLearning[it->second] = 1.0;
+		}
 		for (map<string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-			influence[it->second] = 1.0;
+		{
+			modalitiesInfluence[it->second] = 1.0;
+			modalitiesLearning[it->second] = 1.0;
+		}
 
 		//Zero everything
 		activity = 0.0;
@@ -171,7 +179,7 @@ public:
 		xWin = yWin = zWin = xLoose = yLoose = zLoose = 0;
 
 		double influenceTotal = 0;
-		for (std::map< IModality*, double>::iterator it = influence.begin(); it != influence.end(); it++)
+		for (std::map< IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
 			influenceTotal += it->second;
 		
 		yarp::os::Bottle &botActivity = portActivity.prepare();
@@ -194,7 +202,7 @@ public:
 							modalityMeanError += fabs(weights[it->second][i][x][y][z] - valueReal[i]);
 						}
 						modalityMeanError /= it->second->Size();
-						activity[x][y][z] += 1.0 - (modalityMeanError * influence[it->second]);
+						activity[x][y][z] += 1.0 - (modalityMeanError * modalitiesInfluence[it->second]);
 					}
 
 					//from top down feedback
@@ -207,7 +215,7 @@ public:
 							modalityMeanError += fabs(weights[it->second][i][x][y][z] - valueReal[i]);
 						}
 						modalityMeanError /= it->second->Size();
-						activity[x][y][z] += 1.0 - (modalityMeanError * influence[it->second]);
+						activity[x][y][z] += 1.0 - (modalityMeanError * modalitiesInfluence[it->second]);
 					}
 
 					//Reccurent modality
@@ -220,7 +228,7 @@ public:
 							modalityMeanError += fabs(weights[recurrentModality][i][x][y][z] - recVReal[i]);
 						}
 						modalityMeanError /= recurrentModality->Size();
-						activity[x][y][z] += 1.0 - (modalityMeanError * influence[recurrentModality]);
+						activity[x][y][z] += 1.0 - (modalityMeanError * modalitiesInfluence[recurrentModality]);
 					}
 
 					//Get the whole activity in [0,1]
@@ -335,6 +343,7 @@ public:
 								lRate *
 								dHCoef *
 								dVCoef *
+								modalitiesLearning[it->second] *
 								//winnerError *
 								dW;
 							Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
@@ -351,6 +360,7 @@ public:
 								lRate *
 								dHCoef *
 								dVCoef *
+								modalitiesLearning[it->second] *
 								//winnerError *
 								(valueReal[i] - weights[it->second][i][x][y][z]);
 
