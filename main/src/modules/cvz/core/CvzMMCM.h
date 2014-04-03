@@ -389,7 +389,7 @@ public:
 	bool saveWeights(std::string path)
 	{
 		ofstream file;
-		file.open(path);
+		file.open(path.c_str());
 		file << "width" << '\t' << width << std::endl;
 		file << "height" << '\t' << height << std::endl;
 		file << "layers" << '\t' << layers << std::endl;
