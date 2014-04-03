@@ -5,4 +5,5 @@
 project(wysiwyd)
 
 add_subdirectory(slidingController)
+add_subdirectory(cvz)
 
