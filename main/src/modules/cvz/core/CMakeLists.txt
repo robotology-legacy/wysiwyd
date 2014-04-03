@@ -2,8 +2,6 @@
 # Authors: Maxime Petit, Stephane Lallee
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-cmake_minimum_required(VERSION 2.8)
-
 set(PROJECTNAME cvzCore)
 project(${PROJECTNAME})
 
@@ -17,12 +15,12 @@ source_group("Source Files" FILES ${folder_source})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${YARP_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
-								   ${GTK2_GTK_LIBRARY}
-                                   ${GTK2_GLIB_LIBRARY}
-                                   ${GTK2_GDK_LIBRARY}
-                                   ${GTK2_GDK_PIXBUF_LIBRARY}
-                                   ${GTK2_GOBJECT_LIBRARY}
-                                   ${GTK2_GTHREAD_LIBRARY})
+                                     ${GTK2_GTK_LIBRARY}
+                                     ${GTK2_GLIB_LIBRARY}
+                                     ${GTK2_GDK_LIBRARY}
+                                     ${GTK2_GDK_PIXBUF_LIBRARY}
+                                     ${GTK2_GOBJECT_LIBRARY}
+                                     ${GTK2_GTHREAD_LIBRARY})
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 #yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
