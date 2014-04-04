@@ -162,8 +162,8 @@ public:
         vel=rf.check("vel",Value(0.2)).asDouble();
         elbow_height=rf.check("elbow_height",Value(0.4)).asDouble();
         elbow_weight=rf.check("elbow_weight",Value(30.0)).asDouble();
-        double arm_roll=rf.check("arm_roll",Value(5.0)).asDouble();
-        double arm_pitch=rf.check("arm_yaw",Value(10.0)).asDouble();        
+        double arm_roll=rf.check("arm_roll",Value(0.0)).asDouble();
+        double arm_pitch=rf.check("arm_yaw",Value(0.0)).asDouble();        
         double arm_yaw=rf.check("arm_pitch",Value(0.0)).asDouble();
         max_dist=rf.check("max_dist",Value(0.02)).asDouble();
         impedanceSw=rf.check("impedance",Value("off")).asString()=="on";
@@ -240,19 +240,19 @@ public:
         Matrix R=zeros(4,4);
         R(0,0)=-1.0; R(2,1)=-1.0; R(1,2)=-1.0; R(3,3)=1.0;
 
+        Vector pitch(4,0.0);
+        pitch[2]=1.0;
+        pitch[3]=arm_pitch*CTRL_DEG2RAD;
+
         Vector roll(4,0.0);
         roll[0]=1.0;
         roll[3]=(arm=="right"?1.0:-1.0)*arm_roll*CTRL_DEG2RAD;
 
-        Vector pitch(4,0.0);
-        pitch[1]=1.0;
-        pitch[3]=arm_pitch*CTRL_DEG2RAD;
-
         Vector yaw(4,0.0);
-        yaw[2]=1.0;
+        yaw[1]=1.0;
         yaw[3]=arm_yaw*CTRL_DEG2RAD;
 
-        od=dcm2axis(axis2dcm(yaw)*axis2dcm(roll)*axis2dcm(pitch)*R);
+        od=dcm2axis(axis2dcm(pitch)*axis2dcm(roll)*axis2dcm(yaw)*R);
         xd.resize(3);
 
         portIn.open(("/"+name+"/input").c_str());
