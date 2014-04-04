@@ -222,6 +222,12 @@ public:
         iarm->getDOF(dof);
         dof=1.0; dof[1]=0.0;
         iarm->setDOF(dof,dof);
+
+        Vector weights;
+        iarm->getRestWeights(weights);
+        weights[2]=0.0;
+        iarm->setRestWeights(weights,weights);
+
         iarm->setLimits(0,0.0,10.0);
         iarm->setTrajTime(0.65);
         iarm->setInTargetTol(0.001);
