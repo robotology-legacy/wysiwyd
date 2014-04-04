@@ -242,7 +242,7 @@ public:
 
         Vector roll(4,0.0);
         roll[0]=1.0;
-        roll[3]=(arm=="right"?1.0:-1.0)*fabs(arm_roll)*CTRL_DEG2RAD;
+        roll[3]=(arm=="right"?1.0:-1.0)*arm_roll*CTRL_DEG2RAD;
 
         Vector pitch(4,0.0);
         pitch[1]=1.0;
