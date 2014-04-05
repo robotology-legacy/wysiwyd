@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>cvz</name>
+   <doxygen-group>wysiwyd_libraries</doxygen-group>
+   <description>Implement the CVZ framework.</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   A set of classes to implement a server-oriented convergence zone. 
+   Basically a convergence point for several yarp modalities. 
+   Provides bi-directional associative learning and predictions.
+   The type of learning algorithm is defined within classes inheriting from IConvergenceZone
+   </description-long>
+
+   <arguments>
+   <param default="default.ini" desc="Point to the config file containing the definition of modalities.">from</param>
+   <param default="dummyCvz" desc="Specify the name of the cvz. It will act as a prefix for all ports">name</param>
+   <param default="icvz" desc="The algorithm to be used (mmcm, mlp, or icvz for an abstract dummy class)">type</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+      <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/dummyCvz/bottomUp1/real:i</port>
+          <required>no</required>
+          <priority>no</priority>
+          <description>
+              Accept a vector input of 3 components (as defined in default.ini)
+          </description>
+      </input>
+      <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/dummyCvz/bottomUp2/real:i</port>
+          <required>no</required>
+          <priority>no</priority>
+          <description>
+             Accept a vector input of 3 components (as defined in default.ini)
+           </description>
+      </input>
+      <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/dummyCvz/topDown1/real:i</port>
+          <required>no</required>
+          <priority>no</priority>
+          <description>
+             Accept a vector input of 3 components (as defined in default.ini)
+          </description>
+      </input>
+     
+	    <output>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/dummyCvz/bottomUp1/prediction:o</port>
+          <description>
+              Outputs a vector of 3 components(as defined in default.ini)
+          </description>
+      </output>  
+     
+   	    <output>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/dummyCvz/bottomUp2/prediction:o</port>
+          <description>
+              Outputs a vector of 3 components (as defined in default.ini)          
+           </description>
+      </output>  
+   	    <output>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/dummyCvz/topDown1/prediction:o</port>
+          <description>
+              Outputs a vector of 3 components (as defined in default.ini)          
+           </description>
+      </output>  	  
+   </data>
+   
+   <services>
+       <server>
+           <type>cvz_IDL</type>
+           <idl>cvz.thrift</idl>
+           <port>/dummyCvz/rpc</port>
+           <description>Command port</description>
+       </server>
+   </services>
+   
+</module>
+
