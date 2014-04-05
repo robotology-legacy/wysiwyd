@@ -10,7 +10,8 @@
    <version>1.0</version>
    
    <description-long>
-   A simple cartesian controller that lets the iCub slide a paddle on the table
+   A simple cartesian controller that lets the iCub slide a paddle on the table.
+   Notice that, internally, it does make use of <a href="http://wiki.icub.org/iCub/main/dox/html/group__ActionPrimitives.html">actionPrimitives</a> library. 
    </description-long>
 
    <arguments>
