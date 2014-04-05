@@ -7,13 +7,13 @@
 #include <iostream>
 #include <fstream>
 #include "ICvz.h"
-
+#include "cvzMmcm_IDL.h"
 #include "cvz/helpers/helpers.h"
 #include <queue>
 
 namespace cvz {
 	namespace core {
-		class CvzMMCM : public IConvergenceZone
+		class CvzMMCM : public IConvergenceZone, public cvzMmcm_IDL
 		{
 			int height, width, layers;
 			int xWin, yWin, zWin, xLoose, yLoose, zLoose;
@@ -37,6 +37,13 @@ namespace cvz {
 			std::map<IModality*, double > modalitiesLearning;
 
 			IModality* recurrentModality;
+
+			/*IDL methods*/
+			void setLearningRate(const double l) { lRate = l; }
+			double getLearningRate() { return lRate; }
+			void setSigma(const double s) { sigmaH = s; }
+			double getSigma() { return sigmaH; }
+			double getActivity(int x, int y, int z) { return activity[x][y][z]; }
 
 			virtual bool interpretRpcCommand(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply)
 			{

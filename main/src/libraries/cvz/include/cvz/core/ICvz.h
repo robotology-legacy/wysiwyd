@@ -9,36 +9,20 @@
 #include <iostream>
 #include "IModality.h"
 #include "cvz/helpers/helpers.h"
+#include "cvz_IDL.h"
+
 namespace cvz {
 	namespace core {
-		class IConvergenceZone : public yarp::os::RFModule
+		class IConvergenceZone : public yarp::os::RFModule, public cvz_IDL
 		{
 		public:
 			std::string getRpcPortName(){ return rpcPort.getName(); }
 		private:
-			yarp::os::Port rpcPort;
-			bool respond(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply)
-			{
-				std::string kWord1 = cmd.get(0).asString();
-				if (kWord1 == "start")
-				{
-					isPaused = false;
-					reply.addString("ACK");
-					reply.addString("Started");
-				}
-				else if (kWord1 == "stop")
-				{
-					isPaused = true;
-					reply.addString("ACK");
-					reply.addString("Paused");
-				}
-				else if (!interpretRpcCommand(cmd, reply))
-				{
-					reply.addString("NACK");
-					reply.addString("Cmd unknown");
-				}
-				return true;
-			}
+			yarp::os::RpcServer rpcPort;
+			void start() { isPaused = false; }
+			void pause() { isPaused = true; }
+			bool closing;
+			bool quit() { return closing = true;}
 
 		protected:
 			int cyclesElapsed;
@@ -188,7 +172,14 @@ namespace cvz {
 
 				std::cout << std::endl << "Modalities added. Starting the CVZ process with " << period << "s period" << std::endl;
 				cyclesElapsed = 0;
+				closing = false;
 				return true;
+			}
+			
+			/***************************************************************/
+			bool attach(yarp::os::RpcServer &source)
+			{
+				return this->yarp().attachAsServer(source);
 			}
 
 			bool interruptModule()
@@ -250,7 +241,7 @@ namespace cvz {
 				if (cyclesElapsed % 500 == 0)
 					std::cout << getName() << "\t t=" << cyclesElapsed << std::endl;
 				cyclesElapsed++;
-				return true;
+				return !closing;
 			}
 
 			virtual void ComputePrediction()
