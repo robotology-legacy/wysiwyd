@@ -6,11 +6,11 @@
  * CopyPolicy: Released under the terms of the LGPLv2.1 or later, see LGPL.TXT
  */
 
-#include "YarpImage2Pixbuf.h"
+#include "cvz/helpers/YarpImage2Pixbuf.h"
 
 #include <string.h>
 
-bool yarpImage2Pixbuf(yarp::sig::ImageOf<yarp::sig::PixelRgb> *sourceImg, 
+bool cvz::helpers::yarpImage2Pixbuf(yarp::sig::ImageOf<yarp::sig::PixelRgb> *sourceImg, 
                       GdkPixbuf* destPixbuf)
 {
 	// il pixbuf deve essere gia`  allocato e di dimensioni opportune

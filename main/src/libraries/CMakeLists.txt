@@ -4,4 +4,5 @@
 
 add_subdirectory(wysiwydIDLClients)
 add_subdirectory(wrdac)
+add_subdirectory(cvz)
 

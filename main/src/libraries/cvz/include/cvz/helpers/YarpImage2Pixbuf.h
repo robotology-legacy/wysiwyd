@@ -13,6 +13,10 @@
 #include <yarp/sig/Image.h>
 #include <gtk/gtk.h>
 
-bool yarpImage2Pixbuf(yarp::sig::ImageOf<yarp::sig::PixelRgb> *sourceImg, 
-                      GdkPixbuf* destPixbuf);
+namespace cvz {
+	namespace helpers {
+		bool yarpImage2Pixbuf(yarp::sig::ImageOf<yarp::sig::PixelRgb> *sourceImg,
+			GdkPixbuf* destPixbuf);
+	}
+}
 #endif

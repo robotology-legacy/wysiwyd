@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>cvzCore</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>An instance of Convergence Zone.</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Instantiate a convergence point for several yarp modalities. Provides bi-directional associative learning and predictions.
+   </description-long>
+
+   <arguments>
+   <param default="icub_head.ini" desc="Point to the config file containing the definition of modalities.">from</param>
+   <param default="cvz/head" desc="Specify the name of the cvz. It will act as a prefix for all ports">name</param>
+   <param default="mmcm" desc="The algorithm to be used (mmcm, mlp, or icvz for an abstract dummy class)">type</param>
+   <param default="10" desc="The map width in neurons. (parameter specific to mmcm)">width</param>
+   <param default="10" desc="The map height in neurons. (parameter specific to mmcm)">height</param>
+   <param default="1" desc="The number of layers. (parameter specific to mmcm)">layers</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+      <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/cvz/head/joints/real:i</port>
+          <!-- required input means the execution of module depends on
+               this input data. Notice that not all the input are required
+               for a module to perform its task (e.g. control input, status
+               request input). -->
+          <required>no</required>
+          <!-- priority forces the execution of module to be delayed
+               until the required data becomes available on the port -->
+          <priority>no</priority>
+          <description>
+              Accept a vector input of 6 components within the limits of the head joints (as defined in icub_head.ini)
+          </description>
+      </input>
+	  <output>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/cvz/head/joints/prediction:o</port>
+          <description>
+              Outputs a vector of 6 components within the limits of the head joints (as defined in icub_head.ini). Correspond to the actual prediction of the cvz.
+          </description>
+      </output>  
+	  
+	    <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/cvz/head/intertial/real:i</port>
+          <!-- required input means the execution of module depends on
+               this input data. Notice that not all the input are required
+               for a module to perform its task (e.g. control input, status
+               request input). -->
+          <required>no</required>
+          <!-- priority forces the execution of module to be delayed
+               until the required data becomes available on the port -->
+          <priority>no</priority>
+          <description>
+              Accept a vector input of 9 components within the limits of the inertia sensor (as defined in icub_head.ini)
+          </description>
+      </input>
+	  <output>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/cvz/head/joints/prediction:o</port>
+          <description>
+              Outputs a vector of 9 components within the limits of the inertia sensor (as defined in icub_head.ini). Correspond to the actual prediction of the cvz.
+          </description>
+      </output>  
+   </data>
+   
+   <services>
+       <server>
+           <type>slidingController_IDL</type>
+           <idl>slidingController.thrift</idl>
+           <port>/slidingController/rpc</port>
+           <description>Command port</description>
+       </server>
+   </services>
+   
+</module>
+

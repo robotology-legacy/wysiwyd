@@ -1,21 +1,28 @@
-# Copyright: (C) 2011 EFAA Consortium
-# Authors: Maxime Petit, Stephane Lallee
+# Copyright: (C) 2014 WYSIWYD Consortium
+# Authors: Stephane Lallee
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(PROJECTNAME cvzCore)
 project(${PROJECTNAME})
-
 find_package(GTK2)
 add_definitions(${GTK2_DEFINITIONS})
 
 file(GLOB folder_source *.cpp)
 file(GLOB folder_header *.h)
+set(doc_files ${PROJECTNAME}.xml)
+set(idl_files ${PROJECTNAME}.thrift)
 source_group("Header Files" FILES ${folder_header})
 source_group("Source Files" FILES ${folder_source})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${YARP_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
-add_executable(${PROJECTNAME} ${folder_source} ${folder_header})
+source_group("DOC Files"    FILES ${doc_files})
+source_group("IDL Files"    FILES ${idl_files})
+#yarp_idl_to_dir(${idl_files} ${IDL_GENERATED_CODE_DIR})
+
+#include_directories(${IDL_GENERATED_CODE_DIR}/include ${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
+include_directories(${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
+add_executable(${PROJECTNAME} ${folder_source} ${folder_header} ${idl_files} ${doc_files})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
-                                     ${GTK2_GTK_LIBRARY}
+									 cvz
+									 ${GTK2_GTK_LIBRARY}
                                      ${GTK2_GLIB_LIBRARY}
                                      ${GTK2_GDK_LIBRARY}
                                      ${GTK2_GDK_PIXBUF_LIBRARY}
@@ -23,5 +30,5 @@ target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${GTK2_GTHREAD_LIBRARY})
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
-#yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
+yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 
