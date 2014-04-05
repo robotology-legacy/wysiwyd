@@ -167,8 +167,8 @@ public:
         double arm_yaw=rf.check("arm_pitch",Value(0.0)).asDouble();
         max_dist=rf.check("max_dist",Value(0.02)).asDouble();
         impedanceSw=rf.check("impedance",Value("off")).asString()=="on";
-        exploration_height=rf.check("exploration_height",Value(0.0)).asDouble();
-        exploration_max_force=rf.check("exploration_max_force",Value(1000.0)).asDouble();
+        exploration_height=rf.check("exploration_height",Value(-0.1)).asDouble();
+        exploration_max_force=rf.check("exploration_max_force",Value(40.0)).asDouble();        
 
         Property optionCart("(device cartesiancontrollerclient)");
         optionCart.put("remote",("/"+robot+"/cartesianController/"+arm+"_arm").c_str());
@@ -196,7 +196,7 @@ public:
         optionAction.put("torso_pitch","on");
         optionAction.put("torso_roll","off");
         optionAction.put("torso_yaw","on");
-        optionAction.put("grasp_model_type","springy");
+        optionAction.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionAction.put("grasp_model_file",rf.findFile(grasp_model_file.c_str()).c_str());
         optionAction.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());
         graspModelFileToWrite=rf.getHomeContextPath();
@@ -629,6 +629,7 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setDefaultContext("slidingController");
+    rf.setDefault("grasp_model_type","springy");
     rf.setDefault("grasp_model_file_left","grasp_model_left.ini");
     rf.setDefault("grasp_model_file_right","grasp_model_right.ini");
     rf.setDefault("hand_sequences_file","hand_sequences.ini");
