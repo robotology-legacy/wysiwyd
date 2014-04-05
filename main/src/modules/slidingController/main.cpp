@@ -354,7 +354,7 @@ public:
             {
                 Value out;
                 model->getOutput(out);
-                double contact_force=out.asList()->get(1).asDouble();
+                double contact_force=out.asList()->get(1).asDouble();   // 1 => index finger
                 if (contact_force>exploration_max_force)
                 {
                     printf("contact detected: (%g>%g)\n",contact_force,exploration_max_force);
