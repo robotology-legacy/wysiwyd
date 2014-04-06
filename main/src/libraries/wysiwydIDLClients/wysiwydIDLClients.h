@@ -27,7 +27,6 @@
 #include "cvz_IDL.h"
 #include "cvzCore_IDL.h"
 #include "cvzMmcm_IDL.h"
-#include "cvz_mmcm_IDL.h"
 
 /**
 *
@@ -42,7 +41,6 @@
 * - @ref cvz_IDL 
 * - @ref cvzCore_IDL 
 * - @ref cvzMmcm_IDL 
-* - @ref cvz_mmcm_IDL 
 */
 
 #endif
