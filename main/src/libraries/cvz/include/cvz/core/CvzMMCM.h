@@ -23,7 +23,6 @@ namespace cvz {
 			std::queue< std::vector< int > > winnersBuffer;
 			int recurrenceDelay;
 			int xBuff, yBuff, zBuff;
-			std::string weightFilePath;
 			yarp::os::Semaphore mutex;
 
 		public:
@@ -44,29 +43,12 @@ namespace cvz {
 			void setSigma(const double s) { sigmaH = s; }
 			double getSigma() { return sigmaH; }
 			double getActivity(int x, int y, int z) { return activity[x][y][z]; }
-
-			virtual bool interpretRpcCommand(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply)
+			bool saveWeightsToFile(std::string path){ saveWeights(path); }
+			bool loadWeightsFromFile(std::string path)
 			{
-				std::string kWord1 = cmd.get(0).asString();
-				if (kWord1 == "save")
-				{
-					weightFilePath = cmd.get(1).asString();
-					saveWeights(weightFilePath);
-					reply.addString("ACK");
-					return true;
-				}
-				else if (kWord1 == "load")
-				{
-					weightFilePath = cmd.get(1).asString();
-					yarp::os::ResourceFinder rf;
-					weightFilePath = rf.findFileByName(weightFilePath);
-					if (loadWeights(weightFilePath))
-						reply.addString("ACK");
-					else
-						reply.addString("NACK");
-					return true;
-				}
-				return false;
+				yarp::os::ResourceFinder rf;
+				path = rf.findFileByName(path);
+				return loadWeights(path);
 			}
 
 			virtual bool close()
@@ -88,7 +70,6 @@ namespace cvz {
 				width = rf.check("width", yarp::os::Value(10)).asInt();
 				layers = rf.check("layers", yarp::os::Value(1)).asInt();
 				lRate = rf.check("learningRate", yarp::os::Value(0.05)).asDouble();
-				weightFilePath = rf.check("weightFilePath", yarp::os::Value(getName() + ".mmw")).asString();
 				int recModalitySize = rf.check("recurrentModality", yarp::os::Value(0)).asInt();
 				recurrenceDelay = rf.check("recurrentDelay", yarp::os::Value(10)).asInt();
 				if (recModalitySize > 0)

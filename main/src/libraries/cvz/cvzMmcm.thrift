@@ -39,5 +39,20 @@ service cvzMmcm_IDL
    * @return Current activity of the neuron.
    */
    double getActivity(1:i32 x, 2:i32 y, 3:i32 z);
+
+   /**
+   * Save the current weights of the map for latter reloading.
+   * @param path The path to where you want to store the weights.
+   * @return true/false in case of success/failure.
+   */
+   bool saveWeightsTofile(1:string path);
+
+   /**
+   * Load the weights of the map from a file. 
+   * The file should have been saved from a map using the same config file (modaility names & size, map size, etc.).
+   * @param path Path to the file containing the weights.
+   * @return true/false in case of success/failure.
+   */
+   bool loadWeightsFromfile(1:string path);
 }
 

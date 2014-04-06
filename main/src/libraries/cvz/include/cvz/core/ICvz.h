@@ -29,11 +29,6 @@ namespace cvz {
 			double period;
 			bool isPaused;
 
-			virtual bool interpretRpcCommand(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply)
-			{
-				return false;
-			}
-
 		public:
 
 			std::map<std::string, IModality*> modalitiesBottomUp;
