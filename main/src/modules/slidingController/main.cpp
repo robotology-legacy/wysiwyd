@@ -162,13 +162,13 @@ public:
         vel=rf.check("vel",Value(0.2)).asDouble();
         elbow_height=rf.check("elbow_height",Value(0.4)).asDouble();
         elbow_weight=rf.check("elbow_weight",Value(30.0)).asDouble();
-        double arm_roll=rf.check("arm_roll",Value(5.0)).asDouble();
-        double arm_pitch=rf.check("arm_yaw",Value(10.0)).asDouble();        
+        double arm_roll=rf.check("arm_roll",Value(0.0)).asDouble();
+        double arm_pitch=rf.check("arm_yaw",Value(0.0)).asDouble();        
         double arm_yaw=rf.check("arm_pitch",Value(0.0)).asDouble();
         max_dist=rf.check("max_dist",Value(0.02)).asDouble();
         impedanceSw=rf.check("impedance",Value("off")).asString()=="on";
-        exploration_height=rf.check("exploration_height",Value(0.0)).asDouble();
-        exploration_max_force=rf.check("exploration_max_force",Value(1000.0)).asDouble();
+        exploration_height=rf.check("exploration_height",Value(-0.1)).asDouble();
+        exploration_max_force=rf.check("exploration_max_force",Value(40.0)).asDouble();        
 
         Property optionCart("(device cartesiancontrollerclient)");
         optionCart.put("remote",("/"+robot+"/cartesianController/"+arm+"_arm").c_str());
@@ -196,7 +196,7 @@ public:
         optionAction.put("torso_pitch","on");
         optionAction.put("torso_roll","off");
         optionAction.put("torso_yaw","on");
-        optionAction.put("grasp_model_type","springy");
+        optionAction.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionAction.put("grasp_model_file",rf.findFile(grasp_model_file.c_str()).c_str());
         optionAction.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());
         graspModelFileToWrite=rf.getHomeContextPath();
@@ -222,6 +222,12 @@ public:
         iarm->getDOF(dof);
         dof=1.0; dof[1]=0.0;
         iarm->setDOF(dof,dof);
+
+        Vector weights;
+        iarm->getRestWeights(weights);
+        weights[2]=0.0;
+        iarm->setRestWeights(weights,weights);
+
         iarm->setLimits(0,0.0,10.0);
         iarm->setTrajTime(0.65);
         iarm->setInTargetTol(0.001);
@@ -234,19 +240,19 @@ public:
         Matrix R=zeros(4,4);
         R(0,0)=-1.0; R(2,1)=-1.0; R(1,2)=-1.0; R(3,3)=1.0;
 
-        Vector roll(4,0.0);
-        roll[0]=1.0;
-        roll[3]=(arm=="right"?1.0:-1.0)*fabs(arm_roll)*CTRL_DEG2RAD;
-
         Vector pitch(4,0.0);
-        pitch[1]=1.0;
+        pitch[2]=1.0;
         pitch[3]=arm_pitch*CTRL_DEG2RAD;
 
+        Vector roll(4,0.0);
+        roll[0]=1.0;
+        roll[3]=(arm=="right"?1.0:-1.0)*arm_roll*CTRL_DEG2RAD;
+
         Vector yaw(4,0.0);
-        yaw[2]=1.0;
+        yaw[1]=1.0;
         yaw[3]=arm_yaw*CTRL_DEG2RAD;
 
-        od=dcm2axis(axis2dcm(yaw)*axis2dcm(roll)*axis2dcm(pitch)*R);
+        od=dcm2axis(axis2dcm(pitch)*axis2dcm(roll)*axis2dcm(yaw)*R);
         xd.resize(3);
 
         portIn.open(("/"+name+"/input").c_str());
@@ -348,7 +354,7 @@ public:
             {
                 Value out;
                 model->getOutput(out);
-                double contact_force=out.asList()->get(1).asDouble();
+                double contact_force=out.asList()->get(1).asDouble();   // 1 => index finger
                 if (contact_force>exploration_max_force)
                 {
                     printf("contact detected: (%g>%g)\n",contact_force,exploration_max_force);
@@ -623,6 +629,7 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setDefaultContext("slidingController");
+    rf.setDefault("grasp_model_type","springy");
     rf.setDefault("grasp_model_file_left","grasp_model_left.ini");
     rf.setDefault("grasp_model_file_right","grasp_model_right.ini");
     rf.setDefault("hand_sequences_file","hand_sequences.ini");
