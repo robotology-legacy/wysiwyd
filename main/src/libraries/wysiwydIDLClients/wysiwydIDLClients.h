@@ -24,6 +24,10 @@
 // 2. @ref new_service_IDL
 
 #include "slidingController_IDL.h"
+#include "cvz_IDL.h"
+#include "cvzCore_IDL.h"
+#include "cvzMmcm_IDL.h"
+#include "cvz_mmcm_IDL.h"
 
 /**
 *
@@ -34,7 +38,11 @@
 * interface to the IDL services made available by WYSIWYD 
 * software. \n 
 * Available services are listed below: \n
-* - @ref slidingController_IDL
+* - @ref slidingController_IDL 
+* - @ref cvz_IDL 
+* - @ref cvzCore_IDL 
+* - @ref cvzMmcm_IDL 
+* - @ref cvz_mmcm_IDL 
 */
 
 #endif
