@@ -2,5 +2,4 @@
 /main/build*/
 *kdev*
 *.orig
-main/src/idl_generated_code/*.cmake
-
+/main/src/idl_generated_code/*.cmake
