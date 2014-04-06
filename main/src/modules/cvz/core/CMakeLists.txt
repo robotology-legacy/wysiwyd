@@ -4,6 +4,7 @@
 
 set(PROJECTNAME cvzCore)
 project(${PROJECTNAME})
+#set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ConVergenceZone)
 find_package(GTK2)
 add_definitions(${GTK2_DEFINITIONS})
 include(YarpIDL)
@@ -30,7 +31,8 @@ target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${GTK2_GDK_PIXBUF_LIBRARY}
                                      ${GTK2_GOBJECT_LIBRARY}
                                      ${GTK2_GTHREAD_LIBRARY})
-
+									 
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ConVergenceZone)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 

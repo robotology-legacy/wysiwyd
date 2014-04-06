@@ -4,6 +4,7 @@
 
 set(PROJECTNAME cvz)
 project(${PROJECTNAME})
+
 include(YarpIDL)
 
 file(GLOB folder_source src/*.cpp src/*.cc src/*.c 
@@ -47,6 +48,8 @@ target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${GTK2_GDK_PIXBUF_LIBRARY}
                                      ${GTK2_GOBJECT_LIBRARY}
                                      ${GTK2_GTHREAD_LIBRARY})
+									 
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ConVergenceZone)
 
 icub_export_library(${PROJECTNAME} 
 INTERNAL_INCLUDE_DIRS 
