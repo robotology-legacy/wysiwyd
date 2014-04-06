@@ -25,7 +25,6 @@
 
 #include "slidingController_IDL.h"
 #include "cvz_IDL.h"
-#include "cvzCore_IDL.h"
 #include "cvzMmcm_IDL.h"
 
 /**
@@ -39,7 +38,6 @@
 * Available services are listed below: \n
 * - @ref slidingController_IDL 
 * - @ref cvz_IDL 
-* - @ref cvzCore_IDL 
 * - @ref cvzMmcm_IDL 
 */
 
