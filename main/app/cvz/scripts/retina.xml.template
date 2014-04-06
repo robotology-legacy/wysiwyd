@@ -1,0 +1,74 @@
+<application>
+    <name>MMCM_Retina</name>
+    <module>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina/0_0 --displayGui</parameters>
+        <node>icubsrv</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 600.90) (y 150.90))</geometry>
+    </module>
+    <module>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina/0_1 --displayGui</parameters>
+        <node>icubsrv</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 600.90) (y 195.90))</geometry>
+    </module>
+    <module>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina/1_0 --displayGui</parameters>
+        <node>icubsrv</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 600.90) (y 240.90))</geometry>
+    </module>
+    <module>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina/1_1 --displayGui</parameters>
+        <node>icubsrv</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 600.90) (y 285.90))</geometry>
+    </module>
+    <module>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina/0_0 --displayGui</parameters>
+        <node>icubsrv</node>
+        <prefix>/MMCM_Retina:cvzCore:5</prefix>
+        <geometry>(Pos (x 1185.81) (y 165.05))</geometry>
+    </module>
+    <connection>
+        <from external="true">/caltechPlayer/image/split/0_0:o</from>
+        <to external="true">/retina/0_0/in/real:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 329.00) (y 161.50)) ((x 264.00) (y 161.00)) ((x 415.00) (y 162.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/caltechPlayer/image/split/0_1:o</from>
+        <to external="true">/retina/0_1/in/real:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 332.00) (y 207.00)) ((x 270.00) (y 207.00)) ((x 415.00) (y 207.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/caltechPlayer/image/split/1_0:o</from>
+        <to external="true">/retina/1_0/in/real:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 332.00) (y 252.00)) ((x 270.00) (y 252.00)) ((x 415.00) (y 252.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/caltechPlayer/image/split/1_1:o</from>
+        <to external="true">/retina/1_1/in/real:i</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 332.00) (y 297.00)) ((x 270.00) (y 297.00)) ((x 415.00) (y 297.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/retina/0_0/prediction:o</from>
+        <to external="true">/v1/0_0/in/0_0/real:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 956.50) (y 162.00)) ((x 934.00) (y 162.00)) ((x 1000.00) (y 162.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/retina/0_1/prediction:o</from>
+        <to external="true">/v1/0_0/in/0_1/real:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 956.50) (y 207.00)) ((x 934.00) (y 207.00)) ((x 1000.00) (y 207.00))  )</geometry>
+    </connection>
+</application>

@@ -2,3 +2,6 @@
 /main/build*/
 *kdev*
 *.orig
+main/src/idl_generated_code/cvzMmcm_thrift.cmake
+main/src/idl_generated_code/slidingController_thrift.cmake
+*.cmake
