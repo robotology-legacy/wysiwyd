@@ -9,6 +9,11 @@
 #include "cvz/helpers/helpers.h"
 namespace cvz {
 	namespace core {
+
+		/**
+		* \ingroup cvz_library
+		* Class representing an abstract modality. Consists of two vectors of double, one for the real input and one for the predicted output.
+		*/
 		class IModality
 		{
 		protected:
@@ -18,29 +23,79 @@ namespace cvz {
 
 			std::vector<double> minBound;
 			std::vector<double> maxBound;
-			virtual bool input(){ return true;/*overload this*/ };
-			virtual void output(){/*overload this*/ };
+
 
 			std::vector<double> scaledValueReal;
 			std::vector<double> scaledValuePrediction;
 			std::vector<double> valueReal;
 			std::vector<double> valuePrediction;
 
+			/**
+			* virtual method : Defines what a modality does upon input signal. Should be overloaded and is called by IModality::Input()
+			* @return true/false in case of success failure
+			*/
+			virtual bool input(){ return true;/*overload this*/ };
+
+			/**
+			* virtual method : Defines what a modality does upon output signal. Should be overloaded and is called by IModality::Output()
+			* @return true/false in case of success failure
+			*/
+			virtual void output(){/*overload this*/ };
+
 		public:
+			/**
+			* Retrieve the name of the module. Including the name of the CVZ it belongs to (e.g /cvzName/modalityName)
+			*/
 			std::string Name() { return name; }
+
+			/**
+			* Retrieve the name of the modality. Including the name of the CVZ it belongs to (e.g /cvzName/modalityName)
+			*/
+			virtual std::string GetFullName(){ return name; }
+
+			/**
+			* Retrieve the name of the modality/real. Including the name of the CVZ it belongs to (e.g /cvzName/modalityName/real)
+		    * In case of using a BufferedPort modality this command gives your the port name.
+			*/
 			virtual std::string GetFullNameReal(){ return name + "/real"; }
+
+			/**
+			* Retrieve the name of the modality/prediction. Including the name of the CVZ it belongs to (e.g /cvzName/modalityName/prediction).
+			* In case of using a BufferedPort modality this command gives your the port name.
+			*/
 			virtual std::string GetFullNamePrediction(){ return name + "/prediction"; }
 
+			/**
+			* Retrieve the size of the modality.
+			*/
 			int Size() { return size; }
-			std::vector<double> GetValueReal() { return scaledValueReal; }
-			std::vector<double> GetValuePrediction() { return scaledValuePrediction; }
 
+			/**
+			* Retrieve the current value of the real input.
+			* @return A vector of double
+			*/
+			std::vector<double> GetValueReal() { return scaledValueReal; }
+
+			/**
+			* Retrieve the current value of the prediction output.
+			* @return A vector of double
+			*/
+			std::vector<double> GetValuePrediction() { return scaledValuePrediction; }
+			
+			/**
+			* Set the current value of the real input. This method can be used to work with IModality from the code.
+			* @param b A vector of double. 
+			*/
 			void SetValueReal(std::vector<double> b) {
 				mutex.wait();
 				scaledValueReal = b;
 				mutex.post();
 			}
 
+			/**
+			* Set the current value of the prediction output.
+			* @parameter b A vector of double
+			*/
 			void SetValuePrediction(std::vector<double> b)
 			{
 				mutex.wait();
@@ -48,6 +103,13 @@ namespace cvz {
 				mutex.post();
 			}
 
+			/**
+			* Instantiate a new IModality.
+			* @parameter _name The name of the modality, including any prefix you want to use (like the cvz name)
+			* @parameter _size The size of the modality (i.e the number of components of the vectors)
+			* @parameter min The minimum limits of the input space, are used internally for scaling in [0,1].
+			* @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
+			*/
 			IModality(std::string _name, int _size, std::vector<double> min, std::vector<double> max)
 			{
 				name = _name;
@@ -60,6 +122,11 @@ namespace cvz {
 				valuePrediction.resize(size);
 			}
 
+			/**
+			* Trigger the Input mechanism of a modality. 
+			* Calls the specific input() method (e.g calling read() in case of a BufferePort modality)
+			* Handles the scaling of the input given the limits provided in the constructor.
+			*/
 			void Input()
 			{
 				mutex.wait();
@@ -75,6 +142,11 @@ namespace cvz {
 				mutex.post();
 			}
 
+			/**
+			* Trigger the Output mechanism of a modality.
+			* Calls the specific output() method (e.g calling write() in case of a BufferePort modality)
+			* Handles the scaling of the output given the limits provided in the constructor.
+			*/
 			void Output()
 			{
 				mutex.wait();
@@ -88,9 +160,24 @@ namespace cvz {
 				output();
 				mutex.post();
 			}
+
+			/**
+			* Closes modality.
+			* This is the place to clean the stuff (close ports)
+			*/
 			virtual void Close() {};
+
+			/**
+			* Interrupts modality.
+			* This is the place to clean the stuff (interrupt ports)
+			*/
 			virtual void Interrupt() {};
 
+			/**
+			* Returns an image of the modality current value to be displayed.
+			* @param getPredicted Choose if you want the real value (false) or the predicted value (true)
+			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+			*/
 			virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualization(bool getPredicted = false)
 			{
 				mutex.wait();
@@ -110,6 +197,11 @@ namespace cvz {
 			}
 		};
 
+		/**
+		* \ingroup cvz_library
+		* Template class representing an modality using BufferedPort<T>.
+		* Open 2 buffered ports, one for the real input and one for the prediction output.
+		*/
 		template <class T>
 		class ModalityBufferedPort : public IModality
 		{
@@ -121,9 +213,25 @@ namespace cvz {
 
 		public:
 
+			/**
+			* Retrieve the name of the modality/real port.
+			*/
 			virtual std::string GetFullNameReal(){ return portReal.getName(); }
+
+			/**
+			* Retrieve the name of the modality/prediction port.
+			*/
 			virtual std::string GetFullNamePrediction(){ return portPrediction.getName(); }
 
+			/**
+			* Instantiate a new BufferedPortModality<T>.
+			* @parameter _name The name of the modality, including any prefix you want to use (like the cvz name)
+			* @parameter _size The size of the modality (i.e the number of components of the vectors)
+			* @parameter min The minimum limits of the input space, are used internally for scaling in [0,1].
+			* @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
+			* @parameter _mask Apply a mask on the input got through input(). The number of True of the mask should match the size of the modality. Providing an empty vector (size==0) will ensure that your do not apply any mask and get everything.
+			* @parameter _isBlocking Specify is the ports will use blocking read in the input() method.
+			*/
 			ModalityBufferedPort(std::string _name, int _size, std::vector<double> min, std::vector<double> max, std::vector<bool> _mask, bool _isBlocking = false) :IModality(_name, _size, min, max)
 			{
 				isBlocking = _isBlocking;
@@ -148,19 +256,40 @@ namespace cvz {
 				portError.open(pName.c_str());
 			}
 
+			/**
+			* Connects a port to the real input port
+			* @param from The name of the port you want to read from
+			* @return true/false in case of success/failure
+			*/
 			bool ConnectInput(std::string from)
 			{
 				return yarp::os::Network::connect(from.c_str(), portReal.getName());
 			}
 
+			/**
+			* Connects the prediction output to another port
+			* @param to The name of the port you want to write to
+			* @return true/false in case of success/failure
+			*/
 			bool ConnectOutput(std::string to)
 			{
 				return yarp::os::Network::connect(portPrediction.getName(), to.c_str());
 			}
 
+			/**
+			* Interrupts modality (interrupts ports)
+			*/
 			void Interrupt() { portReal.interrupt(); portPrediction.interrupt(); }
+
+			/**
+			* Closes modality (closes ports)
+			*/
 			void Close() { portReal.close(); portPrediction.close(); }
 
+			/**
+			* Call the read method on the input port and vectorize the value read.
+			* @return true/false in case of data/nodata available
+			*/
 			bool input()
 			{
 				T* in = portReal.read(isBlocking);
@@ -172,6 +301,9 @@ namespace cvz {
 				return false;
 			}
 
+			/**
+			* Unvectorize the predicted value and call the write method on the output port.
+			*/
 			void output()
 			{
 				T& bOut = portPrediction.prepare();
@@ -192,13 +324,25 @@ namespace cvz {
 				portError.write();
 			}
 
-			T Unvectorize(std::vector<double>)
+			/**
+			* Unvectorize a vector to the template type used. Providing back the original format from the "neural representation"
+			* A specialization of this method has to be implemented for this specific type.
+			* @param output The vector to be transformed to the template T
+			* @return A representation of type T.
+			*/
+			T Unvectorize(std::vector<double> output)
 			{
 				std::cout << portReal.getName() << "-----> Warning: this output type is not implemented." << std::endl;
 				T dummyReturn;
 				return dummyReturn;
 			}
 
+			/**
+			* Vectorize the template type used, providing a "neural representation" as a vector of double (e.g linearize an image)
+			* A specialization of this method has to be implemented for this specific type.
+			* @param input An instance of the template T to be vectorized
+			* @return A vector of double equivalent to the input.
+			*/
 			std::vector<double> Vectorize(T* input)
 			{
 				std::cout << portReal.getName() << "-----> Warning: this input type is not implemented." << std::endl;
@@ -207,6 +351,12 @@ namespace cvz {
 				return dummyReturn;
 			}
 
+			/**
+			* Returns an image of the modality current value to be displayed.
+			* Specialization can be provided to customize the display (e.g display the image in unvectorized form)
+			* @param getPredicted Choose if you want the real value (false) or the predicted value (true)
+			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+			*/
 			virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualization(bool getPredicted)
 			{
 				mutex.wait();
@@ -224,9 +374,12 @@ namespace cvz {
 				//Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
 				return img;
 			}
+			
 		};
 
-		//[specialization] Bottle 
+		/**
+		* Unvectorize() specialization for yarp::os::Bottle
+		*/
 		template<>
 		yarp::os::Bottle ModalityBufferedPort<yarp::os::Bottle>::Unvectorize(std::vector<double> output)
 		{
@@ -243,6 +396,9 @@ namespace cvz {
 			return b;
 		}
 
+		/**
+		* Vectorize() specialization for yarp::os::Bottle
+		*/
 		template<>
 		std::vector<double> ModalityBufferedPort<yarp::os::Bottle>::Vectorize(yarp::os::Bottle* input)
 		{
@@ -266,7 +422,9 @@ namespace cvz {
 			return v;
 		}
 
-		//[specialization] ImageOf<PixelRGB>
+		/**
+		* Unvectorize() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
+		*/
 		template<>
 		yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >::Unvectorize(std::vector<double> output)
 		{
@@ -297,6 +455,9 @@ namespace cvz {
 			return img;
 		}
 
+		/**
+		* Vectorize() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
+		*/
 		template<>
 		std::vector<double> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >::Vectorize(yarp::sig::ImageOf<yarp::sig::PixelRgb>* input)
 		{
@@ -333,6 +494,9 @@ namespace cvz {
 			return v;
 		}
 
+		/**
+		* getVisualization() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
+		*/
 		template<>
 		yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >::getVisualization(bool getPredicted)
 		{
@@ -348,7 +512,9 @@ namespace cvz {
 			return img;
 		}
 
-		//[specialization] ImageOf<PixelFloat>
+		/**
+		* Unvectorize() specialization for yarp::sig::Imageof<yarp::sig::<PixelFloat> >
+		*/
 		template<>
 		yarp::sig::ImageOf<yarp::sig::PixelFloat> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >::Unvectorize(std::vector<double> output)
 		{
@@ -367,6 +533,9 @@ namespace cvz {
 			return img;
 		}
 
+		/**
+		* Vectorize() specialization for yarp::sig::Imageof<yarp::sig::<PixelFloat> >
+		*/
 		template<>
 		std::vector<double> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >::Vectorize(yarp::sig::ImageOf<yarp::sig::PixelFloat>* input)
 		{
@@ -394,5 +563,7 @@ namespace cvz {
 			return v;
 		}
 	}
+
+
 }
 #endif

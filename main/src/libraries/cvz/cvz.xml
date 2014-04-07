@@ -4,7 +4,7 @@
 <module>
 
    <name>cvz</name>
-   <doxygen-group>wysiwyd_libraries</doxygen-group>
+   <doxygen-group>cvz_library</doxygen-group>
    <description>Implement the CVZ framework.</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
