@@ -19,8 +19,8 @@ namespace cvz {
 			std::string getRpcPortName(){ return rpcPort.getName(); }
 		private:
 			yarp::os::RpcServer rpcPort;
-			void start() { std::cout << "Paused." << std::endl; isPaused = false; }
-			void pause() { std::cout << "Started." << std::endl; isPaused = true; }
+			void start() { std::cout << "Started." << std::endl; isPaused = false; }
+			void pause() { std::cout << "Paused." << std::endl; isPaused = true; }
 			bool closing;
 			bool quit() { return closing = true;}
 

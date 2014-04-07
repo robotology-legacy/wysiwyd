@@ -40,7 +40,7 @@ namespace cvz {
 			/*IDL methods*/
 			void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; lRate = l; }
 			double getLearningRate() { return lRate; }
-			void setSigma(const double s) { std::cout << "Sigma set to : " << l << std::endl; sigmaH = s; }
+			void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; sigmaH = s; }
 			double getSigma() { return sigmaH; }
 			double getActivity(int x, int y, int z) { return activity[x][y][z]; }
 			bool saveWeightsToFile(std::string path){ std::cout << "Trying to save weights to " << path << std::endl; return saveWeights(path); }
