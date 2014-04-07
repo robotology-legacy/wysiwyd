@@ -19,8 +19,8 @@ namespace cvz {
 			std::string getRpcPortName(){ return rpcPort.getName(); }
 		private:
 			yarp::os::RpcServer rpcPort;
-			void start() { isPaused = false; }
-			void pause() { isPaused = true; }
+			void start() { std::cout << "Paused." << std::endl; isPaused = false; }
+			void pause() { std::cout << "Started." << std::endl; isPaused = true; }
 			bool closing;
 			bool quit() { return closing = true;}
 
@@ -211,6 +211,9 @@ namespace cvz {
 
 			bool updateModule()
 			{
+				if (isPaused)
+					return true;
+
 				//Read the modalities
 				for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
 				{
