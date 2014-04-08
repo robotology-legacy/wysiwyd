@@ -22,8 +22,8 @@ int main(int argc, char * argv[])
 		std::cout << "Please, provide --zones \"(cvz1.ini  \"nameZone1\" ... cvzN.ini \"nameZoneN\")\" " << endl;
 		return -1;
 	}
-	std::string outputFile = rf.check("outputFile", Value("output.xml")).asString();
-	std::string applicationName = rf.check("applicationName", Value("Default CVZ hierarchy")).asString();
+	std::string outputFile = rf.check("outputFile", Value("output.xml")).asString().c_str();
+	std::string applicationName = rf.check("applicationName", Value("Default CVZ hierarchy")).asString().c_str();
 
 	//Create the cvz stack in memory
 	std::vector<cvz::core::IConvergenceZone* > zones;
@@ -32,14 +32,14 @@ int main(int argc, char * argv[])
 	for (int m = 0; m < cvzList->size(); m += 2)
 	{
 		cvz::core::IConvergenceZone* mod = NULL;
-		std::string fileName = cvzList->get(m).asString();
-		std::string mapName = cvzList->get(m + 1).asString();
+		std::string fileName = cvzList->get(m).asString().c_str();
+		std::string mapName = cvzList->get(m + 1).asString().c_str();
 		Property prop;
 		prop.fromConfigFile(rf.findFileByName(fileName));
 		prop.unput("name");
 		prop.put("name", Value(mapName));
 
-		std::string cvzType = prop.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString();
+		std::string cvzType = prop.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString().c_str();
 
 		if (cvz::core::CvzBuilder::allocate(&mod, cvzType))
 		{
