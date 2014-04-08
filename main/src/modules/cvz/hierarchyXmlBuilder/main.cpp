@@ -1,7 +1,7 @@
 
 #include <yarp/os/all.h>
 #include <cvz/core/all.h>
-#include "Cvz2xml.h"
+#include "Cvz2Xml.h"
 using namespace std;
 using namespace yarp::os;
 int main(int argc, char * argv[])
