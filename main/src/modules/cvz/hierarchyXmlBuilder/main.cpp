@@ -52,7 +52,7 @@ int main(int argc, char * argv[])
 	}
 
 	//Dump it to an xml format
-	std::ofstream xml(outputFile);
+	std::ofstream xml(outputFile.c_str());
 	xml << "<application>" << '\n';
 	xml << '\t' + getBalise("name", applicationName);
 
@@ -123,7 +123,7 @@ int main(int argc, char * argv[])
 	//Export the modules descriptions
 	for (std::map < cvz::core::IConvergenceZone*, std::string >::iterator it = configFilesModulesDescription.begin(); it != configFilesModulesDescription.end(); it++)
 	{
-		std::ofstream xml(it->first->getName()+ ".xml");
+		std::ofstream xml( (it->first->getName()+ ".xml").c_str() );
 		xml << it->second;
 		xml.close();
 	}
