@@ -362,8 +362,8 @@ namespace cvz {
 							if (recurrentModality)
 							{
 
-								float pastDistanceH = sqrt(pow(x - winnersBuffer.back()[0], 2.0) + pow(y - winnersBuffer.back()[1], 2.0));
-								float pastDistanceV = sqrt(pow(z - winnersBuffer.back()[2], 2.0));
+								//float pastDistanceH = sqrt(pow(x - winnersBuffer.back()[0], 2.0) + pow(y - winnersBuffer.back()[1], 2.0));
+								//float pastDistanceV = sqrt(pow(z - winnersBuffer.back()[2], 2.0));
 								//float pdHCoef = helpers::GaussianBell(pastDistanceH, sigmaH);
 								//float pdVCoef = helpers::GaussianBell(pastDistanceV, sigmaV);
 								std::vector<double> valueReal = recurrentModality->GetValueReal();

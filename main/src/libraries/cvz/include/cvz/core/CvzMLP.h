@@ -288,7 +288,7 @@ namespace cvz {
 					//std::cout<<"Layer "<<itLayer<<std::endl;
 					//compute gradients
 					std::vector<double> currentError;
-					if (itLayer == hLayerGradients.size() - 1)
+					if ( (unsigned int) itLayer == hLayerGradients.size() - 1)
 						currentError = outputGradients;
 					else
 						currentError = hLayerGradients[itLayer + 1];
@@ -317,7 +317,7 @@ namespace cvz {
 
 					//printFuckingVector("In",curInputs);
 
-					if (itLayer == vWeights.size() - 1)
+					if ( (unsigned int) itLayer == vWeights.size() - 1)
 						gradients = outputGradients;
 					else
 						gradients = hLayerGradients[itLayer];
