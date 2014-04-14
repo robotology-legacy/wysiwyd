@@ -403,13 +403,13 @@ namespace cvz {
 					file << "name" << '\t' << wModIt->first->Name() << std::endl;
 					file << "size" << '\t' << wModIt->first->Size() << std::endl;
 					yarp::os::Bottle b;
-					for (int comp = 0; comp < wModIt->second.size(); comp++)
+					for (unsigned int comp = 0; comp < wModIt->second.size(); comp++)
 					{
-						for (int x = 0; x < wModIt->second[comp].size(); x++)
+						for (unsigned int x = 0; x < wModIt->second[comp].size(); x++)
 						{
-							for (int y = 0; y < wModIt->second[comp][x].size(); y++)
+							for (unsigned int y = 0; y < wModIt->second[comp][x].size(); y++)
 							{
-								for (int z = 0; z < wModIt->second[comp][x][y].size(); z++)
+								for (unsigned int z = 0; z < wModIt->second[comp][x][y].size(); z++)
 								{
 									b.addDouble(wModIt->second[comp][x][y][z]);
 								}
@@ -466,11 +466,11 @@ namespace cvz {
 					int wCtr = 0;
 					for (int comp = 0; comp < mSize; comp++)
 					{
-						for (int x = 0; x < weights[m][comp].size(); x++)
+						for (unsigned int x = 0; x < weights[m][comp].size(); x++)
 						{
-							for (int y = 0; y < weights[m][comp][x].size(); y++)
+							for (unsigned int y = 0; y < weights[m][comp][x].size(); y++)
 							{
-								for (int z = 0; z < weights[m][comp][x][y].size(); z++)
+								for (unsigned int z = 0; z < weights[m][comp][x][y].size(); z++)
 								{
 									weights[m][comp][x][y][z] = bWeights->get(wCtr).asDouble();
 									wCtr++;
