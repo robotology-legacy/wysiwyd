@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>imageSplitter</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Simple image splitter</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Simply decompose an image coming on a yarp port into svereal region. Assigning a specific output port to each of them. \n
+   </description-long>
+
+   <arguments>
+   <param default="imageSplitter" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   <param default="3" desc="The number of divisions in width.">splitW</param>
+   <param default="3" desc="The number of divisions in height.">splitH</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+      <input>
+          <type>yarp::sig::Image></type>
+          <port carrier="udp">/imageSplitter/image:i</port>
+          <required>no</required>
+          <priority>no</priority>
+          <description>
+              Accepts an image to be decomposed in sub-regions.
+          </description>
+      </input>
+
+     <output>
+       <type>yarp::sig::Image</type>
+       <port carrier="udp">/imageSplitter/split/x_y:o</port>
+       <required>no</required>
+       <priority>no</priority>
+       <description>
+         Send the image corresponding to the x_y region in the input image.
+         As many output ports as regions will be created (e.g /imageSplitter/split/2_2:o will send the center region with the default 3x3 division)
+       </description>
+     </output>
+   </data>
+   
+   
+</module>
+
