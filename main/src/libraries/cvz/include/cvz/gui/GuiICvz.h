@@ -142,7 +142,6 @@ namespace cvz {
 			void run()
 			{
 				gtk_main();
-				int bp;
 			}
 
 		public:

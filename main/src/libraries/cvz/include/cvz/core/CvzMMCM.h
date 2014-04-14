@@ -246,7 +246,7 @@ namespace cvz {
 				//Send the output activity
 				portActivity.write();
 
-				if (winnersBuffer.size() == recurrenceDelay)
+				if (winnersBuffer.size() == (unsigned int) recurrenceDelay)
 					winnersBuffer.pop();
 				std::vector<int> currentWinner(3);
 				currentWinner[0] = xWin;
@@ -326,8 +326,8 @@ namespace cvz {
 								std::vector<double> valueReal = it->second->GetValueReal();
 								for (int i = 0; i < it->second->Size(); i++)
 								{
-									double currentW = weights[it->second][i][x][y][z];
-									double desiredW = valueReal[i];
+									//double currentW = weights[it->second][i][x][y][z];
+									//double desiredW = valueReal[i];
 									double dW = (valueReal[i] - weights[it->second][i][x][y][z]);
 									weights[it->second][i][x][y][z] +=
 										lRate *
@@ -364,13 +364,13 @@ namespace cvz {
 
 								float pastDistanceH = sqrt(pow(x - winnersBuffer.back()[0], 2.0) + pow(y - winnersBuffer.back()[1], 2.0));
 								float pastDistanceV = sqrt(pow(z - winnersBuffer.back()[2], 2.0));
-								float pdHCoef = helpers::GaussianBell(pastDistanceH, sigmaH);
-								float pdVCoef = helpers::GaussianBell(pastDistanceV, sigmaV);
+								//float pdHCoef = helpers::GaussianBell(pastDistanceH, sigmaH);
+								//float pdVCoef = helpers::GaussianBell(pastDistanceV, sigmaV);
 								std::vector<double> valueReal = recurrentModality->GetValueReal();
 								for (int i = 0; i < recurrentModality->Size(); i++)
 								{
-									double currentW = weights[recurrentModality][i][x][y][z];
-									double desiredW = valueReal[i];
+									//double currentW = weights[recurrentModality][i][x][y][z];
+									//double desiredW = valueReal[i];
 									double dW = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
 									weights[recurrentModality][i][x][y][z] +=
 										lRate *

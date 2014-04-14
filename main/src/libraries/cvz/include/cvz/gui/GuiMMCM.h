@@ -97,7 +97,7 @@ namespace cvz {
 				frames_activity.resize(m->L());
 				pxBuf_activity.resize(m->L());
 
-				for (int i = 0; i < frames_activity.size(); i++)
+				for (unsigned int i = 0; i < frames_activity.size(); i++)
 				{
 					pxBuf_activity[i] = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, m->W(), m->H());
 					frames_activity[i] = gtk_drawing_area_new();
@@ -114,7 +114,7 @@ namespace cvz {
 				this->GuiICvz::refreshElements();
 				core::CvzMMCM* m = getCvz();
 				//In all cases we refresh their activity
-				for (int i = 0; i < frames_activity.size(); i++)
+				for (unsigned int i = 0; i < frames_activity.size(); i++)
 				{
 					yarp::sig::ImageOf<yarp::sig::PixelRgb> img = m->getLayerActivity(i);
 					helpers::yarpImage2Pixbuf(&img, pxBuf_activity[i]);

@@ -283,7 +283,7 @@ namespace cvz {
 			//back propagation - calculate the hidden layers gradients (errors)
 			void computeHLGradientsAndWeights(std::vector<double> &inputs, std::vector<double> &outputs)
 			{
-				for (unsigned int itLayer = hLayerGradients.size() - 1; itLayer >= 0; itLayer--)
+				for (int itLayer = hLayerGradients.size() - 1; itLayer >= 0; itLayer--)
 				{
 					//std::cout<<"Layer "<<itLayer<<std::endl;
 					//compute gradients
@@ -306,7 +306,7 @@ namespace cvz {
 				//std::cout << "gradient computed" << std::endl;
 
 				//update weights
-				for (unsigned int itLayer = vWeights.size() - 1; itLayer >= 0; itLayer--)
+				for (int itLayer = vWeights.size() - 1; itLayer >= 0; itLayer--)
 				{
 					std::vector<double> curInputs;
 					std::vector<double> gradients;
@@ -410,7 +410,7 @@ namespace cvz {
 				if (hiddenL && hiddenL->size() > 0)
 				{
 					std::vector<int> hiddenLayers;
-					for (unsigned int i = 0; i < hiddenL->size(); i++)
+					for (int i = 0; i < hiddenL->size(); i++)
 						hiddenLayers.push_back(hiddenL->get(i).asInt());
 					std::cout << "HIDDEN LAYERS VALUES:" << std::endl;
 					for (std::vector<int>::iterator it = hiddenLayers.begin(); it != hiddenLayers.end(); it++)
@@ -444,7 +444,7 @@ namespace cvz {
 
 				if (!hasLearnt)
 				{
-					if (trainingSet.size() < desiredTrainingSetSize)
+					if (trainingSet.size() < (unsigned int) desiredTrainingSetSize)
 					{
 						std::cout << "Filling buffer mode" << std::endl;
 						if (trainingSet.size() == 0)

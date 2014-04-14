@@ -408,7 +408,7 @@ namespace cvz {
 			int cnt = 0;
 			for (unsigned int i = 0; i<mask.size(); i++)
 			{
-				if (i>input->size())
+				if (i>(unsigned int)input->size())
 				{
 					std::cout << portReal.getName() << "-----> Warning: received smaller input..." << std::endl;
 					return v;
@@ -471,7 +471,7 @@ namespace cvz {
 			int cnt = 0;
 			for (unsigned int i = 0; i<mask.size(); i++)
 			{
-				if (i>img.width() * img.height())
+				if (i> (unsigned int) (img.width() * img.height()) )
 				{
 					std::cout << portReal.getName() << "-----> Warning: This should not happen (img resolution is too large)" << std::endl;
 					return v;
@@ -547,7 +547,7 @@ namespace cvz {
 			int cnt = 0;
 			for (unsigned int i = 0; i<mask.size(); i++)
 			{
-				if (i>input->width() * input->height())
+				if (i>(unsigned int)(input->width() * input->height()))
 				{
 					std::cout << portReal.getName() << "-----> Warning: This should not happen (img resolution is too large)" << std::endl;
 					return v;
