@@ -313,7 +313,7 @@ namespace cvz {
 				//Compute the error
 				double error = 0.0;
 
-				for (int i = 0; i < scaledValuePrediction.size(); i++)
+				for (unsigned int i = 0; i < scaledValuePrediction.size(); i++)
 				{
 					error += fabs(scaledValuePrediction[i] - scaledValueReal[i]);
 				}
@@ -385,7 +385,7 @@ namespace cvz {
 		{
 			yarp::os::Bottle b;
 			int cnt = 0;
-			for (int i = 0; i < mask.size(); i++)
+			for (unsigned int i = 0; i < mask.size(); i++)
 			{
 				if (mask[i])
 				{
@@ -406,7 +406,7 @@ namespace cvz {
 			v.resize(size);
 
 			int cnt = 0;
-			for (int i = 0; i<mask.size(); i++)
+			for (unsigned int i = 0; i<mask.size(); i++)
 			{
 				if (i>input->size())
 				{
@@ -433,7 +433,7 @@ namespace cvz {
 			img.resize(desiredWidth, desiredWidth);
 
 			int cnt = 0;
-			for (int i = 0; i < mask.size(); i++)
+			for (unsigned int i = 0; i < mask.size(); i++)
 			{
 				if (mask[i])
 				{
@@ -469,7 +469,7 @@ namespace cvz {
 			//input->resize(size / 2, size - size / 2);
 
 			int cnt = 0;
-			for (int i = 0; i<mask.size(); i++)
+			for (unsigned int i = 0; i<mask.size(); i++)
 			{
 				if (i>img.width() * img.height())
 				{
@@ -522,7 +522,7 @@ namespace cvz {
 			img.resize(size / 2, size - size / 2);
 
 			int cnt = 0;
-			for (int i = 0; i < mask.size(); i++)
+			for (unsigned int i = 0; i < mask.size(); i++)
 			{
 				if (mask[i])
 				{
@@ -545,7 +545,7 @@ namespace cvz {
 			img.copy(*input, size / 2, size - size / 2);
 
 			int cnt = 0;
-			for (int i = 0; i<mask.size(); i++)
+			for (unsigned int i = 0; i<mask.size(); i++)
 			{
 				if (i>input->width() * input->height())
 				{

@@ -10,33 +10,6 @@ namespace cvz {
 #define MMCM_GUI_ACTIVITY_H 200
 #define MMCM_GUI_ACTIVITY_W 200
 
-		static void GuiMMCM_onLearningChange(GtkWidget *widget, gpointer data)
-		{
-			if (data == NULL)
-				return;
-			core::CvzMMCM* m = (core::CvzMMCM*)data;
-			double iValue = gtk_range_get_value(GTK_RANGE(widget));
-			m->lRate = iValue;
-		}
-
-		static void GuiMMCM_onSigmaChange(GtkWidget *widget, gpointer data)
-		{
-			if (data == NULL)
-				return;
-			core::CvzMMCM* m = (core::CvzMMCM*)data;
-			double iValue = gtk_range_get_value(GTK_RANGE(widget));
-			m->sigmaH = iValue;
-		}
-
-		static void GuiMMCM_onInfluenceChange(GtkWidget *widget, gpointer data)
-		{
-			if (data == NULL)
-				return;
-			double* inf = (double*)data;
-			double iValue = gtk_range_get_value(GTK_RANGE(widget));
-			(*inf) = iValue;
-		}
-
 		static gboolean paintActivity(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 		{
 			GdkPixbuf* pxBuf = (GdkPixbuf*)data;
