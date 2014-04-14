@@ -39,6 +39,12 @@ int main(int argc, char * argv[])
 	if (cvz::core::CvzBuilder::allocate(&mod, cvzType))
 	{
 		yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
+		if (rf.check("name"))
+		{
+			prop.unput("name");
+			prop.put("name", Value(rf.find("name")));
+		}
+
 		mod->configure(prop);
 		if (displayGui)
 		{
