@@ -199,7 +199,7 @@ public:
         optionAction.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionAction.put("grasp_model_file",rf.findFile(grasp_model_file.c_str()).c_str());
         optionAction.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());
-        graspModelFileToWrite=rf.getHomeContextPath();
+        graspModelFileToWrite=rf.getHomeContextPath().c_str();
         graspModelFileToWrite+="/";
         graspModelFileToWrite+=rf.find(grasp_model_file.c_str()).asString().c_str();
 
