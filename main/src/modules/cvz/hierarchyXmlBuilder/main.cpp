@@ -133,7 +133,6 @@ int main(int argc, char * argv[])
     //Close the zones
     for (int m = 0; m < zones.size(); m++)
     {
-        zones[m]->stopModule();
         zones[m]->interruptModule();
         zones[m]->close();
     }

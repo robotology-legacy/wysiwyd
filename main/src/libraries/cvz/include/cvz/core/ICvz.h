@@ -13,18 +13,20 @@
 
 namespace cvz {
 	namespace core {
-		class IConvergenceZone : public yarp::os::RFModule, public cvz_IDL
+		class IConvergenceZone : public cvz_IDL
 		{
+
 		public:
-			std::string getRpcPortName(){ return rpcPort.getName(); }
-		private:
 			yarp::os::RpcServer rpcPort;
+
+			std::string getRpcPortName(){ return rpcPort.getName(); }
+			std::string getName(){ return name; }
+			void setName(std::string _name){ name = _name; }
 			void start() { std::cout << "Started." << std::endl; isPaused = false; }
 			void pause() { std::cout << "Paused." << std::endl; isPaused = true; }
-			bool closing;
-			bool quit() { return closing = true;}
 
 		protected:
+			std::string name;
 			int cyclesElapsed;
 			double period;
 			bool isPaused;
@@ -167,7 +169,7 @@ namespace cvz {
 
 				std::cout << std::endl << "Modalities added. Starting the CVZ process with " << period << "s period" << std::endl;
 				cyclesElapsed = 0;
-				closing = false;
+
 				return true;
 			}
 			
@@ -204,12 +206,7 @@ namespace cvz {
 				return true;
 			}
 
-			double getPeriod()
-			{
-				return period;
-			}
-
-			bool updateModule()
+			bool cycle()
 			{
 				if (isPaused)
 					return true;
@@ -239,7 +236,7 @@ namespace cvz {
 				if (cyclesElapsed % 500 == 0)
 					std::cout << getName() << "\t t=" << cyclesElapsed << std::endl;
 				cyclesElapsed++;
-				return !closing;
+				return true;
 			}
 
 			virtual void ComputePrediction()

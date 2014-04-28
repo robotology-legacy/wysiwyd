@@ -26,22 +26,6 @@
 namespace cvz {
 	namespace core {
 
-		struct ThreadedModule :yarp::os::Thread
-		{
-			yarp::os::RFModule* mod;
-		public:
-			
-			ThreadedModule(yarp::os::RFModule* _mod)
-			{
-				mod = _mod;
-			}
-
-			void run()
-			{
-				mod->runModule();
-			}
-		};
-
 		/**
 		* CvzStack
 		* A simple helper class that allows to create a graph of CVZ from code
@@ -49,8 +33,7 @@ namespace cvz {
 		*/
 		class CvzStack: public yarp::os::RFModule
 		{
-			std::list< IConvergenceZone* > nodes;
-			std::list< ThreadedModule* > threads;
+			std::list< ThreadedCvz* > nodes;
 			std::map<std::string, IModality* > nodesIO;
 			std::map< IModality*, std::map<IModality*, bool > > connections;
 			
@@ -116,13 +99,12 @@ namespace cvz {
 			*/
 			bool close()
 			{
-				bool result = true;
-				for (std::list<IConvergenceZone*>::iterator it = nodes.begin(); it != nodes.end(); it++)
+				for (std::list<ThreadedCvz*>::iterator it = nodes.begin(); it != nodes.end(); it++)
 				{
-					result &= (*it)->close();
+					(*it)->stop();
 					delete (*it);
 				}
-				return result;
+				return true;
 			}
 
 			/**
@@ -132,35 +114,32 @@ namespace cvz {
 			*/
 			bool addCvz(std::string configFile, std::string overrideName="")
 			{
-				IConvergenceZone* cvz;
+
 				yarp::os::ResourceFinder rf;
 				rf.setVerbose(true);
 				rf.setDefaultContext("cvz");
 				rf.setDefaultConfigFile(configFile.c_str());
-				rf.configure(NULL, NULL);
-				
-				yarp::os::Property prop; 
-				prop.fromConfigFile(rf.findFile("from"));
-				std::string cvzType = prop.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString();
-				if (overrideName!="" && rf.check("name"))
+				rf.configure(NULL, NULL);			
+
+				yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
+
+				if (prop.check("name") && overrideName != "")
 				{
 					prop.unput("name");
-					prop.put("name", yarp::os::Value(overrideName));
+					prop.put("name", overrideName);
 				}
 
-				if (cvz::core::CvzBuilder::allocate(&cvz, cvzType))
-				{
-					if (!cvz->configure(prop)) return false;
-					ThreadedModule* tm = new ThreadedModule(cvz);
-					tm->start();
-					threads.push_back(tm);
-				}
+				ThreadedCvz* newCvz = new ThreadedCvz(prop, 100);
+				if(newCvz->start())
+					nodes.push_back(newCvz);
 				else return false;
+
 				//Expand the connection list and the connection matrix
-				for (std::map<std::string, IModality* >::iterator it = cvz->modalitiesBottomUp.begin(); it != cvz->modalitiesBottomUp.end(); it++)
+				for (std::map<std::string, IModality* >::iterator it = newCvz->cvz->modalitiesBottomUp.begin(); it != newCvz->cvz->modalitiesBottomUp.end(); it++)
 					nodesIO[it->second->GetFullName()] = it->second;
-				for (std::map<std::string, IModality* >::iterator it = cvz->modalitiesTopDown.begin(); it != cvz->modalitiesTopDown.end(); it++)
+				for (std::map<std::string, IModality* >::iterator it = newCvz->cvz->modalitiesTopDown.begin(); it != newCvz->cvz->modalitiesTopDown.end(); it++)
 					nodesIO[it->second->GetFullName()] = it->second;
+
 				fillConnectionMatrix();
 				return true;
 			}

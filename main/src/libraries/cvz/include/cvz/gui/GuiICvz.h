@@ -136,7 +136,7 @@ namespace cvz {
 
 			void threadRelease()
 			{
-
+				gtk_main_quit();
 			}
 
 			void run()
@@ -178,6 +178,10 @@ namespace cvz {
 				gui->RefreshElements();
 			}
 
+			void threadRelease()
+			{
+				gtk_main_quit();
+			}
 		};
 	}
 }

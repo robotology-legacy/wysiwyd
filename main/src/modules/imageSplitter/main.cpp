@@ -140,8 +140,8 @@ public:
 		showImages = rf.check("showImages");
 
 		//Create ports
-		global = new Retina("split", splitW, splitH);
-		fovea = new Retina("fovea/split", splitFovea, splitFovea);
+		global = new Retina(name, splitW, splitH);
+		fovea = new Retina(name+"/fovea", splitFovea, splitFovea);
 		if (showImages)
 		{
 			global->createCvWindows(0, 0);
