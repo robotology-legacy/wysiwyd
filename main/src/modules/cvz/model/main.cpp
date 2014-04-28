@@ -31,10 +31,6 @@ int main(int argc, char * argv[])
 	rf.configure(argc, argv);
 
 	cvz::core::CvzStack stack;
-	//cvz::gui::GuiICvz* gui = NULL;
-	//cvz::gui::GuiThread* guiThread = NULL;
-	//std::string cvzType = rf.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString();
-	//bool displayGui = rf.check("displayGui");
 	
 	for (int x = 0; x < 2; x++)
 	{

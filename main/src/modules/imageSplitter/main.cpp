@@ -169,8 +169,8 @@ public:
 			cvSetImageROI(foveaImg, cvRect(
 				foveaImg->width / 2, 
 				foveaImg->height / 2, 
-				foveaRatio*foveaImg->width, 
-				foveaRatio*foveaImg->height));
+				(int)(foveaRatio*foveaImg->width), 
+				(int)(foveaRatio*foveaImg->height)));
 			fovea->writeAndShow(foveaImg, showImages);
 			cvReleaseImage(&foveaImg);
 		}
