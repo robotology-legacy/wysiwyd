@@ -29,11 +29,11 @@ namespace cvz {
 				gtk_range_set_value(GTK_RANGE(slider), *val);
 				g_signal_connect(G_OBJECT(slider), "value-changed", G_CALLBACK(Gui_onSliderChange), val);
 
-				gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 5);
-				gtk_box_pack_start(GTK_BOX(box), slider, FALSE, FALSE, 5);
+				gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+				gtk_box_pack_start(GTK_BOX(box), slider, FALSE, FALSE, 0);
 
-				gtk_widget_set_size_request(label, 100, 50);
-				gtk_widget_set_size_request(slider, 100, 50);
+				gtk_widget_set_size_request(label, 100, 15);
+				gtk_widget_set_size_request(slider, 100, 15);
 				gtk_widget_show(label);
 				gtk_widget_show(slider);
 				gtk_widget_show(box);
