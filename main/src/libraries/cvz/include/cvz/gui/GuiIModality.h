@@ -37,10 +37,6 @@ namespace cvz {
 
 		class GuiIModality
 		{
-			void specializedRequestSize(cvz::core::IModality* mod, GtkWidget* wdg, int W, int H)
-			{
-
-			}
 
 		public:
 			GtkWidget* box;
