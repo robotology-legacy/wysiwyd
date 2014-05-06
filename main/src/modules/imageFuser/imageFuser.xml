@@ -15,11 +15,11 @@
 
    <arguments>
    <param default="imageFuser" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
-     <param default="imageSplitter" desc="To specify the port namespace to read from (should match the splitter name).">nameSplitter</param>
+   <param default="imageSplitter/split" desc="To specify the port namespace to read from (should match the splitter name).">nameSplitterPrefix</param>
+   <param default=":o" desc="To specify the suffix after the x_y in the splitter output.">nameSplitterSuffix</param>
    <param default="3" desc="The number of divisions in width.">splitW</param>
    <param default="3" desc="The number of divisions in height.">splitH</param>
-   <param default="1" desc="The number of divisions of the fovea.">splitFovea</param>
-   <param default="0.3" desc="The proportion of the image dimensions to be used as fovea.">foveaRatio</param>
+
    <!-- <param desc="Show the regions as opencv windows.">showImages</param> -->
    </arguments>
 

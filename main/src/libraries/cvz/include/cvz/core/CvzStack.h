@@ -37,6 +37,11 @@ namespace cvz {
 			std::map<std::string, IModality* > nodesIO;
 			std::map< IModality*, std::map<IModality*, bool > > connections;
 			
+			double getPeriod()
+			{
+				return 0.01;
+			}
+
 			/**
 			* Update.
 			*/
