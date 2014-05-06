@@ -17,7 +17,7 @@
  */
 
 
-#include <knowledge/adjective.h>
+#include <wrdac/knowledge/adjective.h>
 
 using namespace std;
 using namespace yarp::os;

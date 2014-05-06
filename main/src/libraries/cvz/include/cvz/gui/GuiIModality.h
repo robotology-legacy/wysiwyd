@@ -14,7 +14,7 @@ namespace cvz {
 			GdkPixbuf* pxBuf = (GdkPixbuf*)data;
 			double displayRatio = (double)gdk_pixbuf_get_width(pxBuf) / (double)gdk_pixbuf_get_height(pxBuf);
 			int modWidth = CVZ_GUI_MODALITY_DIM_W;
-			int modHeight = CVZ_GUI_MODALITY_DIM_W / displayRatio;
+			int modHeight = (int)(CVZ_GUI_MODALITY_DIM_W / displayRatio);
 			if (gdk_pixbuf_get_height(pxBuf) == 1)
 				modHeight = CVZ_GUI_MODALITY_DIM_H;
 
@@ -74,7 +74,7 @@ namespace cvz {
 				int heightTested = imgTest.height();
 				double displayRatio = (double)widthTested / (double)heightTested;
 				int modWidth = CVZ_GUI_MODALITY_DIM_W;
-				int modHeight = CVZ_GUI_MODALITY_DIM_W / displayRatio;
+				int modHeight = (int)(CVZ_GUI_MODALITY_DIM_W / displayRatio);
 				if (heightTested==1)
 					modHeight = CVZ_GUI_MODALITY_DIM_H;
 

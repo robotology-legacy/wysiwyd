@@ -24,8 +24,8 @@
 #include <iostream>
 #include <iterator>
 #include <algorithm>
-#include "subsystems/subSystem.h"
-#include "knowledge/rtObject.h"
+#include "wrdac/subsystems/subSystem.h"
+#include "wrdac/knowledge/rtObject.h"
 
 namespace wysiwyd{namespace wrdac{
 

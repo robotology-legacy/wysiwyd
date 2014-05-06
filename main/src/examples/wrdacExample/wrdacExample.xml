@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>xrdacExample</name>
+   <doxygen-group>wysiwyd_examples</doxygen-group>
+   <description>Example of instantiating an iCubClient from the wrdac library</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Example/tutorial module about how the possibilities offered by the wrdac library. The module create an iCub client and trigger various actions. \n
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+   </data>
+   
+   
+</module>
+

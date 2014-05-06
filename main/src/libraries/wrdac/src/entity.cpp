@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-#include <knowledge/entity.h>
+#include <wrdac/knowledge/entity.h>
 
 using namespace std;
 using namespace yarp::os;

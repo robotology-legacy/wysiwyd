@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-#include <clients/icubClient.h>
+#include <wrdac/clients/icubClient.h>
 
 using namespace std;
 using namespace yarp::os;

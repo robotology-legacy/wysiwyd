@@ -17,7 +17,7 @@
  */
 
 
-#include <knowledge/rtObject.h>
+#include <wrdac/knowledge/rtObject.h>
 
 using namespace std;
 using namespace yarp::os;

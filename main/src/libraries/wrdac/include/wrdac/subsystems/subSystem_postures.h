@@ -24,8 +24,8 @@
 
 #include <iostream>
 #include <algorithm>
-#include "subsystems/subSystem.h"
-#include "clients/animation.h"
+#include "wrdac/subsystems/subSystem.h"
+#include "wrdac/clients/animation.h"
 
 namespace wysiwyd{namespace wrdac{
 

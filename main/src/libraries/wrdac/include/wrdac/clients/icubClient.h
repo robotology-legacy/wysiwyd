@@ -20,8 +20,8 @@
 #define __EFAA_ICUBCLIENT_H__
 #include <fstream>
 #include <yarp/os/Network.h>
-#include <clients/opcClient.h>
-#include "subsystems/all.h"
+#include <wrdac/clients/opcClient.h>
+#include "wrdac/subsystems/all.h"
 #include "animation.h"
 
 namespace wysiwyd{namespace wrdac{

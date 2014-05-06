@@ -1,4 +1,4 @@
-#include "clients/animation.h"
+#include "wrdac/clients/animation.h"
 
 using namespace std;
 using namespace yarp::os;
