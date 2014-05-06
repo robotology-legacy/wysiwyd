@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>imageFuser</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Simple image fuser, to recompose an image from an imageSplitter format.</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Simply recompose an image coming from an imageSplitter module (or similar port configuration). Display the image in an opencv window. \n
+   </description-long>
+
+   <arguments>
+   <param default="imageFuser" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+     <param default="imageSplitter" desc="To specify the port namespace to read from (should match the splitter name).">nameSplitter</param>
+   <param default="3" desc="The number of divisions in width.">splitW</param>
+   <param default="3" desc="The number of divisions in height.">splitH</param>
+   <param default="1" desc="The number of divisions of the fovea.">splitFovea</param>
+   <param default="0.3" desc="The proportion of the image dimensions to be used as fovea.">foveaRatio</param>
+   <!-- <param desc="Show the regions as opencv windows.">showImages</param> -->
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+     <!-- WE SHOULD ADD AN OUTPUT PORT
+      <input>
+          <type>yarp::sig::Image></type>
+          <port carrier="udp">/imageFuser/image:i</port>
+          <required>no</required>
+          <priority>no</priority>
+          <description>
+              Accepts an image to be decomposed in sub-regions.
+          </description>
+      </input>
+     -->
+     <input>
+       <type>yarp::sig::Image</type>
+       <port carrier="udp">/imageFuser/split/x_y:o</port>
+       <required>no</required>
+       <priority>no</priority>
+       <description>
+         Send the image corresponding to the x_y region in the input image.
+         As many output ports as regions will be created (e.g /imageSplitter/split/2_2:o will read the center region with the default 3x3 division)
+       </description>
+     </input>
+
+     <input>
+       <type>yarp::sig::Image</type>
+       <port carrier="udp">/imageFuser/fovea/split/x_y:o</port>
+       <required>no</required>
+       <priority>no</priority>
+       <description>
+         Read the image corresponding to the x_y region of the fovea in the input image.
+         As many input ports as regions will be created (e.g /imageFuser/fovea/split/2_2:o will read the center region with a 3x3 division)
+       </description>
+     </input>
+   </data>
+   
+   
+</module>
+
