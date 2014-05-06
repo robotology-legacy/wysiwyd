@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+
+<module>
+
+  <name>opcManager</name>
+  <doxygen-group>wysiwyd_modules</doxygen-group>
+  <description>Module to handle the gestion of 2 OPC's: one real and one Mental</description>
+  <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+  <version>1.0</version>
+
+  <description-long>
+    Module to handle the gestion of two differents OPC's. One is real and plugged on real sensors, the other one is Mental. The goal of this module is to manipulate the content of the Mental OPC, according to the will of the user, mainly with the use of the ABM.
+  </description-long>
+
+  <arguments>
+    <param default="opcManager" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+    <param default="OPC" desc="Name of the real OPC (the one plugged on the sensors)">realOPC</param>
+    <param default="mentalOPC" desc="Name of the mental OPC">mentalOPC</param>
+  </arguments>
+
+  <authors>
+    <author email="gregoire.pointeau@inserm.fr"> Grégoire Pointeau </author>
+  </authors>
+
+  <data>
+    <input>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/opcManager/rpc</port>
+      <required>yes</required>
+      <priority>no</priority>
+      <description>
+        RPC port of the module, main input. Get the external commands
+      </description>
+    </input>
+
+    <output>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/opcManager/toABMR</port>
+      <required>yes</required>
+      <description>
+        Port to abmReasoning. Query information about the knwoledge of the robot. To be connected to "/abmReasoning/rpc".
+      </description>
+    </output>
+
+  </data>
+</module>
+
