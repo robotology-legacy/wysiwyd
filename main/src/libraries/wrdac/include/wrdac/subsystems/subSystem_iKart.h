@@ -21,7 +21,7 @@
 
 #define SUBSYSTEM_IKART         "ikart"
 
-#include "subsystems/subSystem.h"
+#include "wrdac/subsystems/subSystem.h"
 #include <yarp/os/Network.h>
 #include <yarp/sig/all.h>
 #include <yarp/math/Math.h>

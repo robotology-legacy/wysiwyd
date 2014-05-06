@@ -17,7 +17,7 @@
  */
 
 
-#include <knowledge/action.h>
+#include <wrdac/knowledge/action.h>
 
 using namespace std;
 using namespace yarp::os;

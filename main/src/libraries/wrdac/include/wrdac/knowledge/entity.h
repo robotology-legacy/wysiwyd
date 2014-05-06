@@ -27,7 +27,7 @@
 #include <list>
 #include <iostream>
 #include <sstream>
-#include <tags.h>
+#include <wrdac/tags.h>
 
 namespace wysiwyd{namespace wrdac{
 

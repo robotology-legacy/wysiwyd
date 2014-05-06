@@ -19,8 +19,8 @@
 #ifndef __EFAA_OPCC_H__
 #define __EFAA_OPCC_H__
 
-#include "knowledge/representations.h"
-#include "tags.h"
+#include "wrdac/knowledge/representations.h"
+#include "wrdac/tags.h"
 namespace wysiwyd{namespace wrdac{
 
 /**

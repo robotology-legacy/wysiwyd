@@ -3,8 +3,8 @@
 #ifndef __EFAA_OPCSAVE_H__
 #define __EFAA_OPCSAVE_H__
 
-#include <clients/opcClient.h>
-#include <knowledge/representations.h>
+#include <wrdac/clients/opcClient.h>
+#include <wrdac/knowledge/representations.h>
 
 #include <vector>
 #include <ctime>

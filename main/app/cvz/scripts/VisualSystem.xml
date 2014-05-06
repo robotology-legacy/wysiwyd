@@ -1,53 +1,68 @@
 <application>
     <name>VisualSystem</name>
+
     <module>
-        <name>cvzCore (gaze)</name>
-        <parameters>--from icub_head.ini --name gaze</parameters>
-        <node>icubsrv</node>
+        <name>imageSplitter</name>
+        <parameters>--splitW 2 --splitH 2</parameters>
+        <node>icubAlien</node>
         <prefix></prefix>
-        <deployer>cvzCore</deployer>
         <geometry>(Pos (x 330.03) (y 0.81))</geometry>
     </module>
+
     <module>
-        <name>cvzCore (retina_0_0)</name>
-        <parameters>--from retinaCell.ini --name retina_0_0</parameters>
-        <node>icubsrv</node>
+        <name>cvzCore</name>
+        <parameters>--from icub_head.ini --name gaze --displayGui</parameters>
+        <node>icubAlien</node>
         <prefix></prefix>
-        <deployer>cvzCore</deployer>
+        <geometry>(Pos (x 330.03) (y 0.81))</geometry>
+    </module>
+
+    <module>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina_0_0 --displayGui</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
         <geometry>(Pos (x 330.56) (y 105.22))</geometry>
     </module>
+
     <module>
-        <name>cvzCore (retina_0_1)</name>
-        <parameters>--from retinaCell.ini --name retina_0_1</parameters>
-        <node>icubsrv</node>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina_0_1 --displayGui</parameters>
+        <node>icubAlien</node>
         <prefix></prefix>
-        <deployer>cvzCore</deployer>
         <geometry>(Pos (x 330.09) (y 210.69))</geometry>
     </module>
+
     <module>
-        <name>cvzCore (retina_1_0)</name>
-        <parameters>--from retinaCell.ini --name retina_1_0</parameters>
-        <node>icubsrv</node>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina_1_0 --displayGui</parameters>
+        <node>icubAlien</node>
         <prefix></prefix>
-        <deployer>cvzCore</deployer>
         <geometry>(Pos (x 330.38) (y 315.28))</geometry>
     </module>
+
     <module>
-        <name>cvzCore (retina_1_1)</name>
-        <parameters>--from retinaCell.ini --name retina_1_1</parameters>
-        <node>icubsrv</node>
+        <name>cvzCore</name>
+        <parameters>--from retinaCell.ini --name retina_1_1 --displayGui</parameters>
+        <node>icubAlien</node>
         <prefix></prefix>
-        <deployer>cvzCore</deployer>
         <geometry>(Pos (x 330.26) (y 420.69))</geometry>
     </module>
+
     <module>
-        <name>cvzCore (v1)</name>
+        <name>cvzCore</name>
         <parameters>--from v1.ini --name v1</parameters>
-        <node>icubsrv</node>
+        <node>icubAlien</node>
         <prefix></prefix>
-        <deployer>cvzCore</deployer>
         <geometry>(Pos (x 690.03) (y 135.69))</geometry>
     </module>
+
+    <connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/imageSplitter/image:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
     <connection>
         <from>/retina_0_0/v1/prediction:o</from>
         <to>/v1/in_0_0/real:i</to>
@@ -96,50 +111,48 @@
         <protocol></protocol>
         <geometry>(Pos ((x 603.50) (y 364.50)) ((x 876.00) (y 266.00)) ((x 331.00) (y 463.00))  )</geometry>
     </connection>
+
     <connection>
         <from>/gaze/v1/prediction:o</from>
         <to>/v1/gaze/real:i</to>
         <protocol></protocol>
         <geometry>(Pos ((x 611.50) (y 104.50)) ((x 532.00) (y 56.00)) ((x 691.00) (y 153.00))  )</geometry>
     </connection>
+
     <connection>
         <from>/v1/gaze/prediction:o</from>
         <to>/gaze/v1/real:i</to>
         <protocol></protocol>
         <geometry>(Pos ((x 603.50) (y 104.50)) ((x 876.00) (y 166.00)) ((x 331.00) (y 43.00))  )</geometry>
     </connection>
+
     <connection>
         <from external="true">/icub/head/state:o</from>
         <to>/gaze/head/real:i</to>
         <protocol></protocol>
         <geometry>(Pos ((x 299.50) (y 17.50)) ((x 268.00) (y 17.00)) ((x 331.00) (y 18.00))  )</geometry>
     </connection>
+
     <connection>
-        <from>/gaze/head/prediction:o</from>
-        <to external="true">/ikinGazeCtrl/xd:i</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 570.00) (y 30.50)) ((x 532.00) (y 31.00)) ((x 629.00) (y 30.00))  )</geometry>
-    </connection>
-    <connection>
-        <from external="true">/caltechPlayer/image/split/0_0:o</from>
+        <from external="true">/imageSplitter/split/0_0:o</from>
         <to>/retina_0_0/retina/real:i</to>
         <protocol></protocol>
         <geometry>(Pos ((x 308.00) (y 122.50)) ((x 285.00) (y 122.00)) ((x 331.00) (y 123.00))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/caltechPlayer/image/split/0_1:o</from>
+        <from external="true">/imageSplitter/split/0_1:o</from>
         <to>/retina_0_1/retina/real:i</to>
         <protocol></protocol>
         <geometry>(Pos ((x 309.00) (y 227.00)) ((x 287.00) (y 226.00)) ((x 331.00) (y 228.00))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/caltechPlayer/image/split/1_0:o</from>
+        <from external="true">/imageSplitter/split/1_0:o</from>
         <to>/retina_1_0/retina/real:i</to>
         <protocol></protocol>
         <geometry>(Pos ((x 309.50) (y 332.50)) ((x 288.00) (y 332.00)) ((x 331.00) (y 333.00))  )</geometry>
     </connection>
     <connection>
-        <from external="true">/caltechPlayer/image/split/1_1:o</from>
+        <from external="true">/imageSplitter/split/1_1:o</from>
         <to>/retina_1_1/retina/real:i</to>
         <protocol></protocol>
         <geometry>(Pos ((x 305.50) (y 438.00)) ((x 280.00) (y 438.00)) ((x 331.00) (y 438.00))  )</geometry>

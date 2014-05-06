@@ -22,7 +22,7 @@
 #define SUBSYSTEM_ABM           "abm"
 
 #include <iostream>
-#include "subsystems/subSystem.h"
+#include "wrdac/subsystems/subSystem.h"
 
 namespace wysiwyd{namespace wrdac{
 

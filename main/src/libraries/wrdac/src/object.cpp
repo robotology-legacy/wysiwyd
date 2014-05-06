@@ -17,7 +17,7 @@
  */
 
 
-#include <knowledge/object.h>
+#include <wrdac/knowledge/object.h>
 #include <math.h>
 
 using namespace std;

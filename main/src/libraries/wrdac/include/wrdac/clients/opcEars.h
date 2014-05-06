@@ -27,7 +27,7 @@
  * Contact : gregoire.pointeau@inserm.fr
  * @author Grégoire Pointeau
  */ 
-#include <clients/opcSave.h>
+#include <wrdac/clients/opcSave.h>
 
 
 namespace wysiwyd{namespace wrdac{

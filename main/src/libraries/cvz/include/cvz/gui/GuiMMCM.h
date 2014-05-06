@@ -10,33 +10,6 @@ namespace cvz {
 #define MMCM_GUI_ACTIVITY_H 200
 #define MMCM_GUI_ACTIVITY_W 200
 
-		static void GuiMMCM_onLearningChange(GtkWidget *widget, gpointer data)
-		{
-			if (data == NULL)
-				return;
-			core::CvzMMCM* m = (core::CvzMMCM*)data;
-			double iValue = gtk_range_get_value(GTK_RANGE(widget));
-			m->lRate = iValue;
-		}
-
-		static void GuiMMCM_onSigmaChange(GtkWidget *widget, gpointer data)
-		{
-			if (data == NULL)
-				return;
-			core::CvzMMCM* m = (core::CvzMMCM*)data;
-			double iValue = gtk_range_get_value(GTK_RANGE(widget));
-			m->sigmaH = iValue;
-		}
-
-		static void GuiMMCM_onInfluenceChange(GtkWidget *widget, gpointer data)
-		{
-			if (data == NULL)
-				return;
-			double* inf = (double*)data;
-			double iValue = gtk_range_get_value(GTK_RANGE(widget));
-			(*inf) = iValue;
-		}
-
 		static gboolean paintActivity(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 		{
 			GdkPixbuf* pxBuf = (GdkPixbuf*)data;
@@ -124,7 +97,7 @@ namespace cvz {
 				frames_activity.resize(m->L());
 				pxBuf_activity.resize(m->L());
 
-				for (int i = 0; i < frames_activity.size(); i++)
+				for (unsigned int i = 0; i < frames_activity.size(); i++)
 				{
 					pxBuf_activity[i] = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, m->W(), m->H());
 					frames_activity[i] = gtk_drawing_area_new();
@@ -141,7 +114,7 @@ namespace cvz {
 				this->GuiICvz::refreshElements();
 				core::CvzMMCM* m = getCvz();
 				//In all cases we refresh their activity
-				for (int i = 0; i < frames_activity.size(); i++)
+				for (unsigned int i = 0; i < frames_activity.size(); i++)
 				{
 					yarp::sig::ImageOf<yarp::sig::PixelRgb> img = m->getLayerActivity(i);
 					helpers::yarpImage2Pixbuf(&img, pxBuf_activity[i]);

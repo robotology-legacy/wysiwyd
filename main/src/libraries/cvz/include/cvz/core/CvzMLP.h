@@ -44,10 +44,10 @@ namespace cvz {
 			//calculate output activity - NEW
 			void computOutputActivity(std::vector<double> &outputs)
 			{
-				for (int outIt = 0; outIt < outputs.size(); outIt++)
+				for (unsigned int outIt = 0; outIt < outputs.size(); outIt++)
 				{
 					outputs[outIt] = 0.0;
-					for (int hidLayAct = 0; hidLayAct < vHiddenLayers[vHiddenLayers.size() - 1].size(); hidLayAct++)
+					for (unsigned int hidLayAct = 0; hidLayAct < vHiddenLayers[vHiddenLayers.size() - 1].size(); hidLayAct++)
 					{
 						outputs[outIt] += vHiddenLayers[vHiddenLayers.size() - 1][hidLayAct] * vWeights[vWeights.size() - 1][hidLayAct][outIt];
 					}
@@ -60,35 +60,35 @@ namespace cvz {
 			void randomizeEverything(std::vector<int> _hiddenLayers, int in, int out)
 			{
 				vBiases.resize(_hiddenLayers.size() + 1);
-				for (int itResize = 0; itResize < vBiases.size() - 1; itResize++)
+				for (unsigned int itResize = 0; itResize < vBiases.size() - 1; itResize++)
 				{
 					vBiases[itResize].resize(_hiddenLayers[itResize]);
-					for (int it = 0; it < vBiases[itResize].size(); it++)
+					for (unsigned int it = 0; it < vBiases[itResize].size(); it++)
 					{
 						vBiases[itResize][it] = randomFunction();
 					}
 				}
 				vBiases[_hiddenLayers.size()].resize(out);
-				for (int it = 0; it < vBiases[_hiddenLayers.size()].size(); it++)
+				for (unsigned int it = 0; it < vBiases[_hiddenLayers.size()].size(); it++)
 				{
 					vBiases[_hiddenLayers.size()][it] = randomFunction();
 				}
 				std::cout << "biases initialized" << std::endl;
 				//randomize weights
 				vWeights.resize(_hiddenLayers.size() + 1);
-				for (int itWeightsL = 0; itWeightsL < vWeights.size(); itWeightsL++)
+				for (unsigned int itWeightsL = 0; itWeightsL < vWeights.size(); itWeightsL++)
 				{
 					if (itWeightsL == 0)
 						vWeights[itWeightsL].resize(in);
 					else
 						vWeights[itWeightsL].resize(_hiddenLayers[itWeightsL - 1]);
-					for (int itNodeInput = 0; itNodeInput < vWeights[itWeightsL].size(); itNodeInput++)
+					for (unsigned int itNodeInput = 0; itNodeInput < vWeights[itWeightsL].size(); itNodeInput++)
 					{
 						if (itWeightsL == vWeights.size() - 1)
 							vWeights[itWeightsL][itNodeInput].resize(out);
 						else
 							vWeights[itWeightsL][itNodeInput].resize(_hiddenLayers[itWeightsL]);
-						for (int endNode = 0; endNode < vWeights[itWeightsL][itNodeInput].size(); endNode++)
+						for (unsigned int endNode = 0; endNode < vWeights[itWeightsL][itNodeInput].size(); endNode++)
 						{
 							vWeights[itWeightsL][itNodeInput][endNode] = randomFunction();
 						}
@@ -103,12 +103,12 @@ namespace cvz {
 			void printFuckingWeights()
 			{
 				std::cout << "Weights : " << std::endl;
-				for (int layer = 0; layer < vWeights.size(); layer++)
+				for (unsigned int layer = 0; layer < vWeights.size(); layer++)
 				{
 					std::cout << "Layer : " << layer << std::endl;
-					for (int inputNode = 0; inputNode < vWeights[layer].size(); inputNode++)
+					for (unsigned int inputNode = 0; inputNode < vWeights[layer].size(); inputNode++)
 					{
-						for (int endNode = 0; endNode < vWeights[layer][inputNode].size(); endNode++)
+						for (unsigned int endNode = 0; endNode < vWeights[layer][inputNode].size(); endNode++)
 						{
 							std::cout << inputNode << "->" << endNode << "=" << vWeights[layer][inputNode][endNode] << std::endl;
 						}
@@ -139,7 +139,7 @@ namespace cvz {
 				vHiddenLayers.resize(_hiddenLayers.size());
 				hLayerGradients.resize(_hiddenLayers.size());
 
-				for (int itResize = 0; itResize < vHiddenLayers.size(); itResize++)
+				for (unsigned int itResize = 0; itResize < vHiddenLayers.size(); itResize++)
 				{
 					vHiddenLayers[itResize].resize(_hiddenLayers[itResize]);
 					hLayerGradients[itResize].resize(_hiddenLayers[itResize]);
@@ -150,7 +150,7 @@ namespace cvz {
 			//calculates the output errors
 			void computeOutputGradients(std::vector<double> &outputs, std::vector<double> &desiredOutputs)
 			{
-				for (int it = 0; it < outputs.size(); it++)
+				for (unsigned int it = 0; it < outputs.size(); it++)
 				{
 					outputGradients[it] = outputs[it] * (1 - outputs[it])*(desiredOutputs[it] - outputs[it]);
 				}
@@ -159,7 +159,7 @@ namespace cvz {
 			//calculate the hidden layers activity
 			void computeHLActivity(std::vector<double> &inputs)
 			{
-				for (int hLayer = 0; hLayer < vHiddenLayers.size(); hLayer++)
+				for (unsigned int hLayer = 0; hLayer < vHiddenLayers.size(); hLayer++)
 				{
 					std::vector<double> currentInputs;
 					//this is the first layer so inputs come from inputs
@@ -167,10 +167,10 @@ namespace cvz {
 						currentInputs = inputs;
 					else
 						currentInputs = vHiddenLayers[hLayer - 1];
-					for (int node = 0; node < vHiddenLayers[hLayer].size(); node++)
+					for (unsigned int node = 0; node < vHiddenLayers[hLayer].size(); node++)
 					{
 						vHiddenLayers[hLayer][node] = 0.0;
-						for (int nodeInput = 0; nodeInput < currentInputs.size(); nodeInput++)
+						for (unsigned int nodeInput = 0; nodeInput < currentInputs.size(); nodeInput++)
 						{
 							vHiddenLayers[hLayer][node] += currentInputs[nodeInput] * vWeights[hLayer][nodeInput][node];
 						}
@@ -288,15 +288,15 @@ namespace cvz {
 					//std::cout<<"Layer "<<itLayer<<std::endl;
 					//compute gradients
 					std::vector<double> currentError;
-					if (itLayer == hLayerGradients.size() - 1)
+					if ( (unsigned int) itLayer == hLayerGradients.size() - 1)
 						currentError = outputGradients;
 					else
 						currentError = hLayerGradients[itLayer + 1];
 
-					for (int hlNode = 0; hlNode < hLayerGradients[itLayer].size(); hlNode++)
+					for (unsigned int hlNode = 0; hlNode < hLayerGradients[itLayer].size(); hlNode++)
 					{
 						hLayerGradients[itLayer][hlNode] = 0.0;
-						for (int nodeInput = 0; nodeInput < currentError.size(); nodeInput++)
+						for (unsigned int nodeInput = 0; nodeInput < currentError.size(); nodeInput++)
 						{
 							hLayerGradients[itLayer][hlNode] += currentError[nodeInput] * vWeights[itLayer + 1][hlNode][nodeInput];
 						}
@@ -317,16 +317,16 @@ namespace cvz {
 
 					//printFuckingVector("In",curInputs);
 
-					if (itLayer == vWeights.size() - 1)
+					if ( (unsigned int) itLayer == vWeights.size() - 1)
 						gradients = outputGradients;
 					else
 						gradients = hLayerGradients[itLayer];
 
 					//printFuckingVector("Grad",gradients);
 
-					for (int inputNode = 0; inputNode < vWeights[itLayer].size(); inputNode++)
+					for (unsigned int inputNode = 0; inputNode < vWeights[itLayer].size(); inputNode++)
 					{
-						for (int nodeOutput = 0; nodeOutput < gradients.size(); nodeOutput++)
+						for (unsigned int nodeOutput = 0; nodeOutput < gradients.size(); nodeOutput++)
 						{
 							vWeights[itLayer][inputNode][nodeOutput] += eta*gradients[nodeOutput] * curInputs[inputNode];
 						}
@@ -339,7 +339,7 @@ namespace cvz {
 			void printFuckingVector(std::string name, std::vector<double> v)
 			{
 				std::cout << name << "   ";
-				for (int i = 0; i < v.size(); i++)
+				for (unsigned int i = 0; i < v.size(); i++)
 					std::cout << v[i] << '\t';
 				std::cout << std::endl;
 			}
@@ -348,9 +348,9 @@ namespace cvz {
 			void updateOutputLayerWeights(std::vector<double> &outputs)
 			{
 				int layer = vWeights.size() - 1;
-				for (int source = 0; source < vWeights[layer].size(); source++)
+				for (unsigned int source = 0; source < vWeights[layer].size(); source++)
 				{
-					for (int destination = 0; destination < vWeights[layer][source].size(); destination++)
+					for (unsigned int destination = 0; destination < vWeights[layer][source].size(); destination++)
 					{
 						vWeights[layer][source][destination] += eta*outputs[destination] * outputGradients[destination];
 						//std::cout << vWeights[layer][source][destination] <<" with eta*=" << eta << " *ouput=" << outputs[destination] << " and outputGradient= " << outputGradients[destination]<<std::endl;
@@ -444,7 +444,7 @@ namespace cvz {
 
 				if (!hasLearnt)
 				{
-					if (trainingSet.size() < desiredTrainingSetSize)
+					if (trainingSet.size() < (unsigned int) desiredTrainingSetSize)
 					{
 						std::cout << "Filling buffer mode" << std::endl;
 						if (trainingSet.size() == 0)
@@ -476,7 +476,7 @@ namespace cvz {
 							epochMeanError = 0.0;
 
 							maxError = 0.0;
-							for (int sample = 0; sample < trainingSet.size(); sample++)
+							for (unsigned int sample = 0; sample < trainingSet.size(); sample++)
 							{
 								std::vector<double> tmpinputs = trainingSet[sample].first;
 								std::vector<double> tmpdesiredOutputs = trainingSet[sample].second;
@@ -496,7 +496,7 @@ namespace cvz {
 
 								//Calculate error
 								double meanError = 0.0;
-								for (int o = 0; o<tmpoutputs.size(); o++)
+								for (unsigned int o = 0; o<tmpoutputs.size(); o++)
 								{
 									meanError += fabs(tmpdesiredOutputs[o] - tmpoutputs[o]);
 								}

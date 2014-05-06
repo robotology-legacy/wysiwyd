@@ -17,7 +17,7 @@
  */
 
 
-#include <clients/opcClient.h>
+#include <wrdac/clients/opcClient.h>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>

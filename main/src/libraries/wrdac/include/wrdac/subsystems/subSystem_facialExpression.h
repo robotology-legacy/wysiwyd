@@ -27,8 +27,8 @@
 #include <yarp/dev/all.h>
 #include <sstream>
 #include <iostream>
-#include "subsystems/subSystem.h"
-#include "subsystems/subSystem_speech.h"
+#include "wrdac/subsystems/subSystem.h"
+#include "wrdac/subsystems/subSystem_speech.h"
 
 namespace wysiwyd{namespace wrdac{
 #define SUBSYSTEM_EXPRESSION "expression"

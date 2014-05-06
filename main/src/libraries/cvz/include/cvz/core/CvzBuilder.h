@@ -42,6 +42,46 @@ public:
 	}
 };
 
+struct ThreadedCvz :yarp::os::RateThread
+{
+public:
+
+	IConvergenceZone* cvz;
+
+	ThreadedCvz(yarp::os::Property prop, int period) :yarp::os::RateThread(period)
+	{
+		std::string cvzType = prop.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString();
+
+		if (cvz::core::CvzBuilder::allocate(&cvz, cvzType))
+		{
+			cvz->configure(prop);
+		}
+		else
+		{
+			std::cout << "This cvz type (" << cvzType << ") is not handled by the builder." << std::endl
+				<< cvz::core::CvzBuilder::helpMessage() << std::endl;
+			cvz = NULL;
+		}
+	}
+
+	bool threadInit()
+	{
+		return (cvz != NULL);
+	}
+
+	void run()
+	{
+		cvz->cycle();
+	}
+
+	void threadRelease()
+	{
+		cvz->interruptModule();
+		cvz->close();
+		delete cvz;
+	}
+
+};
 }
 }
 #endif

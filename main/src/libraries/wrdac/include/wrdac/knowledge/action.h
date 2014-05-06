@@ -21,7 +21,7 @@
 
 #include "entity.h"
 #include "relation.h"
-#include "functions.h"
+#include "wrdac/functions.h"
 
 namespace wysiwyd{namespace wrdac{
 

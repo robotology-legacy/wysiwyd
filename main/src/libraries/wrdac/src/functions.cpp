@@ -18,7 +18,7 @@
 
 
 #include <yarp/os/Vocab.h>
-#include <functions.h>
+#include <wrdac/functions.h>
 
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;

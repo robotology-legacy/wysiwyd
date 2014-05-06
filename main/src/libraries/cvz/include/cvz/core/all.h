@@ -3,6 +3,7 @@
 #include "CvzMMCM.h"
 #include "CvzMLP.h"
 #include "CvzBuilder.h"
+#include "CvzStack.h"
 
 /**
 *

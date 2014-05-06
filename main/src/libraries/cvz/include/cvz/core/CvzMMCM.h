@@ -246,7 +246,7 @@ namespace cvz {
 				//Send the output activity
 				portActivity.write();
 
-				if (winnersBuffer.size() == recurrenceDelay)
+				if (winnersBuffer.size() == (unsigned int) recurrenceDelay)
 					winnersBuffer.pop();
 				std::vector<int> currentWinner(3);
 				currentWinner[0] = xWin;
@@ -326,8 +326,8 @@ namespace cvz {
 								std::vector<double> valueReal = it->second->GetValueReal();
 								for (int i = 0; i < it->second->Size(); i++)
 								{
-									double currentW = weights[it->second][i][x][y][z];
-									double desiredW = valueReal[i];
+									//double currentW = weights[it->second][i][x][y][z];
+									//double desiredW = valueReal[i];
 									double dW = (valueReal[i] - weights[it->second][i][x][y][z]);
 									weights[it->second][i][x][y][z] +=
 										lRate *
@@ -362,15 +362,15 @@ namespace cvz {
 							if (recurrentModality)
 							{
 
-								float pastDistanceH = sqrt(pow(x - winnersBuffer.back()[0], 2.0) + pow(y - winnersBuffer.back()[1], 2.0));
-								float pastDistanceV = sqrt(pow(z - winnersBuffer.back()[2], 2.0));
-								float pdHCoef = helpers::GaussianBell(pastDistanceH, sigmaH);
-								float pdVCoef = helpers::GaussianBell(pastDistanceV, sigmaV);
+								//float pastDistanceH = sqrt(pow(x - winnersBuffer.back()[0], 2.0) + pow(y - winnersBuffer.back()[1], 2.0));
+								//float pastDistanceV = sqrt(pow(z - winnersBuffer.back()[2], 2.0));
+								//float pdHCoef = helpers::GaussianBell(pastDistanceH, sigmaH);
+								//float pdVCoef = helpers::GaussianBell(pastDistanceV, sigmaV);
 								std::vector<double> valueReal = recurrentModality->GetValueReal();
 								for (int i = 0; i < recurrentModality->Size(); i++)
 								{
-									double currentW = weights[recurrentModality][i][x][y][z];
-									double desiredW = valueReal[i];
+									//double currentW = weights[recurrentModality][i][x][y][z];
+									//double desiredW = valueReal[i];
 									double dW = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
 									weights[recurrentModality][i][x][y][z] +=
 										lRate *
@@ -403,13 +403,13 @@ namespace cvz {
 					file << "name" << '\t' << wModIt->first->Name() << std::endl;
 					file << "size" << '\t' << wModIt->first->Size() << std::endl;
 					yarp::os::Bottle b;
-					for (int comp = 0; comp < wModIt->second.size(); comp++)
+					for (unsigned int comp = 0; comp < wModIt->second.size(); comp++)
 					{
-						for (int x = 0; x < wModIt->second[comp].size(); x++)
+						for (unsigned int x = 0; x < wModIt->second[comp].size(); x++)
 						{
-							for (int y = 0; y < wModIt->second[comp][x].size(); y++)
+							for (unsigned int y = 0; y < wModIt->second[comp][x].size(); y++)
 							{
-								for (int z = 0; z < wModIt->second[comp][x][y].size(); z++)
+								for (unsigned int z = 0; z < wModIt->second[comp][x][y].size(); z++)
 								{
 									b.addDouble(wModIt->second[comp][x][y][z]);
 								}
@@ -466,11 +466,11 @@ namespace cvz {
 					int wCtr = 0;
 					for (int comp = 0; comp < mSize; comp++)
 					{
-						for (int x = 0; x < weights[m][comp].size(); x++)
+						for (unsigned int x = 0; x < weights[m][comp].size(); x++)
 						{
-							for (int y = 0; y < weights[m][comp][x].size(); y++)
+							for (unsigned int y = 0; y < weights[m][comp][x].size(); y++)
 							{
-								for (int z = 0; z < weights[m][comp][x][y].size(); z++)
+								for (unsigned int z = 0; z < weights[m][comp][x][y].size(); z++)
 								{
 									weights[m][comp][x][y][z] = bWeights->get(wCtr).asDouble();
 									wCtr++;

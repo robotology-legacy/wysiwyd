@@ -22,7 +22,7 @@
 #define SUBSYSTEM_SPEECH        "speech"
 #define SUBSYSTEM_SPEECH_ESPEAK "speech_espeak"
 
-#include "subsystems/subSystem.h"
+#include "wrdac/subsystems/subSystem.h"
 #include <iostream>
 #include <iterator>
 #include <algorithm>
