@@ -2,6 +2,8 @@
 # Authors: Ugo Pattacini
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-add_subdirectory(wrdacExample)
-add_subdirectory(cvzStackExample)
+add_subdirectory(imageSplitter)
+add_subdirectory(imageFuser)
+add_subdirectory(cvzVisualHierarchy)
+
 

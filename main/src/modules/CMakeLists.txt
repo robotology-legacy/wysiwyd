@@ -7,8 +7,7 @@ add_subdirectory(slidingController)
 add_subdirectory(cvz)
 
 if (WYSIWYD_USE_OpenCV)
-	add_subdirectory(imageSplitter)
-	add_subdirectory(imageFuser)
+	add_subdirectory(visualSystem)
 endif()
 
 
