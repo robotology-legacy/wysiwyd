@@ -35,6 +35,8 @@ namespace cvz {
 
 			std::map<std::string, IModality*> modalitiesBottomUp;
 			std::map<std::string, IModality*> modalitiesTopDown;
+			std::map<IModality*, double > modalitiesInfluence;
+			std::map<IModality*, double > modalitiesLearning;
 
 			virtual bool configure(yarp::os::Property &prop)
 			{
@@ -62,6 +64,9 @@ namespace cvz {
 					//Get the generic parameters (name, size, minBounds, maxBounds, isTopDown)
 					std::string modName = bMod.find("name").asString();
 					int modSize = bMod.find("size").asInt();
+					double modInf = bMod.check("influence", yarp::os::Value(1.0)).asDouble();
+					double modLearning= bMod.check("learningRate", yarp::os::Value(1.0)).asDouble();
+
 					std::vector<double> minBounds;
 					if (bMod.check("minBounds"))
 					{
@@ -155,6 +160,9 @@ namespace cvz {
 							modalitiesTopDown[mod->Name()] = mod;
 						else
 							modalitiesBottomUp[mod->Name()] = mod;
+
+						modalitiesInfluence[mod] = modInf;
+						modalitiesLearning[mod] = modLearning;
 					}
 
 					modalityCount++;

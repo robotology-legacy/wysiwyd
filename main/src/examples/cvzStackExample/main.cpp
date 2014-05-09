@@ -9,16 +9,8 @@ using namespace yarp::os;
 int main(int argc, char * argv[])
 {
 	Network yarp;
-	bool b1, b2;
-	cout << "Server name is : " << yarp.getNameServerName() << endl;
-	//if (!yarp.setNameServerName("/test"))
-	//	cout << "Impossible to force name server!" << endl;
-	//else
-	//	cout << "Forced name server to be /test" << endl;
 
-	yarp.detectNameServer(true, b1, b2);
-
-	if (!Network::checkNetwork())
+	if (!yarp.checkNetwork())
 	{
 		cout << "yarp network is not available!" << endl;
 		return 0;
@@ -34,13 +26,13 @@ int main(int argc, char * argv[])
 
 
 	//Add head proprioception
-	stack.addCvz("stackExample_head.ini", "head");
+	stack.addCvzFromConfigFile("stackExample_head.ini", "head");
 
 	//Add vision
-	stack.addCvz("stackExample_vision.ini", "vision");
+	stack.addCvzFromConfigFile("stackExample_vision.ini", "vision");
 
 	//Add multimodal map
-	stack.addCvz("stackExample_multimodal.ini", "multimodal");
+	stack.addCvzFromConfigFile("stackExample_multimodal.ini", "multimodal");
 
 	//Connect the head and vision to the multimodal map
 	stack.connectModalities("/head/multimodal", "/multimodal/gaze");

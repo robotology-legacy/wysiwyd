@@ -69,6 +69,7 @@ public:
 						<< "\t" << ssSource.str().c_str() << std::endl
 						<< "\t" << ports[x][y]->getName().c_str() << std::endl;
 					Time::delay(0.5);
+					//attempt++;
 				}
 				
 			}

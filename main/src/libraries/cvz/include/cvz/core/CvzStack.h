@@ -36,7 +36,9 @@ namespace cvz {
 			std::list< ThreadedCvz* > nodes;
 			std::map<std::string, IModality* > nodesIO;
 			std::map< IModality*, std::map<IModality*, bool > > connections;
-			
+			std::map< IModality*, std::string > externalInputs;
+			std::map< IModality*, std::string > externalOutputs;
+
 			double getPeriod()
 			{
 				return 0.01;
@@ -83,7 +85,7 @@ namespace cvz {
 			{
 				if (command.get(0).asString() == "addCvz")
 				{
-					reply.addInt( addCvz(command.get(1).asString().c_str(), command.get(2).asString().c_str()) );
+					reply.addInt( addCvzFromConfigFile(command.get(1).asString().c_str(), command.get(2).asString().c_str()) );
 				}
 				else
 				{
@@ -113,21 +115,12 @@ namespace cvz {
 			}
 
 			/**
-			* Add a new CVZ from a config file. The CVZ is instantiated and added to the graph.
-			* @param configFile Name of the config file containing the information about the cvz.
+			* Add a new CVZ from property. The CVZ is instantiated and added to the graph.
+			* @param prop The property containing the encessary infor for building the map.
 			* @return true/false on success/failure.
 			*/
-			bool addCvz(std::string configFile, std::string overrideName="")
+			bool addCvzFromProperty(yarp::os::Property prop, std::string overrideName = "")
 			{
-
-				yarp::os::ResourceFinder rf;
-				rf.setVerbose(true);
-				rf.setDefaultContext("cvz");
-				rf.setDefaultConfigFile(configFile.c_str());
-				rf.configure(NULL, NULL);			
-
-				yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
-
 				if (prop.check("name") && overrideName != "")
 				{
 					prop.unput("name");
@@ -135,7 +128,7 @@ namespace cvz {
 				}
 
 				ThreadedCvz* newCvz = new ThreadedCvz(prop, 100);
-				if(newCvz->start())
+				if (newCvz->start())
 					nodes.push_back(newCvz);
 				else return false;
 
@@ -146,9 +139,65 @@ namespace cvz {
 					nodesIO[it->second->GetFullName()] = it->second;
 
 				fillConnectionMatrix();
+
 				return true;
 			}
+
+			/**
+			* Add a new CVZ from a config file. The CVZ is instantiated and added to the graph.
+			* @param configFile Name of the config file containing the information about the cvz.
+			* @return true/false on success/failure.
+			*/
+			bool addCvzFromConfigFile(std::string configFile, std::string overrideName="")
+			{
+
+				yarp::os::ResourceFinder rf;
+				rf.setVerbose(true);
+				rf.setDefaultContext("cvz");
+				rf.setDefaultConfigFile(configFile.c_str());
+				rf.configure(NULL, NULL);			
+
+				yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
+				return addCvzFromProperty(prop, overrideName);
+			}
 			
+			/**
+			* Connect an external port to the real:i of a modality.
+			* Also establish the yarp connection between them.
+			* @param from Source port name.
+			* @param to Target modality name.
+			* @param tryConnectYarp Do you want to establish the yarp connection now (true) or just add it to the graph?
+			* @return True/False in case of success/failure.
+			*/
+			bool connectExternalInput(std::string from, std::string to, bool tryConnectYarp = true)
+			{
+				externalInputs[nodesIO[to]]=from;
+				bool result = true;
+				if (tryConnectYarp)
+				{
+					result &= yarp::os::Network::connect(externalInputs[nodesIO[to]], nodesIO[to]->GetFullNameReal());
+				}
+				return result;
+			}
+
+			/**
+			* Connect an external port to the prediction:o of a modality.
+			* Also establish the yarp connection between them.
+			* @param from Source modality name.
+			* @param to Target port name.
+			* @param tryConnectYarp Do you want to establish the yarp connection now (true) or just add it to the graph?
+			* @return True/False in case of success/failure.
+			*/
+			bool connectExternalOutput(std::string from, std::string to, bool tryConnectYarp = true)
+			{
+				externalOutputs[nodesIO[from]] = to;
+				bool result = true;
+				if (tryConnectYarp)
+				{
+					result &= yarp::os::Network::connect(nodesIO[from]->GetFullNamePrediction(), externalOutputs[nodesIO[from]]);
+				}
+				return result;
+			}
 
 			/**
 			* Connect two modalities given their names (i.e: /cvzName/modalityName ).

@@ -32,8 +32,6 @@ namespace cvz {
 			int W() { return width; }
 			int L() { return layers; }
 
-			std::map<IModality*, double > modalitiesInfluence;
-			std::map<IModality*, double > modalitiesLearning;
 
 			IModality* recurrentModality;
 
@@ -97,6 +95,8 @@ namespace cvz {
 				//Allocate the weights
 				for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
 				{
+					//Check if MMCM specifics parameters where added into the modality
+
 					std::vector< helpers::Cube > w;
 					w.resize(it->second->Size());
 					for (int i = 0; i < it->second->Size(); i++)
