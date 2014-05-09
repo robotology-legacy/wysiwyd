@@ -3,14 +3,14 @@
 
     <module>
         <name>imageSplitter</name>
-        <parameters>--splitW 3 --splitH 3</parameters>
+        <parameters>--splitW 3 --splitH 3 --splitFovea 3</parameters>
         <node>icubAlien</node>
         <prefix></prefix>
     </module>
 
     <module>
         <name>cvzVisualHierarchy</name>
-        <parameters>--retinaW 3 --retinaH 3</parameters>
+        <parameters>--retinaW 3 --retinaH 3 --foveaW 3 --foveaH 3</parameters>
         <node>icubAlien</node>
         <prefix></prefix>
     </module>
@@ -25,6 +25,20 @@
     <module>
         <name>yarpview</name>
         <parameters>--name /reconstruct</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+
+    <module>
+        <name>imageFuser</name>
+        <parameters> --name imageFuser/fovea --splitW 3 --splitH 3 --nameSplitterPrefix /fovea --nameSplitterSuffix /retina/prediction:o</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /reconstruct/fovea</parameters>
         <node>icubAlien</node>
         <prefix></prefix>
     </module>
@@ -45,6 +59,12 @@
     <connection>
         <from>/imageFuser/reconstruct:o</from>
         <to>/reconstruct</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/imageFuser/fovea/reconstruct:o</from>
+        <to>/reconstruct/fovea</to>
         <protocol>udp</protocol>
     </connection>
 

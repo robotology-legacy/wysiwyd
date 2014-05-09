@@ -167,8 +167,8 @@ public:
 			IplImage* foveaImg = cvCreateImage(cvSize(cvImg->width, cvImg->height), cvImg->depth, cvImg->nChannels);
 			cvCopyImage(cvImg, foveaImg);
 			cvSetImageROI(foveaImg, cvRect(
-				foveaImg->width / 2, 
-				foveaImg->height / 2, 
+				foveaImg->width / 2 - (int)(foveaRatio*foveaImg->width)/2.0,
+				foveaImg->height / 2 - (int)(foveaRatio*foveaImg->height)/2.0,
 				(int)(foveaRatio*foveaImg->width), 
 				(int)(foveaRatio*foveaImg->height)));
 			fovea->writeAndShow(foveaImg, showImages);
