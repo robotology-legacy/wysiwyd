@@ -224,10 +224,11 @@ Bottle opcManager::connect(Bottle bInput)
 }
 
 
-bool opcManager::updateBelief(string sOPCname)
+Bottle opcManager::updateBelief(string sOPCname)
 {
     cout << "Updating the beliefs in OPC ... " ;
-	bool bReturn = true;
+
+    Bottle bOutput;
     // Create the beliefs
     bool bReal = sOPCname == s_realOPC;
 
@@ -412,7 +413,7 @@ bool opcManager::updateBelief(string sOPCname)
         mentalOPC->commit();
 
     cout << "done" << endl << endl;
-    return bReturn; 
+    return bOutput; 
 }
 
 /* 

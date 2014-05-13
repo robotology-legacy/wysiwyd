@@ -105,6 +105,14 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
         cout << getName() << ": Unable to open port " << port2OPCmanagerName << endl;  
         bEveryThingisGood = false;
     }
+	
+	// Open port2ispeak
+	port2OPCmanagerName = getName() + "/toiSpeak";
+
+	if (!Port2iSpeak.open(port2iSpeakName.c_str())) {
+        cout << getName() << ": Unable to open port " << port2iSpeakName << endl;  
+        bEveryThingisGood = false;
+    }
 
 
     attach(handlerPort);                  // attach to port
@@ -125,6 +133,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 	bOptionnalModule &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
 	bOptionnalModule &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
 	bOptionnalModule &= Network::connect(port2OPCmanagerName, "/opcManager/rpc");
+	bOptionnalModule &= Network::connect(port2iSpeakName, "/iSpeak");
 	bOptionnalModule &= Network::connect("/mainLoop/speechGrammar/keyword:o", handlerPortName.c_str());
 
 	if (!bOptionnalModule)

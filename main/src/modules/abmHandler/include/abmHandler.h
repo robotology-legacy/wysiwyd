@@ -24,14 +24,19 @@
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
+#include <time.h>
 
+#include <iostream>
+#include <iomanip>
+#include <yarp/os/all.h>
+#include "wrdac/clients/icubClient.h"
 
-
-using namespace yarp::os;
-using namespace yarp::sig;
 using namespace std;
-//using namespace efaa::helpers;
- 
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace yarp::sig;
+
+
 class abmHandler : public RFModule {
 private:
     string moduleName;
@@ -52,8 +57,9 @@ private:
     yarp::os::Port handlerPort;				// a port to handle messages 
     yarp::os::Port Port2SpeechRecog;		// a port to send grammar to the speech recog
 	yarp::os::Port Port2ABM;				// a port to communicate with autobiographicalMemory
-	yarp::os::Port Port2abmReasoning;		// a port to communicate with the OPC manager to imagine the memory
+	yarp::os::Port Port2abmReasoning;		// a port to communicate with the reasoning module
 	yarp::os::Port Port2OPCManager;			// a port to communicate with the OPC manager to imagine the memory
+	yarp::os::Port Port2iSpeak;				// a port to communicate with the speech synthesis
 
 	bool isAwake;
     ICubClient *iCub;

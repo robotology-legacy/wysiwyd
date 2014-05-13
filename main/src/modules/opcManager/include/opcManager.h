@@ -26,9 +26,6 @@
  * @author Maxime Petit, Grégoire Pointeau
  */ 
 
-#ifndef __EFAA_OPCMANAGER_H__
-#define __EFAA_OPCMANAGER_H__
-
 //#include <efaa/helpers/clients/opcClient.h>
 //#include <efaa/helpers/clients/opcEars.h>
 //#include <efaa/helpers/helpers.h>
@@ -36,17 +33,21 @@
 #include <yarp/dev/all.h>
 #include <time.h>
 
+#include <iostream>
+#include <iomanip>
+#include <yarp/os/all.h>
+#include "wrdac/clients/icubClient.h"
+#include "wrdac/clients/opcEars.h"
+
 using namespace std;
-using namespace yarp;
 using namespace yarp::os;
+using namespace wysiwyd::wrdac;
 
 const double time_action = 0.500;
 const double time_relation = 1.00;
 
 const string s_realOPC = "OPC";				// name of the real OPC
 const string s_mentalOPC = "mentalOPC";	// name of the mental OPC
-
-using namespace efaa::helpers;
 
 /******************************************************************************************/
 
@@ -77,12 +78,10 @@ public:
 	Bottle simulateActivity(Bottle bInput);			// Simulate an activity in the mental OPC
 	Bottle simulateAction(Bottle bInput);			// Simulate an action in the mental OPC
 
-	bool updateBelief(string sOPCname);			// update the beliefs of the agent present in an OPC  
+	Bottle updateBelief(string sOPCname);			// update the beliefs of the agent present in an OPC  
 	Bottle synchoniseOPCs();						// synchronise the mentalOPC with the content of the OPC
 
 	Bottle getBeliefs(Bottle bInput);				// return the beliefs of an agent in an OPC given
 	Bottle diffOPC();
 
 };
-
-#endif
