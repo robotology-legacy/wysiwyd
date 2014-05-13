@@ -562,8 +562,65 @@ namespace cvz {
 			}
 			return v;
 		}
-	}
 
+		/**
+		* Unvectorize() specialization for yarp::sig::Sound
+		*/
+		template<>
+		yarp::sig::Sound ModalityBufferedPort<yarp::sig::Sound>::Unvectorize(std::vector<double> output)
+		{
+			yarp::sig::Sound s;
+			s.resize(size);
+			s.setFrequency(4400);
+
+			int cnt = 0;
+			for (unsigned int i = 0; i < mask.size(); i++)
+			{
+				if (mask[i])
+				{
+					s.set(output[cnt] * 65535.0, i);
+					cnt++;
+				}
+			}
+			return s;
+		}
+
+		/**
+		* Vectorize() specialization for yarp::os::Bottle
+		*/
+		template<>
+		std::vector<double> ModalityBufferedPort<yarp::sig::Sound >::Vectorize(yarp::sig::Sound* input)
+		{
+			unsigned int samplesReceived = input->getSamples();
+			unsigned int channels = input->getChannels();
+			if (channels != 1)
+				std::cout << portReal.getName() << "-----> Warning: received a sound on more than 1 channel. Only first one will be used." << std::endl;
+			
+			int bytePerSample = input->getBytesPerSample();
+			if (bytePerSample != 2)
+				std::cout << portReal.getName() << "-----> Warning: the samples are not encoded on 2 bytes." << std::endl;
+
+			//We restrict to only one channel
+			std::vector<double> v;
+			v.resize(size);
+
+			int cnt = 0;
+			for (unsigned int i = 0; i<mask.size(); i++)
+			{
+				if (i>samplesReceived)
+				{
+					std::cout << portReal.getName() << "-----> Warning: received smaller input..." << std::endl;
+					return v;
+				}
+				if (mask[i])
+				{
+					v[cnt] = input->get(i) / 65535.0; // Encoded on 2 bytes
+					cnt++;
+				}
+			}
+			return v;
+		}
+	}
 
 }
 #endif

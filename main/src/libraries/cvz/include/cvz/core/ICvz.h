@@ -111,6 +111,25 @@ namespace cvz {
 						if (autoConnect != "")
 							((ModalityBufferedPort<yarp::os::Bottle>*)mod)->ConnectInput(autoConnect);
 					}
+					if (modType == "yarpSound")
+					{
+						std::vector<bool> mask;
+						if (bMod.check("mask"))
+						{
+							yarp::os::Bottle* bMask = bMod.find("mask").asList();
+							for (int i = 0; i < bMask->size(); i++)
+								mask.push_back(bMask->get(i).asDouble());
+						}
+						bool isBlocking = bMod.check("isBlocking");
+						std::string modPortPrefix = "/";
+						modPortPrefix += getName() + "/";
+						modPortPrefix += modName;
+						mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, modSize, minBounds, maxBounds, mask, isBlocking);
+
+						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
+						if (autoConnect != "")
+							((ModalityBufferedPort<yarp::sig::Sound>*)mod)->ConnectInput(autoConnect);
+					}
 					else if (modType == "yarpImageFloat")
 					{
 						std::vector<bool> mask;
