@@ -14,8 +14,8 @@ void configureV1Retina(cvz::core::CvzStack* stack, int retinaX, int retinaY)
 	configV1Retina
 		<< "type" << '\t' << cvz::core::TYPE_MMCM << endl
 		<< "name" << '\t' << "v1Retina" << endl
-		<< "width" << '\t' << 25 << endl
-		<< "height" << '\t' << 25 << endl
+		<< "width" << '\t' << 10 << endl
+		<< "height" << '\t' << 10 << endl
 		<< "layers" << '\t' << 6 << endl << endl;
 
 	int modalitiesCount = 0;
@@ -81,8 +81,8 @@ void configureV1Fovea(cvz::core::CvzStack* stack, int foveaX, int foveaY)
 	configV1Retina
 		<< "type" << '\t' << cvz::core::TYPE_MMCM << endl
 		<< "name" << '\t' << "v1Fovea" << endl
-		<< "width" << '\t' << 25 << endl
-		<< "height" << '\t' << 25 << endl
+		<< "width" << '\t' << 10 << endl
+		<< "height" << '\t' << 10 << endl
 		<< "layers" << '\t' << 6 << endl << endl;
 
 	int modalitiesCount = 0;

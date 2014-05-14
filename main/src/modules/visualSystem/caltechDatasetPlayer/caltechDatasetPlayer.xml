@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>caltechDatasetPlayer</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>A simple reader for the caltech dataset format</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Stream on two yarp ports images and their category by reading caltech like datasets (available at http://www.vision.caltech.edu/Image_Datasets/Caltech101/)
+   </description-long>
+
+   <arguments>
+   <param default="caltechDatasetPlayer" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+     
+      <output>
+          <type>yarp::sig::Image></type>
+          <port carrier="udp">/caltechDatasetPlayer/image:o</port>
+          <description>
+              Send an image.
+          </description>
+      </output>
+	  
+      <output>
+          <type>yarp::os::Bottle></type>
+          <port carrier="udp">/caltechDatasetPlayer/categoryTag:o</port>
+          <description>
+              Send the corresponding category as a string (e.g "animal")
+          </description>
+      </output>
+	  
+	  <output>
+          <type>yarp::os::Bottle></type>
+          <port carrier="udp">/caltechDatasetPlayer/categoryVector:o</port>
+          <description>
+              Send the corresponding category as a vector of booleans for all possible categories (e.g suppose we have 3 categories "circle" "triangle" "square" a triangle will be encoded as (0 1 0)
+          </description>
+      </output>
+   </data>
+   
+   
+</module>
+

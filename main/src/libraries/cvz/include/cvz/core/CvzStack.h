@@ -98,6 +98,10 @@ namespace cvz {
 			*/
 			bool configure(yarp::os::ResourceFinder &rf)
 			{
+				for (std::list<ThreadedCvz*>::iterator it = nodes.begin(); it != nodes.end(); it++)
+				{
+					(*it)->start();
+				}
 				return true;
 			}
 
@@ -128,9 +132,9 @@ namespace cvz {
 				}
 
 				ThreadedCvz* newCvz = new ThreadedCvz(prop, 100);
-				if (newCvz->start())
+				//if (newCvz->start())
 					nodes.push_back(newCvz);
-				else return false;
+				//else return false;
 
 				//Expand the connection list and the connection matrix
 				for (std::map<std::string, IModality* >::iterator it = newCvz->cvz->modalitiesBottomUp.begin(); it != newCvz->cvz->modalitiesBottomUp.end(); it++)
