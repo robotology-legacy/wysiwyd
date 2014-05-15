@@ -23,6 +23,7 @@
 #define SUBSYSTEM_SPEECH_ESPEAK "speech_espeak"
 
 #include "wrdac/subsystems/subSystem.h"
+#include "wrdac/functions.h"
 #include <iostream>
 #include <iterator>
 #include <algorithm>
@@ -74,6 +75,8 @@ public:
     * @param shouldWait Is the function blocking until the end of the sentence or not.
     */ 
     virtual void TTS(std::string text, bool shouldWait=true) {
+		//Clean the input of underscores.
+		replace_all(text, "_", " ");
         yarp::os::Bottle txt; txt.addString(text.c_str());
         tts.write(txt);            
         //int words = countWordsInString(text);
