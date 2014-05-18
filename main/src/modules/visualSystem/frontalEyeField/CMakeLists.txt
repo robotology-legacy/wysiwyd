@@ -17,7 +17,6 @@ find_package(ICUB)
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
-    ${efaaHelpers_INCLUDE_DIRS}
     ${ICUB_INCLUDE_DIRS} 	
 )
 
