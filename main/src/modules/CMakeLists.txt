@@ -3,7 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 #Add here modules without specific dependency
-add_subdirectory(slidingController)
+add_subdirectory(motorSystem)
 add_subdirectory(cvz)
 
 if (WYSIWYD_USE_OpenCV)
