@@ -6,6 +6,7 @@
 add_subdirectory(opcRelated)
 add_subdirectory(motorSystem)
 add_subdirectory(cvz)
+add_subdirectory(tools)
 
 if (WYSIWYD_USE_OpenCV)
 	add_subdirectory(visualSystem)

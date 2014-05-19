@@ -23,12 +23,12 @@
 #include <string>
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
-#include <efaa/helpers/clients/opcClient.h>
+#include <wrdac/clients/opcClient.h>
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace efaa::helpers;
+using namespace wysiwyd::wrdac;
 
 class GuiUpdaterModule: public RFModule
 {
