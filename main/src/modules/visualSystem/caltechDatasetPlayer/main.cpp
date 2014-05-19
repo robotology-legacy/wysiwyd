@@ -16,11 +16,29 @@
 */
 
 #include <iostream>
-#include "dirent.h"
-#undef max                  /*conflict with pango lib coverage.h*/
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#include <stdio.h>              /* defines FILENAME_MAX */
+#if defined(WIN32)
+    #pragma warning (disable : 4099)
+    #pragma warning (disable : 4250)
+    #pragma warning (disable : 4520)
+#endif
+
+#if defined(WIN32)
+    #include "dirent.h"
+    #undef max                  /*conflict with pango lib coverage.h*/
+    #include <direct.h>
+    #define GetCurrentDir _getcwd
+#else
+    #include <unistd.h>
+    #include <dirent.h>
+    #include <cerrno>
+    #define GetCurrentDir getcwd
+#endif
+
+//#include "dirent.h"
+//#undef max                  /*conflict with pango lib coverage.h*/
+//#include <direct.h>
+//#define GetCurrentDir _getcwd
+//#include <stdio.h>              /* defines FILENAME_MAX */
 
 #include <cv.h>
 #include <cvaux.h>
