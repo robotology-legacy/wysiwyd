@@ -7,6 +7,8 @@ project(${PROJECTNAME})
 
 file(GLOB folder_source src/*.cpp)
 file(GLOB folder_header include/*.h)
+set(doc_files ${PROJECTNAME}.xml)
+
 source_group("Source Files" FILES ${folder_source})
 source_group("Header Files" FILES ${folder_header})
 

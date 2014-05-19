@@ -15,7 +15,7 @@ source_group("DOC Files"    FILES ${doc_files})
 
 include_directories(${YARP_INCLUDE_DIRS}
                     ${PROJECT_SOURCE_DIR}/include
-					${wrdac_INCLUDE_DIRS})
+                    ${wrdac_INCLUDE_DIRS})
 
 add_executable(${PROJECTNAME} ${header_files} ${source_files} ${doc_files})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} wrdac)
