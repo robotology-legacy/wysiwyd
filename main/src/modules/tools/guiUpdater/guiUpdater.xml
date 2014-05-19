@@ -5,14 +5,13 @@
 
    <name>guiUpdater</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>Module responsible for polling the OPC for various content (objects, skeletons, etc.) and 
-updating icubGui based on this.</description>
+   <description>Module responsible for polling the OPC for various content (objects, skeletons, etc.) and updating icubGui based on this.</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    
    <description-long>
-  The purpose of this module is to retrieve information from the online database implemented by the objectsPropertiesCollector 
-module (OPC) and format/transmit this information to the gui implemented by iCubGui (icub repo).
+     The purpose of this module is to retrieve information from the online database implemented by the objectsPropertiesCollector 
+     module (OPC) and format/transmit this information to the gui implemented by iCubGui (icub repo).
    </description-long>
 
    <arguments>
@@ -21,6 +20,10 @@ module (OPC) and format/transmit this information to the gui implemented by iCub
    <param default="true" desc="To specify if debug information should be printed on the stdio">verbose</param>
    <param default="false" desc="">Agents skeletons will be displayed if available.</param>
    </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
 
    <data>
       <output>
@@ -31,11 +34,7 @@ module (OPC) and format/transmit this information to the gui implemented by iCub
           </description>
       </output>  
   </data>   
-   
-   <authors>
-       <author email="stephane.lallee@gmail.com"> Stéphane Lallée </author>
-   </authors>
-   
+      
    <!--  
    <services>
        <server>
