@@ -1,24 +1,22 @@
 /* 
- * Copyright (C) 2011 EFAA Consortium, European Commission FP7 Project IST-270490
+ * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Stéphane Lallée
  * email:   stephane.lallee@gmail.com
- * website: http://efaa.upf.edu/ 
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
  *
  * A copy of the license can be found at
- * $EFAA_ROOT/license/gpl.txt
+ * wysiwyd/license/gpl.txt
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
- */
+*/
 
-
-#ifndef __EFAA_GUIUPV2_H__
-#define __EFAA_GUIUPV2_H__
+#ifndef __WYSIWYD_GUIUPV2_H__
+#define __WYSIWYD_GUIUPV2_H__
 
 #include <string>
 #include <yarp/os/all.h>
@@ -34,12 +32,12 @@ class GuiUpdaterModule: public RFModule
 {
 private:
     OPCClient *w;
-	Agent* iCub;
+    Agent* iCub;
     Port handlerPort;      //a port to handle messages 
     Port toGui;
     Port toGuiBase;
     unsigned int lastEntitiesCount;
-	bool displaySkeleton;
+    bool displaySkeleton;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
@@ -59,3 +57,5 @@ public:
 };
 
 #endif
+
+
