@@ -86,8 +86,9 @@ namespace cvz {
 				else
 					recurrentModality = NULL;
 
-				sigmaH = (1.0 / 4.0) * (height + width) / 2.0;
-				sigmaV = (1.0 / 4.0) * layers;
+				double sigmaFactor = rf.check("sigmaFactor", yarp::os::Value(1.0)).asDouble();
+				sigmaH = sigmaFactor * (1.0 / 4.0) * (height + width) / 2.0;
+				sigmaV = sigmaFactor * (1.0 / 4.0) * layers;
 
 				//Allocate the map
 				activity.allocate(width, height, layers);
@@ -520,6 +521,92 @@ namespace cvz {
 
 				//Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
 				return img;
+			}
+
+			/**
+			* Returns as an image the receptive field for a given modality of a given neuron of the map.
+			* @param x x coordinate of the neuron to plot
+			* @param y y coordinate of the neuron to plot
+			* @param z z coordinate of the neuron to plot
+			* @param modalityToPlot Pointer to the modality you want to plot
+			* @return An image representing the receptive field of the neuron x,y,z.
+			*/
+			yarp::sig::ImageOf<yarp::sig::PixelRgb> getReceptiveFieldRepresentation(int x, int y, int z, IModality* modalityToPlot)
+			{
+				mutex.wait();
+				yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
+
+				//Buffer the current activity
+				std::vector<double> rf(modalityToPlot->Size());
+				for (int i = 0; i < modalityToPlot->Size(); i++)
+				{
+					rf[i] = weights[modalityToPlot][i][x][y][z];
+				}
+				img = modalityToPlot->getVisualizationFromVector(rf);
+				mutex.post();
+
+				//Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
+				return img;
+			}
+
+			/**
+			* Returns the weights of a specific neuron for a specific modality (raw receptive field).
+			* @param x x coordinate of the neuron to plot
+			* @param y y coordinate of the neuron to plot
+			* @param z z coordinate of the neuron to plot
+			* @param modalityToPlot Pointer to the modality you want to plot
+			* @return A vector of double representing the weights of the modality for this specific neuron.
+			*/
+			std::vector<double> getReceptiveFieldWeights(int x, int y, int z, IModality* modality)
+			{
+				std::vector<double> buff(modality->Size());
+				for (int i = 0; i < modality->Size(); i++)
+				{
+					buff[i] = weights[modality][i][x][y][z];
+				}
+				return buff;
+			}
+
+			/**
+			* Get the best matching unit coordinates for a given activity on a given modality.
+			* @param values vector of double to match against the map receptives fields
+			* @param modalityToPlot Pointer to the modality to use as the source
+			* @param bx reference to x coordinate of the neuron to plot
+			* @param by reference to y coordinate of the neuron to plot
+			* @param bz reference to z coordinate of the neuron to plot
+			* @return A boolean true in case of success, false if the values/modailty size do not match.
+			*/
+			bool getBestMatchingUnit(std::vector<double> values, IModality* modalitySource, int& bx, int& by, int& bz)
+			{
+				mutex.wait();
+				bx = by = bz = 0;
+				if (values.size() != modalitySource->Size())
+					return false;
+
+				double bestError = DBL_MAX;
+				for (int x = 0; x < width; x++)
+				{
+					for (int y = 0; y < height; y++)
+					{
+						for (int z = 0; z < layers; z++)
+						{
+							double unitError = 0;
+							for (int i = 0; i < values.size(); i++)
+							{
+								unitError += fabs(weights[modalitySource][i][x][y][z] - values[i]);
+							}
+							if (bestError>unitError)
+							{
+								bestError = unitError;
+								bx = x;
+								by = y;
+								bz = z;
+							}
+						}
+					}
+				}
+				mutex.post();
+				return true;
 			}
 		};
 	}

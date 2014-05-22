@@ -18,6 +18,9 @@
  * Public License for more details
  */
 
+#ifndef FRONTAL_EF
+#define FRONTAL_EF
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -26,6 +29,7 @@
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
 #include <yarp/dev/Drivers.h>
+#include <cvz/core/all.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -63,9 +67,11 @@ private:
     PolyDriver clientGazeCtrl;
 	IGazeControl *igaze;
 	int store_context_id;
-
+	int cameraUsed;
+	double timeNextSaccade;
 	vector < vector<BufferedPort<Bottle> * > >  retinaInput;
 	vector < vector< LeakyIntegrator > > errorMap;
+	cvz::core::ThreadedCvz* mmcmErrorPrediction;
 	int retinaW, retinaH;
 
 	double tau;
@@ -82,6 +88,6 @@ public:
 	void resetErrorMap();
 };
 
-
+#endif
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
 

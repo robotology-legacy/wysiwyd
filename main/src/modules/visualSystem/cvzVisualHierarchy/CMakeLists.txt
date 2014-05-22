@@ -5,7 +5,7 @@
 set(PROJECTNAME cvzVisualHierarchy)
 
 project(${PROJECTNAME})
-#set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ConVergenceZone)
+
 find_package(GTK2)
 add_definitions(${GTK2_DEFINITIONS})
 include(YarpIDL)
@@ -20,11 +20,11 @@ source_group("Source Files" FILES ${folder_source})
 source_group("DOC Files"    FILES ${doc_files})
 source_group("IDL Files"    FILES ${idl_files})
 
-include_directories(${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
-#include_directories(${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
+include_directories(${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header} ${doc_files})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
 									 cvz
+									 ${OpenCV_LIBRARIES}
 									 ${GTK2_GTK_LIBRARY}
                                      ${GTK2_GLIB_LIBRARY}
                                      ${GTK2_GDK_LIBRARY}

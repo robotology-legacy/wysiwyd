@@ -57,11 +57,13 @@ class Player : public RFModule
     Port portCategoryTag;
     Port portCategoryVector;
     map< string, vector< IplImage* > > buffer;
+	double period;
 
 public:
 
     bool configure(yarp::os::ResourceFinder &rf)
     {
+		period = rf.check("period", Value(1.5)).asDouble();
         string name = rf.check("name", Value("caltechDatasetPlayer")).asString();
         string dsPath = rf.check("dataPath", Value(rf.findPath("default.ini").c_str())).asString();
         dsPath.erase(dsPath.end() - 11, dsPath.end());
@@ -121,7 +123,7 @@ public:
                 cvReleaseImage(&tmpImg);
                 cntCategory++;
             }
-            cout << "Category : " << category << " has " << cntCategory << " items" << endl;
+			cout << endl<< "Category : " << category << " has " << cntCategory << " items" << endl;
         }
         cout << "Total items : " << buffer.size() << endl;
 
@@ -177,6 +179,11 @@ public:
 
         return true;
     }
+
+	double getPeriod()
+	{
+		return period;
+	}
 };
 
 

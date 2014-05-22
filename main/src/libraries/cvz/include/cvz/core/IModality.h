@@ -29,7 +29,7 @@ namespace cvz {
             std::vector<double> scaledValuePrediction;
             std::vector<double> valueReal;
             std::vector<double> valuePrediction;
-
+			
             /**
             * virtual method : Defines what a modality does upon input signal. Should be overloaded and is called by IModality::Input()
             * @return true/false in case of success failure
@@ -81,7 +81,7 @@ namespace cvz {
             * @return A vector of double
             */
             std::vector<double> GetValuePrediction() { return scaledValuePrediction; }
-            
+
             /**
             * Set the current value of the real input. This method can be used to work with IModality from the code.
             * @param b A vector of double. 
@@ -121,6 +121,40 @@ namespace cvz {
                 valueReal.resize(size);
                 valuePrediction.resize(size);
             }
+
+			/**
+			* Apply the boundaries provided during the construction to scale a vector in [0,1].
+			*/
+			std::vector<double> scale(std::vector<double> tmp)
+			{
+				std::vector<double> sVal(tmp.size());
+				if (tmp.size() != size)
+					return sVal;
+
+				for (int i = 0; i < size; i++)
+				{
+					sVal[i] = (tmp[i] - minBound[i]) / (maxBound[i] - minBound[i]);
+					helpers::Clamp(sVal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
+				}
+				return sVal;
+			}
+
+			/**
+			* Apply the boundaries provided during the construction to unscale a vector.
+			*/
+			std::vector<double> unscale(std::vector<double> tmp)
+			{
+				std::vector<double> sVal(tmp.size());
+				if (tmp.size() != size)
+					return sVal;
+
+				for (int i = 0; i < size; i++)
+				{
+					sVal[i] = tmp[i] * (maxBound[i] - minBound[i]) + minBound[i];
+					helpers::Clamp(sVal[i], minBound[i], maxBound[i]); //useless in theory
+				}
+				return sVal;
+			}
 
             /**
             * Trigger the Input mechanism of a modality. 
@@ -173,28 +207,39 @@ namespace cvz {
             */
             virtual void Interrupt() {};
 
-            /**
-            * Returns an image of the modality current value to be displayed.
-            * @param getPredicted Choose if you want the real value (false) or the predicted value (true)
-            * @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
-            */
-            virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualization(bool getPredicted = false)
-            {
-                mutex.wait();
-                yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-                img.resize(size, 1);
-                for (int x = 0; x < size; x++)
-                {
-                    if (getPredicted)
-                        img.pixel(x, 0) = helpers::double2RGB(scaledValuePrediction[x]);
-                    else
-                        img.pixel(x, 0) = helpers::double2RGB(scaledValueReal[x]);
+			/**
+			* Returns an image of the modality current value to be displayed.
+			* Specialization can be provided to customize the display (e.g display the image in unvectorized form)
+			* @param getPredicted Choose if you want the real value (false) or the predicted value (true)
+			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+			*/
+			yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualization(bool getPredicted = false)
+			{
+				if (getPredicted)
+					return getVisualizationFromVector(scaledValuePrediction);
+				else
+					return getVisualizationFromVector(scaledValueReal);
+			}
 
-                }
-                mutex.post();
-                //Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
-                return img;
-            }
+			/**
+			* Returns an image of an arbitrary vector to be displayed.
+			* Specialization can be provided to customize the display (e.g display the image in unvectorized form)
+			* @param values, the values to be displayed
+			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+			*/
+			virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualizationFromVector(std::vector<double> values)
+			{
+				mutex.wait();
+				yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
+				img.resize(size, 1);
+				for (int x = 0; x < size; x++)
+				{
+					img.pixel(x, 0) = helpers::double2RGB(values[x]);
+				}
+				mutex.post();
+				//Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
+				return img;
+			}
         };
 
         /**
@@ -351,30 +396,25 @@ namespace cvz {
                 return dummyReturn;
             }
 
-            /**
-            * Returns an image of the modality current value to be displayed.
-            * Specialization can be provided to customize the display (e.g display the image in unvectorized form)
-            * @param getPredicted Choose if you want the real value (false) or the predicted value (true)
-            * @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
-            */
-            virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualization(bool getPredicted)
-            {
-                mutex.wait();
-                yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-                img.resize(size, 1);
-                for (int x = 0; x < size; x++)
-                {
-                    if (getPredicted)
-                        img.pixel(x, 0) = helpers::double2RGB(scaledValuePrediction[x]);
-                    else
-                        img.pixel(x, 0) = helpers::double2RGB(scaledValueReal[x]);
-
-                }
-                mutex.post();
-                //Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
-                return img;
-            }
-            
+			/**
+			* Returns an image of an arbitrary vector to be displayed.
+			* Specialization can be provided to customize the display (e.g display the image in unvectorized form)
+			* @param values, the values to be displayed
+			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+			*/
+			virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualizationFromVector(std::vector<double> values)
+			{
+				mutex.wait();
+				yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
+				img.resize(size, 1);
+				for (int x = 0; x < size; x++)
+				{
+					img.pixel(x, 0) = helpers::double2RGB(values[x]);
+				}
+				mutex.post();
+				//Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
+				return img;
+			}
         };
 
         /**
@@ -498,18 +538,9 @@ namespace cvz {
         * getVisualization() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
         */
         template<>
-        yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >::getVisualization(bool getPredicted)
+		yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >::getVisualizationFromVector(std::vector<double> values)
         {
-            mutex.wait();
-            yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-
-            if (getPredicted)
-                img = Unvectorize(valuePrediction);
-            else
-                img = Unvectorize(valueReal);
-            mutex.post();
-            //Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
-            return img;
+			return Unvectorize(values);
         }
 
         /**

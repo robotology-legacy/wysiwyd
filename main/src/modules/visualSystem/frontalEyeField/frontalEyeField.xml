@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>frontalEyeField</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Yet another model of the visual system</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Documentation to be done.
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+ 
+   </data>
+   
+   <services>
+
+   </services>
+   
+</module>
+

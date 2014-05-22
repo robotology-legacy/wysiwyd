@@ -33,7 +33,9 @@ namespace cvz {
 		*/
 		class CvzStack: public yarp::os::RFModule
 		{
-			std::list< ThreadedCvz* > nodes;
+			public:
+
+			std::map<std::string, ThreadedCvz* > nodes;
 			std::map<std::string, IModality* > nodesIO;
 			std::map< IModality*, std::map<IModality*, bool > > connections;
 			std::map< IModality*, std::string > externalInputs;
@@ -79,7 +81,30 @@ namespace cvz {
 				}
 			}
 
-		public:
+
+			void resume()
+			{
+				for(std::map<std::string, ThreadedCvz* >::iterator it = nodes.begin(); it != nodes.end(); it++)
+				{
+					it->second->resume();
+				}
+			}
+
+			void pause()
+			{
+				for (std::map<std::string, ThreadedCvz* >::iterator it = nodes.begin(); it != nodes.end(); it++)
+				{
+					it->second->suspend();
+				}
+			}
+
+			void start()
+			{
+				for (std::map<std::string, ThreadedCvz* >::iterator it = nodes.begin(); it != nodes.end(); it++)
+				{
+					it->second->start();
+				}
+			}
 
 			bool respond(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
 			{
@@ -93,15 +118,13 @@ namespace cvz {
 				}
 				return true;
 			}
+
 			/**
 			* Setup.
 			*/
 			bool configure(yarp::os::ResourceFinder &rf)
 			{
-				for (std::list<ThreadedCvz*>::iterator it = nodes.begin(); it != nodes.end(); it++)
-				{
-					(*it)->start();
-				}
+				start();
 				return true;
 			}
 
@@ -110,10 +133,10 @@ namespace cvz {
 			*/
 			bool close()
 			{
-				for (std::list<ThreadedCvz*>::iterator it = nodes.begin(); it != nodes.end(); it++)
+				for (std::map<std::string, ThreadedCvz*>::iterator it = nodes.begin(); it != nodes.end(); it++)
 				{
-					(*it)->stop();
-					delete (*it);
+					it->second->stop();
+					delete it->second;
 				}
 				return true;
 			}
@@ -133,7 +156,7 @@ namespace cvz {
 
 				ThreadedCvz* newCvz = new ThreadedCvz(prop, 100);
 				//if (newCvz->start())
-					nodes.push_back(newCvz);
+				nodes[newCvz->cvz->getName()] = newCvz;
 				//else return false;
 
 				//Expand the connection list and the connection matrix

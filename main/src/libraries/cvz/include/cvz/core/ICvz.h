@@ -111,7 +111,7 @@ namespace cvz {
 						if (autoConnect != "")
 							((ModalityBufferedPort<yarp::os::Bottle>*)mod)->ConnectInput(autoConnect);
 					}
-					if (modType == "yarpSound")
+					else if (modType == "yarpSound")
 					{
 						std::vector<bool> mask;
 						if (bMod.check("mask"))
