@@ -34,8 +34,10 @@ namespace cvz {
 		class CvzStack: public yarp::os::RFModule
 		{
 			public:
-
-			std::map<std::string, ThreadedCvz* > nodes;
+				bool isRunning;
+			std::map<std::string, IConvergenceZone* > nodesAll;
+			std::map<std::string, IConvergenceZone* > nodesNotThreaded;
+			std::map<std::string, ThreadedCvz* > nodesThreaded;
 			std::map<std::string, IModality* > nodesIO;
 			std::map< IModality*, std::map<IModality*, bool > > connections;
 			std::map< IModality*, std::string > externalInputs;
@@ -51,6 +53,13 @@ namespace cvz {
 			*/
 			bool updateModule()
 			{
+				if (isRunning)
+				{
+					for (std::map<std::string, IConvergenceZone*>::iterator it = nodesNotThreaded.begin(); it != nodesNotThreaded.end(); it++)
+					{
+						it->second->cycle();
+					}
+				}
 				return true;
 			}
 
@@ -84,26 +93,29 @@ namespace cvz {
 
 			void resume()
 			{
-				for(std::map<std::string, ThreadedCvz* >::iterator it = nodes.begin(); it != nodes.end(); it++)
+				for (std::map<std::string, ThreadedCvz* >::iterator it = nodesThreaded.begin(); it != nodesThreaded.end(); it++)
 				{
 					it->second->resume();
 				}
+				isRunning = true;
 			}
 
 			void pause()
 			{
-				for (std::map<std::string, ThreadedCvz* >::iterator it = nodes.begin(); it != nodes.end(); it++)
+				for (std::map<std::string, ThreadedCvz* >::iterator it = nodesThreaded.begin(); it != nodesThreaded.end(); it++)
 				{
 					it->second->suspend();
 				}
+				isRunning = false;
 			}
 
 			void start()
 			{
-				for (std::map<std::string, ThreadedCvz* >::iterator it = nodes.begin(); it != nodes.end(); it++)
+				for (std::map<std::string, ThreadedCvz* >::iterator it = nodesThreaded.begin(); it != nodesThreaded.end(); it++)
 				{
 					it->second->start();
 				}
+				isRunning = true;
 			}
 
 			bool respond(const yarp::os::Bottle &command, yarp::os::Bottle &reply)
@@ -133,20 +145,28 @@ namespace cvz {
 			*/
 			bool close()
 			{
-				for (std::map<std::string, ThreadedCvz*>::iterator it = nodes.begin(); it != nodes.end(); it++)
+				for (std::map<std::string, ThreadedCvz*>::iterator it = nodesThreaded.begin(); it != nodesThreaded.end(); it++)
 				{
 					it->second->stop();
 					delete it->second;
 				}
+				for (std::map<std::string, IConvergenceZone*>::iterator it = nodesNotThreaded.begin(); it != nodesNotThreaded.end(); it++)
+				{
+					it->second->close();
+					delete it->second;
+				}
+				isRunning = false;
 				return true;
 			}
 
 			/**
 			* Add a new CVZ from property. The CVZ is instantiated and added to the graph.
 			* @param prop The property containing the encessary infor for building the map.
+			* @param spawnThread Do you want this CVZ to run in a separate thread?.
+			* @param overrideName Override the name given in the property.
 			* @return true/false on success/failure.
 			*/
-			bool addCvzFromProperty(yarp::os::Property prop, std::string overrideName = "")
+			bool addCvzFromProperty(yarp::os::Property prop, bool spawnThread = false, std::string overrideName = "" )
 			{
 				if (prop.check("name") && overrideName != "")
 				{
@@ -154,15 +174,27 @@ namespace cvz {
 					prop.put("name", overrideName);
 				}
 
-				ThreadedCvz* newCvz = new ThreadedCvz(prop, 100);
-				//if (newCvz->start())
-				nodes[newCvz->cvz->getName()] = newCvz;
-				//else return false;
+				IConvergenceZone * newCvz;
+				if (spawnThread)
+				{
+					ThreadedCvz* newThreadCvz = new ThreadedCvz(prop, 100);
+					newCvz = newThreadCvz->cvz;
+					//if (newCvz->start())
+					nodesThreaded[newCvz->getName()] = newThreadCvz;
+					//else return false;
+				}
+				else
+				{
+					CvzBuilder::allocate(&newCvz, prop.check("type", yarp::os::Value(TYPE_ICVZ)).asString());
+					newCvz->configure(prop);
+					nodesNotThreaded[newCvz->getName()] = newCvz;
+				}
 
+				nodesAll[newCvz->getName()] = newCvz;
 				//Expand the connection list and the connection matrix
-				for (std::map<std::string, IModality* >::iterator it = newCvz->cvz->modalitiesBottomUp.begin(); it != newCvz->cvz->modalitiesBottomUp.end(); it++)
+				for (std::map<std::string, IModality* >::iterator it = newCvz->modalitiesBottomUp.begin(); it != newCvz->modalitiesBottomUp.end(); it++)
 					nodesIO[it->second->GetFullName()] = it->second;
-				for (std::map<std::string, IModality* >::iterator it = newCvz->cvz->modalitiesTopDown.begin(); it != newCvz->cvz->modalitiesTopDown.end(); it++)
+				for (std::map<std::string, IModality* >::iterator it = newCvz->modalitiesTopDown.begin(); it != newCvz->modalitiesTopDown.end(); it++)
 					nodesIO[it->second->GetFullName()] = it->second;
 
 				fillConnectionMatrix();
@@ -173,9 +205,11 @@ namespace cvz {
 			/**
 			* Add a new CVZ from a config file. The CVZ is instantiated and added to the graph.
 			* @param configFile Name of the config file containing the information about the cvz.
+			* @param spawnThread Do you want this CVZ to run in a separate thread?.
+			* @param overrideName Override the name given in the property.
 			* @return true/false on success/failure.
 			*/
-			bool addCvzFromConfigFile(std::string configFile, std::string overrideName="")
+			bool addCvzFromConfigFile(std::string configFile, bool spawnThread = false, std::string overrideName="")
 			{
 
 				yarp::os::ResourceFinder rf;
@@ -185,7 +219,7 @@ namespace cvz {
 				rf.configure(NULL, NULL);			
 
 				yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
-				return addCvzFromProperty(prop, overrideName);
+				return addCvzFromProperty(prop, spawnThread, overrideName);
 			}
 			
 			/**

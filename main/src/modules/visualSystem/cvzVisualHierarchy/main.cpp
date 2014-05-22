@@ -276,7 +276,7 @@ public:
 
 				std::stringstream ssName;
 				ssName << "retina/" << x << "_" << y;
-				retina[x][y] = (cvz::core::CvzMMCM*) stack->nodes[ssName.str()]->cvz;
+				retina[x][y] = (cvz::core::CvzMMCM*) stack->nodesAll[ssName.str()];
 			}
 		}
 
@@ -289,15 +289,15 @@ public:
 
 				std::stringstream ssName;
 				ssName << "fovea/" << x << "_" << y;
-				fovea[x][y] = (cvz::core::CvzMMCM*) stack->nodes[ssName.str()]->cvz;
+				fovea[x][y] = (cvz::core::CvzMMCM*) stack->nodesAll[ssName.str()];
 			}
 		}
 
-		v1Retina = (cvz::core::CvzMMCM*) stack->nodes["v1Retina"]->cvz;
-		v1Fovea = (cvz::core::CvzMMCM*) stack->nodes["v1Fovea"]->cvz;
+		v1Retina = (cvz::core::CvzMMCM*) stack->nodesAll["v1Retina"];
+		v1Fovea = (cvz::core::CvzMMCM*) stack->nodesAll["v1Fovea"];
 		//v1 = (cvz::core::CvzMMCM*) stack->nodes["v1"]->cvz;
-		v2 = (cvz::core::CvzMMCM*) stack->nodes["v2"]->cvz;
-		gaze = (cvz::core::CvzMMCM*) stack->nodes["gaze"]->cvz;
+		v2 = (cvz::core::CvzMMCM*) stack->nodesAll["v2"];
+		gaze = (cvz::core::CvzMMCM*) stack->nodesAll["gaze"];
 	}
 
 	virtual void onRead(Bottle& b)
@@ -364,12 +364,12 @@ public:
 				return;
 			}
 			
-			if (stack->nodes.find(area) == stack->nodes.end())
+			if (stack->nodesAll.find(area) == stack->nodesAll.end())
 			{
 				cout << "Asked map doesn't exist" << endl;
 				return;
 			}
-			cvz::core::CvzMMCM* targetMap = (cvz::core::CvzMMCM*) stack->nodes[area]->cvz;
+			cvz::core::CvzMMCM* targetMap = (cvz::core::CvzMMCM*) stack->nodesAll[area];
 		}
 
 		if (keyWord == "save")
