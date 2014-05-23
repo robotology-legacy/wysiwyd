@@ -11,20 +11,20 @@ using namespace yarp::os;
 #define V1_RETINA_W	10
 #define V1_RETINA_H	10
 #define V1_RETINA_L	1
-#define V1_RETINA_LEARNING 0.005
-#define V1_RETINA_SIGMA_FACTOR 1.5
+#define V1_RETINA_LEARNING 0.0075
+#define V1_RETINA_SIGMA_FACTOR 0.5
 
-#define V1_FOVEA_W	10
-#define V1_FOVEA_H	10
+#define V1_FOVEA_W	3
+#define V1_FOVEA_H	3
 #define V1_FOVEA_L	1
-#define V1_FOVEA_LEARNING 0.01
-#define V1_FOVEA_SIGMA_FACTOR 1.5
+#define V1_FOVEA_LEARNING 0.0075
+#define V1_FOVEA_SIGMA_FACTOR 0.5
 
-#define V2_W	30
-#define V2_H	30
+#define V2_W	5
+#define V2_H	5
 #define V2_L	1
-#define V2_LEARNING 0.005
-#define V2_SIGMA_FACTOR 1.5
+#define V2_LEARNING 0.0075
+#define V2_SIGMA_FACTOR 0.5
 
 void replace_all(std::string & in, const std::string & plain, const std::string & tok)
 {
@@ -459,7 +459,7 @@ void configureV1Retina(cvz::core::CvzStack* stack, int retinaX, int retinaY)
 
 	Property propV1;
 	propV1.fromConfig(configV1Retina.str().c_str());
-	stack->addCvzFromProperty(propV1, "v1Retina");
+	stack->addCvzFromProperty(propV1, false, "v1Retina");
 
 	//Instantiate the retina maps
 	for (int x = 0; x < retinaX; x++)
@@ -468,7 +468,7 @@ void configureV1Retina(cvz::core::CvzStack* stack, int retinaX, int retinaY)
 		{
 			std::stringstream ssName;
 			ssName << "retina/" << x << "_" << y;
-			stack->addCvzFromConfigFile("retinaCell.ini", ssName.str().c_str());
+			stack->addCvzFromConfigFile("retinaCell.ini",false, ssName.str().c_str());
 
 			//Connect camera input
 			std::string inputModName = "/";
@@ -528,7 +528,7 @@ void configureV1Fovea(cvz::core::CvzStack* stack, int foveaX, int foveaY)
 
 	Property propV1;
 	propV1.fromConfig(configV1Retina.str().c_str());
-	stack->addCvzFromProperty(propV1, "v1Fovea");
+	stack->addCvzFromProperty(propV1,false, "v1Fovea");
 
 	//Instantiate the retina maps
 	for (int x = 0; x < foveaX; x++)
@@ -537,7 +537,7 @@ void configureV1Fovea(cvz::core::CvzStack* stack, int foveaX, int foveaY)
 		{
 			std::stringstream ssName;
 			ssName << "fovea/" << x << "_" << y;
-			stack->addCvzFromConfigFile("foveaCell.ini", ssName.str().c_str());
+			stack->addCvzFromConfigFile("foveaCell.ini", false, ssName.str().c_str());
 
 			//Connect camera input
 			std::string inputModName = "/";
@@ -623,10 +623,10 @@ int main(int argc, char * argv[])
 
 	Property propV2;
 	propV2.fromConfig(configV2.str().c_str());
-	stack.addCvzFromProperty(propV2, "v2");
+	stack.addCvzFromProperty(propV2,false, "v2");
 
 	//Add the head proprioception
-	stack.addCvzFromConfigFile(std::string("icub_head.ini"), "gaze");
+	stack.addCvzFromConfigFile(std::string("icub_head.ini"),false, "gaze");
 
 	//Connect the head to v2 -- I know this is non plausible
 	stack.connectModalities("/gaze/v1", "/v2/gaze");
