@@ -308,6 +308,8 @@ namespace cvz {
 
 			void adaptWeights()
 			{
+				double winnerError = activity[xWin][yWin][zWin];
+
 				for (int x = 0; x < width; x++)
 				{
 					for (int y = 0; y < height; y++)
@@ -318,6 +320,13 @@ namespace cvz {
 							float distanceV = sqrt(pow(z - zWin, 2.0));
 							float dHCoef = helpers::GaussianBell(distanceH, sigmaH);
 							float dVCoef = helpers::GaussianBell(distanceV, sigmaV);
+
+							//DSOM (refer to http://www.loria.fr/~rougier/coding/article/article.html#dynamic-neighbourhood)
+							float elasticity = 2.0;
+							float heta = 0.0;
+							if (activity[xWin][yWin][zWin] != 0.0)
+								heta = expf(-(1 / pow(elasticity, 2)) * (distanceH / winnerError));
+
 							//float dHCoef = MexicanHat(distanceH, sigmaH);
 							//float dVCoef = MexicanHat(distanceV, sigmaV);
 
@@ -332,10 +341,10 @@ namespace cvz {
 									double dW = (valueReal[i] - weights[it->second][i][x][y][z]);
 									weights[it->second][i][x][y][z] +=
 										lRate *
-										dHCoef *
-										dVCoef *
+										//dHCoef *
+										//dVCoef *
 										modalitiesLearning[it->second] *
-										//winnerError *
+										heta *
 										dW;
 									helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
 								}
@@ -349,10 +358,10 @@ namespace cvz {
 								{
 									weights[it->second][i][x][y][z] +=
 										lRate *
-										dHCoef *
-										dVCoef *
+										//dHCoef *
+										//dVCoef *
 										modalitiesLearning[it->second] *
-										//winnerError *
+										heta *
 										(valueReal[i] - weights[it->second][i][x][y][z]);
 
 									helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
@@ -375,9 +384,9 @@ namespace cvz {
 									double dW = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
 									weights[recurrentModality][i][x][y][z] +=
 										lRate *
-										dHCoef *
-										dVCoef *
-										//winnerError *
+										//dHCoef *
+										//dVCoef *
+										heta *
 										dW;
 									helpers::Clamp(weights[recurrentModality][i][x][y][z], 0.0, 1.0);
 								}
