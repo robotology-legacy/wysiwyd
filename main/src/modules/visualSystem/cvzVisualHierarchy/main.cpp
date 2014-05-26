@@ -8,23 +8,25 @@
 using namespace std;
 using namespace yarp::os;
 
-#define V1_RETINA_W	10
-#define V1_RETINA_H	10
+#define TOPDOWN_SIZE 5
+
+#define V1_RETINA_W	20
+#define V1_RETINA_H	20
 #define V1_RETINA_L	1
-#define V1_RETINA_LEARNING 0.0075
-#define V1_RETINA_SIGMA_FACTOR 0.5
+#define V1_RETINA_LEARNING 0.05
+#define V1_RETINA_SIGMA_FACTOR 10.0
 
-#define V1_FOVEA_W	3
-#define V1_FOVEA_H	3
+#define V1_FOVEA_W	1
+#define V1_FOVEA_H	1
 #define V1_FOVEA_L	1
-#define V1_FOVEA_LEARNING 0.0075
-#define V1_FOVEA_SIGMA_FACTOR 0.5
+#define V1_FOVEA_LEARNING 0.05
+#define V1_FOVEA_SIGMA_FACTOR 10.0
 
-#define V2_W	5
-#define V2_H	5
+#define V2_W	50
+#define V2_H	1
 #define V2_L	1
-#define V2_LEARNING 0.0075
-#define V2_SIGMA_FACTOR 0.5
+#define V2_LEARNING 0.05
+#define V2_SIGMA_FACTOR 10.0
 
 void replace_all(std::string & in, const std::string & plain, const std::string & tok)
 {
@@ -88,6 +90,7 @@ private:
 					finalName = "rfImages/" + finalName;
 					cout << "Saving receptive fields of " << finalName << " --> " << cvSaveImage(finalName.c_str(), fullImg) << endl;;
 				}
+				cvReleaseImage(&fullImg);
 			}
 		}
 	}
@@ -258,10 +261,19 @@ public:
 		saveV1RF(v1Retina, retina);
 		saveV1RF(v1Fovea, fovea);
 		saveV2RF();
+		/*
+		for (map<string, cvz::core::IConvergenceZone*>::iterator it = stack->nodesAll.begin(); it != stack->nodesAll.end(); it++)
+		{
+			double previousLR = ((cvz::core::CvzMMCM*)it->second)->getLearningRate();
+			double previousSigma = ((cvz::core::CvzMMCM*)it->second)->getSigma();
+			((cvz::core::CvzMMCM*)it->second)->setLearningRate(previousLR*0.99);
+			((cvz::core::CvzMMCM*)it->second)->setSigma(previousSigma*0.5);
+		}
+		*/
 		autoIncrementCnt++;
 	}
 
-	StackRpcWrapper(cvz::core::CvzStack* _stack, int retinaW, int retinaH, int foveaW, int foveaH) :yarp::os::RateThread(15*60*1000)
+	StackRpcWrapper(cvz::core::CvzStack* _stack, int retinaW, int retinaH, int foveaW, int foveaH) :yarp::os::RateThread(5*60*1000)
 	{
 		autoIncrementCnt = 0;
 		stack = _stack;
@@ -334,50 +346,58 @@ public:
 			std::string keyword2 = b.get(1).asString();
 			std::string area = b.get(2).asString();
 			double newValue = b.get(3).asDouble();
+			list<cvz::core::CvzMMCM*> targets;
 			if (area == "retina")
 			{
 				for (int i = 0; i < retina.size(); i++)
-				{
 					for (int j = 0; j < retina[i].size(); j++)
-					{
-						if (keyword2 == "learning")
-							retina[i][j]->setLearningRate(newValue);
-						if (keyword2 == "sigma")
-							retina[i][j]->setSigma(newValue);
-					}
-				}
-				return;
+						targets.push_back(retina[i][j]);
 			}
-			
-			if (area == "fovea")
+			else if (area == "fovea")
 			{
 				for (int i = 0; i < fovea.size(); i++)
-				{
 					for (int j = 0; j < fovea[i].size(); j++)
-					{
-						if (keyword2 == "learning")
-							fovea[i][j]->setLearningRate(newValue);
-						if (keyword2 == "sigma")
-							fovea[i][j]->setSigma(newValue);
-					}
-				}
-				return;
+						targets.push_back(fovea[i][j]);
 			}
-			
-			if (stack->nodesAll.find(area) == stack->nodesAll.end())
+			else if (area == "all")
 			{
-				cout << "Asked map doesn't exist" << endl;
+				for (map<string, cvz::core::IConvergenceZone* >::iterator it = stack->nodesAll.begin(); it != stack->nodesAll.end(); it++)
+				{
+					targets.push_back((cvz::core::CvzMMCM*) it->second);
+				}
+			}
+			else if (stack->nodesAll.find(area) == stack->nodesAll.end())
+			{
+				std::cout << "Asked map doesn't exist" << std::endl;
 				return;
 			}
-			cvz::core::CvzMMCM* targetMap = (cvz::core::CvzMMCM*) stack->nodesAll[area];
+			else
+			{
+				targets.push_back( (cvz::core::CvzMMCM*) stack->nodesAll[area]);
+			}
+			for (list<cvz::core::CvzMMCM* >::iterator itCvz = targets.begin(); itCvz != targets.end(); itCvz++)
+			{
+				if (keyword2 == "learning")
+					(*itCvz)->setLearningRate(newValue);
+				if (keyword2 == "sigma")
+					(*itCvz)->setSigma(newValue);
+
+				if (keyword2 == "bottomUpInfluence")
+				for (map<string, cvz::core::IModality*>::iterator itMod = (*itCvz)->modalitiesBottomUp.begin(); itMod != (*itCvz)->modalitiesBottomUp.end(); itMod++)
+					(*itCvz)->modalitiesInfluence[itMod->second] = newValue;
+
+				if (keyword2 == "topDownInfluence")
+				for (map<string, cvz::core::IModality*>::iterator itMod = (*itCvz)->modalitiesTopDown.begin(); itMod != (*itCvz)->modalitiesTopDown.end(); itMod++)
+					(*itCvz)->modalitiesInfluence[itMod->second] = newValue;
+			}
 		}
 
 		if (keyWord == "save")
 		{
-			cout << "Pausing the stack." << endl;
+			std::cout << "Pausing the stack." << std::endl;
 			stack->pause();
 
-			cout << "Saving the stack weights." << endl;
+			std::cout << "Saving the stack weights." << std::endl;
 			for (int i = 0; i < retina.size(); i++)
 			{
 				for (int j = 0; j < retina[i].size(); j++)
@@ -396,16 +416,43 @@ public:
 			v1Retina->saveWeightsToFile("v1Retina");
 			v2->saveWeightsToFile("v1Fovea");
 
-			cout << "Resuming the stack." << endl;
+			std::cout << "Resuming the stack." << std::endl;
 			stack->resume();
+		}
 
+		if (keyWord == "load")
+		{
+			std::cout << "Pausing the stack." << std::endl;
+			stack->pause();
+
+			std::cout << "Loading the stack weights." << std::endl;
+			for (int i = 0; i < retina.size(); i++)
+			{
+				for (int j = 0; j < retina[i].size(); j++)
+				{
+					retina[i][j]->loadWeightsFromFile(retina[i][j]->getName());
+				}
+			}
+			for (int i = 0; i < fovea.size(); i++)
+			{
+				for (int j = 0; j < fovea[i].size(); j++)
+				{
+					fovea[i][j]->loadWeightsFromFile(fovea[i][j]->getName());
+				}
+			}
+			v1Fovea->loadWeightsFromFile("v1Fovea");
+			v1Retina->loadWeightsFromFile("v1Retina");
+			v2->loadWeightsFromFile("v1Fovea");
+
+			std::cout << "Resuming the stack." << std::endl;
+			stack->resume();
 		}
 
 		if (keyWord == "plotRF")
 		{
-			cout << "About to plot receptive fields..." << endl;
+			std::cout << "About to plot receptive fields..." << std::endl;
 
-			cout << "Pausing the stack." << endl;
+			std::cout << "Pausing the stack." << std::endl;
 			stack->pause();
 
 			//Proceed v2
@@ -414,7 +461,7 @@ public:
 			saveV1RF(v1Retina, retina);
 			saveV1RF(v1Fovea, fovea);
 			saveV2RF();
-			cout << "Resuming the stack." << endl;
+			std::cout << "Resuming the stack." << std::endl;
 			stack->resume();
 
 			return;
@@ -455,7 +502,7 @@ void configureV1Retina(cvz::core::CvzStack* stack, int retinaX, int retinaY)
 		<< "name" << '\t' << "out" << endl
 		<< "type" << '\t' << "yarpVector" << endl
 		<< "isTopDown" << '\t' << "yarpVector" << endl
-		<< "size" << '\t' << 3 << endl << endl;
+		<< "size" << '\t' << TOPDOWN_SIZE << endl << endl;
 
 	Property propV1;
 	propV1.fromConfig(configV1Retina.str().c_str());
@@ -524,7 +571,7 @@ void configureV1Fovea(cvz::core::CvzStack* stack, int foveaX, int foveaY)
 		<< "name" << '\t' << "out"<< endl
 		<< "type" << '\t' << "yarpVector" << endl
 		<< "isTopDown" << '\t' << "yarpVector" << endl
-		<< "size" << '\t' << 3 << endl << endl;
+		<< "size" << '\t' << TOPDOWN_SIZE << endl << endl;
 
 	Property propV1;
 	propV1.fromConfig(configV1Retina.str().c_str());
@@ -613,13 +660,13 @@ int main(int argc, char * argv[])
 		<< "[modality_1]" << endl
 		<< "name" << '\t' << "v1Retina" << endl
 		<< "type" << '\t' << "yarpVector" << endl
-		<< "size" << '\t' << 3 << endl << endl;
+		<< "size" << '\t' << TOPDOWN_SIZE << endl << endl;
 
 	configV2
 		<< "[modality_2]" << endl
 		<< "name" << '\t' << "v1Fovea" << endl
 		<< "type" << '\t' << "yarpVector" << endl
-		<< "size" << '\t' << 3 << endl << endl;
+		<< "size" << '\t' << TOPDOWN_SIZE << endl << endl;
 
 	Property propV2;
 	propV2.fromConfig(configV2.str().c_str());
