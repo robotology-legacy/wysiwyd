@@ -28,16 +28,17 @@
    <services>
        <server>
            <port>/referenceFrameHandler/rpc</port>
-           <description>It is the way to interact with the module. Commands are:
-							<param default="add frameName (x y z) (x' y' z')" desc="add a calibration pair (xyz in frameName's reference, x'y'z' in iCub pivot reference) reply is [ack/nack]">add</param>
-							<param default="cal frameName" desc="Calibrate and find the transformation matrix between frameName's reference and iCub pivot reference reply is [ack] rotoTrans matrix=' ' in=' ' string=' ' format=' ' ">cal</param>
-							<param default="scal frameName" desc="Calibrate and find H &amp; S between frameName's reference and iCub pivot reference reply is [ack] rotoTrans matrix=' ' in=' ' string=' ' format=' ' ">scal</param>
-							<param default="trans frameName1 frameName2 (x y z)" desc="Transform the point (x y z) given in frameName1's reference into the frameName2's reference reply is [ack] (x' y' z') (e.g : trans kinect reactable (0 0 0) Will return the position of the origin of the kinect reference into the reactable reference )">trans</param>
-							<param default="mat frameName1 frameName2" desc="Get the transformation matrix from frameName1 to frameName2 reply is [ack] (m00 m01 ... m32 m33)">mat</param>
-							<param default="smat frameName1 frameName2" desc="Set the transformation matrix from frameName1 to frameName2 reply is [ack]">smat</param>
-							<param default="save" desc="Save all the calibrated frames to a file reply is [ack] filePath">save</param>
-							<param default="opcr" desc="Read all the frames contained in the OPC reply is [ack]">opcr</param>
-							<param default="opcw" desc="Write all the calibrated frames to the OPC reply is [ack]/description">opcw</param>
+           <description>It is the way to interact with the module. Commands are: \n
+           "add frameName (x y z) (x' y' z')": add a calibration pair (xyz in frameName's reference, x'y'z' in iCub pivot reference); reply is [ack/nack]. \n
+           "cal frameName": calibrate and find the transformation matrix between frameName's reference and iCub pivot reference; reply is [ack]. \n
+           "scal frameName": calibrate and find H and S between frameName's reference and iCub pivot reference; reply is [ack]. \n
+           "trans frameName1 frameName2 (x y z)": transform the point (x y z) given in frameName1's reference into the frameName2's reference; reply is [ack] (x' y' z')
+           (e.g : trans kinect reactable (0 0 0) Will return the position of the origin of the kinect reference into the reactable reference). \n
+           "mat frameName1 frameName2": get the transformation matrix from frameName1 to frameName2; reply is [ack] (m00 m01 ... m32 m33). \n
+           "smat frameName1 frameName2": set the transformation matrix from frameName1 to frameName2; reply is [ack]. \n
+           "save": save all the calibrated frames to a file; reply is [ack] filePath. \n
+           "opcr": read all the frames contained in the OPC; reply is [ack]. \n
+           "opcw": write all the calibrated frames to the OPC; reply is [ack].
            </description>
        </server>
    </services>
