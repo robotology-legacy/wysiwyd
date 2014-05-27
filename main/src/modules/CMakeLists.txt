@@ -8,8 +8,11 @@ add_subdirectory(motorSystem)
 add_subdirectory(cvz)
 add_subdirectory(tools)
 
-if (WYSIWYD_USE_OpenCV)
+if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(visualSystem)
 endif()
 
+if(WYSIWYD_USE_IPOPT)
+    add_subdirectory(referenceFrameHandler)
+endif()
 

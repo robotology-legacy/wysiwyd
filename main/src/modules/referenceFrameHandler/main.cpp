@@ -15,82 +15,6 @@
  * Public License for more details
  */
 
-/** 
-\defgroup referenceFrameHandler referenceFrameHandler
- 
-@ingroup efaa_modules
- 
-Module responsible for handling the conversion between multiple reference frame (e.g multiple kinects, tactile table... etc)
-
-\section intro_sec Description 
- 
-The purpose of this module is to build & store transformation matrices allowing the conversion of coordinates from one reference
-frame to another. Matrices are estimated by matching point clouds with coordinates in both referential.
-Once calibrated RPC commands allow the conversion from one frame to another, however it is encouraged to retrieve the matrix
-and do the transformations within the clients to minimize useless network calls.
- 
-\section proto_sec Protocol 
- None.
-
-\section lib_sec Libraries 
-- YARP libraries
-- ICUB optimization
-- IPOPT
-
-\section parameters_sec Parameters
---name <string> 
-- To specify the module's name; all the open ports will be 
-  tagged with the prefix /<moduleName>/. If not specified
-  \e referenceFrameHandler is assumed.
-
---matricesFile    <string> file to be used for loading/saving purposes of the matrices
-
---empty        starts the module without trying to load matrices from the file. (they can still be saved afterward)
-
---verbose
-- To specify if debug information should be printed on the stdio
- 
-\section portsa_sec Ports Accessed
-None.
-
-\section portsc_sec Ports Created
-- /moduleName/rpc port is the way to interact with the module. Commands are:
-
-@b "add <frameName> (x y z) (x' y' z')" add a calibration pair (xyz in frameName's reference, x'y'z' in iCub pivot reference)
-    reply is [ack/nack]
-
-@b "cal <frameName>" Calibrate and find the transformation matrix between frameName's reference and iCub pivot reference
-    reply is [ack] <rotoTrans matrix in string format>
-
-@b "scal <frameName>" Calibrate and find H & S between frameName's reference and iCub pivot reference
-    reply is [ack] <rotoTrans matrix in string format>
-
-@b "trans <frameName1> <frameName2> (x y z)" Transform the point (x y z) given in frameName1's reference into the frameName2's reference
-    reply is [ack] (x' y' z')
-    (e.g : trans kinect reactable (0 0 0) Will return the position of the origin of the kinect reference into the reactable reference )
-
-@b "mat <frameName1> <frameName2>" Get the transformation matrix from frameName1 to frameName2
-    reply is [ack] (m00 m01 ... m32 m33)
-
-@b "smat <frameName1> <frameName2>" Set the transformation matrix from frameName1 to frameName2
-    reply is [ack]
-
-@b "save" Save all the calibrated frames to a file
-    reply is [ack] <filePath>
-
-@b "opcr" Read all the frames contained in the OPC
-    reply is [ack]
-
-@b "opcw" Write all the calibrated frames to the OPC
-    reply is [ack]
-
-\section tested_os_sec Tested OS
-Linux and Windows.
-
-\author Stephane Lallee
-*/ 
-
-
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -104,7 +28,7 @@ Linux and Windows.
 #include <iCub/ctrl/math.h>
 #include <iCub/optimization/calibReference.h>
 
-#include <efaa/helpers/helpers.h>
+#include <wrdac/helpers/helpers.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -112,7 +36,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace iCub::ctrl;
 using namespace iCub::optimization;
-using namespace efaa::helpers;
+using namespace wrdac::helpers;
 
 /************************************************************************/
 struct FrameInfo
@@ -458,7 +382,7 @@ public:
                 break;
             }
                     
-			//Clear the list of points used for calibration
+            //Clear the list of points used for calibration
             case VOCAB4('c','l','e','a'):
             {
                 //Format is [clear] <frameName>
@@ -479,8 +403,8 @@ public:
                     frames[frameName].HInv = eye(4,4);
                 }
       
-				frames[frameName].calibrator.clearPoints();
-				
+                frames[frameName].calibrator.clearPoints();
+                
                 std::cout<<"After "<<frames[frameName].calibrator.getNumPoints()<<std::endl;
                 reply.addString("ack");
                 reply.addString("Cleared");
@@ -815,11 +739,12 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("referenceFrameHandler/conf");
+    rf.setDefaultContext("referenceFrameHandler");
     rf.setDefaultConfigFile("config.ini");
-    rf.configure("EFAA_ROOT",argc,argv);
+    rf.configure(argc,argv);
     FrameHandlerModule mod;
 
     return mod.runModule(rf);
 }
+
 
