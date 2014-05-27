@@ -12,7 +12,7 @@ if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(visualSystem)
 endif()
 
-if(WYSIWYD_USE_IPOPT)
+if(ICUB_USE_IPOPT)
     add_subdirectory(referenceFrameHandler)
 endif()
 
