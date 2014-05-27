@@ -69,11 +69,11 @@ public:
     * @param opcName the name of the OPC module to connect to.
     */ 
     bool connect(const std::string &opcName) 
-	{ 
-		return 
-			(yarp::os::Network::connect(opc.getName().c_str(), ("/" + opcName + "/rpc").c_str()) &&
-			 yarp::os::Network::connect(("/" + opcName + "/broadcast:o").c_str(), opcBroadcast.getName().c_str() )); 
-	}
+    { 
+        return 
+            (yarp::os::Network::connect(opc.getName().c_str(), ("/" + opcName + "/rpc").c_str()) &&
+             yarp::os::Network::connect(("/" + opcName + "/broadcast:o").c_str(), opcBroadcast.getName().c_str() )); 
+    }
 
     /**
     * Interrupt communications of the client ports
@@ -118,7 +118,7 @@ public:
     /**
     * Try to assign a property from an entity to another entity, using a specific property name
     */ 
-	bool			setEntityProperty(std::string sourceEntityName, std::string propertyName, std::string targetEntityName);
+    bool            setEntityProperty(std::string sourceEntityName, std::string propertyName, std::string targetEntityName);
 
     /**
     * Obtains a relation between two entities. If this relation already present on the server side then the local relations are updated, else a new one is created.

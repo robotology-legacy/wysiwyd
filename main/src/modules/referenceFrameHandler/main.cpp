@@ -36,7 +36,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace iCub::ctrl;
 using namespace iCub::optimization;
-using namespace wrdac::helpers;
+using namespace wysiwyd::wrdac;
 
 /************************************************************************/
 struct FrameInfo
