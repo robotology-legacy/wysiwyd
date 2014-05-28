@@ -65,9 +65,6 @@ bool abmReasoning::configure(ResourceFinder &rf)
 	bool bPopulateOPC = !(rf.check("noPopulate"));
 	
 	if (!(rf.check("noKnowledge")))	getKnowledge();
-//	if (!rf.check("noSentences"))	findAllSentence();
-	if (!rf.check("noSentences"))	findAllSentence();
-	listGrammarKnowledge.testModel(100,2);
 	//remove all the previous pddl files
 	pddlSolDelete(1,pddlNb);
 
@@ -76,14 +73,21 @@ bool abmReasoning::configure(ResourceFinder &rf)
 	std::cout << endl << endl << "----------------------------------------------" << endl << endl << "abmReasoning ready !" << endl << endl;
 
 	bReady = true;
+	bool bTestLanguage = false;
 
-	for (int i = 1 ; i < 8 ; i++)
+	if (bTestLanguage)
 	{
-		if (i !=2)
+		//	if (!rf.check("noSentences"))	findAllSentence();
+		if (!rf.check("noSentences"))	findAllSentence();
+		listGrammarKnowledge.testModel(100,2);
+		for (int i = 1 ; i < 8 ; i++)
 		{
-			listGrammarKnowledge.clear();
-			listGrammarKnowledge.simulateLearning(i,5);
-			listGrammarKnowledge.testModel(100,i);
+			if (i !=2)
+			{
+				listGrammarKnowledge.clear();
+				listGrammarKnowledge.simulateLearning(i,5);
+				listGrammarKnowledge.testModel(100,i);
+			}
 		}
 	}
 	return false;
