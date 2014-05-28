@@ -1,10 +1,10 @@
-#include <efaa/spatialKnowledge.h>
-#include <efaa/timeKnowledge.h>
-#include <efaa/sharedPlan.h>
-#include <efaa/contextualKnowledge.h>
-#include <efaa/behavior.h>
-#include <efaa/knownInteraction.h>
-#include <efaa/grammarKnowledge.h>
+#include <spatialKnowledge.h>
+#include <timeKnowledge.h>
+#include <sharedPlan.h>
+#include <contextualKnowledge.h>
+#include <behavior.h>
+#include <knownInteraction.h>
+#include <grammarKnowledge.h>
 #include <deque>
 #include <stdlib.h>
 

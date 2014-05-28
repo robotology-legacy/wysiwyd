@@ -1,7 +1,7 @@
-#include <efaa/abmReasoningFunction.h>
+#include <abmReasoningFunction.h>
 
 using namespace yarp::os;
-using namespace efaa::helpers;
+using namespace wysiwyd::wrdac;
 using namespace std;
 
 

@@ -5,12 +5,12 @@
 set(PROJECTNAME abmReasoning)
 project(${PROJECTNAME})
 
-file(GLOB folder_source src/.cpp)
-file(GLOB folder_header include/.h  )
+set(header_files include/*.h )
+set(source_files src/*.cpp )
 set(doc_files ${PROJECTNAME}.xml)
 
-source_group("Source Files" FILES ${folder_source})
-source_group("Header Files" FILES ${folder_header})
+source_group("Header Files" FILES ${header_files})
+source_group("Source Files" FILES ${source_files})
 
 source_group("DOC Files"    FILES ${doc_files})
 
@@ -19,4 +19,3 @@ add_executable(${PROJECTNAME} ${header_files} ${source_files} ${doc_files})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES})
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
-

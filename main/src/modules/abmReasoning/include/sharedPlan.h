@@ -1,8 +1,8 @@
-#include <efaa/abmReasoningFunction.h>
-#include <efaa/plan.h>
+#include <abmReasoningFunction.h>
+#include <plan.h>
 
 using namespace yarp::os;
-using namespace efaa::helpers;
+using namespace wysiwyd::wrdac;
 using namespace std;
 
 
