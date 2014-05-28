@@ -30,7 +30,6 @@ Easy interaction via rpc
 */ 
 
 #include "opcManager.h" 
-#include "opcManager_IDL.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
