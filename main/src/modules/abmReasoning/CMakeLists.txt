@@ -2,15 +2,16 @@
 # Authors: Grégoire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME abmHandler)
+set(PROJECTNAME abmReasoning)
 project(${PROJECTNAME})
 
-set(source_files src/*.cpp)
-set(header_files include/*.h)
+file(GLOB folder_source src/.cpp)
+file(GLOB folder_header include/.h  )
 set(doc_files ${PROJECTNAME}.xml)
 
 source_group("Source Files" FILES ${folder_source})
 source_group("Header Files" FILES ${folder_header})
+
 source_group("DOC Files"    FILES ${doc_files})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
