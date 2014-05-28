@@ -23,7 +23,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/timeKnowledge.h>
+#include <timeKnowledge.h>
 
 
 /*

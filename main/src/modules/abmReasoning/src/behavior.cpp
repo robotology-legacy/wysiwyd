@@ -23,7 +23,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/behavior.h>
+#include <behavior.h>
 
 Bottle behavior::getConsequence()
 {

@@ -23,7 +23,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/spatialKnowledge.h>
+#include <spatialKnowledge.h>
 
 
 bool spatialKnowledge::fromBottle(Bottle bInput)

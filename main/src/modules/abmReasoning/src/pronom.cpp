@@ -23,7 +23,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/grammarKnowledge.h>
+#include <grammarKnowledge.h>
 
 
 bool pronom::AddInstance(Bottle bInput)

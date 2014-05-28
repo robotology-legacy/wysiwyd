@@ -23,7 +23,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/contextualKnowledge.h>
+#include <contextualKnowledge.h>
 
 
 void contextualKnowledge::checkConditions()

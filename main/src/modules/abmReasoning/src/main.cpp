@@ -102,7 +102,7 @@ Windows
 
 */ 
 
-#include <efaa/abmReasoning.h>
+#include <abmReasoning.h>
 
 int main(int argc, char * argv[]) {
 	/* initialize yarp network */ 

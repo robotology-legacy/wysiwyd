@@ -23,7 +23,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/grammarKnowledge.h>
+#include <grammarKnowledge.h>
 
 const double weightSimple = 5.;
 const double weightDouble = 2;

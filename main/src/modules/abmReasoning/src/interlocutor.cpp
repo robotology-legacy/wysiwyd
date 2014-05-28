@@ -1,4 +1,4 @@
-#include <efaa/interlocutor.h>
+#include <interlocutor.h>
 
 void interlocutor::initialize()
 {

@@ -39,7 +39,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/abmReasoningFunction.h>
+#include <abmReasoningFunction.h>
 
 string abmReasoningFunction::s_realOPC = "opc";
 string abmReasoningFunction::s_mentalOPC = "mentalOPC";

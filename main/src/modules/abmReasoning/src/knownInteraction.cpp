@@ -23,7 +23,7 @@ Windows
 \author Grégoire Pointeau, Maxime Petit
 */ 
 
-#include <efaa/knownInteraction.h>
+#include <knownInteraction.h>
 
 
 void knownInteraction::addInteraction(tuple<string, int, string, string> tInput)
