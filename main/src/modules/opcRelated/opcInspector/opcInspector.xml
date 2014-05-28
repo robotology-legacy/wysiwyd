@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>opcInspector</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>OPC Inspector</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Allow setting/retrieving information of entities and relations from command line.
+   </description-long>
+
+   <arguments>
+   <param default="opcInspector" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   <param default="OPC" desc="To specify the name of the OPC instance to connect to">opcName</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stéphane Lallée </author>
+   </authors>
+   
+   <services>
+       <server>
+           <port>/opcInspector/rpc</port>
+           <description>Command port</description>
+       </server>
+   </services>
+   
+</module>
+

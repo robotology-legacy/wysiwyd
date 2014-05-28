@@ -31,7 +31,7 @@
 
 #include "opcClient.h"
 #include "animation.h"
-#include "facialExpressionCodes.h"
+//#include "facialExpressionCodes.h"
 #include "icubClient.h"
 #include "opcSave.h"
 #include "opcEars.h"

@@ -33,6 +33,7 @@ class Retina
 	vector< vector<BufferedPort<ImageOf<PixelRgb> >* > > ports;
 	int reconstructWidth;
 	int reconstructHeight;
+	IplImage* reconstruct;
 
 public:
 	Retina(std::string _name, int w, int h)
@@ -53,15 +54,24 @@ public:
 		}
 	}
 
-	void connect(std::string splitterName)
+	void connect(std::string splitterPrefix, std::string splitterSuffix)
 	{
 		for (int x = 0; x < ports.size(); x++)
 		{
 			for (int y = 0; y < ports[x].size(); y++)
 			{
 				stringstream ssSource;
-				ssSource << "/" << splitterName << "/split/" << x << "_" << y << ":o";
-				Network::connect(ssSource.str().c_str(), ports[x][y]->getName().c_str());
+				ssSource << splitterPrefix << "/" << x << "_" << y << splitterSuffix;
+				int attempt = 0;
+				while (attempt < 5 && !Network::connect(ssSource.str().c_str(), ports[x][y]->getName().c_str()))
+				{
+					std::cout << "Attempt to automated connection failed for : " << std::endl
+						<< "\t" << ssSource.str().c_str() << std::endl
+						<< "\t" << ports[x][y]->getName().c_str() << std::endl;
+					Time::delay(0.5);
+					//attempt++;
+				}
+				
 			}
 		}
 	}
@@ -72,7 +82,7 @@ public:
 		cvMoveWindow((name + "/Reconstruct").c_str(), xpos, ypos);
 	}
 
-	void readAndShow(bool refreshGui)
+	void readAndShow(ImageOf<PixelRgb> &reconstructYarp, bool refreshGui)
 	{
 		if (reconstructWidth == -1 || reconstructHeight == -1)
 		{
@@ -83,16 +93,14 @@ public:
 			reconstructHeight = testImg->height() * ports[0].size();
 			std::cout << "Input detected with size : " << testImg->width() << "x" << testImg->height() << std::endl;
 			std::cout << "Reconstruct size will: " << reconstructWidth << "x" << reconstructHeight << std::endl;
+			reconstruct = cvCreateImage(cvSize(reconstructWidth, reconstructHeight), 8, 3);
 		}
 
-		IplImage* reconstruct;
-		reconstruct = cvCreateImage(cvSize(reconstructWidth, reconstructHeight), 8, 3);
-		
 		for (int x = 0; x < ports.size(); x++)
 		{
 			for (int y = 0; y < ports[x].size(); y++)
 			{
-				ImageOf<PixelRgb>* imgYarp = ports[x][y]->read(true);
+				ImageOf<PixelRgb>* imgYarp = ports[x][y]->read(false);
 				if (imgYarp)
 				{
 					IplImage* partImg = (IplImage*) imgYarp->getIplImage();
@@ -106,11 +114,11 @@ public:
 
 			}
 		}
+
 		if (refreshGui)
 			cvShowImage((name + "/Reconstruct").c_str(), reconstruct);
-
+		reconstructYarp.wrapIplImage(reconstruct);
 		cvWaitKey(1);
-		cvReleaseImage(&reconstruct);
 	}
 	
 	bool close()
@@ -132,35 +140,32 @@ class ImageFuser : public yarp::os::RFModule
 {
 	double foveaRatio;
 	bool showImages;
+	BufferedPort< ImageOf<PixelRgb> > portOut;
 
 public:
 	Retina* global;
-	Retina* fovea;
 
 	bool configure(ResourceFinder &rf)
 	{
 		string name = rf.check("name", Value("imageFuser")).asString();
 		setName(name.c_str());
 
-		string nameSource = rf.check("nameSplitter", Value("imageSplitter")).asString();
+		string nameSourcePrefix = rf.check("nameSplitterPrefix", Value("/imageSplitter/split")).asString();
+		string nameSourceSuffix = rf.check("nameSplitterSuffix", Value(":o")).asString();
+
 		showImages = true;// rf.check("showImages");
 
 		int splitW = rf.check("splitW", Value(3)).asInt();
 		int splitH = rf.check("splitH", Value(3)).asInt();
-		int splitFovea = rf.check("splitFovea", Value(1)).asInt();
-		foveaRatio = rf.check("foveaRatio", Value(0.3)).asDouble();
 
 		//Create ports
+		portOut.open("/" + name + "/reconstruct:o");
 		global = new Retina(name, splitW, splitH);
-
-		fovea = new Retina(name+"/fovea", splitFovea, splitFovea);
 		if (showImages)
 		{
 			global->createCvWindow(0, 0);
-			fovea->createCvWindow(640, 0);
 		}
-		global->connect(nameSource);
-		fovea->connect(nameSource+"/fovea");
+		global->connect(nameSourcePrefix, nameSourceSuffix);
 		return true;
 	}
 
@@ -171,15 +176,15 @@ public:
 
 	bool updateModule()
 	{
-		global->readAndShow(showImages);
-		fovea->readAndShow(showImages);
+		ImageOf<PixelRgb> &img = portOut.prepare();
+		global->readAndShow(img, showImages);
+		portOut.write();
 		return true;
 	}
 
 	bool close()
 	{
 		bool result = global->close();
-		result &= fovea->close();
 		return result;
 	}
 };

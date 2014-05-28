@@ -35,6 +35,8 @@ namespace cvz {
 
 			std::map<std::string, IModality*> modalitiesBottomUp;
 			std::map<std::string, IModality*> modalitiesTopDown;
+			std::map<IModality*, double > modalitiesInfluence;
+			std::map<IModality*, double > modalitiesLearning;
 
 			virtual bool configure(yarp::os::Property &prop)
 			{
@@ -62,6 +64,9 @@ namespace cvz {
 					//Get the generic parameters (name, size, minBounds, maxBounds, isTopDown)
 					std::string modName = bMod.find("name").asString();
 					int modSize = bMod.find("size").asInt();
+					double modInf = bMod.check("influence", yarp::os::Value(1.0)).asDouble();
+					double modLearning= bMod.check("learningRate", yarp::os::Value(1.0)).asDouble();
+
 					std::vector<double> minBounds;
 					if (bMod.check("minBounds"))
 					{
@@ -105,6 +110,25 @@ namespace cvz {
 						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
 						if (autoConnect != "")
 							((ModalityBufferedPort<yarp::os::Bottle>*)mod)->ConnectInput(autoConnect);
+					}
+					else if (modType == "yarpSound")
+					{
+						std::vector<bool> mask;
+						if (bMod.check("mask"))
+						{
+							yarp::os::Bottle* bMask = bMod.find("mask").asList();
+							for (int i = 0; i < bMask->size(); i++)
+								mask.push_back(bMask->get(i).asDouble());
+						}
+						bool isBlocking = bMod.check("isBlocking");
+						std::string modPortPrefix = "/";
+						modPortPrefix += getName() + "/";
+						modPortPrefix += modName;
+						mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, modSize, minBounds, maxBounds, mask, isBlocking);
+
+						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
+						if (autoConnect != "")
+							((ModalityBufferedPort<yarp::sig::Sound>*)mod)->ConnectInput(autoConnect);
 					}
 					else if (modType == "yarpImageFloat")
 					{
@@ -155,6 +179,9 @@ namespace cvz {
 							modalitiesTopDown[mod->Name()] = mod;
 						else
 							modalitiesBottomUp[mod->Name()] = mod;
+
+						modalitiesInfluence[mod] = modInf;
+						modalitiesLearning[mod] = modLearning;
 					}
 
 					modalityCount++;
