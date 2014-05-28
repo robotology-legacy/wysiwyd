@@ -5,17 +5,16 @@
 set(PROJECTNAME abmHandler)
 project(${PROJECTNAME})
 
-set(source_files src/*.cpp)
-set(header_files include/*.h)
-set(doc_files ${PROJECTNAME}.xml)
+file(GLOB sources src/*.cpp)
+file(GLOB headers include/*.h)
+set(docs ${PROJECTNAME}.xml)
 
-source_group("Source Files" FILES ${folder_source})
-source_group("Header Files" FILES ${folder_header})
-source_group("DOC Files"    FILES ${doc_files})
+source_group("Source Files" FILES ${sources})
+source_group("Header Files" FILES ${headers})
+source_group("DOC Files"    FILES ${docs})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
-add_executable(${PROJECTNAME} ${header_files} ${source_files} ${doc_files})
+add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES})
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
-

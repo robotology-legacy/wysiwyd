@@ -6,7 +6,6 @@
 add_subdirectory(opcRelated)
 add_subdirectory(motorSystem)
 add_subdirectory(cvz)
-add_subdirectory(opcManager)
 add_subdirectory(abmHandler)
 add_subdirectory(abmReasoning)
 
