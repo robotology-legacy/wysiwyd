@@ -8,5 +8,5 @@ add_subdirectory(slidingController)
 add_subdirectory(referenceFrameHandler)
 add_subdirectory(cvz)
 add_subdirectory(visualSystem)
-
+add_subdirectory(awareTouch)
 
