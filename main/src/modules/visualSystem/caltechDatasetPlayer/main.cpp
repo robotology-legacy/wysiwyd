@@ -55,7 +55,9 @@ class Player : public RFModule
 {
     BufferedPort<ImageOf<PixelRgb> > portImg;
     Port portCategoryTag;
-    Port portCategoryVector;
+	Port portCategoryVector;
+	Port portTick;
+	bool waitForTickReply;
     map< string, vector< IplImage* > > buffer;
 	double period;
 
@@ -63,7 +65,8 @@ public:
 
     bool configure(yarp::os::ResourceFinder &rf)
     {
-		period = rf.check("period", Value(1.5)).asDouble();
+		period = rf.check("period", Value(0.1)).asDouble();
+		waitForTickReply = rf.check("tickSynchro");
         string name = rf.check("name", Value("caltechDatasetPlayer")).asString();
         string dsPath = rf.check("dataPath", Value(rf.findPath("default.ini").c_str())).asString();
         dsPath.erase(dsPath.end() - 11, dsPath.end());
@@ -130,7 +133,7 @@ public:
         portImg.open("/" + name + "/image:o");
         portCategoryTag.open("/" + name + "/categoryTag:o");
         portCategoryVector.open("/" + name + "/categoryVector:o");
-
+		portTick.open("/" + name + "/tick:rpc");
         return true;
     }
 
@@ -162,6 +165,14 @@ public:
         for (int i = 0; i < buffer.size(); i++)
             botVect.addInt( countIt==i );
         portCategoryVector.write(botVect);
+
+		Bottle bTick,bReply;
+		bTick.addString("tick");
+		if (waitForTickReply)
+			portTick.write(bTick, bReply);
+		else
+			portTick.write(bTick);
+
         return true;
     }
 
@@ -171,6 +182,7 @@ public:
         portImg.close();
         portCategoryTag.close();
         portCategoryVector.close();
+		portTick.close();
 
         //Release images
         for (map<string, vector< IplImage*> >::iterator it = buffer.begin(); it != buffer.end(); it++)

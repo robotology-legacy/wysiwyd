@@ -100,7 +100,7 @@ public:
 		{
 			for (int y = 0; y < ports[x].size(); y++)
 			{
-				ImageOf<PixelRgb>* imgYarp = ports[x][y]->read(false);
+				ImageOf<PixelRgb>* imgYarp = ports[x][y]->read(true);
 				if (imgYarp)
 				{
 					IplImage* partImg = (IplImage*) imgYarp->getIplImage();

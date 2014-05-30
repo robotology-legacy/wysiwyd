@@ -49,12 +49,24 @@ namespace cvz {
 			}
 
 			/**
+			* Run a cycle on every map of the stack.
+			*/
+			void cycle()
+			{
+				for (std::map<std::string, IConvergenceZone*>::iterator it = nodesAll.begin(); it != nodesAll.end(); it++)
+				{
+					it->second->cycle();
+				}
+			}
+
+			/**
 			* Update.
 			*/
 			bool updateModule()
 			{
 				if (isRunning)
 				{
+					//Run a cycle only on the non threaded maps.
 					for (std::map<std::string, IConvergenceZone*>::iterator it = nodesNotThreaded.begin(); it != nodesNotThreaded.end(); it++)
 					{
 						it->second->cycle();
