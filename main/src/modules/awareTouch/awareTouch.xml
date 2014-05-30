@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>awareTouch</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>aware Touch</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Reports a touch type experienced on the iCub skin (e.g. caress or poke). 
+   Using: Simply run aware touch, and it will populate the opc with a relation of type (iCub, is, caress, touchLocation).
+   </description-long>
+
+   <arguments>
+   <param default="config-advanced.ini" desc="To specify the file containing the advanced configuration">name</param>
+   <param default="config.ini" desc="To specify the file containing the standard configuration">name</param>
+   </arguments>
+
+   <authors>
+       <author email="mat.evans@sheffield.ac.uk"> Mathew Evans </author>
+   </authors>
+   
+   <services>
+       <server>
+           <port>/opcInspector/rpc</port>
+           <description>Command port</description>
+           <port>/skinManager/skin_events:o</port>
+           <description>Skin event type</description>
+           <port>/awareTouch/skin_contacts:i</port>
+           <description>Receive tactile data from the skin</description>
+           <port>/awareTouch/events:o</port>
+           <description>Classify contact type</description>
+       </server>
+   </services>
+   
+</module>
+
