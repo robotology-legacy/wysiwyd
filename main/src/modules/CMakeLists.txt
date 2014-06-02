@@ -17,3 +17,7 @@ if(ICUB_USE_IPOPT)
     add_subdirectory(referenceFrameHandler)
 endif()
 
+   
+if(WYSIWYD_USE_PGSQL)
+    add_subdirectory(autobiographicalMemory)
+endif(WYSIWYD_USE_PGSQL)
