@@ -8,7 +8,7 @@
 using namespace std;
 using namespace yarp::os;
 
-#define TOPDOWN_SIZE 5
+#define TOPDOWN_SIZE 3
 
 #define V1_RETINA_W	20
 #define V1_RETINA_H	20
@@ -16,14 +16,14 @@ using namespace yarp::os;
 #define V1_RETINA_LEARNING 0.05
 #define V1_RETINA_SIGMA_FACTOR 10.0
 
-#define V1_FOVEA_W	1
-#define V1_FOVEA_H	1
+#define V1_FOVEA_W	20
+#define V1_FOVEA_H	20
 #define V1_FOVEA_L	1
 #define V1_FOVEA_LEARNING 0.05
 #define V1_FOVEA_SIGMA_FACTOR 10.0
 
-#define V2_W	50
-#define V2_H	1
+#define V2_W	10
+#define V2_H	10
 #define V2_L	1
 #define V2_LEARNING 0.05
 #define V2_SIGMA_FACTOR 10.0
@@ -54,7 +54,10 @@ class StackRpcWrapper : public BufferedPort<Bottle>, public yarp::os::RateThread
 	vector< vector< cvz::core::CvzMMCM* > > retina;
 	vector< vector< cvz::core::CvzMMCM* > > fovea;
 	int autoIncrementCnt;
+	bool tickCycleBased;
+
 private:
+
 	void saveRetinaLikeRF(const vector< vector< cvz::core::CvzMMCM* > > &retinaUsed)
 	{
 		for (int i = 0; i < retinaUsed.size(); i++)
@@ -273,10 +276,12 @@ public:
 		autoIncrementCnt++;
 	}
 
-	StackRpcWrapper(cvz::core::CvzStack* _stack, int retinaW, int retinaH, int foveaW, int foveaH) :yarp::os::RateThread(5*60*1000)
+	StackRpcWrapper(cvz::core::CvzStack* _stack, int retinaW, int retinaH, int foveaW, int foveaH, bool isTickBased = false) :yarp::os::RateThread(5*60*1000)
 	{
 		autoIncrementCnt = 0;
 		stack = _stack;
+		if (isTickBased)
+			stack->pause();
 
 		//Parse the stack
 		retina.resize(retinaW);
@@ -326,22 +331,19 @@ public:
 			stack->pause();
 			return;
 		}
-
-		if (keyWord == "start")
+		else if (keyWord == "start")
 		{
 			cout << "Starting the stack." << endl;
 			stack->start();
 			return;
 		}
-
-		if (keyWord == "resume")
+		else if (keyWord == "resume")
 		{
 			cout << "Resuming the stack." << endl;
 			stack->resume();
 			return;
 		}
-
-		if (keyWord == "set")
+		else if (keyWord == "set")
 		{
 			std::string keyword2 = b.get(1).asString();
 			std::string area = b.get(2).asString();
@@ -391,8 +393,7 @@ public:
 					(*itCvz)->modalitiesInfluence[itMod->second] = newValue;
 			}
 		}
-
-		if (keyWord == "save")
+		else if (keyWord == "save")
 		{
 			std::cout << "Pausing the stack." << std::endl;
 			stack->pause();
@@ -419,8 +420,7 @@ public:
 			std::cout << "Resuming the stack." << std::endl;
 			stack->resume();
 		}
-
-		if (keyWord == "load")
+		else if (keyWord == "load")
 		{
 			std::cout << "Pausing the stack." << std::endl;
 			stack->pause();
@@ -447,8 +447,7 @@ public:
 			std::cout << "Resuming the stack." << std::endl;
 			stack->resume();
 		}
-
-		if (keyWord == "plotRF")
+		else if (keyWord == "plotRF")
 		{
 			std::cout << "About to plot receptive fields..." << std::endl;
 
@@ -463,9 +462,56 @@ public:
 			saveV2RF();
 			std::cout << "Resuming the stack." << std::endl;
 			stack->resume();
-
 			return;
 		}
+	}
+
+	void onTick()
+	{
+		double t0 = Time::now();
+		for (int x = 0; x < retina.size(); x++)
+		{
+			for (int y = 0; y < retina[x].size(); y++)
+			{
+				retina[x][y]->cycle();
+			}
+		}
+		for (int x = 0; x < fovea.size(); x++)
+		{
+			for (int y = 0; y < fovea[x].size(); y++)
+			{
+				fovea[x][y]->cycle();
+			}
+		}
+		gaze->cycle();
+		v1Retina->cycle();
+		v1Fovea->cycle();
+		//v1 = (cvz::core::CvzMMCM*) stack->nodes["v1"]->cvz;
+		v2->cycle();
+		std::cout << "Cycled in " << Time::now() - t0 << "s" << endl;
+	}
+};
+
+class StackTicker : public yarp::os::PortReader
+{
+	StackRpcWrapper* stackWrap;
+public:
+
+	StackTicker(StackRpcWrapper* _stackWrap)
+	{
+		stackWrap = _stackWrap;
+	}
+
+	virtual bool read(ConnectionReader& connection) {
+		Bottle b,r;
+		bool ok = b.read(connection);
+		if (!ok) return false;
+		stackWrap->onTick();
+		r.addString("tack");
+		ConnectionWriter *returnToSender = connection.getWriter();
+		if (returnToSender != NULL)
+			r.write(*returnToSender);
+		return true;
 	}
 };
 
@@ -501,6 +547,7 @@ void configureV1Retina(cvz::core::CvzStack* stack, int retinaX, int retinaY)
 		<< "[modality_" << modalitiesCount << "]" << endl
 		<< "name" << '\t' << "out" << endl
 		<< "type" << '\t' << "yarpVector" << endl
+		<< "learningRate" << '\t' << 0.0 << endl
 		<< "isTopDown" << '\t' << "yarpVector" << endl
 		<< "size" << '\t' << TOPDOWN_SIZE << endl << endl;
 
@@ -570,6 +617,7 @@ void configureV1Fovea(cvz::core::CvzStack* stack, int foveaX, int foveaY)
 		<< "[modality_" << modalitiesCount << "]" << endl
 		<< "name" << '\t' << "out"<< endl
 		<< "type" << '\t' << "yarpVector" << endl
+		<< "learningRate" << '\t' << 0.0 << endl
 		<< "isTopDown" << '\t' << "yarpVector" << endl
 		<< "size" << '\t' << TOPDOWN_SIZE << endl << endl;
 
@@ -685,12 +733,38 @@ int main(int argc, char * argv[])
 
 	stack.configure(rf);
 	
-	StackRpcWrapper* rpc = new StackRpcWrapper(&stack, retinaX, retinaY, foveaX, foveaY);
+
+	RpcServer* ticker = NULL;
+	StackTicker* tickerProcessor = NULL;
+	//Start the RPC wrapper for commands
+	bool isTickBased = rf.check("tickBased");
+
+
+	StackRpcWrapper* rpc = new StackRpcWrapper(&stack, retinaX, retinaY, foveaX, foveaY, isTickBased);
 	rpc->open("/visualSystem/rpc");
 	rpc->useCallback();
 	rpc->start();
 
+	if (isTickBased)
+	{
+		ticker = new RpcServer();
+		ticker->open("/visualSystem/ticker:i");
+		//Start the ticker to synchronize with the arrival of data
+		tickerProcessor = new StackTicker(rpc);
+		ticker->setReader(*tickerProcessor);
+	}
+
 	stack.runModule();
+
 	rpc->stop();
+	rpc->close();
+	delete rpc;
+	if (ticker != NULL)
+	{
+		ticker->close();
+		delete ticker;
+		delete tickerProcessor;
+	}
+
 	return 0;
 }
