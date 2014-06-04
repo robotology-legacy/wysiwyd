@@ -1,9 +1,7 @@
-// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
-
-/*
+/* 
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Hector Barron-Gonzalez (ported by Mathew Evans and Uriel Martinez)
- * email:   mat.evans@sheffield.ac.uk (but email Ugo Pattacini Ugo.Pattacini@iit.it after July 2014)
+ * email:   mat.evans@sheffield.ac.uk
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -17,100 +15,18 @@
  * Public License for more details
 */
 
-
-/*
- *
- * 
- * @ingroup efaa_modules
- * \defgroup awareTouch 
- *  
- *
- *
- * Recover information from Skin when iCub is externally touched, storing information into the OPC about position
- * and type of touching. The dependencies are OPC and skinManager. The gestures to be recognized must be added to the 
- * list "gestureTypes", in the config file.
- *
- * 
- * \section lib_sec Libraries
- *
- * YARP
- * ICUB
- *
- * \section parameters_sec Parameters
- * 
- * <b>Command-line Parameters</b> 
- * 
- * The following key-value pairs can be specified as command-line parameters by prefixing \c -- to the key 
- * (e.g. \c --from file.ini. The value part can be changed to suit your needs; the default values are shown below. 
- *
- * - \c from \c config.ini \n 
- *   specifies the configuration file
- *
- * - \c name \c awareTouch \n   
- *   specifies the name of the module (used to form the stem of module port names)  
-
- * - \c skinManagerPort \c /skinManager/skin_events:o \n    
- *   specifies the skinManager port  name
- *
- * - \c opcName \c OPC \n    
- *   specifies the opc database name
- *
- *
- * \section portsa_sec Ports Accessed
- * 
- * /OPC/rpc \n 
- * /skinManager/skin_events:o \n 
- *                      
- * \section portsc_sec Ports Created
- *
- * /awareTouch/skin_contacts:i \n 
- *
- * /awareTouch/events:o \n
- *
- * \section in_files_sec Input Data Files
- *
- * Gesture files (e.g. "poked.txt", "caressed.txt", etc)
- *
- * \section out_data_sec Output Data Files
- *
- * Tactile gestures file "Touching.txt"
- *
- * \section conf_file_sec Configuration Files
- *
- * \c config.ini  in \c $EFAAT/app/awareTouch/conf \n
- * 
- * \section tested_os_sec Tested OS
- *
- * Linux
- *
- * \section example_sec Example Instantiation of the Module
- * 
- * <tt>awareTouch </tt>
- * <tt>awareTouch --name awareTouch --opcName OPCGeneral --skinManagerPort /skinManager/skin_events:o </tt>
- *
- * \author Hector Barron-Gonzalez
- * 
- *
- * 
- */
-
-
-
 #include <yarp/os/all.h>
-#include <yarp/os/Network.h>
-#include <yarp/os/RFModule.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/Drivers.h>
 
 #include <wrdac/clients/opcClient.h>
 
 #include "touchEstimationThread.h"
-//#include <efaa/helpers/helpers.h>
-//#include <efaa/helpers/clients/opcClient.h>
 #include <iomanip>
 #include <iostream>
 
 YARP_DECLARE_DEVICES(icubmod)
+
 using namespace std;
 using namespace yarp;
 using namespace yarp::os;
@@ -201,11 +117,11 @@ bool AwareTouch::configure(ResourceFinder &rf)
     recordingPeriod=rf.check("recordingPeriod",Value(3.0)).asDouble();                    //type of robot   
     cout  << "|| Recording Period is " << recordingPeriod << endl ; 
 
-    string pathG(rf.getContextPath().c_str());
+    string pathG(rf.getHomeContextPath().c_str());
 
 
    cout<< "|| Creating Touch  Thread:" <<endl;
-   estimationThread= new TouchEstimationThread(skinManagerName, rpcName, pathG,gestureSet, 50);
+   estimationThread= new TouchEstimationThread(skinManagerName, rpcName, pathG, gestureSet, 50);
    cout<< "|| Starting Touch  :" <<endl;
    estimationThread->start();
    cout<< "|| Started Touch  :" <<endl;   
@@ -296,9 +212,9 @@ void AwareTouch::sendOPC(const string &partTouch, int &typeTouch, const Vector& 
 int main(int argc, char *argv[])
 {
     ResourceFinder rf;
-    rf.setDefaultContext("awareTouch/conf");
+    rf.setDefaultContext("awareTouch");
     rf.setDefaultConfigFile("config.ini");
-    rf.configure("EFAA_ROOT",argc,argv);
+    rf.configure(argc,argv);
 
     YARP_REGISTER_DEVICES(icubmod)
 

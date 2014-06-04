@@ -5,18 +5,17 @@
 
    <name>awareTouch</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>aware Touch</description>
+   <description>awareTouch</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    
    <description-long>
-   Reports a touch type experienced on the iCub skin (e.g. caress or poke). 
-   Using: Simply run aware touch, and it will populate the opc with a relation of type (iCub, is, caress, touchLocation).
+   Reports a touch type experienced on the iCub skin (e.g. caress, poke ...). 
+   Using: Simply run awareTouch, and it will populate the opc with a relation of type (iCub, is, caress, touchLocation).
    </description-long>
 
    <arguments>
-   <param default="config-advanced.ini" desc="To specify the file containing the advanced configuration">name</param>
-   <param default="config.ini" desc="To specify the file containing the standard configuration">name</param>
+   <param default="config.ini" desc="To specify the file containing the configuration parameters">from</param>
    </arguments>
 
    <authors>

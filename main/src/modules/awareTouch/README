@@ -1,17 +1,16 @@
 Learning:
-•	run awareTouch in the console
-•	touch the robot the way you want (let say caress)
-•	close awareTouch.
-•	"ls", you should see a new file called touching.txt
-•	mv touching.txt caress.txt
-•	cp caress.txt $EFAA_ROOT/app/awareTouch/conf/caress.txt
-•	 
-•	Repeat the process for all the types of touch you want.
-•	Edit $EFAA_ROOT/app/awareTouch/conf/config.ini and change the gestureTypes property so that it is a list of the text files you just create, without the .txt extension
+•  run awareTouch in the console
+•  touch the robot the way you want (say caress)
+•  close awareTouch
+•  the file ~./local/share/yarp/context/awareTouch/Touching.txt is created
+•  rename it caress.txt
+•   
+•  Repeat the process for all the types of touch you want.
+•  Edit the config.ini and change the gestureTypes property so that it is a list of the text files you just create, without the .txt extension
 
 Using:
-Simply run aware touch, and it will populate the opc with a relation of type (iCub, is, caress, touchLocation).
-If you have access to the opcClient of efaa you can do :
+Simply run awareTouch and it will populate the opc with a relation of type (iCub, is, caress, touchLocation).
+If you have access to the opcClient you can do :
 list<Relation> tactileRelations = opc->getRelationsMatching("icub","is","any","touchLocation");
 if (tactileRelations.size() > 0)
 {

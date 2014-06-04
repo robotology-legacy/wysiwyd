@@ -1,8 +1,7 @@
-
-/*
+/* 
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Hector Barron-Gonzalez (ported by Mathew Evans and Uriel Martinez)
- * email:   mat.evans@sheffield.ac.uk (but email Ugo Pattacini Ugo.Pattacini@iit.it after July 2014)
+ * email:   mat.evans@sheffield.ac.uk
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -16,8 +15,6 @@
  * Public License for more details
 */
 
-
-
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/all.h>
@@ -30,9 +27,6 @@
 #include <string.h>
 #include <sstream>
 #include "touchEstimationThread.h"
-//#include "icubfinger.h"
-
-
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -232,9 +226,9 @@ bool TouchEstimationThread::threadInit()
    absPositionT.resize(3);
    absPositionT.zero();
 
-   // ------    General thread  variables 
+   // ------    General thread variables 
    stateTouch=THREAD_STATUS_UNTOUCHED;
-   outputTouch.open("Touching.txt");
+   outputTouch.open((pathG+"/Touching.txt").c_str());
    
    return true;
 }
