@@ -7,8 +7,7 @@ add_subdirectory(awareTouch)
 add_subdirectory(opcRelated)
 add_subdirectory(motorSystem)
 add_subdirectory(cvz)
-add_subdirectory(abmHandler)
-add_subdirectory(abmReasoning)
+add_subdirectory(abm)
 
 if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(visualSystem)
@@ -17,8 +16,3 @@ endif()
 if(ICUB_USE_IPOPT)
     add_subdirectory(referenceFrameHandler)
 endif()
-
-   
-if(WYSIWYD_USE_PGSQL)
-    add_subdirectory(autobiographicalMemory)
-endif(WYSIWYD_USE_PGSQL)
