@@ -5,12 +5,12 @@
 set(PROJECTNAME awareTouch)
 project(${PROJECTNAME})
 
-file(GLOB folder_source src/*.cpp)
-file(GLOB folder_header include/*.h)
+file(GLOB source_files src/*.cpp)
+file(GLOB header_files include/*.h)
 set(doc_files ${PROJECTNAME}.xml)
 source_group("Source Files" FILES ${source_files})
 source_group("Header Files" FILES ${header_files})
-source_group("DOC Files" FILES ${doc_header})
+source_group("DOC Files" FILES ${doc_files})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${ICUB_INCLUDE_DIRS}
                     ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${skinDynLib_INCLUDE_DIRS})
