@@ -12,8 +12,8 @@ source_group("Source Files" FILES ${source_files})
 source_group("Header Files" FILES ${header_files})
 source_group("DOC Files" FILES ${doc_files})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${ICUB_INCLUDE_DIRS}
-                    ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${skinDynLib_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS}
+                    ${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${source_files} ${header_files} ${doc_files})
 target_link_libraries(${PROJECTNAME} iKin iDyn actionPrimitives perceptiveModels skinDynLib icubmod wrdac ${YARP_LIBRARIES}) 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
