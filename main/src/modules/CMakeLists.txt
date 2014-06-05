@@ -8,11 +8,8 @@ add_subdirectory(opcRelated)
 add_subdirectory(motorSystem)
 add_subdirectory(cvz)
 add_subdirectory(abm)
+add_subdirectory(tools)
 
 if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(visualSystem)
-endif()
-
-if(ICUB_USE_IPOPT)
-    add_subdirectory(referenceFrameHandler)
 endif()
