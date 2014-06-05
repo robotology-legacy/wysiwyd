@@ -2,81 +2,81 @@
 
 void interlocutor::initialize()
 {
-	senderPort.open("/efaa/abmReasoning/interlocutor/toAbm/request:o");
-	port_to_OPCManager.open("/efaa/abmReasoning/interlocutor/toOPCManager");
+    senderPort.open("/efaa/abmReasoning/interlocutor/toAbm/request:o");
+    port_to_OPCManager.open("/efaa/abmReasoning/interlocutor/toOPCManager");
 
-	Network::connect(senderPort.getName(), "/efaa/autobiographicalMemory/request:i");
-	Network::connect(port_to_OPCManager.getName(), "/efaa/opcManager/rpc");
-	//	iCub  = new ICubClient("interlocutor", false);
-	//	iCub->opc->isVerbose = false;
+    Network::connect(senderPort.getName(), "/efaa/autobiographicalMemory/request:i");
+    Network::connect(port_to_OPCManager.getName(), "/efaa/opcManager/rpc");
+    //  iCub  = new ICubClient("interlocutor", false);
+    //  iCub->opc->isVerbose = false;
 
-	//	iCub->connect();
-	connectOPC();
+    //  iCub->connect();
+    connectOPC();
 }
 
 
 void interlocutor::close()
 {
-	senderPort.close();
-	port_to_OPCManager.close();
-	
-	mentalOPC->interrupt();
-	mentalOPC->close();
-	realOPC->interrupt();
-	realOPC->close();
+    senderPort.close();
+    port_to_OPCManager.close();
+    
+    mentalOPC->interrupt();
+    mentalOPC->close();
+    realOPC->interrupt();
+    realOPC->close();
 
-	delete realOPC;
-	delete mentalOPC;
+    delete realOPC;
+    delete mentalOPC;
 
 }
 
 Bottle interlocutor::connectOPC()
 {
-	Bottle bOutput;
+    Bottle bOutput;
 
-	realOPC = new OPCClient("efaa/abmReasoning/interlocutor/torealOPC");
-	int iTry = 0;
-	while(!realOPC->isConnected())
-	{  
-		std::cout<<"interlocutor Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC) <<endl;
-		if (!realOPC->isConnected())
-			Time::delay(0.5);
-		iTry++;
-		if (iTry > 1)
-		{
-			std::cout << "Interlocutor failed to connect to " << abmReasoningFunction::s_realOPC << endl;
-			bOutput.addString("Connection to Real OPC failed, please check your port");
-			break;
-		}
-	}
+    realOPC = new OPCClient("efaa/abmReasoning/interlocutor/torealOPC");
+    int iTry = 0;
+    while(!realOPC->isConnected())
+    {  
+        std::cout<<"interlocutor Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC) <<endl;
+        if (!realOPC->isConnected())
+            Time::delay(0.5);
+        iTry++;
+        if (iTry > 1)
+        {
+            std::cout << "Interlocutor failed to connect to " << abmReasoningFunction::s_realOPC << endl;
+            bOutput.addString("Connection to Real OPC failed, please check your port");
+            break;
+        }
+    }
 
-	if (realOPC->isConnected())
-	{
-		realOPC->checkout();
-		realOPC->update();
-	}
+    if (realOPC->isConnected())
+    {
+        realOPC->checkout();
+        realOPC->update();
+    }
 
-	mentalOPC = new OPCClient("efaa/abmReasoning/interlocutor/toMentalOPC");
-	iTry = 0;
-	while(!mentalOPC->isConnected())
-	{  
-		std::cout<<"interlocutor Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC) <<endl;
-		if (!mentalOPC->isConnected())
-			Time::delay(0.5);
-		iTry++;
-		if (iTry > 1)
-		{
-			std::cout << "Interlocutor failed to connect to " << abmReasoningFunction::s_mentalOPC << endl;
-			bOutput.addString("Connection failed, please check your port");
-			return bOutput;
-		}
-	}
+    mentalOPC = new OPCClient("efaa/abmReasoning/interlocutor/toMentalOPC");
+    iTry = 0;
+    while(!mentalOPC->isConnected())
+    {  
+        std::cout<<"interlocutor Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC) <<endl;
+        if (!mentalOPC->isConnected())
+            Time::delay(0.5);
+        iTry++;
+        if (iTry > 1)
+        {
+            std::cout << "Interlocutor failed to connect to " << abmReasoningFunction::s_mentalOPC << endl;
+            bOutput.addString("Connection failed, please check your port");
+            return bOutput;
+        }
+    }
 
-	mentalOPC->checkout();
-	mentalOPC->update();
+    mentalOPC->checkout();
+    mentalOPC->update();
 
-	bOutput.addString("Connection done");
-	return bOutput;
+    bOutput.addString("Connection done");
+    return bOutput;
 }
 
 
@@ -88,22 +88,22 @@ Bottle interlocutor::connectOPC()
 // Send a SQL query (within a bottle) to AutobiographicalMemory. bRequest must be the complete request
 Bottle interlocutor::request(Bottle bRequest)
 {
-	Bottle bReplyRequest;
-	//send the SQL query within a bottle to autobiographicalMemory
-	senderPort.write(bRequest, bReplyRequest);
-	return bReplyRequest;
+    Bottle bReplyRequest;
+    //send the SQL query within a bottle to autobiographicalMemory
+    senderPort.write(bRequest, bReplyRequest);
+    return bReplyRequest;
 }
 
 
 Bottle interlocutor::requestFromStream(string sInput)
 {
-	Bottle bReplyRequest;
-	//send the SQL query within a bottle to autobiographicalMemory
-	Bottle bQuery;
-	bQuery.addString("request");
-	bQuery.addString(sInput.c_str());
-	senderPort.write(bQuery, bReplyRequest);
-	return bReplyRequest;
+    Bottle bReplyRequest;
+    //send the SQL query within a bottle to autobiographicalMemory
+    Bottle bQuery;
+    bQuery.addString("request");
+    bQuery.addString(sInput.c_str());
+    senderPort.write(bQuery, bReplyRequest);
+    return bReplyRequest;
 }
 
 /*   -------------------------   ASKING FUNCTIONS  ------------------------------   */
@@ -115,329 +115,329 @@ Bottle interlocutor::requestFromStream(string sInput)
 */
 Bottle interlocutor::askLastAction()
 {
-	//extract the instances of the OPC
-	Bottle 	bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'action' AND begin = TRUE ORDER BY instance DESC LIMIT 1" );
+    //extract the instances of the OPC
+    Bottle  bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'action' AND begin = TRUE ORDER BY instance DESC LIMIT 1" );
 
-	int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
+    int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
 
-	return askActionFromId(opcIdBegin);
+    return askActionFromId(opcIdBegin);
 }
 
 /*
 * Return the consequence of an action according to its ID
 *
 * bOutput : 
-*	if only one spatial argument : 	(action) (arg) "{x,y,z, before arg1}" "{x,y,z, after arg1}" presence_before_arg1 presence_after_arg1
-*	if 2 spatial arguments : (action) (arg) "{x,y,z, before arg1}" "{x,y,z, after arg1}" presence_before_arg1 presence_after_arg1 "{x,y,z, before arg2}" "{x,y,z, after arg2}"
+*   if only one spatial argument :  (action) (arg) "{x,y,z, before arg1}" "{x,y,z, after arg1}" presence_before_arg1 presence_after_arg1
+*   if 2 spatial arguments : (action) (arg) "{x,y,z, before arg1}" "{x,y,z, after arg1}" presence_before_arg1 presence_after_arg1 "{x,y,z, before arg2}" "{x,y,z, after arg2}"
 */
 Bottle interlocutor::askActionFromId(int Id)
 {
-	Bottle	bOutput,	// main output
-		bQuery,
-		bAction,		
-		bArguments,
-		bOject1,
-		bIdArgBegin,
-		bSubTypeArgBegin,
-		bPosArgBegin,
-		bPosArgEnd,
-		bContent,
-		bName;
+    Bottle  bOutput,    // main output
+        bQuery,
+        bAction,        
+        bArguments,
+        bOject1,
+        bIdArgBegin,
+        bSubTypeArgBegin,
+        bPosArgBegin,
+        bPosArgEnd,
+        bContent,
+        bName;
 
-	ostringstream osName;
-	osName << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.role = 'spatial1' AND main.instance = " << Id;
-	bContent = requestFromStream(osName.str());
-	bName.addString((*bContent.get(0).asList()).get(0).toString().c_str());
+    ostringstream osName;
+    osName << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.role = 'spatial1' AND main.instance = " << Id;
+    bContent = requestFromStream(osName.str());
+    bName.addString((*bContent.get(0).asList()).get(0).toString().c_str());
 
-	bOutput.addList() = bName;
-	//std::cout << "bArguments : " << bArguments.toString() << endl;
-	for (int i = 0 ; i < bContent.size() ; i++)
-	{
-		bArguments.addString((*bContent.get(i).asList()).get(1).toString().c_str());
-	}
+    bOutput.addList() = bName;
+    //std::cout << "bArguments : " << bArguments.toString() << endl;
+    for (int i = 0 ; i < bContent.size() ; i++)
+    {
+        bArguments.addString((*bContent.get(i).asList()).get(1).toString().c_str());
+    }
 
-	bOutput.addList() = bArguments;
+    bOutput.addList() = bArguments;
 
-	//-- 1. extract the id of the argument, assuming it is an entity
-	ostringstream osEntity;
-	osEntity << "SELECT entity.opcid FROM entity WHERE entity.instance = " << Id << " AND entity.name IN (SELECT DISTINCT contentarg.argument FROM entity, contentarg WHERE contentarg.instance = " << Id << " AND contentarg.role = 'object1')" ;
-	bIdArgBegin = requestFromStream(osEntity.str().c_str());
+    //-- 1. extract the id of the argument, assuming it is an entity
+    ostringstream osEntity;
+    osEntity << "SELECT entity.opcid FROM entity WHERE entity.instance = " << Id << " AND entity.name IN (SELECT DISTINCT contentarg.argument FROM entity, contentarg WHERE contentarg.instance = " << Id << " AND contentarg.role = 'object1')" ;
+    bIdArgBegin = requestFromStream(osEntity.str().c_str());
 
-	//clear things
-	osEntity.str("");
+    //clear things
+    osEntity.str("");
 
-	int idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str()) ;
-	//std::cout << "Argument Id Begin id : " << idArg << endl;
-
-
-	//-- 2. select the subtype of the argument in order to extract it accordingly
-	osEntity << "SELECT contentopc.subtype from contentopc WHERE contentopc.instance = "<< Id << " AND contentopc.opcid = " << idArg ;
-	bSubTypeArgBegin = requestFromStream(osEntity.str().c_str());
-	string subtypeArg = bSubTypeArgBegin.get(0).asList()->get(0).toString().c_str() ;
+    int idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str()) ;
+    //std::cout << "Argument Id Begin id : " << idArg << endl;
 
 
-
-	//	std::cout << "Subtype Argument Begin : " << subtypeArg << endl;
-	int ObjectPresentBefore, ObjectPresentAfter;
-	string test = "t";
-
-
-	//-- 3. extract the x, y of the object at the beginning of the activity and the presence and absence
-	osEntity.str("");
-	osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id << " AND " << subtypeArg << ".opcid = " << idArg ;
-	bPosArgBegin = requestFromStream(osEntity.str().c_str());
-	string posArgBegin = bPosArgBegin.get(0).asList()->get(0).toString().c_str() ;
-	if (bPosArgBegin.get(0).asList()->get(1).toString().c_str() == test)
-		ObjectPresentBefore = 1;
-	else
-		ObjectPresentBefore = 0;
+    //-- 2. select the subtype of the argument in order to extract it accordingly
+    osEntity << "SELECT contentopc.subtype from contentopc WHERE contentopc.instance = "<< Id << " AND contentopc.opcid = " << idArg ;
+    bSubTypeArgBegin = requestFromStream(osEntity.str().c_str());
+    string subtypeArg = bSubTypeArgBegin.get(0).asList()->get(0).toString().c_str() ;
 
 
 
-	//clear things
-	osEntity.str("");
-
-	
-	//-- 4. extract the x, y of the object at the end of the activity and the presence and absence
-	osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id+1 << " AND " << subtypeArg << ".opcid = " << idArg ;
-	bPosArgEnd = requestFromStream(osEntity.str().c_str());
-	string posArgEnd = bPosArgEnd.get(0).asList()->get(0).toString().c_str() ;
-	if (bPosArgEnd.get(0).asList()->get(1).toString().c_str() == test)
-		ObjectPresentAfter = 1;
-	else
-		ObjectPresentAfter = 0;
-	//clear things
-	osEntity.str("");
-
-	bOutput.addString(posArgBegin.c_str());
-	bOutput.addString(posArgEnd.c_str());
-	bOutput.addInt(ObjectPresentBefore);
-	bOutput.addInt(ObjectPresentAfter);
-
-	
-	ostringstream osSubject;
-	osSubject << "SELECT argument FROM contentarg WHERE role = 'agent1' AND instance = " << Id;
-	bContent = requestFromStream(osSubject.str());
-	bOutput.addString(bContent.get(0).asList()->get(0).toString());
-
-	ostringstream osSpatial2;
-	osSpatial2 << "SELECT argument FROM contentarg WHERE role = 'spatial2' AND instance = " << Id;
-	bContent = requestFromStream(osSpatial2.str());
-
-	string sNull = "NULL";
-	
-	if (bName.get(0).toString() == "hanoi")
-	{
-		bOutput.clear();
-		bName.clear();
-		bArguments.clear();
-
-		ostringstream osObject1;
-		osObject1 << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.role = 'object1' AND main.instance = " << Id;
-		Bottle bObject1 = requestFromStream(osObject1.str());
-
-		bName.addString((*bObject1.get(0).asList()).get(0).toString().c_str());
-
-		bOutput.addList() = bName;
-		//std::cout << "bArguments : " << bArguments.toString() << endl;
-		for (int i = 0 ; i < bObject1.size() ; i++)
-		{
-			bArguments.addString((*bObject1.get(i).asList()).get(1).toString().c_str());
-		}
-
-		bOutput.addList() = bArguments;
-
-		bOutput.addString(posArgBegin.c_str());
-		bOutput.addString(posArgEnd.c_str());
-		bOutput.addInt(ObjectPresentBefore);
-		bOutput.addInt(ObjectPresentAfter);
-
-		ostringstream osRTOpresent;
-		osRTOpresent << "SELECT position, name FROM rtobject WHERE instance = " << Id << " AND presence = true";
-		Bottle bRTOpresent = requestFromStream(osRTOpresent.str());
+    //  std::cout << "Subtype Argument Begin : " << subtypeArg << endl;
+    int ObjectPresentBefore, ObjectPresentAfter;
+    string test = "t";
 
 
-		if (bRTOpresent.toString().c_str() != sNull)
-		{
-			bOutput.addList() = bRTOpresent;
-		}
-		return bOutput;
-	}
-
-	//--5. get the other rtobject present
-
-
-	if (bContent.toString().c_str() == sNull)
-	{
-		return bOutput;
-	}
-
-	if (!realOPC->isConnected())
-	{
-		bOutput.clear();
-		bOutput.addString("opc not connected");
-		return bOutput;
-	}
-	
-	string sArgSpatial2 = bContent.get(0).toString();
-
-	if (sArgSpatial2 == sNull){
-
-		return bOutput;
-	}
-
-	//-- 1. extract the id of the argument, assuming it is an entity
-	osEntity << "SELECT entity.opcid FROM entity WHERE entity.instance = " << Id << " AND entity.name = '" << sArgSpatial2 << "'" ;
-	bIdArgBegin = requestFromStream(osEntity.str().c_str());
-
-	//clear things
-	osEntity.str("");
-
-	idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str()) ;
-	//std::cout << "Argument Id Begin id : " << idArg << endl;
+    //-- 3. extract the x, y of the object at the beginning of the activity and the presence and absence
+    osEntity.str("");
+    osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id << " AND " << subtypeArg << ".opcid = " << idArg ;
+    bPosArgBegin = requestFromStream(osEntity.str().c_str());
+    string posArgBegin = bPosArgBegin.get(0).asList()->get(0).toString().c_str() ;
+    if (bPosArgBegin.get(0).asList()->get(1).toString().c_str() == test)
+        ObjectPresentBefore = 1;
+    else
+        ObjectPresentBefore = 0;
 
 
-	//-- 2. select the subtype of the argument in order to extract it accordingly
-	osEntity << "SELECT contentopc.subtype from contentopc WHERE contentopc.instance = "<< Id << " AND contentopc.opcid = " << idArg ;
-	bSubTypeArgBegin = requestFromStream(osEntity.str().c_str());
-	subtypeArg = bSubTypeArgBegin.get(0).asList()->get(0).toString().c_str() ;
+
+    //clear things
+    osEntity.str("");
+
+    
+    //-- 4. extract the x, y of the object at the end of the activity and the presence and absence
+    osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id+1 << " AND " << subtypeArg << ".opcid = " << idArg ;
+    bPosArgEnd = requestFromStream(osEntity.str().c_str());
+    string posArgEnd = bPosArgEnd.get(0).asList()->get(0).toString().c_str() ;
+    if (bPosArgEnd.get(0).asList()->get(1).toString().c_str() == test)
+        ObjectPresentAfter = 1;
+    else
+        ObjectPresentAfter = 0;
+    //clear things
+    osEntity.str("");
+
+    bOutput.addString(posArgBegin.c_str());
+    bOutput.addString(posArgEnd.c_str());
+    bOutput.addInt(ObjectPresentBefore);
+    bOutput.addInt(ObjectPresentAfter);
+
+    
+    ostringstream osSubject;
+    osSubject << "SELECT argument FROM contentarg WHERE role = 'agent1' AND instance = " << Id;
+    bContent = requestFromStream(osSubject.str());
+    bOutput.addString(bContent.get(0).asList()->get(0).toString());
+
+    ostringstream osSpatial2;
+    osSpatial2 << "SELECT argument FROM contentarg WHERE role = 'spatial2' AND instance = " << Id;
+    bContent = requestFromStream(osSpatial2.str());
+
+    string sNull = "NULL";
+    
+    if (bName.get(0).toString() == "hanoi")
+    {
+        bOutput.clear();
+        bName.clear();
+        bArguments.clear();
+
+        ostringstream osObject1;
+        osObject1 << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.role = 'object1' AND main.instance = " << Id;
+        Bottle bObject1 = requestFromStream(osObject1.str());
+
+        bName.addString((*bObject1.get(0).asList()).get(0).toString().c_str());
+
+        bOutput.addList() = bName;
+        //std::cout << "bArguments : " << bArguments.toString() << endl;
+        for (int i = 0 ; i < bObject1.size() ; i++)
+        {
+            bArguments.addString((*bObject1.get(i).asList()).get(1).toString().c_str());
+        }
+
+        bOutput.addList() = bArguments;
+
+        bOutput.addString(posArgBegin.c_str());
+        bOutput.addString(posArgEnd.c_str());
+        bOutput.addInt(ObjectPresentBefore);
+        bOutput.addInt(ObjectPresentAfter);
+
+        ostringstream osRTOpresent;
+        osRTOpresent << "SELECT position, name FROM rtobject WHERE instance = " << Id << " AND presence = true";
+        Bottle bRTOpresent = requestFromStream(osRTOpresent.str());
 
 
-	//-- 3. extract the x, y of the object at begin and end of the activity and the presence and absence
-	osEntity.str("");
-	osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id << " AND " << subtypeArg << ".opcid = " << idArg ;
-	bPosArgBegin = requestFromStream(osEntity.str().c_str());
-	posArgBegin = bPosArgBegin.get(0).asList()->get(0).toString().c_str() ;
+        if (bRTOpresent.toString().c_str() != sNull)
+        {
+            bOutput.addList() = bRTOpresent;
+        }
+        return bOutput;
+    }
 
-	//clear things
-	osEntity.str("");
+    //--5. get the other rtobject present
 
 
-	osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id+1 << " AND " << subtypeArg << ".opcid = " << idArg ;
-	bPosArgEnd = requestFromStream(osEntity.str().c_str());
-	posArgEnd = bPosArgEnd.get(0).asList()->get(0).toString().c_str() ;
+    if (bContent.toString().c_str() == sNull)
+    {
+        return bOutput;
+    }
 
-	bOutput.addString(posArgBegin.c_str());
-	bOutput.addString(posArgEnd.c_str());
+    if (!realOPC->isConnected())
+    {
+        bOutput.clear();
+        bOutput.addString("opc not connected");
+        return bOutput;
+    }
+    
+    string sArgSpatial2 = bContent.get(0).toString();
 
-	bOutput.addString(subtypeArg.c_str());
-	
-	return bOutput;
+    if (sArgSpatial2 == sNull){
+
+        return bOutput;
+    }
+
+    //-- 1. extract the id of the argument, assuming it is an entity
+    osEntity << "SELECT entity.opcid FROM entity WHERE entity.instance = " << Id << " AND entity.name = '" << sArgSpatial2 << "'" ;
+    bIdArgBegin = requestFromStream(osEntity.str().c_str());
+
+    //clear things
+    osEntity.str("");
+
+    idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str()) ;
+    //std::cout << "Argument Id Begin id : " << idArg << endl;
+
+
+    //-- 2. select the subtype of the argument in order to extract it accordingly
+    osEntity << "SELECT contentopc.subtype from contentopc WHERE contentopc.instance = "<< Id << " AND contentopc.opcid = " << idArg ;
+    bSubTypeArgBegin = requestFromStream(osEntity.str().c_str());
+    subtypeArg = bSubTypeArgBegin.get(0).asList()->get(0).toString().c_str() ;
+
+
+    //-- 3. extract the x, y of the object at begin and end of the activity and the presence and absence
+    osEntity.str("");
+    osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id << " AND " << subtypeArg << ".opcid = " << idArg ;
+    bPosArgBegin = requestFromStream(osEntity.str().c_str());
+    posArgBegin = bPosArgBegin.get(0).asList()->get(0).toString().c_str() ;
+
+    //clear things
+    osEntity.str("");
+
+
+    osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id+1 << " AND " << subtypeArg << ".opcid = " << idArg ;
+    bPosArgEnd = requestFromStream(osEntity.str().c_str());
+    posArgEnd = bPosArgEnd.get(0).asList()->get(0).toString().c_str() ;
+
+    bOutput.addString(posArgBegin.c_str());
+    bOutput.addString(posArgEnd.c_str());
+
+    bOutput.addString(subtypeArg.c_str());
+    
+    return bOutput;
 }
 
 /*
-*	Return the (Speaker, Addressee, Subject (pronom) and Agent) of a sentence and of the action related. 
+*   Return the (Speaker, Addressee, Subject (pronom) and Agent) of a sentence and of the action related. 
 *
-*	1- Get the information about the sentence
-*	2- Get previous action + time
-*	3- Get next action + time
-*	4- Keep the closest action
-*	5- Return Speaker - Addressee - Agent - Subject (pronom)
+*   1- Get the information about the sentence
+*   2- Get previous action + time
+*   3- Get next action + time
+*   4- Keep the closest action
+*   5- Return Speaker - Addressee - Agent - Subject (pronom)
 */
 Bottle interlocutor::askSentenceFromId(int Id)
 {
-	Bottle	bOutput,	// main output
-		bContent,		// content of the sentence
-		bPrevious,		// previous action
-		bNext,			// next action
-		bTemp;
+    Bottle  bOutput,    // main output
+        bContent,       // content of the sentence
+        bPrevious,      // previous action
+        bNext,          // next action
+        bTemp;
 
 
-	std::cout << endl << "Treatment of sentence instance : " << Id << endl;
+    std::cout << endl << "Treatment of sentence instance : " << Id << endl;
 
-	// 1-
-	ostringstream osName;
-	osName << "SELECT main.time, contentarg.argument, contentarg.role FROM main, contentarg WHERE main.instance = contentarg.instance AND main.instance =" << Id;
-	bContent = requestFromStream(osName.str());
+    // 1-
+    ostringstream osName;
+    osName << "SELECT main.time, contentarg.argument, contentarg.role FROM main, contentarg WHERE main.instance = contentarg.instance AND main.instance =" << Id;
+    bContent = requestFromStream(osName.str());
 
-	std::cout << "bContent : " << endl << bContent.toString() << endl << endl;
+    std::cout << "bContent : " << endl << bContent.toString() << endl << endl;
 
-	string sSpeaker,
-		sAddressee,
-		sSubject,
-		sTimeSentence;
+    string sSpeaker,
+        sAddressee,
+        sSubject,
+        sTimeSentence;
 
-	bool fSpeaker = false,
-		fAddressee = false,
-		fSubject = false;
+    bool fSpeaker = false,
+        fAddressee = false,
+        fSubject = false;
 
-	for (int iElement = 0 ; iElement < bContent.size() ; iElement++)
-	{
-		Bottle bDecomposed = *bContent.get(iElement).asList();
-		sTimeSentence = bDecomposed.get(0).toString().c_str();
+    for (int iElement = 0 ; iElement < bContent.size() ; iElement++)
+    {
+        Bottle bDecomposed = *bContent.get(iElement).asList();
+        sTimeSentence = bDecomposed.get(0).toString().c_str();
 
-		if (bDecomposed.get(2).toString().c_str() == abmReasoningFunction::TAG_SPEAKER && !fSpeaker )
-		{
-			fSpeaker = true;
-			sSpeaker = bDecomposed.get(1).toString().c_str();
-		}
+        if (bDecomposed.get(2).toString().c_str() == abmReasoningFunction::TAG_SPEAKER && !fSpeaker )
+        {
+            fSpeaker = true;
+            sSpeaker = bDecomposed.get(1).toString().c_str();
+        }
 
-		if (bDecomposed.get(2).toString().c_str() == abmReasoningFunction::TAG_ADRESSEE && !fAddressee )
-		{
-			fAddressee = true;
-			sAddressee = bDecomposed.get(1).toString().c_str();
-		}
+        if (bDecomposed.get(2).toString().c_str() == abmReasoningFunction::TAG_ADRESSEE && !fAddressee )
+        {
+            fAddressee = true;
+            sAddressee = bDecomposed.get(1).toString().c_str();
+        }
 
-		if (bDecomposed.get(2).toString().c_str() == abmReasoningFunction::TAG_SUBJECT && !fSubject )
-		{
-			fSubject = true;
-			sSubject = bDecomposed.get(1).toString().c_str();
-		}
+        if (bDecomposed.get(2).toString().c_str() == abmReasoningFunction::TAG_SUBJECT && !fSubject )
+        {
+            fSubject = true;
+            sSubject = bDecomposed.get(1).toString().c_str();
+        }
 
-	}
+    }
 
-	if (!fAddressee || !fSpeaker || !fSubject)
-	{
-		std::cout << "Error in abmReasoning::FindAllSentence::FindSentenceFromId -  Id = " << Id << ". Lack of information in the sentence." << endl;
-		return bOutput;
-	}
+    if (!fAddressee || !fSpeaker || !fSubject)
+    {
+        std::cout << "Error in abmReasoning::FindAllSentence::FindSentenceFromId -  Id = " << Id << ". Lack of information in the sentence." << endl;
+        return bOutput;
+    }
 
-	// 2-
-	int iInstancePrevious, iInstanceNext;
-	string sTimePrevious, sTimeNext,
-		sAgentPrevious, sAgentNext;
+    // 2-
+    int iInstancePrevious, iInstanceNext;
+    string sTimePrevious, sTimeNext,
+        sAgentPrevious, sAgentNext;
 
-	osName.str("");
-	osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND activitytype = 'action' and main.instance < " << Id << " and begin = 'FALSE' order by instance DESC limit 1"; 
-	bTemp = *(requestFromStream(osName.str()).get(0).asList());
+    osName.str("");
+    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND activitytype = 'action' and main.instance < " << Id << " and begin = 'FALSE' order by instance DESC limit 1"; 
+    bTemp = *(requestFromStream(osName.str()).get(0).asList());
 
-	sTimePrevious = bTemp.get(0).toString().c_str();
-	iInstancePrevious = atoi(bTemp.get(1).toString().c_str());
-	sAgentPrevious = bTemp.get(2).toString().c_str();
+    sTimePrevious = bTemp.get(0).toString().c_str();
+    iInstancePrevious = atoi(bTemp.get(1).toString().c_str());
+    sAgentPrevious = bTemp.get(2).toString().c_str();
 
 
-	// 3-
-	osName.str("");
-	osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND activitytype = 'action' and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1"; 
-	Bottle bRequest = requestFromStream(osName.str());
-	std::cout << "brequest : " << bRequest.toString() << endl;
-	int iDiffTimefromNext = 10000;
+    // 3-
+    osName.str("");
+    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND activitytype = 'action' and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1"; 
+    Bottle bRequest = requestFromStream(osName.str());
+    std::cout << "brequest : " << bRequest.toString() << endl;
+    int iDiffTimefromNext = 10000;
 
-	if (!(bRequest.toString() == "NULL"))
-	{
-		bTemp = *(bRequest.get(0).asList());
-		std::cout << "bTemp : " << bTemp.toString();
+    if (!(bRequest.toString() == "NULL"))
+    {
+        bTemp = *(bRequest.get(0).asList());
+        std::cout << "bTemp : " << bTemp.toString();
 
-		sTimeNext = bTemp.get(0).toString().c_str();
-		iInstanceNext = atoi(bTemp.get(1).toString().c_str());
-		sAgentNext = bTemp.get(2).toString().c_str();
-		iDiffTimefromNext = abs(abmReasoningFunction::timeDiffSecondFromString(sTimeSentence, sTimeNext));
-	}
+        sTimeNext = bTemp.get(0).toString().c_str();
+        iInstanceNext = atoi(bTemp.get(1).toString().c_str());
+        sAgentNext = bTemp.get(2).toString().c_str();
+        iDiffTimefromNext = abs(abmReasoningFunction::timeDiffSecondFromString(sTimeSentence, sTimeNext));
+    }
 
-	// 4-
-	int iDiffTimefromPrev = abs(abmReasoningFunction::timeDiffSecondFromString(sTimeSentence, sTimePrevious));
+    // 4-
+    int iDiffTimefromPrev = abs(abmReasoningFunction::timeDiffSecondFromString(sTimeSentence, sTimePrevious));
 
-	bOutput.addString(sSpeaker.c_str());
-	bOutput.addString(sAddressee.c_str());
-	bOutput.addString(sSubject.c_str());
+    bOutput.addString(sSpeaker.c_str());
+    bOutput.addString(sAddressee.c_str());
+    bOutput.addString(sSubject.c_str());
 
-	// if next is closer in time
-	if (iDiffTimefromNext < iDiffTimefromPrev)
-		bOutput.addString(sAgentNext.c_str());
-	else
-		bOutput.addString(sAgentPrevious.c_str());
-		
-	return bOutput;
+    // if next is closer in time
+    if (iDiffTimefromNext < iDiffTimefromPrev)
+        bOutput.addString(sAgentNext.c_str());
+    else
+        bOutput.addString(sAgentPrevious.c_str());
+        
+    return bOutput;
 }
 
 
@@ -445,59 +445,59 @@ Bottle interlocutor::askSentenceFromId(int Id)
 * Return the consequence of an action object related
 *
 * bOutput : 
-*	Bottle 1 : Name and Object
-*	Bottle 2 : location of object before
+*   Bottle 1 : Name and Object
+*   Bottle 2 : location of object before
 *   Bottle 3 : location of object after
 */
 Bottle interlocutor::askActionForLevel3Reasoning(int Id)
 {
-	Bottle bOutput,
-		bName,
-		bRelationsBefore,
-		bRelationsAfter;
+    Bottle bOutput,
+        bName,
+        bRelationsBefore,
+        bRelationsAfter;
 
 
-	// Get name and argument.
-	ostringstream osName;
-	osName << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.role = 'object1' AND main.instance = " << Id;
-	bName = requestFromStream(osName.str());
+    // Get name and argument.
+    ostringstream osName;
+    osName << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.role = 'object1' AND main.instance = " << Id;
+    bName = requestFromStream(osName.str());
 
-	string sName = (*bName.get(0).asList()).get(0).toString().c_str(),
-		sArgument = (*bName.get(0).asList()).get(1).toString().c_str();
+    string sName = (*bName.get(0).asList()).get(0).toString().c_str(),
+        sArgument = (*bName.get(0).asList()).get(1).toString().c_str();
 
 
-	ostringstream osRelation;
+    ostringstream osRelation;
 
-	//get location of objects before
-	osRelation << "SELECT subject, object FROM relation WHERE instance = " << Id << " AND verb = 'isAtLoc'";
-	bRelationsBefore = requestFromStream(osRelation.str().c_str());
+    //get location of objects before
+    osRelation << "SELECT subject, object FROM relation WHERE instance = " << Id << " AND verb = 'isAtLoc'";
+    bRelationsBefore = requestFromStream(osRelation.str().c_str());
 
-	//clear things
-	osRelation.str("");
-	
+    //clear things
+    osRelation.str("");
+    
 
-	//get location of objects after
-	osRelation << "SELECT subject, object FROM relation WHERE instance = " << Id+1 << " AND verb = 'isAtLoc'";
-	bRelationsAfter = requestFromStream(osRelation.str().c_str());
+    //get location of objects after
+    osRelation << "SELECT subject, object FROM relation WHERE instance = " << Id+1 << " AND verb = 'isAtLoc'";
+    bRelationsAfter = requestFromStream(osRelation.str().c_str());
 
-	bName.clear();
-	bName.addString(sName.c_str());
-	bName.addString(sArgument.c_str());
+    bName.clear();
+    bName.addString(sName.c_str());
+    bName.addString(sArgument.c_str());
 
-	bOutput.addList() = bName;
-	bOutput.addList() = bRelationsBefore;
-	bOutput.addList() = bRelationsAfter;
+    bOutput.addList() = bName;
+    bOutput.addList() = bRelationsBefore;
+    bOutput.addList() = bRelationsAfter;
 
-	if (sName == "hanoi")
-	{
-		ostringstream osSpatial;
-		osSpatial << "SELECT argument,role FROM contentarg WHERE role IN ('spatial1', 'spatial2') AND instance = " << Id;
-		Bottle bSpatial = requestFromStream(osSpatial.str());
-		bOutput.addList() = bSpatial;
-	}
+    if (sName == "hanoi")
+    {
+        ostringstream osSpatial;
+        osSpatial << "SELECT argument,role FROM contentarg WHERE role IN ('spatial1', 'spatial2') AND instance = " << Id;
+        Bottle bSpatial = requestFromStream(osSpatial.str());
+        bOutput.addList() = bSpatial;
+    }
 
-	
-	return bOutput;
+    
+    return bOutput;
 }
 
 /**
@@ -506,12 +506,12 @@ Bottle interlocutor::askActionForLevel3Reasoning(int Id)
 */
 Bottle interlocutor::askLastComplex()
 {
-	//bottle bQuery to ask autobiographicalMemory for ABM data the instance of OPC
-	Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'complex' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
+    //bottle bQuery to ask autobiographicalMemory for ABM data the instance of OPC
+    Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'complex' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
 
-	int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
+    int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
 
-	return askComplexFromId(opcIdBegin);
+    return askComplexFromId(opcIdBegin);
 }
 
 /**
@@ -520,140 +520,140 @@ Bottle interlocutor::askLastComplex()
 */
 Bottle interlocutor::askComplexFromId(int Id)
 {
-	Bottle	bOutput,	// main output
-		bAction,	
-		bArguments,
-		bOject1,
-		bName,
-		bQuery,
-		bTemp,
-		bTemporal;
+    Bottle  bOutput,    // main output
+        bAction,    
+        bArguments,
+        bOject1,
+        bName,
+        bQuery,
+        bTemp,
+        bTemporal;
 
-	int opcIdBegin = Id;
-	ostringstream osOpcEnd,osArg, osTemp;
-	osOpcEnd << "SELECT instance FROM main WHERE instance > " << Id << " AND begin = false AND activitytype = 'complex' LIMIT 1 ";
-	bQuery = requestFromStream(osOpcEnd.str().c_str());
+    int opcIdBegin = Id;
+    ostringstream osOpcEnd,osArg, osTemp;
+    osOpcEnd << "SELECT instance FROM main WHERE instance > " << Id << " AND begin = false AND activitytype = 'complex' LIMIT 1 ";
+    bQuery = requestFromStream(osOpcEnd.str().c_str());
 
-	//std::cout << endl << bQuery.toString() << endl;
+    //std::cout << endl << bQuery.toString() << endl;
 
-	int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
+    int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
 
-	//	-- 0. extract all the arguments
-	osArg << "SELECT argument FROM contentarg WHERE instance = " << opcIdBegin;
-	bArguments = requestFromStream(osArg.str());
+    //  -- 0. extract all the arguments
+    osArg << "SELECT argument FROM contentarg WHERE instance = " << opcIdBegin;
+    bArguments = requestFromStream(osArg.str());
 
-	//	std::cout << "bArguments : " << bArguments.toString() << endl;
-	string	sObject1, sObject2,
-		sAgent1, sAgent2,
-		sAction1, sAction2,
-		sRTO1, sRTO2,
-		sTime1, sTime2,
-		sTemporal;
+    //  std::cout << "bArguments : " << bArguments.toString() << endl;
+    string  sObject1, sObject2,
+        sAgent1, sAgent2,
+        sAction1, sAction2,
+        sRTO1, sRTO2,
+        sTime1, sTime2,
+        sTemporal;
 
-	if (bArguments.size() !=9)
-	{
-		std::cout << "in askLastComplex : wrong number of argument for the last complex ( != 9)" << endl;
-		bOutput.clear();
-		bOutput.addString("in askLastComplex : wrong number of argument for the last complex ( != 9)");
-		return bOutput;
-	}
-	else
-	{
-		sRTO1		= bArguments.get(0).toString();
-		sObject1	= bArguments.get(1).toString();
-		sAgent1		= bArguments.get(2).toString();
-		sAction1	= bArguments.get(3).toString();
-		sTemporal	= bArguments.get(4).toString();
-		sRTO2		= bArguments.get(5).toString();
-		sObject2	= bArguments.get(6).toString();
-		sAgent2		= bArguments.get(7).toString();
-		sAction2	= bArguments.get(8).toString();
-	}
+    if (bArguments.size() !=9)
+    {
+        std::cout << "in askLastComplex : wrong number of argument for the last complex ( != 9)" << endl;
+        bOutput.clear();
+        bOutput.addString("in askLastComplex : wrong number of argument for the last complex ( != 9)");
+        return bOutput;
+    }
+    else
+    {
+        sRTO1       = bArguments.get(0).toString();
+        sObject1    = bArguments.get(1).toString();
+        sAgent1     = bArguments.get(2).toString();
+        sAction1    = bArguments.get(3).toString();
+        sTemporal   = bArguments.get(4).toString();
+        sRTO2       = bArguments.get(5).toString();
+        sObject2    = bArguments.get(6).toString();
+        sAgent2     = bArguments.get(7).toString();
+        sAction2    = bArguments.get(8).toString();
+    }
 
-	// Verification of the data inside the complex
+    // Verification of the data inside the complex
 
-	//	osTemp << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND main.instance = " << opcIdBegin +1 ;
-	osTemp.str();
-	osTemp << "SELECT main.activityname FROM main WHERE main.instance = " << opcIdBegin +1 ;
-	bTemp = requestFromStream(osTemp.str().c_str());
+    //  osTemp << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND main.instance = " << opcIdBegin +1 ;
+    osTemp.str();
+    osTemp << "SELECT main.activityname FROM main WHERE main.instance = " << opcIdBegin +1 ;
+    bTemp = requestFromStream(osTemp.str().c_str());
 
-	if (bTemp.get(0).toString().c_str() != sAction1 || bTemp.get(0).toString().c_str() != sAction2)
-	{
-		std::cout << "in askLastComplex : Action in complex different of the ones discribed by the arguments" << endl;
-		bOutput.clear();
-		bOutput.addString("in askLastComplex : Action in complex different of the ones discribed by the arguments");
-		return bOutput;
-	}
+    if (bTemp.get(0).toString().c_str() != sAction1 || bTemp.get(0).toString().c_str() != sAction2)
+    {
+        std::cout << "in askLastComplex : Action in complex different of the ones discribed by the arguments" << endl;
+        bOutput.clear();
+        bOutput.addString("in askLastComplex : Action in complex different of the ones discribed by the arguments");
+        return bOutput;
+    }
 
-	osTemp.str("");
-	osTemp << "SELECT main.activityname FROM main WHERE main.instance = " << opcIdBegin +3 ;
-	bTemp.clear();
-	bTemp.addString("request");
-	bTemp.addString(osTemp.str().c_str());
-	bTemp = request(bTemp);
-	if (bTemp.get(0).toString().c_str() != sAction1 || bTemp.get(0).toString().c_str() != sAction2)
-	{
-		std::cout << "in askLastComplex : Action in complex different of the ones discribed by the arguments" << endl;
-		bOutput.clear();
-		bOutput.addString("in askLastComplex : Action in complex different of the ones discribed by the arguments");
-		return bOutput;
-	}
+    osTemp.str("");
+    osTemp << "SELECT main.activityname FROM main WHERE main.instance = " << opcIdBegin +3 ;
+    bTemp.clear();
+    bTemp.addString("request");
+    bTemp.addString(osTemp.str().c_str());
+    bTemp = request(bTemp);
+    if (bTemp.get(0).toString().c_str() != sAction1 || bTemp.get(0).toString().c_str() != sAction2)
+    {
+        std::cout << "in askLastComplex : Action in complex different of the ones discribed by the arguments" << endl;
+        bOutput.clear();
+        bOutput.addString("in askLastComplex : Action in complex different of the ones discribed by the arguments");
+        return bOutput;
+    }
 
-	string sDiff1, sDiff2;
-	if (sAgent1 == sAgent2)
-	{
-		if (sRTO1 == sRTO2)
-		{
-			sDiff1 = sObject1;
-			sDiff2 = sObject2;
-		}
-		else
-		{
-			sDiff1 = sRTO1;
-			sDiff2 = sRTO2;
-		}
-	}
-	else
-	{
-		sDiff1 = sAgent1;
-		sDiff2 = sAgent2;
-	}
+    string sDiff1, sDiff2;
+    if (sAgent1 == sAgent2)
+    {
+        if (sRTO1 == sRTO2)
+        {
+            sDiff1 = sObject1;
+            sDiff2 = sObject2;
+        }
+        else
+        {
+            sDiff1 = sRTO1;
+            sDiff2 = sRTO2;
+        }
+    }
+    else
+    {
+        sDiff1 = sAgent1;
+        sDiff2 = sAgent2;
+    }
 
-	int instance1, instance2;
+    int instance1, instance2;
 
-	ostringstream osAction1, osAction2;
-	osAction1 << "SELECT main.instance FROM main, contentarg WHERE main.instance > " << opcIdBegin << " AND main.instance < " << opcIdEnd << " AND main.begin = true AND main.instance = contentarg.instance AND contentarg.argument = '" << sDiff1 << "'";
-	bQuery = requestFromStream(osAction1.str());
-	instance1 = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
-	osAction2 << "SELECT main.instance FROM main, contentarg WHERE main.instance > " << opcIdBegin << " AND main.instance < " << opcIdEnd << " AND main.begin = true AND main.instance = contentarg.instance AND contentarg.argument = '" << sDiff2 << "'";
-	bQuery = requestFromStream(osAction2.str());
-	instance2 = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
+    ostringstream osAction1, osAction2;
+    osAction1 << "SELECT main.instance FROM main, contentarg WHERE main.instance > " << opcIdBegin << " AND main.instance < " << opcIdEnd << " AND main.begin = true AND main.instance = contentarg.instance AND contentarg.argument = '" << sDiff1 << "'";
+    bQuery = requestFromStream(osAction1.str());
+    instance1 = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
+    osAction2 << "SELECT main.instance FROM main, contentarg WHERE main.instance > " << opcIdBegin << " AND main.instance < " << opcIdEnd << " AND main.begin = true AND main.instance = contentarg.instance AND contentarg.argument = '" << sDiff2 << "'";
+    bQuery = requestFromStream(osAction2.str());
+    instance2 = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
 
-	osTemp.str("");
-	osTemp << "SELECT main.time FROM main WHERE main.instance = " << instance1 ; 
-	bTemp.clear();
-	bTemp.addString("request");
-	bTemp.addString(osTemp.str().c_str());
-	bTemp = request(bTemp);
-	sTime1 = bTemp.get(0).toString();
+    osTemp.str("");
+    osTemp << "SELECT main.time FROM main WHERE main.instance = " << instance1 ; 
+    bTemp.clear();
+    bTemp.addString("request");
+    bTemp.addString(osTemp.str().c_str());
+    bTemp = request(bTemp);
+    sTime1 = bTemp.get(0).toString();
 
-	osTemp.str("");
-	osTemp << "SELECT main.time FROM main WHERE main.instance = " << instance2; 
-	bTemp.clear();
-	bTemp.addString("request");
-	bTemp.addString(osTemp.str().c_str());
-	bTemp = request(bTemp);
-	sTime2 = bTemp.get(0).toString();
+    osTemp.str("");
+    osTemp << "SELECT main.time FROM main WHERE main.instance = " << instance2; 
+    bTemp.clear();
+    bTemp.addString("request");
+    bTemp.addString(osTemp.str().c_str());
+    bTemp = request(bTemp);
+    sTime2 = bTemp.get(0).toString();
 
 
-	timeKnowledge tkTemporal;
+    timeKnowledge tkTemporal;
 
-	bTemporal.addString(sTemporal.c_str());
-	bTemporal.addString(sTime1.c_str());
-	bTemporal.addString(sTime2.c_str());
+    bTemporal.addString(sTemporal.c_str());
+    bTemporal.addString(sTime1.c_str());
+    bTemporal.addString(sTime2.c_str());
 
-	//std::cout << "askLastComplex Output : " << bTemporal.toString() << endl;
-	return bTemporal;
+    //std::cout << "askLastComplex Output : " << bTemporal.toString() << endl;
+    return bTemporal;
 }
 
 
@@ -663,86 +663,86 @@ Bottle interlocutor::askComplexFromId(int Id)
 */
 Bottle interlocutor::imagineOPC(int Id)
 {
-	Bottle bOutput,
-		bMessenger;
+    Bottle bOutput,
+        bMessenger;
 
-	cout << " in imagination" << endl;
+    cout << " in imagination" << endl;
 
-	if (!mentalOPC->isConnected())
-	{
-		std::cout << "Problem in interlocutor::imagineOPC | mentalOPC not connected" << endl;
-		bOutput.addString("Problem in interlocutor::imagineOPC | mentalOPC not connected");
-		return bOutput;
-	}
-	
+    if (!mentalOPC->isConnected())
+    {
+        std::cout << "Problem in interlocutor::imagineOPC | mentalOPC not connected" << endl;
+        bOutput.addString("Problem in interlocutor::imagineOPC | mentalOPC not connected");
+        return bOutput;
+    }
+    
 
-	mentalOPC->checkout();
+    mentalOPC->checkout();
 
-	//clean GUI :
-	list<Entity*> lMental = mentalOPC->EntitiesCacheCopy();
-	for (list<Entity*>::iterator it_E = lMental.begin() ; it_E != lMental.end() ; it_E++)
-	{
-		if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)	{
-			Object *Ob = mentalOPC->addObject((*it_E)->name());
-			Ob->m_present = 0;	}
+    //clean GUI :
+    list<Entity*> lMental = mentalOPC->EntitiesCacheCopy();
+    for (list<Entity*>::iterator it_E = lMental.begin() ; it_E != lMental.end() ; it_E++)
+    {
+        if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
+            Object *Ob = mentalOPC->addObject((*it_E)->name());
+            Ob->m_present = 0;  }
 
-		if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)	{
-			Agent *Ag = mentalOPC->addAgent((*it_E)->name());
-			Ag->m_present = 0;	}
+        if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
+            Agent *Ag = mentalOPC->addAgent((*it_E)->name());
+            Ag->m_present = 0;  }
 
-		if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)	{
-			RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
-			Rt->m_present = 0;	}
-	}
+        if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
+            RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
+            Rt->m_present = 0;  }
+    }
 
-	mentalOPC->commit();
-	Time::delay(0.2);
-	mentalOPC->clear();
-	mentalOPC->checkout();
+    mentalOPC->commit();
+    Time::delay(0.2);
+    mentalOPC->clear();
+    mentalOPC->checkout();
 
-	// ADD Agent iCub
+    // ADD Agent iCub
 
-	Agent *icub =	mentalOPC->addAgent("icub");
-	icub->m_present = true;
-	mentalOPC->commit(icub);
+    Agent *icub =   mentalOPC->addAgent("icub");
+    icub->m_present = true;
+    mentalOPC->commit(icub);
 
-	// Get the id of the RTO present
-	ostringstream osIdRTO;
-	osIdRTO << "SELECT position,presence,name,color FROM rtobject WHERE instance = " << Id ;
-	bMessenger = requestFromStream(osIdRTO.str().c_str());
+    // Get the id of the RTO present
+    ostringstream osIdRTO;
+    osIdRTO << "SELECT position,presence,name,color FROM rtobject WHERE instance = " << Id ;
+    bMessenger = requestFromStream(osIdRTO.str().c_str());
 
-	string test = "t";
-	if (bMessenger.toString() == "NULL")
-	{
-		bOutput.addString("No RTObject.");
-		return bOutput;
-	}
-	for (unsigned int iRTO = 0 ; iRTO < bMessenger.size() ; iRTO++)
-	{
-		Bottle bRTO = *(bMessenger.get(iRTO).asList());
-		string sCoordinate = bRTO.get(0).toString(),
-			sPresence = bRTO.get(1).toString().c_str(),
-			sName = bRTO.get(2).toString(),
-			sColor = bRTO.get(3).toString();
+    string test = "t";
+    if (bMessenger.toString() == "NULL")
+    {
+        bOutput.addString("No RTObject.");
+        return bOutput;
+    }
+    for (unsigned int iRTO = 0 ; iRTO < bMessenger.size() ; iRTO++)
+    {
+        Bottle bRTO = *(bMessenger.get(iRTO).asList());
+        string sCoordinate = bRTO.get(0).toString(),
+            sPresence = bRTO.get(1).toString().c_str(),
+            sName = bRTO.get(2).toString(),
+            sColor = bRTO.get(3).toString();
 
-		pair<double, double> pCoordinate = abmReasoningFunction::coordFromString(sCoordinate);
-		bool bPresence = test == sPresence;
-		tuple<int,int,int> tColor = abmReasoningFunction::tupleIntFromString(sColor);
+        pair<double, double> pCoordinate = abmReasoningFunction::coordFromString(sCoordinate);
+        bool bPresence = test == sPresence;
+        tuple<int,int,int> tColor = abmReasoningFunction::tupleIntFromString(sColor);
 
-		RTObject *RTOtemp = mentalOPC->addRTObject(sName);
-		RTOtemp->m_ego_position[0] = pCoordinate.first;
-		RTOtemp->m_ego_position[1] = pCoordinate.second;
-		RTOtemp->m_present = bPresence;
-		RTOtemp->m_color[0] = get<0>(tColor);
-		RTOtemp->m_color[1] = get<1>(tColor);
-		RTOtemp->m_color[2] = get<2>(tColor);
+        RTObject *RTOtemp = mentalOPC->addRTObject(sName);
+        RTOtemp->m_ego_position[0] = pCoordinate.first;
+        RTOtemp->m_ego_position[1] = pCoordinate.second;
+        RTOtemp->m_present = bPresence;
+        RTOtemp->m_color[0] = get<0>(tColor);
+        RTOtemp->m_color[1] = get<1>(tColor);
+        RTOtemp->m_color[2] = get<2>(tColor);
 
-		mentalOPC->commit(RTOtemp);
-	}
+        mentalOPC->commit(RTOtemp);
+    }
 
-	mentalOPC->update();
+    mentalOPC->update();
 
-	return bOutput;
+    return bOutput;
 }
 
 
@@ -752,12 +752,12 @@ Bottle interlocutor::imagineOPC(int Id)
 */
 plan interlocutor::askLastSharedPlan()
 {
-	//bottle bQuery to ask autobiographicalMemory for ABM data the instance of OPC
-	Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'sharedplan' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
+    //bottle bQuery to ask autobiographicalMemory for ABM data the instance of OPC
+    Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'sharedplan' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
 
-	int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
+    int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
 
-	return askSharedPlanFromId(opcIdBegin);
+    return askSharedPlanFromId(opcIdBegin);
 }
 
 /**
@@ -766,93 +766,93 @@ plan interlocutor::askLastSharedPlan()
 */
 plan interlocutor::askSharedPlanFromId(int opcIdBegin)
 {
-	Bottle	bOutput;
+    Bottle  bOutput;
 
-	ostringstream osOpcEnd,	osArg, osName;
-	osOpcEnd << "SELECT instance FROM main WHERE instance > " << opcIdBegin << " AND begin = false AND activitytype = 'sharedplan' ORDER BY instance LIMIT 1 ";
-	Bottle bQuery = requestFromStream(osOpcEnd.str().c_str());
+    ostringstream osOpcEnd, osArg, osName;
+    osOpcEnd << "SELECT instance FROM main WHERE instance > " << opcIdBegin << " AND begin = false AND activitytype = 'sharedplan' ORDER BY instance LIMIT 1 ";
+    Bottle bQuery = requestFromStream(osOpcEnd.str().c_str());
 
-	//std::cout << endl << bQuery.toString() << endl;
+    //std::cout << endl << bQuery.toString() << endl;
 
-	int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
-	osName << "SELECT activityname FROM main WHERE instance = " << opcIdBegin;
-	bQuery = requestFromStream(osName.str().c_str());
-	string sName = bQuery.get(0).asList()->toString().c_str();
-	string sManner;
-	//	-- 0. extract all the arguments
-	osArg << "SELECT argument,role FROM contentarg WHERE instance = " << opcIdBegin;
-	Bottle bArguments = requestFromStream(osArg.str());
+    int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
+    osName << "SELECT activityname FROM main WHERE instance = " << opcIdBegin;
+    bQuery = requestFromStream(osName.str().c_str());
+    string sName = bQuery.get(0).asList()->toString().c_str();
+    string sManner;
+    //  -- 0. extract all the arguments
+    osArg << "SELECT argument,role FROM contentarg WHERE instance = " << opcIdBegin;
+    Bottle bArguments = requestFromStream(osArg.str());
 
-	plan newPlan;
-	bool fManner = false;
-	// extracting argument of the plan
-	for (int arg = 0 ; arg < bArguments.size() ; arg++)
-	{
-		pair<string, string>	pArg;
-		Bottle bTemp = *bArguments.get(arg).asList();
-		pArg.first = bTemp.get(0).toString();
-		pArg.second = bTemp.get(1).toString();
+    plan newPlan;
+    bool fManner = false;
+    // extracting argument of the plan
+    for (int arg = 0 ; arg < bArguments.size() ; arg++)
+    {
+        pair<string, string>    pArg;
+        Bottle bTemp = *bArguments.get(arg).asList();
+        pArg.first = bTemp.get(0).toString();
+        pArg.second = bTemp.get(1).toString();
 
-		if (pArg.second == abmReasoningFunction::TAG_DB_MANNER)
-		{
-			fManner = true;
-			sManner = pArg.first;
-		}
-		newPlan.vArguments.push_back(pArg);
-	}
+        if (pArg.second == abmReasoningFunction::TAG_DB_MANNER)
+        {
+            fManner = true;
+            sManner = pArg.first;
+        }
+        newPlan.vArguments.push_back(pArg);
+    }
 
-	if (!fManner)
-	{
-		sManner = abmReasoningFunction::TAG_DB_NONE;
-	}
+    if (!fManner)
+    {
+        sManner = abmReasoningFunction::TAG_DB_NONE;
+    }
 
-	int NbActivity = (opcIdEnd - opcIdBegin)/2;
+    int NbActivity = (opcIdEnd - opcIdBegin)/2;
 
-	// extracting activity of the plan
-	for (int acti = 0 ; acti < NbActivity ; acti++)
-	{
-		// get type and name of activity
-		ostringstream osActivity;
-		osActivity << "SELECT activitytype, activityname FROM main WHERE instance = " << opcIdBegin + 1 + 2*acti ;
-		Bottle bActivity = *(requestFromStream(osActivity.str().c_str()).get(0).asList());
+    // extracting activity of the plan
+    for (int acti = 0 ; acti < NbActivity ; acti++)
+    {
+        // get type and name of activity
+        ostringstream osActivity;
+        osActivity << "SELECT activitytype, activityname FROM main WHERE instance = " << opcIdBegin + 1 + 2*acti ;
+        Bottle bActivity = *(requestFromStream(osActivity.str().c_str()).get(0).asList());
 
-		// fill newPlan	
-		newPlan.vActivitytype.push_back(bActivity.get(0).toString().c_str());
-		newPlan.vActivityname.push_back(bActivity.get(1).toString().c_str());
+        // fill newPlan 
+        newPlan.vActivitytype.push_back(bActivity.get(0).toString().c_str());
+        newPlan.vActivityname.push_back(bActivity.get(1).toString().c_str());
 
-		// get argument of activity
-		osActivity.str("");
-		osActivity << "SELECT argument, role FROM contentarg WHERE instance = " << opcIdBegin + 1 +2*acti;
+        // get argument of activity
+        osActivity.str("");
+        osActivity << "SELECT argument, role FROM contentarg WHERE instance = " << opcIdBegin + 1 +2*acti;
 
-		bActivity = requestFromStream(osActivity.str().c_str());
-		list<pair<string, string> >	lArgument;
-		for (int arg = 0 ; arg < bActivity.size() ; arg++)
-		{
-			Bottle bRole = *bActivity.get(arg).asList();
-			string sArgument = bRole.get(0).toString().c_str(),
-				sRole = bRole.get(1).toString().c_str();
+        bActivity = requestFromStream(osActivity.str().c_str());
+        list<pair<string, string> > lArgument;
+        for (int arg = 0 ; arg < bActivity.size() ; arg++)
+        {
+            Bottle bRole = *bActivity.get(arg).asList();
+            string sArgument = bRole.get(0).toString().c_str(),
+                sRole = bRole.get(1).toString().c_str();
 
-			for (vector< pair <string, string > >::iterator it_p = newPlan.vArguments.begin() ; it_p != newPlan.vArguments.end() ; it_p++)
-			{
-				if (it_p->first == sArgument)
-				{
-					sRole = it_p->second;
-				}
-			}
+            for (vector< pair <string, string > >::iterator it_p = newPlan.vArguments.begin() ; it_p != newPlan.vArguments.end() ; it_p++)
+            {
+                if (it_p->first == sArgument)
+                {
+                    sRole = it_p->second;
+                }
+            }
 
-			pair <string, string> pRole;
-			pRole.first = sArgument;
-			pRole.second = sRole;
+            pair <string, string> pRole;
+            pRole.first = sArgument;
+            pRole.second = sRole;
 
-			lArgument.push_back(pRole);
-		}
-		newPlan.vActivityArguments.push_back(lArgument);
-	}
+            lArgument.push_back(pRole);
+        }
+        newPlan.vActivityArguments.push_back(lArgument);
+    }
 
-	newPlan.sManner = sManner;
-	newPlan.sName = sName;
+    newPlan.sManner = sManner;
+    newPlan.sName = sName;
 
-	return newPlan;
+    return newPlan;
 }
 
 /**
@@ -861,12 +861,12 @@ plan interlocutor::askSharedPlanFromId(int opcIdBegin)
 */
 behavior interlocutor::askLastBehavior()
 {
-	//bottle bQuery to ask autobiographicalMemory for ABM data the instance of OPC
-	Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'behavior' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
+    //bottle bQuery to ask autobiographicalMemory for ABM data the instance of OPC
+    Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'behavior' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
 
-	int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
+    int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str()) ;
 
-	return askBehaviorFromId(opcIdBegin);
+    return askBehaviorFromId(opcIdBegin);
 }
 
 /**
@@ -875,89 +875,89 @@ behavior interlocutor::askLastBehavior()
 */
 behavior interlocutor::askBehaviorFromId(int opcIdBegin)
 {
-	Bottle	bOutput, bBehaviorBegin, bBehaviorEnd, bTemp, bName, bArgument;
-	behavior  beReturn;
-	beReturn.sName = abmReasoningFunction::TAG_DB_NONE;
+    Bottle  bOutput, bBehaviorBegin, bBehaviorEnd, bTemp, bName, bArgument;
+    behavior  beReturn;
+    beReturn.sName = abmReasoningFunction::TAG_DB_NONE;
 
-	// get the end of the behavior
-	ostringstream osOpcEnd,	osArg, osName, osBehaviorBegin, osBehaviorEnd;
-	osOpcEnd << "SELECT instance FROM main WHERE instance > " << opcIdBegin << " AND begin = false AND activitytype = 'behavior' LIMIT 1 ";
-	Bottle bQuery = requestFromStream(osOpcEnd.str().c_str());
+    // get the end of the behavior
+    ostringstream osOpcEnd, osArg, osName, osBehaviorBegin, osBehaviorEnd;
+    osOpcEnd << "SELECT instance FROM main WHERE instance > " << opcIdBegin << " AND begin = false AND activitytype = 'behavior' LIMIT 1 ";
+    Bottle bQuery = requestFromStream(osOpcEnd.str().c_str());
 
-	int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
-
-
-	// get the drives before and after the behavior
-	osBehaviorBegin << "SELECT name, value FROM drives WHERE instance = " << opcIdBegin ; 
-	osBehaviorEnd << "SELECT name, value FROM drives WHERE instance = " << opcIdEnd ; 
-
-	bBehaviorBegin = requestFromStream(osBehaviorBegin.str().c_str());
-	bBehaviorEnd = requestFromStream(osBehaviorEnd.str().c_str());
-
-	vector <pair <string, double> >		vDrivesBegin, vDrivesEnd, vBehaviorEffect;
-
-	for (int d = 0 ; d < bBehaviorBegin.size() ; d++)
-	{
-		bTemp = *bBehaviorBegin.get(d).asList();
-		pair <string, double>	pDrive;
-		pDrive.first = bTemp.get(0).toString();
-		pDrive.second = atof(bTemp.get(1).toString().c_str());
-		vDrivesBegin.push_back(pDrive);
-	}
-
-	for (int d = 0 ; d < bBehaviorEnd.size() ; d++)
-	{
-		bTemp = *bBehaviorEnd.get(d).asList();
-		pair <string, double>	pDrive;
-		pDrive.first = bTemp.get(0).toString();
-		pDrive.second = atof(bTemp.get(1).toString().c_str());
-		vDrivesEnd.push_back(pDrive);
-	}
+    int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
 
 
-	// if the drives are not the same
-	if (vDrivesBegin.size() != vDrivesEnd.size())
-	{
-		std::cout << "Error in abmReasoning::askBehaviorFromId | not the same drives at begining and end of a behavior" << endl;
-	}
+    // get the drives before and after the behavior
+    osBehaviorBegin << "SELECT name, value FROM drives WHERE instance = " << opcIdBegin ; 
+    osBehaviorEnd << "SELECT name, value FROM drives WHERE instance = " << opcIdEnd ; 
 
-	// calculate the effect on each drive
-	for (vector <pair <string, double> >::iterator it_begin = vDrivesBegin.begin() ; it_begin != vDrivesBegin.end() ; it_begin++)
-	{
-		for (vector <pair <string, double> >::iterator it_end = vDrivesEnd.begin() ; it_end != vDrivesEnd.end() ; it_end++)
-		{
-			if (it_begin->first == it_end->first)
-			{
-				pair<string, double>		pDrive;
-				pDrive.first = it_begin->first;
-				pDrive.second = it_end->second - it_begin->second;
+    bBehaviorBegin = requestFromStream(osBehaviorBegin.str().c_str());
+    bBehaviorEnd = requestFromStream(osBehaviorEnd.str().c_str());
 
-				vBehaviorEffect.push_back(pDrive);
-			}
-		}
-	}
+    vector <pair <string, double> >     vDrivesBegin, vDrivesEnd, vBehaviorEffect;
 
-	// get the name of the behavior
-	osName << "SELECT activityname FROM main WHERE instance = " << opcIdBegin;
-	bName = requestFromStream(osName.str().c_str());
-	string sName = bName.get(0).asList()->toString().c_str();
+    for (int d = 0 ; d < bBehaviorBegin.size() ; d++)
+    {
+        bTemp = *bBehaviorBegin.get(d).asList();
+        pair <string, double>   pDrive;
+        pDrive.first = bTemp.get(0).toString();
+        pDrive.second = atof(bTemp.get(1).toString().c_str());
+        vDrivesBegin.push_back(pDrive);
+    }
 
-	// get the argument of the behavior
-	osArg << "SELECT argument FROM contentarg WHERE instance = " << opcIdBegin << " AND role = 'argument'" ;
-	bArgument = requestFromStream(osArg.str().c_str());
-	string sArgument = bArgument.get(0).asList()->toString().c_str();
+    for (int d = 0 ; d < bBehaviorEnd.size() ; d++)
+    {
+        bTemp = *bBehaviorEnd.get(d).asList();
+        pair <string, double>   pDrive;
+        pDrive.first = bTemp.get(0).toString();
+        pDrive.second = atof(bTemp.get(1).toString().c_str());
+        vDrivesEnd.push_back(pDrive);
+    }
 
 
-	// Fill behavior return
-	beReturn.sName = sName;
-	beReturn.sArgument = sArgument;
-	beReturn.vEffect.push_back(vBehaviorEffect);
+    // if the drives are not the same
+    if (vDrivesBegin.size() != vDrivesEnd.size())
+    {
+        std::cout << "Error in abmReasoning::askBehaviorFromId | not the same drives at begining and end of a behavior" << endl;
+    }
 
-	return beReturn;
+    // calculate the effect on each drive
+    for (vector <pair <string, double> >::iterator it_begin = vDrivesBegin.begin() ; it_begin != vDrivesBegin.end() ; it_begin++)
+    {
+        for (vector <pair <string, double> >::iterator it_end = vDrivesEnd.begin() ; it_end != vDrivesEnd.end() ; it_end++)
+        {
+            if (it_begin->first == it_end->first)
+            {
+                pair<string, double>        pDrive;
+                pDrive.first = it_begin->first;
+                pDrive.second = it_end->second - it_begin->second;
+
+                vBehaviorEffect.push_back(pDrive);
+            }
+        }
+    }
+
+    // get the name of the behavior
+    osName << "SELECT activityname FROM main WHERE instance = " << opcIdBegin;
+    bName = requestFromStream(osName.str().c_str());
+    string sName = bName.get(0).asList()->toString().c_str();
+
+    // get the argument of the behavior
+    osArg << "SELECT argument FROM contentarg WHERE instance = " << opcIdBegin << " AND role = 'argument'" ;
+    bArgument = requestFromStream(osArg.str().c_str());
+    string sArgument = bArgument.get(0).asList()->toString().c_str();
+
+
+    // Fill behavior return
+    beReturn.sName = sName;
+    beReturn.sArgument = sArgument;
+    beReturn.vEffect.push_back(vBehaviorEffect);
+
+    return beReturn;
 }
 
 
-///					SENDING KNOWLEDGE FUNCTIONS
+///                 SENDING KNOWLEDGE FUNCTIONS
 
 /*
 * Send all the spatialKnowledge to ABM
@@ -965,32 +965,32 @@ behavior interlocutor::askBehaviorFromId(int opcIdBegin)
 */
 int interlocutor::sendSpatialKnowledge(vector<spatialKnowledge> listSpatialKnowledge)
 {
-	Bottle bRequest;
-	int serialSpatial = 0;
-	//  Spatial Knowledge
-	for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin() ; it != listSpatialKnowledge.end() ; it++)
-	{
-		if (it->vX.size() >= 1)
-		{
-			ostringstream	osInsertKnowledge,
-				osInsertData;
+    Bottle bRequest;
+    int serialSpatial = 0;
+    //  Spatial Knowledge
+    for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin() ; it != listSpatialKnowledge.end() ; it++)
+    {
+        if (it->vX.size() >= 1)
+        {
+            ostringstream   osInsertKnowledge,
+                osInsertData;
 
-			osInsertKnowledge << "INSERT INTO spatialknowledge (name, argument, dependance, instance) VALUES ( '" << it->sName << "' , '" << it->sArgument << "', '" << it->sDependance << "', " << serialSpatial << ") ";
-			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
-			osInsertData.str("");
-			osInsertData << "INSERT INTO spatialdata (vx, vy, vdx, vdy, instance) VALUES ";
-			for (unsigned int i = 0; i < it->vX.size() ; i++)
-			{
-				osInsertData << " ( " << it->vX[i] << " , " << it->vY[i] << " , " << it->vDX[i] << " , " << it->vDY[i] << " , " << serialSpatial << ") " ;
-				if (i != it->vX.size() -1)
-					osInsertData << " , " ;
-			}
-			bRequest = requestFromStream(osInsertData.str().c_str());
-			serialSpatial ++;
-		}
-	}
+            osInsertKnowledge << "INSERT INTO spatialknowledge (name, argument, dependance, instance) VALUES ( '" << it->sName << "' , '" << it->sArgument << "', '" << it->sDependance << "', " << serialSpatial << ") ";
+            bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+            osInsertData.str("");
+            osInsertData << "INSERT INTO spatialdata (vx, vy, vdx, vdy, instance) VALUES ";
+            for (unsigned int i = 0; i < it->vX.size() ; i++)
+            {
+                osInsertData << " ( " << it->vX[i] << " , " << it->vY[i] << " , " << it->vDX[i] << " , " << it->vDY[i] << " , " << serialSpatial << ") " ;
+                if (i != it->vX.size() -1)
+                    osInsertData << " , " ;
+            }
+            bRequest = requestFromStream(osInsertData.str().c_str());
+            serialSpatial ++;
+        }
+    }
 
-	return serialSpatial;
+    return serialSpatial;
 }
 
 /*
@@ -999,33 +999,33 @@ int interlocutor::sendSpatialKnowledge(vector<spatialKnowledge> listSpatialKnowl
 */
 int interlocutor::sendTemporalKnowledge(vector<timeKnowledge> listTimeKnowledge )
 {
-	int serialTime = 0;
-	Bottle bRequest;
-	for (vector<timeKnowledge>::iterator it = listTimeKnowledge.begin() ; it != listTimeKnowledge.end() ; it++)
-	{
-		if (it->timeArg1.size() >= 1)
-		{
-			ostringstream	osInsertKnowledge,
-				osInsertData;
+    int serialTime = 0;
+    Bottle bRequest;
+    for (vector<timeKnowledge>::iterator it = listTimeKnowledge.begin() ; it != listTimeKnowledge.end() ; it++)
+    {
+        if (it->timeArg1.size() >= 1)
+        {
+            ostringstream   osInsertKnowledge,
+                osInsertData;
 
-			osInsertKnowledge << "INSERT INTO timeknowledge (temporal) VALUES ('" << it->sTemporal << "' )";
-			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+            osInsertKnowledge << "INSERT INTO timeknowledge (temporal) VALUES ('" << it->sTemporal << "' )";
+            bRequest = requestFromStream(osInsertKnowledge.str().c_str());
 
-			osInsertData.str("");
-			osInsertData << "INSERT INTO timedata (temporal, timearg1, timearg2) VALUES ";
+            osInsertData.str("");
+            osInsertData << "INSERT INTO timedata (temporal, timearg1, timearg2) VALUES ";
 
-			for (unsigned int i = 0; i < it->timeArg2.size() ; i++)
-			{
-				osInsertData << " ( '" << it->sTemporal << "' , '" << abmReasoningFunction::time2string(it->timeArg1[i]) << "' , '" << abmReasoningFunction::time2string(it->timeArg2[i]) << "') ";
-				if (i!= it->timeArg2.size()-1)
-					osInsertData << " , ";
-			}
-			bRequest = requestFromStream(osInsertData.str().c_str());
-			serialTime ++;
-		}
-	}
+            for (unsigned int i = 0; i < it->timeArg2.size() ; i++)
+            {
+                osInsertData << " ( '" << it->sTemporal << "' , '" << abmReasoningFunction::time2string(it->timeArg1[i]) << "' , '" << abmReasoningFunction::time2string(it->timeArg2[i]) << "') ";
+                if (i!= it->timeArg2.size()-1)
+                    osInsertData << " , ";
+            }
+            bRequest = requestFromStream(osInsertData.str().c_str());
+            serialTime ++;
+        }
+    }
 
-	return serialTime;
+    return serialTime;
 }
 
 /*
@@ -1034,43 +1034,43 @@ int interlocutor::sendTemporalKnowledge(vector<timeKnowledge> listTimeKnowledge 
 */
 int interlocutor::sendBehaviors(vector<behavior> listBehaviors)
 {
-	int serialBehavior = 0;
-	Bottle bRequest;
-	ostringstream osInsertBehavior;
+    int serialBehavior = 0;
+    Bottle bRequest;
+    ostringstream osInsertBehavior;
 
-	// for each behavior
-	for (vector<behavior>::iterator it_behavior = listBehaviors.begin() ; it_behavior != listBehaviors.end() ; it_behavior++)
-	{
-		int occurence = 0;
-		osInsertBehavior.str("");
-		osInsertBehavior << "INSERT INTO behavior (name, argument, instance) VALUES ( '" << it_behavior->sName << "' , '" << it_behavior->sArgument << "', " << serialBehavior << ") ";
-		bRequest = requestFromStream(osInsertBehavior.str().c_str());
+    // for each behavior
+    for (vector<behavior>::iterator it_behavior = listBehaviors.begin() ; it_behavior != listBehaviors.end() ; it_behavior++)
+    {
+        int occurence = 0;
+        osInsertBehavior.str("");
+        osInsertBehavior << "INSERT INTO behavior (name, argument, instance) VALUES ( '" << it_behavior->sName << "' , '" << it_behavior->sArgument << "', " << serialBehavior << ") ";
+        bRequest = requestFromStream(osInsertBehavior.str().c_str());
 
-		// for each occurence
-		for (vector< vector <pair <string, double> > >::iterator it_occurence = it_behavior->vEffect.begin() ; it_occurence != it_behavior->vEffect.end() ; it_occurence++ )
-		{
+        // for each occurence
+        for (vector< vector <pair <string, double> > >::iterator it_occurence = it_behavior->vEffect.begin() ; it_occurence != it_behavior->vEffect.end() ; it_occurence++ )
+        {
 
-			osInsertBehavior.str("");
-			osInsertBehavior << "INSERT INTO behaviordata (drive, effect, instance, occurence) VALUES " ;
+            osInsertBehavior.str("");
+            osInsertBehavior << "INSERT INTO behaviordata (drive, effect, instance, occurence) VALUES " ;
 
-			//for each drive
-			unsigned int iDrive = 0;
-			for (vector<pair <string, double> >::iterator it_drive = it_occurence->begin() ; it_drive != it_occurence->end() ; it_drive++)
-			{
-				osInsertBehavior << "( '" << it_drive->first << "' , " << it_drive->second << " , " << serialBehavior << " , " << occurence << ") ";
-				if (iDrive != it_occurence->size()-1)
-					osInsertBehavior << " , ";
-				iDrive++;
-			}
+            //for each drive
+            unsigned int iDrive = 0;
+            for (vector<pair <string, double> >::iterator it_drive = it_occurence->begin() ; it_drive != it_occurence->end() ; it_drive++)
+            {
+                osInsertBehavior << "( '" << it_drive->first << "' , " << it_drive->second << " , " << serialBehavior << " , " << occurence << ") ";
+                if (iDrive != it_occurence->size()-1)
+                    osInsertBehavior << " , ";
+                iDrive++;
+            }
 
 
-			bRequest = requestFromStream(osInsertBehavior.str().c_str());
-			occurence++;
-		}
-		serialBehavior++;
-	}
+            bRequest = requestFromStream(osInsertBehavior.str().c_str());
+            occurence++;
+        }
+        serialBehavior++;
+    }
 
-	return serialBehavior;
+    return serialBehavior;
 }
 
 /*
@@ -1079,75 +1079,75 @@ int interlocutor::sendBehaviors(vector<behavior> listBehaviors)
 */
 int interlocutor::sendPlan(vector<plan> listPlan)
 {
-	int serialPlan = 0;
-	Bottle bRequest;
-	ostringstream osInsertPlan,
-		osInsertAction,
-		osInsertActArg;
+    int serialPlan = 0;
+    Bottle bRequest;
+    ostringstream osInsertPlan,
+        osInsertAction,
+        osInsertActArg;
 
-	// for each plan
-	for (vector<plan>::iterator it_plan = listPlan.begin() ; it_plan != listPlan.end() ; it_plan++)
-	{
+    // for each plan
+    for (vector<plan>::iterator it_plan = listPlan.begin() ; it_plan != listPlan.end() ; it_plan++)
+    {
 
-		// insert the shared plan
-		osInsertPlan.str("");
-		osInsertPlan << "INSERT INTO sharedplan (name, manner, instance) VALUES ( '" << it_plan->sName << "' , '" << it_plan->sManner << "', " << serialPlan << ") ";
-		bRequest = requestFromStream(osInsertPlan.str().c_str());
+        // insert the shared plan
+        osInsertPlan.str("");
+        osInsertPlan << "INSERT INTO sharedplan (name, manner, instance) VALUES ( '" << it_plan->sName << "' , '" << it_plan->sManner << "', " << serialPlan << ") ";
+        bRequest = requestFromStream(osInsertPlan.str().c_str());
 
-		// insert the arguments of the shared plan
-		osInsertPlan.str("");
-		osInsertPlan << "INSERT INTO sharedplanarg (instance, argument, role) VALUES ";
-		bool bFirst = true;
-		for ( vector< pair <string, string> >::iterator it_spArg = it_plan->vArguments.begin() ; it_spArg != it_plan->vArguments.end() ; it_spArg++)
-		{
-			if (!bFirst)
-				osInsertPlan << " , " ;
-			osInsertPlan << " (  " << serialPlan << " , '" << it_spArg->first << "' , '" << it_spArg->second << "' ) ";
-			bFirst = false;
-		}
-		bRequest = requestFromStream(osInsertPlan.str().c_str());
+        // insert the arguments of the shared plan
+        osInsertPlan.str("");
+        osInsertPlan << "INSERT INTO sharedplanarg (instance, argument, role) VALUES ";
+        bool bFirst = true;
+        for ( vector< pair <string, string> >::iterator it_spArg = it_plan->vArguments.begin() ; it_spArg != it_plan->vArguments.end() ; it_spArg++)
+        {
+            if (!bFirst)
+                osInsertPlan << " , " ;
+            osInsertPlan << " (  " << serialPlan << " , '" << it_spArg->first << "' , '" << it_spArg->second << "' ) ";
+            bFirst = false;
+        }
+        bRequest = requestFromStream(osInsertPlan.str().c_str());
 
-		// insert the activities
-		osInsertPlan.str("");
-		osInsertAction.str("");
-		osInsertAction << "INSERT INTO sharedplandata (activitytype, activityname, instance, id) VALUES ";
-		bFirst = true;
-		// for each activity of the plan
-		for (unsigned int iAction = 0 ; iAction < it_plan->vActivityname.size() ; iAction++)
-		{
-			if (!bFirst)
-				osInsertAction << " , " ;
-			osInsertAction << " ( '" << it_plan->vActivitytype[iAction] << "' , '" << it_plan->vActivityname[iAction] << "' , " << serialPlan << " , " << iAction << " ) " ;
-			bFirst = false;
-		}
-		bRequest = requestFromStream(osInsertAction.str().c_str());
+        // insert the activities
+        osInsertPlan.str("");
+        osInsertAction.str("");
+        osInsertAction << "INSERT INTO sharedplandata (activitytype, activityname, instance, id) VALUES ";
+        bFirst = true;
+        // for each activity of the plan
+        for (unsigned int iAction = 0 ; iAction < it_plan->vActivityname.size() ; iAction++)
+        {
+            if (!bFirst)
+                osInsertAction << " , " ;
+            osInsertAction << " ( '" << it_plan->vActivitytype[iAction] << "' , '" << it_plan->vActivityname[iAction] << "' , " << serialPlan << " , " << iAction << " ) " ;
+            bFirst = false;
+        }
+        bRequest = requestFromStream(osInsertAction.str().c_str());
 
-		int serialAction = 0;
-		osInsertActArg.str("");
-		osInsertActArg << "INSERT INTO spdataarg (id, instance, argument, role) VALUES ";
-		bFirst = true;
-		//for each activity of the plan
-		for (vector< list < pair < string , string > > >::iterator it_actArg = it_plan->vActivityArguments.begin() ; it_actArg != it_plan->vActivityArguments.end() ; it_actArg++)
-		{
-			// for each argument
-			for (list < pair < string, string > >::iterator it_ArgRole = it_actArg->begin() ; it_ArgRole != it_actArg->end() ; it_ArgRole++)
-			{
-				if (!bFirst)
-					osInsertActArg << " , " ;
-				bFirst = false;
-				osInsertActArg << " ( " << serialAction << " , " << serialPlan << " , '" << it_ArgRole->first << "' , '" << it_ArgRole->second << "' ) " ; 
-			}
-			serialAction++;
-		}
+        int serialAction = 0;
+        osInsertActArg.str("");
+        osInsertActArg << "INSERT INTO spdataarg (id, instance, argument, role) VALUES ";
+        bFirst = true;
+        //for each activity of the plan
+        for (vector< list < pair < string , string > > >::iterator it_actArg = it_plan->vActivityArguments.begin() ; it_actArg != it_plan->vActivityArguments.end() ; it_actArg++)
+        {
+            // for each argument
+            for (list < pair < string, string > >::iterator it_ArgRole = it_actArg->begin() ; it_ArgRole != it_actArg->end() ; it_ArgRole++)
+            {
+                if (!bFirst)
+                    osInsertActArg << " , " ;
+                bFirst = false;
+                osInsertActArg << " ( " << serialAction << " , " << serialPlan << " , '" << it_ArgRole->first << "' , '" << it_ArgRole->second << "' ) " ; 
+            }
+            serialAction++;
+        }
 
-		bRequest = requestFromStream(osInsertActArg.str().c_str());
+        bRequest = requestFromStream(osInsertActArg.str().c_str());
 
-		serialPlan++;
+        serialPlan++;
 
 
-	}
+    }
 
-	return serialPlan;
+    return serialPlan;
 }
 
 /*
@@ -1156,29 +1156,29 @@ int interlocutor::sendPlan(vector<plan> listPlan)
 */
 int interlocutor::sendInteractionKnowledge(vector<knownInteraction> listIN)
 {
-	int serialInteraction = 0;
-	Bottle bRequest;
-	// for each interaction
-	for (vector<knownInteraction>::iterator itInterac = listIN.begin() ; itInterac != listIN.end() ; itInterac++)
-	{
+    int serialInteraction = 0;
+    Bottle bRequest;
+    // for each interaction
+    for (vector<knownInteraction>::iterator itInterac = listIN.begin() ; itInterac != listIN.end() ; itInterac++)
+    {
 
 
-		ostringstream osInsert;
-		bool bFirst = true;
-		osInsert << "INSERT INTO interactionknowledge (subject, argument, number, type, role) VALUES ";
-		for (vector<tuple<string, int, string, string>>::iterator itTuple = itInterac->listInteraction.begin(); itTuple != itInterac->listInteraction.end() ; itTuple++)
-		{
-				if (!bFirst)
-					osInsert << " , " ;
-				bFirst = false;
-				osInsert << " ( '" << itInterac->sSubject << "' , '" << get<0>(*itTuple) << "' , " << get<1>(*itTuple) << " , '" << get<2>(*itTuple) << "' , '" << get<3>(*itTuple) << "' ) " ; 
-		}
-		
-		bRequest = requestFromStream(osInsert.str().c_str());
-		serialInteraction++;
-	}
+        ostringstream osInsert;
+        bool bFirst = true;
+        osInsert << "INSERT INTO interactionknowledge (subject, argument, number, type, role) VALUES ";
+        for (vector<tuple<string, int, string, string>>::iterator itTuple = itInterac->listInteraction.begin(); itTuple != itInterac->listInteraction.end() ; itTuple++)
+        {
+                if (!bFirst)
+                    osInsert << " , " ;
+                bFirst = false;
+                osInsert << " ( '" << itInterac->sSubject << "' , '" << get<0>(*itTuple) << "' , " << get<1>(*itTuple) << " , '" << get<2>(*itTuple) << "' , '" << get<3>(*itTuple) << "' ) " ; 
+        }
+        
+        bRequest = requestFromStream(osInsert.str().c_str());
+        serialInteraction++;
+    }
 
-	return serialInteraction;
+    return serialInteraction;
 }
 
 /*
@@ -1187,139 +1187,139 @@ int interlocutor::sendInteractionKnowledge(vector<knownInteraction> listIN)
 */
 int interlocutor::sendContextual(vector<contextualKnowledge> listContextualKnowledge)
 {
-	int serialContext = 0;
-	Bottle bRequest;
-	for (vector<contextualKnowledge>::iterator it = listContextualKnowledge.begin() ; it != listContextualKnowledge.end() ; it++)
-	{
-		if (it->vObjectPresent.size() >= 1)
-		{
-			ostringstream	osInsertKnowledge,
-				osInsertData;
+    int serialContext = 0;
+    Bottle bRequest;
+    for (vector<contextualKnowledge>::iterator it = listContextualKnowledge.begin() ; it != listContextualKnowledge.end() ; it++)
+    {
+        if (it->vObjectPresent.size() >= 1)
+        {
+            ostringstream   osInsertKnowledge,
+                osInsertData;
 
-			osInsertKnowledge << "INSERT INTO contextknowledge (name, argument, dependance, instance) VALUES ( '" << it->sName << "' , '" << it->sArgument << "' , '" << it->sDependance << "', " << serialContext << ") ";
-			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
-			osInsertData.str("");
-			osInsertData << "INSERT INTO contextdata (presencebegin, presenceend, instance) VALUES ";
-			for (unsigned int i = 0; i < it->vObjectPresent.size() ; i++)
-			{
-				if (it->vObjectPresent[i].first)
-					osInsertData << " (  TRUE  , ";
-				else
-					osInsertData << " ( FALSE , ";
+            osInsertKnowledge << "INSERT INTO contextknowledge (name, argument, dependance, instance) VALUES ( '" << it->sName << "' , '" << it->sArgument << "' , '" << it->sDependance << "', " << serialContext << ") ";
+            bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+            osInsertData.str("");
+            osInsertData << "INSERT INTO contextdata (presencebegin, presenceend, instance) VALUES ";
+            for (unsigned int i = 0; i < it->vObjectPresent.size() ; i++)
+            {
+                if (it->vObjectPresent[i].first)
+                    osInsertData << " (  TRUE  , ";
+                else
+                    osInsertData << " ( FALSE , ";
 
-				if (it->vObjectPresent[i].second)
-					osInsertData << "  TRUE  , " << serialContext << ") " ;
-				else
-					osInsertData << " FALSE , " << serialContext << ") " ;
+                if (it->vObjectPresent[i].second)
+                    osInsertData << "  TRUE  , " << serialContext << ") " ;
+                else
+                    osInsertData << " FALSE , " << serialContext << ") " ;
 
-				if (i != it->vObjectPresent.size() -1)
-					osInsertData << " , " ;
-			}
-			bRequest = requestFromStream(osInsertData.str().c_str());
+                if (i != it->vObjectPresent.size() -1)
+                    osInsertData << " , " ;
+            }
+            bRequest = requestFromStream(osInsertData.str().c_str());
 
-			osInsertData.str("");
-			osInsertData << "INSERT INTO contextagent (instance, agent, number) VALUES  " ;
-			int m=0;
-			for (map<string, int>::iterator itMap = it->mAgentRelated.begin() ; itMap != it->mAgentRelated.end() ; itMap++)
-			{
-				osInsertData << "( " << serialContext << " , '" << itMap->first.c_str() << "' , " << itMap->second << ") ";
-				if (m != it->mAgentRelated.size() -1)
-					osInsertData << " , " ;
-				m++;
-			}
+            osInsertData.str("");
+            osInsertData << "INSERT INTO contextagent (instance, agent, number) VALUES  " ;
+            int m=0;
+            for (map<string, int>::iterator itMap = it->mAgentRelated.begin() ; itMap != it->mAgentRelated.end() ; itMap++)
+            {
+                osInsertData << "( " << serialContext << " , '" << itMap->first.c_str() << "' , " << itMap->second << ") ";
+                if (m != it->mAgentRelated.size() -1)
+                    osInsertData << " , " ;
+                m++;
+            }
 
-			osInsertData << ";";
-			bRequest = requestFromStream(osInsertData.str().c_str());
+            osInsertData << ";";
+            bRequest = requestFromStream(osInsertData.str().c_str());
 
-			serialContext ++;
-		}
-	}
+            serialContext ++;
+        }
+    }
 
-	return serialContext;
+    return serialContext;
 }
 
 
 /*
-*	Send the relation in the mentalOPC to the ABM at a given instance
-*	input : instance
+*   Send the relation in the mentalOPC to the ABM at a given instance
+*   input : instance
 */
 Bottle interlocutor::sendRelation(int instance)
 {
-	Bottle bOutput;
-	list<Relation>	lRelations = mentalOPC->getRelations();
-	int iNbRel = getNumberRelation(instance);
-	for (list<Relation>::iterator it_R = lRelations.begin(); it_R != lRelations.end(); it_R++ )
-	{
-		Bottle bTemp;
-		ostringstream osRelation;
-		osRelation << "INSERT INTO relation( opcid, instance, subject, verb, object, time, manner, place ) VALUES ";
-		osRelation << " ( " << it_R->ID() + iNbRel + 1  << " , " << instance<< " , '" << it_R->subject().c_str() << "' , '" << it_R->verb().c_str() << "' , '" << it_R->object().c_str() << "' , '" << it_R->complement_time().c_str() << "' , '" << it_R->complement_manner().c_str() << "' , '" << it_R->complement_place().c_str() << "' ) ";
-		bTemp = requestFromStream(osRelation.str());
-		bOutput.addList() = bTemp;
-	}
+    Bottle bOutput;
+    list<Relation>  lRelations = mentalOPC->getRelations();
+    int iNbRel = getNumberRelation(instance);
+    for (list<Relation>::iterator it_R = lRelations.begin(); it_R != lRelations.end(); it_R++ )
+    {
+        Bottle bTemp;
+        ostringstream osRelation;
+        osRelation << "INSERT INTO relation( opcid, instance, subject, verb, object, time, manner, place ) VALUES ";
+        osRelation << " ( " << it_R->ID() + iNbRel + 1  << " , " << instance<< " , '" << it_R->subject().c_str() << "' , '" << it_R->verb().c_str() << "' , '" << it_R->object().c_str() << "' , '" << it_R->complement_time().c_str() << "' , '" << it_R->complement_manner().c_str() << "' , '" << it_R->complement_place().c_str() << "' ) ";
+        bTemp = requestFromStream(osRelation.str());
+        bOutput.addList() = bTemp;
+    }
 
-	return bOutput;
+    return bOutput;
 }
 
 
 
 
 /**
-*	Get the number of relation for a given instance
-*	
+*   Get the number of relation for a given instance
+*   
 */
 int interlocutor::getNumberRelation(int instance)
 {
-	ostringstream osRequest;
-	osRequest  << "SELECT opcid FROM relation WHERE instance = " << instance << " ORDER BY opcid DESC LIMIT 1";
+    ostringstream osRequest;
+    osRequest  << "SELECT opcid FROM relation WHERE instance = " << instance << " ORDER BY opcid DESC LIMIT 1";
 
-	Bottle bRequest = requestFromStream(osRequest.str());
+    Bottle bRequest = requestFromStream(osRequest.str());
 
-	int iOutput = 0;
+    int iOutput = 0;
 
-	string sNull = "NULL";
-	if (bRequest.toString().c_str() != sNull)
-	{
-		iOutput += atoi(bRequest.get(0).asList()->get(0).toString().c_str()) ;
-	}
+    string sNull = "NULL";
+    if (bRequest.toString().c_str() != sNull)
+    {
+        iOutput += atoi(bRequest.get(0).asList()->get(0).toString().c_str()) ;
+    }
 
-	return iOutput;
+    return iOutput;
 }
 
 
 /*
-*	Save the knowledge in the semantical memory
+*   Save the knowledge in the semantical memory
 */
 Bottle interlocutor::saveKnowledge(vector<spatialKnowledge> listSK , vector<timeKnowledge> listTK, vector<behavior> listBehavior , vector<plan> listPlan , vector<contextualKnowledge> listCK , vector<knownInteraction> listInc)
 {
-	Bottle	bOutput,
-		bRequest,
-		bMessenger;
+    Bottle  bOutput,
+        bRequest,
+        bMessenger;
 
-	std::cout << endl << "starting to save knowledge ... " << endl;
-	
-	int serialSpatial = 0,
-		serialTime = 0,
-		serialBehavior = 0,
-		serialPlan = 0,
-		serialContext = 0,
-		serialInteraction = 0;
-	
-	bMessenger.addString("resetKnowledge");
-	bMessenger = request(bMessenger);
+    std::cout << endl << "starting to save knowledge ... " << endl;
+    
+    int serialSpatial = 0,
+        serialTime = 0,
+        serialBehavior = 0,
+        serialPlan = 0,
+        serialContext = 0,
+        serialInteraction = 0;
+    
+    bMessenger.addString("resetKnowledge");
+    bMessenger = request(bMessenger);
 
-	serialSpatial		= sendSpatialKnowledge(listSK);
-	serialTime			= sendTemporalKnowledge(listTK);
-	serialBehavior		= sendBehaviors(listBehavior);
-	serialPlan			= sendPlan(listPlan);
-	serialContext		= sendContextual(listCK);
-	serialInteraction	= sendInteractionKnowledge(listInc);
+    serialSpatial       = sendSpatialKnowledge(listSK);
+    serialTime          = sendTemporalKnowledge(listTK);
+    serialBehavior      = sendBehaviors(listBehavior);
+    serialPlan          = sendPlan(listPlan);
+    serialContext       = sendContextual(listCK);
+    serialInteraction   = sendInteractionKnowledge(listInc);
 
-	ostringstream osOutput;
-	osOutput << "resetKnowledge : " << serialSpatial << " spatialKnowledge(s) added; " << serialTime << " timeKnowledge(s) added; " << serialBehavior << " behavior(s) added; " << serialPlan << " plan(s) added; " << serialContext << " contextualKnowledge(s) added; " << serialInteraction << " interaction(s) added" ;
-	bOutput.addString(osOutput.str().c_str());
+    ostringstream osOutput;
+    osOutput << "resetKnowledge : " << serialSpatial << " spatialKnowledge(s) added; " << serialTime << " timeKnowledge(s) added; " << serialBehavior << " behavior(s) added; " << serialPlan << " plan(s) added; " << serialContext << " contextualKnowledge(s) added; " << serialInteraction << " interaction(s) added" ;
+    bOutput.addString(osOutput.str().c_str());
 
-	return bOutput;
+    return bOutput;
 }
 
 
@@ -1330,46 +1330,46 @@ Bottle interlocutor::saveKnowledge(vector<spatialKnowledge> listSK , vector<time
 */
 void interlocutor::setMentalOPC(int instance)
 {
-	ostringstream osAllOPCid, osAgent;
-	Bottle	bAllEntity,		// result of all the entities
-			bAgent,
-			bObject,
-			bRTObject,
-			bCurrentEntity;
-	// get the opcID of all the entity in the OPC
-	osAllOPCid << "SELECT opcid, type, subtype FROM contentopc WHERE instance = " << instance ;
-	bAllEntity  = requestFromStream(osAllOPCid.str());
-	std::cout	<< "All entities are : \n\t\t"  << bAllEntity.toString() << endl;
+    ostringstream osAllOPCid, osAgent;
+    Bottle  bAllEntity,     // result of all the entities
+            bAgent,
+            bObject,
+            bRTObject,
+            bCurrentEntity;
+    // get the opcID of all the entity in the OPC
+    osAllOPCid << "SELECT opcid, type, subtype FROM contentopc WHERE instance = " << instance ;
+    bAllEntity  = requestFromStream(osAllOPCid.str());
+    std::cout   << "All entities are : \n\t\t"  << bAllEntity.toString() << endl;
 
-	int iNbEntotyError = 0;
+    int iNbEntotyError = 0;
 
-	// FOR EACH ENTITY :
+    // FOR EACH ENTITY :
 
-	for (unsigned int iEnt = 0 ; iEnt < bAllEntity.size() ; iEnt++)
-	{
-		bCurrentEntity = *bAllEntity.get(iEnt).asList();
-		std::cout << "bCurrentEntity : " << bCurrentEntity.toString() << "\t size : " << bCurrentEntity.size() << endl;
-		// check size of bottle
-		if (bCurrentEntity.size() == 3)
-		{
+    for (unsigned int iEnt = 0 ; iEnt < bAllEntity.size() ; iEnt++)
+    {
+        bCurrentEntity = *bAllEntity.get(iEnt).asList();
+        std::cout << "bCurrentEntity : " << bCurrentEntity.toString() << "\t size : " << bCurrentEntity.size() << endl;
+        // check size of bottle
+        if (bCurrentEntity.size() == 3)
+        {
 
-		}
-		// error : 
-		else
-		{
-			std::cout << "Error in interlocutor::setMentalOPC | problem with currentEntity.size() " << endl;
-			iNbEntotyError++;
-		}
-
-
-	}
+        }
+        // error : 
+        else
+        {
+            std::cout << "Error in interlocutor::setMentalOPC | problem with currentEntity.size() " << endl;
+            iNbEntotyError++;
+        }
 
 
-	// GET the Agents : 
+    }
 
-	int opcIDofAgent = 2;
 
-	osAgent	<<	"SELECT name, position, orientation, color, presence FROM agent WHERE instance = " << instance <<  " AND opcid = " << opcIDofAgent;
+    // GET the Agents : 
+
+    int opcIDofAgent = 2;
+
+    osAgent <<  "SELECT name, position, orientation, color, presence FROM agent WHERE instance = " << instance <<  " AND opcid = " << opcIDofAgent;
 
 }
 
@@ -1381,19 +1381,19 @@ void interlocutor::setMentalOPC(int instance)
 */
 Bottle interlocutor::updateBeliefs(bool bOPC)
 {
-	Bottle bMessenger, bReply;
-	bMessenger.addString("updateBeliefs");
-	if (bOPC)
-	{
-		bMessenger.addString(abmReasoningFunction::s_realOPC.c_str());
-	}
-	else
-	{
-		bMessenger.addString(abmReasoningFunction::s_mentalOPC.c_str());
-	}
-	port_to_OPCManager.write(bMessenger, bReply);
+    Bottle bMessenger, bReply;
+    bMessenger.addString("updateBeliefs");
+    if (bOPC)
+    {
+        bMessenger.addString(abmReasoningFunction::s_realOPC.c_str());
+    }
+    else
+    {
+        bMessenger.addString(abmReasoningFunction::s_mentalOPC.c_str());
+    }
+    port_to_OPCManager.write(bMessenger, bReply);
 
-	return bReply;
+    return bReply;
 }
 
 
