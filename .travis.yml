@@ -1,0 +1,34 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang
+
+env:
+  - WYSIWYD_TRAVIS_BUILD_TYPE=Debug
+  - WYSIWYD_TRAVIS_BUILD_TYPE=Release
+
+# whitelist
+branches:
+  only:
+  - master
+
+install:
+  - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
+  - sudo apt-get update
+  - sudo apt-get --force-yes install icub
+
+before_script:
+  - cd wysiwyd
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=${WYSIWYD_TRAVIS_BUILD_TYPE} -DWYSIWYD_TRAVIS_CI:BOOL=ON
+  
+script:
+  - make
+
+notifications:
+  email:
+    - ugo.pattacini@iit.it
+	- stephane.lallee@gmail.com
+	
