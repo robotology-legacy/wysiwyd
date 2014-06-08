@@ -2,11 +2,8 @@ language: cpp
 
 compiler:
   - gcc
-  - clang
 
 env:
-  - WYSIWYD_TRAVIS_BUILD_TYPE=Debug
-  - WYSIWYD_TRAVIS_BUILD_TYPE=Release
 
 branches:
   only:
@@ -21,7 +18,7 @@ before_script:
   - cd wysiwyd
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=${WYSIWYD_TRAVIS_BUILD_TYPE} -DWYSIWYD_TRAVIS_CI:BOOL=ON
+  - cmake -DCMAKE_BUILD_TYPE=Release -DWYSIWYD_TRAVIS_CI:BOOL=ON
   
 script:
   - make
