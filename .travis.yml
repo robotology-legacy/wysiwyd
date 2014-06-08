@@ -8,7 +8,6 @@ env:
   - WYSIWYD_TRAVIS_BUILD_TYPE=Debug
   - WYSIWYD_TRAVIS_BUILD_TYPE=Release
 
-# whitelist
 branches:
   only:
   - master
@@ -29,6 +28,6 @@ script:
 
 notifications:
   email:
-    - ugo.pattacini@iit.it
-	- stephane.lallee@gmail.com
-	
+  - ugo.pattacini@iit.it
+  - stephane.lallee@gmail.com
+   
