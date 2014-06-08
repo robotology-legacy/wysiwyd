@@ -15,7 +15,6 @@ install:
   - sudo apt-get --force-yes install icub
 
 before_script:
-  - cd wysiwyd
   - mkdir build
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=Release -DWYSIWYD_TRAVIS_CI:BOOL=ON
