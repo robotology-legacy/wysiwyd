@@ -60,9 +60,9 @@ private:
 
 	void saveRetinaLikeRF(const vector< vector< cvz::core::CvzMMCM* > > &retinaUsed)
 	{
-		for (int i = 0; i < retinaUsed.size(); i++)
+		for (unsigned int i = 0; i < retinaUsed.size(); i++)
 		{
-			for (int j = 0; j < retinaUsed[0].size(); j++)
+			for (unsigned int j = 0; j < retinaUsed[0].size(); j++)
 			{
 				//First we probe the size of one RF. In theory only one bottom up modality
 				yarp::sig::ImageOf<yarp::sig::PixelRgb> probe = retinaUsed[i][j]->getReceptiveFieldRepresentation(0, 0, 0, retinaUsed[i][j]->modalitiesBottomUp.begin()->second);
@@ -109,9 +109,9 @@ private:
 		IplImage* fullRFSingleNeuron = cvCreateImage(cvSize(retinaPixelW, retinaPixelH), 8, 3);
 
 		//Go through all the bottom up modalities ( we assume only retinas at this level)
-		for (int x = 0; x < retinaUsed.size(); x++)
+		for (unsigned int x = 0; x < retinaUsed.size(); x++)
 		{
-			for (int y = 0; y < retinaUsed[0].size(); y++)
+			for (unsigned int y = 0; y < retinaUsed[0].size(); y++)
 			{
 				std::stringstream ssV1Name;
 				ssV1Name << "/" << lgnUsed->getName() << "/in_" << x << "_" << y;
@@ -351,14 +351,14 @@ public:
 			list<cvz::core::CvzMMCM*> targets;
 			if (area == "retina")
 			{
-				for (int i = 0; i < retina.size(); i++)
-					for (int j = 0; j < retina[i].size(); j++)
+				for (unsigned int i = 0; i < retina.size(); i++)
+				for (unsigned int j = 0; j < retina[i].size(); j++)
 						targets.push_back(retina[i][j]);
 			}
 			else if (area == "fovea")
 			{
-				for (int i = 0; i < fovea.size(); i++)
-					for (int j = 0; j < fovea[i].size(); j++)
+				for (unsigned int i = 0; i < fovea.size(); i++)
+				for (unsigned int j = 0; j < fovea[i].size(); j++)
 						targets.push_back(fovea[i][j]);
 			}
 			else if (area == "all")
@@ -399,16 +399,16 @@ public:
 			stack->pause();
 
 			std::cout << "Saving the stack weights." << std::endl;
-			for (int i = 0; i < retina.size(); i++)
+			for (unsigned int i = 0; i < retina.size(); i++)
 			{
-				for (int j = 0; j < retina[i].size(); j++)
+				for (unsigned int j = 0; j < retina[i].size(); j++)
 				{
 					retina[i][j]->saveWeightsToFile(retina[i][j]->getName());
 				}
 			}			
-			for (int i = 0; i < fovea.size(); i++)
+			for (unsigned int i = 0; i < fovea.size(); i++)
 			{
-				for (int j = 0; j < fovea[i].size(); j++)
+				for (unsigned int j = 0; j < fovea[i].size(); j++)
 				{
 					fovea[i][j]->saveWeightsToFile(fovea[i][j]->getName());
 				}
@@ -426,16 +426,16 @@ public:
 			stack->pause();
 
 			std::cout << "Loading the stack weights." << std::endl;
-			for (int i = 0; i < retina.size(); i++)
+			for (unsigned int i = 0; i < retina.size(); i++)
 			{
-				for (int j = 0; j < retina[i].size(); j++)
+				for (unsigned int j = 0; j < retina[i].size(); j++)
 				{
 					retina[i][j]->loadWeightsFromFile(retina[i][j]->getName());
 				}
 			}
-			for (int i = 0; i < fovea.size(); i++)
+			for (unsigned int i = 0; i < fovea.size(); i++)
 			{
-				for (int j = 0; j < fovea[i].size(); j++)
+				for (unsigned int j = 0; j < fovea[i].size(); j++)
 				{
 					fovea[i][j]->loadWeightsFromFile(fovea[i][j]->getName());
 				}
@@ -469,16 +469,16 @@ public:
 	void onTick()
 	{
 		double t0 = Time::now();
-		for (int x = 0; x < retina.size(); x++)
+		for (unsigned int x = 0; x < retina.size(); x++)
 		{
-			for (int y = 0; y < retina[x].size(); y++)
+			for (unsigned int y = 0; y < retina[x].size(); y++)
 			{
 				retina[x][y]->cycle();
 			}
 		}
-		for (int x = 0; x < fovea.size(); x++)
+		for (unsigned int x = 0; x < fovea.size(); x++)
 		{
-			for (int y = 0; y < fovea[x].size(); y++)
+			for (unsigned int y = 0; y < fovea[x].size(); y++)
 			{
 				fovea[x][y]->cycle();
 			}
@@ -657,9 +657,7 @@ void configureV1Fovea(cvz::core::CvzStack* stack, int foveaX, int foveaY)
 int main(int argc, char * argv[])
 {
 	Network yarp;
-	bool b1, b2;
 	cout << "Server name is : " << yarp.getNameServerName() << endl;
-
 	if (!Network::checkNetwork())
 	{
 		cout << "yarp network is not available!" << endl;

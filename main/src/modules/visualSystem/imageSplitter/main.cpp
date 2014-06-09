@@ -53,9 +53,9 @@ public:
 
     void createCvWindows(int xpos, int ypos)
     {
-        for (int x = 0; x < ports.size(); x++)
+        for (unsigned int x = 0; x < ports.size(); x++)
         {
-            for (int y = 0; y < ports[x].size(); y++)
+			for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 cvNamedWindow(ports[x][y]->getName().c_str(), CV_WINDOW_AUTOSIZE);
                 cvMoveWindow(ports[x][y]->getName().c_str(), xpos + 300 * x, ypos + 300 * y);
@@ -75,9 +75,9 @@ public:
         int rectW = img->width / ports.size();
         int rectH = img->height / ports[0].size();
         
-        for (int x = 0; x < ports.size(); x++)
+		for (unsigned int x = 0; x < ports.size(); x++)
         {
-            for (int y = 0; y < ports[x].size(); y++)
+			for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 cvSetImageROI(img, cvRect(x*rectW, y*rectH, rectW, rectH));
                 ImageOf<PixelRgb> &imgYarp = ports[x][y]->prepare();
@@ -92,9 +92,9 @@ public:
         cvReleaseImage(&img);
 
         //write all at once to avoid diagonal delay
-        for (int x = 0; x < ports.size(); x++)
+		for (unsigned int x = 0; x < ports.size(); x++)
         {
-            for (int y = 0; y < ports[x].size(); y++)
+			for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 ports[x][y]->write(true);
             }
@@ -103,9 +103,9 @@ public:
     
     bool close()
     {
-        for (int x = 0; x < ports.size(); x++)
+		for (unsigned int x = 0; x < ports.size(); x++)
         {
-            for (int y = 0; y < ports[x].size(); y++)
+			for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 ports[x][y]->interrupt();
                 ports[x][y]->close();

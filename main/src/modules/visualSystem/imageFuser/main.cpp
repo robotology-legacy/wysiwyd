@@ -56,9 +56,9 @@ public:
 
 	void connect(std::string splitterPrefix, std::string splitterSuffix)
 	{
-		for (int x = 0; x < ports.size(); x++)
+		for (unsigned int x = 0; x < ports.size(); x++)
 		{
-			for (int y = 0; y < ports[x].size(); y++)
+			for (unsigned int y = 0; y < ports[x].size(); y++)
 			{
 				stringstream ssSource;
 				ssSource << splitterPrefix << "/" << x << "_" << y << splitterSuffix;
@@ -96,9 +96,9 @@ public:
 			reconstruct = cvCreateImage(cvSize(reconstructWidth, reconstructHeight), 8, 3);
 		}
 
-		for (int x = 0; x < ports.size(); x++)
+		for (unsigned int x = 0; x < ports.size(); x++)
 		{
-			for (int y = 0; y < ports[x].size(); y++)
+			for (unsigned int y = 0; y < ports[x].size(); y++)
 			{
 				ImageOf<PixelRgb>* imgYarp = ports[x][y]->read(true);
 				if (imgYarp)
@@ -123,9 +123,9 @@ public:
 	
 	bool close()
 	{
-		for (int x = 0; x < ports.size(); x++)
+		for (unsigned int x = 0; x < ports.size(); x++)
 		{
-			for (int y = 0; y < ports[x].size(); y++)
+			for (unsigned int y = 0; y < ports[x].size(); y++)
 			{
 				ports[x][y]->interrupt();
 				ports[x][y]->close();
