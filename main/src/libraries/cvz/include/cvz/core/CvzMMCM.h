@@ -320,8 +320,8 @@ namespace cvz {
                         {
                             float distanceH = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0));
                             float distanceV = sqrt(pow(z - zWin, 2.0));
-                            float dHCoef = helpers::GaussianBell(distanceH, sigmaH);
-                            float dVCoef = helpers::GaussianBell(distanceV, sigmaV);
+                            //float dHCoef = helpers::GaussianBell(distanceH, sigmaH);
+                            //float dVCoef = helpers::GaussianBell(distanceV, sigmaV);
 
                             //DSOM (refer to http://www.loria.fr/~rougier/coding/article/article.html#dynamic-neighbourhood)
                             float elasticity = 2.0;
@@ -591,7 +591,7 @@ namespace cvz {
             {
                 mutex.wait();
                 bx = by = bz = 0;
-                if (values.size() != modalitySource->Size())
+                if (values.size() != (unsigned int) modalitySource->Size())
                     return false;
 
                 double bestError = DBL_MAX;
@@ -602,7 +602,7 @@ namespace cvz {
                         for (int z = 0; z < layers; z++)
                         {
                             double unitError = 0;
-                            for (int i = 0; i < values.size(); i++)
+                            for (unsigned int i = 0; i < values.size(); i++)
                             {
                                 unitError += fabs(weights[modalitySource][i][x][y][z] - values[i]);
                             }

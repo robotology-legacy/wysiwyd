@@ -228,7 +228,7 @@ namespace cvz {
 				rf.setVerbose(true);
 				rf.setDefaultContext("cvz");
 				rf.setDefaultConfigFile(configFile.c_str());
-				rf.configure(NULL, NULL);			
+				rf.configure(0, NULL);			
 
 				yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
 				return addCvzFromProperty(prop, spawnThread, overrideName);

@@ -128,7 +128,7 @@ namespace cvz {
 			std::vector<double> scale(std::vector<double> tmp)
 			{
 				std::vector<double> sVal(tmp.size());
-				if (tmp.size() != size)
+				if (tmp.size() != (unsigned int) size)
 					return sVal;
 
 				for (int i = 0; i < size; i++)
@@ -145,7 +145,7 @@ namespace cvz {
 			std::vector<double> unscale(std::vector<double> tmp)
 			{
 				std::vector<double> sVal(tmp.size());
-				if (tmp.size() != size)
+				if (tmp.size() != (unsigned int) size)
 					return sVal;
 
 				for (int i = 0; i < size; i++)

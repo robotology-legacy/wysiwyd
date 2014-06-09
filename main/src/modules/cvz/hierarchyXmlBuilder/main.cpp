@@ -58,7 +58,7 @@ int main(int argc, char * argv[])
 
     std::map<cvz::core::IConvergenceZone*, std::string> configFilesModulesDescription;
     //Modules
-    for (int m = 0; m < zones.size(); m++)
+    for (unsigned int m = 0; m < zones.size(); m++)
     {
         std::stringstream params;
         params << "--from " + zonesFiles[zones[m]] + " --name " << zonesNames[zones[m]];
@@ -131,7 +131,7 @@ int main(int argc, char * argv[])
     }
 
     //Close the zones
-    for (int m = 0; m < zones.size(); m++)
+    for (unsigned int m = 0; m < zones.size(); m++)
     {
         zones[m]->interruptModule();
         zones[m]->close();
