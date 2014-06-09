@@ -29,7 +29,7 @@
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
 #include <yarp/dev/Drivers.h>
-#include <cvz/core/all.h>
+#include "cvz/core/all.h"
 
 using namespace std;
 using namespace yarp::os;
