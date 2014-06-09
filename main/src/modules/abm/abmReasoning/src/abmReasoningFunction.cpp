@@ -149,19 +149,19 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 
     Bottle &bSpatialisation = rf.findGroup("spatialisation");
 
-    threshold_determine_Location = bMental.check("threshold_determine_Location", Value(3)).asInt();
-    factor_location = bMental.check("factor_location", Value(2)).asDouble();
-    threshold_is_at_location    = bMental.check("threshold_is_at_location", Value(4)).asDouble();
-    threshold_is_at_temporal_location   = bMental.check("threshold_is_at_temporal_location", Value(12)).asDouble();
-    threshold_is_dispersion = bMental.check("threshold_is_dispersion", Value(0.0001)).asDouble();
+	threshold_determine_Location = bSpatialisation.check("threshold_determine_Location", Value(3)).asInt();
+	factor_location = bSpatialisation.check("factor_location", Value(2)).asDouble();
+	threshold_is_at_location = bSpatialisation.check("threshold_is_at_location", Value(4)).asDouble();
+	threshold_is_at_temporal_location = bSpatialisation.check("threshold_is_at_temporal_location", Value(12)).asDouble();
+	threshold_is_dispersion = bSpatialisation.check("threshold_is_dispersion", Value(0.0001)).asDouble();
 
 
     Bottle &bPDDL = rf.findGroup("PDDL");
     
-    threshold_intersect_sup = (bTable.check("threshold_intersect_sup",Value(0.75)).asDouble());  
-    threshold_intersect_inf = (bTable.check("threshold_intersect_inf",Value(0.25)).asDouble()); 
-    threshold_presence = (bTable.check("threshold_presence",Value(0.9)).asDouble());  
-    threshold_absence = (bTable.check("threshold_absence",Value(0.1)).asDouble());  
+	threshold_intersect_sup = (bPDDL.check("threshold_intersect_sup", Value(0.75)).asDouble());
+	threshold_intersect_inf = (bPDDL.check("threshold_intersect_inf", Value(0.25)).asDouble());
+	threshold_presence = (bPDDL.check("threshold_presence", Value(0.9)).asDouble());
+	threshold_absence = (bPDDL.check("threshold_absence", Value(0.1)).asDouble());
 
 
     Bottle &bTag = rf.findGroup("TAGS");
