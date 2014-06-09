@@ -5,7 +5,7 @@
 add_subdirectory(imageSplitter)
 add_subdirectory(imageFuser)
 add_subdirectory(cvzVisualHierarchy)
-add_subdirectory(frontalEyeField)
+#add_subdirectory(frontalEyeField)
 add_subdirectory(caltechDatasetPlayer)
 
 
