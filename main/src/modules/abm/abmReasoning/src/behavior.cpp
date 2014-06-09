@@ -65,12 +65,12 @@ Bottle behavior::getConsequence()
 
     Bottle bDrive;
     
-    for (int i = 0 ; i < vDrive.size() ; i++)
+    for (unsigned int i = 0 ; i < vDrive.size() ; i++)
     {
         bDrive.clear();
         bDrive.addString(vDrive[i].first.c_str());
         double sum = 0.;
-        for (int j = 0 ; j < vDrive[i].second.size() ; j++)
+        for (unsigned int j = 0 ; j < vDrive[i].second.size() ; j++)
         {
             sum += vDrive[i].second[j];
         }
@@ -131,12 +131,12 @@ Bottle behavior::getConsequence(int last)
     }
 
     Bottle bDrive;
-    for (int i = 0 ; i < vDrive.size() ; i++)
+    for (unsigned int i = 0 ; i < vDrive.size() ; i++)
     {
         bDrive.clear();
         bDrive.addString(vDrive[i].first.c_str());
         double sum = 0.;
-        for (int j = 0 ; j < vDrive[i].second.size() ; j++)
+        for (unsigned int j = 0 ; j < vDrive[i].second.size() ; j++)
         {
             sum += vDrive[i].second[j];
         }

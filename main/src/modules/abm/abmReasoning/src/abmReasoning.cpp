@@ -64,7 +64,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
     attach(handlerPort);
     bool bPopulateOPC = !(rf.check("noPopulate"));
-	std::cout << "[WARNING] The --noPopulate parameter has no effect !" << std::endl;
+	std::cout << "[WARNING] The --noPopulate parameter has no effect ! (Although it is set to : " << bPopulateOPC<< std::endl;
 
     if (!(rf.check("noKnowledge"))) getKnowledge();
     //remove all the previous pddl files
@@ -1395,19 +1395,19 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                             actionName = it->substr(0, sepBegin) ;
 
                             //upper to lower case
-							transform(actionName.begin(), actionName.end(), actionName.begin(), ptr_fun( (int (*)(char) )tolower));
+							transform(actionName.begin(), actionName.end(), actionName.begin(), fixed_tolower);
                             std::cout << "=> actionName : " << actionName << endl ;
 
                             if(actionName == "hanoi"){
                                 //upper to lower case
                                 
                                 objName = it->substr(sepBegin+1, it->length())  ;
-								transform(objName.begin(), objName.end(), objName.begin(), ptr_fun((int(*)(char))tolower));
+								transform(objName.begin(), objName.end(), objName.begin(), fixed_tolower);
                                 std::cout << "=> objName : " << objName << endl ;
                             } else {
                                 //upper to lower case
                                 locName = it->substr(sepBegin+1, it->length()) ;
-								transform(locName.begin(), locName.end(), locName.begin(), ptr_fun((int(*)(char))tolower));
+								transform(locName.begin(), locName.end(), locName.begin(), fixed_tolower);
                                 std::cout << "=> locName : " << locName << endl ;
                             }
 
@@ -1415,7 +1415,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                         } else {
                             //ADD, ASK, REMOVE, ...
                             actionName = it->c_str() ;
-							transform(actionName.begin(), actionName.end(), actionName.begin(), ptr_fun((int(*)(char))tolower));
+							transform(actionName.begin(), actionName.end(), actionName.begin(), fixed_tolower);
                             std::cout << "=> actionName : " << actionName << endl ;
 
                             //human has to do these kind of actions
@@ -1434,13 +1434,13 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                         if(actionName == "hanoi"){
                             //upper to lower case
-							transform(argName.begin(), argName.end(), argName.begin(), ptr_fun((int(*)(char))tolower));
+							transform(argName.begin(), argName.end(), argName.begin(), fixed_tolower);
                             locName = argName ;
                             std::cout << "=> locName : " << locName << endl ;
 
                         } else {
                             //upper to lower case
-							transform(argName.begin(), argName.end(), argName.begin(), ptr_fun((int(*)(char))tolower));
+							transform(argName.begin(), argName.end(), argName.begin(), fixed_tolower);
                             objName = argName;
                             std::cout << "=> objName : " << objName << endl ;
                         }
@@ -1511,18 +1511,9 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 }
 
 void abmReasoning::pddlSolFileName(int i, char* filename){
-    
-    strcpy(filename, "");
-
-    strcpy(filename, plannerPath.c_str()) ;
-    strcat(filename, pddlOut.c_str());
-    strcat(filename, "_") ;
-    char charNumber[3] = "";
-    strcat(filename, itoa(i, charNumber, 10));
-    strcat(filename, ".SOL");
-
-    return ;
-
+	stringstream ss;
+	ss << plannerPath << pddlOut << "_" << i << ".SOL";
+	strcpy(filename, ss.str().c_str());
 }
 
 //remove all the file given in the range
