@@ -1395,19 +1395,19 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                             actionName = it->substr(0, sepBegin) ;
 
                             //upper to lower case
-							transform(actionName.begin(), actionName.end(), actionName.begin(), fixed_tolower);
+							transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
                             std::cout << "=> actionName : " << actionName << endl ;
 
                             if(actionName == "hanoi"){
                                 //upper to lower case
                                 
                                 objName = it->substr(sepBegin+1, it->length())  ;
-								transform(objName.begin(), objName.end(), objName.begin(), fixed_tolower);
+								transform(objName.begin(), objName.end(), objName.begin(), abmReasoning::fixed_tolower);
                                 std::cout << "=> objName : " << objName << endl ;
                             } else {
                                 //upper to lower case
                                 locName = it->substr(sepBegin+1, it->length()) ;
-								transform(locName.begin(), locName.end(), locName.begin(), fixed_tolower);
+								transform(locName.begin(), locName.end(), locName.begin(), abmReasoning::fixed_tolower);
                                 std::cout << "=> locName : " << locName << endl ;
                             }
 
@@ -1415,7 +1415,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                         } else {
                             //ADD, ASK, REMOVE, ...
                             actionName = it->c_str() ;
-							transform(actionName.begin(), actionName.end(), actionName.begin(), fixed_tolower);
+							transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
                             std::cout << "=> actionName : " << actionName << endl ;
 
                             //human has to do these kind of actions
@@ -1434,13 +1434,13 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                         if(actionName == "hanoi"){
                             //upper to lower case
-							transform(argName.begin(), argName.end(), argName.begin(), fixed_tolower);
+							transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
                             locName = argName ;
                             std::cout << "=> locName : " << locName << endl ;
 
                         } else {
                             //upper to lower case
-							transform(argName.begin(), argName.end(), argName.begin(), fixed_tolower);
+							transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
                             objName = argName;
                             std::cout << "=> objName : " << objName << endl ;
                         }
@@ -1648,8 +1648,6 @@ void abmReasoning::pddlPlannerLauncher(){
 Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
 {
     Bottle bOutput;
-
-    unsigned int i = 0 ;
 
     char buffer[512] = "";
     strcpy(buffer, plannerPath.c_str()) ;
@@ -2324,7 +2322,7 @@ Bottle abmReasoning::findAllActions(int from)
     if (iError != 0)
     {
         std::cout << iError << " errors while getting the actions:" << endl;
-        for (int j = 0 ; j < vError.size() ; j++)
+        for (unsigned int j = 0 ; j < vError.size() ; j++)
         {
             std::cout << vError[j] << "\t " ;
         }
@@ -2345,7 +2343,7 @@ Bottle abmReasoning::findAllSentence()
 Bottle abmReasoning::findAllSentence(int from)
 {
     std::cout << endl << "Getting sentence." << endl;
-    int iError = 0;
+    //int iError = 0;
     //check : simple object query :
     Bottle bTemporal, bOutput;
     ostringstream osRequest;

@@ -602,6 +602,7 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 {
     double SIGMA_LEARNING_GRAMMAR = 1. * abmReasoningFunction::SIGMA_LEARNING_GRAMMAR;
+	cout << "Avoiding Warning : SIGMA_LEARNING_GRAMMAR == " << SIGMA_LEARNING_GRAMMAR << endl;
     int iPropertiesTakenIntoAccount;
     pair<string, double>    pReturn;
     vector<pair<string, double> >   vScore;
@@ -805,7 +806,7 @@ pair<string, double> grammarKnowledge::findSubject2(string sSpeaker, string sAdd
     /*-----------------/
     BEGIN :
     FILL THE MATRICES
-    /*-----------------*/
+    -----------------*/
 
     vector<vector<int> > matrixAddressee,
         matrixAgent,
@@ -959,14 +960,14 @@ pair<string, double> grammarKnowledge::findSubject2(string sSpeaker, string sAdd
     /*-----------------/
     END :
     FILL THE MATRICES
-    /*-----------------*/
+    -----------------*/
 
 
 
     /*-----------------/
     BEGIN :
     FOR EACH KNOWN PRONOM
-    /*-----------------*/
+    -----------------*/
     int iterratorPronom = 0;
     for (vector<pronom>::iterator currentPronom = listPronom.begin() ; currentPronom != listPronom.end() ; currentPronom++)
     {
@@ -983,15 +984,17 @@ pair<string, double> grammarKnowledge::findSubject2(string sSpeaker, string sAdd
         tSubjectisAgent     = scoreProp(0,0,0,0);
         int A = 0 , B = 0 , C = 0 , D = 0;
 
-        double  pSpIsAd,
-            pSpIsSu,
-            pSpIsAg,
-            pAdIsSu,
-            pAdIsAg,
-            pSuIsAg,
-            pIsAd,
-            pIsAg,
-            pIsSp;
+		//Forgeting one variable unused is fine... But this ?!
+
+        //double  pSpIsAd,
+        //    pSpIsSu,
+        //    pSpIsAg,
+        //    pAdIsSu,
+        //    pAdIsAg,
+        //    pSuIsAg,
+        //    pIsAd,
+        //    pIsAg,
+        //    pIsSp;
 
         // END CLEAR PROPERTIES
 
@@ -1191,7 +1194,7 @@ pair<string, double> grammarKnowledge::findSubject2(string sSpeaker, string sAdd
     /*-----------------/
     END :
     FOR EACH KNOWN PRONOM
-    /*-----------------*/
+    -----------------*/
 
 
     // Now for each known subject, get the one with the hightest score

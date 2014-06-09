@@ -31,10 +31,11 @@ void knownInteraction::addInteraction(tuple<string, int, string, string> tInput)
     bool bFound = false;
     for (vector<tuple<string, int, string, string>>::iterator itTuple = listInteraction.begin() ; itTuple != listInteraction.end() ; itTuple++)
     {
-        bool test1 = get<0>(tInput).c_str() == get<0>(*itTuple).c_str();
-        bool test2 = get<0>(tInput) == get<0>(*itTuple).c_str();
-        bool test3 = get<0>(tInput) == get<0>(*itTuple);
-        bool test4 = get<0>(tInput).c_str() == get<0>(*itTuple);
+		//Debugging code I guess ?
+        //bool test1 = get<0>(tInput).c_str() == get<0>(*itTuple).c_str();
+        //bool test2 = get<0>(tInput) == get<0>(*itTuple).c_str();
+        //bool test3 = get<0>(tInput) == get<0>(*itTuple);
+        //bool test4 = get<0>(tInput).c_str() == get<0>(*itTuple);
 
         if (get<0>(tInput) == get<0>(*itTuple) && get<2>(tInput) == get<2>(*itTuple) && get<3>(tInput) == get<3>(*itTuple) && !bFound) 
         {

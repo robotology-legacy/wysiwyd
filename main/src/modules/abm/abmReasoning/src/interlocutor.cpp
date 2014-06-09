@@ -717,7 +717,7 @@ Bottle interlocutor::imagineOPC(int Id)
         bOutput.addString("No RTObject.");
         return bOutput;
     }
-    for (unsigned int iRTO = 0 ; iRTO < bMessenger.size() ; iRTO++)
+    for (int iRTO = 0 ; iRTO < bMessenger.size() ; iRTO++)
     {
         Bottle bRTO = *(bMessenger.get(iRTO).asList());
         string sCoordinate = bRTO.get(0).toString(),
@@ -1219,7 +1219,7 @@ int interlocutor::sendContextual(vector<contextualKnowledge> listContextualKnowl
 
             osInsertData.str("");
             osInsertData << "INSERT INTO contextagent (instance, agent, number) VALUES  " ;
-            int m=0;
+            unsigned int m=0;
             for (map<string, int>::iterator itMap = it->mAgentRelated.begin() ; itMap != it->mAgentRelated.end() ; itMap++)
             {
                 osInsertData << "( " << serialContext << " , '" << itMap->first.c_str() << "' , " << itMap->second << ") ";
@@ -1345,7 +1345,7 @@ void interlocutor::setMentalOPC(int instance)
 
     // FOR EACH ENTITY :
 
-    for (unsigned int iEnt = 0 ; iEnt < bAllEntity.size() ; iEnt++)
+    for (int iEnt = 0 ; iEnt < bAllEntity.size() ; iEnt++)
     {
         bCurrentEntity = *bAllEntity.get(iEnt).asList();
         std::cout << "bCurrentEntity : " << bCurrentEntity.toString() << "\t size : " << bCurrentEntity.size() << endl;

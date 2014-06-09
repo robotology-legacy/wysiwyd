@@ -2,6 +2,7 @@
 using namespace std;
 
 
+
 class abmReasoning: public RFModule
 {
 private :
@@ -78,6 +79,11 @@ public :
     ~abmReasoning();
 
     deque<string> opcNameTable;
+	//Avoiding ptr_fun bug
+	static char fixed_tolower(char c) {
+		return tolower((unsigned char)c);
+	}
+
 //
     // module related functions
     double getPeriod();
