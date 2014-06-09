@@ -72,3 +72,86 @@ std::string cvz2xml(cvz::core::IConvergenceZone* z, std::string configFile)
     return xml.str();
 }
 
+std::string stack2xml(std::string applicationName, const cvz::core::CvzStack& s)
+{
+	return "Not implemented yet.";
+//	std::stringstream xml;
+//	xml << "<application>" << '\n';
+//	xml << '\t' + getBalise("name", applicationName);
+//
+//	std::map<cvz::core::IConvergenceZone*, std::string> configFilesModulesDescription;
+//	//Modules
+//	for (int m = 0; m < zones.size(); m++)
+//	{
+//		std::stringstream params;
+//		params << "--from " + zonesFiles[zones[m]] + " --name " << zonesNames[zones[m]];
+//
+//		//Create the module xml description
+//		configFilesModulesDescription[zones[m]] = cvz2xml(zones[m], zonesFiles[zones[m]]);
+//
+//		//Create the module balise
+//		string name = zones[m]->getName().c_str();
+//		xml <<
+//			'\t' + getBalise("module",
+//			"\t\t" + getBalise("name", "cvzCore (" + name + ")") +
+//			"\t\t" + getBalise("parameters", params.str()) +
+//			"\t\t" + getBalise("node", "icubsrv"));
+//
+//		//Create the connections balise
+//		std::stringstream dummyInReal;
+//		std::stringstream dummyOutReal;
+//		std::stringstream dummyInPrediction;
+//		std::stringstream dummyOutPrediction;
+//		dummyInReal << "/dummyInReal_" << m;
+//		dummyOutReal << "/dummyOutReal_" << m;
+//		dummyInPrediction << "/dummyInPrediction_" << m;
+//		dummyOutPrediction << "/dummyOutPrediction_" << m;
+//
+//		for (std::map<std::string, cvz::core::IModality*>::iterator itMod = zones[m]->modalitiesBottomUp.begin(); itMod != zones[m]->modalitiesBottomUp.end(); itMod++)
+//		{
+//			//RealInput
+//			xml <<
+//				'\t' + getBalise("connection",
+//				"\t\t" + getBalise("source", dummyInReal.str()) +
+//				"\t\t" + getBalise("to", itMod->second->GetFullNameReal()) +
+//				"\t\t" + getBalise("protocol", "tcp"));
+//
+//			//PredictionInput
+//			xml <<
+//				'\t' + getBalise("connection",
+//				"\t\t" + getBalise("source", itMod->second->GetFullNamePrediction()) +
+//				"\t\t" + getBalise("to", dummyInPrediction.str()) +
+//				"\t\t" + getBalise("protocol", "tcp"));
+//		}
+//
+//		for (std::map<std::string, cvz::core::IModality*>::iterator itMod = zones[m]->modalitiesTopDown.begin(); itMod != zones[m]->modalitiesTopDown.end(); itMod++)
+//		{
+//			//RealInput
+//			xml <<
+//				'\t' + getBalise("connection",
+//				"\t\t" + getBalise("source", dummyOutReal.str()) +
+//				"\t\t" + getBalise("to", itMod->second->GetFullNameReal()) +
+//				"\t\t" + getBalise("protocol", "tcp"));
+//
+//			//PredictionInput
+//			xml <<
+//				'\t' + getBalise("connection",
+//				"\t\t" + getBalise("source", itMod->second->GetFullNamePrediction()) +
+//				"\t\t" + getBalise("to", dummyOutPrediction.str()) +
+//				"\t\t" + getBalise("protocol", "tcp"));
+//		}
+//	}
+//	xml << "</application>";
+//	xml.close();
+//
+//	//Export the modules descriptions
+//	for (std::map < cvz::core::IConvergenceZone*, std::string >::iterator it = configFilesModulesDescription.begin(); it != configFilesModulesDescription.end(); it++)
+//	{
+//		std::string name = it->first->getName().c_str();
+//		std::ofstream xml((name + ".xml").c_str());
+//		xml << it->second;
+//		xml.close();
+//	}
+//}
+
+}
