@@ -162,7 +162,7 @@ public:
         portCategoryTag.write(botTag);
 
         Bottle botVect;
-        for (int i = 0; i < buffer.size(); i++)
+        for (unsigned int i = 0; i < buffer.size(); i++)
             botVect.addInt( countIt==i );
         portCategoryVector.write(botVect);
 
@@ -186,7 +186,7 @@ public:
 
         //Release images
         for (map<string, vector< IplImage*> >::iterator it = buffer.begin(); it != buffer.end(); it++)
-            for (int i = 0; i < it->second.size(); i++)
+			for (unsigned int i = 0; i < it->second.size(); i++)
                 cvReleaseImage(&it->second[i]);
 
         return true;
