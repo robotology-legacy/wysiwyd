@@ -64,7 +64,8 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
     attach(handlerPort);
     bool bPopulateOPC = !(rf.check("noPopulate"));
-    
+	std::cout << "[WARNING] The --noPopulate parameter has no effect !" << std::endl;
+
     if (!(rf.check("noKnowledge"))) getKnowledge();
     //remove all the previous pddl files
     pddlSolDelete(1,pddlNb);
@@ -786,7 +787,7 @@ Bottle abmReasoning::queryBehavior(Bottle bInput)
     }       
 
 
-    unsigned int sizeMin = 99999;
+    //unsigned int sizeMin = 99999;
     if (vDrive.size() == 0)
     {
         return bOutput;
@@ -1310,7 +1311,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
     //to check with multiple actions solution
     char filename[512] = "" ;
-    for(unsigned int i = 1; i <= pddlNb ; i++){
+    for(int i = 1; i <= pddlNb ; i++){
     
         pddlSolFileName(i,filename);
         ifstream fileSol(filename);
