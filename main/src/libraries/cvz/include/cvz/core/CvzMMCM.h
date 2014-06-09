@@ -319,7 +319,7 @@ namespace cvz {
                         for (int z = 0; z < layers; z++)
                         {
                             float distanceH = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0));
-                            float distanceV = sqrt(pow(z - zWin, 2.0));
+                            //float distanceV = sqrt(pow(z - zWin, 2.0));
                             //float dHCoef = helpers::GaussianBell(distanceH, sigmaH);
                             //float dVCoef = helpers::GaussianBell(distanceV, sigmaV);
 
