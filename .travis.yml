@@ -18,7 +18,7 @@ before_script:
   - cd main
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release -DWYSIWYD_TRAVIS_CI:BOOL=ON ..
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
   
 script:
   - make
