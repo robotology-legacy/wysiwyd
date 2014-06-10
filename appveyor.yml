@@ -7,11 +7,11 @@ branches:
 clone_folder: c:\projects\wysiwyd
 
 environment:
-  yarp_pkg_url: http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.22/windows/yarp_2.3.22_v8_x86_0.exe/download
+  yarp_pkg_url: 'http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.22/windows/yarp_2.3.22_v8_x86_0.exe/download'
   
 install:
   - ps: echo $env:yarp_pkg_url
-  - ps: (new-object net.webclient).DownloadFile($env:yarp_pkg_url,c:\projects\yarp.exe)
+  - ps: (new-object net.webclient).DownloadFile($env:yarp_pkg_url,'c:\projects\yarp.exe')
   - cmd: dir c:\projects
 
 platform: x86
