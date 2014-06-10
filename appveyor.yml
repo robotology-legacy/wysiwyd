@@ -8,17 +8,21 @@ clone_folder: c:\projects\wysiwyd
 
 environment:
   yarp_pkg_url: 'http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.22/windows/yarp_2.3.22_v8_x86_0.exe/download'
+  icub_pkg_url: 'http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.13/windows/iCub_1.1.13_v8_x86_0.exe'
   
 install:
-  - ps: echo $env:yarp_pkg_url
+  - ps: Write-Host "Downloading $env:yarp_pkg_url ..."
   - ps: (new-object net.webclient).DownloadFile($env:yarp_pkg_url,'c:\projects\yarp.exe')
-  - cmd: dir c:\projects
+  - ps: Write-Host "Downloading $env:icub_pkg_url ..."
+  - ps: (new-object net.webclient).DownloadFile($env:icub_pkg_url,'c:\projects\icub.exe')
+  - cmd: dir c:\projects\yarp.exe
+  - cmd: dir c:\projects\icub.exe
 
 platform: x86
 configuration: Release
  
 build: off
-#  project: MyTestAzureCS.sln
+#  project: wysiwyd.sln
 #  verbosity: detailed
 
 #before_build:
