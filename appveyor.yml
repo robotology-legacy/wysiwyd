@@ -1,0 +1,37 @@
+version: 1.0.{build}
+
+branches:
+  only:
+    - master
+
+clone_folder: c:\projects\wysiwyd
+
+environment:
+  my_var1: value1
+  my_var2: value2
+
+install:
+  # by default, all script lines are interpreted as batch
+  - echo This is batch
+  # to run script as a PowerShell command prepend it with ps:
+  - ps: Write-Host 'This is PowerShell'
+  # batch commands start from cmd:
+  - cmd: echo This is batch again
+  - cmd: set MY_VAR=12345
+
+platform: x86
+configuration: Release
+ 
+build: off
+#  project: MyTestAzureCS.sln
+#  verbosity: detailed
+
+#before_build:
+
+#build_script:
+
+#after_build:
+ 
+notifications:
+  email:
+    - ugo.pattacini@iit.it
