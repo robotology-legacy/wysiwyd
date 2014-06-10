@@ -31,7 +31,6 @@ public:
     bool            addInteraction(Bottle bInput);
     
     pair<string, double>        findSubject(string sSpeaker, string sAddressee, string sAgent);
-    pair<string, double>        findSubject2(string sSpeaker, string sAddressee, string sAgent);
     pair<string, double>        findAgent(string sSpeaker, string sAddressee, string sSubject);
     pair<string, double>        findAddressee(string sSpeaker, string sAgent, string sSubject);
     pair<string, double>        findSpeaker(string sAddressee, string sAgent, string sSubject); 

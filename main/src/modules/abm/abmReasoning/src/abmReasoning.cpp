@@ -38,7 +38,7 @@ bool abmReasoning::updateModule()
 bool abmReasoning::configure(ResourceFinder &rf)
 {       
     moduleName = rf.check("name", 
-        Value("efaa/abmReasoning"), 
+        Value("abmReasoning"), 
         "module name (string)").asString();
 
     setName(moduleName.c_str());
@@ -52,7 +52,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
     senderPort.open(portSenderName.c_str());
     bDreaming = false;
 
-    Network::connect(senderPort.getName(), "/efaa/autobiographicalMemory/request:i");
+    Network::connect(senderPort.getName(), "/autobiographicalMemory/request:i");
 
     Interlocutor.initialize();
     initialisePlanner(rf);
@@ -64,7 +64,6 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
     attach(handlerPort);
     bool bPopulateOPC = !(rf.check("noPopulate"));
-	std::cout << "[WARNING] The --noPopulate parameter has no effect ! (Although it is set to : " << bPopulateOPC<< std::endl;
 
     if (!(rf.check("noKnowledge"))) getKnowledge();
     //remove all the previous pddl files

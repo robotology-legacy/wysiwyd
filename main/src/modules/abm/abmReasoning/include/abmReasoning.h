@@ -79,10 +79,6 @@ public :
     ~abmReasoning();
 
     deque<string> opcNameTable;
-	//Avoiding ptr_fun bug
-	static char fixed_tolower(char c) {
-		return tolower((unsigned char)c);
-	}
 
 //
     // module related functions
@@ -204,6 +200,7 @@ public :
     //pddl File functions
     void pddlSolFileName(int i, char* filename);
     void pddlSolDelete(unsigned int begin, unsigned int end);
+    static char fixed_tolower(char c) { return tolower((unsigned char)c); }        //Avoiding ptr_fun bug
 
     int bestSol ;
 
