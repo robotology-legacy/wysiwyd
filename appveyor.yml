@@ -11,7 +11,7 @@ environment:
   
 install:
   - ps: echo $env:yarp_pkg_url
-  - ps: (new-object net.webclient).DownloadFile('$env:yarp_pkg_url','c:\projects\yarp.exe')
+  - ps: (new-object net.webclient).DownloadFile($env:yarp_pkg_url,c:\projects\yarp.exe)
   - cmd: dir c:\projects
 
 platform: x86
