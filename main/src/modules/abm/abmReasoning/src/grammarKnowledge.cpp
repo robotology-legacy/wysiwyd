@@ -601,8 +601,6 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 
 pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 {
-    double SIGMA_LEARNING_GRAMMAR = 1. * abmReasoningFunction::SIGMA_LEARNING_GRAMMAR;
-
     int iPropertiesTakenIntoAccount;
     pair<string, double>    pReturn;
     vector<pair<string, double> >   vScore;

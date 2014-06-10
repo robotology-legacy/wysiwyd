@@ -123,16 +123,9 @@ void spatialKnowledge::determineInfluence()
 
     sigmaD = sqrt(sumdX*sumdX + sumdY*sumdY);
 
-    double deter_CovA = (covMatrixA[0] * covMatrixA[3])-(covMatrixA[1] * covMatrixA[2]);
+    //double deter_CovA = (covMatrixA[0] * covMatrixA[3])-(covMatrixA[1] * covMatrixA[2]);
     double deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
     double deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
-/*
-    std::cout << sName << "_" << sArgument << " is : \t" << endl;
-    std::cout << "\t" << "deter_CovA" << " = " << deter_CovA  << endl;
-    std::cout << "\t" << "deter_CovB" << " = " << deter_CovB  << endl;
-    std::cout << "\t" << "deter_CovD" << " = " << deter_CovD  << endl;
-    std::cout << "\t" << "sigmaD    " << " = " << sigmaD  << endl << endl;;*/
-
 
     if (abmReasoningFunction::threshold_is_dispersion > deter_CovD)
     {
@@ -164,7 +157,7 @@ pair <int, double> spatialKnowledge::distFromMove(pair<double, double> XY, pair<
 {
     // return the influence (Abs or Delta) and the Mahalanobis distance
     int Influence =0;
-    double Dist;
+    double Dist=0;
     if (isAbsolut)
     {
         Dist = abmReasoningFunction::getMahalaDist(vX, vY, XY);

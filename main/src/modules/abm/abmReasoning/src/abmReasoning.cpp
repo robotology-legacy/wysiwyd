@@ -2778,10 +2778,6 @@ Bottle abmReasoning::findAllInteractions(int from)
     realOPC->checkout();
     realOPC->update();
 
-    int incrAgent = 0,
-        incrObject = 0,
-        incrRTO = 0;
-
     Bottle bMessenger, bReply, bDistinctEntity;
     ostringstream osRequest;
     osRequest <<"SELECT DISTINCT argument FROM contentarg WHERE subtype IN ( 'object', 'rtobject', 'agent') AND INSTANCE > " << from ;
@@ -2793,7 +2789,7 @@ Bottle abmReasoning::findAllInteractions(int from)
         bOutput.addString("no shared plan to load.");
         return bOutput;
     }
-    for (unsigned int iDE = 0 ; iDE < bDistinctEntity.size() ; iDE++)
+    for (int iDE = 0 ; iDE < bDistinctEntity.size() ; iDE++)
     {
         string sSubject = bDistinctEntity.get(iDE).toString();
         ostringstream osEntity;
@@ -2805,7 +2801,7 @@ Bottle abmReasoning::findAllInteractions(int from)
 
         if (bReply.toString() != "NULL")
         {
-            for (unsigned int i = 0 ; i < bReply.size() ; i++)
+            for (int i = 0 ; i < bReply.size() ; i++)
             {
                 Bottle tempBottle = *bReply.get(i).asList();
 
@@ -3301,7 +3297,7 @@ Bottle abmReasoning::discriminateAction(Bottle bInput)
     }
 
     // Detect min
-    int indiceMin;
+    int indiceMin=0;
     for (unsigned int i = 0; i < vcScore.size() ; i++)
     {
         if (vcScore[i]<dMin)
@@ -4217,7 +4213,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
     //---------------- > launch the planner solver
     bOutput = pddlPlannerSolParser();
 
-    bool planPossible = false ;
+    //bool planPossible = false ;
 
     //format the plan in bOutput
     //if (!planPossible)
@@ -4270,7 +4266,7 @@ void abmReasoning::checkContextLocation()
 
     Bottle bOutput;
     mapLocation.clear();
-    int iAdded = 0;
+
     for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end() ; it++)
     {
         // Is the spatialKnowledge absolut (put) or relative (push)
@@ -6172,7 +6168,6 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
     mapLocation.clear();
     mapTemporalLocation.clear();
 
-    int iAdded = 0;
     for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end() ; it++)
     {
         // Is the spatialKnowledge absolut (put) or relative (push)

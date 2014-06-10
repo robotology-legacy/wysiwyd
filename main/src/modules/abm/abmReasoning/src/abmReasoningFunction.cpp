@@ -64,7 +64,7 @@ int abmReasoningFunction::color_loc_B = 255;
 
 int abmReasoningFunction::difference_date_in_second = 10000;    // threshold return of second if 2 actions are at different dates
 
-int abmReasoningFunction::threshold_determine_Location = 3;         // number of tries before determine if location
+unsigned int abmReasoningFunction::threshold_determine_Location = 3;         // number of tries before determine if location
 
 double abmReasoningFunction::factor_location = 2 ;                  // factor of the size of a location : center +/- factor_location * std dev
 double abmReasoningFunction::threshold_is_at_location = 4;
