@@ -7,17 +7,12 @@ branches:
 clone_folder: c:\projects\wysiwyd
 
 environment:
-  my_var1: value1
-  my_var2: value2
-
+  yarp_pkg_url: http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.22/windows/yarp_2.3.22_v8_x86_0.exe/download
+  
 install:
-  # by default, all script lines are interpreted as batch
-  - echo This is batch
-  # to run script as a PowerShell command prepend it with ps:
-  - ps: Write-Host 'This is PowerShell'
-  # batch commands start from cmd:
-  - cmd: echo This is batch again
-  - cmd: set MY_VAR=12345
+  - ps: echo $env:yarp_pkg_url
+  - ps: (new-object net.webclient).DownloadFile('$env:yarp_pkg_url','c:\projects\yarp.exe')
+  - cmd: dir c:\projects
 
 platform: x86
 configuration: Release
