@@ -5853,8 +5853,6 @@ Bottle abmReasoning::level3Reasoning(int from)
             // begin for each object-location check
             for (vector<pair<string, string> >::iterator pItLocation = vObjectLocBefore.begin() ; pItLocation != vObjectLocBefore.end() ; pItLocation++)
             {   
-                bool bObjectIsSame = false;
-        
                 // for any location where the object of focus is
                 for (vector<string>::iterator itLocFocus = vLocFocusBefore.begin() ; itLocFocus != vLocFocusBefore.end() ; itLocFocus++ )
                 {
@@ -5922,8 +5920,6 @@ Bottle abmReasoning::level3Reasoning(int from)
             // FOR each object-location check
             for (vector<pair<string, string> >::iterator pItLocation = vObjectLocAfter.begin() ; pItLocation != vObjectLocAfter.end() ; pItLocation++)
             {
-
-                bool bObjectIsSame = false;
                 for (vector<string>::iterator itLocFocus = vLocFocusAfter.begin() ; itLocFocus != vLocFocusAfter.end() ; itLocFocus++ )
                 {   // begin FOR any location where the object of focus is
 
