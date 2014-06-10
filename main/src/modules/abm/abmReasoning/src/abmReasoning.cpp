@@ -63,7 +63,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 //  iCub->connect();
 
     attach(handlerPort);
-    bool bPopulateOPC = !(rf.check("noPopulate"));
+    bPopulateOPC = !(rf.check("noPopulate"));
 
     if (!(rf.check("noKnowledge"))) getKnowledge();
     //remove all the previous pddl files
