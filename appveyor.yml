@@ -2,7 +2,7 @@ version: 1.0.{build}
 
 branches:
   only:
-    - master
+  - master
 
 clone_folder: c:\projects\wysiwyd
 
@@ -12,6 +12,7 @@ environment:
   IPOPT_DIR: c:\projects\ipopt
   YARP_DIR: c:\projects\yarp\build
   ICUB_DIR: c:\projects\icub-main\build
+  WYSIWYD_DIR: c:\projects\wysiwyd\main\build
   
 install:
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/ACE_6.1.0-bin-msvc11.zip','c:\projects\ace.zip')
@@ -31,27 +32,20 @@ build:
 
 before_build:
   - git clone -q --branch=master --depth=1 https://github.com/robotology/yarp.git c:\projects\yarp
-  - cd c:\projects\yarp
-  - md build
-  - cd build
-  - cmake -G"Visual Studio 11" -DCREATE_LIB_MATH:BOOL=ON ..
+  - md %YARP_BUILD% && cd %YARP_BUILD%
+  - cmake -G"Visual Studio 11" -DCREATE_LIB_MATH:BOOL=ON -DCREATE_YMANAGER:BOOL=OFF -DYARP_COMPILE_TESTS:BOOL=OFF ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" YARP.sln
   
   - git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
-  - cd c:\projects\icub-main
-  - md build
-  - cd build
+  - md %ICUB_BUILD% && cd %ICUB_BUILD%
   - cmake -G"Visual Studio 11" -DENABLE_icubmod_cartesiancontrollerclient:BOOL=ON -DENABLE_icubmod_gazecontrollerclient:BOOL=ON ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" iCub.sln
   
 build_script:
-  - cd c:\projects\wysiwyd\main
-  - md build
-  - cd build
+  - md %WYSIWYD_DIR% && cd %WYSIWYD_DIR%
   - cmake -G"Visual Studio 11" ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" wysiwyd.sln
 
 notifications:
   email:
   - ugo.pattacini@iit.it
-
