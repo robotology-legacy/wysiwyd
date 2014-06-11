@@ -20,15 +20,20 @@ install:
   - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
   
   - ps:  Write-Host "Unpacking ace.zip ..."
+  - ps:  Unblock-File c:\projects\ace.zip
   - ps:  (new-object -ComObject shell.application).namespace("c:\projects").CopyHere((new-object -ComObject shell.application).namespace("c:\projects\ace.zip").items())
 
   - ps:  Write-Host "Unpacking gsl.zip ..."
+  - ps:  Unblock-File c:\projects\gsl.zip
   - ps:  (new-object -ComObject shell.application).namespace("c:\projects").CopyHere((new-object -ComObject shell.application).namespace("c:\projects\gsl.zip").items())
 
   - ps:  Write-Host "Unpacking ipopt.zip ..."
+  - ps:  Unblock-File c:\projects\ipopt.zip
   - ps:  (new-object -ComObject shell.application).namespace("c:\projects").CopyHere((new-object -ComObject shell.application).namespace("c:\projects\ipopt.zip").items())  
   
+  - cmd: dir c:\
   - cmd: dir c:\projects
+  - cmd: dir c:\projects\wysiwyd
 
 platform: x86
 configuration: Release
