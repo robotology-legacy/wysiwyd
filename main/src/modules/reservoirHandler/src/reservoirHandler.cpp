@@ -358,6 +358,8 @@ Bottle reservoirHandler::nodeType()
             return nodeType();
     }
 
+    bOutput.addString("return");
+    return bOutput;
 }
 
 /*	Node 2 : details about number and agent
@@ -431,7 +433,6 @@ Bottle reservoirHandler::nodeModality()
     if (sQuestionKind == "CANONICAL")
     {
         sCurrentCanonical = bSemantic.check("focus", Value("none")).asString();
-        cout << "C'est la chiote" <<   sCurrentCanonical << endl;
 
         if (sCurrentCanonical == "object")
         {
@@ -453,7 +454,6 @@ Bottle reservoirHandler::nodeModality()
 
 
          }
-        cout << "presque le succès " << endl;
         cout << "iCub says : 'Thinking of the situation'" << endl ;
         copyTrainData(fileXavierTrain.c_str(),fileSRinputM.c_str());
         callReservoir(fileSD);
@@ -581,6 +581,8 @@ Bottle reservoirHandler::nodeModality()
         return nodeModality();
     }
 
+    bOutput.addString("return");
+    return bOutput;
 }
 
 
@@ -684,6 +686,9 @@ Bottle reservoirHandler::nodeTrainAP()
             return nodeType();
           }
      }
+
+    bOutput.addString("return");
+    return bOutput;
 }
 
 
@@ -799,6 +804,9 @@ Bottle reservoirHandler::nodeTestAP()
             return nodeType();
           }
      }
+
+     bOutput.addString("return");
+     return bOutput;
 }
 
 
@@ -919,6 +927,8 @@ Bottle reservoirHandler::nodeTrainSD()
         return nodeModality();
     }
 
+    bOutput.addString("return");
+    return bOutput;
  }
 
 
@@ -933,7 +943,6 @@ int reservoirHandler::copyTrainData(const char* fileNameIn, const char* fileName
     if(inbsentence==1){
         file.open(fileNameOut, ios::out | ios::trunc); // open the file in writing and erase the file if it is not empty
         file << "<train data>"<< endl;
-        //fprintf(file,)
         inbsentence+=1;
         file.close();
     }
