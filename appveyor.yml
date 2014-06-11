@@ -7,16 +7,23 @@ branches:
 clone_folder: c:\projects\wysiwyd
 
 environment:
-  yarp_pkg_url: 'http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.22/windows/yarp_2.3.22_v8_x86_0.exe/download'
-  icub_pkg_url: 'http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.13/windows/iCub_1.1.13_v8_x86_0.exe'
+  ace_url:   'http://www.icub.org/download/packages/windows/msvc11/ACE_6.1.0-bin-msvc11.zip'
+  gsl_url:   'http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip'
+  ipopt_url: 'http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip'
   
 install:
-  - ps: Write-Host "Downloading $env:yarp_pkg_url ..."
-  - ps: (new-object net.webclient).DownloadFile($env:yarp_pkg_url,'c:\projects\yarp.exe')
-  - ps: Write-Host "Downloading $env:icub_pkg_url ..."
-  - ps: (new-object net.webclient).DownloadFile($env:icub_pkg_url,'c:\projects\icub.exe')
-  - cmd: dir c:\projects\yarp.exe
-  - cmd: dir c:\projects\icub.exe
+  - ps:  Write-Host "Downloading $env:ace_url ..."
+  - ps:  (new-object net.webclient).DownloadFile($env:ace_url,'c:\projects\ace.zip')
+  - ps:  Write-Host "Downloading $env:gsl_url ..."
+  - ps:  (new-object net.webclient).DownloadFile($env:gsl_url,'c:\projects\gsl.zip')
+  - ps:  Write-Host "Downloading $env:ipopt_url ..."
+  - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
+  - ps:  Write-Host "Unpacking ace.zip ..."
+  - cmd: jar xf ace.zip
+  - ps:  Write-Host "Unpacking gsl.zip ..."
+  - cmd: jar xf gsl.zip
+  - ps:  Write-Host "Unpacking ipopt.zip ..."
+  - cmd: jar xf ipopt.zip
 
 platform: x86
 configuration: Release
