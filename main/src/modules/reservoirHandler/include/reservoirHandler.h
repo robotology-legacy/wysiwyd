@@ -27,12 +27,11 @@
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 
-
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
- 
+
 class reservoirHandler : public RFModule {
 private:
     string moduleName;
@@ -93,6 +92,8 @@ private:
     int copyPastFile(const char* in, const char* fileNameOut);
     int trainSaveMeaningSentence(const char *filename);
     int createTestwithTrainData(const char* filename, string sMeaningSentence);
+
+	//YARP_OS_API void getName(const yarp::os::ConstString& str);
 
 public:
     /** 

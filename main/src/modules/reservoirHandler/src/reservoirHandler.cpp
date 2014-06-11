@@ -81,10 +81,12 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     * before continuing, set the module name before getting any other parameters,
     * specifically the port names which are dependent on the module name
     */
+
     setName(moduleName.c_str());
 
     // Open handler port
-    handlerPortName = "/"+ getName() + "/rpc";         // use getName() rather than a literal
+	string sName = getName();
+	handlerPortName = "/"+ sName + "/rpc";
 
     if (!handlerPort.open(handlerPortName.c_str())) {
         cout << getName() << ": Unable to open port " << handlerPortName << endl;
@@ -93,7 +95,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
 
 
     // Open port2speech
-    port2SpeechRecogName = "/"+ getName() + "/toSpeechRecog";
+    port2SpeechRecogName = "/"+ sName + "/toSpeechRecog";
 
     if (!Port2SpeechRecog.open(port2SpeechRecogName.c_str())) {
         cout << getName() << ": Unable to open port " << port2SpeechRecogName << endl;
@@ -102,7 +104,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
 
 
     // Open port2iSpeak
-    port2iSpeakName = "/" + getName() + "/toiSpeak";
+    port2iSpeakName = "/" + sName + "/toiSpeak";
 
     if (!Port2iSpeak.open(port2iSpeakName.c_str())) {
         cout << getName() << ": Unable to open port " << port2iSpeakName << endl;
@@ -111,14 +113,15 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
 
     attach(handlerPort);                  // attach to port
 
-
     //------------------------//
     //		iCub Client
     //------------------------//
-    string ttsSystem = SUBSYSTEM_SPEECH;
+
+	string ttsSystem = SUBSYSTEM_SPEECH;
     iCub = new ICubClient(moduleName.c_str(),"reservoirHandler/conf","client.ini",true);
 
     iCub->say("Hi!",false);
+
 
     // Connect iCub Client, and ports
     bOptionnalModule &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
@@ -136,6 +139,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
         cout << endl << endl << "----------------------------------------------" << endl << endl << "reservoirHandler ready !" << endl << endl;
 
     nodeType();
+
     return bEveryThingisGood ;
 }
 
