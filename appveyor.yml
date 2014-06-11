@@ -40,7 +40,7 @@ before_build:
   - cd c:\projects\yarp
   - md build
   - cd build
-  - ccmake -DCREATE_LIB_MATH:ON ..
+  - cmake -DCREATE_LIB_MATH:ON ..
   - dir
   
 #build_script:
