@@ -7,6 +7,11 @@ branches:
 clone_folder: c:\projects\wysiwyd
 
 environment:
+  
+
+
+
+
   ace_url:   'http://www.icub.org/download/packages/windows/msvc11/ACE_6.1.0-bin-msvc11.zip'
   gsl_url:   'http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip'
   ipopt_url: 'http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip'
@@ -18,12 +23,25 @@ install:
   - ps:  (new-object net.webclient).DownloadFile($env:gsl_url,'c:\projects\gsl.zip')
   - ps:  Write-Host "Downloading $env:ipopt_url ..."
   - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
+  
+  - ps:  $shell_app = new-object -com shell.application
+  
   - ps:  Write-Host "Unpacking ace.zip ..."
-  - cmd: jar xf ace.zip
+  - ps:  $zip_file = $shell_app.namespace((Get-Location).Path + "\ace.zip")
+  - ps:  $destination = $shell_app.namespace((Get-Location).Path)
+  - ps:  $destination.Copyhere($zip_file.items())
+
   - ps:  Write-Host "Unpacking gsl.zip ..."
-  - cmd: jar xf gsl.zip
+  - ps:  $zip_file = $shell_app.namespace((Get-Location).Path + "\gsl.zip")
+  - ps:  $destination = $shell_app.namespace((Get-Location).Path)
+  - ps:  $destination.Copyhere($zip_file.items())
+
   - ps:  Write-Host "Unpacking ipopt.zip ..."
-  - cmd: jar xf ipopt.zip
+  - ps:  $zip_file = $shell_app.namespace((Get-Location).Path + "\ipopt.zip")
+  - ps:  $destination = $shell_app.namespace((Get-Location).Path)
+  - ps:  $destination.Copyhere($zip_file.items())
+  
+  - cmd: dir c:\projects
 
 platform: x86
 configuration: Release
