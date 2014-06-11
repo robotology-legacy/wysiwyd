@@ -12,8 +12,8 @@ environment:
   IPOPT_DIR: c:\projects\ipopt
   GTKMM_BASEPATH: c:\projects\gtkmm
   GTK_BASEPATH: c:\projects\gtkmm
-  YARP_DIR: c:\projects\yarp\build
-  ICUB_DIR: c:\projects\icub-main\build
+  YARP_DIR: c:\projects\YARP
+  ICUB_DIR: c:\projects\iCub
   WYSIWYD_DIR: c:\projects\wysiwyd\main\build
   
 install:
@@ -21,12 +21,16 @@ install:
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip','c:\projects\gsl.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip','c:\projects\ipopt.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip','c:\projects\gtkmm.zip')
+  - ps: (new-object net.webclient).DownloadFile('https://drive.google.com/file/d/0BzentpyZAll7eTlZYnZKd2JDQTg/edit?usp=sharing','c:\projects\yarp.zip')
+  - ps: (new-object net.webclient).DownloadFile('https://drive.google.com/file/d/0BzentpyZAll7V3BhTFBVX3J1eU0/edit?usp=sharing','c:\projects\icub.zip')
   
   - ps: cinst 7zip.commandline -x86
   - ps: 7z x c:\projects\ace.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\gsl.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\gtkmm.zip -oc:\projects -y > $null
+  - ps: 7z x c:\projects\yarp.zip -oc:\projects -y > $null
+  - ps: 7z x c:\projects\icub.zip -oc:\projects -y > $null
     
   - ps: rename-item c:\projects\ACE_wrappers c:\projects\ace
   - ps: rename-item c:\projects\gsl-1.14 c:\projects\gsl
@@ -34,21 +38,6 @@ install:
 
 build:
 
-before_build:
-  - git clone -q --branch=master --depth=1 https://github.com/robotology/yarp.git c:\projects\yarp
-  - cd c:\projects\yarp
-  - md build
-  - cd build
-  - cmake -G"Visual Studio 11" -DCREATE_LIB_MATH:BOOL=ON -DCREATE_YMANAGER:BOOL=OFF -DYARP_COMPILE_TESTS:BOOL=OFF ..
-  - msbuild /m /p:Configuration=Release /p:Platform="Win32" YARP.sln
-  
-  - git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
-  - cd c:\projects\icub-main
-  - md build
-  - cd build
-  - cmake -G"Visual Studio 11" -DENABLE_icubmod_cartesiancontrollerclient:BOOL=ON -DENABLE_icubmod_gazecontrollerclient:BOOL=ON ..
-  - msbuild /m /p:Configuration=Release /p:Platform="Win32" iCub.sln
-  
 build_script:
   - cd c:\projects\wysiwyd\main
   - md build
