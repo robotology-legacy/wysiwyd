@@ -40,7 +40,7 @@ before_build:
   - cd c:\projects\yarp
   - md build
   - cd build
-  - cmake -DCREATE_LIB_MATH:ON ..
+  - cmake -G"Visual Studio 11 2012" -DCMAKE_CONFIGURATION_TYPES=Release -DCREATE_LIB_MATH:BOOL=ON ..
   - dir
   
 #build_script:
