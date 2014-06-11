@@ -7,17 +7,15 @@ branches:
 clone_folder: c:\projects\wysiwyd
 
 environment:
-  ACE_ROOT: c:\projects\ace
   GSL_DIR: c:\projects\gsl
   IPOPT_DIR: c:\projects\ipopt
-  GTKMM_BASEPATH: c:\projects\gtkmm
   GTK_BASEPATH: c:\projects\gtkmm
+  GTKMM_BASEPATH: c:\projects\gtkmm
   YARP_DIR: c:\projects\YARP
   ICUB_DIR: c:\projects\iCub
   WYSIWYD_DIR: c:\projects\wysiwyd\main\build
   
 install:
-  - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/ACE_6.1.0-bin-msvc11.zip','c:\projects\ace.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip','c:\projects\gsl.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip','c:\projects\ipopt.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip','c:\projects\gtkmm.zip')
@@ -25,14 +23,12 @@ install:
   - ps: (new-object net.webclient).DownloadFile('https://drive.google.com/file/d/0BzentpyZAll7V3BhTFBVX3J1eU0/edit?usp=sharing','c:\projects\icub.zip')
   
   - ps: cinst 7zip.commandline -x86
-  - ps: 7z x c:\projects\ace.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\gsl.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\gtkmm.zip -oc:\projects -y > $null
-  - ps: 7z x c:\projects\yarp.zip -oc:\projects -y > $null
+  - ps: 7z x c:\projects\yarp.zip -oc:\projects -y
   - ps: 7z x c:\projects\icub.zip -oc:\projects -y > $null
     
-  - ps: rename-item c:\projects\ACE_wrappers c:\projects\ace
   - ps: rename-item c:\projects\gsl-1.14 c:\projects\gsl
   - ps: rename-item c:\projects\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\projects\ipopt
 
