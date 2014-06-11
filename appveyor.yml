@@ -27,9 +27,6 @@ install:
   - ps: rename-item c:\projects\gsl-1.14 c:\projects\gsl
   - ps: rename-item c:\projects\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\projects\ipopt
 
-platform: x86
-configuration: Release
- 
 build:
 
 before_build:
@@ -38,21 +35,21 @@ before_build:
   - md build
   - cd build
   - cmake -G"Visual Studio 11" -DCREATE_LIB_MATH:BOOL=ON ..
-  - msbuild /m YARP.sln
+  - msbuild /m /p:Configuration=Release /p:Platform="x86" YARP.sln
   
   - git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
   - cd c:\projects\icub-main
   - md build
   - cd build
   - cmake -G"Visual Studio 11" -DENABLE_icubmod_cartesiancontrollerclient:BOOL=ON -DENABLE_icubmod_gazecontrollerclient:BOOL=ON ..
-  - msbuild /m iCub.sln
+  - msbuild /m /p:Configuration=Release /p:Platform="x86" iCub.sln
   
 build_script:
   - cd c:\projects\wysiwyd\main
   - md build
   - cd build
   - cmake -G"Visual Studio 11" ..
-  - msbuild /m wysiwyd.sln
+  - msbuild /m /p:Configuration=Release /p:Platform="x86" wysiwyd.sln
 
 notifications:
   email:
