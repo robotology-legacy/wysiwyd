@@ -28,17 +28,20 @@ install:
   
   - ps:  Write-Host "Unpacking ace.zip ..."
   - ps:  $zip_file = $shell_app.namespace("c:\projects\ace.zip")
-  - ps:  $destination = $shell_app.namespace("c:\projects\")
+  - ps:  $destination = $shell_app.namespace("c:\projects\ace")
+  - ps:  Write-Host "Executing $destination.Copyhere($zip_file.items())"
   - ps:  $destination.Copyhere($zip_file.items())
 
   - ps:  Write-Host "Unpacking gsl.zip ..."
   - ps:  $zip_file = $shell_app.namespace("c:\projects\gsl.zip")
-  - ps:  $destination = $shell_app.namespace("c:\projects\")
+  - ps:  $destination = $shell_app.namespace("c:\projects\gsl")
+  - ps:  Write-Host "Executing $destination.Copyhere($zip_file.items())"
   - ps:  $destination.Copyhere($zip_file.items())
 
   - ps:  Write-Host "Unpacking ipopt.zip ..."
   - ps:  $zip_file = $shell_app.namespace("c:\projects\ipopt.zip")
-  - ps:  $destination = $shell_app.namespace("c:\projects\")
+  - ps:  $destination = $shell_app.namespace("c:\projects\ipopt")
+  - ps:  Write-Host "Executing $destination.Copyhere($zip_file.items())"
   - ps:  $destination.Copyhere($zip_file.items())
   
   - cmd: dir c:\projects
