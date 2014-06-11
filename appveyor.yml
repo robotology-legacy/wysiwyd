@@ -22,8 +22,8 @@ install:
   - ps: (new-object net.webclient).DownloadFile($env:gsl_url,'c:\projects\gsl.zip')
   - ps: (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
   
-  - ps: cinst cmake
-  - ps: cinst 7zip.commandline
+  - ps: cinst cmake -x86
+  - ps: cinst 7zip.commandline -x86
   - ps: 7z x c:\projects\ace.zip   -oc:\projects -y > nul
   - ps: 7z x c:\projects\gsl.zip   -oc:\projects -y > nul
   - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > nul
