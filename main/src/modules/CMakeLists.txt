@@ -10,6 +10,7 @@ add_subdirectory(cvz)
 add_subdirectory(abm)
 add_subdirectory(tools)
 add_subdirectory(reservoirHandler)
+add_subdirectory(adaptativeLayer)
 
 if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(visualSystem)
