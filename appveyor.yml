@@ -7,28 +7,33 @@ branches:
 clone_folder: c:\projects\wysiwyd
 
 environment:
-  ace_url:   'http://www.icub.org/download/packages/windows/msvc11/ACE_6.1.0-bin-msvc11.zip'
-  gsl_url:   'http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip'
+  ace_url: 'http://www.icub.org/download/packages/windows/msvc11/ACE_6.1.0-bin-msvc11.zip'
+  gsl_url: 'http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip'
   ipopt_url: 'http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip'
   
-install:
-  - ps:  Write-Host "Downloading $env:ace_url ..."
-  - ps:  (new-object net.webclient).DownloadFile($env:ace_url,'c:\projects\ace.zip')
-  - ps:  Write-Host "Downloading $env:gsl_url ..."
-  - ps:  (new-object net.webclient).DownloadFile($env:gsl_url,'c:\projects\gsl.zip')
-  - ps:  Write-Host "Downloading $env:ipopt_url ..."
-  - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
+  ACE_ROOT: c:\projects\ace
+  GSL_DIR: c:\projects\gsl
+  IPOPT_DIR: c:\projects\ipopt
+  YARP_DIR: c:\projects\yarp\build
+  ICUB_DIR: c:\projects\icub-main\build
   
-  - ps:  Write-Host "Installing 7zip ..."
-  - ps:  cinst 7zip.commandline
-  - ps:  Write-Host "Unpacking ace.zip ..."
-  - ps:  7z x c:\projects\ace.zip   -oc:\projects -y
-  - ps:  Write-Host "Unpacking gsl.zip ..."
-  - ps:  7z x c:\projects\gsl.zip   -oc:\projects -y
-  - ps:  Write-Host "Unpacking ipopt.zip ..."
-  - ps:  7z x c:\projects\ipopt.zip -oc:\projects -y
+install:
+  - ps: (new-object net.webclient).DownloadFile($env:ace_url,'c:\projects\ace.zip')
+  - ps: (new-object net.webclient).DownloadFile($env:gsl_url,'c:\projects\gsl.zip')
+  - ps: (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
+  
+  - ps: cinst cmake
+  - ps: cinst 7zip.commandline
+  - ps: 7z x c:\projects\ace.zip   -oc:\projects -y > nul
+  - ps: 7z x c:\projects\gsl.zip   -oc:\projects -y > nul
+  - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > nul
     
-  - cmd: dir c:\projects
+  - ps: rename-item ACE_wrappers ace
+  - ps: rename-item gsl-1.14 gsl
+  - ps: rename-item Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack ipopt
+  
+  - ps: git clone --branch=master https://github.com/robotology/yarp.git c:\projects\yarp
+  - ps: git clone --branch=master https://github.com/robotology/icub-main.git c:\projects\icub-main
 
 platform: x86
 configuration: Release
