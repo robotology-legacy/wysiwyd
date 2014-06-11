@@ -27,19 +27,21 @@ install:
   - ps: rename-item c:\projects\gsl-1.14 c:\projects\gsl
   - ps: rename-item c:\projects\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\projects\ipopt
   
-  - cmd: git clone -q --branch=master https://github.com/robotology/yarp.git c:\projects\yarp
-  - cmd: git clone -q --branch=master https://github.com/robotology/icub-main.git c:\projects\icub-main
-  - cmd: cmake --version
+  - cmd: git clone -q --branch=master --depth=1 https://github.com/robotology/yarp.git c:\projects\yarp
+  - cmd: git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
   #- set PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
 
 platform: x86
 configuration: Release
  
-build: off
-#  project: wysiwyd.sln
-#  verbosity: detailed
+build:
 
-#before_build:
+before_build:
+  cd c:\projects\yarp
+  md build
+  cd build
+  ccmake -DCREATE_LIB_MATH:ON ..
+  dir .
 
 #build_script:
   #msbuild /m AMPL.sln
