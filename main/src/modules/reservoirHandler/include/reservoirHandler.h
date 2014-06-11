@@ -30,6 +30,7 @@
 
 using namespace std;
 using namespace yarp::os;
+using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
  
 class reservoirHandler : public RFModule {
@@ -58,9 +59,9 @@ private:
 
     string pythonPath;
 
-	yarp::os::Port handlerPort;				// a port to handle messages 
-	yarp::os::Port Port2SpeechRecog;		// a port to send grammar to the speech recog
-	yarp::os::Port Port2iSpeak;		// a port to send grammar to the speech recog
+	Port handlerPort;				// a port to handle messages 
+	Port Port2SpeechRecog;		// a port to send grammar to the speech recog
+	Port Port2iSpeak;		// a port to send grammar to the speech recog
 
 	bool isAwake;
     ICubClient *iCub;
@@ -80,11 +81,11 @@ private:
 
     list<string> lMeaningsSentences;
 
-    Bottle nodeType();
-    Bottle nodeModality();
-    Bottle nodeTrainAP();
-    Bottle nodeTestAP();
-    Bottle nodeTrainSD();
+    bool nodeType();
+    bool nodeModality();
+    bool nodeTrainAP();
+    bool nodeTestAP();
+    bool nodeTrainSD();
     bool callReservoir(string fPython);
 	string	grammarToString(string sPath);
 
@@ -100,10 +101,10 @@ public:
 	reservoirHandler(ResourceFinder &rf);
 	~reservoirHandler();
 
-    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+    bool configure(ResourceFinder &rf); // configure all the module parameters and return true if successful
     bool interruptModule();                       // interrupt, e.g., the ports 
     bool close();                                 // close and shut down the module
-    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+    bool respond(const Bottle& command, Bottle& reply);
     double getPeriod(); 
     bool updateModule();
 };
@@ -112,4 +113,3 @@ public:
 #endif // __RESERVOIRHANDLER_H__
 
 //----- end-of-file --- ( next line intentionally left blank ) ------------------
-

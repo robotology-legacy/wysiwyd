@@ -16,7 +16,6 @@
 */
 
 #include <reservoirHandler.h>
-#include <fstream>
 #include <list>
 
 reservoirHandler::reservoirHandler(ResourceFinder &rf)
@@ -36,7 +35,7 @@ reservoirHandler::~reservoirHandler()
  * equivalent of the "open" method.
  */
 
-bool reservoirHandler::configure(yarp::os::ResourceFinder &rf) {    
+bool reservoirHandler::configure(ResourceFinder &rf) {    
 
     bool	bEveryThingisGood = true;
     bool	bOptionnalModule  = true;
@@ -174,7 +173,7 @@ bool reservoirHandler::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ok");
     }
     else if (command.get(0).asString()==sKeyWord.c_str()) {
-        reply = nodeType();
+        nodeType();
     }
 
     return true;
@@ -222,7 +221,7 @@ bool reservoirHandler::callReservoir(string fPython)
 
     //launch Xavier reservoir
     cout << "launch Xavier reservoir" << endl;
-    std::string command = "cd " + pythonPath + " && python " + fPython;
+    string command = "cd " + pythonPath + " && python " + fPython;
     cout << "cmd bash " << command << endl;
     bool bsys = system(command.c_str());
     return bsys;
@@ -231,7 +230,7 @@ bool reservoirHandler::callReservoir(string fPython)
 /* Node 1: general question
 *	produce or understand
 */
-Bottle reservoirHandler::nodeType()
+bool reservoirHandler::nodeType()
 {
     sCurrentNode = "nodeType";
     sCurrentGrammarFile = nameGrammarNodeType;
@@ -271,7 +270,7 @@ Bottle reservoirHandler::nodeType()
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
         if (bSpeechRecognized.get(0).toString() == "0")
@@ -279,7 +278,7 @@ Bottle reservoirHandler::nodeType()
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
 
@@ -300,7 +299,7 @@ Bottle reservoirHandler::nodeType()
         osError << " | STOP called";
         bOutput.addString(osError.str());
         cout << osError.str() << endl;
-        return bOutput;
+        //return bOutput;
     }
 
 
@@ -326,7 +325,7 @@ Bottle reservoirHandler::nodeType()
             cout << "iCub says : 'Set the objects'" << endl ;
             cout << "iCub says : 'Told a sentence to execute. Or go in train mode'" << endl ;
 
-            return nodeModality();
+            nodeModality();
         }
 
 
@@ -351,15 +350,14 @@ Bottle reservoirHandler::nodeType()
             // ATTENTION_SELECTOR_track_agent_or_object "You"
             cout << "iCub says : 'Told a sentence to execute. Or go in train mode....'" << endl ;
 
-            return nodeModality();
+            nodeModality();
         }
 
         else
             return nodeType();
     }
 
-    bOutput.addString("return");
-    return bOutput;
+    return true;
 }
 
 /*	Node 2 : details about number and agent
@@ -367,13 +365,12 @@ Bottle reservoirHandler::nodeType()
 *		repeat and stop allowed
 */
 
-Bottle reservoirHandler::nodeModality()
+bool reservoirHandler::nodeModality()
 {
     sCurrentNode = "nodeModality";
     sCurrentGrammarFile = nameGrammarNodeModality;
     ostringstream osError;			// Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
 
     Bottle bOutput;
 
@@ -406,7 +403,7 @@ Bottle reservoirHandler::nodeModality()
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
         if (bSpeechRecognized.get(0).toString() == "0")
@@ -414,7 +411,7 @@ Bottle reservoirHandler::nodeModality()
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
 
@@ -448,17 +445,13 @@ Bottle reservoirHandler::nodeModality()
 
             cout << "iCub says : 'Oh, tricky! Let's go with locations'" << endl ;
             sSentence_type = " :N";
-            cout << "IN "<<  sCurrentType << " mode" << endl;
-            cout << "IN "<<  sCurrentActivity << " mode" << endl;
-            cout << "IN "<<  sCurrentCanonical << " mode" << endl;
-
-
          }
+
         cout << "iCub says : 'Thinking of the situation'" << endl ;
         copyTrainData(fileXavierTrain.c_str(),fileSRinputM.c_str());
         callReservoir(fileSD);
         cout << "iCub says : 'I have understood'" << endl ;
-        return nodeType();
+        nodeType();
     }
 
 
@@ -486,9 +479,6 @@ Bottle reservoirHandler::nodeModality()
             // ATTENTION_SELECTOR_track_agent_or_object "You"
 
             cout << "iCub says : 'Told a sentence to execute. Or go in train mode.'" << endl ;
-
-            cout << "IN "<<  sCurrentActivity << " mode" << endl;
-            cout << "IN "<<  sCurrentType << " mode" << endl;
 
             if (sCurrentType == "train")
             {
@@ -521,9 +511,6 @@ Bottle reservoirHandler::nodeModality()
         {
             /* Mode Scene Describer => Produce sentence*/
 
-            cout << "IN "<<  sCurrentActivity << " mode" << endl;
-            cout << "IN "<<  sCurrentType << " mode" << endl;
-
             if (sCurrentType == "test")
             {
                 /*
@@ -534,7 +521,7 @@ Bottle reservoirHandler::nodeModality()
 
                 inbsentence=2;
                 cout << "iCub says : 'Do you want me to focus the description about object or location'" << endl ;
-                return nodeModality();
+                nodeModality();
 
             }
 
@@ -550,10 +537,9 @@ Bottle reservoirHandler::nodeModality()
                     {
                         lMeaningsSentences.clear();
                     }
-                    cout << "IN "<<  sCurrentType << " mode" << endl;
-                    cout << "IN "<<  sCurrentActivity << " mode" << endl;
+
                     inbsentence=1;
-                    return nodeTrainSD();
+                    nodeTrainSD();
 
              }
             //ATTENTION_SELECTOR_track $OBJ_FOCUS
@@ -573,26 +559,24 @@ Bottle reservoirHandler::nodeModality()
         osError << " | STOP called";
         bOutput.addString(osError.str());
         cout << osError.str() << endl;
-        return bOutput;
+        //return bOutput;
     }
 
     if (bAnswer.get(0).asString() == "return")
     {
-        return nodeModality();
+        nodeModality();
     }
 
-    bOutput.addString("return");
-    return bOutput;
+    return true;
 }
 
 
-Bottle reservoirHandler::nodeTrainAP()
+bool reservoirHandler::nodeTrainAP()
 {
     sCurrentNode = "nodeModality";
     sCurrentGrammarFile = nameGrammarNodeModality;
     ostringstream osError;			// Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
 
     Bottle bOutput;
 
@@ -625,7 +609,7 @@ Bottle reservoirHandler::nodeTrainAP()
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
         if (bSpeechRecognized.get(0).toString() == "0")
@@ -633,7 +617,7 @@ Bottle reservoirHandler::nodeTrainAP()
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
 
@@ -664,7 +648,7 @@ Bottle reservoirHandler::nodeTrainAP()
         cout << "Human says :  'Do you want continue or exit'" << endl ;
         sSentence = bAnswer.get(0).asString();
         cout << "sSentence" << sSentence << endl;
-        return nodeTrainAP();
+        nodeTrainAP();
       }
 
 
@@ -677,28 +661,25 @@ Bottle reservoirHandler::nodeTrainAP()
           {
             cout << "lMeaningsSentences " <<  endl;
             lMeaningsSentences.push_back(sSentence);
-            return nodeTrainAP();
+            nodeTrainAP();
 
           }
           else if (continueExit == "exit")
           {
             trainSaveMeaningSentence(fileAPimputS.c_str());
-            return nodeType();
+            nodeType();
           }
      }
 
-    bOutput.addString("return");
-    return bOutput;
+    return true;
 }
 
-
-Bottle reservoirHandler::nodeTestAP()
+bool reservoirHandler::nodeTestAP()
 {
     sCurrentNode = "nodeTestAP";
     sCurrentGrammarFile = nameGrammarNodeTestAP;
     ostringstream osError;			// Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
 
     Bottle bOutput;
 
@@ -731,7 +712,7 @@ Bottle reservoirHandler::nodeTestAP()
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
         if (bSpeechRecognized.get(0).toString() == "0")
@@ -739,7 +720,7 @@ Bottle reservoirHandler::nodeTestAP()
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
 
@@ -765,7 +746,7 @@ Bottle reservoirHandler::nodeTestAP()
         cout << "Human :  'Do this...'" << endl;
         cout << "iCub says : 'I have understood      '" << bAnswer.get(0).asString() << endl ;
         cout << "iCub says : 'Is it ok ? ... 'No or Yes" << endl;
-        return nodeTestAP();
+        nodeTestAP();
       }
 
     else if (sQuestionKind == "yesno")
@@ -779,12 +760,12 @@ Bottle reservoirHandler::nodeTestAP()
           callReservoir(pythonPath + fileAP);
           cout <<  "iCub do the action..." << endl;
           cout << "iCub says : 'Is it ok ? ... 'continue or exit" << endl;
-          return nodeTestAP();
+          nodeTestAP();
 
         }
         else if (yesNo == "no")
         {
-          return nodeTestAP();
+          nodeTestAP();
         }
       }
 
@@ -796,22 +777,21 @@ Bottle reservoirHandler::nodeTestAP()
           if (continueExit == "continue")
           {
             cout << "Humain say a command ...." << endl;
-            return nodeTestAP();
+            nodeTestAP();
 
           }
           else if (continueExit == "exit")
           {
-            return nodeType();
+            nodeType();
           }
      }
 
-     bOutput.addString("return");
-     return bOutput;
+     return true;
 }
 
 
 
-Bottle reservoirHandler::nodeTrainSD()
+bool reservoirHandler::nodeTrainSD()
 {
     sCurrentNode = "nodeTrainSD";
     sCurrentGrammarFile = nameGrammarNodeTrainSD;
@@ -850,7 +830,7 @@ Bottle reservoirHandler::nodeTrainSD()
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
         if (bSpeechRecognized.get(0).toString() == "0")
@@ -858,7 +838,7 @@ Bottle reservoirHandler::nodeTrainSD()
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
-            return bOutput;
+            //return bOutput;
         }
 
 
@@ -888,7 +868,7 @@ Bottle reservoirHandler::nodeTrainSD()
                 cout << "iCub says : 'I have recognized      '" << bAnswer.get(0).asString() << endl ;
                 cout << "iCub says : 'Is it ok ? ... 'continue or exit" << endl;
                 string sSentence = bAnswer.get(0).asString();
-                return nodeTrainSD();
+                nodeTrainSD();
               }
 
               else if (sQuestionKind == "follow")
@@ -900,13 +880,13 @@ Bottle reservoirHandler::nodeTrainSD()
                   {
                     cout << "lMeaningsSentences " <<  endl;
                     lMeaningsSentences.push_back(sSentence+ sSentence_type);
-                    return nodeTrainSD();
+                    nodeTrainSD();
 
                   }
                   else if (continueExit == "exit")
                   {
                     trainSaveMeaningSentence(fileSRinputM.c_str());
-                    return nodeType();
+                    nodeType();
                   }
              }
 
@@ -918,17 +898,16 @@ Bottle reservoirHandler::nodeTrainSD()
         copyTrainData(fileXavierTrain.c_str(),fileSRinputM.c_str());
         callReservoir(pythonPath + fileSD);
         cout << "iCub says : 'I have understood'" << endl ;
-        return nodeType();
+        nodeType();
     }
 
 
     if (bAnswer.get(0).asString() == "return")
     {
-        return nodeModality();
+        nodeModality();
     }
 
-    bOutput.addString("return");
-    return bOutput;
+    return true;
  }
 
 
@@ -957,7 +936,7 @@ int reservoirHandler::copyTrainData(const char* fileNameIn, const char* fileName
         createTestwithTrainData(fileNameOut, "left circle cross, left circle eraser :C");
     }
     file.close();
-    return 0;
+    return true;
 }
 
 
@@ -984,7 +963,7 @@ int reservoirHandler::trainSaveMeaningSentence(const char* filename)
         }
     }
     file.close();
-    return 0;
+    return true;
 }
 
 
@@ -998,7 +977,7 @@ int reservoirHandler::createTestwithTrainData(const char* filename, string sMean
     file << "</test data>" <<endl;
     file.close();
 
-    return 0;
+    return true;
 }
 
 
@@ -1015,6 +994,7 @@ int reservoirHandler::copyPastFile(const char* fileNameIn, const char* fileNameO
     }
     in.close();
     out.close();
-    return 0;
+
+    return true;
 }
 
