@@ -19,20 +19,15 @@ install:
   - ps:  Write-Host "Downloading $env:ipopt_url ..."
   - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
   
+  - ps:  Write-Host "Installing 7zip ..."
   - ps:  cinst 7zip.commandline
-  - ps:  7z e c:\projects\ace.zip   -oc:\projects
-  - ps:  7z e c:\projects\gsl.zip   -oc:\projects
-  - ps:  7z e c:\projects\ipopt.zip -oc:\projects
-  
-  #- ps:  Write-Host "Unpacking ace.zip ..."
-  #- ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\ace.zip").items())
-
-  #- ps:  Write-Host "Unpacking gsl.zip ..."
-  #- ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\gsl.zip").items())
-
-  #- ps:  Write-Host "Unpacking ipopt.zip ..."
-  #- ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\ipopt.zip").items())  
-  
+  - ps:  Write-Host "Unpacking ace.zip ..."
+  - ps:  7z e c:\projects\ace.zip   -oc:\projects -y
+  - ps:  Write-Host "Unpacking gsl.zip ..."
+  - ps:  7z e c:\projects\gsl.zip   -oc:\projects -y
+  - ps:  Write-Host "Unpacking ipopt.zip ..."
+  - ps:  7z e c:\projects\ipopt.zip -oc:\projects -y
+    
   - cmd: dir c:\projects
 
 platform: x86
@@ -47,7 +42,3 @@ build: off
 #build_script:
 
 #after_build:
- 
-notifications:
-  email:
-    - ugo.pattacini@iit.it
