@@ -20,9 +20,9 @@ install:
   - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
   
   - ps:  cinst 7zip.commandline
-  - ps:  7z e ace.zip
-  - ps:  7z e gsl.zip
-  - ps:  7z e ipopt.zip
+  - ps:  7z e c:\projects\ace.zip   -oc:\projects
+  - ps:  7z e c:\projects\gsl.zip   -oc:\projects
+  - ps:  7z e c:\projects\ipopt.zip -oc:\projects
   
   #- ps:  Write-Host "Unpacking ace.zip ..."
   #- ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\ace.zip").items())
