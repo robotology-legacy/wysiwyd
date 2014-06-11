@@ -22,11 +22,11 @@ install:
   - ps:  Write-Host "Installing 7zip ..."
   - ps:  cinst 7zip.commandline
   - ps:  Write-Host "Unpacking ace.zip ..."
-  - ps:  7z e c:\projects\ace.zip   -oc:\projects -y
+  - ps:  7z x c:\projects\ace.zip   -oc:\projects -y
   - ps:  Write-Host "Unpacking gsl.zip ..."
-  - ps:  7z e c:\projects\gsl.zip   -oc:\projects -y
+  - ps:  7z x c:\projects\gsl.zip   -oc:\projects -y
   - ps:  Write-Host "Unpacking ipopt.zip ..."
-  - ps:  7z e c:\projects\ipopt.zip -oc:\projects -y
+  - ps:  7z x c:\projects\ipopt.zip -oc:\projects -y
     
   - cmd: dir c:\projects
 
