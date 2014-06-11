@@ -24,25 +24,14 @@ install:
   - ps:  Write-Host "Downloading $env:ipopt_url ..."
   - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
   
-  - ps:  $shell_app = new-object -com shell.application
-  
   - ps:  Write-Host "Unpacking ace.zip ..."
-  - ps:  $zip_file = $shell_app.namespace("c:\projects\ace.zip")
-  - ps:  $destination = $shell_app.namespace("c:\projects\ace")
-  - ps:  Write-Host "Executing $destination.Copyhere($zip_file.items())"
-  - ps:  $destination.Copyhere($zip_file.items())
+  - ps:  (new-object -com shell.application).namespace("c:\projects").Copyhere((new-object -com shell.application).namespace("c:\projects\ace.zip").items())
 
   - ps:  Write-Host "Unpacking gsl.zip ..."
-  - ps:  $zip_file = $shell_app.namespace("c:\projects\gsl.zip")
-  - ps:  $destination = $shell_app.namespace("c:\projects\gsl")
-  - ps:  Write-Host "Executing $destination.Copyhere($zip_file.items())"
-  - ps:  $destination.Copyhere($zip_file.items())
+  - ps:  (new-object -com shell.application).namespace("c:\projects").Copyhere((new-object -com shell.application).namespace("c:\projects\gsl.zip").items())
 
   - ps:  Write-Host "Unpacking ipopt.zip ..."
-  - ps:  $zip_file = $shell_app.namespace("c:\projects\ipopt.zip")
-  - ps:  $destination = $shell_app.namespace("c:\projects\ipopt")
-  - ps:  Write-Host "Executing $destination.Copyhere($zip_file.items())"
-  - ps:  $destination.Copyhere($zip_file.items())
+  - ps:  (new-object -com shell.application).namespace("c:\projects").Copyhere((new-object -com shell.application).namespace("c:\projects\ipopt.zip").items())  
   
   - cmd: dir c:\projects
 
