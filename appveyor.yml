@@ -54,4 +54,7 @@ build_script:
   - cmake -G"Visual Studio 11" ..
   - msbuild /m wysiwyd.sln
 
+notifications:
+  email:
+  - ugo.pattacini@iit.it
 
