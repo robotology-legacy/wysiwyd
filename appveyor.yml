@@ -19,19 +19,21 @@ install:
   - ps:  Write-Host "Downloading $env:ipopt_url ..."
   - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
   
-  - ps:  Write-Host "Unpacking ace.zip ..."
-  - ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\ace.zip").items())
-
-  - ps:  Write-Host "Unpacking gsl.zip ..."
-  - ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\gsl.zip").items())
-
-  - ps:  Write-Host "Unpacking ipopt.zip ..."
-  - ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\ipopt.zip").items())  
+  - ps:  cinst 7zip.commandline
+  - ps:  7z e ace.zip
+  - ps:  7z e gsl.zip
+  - ps:  7z e ipopt.zip
   
-  - cmd: dir c:\
-  - cmd: dir c:\tools
+  #- ps:  Write-Host "Unpacking ace.zip ..."
+  #- ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\ace.zip").items())
+
+  #- ps:  Write-Host "Unpacking gsl.zip ..."
+  #- ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\gsl.zip").items())
+
+  #- ps:  Write-Host "Unpacking ipopt.zip ..."
+  #- ps:  (new-object -com shell.application).namespace("c:\projects").CopyHere((new-object -com shell.application).namespace("c:\projects\ipopt.zip").items())  
+  
   - cmd: dir c:\projects
-  - cmd: dir c:\projects\wysiwyd
 
 platform: x86
 configuration: Release
