@@ -35,21 +35,21 @@ before_build:
   - md build
   - cd build
   - cmake -G"Visual Studio 11" -DCREATE_LIB_MATH:BOOL=ON ..
-  - msbuild /m /p:Configuration=Release /p:Platform="x86" YARP.sln
+  - devenv YARP.sln /build Release /project ALL_BUILD.vcxproj /projectconfig "Release|Win32"
   
   - git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
   - cd c:\projects\icub-main
   - md build
   - cd build
   - cmake -G"Visual Studio 11" -DENABLE_icubmod_cartesiancontrollerclient:BOOL=ON -DENABLE_icubmod_gazecontrollerclient:BOOL=ON ..
-  - msbuild /m /p:Configuration=Release /p:Platform="x86" iCub.sln
+  - devenv iCub.sln /build Release /project ALL_BUILD.vcxproj /projectconfig "Release|Win32"
   
 build_script:
   - cd c:\projects\wysiwyd\main
   - md build
   - cd build
   - cmake -G"Visual Studio 11" ..
-  - msbuild /m /p:Configuration=Release /p:Platform="x86" wysiwyd.sln
+  - devenv wysiwyd.sln /build Release /project ALL_BUILD.vcxproj /projectconfig "Release|Win32"
 
 notifications:
   email:
