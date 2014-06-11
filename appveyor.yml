@@ -26,9 +26,6 @@ install:
   - ps: rename-item c:\projects\ACE_wrappers c:\projects\ace
   - ps: rename-item c:\projects\gsl-1.14 c:\projects\gsl
   - ps: rename-item c:\projects\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\projects\ipopt
-  
-  - cmd: git clone -q --branch=master --depth=1 https://github.com/robotology/yarp.git c:\projects\yarp
-  - cmd: git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
 
 platform: x86
 configuration: Release
@@ -36,20 +33,25 @@ configuration: Release
 build:
 
 before_build:
+  - git clone -q --branch=master --depth=1 https://github.com/robotology/yarp.git c:\projects\yarp
   - cd c:\projects\yarp
   - md build
   - cd build
-  - cmake -G"Visual Studio 11" -DCMAKE_CONFIGURATION_TYPES=Release -DCREATE_LIB_MATH:BOOL=ON ..
+  - cmake -G"Visual Studio 11" -DCREATE_LIB_MATH:BOOL=ON ..
   - msbuild /m YARP.sln
   
+  - git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
   - cd c:\projects\icub-main
   - md build
   - cd build
-  - cmake -G"Visual Studio 11" -DCMAKE_CONFIGURATION_TYPES=Release -DENABLE_icubmod_cartesiancontrollerclient:BOOL=ON -DENABLE_icubmod_gazecontrollerclient:BOOL=ON ..
+  - cmake -G"Visual Studio 11" -DENABLE_icubmod_cartesiancontrollerclient:BOOL=ON -DENABLE_icubmod_gazecontrollerclient:BOOL=ON ..
   - msbuild /m iCub.sln
   
-#build_script:
-  #msbuild /m AMPL.sln
+build_script:
+  - cd c:\projects\wysiwyd\main
+  - md build
+  - cd build
+  - cmake -G"Visual Studio 11" ..
+  - msbuild /m wysiwyd.sln
 
-#after_build:
 
