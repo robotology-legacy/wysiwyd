@@ -32,20 +32,23 @@ build:
 
 before_build:
   - git clone -q --branch=master --depth=1 https://github.com/robotology/yarp.git c:\projects\yarp
-  - md %YARP_BUILD%
-  - cd %YARP_BUILD%
+  - cd c:\projects\yarp
+  - md build
+  - cd build
   - cmake -G"Visual Studio 11" -DCREATE_LIB_MATH:BOOL=ON -DCREATE_YMANAGER:BOOL=OFF -DYARP_COMPILE_TESTS:BOOL=OFF ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" YARP.sln
   
   - git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
-  - md %ICUB_BUILD%
-  - cd %ICUB_BUILD%
+  - cd c:\projects\icub-main
+  - md build
+  - cd build
   - cmake -G"Visual Studio 11" -DENABLE_icubmod_cartesiancontrollerclient:BOOL=ON -DENABLE_icubmod_gazecontrollerclient:BOOL=ON ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" iCub.sln
   
 build_script:
-  - md %WYSIWYD_DIR%
-  - cd %WYSIWYD_DIR%
+  - cd c:\projects\wysiwyd\main
+  - md build
+  - cd build
   - cmake -G"Visual Studio 11" ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" wysiwyd.sln
 
