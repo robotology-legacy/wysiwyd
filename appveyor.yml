@@ -25,13 +25,13 @@ install:
   - ps:  (new-object net.webclient).DownloadFile($env:ipopt_url,'c:\projects\ipopt.zip')
   
   - ps:  Write-Host "Unpacking ace.zip ..."
-  - ps:  (new-object -com shell.application).namespace("c:\projects").Copyhere((new-object -com shell.application).namespace("c:\projects\ace.zip").items())
+  - ps:  (new-object -com shell.application).namespace("c:\projects\ace").Copyhere((new-object -com shell.application).namespace("c:\projects\ace.zip").items())
 
   - ps:  Write-Host "Unpacking gsl.zip ..."
-  - ps:  (new-object -com shell.application).namespace("c:\projects").Copyhere((new-object -com shell.application).namespace("c:\projects\gsl.zip").items())
+  - ps:  (new-object -com shell.application).namespace("c:\projects\gsl").Copyhere((new-object -com shell.application).namespace("c:\projects\gsl.zip").items())
 
   - ps:  Write-Host "Unpacking ipopt.zip ..."
-  - ps:  (new-object -com shell.application).namespace("c:\projects").Copyhere((new-object -com shell.application).namespace("c:\projects\ipopt.zip").items())  
+  - ps:  (new-object -com shell.application).namespace("c:\projects\ipopt").Copyhere((new-object -com shell.application).namespace("c:\projects\ipopt.zip").items())  
   
   - cmd: dir c:\projects
 
