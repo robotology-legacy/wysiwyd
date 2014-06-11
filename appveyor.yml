@@ -30,6 +30,7 @@ install:
   - cmd: git clone -q --branch=master --depth=1 https://github.com/robotology/yarp.git c:\projects\yarp
   - cmd: git clone -q --branch=master --depth=1 https://github.com/robotology/icub-main.git c:\projects\icub-main
   #- set PATH=C:\Program Files (x86)\MSBuild\12.0\bin\;%PATH%
+  - cmd: - dir "C:\Program Files (x86)\MSBuild"
 
 platform: x86
 configuration: Release
@@ -40,11 +41,16 @@ before_build:
   - cd c:\projects\yarp
   - md build
   - cd build
-  - cmake -G"Visual Studio 11 2012" -DCMAKE_CONFIGURATION_TYPES=Release -DCREATE_LIB_MATH:BOOL=ON ..
+  - cmake -G"Visual Studio 11" -DCMAKE_CONFIGURATION_TYPES=Release -DCREATE_LIB_MATH:BOOL=ON ..
   - dir
   
 #build_script:
   #msbuild /m AMPL.sln
 
 #after_build:
+
+notifications:
+  email:
+  - ugo.pattacini@iit.it
+
 
