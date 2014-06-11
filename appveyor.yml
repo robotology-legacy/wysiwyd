@@ -24,9 +24,9 @@ install:
   
   #- ps: cinst cmake -x86
   - ps: cinst 7zip.commandline -x86
-  - ps: 7z x c:\projects\ace.zip   -oc:\projects -y > nul
-  - ps: 7z x c:\projects\gsl.zip   -oc:\projects -y > nul
-  - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > nul
+  - ps: 7z x c:\projects\ace.zip   -oc:\projects -y > $null
+  - ps: 7z x c:\projects\gsl.zip   -oc:\projects -y > $null
+  - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > $null
     
   - ps: rename-item ACE_wrappers ace
   - ps: rename-item gsl-1.14 gsl
