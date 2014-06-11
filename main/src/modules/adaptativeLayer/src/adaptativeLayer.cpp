@@ -40,14 +40,8 @@ bool adaptativeLayer::configure(yarp::os::ResourceFinder &rf)
 bool adaptativeLayer::updateModule()
 {
     cout<<".";
-    bool socialInteraction = false;
     bool physicalInteraction = false;
     bool spokenInteraction = false;
-    bool playInteraction = false;
-    double distanceToParking=0.0;
-    double angleToParking=0.0;
-
-    //First we check if there is any pending scenario to be ran
 
 
     //Those one are safe next to the table
