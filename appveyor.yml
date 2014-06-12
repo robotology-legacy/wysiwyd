@@ -11,24 +11,24 @@ environment:
   IPOPT_DIR: c:\projects\ipopt
   GTK_BASEPATH: c:\projects\gtkmm
   GTKMM_BASEPATH: c:\projects\gtkmm
-  YARP_DIR: c:\projects\YARP
-  ICUB_DIR: c:\projects\iCub
+  YARP_DIR: c:\Program Files (x86)\YARP
+  ICUB_DIR: c:\Program Files (x86)\iCub
   WYSIWYD_DIR: c:\projects\wysiwyd\main\build
   
 install:
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip','c:\projects\gsl.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip','c:\projects\ipopt.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip','c:\projects\gtkmm.zip')
-  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?authuser=0&id=0BzentpyZAll7aUpTWFZHVmtNc3M&export=download','c:\projects\yarp.zip')
-  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?authuser=0&id=0BzentpyZAll7dEdBamVpVE0tMDA&export=download','c:\projects\icub.zip')
+  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?authuser=0&id=0BzentpyZAll7c1VOOHFaSXFtUEU&export=download','c:\Program Files (x86)\yarp.zip')
+  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?export=download&confirm=PB5g&id=0BzentpyZAll7ZnBKcFUyLXp3Rlk','c:\Program Files (x86)\icub.zip')
   - cmd: dir c:\projects  
   
   - ps: cinst 7zip.commandline -x86
   - ps: 7z x c:\projects\gsl.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\gtkmm.zip -oc:\projects -y > $null
-  - ps: 7z x c:\projects\icub.zip -oc:\projects -y > $null
-  - ps: 7z x c:\projects\yarp.zip -oc:\projects -y > $null
+  - ps: 7z x "c:\Program Files (x86)\yarp.zip" -o"c:\Program Files (x86)" -y > $null
+  - ps: 7z x "c:\Program Files (x86)\icub.zip" -o"c:\Program Files (x86)" -y > $null  
     
   - ps: rename-item c:\projects\gsl-1.14 c:\projects\gsl
   - ps: rename-item c:\projects\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\projects\ipopt
