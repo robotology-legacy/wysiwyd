@@ -17,11 +17,11 @@ environment:
   
 install:
   - cmd: cinst wget -x86
-  - cmd: wget http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip -O c:\gsl.zip
-  - cmd: wget http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip -O c:\ipopt.zip
-  - cmd: wget http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip -O c:\gtkmm.zip
-  - cmd: wget --no-check-certificate https://googledrive.com/host/0BzentpyZAll7Z2JtblBHTkhiVDQ -O c:\yarp.zip
-  - cmd: wget --no-check-certificate https://googledrive.com/host/0BzentpyZAll7REZwMnIzSkdJdTA -O c:\icub.zip
+  - cmd: wget http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip -O c:\gsl.zip > nul
+  - cmd: wget http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip -O c:\ipopt.zip > nul
+  - cmd: wget http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip -O c:\gtkmm.zip > nul
+  - cmd: wget --no-check-certificate https://googledrive.com/host/0BzentpyZAll7Z2JtblBHTkhiVDQ -O c:\yarp.zip > nul
+  - cmd: wget --no-check-certificate https://googledrive.com/host/0BzentpyZAll7REZwMnIzSkdJdTA -O c:\icub.zip > nul
   - cmd: dir c:\  
   
   - cmd: cinst 7zip.commandline -x86
