@@ -27,8 +27,8 @@ install:
   - ps: 7z x c:\projects\gsl.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\ipopt.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\gtkmm.zip -oc:\projects -y > $null
-  - ps: 7z x c:\projects\yarp.zip -oc:\projects -y > $null
   - ps: 7z x c:\projects\icub.zip -oc:\projects -y > $null
+  - ps: 7z x c:\projects\yarp.zip -oc:\projects -y > $null
     
   - ps: rename-item c:\projects\gsl-1.14 c:\projects\gsl
   - ps: rename-item c:\projects\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\projects\ipopt
