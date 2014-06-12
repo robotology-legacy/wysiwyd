@@ -16,19 +16,20 @@ environment:
   WYSIWYD_DIR: c:\wysiwyd\main\build
   
 install:
-  - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip','c:\gsl.zip')
-  - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip','c:\ipopt.zip')
-  - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip','c:\gtkmm.zip')
-  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?authuser=0&id=0BzentpyZAll7Z2JtblBHTkhiVDQ&export=download','c:\yarp.zip')
-  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?export=download&confirm=huyP&id=0BzentpyZAll7REZwMnIzSkdJdTA','c:\icub.zip')
+  - cmd: cinst wget -x86
+  - cmd: wget http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip -O c:\gsl.zip
+  - cmd: wget http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip -O c:\ipopt.zip
+  - cmd: wget http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip -O c:\gtkmm.zip
+  - cmd: wget --no-check-certificate https://googledrive.com/host/0BzentpyZAll7Z2JtblBHTkhiVDQ -O c:\yarp.zip
+  - cmd: wget --no-check-certificate https://googledrive.com/host/0BzentpyZAll7REZwMnIzSkdJdTA -O c:\icub.zip
   - cmd: dir c:\  
   
-  - ps: cinst 7zip.commandline -x86
-  - ps: 7z x c:\gsl.zip -oc:\ -y > $null
-  - ps: 7z x c:\ipopt.zip -oc:\ -y > $null
-  - ps: 7z x c:\gtkmm.zip -oc:\ -y > $null
-  - ps: 7z x c:\yarp.zip -oc:\ -y > $null
-  - ps: 7z x c:\icub.zip -oc:\ -y > $null  
+  - cmd: cinst 7zip.commandline -x86
+  - cmd: 7z x c:\gsl.zip -oc:\ -y > nul
+  - cmd: 7z x c:\ipopt.zip -oc:\ -y > nul 
+  - cmd: 7z x c:\gtkmm.zip -oc:\ -y > nul
+  - cmd: 7z x c:\yarp.zip -oc:\ -y > nul
+  - cmd: 7z x c:\icub.zip -oc:\ -y > nul  
     
   - ps: rename-item c:\gsl-1.14 c:\gsl
   - ps: rename-item c:\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\ipopt
