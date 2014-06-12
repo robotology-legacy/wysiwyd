@@ -19,8 +19,9 @@ install:
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip','c:\projects\gsl.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip','c:\projects\ipopt.zip')
   - ps: (new-object net.webclient).DownloadFile('http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip','c:\projects\gtkmm.zip')
-  - ps: (new-object net.webclient).DownloadFile('https://drive.google.com/file/d/0BzentpyZAll7UEZFVG42YVpyZUk/edit?usp=sharing','c:\projects\yarp.zip')
-  - ps: (new-object net.webclient).DownloadFile('https://drive.google.com/file/d/0BzentpyZAll7b2xEOE9GY3hQTEE/edit?usp=sharing','c:\projects\icub.zip')
+  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?authuser=0&id=0BzentpyZAll7YkZibFEwYi1Hb2c&export=download','c:\projects\yarp.zip')
+  - ps: (new-object net.webclient).DownloadFile('https://docs.google.com/uc?authuser=0&id=0BzentpyZAll7dEdBamVpVE0tMDA&export=download','c:\projects\icub.zip')
+  - cmd: dir c:\projects  
   
   - ps: cinst 7zip.commandline -x86
   - ps: 7z x c:\projects\gsl.zip -oc:\projects -y > $null
