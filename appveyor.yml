@@ -4,42 +4,40 @@ branches:
   only:
   - master
 
-clone_folder: c:\wysiwyd
+clone_folder: c:\dev\wysiwyd
 
 environment:
-  GSL_DIR: c:\gsl
-  IPOPT_DIR: c:\ipopt
-  GTK_BASEPATH: c:\gtkmm
-  GTKMM_BASEPATH: c:\gtkmm
+  GSL_DIR: c:\dev\gsl-1.14
+  IPOPT_DIR: c:\dev\ipopt-3.10.1
+  GTK_BASEPATH: c:\dev\gtkmm-2.22.0-2
+  GTKMM_BASEPATH: c:\dev\gtkmm-2.22.0-2
   YARP_DIR: c:\YARP
   ICUB_DIR: c:\iCub
-  WYSIWYD_DIR: c:\wysiwyd\main\build
+  WYSIWYD_DIR: c:\dev\wysiwyd\main\build
   
 install:
   - cmd: cinst wget -x86
   - cmd: cinst 7zip.commandline -x86
   
-  - cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip -O c:\gsl.zip
-  - cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip -O c:\ipopt.zip
-  - cmd: wget -q http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip -O c:\gtkmm.zip
+  - cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip -O c:\dev\gsl.zip
+  - cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip -O c:\dev\ipopt.zip
+  - cmd: wget -q http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip -O c:\dev\gtkmm.zip
   - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7Z2JtblBHTkhiVDQ -O c:\yarp.zip
   - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7REZwMnIzSkdJdTA -O c:\icub.zip
-  - cmd: dir c:\  
   
-  - cmd: 7z x c:\gsl.zip -oc:\ -y > nul
-  - cmd: 7z x c:\ipopt.zip -oc:\ -y > nul 
-  - cmd: 7z x c:\gtkmm.zip -oc:\ -y > nul
+  - cmd: 7z x c:\dev\gsl.zip -oc:\dev -y > nul
+  - cmd: 7z x c:\dev\ipopt.zip -oc:\dev -y > nul 
+  - cmd: 7z x c:\dev\gtkmm.zip -oc:\dev -y > nul
   - cmd: 7z x c:\yarp.zip -oc:\ -y > nul
   - cmd: 7z x c:\icub.zip -oc:\ -y > nul  
     
-  - ps: rename-item c:\gsl-1.14 c:\gsl
-  - ps: rename-item c:\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\ipopt
-  - cmd: dir c:\
+  - ps: rename-item c:\dev\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\dev\ipopt-3.10.1
+  - cmd: dir c:\dev
 
 build:
 
 build_script:
-  - cd c:\wysiwyd\main
+  - cd c:\dev\wysiwyd\main
   - md build
   - cd build
   - cmake -G"Visual Studio 11" ..
