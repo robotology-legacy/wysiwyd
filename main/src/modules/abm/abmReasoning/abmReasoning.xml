@@ -1,67 +1,65 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
- 
+
 <module>
 
-   <name>abmReasoning</name>
-   <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>Reasoning module based on the autobiographical memory</description>
-   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
-   <version>1.0</version>
-   
-   <description-long>
-   Reasoning module. Extract information from the ELM (Episodic Like Memory) of the ABM, and analyze it to create knowledge. Knowledge can be use for action, or simulation/reasoning.
-   </description-long>
+  <name>abmReasoning</name>
+  <doxygen-group>wysiwyd_modules</doxygen-group>
+  <description>Reasoning module based on the autobiographical memory</description>
+  <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+  <version>1.0</version>
 
-   <arguments>
-   <param default="abmReasoning" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
-   <param default="icub" desc="To specify the robot's name">robot</param>
-   <param default="history" desc="Keyword to trigger the behaviors when heard on the broadcast port">keyword</param>
-   <param default="client.ini" desc="Specification of the iCubClient">client</param>
-   <param default="nameGrammarNode1.xml" desc="Grammar file (grxml) needed for the node 1">nameGrammarNode1</param>
-   <param default="nameGrammarNode2.xml" desc="Grammar file (grxml) needed for the node 2">nameGrammarNode2</param>
-   <param default="nameGrammarNode3.xml" desc="Grammar file (grxml) needed for the node 3">nameGrammarNode3</param>
-   </arguments>
+  <description-long>
+    Reasoning module. Extract information from the ELM (Episodic Like Memory) of the ABM, and analyze it to create knowledge. Knowledge can be use for action, or simulation/reasoning.
+  </description-long>
 
-   <authors>
-       <author email="gregoire.pointeau@inserm.fr"> Grégoire Pointeau </author>
-   </authors>
+  <arguments>
+    <param default="abmReasoning" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+    <param default="icub" desc="To specify the robot's name">robot</param>
+    <param desc="To specify for not having the module populating the OPC with spatialKnwoledge">noPopulate</param>
+    <param desc="To specify for not having the module loading the semantic knowledge from ABM">noKnowledge</param>
+    <param desc="To specify for not having the module loading the sentences from ABM">noSentences</param>
+  </arguments>
 
-   <data>
-   <input>
-          <type>yarp::sig::Bottle</type>
-          <port carrier="tcp">/abmHandler/rpc</port>
-          <required>yes</required>
-          <priority>no</priority>
-          <description>
-				rpc port of the module, main input. Get the keyword from the broadcast port. Gets inputs from : "/mainLoop/speechGrammar/keyword:o"
-          </description>
-      </input>
-	  
-	  <output>
-          <type>yarp::sig::Bottle</type>
-          <port carrier="tcp">/abmHandler/toABM</port>
-          <description>
-              Port to the autobiographicalMemory module: collect the raw data from the DB. To be connected to : "/autobiographicalMemory/request:i".
-          </description>
-      </output>  
-	  
-	  <output>
-          <type>yarp::sig::Bottle</type>
-          <port carrier="tcp">/abmHandler/toSpeechRecog</port>
-          <description>
-              Port to communicate with the speech Recognizer: send the grammar and get the semantic bottle of the speech recognized. To be connected to "/speechRecognizer/rpc".
-          </description>
-      </output> 
-	  
-	  <output>
-          <type>yarp::sig::Bottle</type>
-          <port carrier="tcp">/abmHandler/toOPCManager</port>
-          <description>
-              Port to communicate with the OPC manager to imagine the memory recalled. To be connected to "/opcManager/rpc".
-          </description>
-      </output>  	  
-	  
-   </data> 
+  <authors>
+    <author email="gregoire.pointeau@inserm.fr"> Grégoire Pointeau </author>
+  </authors>
+
+  <data>
+    <input>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/abmHandler/rpc</port>
+      <required>yes</required>
+      <priority>no</priority>
+      <description>
+        rpc port of the module, main input. Get the keyword from the broadcast port. Gets inputs from : "/mainLoop/speechGrammar/keyword:o"
+      </description>
+    </input>
+
+    <output>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/abmHandler/toABM</port>
+      <description>
+        Port to the autobiographicalMemory module: collect the raw data from the DB. To be connected to : "/autobiographicalMemory/request:i".
+      </description>
+    </output>
+
+    <output>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/abmHandler/toSpeechRecog</port>
+      <description>
+        Port to communicate with the speech Recognizer: send the grammar and get the semantic bottle of the speech recognized. To be connected to "/speechRecognizer/rpc".
+      </description>
+    </output>
+
+    <output>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/abmHandler/toOPCManager</port>
+      <description>
+        Port to communicate with the OPC manager to imagine the memory recalled. To be connected to "/opcManager/rpc".
+      </description>
+    </output>
+
+  </data>
 </module>
 
