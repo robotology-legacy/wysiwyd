@@ -1,0 +1,69 @@
+﻿<!--	The	grammar	tag	surrounds	the	entire	CFG	description
+		Specify	the	language	of	the	grammar	as
+		English-American	('409')	-->
+<GRAMMAR	LANGID="409">
+  <!--	Specify	a	set	of	easy-to-read	strings	to
+			represent	specific	values.	Similar	to
+			constants	or	#define	in	Visual	Basic	or
+			C/++	programming	languages	-->
+  <DEFINE>
+    <ID	NAME="agent"	VAL="1"/>
+    <ID	NAME="action"	VAL="2"/>
+    <ID	NAME="object"	VAL="3"/>
+    <ID	NAME="rtobject"	VAL="4"/>
+    <ID	NAME="keyword"	VAL="5"/>
+    <ID	NAME="game"	VAL="6"/>
+    <ID NAME="about_agent" VAL="11"/>
+    <ID NAME="about_number" VAL="12"/>
+  </DEFINE>
+
+  <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>stop</P>
+  </RULE>
+
+
+  <RULE	NAME="ELSE"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>Let's talk about something else</P>
+  </RULE>
+
+  <RULE	NAME="repeat"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>can you repeat please</P>
+  </RULE>
+
+  <RULE	NAME="MORE"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <L>
+      <RULEREF NAME="about_agent"/>
+      <RULEREF NAME="about_number"/>
+    </L>
+  </RULE>
+
+
+  <RULE NAME="about_agent" DYNAMIC="TRUE">
+    <P>Who was present</P>
+  </RULE>
+
+  <RULE NAME="about_number" DYNAMIC="TRUE">
+    <P>How many time this append</P>
+  </RULE>
+
+  <!--	Vocabularies	-->
+  <RULE NAME="action" DYNAMIC="TRUE">
+  </RULE>
+
+  <RULE NAME="agent" DYNAMIC="TRUE">
+  </RULE>
+
+  <RULE NAME="object" DYNAMIC="TRUE">
+  </RULE>
+
+  <RULE NAME="rtobject" DYNAMIC="TRUE">
+  </RULE>
+
+  <RULE NAME="game" DYNAMIC="TRUE">
+  </RULE>
+
+  <RULE NAME="complement" DYNAMIC="TRUE">
+  </RULE>
+
+  <!--	End	of	Grammar	definition	-->
+</GRAMMAR>
