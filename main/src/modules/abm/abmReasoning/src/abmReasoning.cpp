@@ -9,8 +9,6 @@
 abmReasoning::abmReasoning(ResourceFinder &rf)
 {
     iFunction = new abmReasoningFunction(rf);
-    iCub = new ICubClient("abmReasoning", false);
-    iCub->opc->isVerbose = false;
     path = rf.getContextPath();
     savefile = (rf.getContextPath()+"/saveRequest.txt").c_str();
     opcNameTable.push_back(EFAA_OPC_ENTITY_TAG);
@@ -51,6 +49,10 @@ bool abmReasoning::configure(ResourceFinder &rf)
     portSenderName +=  getName() + "/request:o";
     senderPort.open(portSenderName.c_str());
     bDreaming = false;
+
+    
+    iCub = new ICubClient(moduleName,"abmReasoning/conf","client.ini",false);
+    iCub->opc->isVerbose = false;
 
     Network::connect(senderPort.getName(), "/autobiographicalMemory/request:i");
 
