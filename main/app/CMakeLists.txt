@@ -10,4 +10,5 @@ add_subdirectory(cvz)
 add_subdirectory(visualSystem)
 add_subdirectory(awareTouch)
 add_subdirectory(abm)
+add_subdirectory(opcRelated)
 

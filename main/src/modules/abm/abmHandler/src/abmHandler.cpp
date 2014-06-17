@@ -241,7 +241,8 @@ string abmHandler::grammarToString(string sPath)
 
 
 /* Node 1: general question
-*   no repeat
+* (When was ... )
+* Send nameGrammarNode1 in loop every 5 second until a correct answer or a STOP signal
 */
 Bottle abmHandler::node1()
 {
@@ -467,6 +468,7 @@ Bottle abmHandler::node1()
 /*  Node 2 : details about number and agent
 *       possibility to go back to node 1
 *       repeat and stop allowed
+*       Send nameGrammarNode2 in loop every 5 second until a correct answer or a STOP signal
 */
 Bottle abmHandler::node2()
 {
