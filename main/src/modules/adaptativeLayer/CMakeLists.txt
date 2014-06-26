@@ -2,7 +2,7 @@
 # Authors: Grégoire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME adaptativeLayer)
+set(PROJECTNAME adaptiveLayer)
 project(${PROJECTNAME})
 
 file(GLOB sources src/*.cpp)

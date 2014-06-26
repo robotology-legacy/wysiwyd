@@ -1,8 +1,8 @@
-#include "adaptativeLayer.h"
+#include "adaptiveLayer.h"
 
-bool adaptativeLayer::configure(yarp::os::ResourceFinder &rf)
+bool AdaptiveLayer::configure(yarp::os::ResourceFinder &rf)
 {
-    string moduleName = rf.check("name",Value("adaptativeLayer")).asString().c_str();
+    string moduleName = rf.check("name",Value("adaptiveLayer")).asString().c_str();
     setName(moduleName.c_str());
 
     cout<<moduleName<<": finding configuration files..."<<endl;
@@ -31,37 +31,22 @@ bool adaptativeLayer::configure(yarp::os::ResourceFinder &rf)
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
 
-    lastFaceUpdate = Time::now();
-
-    isAwake = true;
     return true;
 }
 
-bool adaptativeLayer::updateModule()
+bool AdaptiveLayer::updateModule()
 {
     cout<<".";
-    bool physicalInteraction = false;
-    bool spokenInteraction = false;
+	bool spokenInteraction = false;
+	bool gestureInteraction = false;
 
-
-    //Those one are safe next to the table
     spokenInteraction =  handleSpeech();
-    physicalInteraction = handleTactile();
-    handleGesture();
+	gestureInteraction = handleGesture();
 
-    //Expresses the maximum emotion
-    string maxEmotion; double emotionalValue;
-    iCub->getHighestEmotion(maxEmotion, emotionalValue);
-    if (lastFaceUpdate+faceUpdatePeriod<Time::now())
-    {
-        iCub->getExpressionClient()->express(maxEmotion,emotionalValue);
-        lastFaceUpdate = Time::now();
-        //cout<<"Expressing "<<maxEmotion<<" at "<<emotionalValue<<endl;
-    }
     return true;
 }
 
-bool adaptativeLayer::handleGesture()
+bool AdaptiveLayer::handleGesture()
 {
     bool gotSignal = false;
     string humanName = "partner";
@@ -107,56 +92,8 @@ bool adaptativeLayer::handleGesture()
     return gotSignal;
 }
 
-bool adaptativeLayer::handleTactile()
-{
-    bool gotSignal = false;
-    list<Relation> tactileRelations = iCub->opc->getRelationsMatching("icub","is","any","touchLocation");
 
-    if (tactileRelations.size() > 0)
-    {
-        cout<<"I am touched"<<endl;
-        Relation r = *tactileRelations.begin();
-        //Look at the place where it has been touched
-        Object* touchLocation = (Object*) iCub->opc->getEntity("touchLocation");
-        iCub->opc->update(touchLocation);
-        touchLocation->m_present = true;
-        iCub->opc->commit(touchLocation);
-
-        iCub->look("touchLocation");//r.complement_place().c_str());
-        Time::delay(1.0);
-
-        //If we have a stored reaction pattern to this tactile stimulus
-        if (tactileEffects.find(r.object()) != tactileEffects.end() )
-        {
-            iCub->say(tactileEffects[r.object()].getRandomSentence(), false);
-            //Apply each emotional effect
-            for(map<string, double>::iterator itEffects = tactileEffects[r.object()].m_emotionalEffect.begin() ; itEffects != tactileEffects[r.object()].m_emotionalEffect.end(); itEffects++)
-            {
-                iCub->icubAgent->m_emotions_intrinsic[itEffects->first] += itEffects->second;
-                iCub->icubAgent->m_emotions_intrinsic[itEffects->first] = min(1.0, max(0.0,itEffects->second));
-            }
-            //play choreography
-            if(yarp::os::Random::uniform()>0.33)
-            {
-                string randomChoregraphy = tactileEffects[r.object()].getRandomChoregraphy();
-                iCub->playBodyPartChoregraphy(randomChoregraphy.c_str(), "left_arm",1.0,false);
-                iCub->playBodyPartChoregraphy(randomChoregraphy.c_str(), "right_arm",1.0,true);
-                cout << "random Choreography Chosen: " << randomChoregraphy.c_str() << endl;
-            }
-        }
-        iCub->commitAgent();
-
-        iCub->opc->removeRelation(r);
-        touchLocation->m_present = false;
-        iCub->opc->commit(touchLocation);
-        iCub->look("partner");
-        iCub->lookAround();
-        gotSignal = true;
-    }
-    return gotSignal;
-}
-
-void adaptativeLayer::populateSpeechRecognizerVocabulary()
+void AdaptiveLayer::populateSpeechRecognizerVocabulary()
 {
     if (iCub->getSpeechClient()->isRunning())
     {
@@ -173,7 +110,7 @@ void adaptativeLayer::populateSpeechRecognizerVocabulary()
     }
 }
 
-bool adaptativeLayer::handleSpeech()
+bool AdaptiveLayer::handleSpeech()
 {
     bool gotSignal = false;
     Bottle* speechCmd = iCub->getSpeechClient()->STT(false);
@@ -204,11 +141,7 @@ bool adaptativeLayer::handleSpeech()
 
         if (sentenceType == "miscSentences")
         {
-            //HACK - unpark from speech
             string rawSentence = speechCmd->get(0).toString();
-            if (rawSentence == "Lets move away from the table ")
-                //scenarioToRun = "go-away";
-
             cout<<"Catched a misc sentence : "<<semanticBottle->toString().c_str()<<endl;
             return true;
         }
@@ -218,7 +151,6 @@ bool adaptativeLayer::handleSpeech()
         {
             Bottle keyBot;
             string gameName = semanticBottle->get(1).asList()->find("gameName").asString();
-            //scenarioToRun = gameName;
             return true;
         }
 
@@ -397,7 +329,7 @@ bool adaptativeLayer::handleSpeech()
     return gotSignal;
 }
 
-string adaptativeLayer::getEntityFromWordGroup(Bottle *b)
+string AdaptiveLayer::getEntityFromWordGroup(Bottle *b)
 {
     if (b->check("object"))
         return b->find("object").asString();
@@ -413,7 +345,7 @@ string adaptativeLayer::getEntityFromWordGroup(Bottle *b)
     return "none";
 }
 
-Relation adaptativeLayer::getRelationFromSemantic(Bottle b)
+Relation AdaptiveLayer::getRelationFromSemantic(Bottle b)
 {
     string s = "none";
     string v = "none";
@@ -438,7 +370,7 @@ Relation adaptativeLayer::getRelationFromSemantic(Bottle b)
     return Relation(s,v,o,p,t,m);
 }
 
-void adaptativeLayer::configureSpeech(yarp::os::ResourceFinder &rf)
+void AdaptiveLayer::configureSpeech(yarp::os::ResourceFinder &rf)
 {
     //Port for broadcasting recognized keywords to other modules
     //pSpeechRecognizerKeywordOut.open("/"+getName()+"/speechGrammar/keyword:o");
@@ -453,7 +385,7 @@ void adaptativeLayer::configureSpeech(yarp::os::ResourceFinder &rf)
         populateSpeechRecognizerVocabulary();
 }
 
-void adaptativeLayer::configureGestures(yarp::os::ResourceFinder &rf)
+void AdaptiveLayer::configureGestures(yarp::os::ResourceFinder &rf)
 {
     //Initialise the gestures response
     Bottle grpGesture = rf.findGroup("GESTURES");
@@ -482,7 +414,7 @@ void adaptativeLayer::configureGestures(yarp::os::ResourceFinder &rf)
     }
 }
 
-void adaptativeLayer::configureOPC(yarp::os::ResourceFinder &rf)
+void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
 {
     //Populate the OPC if required
     cout<<"Populating OPC";
@@ -550,58 +482,8 @@ void adaptativeLayer::configureOPC(yarp::os::ResourceFinder &rf)
 }
 
 
-bool adaptativeLayer::respond(const Bottle& cmd, Bottle& reply)
+bool AdaptiveLayer::respond(const Bottle& cmd, Bottle& reply)
 {
-    //if (cmd.get(0).asString() == "start" )
-    //{
-    //    string _gameName = cmd.get(1).asString();
-    //    if (scenarii.find(_gameName) == scenarii.end())
-    //    {
-    //        reply.addString("nack");
-    //        reply.addString("Scenario unknown.");
-    //    }
-    //    else
-    //    {
-    //        Relation r("icub","is","playing");
-    //        if(iCub->opc->containsRelation(r))
-    //        {
-    //            reply.addString("nack");
-    //            reply.addString("Already playing. - call \"cleanPlay\" to cleanup the relation.");
-    //        }
-    //        else
-    //        {
-    //            reply.addString("ack");
-    //            reply.addString("Starting a game");
-    //            scenarioToRun = _gameName;
-    //        }
-    //    }
-    //}
-    //else if (cmd.get(0).asString() == "cleanPlay")
-    //{
-    //    iCub->say("Playing status cleaned.");
-    //    Relation r("icub","is","playing");
-    //    iCub->opc->removeRelation(r);
-    //    reply.addString("ack");
-    //    reply.addString("Playing status cleaned.");
-    //}
-    //else if (cmd.get(0).asString() == "park")
-    //{
-    //    iCub->say("About to park");
-    //    parkingPark();
-    //    reply.addString("ack");
-    //    reply.addString("Parked.");
-    //}
-    //else if (cmd.get(0).asString() == "unpark")
-    //{
-    //    iCub->say("About to unpark");
-    //    parkingUnpark();
-    //    reply.addString("ack");
-    //    reply.addString("Unparked.");
-    //}
-    //else
-    //{
-    //    reply.addString("nack");
-    //    reply.addString("Unknown command");
-    //}
+	reply.addString("NACK");
     return true;
 }

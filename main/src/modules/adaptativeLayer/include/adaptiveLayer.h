@@ -22,21 +22,14 @@ struct StimulusEmotionalResponse
     string getRandomChoregraphy() { if(m_choregraphies.size()==0) return "default"; return m_choregraphies[yarp::os::Random::uniform(0,m_choregraphies.size()-1)];}
 };
 
-class adaptativeLayer: public RFModule
+class AdaptiveLayer : public RFModule
 {
 private:
-    bool isAwake;
     ICubClient *iCub;
 
     Port pSpeechRecognizerKeywordOut;
-    BufferedPort<Bottle> pJoystickIn;
-    Bottle lastJoystick, currentjoystick;
 
     double period;
-    double salutationLifetime, lastResponseTime;
-    double faceUpdatePeriod, lastFaceUpdate;
-    double extrovert;
-    map<string, StimulusEmotionalResponse> tactileEffects;
     map<string, StimulusEmotionalResponse> gestureEffects;
     Port    rpc;
 
@@ -74,10 +67,7 @@ public:
     bool handleSpeech();
     Relation getRelationFromSemantic(Bottle b);
     string getEntityFromWordGroup(Bottle *b);
-
-    //Retrieve and treat the tactile information input
-    bool handleTactile();
-
+	
     //Retrieve and treat the gesture information input
     bool handleGesture();
     

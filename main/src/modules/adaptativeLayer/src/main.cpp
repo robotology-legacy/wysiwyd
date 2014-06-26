@@ -29,7 +29,7 @@ It also includes the subscenarios of Pon, DJ, and Tic Tac Toe.
 */
 
 #include <yarp/os/all.h>
-#include "adaptativeLayer.h"
+#include "adaptiveLayer.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -38,12 +38,12 @@ int main(int argc, char * argv[])
 {
     srand(time(NULL));
     Network::init();
-    adaptativeLayer mod;
+    AdaptiveLayer mod;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("mainLoop/conf");
+    rf.setDefaultContext("adaptiveLayer/conf");
     rf.setDefaultConfigFile("default.ini");
-    rf.configure("EFAA_ROOT", argc, argv);
+    rf.configure(argc, argv);
     mod.runModule(rf);
     return 0;
 }
