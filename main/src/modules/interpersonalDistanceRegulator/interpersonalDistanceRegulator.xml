@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>interpersonalDistanceRegulator</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Maintains a given distance between the user and the robot</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+     Tries to regulate the distance between the robot and the subject.
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stéphane Lallée </author>
+   </authors>
+
+   <data>
+      <input>
+      </input>
+   </data>
+
+  <services>
+    <server>
+      <type>interpersonalDistanceRegulator_IDL</type>
+      <idl>interpersonalDistanceRegulator.thrift</idl>
+      <port>/interpersonalDistanceRegulator/rpc</port>
+      <description>Command port</description>
+    </server>
+  </services>
+  
+</module>
+
