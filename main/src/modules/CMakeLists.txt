@@ -11,7 +11,7 @@ add_subdirectory(abm)
 add_subdirectory(tools)
 add_subdirectory(reservoirHandler)
 add_subdirectory(reactiveLayer)
-add_subdirectory(adaptativeLayer)
+add_subdirectory(adaptiveLayer)
 
 if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(visualSystem)
