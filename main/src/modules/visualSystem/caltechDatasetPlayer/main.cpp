@@ -163,7 +163,7 @@ public:
 
         Bottle botVect;
         for (unsigned int i = 0; i < buffer.size(); i++)
-            botVect.addInt( countIt==i );
+            botVect.addInt( countIt==(int)i );
         portCategoryVector.write(botVect);
 
 		Bottle bTick,bReply;
