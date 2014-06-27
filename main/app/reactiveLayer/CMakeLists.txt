@@ -1,14 +1,8 @@
-# Copyright: (C) 2011 EFAA Consortium
-# Authors: Ugo Pattacini
+# Copyright: (C) 2014 WYSIWYD Consortium
+# Authors: Stéphane Lallée
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(appname reactiveLayer)
-icub_app(${appname})
-
-file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.*)
-
-
-icub_app_install(${appname} 
-                 FILES ${conf}
-                 DESTINATION conf/)
+file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
+yarp_install(FILES ${conf} DESTINATION ${WYSIWYD_CONTEXTS_INSTALL_DIR}/${appname})
 
