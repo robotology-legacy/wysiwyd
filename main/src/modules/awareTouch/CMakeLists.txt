@@ -16,5 +16,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${source_files} ${header_files} ${doc_files})
 target_link_libraries(${PROJECTNAME} iKin iDyn actionPrimitives perceptiveModels skinDynLib icubmod wrdac ${YARP_LIBRARIES}) 
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER systemHaptic)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})

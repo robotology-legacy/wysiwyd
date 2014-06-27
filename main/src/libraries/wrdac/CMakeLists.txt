@@ -23,6 +23,8 @@ else()
 	add_library(${PROJECTNAME} ${folder_source} ${folder_header} ${folder_header_knowledge} ${folder_header_clients} ${folder_header_subsystems})
 endif()
 
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER wrDAC)
+
 set_target_properties(${PROJECTNAME} PROPERTIES DEBUG_POSTFIX "d")
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})
 
