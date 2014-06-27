@@ -3,17 +3,17 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 #Add here modules without specific dependency
-add_subdirectory(awareTouch)
 add_subdirectory(opcRelated)
-add_subdirectory(motorSystem)
 add_subdirectory(cvz)
 add_subdirectory(abm)
 add_subdirectory(tools)
 add_subdirectory(reservoirHandler)
-add_subdirectory(interpersonalDistanceRegulator)
+add_subdirectory(navigationRelated)
 add_subdirectory(reactiveLayer)
 add_subdirectory(adaptiveLayer)
 
+add_subdirectory(systemMotor)
+add_subdirectory(systemHaptic)
 if(WYSIWYD_USE_OpenCV)
-	add_subdirectory(visualSystem)
+	add_subdirectory(systemVisual)
 endif()
