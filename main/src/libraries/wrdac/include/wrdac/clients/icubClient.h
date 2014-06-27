@@ -83,13 +83,13 @@ public:
            return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
     }
 
-	//SubSystem_SlideMotorCtrl* getSlideMotorCtrl() 
- //   {         
- //       if (subSystems.find(SUBSYSTEM_SLIDE_MOTOR_CTRL) == subSystems.end())
- //           return NULL;
- //      else
- //          return (SubSystem_SlideMotorCtrl*) subSystems[SUBSYSTEM_SLIDE_MOTOR_CTRL];
- //   }
+	SubSystem_SlidingController* getSlidingController()
+    {         
+		if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
+            return NULL;
+       else
+		   return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
+    }
 
 	SubSystem_Speech* getSpeechClient() 
     {         
@@ -175,55 +175,31 @@ public:
     */ 
     double getChoregraphyLength(const std::string &name, double speedFactor = 1.0 );
 
-    /**
-    * Move hands to home position (PmP)
-    */ 
-    bool handsHome();
+	/**
+	* Grasp an object with a position and a list of way points
+	* @param target is the position.
+	* @param waypoints is a list of waypoints, relative to the target position.
+	* @param shouldWait is the function blocking?
+	* @return true in case of successfull motor command, false either.
+	*/
+	bool grasp(yarp::sig::Vector target, std::list<yarp::sig::Vector>* waypoints=NULL);
 
     /**
     * Grasp an object with a given name
     * @param oName is the name of the entity in the OPC that the robot should grasp.
-    * @param usedHand is the hand that will be used by the robot, left by default.
-    * @param allowNavigation indicates if the robot should navigate when the object is out of range (true by default).
+    * @param usedHand NOT IMPLEMENTED!! the hand to be used. Right by default.
+    * @param wait is the function blocking ?
+    * @param controlGaze should the robot look at the target?
     * @return true in case of successfull motor command, false either (Entity non existing, impossible to reach, etc.).
     */ 
-    bool grasp(const std::string &oName, const std::string &usedHand="left", bool allowNavigation=true);
+	bool sideGrasp(const std::string &oName, const std::string &usedHand = "right", bool wait = true, bool controlGaze = true);
 
     /**
     * Release the content of a hand on a given location
     * @param oName is the name of the entity in the OPC where the robot should release.
-    * @param usedHand is the hand that will be used by the robot, left by default.
-    * @param allowNavigation indicates if the robot should navigate when the object is out of range (true by default).
     * @return true in case of success navigation, false either (Entity non existing, impossible to reach, etc.).
     */ 
-    bool release(const std::string &oLocation, const std::string &usedHand="closer", bool allowNavigation=false);
-       
-    /**
-    * Explore an object
-    * @param oName is the name of the entity in the OPC where the robot should release.
-    * @param usedHand is the hand that will be used by the robot, left by default.
-    * @return true in case of success navigation, false either (Entity non existing, impossible to reach, etc.).
-    */ 
-    bool explore(const std::string &oLocation, const std::string &usedHand="closer", bool allowNavigation=false);
-      
-    /**
-    * Move the hand over a given location
-    * @param oName is the name of the entity in the OPC where the robot should reach.
-    * @param usedHand is the hand that will be used by the robot, left by default.
-    * @param allowNavigation indicates if the robot should navigate when the object is out of range (true by default).
-    * @return true in case of success navigation, false either (Entity non existing, impossible to reach, etc.).
-    */ 
-    bool reach(const std::string &oLocation, const std::string &usedHand="closer", bool allowNavigation=false);
-
-    /**
-    * Send a raw string describing an action on a given object. Refer to navigationActions or PMPActions for the available strings.
-    * @param cmd is the raw command to be forwarded.
-    * @param oName is the name of the entity in the OPC where the robot should release.
-    * @param usedHand is the hand that will be used by the robot, left by default.
-    * @param allowNavigation indicates if the robot should navigate when the object is out of range (true by default).
-    * @return true in case of success navigation, false either (Entity non existing, impossible to reach, etc.).
-    */ 
-    bool rawMotorCommand(const std::string &rawCmd, const std::string &oLocation, const std::string &usedHand="closer", bool allowNavigation=false);
+	bool release(const std::string &oLocation, const std::string &usedHand = "right");
        
     /**
     * Start tracking a given entity

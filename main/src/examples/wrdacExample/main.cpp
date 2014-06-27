@@ -111,9 +111,9 @@ int main()
     {
         string chosenObject = inRange.front()->name();
         iCub.say("I can grasp the " + chosenObject);
-        iCub.grasp(chosenObject,"left",false);
+        iCub.sideGrasp(chosenObject,"right",true,true);
         //todo
-        iCub.release(chosenObject,"left",false);
+        iCub.release(chosenObject,"right");
     }
     else
     {

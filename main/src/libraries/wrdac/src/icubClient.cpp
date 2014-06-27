@@ -31,19 +31,19 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     rfClient.setVerbose(isRFVerbose);
     rfClient.setDefaultContext(context.c_str());
     rfClient.setDefaultConfigFile(clientConfigFile.c_str());
-    rfClient.configure("EFAA_ROOT",0,NULL);
+    rfClient.configure(0,NULL);
 
     yarp::os::ResourceFinder rfPostures;
     rfPostures.setVerbose(isRFVerbose);
     rfPostures.setDefaultContext(context.c_str());
 	rfPostures.setDefaultConfigFile(rfClient.check("posturesFile",Value("postures.ini")).asString().c_str());
-    rfPostures.configure("EFAA_ROOT",0,NULL);
+    rfPostures.configure(0,NULL);
 
     yarp::os::ResourceFinder rfChoregraphies;
     rfChoregraphies.setVerbose(isRFVerbose);
     rfChoregraphies.setDefaultContext(context.c_str());
     rfChoregraphies.setDefaultConfigFile(rfClient.check("choregraphiesFile",Value("choregraphies.ini")).asString().c_str());
-    rfChoregraphies.configure("EFAA_ROOT",0,NULL);
+    rfChoregraphies.configure(0,NULL);
 
     LoadPostures(rfPostures);
     LoadChoregraphies(rfChoregraphies);
@@ -89,8 +89,8 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
 				subSystems[SUBSYSTEM_ABM] = new SubSystem_ABM(fullName);
 			else if (currentSS == SUBSYSTEM_SPEECH)
 				subSystems[SUBSYSTEM_SPEECH] = new SubSystem_Speech(fullName);
-			//else if (currentSS == SUBSYSTEM_SLIDE_MOTOR_CTRL)
-			//	subSystems[SUBSYSTEM_SLIDE_MOTOR_CTRL] = new SubSystem_SlideMotorCtrl(fullName);
+			else if (currentSS == SUBSYSTEM_SLIDING_CONTROLLER)
+				subSystems[SUBSYSTEM_SLIDING_CONTROLLER] = new SubSystem_SlidingController(fullName);
 		}
 	}
 }
@@ -312,31 +312,111 @@ bool ICubClient::playChoregraphy(const std::string &name, double speedFactor, bo
 
 bool ICubClient::goTo(const string &place)
 {
-	//Todo
+	cerr << "Try to call \"gotTo\" on iCubClient but the method is not implemented." << endl;
 	return false;
 }
 
-bool ICubClient::grasp(const string &oName, const string &usedHand, bool allowNavigation)
+bool ICubClient::grasp(yarp::sig::Vector target, std::list<yarp::sig::Vector>* waypoints)
+{
+	//work in progress
+
+	//getSlidingController()->hand("pre-grasp", true);
+	//for (std::list<yarp::sig::Vector>::iterator it = waypoints.begin(); it != waypoints.end(); it++)
+	//{
+	//}
+	//getSlidingController()->hand("close", true);
+	return false;
+}
+
+bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, bool wait, bool controlGaze)
+{   
+	if (usedHand != "right")
+	{
+		cerr << "[iCubClient] Called sideGrasp using non right hand. Hand specifc grasp are not implemented yet." << endl;
+		return false;
+	}
+
+	if (getSlidingController() == NULL)
+	{
+		cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
+		return false;
+	}
+
+	Entity* target = opc->getEntity(oName,true);
+	if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
+	{
+		cerr << "[iCubClient] Called sideGrasp on a non-object entity." << endl;
+		return false;
+	}
+
+	Object* oTarget = (Object*)target;
+	if (!oTarget->m_present)
+	{
+		cerr << "[iCubClient] Called sideGrasp on a non-present entity " <<oName<< endl;
+		return false;
+	}
+
+	if (isTargetInRange(oTarget->m_ego_position))
+	{
+		if (controlGaze)
+			look(oName);
+		
+		std::list<yarp::sig::Vector> waypoints;
+		//Build the waypoints
+		Vector wp(3);
+		
+		//1
+		wp[0] = 0.05;
+		if (usedHand == "right")
+			wp[1] = 0.05;
+		else
+			wp[1] = -0.05;
+		wp[2] = 0.1;
+
+		waypoints.push_back(wp);
+
+		//2
+		wp[0] = 0.05;
+		if (usedHand == "right")
+			wp[1] = 0.05;
+		else
+			wp[1] = -0.05;
+		wp[2] = 0.0;
+
+		waypoints.push_back(wp);
+
+		//Use the generic grasp
+		grasp(oTarget->m_ego_position, &waypoints);
+
+		//Vector liftPos(3);
+		//liftPos = final;
+		//liftPos[2] += 0.1;
+		//iCub->getSlideMotorCtrl()->send(liftPos, true);
+		//Time::delay(3.0);
+
+		////Make sure wholeBodyDynamics is not crazy
+		//iCub->getSlideMotorCtrl()->stop();
+		//iCub->getSlideMotorCtrl()->resetWholeBodyDynamics();
+		//Time::delay(0.5);
+
+		////Turn impedance on before putting down
+		//iCub->getSlideMotorCtrl()->setImpedance(true);
+
+		//iCub->say("Haha! I got it!");
+		//liftPos[2] += -0.12;
+		//iCub->getSlideMotorCtrl()->send(liftPos, true);
+		//Time::delay(3.0);
+
+
+		return false;
+	}
+
+	return false;
+}
+
+bool ICubClient::release(const std::string &oLocation, const std::string &usedHand)
 {        
 	//todo
-	return false;
-}
-
-bool ICubClient::release(const string &oLocation, const string &usedHand, bool allowNavigation)
-{        
-	//todo
-	return false;
-}
-
-bool ICubClient::reach(const string &oLocation, const string &usedHand, bool allowNavigation)
-{        
-	//todo
-	return false;
-}
-
-bool ICubClient::explore(const string &oName, const string &usedHand,bool allowNavigation)
-{        
-//todo
 	return false;
 }
 
@@ -435,7 +515,7 @@ bool ICubClient::execute(Action what, bool applyEstimatedDriveEffect)
             else if (a->name() == "go-to")
                 result = goTo(a->description().object());
             else if (a->name() == "grasp")
-                result = grasp(a->description().object());
+                result = sideGrasp(a->description().object());
             else if (a->name() == "release")
                 result = release(a->description().object());
             else 
