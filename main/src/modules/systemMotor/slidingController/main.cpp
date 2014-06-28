@@ -63,6 +63,7 @@ protected:
     Mutex mainMutex;
     bool closing;
     bool impedanceSw,oldImpedanceSw;
+    bool serviceRequest,serviceNoInterp;
     double max_dist;
     int context_startup;
     int context;
@@ -261,6 +262,8 @@ public:
 
         state=idle;
         expState=idle;
+        serviceRequest=false;
+        serviceNoInterp=false;
         closing=false;
 
         return true;
@@ -452,12 +455,19 @@ public:
                     noInterp=(b->get(3).asInt()!=0);
 
                 netRequest=true;
-                printf("target received = (%s) (%s)\n",xd.toString(3,3).c_str(),
-                       (noInterp?"straight":"interpolating"));
+                printf("target received (via input-port) = (%s) (%s)\n",xd.toString(3,3).c_str(),
+                       (noInterp?"straight":"interpolate"));
             }
             else
                 printf("wrong command received: %s\n",b->toString().c_str());
         }
+
+        // aggregate input and service requests
+        netRequest|=serviceRequest;
+        noInterp|=serviceNoInterp;
+
+        // clear service requests
+        serviceRequest=serviceNoInterp=false;
 
         bool expRequest=handleExploration();
         if (netRequest || expRequest)
@@ -589,6 +599,23 @@ public:
         }
 
         return false;
+    }
+
+    /***************************************************************/
+    bool goTo(const double x, const double y, const double z,
+              const bool interpolate)
+    {
+        mainMutex.lock();
+
+        xd[0]=x; xd[1]=y; xd[2]=z;
+        serviceNoInterp=!interpolate;
+
+        serviceRequest=true;
+        printf("target received (via service-port) = (%s) (%s)\n",xd.toString(3,3).c_str(),
+               (serviceNoInterp?"straight":"interpolate"));
+
+        mainMutex.unlock();
+        return true;
     }
 
     /***************************************************************/

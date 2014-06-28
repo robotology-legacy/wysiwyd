@@ -112,6 +112,34 @@ public:
   }
 };
 
+class slidingController_IDL_goTo : public yarp::os::Portable {
+public:
+  double x;
+  double y;
+  double z;
+  bool interpolate;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(5)) return false;
+    if (!writer.writeTag("goTo",1,1)) return false;
+    if (!writer.writeDouble(x)) return false;
+    if (!writer.writeDouble(y)) return false;
+    if (!writer.writeDouble(z)) return false;
+    if (!writer.writeBool(interpolate)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class slidingController_IDL_quit : public yarp::os::Portable {
 public:
   bool _return;
@@ -176,6 +204,19 @@ bool slidingController_IDL::hand(const std::string& key, const bool wait) {
   helper.wait = wait;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::hand(const std::string& key, const bool wait)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool slidingController_IDL::goTo(const double x, const double y, const double z, const bool interpolate) {
+  bool _return = false;
+  slidingController_IDL_goTo helper;
+  helper.x = x;
+  helper.y = y;
+  helper.z = z;
+  helper.interpolate = interpolate;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::goTo(const double x, const double y, const double z, const bool interpolate)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -266,6 +307,36 @@ bool slidingController_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "goTo") {
+      double x;
+      double y;
+      double z;
+      bool interpolate;
+      if (!reader.readDouble(x)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readDouble(y)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readDouble(z)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readBool(interpolate)) {
+        interpolate = 1;
+      }
+      bool _return;
+      _return = goTo(x,y,z,interpolate);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "quit") {
       bool _return;
       _return = quit();
@@ -316,6 +387,7 @@ std::vector<std::string> slidingController_IDL::help(const std::string& function
     helpString.push_back("impedance");
     helpString.push_back("explore");
     helpString.push_back("hand");
+    helpString.push_back("goTo");
     helpString.push_back("quit");
     helpString.push_back("help");
   }
@@ -347,6 +419,16 @@ std::vector<std::string> slidingController_IDL::help(const std::string& function
       helpString.push_back("Execute an hand posture. ");
       helpString.push_back("@param key the tag of the hand posture. ");
       helpString.push_back("@param wait if true wait until posture is reached. ");
+      helpString.push_back("@return true/false on success/failure. ");
+    }
+    if (functionName=="goTo") {
+      helpString.push_back("bool goTo(const double x, const double y, const double z, const bool interpolate = 1) ");
+      helpString.push_back("Move the arm towards the specified location. ");
+      helpString.push_back("@param x the x target coordinate. ");
+      helpString.push_back("@param y the y target coordinate. ");
+      helpString.push_back("@param z the z target coordinate. ");
+      helpString.push_back("@param interpolate if true generate waypoints ");
+      helpString.push_back("       to smooth out the trajectory. ");
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="quit") {

@@ -46,6 +46,17 @@ service slidingController_IDL
    bool hand(1:string key, 2:bool wait=false);
 
    /**
+   * Move the arm towards the specified location.
+   * @param x the x target coordinate.
+   * @param y the y target coordinate.
+   * @param z the z target coordinate.
+   * @param interpolate if true generate waypoints
+   *        to smooth out the trajectory.
+   * @return true/false on success/failure.
+   */
+   bool goTo(1:double x, 2:double y, 3:double z, 4:bool interpolate=true);
+
+   /**
    * Quit the module.
    * @return true/false on success/failure.
    */
