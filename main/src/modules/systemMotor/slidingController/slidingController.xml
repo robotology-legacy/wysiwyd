@@ -24,7 +24,7 @@
    <param default="0.0" desc="To specify how many degrees to rotate the roll of the arm's wrist with respect to the baseline">arm_roll</param>
    <param default="0.0" desc="To specify how many degrees to rotate the pitch of the arm's wrist with respect to the baseline">arm_pitch</param>
    <param default="0.0" desc="To specify how many degrees to rotate the yaw of the arm's wrist with respect to the baseline">arm_yaw</param>
-   <param default="-0.1" desc="To specify the minimum z-coordinate ([m]) of the finger while exploring the table.">exploration_height</param>
+   <param default="-0.1" desc="To specify the minimum z-coordinate ([m]) of the finger while exploring the table">exploration_height</param>
    <param default="40.0" desc="To specify the maximum external force excerting on the finger in order to stop
                                approaching the table. Note that this force will basically account for the maximum
                                threshold used by the grasp model. High values of this parameter (~1000.0) will disable this detection">exploration_max_force</param>
