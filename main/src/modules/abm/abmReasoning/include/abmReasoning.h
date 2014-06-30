@@ -59,7 +59,7 @@ private :
     int         pddlCpu ;      //nb of second max taken by the planner to find solution
 
     void        initialisePlanner(ResourceFinder &rf);      // initialise all variables of the planner
-    void        pddlPlannerLauncher() ;
+    int         pddlPlannerLauncher() ;
     Bottle      pddlPlannerSolParser() ;
 
     vector<vector<int> >    testListSharedPlan ;

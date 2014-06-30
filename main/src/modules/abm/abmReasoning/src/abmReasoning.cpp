@@ -29,7 +29,7 @@ double abmReasoning::getPeriod()
 /* Update loop, check for the behavior allowed */
 bool abmReasoning::updateModule()
 {
-    return true ;
+    return true;
 }
 
 /* configure the module */
@@ -926,7 +926,7 @@ vector<pair<int, int> > abmReasoning::getIdPairsFromBottle(Bottle idBottle)
     }
     std::cout << "________________________________________________________________________________________" << endl ;
 
-    return vOutput ;
+    return vOutput;
 }
 
 
@@ -1191,7 +1191,7 @@ Bottle abmReasoning::getActionConsequenceDrives(pair<string, string> pNameArg)
     if (numberActionBegin != numberActionEnd) {
         std::cout << "ERROR : there are " << numberActionBegin << " action(s) begin = true and " << numberActionEnd << " action(s) begin = false : CLEAN THE DATABASE" << endl;
         bOutput.addString("ERROR");
-        return bOutput ;
+        return bOutput;
     } 
 
     //here, numberAction = numberActionBegin = numberActionEnd
@@ -1293,13 +1293,13 @@ Bottle abmReasoning::testGetIdFromActivity()
 
     vector <pair <int, int> > vOutput = getIdFromActivity(actionName, bRoleAndRoleValue) ;
 
-    Bottle bOutput ;
+    Bottle bOutput;
     bOutput.addString("Done");
 
-    return bOutput ;
+    return bOutput;
 }
 Bottle abmReasoning::pddlPlannerSolParser(){
-    Bottle bOutput ;
+    Bottle bOutput;
 
     //first file is fine
     /*char filename[512] = "";
@@ -1396,19 +1396,19 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                             actionName = it->substr(0, sepBegin) ;
 
                             //upper to lower case
-							transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
+                            transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
                             std::cout << "=> actionName : " << actionName << endl ;
 
                             if(actionName == "hanoi"){
                                 //upper to lower case
                                 
                                 objName = it->substr(sepBegin+1, it->length())  ;
-								transform(objName.begin(), objName.end(), objName.begin(), abmReasoning::fixed_tolower);
+                                transform(objName.begin(), objName.end(), objName.begin(), abmReasoning::fixed_tolower);
                                 std::cout << "=> objName : " << objName << endl ;
                             } else {
                                 //upper to lower case
                                 locName = it->substr(sepBegin+1, it->length()) ;
-								transform(locName.begin(), locName.end(), locName.begin(), abmReasoning::fixed_tolower);
+                                transform(locName.begin(), locName.end(), locName.begin(), abmReasoning::fixed_tolower);
                                 std::cout << "=> locName : " << locName << endl ;
                             }
 
@@ -1416,7 +1416,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                         } else {
                             //ADD, ASK, REMOVE, ...
                             actionName = it->c_str() ;
-							transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
+                            transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
                             std::cout << "=> actionName : " << actionName << endl ;
 
                             //human has to do these kind of actions
@@ -1435,13 +1435,13 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                         if(actionName == "hanoi"){
                             //upper to lower case
-							transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
+                            transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
                             locName = argName ;
                             std::cout << "=> locName : " << locName << endl ;
 
                         } else {
                             //upper to lower case
-							transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
+                            transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
                             objName = argName;
                             std::cout << "=> objName : " << objName << endl ;
                         }
@@ -1457,15 +1457,15 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                 bCurrentAction.addString("action");
                 bCurrentAction.addString(actionName.c_str());
                 
-                if(agentName.c_str()!= ""){
+                if(agentName!= ""){
                     bArg.addString(agentName.c_str());
                     bRole.addString("agent1");
                 }
-                if(objName.c_str()!= ""){
+                if(objName!= ""){
                     bArg.addString(objName.c_str());
                     bRole.addString("object1");
                 }
-                if(locName.c_str()!= ""){
+                if(locName!= ""){
                     bArg.addString(locName.c_str());
                     bRole.addString("spatial1");
                 }
@@ -1498,7 +1498,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
     } else {
         std::cout << "ERROR : Solution find (" << filename << ") not found" << endl ;
         fileSol.close();
-        return bOutput ;
+        return bOutput;
     }
 
     fileSol.close();
@@ -1508,13 +1508,13 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
     std::cout << "Bottle of actions : " << bOutput.toString().c_str()  << endl ;
 
-    return bOutput ;
+    return bOutput;
 }
 
 void abmReasoning::pddlSolFileName(int i, char* filename){
-	stringstream ss;
-	ss << plannerPath << pddlOut << "_" << i << ".SOL";
-	strcpy(filename, ss.str().c_str());
+    stringstream ss;
+    ss << plannerPath << pddlOut << "_" << i << ".SOL";
+    strcpy(filename, ss.str().c_str());
 }
 
 //remove all the file given in the range
@@ -1523,7 +1523,7 @@ void abmReasoning::pddlSolDelete(unsigned int begin, unsigned int end){
     //check parameters
     if ( begin < 1 || end < begin) {
         std::cout << "ERROR : begin has to be > 1, and end >= begin" << endl ;
-        return ;
+        return;
     }
 
     char filename[512] = "" ;
@@ -1557,14 +1557,12 @@ void abmReasoning::pddlSolDelete(unsigned int begin, unsigned int end){
             }
         }
     }
-
-    return ;
 }
 
 /**
 * Compute the PDDL planner launching command according to option specified in the conf file
 */
-void abmReasoning::pddlPlannerLauncher(){
+int abmReasoning::pddlPlannerLauncher(){
 
     //erase the previous solution if there (so that it is not the first time reasoning is called)
     
@@ -1638,9 +1636,7 @@ void abmReasoning::pddlPlannerLauncher(){
 
     //launch both cmds
     std::cout << "System(" << plannerCmds << ")" << endl ;
-    system(plannerCmds);
-
-    return;
+    return system(plannerCmds);
 }
 
 /**
@@ -4713,7 +4709,7 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
         }
     }
 
-    return listPlanAvailable ;
+    return listPlanAvailable;
 }
 
 /**
