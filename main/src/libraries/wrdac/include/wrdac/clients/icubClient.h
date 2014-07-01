@@ -182,7 +182,7 @@ public:
 	* @param shouldWait is the function blocking?
 	* @return true in case of successfull motor command, false either.
 	*/
-	bool grasp(yarp::sig::Vector target, std::list<yarp::sig::Vector>* waypoints=NULL);
+	bool grasp(yarp::sig::Vector target, const std::string usedHand = "right", std::list<yarp::sig::Vector>* waypoints = NULL );
 
     /**
     * Grasp an object with a given name

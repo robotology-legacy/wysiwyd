@@ -316,23 +316,51 @@ bool ICubClient::goTo(const string &place)
 	return false;
 }
 
-bool ICubClient::grasp(yarp::sig::Vector target, std::list<yarp::sig::Vector>* waypoints)
+bool ICubClient::grasp(yarp::sig::Vector target, const std::string usedHand, std::list<yarp::sig::Vector>* waypoints )
 {
-	//work in progress
+	//Check for failing conditions
+	if (usedHand != "right" || usedHand != "left")
+	{
+		cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
+		return false;
+	}
 
-	//getSlidingController()->hand("pre-grasp", true);
-	//for (std::list<yarp::sig::Vector>::iterator it = waypoints.begin(); it != waypoints.end(); it++)
-	//{
-	//}
-	//getSlidingController()->hand("close", true);
+	if (getSlidingController() == NULL)
+	{
+		cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
+		return false;
+	}
+
+	//work in progress
+	slidingController_IDL* usedCtrl;
+	if (usedHand == "right")
+		usedCtrl = getSlidingController()->clientIDL_slidingController_right;
+	else
+		usedCtrl = getSlidingController()->clientIDL_slidingController_left;
+
+	usedCtrl->hand("pre-grasp", true);
+	for (std::list<yarp::sig::Vector>::iterator it = waypoints->begin(); it != waypoints->end(); it++)
+	{
+		yarp::sig::Vector v = yarp::math::operator+(target, *it);
+		if (!isTargetInRange(v))
+		{
+			std::cerr << "Waypoint is not in range ! Skipping..." << std::endl;
+		}
+		else
+		{
+			usedCtrl->goTo(v[0], v[1], v[2], true);
+			Time::delay(2.0); // wait for the waypoint to be reached... Yeah ! Magic number ! Harcoded...
+		}
+	}
+	usedCtrl->hand("close", true);
 	return false;
 }
 
 bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, bool wait, bool controlGaze)
 {   
-	if (usedHand != "right")
+	if (usedHand != "right" || usedHand != "left")
 	{
-		cerr << "[iCubClient] Called sideGrasp using non right hand. Hand specifc grasp are not implemented yet." << endl;
+		cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
 		return false;
 	}
 
@@ -386,29 +414,8 @@ bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, boo
 		waypoints.push_back(wp);
 
 		//Use the generic grasp
-		grasp(oTarget->m_ego_position, &waypoints);
-
-		//Vector liftPos(3);
-		//liftPos = final;
-		//liftPos[2] += 0.1;
-		//iCub->getSlideMotorCtrl()->send(liftPos, true);
-		//Time::delay(3.0);
-
-		////Make sure wholeBodyDynamics is not crazy
-		//iCub->getSlideMotorCtrl()->stop();
-		//iCub->getSlideMotorCtrl()->resetWholeBodyDynamics();
-		//Time::delay(0.5);
-
-		////Turn impedance on before putting down
-		//iCub->getSlideMotorCtrl()->setImpedance(true);
-
-		//iCub->say("Haha! I got it!");
-		//liftPos[2] += -0.12;
-		//iCub->getSlideMotorCtrl()->send(liftPos, true);
-		//Time::delay(3.0);
-
-
-		return false;
+		
+		return grasp(oTarget->m_ego_position, usedHand, &waypoints);;
 	}
 
 	return false;
@@ -416,8 +423,27 @@ bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, boo
 
 bool ICubClient::release(const std::string &oLocation, const std::string &usedHand)
 {        
-	//todo
-	return false;
+	//Check for failing conditions
+	if (usedHand != "right" || usedHand != "left")
+	{
+		cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
+		return false;
+	}
+
+	if (getSlidingController() == NULL)
+	{
+		cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
+		return false;
+	}
+
+	//work in progress
+	slidingController_IDL* usedCtrl;
+	if (usedHand == "right")
+		usedCtrl = getSlidingController()->clientIDL_slidingController_right;
+	else
+		usedCtrl = getSlidingController()->clientIDL_slidingController_left;
+
+	return usedCtrl->hand("open");;
 }
 
 bool ICubClient::look(const string &target)

@@ -40,22 +40,46 @@ namespace wysiwyd{namespace wrdac{
 *
 * SubSystem for sliding motor control. Actually a simple IDL instantiation.
 */
-	class SubSystem_SlidingController : public SubSystem, public slidingController_IDL
+	class SubSystem_SlidingController : public SubSystem
 {
 private:
-	yarp::os::Port idlPort;
+	yarp::os::Port idlPortL;
+	yarp::os::Port idlPortR;
 
 protected:
-	virtual bool connect() { return this->yarp().attachAsClient(idlPort); }
+	virtual bool connect() 
+	{ 
+		bool success = true;
+		success &= yarp::os::Network::connect(idlPortL.getName(), "/slidingController/left/rpc");    // to be done from outside the code :)
+		success &= yarp::os::Network::connect(idlPortR.getName(), "/slidingController/right/rpc");  // to be done from outside the code :)
+		success &= clientIDL_slidingController_left->yarp().attachAsClient(idlPortL);
+		success &= clientIDL_slidingController_right->yarp().attachAsClient(idlPortR);
+		return success;
+	}
 
 public:
-	slidingController_IDL* clientIDL_slidingController;
+	slidingController_IDL* clientIDL_slidingController_left;
+	slidingController_IDL* clientIDL_slidingController_right;
+
 	SubSystem_SlidingController(std::string masterName) :SubSystem(masterName){
-		idlPort.open("/" + masterName + "slidingCtrlIDL:rpc");
+		clientIDL_slidingController_left = new slidingController_IDL();
+		clientIDL_slidingController_right = new slidingController_IDL();
+
+		idlPortL.open("/" + masterName + "left/slidingCtrlIDL:rpc");
+		idlPortL.open("/" + masterName + "right/slidingCtrlIDL:rpc");
+
 		m_type = SUBSYSTEM_SLIDING_CONTROLLER;
     }
 
-	virtual void Close() { idlPort.interrupt(); idlPort.close(); };
+	virtual void Close() 
+	{ 
+		idlPortL.interrupt(); 
+		idlPortL.close(); 
+		idlPortR.interrupt(); 
+		idlPortR.close(); 
+		delete clientIDL_slidingController_left;
+		delete clientIDL_slidingController_right;
+	};
 };
 
 
