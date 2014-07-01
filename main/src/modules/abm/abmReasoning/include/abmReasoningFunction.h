@@ -408,13 +408,13 @@ public:
 
         vector<int>     matrixTemp;
 
-        for (int i = 0 ; i < vLabelZ.size() ; i++)
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
         {
 
-            for (int j = 0 ; j < vLabelY.size() ; j++)
+            for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
             {
 
-                for (int k = 0 ; k < vLabelX.size() ; k++)
+                for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
                 {
                     matrixTemp.push_back(get(i,j,k));
                 }
@@ -438,16 +438,16 @@ public:
 
         vector<int>     matrixTemp;
 
-        for (int i = 0 ; i < vLabelZ.size() ; i++)
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
         {
-            for (int j = 0 ; j < vLabelY.size() ; j++)
+            for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
             {
-                for (int k = 0 ; k < vLabelX.size() ; k++)
+                for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
                 {
                     matrixTemp.push_back(get(i,j,k));
                 }
             }
-            for (int k = 0 ; k < vLabelX.size() ; k++)
+            for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
             {
                 matrixTemp.push_back(0);
             }
@@ -469,18 +469,18 @@ public:
 
         vector<int>     matrixTemp;
 
-        for (int i = 0 ; i < vLabelZ.size() ; i++)
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
         {
-            for (int j = 0 ; j < vLabelY.size() ; j++)
+            for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
             {
-                for (int k = 0 ; k < vLabelX.size() ; k++)
+                for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
                 {
                     matrixTemp.push_back(get(i,j,k));
                 }
             }
-            for (int j = 0 ; j < vLabelY.size() ; j++)
+            for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
             {
-                for (int k = 0 ; k < vLabelX.size() ; k++)
+                for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
                 {
                     matrixTemp.push_back(0);
                 }
@@ -504,19 +504,19 @@ public:
             iZ = -1;
 
         // search for X
-        for (int i = 0 ; i < vLabelX.size() ; i++)
+        for (unsigned int i = 0 ; i < vLabelX.size() ; i++)
         {
             if (vLabelX[i] == sX) iX = i;
         }
 
         // search for Y
-        for (int i = 0 ; i < vLabelY.size() ; i++)
+        for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
         {
             if (vLabelY[i] == sY) iY = i;
         }
 
         // search for Z
-        for (int i = 0 ; i < vLabelZ.size() ; i++)
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
         {
             if (vLabelZ[i] == sZ) iZ = i;
         }
@@ -524,7 +524,7 @@ public:
         // check 
         if (iX==-1 || iY == -1 || iZ == -1)
         {
-            //cout << endl << "Error in abmReasoning::pronom.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
+            cout << endl << "Error in abmReasoning::pronom.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
             return;
         }
 
@@ -595,7 +595,7 @@ public:
 
 class scoreProp
 {
-    
+
 public:
     int A;
     int B;
@@ -695,12 +695,12 @@ public:
             return ((1 - X) * 0.5);
 
     }
-    
+
     double  getScore()
     {
         return ((1.*abmReasoningFunction::SIGMA_LEARNING_GRAMMAR+A) / (B+C+D+abmReasoningFunction::SIGMA_LEARNING_GRAMMAR));
     }
-    
+
     // if !bPositive multiplie the result by -1
     double  getScoreSum(bool bPositive = true)
     {
@@ -716,7 +716,7 @@ public:
         bPositive ? dFactor = 1. : dFactor = -1.;
         int iDistrib = 1;
         if ((1.*abmReasoningFunction::SIGMA_LEARNING_GRAMMAR+A) / (C+1.*abmReasoningFunction::SIGMA_LEARNING_GRAMMAR) - (1.*abmReasoningFunction::SIGMA_LEARNING_GRAMMAR+B) / (D+1.*abmReasoningFunction::SIGMA_LEARNING_GRAMMAR) < 0) iDistrib = -1;
-        
+
         return (dFactor*iDistrib*(1-chiSquare()));
     }
 
