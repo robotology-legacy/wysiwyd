@@ -345,6 +345,230 @@ public:
 };
 
 
+//
+//class matrix3D_nonCubic          // personnal class of 3D matrix
+//{
+//protected:
+//    vector<int>         viData;         // data of the matrix
+//    vector<string>      vLabelX;
+//    vector<string>      vLabelY;
+//    vector<string>      vLabelZ;
+//
+//public:
+//
+//    // Variables : 
+//    int             iSum;
+//
+//    //Constructor 
+//    matrix3D_nonCubic() {iSum = 0;}
+//
+//    // Functions
+//    int oneCoord(int x, int y, int z) {return (x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size());}       // return the 1D coordinate from a 3D coordinate    
+//
+//    int get(int x, int y, int z) {return viData[oneCoord(x, y, z)];}            // get the x y z position in the matrix
+//
+//    int get(string sX, string sY, string sZ)
+//    {
+//        addLabelX(sX);
+//        addLabelY(sY);
+//        addLabelR(sZ);
+//
+//        int X = -1,
+//            Y = -1,
+//            Z = -1;
+//
+//        for (int i = 0 ; i < iSize ; i++)
+//        {
+//            if (vsLabels[i] == sSpeaker) X = i;
+//            if (vsLabels[i] == sAddressee) Y = i;
+//            if (vsLabels[i] == sAgent) Z = i;
+//        }
+//
+//        // check 
+//        if (X==-1 || Y == -1 || Z == -1)
+//        {
+//            //cout << endl << "Error in abmReasoning::pronom.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
+//            return 0;
+//        }
+//
+//        return viData[oneCoord(X, Y, Z)];
+//    }           // get the x y z position in the matrix
+//
+//    void incr(int x, int y, int z) {viData[oneCoord(x, y, z)]++;}               // increment the x y z position of the matrix of 1
+//
+//    void addLabelX(string sLabel)    // add 1 to the x y and z size, and add the label to the list
+//    {
+//        //check if label already in the matrix
+//
+//        bool bFound = false;
+//        for (vector<string>::iterator itS = vLabelX.begin() ; itS != vLabelX.end() ; itS++)
+//        {
+//            if (*itS == sLabel)     bFound = true;
+//        }
+//
+//        if (bFound)
+//        {
+//            //cout << endl << "Error in abmReasoning::pronom.h::matrix3D_nonCubic::addLabelX | Label already existing" << endl;
+//            return;
+//        }
+//
+//
+//        vLabelX.push_back(sLabel);
+//
+//        vector<int> matTemp;
+//        for (int k = 0 ; k < iSize+1 ; k ++)
+//        {
+//            for (int j = 0 ; j < iSize+1 ; j++)
+//            {
+//                for (int i = 0 ; i < iSize+1 ; i++)
+//                {
+//
+//                    if (i == iSize || j == iSize || k == iSize)
+//                    {
+//                        matTemp.push_back(0);
+//                    }
+//                    else
+//                    {
+//                        matTemp.push_back(get(i,j,k));
+//                    }
+//                }
+//            }
+//        }
+//        viData = matTemp;
+//        iSize++;
+//    }
+//
+//    void incr(string sSpeaker, string sAddressee, string sAgent)
+//        // increment in the matrix for the use of a pronom with information about the sentence
+//    {
+//        // first check if the speaker, receiver and agent are known
+//        addLabel(sSpeaker);
+//        addLabel(sAddressee);
+//        addLabel(sAgent);
+//
+//        int X = -1,
+//            Y = -1,
+//            Z = -1;
+//
+//        for (int i = 0 ; i < iSize ; i++)
+//        {
+//            if (vsLabels[i] == sSpeaker) X = i;
+//            if (vsLabels[i] == sAddressee) Y = i;
+//            if (vsLabels[i] == sAgent) Z = i;
+//        }
+//
+//        // check 
+//        if (X==-1 || Y == -1 || Z == -1)
+//        {
+//            //cout << endl << "Error in abmReasoning::pronom.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
+//            return;
+//        }
+//
+//        incr(X,Y,Z);
+//        iSum++;
+//    }
+//
+//    /* get the sum of the diagonal of the correspondant plan (x, y or z) */
+//    int sumDiagDouble(string W)
+//    {
+//        int sum = 0;
+//        if (W != "x" && W != "y" && W != "z")
+//        {cout << endl << "Error in abmReasoning::pronom.h::matrix3D::sumDiag(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+//        for (int b = 0 ; b < iSize ; b++)
+//        {
+//            for (int a = 0 ; a < iSize ; a++)
+//            {
+//                if (W =="x") sum+=get(a,b,b);
+//                if (W =="y") sum+=get(b,a,b);
+//                if (W =="z") sum+=get(b,b,a);
+//            }
+//        }
+//        return sum;
+//    }
+//
+//
+//    int sumPlan(string W, string sLabel)    // W is x y or z and Label is the name
+//    {
+//        int iLabel= -1;
+//        for (int i = 0 ; i < iSize ; i++)
+//        {
+//            if (vsLabels[i] == sLabel) iLabel = i;
+//        }
+//
+//        int sum = 0;
+//        if (W != "x" && W != "y" && W != "z")
+//        {cout << endl << "Error in abmReasoning::pronom.h::matrix3D::sumPlan(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+//        for (int a = 0 ; a < iSize ; a++)
+//        {
+//            for (int b = 0 ; b < iSize ; b++)
+//            {
+//                if (W =="x") sum+=get(iLabel,a,b);
+//                if (W =="y") sum+=get(a,iLabel,b);
+//                if (W =="z") sum+=get(a,b,iLabel);
+//            }
+//        }
+//        return sum;
+//    }
+//
+//    /* For a given X and Y, return the sum of the Z line*/
+//    int sumLineXY(string X, string Y)
+//    {
+//        int xLabel= -1,
+//            yLabel = -1;
+//        for (int i = 0 ; i < iSize ; i++)
+//        {
+//            if (vsLabels[i] == X) xLabel = i;
+//            if (vsLabels[i] == Y) yLabel = i;
+//        }
+//
+//        int sum = 0;
+//        for (int a = 0 ; a < iSize ; a++)
+//        {
+//            sum += get(xLabel, yLabel, a);
+//        }
+//        return sum;
+//    }
+//
+//    /* For a given X and Z, return the sum of the Y line*/
+//    int sumLineXZ(string X, string Z)
+//    {
+//        int xLabel= -1,
+//            zLabel = -1;
+//        for (int i = 0 ; i < iSize ; i++)
+//        {
+//            if (vsLabels[i] == X) xLabel = i;
+//            if (vsLabels[i] == Z) zLabel = i;
+//        }
+//
+//        int sum = 0;
+//        for (int a = 0 ; a < iSize ; a++)
+//        {
+//            sum += get(xLabel, a, zLabel);
+//        }
+//        return sum;
+//    }
+//
+//    /* For a given Y and Z, return the sum of the X line*/
+//    int sumLineYZ(string Y, string Z)
+//    {
+//        int zLabel= -1,
+//            yLabel = -1;
+//        for (int i = 0 ; i < iSize ; i++)
+//        {
+//            if (vsLabels[i] == Z) zLabel = i;
+//            if (vsLabels[i] == Y) yLabel = i;
+//        }
+//
+//        int sum = 0;
+//        for (int a = 0 ; a < iSize ; a++)
+//        {
+//            sum += get(a, yLabel, zLabel);
+//        }
+//        return sum;
+//    }
+//};
+//
+
 /* SCORE PROP */
 
 class scoreProp
