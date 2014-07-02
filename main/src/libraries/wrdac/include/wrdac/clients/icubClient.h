@@ -91,6 +91,14 @@ public:
 		   return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
     }
 
+	SubSystem_ARE* getARE()
+	{
+		if (subSystems.find(SUBSYSTEM_ARE) == subSystems.end())
+			return NULL;
+		else
+			return (SubSystem_ARE*)subSystems[SUBSYSTEM_ARE];
+	}
+
 	SubSystem_Speech* getSpeechClient() 
     {         
         if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())

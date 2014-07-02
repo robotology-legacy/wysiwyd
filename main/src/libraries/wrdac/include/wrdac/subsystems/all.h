@@ -29,6 +29,7 @@
 #include "subSystem_reactable.h"
 #include "subSystem_speech.h"
 #include "subSystem_slidingCtrl.h"
+#include "subSystem_ARE.h"
 #endif
 
 
