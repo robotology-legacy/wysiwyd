@@ -60,7 +60,7 @@ private:
 	{
 		yarp::os::Bottle& sub = b.addList();
 		sub.addString("cartesian");
-		for (int i = 0; i < t.size(); i++)
+		for (unsigned int i = 0; i < t.size(); i++)
 			sub.addDouble(t[i]);
 	}
 
