@@ -27,6 +27,7 @@ class wordWord
 
 class wordKnowledge
 {
+
     vector<wordObject>      listWordObjects;
     vector<wordContext>     listWordContexts;
     vector<wordWord>        listWordWord;
@@ -34,10 +35,10 @@ class wordKnowledge
     vector<vector<int>>     matObject2Context;
     vector<vector<int>>     matWord2Context;
 
-    matrix3D_nonCubic     matObject2Word;
-    matrix3D_nonCubic     matWord2Object;
+    matrix3D_nonCubic       matObject2Word;
+    matrix3D_nonCubic       matWord2Object;
 
-    void    addInstance(pair<string,int> pObjectIdOPC, string sWord, vector<string> vContext);
+    Bottle                  addInstance(pair<string,int> pObjectIdOPC, string sWord, vector<string> vContext);
 };
 
 
