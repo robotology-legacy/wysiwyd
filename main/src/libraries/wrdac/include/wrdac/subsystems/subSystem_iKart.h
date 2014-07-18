@@ -18,8 +18,9 @@
 
 #ifndef __EFAA_SUBSYSTEM_IKART_H__
 #define __EFAA_SUBSYSTEM_IKART_H__
-
 #define SUBSYSTEM_IKART         "ikart"
+#undef min
+#undef max
 
 #include "wrdac/subsystems/subSystem.h"
 #include <yarp/os/Network.h>

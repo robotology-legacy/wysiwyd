@@ -82,7 +82,6 @@ public:
 	};
 };
 
-
 }}//Namespace
 #endif
 

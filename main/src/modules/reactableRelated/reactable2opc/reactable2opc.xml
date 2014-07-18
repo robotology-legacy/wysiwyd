@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>reactable2opc</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Interpret the OSC stream coming from the table and feed the OPC.</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Interpret the OSC stream coming from the Reactable. Also provide a way to send to forward messages to OSC. \n
+   </description-long>
+
+   <arguments>
+   <param default="reactable2opc" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+     <param default="3333" desc="The port on which to receive the table OSC stream">OSC_TABLE_INPUT_PORT</param>
+     <param default="3334" desc="The port on which to receive the additional OSC stream">OSC_INPUT_PORT</param>
+     <param default="3335" desc="The port on which to send the OSC stream">OSC_OUTPUT_PORT</param>
+     <param default="10.0.0.106" desc="The IP address where to send the OSC stream">OSC_OUTPUT_ADRESS</param>
+     <param default="false" desc="Should the Y axis of the table be inverted?">invertYaxis</param>
+     <param default="false" desc="Should the X axis of the table be inverted?">invertXaxis</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+  <data>
+    <input>
+      <type>yarp::os::Bottle></type>
+      <port carrier="tcp">"/reactable2opc/command:i"</port>
+      <required>no</required>
+      <priority>no</priority>
+      <description>
+        Accepts various commands:
+        "osc" "your_message" : forwards a message to the OSC stream connected.
+
+      </description>
+    </input>
+  </data>
+   
+</module>
+
