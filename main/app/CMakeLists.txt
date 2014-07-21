@@ -14,4 +14,5 @@ add_subdirectory(opcRelated)
 add_subdirectory(reactiveLayer)
 add_subdirectory(adaptiveLayer)
 add_subdirectory(interpersonalDistanceRegulator)
+add_subdirectory(demos)
 
