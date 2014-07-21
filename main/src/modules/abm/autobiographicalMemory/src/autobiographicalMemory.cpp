@@ -59,7 +59,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     //	populateOPC();
 
-    cout << endl << endl << "----------------------------------------------" << endl << endl << "autobiographicalMemory ready !" << endl << endl;
+    cout << endl << endl << "----------------------------------------------" << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
 
     return true;
 }
@@ -221,7 +221,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /**************************** beliefs Table **************************/
     *ABMDataBase << "DROP TABLE IF EXISTS beliefs CASCADE;";
-    *ABMDataBase << "CREATE TABLE beliefs (  instance integer NOT NULL,  idagent integer NOT NULL,  subject text NOT NULL,  verb text NOT NULL,  'object' text NOT NULL,  'time' text,  place text,  manner text,  CONSTRAINT beliefs_key FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
+    *ABMDataBase << "CREATE TABLE beliefs (  instance integer NOT NULL,  idagent integer NOT NULL,  subject text NOT NULL,  verb text NOT NULL,  \"object\" text NOT NULL,  \"time\" text,  place text,  manner text,  CONSTRAINT beliefs_key FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE beliefs OWNER TO postgres;";
 
     /**************************** contentarg Table **************************/

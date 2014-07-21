@@ -44,7 +44,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     bool    bEveryThingisGood = true;
     bool    bOptionnalModule  = true;
     moduleName            = rf.check("name", 
-                           Value("abmHandler"), 
+                           Value("/abmHandler"), 
                            "module name (string)").asString();
 
     sKeyWord            = rf.check("keyword", Value("history")).toString().c_str();
@@ -66,7 +66,8 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Open handler port
-    handlerPortName = getName() + "/rpc";         // use getName() rather than a literal 
+	handlerPortName = "/";
+    handlerPortName += getName() + "/rpc";         // use getName() rather than a literal 
 
     if (!handlerPort.open(handlerPortName.c_str())) {           
         cout << getName() << ": Unable to open port " << handlerPortName << endl;  
@@ -74,7 +75,8 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2abm
-    port2abmName = getName() + "/toABM";
+	port2abmName = "/";
+    port2abmName += getName() + "/toABM";
 
     if (!Port2ABM.open(port2abmName.c_str())) {           
         cout << getName() << ": Unable to open port " << port2abmName << endl;  
@@ -82,7 +84,8 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2speech
-    port2SpeechRecogName = getName() + "/toSpeechRecog";
+	port2SpeechRecogName = "/";
+    port2SpeechRecogName += getName() + "/toSpeechRecog";
 
     if (!Port2SpeechRecog.open(port2SpeechRecogName.c_str())) {           
         cout << getName() << ": Unable to open port " << port2SpeechRecogName << endl;  
@@ -90,7 +93,8 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2reasoning
-    port2abmReasoningName = getName() + "/toAbmR";
+	port2abmReasoningName = "/";
+    port2abmReasoningName += getName() + "/toAbmR";
 
     if (!Port2abmReasoning.open(port2abmReasoningName.c_str())) {           
         cout << getName() << ": Unable to open port " << port2abmReasoningName << endl;  
@@ -99,7 +103,8 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Open port2OPCManager
-    port2OPCmanagerName = getName() + "/toOPCManager";
+	port2OPCmanagerName = "/";
+    port2OPCmanagerName += getName() + "/toOPCManager";
 
     if (!Port2OPCManager.open(port2OPCmanagerName.c_str())) {
         cout << getName() << ": Unable to open port " << port2OPCmanagerName << endl;  
@@ -155,7 +160,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     else
         cout << endl << endl << "----------------------------------------------" << endl << endl << "abmHandler ready !" << endl << endl;
 
-    node1();
+	node1();
 
     return bEveryThingisGood ;     
 }

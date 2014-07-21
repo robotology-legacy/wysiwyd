@@ -121,7 +121,7 @@ int main(int argc, char * argv[]) {
 	rf.setVerbose(true);
 	rf.setDefaultConfigFile("autobiographicalMemory.ini"); //overridden by --from parameter
 	rf.setDefaultContext("autobiographicalMemory/conf");   //overridden by --context parameter
-	rf.configure("EFAA_ROOT", argc, argv);
+	rf.configure( argc, argv);
 		/* create your module */
 	autobiographicalMemory module(rf); 
 	/* run the module: runModule() calls configure first and, if successful, it then runs */
