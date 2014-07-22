@@ -536,7 +536,7 @@ public:
 		}
 
 		int sum = 0;
-		for (int a = 0 ; a < vLabelZ.size() ; a++)
+		for (unsigned int a = 0 ; a < vLabelZ.size() ; a++)
 		{
 			sum += get(iX, iY, a);
 		}
@@ -562,7 +562,7 @@ public:
 		}
 
 		int sum = 0;
-		for (int a = 0 ; a < vLabelX.size() ; a++)
+		for (unsigned int a = 0 ; a < vLabelX.size() ; a++)
 		{
 			sum += get(a, iY, iZ);
 		}
@@ -588,7 +588,7 @@ public:
 		}
 
 		int sum = 0;
-		for (int a = 0 ; a < vLabelY.size() ; a++)
+		for (unsigned int a = 0 ; a < vLabelY.size() ; a++)
 		{
 			sum += get(iX, a, iZ);
 		}
