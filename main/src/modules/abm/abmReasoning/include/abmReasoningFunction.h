@@ -765,6 +765,7 @@ public:
 	// if !bPositive multiplie the result by -1
 	double  getScoreSum(bool bPositive = true)
 	{
+		if (A < 0 || B < 0 || C < 0 || D < 0)	return 0.;
 		if (B+C+D == 0 && A !=0)    return 1.;
 		if (A+B == 0 || A+C == 0 || C+D == 0)   return 0.;
 		if (B+D == 0) 

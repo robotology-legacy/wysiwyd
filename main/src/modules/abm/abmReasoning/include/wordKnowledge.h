@@ -5,34 +5,13 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 
-class wordContext
-{
-public:
-	int iPresence;
-	string sLabel;
-};
-
-class wordObject
-{
-public:
-	int iPresence;
-	string sLabel;
-};
-
-class wordWord
-{
-public:
-	string sLabel;
-	int iPresence;
-};
-
 
 class wordKnowledge
 {
 
-    vector<wordObject>      listWordObjects;
-    vector<wordContext>     listWordContexts;
-    vector<wordWord>        listWordWord;
+    vector<pair<string, int>>	listWordObjects;
+    vector<pair<string, int>>	listWordContexts;
+    vector<pair<string, int>>	listWordWord;
 
     vector<vector<int>>     matObject2Context;
     vector<vector<int>>     matWord2Context;
