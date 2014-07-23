@@ -386,17 +386,17 @@ public:
 			Y = -1,
 			Z = -1;
 
-		for (int i = 0 ; i < vLabelX.size() ; i++)
+		for (unsigned int i = 0 ; i < vLabelX.size() ; i++)
 		{
 			if (vLabelX[i].first == sX) X = i;
 		}
 
-		for (int i = 0 ; i < vLabelY.size() ; i++)
+		for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
 		{
 			if (vLabelY[i].first == sY) Y = i;
 		}
 
-		for (int i = 0 ; i < vLabelZ.size() ; i++)
+		for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
 		{
 			if (vLabelZ[i].first == sZ) Z = i;
 		}
@@ -817,5 +817,36 @@ public:
 
 
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
