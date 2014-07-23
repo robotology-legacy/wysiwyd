@@ -7,21 +7,23 @@ using namespace std;
 
 class wordContext
 {
-    int iPresence;
-    string sLabel;
+public:
+	int iPresence;
+	string sLabel;
 };
 
 class wordObject
 {
-    int iOPCid;
-    int iPresence;
-    string sLabel;
+public:
+	int iPresence;
+	string sLabel;
 };
 
 class wordWord
 {
-    string sLabel;
-    int iPresence;
+public:
+	string sLabel;
+	int iPresence;
 };
 
 
@@ -38,7 +40,10 @@ class wordKnowledge
     matrix3D_nonCubic       matObject2Word;
     matrix3D_nonCubic       matWord2Object;
 
-    Bottle                  addInstance(pair<string,int> pObjectIdOPC, string sWord, vector<string> vContext);
+	void					getObjectFromWord(string sWord, vector<string> vContext);
+	void					getWordFromObject(string sObject, vector<string> vContext);
+
+    Bottle                  addInstance(string sObjectIdOPC, string sWord, vector<string> vContext);
 };
 
 
