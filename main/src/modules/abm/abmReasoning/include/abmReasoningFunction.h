@@ -359,14 +359,12 @@ public:
 
 class matrix3D_nonCubic          // personnal class of 3D matrix
 {
-protected:
+public:
 	vector<int>         viData;         // data of the matrix
 	vector<pair<string, int> >      vLabelX;
 	vector<pair<string, int> >      vLabelY;
 	vector<pair<string, int> >      vLabelZ;
-
-public:
-
+	
 	// Variables : 
 	int             iSum;
 

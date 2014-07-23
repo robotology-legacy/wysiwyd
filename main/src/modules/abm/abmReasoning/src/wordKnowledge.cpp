@@ -44,8 +44,11 @@ void wordKnowledge::getObjectFromWord(string sWord, vector<string> vContext)
 		vsdListObjectScore.push_back(psdTemp);
 	}
 
-
 	int iterationWord;
+	for (vector<pair<string, int>>::iterator itWor = matWord2Object.vLabelX.begin() ; itWor != matWord2Object.vLabelX.end() ; itWor++)
+	{
+		if (itWor->first == sWord)	iterationWord = itWor->second;
+	}
 
 	// for each possible object check the vraissemblance
 	for (vector<pair<string,double> >::iterator  itCurrentObject = vsdListObjectScore.begin() ; itCurrentObject != vsdListObjectScore.end() ; itCurrentObject++)
