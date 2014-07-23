@@ -53,9 +53,13 @@ void wordKnowledge::getObjectFromWord(string sWord, vector<string> vContext)
 	// for each possible object check the vraissemblance
 	for (vector<pair<string,double> >::iterator  itCurrentObject = vsdListObjectScore.begin() ; itCurrentObject != vsdListObjectScore.end() ; itCurrentObject++)
 	{
+		// for each context:
+		for (vector<string>::iterator itCurrentContext = vContext.begin() ; itCurrentContext != vContext.end() ; itCurrentContext++)
+		{
 
-
-
+			scoreProp scorePropTemp;
+			scorePropTemp.A = matWord2Object.get(sWord, *itCurrentContext, itCurrentObject->first);
+		}
 	}
 
 

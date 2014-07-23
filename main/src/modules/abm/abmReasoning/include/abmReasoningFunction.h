@@ -160,7 +160,7 @@ public:
 		// check 
 		if (X==-1 || Y == -1 || Z == -1)
 		{
-			//cout << endl << "Error in abmReasoning::pronom.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
+			//cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
 			return 0;
 		}
 
@@ -181,7 +181,7 @@ public:
 
 		if (bFound)
 		{
-			//cout << endl << "Error in abmReasoning::pronom.h::matrix3D::addLabel | Label already existing" << endl;
+			//cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::addLabel | Label already existing" << endl;
 			return;
 		}
 
@@ -233,7 +233,7 @@ public:
 		// check 
 		if (X==-1 || Y == -1 || Z == -1)
 		{
-			//cout << endl << "Error in abmReasoning::pronom.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
+			//cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
 			return;
 		}
 
@@ -249,7 +249,7 @@ public:
 	{
 		int sum = 0;
 		if (W != "x" && W != "y" && W != "z")
-		{cout << endl << "Error in abmReasoning::pronom.h::matrix3D::sumDiag(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+		{cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumDiag(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
 		for (int b = 0 ; b < iSize ; b++)
 		{
 			for (int a = 0 ; a < iSize ; a++)
@@ -273,7 +273,7 @@ public:
 
 		int sum = 0;
 		if (W != "x" && W != "y" && W != "z")
-		{cout << endl << "Error in abmReasoning::pronom.h::matrix3D::sumPlan(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+		{cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumPlan(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
 		for (int a = 0 ; a < iSize ; a++)
 		{
 			for (int b = 0 ; b < iSize ; b++)
@@ -375,6 +375,41 @@ public:
 	int oneCoord(int x, int y, int z) {return (x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size());}       // return the 1D coordinate from a 3D coordinate    
 
 	int get(int x, int y, int z) {return viData[oneCoord(x, y, z)];}            // get the x y z position in the matrix
+
+	int get(string sX, string sY, string sZ)
+	{
+		addLabelX(sX);
+		addLabelY(sY);
+		addLabelZ(sZ);
+
+		int X = -1,
+			Y = -1,
+			Z = -1;
+
+		for (int i = 0 ; i < vLabelX.size() ; i++)
+		{
+			if (vLabelX[i].first == sX) X = i;
+		}
+
+		for (int i = 0 ; i < vLabelY.size() ; i++)
+		{
+			if (vLabelY[i].first == sY) Y = i;
+		}
+
+		for (int i = 0 ; i < vLabelZ.size() ; i++)
+		{
+			if (vLabelZ[i].first == sZ) Z = i;
+		}
+
+		// check 
+		if (X==-1 || Y == -1 || Z == -1)
+		{
+			//cout << endl << "Error in abmReasoning::abmReasoning.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
+			return 0;
+		}
+
+		return viData[oneCoord(X, Y, Z)];
+	}           // get the x y z position in the matrix
 
 
 	void incr(int x, int y, int z) {viData[oneCoord(x, y, z)]++;}               // increment the x y z position of the matrix of 1
@@ -515,7 +550,7 @@ public:
 		// check 
 		if (iX==-1 || iZ == -1)
 		{
-			cout << endl << "Error in abmReasoning::pronom.h::matrix3D_nonCubic::incr(string, vector<string>, string) | One of the label is missing" << endl;
+			cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D_nonCubic::incr(string, vector<string>, string) | One of the label is missing" << endl;
 			return;
 		}
 
