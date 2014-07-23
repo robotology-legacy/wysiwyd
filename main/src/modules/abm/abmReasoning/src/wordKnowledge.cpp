@@ -6,7 +6,8 @@ Bottle wordKnowledge::addInstance(string sObjectIdOPC, string sWord, vector<stri
 
 	for (unsigned int i = 0; i < vContext.size() ; i++)
 	{
-		//matObject2Word.incr(sObjectIdOPC,vContext[i], sWord);
+		matObject2Word.incr(sObjectIdOPC,vContext, sWord);
+		matWord2Object.incr(sWord,vContext, sObjectIdOPC);
 	}
 
     return bOutput;
@@ -192,6 +193,41 @@ void wordKnowledge::getWordFromObject(string sObject, vector<string> vContext)
         sResult = "none";
     }
     cout << "Final choice : " << sResult << "\t score : " << dScoreMax << endl;
+
+}
+
+void wordKnowledge::simulateData()
+{
+	int		iNbRepetition = 3;
+
+	//	blue_bottle without green bottle
+	vector<string> context;
+	context.push_back("context_blue_bottle");
+	context.push_back("context_cross");
+	context.push_back("context_triangle");
+	context.push_back("context_john");
+
+	for (int i = 0 ; i < iNbRepetition ; i++)
+	{		
+		addInstance("object_blue_bottle","word_bottle",context);	
+		addInstance("object_bottle","word_bottle",context);	
+	}
+
+	context.push_back("context_glass");
+
+	for (int i = 0 ; i < iNbRepetition ; i++)
+	{		
+		addInstance("object_blue_bottle","word_bottle",context);	
+		addInstance("object_bottle","word_bottle",context);	
+	}
+
+	// add the green bottle
+	context.push_back("object_green_bottle");
+	for (int i = 0 ; i < iNbRepetition ; i++)
+	{		
+		addInstance("object_blue_bottle","word_bottle",context);	
+	}
+
 
 }
 

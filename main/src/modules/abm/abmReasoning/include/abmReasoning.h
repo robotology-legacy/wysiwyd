@@ -41,7 +41,7 @@ private :
     map<string, pair<vector<double> , vector<double> > >    mapLocation;                    //  known durable locations
     map<string, tuple<string, vector<double> , vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
-    
+    wordKnowledge					WordKnowledge;
 
     //PDDL planner variable
     string      plannerPath ;

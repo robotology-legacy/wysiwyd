@@ -8,6 +8,7 @@ using namespace std;
 
 class wordKnowledge
 {
+public:
 
     vector<pair<string, int>>	listWordObjects;
     vector<pair<string, int>>	listWordContexts;
@@ -18,6 +19,9 @@ class wordKnowledge
 
     matrix3D_nonCubic       matObject2Word;
     matrix3D_nonCubic       matWord2Object;
+
+
+	void					simulateData();
 
 	void					getObjectFromWord(string sWord, vector<string> vContext);
 	void					getWordFromObject(string sObject, vector<string> vContext);
