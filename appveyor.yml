@@ -13,7 +13,6 @@ environment:
   GTKMM_BASEPATH: c:\dev\gtkmm-2.22.0-2
   YARP_DIR: c:\YARP
   ICUB_DIR: c:\iCub
-  ICUBcontrib_DIR: c:\dev\icub-contrib-common\build
   YARP_DATA_DIRS: c:\YARP\share\yarp;c:\iCub\share\iCub
   WYSIWYD_DIR: c:\dev\wysiwyd\main\build
   
@@ -41,7 +40,7 @@ install:
   - cmd: mkdir build
   - cmd: cd build
   - cmd: cmake -G"Visual Studio 11" ..
-  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" ICUBcontrib.sln
+  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" /t:INSTALL ICUBcontrib.sln
 
 build:
 
