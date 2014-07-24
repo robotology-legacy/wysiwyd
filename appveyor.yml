@@ -40,7 +40,7 @@ install:
   - cmd: md build
   - cmd: cd build
   - cmd: cmake -G"Visual Studio 11" ..
-  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" /t:INSTALL ICUBcontrib.sln
+  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" INSTALL.vcxproj
 
 build:
 
