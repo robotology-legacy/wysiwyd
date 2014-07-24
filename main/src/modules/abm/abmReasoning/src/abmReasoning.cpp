@@ -78,6 +78,8 @@ bool abmReasoning::configure(ResourceFinder &rf)
     bReady = true;
     bool bTestLanguage = false;
 
+	WordKnowledge.simulateData();
+
     if (bTestLanguage)
     {
         //  if (!rf.check("noSentences"))   findAllSentence();

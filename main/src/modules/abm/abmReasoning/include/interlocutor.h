@@ -5,6 +5,7 @@
 #include <behavior.h>
 #include <knownInteraction.h>
 #include <grammarKnowledge.h>
+#include <wordKnowledge.h>
 #include <deque>
 #include <stdlib.h>
 

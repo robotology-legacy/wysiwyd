@@ -372,7 +372,11 @@ public:
 	matrix3D_nonCubic() {iSum = 0;}
 
 	// Functions
-	int oneCoord(int x, int y, int z) {return (x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size());}       // return the 1D coordinate from a 3D coordinate    
+	int oneCoord(int x, int y, int z) {
+		int test = x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size();
+		cout << "ici " << test << endl;
+		return (x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size());
+	}       // return the 1D coordinate from a 3D coordinate    
 
 	int get(int x, int y, int z) {return viData[oneCoord(x, y, z)];}            // get the x y z position in the matrix
 
