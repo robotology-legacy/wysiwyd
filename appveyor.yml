@@ -40,8 +40,8 @@ install:
   - cmd: cd c:\dev\icub-contrib-common
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake ..
-  - cmd: make
+  - cmd: cmake -G"Visual Studio 11" ..
+  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" ICUBcontrib.sln
 
 build:
 
