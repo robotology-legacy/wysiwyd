@@ -119,8 +119,8 @@ int main(int argc, char * argv[]) {
     ResourceFinder rf;
     rf.setVerbose(true); 
     rf.setDefaultConfigFile("abmReasoning.ini"); //overridden by --from parameter
-    rf.setDefaultContext("abmReasoning/conf");   //overridden by --context parameter
-    rf.configure("EFAA_ROOT", argc, argv);
+    rf.setDefaultContext("abmReasoning");   //overridden by --context parameter
+    rf.configure(argc, argv);
         /* create your module */
     abmReasoning module(rf); 
     /* run the module: runModule() calls configure first and, if successful, it then runs */

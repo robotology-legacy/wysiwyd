@@ -51,7 +51,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
     bDreaming = false;
 
     
-    iCub = new ICubClient(moduleName,"abmReasoning/conf","client.ini",false);
+    iCub = new ICubClient(moduleName,"abmReasoning","client.ini",false);
     iCub->opc->isVerbose = false;
 
     Network::connect(senderPort.getName(), "/autobiographicalMemory/request:i");

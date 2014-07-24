@@ -33,7 +33,7 @@ int main(int argc, char * argv[]) {
     ResourceFinder rf;
     rf.setVerbose(true); 
     rf.setDefaultConfigFile("abmHandler.ini"); //overridden by --from parameter
-    rf.setDefaultContext("abmHandler/conf");   //overridden by --context parameter
+    rf.setDefaultContext("abmHandler");   //overridden by --context parameter
     rf.configure(argc, argv);
         /* create your module */
     abmHandler module(rf); 

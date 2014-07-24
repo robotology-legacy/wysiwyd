@@ -120,7 +120,7 @@ int main(int argc, char * argv[]) {
 	ResourceFinder rf;
 	rf.setVerbose(true);
 	rf.setDefaultConfigFile("autobiographicalMemory.ini"); //overridden by --from parameter
-	rf.setDefaultContext("autobiographicalMemory/conf");   //overridden by --context parameter
+	rf.setDefaultContext("autobiographicalMemory");   //overridden by --context parameter
 	rf.configure( argc, argv);
 		/* create your module */
 	autobiographicalMemory module(rf); 
