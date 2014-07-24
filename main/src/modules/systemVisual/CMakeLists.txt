@@ -5,6 +5,14 @@
 add_subdirectory(cvzVisualHierarchy)
 #add_subdirectory(frontalEyeField)
 
+find_package(kinectWrapper)
+
+if(kinectWrapper_FOUND)
+	add_subdirectory(agentDetector)
+else()
+	message("kinectWrapper has not been found, agentDetector will not be compiled")
+endif()
+
 if (WYSIWYD_USE_OpenCV)
 	add_subdirectory(imageSplitter)
 	add_subdirectory(imageFuser)
