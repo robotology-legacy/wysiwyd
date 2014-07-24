@@ -37,7 +37,7 @@ install:
   
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
-  - cmd: mkdir build
+  - cmd: md build
   - cmd: cd build
   - cmd: cmake -G"Visual Studio 11" ..
   - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" /t:INSTALL ICUBcontrib.sln
