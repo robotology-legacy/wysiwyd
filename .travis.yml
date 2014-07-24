@@ -27,7 +27,8 @@ install:
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=Release ..
   - sudo make install
-  - cd ../..
+  - cd ../../
+  - cd wysiwyd
 
 before_script:
   - cd main
