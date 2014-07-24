@@ -23,8 +23,8 @@ public:
 
 	void					simulateData();
 
-	void					getObjectFromWord(string sWord, vector<string> vContext);
-	void					getWordFromObject(string sObject, vector<string> vContext);
+	pair<string, double>	getObjectFromWord(string sWord, vector<string> vContext);
+	pair<string, double>	getWordFromObject(string sObject, vector<string> vContext);
 
     Bottle                  addInstance(string sObjectIdOPC, string sWord, vector<string> vContext);
 };

@@ -373,18 +373,18 @@ public:
 
 	// Functions
 	int oneCoord(int x, int y, int z) {
-		int test = x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size();
-		cout << "ici " << test << endl;
-		return (x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size());
+//		int test = x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size();
+//		cout << "ici " << test << endl;
+		return (x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size());
 	}       // return the 1D coordinate from a 3D coordinate    
 
 	int get(int x, int y, int z) {return viData[oneCoord(x, y, z)];}            // get the x y z position in the matrix
 
 	int get(string sX, string sY, string sZ)
 	{
-		addLabelX(sX);
-		addLabelY(sY);
-		addLabelZ(sZ);
+//		addLabelX(sX, true);
+//		addLabelY(sY, true);
+//		addLabelZ(sZ, true);
 
 		int X = -1,
 			Y = -1,
@@ -418,14 +418,17 @@ public:
 
 	void incr(int x, int y, int z) {viData[oneCoord(x, y, z)]++;}               // increment the x y z position of the matrix of 1
 
-	bool addLabelX(string sLabel)    // add 1 to the x size, and add the label to the list; return FALSE if already existing
+	bool addLabelX(string sLabel, bool check)    // add 1 to the x size, and add the label to the list; return FALSE if already existing
 	{
 
 		//check if label already in the matrix
 		for (vector<pair<string, int> >::iterator it = vLabelX.begin(); it != vLabelX.end() ; it++)
 		{
 			if (sLabel == it->first)
+			{
+				if (!check) it->second++;
 				return false;
+			}
 		}
 
 		vector<int>     matrixTemp;
@@ -438,26 +441,29 @@ public:
 
 				for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
 				{
-					matrixTemp.push_back(get(i,j,k));
+					matrixTemp.push_back(get(k,j,i));
 				}
 				matrixTemp.push_back(0);
 			}
 		}
 
-		pair<string, int> pTemp(sLabel, 0);
+		pair<string, int> pTemp(sLabel, check?0:1);
 		vLabelX.push_back(pTemp);
 		viData = matrixTemp;
 		return true;
 	}
 
-	bool addLabelY(string sLabel)    // add 1 to the y size, and add the label to the list; return FALSE if already existing
+	bool addLabelY(string sLabel, bool check)    // add 1 to the y size, and add the label to the list; return FALSE if already existing
 	{
 
 		//check if label already in the matrix
 		for (vector<pair<string, int> >::iterator it = vLabelY.begin(); it != vLabelY.end() ; it++)
 		{
 			if (sLabel == it->first)
+			{
+				if (!check)	it->second++;
 				return false;
+			}
 		}
 
 		vector<int>     matrixTemp;
@@ -468,7 +474,7 @@ public:
 			{
 				for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
 				{
-					matrixTemp.push_back(get(i,j,k));
+					matrixTemp.push_back(get(k,j,i));
 				}
 			}
 			for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
@@ -477,45 +483,41 @@ public:
 			}
 		}
 
-		pair<string, int> pTemp(sLabel,0);
+		
+		pair<string, int> pTemp(sLabel,check? 0 : 1);
 		vLabelY.push_back(pTemp);
 		viData = matrixTemp;
 		return true;
 	}
 
-	bool addLabelZ(string sLabel)    // add 1 to the z size, and add the label to the list; return FALSE if already existing
+	bool addLabelZ(string sLabel, bool check)    // add 1 to the z size, and add the label to the list; return FALSE if already existing
 	{
 
 		//check if label already in the matrix
 		for (vector<pair<string, int> >::iterator it = vLabelZ.begin(); it != vLabelZ.end() ; it++)
 		{
 			if (sLabel == it->first)
+			{
+				if (!check)	it->second++;
 				return false;
+			}
 		}
 
 		vector<int>     matrixTemp;
+		
 
-		for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
+		for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
 		{
-			for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
+			for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
 			{
-				for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
-				{
-					matrixTemp.push_back(get(i,j,k));
-				}
-			}
-			for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
-			{
-				for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
-				{
-					matrixTemp.push_back(0);
-				}
+				viData.push_back(0);
 			}
 		}
 
-		pair<string, int> pTemp(sLabel,0);
+		
+		pair<string, int> pTemp(sLabel,check?0:1);
 		vLabelZ.push_back(pTemp);
-		viData = matrixTemp;
+		//viData = matrixTemp;
 		return true;
 	}
 
@@ -523,8 +525,8 @@ public:
 		// increment in the matrix for the use of a pronom with information about the sentence
 	{
 		// first check if the speaker, receiver and agent are known
-		addLabelX(sX);
-		addLabelZ(sZ);
+		addLabelX(sX, false);
+		addLabelZ(sZ, false);
 
 		int iX = -1,
 			iY = -1,
@@ -536,7 +538,7 @@ public:
 			if (vLabelX[i].first == sX) 
 			{
 				iX = i;
-				vLabelX[i].second++;
+				//vLabelX[i].second++;
 			}
 		}
 
@@ -547,7 +549,7 @@ public:
 			if (vLabelZ[i].first == sZ)
 			{
 				iZ = i;
-				vLabelZ[i].second++;
+				//vLabelZ[i].second++;
 			}
 		}
 
@@ -562,13 +564,13 @@ public:
 		// search for Y
 		for (vector<string>::iterator itYinput = vY.begin() ; itYinput != vY.end() ; itYinput++)
 		{
-			addLabelY(*itYinput);
+			addLabelY(*itYinput, false);
 			for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
 			{
 				if (vLabelY[i].first == *itYinput)
 				{
 					iY = i;
-					vLabelY[i].second;
+					vLabelY[i].second++;
 				}
 			}
 			incr(iX,iY,iZ);
