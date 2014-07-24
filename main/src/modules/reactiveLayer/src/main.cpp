@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
     ReactiveLayer mod;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("reactiveLayer/conf");
+    rf.setDefaultContext("reactiveLayer");
     rf.setDefaultConfigFile("default.ini");
     rf.configure( argc, argv);
     mod.runModule(rf);
