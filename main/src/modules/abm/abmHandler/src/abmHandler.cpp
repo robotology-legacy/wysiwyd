@@ -17,14 +17,6 @@
 
 #include <abmHandler.h>
 
-abmHandler::abmHandler(ResourceFinder &rf)
-{
-    iCurrentInstance = -1;
-    sCurrentPronom = "none";
-    sCurrentActivity = "none";
-    psCurrentComplement.first = "none";
-    psCurrentComplement.second = "none";
-}
 
 abmHandler::~abmHandler()
 {
@@ -40,6 +32,12 @@ abmHandler::~abmHandler()
 */
 
 bool abmHandler::configure(yarp::os::ResourceFinder &rf) {    
+
+     iCurrentInstance = -1;
+    sCurrentPronom = "none";
+    sCurrentActivity = "none";
+    psCurrentComplement.first = "none";
+    psCurrentComplement.second = "none";
 
     bool    bEveryThingisGood = true;
     bool    bOptionnalModule  = true;
@@ -127,7 +125,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     //      iCub Client
     //------------------------//
     string ttsSystem = SUBSYSTEM_SPEECH;
-    iCub = new ICubClient(moduleName.c_str(),"abmHandler/conf","client.ini",true);
+    iCub = new ICubClient(moduleName.c_str(),"abmHandler","client.ini",true);
     //  iCub->getSpeechClient()->SetOptions("iCubina-fr");
     iCub->say("test Greg!",false);
     //  iCub->opc->isVerbose = false;

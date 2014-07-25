@@ -85,7 +85,6 @@ public:
     /** 
     * document your methods too.
     */
-    abmHandler(ResourceFinder &rf);
     ~abmHandler();
 
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
