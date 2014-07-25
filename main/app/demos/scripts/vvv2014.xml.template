@@ -55,7 +55,7 @@
         <module>
             <name>agentDetector</name>
             <node>icub16</node>
-            <parameters></parameters>
+            <parameters>showImages true</parameters>
         </module>
 
         <module>

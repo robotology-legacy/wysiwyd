@@ -1,23 +1,14 @@
 
 <application>
-<name>Dump - Full Robot</name>
+<name>Dump - Robot Joints</name>
 
         <dependencies>
             <port>/icub/torso/state:o</port>
             <port>/icub/right_arm/state:o</port>
             <port>/icub/left_arm/state:o</port>
             <port>/icub/head/state:o</port>
-            <port>/icub/camcalib/left/out</port>
-            <port>/icub/camcalib/right/out</port>
         </dependencies>
 		
-        <module>
-            <name>dataDumper </name>
-            <parameters>--name dump/icub/torso --type bottle --rxTime</parameters>
-            <node>icub-winnode2</node>
-            <tag>dataDumperTorso</tag>
-        </module>
-
         <module>
             <name>dataDumper </name>
             <parameters>--name dump/icub/torso --type bottle --rxTime</parameters>
@@ -46,27 +37,6 @@
             <tag>dataDumperHead</tag>
         </module>
 		
-		<module>
-            <name>dataDumper </name>
-            <parameters>--name dump/icub/camcalib/left --type image --rxTime</parameters>
-            <node>icub-winnode2</node>
-            <tag>dataDumperCamCalibLeft</tag>
-        </module>
-		
-		<module>
-            <name>dataDumper </name>
-            <parameters>--name dump/icub/camcalib/right --type image --rxTime</parameters>
-            <node>icub-winnode2</node>
-            <tag>dataDumperCamCalibRight</tag>
-        </module>
-		        
-		<module>
-            <name>dataDumper </name>
-            <parameters>--name dump/OPC --type bottle --rxTime</parameters>
-            <node>icub-winnode2</node>
-            <tag>dataDumperTorso</tag>
-        </module>
-		
 		<!-- Connections -->
 		
 		<connection>
@@ -92,24 +62,6 @@
 			<to>/dump/icub/head</to>
 			<protocol>udp</protocol>
 		</connection>  
-		
-		<connection>
-			<from>/icub/camcalib/left/out</from>
-			<to>/dump/icub/camcalib/left</to>
-			<protocol>udp</protocol>
-		</connection>  
-		
-		<connection>
-			<from>/icub/camcalib/right/out</from>
-			<to>/dump/icub/camcalib/right</to>
-			<protocol>udp</protocol>
-		</connection>
-		
-		<connection>
-			<from>/OPC/broadcast:o</from>
-			<to>/dump/OPC</to>
-			<protocol>udp</protocol>
-		</connection>
 		
 </application>
 

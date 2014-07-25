@@ -1,0 +1,54 @@
+
+<application>
+<name>Dump - Kinect</name>
+
+        <dependencies>
+            <port>/kinectServer/joints:o</port>
+            <port>/kinectServer/depth:o</port>
+            <port>/kinectServer/image:o</port>
+        </dependencies>
+		
+        <module>
+            <name>dataDumper </name>
+            <parameters>--name dump/kinectServer/joints --type bottle --rxTime</parameters>
+            <node>icub-winnode2</node>
+            <tag>dataDumperKinectJnts</tag>
+        </module>
+
+        <module>
+            <name>dataDumper </name>
+            <parameters>--name dump/kinectServer/depth --type image --rxTime</parameters>
+            <node>icub-winnode2</node>
+            <tag>dataDumperKinectDepth</tag>
+        </module>
+		
+        <module>
+            <name>dataDumper </name>
+            <parameters>--name dump/kinectServer/image --type image --rxTime</parameters>
+            <node>icub-winnode2</node>
+            <tag>dataDumperKinectImg</tag>
+        </module>
+		
+		<!-- Connections -->
+		
+		<connection>
+			<from>/kinectServer/joints:o</from>
+			<to>/dump/kinectServer/joints</to>
+			<protocol>udp</protocol>
+		</connection>
+	  
+		<connection>
+			<from>/kinectServer/depth:o</from>
+			<to>/dump/kinectServer/depth</to>
+			<protocol>udp</protocol>
+		</connection>
+		  	
+		<connection>
+			<from>/kinectServer/image:o</from>
+			<to>/dump/kinectServer/image</to>
+			<protocol>udp</protocol>
+		</connection>
+		
+</application>
+
+

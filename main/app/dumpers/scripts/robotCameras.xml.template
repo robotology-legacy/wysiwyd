@@ -1,0 +1,40 @@
+
+<application>
+<name>Dump - Robot Cameras</name>
+
+        <dependencies>
+            <port>/icub/camcalib/left/out</port>
+            <port>/icub/camcalib/right/out</port>
+        </dependencies>
+		
+		<module>
+            <name>dataDumper </name>
+            <parameters>--name dump/icub/camcalib/left --type image --rxTime</parameters>
+            <node>icub-winnode2</node>
+            <tag>dataDumperCamCalibLeft</tag>
+        </module>
+		
+		<module>
+            <name>dataDumper </name>
+            <parameters>--name dump/icub/camcalib/right --type image --rxTime</parameters>
+            <node>icub-winnode2</node>
+            <tag>dataDumperCamCalibRight</tag>
+        </module>
+		
+		<!-- Connections -->
+
+		<connection>
+			<from>/icub/camcalib/left/out</from>
+			<to>/dump/icub/camcalib/left</to>
+			<protocol>udp</protocol>
+		</connection>  
+		
+		<connection>
+			<from>/icub/camcalib/right/out</from>
+			<to>/dump/icub/camcalib/right</to>
+			<protocol>udp</protocol>
+		</connection>
+		
+</application>
+
+
