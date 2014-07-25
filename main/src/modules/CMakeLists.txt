@@ -24,4 +24,7 @@ endif()
 if(WYSIWYD_USE_TUIO)
 	add_subdirectory(reactableRelated)
 endif()
+if(WYSIWYD_USE_OTL)
+	add_subdirectory(bodySchema)
+endif()
 

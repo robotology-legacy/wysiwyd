@@ -28,6 +28,7 @@ find_package(PGSQL)
 find_package(OpenNI)
 find_package(Boost)
 find_package(FFTW3)
+find_package(OTL)
 
 message(STATUS "I have found the following libraries:")
 checkandset_dependency(GSL)
@@ -40,5 +41,6 @@ checkandset_dependency(PGSQL)
 checkandset_dependency(OpenNI)
 checkandset_dependency(Boost)
 checkandset_dependency(FFTW3)
+checkandset_dependency(OTL)
 
 

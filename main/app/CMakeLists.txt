@@ -19,3 +19,5 @@ add_subdirectory(attentionRelated)
 add_subdirectory(demos)
 add_subdirectory(dumpers)
 add_subdirectory(agentDetector)
+add_subdirectory(bodySchema)
+
