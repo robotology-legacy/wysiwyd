@@ -1,20 +1,20 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /* 
- * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Grégoire Pointeau
- * email:   gregoire.pointeau@inserm.fr
- * Permission is granted to copy, distribute, and/or modify this program
- * under the terms of the GNU General Public License, version 2 or any
- * later version published by the Free Software Foundation.
- *
- * A copy of the license can be found at
- * wysiwyd/license/gpl.txt
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details
+* Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+* Authors: Grégoire Pointeau
+* email:   gregoire.pointeau@inserm.fr
+* Permission is granted to copy, distribute, and/or modify this program
+* under the terms of the GNU General Public License, version 2 or any
+* later version published by the Free Software Foundation.
+*
+* A copy of the license can be found at
+* wysiwyd/license/gpl.txt
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+* Public License for more details
 
 
 /!\ This module is under development and is not useable as it is right now /!\
@@ -130,7 +130,7 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     threshold_time_sequence = bMental.check("threshold_time_sequence", Value(3)).asDouble();
     height_location = bMental.check("height_location", Value(0.016)).asDouble();
     size_location   = bMental.check("size_location", Value(0.005)).asDouble();
-    
+
     color_dream_R = bMental.check("color_dream_R", Value(255)).asInt();
     color_dream_G = bMental.check("color_dream_G", Value(255)).asInt();
     color_dream_B = bMental.check("color_dream_B", Value(255)).asInt();
@@ -146,19 +146,19 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 
     Bottle &bSpatialisation = rf.findGroup("spatialisation");
 
-	threshold_determine_Location = bSpatialisation.check("threshold_determine_Location", Value(3)).asInt();
-	factor_location = bSpatialisation.check("factor_location", Value(2)).asDouble();
-	threshold_is_at_location = bSpatialisation.check("threshold_is_at_location", Value(4)).asDouble();
-	threshold_is_at_temporal_location = bSpatialisation.check("threshold_is_at_temporal_location", Value(12)).asDouble();
-	threshold_is_dispersion = bSpatialisation.check("threshold_is_dispersion", Value(0.0001)).asDouble();
+    threshold_determine_Location = bSpatialisation.check("threshold_determine_Location", Value(3)).asInt();
+    factor_location = bSpatialisation.check("factor_location", Value(2)).asDouble();
+    threshold_is_at_location = bSpatialisation.check("threshold_is_at_location", Value(4)).asDouble();
+    threshold_is_at_temporal_location = bSpatialisation.check("threshold_is_at_temporal_location", Value(12)).asDouble();
+    threshold_is_dispersion = bSpatialisation.check("threshold_is_dispersion", Value(0.0001)).asDouble();
 
 
     Bottle &bPDDL = rf.findGroup("PDDL");
-    
-	threshold_intersect_sup = (bPDDL.check("threshold_intersect_sup", Value(0.75)).asDouble());
-	threshold_intersect_inf = (bPDDL.check("threshold_intersect_inf", Value(0.25)).asDouble());
-	threshold_presence = (bPDDL.check("threshold_presence", Value(0.9)).asDouble());
-	threshold_absence = (bPDDL.check("threshold_absence", Value(0.1)).asDouble());
+
+    threshold_intersect_sup = (bPDDL.check("threshold_intersect_sup", Value(0.75)).asDouble());
+    threshold_intersect_inf = (bPDDL.check("threshold_intersect_inf", Value(0.25)).asDouble());
+    threshold_presence = (bPDDL.check("threshold_presence", Value(0.9)).asDouble());
+    threshold_absence = (bPDDL.check("threshold_absence", Value(0.1)).asDouble());
 
 
     Bottle &bTag = rf.findGroup("TAGS");
@@ -254,9 +254,9 @@ struct tm  abmReasoningFunction::string2Time(string sTime)
     cBuffer =  (char*)sTime.c_str();
     unsigned int i = 0;
     int iLevel = 0;
-//  int iHH,iMM,iSS; //iYear,iMonth,iDay,
+    //  int iHH,iMM,iSS; //iYear,iMonth,iDay,
     string sYear, sMonth, sDay, sHH, sMM, sSS = "";
-//  bool bYear,bMonth,bDay,bHH,bMM = false;
+    //  bool bYear,bMonth,bDay,bHH,bMM = false;
     while (cBuffer[i] != '\0')
     {
         char cTemp = cBuffer[i];
@@ -268,24 +268,24 @@ struct tm  abmReasoningFunction::string2Time(string sTime)
         {
             switch (iLevel)
             {
-                case 0:
-                    sYear += cTemp;
-                    break;
-                case 1:
-                    sMonth += cTemp;
-                    break;
-                case 2:
-                    sDay += cTemp;
-                    break;
-                case 3:
-                    sHH += cTemp;
-                    break;
-                case 4:
-                    sMM += cTemp;
-                    break;
-                case 5:
-                    sSS += cTemp;
-                    break;
+            case 0:
+                sYear += cTemp;
+                break;
+            case 1:
+                sMonth += cTemp;
+                break;
+            case 2:
+                sDay += cTemp;
+                break;
+            case 3:
+                sHH += cTemp;
+                break;
+            case 4:
+                sMM += cTemp;
+                break;
+            case 5:
+                sSS += cTemp;
+                break;
             }
         }
         i++;
@@ -461,7 +461,7 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
     int N = vX.size(); // number of element
 
     double  muX = 0, // means
-            muY = 0;
+        muY = 0;
 
     for (int i = 0; i < N; i++)
     {
@@ -473,21 +473,21 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
     muY  /= (N*1.);
 
     vector<double>  XimuX,  // (Xi - muX)
-                    YimuY;  // (Yi - muX)
+        YimuY;  // (Yi - muX)
 
     /* Calcul of the determinant of the covariance matrix.
-    
+
     1/N * M *tM =   | a , b |
-                    | c , d |
+    | c , d |
 
     but here :  | a , b |
-                | b , d |
+    | b , d |
 
     */
     double  a = 0,
-            b = 0,
-            c = 0,
-            d = 0;
+        b = 0,
+        c = 0,
+        d = 0;
 
     // Creation of the matrix M for the abs values and M' the relatives values
     for (int i = 0; i < N ; i++)
@@ -551,7 +551,7 @@ double abmReasoningFunction::getMahalaDist(vector<double> vX, vector<double> vY,
     /*
     Mahalanobis distance : D
     Covariance Matrix : | a , b |
-                        | c , d |
+    | c , d |
 
 
     Inverse : 
@@ -563,10 +563,10 @@ double abmReasoningFunction::getMahalaDist(vector<double> vX, vector<double> vY,
 
     Point : X, Y
 
-                    | d ,-b |(X)
-         1          | -c, a |(Y)
+    | d ,-b |(X)
+    1          | -c, a |(Y)
     D = ---( X , Y )( X', Y')(D)
-        det
+    det
     */
 
     Xp =  d*X - c*Y;

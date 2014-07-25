@@ -54,7 +54,7 @@ void contextualKnowledge::updatePresence()
             if (it_p->second)
                 After++;
         }
-        
+
         mPercentIntersectLocation[itMAP->first].first = Before / (1. * itMAP->second.size());
         mPercentIntersectLocation[itMAP->first].second = After / (1. * itMAP->second.size());
     }
@@ -71,7 +71,7 @@ void contextualKnowledge::updatePresence()
             if (it_p->second)
                 After++;
         }
-        
+
         mPercentObjectFromTo[itMAP->first].first = Before / (1. * itMAP->second.size());
         mPercentObjectFromTo[itMAP->first].second = After / (1. * itMAP->second.size());
     }
@@ -98,7 +98,7 @@ void contextualKnowledge::updateIntersect()
 
 
 
- 
+
 void contextualKnowledge::updateAgentRelated()
 {
 

@@ -145,7 +145,7 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
         scoreTest   +=  weightDouble*tXY.getScoreSum(X==Y); // X == Y given P
         scoreTest   +=  weightDouble*tXZ.getScoreSum(X==Z); // X == Z given P
         scoreTest   +=  weightDouble*tYZ.getScoreSum(Y==Z); // Y == Z given P
-        
+
         scoreTest   +=  weightSimple*tXP.getScoreSum(X==P); // X == P given P
         scoreTest   +=  weightSimple*tYP.getScoreSum(Y==P); // Y == P given P
         scoreTest   +=  weightSimple*tZP.getScoreSum(Z==P); // Z == P given P
@@ -180,7 +180,7 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
             sResult = it_SubSc->first;
         }
     }   
-    
+
     if (dScoreMax <= 0)
     {
         cout << "Can't take a decision on which ag to select" << endl;
@@ -331,11 +331,11 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
 
         // SUM of the SCORE of each PROPERTY
         scoreTest   +=  weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
-    
+
         scoreTest   +=  weightDouble*tXY.getScoreSum(X==Y); // X == Y given P
         scoreTest   +=  weightDouble*tXZ.getScoreSum(X==Z); // X == Z given P
         scoreTest   +=  weightDouble*tYZ.getScoreSum(Y==Z); // Y == Z given P
-    
+
         scoreTest   +=  weightSimple*tXP.getScoreSum(X==P); // X == P given P
         scoreTest   +=  weightSimple*tYP.getScoreSum(Y==P); // Y == P given P
         scoreTest   +=  weightSimple*tZP.getScoreSum(Z==P); // Z == P given P
@@ -521,7 +521,7 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 
         // SUM of the SCORE of each PROPERTY
         scoreTest   +=  weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
-    
+
         scoreTest   +=  weightDouble*tXY.getScoreSum(X==Y); // X == Y given P
         scoreTest   +=  weightDouble*tXZ.getScoreSum(X==Z); // X == Z given P
         scoreTest   +=  weightDouble*tYZ.getScoreSum(Y==Z); // Y == Z given P
@@ -705,7 +705,7 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
         scoreTest += weightSimple*tX.getScoreSum();
         scoreTest += weightSimple*tY.getScoreSum();
         scoreTest += weightSimple*tZ.getScoreSum();
-        
+
         cout << endl << "Sub : " << P << endl;
         cout << "XYZP  pv : " << tXYZ.chiSquare() << "\t A=" << tXYZ.A << "\t B=" << tXYZ.B << "\t C=" << tXYZ.C << "\t D=" << tXYZ.D << "\t score : " <<   weightTriple*tXYZ.getScoreSum() <<  endl;
         cout << "XY    pv : " << tXY.chiSquare()  << "\t A=" << tXY.A  << "\t B=" << tXY.B  << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " <<     weightDouble*tXY.getScoreSum(X==Y) <<  endl;
@@ -968,7 +968,7 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
 
     string Su, Ad, Ag, Sp;
     double dScore;
-    
+
     ostringstream osFileOut;
     osFileOut << "C:/Users/rclab/Desktop/res/" << condition << "resultSimAD.csv";
     string sFileOut = osFileOut.str();
@@ -1108,7 +1108,7 @@ void grammarKnowledge::testSu(int iInstances, vector<string> vsLabelToAdd, int c
 
     string Su, Ad, Ag, Sp;
     double dScore;
-    
+
     ostringstream osFileOut;
     osFileOut << "C:/Users/rclab/Desktop/res/" << condition << "resultSimSU.csv";
     string sFileOut = osFileOut.str();

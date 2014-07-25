@@ -37,11 +37,11 @@ bool AdaptiveLayer::configure(yarp::os::ResourceFinder &rf)
 bool AdaptiveLayer::updateModule()
 {
     cout<<".";
-	bool spokenInteraction = false;
-	bool gestureInteraction = false;
+    bool spokenInteraction = false;
+    bool gestureInteraction = false;
 
     spokenInteraction =  handleSpeech();
-	gestureInteraction = handleGesture();
+    gestureInteraction = handleGesture();
 
     return true;
 }
@@ -484,6 +484,6 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
 
 bool AdaptiveLayer::respond(const Bottle& cmd, Bottle& reply)
 {
-	reply.addString("NACK");
+    reply.addString("NACK");
     return true;
 }

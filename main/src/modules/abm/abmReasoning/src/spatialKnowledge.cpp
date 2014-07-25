@@ -55,7 +55,7 @@ bool spatialKnowledge::fromBottle(Bottle bInput)
                 vDX.push_back(MOVE.first);
                 vDY.push_back(MOVE.second);
                 iSize++;
-            //  std::cout << "action added" << endl;
+                //  std::cout << "action added" << endl;
             }
         }
     }
@@ -218,14 +218,14 @@ pair <double, double> spatialKnowledge::coordRelative(double Xo, double Yo, doub
         B,      // temporaty for atan2 calculation
         Pi = atan(1.)*4,
         Theta;  // angle of the Human relative to the table
-    
+
     R = sqrt ((Xh-Xo)*(Xh-Xo) + (Yh-Yo)*(Yh-Yo));
-    
+
     A = Xh - abmReasoningFunction::X_center;
     B = Yh - abmReasoningFunction::Y_center;
 
     Theta = atan2( B , A ) + Pi/2.;
-    
+
     X = (Xo - Xh)*cos(Theta) + (Yo-Yh)*sin(Theta);
     Y = -(Xo - Xh)*sin(Theta) + (Yo - Yh)*cos(Theta);
 

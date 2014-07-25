@@ -1,18 +1,18 @@
 /* 
- * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Grégoire Pointeau
- * email:   gregoire.pointeau@inserm.fr
- * Permission is granted to copy, distribute, and/or modify this program
- * under the terms of the GNU General Public License, version 2 or any
- * later version published by the Free Software Foundation.
- *
- * A copy of the license can be found at
- * wysiwyd/license/gpl.txt
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details
+* Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+* Authors: Grégoire Pointeau
+* email:   gregoire.pointeau@inserm.fr
+* Permission is granted to copy, distribute, and/or modify this program
+* under the terms of the GNU General Public License, version 2 or any
+* later version published by the Free Software Foundation.
+*
+* A copy of the license can be found at
+* wysiwyd/license/gpl.txt
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+* Public License for more details
 */
 
 #include <abmHandler.h>
@@ -33,19 +33,19 @@ abmHandler::~abmHandler()
 
 
 /* 
- * Configure method. Receive a previously initialized
- * resource finder object. Use it to configure your module.
- * If you are migrating from the old Module, this is the 
- * equivalent of the "open" method.
- */
+* Configure method. Receive a previously initialized
+* resource finder object. Use it to configure your module.
+* If you are migrating from the old Module, this is the 
+* equivalent of the "open" method.
+*/
 
 bool abmHandler::configure(yarp::os::ResourceFinder &rf) {    
-    
+
     bool    bEveryThingisGood = true;
     bool    bOptionnalModule  = true;
     moduleName            = rf.check("name", 
-                           Value("/abmHandler"), 
-                           "module name (string)").asString();
+        Value("/abmHandler"), 
+        "module name (string)").asString();
 
     sKeyWord            = rf.check("keyword", Value("history")).toString().c_str();
 
@@ -66,7 +66,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Open handler port
-	handlerPortName = "/";
+    handlerPortName = "/";
     handlerPortName += getName() + "/rpc";         // use getName() rather than a literal 
 
     if (!handlerPort.open(handlerPortName.c_str())) {           
@@ -75,7 +75,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2abm
-	port2abmName = "/";
+    port2abmName = "/";
     port2abmName += getName() + "/toABM";
 
     if (!Port2ABM.open(port2abmName.c_str())) {           
@@ -84,7 +84,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2speech
-	port2SpeechRecogName = "/";
+    port2SpeechRecogName = "/";
     port2SpeechRecogName += getName() + "/toSpeechRecog";
 
     if (!Port2SpeechRecog.open(port2SpeechRecogName.c_str())) {           
@@ -93,7 +93,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2reasoning
-	port2abmReasoningName = "/";
+    port2abmReasoningName = "/";
     port2abmReasoningName += getName() + "/toAbmR";
 
     if (!Port2abmReasoning.open(port2abmReasoningName.c_str())) {           
@@ -103,14 +103,14 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
 
     // Open port2OPCManager
-	port2OPCmanagerName = "/";
+    port2OPCmanagerName = "/";
     port2OPCmanagerName += getName() + "/toOPCManager";
 
     if (!Port2OPCManager.open(port2OPCmanagerName.c_str())) {
         cout << getName() << ": Unable to open port " << port2OPCmanagerName << endl;  
         bEveryThingisGood = false;
     }
-    
+
     // Open port2ispeak
     port2OPCmanagerName = getName() + "/toiSpeak";
 
@@ -128,7 +128,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     //------------------------//
     string ttsSystem = SUBSYSTEM_SPEECH;
     iCub = new ICubClient(moduleName.c_str(),"abmHandler/conf","client.ini",true);
-//  iCub->getSpeechClient()->SetOptions("iCubina-fr");
+    //  iCub->getSpeechClient()->SetOptions("iCubina-fr");
     iCub->say("test Greg!",false);
     //  iCub->opc->isVerbose = false;
 
@@ -145,12 +145,12 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     {
         cout << endl << "Some dependencies are not running (ICubClient or port(s) connections)"<<endl<<endl;
     }
-    
+
     //Deal with settings of the speech synthesizer
     /*if (ttsSystem == SUBSYSTEM_SPEECH_ISPEAK)
     {
-        string ttsOptions = rf.check("ttsOptions",Value("iCub")).asString().c_str();
-        ( (SubSystem_Speech_iSpeak*) iCub->getSubSystem("speech"))->SetOptions(ttsOptions);
+    string ttsOptions = rf.check("ttsOptions",Value("iCub")).asString().c_str();
+    ( (SubSystem_Speech_iSpeak*) iCub->getSubSystem("speech"))->SetOptions(ttsOptions);
     }*/
 
     //iCub->opc->checkout();
@@ -160,7 +160,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     else
         cout << endl << endl << "----------------------------------------------" << endl << endl << "abmHandler ready !" << endl << endl;
 
-	node1();
+    node1();
 
     return bEveryThingisGood ;     
 }
@@ -183,27 +183,27 @@ bool abmHandler::close() {
 }
 
 bool abmHandler::respond(const Bottle& command, Bottle& reply) {
-  string helpMessage =  string(getName().c_str()) + 
-                        " commands are: \n" +  
-                        "help \n" + 
-                        "quit \n";
+    string helpMessage =  string(getName().c_str()) + 
+        " commands are: \n" +  
+        "help \n" + 
+        "quit \n";
 
-  reply.clear(); 
+    reply.clear(); 
 
-  if (command.get(0).asString()=="quit") {
-       reply.addString("quitting");
-       return false;     
-   }
-   else if (command.get(0).asString()=="help") {
-      cout << helpMessage;
-      reply.addString("ok");
-   }
-   else if (command.get(0).asString()==sKeyWord.c_str()) {
-       reply = node1();
-   }
+    if (command.get(0).asString()=="quit") {
+        reply.addString("quitting");
+        return false;     
+    }
+    else if (command.get(0).asString()=="help") {
+        cout << helpMessage;
+        reply.addString("ok");
+    }
+    else if (command.get(0).asString()==sKeyWord.c_str()) {
+        reply = node1();
+    }
 
 
-   return true;
+    return true;
 }
 
 /* Called periodically every getPeriod() seconds */
@@ -232,7 +232,7 @@ string abmHandler::grammarToString(string sPath)
         cout << "Error in abmHandler::grammarToString. Couldn't open file : " << sPath << "." << endl;
         return "Error in abmHandler::grammarToString. Couldn't open file";
     }
-     
+
     string sLine;
     while( getline(isGrammar, sLine) )
     {
@@ -272,7 +272,7 @@ Bottle abmHandler::node1()
     bMessenger.addString("grammarXML");
     bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
 
-    
+
     while (!fGetaReply)
     {
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
@@ -577,7 +577,7 @@ Bottle abmHandler::node2()
             Port2iSpeak.write(bSpeak);
             return node2();
         }
-        
+
         bSemantic = *bAnswer.get(1).asList();
 
         // INSTANT WINNER:
@@ -639,7 +639,7 @@ Bottle abmHandler::node2()
                 bOutput = bSpeak;
                 return node2();
             }
-            
+
             //Get differents winners
             vector<pair<string, int> >  vpsWinner;
             for (int i = 0 ; i < bAnswer.size() ; i++)
@@ -687,7 +687,7 @@ Bottle abmHandler::node2()
             return node2();
 
         }
-    
+
 
     }
 
@@ -700,7 +700,7 @@ Bottle abmHandler::node2()
         return bOutput;
     }
 
-    
+
     //ELSE
 
     // semantic is the list of the semantic elements of the sentence except the type ef sentence
@@ -719,13 +719,13 @@ Bottle abmHandler::node2()
 
     if (sNextTopic == "MORE")
     {
-            if (iCurrentInstance < 7)
-            {
-                osError << "doesn't know context (iCurrentInstance < 7)";
-                bOutput.addString(osError.str());
-                cout << osError.str() << endl;
-                return bOutput;
-            }
+        if (iCurrentInstance < 7)
+        {
+            osError << "doesn't know context (iCurrentInstance < 7)";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
 
         Bottle bNextTopic = *bSemantic.get(1).asList();
 
@@ -735,7 +735,7 @@ Bottle abmHandler::node2()
 
             ostringstream osRequest;
             osRequest << "SELECT name from agent WHERE presence = true AND instance = " << iCurrentInstance << endl;
-            
+
             bMessenger.clear();
             bMessenger.addString("request");
             bMessenger.addString(osRequest.str().c_str());
@@ -896,8 +896,8 @@ Bottle abmHandler::node3()
     }
 
 
-    
-    
+
+
     // REPLY GET FROM SPEECH RECOGNIZER
 
 
@@ -936,7 +936,7 @@ Bottle abmHandler::node3()
         return bOutput;
     }
 
-    
+
     //ELSE
 
     // semantic is the list of the semantic elements of the sentence except the type ef sentence
@@ -1068,7 +1068,7 @@ Bottle abmHandler::node3()
         {
             bAction = *bExplanation.get(i).asList();
             /* bAction : 
-move absolut (0.0  0.0) (action put (left cross icub) (spatial1 object1 agent1))
+            move absolut (0.0  0.0) (action put (left cross icub) (spatial1 object1 agent1))
             */
             cout << "Sub bottle " << i << "\t";
             cout << bExplanation.get(i).toString() << endl;

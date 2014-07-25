@@ -109,24 +109,24 @@ Windows
 #include <autobiographicalMemory.h>
 
 int main(int argc, char * argv[]) {
-	/* initialize yarp network */ 
-	Network yarp;
-	srand(time(NULL));
+    /* initialize yarp network */ 
+    Network yarp;
+    srand(time(NULL));
 
-	//system("mode con COLS=100");
+    //system("mode con COLS=100");
 
 
-	/* prepare and configure the resource finder */
-	ResourceFinder rf;
-	rf.setVerbose(true);
-	rf.setDefaultConfigFile("autobiographicalMemory.ini"); //overridden by --from parameter
-	rf.setDefaultContext("autobiographicalMemory");   //overridden by --context parameter
-	rf.configure( argc, argv);
-		/* create your module */
-	autobiographicalMemory module(rf); 
-	/* run the module: runModule() calls configure first and, if successful, it then runs */
-	module.runModule(rf);
+    /* prepare and configure the resource finder */
+    ResourceFinder rf;
+    rf.setVerbose(true);
+    rf.setDefaultConfigFile("autobiographicalMemory.ini"); //overridden by --from parameter
+    rf.setDefaultContext("autobiographicalMemory");   //overridden by --context parameter
+    rf.configure( argc, argv);
+    /* create your module */
+    autobiographicalMemory module(rf); 
+    /* run the module: runModule() calls configure first and, if successful, it then runs */
+    module.runModule(rf);
 
-	return 0;
+    return 0;
 }
 

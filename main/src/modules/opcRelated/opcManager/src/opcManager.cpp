@@ -28,7 +28,7 @@ bool opcManager::configure(yarp::os::ResourceFinder &rf)
         cout<<"Connecting to " << s_mentalOPC << "..." <<mentalOPC->connect(s_mentalOPC)<<endl;
         Time::delay(0.5);
     }
-    
+
     realOPC->update();
     mentalOPC->update();
 
@@ -60,7 +60,7 @@ bool opcManager::configure(yarp::os::ResourceFinder &rf)
 bool opcManager::interruptModule()
 {
     cout << "Interrupting your module, for port cleanup" << endl;
-    
+
     realOPC->interrupt();
     realOPC->close();
 
@@ -73,7 +73,7 @@ bool opcManager::interruptModule()
     portToAbmReasoning.interrupt();
     portToAbmReasoning.close();
 
-    
+
     return true;
 }
 
@@ -204,7 +204,7 @@ Bottle opcManager::connect(Bottle bInput)
 
     if (bInput.size() !=2) {
         bOutput.addString("Error in connect, wrong number of input");   }
-    
+
     if (!bInput.get(1).isString()){
         bOutput.addString("Error in connect, wrong format of input");   }
 
@@ -382,8 +382,8 @@ Bottle opcManager::updateBelief(string sOPCname)
                 if (!bRelPresent)
                 {
                     // is the new relation is already known
-                if (it_RAg->toString() == it_RWorl->toString() )
-                    bRelPresent = true;
+                    if (it_RAg->toString() == it_RWorl->toString() )
+                        bRelPresent = true;
                 }
             }
             // if the previous relation is no more present
@@ -475,7 +475,7 @@ Bottle opcManager::synchoniseOPCs()
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
             RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
             Rt->fromBottle((*it_E)->asBottle());    }
-    
+
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)    {
             Adjective *Ad = mentalOPC->addAdjective((*it_E)->name());
             Ad->fromBottle((*it_E)->asBottle());    }
@@ -485,7 +485,7 @@ Bottle opcManager::synchoniseOPCs()
             Ac->fromBottle((*it_E)->asBottle());    }   
     }
     mentalOPC->commit();
-    
+
     for (list<Relation>::iterator it_R = lRelations.begin() ; it_R != lRelations.end() ; it_R++)
     {
         mentalOPC->addRelation(*it_R);
@@ -538,18 +538,18 @@ Bottle opcManager::simulateAction(Bottle bAction)
     if (!fObject)   {
         bOutput.addString("Error in opcManager::simulateAction | object not found");
         return bOutput; }
-    
+
     mentalOPC->update();
 
     RTObject *OBJECT =  mentalOPC->addRTObject(sObject);
-    
+
     if (fAbsolut)   {
         OBJECT->m_ego_position[0] = pMove.first;
         OBJECT->m_ego_position[1] = pMove.second;   }
     else    {
         OBJECT->m_ego_position[0] = OBJECT->m_ego_position[0] + pMove.first;
         OBJECT->m_ego_position[1] = OBJECT->m_ego_position[1] + pMove.second;   }
-    
+
     mentalOPC->commit();
 
     return bAction;

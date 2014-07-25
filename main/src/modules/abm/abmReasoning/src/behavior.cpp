@@ -39,7 +39,7 @@ Bottle behavior::getConsequence()
     }
 
     Bottle bDrive;
-    
+
     for (unsigned int i = 0 ; i < vDrive.size() ; i++)
     {
         bDrive.clear();
