@@ -1,0 +1,122 @@
+<application>
+
+<name>Dump - Robot Joints Velocities</name>
+
+        <dependencies>
+            <port>/icub/torso/state:o</port>
+            <port>/icub/right_arm/state:o</port>
+            <port>/icub/left_arm/state:o</port>
+            <port>/icub/head/state:o</port>
+        </dependencies>
+		
+        <module>
+            <name>velocityObserver </name>
+            <parameters>--name /torso</parameters>
+            <node>icub12</node>
+            <tag>dumperTorso</tag>
+        </module>
+
+        <module>
+            <name>velocityObserver </name>
+            <parameters>--name /right_arm</parameters>
+            <node>icub12</node>
+            <tag>dumperRightArm</tag>
+        </module>
+
+        <module>
+            <name>velocityObserver </name>
+            <parameters>--name /left_arm </parameters>
+            <node>icub12</node>
+            <tag>dumperLeftArm</tag>
+        </module>
+
+        <module>
+            <name>velocityObserver </name>
+            <parameters>--name /head</parameters>
+            <node>icub12</node>
+            <tag>dumperHead</tag>
+        </module>
+
+
+
+  <module>
+    <name>dataDumper</name>
+    <parameters>--name /icub/torsoDump/getEncoderSpeeds --rxTime</parameters>
+    <node>icub12</node>
+    <tag>dumpTorsoEncs</tag>
+  </module>
+
+  <module>
+    <name>dataDumper</name>
+    <parameters>--name /icub/rightArmDump/getEncoderSpeeds --rxTime</parameters>
+    <node>icub12</node>
+    <tag>dumpRightArmEncs</tag>
+  </module>
+
+  <module>
+    <name>dataDumper</name>
+    <parameters>--name /icub/leftArmDump/getEncoderSpeeds --rxTime</parameters>
+    <node>icub12</node>
+    <tag>dumpLeftArmEncs</tag>
+  </module>
+
+  <module>
+    <name>dataDumper</name>
+    <parameters>--name /icub/headDump/getEncoderSpeeds --rxTime</parameters>
+    <node>icub12</node>
+    <tag>dumpHeadEncs</tag>
+  </module>
+
+
+
+
+  <connection>
+    <output>/icub/torso/state:o </output>
+    <input>/torso/pos:i <input>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <from>/torso/vel:o</from>
+    <to> /icub/torsoDump/getEncoderSpeeds </to>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <output>/icub/right_arm/state:o </output>
+    <input>/right_arm/pos:i <input>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <from>/right_arm/vel:o</from>
+    <to> /icub/rightArmDump/getEncoderSpeeds </to>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <output>/icub/left_arm/state:o </output>
+    <input>/left_arm/pos:i <input>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <from>/left_arm/vel:o</from>
+    <to> /icub/leftArmDump/getEncoderSpeeds </to>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <from>/head/vel:o</from>
+    <to> /icub/headDump/getEncoderSpeeds </to>
+    <protocol>udp</protocol>
+  </connection>
+
+  <connection>
+    <output>/icub/head/state:o </output>
+    <input>/head/pos:i <input>
+    <protocol>udp</protocol>
+  </connection>
+
+
+</application>
