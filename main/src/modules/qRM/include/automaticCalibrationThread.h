@@ -90,7 +90,7 @@ public:
         rfhPort.write(clrBottle);
 
         double t0 = Time::now();
-        for(int i=0; i<rtPos.size(); i+=3)
+        for(unsigned int i=0; i<rtPos.size(); i+=3)
         {
             Bottle botRPH, botRPHRep;
             botRPH.addString("add");
