@@ -59,6 +59,7 @@ add_custom_target(uninstall_wysiwyd "${CMAKE_COMMAND}" -P
 #### install cmake scripts
 message(STATUS "Installing cmake scripts")
 set(WYSIWYD_CMAKE_SCRIPTS FindFFTW3.cmake
+                          FindOTL.cmake
                           FindIQR.cmake
                           FindKinectSDK.cmake
                           FindOpenNI.cmake
