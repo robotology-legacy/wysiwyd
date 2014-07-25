@@ -41,7 +41,7 @@ int main(int argc, char * argv[])
     AdaptiveLayer mod;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("adaptiveLayer/conf");
+    rf.setDefaultContext("adaptiveLayer");
     rf.setDefaultConfigFile("default.ini");
     rf.configure(argc, argv);
     mod.runModule(rf);

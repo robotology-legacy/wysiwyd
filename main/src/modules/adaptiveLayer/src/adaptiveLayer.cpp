@@ -9,8 +9,8 @@ bool AdaptiveLayer::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(0.1)).asDouble();
 
     //Create an iCub Client and check that all dependencies are here before starting
-    bool isRFVerbose = false;
-    iCub = new ICubClient(moduleName,"adaptativeLayer/conf","client.ini",isRFVerbose);
+    bool isRFVerbose = true;
+    iCub = new ICubClient(moduleName,"adaptiveLayer","client.ini",isRFVerbose);
     iCub->opc->isVerbose = false;
     char rep = 'n';
     while (rep!='y'&&!iCub->connect())
