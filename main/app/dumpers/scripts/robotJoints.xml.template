@@ -12,28 +12,28 @@
         <module>
             <name>dataDumper </name>
             <parameters>--name dump/icub/torso --type bottle --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperTorso</tag>
         </module>
 		
         <module>
             <name>dataDumper </name>
             <parameters>--name dump/icub/right_arm --type bottle --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperRightArm</tag>
         </module>
 		        
 		<module>
             <name>dataDumper </name>
             <parameters>--name dump/icub/left_arm --type bottle --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperLeftArm</tag>
         </module>
 		
 		<module>
             <name>dataDumper </name>
             <parameters>--name dump/icub/head --type bottle --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperHead</tag>
         </module>
 		

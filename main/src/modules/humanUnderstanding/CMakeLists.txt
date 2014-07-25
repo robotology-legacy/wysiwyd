@@ -6,6 +6,7 @@ find_package(kinectWrapper)
 
 if(kinectWrapper_FOUND)
 	add_subdirectory(agentDetector)
+	add_subdirectory(kinectPositions2jointAngles)
 else()
 	message("kinectWrapper has not been found, agentDetector will not be compiled")
 endif()
