@@ -4,8 +4,8 @@
 bool pronom::AddInstance(Bottle bInput)
 {
     string  sSpeaker = bInput.get(0).toString().c_str(),
-            sAddressee = bInput.get(1).toString().c_str(),
-            sAgent = bInput.get(3).toString().c_str();
+        sAddressee = bInput.get(1).toString().c_str(),
+        sAgent = bInput.get(3).toString().c_str();
 
     m3Data.incr(sSpeaker, sAddressee, sAgent);
 
@@ -19,7 +19,7 @@ bool pronom::AddInstance(Bottle bInput)
     if (sSubject == sAgent) pSubject_Is_Agent.first++;
     pSubject_Is_Agent.second++;
 
-    
+
 
 
     // TODO : TO BE REMOVE
@@ -53,7 +53,7 @@ bool pronom::AddInstance(Bottle bInput)
     if (sSubject == sAgent)
         pSubject_Is_Agent.first++;
     pSubject_Is_Agent.second++;
-    
+
     // addressee is
     bool fAddressee = false;
     for (vector<pair<string, int> >::iterator it_RE = vAddresseeIs.begin() ; it_RE != vAddresseeIs.end() ; it_RE++)

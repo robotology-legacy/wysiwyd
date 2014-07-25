@@ -19,7 +19,7 @@ void interlocutor::close()
 {
     senderPort.close();
     port_to_OPCManager.close();
-    
+
     mentalOPC->interrupt();
     mentalOPC->close();
     realOPC->interrupt();
@@ -197,7 +197,7 @@ Bottle interlocutor::askActionFromId(int Id)
     //clear things
     osEntity.str("");
 
-    
+
     //-- 4. extract the x, y of the object at the end of the activity and the presence and absence
     osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id+1 << " AND " << subtypeArg << ".opcid = " << idArg ;
     bPosArgEnd = requestFromStream(osEntity.str().c_str());
@@ -214,7 +214,7 @@ Bottle interlocutor::askActionFromId(int Id)
     bOutput.addInt(ObjectPresentBefore);
     bOutput.addInt(ObjectPresentAfter);
 
-    
+
     ostringstream osSubject;
     osSubject << "SELECT argument FROM contentarg WHERE role = 'agent1' AND instance = " << Id;
     bContent = requestFromStream(osSubject.str());
@@ -225,7 +225,7 @@ Bottle interlocutor::askActionFromId(int Id)
     bContent = requestFromStream(osSpatial2.str());
 
     string sNull = "NULL";
-    
+
     if (bName.get(0).toString() == "hanoi")
     {
         bOutput.clear();
@@ -278,7 +278,7 @@ Bottle interlocutor::askActionFromId(int Id)
         bOutput.addString("opc not connected");
         return bOutput;
     }
-    
+
     string sArgSpatial2 = bContent.get(0).toString();
 
     if (sArgSpatial2 == sNull){
@@ -321,7 +321,7 @@ Bottle interlocutor::askActionFromId(int Id)
     bOutput.addString(posArgEnd.c_str());
 
     bOutput.addString(subtypeArg.c_str());
-    
+
     return bOutput;
 }
 
@@ -436,7 +436,7 @@ Bottle interlocutor::askSentenceFromId(int Id)
         bOutput.addString(sAgentNext.c_str());
     else
         bOutput.addString(sAgentPrevious.c_str());
-        
+
     return bOutput;
 }
 
@@ -474,7 +474,7 @@ Bottle interlocutor::askActionForLevel3Reasoning(int Id)
 
     //clear things
     osRelation.str("");
-    
+
 
     //get location of objects after
     osRelation << "SELECT subject, object FROM relation WHERE instance = " << Id+1 << " AND verb = 'isAtLoc'";
@@ -496,7 +496,7 @@ Bottle interlocutor::askActionForLevel3Reasoning(int Id)
         bOutput.addList() = bSpatial;
     }
 
-    
+
     return bOutput;
 }
 
@@ -674,7 +674,7 @@ Bottle interlocutor::imagineOPC(int Id)
         bOutput.addString("Problem in interlocutor::imagineOPC | mentalOPC not connected");
         return bOutput;
     }
-    
+
 
     mentalOPC->checkout();
 
@@ -1168,12 +1168,12 @@ int interlocutor::sendInteractionKnowledge(vector<knownInteraction> listIN)
         osInsert << "INSERT INTO interactionknowledge (subject, argument, number, type, role) VALUES ";
         for (vector<tuple<string, int, string, string>>::iterator itTuple = itInterac->listInteraction.begin(); itTuple != itInterac->listInteraction.end() ; itTuple++)
         {
-                if (!bFirst)
-                    osInsert << " , " ;
-                bFirst = false;
-                osInsert << " ( '" << itInterac->sSubject << "' , '" << get<0>(*itTuple) << "' , " << get<1>(*itTuple) << " , '" << get<2>(*itTuple) << "' , '" << get<3>(*itTuple) << "' ) " ; 
+            if (!bFirst)
+                osInsert << " , " ;
+            bFirst = false;
+            osInsert << " ( '" << itInterac->sSubject << "' , '" << get<0>(*itTuple) << "' , " << get<1>(*itTuple) << " , '" << get<2>(*itTuple) << "' , '" << get<3>(*itTuple) << "' ) " ; 
         }
-        
+
         bRequest = requestFromStream(osInsert.str().c_str());
         serialInteraction++;
     }
@@ -1297,14 +1297,14 @@ Bottle interlocutor::saveKnowledge(vector<spatialKnowledge> listSK , vector<time
         bMessenger;
 
     std::cout << endl << "starting to save knowledge ... " << endl;
-    
+
     int serialSpatial = 0,
         serialTime = 0,
         serialBehavior = 0,
         serialPlan = 0,
         serialContext = 0,
         serialInteraction = 0;
-    
+
     bMessenger.addString("resetKnowledge");
     bMessenger = request(bMessenger);
 
@@ -1332,10 +1332,10 @@ void interlocutor::setMentalOPC(int instance)
 {
     ostringstream osAllOPCid, osAgent;
     Bottle  bAllEntity,     // result of all the entities
-            bAgent,
-            bObject,
-            bRTObject,
-            bCurrentEntity;
+        bAgent,
+        bObject,
+        bRTObject,
+        bCurrentEntity;
     // get the opcID of all the entity in the OPC
     osAllOPCid << "SELECT opcid, type, subtype FROM contentopc WHERE instance = " << instance ;
     bAllEntity  = requestFromStream(osAllOPCid.str());

@@ -67,10 +67,10 @@ public:
     bool handleSpeech();
     Relation getRelationFromSemantic(Bottle b);
     string getEntityFromWordGroup(Bottle *b);
-	
+
     //Retrieve and treat the gesture information input
     bool handleGesture();
-    
+
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
 

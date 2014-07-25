@@ -13,6 +13,22 @@ install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
   - sudo apt-get update
   - sudo apt-get --force-yes install icub
+  - cd ..
+  - git clone https://github.com/robotology/icub-contrib-common.git
+  - cd icub-contrib-common
+  - mkdir build
+  - cd build
+  - cmake ..
+  - sudo make install
+  - cd ../..
+  - git clone https://github.com/robotology/kinect-wrapper.git
+  - cd kinect-wrapper
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - sudo make install
+  - cd ../../
+  - cd wysiwyd
 
 before_script:
   - cd main
@@ -29,4 +45,5 @@ notifications:
   - stephane.lallee@gmail.com
   - gregoire.pointeau@inserm.fr
   - anne.laure.mealier@gmail.com
+  - maxpetit@gmail.com
    

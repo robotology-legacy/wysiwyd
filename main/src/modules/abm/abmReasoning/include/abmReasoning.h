@@ -10,11 +10,11 @@ private :
     // Internal member, module-related :
     abmReasoningFunction *iFunction;            //  class of generic functions
     string  savefile,
-            path;
+        path;
     interlocutor        Interlocutor;           // interlocutor with the ABM
     OPCClient           *realOPC;                       // OPC
     OPCClient           *mentalOPC;
-    
+
     ICubClient *iCub;
 
     Bottle              connectOPC(Bottle bInput);
@@ -71,16 +71,16 @@ private :
     vector < pair <int,int> >   vCurrentActions ;
 
     int saveEndLastAction;
-    
+
 
 public : 
-    
+
     abmReasoning(ResourceFinder &rf);
     ~abmReasoning();
 
     deque<string> opcNameTable;
 
-//
+    //
     // module related functions
     double getPeriod();
     bool updateModule();    //  This is our main function. Will be called periodically every getPeriod() seconds.
@@ -96,7 +96,7 @@ public :
     Bottle save(Bottle bInput);
     Bottle sqlQueryTest();
 
-  
+
     // query from outside
     Bottle findActivity(string actionName, string beginOrEnd, string select = "*");
     Bottle findActivityById(int id, string select = "*");
@@ -115,7 +115,7 @@ public :
     Bottle testGetIdFromActivity();
 
     Bottle renameAction(Bottle bInput);
-    
+
 
     // finding function
     Bottle findAllActions();
@@ -137,7 +137,7 @@ public :
     plan actionsToPlan(int, int) ;
     vector<plan> checkPlan(plan, vector<plan>);
 
-    
+
     // adding functions
     Bottle addLastActivity(Bottle bInput);
     Bottle addLastAction();

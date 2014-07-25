@@ -15,9 +15,13 @@ add_subdirectory(attentionRelated)
 
 add_subdirectory(systemMotor)
 add_subdirectory(systemHaptic)
+
+add_subdirectory(humanUnderstanding)
+
 if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(systemVisual)
 endif()
 if(WYSIWYD_USE_TUIO)
 	add_subdirectory(reactableRelated)
 endif()
+

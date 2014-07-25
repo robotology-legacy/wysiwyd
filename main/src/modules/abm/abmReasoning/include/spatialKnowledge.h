@@ -22,7 +22,7 @@ public:
     int                     iSize;
     int                     iNbParam;
     int                     iInfluence;
-    
+
     vector<double>          vX;
     vector<double>          vY;
     vector<double>          vFromX;

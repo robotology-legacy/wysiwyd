@@ -40,9 +40,9 @@ int main(int argc, char * argv[])
     Network::init();
     AdaptiveLayer mod;
     ResourceFinder rf;
-    rf.setVerbose(true);
+    rf.setVerbose(false);
     rf.setDefaultContext("adaptiveLayer");
-    rf.setDefaultConfigFile("default.ini");
+    rf.setDefaultConfigFile("adaptiveLayer.ini");
     rf.configure(argc, argv);
     mod.runModule(rf);
     return 0;
