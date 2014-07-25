@@ -412,7 +412,7 @@ bool AgentDetector::updateModule()
                             Agent* specificAgent = opc->addAgent(playerName);
 
                             identities[p->ID] = specificAgent;
-                            specificAgent->m_present = false;
+                            specificAgent->m_present = true;
                             opc->commit(specificAgent);
                         }       
                     
