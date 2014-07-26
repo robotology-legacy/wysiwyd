@@ -5,8 +5,6 @@
 set(PROJECTNAME agentDetector)
 project(${PROJECTNAME})
 
-find_package(kinectWrapper REQUIRED)
-
 file(GLOB folder_source *.h *.cpp)
 source_group("Source Files" FILES ${folder_source})
 
