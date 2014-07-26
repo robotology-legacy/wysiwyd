@@ -57,7 +57,7 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
     fileOut = rf.findFile("outputs.txt").c_str();
 
     nInputs = 1;
-    nOutputs = 2;
+    nOutputs = 1;
 
 
 
@@ -187,6 +187,20 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
+    portReadPredictionsName = "/" + getName() + "/portReadPredictions";
+
+    if (!portReadPredictions.open(portReadPredictionsName.c_str())) {
+        cout << getName() << ": Unable to open port " << portReadPredictionsName << endl;
+        bEveryThingisGood = false;
+    }
+
+    portReadPredictionErrorsName = "/" + getName() + "/portReadPredictionErrors";
+
+    if (!portReadPredictionErrors.open(portReadPredictionErrorsName.c_str())) {
+        cout << getName() << ": Unable to open port " << portReadPredictionErrorsName << endl;
+        bEveryThingisGood = false;
+    }
+
     // Inputs ports: InData -> inputs of the model to build; OutData -> observed outputs of the model to build.
     portInDataName = "/" + getName() + "/portInData";
 
@@ -223,19 +237,27 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
         cout << "Connecting right arm port..." << endl;
         Time::delay(0.2);
     }
-    while (!Network::connect("/icubSim/right_arm/state:o",portReadInDataName))
-    {
-        cout << "Connecting right arm port..." << endl;
-        Time::delay(0.2);
-    }
+//    while (!Network::connect("/icubSim/right_arm/state:o",portReadInDataName))
+//    {
+//        cout << "Connecting right arm port..." << endl;
+//        Time::delay(0.2);
+//    }
 
 
 //    Network::connect(portInDataName,portReadInDataName);
 //    Network::connect(portOutDataName,portReadOutDataName);
-    Network::connect(portReadInDataName,portReadOutDataName);
+//    Network::connect(portReadInDataName,portReadOutDataName);
+//    Network::connect("/icubSim/right_arm/state:o",portReadOutDataName);
+
+    while (!Network::connect("/icubSim/right_arm/state:o",portReadOutDataName))
+        {
+            cout << "Connecting right arm port..." << endl;
+            Time::delay(0.2);
+        }
 
 
-
+//    Network::connect(portPredictions,portReadPredictions);
+//    Network::connect(portPredictionErrors,portReadPredictionErrors);
 
 
 
@@ -384,7 +406,7 @@ bool bodySchema::learn(string& fileNameIn, string& fileNameOut)
 
     //Reservoir Parameters
     //you can change these to see how it affects the predictions
-    int reservoir_size = 100;
+    int reservoir_size = 300;
     double input_weight = 1.0;
     double output_feedback_weight = 0.0;
     int activation_function = Reservoir::TANH;
@@ -397,9 +419,9 @@ bool bodySchema::learn(string& fileNameIn, string& fileNameOut)
     kernel_parameters << 1.0, 1.0; //l = 1.0, alpha = 1.0
 
     //SOGP parameters
-    double noise = 0.01;
+    double noise = 0.0001;
     double epsilon = 1e-3;
-    int capacity = 200;
+    int capacity = 500;
 
     int random_seed = 0;
 
@@ -416,7 +438,7 @@ bool bodySchema::learn(string& fileNameIn, string& fileNameOut)
 
 
         //now we loop using a sine wave
-        unsigned int max_itr = 10000000; // TO MODIFY!!!!
+        unsigned int max_itr = 1000; // TO MODIFY!!!!
         unsigned int iters = max_itr;
 
         //note that we use Eigen VectorXd objects
@@ -431,58 +453,82 @@ bool bodySchema::learn(string& fileNameIn, string& fileNameOut)
         VectorXd in(1);  //the 1 is the size of the vector
         VectorXd out(1);
 
+
+        double prev_pos;
+        cmdRightArm=-70;
+        pos->positionMove(0,cmdRightArm);
+        Bottle *prevPosB = portReadOutData.read();
+        if (!prevPosB->isNull())
+        {
+            prev_pos = prevPosB->get(0).asDouble(); // 0 is the joint number!
+        }
+        else
+            cout << "NULL Bottle" << endl;
+
+
+
         for (unsigned int i=0; i<iters; i++) {
 
             //create the input and output
-            in(0) = -90+10*sin(i*0.01);
-            out(0) = -90+10*sin((i+1)*0.01);
+            in(0) = 50*sin(i*0.1); //-70+10*sin(i*0.1)
 
-            Bottle& inputB = portInData.prepare(); // Get the object
-            inputB.addDouble(in(0));
-            portInData.write(); // Now send it on its way
-
-            cmd[0]=in(0);
             cmdRightArm=in(0);
-            cout << "Moving right arm" << endl;
-            cout << cmdRightArm << endl;
-            pos->positionMove(0,cmdRightArm);//cmd.data());
+            cout << "Cmd sent:" << cmdRightArm << endl;
+//            pos->positionMove(0,cmdRightArm);//cmd.data());
+            vel->velocityMove(0,cmdRightArm);//cmd.data());
 
-//            Bottle& outputB = portOutData.prepare(); // Get the object
-//            outputB.addDouble(out(0));
-//            portOutData.write(); // Now send it on its way
+            Bottle *outB = portReadOutData.read();
 
-////        }
+            if (!outB->isNull())
+            {
+                output(0) = outB->get(0).asDouble() - prev_pos; // 0 is the joint number!
+            }
+            else
+                cout << "NULL Bottle" << endl;
 
-////        for (unsigned int i=0; i<max_itr; i++) {
+            prev_pos = outB->get(0).asDouble();
 
-////            //create the input and output
-////            input(0) = sin(i*0.01);
-////            output(0) = sin((i+1)*0.01);
+            input(0) = in(0);
 
-//            // Read input and output from ports
-//            Bottle *inB = portReadInData.read();
-//            Bottle *outB = portReadOutData.read();
+            cout << "Output.:" << output << endl;
 
-//            if (!inB->isNull())
-//                input(0) = inB->get(i).asDouble();
-//            if (!outB->isNull())
-//                output(0) = outB->get(i).asDouble();
+            Bottle& outDataB = portOutData.prepare(); // Get the object
+            outDataB.clear();
+            outDataB.addDouble(output.value());
+            portOutData.write(); // Now send it on its way
 
-//            cout << "Going to update OESGP..." << endl;
-//            //update the OESGP with the input
-//            oesgp.update(input);
 
-//            cout << "Going to predict OESGP..." << endl;
-//            //predict the next state
-//            oesgp.predict(prediction, prediction_variance);
+            //update the OESGP with the input
+            oesgp.update(input);
 
-//            //print the error
-//            double error = (prediction - output).norm();
-//            cout << "Error: " << error << ", |BV|: "
-//                 << oesgp.getCurrentSize() <<  endl;
+            //predict the next state
+            oesgp.predict(prediction, prediction_variance);
+//            cout << "Predicion:" << prediction << endl;
+            cout << "Prediction:" << prediction.value() << endl;
 
-//            //train with the true next state
-//            oesgp.train(output);
+            //print the error
+            double error = (prediction - output).norm();
+            cout << "Error: " << error << ", |BV|: "
+                 << oesgp.getCurrentSize() <<  endl;
+
+            //train with the true next state
+            oesgp.train(output);
+
+            Bottle& predB = portPredictions.prepare(); // Get the object
+            predB.clear();
+            predB.addDouble(prediction.value());
+            portPredictions.write(); // Now send it on its way
+
+            Bottle& errB = portPredictionErrors.prepare(); // Get the object
+            errB.clear();
+            errB.addDouble(error);
+            portPredictionErrors.write(); // Now send it on its way
+
+//            Bottle& readPredB = portReadPredictions.read(); // Get the object
+//            Bottle& readPredErrB = portReadPredictionErrors.read(); // Get the object
+
+
+
         }
 
         cout << "Testing saving and loading model " << std::endl;
@@ -498,8 +544,44 @@ bool bodySchema::learn(string& fileNameIn, string& fileNameOut)
 
         //prediction test
         for (unsigned int i=max_itr; i<max_itr+50; i++) {
-            input(0) = -90+10*sin(i*0.01);
-            output(0) = -90+10*sin((i+1)*0.01);
+//            input(0) = 2*sin(i*0.1); //input(0) = -70+10*sin(i*0.1);
+////            output(0) = -90+10*sin((i+1)*0.01);
+
+//            Bottle *outB = portReadOutData.read();
+//            if (!outB->isNull())
+//            {
+//                output(0) = outB->get(0).asDouble(); // 0 is the joint number!
+//                cout << "Got input" <<endl;
+//            }
+//            else
+//                cout << "NULL Bottle" << endl;
+
+
+            in(0) = 50*sin(i*0.1); //-70+10*sin(i*0.1)
+
+            cmdRightArm=in(0);
+            cout << "Cmd sent:" << cmdRightArm << endl;
+//            pos->positionMove(0,cmdRightArm);//cmd.data());
+            vel->velocityMove(0,cmdRightArm);//cmd.data());
+
+            Bottle *outB = portReadOutData.read();
+
+            if (!outB->isNull())
+            {
+                output(0) = outB->get(0).asDouble() - prev_pos; // 0 is the joint number!
+            }
+            else
+                cout << "NULL Bottle" << endl;
+
+            prev_pos = outB->get(0).asDouble();
+
+            input(0) = in(0);
+
+            Bottle& outDataB = portOutData.prepare(); // Get the object
+            outDataB.addDouble(output.value());
+            portOutData.write(); // Now send it on its way
+
+
 
             //update
             oesgp2.update(input);

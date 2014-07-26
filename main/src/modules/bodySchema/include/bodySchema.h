@@ -49,6 +49,8 @@ private:
         string portLeftArmStateName;
 	string portPredictionsName;
 	string portPredictionErrorsName;
+	string portReadPredictionsName;
+	string portReadPredictionErrorsName;
 	string portInDataName;
 	string portOutDataName;
 	string portReadInDataName;
@@ -61,6 +63,8 @@ private:
         Port portLeftArmState;
 	BufferedPort<Bottle> portPredictions;
 	BufferedPort<Bottle> portPredictionErrors;
+	BufferedPort<Bottle> portReadPredictions;
+	BufferedPort<Bottle> portReadPredictionErrors;
 	BufferedPort<Bottle> portInData;
 	BufferedPort<Bottle> portOutData;
 	BufferedPort<Bottle> portReadInData;

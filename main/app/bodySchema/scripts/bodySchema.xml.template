@@ -7,6 +7,14 @@
     <tag>bodySchemaLearner</tag>
   </module>
 
+  <module>
+    <name>yarpscope</name>
+    <parameters>--context bodySchema --xml bodySchemaPlot.xml </parameters>
+    <tag>plotYarpScope</tag>
+  </module>
+
+  
+
   <connection>
     <from>/icub/cam/right</from>
     <to>/bodySchema/portImageInRightName</to>
