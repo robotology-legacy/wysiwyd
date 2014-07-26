@@ -619,5 +619,31 @@ void wordKnowledge::simulateData()
 }
 
 
+Bottle wordKnowledge::askWordKnowledge(string sQuestion, string sWhat, vector<string> vContext)
+{
+    Bottle bOutput;
 
+    if (sQuestion == "getObjectFromWord")
+    {
+        pair<string, double> result;
+        result = getObjectFromWord(sWhat, vContext);
+        bOutput.addString(result.first);
+        bOutput.addDouble(result.second);
+    }
+    else if (sQuestion == "getWordFromObject")
+    {
+        pair<string, double> result;
+        result = getWordFromObject(sWhat, vContext);
+        bOutput.addString(result.first);
+        bOutput.addDouble(result.second);
+    }
+    else
+    {
+        cout << "Error in wordKnowledge::askWordKnowledge -- wrong question input !(getObjectFromWord or getWordFromObject)" << endl;
+        bOutput.addString("Error in wordKnowledge::askWordKnowledge -- wrong question input !(getObjectFromWord or getWordFromObject)");
+    }
+
+
+    return bOutput;
+}
 
