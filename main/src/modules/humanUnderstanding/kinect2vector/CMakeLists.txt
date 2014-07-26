@@ -2,7 +2,7 @@
 # Authors: Maxime Petit
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME kinectPositions2jointAngles)
+set(PROJECTNAME kinect2vector)
 project(${PROJECTNAME})
 
 file(GLOB folder_source *.h *.cpp)
