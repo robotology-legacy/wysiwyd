@@ -465,11 +465,21 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addList() = executeSharedPlan(bCommand);
     }
 
-    // EXECUTE SHARED PLAN
+    // GRAMMAR
 
     else if (bCommand.get(0).asString() == "askGrammar") {
         bReply.addString("ack");
         bReply.addList() = askGrammar(bCommand);
+    }
+
+    // WORD KNOWLEDGE
+
+    else if (bCommand.get(0).asString() == "askWordKnowledge") {
+        bReply.addString("ack");
+
+        // Get Context
+
+        bReply.addList() = askWordKnowledge(bCommand);
     }
 
 
@@ -5703,6 +5713,40 @@ Bottle abmReasoning::askGrammar(Bottle bInput)
 
     return bOutput;
 
+}
+
+
+
+Bottle  abmReasoning::askWordKnowledge(Bottle bInput)
+{
+    Bottle bOutput;
+
+    if (bInput.size() != 3)
+    {
+        cout << "Error in abmReasoning::askWordKnowedge -- wrong input number (should be 3)" << endl;
+    }
+    string  sQuestion = bInput.get(1).toString();
+    string  sWhat = bInput.get(2).toString();
+
+    vector<string>  vContext;
+
+    list<Entity*> temp = realOPC->EntitiesCache();
+
+    for (list<Entity*>::iterator itE = temp.begin() ; itE != temp.end() ; itE++)
+    {
+        string type = (*itE)->entity_type();
+        if (type == EFAA_OPC_ENTITY_OBJECT || type == EFAA_OPC_ENTITY_RTOBJECT || type == EFAA_OPC_ENTITY_AGENT)
+        {
+            Object o;
+            o.fromBottle((*itE)->asBottle());
+            if (o.m_present)
+            {
+                vContext.push_back(o.name());
+            }
+        }
+    }
+
+    return WordKnowledge.askWordKnowledge(sQuestion, sWhat, vContext);
 }
 
 

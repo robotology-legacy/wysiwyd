@@ -287,6 +287,7 @@ void    qRM::mainLoop()
     else if (sQuestionKind == "SHOW")
     {
          string sWord = bSemantic.check("word", Value("none")).asString();
+         bSendReasoning.addString("askWordKnowledge");
          bSendReasoning.addString("getObjectFromWord");
          bSendReasoning.addString(sWord);
          Port2abmReasoning.write(bSendReasoning, bMessenger);
@@ -297,6 +298,7 @@ void    qRM::mainLoop()
     else if (sQuestionKind == "WHAT")
     {
          string sObject = bSemantic.check("object", Value("none")).asString();
+         bSendReasoning.addString("askWordKnowledge");
          bSendReasoning.addString("getWordFromObject");
          bSendReasoning.addString(sObject);
          Port2abmReasoning.write(bSendReasoning, bMessenger);

@@ -181,6 +181,7 @@ public :
     Bottle addBehavior(behavior beInput);
     Bottle saveKnowledge();
     Bottle askGrammar(Bottle bInput);
+    Bottle askWordKnowledge(Bottle bInput);
 
 
     // memory related
