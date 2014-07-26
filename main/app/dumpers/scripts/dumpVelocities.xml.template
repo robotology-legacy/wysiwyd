@@ -72,7 +72,7 @@
 
   <connection>
     <output>/icub/torso/state:o </output>
-    <input>/torso/pos:i <input>
+    <input>/torso/pos:i </input>
     <protocol>udp</protocol>
   </connection>
 
@@ -84,7 +84,7 @@
 
   <connection>
     <output>/icub/right_arm/state:o </output>
-    <input>/right_arm/pos:i <input>
+    <input>/right_arm/pos:i </input>
     <protocol>udp</protocol>
   </connection>
 
@@ -96,7 +96,7 @@
 
   <connection>
     <output>/icub/left_arm/state:o </output>
-    <input>/left_arm/pos:i <input>
+    <input>/left_arm/pos:i </input>
     <protocol>udp</protocol>
   </connection>
 
@@ -114,7 +114,7 @@
 
   <connection>
     <output>/icub/head/state:o </output>
-    <input>/head/pos:i <input>
+    <input>/head/pos:i </input>
     <protocol>udp</protocol>
   </connection>
 

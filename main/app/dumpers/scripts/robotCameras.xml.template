@@ -10,14 +10,14 @@
 		<module>
             <name>dataDumper </name>
             <parameters>--name dump/icub/camcalib/left --type image --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperCamCalibLeft</tag>
         </module>
 		
 		<module>
             <name>dataDumper </name>
             <parameters>--name dump/icub/camcalib/right --type image --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperCamCalibRight</tag>
         </module>
 		

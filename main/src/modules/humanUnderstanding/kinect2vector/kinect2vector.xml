@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+
+<module>
+
+  <name>kinect2vector</name>
+  <doxygen-group>wysiwyd_modules</doxygen-group>
+  <description>Module based on \ref kinectClient "Kinect Wrapper Client" that convert the skeleton data into a plain vector. The positions are also made relative to the shoulder center.</description>
+  <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+  <version>1.0</version>
+
+  <description-long>
+  Module based on \ref kinectClient "Kinect Wrapper Client" that convert the skeleton data into a plain vector. The positions are also made relative to the shoulder center.
+  It requires the \ref kinectServer.
+  </description-long>
+
+  <arguments>
+    <param default="kinect2vector" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+    <param default="" desc="To specify if you are working with data replayed using datasetplayer instead of the kinect server. /isReplay">isReplay</param>
+  </arguments>
+
+  <authors>
+    <author email="stephane.lallee@gmail.com"> Stéphane Lallée </author>
+  </authors>
+
+  <data>
+	 <output>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/kinect2vector/state:o</port>
+      <description>
+        Broadcast a vector of joint position relative to the shoulder center. Only the closest player is used.
+      </description>
+    </output>
+
+  </data>
+</module>
+

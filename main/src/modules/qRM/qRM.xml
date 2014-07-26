@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>slidingController</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Sliding Motor Controller</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   A simple cartesian controller that lets the iCub slide a paddle on the table. \n
+   Notice that, internally, the module makes use of <a href="http://wiki.icub.org/iCub/main/dox/html/group__ActionPrimitives.html">actionPrimitives</a> library. 
+   </description-long>
+
+   <arguments>
+   <param default="slidingController" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   <param default="icub" desc="To specify the robot's name">robot</param>
+   <param default="right" desc="To specify the arm used (left|right)">arm</param>
+   <param default="0.2" desc="To specify the speed in [m/s]">vel</param>
+   <param default="0.4" desc="To specify the elbow's height in [m]">elbow_height</param>
+   <param default="30.0" desc="To specify how to weigh the task to keep the elbow high">elbow_weight</param>
+   <param default="0.0" desc="To specify how many degrees to rotate the roll of the arm's wrist with respect to the baseline">arm_roll</param>
+   <param default="0.0" desc="To specify how many degrees to rotate the pitch of the arm's wrist with respect to the baseline">arm_pitch</param>
+   <param default="0.0" desc="To specify how many degrees to rotate the yaw of the arm's wrist with respect to the baseline">arm_yaw</param>
+   <param default="-0.1" desc="To specify the minimum z-coordinate ([m]) of the finger while exploring the table.">exploration_height</param>
+   <param default="40.0" desc="To specify the maximum external force excerting on the finger in order to stop
+                               approaching the table. Note that this force will basically account for the maximum
+                               threshold used by the grasp model. High values of this parameter (~1000.0) will disable this detection">exploration_max_force</param>
+   <param default="0.02" desc="To specify the maximum affordable distance in [m] that can be reached in one step">max_dist</param>
+   <param default="off" desc="To specify whether to enable (on) or disable (off) the impedance mode">impedance</param>
+   <param default="springy" desc="To specify whether to employ the springy or the tactile model for grasp detection">grasp_model_type</param>
+   <param default="grasp_model_left.ini" desc="To specify the file containing the grasp model for the left hand">grasp_model_file_left</param>
+   <param default="grasp_model_right.ini" desc="To specify the file containing the grasp model for the right hand">grasp_model_file_right</param>
+   <param default="hand_sequences.ini" desc="To specify the file containing the hand postures">hand_sequences_file</param>
+   </arguments>
+
+   <authors>
+       <author email="ugo.pattacini@iit.it"> Ugo Pattacini </author>
+   </authors>
+
+   <data>
+      <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/slidingController/input</port>
+          <!-- required input means the execution of module depends on
+               this input data. Notice that not all the input are required
+               for a module to perform its task (e.g. control input, status
+               request input). -->
+          <required>no</required>
+          <!-- priority forces the execution of module to be delayed
+               until the required data becomes available on the port -->
+          <priority>no</priority>
+          <description>
+              Accepts a triplet of number representing the cartesian position
+              where to steer the paddle. If an integer equal to 1 is provided
+              as fourth number then interpolation is skipped
+          </description>
+      </input>
+   </data>
+   
+   <services>
+       <server>
+           <type>slidingController_IDL</type>
+           <idl>slidingController.thrift</idl>
+           <port>/slidingController/rpc</port>
+           <description>Command port</description>
+       </server>
+   </services>
+   
+</module>
+

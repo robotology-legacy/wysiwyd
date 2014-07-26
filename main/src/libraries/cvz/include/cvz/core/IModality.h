@@ -10,6 +10,8 @@
 namespace cvz {
     namespace core {
 
+#define MASKED_ELEMENT_VALUE 0.0
+
         /**
         * \ingroup cvz_library
         * Class representing an abstract modality. Consists of two vectors of double, one for the real input and one for the predicted output.
@@ -432,6 +434,10 @@ namespace cvz {
                     b.addDouble(output[cnt]);
                     cnt++;
                 }
+                else
+                {
+                    b.addDouble(MASKED_ELEMENT_VALUE); // This is a value by default for the masked elements
+                }
             }
             return b;
         }
@@ -475,10 +481,10 @@ namespace cvz {
             int cnt = 0;
             for (unsigned int i = 0; i < mask.size(); i++)
             {
+                int x = i % img.width();
+                int y = i / img.width();
                 if (mask[i])
                 {
-                    int x = i % img.width();
-                    int y = i / img.width();
                     if (x < img.width() && y < img.height())
                     {
                         img.pixel(x, y).r = (unsigned char)(output[cnt] * 255.0);
@@ -490,6 +496,12 @@ namespace cvz {
                         //std::cout << "Debug: cropping a part of the image?" << std::endl;
                     }
                     cnt++;
+                }                
+                else
+                {
+                    img.pixel(x, y).r = (unsigned char)(MASKED_ELEMENT_VALUE);
+                    img.pixel(x, y).g = (unsigned char)(MASKED_ELEMENT_VALUE);
+                    img.pixel(x, y).b = (unsigned char)(MASKED_ELEMENT_VALUE);
                 }
             }
             return img;
@@ -560,6 +572,10 @@ namespace cvz {
                     img.pixel(i%img.width(), i / img.width()) = output[cnt];
                     cnt++;
                 }
+                else
+                {
+                    img.pixel(i%img.width(), i / img.width()) = MASKED_ELEMENT_VALUE;
+                }
             }
             return img;
         }
@@ -611,6 +627,10 @@ namespace cvz {
                 {
                     s.set((int)(output[cnt] * 65535.0), i);
                     cnt++;
+                }
+                else
+                {
+                    s.set((int)(MASKED_ELEMENT_VALUE * 65535.0), i);
                 }
             }
             return s;

@@ -11,21 +11,21 @@
         <module>
             <name>dataDumper </name>
             <parameters>--name dump/kinectServer/joints --type bottle --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperKinectJnts</tag>
         </module>
 
         <module>
             <name>dataDumper </name>
             <parameters>--name dump/kinectServer/depth --type image --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperKinectDepth</tag>
         </module>
 		
         <module>
             <name>dataDumper </name>
             <parameters>--name dump/kinectServer/image --type image --rxTime</parameters>
-            <node>icub-winnode2</node>
+            <node>icub16</node>
             <tag>dataDumperKinectImg</tag>
         </module>
 		

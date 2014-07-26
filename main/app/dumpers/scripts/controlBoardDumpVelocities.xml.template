@@ -14,42 +14,42 @@
         <module>
             <name>controlBoardDumper </name>
             <parameters>--robot icub --part torso --rate 20 --joints "(0 1 2)" --dataToDump "(getEncoderSpeeds)"</parameters>
-            <node>icub12</node>
+            <node>icub16</node>
             <tag>controlBoardDumperTorso</tag>
         </module>
 
         <module>
             <name>controlBoardDumper </name>
             <parameters>--robot icub --part right_arm --rate 20 --joints "(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)" --dataToDump "(getEncoderSpeeds)"</parameters>
-            <node>icub12</node>
+            <node>icub16</node>
             <tag>controlBoardDumperRightArm</tag>
         </module>
 
         <module>
             <name>controlBoardDumper </name>
             <parameters>--robot icub --part left_arm --rate 20 --joints "(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)" --dataToDump "(getEncoderSpeeds)"</parameters>
-            <node>icub12</node>
+            <node>icub16</node>
             <tag>controlBoardDumperLeftArm</tag>
         </module>
 
         <module>
             <name>controlBoardDumper </name>
             <parameters>--robot icub --part head --rate 20 --joints "(0 1 2 3 4 5)" --dataToDump "(getEncoderSpeeds)"</parameters>
-            <node>icub12</node>
+            <node>icub16</node>
             <tag>controlBoardDumperHead</tag>
         </module>
 
         <module>
             <name>controlBoardDumper </name>
             <parameters>--robot icub --part right_leg --rate 20 --joints "(0 1 2 3 4 5)" --dataToDump "(getEncoderSpeeds)"</parameters>
-            <node>icub12</node>
+            <node>icub16</node>
             <tag>controlBoardDumperRightLeg</tag>
         </module>
 
         <module>
             <name>controlBoardDumper </name>
             <parameters>--robot icub --part left_leg --rate 20 --joints "(0 1 2 3 4 5)" --dataToDump "(getEncoderSpeeds)"</parameters>
-            <node>icub12</node>
+            <node>icub16</node>
             <tag>controlBoardDumperLeftLeg</tag>
         </module>
 
@@ -59,42 +59,42 @@
   <module>
     <name>dataDumper</name>
     <parameters>--name /icub/torsoDump/getEncoderSpeeds</parameters>
-    <node>icub12</node>
+    <node>icub16</node>
     <tag>dumpTorsoEncs</tag>
   </module>
 
   <module>
     <name>dataDumper</name>
     <parameters>--name /icub/rightArmDump/getEncoderSpeeds</parameters>
-    <node>icub12</node>
+    <node>icub16</node>
     <tag>dumpRightArmEncs</tag>
   </module>
 
   <module>
     <name>dataDumper</name>
     <parameters>--name /icub/leftArmDump/getEncoderSpeeds</parameters>
-    <node>icub12</node>
+    <node>icub16</node>
     <tag>dumpLeftArmEncs</tag>
   </module>
 
   <module>
     <name>dataDumper</name>
     <parameters>--name /icub/headDump/getEncoderSpeeds</parameters>
-    <node>icub12</node>
+    <node>icub16</node>
     <tag>dumpHeadEncs</tag>
   </module>
 
   <module>
     <name>dataDumper</name>
     <parameters>--name /icub/rightLegDump/getEncoderSpeeds</parameters>
-    <node>icub12</node>
+    <node>icub16</node>
     <tag>dumpRightLegEncs</tag>
   </module>
 
   <module>
     <name>dataDumper</name>
     <parameters>--name /icub/leftLegDump/getEncoderSpeeds</parameters>
-    <node>icub12</node>
+    <node>icub16</node>
     <tag>dumpLeftLegEncs</tag>
   </module>
 

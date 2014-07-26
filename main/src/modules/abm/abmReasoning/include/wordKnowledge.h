@@ -25,8 +25,9 @@ public:
 
     pair<string, double>	getObjectFromWord(string sWord, vector<string> vContext);
     pair<string, double>	getWordFromObject(string sObject, vector<string> vContext);
-
+    
     Bottle                  addInstance(string sObjectIdOPC, string sWord, vector<string> vContext);
+    Bottle                  askWordKnowledge(string sQuestion, string sWhat, vector<string> vContext);
 };
 
 
