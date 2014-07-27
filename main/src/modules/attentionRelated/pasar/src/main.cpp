@@ -2,7 +2,7 @@
 
 /* 
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
-* Authors: Stéphane Lallée, moved from EFAA by Maxime Petit
+* Authors: Stéphane Lallée, moved from EFAA by Grégoire Pointeau
 * email:   stephane.lallee@gmail.com
 * website: http://wysiwyd.upf.edu/ 
 * Permission is granted to copy, distribute, and/or modify this program

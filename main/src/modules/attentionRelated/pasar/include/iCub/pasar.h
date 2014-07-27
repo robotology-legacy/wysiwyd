@@ -57,8 +57,9 @@ class PasarModule : public yarp::os::RFModule {
     double pTopDownAccelerationCoef;
     double pTopDownInhibitionReturn;
     double pLeakyIntegrationA;
-
-
+    double pExponentialDecrease;
+    double thresholdMovementAccel;
+    
     OPCClient *opc;					 //retrieve information from the OPC
     yarp::os::Port handlerPort;      //a port to handle messages 
 

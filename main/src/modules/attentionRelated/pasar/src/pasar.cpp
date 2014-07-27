@@ -1,16 +1,15 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
 /* 
-* Copyright (C) 2011 EFAA Consortium, European Commission FP7 Project IST-270490
-* Authors: Stéphane Lallée
-* email:   stephane.lallee@gmail.com
-* website: http://efaa.upf.edu/ 
+* Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project IST-270490
+* Authors: Stéphane Lallée, Grégoire Pointeau
+* email:   stephane.lallee@gmail.com, greg.pointeau@gmail.com
 * Permission is granted to copy, distribute, and/or modify this program
 * under the terms of the GNU General Public License, version 2 or any
 * later version published by the Free Software Foundation.
 *
 * A copy of the license can be found at
-* $EFAA_ROOT/license/gpl.txt
+* $WYSIWYD_ROOT/license/gpl.txt
 *
 * This program is distributed in the hope that it will be useful, but
 * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +31,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     std::string gazePortName;
     std::string handlerPortName;
     std::string saliencyPortName;
-
+    
     moduleName            = rf.check("name", 
         Value("pasar"), 
         "module name (string)").asString();
@@ -44,11 +43,15 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     pTopDownDisappearanceBurst =  rf.check("parameterTopDownDisappearanceBurst", 
         Value(0.5)).asDouble(); 
     pTopDownAccelerationCoef =  rf.check("parameterTopDownAccelerationCoef", 
-        Value(0.0)).asDouble(); 
+        Value(10.)).asDouble(); 
     pLeakyIntegrationA		=  rf.check("parameterLeakyIntegrationA", 
         Value(0.9)).asDouble(); 
     pTopDownInhibitionReturn =  rf.check("parameterInhibitionReturn", 
         Value(0.05)).asDouble(); 
+    pExponentialDecrease =  rf.check("ExponentialDecrease", 
+        Value(0.9)).asDouble(); 
+    thresholdMovementAccel =  rf.check("thresholdMovementSpeed", 
+        Value(0.0)).asDouble(); 
 
     isControllingMotors	= rf.check("motorControl", 
         Value(0)).asInt() == 1; 
@@ -93,20 +96,22 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     option.put("remote","/iKinGazeCtrl");
     option.put("local", gazePortName.c_str());
 
-    igaze=NULL;
-    if (clientGazeCtrl.open(option)) {
-        clientGazeCtrl.view(igaze);
-    }
-    else
+    if (isControllingMotors)
     {
-        cout<<"Invalid gaze polydriver"<<endl;
-        return false;
+        igaze=NULL;
+        if (clientGazeCtrl.open(option)) {
+            clientGazeCtrl.view(igaze);
+        }
+        else
+        {
+            cout<<"Invalid gaze polydriver"<<endl;
+            return false;
+        }
+        igaze->storeContext(&store_context_id);
+
+        double neckTrajTime = rf.check("neckTrajTime", Value(0.75)).asDouble();
+        igaze->setNeckTrajTime(neckTrajTime);
     }
-    igaze->storeContext(&store_context_id);
-
-    double neckTrajTime = rf.check("neckTrajTime", Value(0.75)).asDouble();
-    igaze->setNeckTrajTime(neckTrajTime);
-
 
     attach(handlerPort);                  // attach to port
     trackedObject = "";
@@ -178,6 +183,7 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
 /***************************************************************************/
 bool PasarModule::updateModule() 
 {
+
     opc->update();
     list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
@@ -195,11 +201,14 @@ bool PasarModule::updateModule()
                 presentObjects[ (*it)->name() ].restingSteps = 0;
             }
         }
+        if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
+            cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
+
     }
     if (presentObjectsLastStep.size() > 0)
     {
         //Retrieve the bottom-up saliency (vision based) and attribute it to objects
-        saliencyBottomUp();
+        //saliencyBottomUp();
 
         //Compute top down saliency (concept based)
         saliencyTopDown();
@@ -208,23 +217,29 @@ bool PasarModule::updateModule()
         //saliencyNormalize();
 
         //Inhinbition of return
-        if(trackedObject!= "")
-            presentObjects[trackedObject].o.m_saliency = max(0.0, presentObjects[trackedObject].o.m_saliency - pTopDownInhibitionReturn);
+//        if(trackedObject!= "")
+//            presentObjects[trackedObject].o.m_saliency = max(0.0, presentObjects[trackedObject].o.m_saliency - pTopDownInhibitionReturn);
+        
 
         //Leaky integrate
         saliencyLeakyIntegration();
 
         //Get the most salient object and track it
-        //map< string, ObjectModel >::iterator mostSalientObject = presentObjects.begin();
-        //for(map< string, ObjectModel >::iterator it=presentObjects.begin(); it!=presentObjects.end();it++)
-        //{    
-        //    cout<<"Saliency ("<<it->second.o.name()<<") = "<<it->second.o.m_saliency<<endl;
-        //    if (it->second.o.m_saliency > mostSalientObject->second.o.m_saliency)
-        //        mostSalientObject = it;
-        //}
+        map< string, ObjectModel >::iterator mostSalientObject = presentObjects.begin();
+        for(map< string, ObjectModel >::iterator it=presentObjects.begin(); it!=presentObjects.end();it++)
+        {    
+          //  cout<<"Saliency ("<<it->second.o.name()<<") = "<<it->second.o.m_saliency<<endl;
+            if (it->second.o.m_saliency > mostSalientObject->second.o.m_saliency)
+                mostSalientObject = it;
+        }
 
-        //trackedObject = mostSalientObject->first;
-        //cout<<"Tracking: "<<trackedObject<<endl;
+        trackedObject = mostSalientObject->first;
+
+        if (presentObjects[trackedObject].o.m_saliency >0.0)
+        {
+            cout << "Tracking : " << trackedObject << " Salience : " << presentObjects[trackedObject].o.m_saliency << endl;
+        }
+
 
         if (isControllingMotors && isFixationPointSafe(presentObjects[trackedObject].o.m_ego_position))
             igaze->lookAtFixationPoint(presentObjects[trackedObject].o.m_ego_position);
@@ -400,7 +415,7 @@ void PasarModule::saliencyTopDown() {
     //Add up the top down saliency
     for(map<string, ObjectModel >::iterator it=presentObjects.begin(); it!=presentObjects.end();it++)
     {    
-        if (presentObjectsLastStep.find(it->first) != presentObjectsLastStep.end())
+        if (presentObjectsLastStep.find(it->first) != presentObjectsLastStep.end() && it->first != "cursor_0" && it->first != "icub" )
         {
             //Objects appears/disappears
             bool appeared,disappeared;
@@ -412,28 +427,33 @@ void PasarModule::saliencyTopDown() {
             Vector currentPos = it->second.o.m_ego_position;
             double speed = sqrt(pow(lastPos[0] - currentPos[0],2.0) + pow(lastPos[1] - currentPos[1],2.0) + pow(lastPos[2] - currentPos[2],2.0)) / getPeriod(); 
             double acceleration = speed - presentObjectsLastStep[ it->first ].speed;
+
             presentObjects[ it->first ].speed = speed;
             presentObjects[ it->first ].acceleration = acceleration;
-            //cout<<it->second.o.name()<<" Speed : "<<speed<<endl
-            //<<it->second.o.name()<<" Accel : "<<acceleration<<endl;
+            //            cout<<it->second.o.name()<<" Speed : "<<speed<<endl
+            //          <<it->second.o.name()<<" Accel : "<<acceleration<<endl;
 
             //Use the world model (CONCEPTS <=> RELATIONS) to modulate the saliency
             if (appeared)
             {
-                cout<<it->second.o.name()<<" Appearance burst"<<endl;
+                //cout<<it->second.o.name()<<" Appearance burst"<<endl;
                 it->second.o.m_saliency += pTopDownAppearanceBurst;
             }
 
             if (disappeared)			
             {
-                cout<<it->second.o.name()<<" Disappearance burst"<<endl;
+                //cout<<it->second.o.name()<<" Disappearance burst"<<endl;
                 it->second.o.m_saliency += pTopDownDisappearanceBurst;
             }
 
-            it->second.o.m_saliency += presentObjectsLastStep[ it->first].acceleration * pTopDownAccelerationCoef;
+            it->second.o.m_saliency += abs(presentObjectsLastStep[ it->first].acceleration * pTopDownAccelerationCoef);
+            if (acceleration > thresholdMovementAccel)
+            {
+//                cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << endl;
+            }
 
-            //presentObjectsLastStep[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
-            //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
+            //presentObjectsLastStep[ it->second.o.name() ].o.fromBottle( it->second.o.asBottle() );
+            // cout<<it->second.o.name()<<"\´s saliency is " <<it->second.o.m_saliency<<endl;
         }
     }
 }
@@ -453,6 +473,7 @@ void PasarModule::saliencyNormalize() {
 
     //Normalize
     double maxS = mostSalientObject->second.o.m_saliency;
+    if (maxS == 0) maxS=1.;
     for(map< string, ObjectModel >::iterator it=presentObjects.begin(); it!=presentObjects.end();it++)
     {    
         it->second.o.m_saliency /= maxS;
@@ -461,46 +482,51 @@ void PasarModule::saliencyNormalize() {
 
 /************************************************************************/
 void PasarModule::saliencyLeakyIntegration() {   
-    cout<<"Leaky integration"<<endl;
-    cout<<"Membrane Activity : "<<endl;
+    //cout<<"Leaky integration"<<endl;
+    //cout<<"Membrane Activity : "<<endl;
     for(map< string, ObjectModel >::iterator it=presentObjects.begin(); it!=presentObjects.end();it++)
     {    
-        //if (presentObjectsLastStep.find(it->first) != presentObjectsLastStep.end())
-        //	it->second.o.m_saliency = it->second.o.m_saliency - pLeakyIntegrationA * presentObjectsLastStep[it->first].o.m_saliency;
-        double dt = 1.25;
-        double Rm      = 1;//                   # resistance (kOhm)
-        double Cm      = 10;//					# capacitance (uF)
-        double tau_m   = Rm*Cm;//              # time constant (msec)
-        double tau_ref = 4.0;//              # refractory period (msec)
-        double Vth     = 0.2;//                   # spike threshold (V)
-        double V_spike = 0.5;//                 # spike delta (V)		
-        double It1 = it->second.o.m_saliency*1.5;
-        double It0 = presentObjectsLastStep[it->first].o.m_saliency ;
-        if (it->second.restingSteps==0)
+        if (it->first != "")
         {
-            //cout<<"Input : "<<it->second.o.name()<<It1<<endl;
-            It1 = It0 + (-It0 + It1*Rm) / tau_m *dt;
-            it->second.o.m_saliency = It1 ;
-            cout<<'\t'<<it->second.o.name()<<It1<<endl;
-            if (it->second.o.m_saliency >= Vth)
-            {
-                cout<<"Spike : "<<it->second.o.name()<<endl;
-                it->second.o.m_saliency += V_spike;
-                it->second.restingSteps = (int)(tau_ref/dt);
-                this->trackedObject = it->second.o.name();
-            }
-        }
-        else
-        {
-            it->second.o.m_saliency = 0.0;
-            it->second.restingSteps--;
+            it->second.o.m_saliency *= pExponentialDecrease;
+
+            //if (presentObjectsLastStep.find(it->first) != presentObjectsLastStep.end())
+            //	it->second.o.m_saliency = it->second.o.m_saliency - pLeakyIntegrationA * presentObjectsLastStep[it->first].o.m_saliency;
+            //    double dt = 1.25;
+            //    double Rm      = 1;//                   # resistance (kOhm)
+            //    double Cm      = 10;//					# capacitance (uF)
+            //    double tau_m   = Rm*Cm;//              # time constant (msec)
+            //    double tau_ref = 4.0;//              # refractory period (msec)
+            //    double Vth     = 0.2;//                   # spike threshold (V)
+            //    double V_spike = 0.5;//                 # spike delta (V)		
+            //    double It1 = it->second.o.m_saliency*1.5;
+            //    double It0 = presentObjectsLastStep[it->first].o.m_saliency ;
+            //    if (it->second.restingSteps==0 && it->second.o.m_present)
+            //    {
+            //        //cout<<"Input : "<<it->second.o.name()<<It1<<endl;
+            //        It1 = It0 + (-It0 + It1*Rm) / tau_m *dt;
+            //        it->second.o.m_saliency = It1 ;
+            //        cout<<'\t'<<it->second.o.name()<<It1<<endl;
+            //        if (it->second.o.m_saliency >= Vth)
+            //        {
+            //            cout<<"Spike : "<<it->second.o.name()<<endl;
+            //            it->second.o.m_saliency += V_spike;
+            //            it->second.restingSteps = (int)(tau_ref/dt);
+            //            this->trackedObject = it->second.o.name();
+            //        }
+            //    }
+            //    else
+            //    {
+            //        it->second.o.m_saliency = 0.0;
+            //        it->second.restingSteps--;
+            //    }
         }
     }
 }
 
 /************************************************************************/
 double PasarModule::getPeriod() {   
-    return 0.01;
+    return 0.1;
 }
 
 bool PasarModule::isFixationPointSafe(Vector fp)
