@@ -3,6 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 #Add here modules without specific dependency
+add_subdirectory(attentionRelated)
 add_subdirectory(opcRelated)
 add_subdirectory(cvz)
 add_subdirectory(abm)
