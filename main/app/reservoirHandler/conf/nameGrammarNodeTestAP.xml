@@ -1,0 +1,128 @@
+<GRAMMAR	LANGID="409">
+
+  <DEFINE>
+    <ID NAME="object" VAL="1"/>
+    <ID NAME="location" VAL="2"/>
+    <ID NAME="verb1" VAL="3"/>
+    <ID NAME="verb2" VAL="4"/>
+    <ID NAME="temporal" VAL="5"/>
+    <ID NAME="follow" VAL="6"/>
+    <ID NAME="yesno" VAL="7"/>
+  </DEFINE>
+
+  <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>stop</P>
+  </RULE>
+
+  <RULE	NAME="follow"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <RULEREF NAME="mode"/>
+  </RULE>
+
+  <RULE NAME="mode" DYNAMIC="TRUE">
+    <L>
+      <P>continue</P>
+      <P>exit</P>
+    </L>
+  </RULE>
+
+  <RULE	NAME="yesno"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <RULEREF NAME="agree"/>
+  </RULE>
+
+  <RULE NAME="agree" DYNAMIC="TRUE">
+    <L>
+      <P>yes</P>
+      <P>no</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="object" DYNAMIC="TRUE">
+    <L>
+      <P>the square</P>
+      <P>the triangle</P>
+      <P>the cross</P>
+      <P>the circle</P>
+      <P>the eraser</P>
+      <P>the wysiwyd sponge</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="location" DYNAMIC="TRUE">
+    <L>
+      <P>on the left</P>
+      <P>on the middle</P>
+      <P>on the right</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="verb1" DYNAMIC="TRUE">
+    <L>
+      <P>grasp</P>
+      <P>point</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="verb2" DYNAMIC="TRUE">
+    <L>
+      <P>put</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="temporal" DYNAMIC="TRUE">
+    <L>
+      <P>after you</P>
+      <P>before you</P>
+    </L>
+  </RULE>
+
+  <RULE	NAME="action1"	DYNAMIC="TRUE">
+    <RULEREF NAME="verb1"/>
+    <RULEREF NAME="object"/>
+  </RULE>
+
+  
+  <RULE	NAME="action21"	DYNAMIC="TRUE"> 
+     <RULEREF NAME="verb2"/>
+     <RULEREF NAME="object"/>
+     <RULEREF NAME="location"/>
+  </RULE>
+
+  <RULE	NAME="action22"	DYNAMIC="TRUE">
+     <RULEREF NAME="location"/>
+     <RULEREF NAME="verb2"/>
+     <RULEREF NAME="object"/>
+  </RULE>
+
+  <RULE	NAME="action23"	DYNAMIC="TRUE">
+     <RULEREF NAME="verb2"/>
+     <RULEREF NAME="location"/>
+     <RULEREF NAME="object"/>
+  </RULE>
+
+  <RULE	NAME="action2"	DYNAMIC="TRUE">
+    <L>  
+    	<RULEREF NAME="action21"/>
+    	<RULEREF NAME="action22"/>
+    	<RULEREF NAME="action23"/>
+    </L>
+  </RULE>
+
+  <RULE	NAME="actionX"	DYNAMIC="TRUE">
+    <L>  
+    	 <RULEREF NAME="action1"/>
+    	 <RULEREF NAME="action2"/>
+    </L>
+  </RULE>
+
+  <RULE	NAME="sentence"	TOPLEVEL="ACTIVE"   EXPORT="1">
+    <O> 
+	<RULEREF NAME="temporal"/>
+    </O>
+    <RULEREF NAME="actionX"/>
+    <O>
+	 <RULEREF NAME="actionX"/>
+    </O>
+  </RULE>
+
+  <!--	End	of	Grammar	definition	-->
+</GRAMMAR>

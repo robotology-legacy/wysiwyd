@@ -1,0 +1,6 @@
+<train data>
+left violin trumpet;the violin is to the left of the trumpet # 1 relation / canonical
+left violin trumpet;to the left of the trumpet is the violin #
+left violin trumpet;right violin guitar;the violin is to the left of the trumpet and to the right of the guitar #
+left violin trumpet;right violin guitar;to the left of the trumpet and to the right of the guitar is the violin #
+#

@@ -1,0 +1,42 @@
+<GRAMMAR	LANGID="409">
+
+  <DEFINE>
+    <ID NAME="modality" VAL="1"/>
+    <ID NAME="focus" VAL="2"/>
+  </DEFINE>
+
+  <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>stop</P>
+  </RULE>
+
+  <RULE	NAME="INFORMATION"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>I want you to start</P>
+    <RULEREF NAME="modality"/>
+    <P>mode</P>
+  </RULE>
+
+  <RULE NAME="modality" DYNAMIC="TRUE">
+    <L>
+      <P>train</P>
+      <P>test</P>
+    </L>
+  </RULE>
+
+  <RULE	NAME="CANONICAL"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>I want you to focus the description about </P>
+    <RULEREF NAME="focus"/>
+  </RULE>
+
+  <RULE NAME="focus" DYNAMIC="TRUE">
+    <L>
+      <P>object</P>
+      <P>location</P>
+    </L>
+  </RULE>
+
+  <RULE	NAME="return"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>return</P>
+  </RULE>
+
+  <!--	End	of	Grammar	definition	-->
+</GRAMMAR>
