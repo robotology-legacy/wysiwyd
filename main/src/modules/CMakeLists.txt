@@ -8,7 +8,6 @@ add_subdirectory(opcRelated)
 add_subdirectory(cvz)
 add_subdirectory(abm)
 add_subdirectory(tools)
-add_subdirectory(reservoirHandler)
 add_subdirectory(navigationRelated)
 add_subdirectory(reactiveLayer)
 add_subdirectory(adaptiveLayer)
@@ -19,6 +18,10 @@ add_subdirectory(systemMotor)
 add_subdirectory(systemHaptic)
 
 add_subdirectory(humanUnderstanding)
+
+if (PYTHON_INCLUDE_DIRS)
+	add_subdirectory(reservoirHandler)
+endif()
 
 if(WYSIWYD_USE_OpenCV)
 	add_subdirectory(systemVisual)
