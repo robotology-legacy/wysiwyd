@@ -446,7 +446,7 @@ void PasarModule::saliencyTopDown() {
                 it->second.o.m_saliency += pTopDownDisappearanceBurst;
             }
 
-            it->second.o.m_saliency += abs(presentObjectsLastStep[ it->first].acceleration * pTopDownAccelerationCoef);
+            it->second.o.m_saliency += fabs(presentObjectsLastStep[ it->first].acceleration * pTopDownAccelerationCoef);
             if (acceleration > thresholdMovementAccel)
             {
 //                cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << endl;
