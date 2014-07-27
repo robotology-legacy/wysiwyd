@@ -12,7 +12,6 @@ add_subdirectory(reservoirHandler)
 add_subdirectory(navigationRelated)
 add_subdirectory(reactiveLayer)
 add_subdirectory(adaptiveLayer)
-add_subdirectory(attentionRelated)
 add_subdirectory(qRM)
 
 add_subdirectory(systemMotor)
