@@ -12,11 +12,24 @@ class cvzMmcm_IDL;
 
 /**
  * cvzMmcm_IDL
- * IDL Interface to \ref cvz - mmcm services.
+ * IDL Interface to \ref cvz - mmcm services (cvzCore).
  */
 class cvzMmcm_IDL : public yarp::os::Wire {
 public:
   cvzMmcm_IDL() { yarp().setOwner(*this); }
+/**
+ * Start the computation of predictions trying to cope with the period.
+ */
+  virtual void start();
+/**
+ * Pause the computation of predictions
+ */
+  virtual void pause();
+/**
+ * Quit the module.
+ * @return true/false on success/failure.
+ */
+  virtual bool quit();
 /**
  * Set the learning rate.
  */
@@ -46,14 +59,14 @@ public:
  * @param path The path to where you want to store the weights.
  * @return true/false in case of success/failure.
  */
-  virtual bool saveWeightsTofile(const std::string& path);
+  virtual bool saveWeightsToFile(const std::string& path);
 /**
  * Load the weights of the map from a file.
  * The file should have been saved from a map using the same config file (modaility names & size, map size, etc.).
  * @param path Path to the file containing the weights.
  * @return true/false in case of success/failure.
  */
-  virtual bool loadWeightsFromfile(const std::string& path);
+  virtual bool loadWeightsFromFile(const std::string& path);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

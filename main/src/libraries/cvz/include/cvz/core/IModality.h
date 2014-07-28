@@ -25,7 +25,7 @@ namespace cvz {
 
             std::vector<double> minBound;
             std::vector<double> maxBound;
-
+			bool autoScale;
 
             std::vector<double> scaledValueReal;
             std::vector<double> scaledValuePrediction;
@@ -111,8 +111,9 @@ namespace cvz {
             * @parameter _size The size of the modality (i.e the number of components of the vectors)
             * @parameter min The minimum limits of the input space, are used internally for scaling in [0,1].
             * @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
+            * @parameter _autoScale If true the maximum/minimum boudaries will adapt to the input.
             */
-            IModality(std::string _name, int _size, std::vector<double> min, std::vector<double> max)
+            IModality(std::string _name, int _size, std::vector<double> min, std::vector<double> max, bool _autoScale)
             {
                 name = _name;
                 size = _size;
@@ -122,6 +123,7 @@ namespace cvz {
                 scaledValuePrediction.resize(size);
                 valueReal.resize(size);
                 valuePrediction.resize(size);
+				autoScale = _autoScale;
             }
 
 			/**
@@ -171,6 +173,10 @@ namespace cvz {
                     //Scaling in [0,1]
                     for (int i = 0; i < size; i++)
                     {
+						if (autoScale && valueReal[i]>maxBound[i])
+							maxBound[i] = valueReal[i];
+						if (autoScale && valueReal[i]<minBound[i])
+							minBound[i] = valueReal[i];
                         scaledValueReal[i] = (valueReal[i] - minBound[i]) / (maxBound[i] - minBound[i]);
                         helpers::Clamp(scaledValueReal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
                     }
@@ -277,9 +283,10 @@ namespace cvz {
             * @parameter min The minimum limits of the input space, are used internally for scaling in [0,1].
             * @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
             * @parameter _mask Apply a mask on the input got through input(). The number of True of the mask should match the size of the modality. Providing an empty vector (size==0) will ensure that your do not apply any mask and get everything.
-            * @parameter _isBlocking Specify is the ports will use blocking read in the input() method.
+            * @parameter _autoScale Should the boudaries auto adapt to the input?.           
+			* @parameter _isBlocking Specify is the ports will use blocking read in the input() method.
             */
-            ModalityBufferedPort(std::string _name, int _size, std::vector<double> min, std::vector<double> max, std::vector<bool> _mask, bool _isBlocking = false) :IModality(_name, _size, min, max)
+			ModalityBufferedPort(std::string _name, int _size, std::vector<double> min, std::vector<double> max, std::vector<bool> _mask, bool _autoScale, bool _isBlocking = false) :IModality(_name, _size, min, max, _autoScale)
             {
                 isBlocking = _isBlocking;
                 mask = _mask;

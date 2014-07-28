@@ -7,10 +7,26 @@
 /**
 * cvzMmcm_IDL
 *
-* IDL Interface to \ref cvz - mmcm services.
+* IDL Interface to \ref cvz - mmcm services (cvzCore).
 */
 service cvzMmcm_IDL
 {
+   /**
+   * Start the computation of predictions trying to cope with the period.
+   */
+   void start();
+
+   /**
+   * Pause the computation of predictions
+   */
+   void pause();
+
+   /**
+   * Quit the module.
+   * @return true/false on success/failure.
+   */
+   bool quit(); 
+
    /**
    * Set the learning rate.
    */
@@ -45,7 +61,7 @@ service cvzMmcm_IDL
    * @param path The path to where you want to store the weights.
    * @return true/false in case of success/failure.
    */
-   bool saveWeightsTofile(1:string path);
+   bool saveWeightsToFile(1:string path);
 
    /**
    * Load the weights of the map from a file. 
@@ -53,6 +69,6 @@ service cvzMmcm_IDL
    * @param path Path to the file containing the weights.
    * @return true/false in case of success/failure.
    */
-   bool loadWeightsFromfile(1:string path);
+   bool loadWeightsFromFile(1:string path);
 }
 

@@ -25,7 +25,6 @@
 
 #include "slidingController_IDL.h"
 #include "interpersonalDistanceRegulator_IDL.h"
-#include "cvz_IDL.h"
 #include "cvzMmcm_IDL.h"
 
 /**
