@@ -1,0 +1,53 @@
+<application>
+<name>CVZ prediction visualization</name>
+   <module>
+        <name>iCubGui</name>
+        <node>localhost</node>
+	<parameters>--name /predictioniCubGui --xpos 1200 --ypos 0 --width 300</parameters>
+        <stdio></stdio>
+        <tag>predictioniCubGui</tag>
+    </module>
+     
+ 
+  <module>
+    <name>iCubSkinGui</name>
+    <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) -->
+    <parameters>--context periPersonalSpace --from left_forearm_vtRF.ini --name /predictionSkinGui --useCalibration --xpos 900 --ypos 0 --width 300 --height 300</parameters>
+    <node>localhost</node>
+    <tag>predictionskinGuiLF</tag>
+  </module>
+   
+  <module>
+    <name>iCubSkinGui</name>
+    <!-- Remember to use the proper configuration files (i.e. "_V2.ini" for V2 robots) -->
+    <parameters>--context periPersonalSpace  --from right_hand_vtRF.ini --name /predictionSkinGui --useCalibration --xpos 900 --ypos 320 --width 300 --height 300</parameters>
+    <node>localhost</node>
+    <tag>predictionskinGuiRH</tag>
+  </module>
+  
+      
+    <connection>
+        <from>/mmcm/proprioHapticSingleMap/left_arm/prediction:o</from>
+        <to>/predictioniCubGui/left_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/mmcm/proprioHapticSingleMap/right_arm/prediction:o</from>
+        <to>/predictioniCubGui/right_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+       
+    <connection>
+        <from>/mmcm/proprioHapticSingleMap/skin_left_forearm/prediction:o</from>
+        <to>/predictionSkinGui/left_forearm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+   
+    <connection>
+        <from>/mmcm/proprioHapticSingleMap/skin_right_hand/prediction:o</from>
+        <to>/predictionSkinGui/right_hand:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    
+      
+</application>

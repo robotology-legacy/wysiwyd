@@ -15,4 +15,4 @@ add_subdirectory(reactiveLayer)
 add_subdirectory(adaptiveLayer)
 add_subdirectory(interpersonalDistanceRegulator)
 add_subdirectory(demos)
-
+add_subdirectory(cvzDoubleTouch)
