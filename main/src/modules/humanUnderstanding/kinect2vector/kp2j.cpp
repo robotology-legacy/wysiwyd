@@ -2,7 +2,7 @@
 
 bool KP2JA::configure(ResourceFinder &rf)
 {
-    string name=rf.check("name",Value("kp2ja")).asString().c_str();
+    string name=rf.check("name",Value("kinect2vector")).asString().c_str();
     string clientName = name;
 
     portVector.open( ("/" + clientName + "/state:o").c_str() );
