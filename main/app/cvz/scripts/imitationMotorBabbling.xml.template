@@ -1,0 +1,76 @@
+<application>
+    <name>MMCM_Imitation_Motor_Babbling</name>
+	
+	<module>
+        <name>kinect2vector</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+    </module>
+    
+	<module>
+        <name>cvzCore</name>
+        <parameters>--from mirrorSystem.ini --displayGui</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+    </module>
+	
+	<module>
+        <name>iCubGui</name>
+        <parameters>--name guiReal</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+    </module>
+	
+	<module>
+        <name>iCubGui</name>
+        <parameters>--name guiPrediction</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+    </module>	
+	
+	<!--MMCM CONNECTIONS -->
+	<connection>
+        <from external="true">/icub/left_arm/state:o</from>
+        <to external="true">/mmcm/mirrorSystem/left_arm/real:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+	
+	<connection>
+        <from external="true">/icub/right_arm/state:o</from>
+        <to external="true">/mmcm/mirrorSystem/right_arm/real:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+	
+	<connection>
+        <from external="true">/kinect2vector/state:o</from>
+        <to external="true">/mmcm/mirrorSystem/partner/real:i</to>
+        <protocol>tcp</protocol>
+    </connection>	
+	
+	<!--GUI CONNECTIONS -->
+    <connection>
+        <from external="true">/icub/left_arm/state:o</from>
+        <to external="true">/guiReal/left_arm:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    
+	<connection>
+        <from external="true">/icub/right_arm/state:o</from>
+        <to external="true">/guiReal/right_arm:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <connection>
+        <from external="true">/mmcm/mirrorSystem/left_arm/prediction:o</from>
+        <to external="true">/guiPrediction/left_arm:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    
+	<connection>
+        <from external="true">/mmcm/mirrorSystem/right_arm/prediction:o</from>
+        <to external="true">/guiPrediction/right_arm:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+	
+</application>
