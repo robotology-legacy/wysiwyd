@@ -9,6 +9,7 @@
 #include <iostream>
 #include "IModality.h"
 #include "cvz/helpers/helpers.h"
+#include <float.h>
 
 namespace cvz {
 	namespace core {
