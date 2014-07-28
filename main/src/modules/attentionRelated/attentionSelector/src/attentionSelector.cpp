@@ -85,7 +85,6 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
 
     aState = s_waiting;
     trackedObject = NULL;
-    trackingCounter = 0;
     x_coord = 0.0;
     y_coord = 0.0;
     z_coord = 0.0;
@@ -238,65 +237,31 @@ bool attentionSelectorModule::updateModule() {
     if (presentObjects.size() <= 0)
     {
         cout<<"Unable to get any lookable entity from OPC"<<endl;
-        //trackedObject = NULL;
-        //aState = s_waiting;
     }
-
-    switch (aState)
+    else if (autoSwitch)
     {
-    case s_waiting:
-        {
-            cout<<".";
-            aState = s_exploring;
-        }
-        break;
-
-    case s_exploring:
-        {
-            if (autoSwitch)
-            {
-                cout<<"Exploration... Trying to find a nice object"<<endl;
-                exploring();
-            }
-        }
-        break;
-
-    case s_tracking:
-        {
-            //cout<<"Tracking..."<<endl;
-            tracking();
-            trackingCounter++;
-        }
-        break;
+        exploring();
     }
-
-    if (trackingCounter * getPeriod() > trackSwitchingPeriod )
+    
+    if(trackedCoordinates)
     {
-        if (autoSwitch)
-        {
-            cout<<"Bored with current object. Trying to find a new one."<<endl;
-            trackingCounter = 0;
-            aState = s_waiting;
-        }
-        else
-        {
-            if(trackedCoordinates)
-                cout<<"Tracking tracking coordinates: "<<x_coord<<" "<<y_coord<<" "<<z_coord<<"."<<endl;
-            else if (trackedObject != NULL)
-                cout<<"Tracking locked on object "<<trackedObject->name()<<"."<<endl;
-            else
-                cerr<<"Object is null and should not be "<<endl;
-
-        }
+        cout<<"Tracking tracking coordinates: "<<x_coord<<" "<<y_coord<<" "<<z_coord<<"."<<endl;
+        Vector newTarget(3); newTarget[0]=x_coord;newTarget[1]=y_coord;newTarget[2]=z_coord;
     }
-
+    else if (trackedObject != NULL)
+    {
+        cout<<"Tracking locked on object "<<trackedObject->name()<<"."<<endl;
+        Vector newTarget = icub->getSelfRelativePosition(trackedObject->m_ego_position);
+        if (isFixationPointSafe(newTarget))
+            igaze->lookAtFixationPoint(newTarget);
+    }
     return true;
 }
 
 
 /************************************************************************/
 double attentionSelectorModule::getPeriod() {   
-    return 0.05;
+    return 0.01;
 }
 
 bool attentionSelectorModule::isFixationPointSafe(Vector fp)
@@ -322,90 +287,25 @@ void attentionSelectorModule::exploring() {
         {
             maxSalience = (*it)->m_saliency;
             nameTrackedObject = (*it)->name();
-            mostSalient = *it;
+            mostSalient = *it;   
         }
         //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
     }
-    if (nameTrackedObject == "none")
+
+    if (nameTrackedObject != "none")
     {
-
-        //cout<<"Inside exploring";
-        //cout<<"size is"<<presentObjects.size()<<endl;
-        if (presentObjects.size()==0)
-        {aState = s_exploring; return;}
-
-        bool fSuitable = false;
-        int count = 0;
-        while (!fSuitable && count< 10)
-        {   
-            int rndID = rand()%presentObjects.size();
-            //cout<<"Size is "<<presentObjects.size()<<" chosen is "<<rndID<<endl;
-            Vector positionRelativeToRobot = icub->getSelfRelativePosition(presentObjects[rndID]->m_ego_position);
-            fSuitable = isFixationPointSafe(positionRelativeToRobot);
-            trackedObject = presentObjects[rndID];
-            count++;
-        }
-        if (count==10)
-            aState = s_exploring;
-        else
-        {
-            cout<<"Choosed to track : "<<trackedObject->name()<<endl;
-            aState = s_tracking; 
-        }
-    }
-}
-
-/************************************************************************/
-void attentionSelectorModule::tracking() {
-
-    if (trackedObject == NULL && !trackedCoordinates)
-    {
-        aState = s_waiting;
-        return;
-    }
-    else if (trackedCoordinates == true) {
-
-        //cout << "in trackedCoordinates == true" << endl ;
-
-        Vector newTarget ;
-        newTarget.push_back(x_coord) ;
-        newTarget.push_back(y_coord) ;
-        newTarget.push_back(z_coord) ;
-
-        //cout << "target : (" << newTarget[0] << ", " << newTarget[1] << ", " << newTarget[2] << ")" << endl ; 
-
-        if (isFixationPointSafe(newTarget))
-            igaze->lookAtFixationPoint(newTarget);
-
+        cout<<"Most salient is : "<<mostSalient->name()<<" with saliency="<<mostSalient->m_saliency<<endl;
+        trackedObject = mostSalient;
     }
     else
     {
-        //Check if the tracked ID is still in the OPC
-        bool found = false;
-
-        //cout << "in track by name or id" << endl ;
-
-        for(vector<Object*>::iterator it=presentObjects.begin();it!=presentObjects.end();it++)
+        if(Time::now()>timeLastSwitch + trackSwitchingPeriod)
         {
-            //cout<<"Debug : "<<(*it)->name()<<" -- ";
-            if (trackedObject != NULL && trackedObject->name() == (*it)->name())
-            {
-                found = true;
-                break;
-            }
+            int rndID = rand()%presentObjects.size();
+            trackedObject = presentObjects[rndID];
+            timeLastSwitch = Time::now();
         }
-        if (!found)
-        {
-            cout<<"Object not found..."<<endl;
-            return;
-        }
-
-        Vector newTarget = icub->getSelfRelativePosition(trackedObject->m_ego_position);
-        //cout << "target : (" << newTarget[0] << ", " << newTarget[1] << ", " << newTarget[2] << ")" << endl ; 
-        if (isFixationPointSafe(newTarget))
-            igaze->lookAtFixationPoint(newTarget);
     }
-
-}   
+}
 
 

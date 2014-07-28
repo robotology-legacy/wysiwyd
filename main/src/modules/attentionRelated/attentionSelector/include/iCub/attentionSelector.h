@@ -132,12 +132,11 @@ class attentionSelectorModule : public yarp::os::RFModule {
 
     PolyDriver clientGazeCtrl;
     IGazeControl *igaze;
-    int trackingCounter;
+    double timeLastSwitch;
     double trackSwitchingPeriod;
 
 protected:
     void exploring();
-    void tracking();
     bool isFixationPointSafe(yarp::sig::Vector fp);
 
     double x_coord;
