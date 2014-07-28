@@ -43,15 +43,17 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     pTopDownDisappearanceBurst =  rf.check("parameterTopDownDisappearanceBurst", 
         Value(0.5)).asDouble(); 
     pTopDownAccelerationCoef =  rf.check("parameterTopDownAccelerationCoef", 
-        Value(10.)).asDouble(); 
+        Value(0.1)).asDouble(); 
     pLeakyIntegrationA		=  rf.check("parameterLeakyIntegrationA", 
         Value(0.9)).asDouble(); 
     pTopDownInhibitionReturn =  rf.check("parameterInhibitionReturn", 
         Value(0.05)).asDouble(); 
     pExponentialDecrease =  rf.check("ExponentialDecrease", 
         Value(0.9)).asDouble(); 
-    thresholdMovementAccel =  rf.check("thresholdMovementSpeed", 
+    thresholdMovementAccel =  rf.check("thresholdMovementAccel", 
         Value(0.0)).asDouble(); 
+    thresholdSaliency =  rf.check("thresholdSaliency", 
+        Value(0.005)).asDouble(); 
 
     isControllingMotors	= rf.check("motorControl", 
         Value(0)).asInt() == 1; 
@@ -187,22 +189,46 @@ bool PasarModule::updateModule()
     opc->update();
     list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
+    presentLastSpeed = presentCurrentSpeed;
+    presentCurrentSpeed.clear();
     for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
     {
         if ((*it)->name() != "icub")
         {
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
             if ( ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ))
-            {				
+            {		
+
+                if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
+                {
+                    RTObject * rto = opc->addRTObject((*it)->name());
+                presentObjects[ (*it)->name() ].o.fromBottle( rto->asBottle() );
+                presentObjects[ (*it)->name() ].o.m_saliency = rto->m_saliency;
+                presentObjects[ (*it)->name() ].speed = 0.0;
+                presentObjects[ (*it)->name() ].acceleration = 0.0;
+                presentObjects[ (*it)->name() ].restingSteps = 0;
+
+                }
+
+                if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
+                {
+                    Agent *ag = opc->addAgent((*it)->name());
+                    presentObjects[ (*it)->name() ].o.fromBottle( ag->asBottle() );
+                    presentObjects[ (*it)->name() ].o.m_saliency = ag->m_saliency;
+                    presentObjects[ (*it)->name() ].speed = 0.0;
+                    presentObjects[ (*it)->name() ].acceleration = 0.0;
+                    presentObjects[ (*it)->name() ].restingSteps = 0;
+
+                }/*
                 presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
                 presentObjects[ (*it)->name() ].o.m_saliency = 0.0;
                 presentObjects[ (*it)->name() ].speed = 0.0;
                 presentObjects[ (*it)->name() ].acceleration = 0.0;
-                presentObjects[ (*it)->name() ].restingSteps = 0;
+                presentObjects[ (*it)->name() ].restingSteps = 0;*/
             }
         }
-        if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
-            cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
+        //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
+        //    cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
 
     }
     if (presentObjectsLastStep.size() > 0)
@@ -425,13 +451,11 @@ void PasarModule::saliencyTopDown() {
             //instantaneous speed/acceleration
             Vector lastPos = presentObjectsLastStep[ it->first ].o.m_ego_position;
             Vector currentPos = it->second.o.m_ego_position;
-            double speed = sqrt(pow(lastPos[0] - currentPos[0],2.0) + pow(lastPos[1] - currentPos[1],2.0) + pow(lastPos[2] - currentPos[2],2.0)) / getPeriod(); 
-            double acceleration = speed - presentObjectsLastStep[ it->first ].speed;
+            presentCurrentSpeed[ it->first ] = pair<double, double>(lastPos[0] - currentPos[0], lastPos[1] - currentPos[1]);
 
-            presentObjects[ it->first ].speed = speed;
+            double acceleration = sqrt(pow(presentCurrentSpeed[it->first].first-presentLastSpeed[it->first].first , 2. )   +pow(presentCurrentSpeed[it->first].second-presentLastSpeed[it->first].second , 2. ) ) ;
+
             presentObjects[ it->first ].acceleration = acceleration;
-            //            cout<<it->second.o.name()<<" Speed : "<<speed<<endl
-            //          <<it->second.o.name()<<" Accel : "<<acceleration<<endl;
 
             //Use the world model (CONCEPTS <=> RELATIONS) to modulate the saliency
             if (appeared)
@@ -446,14 +470,12 @@ void PasarModule::saliencyTopDown() {
                 it->second.o.m_saliency += pTopDownDisappearanceBurst;
             }
 
-            it->second.o.m_saliency += fabs(presentObjectsLastStep[ it->first].acceleration * pTopDownAccelerationCoef);
+          
             if (acceleration > thresholdMovementAccel)
             {
-//                cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << endl;
+                  it->second.o.m_saliency += pTopDownAccelerationCoef;
+                  //cout << "ca bouge !!! " << it->second.o.name() << " salience : " << acceleration << endl;
             }
-
-            //presentObjectsLastStep[ it->second.o.name() ].o.fromBottle( it->second.o.asBottle() );
-            // cout<<it->second.o.name()<<"\´s saliency is " <<it->second.o.m_saliency<<endl;
         }
     }
 }
@@ -489,38 +511,9 @@ void PasarModule::saliencyLeakyIntegration() {
         if (it->first != "")
         {
             it->second.o.m_saliency *= pExponentialDecrease;
-
-            //if (presentObjectsLastStep.find(it->first) != presentObjectsLastStep.end())
-            //	it->second.o.m_saliency = it->second.o.m_saliency - pLeakyIntegrationA * presentObjectsLastStep[it->first].o.m_saliency;
-            //    double dt = 1.25;
-            //    double Rm      = 1;//                   # resistance (kOhm)
-            //    double Cm      = 10;//					# capacitance (uF)
-            //    double tau_m   = Rm*Cm;//              # time constant (msec)
-            //    double tau_ref = 4.0;//              # refractory period (msec)
-            //    double Vth     = 0.2;//                   # spike threshold (V)
-            //    double V_spike = 0.5;//                 # spike delta (V)		
-            //    double It1 = it->second.o.m_saliency*1.5;
-            //    double It0 = presentObjectsLastStep[it->first].o.m_saliency ;
-            //    if (it->second.restingSteps==0 && it->second.o.m_present)
-            //    {
-            //        //cout<<"Input : "<<it->second.o.name()<<It1<<endl;
-            //        It1 = It0 + (-It0 + It1*Rm) / tau_m *dt;
-            //        it->second.o.m_saliency = It1 ;
-            //        cout<<'\t'<<it->second.o.name()<<It1<<endl;
-            //        if (it->second.o.m_saliency >= Vth)
-            //        {
-            //            cout<<"Spike : "<<it->second.o.name()<<endl;
-            //            it->second.o.m_saliency += V_spike;
-            //            it->second.restingSteps = (int)(tau_ref/dt);
-            //            this->trackedObject = it->second.o.name();
-            //        }
-            //    }
-            //    else
-            //    {
-            //        it->second.o.m_saliency = 0.0;
-            //        it->second.restingSteps--;
-            //    }
         }
+        if (it->second.o.m_saliency < thresholdSaliency)
+            it->second.o.m_saliency = 0.0;
     }
 }
 

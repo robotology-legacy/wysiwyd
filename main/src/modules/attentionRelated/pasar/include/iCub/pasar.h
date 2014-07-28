@@ -59,6 +59,7 @@ class PasarModule : public yarp::os::RFModule {
     double pLeakyIntegrationA;
     double pExponentialDecrease;
     double thresholdMovementAccel;
+    double thresholdSaliency;
     
     OPCClient *opc;					 //retrieve information from the OPC
     yarp::os::Port handlerPort;      //a port to handle messages 
@@ -69,6 +70,8 @@ class PasarModule : public yarp::os::RFModule {
 
     Agent* icub;
     map<string, ObjectModel>  presentObjectsLastStep;
+    map<string, pair<double, double> > presentLastSpeed;
+    map<string, pair<double, double> > presentCurrentSpeed;
     map<string, ObjectModel>  presentObjects;
 
     std::string trackedObject;
