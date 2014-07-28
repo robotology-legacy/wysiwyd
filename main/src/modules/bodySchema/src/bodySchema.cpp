@@ -624,12 +624,12 @@ bool bodySchema::learn()
     bool use_inputs_in_state = false;
 
     VectorXd kernel_parameters(2); //gaussian kernel parameters
-    kernel_parameters << 1.0, 1.0; //l = 1.0, alpha = 1.0
+    kernel_parameters << 10.0, 1.0; //l = 1.0, alpha = 1.0
 
     //SOGP parameters
-    double noise = 0.0001;
+    double noise = 0.001;
     double epsilon = 1e-3;
-    int capacity = 500;
+    int capacity = 1000;
 
     int random_seed = 0;
 
@@ -683,13 +683,10 @@ bool bodySchema::learn()
         for (unsigned int i=1; i<iters; i++) {
 
             //create the input and output
-            in(0) = 50*sin(i*0.1)+sin(i*1)+5*sin(i*0.01); //-70+10*sin(i*0.1)
-            in(1) = 70*sin(i*0.1)+sin(i*1)+7*sin(i*0.01);
-            in(2) = 60*sin(i*0.1)+sin(i*1)+6*sin(i*0.01);
+            in(0) = 50*sin(i*0.1)+sin(i*0.001)+5*sin(i*0.0001); //-70+10*sin(i*0.1)
+            in(1) = 70*sin(i*0.1)+sin(i*0.001)+7*sin(i*0.0001);
+            in(2) = 60*sin(i*0.1)+sin(i*0.001)+6*sin(i*0.0001);
 
-//            cmdRightArm=in(0);
-//            cout << "Cmd sent:" << cmdRightArm << endl;
-//            pos->positionMove(0,Arm);//cmd.data());
             vel->velocityMove(0,in(0));//cmdRightArm);//cmd.data());
             vel->velocityMove(1,in(1));
             vel->velocityMove(2,in(2));
@@ -751,9 +748,6 @@ bool bodySchema::learn()
             errB.addDouble(error);
             portPredictionErrors.write(); // Now send it on its way
 
-//            Bottle& readPredB = portReadPredictions.read(); // Get the object
-//            Bottle& readPredErrB = portReadPredictionErrors.read(); // Get the object
-
 
 
         }
@@ -771,26 +765,11 @@ bool bodySchema::learn()
 
         //prediction test
         for (unsigned int i=max_itr; i<max_itr+50; i++) {
-//            input(0) = 2*sin(i*0.1); //input(0) = -70+10*sin(i*0.1);
-////            output(0) = -90+10*sin((i+1)*0.01);
-
-//            Bottle *outB = portReadOutData.read();
-//            if (!outB->isNull())
-//            {
-//                output(0) = outB->get(0).asDouble(); // 0 is the joint number!
-//                cout << "Got input" <<endl;
-//            }
-//            else
-//                cout << "NULL Bottle" << endl;
-
 
             in(0) = 50*sin(i*0.1)+sin(i*0.001)+5*sin(i*0.0001); //-70+10*sin(i*0.1)
             in(1) = 70*sin(i*0.1)+sin(i*0.001)+7*sin(i*0.0001);
             in(2) = 60*sin(i*0.1)+sin(i*0.001)+6*sin(i*0.0001);
 
-//            cmdRightArm=in(0);
-//            cout << "Cmd sent:" << cmdRightArm << endl;
-//            pos->positionMove(0,cmdRightArm);//cmd.data());
             vel->velocityMove(0,in(0));//cmd.data());
             vel->velocityMove(1,in(1));
             vel->velocityMove(2,in(2));
@@ -951,4 +930,6 @@ bool bodySchema::init_iCub(string &part)
 
         return true;
 }
+
+
 

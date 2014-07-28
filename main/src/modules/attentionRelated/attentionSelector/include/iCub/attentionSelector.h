@@ -134,7 +134,6 @@ class attentionSelectorModule : public yarp::os::RFModule {
     IGazeControl *igaze;
     int trackingCounter;
     double trackSwitchingPeriod;
-    bool useSaliency;
 
 protected:
     void exploring();
@@ -154,7 +153,6 @@ public:
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     double getPeriod(); 
     bool updateModule();
-    void updateSaliency();
 };
 
 
