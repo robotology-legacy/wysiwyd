@@ -106,9 +106,8 @@ private:
 
     double initTime;
 	
-    bool isRecording;
     bool isLearning;
-    bool isBabbling;
+    bool isBabblingLearning;
 	
 	
 //  ICubClient *iCub;
@@ -130,11 +129,11 @@ public:
     double getPeriod(); 
     bool updateModule();
     
-//    bool record();
-    bool learn(string &fileNameIn, string &fileNameOut);
-//    bool babbling();
 
-//    bool learn(int &nIn, int &nOut);
+    bool learn();
+    bool learn(string &fileNameIn, string &fileNameOut);
+//    bool learn(BufferedPort<Bottle> &portIn, BufferedPort<Bottle> &portOut);
+
     
 private:
 
@@ -150,6 +149,8 @@ private:
     Vector setpoints;
     
     void find_image();
+
+    bool init_iCub(string &part);
 };
 
 
