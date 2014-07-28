@@ -218,7 +218,6 @@ bool attentionSelectorModule::updateModule() {
     opc->checkout();
     list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
-    double salienceMax =0.;
     for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
     {
         if ((*it)->name() == "icub")

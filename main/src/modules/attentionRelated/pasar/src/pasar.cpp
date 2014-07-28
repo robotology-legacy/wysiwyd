@@ -44,8 +44,8 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.5)).asDouble(); 
     pTopDownAccelerationCoef =  rf.check("parameterTopDownAccelerationCoef", 
         Value(0.1)).asDouble(); 
-    pLeakyIntegrationA		=  rf.check("parameterLeakyIntegrationA", 
-        Value(0.9)).asDouble(); 
+    //pLeakyIntegrationA		=  rf.check("parameterLeakyIntegrationA", 
+    //    Value(0.9)).asDouble(); 
     pTopDownInhibitionReturn =  rf.check("parameterInhibitionReturn", 
         Value(0.05)).asDouble(); 
     pExponentialDecrease =  rf.check("ExponentialDecrease", 
@@ -168,16 +168,16 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     }  
     else if (command.get(0).asString()=="set") {
         reply.addString("set");
-        if (command.get(1).asString()=="leak")
+       /* if (command.get(1).asString()=="leak")
         {
             reply.addString("leak");
             this->pLeakyIntegrationA = command.get(2).asDouble();
-        }
-        else
-        {
+        }*/
+        //if
+        //{
             reply.addString("ir");
             this->pTopDownInhibitionReturn= command.get(2).asDouble();
-        }
+      //  }
     }
     return true;
 }

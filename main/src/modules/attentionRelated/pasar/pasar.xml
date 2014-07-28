@@ -10,13 +10,23 @@
   <version>1.0</version>
 
   <description-long>
+    A module that gets the objects present in the OPC, and change their top down saliency according to their acceleration, appereance and disappereance.\n
+    The Bottom Up saliency is based on lumicroma and will integrate the visual component.
   </description-long>
 
   <arguments>
-   </arguments>
+    <param default="pasar" desc="name of the module">name</param>
+    <param default="0.5" desc="score of saliency for an appereance">parameterTopDownAppearanceBurst</param>
+    <param default="0.5" desc="score of saliency for an diappereance">parameterTopDownDisppearanceBurst</param>
+    <param default="0.1" desc="score of saliency for an acceleration detected">parameterTopDownAccelerationCoef</param>
+    <param default="0.03" desc="threshold of an acceleration detection">thresholdMovementAccel</param>
+    <param default="0.001" desc="under this threshlod, saliency is considered as 0">thresholdSaliency</param>
+    <param default="0.9" desc="Speed of the decrease of the saliency over the time (should be less than 1)">pExponentialDecrease</param>
+  </arguments>
 
   <authors>
     <author email="greg.pointeau@gmail.com"> Grégoire Pointeau </author>
+    <author email="stephane.lallee@gmail.com"> Stéphane Lallée </author>
   </authors>
 
   <data>

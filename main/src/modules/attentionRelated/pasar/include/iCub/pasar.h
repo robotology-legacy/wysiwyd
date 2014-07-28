@@ -52,13 +52,12 @@ class PasarModule : public yarp::os::RFModule {
     std::string moduleName;
 
     //Parameter
-    double pTopDownAppearanceBurst;
-    double pTopDownDisappearanceBurst;
-    double pTopDownAccelerationCoef;
-    double pTopDownInhibitionReturn;
-    double pLeakyIntegrationA;
-    double pExponentialDecrease;
-    double thresholdMovementAccel;
+    double pTopDownAppearanceBurst;         // score of saliency for an appereance
+    double pTopDownDisappearanceBurst;      // score of saliency for an diappereance
+    double pTopDownAccelerationCoef;        // score of saliency for an acceleration detected
+    double pTopDownInhibitionReturn;        // threshold of an acceleration detection
+    double pExponentialDecrease;            // under this threshlod, saliency is considered as 0
+    double thresholdMovementAccel;          // Speed of the decrease of the saliency over the time (should be less than 1)
     double thresholdSaliency;
     
     OPCClient *opc;					 //retrieve information from the OPC
