@@ -174,9 +174,15 @@ namespace cvz {
                     for (int i = 0; i < size; i++)
                     {
 						if (autoScale && valueReal[i]>maxBound[i])
+                        {
 							maxBound[i] = valueReal[i];
+                            std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
+                        }
 						if (autoScale && valueReal[i]<minBound[i])
+                        {
 							minBound[i] = valueReal[i];
+                            std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
+                        }
                         scaledValueReal[i] = (valueReal[i] - minBound[i]) / (maxBound[i] - minBound[i]);
                         helpers::Clamp(scaledValueReal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
                     }
