@@ -95,9 +95,9 @@ namespace cvz {
 					else
 					{
 						if (modAutoScaling)
-							maxBounds.resize(modSize, 1.0);
-						else
 							maxBounds.resize(modSize, DBL_MIN);
+						else
+							maxBounds.resize(modSize, 1.0);
 					}
 
 					bool isTopDown = bMod.check("isTopDown");
