@@ -80,12 +80,14 @@
    </data>
    
    <services>
+   <!--
        <server>
            <type>cvz_IDL</type>
            <idl>cvz.thrift</idl>
            <port>/dummyCvz/rpc</port>
            <description>Command port</description>
-       </server>
+       </server> 
+	-->
    </services>
    
 </module>

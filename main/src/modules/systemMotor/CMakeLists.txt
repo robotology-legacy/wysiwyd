@@ -3,3 +3,5 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 add_subdirectory(slidingController)
+add_subdirectory(imitationMotorBabbling)
+add_subdirectory(vector2cmd)

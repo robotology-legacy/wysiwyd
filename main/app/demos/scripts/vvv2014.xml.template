@@ -21,7 +21,7 @@
         </module>  
            
         <module>
-            <name>reactable2OPC</name>
+            <name>reactable2opc</name>
             <node>icub16</node>
         </module>
                      
@@ -38,7 +38,7 @@
         <module>
           <name>iSpeak</name>
           <parameters>--package acapelacmd</parameters>
-          <node>speechMachine</node>
+          <node>icub-win1</node>
         </module>
            
         <module>
@@ -55,7 +55,7 @@
         <module>
             <name>agentDetector</name>
             <node>icub16</node>
-            <parameters></parameters>
+            <parameters>showImages true</parameters>
         </module>
 
         <module>

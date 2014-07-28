@@ -1,0 +1,104 @@
+// -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
+
+/* 
+* Copyright (C) 2014 EFAA Consortium, European Commission FP7 Project IST-270490
+* Authors: Stéphane Lallée, Grégoire Pointeau
+* email:   stephane.lallee@gmail.com, gregoire.pointeau@inserm.fr
+* website: http://efaa.upf.edu/ 
+* Permission is granted to copy, distribute, and/or modify this program
+* under the terms of the GNU General Public License, version 2 or any
+* later version published by the Free Software Foundation.
+*
+* A copy of the license can be found at
+* $WYSIWYD/license/gpl.txt
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+* Public License for more details
+*/
+
+#ifndef _PASAR_MODULE_H_
+#define _PASAR_MODULE_H_
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <yarp/sig/all.h>
+#include <yarp/os/all.h>
+#include <yarp/dev/all.h>
+#include <yarp/dev/Drivers.h>
+#include <wrdac/clients/clients.h>
+
+
+using namespace wysiwyd::wrdac;
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace yarp::dev;
+using namespace std;
+
+struct ObjectModel
+{
+    Object o;
+    double speed;
+    double acceleration;
+    int restingSteps;
+};
+
+/**
+* Module in charge of polling the OPC and updating icubGUI
+*/
+class PasarModule : public yarp::os::RFModule {
+    std::string moduleName;
+
+    //Parameter
+    double pTopDownAppearanceBurst;
+    double pTopDownDisappearanceBurst;
+    double pTopDownAccelerationCoef;
+    double pTopDownInhibitionReturn;
+    double pLeakyIntegrationA;
+    double pExponentialDecrease;
+    double thresholdMovementAccel;
+    double thresholdSaliency;
+    
+    OPCClient *opc;					 //retrieve information from the OPC
+    yarp::os::Port handlerPort;      //a port to handle messages 
+
+    BufferedPort<ImageOf<PixelMono> > saliencyInput;
+    BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
+    ImageOf<PixelRgb>				  imageOut;
+
+    Agent* icub;
+    map<string, ObjectModel>  presentObjectsLastStep;
+    map<string, pair<double, double> > presentLastSpeed;
+    map<string, pair<double, double> > presentCurrentSpeed;
+    map<string, ObjectModel>  presentObjects;
+
+    std::string trackedObject;
+
+    bool isControllingMotors;
+    int store_context_id;
+    PolyDriver clientGazeCtrl;
+    IGazeControl *igaze;
+
+protected:
+    bool isFixationPointSafe(yarp::sig::Vector fp);
+    void saliencyBottomUp();
+    void saliencyTopDown();
+    void saliencyNormalize();
+    void saliencyLeakyIntegration();
+
+public:
+    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+    bool interruptModule();                       // interrupt, e.g., the ports 
+    bool close();                                 // close and shut down the module
+    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+    double getPeriod(); 
+    bool updateModule();
+};
+
+
+#endif
+
+//----- end-of-file --- ( next line intentionally left blank ) ------------------
+

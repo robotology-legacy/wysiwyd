@@ -9,7 +9,7 @@ using namespace std;
 class plan
 {   
 public:
-    
+
     string                                          sName;
     string                                          sManner;
     vector<string>                                  vActivitytype;

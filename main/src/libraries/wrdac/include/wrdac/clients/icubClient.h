@@ -49,6 +49,11 @@ private:
     double xRangeMax,yRangeMax,zRangeMax;
 
 public:
+	std::map<std::string, BodyPosture> getPosturesKnown()
+	{
+		return posturesKnown;
+	}
+
     SubSystem*  getSubSystem(std::string name){return subSystems[name];}
 
 	SubSystem_Expression* getExpressionClient()

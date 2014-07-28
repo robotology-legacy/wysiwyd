@@ -1,0 +1,68 @@
+
+<application>
+<name>Dump - Robot Joints</name>
+
+        <dependencies>
+            <port>/icub/torso/state:o</port>
+            <port>/icub/right_arm/state:o</port>
+            <port>/icub/left_arm/state:o</port>
+            <port>/icub/head/state:o</port>
+        </dependencies>
+		
+        <module>
+            <name>dataDumper </name>
+            <parameters>--name dump/icub/torso --type bottle --rxTime</parameters>
+            <node>icub16</node>
+            <tag>dataDumperTorso</tag>
+        </module>
+		
+        <module>
+            <name>dataDumper </name>
+            <parameters>--name dump/icub/right_arm --type bottle --rxTime</parameters>
+            <node>icub16</node>
+            <tag>dataDumperRightArm</tag>
+        </module>
+		        
+		<module>
+            <name>dataDumper </name>
+            <parameters>--name dump/icub/left_arm --type bottle --rxTime</parameters>
+            <node>icub16</node>
+            <tag>dataDumperLeftArm</tag>
+        </module>
+		
+		<module>
+            <name>dataDumper </name>
+            <parameters>--name dump/icub/head --type bottle --rxTime</parameters>
+            <node>icub16</node>
+            <tag>dataDumperHead</tag>
+        </module>
+		
+		<!-- Connections -->
+		
+		<connection>
+			<from>/icub/torso/state:o</from>
+			<to>/dump/icub/torso</to>
+			<protocol>udp</protocol>
+		</connection>
+	  
+	  	<connection>
+			<from>/icub/right_arm/state:o</from>
+			<to>/dump/icub/right_arm</to>
+			<protocol>udp</protocol>
+		</connection>
+		  	
+		<connection>
+			<from>/icub/left_arm/state:o</from>
+			<to>/dump/icub/left_arm</to>
+			<protocol>udp</protocol>
+		</connection>  
+
+		<connection>
+			<from>/icub/head/state:o</from>
+			<to>/dump/icub/head</to>
+			<protocol>udp</protocol>
+		</connection>  
+		
+</application>
+
+

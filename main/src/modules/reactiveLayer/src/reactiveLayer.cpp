@@ -10,7 +10,7 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
-    iCub = new ICubClient(moduleName,"reactiveLayer/conf","client.ini",isRFVerbose);
+    iCub = new ICubClient(moduleName,"reactiveLayer","client.ini",isRFVerbose);
     iCub->opc->isVerbose = false;
     char rep = 'n';
     while (rep!='y'&&!iCub->connect())

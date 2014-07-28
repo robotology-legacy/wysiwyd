@@ -1,0 +1,122 @@
+<GRAMMAR	LANGID="409">
+
+  <DEFINE>
+    <ID NAME="object" VAL="1"/>
+    <ID NAME="location" VAL="2"/>
+    <ID NAME="verb1" VAL="3"/>
+    <ID NAME="verb2" VAL="4"/>
+    <ID NAME="temporal" VAL="5"/>
+    <ID NAME="follow" VAL="6"/>
+  </DEFINE>
+
+  <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>stop</P>
+  </RULE>
+
+  <RULE	NAME="follow"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <RULEREF NAME="mode"/>
+  </RULE>
+
+  <RULE NAME="mode" DYNAMIC="TRUE">
+    <L>
+      <P>continue</P>
+      <P>exit</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="object" DYNAMIC="TRUE">
+    <O>
+      <P>the</P>
+    </O>
+    <L>
+      <P>cross</P>
+      <P>circle</P>
+      <P>eraser</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="spatial" DYNAMIC="TRUE">
+    <L>
+      <P>left</P>
+      <P>middle</P>
+      <P>right</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="location" DYNAMIC="TRUE">
+    <P>on</P>
+    <O>
+      <P>the</P>
+    </O>
+    <RULEREF NAME="spatial"/>
+  </RULE>
+
+  <RULE NAME="verb1" DYNAMIC="TRUE">
+    <O>
+      <P>you</P>
+    </O>
+    <L>
+      <P>grasp</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="verb2" DYNAMIC="TRUE">
+    <O>
+      <P>you</P>
+    </O>
+    <L>
+      <P>put</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="temporal" DYNAMIC="TRUE">
+    <L>
+      <P>after</P>
+      <P>before</P>
+    </L>
+  </RULE>
+
+  <RULE	NAME="action1"	DYNAMIC="TRUE">
+    <RULEREF NAME="verb1"/>
+    <RULEREF NAME="object"/>
+  </RULE>
+
+  
+  <RULE	NAME="action21"	DYNAMIC="TRUE"> 
+     <RULEREF NAME="verb2"/>
+     <RULEREF NAME="object"/>
+     <RULEREF NAME="location"/>
+  </RULE>
+
+  <RULE	NAME="action22"	DYNAMIC="TRUE">
+     <RULEREF NAME="location"/>
+     <RULEREF NAME="verb2"/>
+     <RULEREF NAME="object"/>
+  </RULE>
+
+  <RULE	NAME="action2"	DYNAMIC="TRUE">
+    <L>  
+    	<RULEREF NAME="action21"/>
+    	<RULEREF NAME="action22"/>
+    </L>
+  </RULE>
+
+  <RULE	NAME="actionX"	DYNAMIC="TRUE">
+    <L>  
+    	 <RULEREF NAME="action1"/>
+    	 <RULEREF NAME="action2"/>
+    </L>
+  </RULE>
+
+  <RULE	NAME="sentence"	TOPLEVEL="ACTIVE"   EXPORT="1">
+    <O> 
+	<RULEREF NAME="temporal"/>
+    </O>
+    <RULEREF NAME="actionX"/>
+    <O>
+	 <RULEREF NAME="actionX"/>
+    </O>
+  </RULE>
+
+  <!--	End	of	Grammar	definition	-->
+</GRAMMAR>

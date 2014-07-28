@@ -1,0 +1,49 @@
+<train data>
+put trumpet left;put the trumpet on the left # 1R/C (VSO)
+put trumpet left;on the left put the trumpet # 1R/N'1 (OVS)
+put trumpet left;put on the left the trumpet # 1R/N'2 (VOS)
+put trumpet left;the trumpet put it on the left  # 1R/N'3 (SVO)
+#~~ (SOV) too ambiguous
+#~~ (OSV) too ambiguous
+grasp guitar;grasp the guitar # 1R/C (VO)
+grasp guitar;the guitar grasp it # 1R/N (OV)
+
+### 2 actions for 'put' ###
+# A canonical, B canonical
+#(A:put the trumpet on the left , B:put the guitar on the right)
+put trumpet left,put guitar right;put the trumpet on the left and then put the guitar on the right # A(and then)B # 2R/CC
+put trumpet left,put guitar right;after you put the trumpet on the left put the guitar on the right # (after you)A,B # 2R/CC
+put trumpet left,put guitar right;put the trumpet on the left before you put the guitar on the right # A(before you)B # 2R/CC
+put trumpet left,put guitar right;before you put the guitar on the right put the trumpet on the left# (before you)B,A
+### A non canonical'2 (VOS), B canonical
+# A: put on the left the trumpet , B: put the guitar on the right
+put trumpet left,put guitar right;put on the left the trumpet and then put the guitar on the right # A(and then)B
+put trumpet left,put guitar right;after you put on the left the trumpet put the guitar on the right # (after you)A,B 
+put trumpet left,put guitar right;put on the left the trumpet before you put the guitar on the right # A(before you)B
+put trumpet left,put guitar right;before you put the guitar on the right put on the left the trumpet# (before you)B,A
+### A canonical, B non canonical'2 (VOS)
+# A: put the trumpet on the left, B : put on the right the guitar
+put trumpet left,put guitar right;put the trumpet on the left and then put on the right the guitar # A(and then)B
+put trumpet left,put guitar right;after you put the trumpet on the left put on the right the guitar # (after you)A,B 
+put trumpet left,put guitar right;put the trumpet on the left before you put on the right the guitar # A(before you)B
+put trumpet left,put guitar right;before you put on the right the guitar put the trumpet on the left# (before you)B,A
+### A non canonical'2 (VOS), B non canonical'2 (VOS)
+#A: put on the left the trumpet , B : put on the right the guitar
+put trumpet left,put guitar right;put on the left the trumpet and then put on the right the guitar # A(and then)B
+put trumpet left,put guitar right;after you put on the left the trumpet put on the right the guitar # (after you)A,B 
+put trumpet left,put guitar right;put on the left the trumpet before you put on the right the guitar # A(before you)B
+put trumpet left,put guitar right;before you put on the right the guitar put on the left the trumpet # (before you)B,A
+
+##before, vb2-vb1 canonical
+point guitar,put trumpet left;before you put the trumpet on the left point the guitar # (before you)B,A
+##before, vb2-vb1 canonical
+point guitar,put trumpet left;before you put on the left the trumpet point the guitar # (before you)B,A
+point guitar, grasp trumpet;before you grasp the trumpet point the guitar # (before you)B,A
+put trumpet left, point guitar;before you point the guitar put the trumpet on the left #
+
+###after you, point/put
+point guitar,put trumpet left;after you point the guitar put the trumpet on the left #(after you)A1,B2
+
+###after you, point/point
+point guitar, grasp trumpet;after you point the guitar grasp the trumpet #(after you)A1,A2
+

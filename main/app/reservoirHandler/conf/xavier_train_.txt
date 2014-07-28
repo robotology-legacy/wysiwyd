@@ -1,0 +1,21 @@
+<train data>
+#left violin trumpet;the violin is left of the trumpet left violin trumpet;the violin is to the left of the trumpet  # 1 relation / canonical
+left violin trumpet;to the left of the trumpet is the violin  # 1 relation / Non canonical
+left violin trumpet,right violin guitar;the violin is to the left of the trumpet and to the right of the guitar  # 2 relations / Non canonical
+left violin trumpet,right violin guitar;to the left of the trumpet and to the right of the guitar is the violin  # 2 relations / Non canonical
+#left violin trumpet,left violin guitar;the violin is to the left of the trumpet and to the left of the guitar  # same verb in the 2 meanings # 2 relations / Non canonical
+#master yoda versions
+#left violin trumpet;to the left of the trumpet the violin is
+#left violin trumpet;the violin to the left of the trumpet is
+#over guitar violin;the guitar is over the violin
+#over guitar violin;over the violin is the guitar
+#master yoda versions
+#over guitar violin;over the violin the guitar is
+#over guitar violin;the guitar over the violin is
+#right trumpet guitar,below trumpet violin;the trumpet is right of the guitar and below the violin
+#master yoda version
+#right trumpet guitar,below trumpet violin;to the right of the guitar and below the violin the trumpet is
+#below trumpet guitar,right trumpet violin;the trumpet is below the guitar and right to the violin
+#master yoda version
+#below trumpet guitar,right trumpet violin;below the guitar and right to the violin the trumpet is 
+

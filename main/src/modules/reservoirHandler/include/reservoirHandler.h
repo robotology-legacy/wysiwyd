@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Anne-Laure MEALIER
  * email:   anne-laure.mealier@inserm.fr
@@ -19,9 +19,14 @@
 #define _RESERVOIRHANDLER_H_
 
 #include <iostream>
-#include <fstream> 
+#include <fstream>
 #include <sstream>
 #include <string>
+#include <list>
+
+#include "boost/python.hpp"
+using namespace boost::python;
+//#include <python2.7/Python.h>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -35,11 +40,11 @@ using namespace wysiwyd::wrdac;
 class reservoirHandler : public RFModule {
 private:
     string moduleName;
-	string sKeyWord;
+    string sKeyWord;
 
-	string handlerPortName;
-	string port2SpeechRecogName;
-	string port2iSpeakName;
+    string handlerPortName;
+    string port2SpeechRecogName;
+    string port2iSpeakName;
 
     string nameGrammarNodeType;
     string nameGrammarNodeModality;
@@ -58,27 +63,28 @@ private:
 
     string pythonPath;
 
-	Port handlerPort;				// a port to handle messages 
-	Port Port2SpeechRecog;		// a port to send grammar to the speech recog
-	Port Port2iSpeak;		// a port to send grammar to the speech recog
+    Port handlerPort;				// a port to handle messages
+    Port Port2SpeechRecog;		// a port to send grammar to the speech recog
+    Port Port2iSpeak;		// a port to send grammar to the speech recog
 
-	bool isAwake;
+    bool isAwake;
     ICubClient *iCub;
 
-	int iCurrentInstance;					// instance of the current request
+    int iCurrentInstance;					// instance of the current request
     int inbsentence;
-	string sCurrentActivity;
+    string sCurrentActivity;
     string sCurrentType;
-	string sCurrentNode;
+    string sCurrentNode;
     string sCurrentCanonical;
-	string sCurrentGrammarFile;
+    string sCurrentGrammarFile;
     string sLastSentence;
     string sSentence_type;
     string sSentence;
     // last sentence said (in case of a repeat)
-	pair<string, string> psCurrentComplement;
+    pair<string, string> psCurrentComplement;
 
-    list<string> lMeaningsSentences;
+    string sentence;
+    std::list<string> lMeaningsSentences;
 
     bool nodeType();
     bool nodeModality();
@@ -86,27 +92,26 @@ private:
     bool nodeTestAP();
     bool nodeTrainSD();
     bool callReservoir(string fPython);
-	string	grammarToString(string sPath);
+    string	grammarToString(string sPath);
 
     int copyTrainData(const char* fileNameIn, const char* fileNameOut);
     int copyPastFile(const char* in, const char* fileNameOut);
     int trainSaveMeaningSentence(const char *filename);
     int createTestwithTrainData(const char* filename, string sMeaningSentence);
-
-	//YARP_OS_API void getName(const yarp::os::ConstString& str);
+    string openResult(const char* fileNameIn);
 
 public:
-    /** 
+    /**
      * document your methods too.
      */
-	reservoirHandler(ResourceFinder &rf);
-	~reservoirHandler();
+    reservoirHandler(ResourceFinder &rf);
+    ~reservoirHandler();
 
     bool configure(ResourceFinder &rf); // configure all the module parameters and return true if successful
-    bool interruptModule();                       // interrupt, e.g., the ports 
+    bool interruptModule();                       // interrupt, e.g., the ports
     bool close();                                 // close and shut down the module
     bool respond(const Bottle& command, Bottle& reply);
-    double getPeriod(); 
+    double getPeriod();
     bool updateModule();
 };
 

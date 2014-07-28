@@ -1,6 +1,6 @@
 #include <abmReasoning.h>
 #include <functional>
- 
+
 #define THRESHOLD_CONFIDENCE 5.0
 
 
@@ -50,8 +50,8 @@ bool abmReasoning::configure(ResourceFinder &rf)
     senderPort.open(portSenderName.c_str());
     bDreaming = false;
 
-    
-    iCub = new ICubClient(moduleName,"abmReasoning/conf","client.ini",false);
+
+    iCub = new ICubClient(moduleName,"abmReasoning","client.ini",false);
     iCub->opc->isVerbose = false;
 
     Network::connect(senderPort.getName(), "/autobiographicalMemory/request:i");
@@ -78,6 +78,8 @@ bool abmReasoning::configure(ResourceFinder &rf)
     bReady = true;
     bool bTestLanguage = false;
 
+    WordKnowledge.simulateData();
+
     if (bTestLanguage)
     {
         //  if (!rf.check("noSentences"))   findAllSentence();
@@ -103,7 +105,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 */
 void abmReasoning::initialisePlanner(ResourceFinder & rf)
 {
-    
+
     // TODO : use config file !!
     Bottle &bPlanner = rf.findGroup("planner");
 
@@ -152,7 +154,7 @@ void abmReasoning::initialisePlanner(ResourceFinder & rf)
     //pddlDomain = "domainEFAA.pddl";       //name of the domain pddl file
     //pddlProblem = "problemEFAA.pddl" ;      //name of the problem pddl file
     //pddlOut = "solutionEFAA" ;      //name of the solution plan file -> will be called solutionEFAA_1.SOL
-    
+
     //there is no last Action => used to update vCurrentActions in findAllSharedPlan
     saveEndLastAction = -1 ;
 }
@@ -179,7 +181,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 
     else if (bCommand.get(0).asString()=="sqlQueryTest") {
         bReply.addString("ack");
-//      bReply.addList() = sqlQueryTest();
+        //      bReply.addList() = sqlQueryTest();
     }
 
 
@@ -224,7 +226,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
             bReply.addString("ack");
             string actionName = bCommand.get(1).asString().c_str() ;
             string beginOrEnd = bCommand.get(2).asString().c_str();
-//          bReply.addList() = findOPC(actionName, beginOrEnd);
+            //          bReply.addList() = findOPC(actionName, beginOrEnd);
         }
     }
 
@@ -358,7 +360,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addList() = Interlocutor.imagineOPC(atoi(bCommand.get(1).toString().c_str()));
     }
 
-    
+
     // GET ACTION 
     else if (bCommand.get(0).asString() == "getAction") {
         bReply.addString("ack");
@@ -397,7 +399,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
             bReply.addList() = retroReasoning();
         }
     }
-        // RETRO REASONING
+    // RETRO REASONING
 
 
     else if (bCommand.get(0).asString() == "retroReasoning") {
@@ -463,11 +465,21 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addList() = executeSharedPlan(bCommand);
     }
 
-    // EXECUTE SHARED PLAN
+    // GRAMMAR
 
     else if (bCommand.get(0).asString() == "askGrammar") {
         bReply.addString("ack");
         bReply.addList() = askGrammar(bCommand);
+    }
+
+    // WORD KNOWLEDGE
+
+    else if (bCommand.get(0).asString() == "askWordKnowledge") {
+        bReply.addString("ack");
+
+        // Get Context
+
+        bReply.addList() = askWordKnowledge(bCommand);
     }
 
 
@@ -520,7 +532,7 @@ bool abmReasoning::interruptModule()
 bool abmReasoning::close()
 {
     std::cout<<"Calling close function\n";
-//  std::cout << saveKnowledge().toString() << endl;
+    //  std::cout << saveKnowledge().toString() << endl;
 
     if (realOPC->isConnected()) delete realOPC;
     if (mentalOPC->isConnected()) delete mentalOPC;
@@ -562,8 +574,8 @@ Bottle abmReasoning::connectOPC(Bottle bInput)
 
     if (realOPC->isConnected())
     {
-    realOPC->checkout();
-    realOPC->update();
+        realOPC->checkout();
+        realOPC->update();
     }
 
     sPortTemp = moduleName + "/" + abmReasoningFunction::s_mentalOPC;
@@ -1121,7 +1133,7 @@ Bottle abmReasoning::getActionConsequence(pair<string, string> pNameArg)
             bContextual.addString(sArg.c_str());
             bContextual.addInt(ObjectPresentBefore);
             bContextual.addInt(ObjectPresentAfter);
-            
+
             ostringstream osAgent ;
             osArgObj << "SELECT DISTINCT argument FROM contentarg WHERE instance = " << opcIdBegin << " AND role = 'agent1'";
             bArgObj = requestFromStream(osArgObj.str().c_str());
@@ -1183,7 +1195,7 @@ Bottle abmReasoning::getActionConsequenceDrives(pair<string, string> pNameArg)
 
     bOpcIdBegin = requestFromStream(osBegin.str().c_str());
     bOpcIdEnd = requestFromStream(osEnd.str().c_str());
-    
+
     int numberActionBegin = bOpcIdBegin.size();
     int numberActionEnd = bOpcIdEnd.size();
 
@@ -1313,10 +1325,10 @@ Bottle abmReasoning::pddlPlannerSolParser(){
     //to check with multiple actions solution
     char filename[512] = "" ;
     for(int i = 1; i <= pddlNb ; i++){
-    
+
         pddlSolFileName(i,filename);
         ifstream fileSol(filename);
-        
+
         //if the file is found (an not the first) we remove the previous file
         if(fileSol && i > 1){
             char fileSolToRemove[512] ;
@@ -1401,7 +1413,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                             if(actionName == "hanoi"){
                                 //upper to lower case
-                                
+
                                 objName = it->substr(sepBegin+1, it->length())  ;
                                 transform(objName.begin(), objName.end(), objName.begin(), abmReasoning::fixed_tolower);
                                 std::cout << "=> objName : " << objName << endl ;
@@ -1456,7 +1468,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                 bCurrentAction.addString("action");
                 bCurrentAction.addString(actionName.c_str());
-                
+
                 if(agentName!= ""){
                     bArg.addString(agentName.c_str());
                     bRole.addString("agent1");
@@ -1490,7 +1502,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
 
                 bOutput.addList() = bCurrentAction ;
-        
+
             }//end parse the line
 
         }//end parse the file
@@ -1519,7 +1531,7 @@ void abmReasoning::pddlSolFileName(int i, char* filename){
 
 //remove all the file given in the range
 void abmReasoning::pddlSolDelete(unsigned int begin, unsigned int end){
-    
+
     //check parameters
     if ( begin < 1 || end < begin) {
         std::cout << "ERROR : begin has to be > 1, and end >= begin" << endl ;
@@ -1529,7 +1541,7 @@ void abmReasoning::pddlSolDelete(unsigned int begin, unsigned int end){
     char filename[512] = "" ;
     //loop to generate filename from XXX_begin.SOL to XXX_end.SOL
     for(unsigned int i = begin; i <= end ; i++){
-    
+
         pddlSolFileName(i,filename);
         ifstream fileSol(filename);
 
@@ -1565,7 +1577,7 @@ void abmReasoning::pddlSolDelete(unsigned int begin, unsigned int end){
 int abmReasoning::pddlPlannerLauncher(){
 
     //erase the previous solution if there (so that it is not the first time reasoning is called)
-    
+
     if(bestSol>=1){
         char solFilename[512] ;
         pddlSolFileName(bestSol, solFilename);
@@ -1626,7 +1638,7 @@ int abmReasoning::pddlPlannerLauncher(){
     ostringstream sPddlCpu;
     sPddlCpu << pddlCpu ;
     strcat(plannerLauncher, sPddlCpu.str().c_str()) ;
-    
+
     std::cout << "executing the command : " << endl << " - " << cdPlanner << endl << " - " << plannerLauncher << endl;
 
     //grouping both : cd plannerPath + plannerLauncher
@@ -1656,7 +1668,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
 
     //print the define, requirements, predicates which will be used
     myfile << ";; STRIPS domain automatically generated by ABMReasoning, part of EFAA" << endl;
-    
+
     myfile << "(define (domain efaa)" << endl;
 
     myfile << "\t(:requirements :strips :typing :equality)" << endl ;
@@ -1672,204 +1684,204 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
     for (vector<contextualKnowledge>::iterator it = listContextualKnowledge.begin() ; it != listContextualKnowledge.end() ; it++)
     {
 
-            /**************************  PDDL : action  *****************************/
-            //action with no argument (spatial) : remove, add, ... : keep the name
-            /**************************  PDDL : action  *****************************/
+        /**************************  PDDL : action  *****************************/
+        //action with no argument (spatial) : remove, add, ... : keep the name
+        /**************************  PDDL : action  *****************************/
 
-            string obj1, loc1, loc2 ;
+        string obj1, loc1, loc2 ;
 
-            if(it->sArgument == abmReasoningFunction::TAG_DB_NONE){
-                myfile << "\t(:action " << it->sName << endl;
-            } else {
-                //otherwise the name is name-sArg (e.g. : put-north, put-south, put-near, ...) (in particular to managed put-near)
-                
-                //hanoi_loc
-                if(it->sName == "hanoi"){
-                    myfile << "\t(:action " << it->sName << "-" << it->sArgument << endl;
-
-                    obj1 = it->sArgument;
-                    loc1 = "?from" ;
-                    loc2 = "?to" ;
-                } else {
-                    //move_obj, put_obj
-                    myfile << "\t(:action " << it->sName << "-" << it->sArgument << endl;
-
-                    obj1 = "?obj1" ;
-                }
-            }
-
-            /***********************  PDDL : parameters  **************************/
-            //assuming action always are applied to an object1, and if another argument it is a spatial -> in the name
-            //       WARNING : this will need to changed for put-near (obj1, obj2)
-            /**************************  PDDL : action  *****************************/
+        if(it->sArgument == abmReasoningFunction::TAG_DB_NONE){
+            myfile << "\t(:action " << it->sName << endl;
+        } else {
+            //otherwise the name is name-sArg (e.g. : put-north, put-south, put-near, ...) (in particular to managed put-near)
 
             //hanoi_loc
             if(it->sName == "hanoi"){
-                myfile << "\t\t:parameters (?to ?from)" << endl ;
+                myfile << "\t(:action " << it->sName << "-" << it->sArgument << endl;
+
+                obj1 = it->sArgument;
+                loc1 = "?from" ;
+                loc2 = "?to" ;
             } else {
-                myfile << "\t\t:parameters (?obj1)" << endl ;
+                //move_obj, put_obj
+                myfile << "\t(:action " << it->sName << "-" << it->sArgument << endl;
+
+                obj1 = "?obj1" ;
             }
+        }
 
-            /************************************************************************/          
-            /***********************  PDDL : precondition  **************************/
-            /************************************************************************/
+        /***********************  PDDL : parameters  **************************/
+        //assuming action always are applied to an object1, and if another argument it is a spatial -> in the name
+        //       WARNING : this will need to changed for put-near (obj1, obj2)
+        /**************************  PDDL : action  *****************************/
 
-            myfile << "\t\t:precondition (and " ;
+        //hanoi_loc
+        if(it->sName == "hanoi"){
+            myfile << "\t\t:parameters (?to ?from)" << endl ;
+        } else {
+            myfile << "\t\t:parameters (?obj1)" << endl ;
+        }
 
-            //----------------------> for arguments
-            if(it->sName == "hanoi"){
-                myfile << "(location ?to) (location ?from) " ;
-            } else {
-                myfile << "(object ?obj1) " ;
-            }
+        /************************************************************************/          
+        /***********************  PDDL : precondition  **************************/
+        /************************************************************************/
 
-            //hanoi_loc : presence <obj, <from,to>> to check
-            if(it->sName == "hanoi"){
+        myfile << "\t\t:precondition (and " ;
 
-                //----------------------> for isAtLoc
-                //For the others objects : mPercentObjectFromTo
-                for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentObjectFromTo.begin() ; itIntersect != it->mPercentObjectFromTo.end() ; itIntersect++)
-                {           
+        //----------------------> for arguments
+        if(it->sName == "hanoi"){
+            myfile << "(location ?to) (location ?from) " ;
+        } else {
+            myfile << "(object ?obj1) " ;
+        }
+
+        //hanoi_loc : presence <obj, <from,to>> to check
+        if(it->sName == "hanoi"){
+
+            //----------------------> for isAtLoc
+            //For the others objects : mPercentObjectFromTo
+            for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentObjectFromTo.begin() ; itIntersect != it->mPercentObjectFromTo.end() ; itIntersect++)
+            {           
+                //if percentage isAtLoc > treshold_sup : isAtLoc
+                if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
+                    myfile << "(isAtLoc " << itIntersect->first << " ?from) " ;
+                }
+
+                //if percentage isAtLoc < treshold_inf : not(isAtLoc)
+                if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
+                    myfile << "(not (isAtLoc " << itIntersect->first << " ?from)) " ;
+                }
+
+                //if percentage isAtLoc > treshold_sup : isAtLoc
+                if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
+                    myfile << "(isAtLoc " << itIntersect->first << " ?to) " ;
+                }
+
+                //if percentage isAtLoc < treshold_inf : not(isAtLoc)
+                if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
+                    myfile << "(not (isAtLoc " << itIntersect->first << " ?to)) " ;
+                }
+
+            }   
+
+            //For the moved object : mPercentIntersection
+            for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
+            {           
+                //if loc = from
+                if (itIntersect->first == "from" || itIntersect->first == "to") {
+
+                    //second.first = begin = precondition
+
                     //if percentage isAtLoc > treshold_sup : isAtLoc
                     if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
-                        myfile << "(isAtLoc " << itIntersect->first << " ?from) " ;
+                        myfile << "(isAtLoc " << it->sArgument << " ?" << itIntersect->first << ") " ;
                     }
 
                     //if percentage isAtLoc < treshold_inf : not(isAtLoc)
                     if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
-                        myfile << "(not (isAtLoc " << itIntersect->first << " ?from)) " ;
+                        myfile << "(not (isAtLoc " << it->sArgument << " ?" << itIntersect->first << ")) " ;
                     }
-
-                    //if percentage isAtLoc > treshold_sup : isAtLoc
-                    if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
-                        myfile << "(isAtLoc " << itIntersect->first << " ?to) " ;
-                    }
-
-                    //if percentage isAtLoc < treshold_inf : not(isAtLoc)
-                    if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
-                        myfile << "(not (isAtLoc " << itIntersect->first << " ?to)) " ;
-                    }
-
-                }   
-
-                //For the moved object : mPercentIntersection
-                for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
-                {           
-                    //if loc = from
-                    if (itIntersect->first == "from" || itIntersect->first == "to") {
-
-                        //second.first = begin = precondition
-
-                        //if percentage isAtLoc > treshold_sup : isAtLoc
-                        if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
-                            myfile << "(isAtLoc " << it->sArgument << " ?" << itIntersect->first << ") " ;
-                        }
-
-                        //if percentage isAtLoc < treshold_inf : not(isAtLoc)
-                        if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
-                            myfile << "(not (isAtLoc " << it->sArgument << " ?" << itIntersect->first << ")) " ;
-                        }
-                    }
-                }   
-
-
-            } else {
-
-                //----------------------> for isPresent
-                if(it->PercentPresence.first > abmReasoningFunction::threshold_presence){
-                    myfile << "(isPresent " << obj1 << ") " ;
-                } else if (it->PercentPresence.first < abmReasoningFunction::threshold_absence){
-                    myfile << "(not (isPresent " << obj1 << ") ) " ;
                 }
+            }   
 
-                //----------------------> for isAtLoc
-                for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
-                {           
-                    //second: <before,after> => second.first : percent of presence in a loc before
 
-                    //if percentage isAtLoc > treshold_sup : isAtLoc
-                    if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
-                        myfile << "(isAtLoc " << obj1 << " " << itIntersect->first <<" ) " ;
-                    }
-
-                    //if percentage isAtLoc < treshold_inf : not (isAtLoc)
-                    if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
-                        myfile << "(not (isAtLoc " << obj1 << " " << itIntersect->first <<" )) " ;
-                    } 
-                }
-            }
-
-            myfile << ")" << endl ; //end parenthesis of precondition
-
-            /************************************************************************/
-            /**************************  PDDL : effect  *****************************/
-            /************************************************************************/
+        } else {
 
             //----------------------> for isPresent
-            myfile << "\t\t:effect (and " ;
+            if(it->PercentPresence.first > abmReasoningFunction::threshold_presence){
+                myfile << "(isPresent " << obj1 << ") " ;
+            } else if (it->PercentPresence.first < abmReasoningFunction::threshold_absence){
+                myfile << "(not (isPresent " << obj1 << ") ) " ;
+            }
 
-            
-            //hanoi_loc : presence <obj, <from,to>> to check
-            //EFFECT : looking for the "to"
-            if(it->sName == "hanoi"){
-                //----------------------> for isAtLoc
-                for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentObjectFromTo.begin() ; itIntersect != it->mPercentObjectFromTo.end() ; itIntersect++)
-                {   
+            //----------------------> for isAtLoc
+            for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
+            {           
+                //second: <before,after> => second.first : percent of presence in a loc before
 
-
-
+                //if percentage isAtLoc > treshold_sup : isAtLoc
+                if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
+                    myfile << "(isAtLoc " << obj1 << " " << itIntersect->first <<" ) " ;
                 }
 
-                //For the moved object : mPercentIntersection
-                for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
-                {           
-                    //if loc = from
-                    if (itIntersect->first == "from" || itIntersect->first == "to") {
+                //if percentage isAtLoc < treshold_inf : not (isAtLoc)
+                if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
+                    myfile << "(not (isAtLoc " << obj1 << " " << itIntersect->first <<" )) " ;
+                } 
+            }
+        }
 
-                        //second.second = end = effect
+        myfile << ")" << endl ; //end parenthesis of precondition
 
-                        //if percentage isAtLoc > treshold_sup : isAtLoc
-                        if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
-                            myfile << "(isAtLoc " << it->sArgument << " ?" << itIntersect->first << ") " ;
-                        }
+        /************************************************************************/
+        /**************************  PDDL : effect  *****************************/
+        /************************************************************************/
 
-                        //if percentage isAtLoc < treshold_inf : not(isAtLoc)
-                        if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
-                            myfile << "(not (isAtLoc " << it->sArgument << " ?" << itIntersect->first << ")) " ;
-                        }
-                    }
-                }
+        //----------------------> for isPresent
+        myfile << "\t\t:effect (and " ;
 
-            } else {
 
-                if(it->PercentPresence.second > abmReasoningFunction::threshold_presence){
-                    myfile << "(isPresent " << obj1 << ") " ;
-                } else if (it->PercentPresence.second < abmReasoningFunction::threshold_absence){
-                    myfile << "(not (isPresent " << obj1 << ") ) ";
-                }
+        //hanoi_loc : presence <obj, <from,to>> to check
+        //EFFECT : looking for the "to"
+        if(it->sName == "hanoi"){
+            //----------------------> for isAtLoc
+            for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentObjectFromTo.begin() ; itIntersect != it->mPercentObjectFromTo.end() ; itIntersect++)
+            {   
 
-                //----------------------> for isAtLoc
-                for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
-                {
 
-                    //second: <before,after> => second.second : percent of presence in a loc after
+
+            }
+
+            //For the moved object : mPercentIntersection
+            for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
+            {           
+                //if loc = from
+                if (itIntersect->first == "from" || itIntersect->first == "to") {
+
+                    //second.second = end = effect
 
                     //if percentage isAtLoc > treshold_sup : isAtLoc
                     if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
-                        myfile << "(isAtLoc " << obj1 << " "<< itIntersect->first <<") " ;
-                    } 
+                        myfile << "(isAtLoc " << it->sArgument << " ?" << itIntersect->first << ") " ;
+                    }
 
-                    //if percentage isAtLoc < treshold_inf : not (isAtLoc)
+                    //if percentage isAtLoc < treshold_inf : not(isAtLoc)
                     if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
-                        myfile << "(not (isAtLoc " << obj1 << " "<< itIntersect->first <<")) " ;
-                    } 
+                        myfile << "(not (isAtLoc " << it->sArgument << " ?" << itIntersect->first << ")) " ;
+                    }
                 }
             }
 
-            myfile << ")" << endl ; //end parenthesis of effect
-        
-            myfile << "\t)" << endl ; //end parenthesis of current Action
+        } else {
+
+            if(it->PercentPresence.second > abmReasoningFunction::threshold_presence){
+                myfile << "(isPresent " << obj1 << ") " ;
+            } else if (it->PercentPresence.second < abmReasoningFunction::threshold_absence){
+                myfile << "(not (isPresent " << obj1 << ") ) ";
+            }
+
+            //----------------------> for isAtLoc
+            for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentIntersectLocation.begin() ; itIntersect != it->mPercentIntersectLocation.end() ; itIntersect++)
+            {
+
+                //second: <before,after> => second.second : percent of presence in a loc after
+
+                //if percentage isAtLoc > treshold_sup : isAtLoc
+                if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
+                    myfile << "(isAtLoc " << obj1 << " "<< itIntersect->first <<") " ;
+                } 
+
+                //if percentage isAtLoc < treshold_inf : not (isAtLoc)
+                if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
+                    myfile << "(not (isAtLoc " << obj1 << " "<< itIntersect->first <<")) " ;
+                } 
+            }
         }
+
+        myfile << ")" << endl ; //end parenthesis of effect
+
+        myfile << "\t)" << endl ; //end parenthesis of current Action
+    }
 
     myfile << ")" << endl ; //end parenthesis of domain
 
@@ -1897,12 +1909,12 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
 
     /************************ 1. define problem name, (:domain) *****************************/ 
     myfile << ";; STRIPS problem automatically generated by ABMReasoning, part of EFAA" << endl;
-    
+
     myfile << "(define (problem efaa-prob)" << endl;
 
     myfile << "\t(:domain efaa)" << endl ;
 
-    
+
     /********************************** 2. (:objects) ***************************************/ 
     //2.1. get the objects name
     vector <string> vObjName ;
@@ -1951,7 +1963,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     //3.1.1 init objects types
     for(vector<string>::iterator it = vObjName.begin() ; it != vObjName.end() ; it++)
     {
-            myfile << "(object " << *(it) << ") ";
+        myfile << "(object " << *(it) << ") ";
     }
     myfile << endl ; //end of line for objects types
 
@@ -1959,7 +1971,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     myfile << "\t\t" ;
     for(vector<string>::iterator it = vLocName.begin() ; it != vLocName.end() ; it++)
     {
-            myfile << "(location " << *(it) << ") ";
+        myfile << "(location " << *(it) << ") ";
     }
     myfile << endl << endl ; //end of line for (:init
 
@@ -1969,7 +1981,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     //last instance
     Bottle  bOpcLastInstance = requestFromStream("SELECT instance FROM main WHERE activitytype = 'reasoning' AND begin = TRUE ORDER BY instance DESC LIMIT 1" );
     //std::cout << "bottle = " << bOpcLastInstance.toString().c_str() << " and bOPCLastReasoningInstance = " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str()) << endl ;
-    
+
     //3.2.1 extract for all rtobjects which ones are present (rtobject
     osRequest.str("");
     osRequest << "SELECT rtobject.name FROM rtobject WHERE rtobject.instance = " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str()) <<  " AND rtobject.presence = TRUE" ;
@@ -2022,7 +2034,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
         unsigned int isPositiveCondition = 1 ;
         string currentCond ;
         for(int condition_part = 0 ; condition_part < bGoal.get(condition).asList()->size() ; condition_part ++){
-            
+
             string currentCondWord = bGoal.get(condition).asList()->get(condition_part).toString() ;
             //first condition_part = manner = positive or negative condition (none/not)
             if(condition_part == 0) {
@@ -3738,7 +3750,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
                     string currentRole = bInput.get(4).asList()->get(j).toString().c_str();
 
                     //std::cout << "element nb " << j << " in role bottle is : {" << currentRole.c_str() << "} and itString is {" << itString->c_str() << "}" <<endl ; 
-                    
+
                     if (*itString == currentRole){
                         roleFound = true ;
                         //put the arg corresponding to this role in the current condition bottle
@@ -4198,7 +4210,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
 
     // catch the arguments and the role associate
     Bottle bConditions  = *bInput.get(2).asList();
-    
+
     //---------------- > create the domain PDDL file
     printPDDLContextualKnowledgeDomain();   
 
@@ -4295,7 +4307,7 @@ void abmReasoning::checkContextLocation()
                     // get the coordinates
                     pair<double, double>    BEFORE (itSK->vX[Oc]-itSK->vDX[Oc],itSK->vY[Oc]-itSK->vDY[Oc] ),
                         AFTER (itSK->vX[Oc], itSK->vY[Oc]) ;
-                    
+
                     for (map<string, pair<vector<double> ,vector<double> > >::iterator itMAP = mapLocation.begin() ; itMAP != mapLocation.end() ; itMAP++)
                     {
 
@@ -4793,7 +4805,7 @@ Bottle abmReasoning::resetKnowledge(int from)
         serialInteraction   = Interlocutor.sendInteractionKnowledge(listKnownInteraction);
 
 
-//  checkContextLocation();
+    //  checkContextLocation();
 
     ostringstream osOutput;
     osOutput << "resetKnowledge : " << serialSpatial << " spatialKnowledge(s) added; " << serialTime << " timeKnowledge(s) added; " << serialBehavior << " behavior(s) added; " << serialPlan << " plan(s) added; " << serialContext << " contextualKnowledge(s) added; " << serialInteraction << " interaction(s) added" ;
@@ -4865,8 +4877,8 @@ Bottle abmReasoning::getKnowledge()
                 bAction = (*bSpatialKnowledge.get(i).asList());
                 int instance = atoi(bAction.get(0).toString().c_str());
                 string sName = bAction.get(1).toString().c_str(),
-                 sArg = bAction.get(2).toString().c_str(),
-                 sDependance = bAction.get(3).toString().c_str();
+                    sArg = bAction.get(2).toString().c_str(),
+                    sDependance = bAction.get(3).toString().c_str();
                 spatialKnowledge skAction;
                 skAction.sArgument = sArg;
                 skAction.sName = sName;
@@ -5062,7 +5074,7 @@ Bottle abmReasoning::getKnowledge()
                     pair<string, string> pArgument 
                         (bRequest.get(arg).asList()->get(0).toString(),
                         bRequest.get(arg).asList()->get(1).toString());
-                    
+
                     NewPlan.vArguments.push_back(pArgument);
                 }
 
@@ -5132,7 +5144,7 @@ Bottle abmReasoning::getKnowledge()
                     get<1>(tInteraction) = atoi(bInteraction.get(arg).asList()->get(2).toString().c_str());
                     get<2>(tInteraction) = bInteraction.get(arg).asList()->get(3).toString();
                     get<3>(tInteraction) = bInteraction.get(arg).asList()->get(4).toString();
-        
+
                     TempInt.addInteraction(tInteraction);
                 }
                 listKnownInteraction.push_back(TempInt);
@@ -5461,20 +5473,20 @@ Bottle abmReasoning::DeleteKnownLocations()
 
                 if (realOPC->isConnected() )
                 {
-                Object* LOCATION = realOPC->addObject(sLoc);
-                LOCATION->m_present = 0;
+                    Object* LOCATION = realOPC->addObject(sLoc);
+                    LOCATION->m_present = 0;
 
-                Object* LOCATION_LARGE = realOPC->addObject(large);
-                LOCATION_LARGE->m_present = 0;
+                    Object* LOCATION_LARGE = realOPC->addObject(large);
+                    LOCATION_LARGE->m_present = 0;
                 }
 
                 if (mentalOPC->isConnected() )
                 {
-                Object* LOCATION = mentalOPC->addObject(sLoc);
-                LOCATION->m_present = 0;
+                    Object* LOCATION = mentalOPC->addObject(sLoc);
+                    LOCATION->m_present = 0;
 
-                Object* LOCATION_LARGE = mentalOPC->addObject(large);
-                LOCATION_LARGE->m_present = 0;
+                    Object* LOCATION_LARGE = mentalOPC->addObject(large);
+                    LOCATION_LARGE->m_present = 0;
                 }
 
             }
@@ -5546,7 +5558,7 @@ Bottle abmReasoning::saveKnowledge()
     Bottle bOutput =  Interlocutor.saveKnowledge(listSpatialKnowledge, listTimeKnowledge, listBehaviors, listPlan, listContextualKnowledge, listKnownInteraction);
 
     printSpatialKnowledge();
-    
+
     return bOutput;
 }
 
@@ -5661,7 +5673,7 @@ Bottle abmReasoning::askGrammar(Bottle bInput)
     /*------------------------
     END IF ADDRESSEE IS MISSING
     ------------------------*/
-    
+
 
     /*------------------------
     IF SPEAKER IS MISSING
@@ -5705,6 +5717,40 @@ Bottle abmReasoning::askGrammar(Bottle bInput)
 
 
 
+Bottle  abmReasoning::askWordKnowledge(Bottle bInput)
+{
+    Bottle bOutput;
+
+    if (bInput.size() != 3)
+    {
+        cout << "Error in abmReasoning::askWordKnowedge -- wrong input number (should be 3)" << endl;
+    }
+    string  sQuestion = bInput.get(1).toString();
+    string  sWhat = bInput.get(2).toString();
+
+    vector<string>  vContext;
+
+    list<Entity*> temp = realOPC->EntitiesCache();
+
+    for (list<Entity*>::iterator itE = temp.begin() ; itE != temp.end() ; itE++)
+    {
+        string type = (*itE)->entity_type();
+        if (type == EFAA_OPC_ENTITY_OBJECT || type == EFAA_OPC_ENTITY_RTOBJECT || type == EFAA_OPC_ENTITY_AGENT)
+        {
+            Object o;
+            o.fromBottle((*itE)->asBottle());
+            if (o.m_present)
+            {
+                vContext.push_back(o.name());
+            }
+        }
+    }
+
+    return WordKnowledge.askWordKnowledge(sQuestion, sWhat, vContext);
+}
+
+
+
 
 Bottle abmReasoning::retroReasoning()
 {
@@ -5741,7 +5787,7 @@ Bottle abmReasoning::retroReasoning(int from)
     {
 
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
-//      std::cout << j+1 << "\t" << Id << "\t" ;
+        //      std::cout << j+1 << "\t" << Id << "\t" ;
 
         Interlocutor.imagineOPC(Id);
         updateOpcObjectLocation(abmReasoningFunction::s_mentalOPC);
@@ -5873,7 +5919,7 @@ Bottle abmReasoning::level3Reasoning(int from)
         {   // begin IF bRelationAfter is Null
             string sObject,
                 sLocation;
-            
+
             for (int i = 0 ; i < bRelationsAfter.size() ; i++)
             {   // begin decomposition of bRelationAfter
                 Bottle bTemp = *bRelationsAfter.get(i).asList();
@@ -5950,7 +5996,7 @@ Bottle abmReasoning::level3Reasoning(int from)
 
             for (vector<tuple<string, bool, bool> >::iterator itTu = vTObjects.begin() ; itTu != vTObjects.end() ; itTu ++)
             {   // FOR each object present before
-                
+
                 if (get<0>(*itTu) == pItBool->first)
                 {   // IF match
                     bFound = true;
@@ -5979,7 +6025,7 @@ Bottle abmReasoning::level3Reasoning(int from)
 
                     for (map<string , vector <pair <bool, bool> > >::iterator itMap = itCK->mObjectFromTo.begin() ; itMap != itCK->mObjectFromTo.end() ; itMap++)
                     {   // FOR each object already in the CK
-                        
+
                         if (itMap->first == get<0>(*itTu))
                         {   // IF the object of the CK is the same of the object present
                             bFound = true;
@@ -6002,7 +6048,7 @@ Bottle abmReasoning::level3Reasoning(int from)
         if (bAction.size() == 4)
         {   // begin IF has spatial1 and spatial 2
             Bottle bSpatial = *bAction.get(3).asList();
-            
+
             std::cout << "bSpatial : " << bSpatial.toString() << endl;
 
             string sFrom, sTo; // locations from and to of the move
@@ -6026,7 +6072,7 @@ Bottle abmReasoning::level3Reasoning(int from)
 
 
             // CHECK IF FOCUS AT LOCATION FROM AND TO
-            
+
             //before
             for (vector<string>::iterator itLocFoc = vLocFocusBefore.begin() ;itLocFoc != vLocFocusBefore.end() ; itLocFoc++)
             {   // begin FOR each location where the focus was before 
@@ -6161,7 +6207,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
         PresentEntities = (mentalOPC->Entities(condition));
     else
         PresentEntities = (realOPC->Entities(condition));
-    
+
     // update known location
     mapLocation.clear();
     mapTemporalLocation.clear();
@@ -6234,9 +6280,9 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                     sTemporalLocationName += "_" + (*it_E)->name();
                     mapTemporalLocation[sTemporalLocationName] = mapTemp;
 
-                    
-                vector<double> CovMat = abmReasoningFunction::getCovMatrix(vXTemp, vYTemp );
-                
+
+                    vector<double> CovMat = abmReasoningFunction::getCovMatrix(vXTemp, vYTemp );
+
                 }
             }
         }
@@ -6344,9 +6390,9 @@ Bottle abmReasoning::getInfoAbout(string sName)
         ostringstream osEntity;
         osEntity << "SELECT instance, opcid FROM entity WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1" ;
         bMessenger = requestFromStream(osEntity.str());
-        
+
         int Instance = atoi(bMessenger.get(0).asList()->get(0).toString().c_str()),
-             Opcid = atoi(bMessenger.get(0).asList()->get(1).toString().c_str());
+            Opcid = atoi(bMessenger.get(0).asList()->get(1).toString().c_str());
 
         osEntity.str("");
         osEntity << "SELECT subtype FROM contentopc WHERE instance = " << Instance << " AND opcid = " << Opcid ;

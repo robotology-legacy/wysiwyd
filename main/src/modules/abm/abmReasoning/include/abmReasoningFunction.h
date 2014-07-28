@@ -160,7 +160,7 @@ public:
         // check 
         if (X==-1 || Y == -1 || Z == -1)
         {
-            //cout << endl << "Error in abmReasoning::pronom.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
+            //cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
             return 0;
         }
 
@@ -181,7 +181,7 @@ public:
 
         if (bFound)
         {
-            //cout << endl << "Error in abmReasoning::pronom.h::matrix3D::addLabel | Label already existing" << endl;
+            //cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::addLabel | Label already existing" << endl;
             return;
         }
 
@@ -233,7 +233,7 @@ public:
         // check 
         if (X==-1 || Y == -1 || Z == -1)
         {
-            //cout << endl << "Error in abmReasoning::pronom.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
+            //cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
             return;
         }
 
@@ -249,7 +249,7 @@ public:
     {
         int sum = 0;
         if (W != "x" && W != "y" && W != "z")
-        {cout << endl << "Error in abmReasoning::pronom.h::matrix3D::sumDiag(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+        {cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumDiag(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
         for (int b = 0 ; b < iSize ; b++)
         {
             for (int a = 0 ; a < iSize ; a++)
@@ -273,7 +273,7 @@ public:
 
         int sum = 0;
         if (W != "x" && W != "y" && W != "z")
-        {cout << endl << "Error in abmReasoning::pronom.h::matrix3D::sumPlan(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+        {cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumPlan(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
         for (int a = 0 ; a < iSize ; a++)
         {
             for (int b = 0 ; b < iSize ; b++)
@@ -346,15 +346,24 @@ public:
 
 
 
+//----------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------      MATRIX 3D NON CUBIC     -----------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------------
+
+
 class matrix3D_nonCubic          // personnal class of 3D matrix
 {
-protected:
-    vector<int>         viData;         // data of the matrix
-    vector<string>      vLabelX;
-    vector<string>      vLabelY;
-    vector<string>      vLabelZ;
-
 public:
+    vector<int>         viData;         // data of the matrix
+    vector<pair<string, int> >      vLabelX;
+    vector<pair<string, int> >      vLabelY;
+    vector<pair<string, int> >      vLabelZ;
 
     // Variables : 
     int             iSum;
@@ -363,47 +372,63 @@ public:
     matrix3D_nonCubic() {iSum = 0;}
 
     // Functions
-    int oneCoord(int x, int y, int z) {return (x+y*vLabelY.size()+z*vLabelZ.size()*vLabelZ.size());}       // return the 1D coordinate from a 3D coordinate    
+    int oneCoord(int x, int y, int z) {
+        //		int test = x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size();
+        //		cout << "ici " << test << endl;
+        return (x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size());
+    }       // return the 1D coordinate from a 3D coordinate    
 
     int get(int x, int y, int z) {return viData[oneCoord(x, y, z)];}            // get the x y z position in the matrix
 
-    //int get(string sX, string sY, string sZ)
-    //{
-    //    addLabelX(sX);
-    //    addLabelY(sY);
-    //    addLabelZ(sZ);
+    int get(string sX, string sY, string sZ)
+    {
+        //		addLabelX(sX, true);
+        //		addLabelY(sY, true);
+        //		addLabelZ(sZ, true);
 
-    //    int X = -1,
-    //        Y = -1,
-    //        Z = -1;
+        int X = -1,
+            Y = -1,
+            Z = -1;
 
-    //    for (int i = 0 ; i < iSize ; i++)
-    //    {
-    //        if (vsLabels[i] == sSpeaker) X = i;
-    //        if (vsLabels[i] == sAddressee) Y = i;
-    //        if (vsLabels[i] == sAgent) Z = i;
-    //    }
+        for (unsigned int i = 0 ; i < vLabelX.size() ; i++)
+        {
+            if (vLabelX[i].first == sX) X = i;
+        }
 
-    //    // check 
-    //    if (X==-1 || Y == -1 || Z == -1)
-    //    {
-    //        //cout << endl << "Error in abmReasoning::pronom.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
-    //        return 0;
-    //    }
+        for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
+        {
+            if (vLabelY[i].first == sY) Y = i;
+        }
 
-    //    return viData[oneCoord(X, Y, Z)];
-    //}           // get the x y z position in the matrix
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
+        {
+            if (vLabelZ[i].first == sZ) Z = i;
+        }
+
+        // check 
+        if (X==-1 || Y == -1 || Z == -1)
+        {
+            //cout << endl << "Error in abmReasoning::abmReasoning.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
+            return 0;
+        }
+
+        return viData[oneCoord(X, Y, Z)];
+    }           // get the x y z position in the matrix
+
 
     void incr(int x, int y, int z) {viData[oneCoord(x, y, z)]++;}               // increment the x y z position of the matrix of 1
 
-    void addLabelX(string sLabel)    // add 1 to the x y and z size, and add the label to the list
+    bool addLabelX(string sLabel, bool check)    // add 1 to the x size, and add the label to the list; return FALSE if already existing
     {
 
         //check if label already in the matrix
-        for (vector<string>::iterator it = vLabelX.begin(); it != vLabelX.end() ; it++)
+        for (vector<pair<string, int> >::iterator it = vLabelX.begin(); it != vLabelX.end() ; it++)
         {
-            if (sLabel == *it)
-                return;
+            if (sLabel == it->first)
+            {
+                if (!check) it->second++;
+                return false;
+            }
         }
 
         vector<int>     matrixTemp;
@@ -416,24 +441,29 @@ public:
 
                 for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
                 {
-                    matrixTemp.push_back(get(i,j,k));
+                    matrixTemp.push_back(get(k,j,i));
                 }
                 matrixTemp.push_back(0);
             }
         }
 
-        vLabelX.push_back(sLabel);
+        pair<string, int> pTemp(sLabel, check?0:1);
+        vLabelX.push_back(pTemp);
         viData = matrixTemp;
+        return true;
     }
 
-    void addLabelY(string sLabel)    // add 1 to the x y and z size, and add the label to the list
+    bool addLabelY(string sLabel, bool check)    // add 1 to the y size, and add the label to the list; return FALSE if already existing
     {
 
         //check if label already in the matrix
-        for (vector<string>::iterator it = vLabelY.begin(); it != vLabelY.end() ; it++)
+        for (vector<pair<string, int> >::iterator it = vLabelY.begin(); it != vLabelY.end() ; it++)
         {
-            if (sLabel == *it)
-                return;
+            if (sLabel == it->first)
+            {
+                if (!check)	it->second++;
+                return false;
+            }
         }
 
         vector<int>     matrixTemp;
@@ -444,7 +474,7 @@ public:
             {
                 for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
                 {
-                    matrixTemp.push_back(get(i,j,k));
+                    matrixTemp.push_back(get(k,j,i));
                 }
             }
             for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
@@ -453,51 +483,50 @@ public:
             }
         }
 
-        vLabelY.push_back(sLabel);
+
+        pair<string, int> pTemp(sLabel,check? 0 : 1);
+        vLabelY.push_back(pTemp);
         viData = matrixTemp;
+        return true;
     }
 
-    void addLabelZ(string sLabel)    // add 1 to the x y and z size, and add the label to the list
+    bool addLabelZ(string sLabel, bool check)    // add 1 to the z size, and add the label to the list; return FALSE if already existing
     {
 
         //check if label already in the matrix
-        for (vector<string>::iterator it = vLabelZ.begin(); it != vLabelZ.end() ; it++)
+        for (vector<pair<string, int> >::iterator it = vLabelZ.begin(); it != vLabelZ.end() ; it++)
         {
-            if (sLabel == *it)
-                return;
+            if (sLabel == it->first)
+            {
+                if (!check)	it->second++;
+                return false;
+            }
         }
 
         vector<int>     matrixTemp;
 
-        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
+
+        for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
         {
-            for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
+            for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
             {
-                for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
-                {
-                    matrixTemp.push_back(get(i,j,k));
-                }
-            }
-            for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
-            {
-                for (unsigned int k = 0 ; k < vLabelX.size() ; k++)
-                {
-                    matrixTemp.push_back(0);
-                }
+                viData.push_back(0);
             }
         }
 
-        vLabelZ.push_back(sLabel);
-        viData = matrixTemp;
+
+        pair<string, int> pTemp(sLabel,check?0:1);
+        vLabelZ.push_back(pTemp);
+        //viData = matrixTemp;
+        return true;
     }
 
-    void incr(string sX, string sY, string sZ)
+    void incr(string sX, vector<string> vY, string sZ)
         // increment in the matrix for the use of a pronom with information about the sentence
     {
         // first check if the speaker, receiver and agent are known
-        addLabelX(sX);
-        addLabelY(sY);
-        addLabelZ(sZ);
+        addLabelX(sX, false);
+        addLabelZ(sZ, false);
 
         int iX = -1,
             iY = -1,
@@ -506,88 +535,126 @@ public:
         // search for X
         for (unsigned int i = 0 ; i < vLabelX.size() ; i++)
         {
-            if (vLabelX[i] == sX) iX = i;
+            if (vLabelX[i].first == sX) 
+            {
+                iX = i;
+                //vLabelX[i].second++;
+            }
+        }
+
+
+        // search for Z
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
+        {
+            if (vLabelZ[i].first == sZ)
+            {
+                iZ = i;
+                //vLabelZ[i].second++;
+            }
+        }
+
+        // check 
+        if (iX==-1 || iZ == -1)
+        {
+            cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D_nonCubic::incr(string, vector<string>, string) | One of the label is missing" << endl;
+            return;
+        }
+
+
+        // search for Y
+        for (vector<string>::iterator itYinput = vY.begin() ; itYinput != vY.end() ; itYinput++)
+        {
+            addLabelY(*itYinput, false);
+            for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
+            {
+                if (vLabelY[i].first == *itYinput)
+                {
+                    iY = i;
+                    vLabelY[i].second++;
+                }
+            }
+            incr(iX,iY,iZ);
+            iSum++;
+        }
+    }
+
+    /* For a given X and Y, return the sum of the Z line*/
+    int sumLineXY(string sX, string sY)
+    {
+        int iX = -1,
+            iY = -1;
+
+        // search for X
+        for (unsigned int i = 0 ; i < vLabelX.size() ; i++)
+        {
+            if (vLabelX[i].first == sX) iX = i;
         }
 
         // search for Y
         for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
         {
-            if (vLabelY[i] == sY) iY = i;
+            if (vLabelY[i].first == sY) iY = i;
         }
 
-        // search for Z
-        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
+        int sum = 0;
+        for (unsigned int a = 0 ; a < vLabelZ.size() ; a++)
         {
-            if (vLabelZ[i] == sZ) iZ = i;
+            sum += get(iX, iY, a);
         }
-
-        // check 
-        if (iX==-1 || iY == -1 || iZ == -1)
-        {
-            cout << endl << "Error in abmReasoning::pronom.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
-            return;
-        }
-
-        incr(iX,iY,iZ);
-        iSum++;
+        return sum;
     }
 
-    ///* For a given X and Y, return the sum of the Z line*/
-    //int sumLineXY(string X, string Y)
-    //{
-    //    int xLabel= -1,
-    //        yLabel = -1;
-    //    for (int i = 0 ; i < iSize ; i++)
-    //    {
-    //        if (vsLabels[i] == X) xLabel = i;
-    //        if (vsLabels[i] == Y) yLabel = i;
-    //    }
+    /* For a given X and Y, return the sum of the Z line*/
+    int sumLineYZ(string sY, string sZ)
+    {
+        int iY = -1,
+            iZ = -1;
 
-    //    int sum = 0;
-    //    for (int a = 0 ; a < iSize ; a++)
-    //    {
-    //        sum += get(xLabel, yLabel, a);
-    //    }
-    //    return sum;
-    //}
+        // search for X
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
+        {
+            if (vLabelZ[i].first == sZ) iZ = i;
+        }
 
-    ///* For a given X and Z, return the sum of the Y line*/
-    //int sumLineXZ(string X, string Z)
-    //{
-    //    int xLabel= -1,
-    //        zLabel = -1;
-    //    for (int i = 0 ; i < iSize ; i++)
-    //    {
-    //        if (vsLabels[i] == X) xLabel = i;
-    //        if (vsLabels[i] == Z) zLabel = i;
-    //    }
+        // search for Y
+        for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
+        {
+            if (vLabelY[i].first == sY) iY = i;
+        }
 
-    //    int sum = 0;
-    //    for (int a = 0 ; a < iSize ; a++)
-    //    {
-    //        sum += get(xLabel, a, zLabel);
-    //    }
-    //    return sum;
-    //}
+        int sum = 0;
+        for (unsigned int a = 0 ; a < vLabelX.size() ; a++)
+        {
+            sum += get(a, iY, iZ);
+        }
+        return sum;
+    }
 
-    ///* For a given Y and Z, return the sum of the X line*/
-    //int sumLineYZ(string Y, string Z)
-    //{
-    //    int zLabel= -1,
-    //        yLabel = -1;
-    //    for (int i = 0 ; i < iSize ; i++)
-    //    {
-    //        if (vsLabels[i] == Z) zLabel = i;
-    //        if (vsLabels[i] == Y) yLabel = i;
-    //    }
+    /* For a given X and Y, return the sum of the Z line*/
+    int sumLineXZ(string sX, string sZ)
+    {
+        int iX = -1,
+            iZ = -1;
 
-    //    int sum = 0;
-    //    for (int a = 0 ; a < iSize ; a++)
-    //    {
-    //        sum += get(a, yLabel, zLabel);
-    //    }
-    //    return sum;
-    //}
+        // search for X
+        for (unsigned int i = 0 ; i < vLabelX.size() ; i++)
+        {
+            if (vLabelX[i].first == sX) iX = i;
+        }
+
+        // search for Y
+        for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
+        {
+            if (vLabelZ[i].first == sZ) iZ = i;
+        }
+
+        int sum = 0;
+        for (unsigned int a = 0 ; a < vLabelY.size() ; a++)
+        {
+            sum += get(iX, a, iZ);
+        }
+        return sum;
+    }
 };
 
 
@@ -704,6 +771,7 @@ public:
     // if !bPositive multiplie the result by -1
     double  getScoreSum(bool bPositive = true)
     {
+        if (A < 0 || B < 0 || C < 0 || D < 0)	return 0.;
         if (B+C+D == 0 && A !=0)    return 1.;
         if (A+B == 0 || A+C == 0 || C+D == 0)   return 0.;
         if (B+D == 0) 
@@ -756,5 +824,36 @@ public:
 
 
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif

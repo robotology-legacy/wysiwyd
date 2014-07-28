@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+
+<module>
+
+  <name>attentionSelector</name>
+  <doxygen-group>wysiwyd_modules</doxygen-group>
+  <description>Attention mechanisme for iCub head and gaze</description>
+  <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+  <version>1.0</version>
+
+  <description-long>
+    Allow to control the gaze using objects names. Provide a random autonomous switch of attention between the present objects.
+  </description-long>
+
+  <arguments>
+    <param default="attentionSelector" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+    <param default="attentionSelector.ini" desc="To specify the configuration file">from</param>
+	  <param default="OPC" desc="To specify the specifies the opc database name, where data are readed">opcName</param>
+	  <param default="1.0" desc="Time before changing of focus when the tracked object is immobile">trackSwitchingPeriod</param>
+  </arguments>
+
+  <authors>
+    <author email="stephane.lallee@gmail.com"> Stéphane Lallée </author>
+  </authors>
+
+  <data>
+    <input>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/attentionSelector/rpc</port>
+      <required>yes</required>
+      <priority>no</priority>
+      <description>
+        rpc port of the module, main input. Get the keyword from the broadcast port.
+      </description>
+    </input>
+
+  </data>
+</module>
+

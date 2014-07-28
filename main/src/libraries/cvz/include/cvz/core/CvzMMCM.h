@@ -38,18 +38,37 @@ namespace cvz {
             IModality* recurrentModality;
 
             /*IDL methods*/
+			/***************************************************************/
+			virtual bool attach(yarp::os::RpcServer &source)
+			{
+				return this->yarp().attachAsServer(source);
+			}
+
+			void start()
+			{
+				moduleStart();
+			}
+			void pause()
+			{
+				modulePause();
+			}
             void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; lRate = l; }
             double getLearningRate() { return lRate; }
             void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; sigmaH = s; }
             double getSigma() { return sigmaH; }
-            double getActivity(int x, int y, int z) { return activity[x][y][z]; }
-            bool saveWeightsToFile(std::string path){ std::cout << "Trying to save weights to " << path << std::endl; return saveWeights(path); }
-            bool loadWeightsFromFile(std::string path)
-            {
+			double getActivity(const int32_t x, const int32_t y, const int32_t z) { return activity[x][y][z]; }
+			bool saveWeightsToFile(const std::string &path)
+			{ 
+				std::cout << "Trying to save weights to " << path << std::endl; 
+				return saveWeights(path); 
+			}
+			bool loadWeightsFromFile(const std::string &path)
+			{
+				std::cout << "Trying to load weights with name: " << path << std::endl;
                 yarp::os::ResourceFinder rf;
-                path = rf.findFileByName(path);
-                std::cout << "Trying to load weights from : " << path << std::endl;
-                return loadWeights(path);
+                std::string fullPath = rf.findFileByName(path);
+				std::cout << "Trying to load weights from : " << fullPath << std::endl;
+				return loadWeights(fullPath);
             }
 
             virtual bool close()
@@ -82,7 +101,7 @@ namespace cvz {
                     std::string recModName = "/";
                     recModName += getName();
                     recModName += "/recurrent";
-                    recurrentModality = new IModality(recModName, recModalitySize, minBounds, maxBounds);
+                    recurrentModality = new IModality(recModName, recModalitySize, minBounds, maxBounds,false);
                     modalitiesInfluence[recurrentModality] = rf.check("recurrentInfluence", yarp::os::Value(1.0)).asDouble();
                 }
                 else

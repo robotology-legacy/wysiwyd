@@ -28,7 +28,7 @@ Reactable2OPC::Reactable2OPC()
     //Load the id/name mapping from a config file
     ResourceFinder rf;
     rf.setVerbose(false);
-    rf.setDefaultContext("reactable2OPC/conf");
+    rf.setDefaultContext("reactable2opc");
     rf.setDefaultConfigFile("mapping.ini");
     rf.configure(NULL,NULL);
     bool invertYaxis = rf.check("invertYaxis",Value(0)).asInt() == 1;

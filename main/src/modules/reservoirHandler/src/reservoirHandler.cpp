@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Anne-Laure MEALIER
  * email:   anne-laure.mealier@inserm.fr
@@ -16,7 +16,6 @@
 */
 
 #include <reservoirHandler.h>
-#include <list>
 
 reservoirHandler::reservoirHandler(ResourceFinder &rf)
 {
@@ -28,14 +27,14 @@ reservoirHandler::~reservoirHandler()
     close();
 }
 
-/* 
+/*
  * Configure method. Receive a previously initialized
  * resource finder object. Use it to configure your module.
  * If you are migrating from the old Module, this is the
  * equivalent of the "open" method.
  */
 
-bool reservoirHandler::configure(ResourceFinder &rf) {    
+bool reservoirHandler::configure(ResourceFinder &rf) {
 
     bool	bEveryThingisGood = true;
     bool	bOptionnalModule  = true;
@@ -85,8 +84,8 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     setName(moduleName.c_str());
 
     // Open handler port
-	string sName = getName();
-	handlerPortName = "/"+ sName + "/rpc";
+    string sName = getName();
+    handlerPortName = "/"+ sName + "/rpc";
 
     if (!handlerPort.open(handlerPortName.c_str())) {
         cout << getName() << ": Unable to open port " << handlerPortName << endl;
@@ -117,11 +116,10 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     //		iCub Client
     //------------------------//
 
-	string ttsSystem = SUBSYSTEM_SPEECH;
-    iCub = new ICubClient(moduleName.c_str(),"reservoirHandler/conf","client.ini",true);
-
+    string ttsSystem = SUBSYSTEM_SPEECH;
+    iCub = new ICubClient(moduleName.c_str(),"reservoirHandler","client.ini",true);
+    //iCub->connect();
     iCub->say("Hi!",false);
-
 
     // Connect iCub Client, and ports
     bOptionnalModule &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
@@ -143,7 +141,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     return bEveryThingisGood ;
 }
 
-bool reservoirHandler::interruptModule() {
+bool reservoirHandler::interruptModule(){
     handlerPort.interrupt();
     Port2SpeechRecog.interrupt();
     Port2iSpeak.interrupt();
@@ -224,11 +222,30 @@ bool reservoirHandler::callReservoir(string fPython)
 {
 
     //launch Xavier reservoir
-    cout << "launch Xavier reservoir" << endl;
     string command = "cd " + pythonPath + " && python " + fPython;
-    cout << "cmd bash " << command << endl;
-    bool bsys = system(command.c_str());
-    return bsys;
+    //bool bsys = system(command.c_str());
+    //cout << "cd " << pythonPath << " && python " << fPython << endl;
+    //return bsys;
+
+
+    FILE* file;
+    int argc;
+    char * argv[3];
+
+    argc = 3;
+    argv[0] = "/mnt/data/Data/BuildLinux/Robot/RAD/src/iCub_language/action_performer.py";
+    argv[1] = "/home/anne/.local/share/yarp/contexts/reservoirHandler/AP_input_S.txt";
+    argv[2] = "/home/anne/.local/share/yarp/contexts/reservoirHandler/AP_output_M.txt";
+
+    Py_SetProgramName(argv[0]);
+    Py_Initialize();
+    PySys_SetArgv(argc, argv);
+    file = fopen("/mnt/data/Data/BuildLinux/Robot/RAD/src/iCub_language/action_performer.py","r");
+
+    PyRun_SimpleFile(file, "/mnt/data/Data/BuildLinux/Robot/RAD/src/iCub_language/action_performer");
+
+    //return Py_Finalize();
+    return true;
 }
 
 /* Node 1: general question
@@ -453,7 +470,6 @@ bool reservoirHandler::nodeModality()
 
         cout << "iCub says : 'Thinking of the situation'" << endl ;
         copyTrainData(fileXavierTrain.c_str(),fileSRinputM.c_str());
-        callReservoir(fileSD);
         cout << "iCub says : 'I have understood'" << endl ;
         nodeType();
     }
@@ -470,19 +486,19 @@ bool reservoirHandler::nodeModality()
 
             // Module test_mode
 
-            // ATTENTION_SELECTOR_track_agent_or_object "Reactable"
-            // Wait 1500
-            // ATTENTION_SELECTOR_track_agent_or_object "You"
-            // Wait 2000
-            // ATTENTION_SELECTOR_track_agent_or_object "Reactable"
-            // Wait 1500
 
+
+            iCub->say("Let me see");
             cout << "iCub says : 'Let me see...'" << endl ;
+            Time::delay(1.0);
 
+            iCub->say("I see all the objects");
+            Time::delay(1.0);
             cout << "iCub says : 'I see all the objects'" << endl ;
-            // ATTENTION_SELECTOR_track_agent_or_object "You"
 
+            iCub->say("Told a sentence to execute or go in train mode.");
             cout << "iCub says : 'Told a sentence to execute. Or go in train mode.'" << endl ;
+            Time::delay(1.0);
 
             if (sCurrentType == "train")
             {
@@ -506,8 +522,8 @@ bool reservoirHandler::nodeModality()
                  * 2. Robot performs corresponding actions [meaning]
                 */
 
-                // ATTENTION_SELECTOR_track_agent_or_object "You"
-                //cout << "iCub says : I have recognized : " << *bSpeechRecognized.get(1).asList() << endl ;
+                cout << "go in test mode " << endl;
+                sentence = " ";
                 return nodeTestAP();
             }
         }
@@ -525,7 +541,7 @@ bool reservoirHandler::nodeModality()
 
                 inbsentence=2;
                 cout << "iCub says : 'Do you want me to focus the description about object or location'" << endl ;
-                nodeModality();
+                nodeTrainSD();
 
             }
 
@@ -550,6 +566,7 @@ bool reservoirHandler::nodeModality()
             cout << "iCub says : 'The focus object is $OBJ_FOCUS'" << endl ;
 
             //ATTENTION_SELECTOR_track_agent_or_object "You"
+
         }
     }
 
@@ -650,6 +667,7 @@ bool reservoirHandler::nodeTrainAP()
 
         cout << "Human says :  " << bAnswer.get(0).asString() << endl ;
         cout << "Human says :  'Do you want continue or exit'" << endl ;
+        iCub->say("Do you want continue or exit");
         sSentence = bAnswer.get(0).asString();
         cout << "sSentence" << sSentence << endl;
         nodeTrainAP();
@@ -747,11 +765,15 @@ bool reservoirHandler::nodeTestAP()
          * bAnswer.toString() =>
          * "the circle is to the left of of the cross" (sentence (sentence1 ((object "the circle") (relative_complete ((spatial_relative ((relative to) (spatial "the left"))) (object "the cross"))))))
          */
-        cout << "Human :  'Do this...'" << endl;
+
         cout << "iCub says : 'I have understood      '" << bAnswer.get(0).asString() << endl ;
+        sentence += bAnswer.get(0).asString() + " ";
         cout << "iCub says : 'Is it ok ? ... 'No or Yes" << endl;
+
+        cout << "sentence : " << sentence << endl;
         nodeTestAP();
       }
+
 
     else if (sQuestionKind == "yesno")
     {
@@ -760,15 +782,33 @@ bool reservoirHandler::nodeTestAP()
 
         if (yesNo == "yes")
         {
-          cout << "Call reservoir" << endl;
-          callReservoir(pythonPath + fileAP);
+          cout << "___________________________________________" << endl;
+          copyPastFile(fileXavierTrainAP.c_str(), fileAPimputS.c_str());
+          cout << fileXavierTrainAP << endl;
+          cout << fileAPimputS << endl;
+          createTestwithTrainData(fileAPimputS.c_str(), sentence);
+          callReservoir(pythonPath + fileAPimputS);
+
+          string result = openResult(fileAPoutputM.c_str());
+          iCub->say(result);
+          cout << result << endl;
+
+          int id = result.find(",");
+          int idf = result.size()-id;
+
+          if (id != 0){
+              cout << result.substr(0, id) << endl;
+              cout << result.substr(id +1,idf) << endl;
+          }
+
           cout <<  "iCub do the action..." << endl;
-          cout << "iCub says : 'Is it ok ? ... 'continue or exit" << endl;
+
           nodeTestAP();
 
         }
         else if (yesNo == "no")
         {
+          sentence = " ";
           nodeTestAP();
         }
       }
@@ -781,6 +821,7 @@ bool reservoirHandler::nodeTestAP()
           if (continueExit == "continue")
           {
             cout << "Humain say a command ...." << endl;
+            sentence = " ";
             nodeTestAP();
 
           }
@@ -949,7 +990,7 @@ int reservoirHandler::trainSaveMeaningSentence(const char* filename)
 {
     ofstream file;
     file.open(filename, ios::out | ios::trunc);
-    list<string>::iterator it;
+    std::list<string>::iterator it;
 
     file << "<train data>" <<endl;
     for(it=lMeaningsSentences.begin(); it!=lMeaningsSentences.end(); ++it)
@@ -1002,3 +1043,17 @@ int reservoirHandler::copyPastFile(const char* fileNameIn, const char* fileNameO
     return true;
 }
 
+string reservoirHandler::openResult(const char* fileNameIn)
+{
+    ifstream in;
+
+    in.open(fileNameIn);
+    string str;
+    getline(in,str);
+
+    string result = str;
+    cout << result << endl;
+    in.close();
+
+    return result;
+}

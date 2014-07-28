@@ -6,6 +6,56 @@
 
 
 
+class cvzMmcm_IDL_start : public yarp::os::Portable {
+public:
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("start",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    return true;
+  }
+};
+
+class cvzMmcm_IDL_pause : public yarp::os::Portable {
+public:
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("pause",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    return true;
+  }
+};
+
+class cvzMmcm_IDL_quit : public yarp::os::Portable {
+public:
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(1)) return false;
+    if (!writer.writeTag("quit",1,1)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 class cvzMmcm_IDL_setLearningRate : public yarp::os::Portable {
 public:
   double l;
@@ -106,14 +156,14 @@ public:
   }
 };
 
-class cvzMmcm_IDL_saveWeightsTofile : public yarp::os::Portable {
+class cvzMmcm_IDL_saveWeightsToFile : public yarp::os::Portable {
 public:
   std::string path;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
     if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("saveWeightsTofile",1,1)) return false;
+    if (!writer.writeTag("saveWeightsToFile",1,1)) return false;
     if (!writer.writeString(path)) return false;
     return true;
   }
@@ -128,14 +178,14 @@ public:
   }
 };
 
-class cvzMmcm_IDL_loadWeightsFromfile : public yarp::os::Portable {
+class cvzMmcm_IDL_loadWeightsFromFile : public yarp::os::Portable {
 public:
   std::string path;
   bool _return;
   virtual bool write(yarp::os::ConnectionWriter& connection) {
     yarp::os::idl::WireWriter writer(connection);
     if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("loadWeightsFromfile",1,1)) return false;
+    if (!writer.writeTag("loadWeightsFromFile",1,1)) return false;
     if (!writer.writeString(path)) return false;
     return true;
   }
@@ -150,6 +200,29 @@ public:
   }
 };
 
+void cvzMmcm_IDL::start() {
+  cvzMmcm_IDL_start helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::start()");
+  }
+  yarp().write(helper,helper);
+}
+void cvzMmcm_IDL::pause() {
+  cvzMmcm_IDL_pause helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::pause()");
+  }
+  yarp().write(helper,helper);
+}
+bool cvzMmcm_IDL::quit() {
+  bool _return = false;
+  cvzMmcm_IDL_quit helper;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::quit()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
 void cvzMmcm_IDL::setLearningRate(const double l) {
   cvzMmcm_IDL_setLearningRate helper;
   helper.l = l;
@@ -196,22 +269,22 @@ double cvzMmcm_IDL::getActivity(const int32_t x, const int32_t y, const int32_t 
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool cvzMmcm_IDL::saveWeightsTofile(const std::string& path) {
+bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path) {
   bool _return = false;
-  cvzMmcm_IDL_saveWeightsTofile helper;
+  cvzMmcm_IDL_saveWeightsToFile helper;
   helper.path = path;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::saveWeightsTofile(const std::string& path)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
 }
-bool cvzMmcm_IDL::loadWeightsFromfile(const std::string& path) {
+bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path) {
   bool _return = false;
-  cvzMmcm_IDL_loadWeightsFromfile helper;
+  cvzMmcm_IDL_loadWeightsFromFile helper;
   helper.path = path;
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::loadWeightsFromfile(const std::string& path)");
+    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -224,6 +297,35 @@ bool cvzMmcm_IDL::read(yarp::os::ConnectionReader& connection) {
   yarp::os::ConstString tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
+    if (tag == "start") {
+      start();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(0)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "pause") {
+      pause();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(0)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "quit") {
+      bool _return;
+      _return = quit();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "setLearningRate") {
       double l;
       if (!reader.readDouble(l)) {
@@ -300,14 +402,14 @@ bool cvzMmcm_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "saveWeightsTofile") {
+    if (tag == "saveWeightsToFile") {
       std::string path;
       if (!reader.readString(path)) {
         reader.fail();
         return false;
       }
       bool _return;
-      _return = saveWeightsTofile(path);
+      _return = saveWeightsToFile(path);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -316,14 +418,14 @@ bool cvzMmcm_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
-    if (tag == "loadWeightsFromfile") {
+    if (tag == "loadWeightsFromFile") {
       std::string path;
       if (!reader.readString(path)) {
         reader.fail();
         return false;
       }
       bool _return;
-      _return = loadWeightsFromfile(path);
+      _return = loadWeightsFromFile(path);
       yarp::os::idl::WireWriter writer(reader);
       if (!writer.isNull()) {
         if (!writer.writeListHeader(1)) return false;
@@ -366,16 +468,32 @@ std::vector<std::string> cvzMmcm_IDL::help(const std::string& functionName) {
   std::vector<std::string> helpString;
   if(showAll) {
     helpString.push_back("*** Available commands:");
+    helpString.push_back("start");
+    helpString.push_back("pause");
+    helpString.push_back("quit");
     helpString.push_back("setLearningRate");
     helpString.push_back("getLearningRate");
     helpString.push_back("setSigma");
     helpString.push_back("getSigma");
     helpString.push_back("getActivity");
-    helpString.push_back("saveWeightsTofile");
-    helpString.push_back("loadWeightsFromfile");
+    helpString.push_back("saveWeightsToFile");
+    helpString.push_back("loadWeightsFromFile");
     helpString.push_back("help");
   }
   else {
+    if (functionName=="start") {
+      helpString.push_back("void start() ");
+      helpString.push_back("Start the computation of predictions trying to cope with the period. ");
+    }
+    if (functionName=="pause") {
+      helpString.push_back("void pause() ");
+      helpString.push_back("Pause the computation of predictions ");
+    }
+    if (functionName=="quit") {
+      helpString.push_back("bool quit() ");
+      helpString.push_back("Quit the module. ");
+      helpString.push_back("@return true/false on success/failure. ");
+    }
     if (functionName=="setLearningRate") {
       helpString.push_back("void setLearningRate(const double l) ");
       helpString.push_back("Set the learning rate. ");
@@ -400,14 +518,14 @@ std::vector<std::string> cvzMmcm_IDL::help(const std::string& functionName) {
       helpString.push_back("@param z the layer to which the neuron belongs. ");
       helpString.push_back("@return Current activity of the neuron. ");
     }
-    if (functionName=="saveWeightsTofile") {
-      helpString.push_back("bool saveWeightsTofile(const std::string& path) ");
+    if (functionName=="saveWeightsToFile") {
+      helpString.push_back("bool saveWeightsToFile(const std::string& path) ");
       helpString.push_back("Save the current weights of the map for latter reloading. ");
       helpString.push_back("@param path The path to where you want to store the weights. ");
       helpString.push_back("@return true/false in case of success/failure. ");
     }
-    if (functionName=="loadWeightsFromfile") {
-      helpString.push_back("bool loadWeightsFromfile(const std::string& path) ");
+    if (functionName=="loadWeightsFromFile") {
+      helpString.push_back("bool loadWeightsFromFile(const std::string& path) ");
       helpString.push_back("Load the weights of the map from a file. ");
       helpString.push_back("The file should have been saved from a map using the same config file (modaility names & size, map size, etc.). ");
       helpString.push_back("@param path Path to the file containing the weights. ");

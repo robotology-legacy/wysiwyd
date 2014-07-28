@@ -1,0 +1,115 @@
+put cross left,point eraser;before you point the eraser put the cross on the left # @PERFECT_MATCH@
+put cross left,point eraser;before you point the eraser put the cross on the left # @PERFECT_MATCH@
+put cross left,point eraser;before you point the eraser put the cross on the left # @PERFECT_MATCH@
+point circle,put cross left;before you put the cross on the left point the circle # @PERFECT_MATCH@
+put cross left,point circle _X_;after you put the cross on the left point the circle # @PERFECT_MATCH@
+point circle,put cross left;after you point the circle put the cross on the left # @PERFECT_MATCH@
+put cross left,point circle;before you point the circle put the cross on the left # @PERFECT_MATCH@
+point cross,put circle left;before you put the circle on the left point the cross # @PERFECT_MATCH@
+point cross,put cross left;after you point the cross put the cross on the left # @PERFECT_MATCH@
+point circle,put cross left;before you put the cross on the left point the circle # @PERFECT_MATCH@
+point circle,put cross left;before you put the cross on the left point the cross # @PERFECT_MATCH@
+point circle,put cross left;before you put the cross on the left point the circle # @PERFECT_MATCH@
+grasp eraser;grasp the eraser # @PERFECT_MATCH@
+grasp cross;grasp the cross # @PERFECT_MATCH@
+grasp cross;grasp the cross # @PERFECT_MATCH@
+grasp cross;grasp the cross # @PERFECT_MATCH@
+point circle,put cross right;before you put on the right the cross point the circle # @PERFECT_MATCH@
+grasp circle;grasp the circle # @PERFECT_MATCH@
+put circle right;put the circle on the right # @PERFECT_MATCH@
+put circle right;after you put the circle on the right # @PERFECT_MATCH@
+put circle right;put the circle on the right # @PERFECT_MATCH@
+grasp circle;grasp the circle # @PERFECT_MATCH@
+grasp cross;grasp the cross # @PERFECT_MATCH@
+point cross,put circle right;before you put the circle on the right point the cross # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;before you put the cross on the right point the circle # @BAD_ACTION@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+point circle,put cross right;before you put the cross on the right point the circle # @PERFECT_MATCH@
+{point small};point the small # @NOT_DOABLE@
+{point small} {circle _X_ grasp,point _X_ _X_};before you point the circle grasp the circle # @NOT_DOABLE@
+{point small} {circle _X_ grasp,point _X_ _X_} {point circle};point the circle # @NOT_DOABLE@
+point circle;point the circle # @PERFECT_MATCH@
+{grasp eraser,grasp};before you grasp the circle grasp the eraser # @NOT_DOABLE@
+grasp eraser,point circle;before you point the circle grasp the eraser # @PERFECT_MATCH@
+point circle,point circle;before you point the circle point the circle # @PERFECT_MATCH@
+grasp circle,grasp eraser;before you grasp the eraser grasp the circle # @PERFECT_MATCH@
+grasp circle,put eraser right;before you put the eraser on the right grasp the circle # @PERFECT_MATCH@
+grasp circle;grasp the circle # @PERFECT_MATCH@
+grasp circle;grasp the circle # @PERFECT_MATCH@
+grasp circle;grasp the circle # @PERFECT_MATCH@
+grasp circle;before you grasp the circle put the eraser on the right # @BAD_ACTION@
+put eraser right,grasp circle;before you grasp the circle put the eraser on the right # @PERFECT_MATCH@
+grasp circle;grasp the circle # @PERFECT_MATCH@
+put circle right,put circle right;before you put on the right the circle put the circle on the right # @PERFECT_MATCH@
+put circle right,point eraser;before you point the eraser put the circle on the right # @PERFECT_MATCH@
+put cross right,point circle;before you point the circle put the cross on the right # @PERFECT_MATCH@
+put circle middle,grasp cross;before you grasp the cross put the circle on the middle # @PERFECT_MATCH@
+put cross middle;put the cross on the middle # @PERFECT_MATCH@
+grasp cross;grasp the cross # @PERFECT_MATCH@
+point cross;point the cross # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+{circle _X_ _X_,circle _X_ _X_};after you point the circle point the circle # @NOT_DOABLE@
+point circle;point the circle # @PERFECT_MATCH@
+point circle;point the circle # @PERFECT_MATCH@
+grasp circle;grasp the circle # @PERFECT_MATCH@
+point circle,grasp circle;before you grasp the circle point the circle # @PERFECT_MATCH@
+put cross middle,point circle;before you point the circle put the cross on the middle # @PERFECT_MATCH@
+point circle;point the circle # @PERFECT_MATCH@
+point circle;point the circle # @PERFECT_MATCH@
+grasp cross,grasp cross;before you grasp the cross grasp the cross # @PERFECT_MATCH@
+point eraser;point the eraser # @PERFECT_MATCH@
+point eraser;point the eraser # @PERFECT_MATCH@
+{eraser right,eraser put};on the middle put the eraser put the eraser on the right # @NOT_DOABLE@
+point eraser,put eraser right;before you put the eraser on the right point the eraser # @PERFECT_MATCH@
+point eraser;point the eraser # @PERFECT_MATCH@
+{put right cross,put cross};grasp the cross put on the right the cross # @NOT_DOABLE@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+point eraser,put cross right;before you put the cross on the right point the eraser # @PERFECT_MATCH@
+point eraser,put cross right;before you put the cross on the right point the eraser # @PERFECT_MATCH@
+put cross right,point cross;before you point the cross put the cross on the right # @PERFECT_MATCH@
+point cross,put cross right;before you put the cross on the right point the cross # @PERFECT_MATCH@
+{_X_ _X_,put cross right};before you put the cross on the right # @NOT_DOABLE@
+point eraser,put cross right;before you put the cross on the right point the eraser # @PERFECT_MATCH@
+{_X_ _X_,put eraser right};before you put the eraser on the right # @NOT_DOABLE@
+put cross right,point eraser;before you point the eraser put the cross on the right # @PERFECT_MATCH@
+grasp cross;grasp the cross # @PERFECT_MATCH@
+{_X_ cross _X_,_X_};after you point the cross # @NOT_DOABLE@
+put cross right,point right _X_;after you point the cross put the cross on the right # @PERFECT_MATCH@
+{cross cross cross,right right};on the middle put the cross put the cross on the right # @NOT_DOABLE@
+point cross,put cross right;after you point the cross put the cross on the right # @PERFECT_MATCH@
+point cross,put cross right;after you point the cross put the cross on the right # @PERFECT_MATCH@
+put cross right,point cross;before you point the cross put the cross on the right # @PERFECT_MATCH@
+put eraser middle,put cross right;after you put the eraser on the middle put the cross on the right # @PERFECT_MATCH@
+point circle;point the circle # @PERFECT_MATCH@
+put circle right;put the circle on the right # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;on the right put the cross # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+point eraser,put cross right;before you put the cross on the right point the eraser # @PERFECT_MATCH@
+point circle,put cross right;after you point the circle put the cross on the right # @PERFECT_MATCH@
+put eraser right;on the right put the eraser # @PERFECT_MATCH@
+{put right eraser,right right cross};before you on the right put the eraser put on the right the cross # @NOT_DOABLE@
+put eraser right;on the right put the eraser # @PERFECT_MATCH@
+put cross middle;on the middle put the cross # @PERFECT_MATCH@
+put circle right;on the right put the circle # @PERFECT_MATCH@
+put cross middle;put on the middle the cross # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@
+put cross right;on the right put the cross # @PERFECT_MATCH@
+grasp eraser;grasp the eraser # @PERFECT_MATCH@
+put cross middle;put the cross on the middle # @PERFECT_MATCH@
+put cross right;put the cross on the right # @PERFECT_MATCH@

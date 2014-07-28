@@ -31,5 +31,5 @@ public:
     vector<pair<string, int> >          vAgentIs;   //  Vector with the name of addressee and interances
     vector<pair<string, int> >          vSpeakerIs; //  Vector with the name of addressee and interances
 
-    
+
 };

@@ -18,10 +18,10 @@ void timeKnowledge::fromBottle(Bottle bInput)
         std::cout << "Error in timeKnowledge : fromBottle. Wrong format of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)" << endl;
         return;
     }
-    
+
     sTemporal = bInput.get(0).asString();
     struct tm   tmTimeArg1 = abmReasoningFunction::string2Time(bInput.get(1).asString().c_str()),
-                tmTimeArg2 = abmReasoningFunction::string2Time(bInput.get(2).asString().c_str()) ;
+        tmTimeArg2 = abmReasoningFunction::string2Time(bInput.get(2).asString().c_str()) ;
 
     timeArg1.push_back(tmTimeArg1);
     timeArg2.push_back(tmTimeArg2);
@@ -44,9 +44,9 @@ void timeKnowledge::addKnowledge(Bottle bInput)
         std::cout << "Error in addKnowledge : fromBottle. Wrong format of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)" << endl;
         return;
     }
-    
+
     struct tm   tmTimeArg1 = abmReasoningFunction::string2Time(bInput.get(1).asString().c_str()),
-                tmTimeArg2 = abmReasoningFunction::string2Time(bInput.get(2).asString().c_str()) ;
+        tmTimeArg2 = abmReasoningFunction::string2Time(bInput.get(2).asString().c_str()) ;
 
     timeArg1.push_back(tmTimeArg1);
     timeArg2.push_back(tmTimeArg2);
@@ -55,7 +55,7 @@ void timeKnowledge::addKnowledge(Bottle bInput)
 
 struct tm timeKnowledge::timeDiff(struct tm tm1, struct tm tm2)
 {
-//  struct tm diffTime;
+    //  struct tm diffTime;
     time_t myTime;
     time(&myTime);                  // get unix time
     tm *diffTime = localtime(&myTime);      // conversion in local time

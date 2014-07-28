@@ -9,11 +9,10 @@
 #include <iostream>
 #include "IModality.h"
 #include "cvz/helpers/helpers.h"
-#include "cvz_IDL.h"
 
 namespace cvz {
 	namespace core {
-		class IConvergenceZone : public cvz_IDL
+		class IConvergenceZone //: public cvz_IDL
 		{
 
 		public:
@@ -22,8 +21,10 @@ namespace cvz {
 			std::string getRpcPortName(){ return rpcPort.getName(); }
 			std::string getName(){ return name; }
 			void setName(std::string _name){ name = _name; }
-			void start() { std::cout << "Started." << std::endl; isPaused = false; }
-			void pause() { std::cout << "Paused." << std::endl; isPaused = true; }
+			
+			//Thrifted methods
+			void moduleStart() { std::cout << "Started." << std::endl; isPaused = false; }
+			void modulePause() { std::cout << "Paused." << std::endl; isPaused = true; }
 
 		protected:
 			std::string name;
@@ -66,6 +67,7 @@ namespace cvz {
 					int modSize = bMod.find("size").asInt();
 					double modInf = bMod.check("influence", yarp::os::Value(1.0)).asDouble();
 					double modLearning= bMod.check("learningRate", yarp::os::Value(1.0)).asDouble();
+					bool modAutoScaling = bMod.check("autoScale");
 
 					std::vector<double> minBounds;
 					if (bMod.check("minBounds"))
@@ -75,7 +77,12 @@ namespace cvz {
 							minBounds.push_back(bMask->get(i).asDouble());
 					}
 					else
-						minBounds.resize(modSize, 0.0);
+					{
+						if (modAutoScaling)
+							minBounds.resize(modSize, DBL_MAX);
+						else
+							minBounds.resize(modSize, 0.0);
+					}
 
 					std::vector<double> maxBounds;
 					if (bMod.check("maxBounds"))
@@ -85,7 +92,12 @@ namespace cvz {
 							maxBounds.push_back(bMask->get(i).asDouble());
 					}
 					else
-						maxBounds.resize(modSize, 1.0);
+					{
+						if (modAutoScaling)
+							maxBounds.resize(modSize, 1.0);
+						else
+							maxBounds.resize(modSize, DBL_MIN);
+					}
 
 					bool isTopDown = bMod.check("isTopDown");
 
@@ -105,7 +117,7 @@ namespace cvz {
 						std::string modPortPrefix = "/";
 						modPortPrefix += getName() + "/";
 						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::os::Bottle>(modPortPrefix, modSize, minBounds, maxBounds, mask, isBlocking);
+						mod = new ModalityBufferedPort<yarp::os::Bottle>(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
 
 						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
 						if (autoConnect != "")
@@ -124,7 +136,7 @@ namespace cvz {
 						std::string modPortPrefix = "/";
 						modPortPrefix += getName() + "/";
 						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, modSize, minBounds, maxBounds, mask, isBlocking);
+						mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
 
 						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
 						if (autoConnect != "")
@@ -143,7 +155,7 @@ namespace cvz {
 						std::string modPortPrefix = "/";
 						modPortPrefix += getName() + "/";
 						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >(modPortPrefix, modSize, minBounds, maxBounds, mask, isBlocking);
+						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
 
 						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
 						if (autoConnect != "")
@@ -162,7 +174,7 @@ namespace cvz {
 						std::string modPortPrefix = "/";
 						modPortPrefix += getName() + "/";
 						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, modSize, minBounds, maxBounds, mask, isBlocking);
+						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
 
 						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
 						if (autoConnect != "")
@@ -201,9 +213,11 @@ namespace cvz {
 			}
 			
 			/***************************************************************/
-			bool attach(yarp::os::RpcServer &source)
+			virtual bool attach(yarp::os::RpcServer &source)
 			{
-				return this->yarp().attachAsServer(source);
+				std::cerr << "Error: You are using the abstract CVZ attached method. Thrift interface will not be available. Implement attach in your daughter class." << std::endl;
+				return false;
+				//return this->yarp().attachAsServer(source);
 			}
 
 			bool interruptModule()

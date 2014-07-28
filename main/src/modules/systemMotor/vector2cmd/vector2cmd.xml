@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>vector2cmd</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Vector 2 Command </description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   A module listening for joints in the form of a vector input and transforming it to a command sent to the robot. \n
+   Be carefull, the vector is transmitted as it is received, no check of any type is done. 
+   </description-long>
+
+   <arguments>
+   <param default="vector2cmd" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   <param default="icub" desc="To specify the robot's name">robot</param>
+   <param default="no default value" desc="The part to control (e.g left_arm, head, etc.)">part</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+      <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/vector2cmd/part:i</port>
+          <required>yes</required>
+          <description>
+              Accepts a vector of doubles. They should be in the joints limits since they will be forwarded directly to an IPositionControl interface.
+          </description>
+      </input>
+   </data>
+   
+   <services>
+   </services>
+   
+</module>
+

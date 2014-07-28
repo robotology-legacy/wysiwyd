@@ -13,6 +13,7 @@ environment:
   GTKMM_BASEPATH: c:\dev\gtkmm-2.22.0-2
   YARP_DIR: c:\YARP
   ICUB_DIR: c:\iCub
+  ICUBcontrib_DIR: c:\iCubContrib
   YARP_DATA_DIRS: c:\YARP\share\yarp;c:\iCub\share\iCub
   WYSIWYD_DIR: c:\dev\wysiwyd\main\build
   
@@ -25,7 +26,7 @@ install:
   - cmd: wget -q http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip -O c:\dev\gtkmm.zip
   - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7Z2JtblBHTkhiVDQ -O c:\yarp.zip
   - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7REZwMnIzSkdJdTA -O c:\icub.zip
-  
+    
   - cmd: 7z x c:\dev\gsl.zip -oc:\dev -y > nul
   - cmd: 7z x c:\dev\ipopt.zip -oc:\dev -y > nul 
   - cmd: 7z x c:\dev\gtkmm.zip -oc:\dev -y > nul
@@ -34,6 +35,13 @@ install:
     
   - ps: rename-item c:\dev\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\dev\ipopt-3.10.1
   - ps: rename-item c:\dev\gtkmm c:\dev\gtkmm-2.22.0-2
+  
+  - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
+  - cmd: cd c:\dev\icub-contrib-common
+  - cmd: md build
+  - cmd: cd build
+  - cmd: cmake -DCMAKE_INSTALL_PREFIX=c:/iCubContrib -G"Visual Studio 11" ..
+  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" INSTALL.vcxproj
 
 build:
 

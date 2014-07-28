@@ -5,32 +5,14 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 
-class wordContext
-{
-    int iPresence;
-    string sLabel;
-};
-
-class wordObject
-{
-    int iOPCid;
-    int iPresence;
-    string sLabel;
-};
-
-class wordWord
-{
-    string sLabel;
-    int iPresence;
-};
-
 
 class wordKnowledge
 {
+public:
 
-    vector<wordObject>      listWordObjects;
-    vector<wordContext>     listWordContexts;
-    vector<wordWord>        listWordWord;
+    vector<pair<string, int>>	listWordObjects;
+    vector<pair<string, int>>	listWordContexts;
+    vector<pair<string, int>>	listWordWord;
 
     vector<vector<int>>     matObject2Context;
     vector<vector<int>>     matWord2Context;
@@ -38,7 +20,14 @@ class wordKnowledge
     matrix3D_nonCubic       matObject2Word;
     matrix3D_nonCubic       matWord2Object;
 
-    Bottle                  addInstance(pair<string,int> pObjectIdOPC, string sWord, vector<string> vContext);
+
+    void					simulateData();
+
+    pair<string, double>	getObjectFromWord(string sWord, vector<string> vContext);
+    pair<string, double>	getWordFromObject(string sObject, vector<string> vContext);
+    
+    Bottle                  addInstance(string sObjectIdOPC, string sWord, vector<string> vContext);
+    Bottle                  askWordKnowledge(string sQuestion, string sWhat, vector<string> vContext);
 };
 
 
