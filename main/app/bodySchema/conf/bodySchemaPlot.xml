@@ -4,7 +4,7 @@
           gridy="0"
           hspan="1"
           vspan="1"
-          title="Plot 00"
+          title="Red = pred.; Green = observ."
           size="100"
           minval="-1.5"
           maxval="1.5"
@@ -12,13 +12,13 @@
        <graph remote="/bodySchema/portOutData"
                index="0"
                color="Green"
-               title="Graph 0"
+               title="Observ."
                size="3"
                type="lines" /> 
         <graph remote="/bodySchema/portPredictions"
                index="0"
                color="Red"
-               title="Graph 0"
+               title="Pred."
                type="lines"
                size="3" /> 
     </plot> 
@@ -26,21 +26,21 @@
           gridy="0"
           hspan="1"
           vspan="1"
-          title="Plot 01"
+          title="Red = pred.; Green = observ."
           size="100"
           minval="-1.5"
           maxval="1.5"
-          bgcolor="LightGrey">
+          bgcolor="LightSlateGrey">
        <graph remote="/bodySchema/portOutData"
                index="1"
                color="Green"
-               title="Graph 1"
+               title="Observ."
                size="3"
                type="lines" /> 
         <graph remote="/bodySchema/portPredictions"
                index="1"
                color="Red"
-               title="Graph 0"
+               title="Pred."
                type="lines"
                size="3" />  
     </plot>
@@ -48,7 +48,7 @@
           gridy="0"
           hspan="1"
           vspan="1"
-          title="Plot 02"
+          title="Red = pred.; Green = observ."
           size="100"
           minval="-1.5"
           maxval="1.5"
@@ -56,26 +56,56 @@
        <graph remote="/bodySchema/portOutData"
                index="2"
                color="Green"
-               title="Graph 2"
+               title="Observ."
                size="3"
                type="lines" /> 
        <graph remote="/bodySchema/portPredictions"
                index="2"
                color="Red"
-               title="Graph 0"
+               title="Pred."
                type="lines"
                size="3" />  
     </plot>
+
+
     <plot gridx="0"
           gridy="1"
-          hspan="3"
+          hspan="1"
           vspan="1"
-          title="Plot 01"
+          title="Prediction errors"
           minval="-1"
           maxval="1"
           bgcolor="LightGrey">
         <graph remote="/bodySchema/portPredictionErrors"
                index="0"
+               color="Red"
+               title="Graph 0"
+               type="bars" />
+    </plot>
+    <plot gridx="1"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Prediction errors"
+          minval="-1"
+          maxval="1"
+          bgcolor="LightGrey">
+        <graph remote="/bodySchema/portPredictionErrors"
+               index="1"
+               color="Red"
+               title="Graph 0"
+               type="bars" />
+    </plot>
+    <plot gridx="2"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Prediction errors"
+          minval="-1"
+          maxval="1"
+          bgcolor="LightGrey">
+        <graph remote="/bodySchema/portPredictionErrors"
+               index="2"
                color="Red"
                title="Graph 0"
                type="bars" />

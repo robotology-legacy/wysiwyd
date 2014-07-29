@@ -37,6 +37,8 @@ using namespace yarp::sig::draw;
 using namespace wysiwyd::wrdac;
 using namespace OTL;
 
+typedef enum {idle, learning, babbling} State;
+
 class bodySchema : public RFModule {
 private:
   string moduleName;
@@ -101,14 +103,24 @@ private:
 	string fileIn;
 	string fileOut;
 
+
+    string part;
+    string robot;
+    string mode;
+
+    string inPort;
+    string outPort;
+
     int nInputs;
     int nOutputs;	
 
     double initTime;
 	
-    bool isLearning;
-    bool isBabblingLearning;
-	
+//    bool isLearning;
+//    bool isBabblingLearning;
+
+    State state;
+    	
 	
 //  ICubClient *iCub;
 
@@ -119,7 +131,7 @@ public:
     /** 
      * document your methods too.
      */
-    bodySchema(ResourceFinder &rf);
+    bodySchema() ;
     ~bodySchema();
 
     bool configure(ResourceFinder &rf); // configure 

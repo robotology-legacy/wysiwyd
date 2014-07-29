@@ -29,13 +29,14 @@ using namespace yarp::os;
 int main(int argc, char * argv[])
 {
     srand(time(NULL));
-    Network::init();
+    Network yarp;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("bodySchema");
     rf.setDefaultConfigFile("bodySchema.ini");
     rf.configure(argc, argv);
-    bodySchema mod(rf);
+//    string part = rf.find("part").asString();
+    bodySchema mod;
     mod.runModule(rf);
     return 0;
 }

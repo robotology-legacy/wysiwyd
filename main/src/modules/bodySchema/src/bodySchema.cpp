@@ -23,14 +23,8 @@ using namespace OTL;
 using namespace std;
 using namespace yarp::os;
 
-bodySchema::bodySchema(ResourceFinder &rf)
+bodySchema::bodySchema()
 {
-/*    iCurrentInstance = -1;
-    sCurrentPronom = "none";
-    sCurrentActivity = "none";
-    psCurrentComplement.first = "none";
-    psCurrentComplement.second = "none";
-    */
 }
 
 bodySchema::~bodySchema()
@@ -53,17 +47,13 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
                                      Value("bodySchema"),
                                      "module name (string)").asString();
 
-    fileIn = rf.findFile("inputs.txt").c_str();
-    fileOut = rf.findFile("outputs.txt").c_str();
 
-    nInputs = 1;
-    nOutputs = 1;
+    part = rf.find("part").asString();
+    robot = rf.check("robot",Value("icubSim")).asString();
+    mode = rf.check("mode",Value("online")).asString();
 
+    state = idle;
 
-
-
-//    if (!init_iCub(part))
-//        bEveryThingisGood = false;
 
 
     /*
@@ -170,68 +160,44 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
     }
 
 
-    // Connect to /icubSim/right_arm/state:o
-//    while (!Network::connect(portInDataName,"/icubSim/left_arm/command:i"))
-//    {
-//        cout << "Connecting left arm port..." << endl;
-//        Time::delay(0.2);
-//    }
-//    while (!Network::connect("/icubSim/left_arm/state:o",portReadInDataName))
-//    {
-//        cout << "Connecting left arm port..." << endl;
-//        Time::delay(0.2);
-//    }
 
+    if (mode=="online")
+    {
+        init_iCub(part);
+    }
+    else
+    {
+        cout << endl << "Open dataSetPlayer!" <<endl<<endl;
+        inPort = "/" + part + "/vel:o" ;
+        outPort =  "/icub/"+ part + "/state:o";
 
-//    Network::connect(portInDataName,portReadInDataName);
-//    Network::connect(portOutDataName,portReadOutDataName);
-//    Network::connect(portReadInDataName,portReadOutDataName);
-//    Network::connect("/icubSim/leftt_arm/state:o",portReadOutDataName);
+        cout << inPort <<endl;
+        cout <<outPort <<endl;
 
-//    while (!Network::connect("/icubSim/left_arm/state:o",portReadOutDataName))
-//        {
-//            cout << "Connecting right arm port..." << endl;
-//            Time::delay(0.2);
-//        }
+        while(!Network::connect(outPort,portReadOutDataName))
+        {
+            cout << "Trying to connect input data port..." << endl;
+            Time::delay(0.1);
+        }
+        while(!Network::connect(inPort,portReadInDataName))
+        {
+            cout << "Trying to connect output data port..." << endl;
+            Time::delay(0.1);
+        }
 
-
-//    Network::connect(portPredictions,portReadPredictions);
-//    Network::connect(portPredictionErrors,portReadPredictionErrors);
-
-
-
-
-
+    }
 
 
 
     attach(handlerPort);                  // attach to port
 
-/*
-    //------------------------//
-    //      iCub Client
-    //------------------------//
-    iCub = new ICubClient(moduleName.c_str(),"bodySchema/conf","client.ini",true);
-    iCub->say("test!",false);
-    //  iCub->opc->isVerbose = false;
-
-    // Connect iCub Client, and ports
-    //      bEveryThingisGood &= !iCub->connect()
-
-    bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
-
-    if (!bEveryThingisGood)
-        cout << endl << "Some dependencies are not running (ICubClient or port(s) connections)"<<endl<<endl;
-    else
-        cout << endl << endl << "----------------------------------------------" << endl << endl << "bodySchema ready !" << endl << endl;
-
-*/
     return bEveryThingisGood ;
 }
 
 bool bodySchema::interruptModule() {
 
     portReadOutData.interrupt();
+    portReadInData.interrupt();
     return true;
 }
 
@@ -248,9 +214,6 @@ bool bodySchema::close() {
     portReadInData.close();
     portReadOutData.close();
 
-//    iCub->close();
-//    delete iCub;
-
     return true;
 }
 
@@ -264,43 +227,45 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
 
     reply.clear();
 
-    if (command.get(0).asString()=="quit") {
-        reply.addString("quitting");
-        return false;
-    }
-    else if (command.get(0).asString()=="help") {
+    if (command.get(0).asString()=="help") {
         cout << helpMessage;
         reply.addString("ok");
     }
     else if (command.get(0).asString()=="babblingLearning") {
-        isBabblingLearning = true;
-        string part = "left_arm";
-        if (init_iCub(part))
+
+        if (state==idle)
         {
-            cout << "++++++++++++++++" << endl;
-            learn();
+            state = babbling;
+
+//            learn();
+
+            cout << helpMessage;
+            reply.addString("ack");
         }
         else
-        {
-            cout << "\n*****************************************\n" <<
-                    "iCub is not initialised... closing module..." <<
-                    "\n*****************************************\n" <<endl;
-            interruptModule();
-            close();
-        }
-        cout << helpMessage;
-        reply.addString("ok");
+            reply.addString("nack");
     }
     else if (command.get(0).asString()=="learning") {
-        isLearning = true;
-        string part = "left_arm";
-        string inPort = "/" + part + "/vel:o" ; // "/left_arm/vel:o"; // "/torso/vel:o";//
-        string outPort =  "/icub/"+ part + "/state:o"; //"/icub/torso/state:o";//
-        learn(inPort,outPort);
 
-        cout << helpMessage;
-        reply.addString("ok");
+        if (state==idle)
+        {
+            state = learning;
+
+//            inPort = "/" + part + "/vel:o" ;
+//            outPort =  "/icub/"+ part + "/state:o";
+//            learn(inPort,outPort);
+
+            cout << helpMessage;
+            reply.addString("ok");
+
+        }
+        else
+            reply.addString("nack");
+
+
     }
+    else
+        RFModule::respond(command,reply);
 
 
     return true;
@@ -309,16 +274,17 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool bodySchema::updateModule() {
 
-//    if(isLearning)
-//    {
-//        string inPort =  "/left_arm/vel:o"; // "/torso/vel:o";//
-//        string outPort =  "/icub/left_arm/state:o"; //"/icub/torso/state:o";//
-//        learn(inPort,outPort);
 
-//    }
-//        learn();
-////        learn(fileIn,fileOut);
-////        learn(nInputs,nOutputs);
+    if (state==learning)
+    {
+        learn(inPort,outPort);
+        state=idle;
+    }
+    else if (state==babbling)
+    {
+        learn();
+        state=idle;
+    }
 
     return true;
 }
@@ -340,16 +306,7 @@ double bodySchema::getPeriod() {
 bool bodySchema::learn(string &dataIn, string &dataOut)
 {
 
-    while(!Network::connect(dataOut,portReadOutDataName))
-    {
-        cout << "Trying to connect input data port..." << endl;
-        Time::delay(0.1);
-    }
-    while(!Network::connect(dataIn,portReadInDataName))
-    {
-        cout << "Trying to connect output data port..." << endl;
-        Time::delay(0.1);
-    }
+    cout << "Learning from recorded data (dataSetPlayer required)" <<endl;
 
 
 
@@ -376,14 +333,22 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
     kernel_parameters << 1.0, 1.0; //l = 1.0, alpha = 1.0
 
     //SOGP parameters
-    double noise = 0.0001;
+    double noise = 0.000001;
     double epsilon = 1e-3;
-    int capacity = 800;
+    int capacity = 300;
 
     int random_seed = 0;
 
 
     try {
+
+
+//        for(int kk=0;kk<10;kk++)
+//        {
+//            cout <<"?????"<<endl;
+//            Time::yield();
+//        }
+
 
         //Initialise our OESGP
         oesgp.init( input_dim, output_dim, reservoir_size,
@@ -396,8 +361,10 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
                     noise, epsilon, capacity, random_seed);
 
 
+        cout << "?????"<<endl;
+
         //now we loop using a sine wave
-        unsigned int max_itr = 1000; // TO MODIFY!!!!
+        unsigned int max_itr = 10000; // TO MODIFY!!!!
         unsigned int iters = max_itr;
 
         //note that we use Eigen VectorXd objects
@@ -485,9 +452,17 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
 //            cout << "Prediction:" << prediction.value() << endl;
 
             //print the error
-            double error = (prediction - output).norm();
-            cout << "Error: " << error << ", |BV|: "
-                 << oesgp.getCurrentSize() <<  endl;
+//            double error = (prediction - output).norm();
+            double error[3];
+            error[0] = (prediction(0) - output(0));//.norm();
+            error[1] = (prediction(1) - output(1));//.norm();
+            error[2] = (prediction(2) - output(2));//.norm();
+
+//            cout << "Error: " << error << ", |BV|: "
+//                 << oesgp.getCurrentSize() <<  endl;
+
+            cout << "Error: " << error[0] << " " << error[1] << " " << error[2] << ", |BV|: "
+                    << oesgp.getCurrentSize() <<  endl;
 
             //train with the true next state
             oesgp.train(output);
@@ -501,12 +476,13 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
 
             Bottle& errB = portPredictionErrors.prepare(); // Get the object
             errB.clear();
-            errB.addDouble(error);
+            errB.addDouble(error[0]);
+            errB.addDouble(error[1]);
+            errB.addDouble(error[2]);
             portPredictionErrors.write(); // Now send it on its way
 
-//            Bottle& readPredB = portReadPredictions.read(); // Get the object
-//            Bottle& readPredErrB = portReadPredictionErrors.read(); // Get the object
 
+            Time::yield();
 
 
         }
@@ -569,8 +545,13 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
 
             //predict
             oesgp2.predict(prediction, prediction_variance);
-            double error = (prediction - output).norm();
-            cout << "Error: " << error << endl;
+//            double error = (prediction - output).norm();
+            double error[3];
+            error[0] = (prediction(0) - output(0));//.norm();
+            error[1] = (prediction(1) - output(1));//.norm();
+            error[2] = (prediction(2) - output(2));//.norm();
+
+            cout << "Error: " << error[0] << " " << error[1] << " " << error[2] << " " << endl;
 
 
             Bottle& predB = portPredictions.prepare(); // Get the object
@@ -580,20 +561,20 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
             portPredictions.write(); // Now send it on its way
 
             Bottle& errB = portPredictionErrors.prepare(); // Get the object
-            errB.addDouble(error);
+            errB.addDouble(error[0]);
+            errB.addDouble(error[1]);
+            errB.addDouble(error[2]);
             portPredictionErrors.write(); // Now send it on its way
 
+
+
+            Time::yield();
         }
 
     } catch (OTLException &e) {
+        cout << "CATCH????"<<endl;
         e.showError();
     }
-
-
-
-
-
-
 
 
     return true;
@@ -603,6 +584,8 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
 
 bool bodySchema::learn()
 {
+
+    cout << "Learning from babbling; iCub required." << endl;
 
     //Create our OESGP object
     OESGP oesgp;
@@ -627,9 +610,9 @@ bool bodySchema::learn()
     kernel_parameters << 10.0, 1.0; //l = 1.0, alpha = 1.0
 
     //SOGP parameters
-    double noise = 0.001;
+    double noise = 0.000001;
     double epsilon = 1e-3;
-    int capacity = 1000;
+    int capacity = 250;
 
     int random_seed = 0;
 
@@ -729,9 +712,17 @@ bool bodySchema::learn()
 //            cout << "Prediction:" << prediction.value() << endl;
 
             //print the error
-            double error = (prediction - output).norm();
-            cout << "Error: " << error << ", |BV|: "
-                 << oesgp.getCurrentSize() <<  endl;
+//            double error = (prediction - output).norm();
+            double error[3];
+            error[0] = (prediction(0) - output(0));//.norm();
+            error[1] = (prediction(1) - output(1));//.norm();
+            error[2] = (prediction(2) - output(2));//.norm();
+
+//            cout << "Error: " << error << ", |BV|: "
+//                 << oesgp.getCurrentSize() <<  endl;
+
+            cout << "Error: " << error[0] << " " << error[1] << " " << error[2] << ", |BV|: "
+                    << oesgp.getCurrentSize() <<  endl;
 
             //train with the true next state
             oesgp.train(output);
@@ -745,10 +736,13 @@ bool bodySchema::learn()
 
             Bottle& errB = portPredictionErrors.prepare(); // Get the object
             errB.clear();
-            errB.addDouble(error);
+            errB.addDouble(error[0]);
+            errB.addDouble(error[1]);
+            errB.addDouble(error[2]);
             portPredictionErrors.write(); // Now send it on its way
 
 
+            Time::yield();
 
         }
 
@@ -806,9 +800,13 @@ bool bodySchema::learn()
 
             //predict
             oesgp2.predict(prediction, prediction_variance);
-            double error = (prediction - output).norm();
-            cout << "Error: " << error << endl;
+            double error[3];
+            error[0] = (prediction(0) - output(0));//.norm();
+            error[1] = (prediction(1) - output(1));//.norm();
+            error[2] = (prediction(2) - output(2));//.norm();
+//            cout << "Error: " << error << endl;
 
+            cout << "Error: " << error[0] << " " << error[1] << " " << error[2] << endl;
 
             Bottle& predB = portPredictions.prepare(); // Get the object
             predB.addDouble(prediction(0));
@@ -817,19 +815,17 @@ bool bodySchema::learn()
             portPredictions.write(); // Now send it on its way
 
             Bottle& errB = portPredictionErrors.prepare(); // Get the object
-            errB.addDouble(error);
+            errB.addDouble(error[0]);
+            errB.addDouble(error[1]);
+            errB.addDouble(error[2]);
             portPredictionErrors.write(); // Now send it on its way
 
+            Time::yield();
         }
 
     } catch (OTLException &e) {
         e.showError();
     }
-
-
-
-
-
     return true;
 
 
@@ -846,7 +842,7 @@ bool bodySchema::init_iCub(string &part)
 
         string portnameArm = part;//"left_arm";
         cout << part << endl;
-        option.put("robot", "icubSim"); // typically from the command line.
+        option.put("robot", robot.c_str());
         option.put("device", "remote_controlboard");
         Value& robotnameArm = option.find("robot");
 
@@ -863,6 +859,8 @@ bool bodySchema::init_iCub(string &part)
         sA += "/";
         sA += portnameArm.c_str();
         option.put("remote", sA.c_str());
+
+        cout<<"DEBUG "<< option.toString().c_str() <<endl;
 
 
         rightArmDev = new PolyDriver(option);
@@ -883,8 +881,9 @@ bool bodySchema::init_iCub(string &part)
             rightArmDev->close();
         }
         int nj = 0;
-        pos->getAxes(&nj);
-        vel->getAxes(&nj);
+//        pos->getAxes(&nj);
+//        vel->getAxes(&nj);
+        encs->getAxes(&nj);
         encoders.resize(nj);
         cmd.resize(nj);
 
@@ -897,11 +896,11 @@ bool bodySchema::init_iCub(string &part)
         ictrl->setControlMode(2,VOCAB_CM_VELOCITY);
         iint->setInteractionMode(2,VOCAB_IM_COMPLIANT);
 
-        for (int i=3; i<nj; i++)
-        {
-            ictrl->setControlMode(i,VOCAB_CM_IDLE);
-            iint->setInteractionMode(i,VOCAB_IM_COMPLIANT);
-        }
+//        for (int i=3; i<nj; i++)
+//        {
+//            ictrl->setControlMode(i,VOCAB_CM_IDLE);
+//            iint->setInteractionMode(i,VOCAB_IM_COMPLIANT);
+//        }
 
         printf("Wait for encoders");
         while (!encs->getEncoders(encoders.data()))
@@ -913,15 +912,15 @@ bool bodySchema::init_iCub(string &part)
 
         printf("Right Arm initialized.\n");
 
-        string portName = "/icubSim/" + part + "/command:i";
-        while (!Network::connect(portInDataName,portName));//"/icubSim/left_arm/command:i"))
+        string portName = "/" + robot+"/" + part + "/command:i";
+        while (!Network::connect(portInDataName,portName));
         {
             cout << "Connecting left arm port..." << endl;
             Time::delay(0.2);
         }
 
-        portName = "/icubSim/" + part + "/state:o";
-        while (!Network::connect(portName,portReadOutDataName))     //("/icubSim/right_arm/state:o",portReadOutDataName))
+        portName = "/" + robot+"/" + part + "/state:o";
+        while (!Network::connect(portName,portReadOutDataName))
             {
                 cout << "Connecting right arm port..." << endl;
                 Time::delay(0.2);
