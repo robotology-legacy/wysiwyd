@@ -1,0 +1,17 @@
+I edited the wiki: http://wiki.icub.org/wiki/Tactile_sensors_%28aka_Skin%29#Reading_Compensated_Tactile_Data
+Each port outputs a vector of floating point numbers, with output from individual taxels and is zero padded in certain positions. The size of the vector depends on the skin part, in particular it is:
+192 for hand data, where 1-60 are taxels of fingertips (12 each); 61-96 zeros; 97-144 palm taxels (inside these, 107, 119, 131, and 139 are thermal pads ~ 0s); 145-192 zeros.
+With the exception of the palm data, the skin is composed of triangular modules with 10 taxels each. However, there are
+12 positions reserved for each module in the port output. The 7th and 11th value are not meaningful as tactile output
+(signal from thermal pads) and can be ignored.
+2*192=384 for forearm data, where first 192 values correspond to a full patch - bottom of forearm. They are 16
+consecutive modules and hence every 7th and 11th value of each dozen can be ignored. Then, there is the other,
+incomplete patch, with only 7 modules at the bottom of the foream. Thus, the positions 193-204; 217-252; 265-288;
+325-336; 361-384 are empty. In between, there are the 7 modules, again with 7th and 11th positions not carrying pressure
+values.
+4*192=768 for (upper) arm data and torso.
+Please note that the indexes are the "positions" on the port; however, if you use taxelIDs from the skinDynLin library, they are starting from 0 - that is taxel ID 10, for example, would be 11th on the port. This is also used in the skin_events output (see below). 
+
+The output in the form of a mask (as needed for Stephane’s CVZ) is in: 
+IIT laptop: /home/matej/programming/icub-contrib/wysiwyd/main/app/cvzDoubleTouch/conf/full_ini_files_for_skin_parts
+and also /media/Data/data_work/icub_skin/output_port_masks 
