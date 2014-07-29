@@ -80,7 +80,12 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    calibrationThread = new AutomaticCalibrationThread(100,"ical");
+    
+    bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
+    bEveryThingisGood &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
+    bEveryThingisGood &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
+
+ //   calibrationThread = new AutomaticCalibrationThread(100,"ical");
  //   calibrationThread->start();
  //   calibrationThread->suspend();
 
@@ -219,7 +224,7 @@ void    qRM::mainLoop()
         bSpeak, // bottle for tts
         bTemp;
 
-    bMessenger.addString("recogBottle");
+    bMessenger.addString("recog");
     bMessenger.addString("grammarXML");
     bMessenger.addString(grammarToString(nameMainGrammar).c_str());
 
@@ -230,7 +235,7 @@ void    qRM::mainLoop()
 
         cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << nameMainGrammar;
             bOutput.addString(osError.str());
@@ -309,7 +314,7 @@ void    qRM::mainLoop()
 
         vRole.push_back("focus");
 
-        iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
+        iCub->getABMClient()->sendActivity("says","look","sentence",vArgument,vRole, true);
 
     }
     else if (sQuestionKind == "SHOW")
@@ -327,7 +332,7 @@ void    qRM::mainLoop()
 
         cout << "bMessenger is : " << bMessenger.toString() << endl;
 
-        iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
+        iCub->getABMClient()->sendActivity("says","show","sentence",vArgument,vRole, true);
 
     }
     else if (sQuestionKind == "WHAT")
@@ -371,12 +376,14 @@ void    qRM::mainLoop()
         bSendReasoning.addString(nameTrackedObject);
         Port2abmReasoning.write(bSendReasoning, bMessenger);
 
-        iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
+        iCub->getABMClient()->sendActivity("says","what","sentence",vArgument,vRole, true);
 
 
         cout << "bMessenger is : " << bMessenger.toString() << endl;
 
     }
+
+    mainLoop();
 
 }
 

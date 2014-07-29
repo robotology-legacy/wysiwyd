@@ -266,7 +266,7 @@ Bottle abmHandler::node1()
         bSpeak, // bottle for tts
         bTemp;
 
-    bMessenger.addString("recogBottle");
+    bMessenger.addString("recog");
     bMessenger.addString("grammarXML");
     bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
 
@@ -498,7 +498,7 @@ Bottle abmHandler::node2()
     bool fGetaReply = false;
 
 
-    bMessenger.addString("recogBottle");
+    bMessenger.addString("recog");
     bMessenger.addString("grammarXML");
     bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
 
@@ -856,7 +856,7 @@ Bottle abmHandler::node3()
     bool fGetaReply = false;
 
 
-    bMessenger.addString("recogBottle");
+    bMessenger.addString("recog");
     bMessenger.addString("grammarXML");
     bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
 

@@ -7,3 +7,4 @@ if(ICUB_USE_IPOPT)
 endif()
 
 add_subdirectory(guiUpdater)
+add_subdirectory(qRM)
