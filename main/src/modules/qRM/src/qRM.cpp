@@ -72,7 +72,7 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
-    iCub = new ICubClient(moduleName,"qRM/conf","client.ini",isRFVerbose);
+    iCub = new ICubClient(moduleName,"qRM","client.ini",isRFVerbose);
     iCub->opc->isVerbose &= false;
     if (!iCub->connect())
     {
@@ -81,8 +81,8 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     }
 
     calibrationThread = new AutomaticCalibrationThread(100,"ical");
-    calibrationThread->start();
-    calibrationThread->suspend();
+ //   calibrationThread->start();
+ //   calibrationThread->suspend();
 
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
@@ -301,7 +301,6 @@ void    qRM::mainLoop()
                 maxSalience = (*it)->m_saliency;
                 nameTrackedObject = (*it)->name();
             }
-            //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
         }
 
 
@@ -311,7 +310,6 @@ void    qRM::mainLoop()
         vRole.push_back("focus");
 
         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
-
 
     }
     else if (sQuestionKind == "SHOW")
@@ -330,7 +328,6 @@ void    qRM::mainLoop()
         cout << "bMessenger is : " << bMessenger.toString() << endl;
 
         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
-
 
     }
     else if (sQuestionKind == "WHAT")
@@ -352,7 +349,6 @@ void    qRM::mainLoop()
         }
 
 
-
         double maxSalience = 0;
         string nameTrackedObject = "none";
         for(vector<Object*>::iterator it = presentObjects.begin(); it!= presentObjects.end(); it++)
@@ -362,7 +358,6 @@ void    qRM::mainLoop()
                 maxSalience = (*it)->m_saliency;
                 nameTrackedObject = (*it)->name();
             }
-            //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
         }
 
         cout<<"Most salient is : "<<nameTrackedObject<<" with saliency="<<maxSalience << endl;

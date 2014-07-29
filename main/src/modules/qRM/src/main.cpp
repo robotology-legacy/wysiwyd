@@ -29,8 +29,8 @@ int main(int argc, char * argv[])
     qRM mod;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("qRM/conf");
-    rf.setDefaultConfigFile("default.ini");
+    rf.setDefaultContext("qRM");
+    rf.setDefaultConfigFile("qRM.ini");
     rf.configure( argc, argv);
     mod.runModule(rf);
     return 0;

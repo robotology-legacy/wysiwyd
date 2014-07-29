@@ -78,7 +78,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
     bReady = true;
     bool bTestLanguage = false;
 
-    WordKnowledge.simulateData();
+   // WordKnowledge.simulateData();
 
     if (bTestLanguage)
     {
@@ -95,7 +95,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
             }
         }
     }
-    return false;
+    return true;
 }
 
 

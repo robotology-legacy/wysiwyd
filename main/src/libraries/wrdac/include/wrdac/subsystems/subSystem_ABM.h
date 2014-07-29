@@ -34,7 +34,7 @@ namespace wysiwyd{namespace wrdac{
 class SubSystem_ABM: public SubSystem
 {
 protected:
-    virtual bool connect() { return yarp::os::Network::connect(portRPC.getName(), "/efaa/autobiographicalMemory/request:i");}
+    virtual bool connect() { return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/request:i");}
 
 public:
     yarp::os::Port portRPC;
