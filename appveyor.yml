@@ -24,8 +24,8 @@ install:
   - cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip -O c:\dev\gsl.zip
   - cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip -O c:\dev\ipopt.zip
   - cmd: wget -q http://www.icub.org/download/packages/windows/common/gtkmm-2.22-0-2.zip -O c:\dev\gtkmm.zip
-  - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7Z2JtblBHTkhiVDQ -O c:\yarp.zip
-  - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7REZwMnIzSkdJdTA -O c:\icub.zip
+  - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7UE5FaGZPS3EwLXc -O c:\yarp.zip
+  - cmd: wget -q --no-check-certificate https://googledrive.com/host/0BzentpyZAll7VjZ0b1VzNWFzdFE -O c:\icub.zip
     
   - cmd: 7z x c:\dev\gsl.zip -oc:\dev -y > nul
   - cmd: 7z x c:\dev\ipopt.zip -oc:\dev -y > nul 
