@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<portscope rows="2" columns="3" carrier="mcast">
+<portscope rows="2" columns="4" carrier="mcast">
     <plot gridx="0"
           gridy="0"
           hspan="1"
@@ -66,6 +66,28 @@
                type="lines"
                size="3" />  
     </plot>
+    <plot gridx="3"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Red = pred.; Green = observ."
+          size="100"
+          minval="-1.5"
+          maxval="1.5"
+          bgcolor="LightSlateGrey">
+       <graph remote="/bodySchema/portOutData"
+               index="3"
+               color="Green"
+               title="Observ."
+               size="3"
+               type="lines" /> 
+       <graph remote="/bodySchema/portPredictions"
+               index="3"
+               color="Red"
+               title="Pred."
+               type="lines"
+               size="3" />  
+    </plot>
 
 
     <plot gridx="0"
@@ -106,6 +128,20 @@
           bgcolor="LightGrey">
         <graph remote="/bodySchema/portPredictionErrors"
                index="2"
+               color="Red"
+               title="Graph 0"
+               type="bars" />
+    </plot>
+    <plot gridx="3"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Prediction errors"
+          minval="-1"
+          maxval="1"
+          bgcolor="LightGrey">
+        <graph remote="/bodySchema/portPredictionErrors"
+               index="3"
                color="Red"
                title="Graph 0"
                type="bars" />

@@ -592,8 +592,8 @@ bool bodySchema::learn()
 
     //Problem parameters
     //we want to predict a simple sine wave
-    int input_dim = 3;
-    int output_dim = 3;
+    int input_dim = 4;
+    int output_dim = 4;
 
     //Reservoir Parameters
     //you can change these to see how it affects the predictions
@@ -610,9 +610,9 @@ bool bodySchema::learn()
     kernel_parameters << 10.0, 1.0; //l = 1.0, alpha = 1.0
 
     //SOGP parameters
-    double noise = 0.000001;
+    double noise = 0.0001;
     double epsilon = 1e-3;
-    int capacity = 250;
+    int capacity = 150;
 
     int random_seed = 0;
 
@@ -634,8 +634,8 @@ bool bodySchema::learn()
 
         //note that we use Eigen VectorXd objects
         //look at http://eigen.tuxfamily.org for more information about Eigen
-        VectorXd input(3);  //the 1 is the size of the vector
-        VectorXd output(3);
+        VectorXd input(4);  //the 1 is the size of the vector
+        VectorXd output(4);
 
         VectorXd state;
         VectorXd prediction;
@@ -648,15 +648,18 @@ bool bodySchema::learn()
         double prev_pos0;
         double prev_pos1;
         double prev_pos2;
+        double prev_pos3;
         pos->positionMove(0,-70);
         pos->positionMove(1,-70);
         pos->positionMove(2,-20);
+        pos->positionMove(3,-50);
         Bottle *prevPosB = portReadOutData.read();
         if (!prevPosB->isNull())
         {
             prev_pos0 = prevPosB->get(0).asDouble(); // 0 is the joint number!
             prev_pos1 = prevPosB->get(1).asDouble(); // 1 is the joint number!
             prev_pos2 = prevPosB->get(2).asDouble(); // 2 is the joint number!
+            prev_pos3 = prevPosB->get(3).asDouble(); // 3 is the joint number!
         }
         else
             cout << "NULL Bottle" << endl;
@@ -669,10 +672,12 @@ bool bodySchema::learn()
             in(0) = 50*sin(i*0.1)+sin(i*0.001)+5*sin(i*0.0001); //-70+10*sin(i*0.1)
             in(1) = 70*sin(i*0.1)+sin(i*0.001)+7*sin(i*0.0001);
             in(2) = 60*sin(i*0.1)+sin(i*0.001)+6*sin(i*0.0001);
+            in(3) = 80*sin(i*0.1)+sin(i*0.001)+8*sin(i*0.0001);
 
             vel->velocityMove(0,in(0));//cmdRightArm);//cmd.data());
             vel->velocityMove(1,in(1));
             vel->velocityMove(2,in(2));
+            vel->velocityMove(3,in(3));
 
             Bottle *outB = portReadOutData.read();
 
@@ -681,6 +686,7 @@ bool bodySchema::learn()
                 output(0) = outB->get(0).asDouble() - prev_pos0; // 0 is the joint number!
                 output(1) = outB->get(1).asDouble() - prev_pos1;
                 output(2) = outB->get(2).asDouble() - prev_pos2;
+                output(3) = outB->get(3).asDouble() - prev_pos3;
             }
             else
                 cout << "NULL Bottle" << endl;
@@ -688,10 +694,12 @@ bool bodySchema::learn()
             prev_pos0 = outB->get(0).asDouble();
             prev_pos1 = outB->get(1).asDouble();
             prev_pos2 = outB->get(2).asDouble();
+            prev_pos3 = outB->get(3).asDouble();
 
             input(0) = in(0);
             input(1) = in(1);
             input(2) = in(2);
+            input(3) = in(3);
 
             cout << "Output.:" << output << endl;
 
@@ -700,6 +708,7 @@ bool bodySchema::learn()
             outDataB.addDouble(output(0));
             outDataB.addDouble(output(1));
             outDataB.addDouble(output(2));
+            outDataB.addDouble(output(3));
             portOutData.write(); // Now send it on its way
 
 
@@ -713,15 +722,16 @@ bool bodySchema::learn()
 
             //print the error
 //            double error = (prediction - output).norm();
-            double error[3];
+            double error[4];
             error[0] = (prediction(0) - output(0));//.norm();
             error[1] = (prediction(1) - output(1));//.norm();
             error[2] = (prediction(2) - output(2));//.norm();
+            error[3] = (prediction(3) - output(3));//.norm();
 
 //            cout << "Error: " << error << ", |BV|: "
 //                 << oesgp.getCurrentSize() <<  endl;
 
-            cout << "Error: " << error[0] << " " << error[1] << " " << error[2] << ", |BV|: "
+            cout << "Error: " << error[0] << " " << error[1] << " " << error[2]<< " " << error[3] << ", |BV|: "
                     << oesgp.getCurrentSize() <<  endl;
 
             //train with the true next state
@@ -732,6 +742,7 @@ bool bodySchema::learn()
             predB.addDouble(prediction(0)); //cout << "Prediction 0:" << prediction(0) << endl;
             predB.addDouble(prediction(1)); //cout << "Prediction 1:" << prediction(1) << endl;
             predB.addDouble(prediction(2)); //cout << "Prediction 2:" << prediction(2) << endl;
+            predB.addDouble(prediction(3));
             portPredictions.write(); // Now send it on its way
 
             Bottle& errB = portPredictionErrors.prepare(); // Get the object
@@ -739,6 +750,7 @@ bool bodySchema::learn()
             errB.addDouble(error[0]);
             errB.addDouble(error[1]);
             errB.addDouble(error[2]);
+            errB.addDouble(error[3]);
             portPredictionErrors.write(); // Now send it on its way
 
 
@@ -763,10 +775,13 @@ bool bodySchema::learn()
             in(0) = 50*sin(i*0.1)+sin(i*0.001)+5*sin(i*0.0001); //-70+10*sin(i*0.1)
             in(1) = 70*sin(i*0.1)+sin(i*0.001)+7*sin(i*0.0001);
             in(2) = 60*sin(i*0.1)+sin(i*0.001)+6*sin(i*0.0001);
+            in(3) = 80*sin(i*0.1)+sin(i*0.001)+8*sin(i*0.0001);
+
 
             vel->velocityMove(0,in(0));//cmd.data());
             vel->velocityMove(1,in(1));
             vel->velocityMove(2,in(2));
+            vel->velocityMove(3,in(3));
 
             Bottle *outB = portReadOutData.read();
 
@@ -775,6 +790,7 @@ bool bodySchema::learn()
                 output(0) = outB->get(0).asDouble() - prev_pos0; // 0 is the joint number!
                 output(1) = outB->get(1).asDouble() - prev_pos1;
                 output(2) = outB->get(2).asDouble() - prev_pos2;
+                output(3) = outB->get(3).asDouble() - prev_pos3;
             }
             else
                 cout << "NULL Bottle" << endl;
@@ -782,15 +798,18 @@ bool bodySchema::learn()
             prev_pos0 = outB->get(0).asDouble();
             prev_pos1 = outB->get(1).asDouble();
             prev_pos2 = outB->get(2).asDouble();
+            prev_pos3 = outB->get(3).asDouble();
 
             input(0) = in(0);
             input(1) = in(1);
             input(2) = in(2);
+            input(3) = in(3);
 
             Bottle& outDataB = portOutData.prepare(); // Get the object
             outDataB.addDouble(output(0));
             outDataB.addDouble(output(1));
             outDataB.addDouble(output(2));
+            outDataB.addDouble(output(3));
             portOutData.write(); // Now send it on its way
 
 
@@ -800,24 +819,27 @@ bool bodySchema::learn()
 
             //predict
             oesgp2.predict(prediction, prediction_variance);
-            double error[3];
+            double error[4];
             error[0] = (prediction(0) - output(0));//.norm();
             error[1] = (prediction(1) - output(1));//.norm();
             error[2] = (prediction(2) - output(2));//.norm();
+            error[3] = (prediction(3) - output(3));//.norm();
 //            cout << "Error: " << error << endl;
 
-            cout << "Error: " << error[0] << " " << error[1] << " " << error[2] << endl;
+            cout << "Error: " << error[0] << " " << error[1] << " " << error[2]<< " " << error[2] << endl;
 
             Bottle& predB = portPredictions.prepare(); // Get the object
             predB.addDouble(prediction(0));
             predB.addDouble(prediction(1));
             predB.addDouble(prediction(2));
+            predB.addDouble(prediction(3));
             portPredictions.write(); // Now send it on its way
 
             Bottle& errB = portPredictionErrors.prepare(); // Get the object
             errB.addDouble(error[0]);
             errB.addDouble(error[1]);
             errB.addDouble(error[2]);
+            errB.addDouble(error[3]);
             portPredictionErrors.write(); // Now send it on its way
 
             Time::yield();
@@ -895,6 +917,9 @@ bool bodySchema::init_iCub(string &part)
 
         ictrl->setControlMode(2,VOCAB_CM_VELOCITY);
         iint->setInteractionMode(2,VOCAB_IM_COMPLIANT);
+
+        ictrl->setControlMode(3,VOCAB_CM_VELOCITY);
+        iint->setInteractionMode(3,VOCAB_IM_COMPLIANT);
 
 //        for (int i=3; i<nj; i++)
 //        {
