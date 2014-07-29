@@ -59,7 +59,7 @@ class PasarModule : public yarp::os::RFModule {
     double pExponentialDecrease;            // under this threshlod, saliency is considered as 0
     double thresholdMovementAccel;          // Speed of the decrease of the saliency over the time (should be less than 1)
     double thresholdSaliency;
-    
+
     OPCClient *opc;					 //retrieve information from the OPC
     yarp::os::Port handlerPort;      //a port to handle messages 
 

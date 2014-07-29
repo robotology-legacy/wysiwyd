@@ -242,7 +242,7 @@ bool attentionSelectorModule::updateModule() {
     {
         exploring();
     }
-    
+
     if(trackedCoordinates)
     {
         cout<<"Tracking tracking coordinates: "<<x_coord<<" "<<y_coord<<" "<<z_coord<<"."<<endl;

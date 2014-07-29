@@ -31,7 +31,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     std::string gazePortName;
     std::string handlerPortName;
     std::string saliencyPortName;
-    
+
     moduleName            = rf.check("name", 
         Value("pasar"), 
         "module name (string)").asString();
@@ -168,16 +168,16 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     }  
     else if (command.get(0).asString()=="set") {
         reply.addString("set");
-       /* if (command.get(1).asString()=="leak")
+        /* if (command.get(1).asString()=="leak")
         {
-            reply.addString("leak");
-            this->pLeakyIntegrationA = command.get(2).asDouble();
+        reply.addString("leak");
+        this->pLeakyIntegrationA = command.get(2).asDouble();
         }*/
         //if
         //{
-            reply.addString("ir");
-            this->pTopDownInhibitionReturn= command.get(2).asDouble();
-      //  }
+        reply.addString("ir");
+        this->pTopDownInhibitionReturn= command.get(2).asDouble();
+        //  }
     }
     return true;
 }
@@ -202,11 +202,11 @@ bool PasarModule::updateModule()
                 if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
                 {
                     RTObject * rto = opc->addRTObject((*it)->name());
-                presentObjects[ (*it)->name() ].o.fromBottle( rto->asBottle() );
-                presentObjects[ (*it)->name() ].o.m_saliency = rto->m_saliency;
-                presentObjects[ (*it)->name() ].speed = 0.0;
-                presentObjects[ (*it)->name() ].acceleration = 0.0;
-                presentObjects[ (*it)->name() ].restingSteps = 0;
+                    presentObjects[ (*it)->name() ].o.fromBottle( rto->asBottle() );
+                    presentObjects[ (*it)->name() ].o.m_saliency = rto->m_saliency;
+                    presentObjects[ (*it)->name() ].speed = 0.0;
+                    presentObjects[ (*it)->name() ].acceleration = 0.0;
+                    presentObjects[ (*it)->name() ].restingSteps = 0;
 
                 }
 
@@ -220,11 +220,11 @@ bool PasarModule::updateModule()
                     presentObjects[ (*it)->name() ].restingSteps = 0;
 
                 }/*
-                presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
-                presentObjects[ (*it)->name() ].o.m_saliency = 0.0;
-                presentObjects[ (*it)->name() ].speed = 0.0;
-                presentObjects[ (*it)->name() ].acceleration = 0.0;
-                presentObjects[ (*it)->name() ].restingSteps = 0;*/
+                 presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
+                 presentObjects[ (*it)->name() ].o.m_saliency = 0.0;
+                 presentObjects[ (*it)->name() ].speed = 0.0;
+                 presentObjects[ (*it)->name() ].acceleration = 0.0;
+                 presentObjects[ (*it)->name() ].restingSteps = 0;*/
             }
         }
         //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
@@ -243,9 +243,9 @@ bool PasarModule::updateModule()
         //saliencyNormalize();
 
         //Inhinbition of return
-//        if(trackedObject!= "")
-//            presentObjects[trackedObject].o.m_saliency = max(0.0, presentObjects[trackedObject].o.m_saliency - pTopDownInhibitionReturn);
-        
+        //        if(trackedObject!= "")
+        //            presentObjects[trackedObject].o.m_saliency = max(0.0, presentObjects[trackedObject].o.m_saliency - pTopDownInhibitionReturn);
+
 
         //Leaky integrate
         saliencyLeakyIntegration();
@@ -254,7 +254,7 @@ bool PasarModule::updateModule()
         map< string, ObjectModel >::iterator mostSalientObject = presentObjects.begin();
         for(map< string, ObjectModel >::iterator it=presentObjects.begin(); it!=presentObjects.end();it++)
         {    
-          //  cout<<"Saliency ("<<it->second.o.name()<<") = "<<it->second.o.m_saliency<<endl;
+            //  cout<<"Saliency ("<<it->second.o.name()<<") = "<<it->second.o.m_saliency<<endl;
             if (it->second.o.m_saliency > mostSalientObject->second.o.m_saliency)
                 mostSalientObject = it;
         }
@@ -470,11 +470,11 @@ void PasarModule::saliencyTopDown() {
                 it->second.o.m_saliency += pTopDownDisappearanceBurst;
             }
 
-          
+
             if (acceleration > thresholdMovementAccel)
             {
-                  it->second.o.m_saliency += pTopDownAccelerationCoef;
-                  //cout << "ca bouge !!! " << it->second.o.name() << " salience : " << acceleration << endl;
+                it->second.o.m_saliency += pTopDownAccelerationCoef;
+                //cout << "ca bouge !!! " << it->second.o.name() << " salience : " << acceleration << endl;
             }
         }
     }

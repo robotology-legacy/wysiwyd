@@ -92,22 +92,15 @@ public:
     static int  SIGMA_LEARNING_GRAMMAR;
     static double   THRESHOLD_CONFIDENCE_GRAMMAR;
 
-
-
     static pair<double, double> coordFromString(string);
 
     static bool timeDiff(struct tm TM1, struct tm TM2);
-
     static struct tm string2Time(string sTime);
-
     static string time2string(struct tm Time);
-
     static int  timeDiffSecondFromString(string T1, string T2);
-
     static pair<string, string> ago2string(pair<int, string> pInput);
 
     static vector<double> getCovMatrix(vector<double> vX, vector<double> vY);
-
     static double getMahalaDist(vector<double> vX, vector<double> vY, pair<double, double> XY);
 
     static tuple<int,int,int> tupleIntFromString(string sInput);
