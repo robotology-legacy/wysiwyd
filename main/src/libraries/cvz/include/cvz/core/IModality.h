@@ -105,6 +105,50 @@ namespace cvz {
                 mutex.post();
             }
 
+			/**
+			* Instantiate a new IModality from a property.
+			*/
+			IModality(std::string namePrefix, yarp::os::Bottle prop)
+			{
+				name = namePrefix;
+				name += prop.find("name").asString();
+				size = prop.find("size").asInt();
+				autoScale = prop.check("autoScale");
+				
+				if (prop.check("minBounds"))
+				{
+					yarp::os::Bottle* bMask = prop.find("minBounds").asList();
+					for (int i = 0; i < bMask->size(); i++)
+						minBound.push_back(bMask->get(i).asDouble());
+				}
+				else
+				{
+					if (autoScale)
+						minBound.resize(size, DBL_MAX);
+					else
+						minBound.resize(size, 0.0);
+				}
+
+				if (prop.check("maxBounds"))
+				{
+					yarp::os::Bottle* bMask = prop.find("maxBounds").asList();
+					for (int i = 0; i < bMask->size(); i++)
+						maxBound.push_back(bMask->get(i).asDouble());
+				}
+				else
+				{
+					if (autoScale)
+						maxBound.resize(size, DBL_MIN);
+					else
+						maxBound.resize(size, 1.0);
+				}
+
+				scaledValueReal.resize(size);
+				scaledValuePrediction.resize(size);
+				valueReal.resize(size);
+				valuePrediction.resize(size);
+			}
+
             /**
             * Instantiate a new IModality.
             * @parameter _name The name of the modality, including any prefix you want to use (like the cvz name)
@@ -113,7 +157,7 @@ namespace cvz {
             * @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
             * @parameter _autoScale If true the maximum/minimum boudaries will adapt to the input.
             */
-            IModality(std::string _name, int _size, std::vector<double> min, std::vector<double> max, bool _autoScale)
+            IModality(std::string _name, int _size, std::vector<double> min, std::vector<double> max, bool _autoScale, yarp::os::Property* prop=NULL)
             {
                 name = _name;
                 size = _size;
@@ -178,7 +222,7 @@ namespace cvz {
 							maxBound[i] = valueReal[i];
                             std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
                         }
-						if (autoScale && valueReal[i]<minBound[i])
+						else if (autoScale && valueReal[i]<minBound[i])
                         {
 							minBound[i] = valueReal[i];
                             std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
@@ -281,6 +325,46 @@ namespace cvz {
             * Retrieve the name of the modality/prediction port.
             */
             virtual std::string GetFullNamePrediction(){ return portPrediction.getName(); }
+
+			/**
+			* Instantiate a new BufferedPortModality<T> from a property.
+			*/
+			ModalityBufferedPort(std::string namePrefix, yarp::os::Bottle prop) :IModality(namePrefix,prop)
+			{
+
+				isBlocking = prop.check("isBlocking");
+				if (prop.check("mask"))
+				{
+					yarp::os::Bottle* bMask = prop.find("mask").asList();
+					for (int i = 0; i < bMask->size(); i++)
+						mask.push_back(bMask->get(i).asDouble());
+				}
+				else
+				{
+					if (mask.size() == 0)
+					for (int i = 0; i < size; i++)
+						mask.push_back(true);
+				}
+				
+				valueReal.resize(size);
+				valuePrediction.resize(size);
+				std::string pName = name;
+				pName += "/real:i";
+				portReal.open(pName.c_str());
+
+				pName = name;
+				pName += "/prediction:o";
+				portPrediction.open(pName.c_str());
+
+				pName = name;
+				pName += "/error:o";
+				portError.open(pName.c_str());
+
+
+				std::string autoConnect = prop.check("autoconnect", yarp::os::Value("")).asString();
+				if (autoConnect != "")
+					ConnectInput(autoConnect);
+			}
 
             /**
             * Instantiate a new BufferedPortModality<T>.
@@ -421,8 +505,8 @@ namespace cvz {
 			{
 				mutex.wait();
 				yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-				img.resize(size, 1);
-				for (int x = 0; x < size; x++)
+				img.resize(values.size(), 1);
+				for (int x = 0; x < values.size(); x++)
 				{
 					img.pixel(x, 0) = helpers::double2RGB(values[x]);
 				}
@@ -582,7 +666,7 @@ namespace cvz {
             {
                 if (mask[i])
                 {
-                    img.pixel(i%img.width(), i / img.width()) = output[cnt];
+                    img.pixel(i%img.width(), i / img.width()) = output[cnt] * 255.0;
                     cnt++;
                 }
                 else
@@ -616,12 +700,25 @@ namespace cvz {
                 {
                     int x = i%input->width();
                     int y = i / input->width();
-                    v[cnt] = input->pixel(x, y);
+                    v[cnt] = input->pixel(x, y)/255.0;
                     cnt++;
                 }
             }
             return v;
         }
+
+		
+		/**
+		* getVisualization() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
+		*/
+		template<>
+		yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >::getVisualizationFromVector(std::vector<double> values)
+		{
+			yarp::sig::ImageOf<yarp::sig::PixelFloat> imgF = Unvectorize(values);
+			yarp::sig::ImageOf<yarp::sig::PixelRgb> imgRgb;
+			imgRgb.copy(imgF);
+			return imgRgb;
+		}
 
         /**
         * Unvectorize() specialization for yarp::sig::Sound

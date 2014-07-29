@@ -45,6 +45,8 @@ namespace cvz {
 				std::string name = prop.check("name", yarp::os::Value("defaultCvz")).asString();
 				period = prop.check("period", yarp::os::Value(0.01)).asDouble();
 				setName(name.c_str());
+				std::string modPortPrefix = "/";
+				modPortPrefix += getName() + "/";
 
 				int modalityCount = 0;
 
@@ -63,128 +65,23 @@ namespace cvz {
 					}
 
 					std::cout << name << " is configuring " << ss << std::endl;
-					//Get the generic parameters (name, size, minBounds, maxBounds, isTopDown)
 					std::string modName = bMod.find("name").asString();
-					int modSize = bMod.find("size").asInt();
-					double modInf = bMod.check("influence", yarp::os::Value(1.0)).asDouble();
-					double modLearning= bMod.check("learningRate", yarp::os::Value(1.0)).asDouble();
-					bool modAutoScaling = bMod.check("autoScale");
-
-					std::vector<double> minBounds;
-					if (bMod.check("minBounds"))
-					{
-						yarp::os::Bottle* bMask = bMod.find("minBounds").asList();
-						for (int i = 0; i < bMask->size(); i++)
-							minBounds.push_back(bMask->get(i).asDouble());
-					}
-					else
-					{
-						if (modAutoScaling)
-							minBounds.resize(modSize, DBL_MAX);
-						else
-							minBounds.resize(modSize, 0.0);
-					}
-
-					std::vector<double> maxBounds;
-					if (bMod.check("maxBounds"))
-					{
-						yarp::os::Bottle* bMask = bMod.find("maxBounds").asList();
-						for (int i = 0; i < bMask->size(); i++)
-							maxBounds.push_back(bMask->get(i).asDouble());
-					}
-					else
-					{
-						if (modAutoScaling)
-							maxBounds.resize(modSize, DBL_MIN);
-						else
-							maxBounds.resize(modSize, 1.0);
-					}
-
 					bool isTopDown = bMod.check("isTopDown");
-
-					//Get the type and any additional parameters
+					double modLearning = bMod.check("learningRate", yarp::os::Value(1.0)).asDouble();
+					double modInf = bMod.check("influence", yarp::os::Value(1.0)).asDouble();
+					//Get the type and any additional parameters from the property
 					std::string modType = bMod.find("type").asString();
 					IModality* mod = NULL;
 					if (modType == "yarpVector")
-					{
-						std::vector<bool> mask;
-						if (bMod.check("mask"))
-						{
-							yarp::os::Bottle* bMask = bMod.find("mask").asList();
-							for (int i = 0; i < bMask->size(); i++)
-								mask.push_back(bMask->get(i).asDouble());
-						}
-						bool isBlocking = bMod.check("isBlocking");
-						std::string modPortPrefix = "/";
-						modPortPrefix += getName() + "/";
-						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::os::Bottle>(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
-
-						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
-						if (autoConnect != "")
-							((ModalityBufferedPort<yarp::os::Bottle>*)mod)->ConnectInput(autoConnect);
-					}
+						mod = new ModalityBufferedPort<yarp::os::Bottle>(modPortPrefix, bMod);
 					else if (modType == "yarpSound")
-					{
-						std::vector<bool> mask;
-						if (bMod.check("mask"))
-						{
-							yarp::os::Bottle* bMask = bMod.find("mask").asList();
-							for (int i = 0; i < bMask->size(); i++)
-								mask.push_back(bMask->get(i).asDouble());
-						}
-						bool isBlocking = bMod.check("isBlocking");
-						std::string modPortPrefix = "/";
-						modPortPrefix += getName() + "/";
-						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
-
-						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
-						if (autoConnect != "")
-							((ModalityBufferedPort<yarp::sig::Sound>*)mod)->ConnectInput(autoConnect);
-					}
+						mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, bMod);
 					else if (modType == "yarpImageFloat")
-					{
-						std::vector<bool> mask;
-						if (prop.check("mask"))
-						{
-							yarp::os::Bottle* bMask = prop.find("mask").asList();
-							for (int i = 0; i < bMask->size(); i++)
-								mask.push_back(bMask->get(i).asDouble());
-						}
-						bool isBlocking = bMod.check("isBlocking");
-						std::string modPortPrefix = "/";
-						modPortPrefix += getName() + "/";
-						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
-
-						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
-						if (autoConnect != "")
-							((ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >*)mod)->ConnectInput(autoConnect);
-					}
+						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >(modPortPrefix, bMod);
 					else if (modType == "yarpImageRgb")
-					{
-						std::vector<bool> mask;
-						if (prop.check("mask"))
-						{
-							yarp::os::Bottle* bMask = prop.find("mask").asList();
-							for (int i = 0; i < bMask->size(); i++)
-								mask.push_back(bMask->get(i).asDouble());
-						}
-						bool isBlocking = bMod.check("isBlocking");
-						std::string modPortPrefix = "/";
-						modPortPrefix += getName() + "/";
-						modPortPrefix += modName;
-						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, modSize, minBounds, maxBounds, mask, modAutoScaling, isBlocking);
-
-						std::string autoConnect = bMod.check("autoconnect", yarp::os::Value("")).asString();
-						if (autoConnect != "")
-							((ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*)mod)->ConnectInput(autoConnect);
-					}
+						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, bMod);
 					else
-					{
 						std::cout << "Warning, this modality type does not exist. Discarded." << std::endl;
-					}
 
 					if (mod != NULL)
 					{

@@ -6,7 +6,7 @@
 
 namespace cvz {
 	namespace gui {
-#define CVZ_GUI_MODALITY_DIM_W 100
+#define CVZ_GUI_MODALITY_DIM_W 130
 #define CVZ_GUI_MODALITY_DIM_H 10 //In the case of a vector being displayed. Else this will be calculated from the width and the visualization ratio
 
 		static gboolean paintModalities(GtkWidget *widget, GdkEventExpose *event, gpointer data)
