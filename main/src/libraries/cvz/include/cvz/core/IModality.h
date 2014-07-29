@@ -7,10 +7,13 @@
 #include <string>
 #include <iostream>
 #include "cvz/helpers/helpers.h"
+#include <float.h>
+
 namespace cvz {
     namespace core {
 
 #define MASKED_ELEMENT_VALUE 0.0
+
 
         /**
         * \ingroup cvz_library
@@ -32,6 +35,8 @@ namespace cvz {
             std::vector<double> valueReal;
             std::vector<double> valuePrediction;
 			
+			yarp::os::Bottle parameters;
+
             /**
             * virtual method : Defines what a modality does upon input signal. Should be overloaded and is called by IModality::Input()
             * @return true/false in case of success failure
@@ -110,6 +115,8 @@ namespace cvz {
 			*/
 			IModality(std::string namePrefix, yarp::os::Bottle prop)
 			{
+				parameters = prop;
+
 				name = namePrefix;
 				name += prop.find("name").asString();
 				size = prop.find("size").asInt();
@@ -612,10 +619,16 @@ namespace cvz {
         {
             std::vector<double> v;
             v.resize(size);
-            yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-            int desiredWidth = (int)sqrt((double)size);
-            img.copy(*input, desiredWidth, desiredWidth);
-            //input->resize(size / 2, size - size / 2);
+			yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
+			int desiredWidth = (int)sqrt((double)size);
+			int padding = parameters.check("padding", yarp::os::Value(0)).asInt();
+			if (padding > 0)
+			{
+				yarp::sig::ImageOf<yarp::sig::PixelRgb> imgPd = cvz::helpers::getImgSubRegion(*input, padding, padding, input->width() - padding, input->height() - padding);
+				img.copy(imgPd, desiredWidth, desiredWidth);
+			}
+			else
+				img.copy(*input, desiredWidth, desiredWidth);
 
             int cnt = 0;
             for (unsigned int i = 0; i<mask.size(); i++)
@@ -686,7 +699,15 @@ namespace cvz {
             std::vector<double> v;
             v.resize(size);
             yarp::sig::ImageOf<yarp::sig::PixelFloat> img;
-            img.copy(*input, size / 2, size - size / 2);
+			int desiredWidth = (int)sqrt((double)size);
+			int padding = parameters.check("padding", yarp::os::Value(0)).asInt();
+			if (padding > 0)
+			{
+				yarp::sig::ImageOf<yarp::sig::PixelFloat> imgPd = cvz::helpers::getImgSubRegion(*input, padding, padding, input->width() - padding, input->height() - padding);
+				img.copy(imgPd, desiredWidth, desiredWidth);
+			}
+			else
+				img.copy(*input, desiredWidth, desiredWidth);
 
             int cnt = 0;
             for (unsigned int i = 0; i<mask.size(); i++)

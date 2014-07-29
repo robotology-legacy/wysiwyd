@@ -39,7 +39,24 @@ yarp::sig::PixelRgb double2RGB(double value)
 	}
 	return px;
 }
-
+/*
+template<class pxT>
+yarp::sig::ImageOf<pxT> getImgSubRegion(const yarp::sig::ImageOf<pxT> &img, int ulx, int uly, int lrx, int lry)
+{
+	yarp::sig::ImageOf<pxT> out;
+	int w = abs(ulx - lrx);
+	int h = abs(lry - uly);
+	out.resize(w, h);
+	for (int x = 0; x < w; x++)
+	{
+		for (int y = 0; y < h; y++)
+		{
+			out.pixel(x, y) = img.pixel(ulx + x, uly + y);
+		}
+	}
+	return out;
+}
+*/
 double MexicanHat(const double &x, const double &sigma)
 {
 	return

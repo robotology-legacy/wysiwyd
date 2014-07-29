@@ -18,6 +18,25 @@ namespace cvz {
 		double tanhx(double x);
 		double sigmoidFunction(double x);
 		void Clamp(double &value, const double &_min, const double &_max);
+		
+		//template<class pxT>
+		//yarp::sig::ImageOf<pxT> getImgSubRegion(const yarp::sig::ImageOf<pxT> &img, int ulx, int uly, int lrx, int lry);
+		template<class pxT>
+		yarp::sig::ImageOf<pxT> getImgSubRegion(const yarp::sig::ImageOf<pxT> &img, int ulx, int uly, int lrx, int lry)
+		{
+			yarp::sig::ImageOf<pxT> out;
+			int w = abs(ulx - lrx);
+			int h = abs(lry - uly);
+			out.resize(w, h);
+			for (int x = 0; x < w; x++)
+			{
+				for (int y = 0; y < h; y++)
+				{
+					out.pixel(x, y) = img.pixel(ulx + x, uly + y);
+				}
+			}
+			return out;
+		}
 
 		struct Cube : public std::vector< std::vector< std::vector< double > > >
 		{
