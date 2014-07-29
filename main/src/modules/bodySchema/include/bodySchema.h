@@ -121,6 +121,12 @@ private:
 
     State state;
     	
+
+
+    bool endTrain;
+
+
+
 	
 //  ICubClient *iCub;
 
@@ -145,6 +151,8 @@ public:
     bool learn();
     bool learn(string &fileNameIn, string &fileNameOut);
 //    bool learn(BufferedPort<Bottle> &portIn, BufferedPort<Bottle> &portOut);
+
+    bool train(int &nIter);
 
     
 private:

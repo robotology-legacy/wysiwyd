@@ -275,18 +275,22 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
 bool bodySchema::updateModule() {
 
 
-    if (state==learning)
-    {
-        learn(inPort,outPort);
-        state=idle;
-    }
-    else if (state==babbling)
-    {
-        learn();
-        state=idle;
-    }
+//    if (state==learning)
+//    {
+//        learn(inPort,outPort);
+//        state=idle;
+//    }
+//    else if (state==babbling)
+//    {
+//        learn();
+//        state=idle;
+//    }
 
-    return true;
+    learn();
+
+    printf("==============\n");
+
+    return false;
 }
 
 double bodySchema::getPeriod() {
@@ -302,6 +306,8 @@ double bodySchema::getPeriod() {
 *   Learning
 *
 */
+
+
 
 bool bodySchema::learn(string &dataIn, string &dataOut)
 {
@@ -582,13 +588,207 @@ bool bodySchema::learn(string &dataIn, string &dataOut)
 
 
 
+
+
+
+
+
+
+
+//bool bodySchema::train(int &nIter)
+//{
+//    cout<<"Training..."<<endl;
+
+
+//    //Problem parameters
+//    //we want to predict a simple sine wave
+//    int input_dim = 4;
+//    int output_dim = 4;
+
+//    //Reservoir Parameters
+//    //you can change these to see how it affects the predictions
+//    int reservoir_size = 300;
+//    double input_weight = 1.0;
+//    double output_feedback_weight = 1.0;
+//    int activation_function = Reservoir::TANH;
+//    double leak_rate = 0.9;
+//    double connectivity = 0.1;
+//    double spectral_radius = 0.90;
+//    bool use_inputs_in_state = false;
+
+//    VectorXd kernel_parameters(2); //gaussian kernel parameters
+//    kernel_parameters << 10.0, 1.0; //l = 1.0, alpha = 1.0
+
+//    //SOGP parameters
+//    double noise = 0.0001;
+//    double epsilon = 1e-3;
+//    int capacity = 250;
+
+//    int random_seed = 0;
+
+//        //Initialise our OESGP
+//        oesgp.init( input_dim, output_dim, reservoir_size,
+//                    input_weight, output_feedback_weight,
+//                    activation_function,
+//                    leak_rate,
+//                    connectivity, spectral_radius,
+//                    use_inputs_in_state,
+//                    kernel_parameters,
+//                    noise, epsilon, capacity, random_seed);
+
+
+//        //now we loop using a sine wave
+//        unsigned int max_itr = nIter;//1500; // TO MODIFY!!!!
+//        unsigned int iters = max_itr;
+
+//        //note that we use Eigen VectorXd objects
+//        //look at http://eigen.tuxfamily.org for more information about Eigen
+//        VectorXd input(4);  //the 1 is the size of the vector
+//        VectorXd output(4);
+
+//        VectorXd state;
+//        VectorXd prediction;
+//        VectorXd prediction_variance;
+
+//        VectorXd in(1);  //the 1 is the size of the vector
+//        VectorXd out(1);
+
+
+//        double prev_pos0;
+//        double prev_pos1;
+//        double prev_pos2;
+//        double prev_pos3;
+//        pos->positionMove(0,-70);
+//        pos->positionMove(1,-70);
+//        pos->positionMove(2,-20);
+//        pos->positionMove(3,-50);
+//        Time::delay(0.2);
+
+//        Bottle *prevPosB = portReadOutData.read();
+//        if (!prevPosB->isNull())
+//        {
+//            prev_pos0 = prevPosB->get(0).asDouble(); // 0 is the joint number!
+//            prev_pos1 = prevPosB->get(1).asDouble(); // 1 is the joint number!
+//            prev_pos2 = prevPosB->get(2).asDouble(); // 2 is the joint number!
+//            prev_pos3 = prevPosB->get(3).asDouble(); // 3 is the joint number!
+//        }
+//        else
+//            cout << "NULL Bottle" << endl;
+
+
+
+//        unsigned int i=1;
+
+//            //create the input and output
+//            in(0) = 20*sin(i*0.1);//+sin(i*0.001)+5*sin(i*0.0001); //-70+10*sin(i*0.1)
+//            in(1) = 20*sin(i*0.1);//+sin(i*0.001)+7*sin(i*0.0001);
+//            in(2) = 20*sin(i*0.1);//+sin(i*0.001)+6*sin(i*0.0001);
+//            in(3) = 20*sin(i*0.1);//+sin(i*0.001)+8*sin(i*0.0001);
+
+//            vel->velocityMove(0,in(0));//cmdRightArm);//cmd.data());
+//            vel->velocityMove(1,in(1));
+//            vel->velocityMove(2,in(2));
+//            vel->velocityMove(3,in(3));
+
+//            Bottle *outB = portReadOutData.read();
+
+//            if (!outB->isNull())
+//            {
+//                output(0) = outB->get(0).asDouble();// - prev_pos0; // 0 is the joint number!
+//                output(1) = outB->get(1).asDouble();// - prev_pos1;
+//                output(2) = outB->get(2).asDouble();// - prev_pos2;
+//                output(3) = outB->get(3).asDouble();// - prev_pos3;
+//            }
+//            else
+//                cout << "NULL Bottle" << endl;
+
+//            prev_pos0 = outB->get(0).asDouble();
+//            prev_pos1 = outB->get(1).asDouble();
+//            prev_pos2 = outB->get(2).asDouble();
+//            prev_pos3 = outB->get(3).asDouble();
+
+//            input(0) = in(0);
+//            input(1) = in(1);
+//            input(2) = in(2);
+//            input(3) = in(3);
+
+//            cout << "Output.:" << output << endl;
+
+//            Bottle& outDataB = portOutData.prepare(); // Get the object
+//            outDataB.clear();
+//            outDataB.addDouble(output(0));
+//            outDataB.addDouble(output(1));
+//            outDataB.addDouble(output(2));
+//            outDataB.addDouble(output(3));
+//            portOutData.write(); // Now send it on its way
+
+
+//            //update the OESGP with the input
+//            oesgp.update(input);
+
+//            //predict the next state
+//            oesgp.predict(prediction, prediction_variance);
+//            cout << "Prediction:" << prediction << endl;
+////            cout << "Prediction:" << prediction.value() << endl;
+
+//            //print the error
+////            double error = (prediction - output).norm();
+//            double error[4];
+//            error[0] = (prediction(0) - output(0));//.norm();
+//            error[1] = (prediction(1) - output(1));//.norm();
+//            error[2] = (prediction(2) - output(2));//.norm();
+//            error[3] = (prediction(3) - output(3));//.norm();
+
+////            cout << "Error: " << error << ", |BV|: "
+////                 << oesgp.getCurrentSize() <<  endl;
+
+//            cout << "Error: " << error[0] << " " << error[1] << " " << error[2]<< " " << error[3] << ", |BV|: "
+//                    << oesgp.getCurrentSize() <<  endl;
+
+//            //train with the true next state
+//            oesgp.train(output);
+
+//            Bottle& predB = portPredictions.prepare(); // Get the object
+//            predB.clear();
+//            predB.addDouble(prediction(0)); //cout << "Prediction 0:" << prediction(0) << endl;
+//            predB.addDouble(prediction(1)); //cout << "Prediction 1:" << prediction(1) << endl;
+//            predB.addDouble(prediction(2)); //cout << "Prediction 2:" << prediction(2) << endl;
+//            predB.addDouble(prediction(3));
+//            portPredictions.write(); // Now send it on its way
+
+//            Bottle& errB = portPredictionErrors.prepare(); // Get the object
+//            errB.clear();
+//            errB.addDouble(error[0]);
+//            errB.addDouble(error[1]);
+//            errB.addDouble(error[2]);
+//            errB.addDouble(error[3]);
+//            portPredictionErrors.write(); // Now send it on its way
+
+//            i = i+1;
+//            if (i<nIter)
+//                endTrain = true;
+//            else
+//                endTrain = false;
+
+
+
+//            return true;
+
+
+//}
+
+
+
+
+
 bool bodySchema::learn()
 {
+
 
     cout << "Learning from babbling; iCub required." << endl;
 
     //Create our OESGP object
-    OESGP oesgp;
+//    OESGP oesgp;
 
     //Problem parameters
     //we want to predict a simple sine wave
@@ -599,7 +799,7 @@ bool bodySchema::learn()
     //you can change these to see how it affects the predictions
     int reservoir_size = 300;
     double input_weight = 1.0;
-    double output_feedback_weight = 0.0;
+    double output_feedback_weight = 1.0;
     int activation_function = Reservoir::TANH;
     double leak_rate = 0.9;
     double connectivity = 0.1;
@@ -612,11 +812,11 @@ bool bodySchema::learn()
     //SOGP parameters
     double noise = 0.0001;
     double epsilon = 1e-3;
-    int capacity = 150;
+    int capacity = 250;
 
     int random_seed = 0;
 
-    try {
+//    try {
         //Initialise our OESGP
         oesgp.init( input_dim, output_dim, reservoir_size,
                     input_weight, output_feedback_weight,
@@ -629,7 +829,7 @@ bool bodySchema::learn()
 
 
         //now we loop using a sine wave
-        unsigned int max_itr = 1000; // TO MODIFY!!!!
+        unsigned int max_itr = 1500; // TO MODIFY!!!!
         unsigned int iters = max_itr;
 
         //note that we use Eigen VectorXd objects
@@ -641,18 +841,25 @@ bool bodySchema::learn()
         VectorXd prediction;
         VectorXd prediction_variance;
 
-        VectorXd in(1);  //the 1 is the size of the vector
-        VectorXd out(1);
+        VectorXd in(4);  //the 1 is the size of the vector
+        VectorXd out(4);
 
 
         double prev_pos0;
         double prev_pos1;
         double prev_pos2;
         double prev_pos3;
-        pos->positionMove(0,-70);
-        pos->positionMove(1,-70);
-        pos->positionMove(2,-20);
-        pos->positionMove(3,-50);
+//        pos->positionMove(0,-70);
+//        pos->positionMove(1,-70);
+//        pos->positionMove(2,-20);
+//        pos->positionMove(3,-50);
+//        Time::delay(0.2);
+
+        encs->getEncoder(0,&prev_pos0);
+        encs->getEncoder(1,&prev_pos1);
+        encs->getEncoder(2,&prev_pos2);
+        encs->getEncoder(3,&prev_pos3);
+
         Bottle *prevPosB = portReadOutData.read();
         if (!prevPosB->isNull())
         {
@@ -753,8 +960,10 @@ bool bodySchema::learn()
             errB.addDouble(error[3]);
             portPredictionErrors.write(); // Now send it on its way
 
+            printf("i= %d\n",i);
 
             Time::yield();
+
 
         }
 
@@ -766,7 +975,7 @@ bool bodySchema::learn()
 
         oesgp.save("oesgptest");
 
-        OESGP oesgp2;
+//        OESGP oesgp2;
         oesgp2.load("oesgptest");
 
         //prediction test
@@ -843,11 +1052,18 @@ bool bodySchema::learn()
             portPredictionErrors.write(); // Now send it on its way
 
             Time::yield();
-        }
 
-    } catch (OTLException &e) {
-        e.showError();
-    }
+
+        }
+        cout << "Finished learning....." << endl;
+
+//    } catch (OTLException &e) {
+//        cout <<"CATCH???"<<endl;
+//        e.showError();
+//    }
+
+    cout << "Exit learning from babbling learning..."<<endl;
+
     return true;
 
 
