@@ -263,7 +263,7 @@ void    qRM::mainLoop()
         cout << osError.str() << endl;
     }
 
-    
+
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
     // semantic is the list of the semantic elements of the sentence except the type ef sentence
@@ -294,9 +294,6 @@ void    qRM::mainLoop()
 
         double maxSalience = 0;
         string nameTrackedObject = "none";
-        if (presentObjects.size()==0)
-
-        Object* mostSalient = *presentObjects.begin();
         for(vector<Object*>::iterator it = presentObjects.begin(); it!= presentObjects.end(); it++)
         {
             if (maxSalience < (*it)->m_saliency )
@@ -307,13 +304,11 @@ void    qRM::mainLoop()
             //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
         }
 
-        if (nameTrackedObject != "none")
-        {
-            cout<<"Most salient is : "<<nameTrackedObject<<" with saliency="<<maxSalience << endl;
 
-            vArgument.push_back(nameTrackedObject);
-            vRole.push_back("focus");
-        }
+        cout<<"Most salient is : "<<nameTrackedObject<<" with saliency="<<maxSalience << endl;
+        vArgument.push_back(nameTrackedObject);
+
+        vRole.push_back("focus");
 
         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
 
@@ -321,27 +316,27 @@ void    qRM::mainLoop()
     }
     else if (sQuestionKind == "SHOW")
     {
-         string sWord = bSemantic.check("words", Value("none")).asString();
-         bSendReasoning.addString("askWordKnowledge");
-         bSendReasoning.addString("getObjectFromWord");
-         bSendReasoning.addString(sWord);
-         Port2abmReasoning.write(bSendReasoning, bMessenger);
+        string sWord = bSemantic.check("words", Value("none")).asString();
+        bSendReasoning.addString("askWordKnowledge");
+        bSendReasoning.addString("getObjectFromWord");
+        bSendReasoning.addString(sWord);
+        Port2abmReasoning.write(bSendReasoning, bMessenger);
 
-         list<string>  vRole,
-             vArgument;
-         vArgument.push_back(sWord);
-         vRole.push_back("word");
+        list<string>  vRole,
+            vArgument;
+        vArgument.push_back(sWord);
+        vRole.push_back("word");
 
-         cout << "bMessenger is : " << bMessenger.toString() << endl;
+        cout << "bMessenger is : " << bMessenger.toString() << endl;
 
-         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
+        iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
 
 
     }
     else if (sQuestionKind == "WHAT")
     {
-         bSendReasoning.addString("askWordKnowledge");
-         bSendReasoning.addString("getWordFromObject");
+        bSendReasoning.addString("askWordKnowledge");
+        bSendReasoning.addString("getWordFromObject");
 
         vector<Object*>      presentObjects;
         iCub->opc->checkout();
@@ -360,9 +355,6 @@ void    qRM::mainLoop()
 
         double maxSalience = 0;
         string nameTrackedObject = "none";
-        if (presentObjects.size()==0)
-
-        Object* mostSalient = *presentObjects.begin();
         for(vector<Object*>::iterator it = presentObjects.begin(); it!= presentObjects.end(); it++)
         {
             if (maxSalience < (*it)->m_saliency )
@@ -373,23 +365,21 @@ void    qRM::mainLoop()
             //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
         }
 
-        if (nameTrackedObject != "none")
-        {
-            cout<<"Most salient is : "<<nameTrackedObject<<" with saliency="<<maxSalience << endl;
-        }
+        cout<<"Most salient is : "<<nameTrackedObject<<" with saliency="<<maxSalience << endl;
+
         list<string>  vRole,
             vArgument;
         vArgument.push_back(nameTrackedObject);
         vRole.push_back("word");
 
 
-         bSendReasoning.addString(nameTrackedObject);
-         Port2abmReasoning.write(bSendReasoning, bMessenger);
+        bSendReasoning.addString(nameTrackedObject);
+        Port2abmReasoning.write(bSendReasoning, bMessenger);
 
-         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
+        iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
 
 
-         cout << "bMessenger is : " << bMessenger.toString() << endl;
+        cout << "bMessenger is : " << bMessenger.toString() << endl;
 
     }
 
