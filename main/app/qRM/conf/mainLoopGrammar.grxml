@@ -12,200 +12,43 @@
     <ID	NAME="object"	VAL="3"/>
     <ID	NAME="rtobject"	VAL="4"/>
     <ID	NAME="keyword"	VAL="5"/>
+    <ID	NAME="words"	VAL="5"/>
   </DEFINE>
-  
-  
-  <RULE	NAME="AFFIRMATIVE"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <RULEREF	NAME="groupSubject"/>
 
-    <RULEREF	NAME="groupVerbal"/>
-    
-    <O>
-      <RULEREF	NAME="groupObject"/>
-    </O>
-	   
-	  <O>
-      <RULEREF	NAME="groupPlace"/>
-    </O>
+
+  <RULE	NAME="LOOK"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>This is the</P>
+    <RULEREF	NAME="words"/>
   </RULE>
 
-  <RULE	NAME="INTERROGATIVE_WHO"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>Who</P>
-    <RULEREF	NAME="groupVerbal"/>
-    <O>
-      <RULEREF	NAME="groupObject"/>
-    </O>
-	   
-	  <O>
-      <RULEREF	NAME="groupPlace"/>
-    </O>
+  <RULE	NAME="SHOW"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>Show me the</P>
+    <RULEREF	NAME="words"/>
   </RULE>
 
-  <RULE	NAME="INTERROGATIVE_WHAT"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>What</P>
-    
-    <RULEREF	NAME="groupVerbal"/>
-    
-    <O>
-      <RULEREF NAME="groupSubject"/>
-    </O>
-	    
-	  <O>
-      <RULEREF NAME="groupPlace"/>
-    </O>
+  <RULE	NAME="WHAT"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>What is this object ?</P>
   </RULE>
 
-  <RULE	NAME="INTERROGATIVE_WHERE"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>Where</P>
-    
-    <RULEREF	NAME="groupSubject"/>
-    
-    <RULEREF	NAME="groupVerbal"/>
-    
-    <O>
-      <RULEREF	NAME="groupObject"/>
-    </O>
-
-  </RULE>
-
-  <RULE	NAME="INTERROGATIVE_HOW"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>How</P>
-    <RULEREF	NAME="groupSubject"/>
-    <RULEREF	NAME="groupVerbal"/>
-    <O>
-      <RULEREF	NAME="groupObject"/>
-    </O>
-	   
-	<O>
-      <RULEREF	NAME="groupPlace"/>
-    </O>
-  </RULE>
-
-  <RULE	NAME="INTERROGATIVE_WHEN"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>When did</P>
-    
-    <RULEREF	NAME="groupSubject"/>
-    
-    <RULEREF	NAME="groupVerbal"/>
-    
-    <O>
-      <RULEREF	NAME="groupObject"/>
-    </O>
-	   
-	  <O>
-      <RULEREF	NAME="groupPlace"/>
-    </O>
-	
-  </RULE>
-
-  <!--	Subnodes	-->
-  
-  <RULE	NAME="SUBNODE"	TOPLEVEL="ACTIVE"	EXPORT="1">
+  <RULE NAME="words" DYNAMIC="TRUE">
     <L>
-        <RULEREF	NAME="ABOUT"/>
-    </L>
-  </RULE>
-
-  <!--	Vocabularies	-->
-
-  <RULE NAME="action" DYNAMIC="TRUE">
-  </RULE>
-
-  <RULE NAME="agent" DYNAMIC="TRUE">
-  </RULE>
-
-  <RULE NAME="object" DYNAMIC="TRUE">
-  </RULE>
-
-  <RULE NAME="rtobject" DYNAMIC="TRUE">
-  </RULE>
-
-  <RULE NAME="groupSubject" DYNAMIC="TRUE">
-    <L>
-      <RULEREF	NAME="agent"/>
-      <RULEREF	NAME="object"/>
-      <RULEREF	NAME="rtobject"/>
+      <P>cross</P>
+      <P>circle</P>
+      <P>triangle</P>
+      <P>square</P>
+      <P>symbol</P>
+      <P>form</P>
+      <P>girafe</P>
+      <P>dog</P>
+      <P>lion</P>
+      <P>animal</P>
+      <P>blue bottle</P>
+      <P>green bottle</P>
+      <P>bottle</P>
+      <P>glass</P>
+      <P>object</P>
     </L>
   </RULE>
   
-  <RULE NAME="groupVerbal" DYNAMIC="TRUE">
-      <RULEREF	NAME="action"/>
-  </RULE>
-  
-  <RULE NAME="groupObject" DYNAMIC="TRUE">
-    <O>
-     <P>the</P>
-     <P>with</P>
-     <P>with the</P>
-    </O>
-    
-    <L>
-      <RULEREF	NAME="agent"/>
-      <RULEREF	NAME="object"/>
-      <RULEREF	NAME="rtobject"/>
-    </L>   
-  </RULE>
-  
-  <RULE NAME="groupPlace" DYNAMIC="TRUE">
-    <L>
-      <P>on the</P>
-      <P>in the</P>
-      <P>to the</P>
-      <P>at the</P>
-    </L>
-    
-    <L>
-      <RULEREF	NAME="object"/>
-      <RULEREF	NAME="rtobject"/>
-    </L>   
-  </RULE>
-  
-  <RULE NAME="groupTime" DYNAMIC="TRUE">
-  </RULE>
-  
-  <RULE NAME="groupManner" DYNAMIC="TRUE">
-  </RULE>
-  <!--	Keywords	-->
-
-  <RULE NAME="ABOUT" DYNAMIC="FALSE">
-    <P>Let's talk about</P>
-    <RULEREF NAME="keyword"/>
-  </RULE>
-
-
-  <RULE NAME="keyword" DYNAMIC="FALSE">
-    <L>
-      <P>childhood</P>
-      <P>history</P>
-      <P>pong</P>
-      <P>tic tac toe</P>
-      <P>music</P>
-    </L>  
-  </RULE>
-  
-  <!--	Games	 -->
-
-  <RULE NAME="gameName" DYNAMIC="FALSE">
-    <L>
-      <P>tic tac toe</P>
-      <P>pong</P>
-      <P>music</P>
-    </L>
-  </RULE>
-   
-  <RULE NAME="GAME" DYNAMIC="FALSE" 	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <L>
-		<P>Let's play</P>
-		<P>I want to play</P>
-	</L>
-     <L>
-      <RULEREF	NAME="gameName"/>
-    </L>
-  </RULE>
-
-  <RULE NAME="miscSentences" TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>Stop the interaction</P>
-  </RULE>
-
   <!--	End	of	Grammar	definition	-->
 </GRAMMAR>

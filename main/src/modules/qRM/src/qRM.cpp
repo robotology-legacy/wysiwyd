@@ -12,8 +12,8 @@ string qRM::grammarToString(string sPath)
 
     if (!isGrammar)
     {
-        cout << "Error in abmHandler::grammarToString. Couldn't open file : " << sPath << "." << endl;
-        return "Error in abmHandler::grammarToString. Couldn't open file";
+        cout << "Error in qRM::grammarToString. Couldn't open file : " << sPath << "." << endl;
+        return "Error in qRM::grammarToString. Couldn't open file";
     }
 
     string sLine;
@@ -272,13 +272,48 @@ void    qRM::mainLoop()
 
     if (sQuestionKind == "LOOK")
     {
-        string sObject = bSemantic.check("object", Value("none")).asString();
+        string sObject = bSemantic.check("words", Value("none")).asString();
         list<string>  vRole,
             vArgument;
         vArgument.push_back(sObject);
         vRole.push_back("word");
-        vArgument.push_back("focus");
-        vRole.push_back("focus");
+
+        vector<Object*>      presentObjects;
+        iCub->opc->checkout();
+        list<Entity*> entities = iCub->opc->EntitiesCache();
+        presentObjects.clear();
+        for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
+        {
+            //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
+            if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && ((Object*)(*it))->m_present )
+            {
+                presentObjects.push_back((Object*)(*it));
+            }
+        }
+
+
+        double maxSalience = 0;
+        string nameTrackedObject = "none";
+        if (presentObjects.size()==0)
+
+        Object* mostSalient = *presentObjects.begin();
+        for(vector<Object*>::iterator it = presentObjects.begin(); it!= presentObjects.end(); it++)
+        {
+            if (maxSalience < (*it)->m_saliency )
+            {
+                maxSalience = (*it)->m_saliency;
+                nameTrackedObject = (*it)->name();
+            }
+            //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
+        }
+
+        if (nameTrackedObject != "none")
+        {
+            cout<<"Most salient is : "<<nameTrackedObject<<" with saliency="<<maxSalience << endl;
+
+            vArgument.push_back(nameTrackedObject);
+            vRole.push_back("focus");
+        }
 
         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
 
@@ -286,22 +321,73 @@ void    qRM::mainLoop()
     }
     else if (sQuestionKind == "SHOW")
     {
-         string sWord = bSemantic.check("word", Value("none")).asString();
+         string sWord = bSemantic.check("words", Value("none")).asString();
          bSendReasoning.addString("askWordKnowledge");
          bSendReasoning.addString("getObjectFromWord");
          bSendReasoning.addString(sWord);
          Port2abmReasoning.write(bSendReasoning, bMessenger);
 
+         list<string>  vRole,
+             vArgument;
+         vArgument.push_back(sWord);
+         vRole.push_back("word");
+
          cout << "bMessenger is : " << bMessenger.toString() << endl;
+
+         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
+
 
     }
     else if (sQuestionKind == "WHAT")
     {
-         string sObject = bSemantic.check("object", Value("none")).asString();
          bSendReasoning.addString("askWordKnowledge");
          bSendReasoning.addString("getWordFromObject");
-         bSendReasoning.addString(sObject);
+
+        vector<Object*>      presentObjects;
+        iCub->opc->checkout();
+        list<Entity*> entities = iCub->opc->EntitiesCache();
+        presentObjects.clear();
+        for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
+        {
+            //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
+            if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && ((Object*)(*it))->m_present )
+            {
+                presentObjects.push_back((Object*)(*it));
+            }
+        }
+
+
+
+        double maxSalience = 0;
+        string nameTrackedObject = "none";
+        if (presentObjects.size()==0)
+
+        Object* mostSalient = *presentObjects.begin();
+        for(vector<Object*>::iterator it = presentObjects.begin(); it!= presentObjects.end(); it++)
+        {
+            if (maxSalience < (*it)->m_saliency )
+            {
+                maxSalience = (*it)->m_saliency;
+                nameTrackedObject = (*it)->name();
+            }
+            //cout<<(*it)->name()<<"\´s saliency is " <<(*it)->m_saliency<<endl;
+        }
+
+        if (nameTrackedObject != "none")
+        {
+            cout<<"Most salient is : "<<nameTrackedObject<<" with saliency="<<maxSalience << endl;
+        }
+        list<string>  vRole,
+            vArgument;
+        vArgument.push_back(nameTrackedObject);
+        vRole.push_back("word");
+
+
+         bSendReasoning.addString(nameTrackedObject);
          Port2abmReasoning.write(bSendReasoning, bMessenger);
+
+         iCub->getABMClient()->sendActivity("says","sentence","sentence",vArgument,vRole, true);
+
 
          cout << "bMessenger is : " << bMessenger.toString() << endl;
 
