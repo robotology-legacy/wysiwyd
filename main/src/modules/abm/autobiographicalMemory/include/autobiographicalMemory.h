@@ -1,5 +1,3 @@
-//#include <stdafx.h>
-//#include <winsock2.h> 
 #include <db/PostgreSQL.h>
 #include "wrdac/clients/opcEars.h"
 #include <yarp/os/all.h>
