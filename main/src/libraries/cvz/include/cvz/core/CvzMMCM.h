@@ -431,9 +431,10 @@ namespace cvz {
                 for (std::map<IModality*, std::vector<helpers::Cube> >::iterator wModIt = weights.begin(); wModIt != weights.end(); wModIt++)
                 {
                     file << "[modality_" << modCount << "]" << std::endl;
-                    file << "name" << '\t' << wModIt->first->Name() << std::endl;
-                    file << "size" << '\t' << wModIt->first->Size() << std::endl;
-                    yarp::os::Bottle b;
+                    //file << "name" << '\t' << wModIt->first->Name() << std::endl;
+                    //file << "size" << '\t' << wModIt->first->Size() << std::endl;
+					file << wModIt->first->getModalityConfiguration();
+					yarp::os::Bottle b;
                     for (unsigned int comp = 0; comp < wModIt->second.size(); comp++)
                     {
                         for (unsigned int x = 0; x < wModIt->second[comp].size(); x++)
@@ -474,8 +475,7 @@ namespace cvz {
                 {
 
                     std::string mName = bGroup.find("name").asString();
-                    int mSize = bGroup.find("size").asInt();
-
+                    
                     //Get the right modality
                     IModality* m = NULL;
                     for (std::map<IModality*, std::vector<helpers::Cube> >::iterator wModIt = weights.begin(); wModIt != weights.end(); wModIt++)
@@ -492,6 +492,8 @@ namespace cvz {
                         std::cerr << "Error while loading the weights. The modality " << mName << " was not found in the current map" << std::endl;
                         return false;
                     }
+
+					int mSize = m->Size();
 
                     yarp::os::Bottle *bWeights = bGroup.find("weights").asList();
                     int wCtr = 0;

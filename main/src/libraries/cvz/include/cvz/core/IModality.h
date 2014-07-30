@@ -22,7 +22,8 @@ namespace cvz {
         class IModality
         {
         protected:
-            std::string name;
+			std::string nameWithoutPrefix;
+			std::string name;
             int size;
             yarp::os::Semaphore mutex;
 
@@ -48,12 +49,19 @@ namespace cvz {
             * @return true/false in case of success failure
             */
             virtual void output(){/*overload this*/ };
-
+			
+			/**
+			* Returns the addition configuration of the modality in the conf file format
+			*/
+			virtual std::string getModalityAdditionalConfiguration()
+			{
+				return "";
+			}
         public:
             /**
-            * Retrieve the name of the module. Including the name of the CVZ it belongs to (e.g /cvzName/modalityName)
+            * Retrieve the name of the module. Excluding the name of the CVZ it belongs to (e.g /modalityName)
             */
-            std::string Name() { return name; }
+			std::string Name() { return nameWithoutPrefix; }
 
             /**
             * Retrieve the name of the modality. Including the name of the CVZ it belongs to (e.g /cvzName/modalityName)
@@ -73,9 +81,14 @@ namespace cvz {
             virtual std::string GetFullNamePrediction(){ return name + "/prediction"; }
 
             /**
-            * Retrieve the size of the modality.
+            * Retrieve the internal size of the modality.
             */
             int Size() { return size; }
+			
+			/**
+			* Retrieve the global size of the modality (in case of IModality is the same as Size).
+			*/
+			virtual int SizeExternal() { return size; }
 
             /**
             * Retrieve the current value of the real input.
@@ -116,13 +129,13 @@ namespace cvz {
 			IModality(std::string namePrefix, yarp::os::Bottle prop)
 			{
 				parameters = prop;
-
+				nameWithoutPrefix = prop.find("name").asString();;
 				name = namePrefix;
-				name += prop.find("name").asString();
+				name += nameWithoutPrefix;
 				size = prop.find("size").asInt();
 				autoScale = prop.check("autoScale");
                 
-                std::cout<<"Name="<<name<<std::endl;
+				std::cout << "Name=" << nameWithoutPrefix << std::endl;
                 std::cout<<"Size="<<size<<std::endl;
 				std::cout<<"AutoScale="<<autoScale<<std::endl;
 				if (prop.check("minBounds"))
@@ -179,7 +192,33 @@ namespace cvz {
                 valuePrediction.resize(size);
 				autoScale = _autoScale;
             }
+			
+			/**
+			* Returns the configuration of the modality in the conf file format
+			*/
+			std::string getModalityConfiguration()
+			{
+				std::stringstream ss;
+				ss << "name" << '\t' << nameWithoutPrefix << std::endl;
+				ss << "size" << '\t' << SizeExternal() << std::endl;
+				
+				ss << "minBounds" << '\t' <<"( ";
+				for (int i = 0; i < minBound.size(); i++)
+					ss << minBound[i] << " ";
+				ss << ")" << std::endl;
 
+				ss << "maxBounds" << '\t' << "( ";
+				for (int i = 0; i < minBound.size(); i++)
+					ss << minBound[i] << " ";
+				ss << ")" << std::endl;
+
+				if (autoScale)
+					ss << "autoScale" << std::endl;
+
+				ss << getModalityAdditionalConfiguration() << std::endl;
+				return ss.str();
+			}
+			
 			/**
 			* Apply the boundaries provided during the construction to scale a vector in [0,1].
 			*/
@@ -237,6 +276,9 @@ namespace cvz {
 							minBound[i] = valueReal[i];
                             std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
                         }
+						if (maxBound[i] == minBound[i])
+							minBound[i] -= 0.0000000001;//Avoid division by zeros
+
                         scaledValueReal[i] = (valueReal[i] - minBound[i]) / (maxBound[i] - minBound[i]);
                         helpers::Clamp(scaledValueReal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
                     }
@@ -323,8 +365,27 @@ namespace cvz {
             yarp::os::BufferedPort<T> portPrediction;
             yarp::os::BufferedPort<yarp::os::Bottle> portError;
             bool isBlocking;
-
-        public:
+		
+		protected:
+			/**
+			* Returns the addition configuration of the modality in the conf file format
+			*/
+			virtual std::string getModalityAdditionalConfiguration()
+			{
+				std::stringstream ss;
+				ss << "mask" << '\t' << "( ";
+				for (int i = 0; i < mask.size(); i++)
+					ss << (int)(mask[i]) << " ";
+				ss << ")" << std::endl;
+				//todo : just add the "parameters" property instead of struggling manually with specific parameters
+				return ss.str();
+			}
+        
+		public:
+			/**
+			* Retrieve the external size (length of the vector sent through yarp)
+			*/
+			virtual int SizeExternal(){ return mask.size(); }
 
             /**
             * Retrieve the name of the modality/real port.
