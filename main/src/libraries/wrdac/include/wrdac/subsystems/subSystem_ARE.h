@@ -45,6 +45,7 @@ namespace wysiwyd{namespace wrdac{
 #define CMD_CLOSE                   VOCAB4('c','l','o','s')
 #define CMD_DROP					VOCAB4('d','r','o','p')
 #define CMD_OBSERVE					VOCAB4('o','b','s','e')
+#define CMD_HOME					VOCAB4('h','o','m','e')
 
 /**
 * \ingroup wrdac_clients
@@ -100,6 +101,20 @@ public:
 	};
 
 	/**
+	* Robot goes to home position
+	* @param part (gaze, head, hands, finguers, all. All by default)
+	* @param shouldWait is the function blocking?
+	* @return true in case of successfull motor command, false either.
+	*/
+	bool home(std::string part = "all", bool shouldWait = true)
+	{
+		yarp::os::Bottle bCmd;
+		bCmd.addVocab(CMD_HOME);
+		bCmd.addString(part);
+		return	sendCmd(bCmd, shouldWait);
+	}
+
+	/**
 	* the robot tries to reach the specified [target] and grasp it. Optional parameter "side" or "above" can be supplied to choose the orientation the robot should try to mantain while performing the action (default: "above").
 	* @param target Target to grasp in cartesian coordinates
 	* @param armUsed the arm to be used (left|right)
@@ -113,8 +128,11 @@ public:
 		bCmd.addVocab(CMD_TAKE);
 		appendCartesianTarget(bCmd, target);
 		bCmd.addString(armUsed);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 
@@ -132,8 +150,11 @@ public:
 		bCmd.addVocab(CMD_PUSH);
 		appendCartesianTarget(bCmd, target);
 		bCmd.addString(armUsed);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 
@@ -150,8 +171,11 @@ public:
 		bCmd.addVocab(CMD_POINT);
 		appendCartesianTarget(bCmd, target);
 		bCmd.addString(armUsed);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 
@@ -167,8 +191,11 @@ public:
 		yarp::os::Bottle bCmd;
 		bCmd.addVocab(CMD_DROP);
 		bCmd.addString(armUsed);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 
@@ -187,8 +214,11 @@ public:
 		bCmd.addString(armUsed);
 		bCmd.addString("over");
 		appendCartesianTarget(bCmd, target);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 
@@ -204,8 +234,11 @@ public:
 		yarp::os::Bottle bCmd;
 		bCmd.addVocab(CMD_OBSERVE);
 		bCmd.addString(armUsed);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 
@@ -221,8 +254,11 @@ public:
 		yarp::os::Bottle bCmd;
 		bCmd.addVocab(CMD_EXPECT);
 		bCmd.addString(armUsed);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 
@@ -238,8 +274,11 @@ public:
 		yarp::os::Bottle bCmd;
 		bCmd.addVocab(CMD_GIVE);
 		bCmd.addString(armUsed);
-		if (opts != "")
-			bCmd.addString(opts);
+		if(!opts.empty())
+		{
+			yarp::os::Bottle params(opts.c_str());
+			bCmd.append(params);
+		}
 		return	sendCmd(bCmd, shouldWait);
 	}
 };
