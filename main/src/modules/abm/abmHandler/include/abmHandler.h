@@ -18,23 +18,12 @@
 #ifndef _ABMHANDLER_H_
 #define _ABMHANDLER_H_
 
-#include <iostream>
-#include <fstream>
-#include <string>
-
-#include <yarp/sig/all.h>
-#include <yarp/os/all.h>
-#include <time.h>
-
-#include <iostream>
-#include <iomanip>
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
-using namespace yarp::sig;
 
 
 class abmHandler : public RFModule {

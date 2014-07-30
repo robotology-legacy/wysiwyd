@@ -2,11 +2,11 @@
 
 void interlocutor::initialize()
 {
-    senderPort.open("/efaa/abmReasoning/interlocutor/toAbm/request:o");
-    port_to_OPCManager.open("/efaa/abmReasoning/interlocutor/toOPCManager");
+    senderPort.open("/abmReasoning/interlocutor/toAbm/request:o");
+    port_to_OPCManager.open("/abmReasoning/interlocutor/toOPCManager");
 
-    Network::connect(senderPort.getName(), "/efaa/autobiographicalMemory/request:i");
-    Network::connect(port_to_OPCManager.getName(), "/efaa/opcManager/rpc");
+    Network::connect(senderPort.getName(), "/autobiographicalMemory/request:i");
+    Network::connect(port_to_OPCManager.getName(), "/opcManager/rpc");
     //  iCub  = new ICubClient("interlocutor", false);
     //  iCub->opc->isVerbose = false;
 

@@ -1,8 +1,3 @@
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
 #include "wrdac/clients/icubClient.h"
 
 using namespace std;

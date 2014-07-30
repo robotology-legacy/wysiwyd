@@ -50,6 +50,10 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.05)).asDouble(); 
     pExponentialDecrease =  rf.check("ExponentialDecrease", 
         Value(0.9)).asDouble(); 
+
+    //check for decrease
+    if (pExponentialDecrease >=1)   pExponentialDecrease = 0.95;
+
     thresholdMovementAccel =  rf.check("thresholdMovementAccel", 
         Value(0.0)).asDouble(); 
     thresholdSaliency =  rf.check("thresholdSaliency", 
@@ -289,6 +293,12 @@ bool PasarModule::updateModule()
     return true;
 }
 
+
+/*
+*   Update the salience according to visual clues
+*   needs 
+*
+*/
 void PasarModule::saliencyBottomUp()
 {	
     ImageOf<PixelMono> * currentSaliency = saliencyInput.read(false);
@@ -434,6 +444,11 @@ void PasarModule::saliencyBottomUp()
     }
 }
 
+
+/*  
+*   Update the salience according to the informations contained in the OPC (acceleration, appareance, disappareance)
+*
+*/
 /************************************************************************/
 void PasarModule::saliencyTopDown() {   
     //cout<<"TopDown Saliency"<<endl;
@@ -502,6 +517,10 @@ void PasarModule::saliencyNormalize() {
     }
 }
 
+/*
+*   Decrease of the salience through time.
+*   Exponential facotr pExponentialDecrease < 1
+*/
 /************************************************************************/
 void PasarModule::saliencyLeakyIntegration() {   
     //cout<<"Leaky integration"<<endl;

@@ -21,7 +21,6 @@ int main(int argc, char * argv[]) {
     /* initialize yarp network */ 
     Network yarp;
 
-    srand(time(NULL));
     Network::init();
     abmHandler mod;
     ResourceFinder rf;

@@ -36,7 +36,6 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
-    srand(time(NULL));
     Network::init();
     AdaptiveLayer mod;
     ResourceFinder rf;

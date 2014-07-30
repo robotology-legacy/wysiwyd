@@ -21,15 +21,7 @@
 #ifndef _PASAR_MODULE_H_
 #define _PASAR_MODULE_H_
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <yarp/sig/all.h>
-#include <yarp/os/all.h>
-#include <yarp/dev/all.h>
-#include <yarp/dev/Drivers.h>
 #include <wrdac/clients/clients.h>
-
 
 using namespace wysiwyd::wrdac;
 using namespace yarp::os;

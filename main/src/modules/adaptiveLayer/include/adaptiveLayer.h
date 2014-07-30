@@ -1,15 +1,15 @@
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <yarp/math/SVD.h>
+//#include <string>
+//#include <iostream>
+//#include <iomanip>
+//#include <yarp/os/all.h>
+//#include <yarp/sig/all.h>
+//#include <yarp/math/SVD.h>
 #include "wrdac/clients/icubClient.h"
 #include <map>
 
 using namespace std;
 using namespace yarp::os;
-using namespace yarp::sig;
+//using namespace yarp::sig;
 using namespace yarp::math;
 using namespace wysiwyd::wrdac;
 

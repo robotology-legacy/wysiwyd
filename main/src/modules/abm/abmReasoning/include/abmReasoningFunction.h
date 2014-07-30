@@ -1,9 +1,7 @@
 #ifndef _ABMREASONINGFUNCTION_H_
 #define _ABMREASONINGFUNCTION_H_
 
-#include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
-#include <numeric>
 #include <tuple>
 #include <time.h>
 
@@ -817,29 +815,6 @@ public:
 
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

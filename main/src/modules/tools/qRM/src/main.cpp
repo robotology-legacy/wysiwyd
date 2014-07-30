@@ -16,7 +16,7 @@
 */
 
 
-#include <yarp/os/all.h>
+
 #include "qRM.h"
 
 using namespace std;
@@ -24,7 +24,7 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
-    srand(time(NULL));
+
     Network::init();
     qRM mod;
     ResourceFinder rf;

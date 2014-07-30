@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2011 EFAA Consortium, European Commission FP7 Project IST-270490
+* Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project IST-270490
 * Authors: Grégoire Pointeau
 * email:   gregoire.pointeau@inserm.fr
 * website: http://efaa.upf.edu/ 
@@ -7,8 +7,6 @@
 * under the terms of the GNU General Public License, version 2 or any
 * later version published by the Free Software Foundation.
 *
-* A copy of the license can be found at
-* $EFAA_ROOT/license/gpl.txt
 *
 * This program is distributed in the hope that it will be useful, but
 * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,25 +15,15 @@
 */
 
 /**
-* @defgroup world EFAA opcManager
+* @defgroup world WYSIWYD opcManager
 *  
-* @ingroup efaa_modules
+* @ingroup wysiwyd_modules
 *  
 * A module to manage and mental and a real opc.
 * 
 * @author Maxime Petit, Grégoire Pointeau
 */ 
 
-//#include <efaa/helpers/clients/opcClient.h>
-//#include <efaa/helpers/clients/opcEars.h>
-//#include <efaa/helpers/helpers.h>
-#include <yarp/os/all.h>
-#include <yarp/dev/all.h>
-#include <time.h>
-
-#include <iostream>
-#include <iomanip>
-#include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/clients/opcEars.h"
 

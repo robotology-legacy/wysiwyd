@@ -5,7 +5,7 @@
 
   <name>autobiographicalMemory</name>
   <doxygen-group>wysiwyd_modules</doxygen-group>
-  <description>Spoken Interaction Manager for ABM</description>
+  <description>wrapper and manager for ABM</description>
   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
   <version>1.0</version>
 
@@ -33,34 +33,11 @@
       <required>yes</required>
       <priority>no</priority>
       <description>
-        rpc port of the module, main input. Get the keyword from the broadcast port. Gets inputs from : "/mainLoop/speechGrammar/keyword:o"
+        rpc port of the module, main input. Get the external request for the ABM
       </description>
     </input>
-
-    <output>
-      <type>yarp::sig::Bottle</type>
-      <port carrier="tcp">/autobiographicalMemory/toABM</port>
-      <description>
-        Port to the autobiographicalMemory module: collect the raw data from the DB. To be connected to : "/autobiographicalMemory/request:i".
-      </description>
-    </output>
-
-    <output>
-      <type>yarp::sig::Bottle</type>
-      <port carrier="tcp">/autobiographicalMemory/toSpeechRecog</port>
-      <description>
-        Port to communicate with the speech Recognizer: send the grammar and get the semantic bottle of the speech recognized. To be connected to "/speechRecognizer/rpc".
-      </description>
-    </output>
-
-    <output>
-      <type>yarp::sig::Bottle</type>
-      <port carrier="tcp">/autobiographicalMemory/toOPCManager</port>
-      <description>
-        Port to communicate with the OPC manager to imagine the memory recalled. To be connected to "/opcManager/rpc".
-      </description>
-    </output>
-
   </data>
+  
+  
 </module>
 

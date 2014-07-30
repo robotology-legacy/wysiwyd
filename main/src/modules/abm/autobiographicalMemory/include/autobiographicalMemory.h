@@ -1,16 +1,8 @@
-#include <stdafx.h>
-#include <winsock2.h> 
+//#include <stdafx.h>
+//#include <winsock2.h> 
 #include <db/PostgreSQL.h>
-#include "wrdac/clients/icubClient.h"
 #include "wrdac/clients/opcEars.h"
 #include <yarp/os/all.h>
-#include "wrdac/helpers.h"
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <stdio.h>
-#include <vector>
-#include <time.h>
 #include <tuple>
 
 
