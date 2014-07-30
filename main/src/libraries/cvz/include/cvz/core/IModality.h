@@ -121,7 +121,10 @@ namespace cvz {
 				name += prop.find("name").asString();
 				size = prop.find("size").asInt();
 				autoScale = prop.check("autoScale");
-				
+                
+                std::cout<<"Name="<<name<<std::endl;
+                std::cout<<"Size="<<size<<std::endl;
+				std::cout<<"AutoScale="<<autoScale<<std::endl;
 				if (prop.check("minBounds"))
 				{
 					yarp::os::Bottle* bMask = prop.find("minBounds").asList();
@@ -345,6 +348,7 @@ namespace cvz {
 					yarp::os::Bottle* bMask = prop.find("mask").asList();
 					for (int i = 0; i < bMask->size(); i++)
 						mask.push_back(bMask->get(i).asDouble());
+
 				}
 				else
 				{
@@ -353,6 +357,16 @@ namespace cvz {
 						mask.push_back(true);
 				}
 				
+               if (mask.size() != size)
+                   std::cout<<"ERROR : Size of modality and size of provided mask not matching."<<std::endl;
+               
+               int countOfMaskElements = 0;
+               for (int i = 0; i < size; i++)
+                        if(mask[i])
+                            countOfMaskElements++;
+               
+               std::cout<<"The mask is using "<<countOfMaskElements<< " elements among the total "<<size<<std::endl;
+               size = countOfMaskElements;
 				valueReal.resize(size);
 				valuePrediction.resize(size);
 				std::string pName = name;
