@@ -22,21 +22,21 @@ namespace cvz {
         class IModality
         {
         protected:
-			std::string nameWithoutPrefix;
-			std::string name;
+            std::string nameWithoutPrefix;
+            std::string name;
             int size;
             yarp::os::Semaphore mutex;
 
             std::vector<double> minBound;
             std::vector<double> maxBound;
-			bool autoScale;
+            bool autoScale;
 
             std::vector<double> scaledValueReal;
             std::vector<double> scaledValuePrediction;
             std::vector<double> valueReal;
             std::vector<double> valuePrediction;
-			
-			yarp::os::Bottle parameters;
+            
+            yarp::os::Bottle parameters;
 
             /**
             * virtual method : Defines what a modality does upon input signal. Should be overloaded and is called by IModality::Input()
@@ -49,19 +49,19 @@ namespace cvz {
             * @return true/false in case of success failure
             */
             virtual void output(){/*overload this*/ };
-			
-			/**
-			* Returns the addition configuration of the modality in the conf file format
-			*/
-			virtual std::string getModalityAdditionalConfiguration()
-			{
-				return "";
-			}
+            
+            /**
+            * Returns the addition configuration of the modality in the conf file format
+            */
+            virtual std::string getModalityAdditionalConfiguration()
+            {
+                return "";
+            }
         public:
             /**
             * Retrieve the name of the module. Excluding the name of the CVZ it belongs to (e.g /modalityName)
             */
-			std::string Name() { return nameWithoutPrefix; }
+            std::string Name() { return nameWithoutPrefix; }
 
             /**
             * Retrieve the name of the modality. Including the name of the CVZ it belongs to (e.g /cvzName/modalityName)
@@ -84,11 +84,11 @@ namespace cvz {
             * Retrieve the internal size of the modality.
             */
             int Size() { return size; }
-			
-			/**
-			* Retrieve the global size of the modality (in case of IModality is the same as Size).
-			*/
-			virtual int SizeExternal() { return size; }
+            
+            /**
+            * Retrieve the global size of the modality (in case of IModality is the same as Size).
+            */
+            virtual int SizeExternal() { return size; }
 
             /**
             * Retrieve the current value of the real input.
@@ -123,54 +123,54 @@ namespace cvz {
                 mutex.post();
             }
 
-			/**
-			* Instantiate a new IModality from a property.
-			*/
-			IModality(std::string namePrefix, yarp::os::Bottle prop)
-			{
-				parameters = prop;
-				nameWithoutPrefix = prop.find("name").asString();;
-				name = namePrefix;
-				name += nameWithoutPrefix;
-				size = prop.find("size").asInt();
-				autoScale = prop.check("autoScale");
+            /**
+            * Instantiate a new IModality from a property.
+            */
+            IModality(std::string namePrefix, yarp::os::Bottle prop)
+            {
+                parameters = prop;
+                nameWithoutPrefix = prop.find("name").asString();;
+                name = namePrefix;
+                name += nameWithoutPrefix;
+                size = prop.find("size").asInt();
+                autoScale = prop.check("autoScale");
                 
-				std::cout << "Name=" << nameWithoutPrefix << std::endl;
+                std::cout << "Name=" << nameWithoutPrefix << std::endl;
                 std::cout<<"Size="<<size<<std::endl;
-				std::cout<<"AutoScale="<<autoScale<<std::endl;
-				if (prop.check("minBounds"))
-				{
-					yarp::os::Bottle* bMask = prop.find("minBounds").asList();
-					for (int i = 0; i < bMask->size(); i++)
-						minBound.push_back(bMask->get(i).asDouble());
-				}
-				else
-				{
-					if (autoScale)
-						minBound.resize(size, DBL_MAX);
-					else
-						minBound.resize(size, 0.0);
-				}
+                std::cout<<"AutoScale="<<autoScale<<std::endl;
+                if (prop.check("minBounds"))
+                {
+                    yarp::os::Bottle* bMask = prop.find("minBounds").asList();
+                    for (int i = 0; i < bMask->size(); i++)
+                        minBound.push_back(bMask->get(i).asDouble());
+                }
+                else
+                {
+                    if (autoScale)
+                        minBound.resize(size, DBL_MAX);
+                    else
+                        minBound.resize(size, 0.0);
+                }
 
-				if (prop.check("maxBounds"))
-				{
-					yarp::os::Bottle* bMask = prop.find("maxBounds").asList();
-					for (int i = 0; i < bMask->size(); i++)
-						maxBound.push_back(bMask->get(i).asDouble());
-				}
-				else
-				{
-					if (autoScale)
-						maxBound.resize(size, DBL_MIN);
-					else
-						maxBound.resize(size, 1.0);
-				}
+                if (prop.check("maxBounds"))
+                {
+                    yarp::os::Bottle* bMask = prop.find("maxBounds").asList();
+                    for (int i = 0; i < bMask->size(); i++)
+                        maxBound.push_back(bMask->get(i).asDouble());
+                }
+                else
+                {
+                    if (autoScale)
+                        maxBound.resize(size, DBL_MIN);
+                    else
+                        maxBound.resize(size, 1.0);
+                }
 
-				scaledValueReal.resize(size);
-				scaledValuePrediction.resize(size);
-				valueReal.resize(size);
-				valuePrediction.resize(size);
-			}
+                scaledValueReal.resize(size);
+                scaledValuePrediction.resize(size);
+                valueReal.resize(size);
+                valuePrediction.resize(size);
+            }
 
             /**
             * Instantiate a new IModality.
@@ -190,68 +190,68 @@ namespace cvz {
                 scaledValuePrediction.resize(size);
                 valueReal.resize(size);
                 valuePrediction.resize(size);
-				autoScale = _autoScale;
+                autoScale = _autoScale;
             }
-			
-			/**
-			* Returns the configuration of the modality in the conf file format
-			*/
-			std::string getModalityConfiguration()
-			{
-				std::stringstream ss;
-				ss << "name" << '\t' << nameWithoutPrefix << std::endl;
-				ss << "size" << '\t' << SizeExternal() << std::endl;
-				
-				ss << "minBounds" << '\t' <<"( ";
-				for (int i = 0; i < minBound.size(); i++)
-					ss << minBound[i] << " ";
-				ss << ")" << std::endl;
+            
+            /**
+            * Returns the configuration of the modality in the conf file format
+            */
+            std::string getModalityConfiguration()
+            {
+                std::stringstream ss;
+                ss << "name" << '\t' << nameWithoutPrefix << std::endl;
+                ss << "size" << '\t' << SizeExternal() << std::endl;
+                
+                ss << "minBounds" << '\t' <<"( ";
+                for (size_t i = 0; i < minBound.size(); i++)
+                    ss << minBound[i] << " ";
+                ss << ")" << std::endl;
 
-				ss << "maxBounds" << '\t' << "( ";
-				for (int i = 0; i < minBound.size(); i++)
-					ss << minBound[i] << " ";
-				ss << ")" << std::endl;
+                ss << "maxBounds" << '\t' << "( ";
+                for (size_t i = 0; i < minBound.size(); i++)
+                    ss << minBound[i] << " ";
+                ss << ")" << std::endl;
 
-				if (autoScale)
-					ss << "autoScale" << std::endl;
+                if (autoScale)
+                    ss << "autoScale" << std::endl;
 
-				ss << getModalityAdditionalConfiguration() << std::endl;
-				return ss.str();
-			}
-			
-			/**
-			* Apply the boundaries provided during the construction to scale a vector in [0,1].
-			*/
-			std::vector<double> scale(std::vector<double> tmp)
-			{
-				std::vector<double> sVal(tmp.size());
-				if (tmp.size() != (unsigned int) size)
-					return sVal;
+                ss << getModalityAdditionalConfiguration() << std::endl;
+                return ss.str();
+            }
+            
+            /**
+            * Apply the boundaries provided during the construction to scale a vector in [0,1].
+            */
+            std::vector<double> scale(std::vector<double> tmp)
+            {
+                std::vector<double> sVal(tmp.size());
+                if (tmp.size() != (unsigned int) size)
+                    return sVal;
 
-				for (int i = 0; i < size; i++)
-				{
-					sVal[i] = (tmp[i] - minBound[i]) / (maxBound[i] - minBound[i]);
-					helpers::Clamp(sVal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
-				}
-				return sVal;
-			}
+                for (int i = 0; i < size; i++)
+                {
+                    sVal[i] = (tmp[i] - minBound[i]) / (maxBound[i] - minBound[i]);
+                    helpers::Clamp(sVal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
+                }
+                return sVal;
+            }
 
-			/**
-			* Apply the boundaries provided during the construction to unscale a vector.
-			*/
-			std::vector<double> unscale(std::vector<double> tmp)
-			{
-				std::vector<double> sVal(tmp.size());
-				if (tmp.size() != (unsigned int) size)
-					return sVal;
+            /**
+            * Apply the boundaries provided during the construction to unscale a vector.
+            */
+            std::vector<double> unscale(std::vector<double> tmp)
+            {
+                std::vector<double> sVal(tmp.size());
+                if (tmp.size() != (unsigned int) size)
+                    return sVal;
 
-				for (int i = 0; i < size; i++)
-				{
-					sVal[i] = tmp[i] * (maxBound[i] - minBound[i]) + minBound[i];
-					helpers::Clamp(sVal[i], minBound[i], maxBound[i]); //useless in theory
-				}
-				return sVal;
-			}
+                for (int i = 0; i < size; i++)
+                {
+                    sVal[i] = tmp[i] * (maxBound[i] - minBound[i]) + minBound[i];
+                    helpers::Clamp(sVal[i], minBound[i], maxBound[i]); //useless in theory
+                }
+                return sVal;
+            }
 
             /**
             * Trigger the Input mechanism of a modality. 
@@ -266,18 +266,18 @@ namespace cvz {
                     //Scaling in [0,1]
                     for (int i = 0; i < size; i++)
                     {
-						if (autoScale && valueReal[i]>maxBound[i])
+                        if (autoScale && valueReal[i]>maxBound[i])
                         {
-							maxBound[i] = valueReal[i];
+                            maxBound[i] = valueReal[i];
                             std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
                         }
-						else if (autoScale && valueReal[i]<minBound[i])
+                        else if (autoScale && valueReal[i]<minBound[i])
                         {
-							minBound[i] = valueReal[i];
+                            minBound[i] = valueReal[i];
                             std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
                         }
-						if (maxBound[i] == minBound[i])
-							minBound[i] -= 0.0000000001;//Avoid division by zeros
+                        if (maxBound[i] == minBound[i])
+                            minBound[i] -= 0.0000000001;//Avoid division by zeros
 
                         scaledValueReal[i] = (valueReal[i] - minBound[i]) / (maxBound[i] - minBound[i]);
                         helpers::Clamp(scaledValueReal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
@@ -317,39 +317,39 @@ namespace cvz {
             */
             virtual void Interrupt() {};
 
-			/**
-			* Returns an image of the modality current value to be displayed.
-			* Specialization can be provided to customize the display (e.g display the image in unvectorized form)
-			* @param getPredicted Choose if you want the real value (false) or the predicted value (true)
-			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
-			*/
-			yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualization(bool getPredicted = false)
-			{
-				if (getPredicted)
-					return getVisualizationFromVector(scaledValuePrediction);
-				else
-					return getVisualizationFromVector(scaledValueReal);
-			}
+            /**
+            * Returns an image of the modality current value to be displayed.
+            * Specialization can be provided to customize the display (e.g display the image in unvectorized form)
+            * @param getPredicted Choose if you want the real value (false) or the predicted value (true)
+            * @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+            */
+            yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualization(bool getPredicted = false)
+            {
+                if (getPredicted)
+                    return getVisualizationFromVector(scaledValuePrediction);
+                else
+                    return getVisualizationFromVector(scaledValueReal);
+            }
 
-			/**
-			* Returns an image of an arbitrary vector to be displayed.
-			* Specialization can be provided to customize the display (e.g display the image in unvectorized form)
-			* @param values, the values to be displayed
-			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
-			*/
-			virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualizationFromVector(std::vector<double> values)
-			{
-				mutex.wait();
-				yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-				img.resize(size, 1);
-				for (int x = 0; x < size; x++)
-				{
-					img.pixel(x, 0) = helpers::double2RGB(values[x]);
-				}
-				mutex.post();
-				//Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
-				return img;
-			}
+            /**
+            * Returns an image of an arbitrary vector to be displayed.
+            * Specialization can be provided to customize the display (e.g display the image in unvectorized form)
+            * @param values, the values to be displayed
+            * @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+            */
+            virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualizationFromVector(std::vector<double> values)
+            {
+                mutex.wait();
+                yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
+                img.resize(size, 1);
+                for (int x = 0; x < size; x++)
+                {
+                    img.pixel(x, 0) = helpers::double2RGB(values[x]);
+                }
+                mutex.post();
+                //Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
+                return img;
+            }
         };
 
         /**
@@ -365,27 +365,27 @@ namespace cvz {
             yarp::os::BufferedPort<T> portPrediction;
             yarp::os::BufferedPort<yarp::os::Bottle> portError;
             bool isBlocking;
-		
-		protected:
-			/**
-			* Returns the addition configuration of the modality in the conf file format
-			*/
-			virtual std::string getModalityAdditionalConfiguration()
-			{
-				std::stringstream ss;
-				ss << "mask" << '\t' << "( ";
-				for (int i = 0; i < mask.size(); i++)
-					ss << (int)(mask[i]) << " ";
-				ss << ")" << std::endl;
-				//todo : just add the "parameters" property instead of struggling manually with specific parameters
-				return ss.str();
-			}
         
-		public:
-			/**
-			* Retrieve the external size (length of the vector sent through yarp)
-			*/
-			virtual int SizeExternal(){ return mask.size(); }
+        protected:
+            /**
+            * Returns the addition configuration of the modality in the conf file format
+            */
+            virtual std::string getModalityAdditionalConfiguration()
+            {
+                std::stringstream ss;
+                ss << "mask" << '\t' << "( ";
+                for (size_t i = 0; i < mask.size(); i++)
+                    ss << (int)(mask[i]) << " ";
+                ss << ")" << std::endl;
+                //todo : just add the "parameters" property instead of struggling manually with specific parameters
+                return ss.str();
+            }
+        
+        public:
+            /**
+            * Retrieve the external size (length of the vector sent through yarp)
+            */
+            virtual int SizeExternal(){ return mask.size(); }
 
             /**
             * Retrieve the name of the modality/real port.
@@ -397,28 +397,28 @@ namespace cvz {
             */
             virtual std::string GetFullNamePrediction(){ return portPrediction.getName(); }
 
-			/**
-			* Instantiate a new BufferedPortModality<T> from a property.
-			*/
-			ModalityBufferedPort(std::string namePrefix, yarp::os::Bottle prop) :IModality(namePrefix,prop)
-			{
+            /**
+            * Instantiate a new BufferedPortModality<T> from a property.
+            */
+            ModalityBufferedPort(std::string namePrefix, yarp::os::Bottle prop) :IModality(namePrefix,prop)
+            {
 
-				isBlocking = prop.check("isBlocking");
-				if (prop.check("mask"))
-				{
-					yarp::os::Bottle* bMask = prop.find("mask").asList();
-					for (int i = 0; i < bMask->size(); i++)
-						mask.push_back(bMask->get(i).asDouble());
+                isBlocking = prop.check("isBlocking");
+                if (prop.check("mask"))
+                {
+                    yarp::os::Bottle* bMask = prop.find("mask").asList();
+                    for (int i = 0; i < bMask->size(); i++)
+                        mask.push_back(bMask->get(i).asDouble());
 
-				}
-				else
-				{
-					if (mask.size() == 0)
-					for (int i = 0; i < size; i++)
-						mask.push_back(true);
-				}
-				
-               if (mask.size() != size)
+                }
+                else
+                {
+                    if (mask.size() == 0)
+                    for (int i = 0; i < size; i++)
+                        mask.push_back(true);
+                }
+                
+               if ((int)mask.size() != size)
                    std::cout<<"ERROR : Size of modality and size of provided mask not matching."<<std::endl;
                
                int countOfMaskElements = 0;
@@ -428,25 +428,25 @@ namespace cvz {
                
                std::cout<<"The mask is using "<<countOfMaskElements<< " elements among the total "<<size<<std::endl;
                size = countOfMaskElements;
-				valueReal.resize(size);
-				valuePrediction.resize(size);
-				std::string pName = name;
-				pName += "/real:i";
-				portReal.open(pName.c_str());
+                valueReal.resize(size);
+                valuePrediction.resize(size);
+                std::string pName = name;
+                pName += "/real:i";
+                portReal.open(pName.c_str());
 
-				pName = name;
-				pName += "/prediction:o";
-				portPrediction.open(pName.c_str());
+                pName = name;
+                pName += "/prediction:o";
+                portPrediction.open(pName.c_str());
 
-				pName = name;
-				pName += "/error:o";
-				portError.open(pName.c_str());
+                pName = name;
+                pName += "/error:o";
+                portError.open(pName.c_str());
 
 
-				std::string autoConnect = prop.check("autoconnect", yarp::os::Value("")).asString();
-				if (autoConnect != "")
-					ConnectInput(autoConnect);
-			}
+                std::string autoConnect = prop.check("autoconnect", yarp::os::Value("")).asString();
+                if (autoConnect != "")
+                    ConnectInput(autoConnect);
+            }
 
             /**
             * Instantiate a new BufferedPortModality<T>.
@@ -456,9 +456,9 @@ namespace cvz {
             * @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
             * @parameter _mask Apply a mask on the input got through input(). The number of True of the mask should match the size of the modality. Providing an empty vector (size==0) will ensure that your do not apply any mask and get everything.
             * @parameter _autoScale Should the boudaries auto adapt to the input?.           
-			* @parameter _isBlocking Specify is the ports will use blocking read in the input() method.
+            * @parameter _isBlocking Specify is the ports will use blocking read in the input() method.
             */
-			ModalityBufferedPort(std::string _name, int _size, std::vector<double> min, std::vector<double> max, std::vector<bool> _mask, bool _autoScale, bool _isBlocking = false) :IModality(_name, _size, min, max, _autoScale)
+            ModalityBufferedPort(std::string _name, int _size, std::vector<double> min, std::vector<double> max, std::vector<bool> _mask, bool _autoScale, bool _isBlocking = false) :IModality(_name, _size, min, max, _autoScale)
             {
                 isBlocking = _isBlocking;
                 mask = _mask;
@@ -577,25 +577,25 @@ namespace cvz {
                 return dummyReturn;
             }
 
-			/**
-			* Returns an image of an arbitrary vector to be displayed.
-			* Specialization can be provided to customize the display (e.g display the image in unvectorized form)
-			* @param values, the values to be displayed
-			* @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
-			*/
-			virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualizationFromVector(std::vector<double> values)
-			{
-				mutex.wait();
-				yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-				img.resize(values.size(), 1);
-				for (int x = 0; x < values.size(); x++)
-				{
-					img.pixel(x, 0) = helpers::double2RGB(values[x]);
-				}
-				mutex.post();
-				//Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
-				return img;
-			}
+            /**
+            * Returns an image of an arbitrary vector to be displayed.
+            * Specialization can be provided to customize the display (e.g display the image in unvectorized form)
+            * @param values, the values to be displayed
+            * @return An image representing the vector with 0 being blue, 0.5 being green and 1.0 being red.
+            */
+            virtual yarp::sig::ImageOf<yarp::sig::PixelRgb> getVisualizationFromVector(std::vector<double> values)
+            {
+                mutex.wait();
+                yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
+                img.resize(values.size(), 1);
+                for (size_t x = 0; x < values.size(); x++)
+                {
+                    img.pixel(x, 0) = helpers::double2RGB(values[x]);
+                }
+                mutex.post();
+                //Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
+                return img;
+            }
         };
 
         /**
@@ -694,16 +694,16 @@ namespace cvz {
         {
             std::vector<double> v;
             v.resize(size);
-			yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
-			int desiredWidth = (int)sqrt((double)size);
-			int padding = parameters.check("padding", yarp::os::Value(0)).asInt();
-			if (padding > 0)
-			{
-				yarp::sig::ImageOf<yarp::sig::PixelRgb> imgPd = cvz::helpers::getImgSubRegion(*input, padding, padding, input->width() - padding, input->height() - padding);
-				img.copy(imgPd, desiredWidth, desiredWidth);
-			}
-			else
-				img.copy(*input, desiredWidth, desiredWidth);
+            yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
+            int desiredWidth = (int)sqrt((double)size);
+            int padding = parameters.check("padding", yarp::os::Value(0)).asInt();
+            if (padding > 0)
+            {
+                yarp::sig::ImageOf<yarp::sig::PixelRgb> imgPd = cvz::helpers::getImgSubRegion(*input, padding, padding, input->width() - padding, input->height() - padding);
+                img.copy(imgPd, desiredWidth, desiredWidth);
+            }
+            else
+                img.copy(*input, desiredWidth, desiredWidth);
 
             int cnt = 0;
             for (unsigned int i = 0; i<mask.size(); i++)
@@ -735,9 +735,9 @@ namespace cvz {
         * getVisualization() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
         */
         template<>
-		yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >::getVisualizationFromVector(std::vector<double> values)
+        yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >::getVisualizationFromVector(std::vector<double> values)
         {
-			return Unvectorize(values);
+            return Unvectorize(values);
         }
 
         /**
@@ -774,15 +774,15 @@ namespace cvz {
             std::vector<double> v;
             v.resize(size);
             yarp::sig::ImageOf<yarp::sig::PixelFloat> img;
-			int desiredWidth = (int)sqrt((double)size);
-			int padding = parameters.check("padding", yarp::os::Value(0)).asInt();
-			if (padding > 0)
-			{
-				yarp::sig::ImageOf<yarp::sig::PixelFloat> imgPd = cvz::helpers::getImgSubRegion(*input, padding, padding, input->width() - padding, input->height() - padding);
-				img.copy(imgPd, desiredWidth, desiredWidth);
-			}
-			else
-				img.copy(*input, desiredWidth, desiredWidth);
+            int desiredWidth = (int)sqrt((double)size);
+            int padding = parameters.check("padding", yarp::os::Value(0)).asInt();
+            if (padding > 0)
+            {
+                yarp::sig::ImageOf<yarp::sig::PixelFloat> imgPd = cvz::helpers::getImgSubRegion(*input, padding, padding, input->width() - padding, input->height() - padding);
+                img.copy(imgPd, desiredWidth, desiredWidth);
+            }
+            else
+                img.copy(*input, desiredWidth, desiredWidth);
 
             int cnt = 0;
             for (unsigned int i = 0; i<mask.size(); i++)
@@ -803,18 +803,18 @@ namespace cvz {
             return v;
         }
 
-		
-		/**
-		* getVisualization() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
-		*/
-		template<>
-		yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >::getVisualizationFromVector(std::vector<double> values)
-		{
-			yarp::sig::ImageOf<yarp::sig::PixelFloat> imgF = Unvectorize(values);
-			yarp::sig::ImageOf<yarp::sig::PixelRgb> imgRgb;
-			imgRgb.copy(imgF);
-			return imgRgb;
-		}
+        
+        /**
+        * getVisualization() specialization for yarp::sig::Imageof<yarp::sig::<PixelRgb> >
+        */
+        template<>
+        yarp::sig::ImageOf<yarp::sig::PixelRgb> ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >::getVisualizationFromVector(std::vector<double> values)
+        {
+            yarp::sig::ImageOf<yarp::sig::PixelFloat> imgF = Unvectorize(values);
+            yarp::sig::ImageOf<yarp::sig::PixelRgb> imgRgb;
+            imgRgb.copy(imgF);
+            return imgRgb;
+        }
 
         /**
         * Unvectorize() specialization for yarp::sig::Sound

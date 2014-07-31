@@ -13,8 +13,8 @@ bool KP2JA::configure(ResourceFinder &rf)
     options.put("carrier","tcp");
     options.put("remote","kinectServer");
     options.put("local",clientName.c_str());
-	options.put("verbosity", 0);
-	options.put("noRPC", 1); //To work with the datasetplayer only
+    options.put("verbosity", 0);
+    options.put("noRPC", 1); //To work with the datasetplayer only
 
     if (!client.open(options))
         return false;
@@ -40,17 +40,17 @@ double KP2JA::getPeriod()
 
 Vector getRelativeJointPosition(string jntA, string jntReference, map<string, Joint> jnts)
 {
-	Vector p(3);
-	p[0] = jnts[jntA].x - jnts[jntReference].x;
-	p[1] = jnts[jntA].y - jnts[jntReference].y;
-	p[2] = jnts[jntA].z - jnts[jntReference].z;
-	return p;
+    Vector p(3);
+    p[0] = jnts[jntA].x - jnts[jntReference].x;
+    p[1] = jnts[jntA].y - jnts[jntReference].y;
+    p[2] = jnts[jntA].z - jnts[jntReference].z;
+    return p;
 }
 
 void addToBottle(const Vector &v, Bottle& b)
 {
-	for (int i = 0; i < v.size(); i++)
-		b.addDouble(v[i]);
+    for (size_t i = 0; i < v.size(); i++)
+        b.addDouble(v[i]);
 }
 
 bool KP2JA::updateModule()
@@ -66,20 +66,20 @@ bool KP2JA::updateModule()
         
         Bottle& bottle = portVector.prepare();
         bottle.clear();
-		string USED_REFERENCE = KINECT_TAGS_BODYPART_SHOULDER_C;
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_HEAD, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_SHOULDER_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_SHOULDER_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_ELBOW_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_ELBOW_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_WRIST_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_WRIST_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_HAND_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_HAND_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
-		
-		//Wend as a vector
-		portVector.write();
-		cout << "Skeleton vector is : " << bottle.toString() << endl;
+        string USED_REFERENCE = KINECT_TAGS_BODYPART_SHOULDER_C;
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_HEAD, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_SHOULDER_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_SHOULDER_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_ELBOW_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_ELBOW_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_WRIST_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_WRIST_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_HAND_L, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        addToBottle(getRelativeJointPosition(KINECT_TAGS_BODYPART_HAND_R, USED_REFERENCE, closestPlayer.skeleton), bottle);
+        
+        //Wend as a vector
+        portVector.write();
+        cout << "Skeleton vector is : " << bottle.toString() << endl;
     }
     else
     {
