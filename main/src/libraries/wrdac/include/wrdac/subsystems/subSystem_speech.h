@@ -106,7 +106,7 @@ public:
     * @param timeout Timeout for recognition (<0 value means wait until something is recognized).
     * @return The sentence recognized
     */ 
-    virtual yarp::os::Bottle* STT(std::string &grammar, double timeout=-1)
+    virtual yarp::os::Bottle* STT(const std::string &grammar, double timeout=-1)
     {
         //todo
         return NULL;
@@ -127,7 +127,7 @@ public:
     * @param vocabuloryName The name of the vocabulory to expand
     * @param word The word to be added to this vocabulory
     */ 
-   virtual void STT_ExpandVocabulory(std::string &vocabuloryName, std::string &word)
+   virtual void STT_ExpandVocabulory(const std::string &vocabuloryName, const std::string &word)
    {
         yarp::os::Bottle bAugmentVocab;
         bAugmentVocab.addString("rgm");
@@ -144,7 +144,7 @@ public:
     * Set the command line options sent by iSpeak
     * @param custom The options as a string
     */  
-    void SetOptions(std::string &custom) {
+    void SetOptions(const std::string &custom) {
         yarp::os::Bottle param; 
         param.addString("set");
         param.addString("opt");

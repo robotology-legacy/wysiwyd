@@ -101,7 +101,8 @@ public:
     * Robot goes to home position
     * @param part (gaze, head, hands, finguers, all. All by default)
     * @param shouldWait is the function blocking?
-    * @return true in case of successfull motor command, false either.
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
     bool home(const std::string &part = "all", bool shouldWait = true)
     {
@@ -114,101 +115,96 @@ public:
     /**
     * the robot tries to reach the specified [target] and grasp it. Optional parameter "side" or "above" can be supplied to choose the orientation the robot should try to mantain while performing the action (default: "above").
     * @param target Target to grasp in cartesian coordinates
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool take(const yarp::sig::Vector &target, const std::string &armUsed, bool shouldWait = true, const std::string &opts = "" )
+    bool take(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_TAKE);
         appendCartesianTarget(bCmd, target);
-        bCmd.addString(armUsed);
-        if(!opts.empty())
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 
     /**
     * the robot tries to reach the specified [target] from one side and then push it laterally. Optional parameter "away" can be supplied in order to have the robot push the object away from its root reference frame.
     * @param target Target to grasp in cartesian coordinates
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool push(const yarp::sig::Vector &target, const std::string &armUsed, bool shouldWait = true, const std::string &opts = "")
+    bool push(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_PUSH);
         appendCartesianTarget(bCmd, target);
-        bCmd.addString(armUsed);
         if(!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 
     /**
     * the robot tries to point the specified [target] with its index finger.    * @param target Target to grasp in cartesian coordinates
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool point(const yarp::sig::Vector &target, const std::string &armUsed, bool shouldWait = true, const std::string &opts = "")
+    bool point(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_POINT);
         appendCartesianTarget(bCmd, target);
-        bCmd.addString(armUsed);
         if(!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 
     /**
     * if the robot is holding an object it brings it over the table and drops it on a random position approximatively in front of it. 
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool drop(const std::string &armUsed, bool shouldWait = true, const std::string &opts = "")
+    bool drop(const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_DROP);
-        bCmd.addString(armUsed);
         if(!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 
     /**
     * Drop an object on a given target
     * @param target Target where to drop in cartesian coordinates
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool dropOn(const yarp::sig::Vector &target, const std::string &armUsed, bool shouldWait = true, const std::string &opts = "")
+    bool dropOn(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_DROP);
-        bCmd.addString(armUsed);
         bCmd.addString("over");
         appendCartesianTarget(bCmd, target);
         if(!opts.empty())
@@ -216,67 +212,64 @@ public:
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 
     /**
     * Bring the hand in the visual field and move it with the purpose of visual exploration.
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool observe(const std::string &armUsed, bool shouldWait = true, const std::string &opts = "")
+    bool observe(const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_OBSERVE);
-        bCmd.addString(armUsed);
         if(!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 
     /**
     * The robot puts one arm forward with the palm of the hand facing up and waiting for an object to be put on it.
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool expect(const std::string &armUsed, bool shouldWait = true, const std::string &opts = "")
+    bool expect(const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_EXPECT);
-        bCmd.addString(armUsed);
         if(!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 
     /**
     * The robot puts one arm forward with the palm of the hand facing up and opens the fingers so that the object held in the hand is free to be taken.
-    * @param armUsed the arm to be used (left|right)
-    * @param shouldWait is the function blocking ?
-    * @param opts Opetions of ARE commands ("no_head", "no_gaze", "no_sacc", "still" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
-    * @return true in case of successfull motor command, false either.
+    * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
+    * @param shouldWait is the function blocking ? 
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
     */
-    bool give(const std::string &armUsed, bool shouldWait = true, const std::string &opts = "")
+    bool give(const std::string &opts = "", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_GIVE);
-        bCmd.addString(armUsed);
         if(!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return  sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd, shouldWait);
     }
 };
 
