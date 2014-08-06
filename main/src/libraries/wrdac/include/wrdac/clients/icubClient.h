@@ -49,14 +49,14 @@ private:
     double xRangeMax,yRangeMax,zRangeMax;
 
 public:
-	std::map<std::string, BodyPosture> getPosturesKnown()
-	{
-		return posturesKnown;
-	}
+    std::map<std::string, BodyPosture> getPosturesKnown()
+    {
+        return posturesKnown;
+    }
 
-    SubSystem*  getSubSystem(std::string name){return subSystems[name];}
+    SubSystem*  getSubSystem(const std::string &name){return subSystems[name];}
 
-	SubSystem_Expression* getExpressionClient()
+    SubSystem_Expression* getExpressionClient()
     {         
         if (subSystems.find(SUBSYSTEM_EXPRESSION) == subSystems.end())
             return NULL;
@@ -64,7 +64,7 @@ public:
            return ((SubSystem_Expression*) subSystems[SUBSYSTEM_EXPRESSION]);
     } 
 
-	SubSystem_Reactable* getReactableClient() 
+    SubSystem_Reactable* getReactableClient() 
     {         
         if (subSystems.find(SUBSYSTEM_REACTABLE) == subSystems.end())
             return NULL;
@@ -80,7 +80,7 @@ public:
            return (SubSystem_iKart*) subSystems[SUBSYSTEM_IKART];
     }
 
-	SubSystem_ABM* getABMClient() 
+    SubSystem_ABM* getABMClient() 
     {         
         if (subSystems.find(SUBSYSTEM_ABM) == subSystems.end())
             return NULL;
@@ -88,40 +88,40 @@ public:
            return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
     }
 
-	SubSystem_SlidingController* getSlidingController()
+    SubSystem_SlidingController* getSlidingController()
     {         
-		if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
+        if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
             return NULL;
        else
-		   return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
+           return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
     }
 
-	SubSystem_ARE* getARE()
-	{
-		if (subSystems.find(SUBSYSTEM_ARE) == subSystems.end())
-			return NULL;
-		else
-			return (SubSystem_ARE*)subSystems[SUBSYSTEM_ARE];
-	}
+    SubSystem_ARE* getARE()
+    {
+        if (subSystems.find(SUBSYSTEM_ARE) == subSystems.end())
+            return NULL;
+        else
+            return (SubSystem_ARE*)subSystems[SUBSYSTEM_ARE];
+    }
 
-	SubSystem_Speech* getSpeechClient() 
+    SubSystem_Speech* getSpeechClient() 
     {         
         if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
-			if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
-				return NULL;
-		   else
-			   return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
+            if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
+                return NULL;
+           else
+               return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
        else
            return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
     }
 
     OPCClient*                  opc;
     Agent*                      icubAgent;
-	    
-	/**
+        
+    /**
     * Create an iCub client based on a specific RF
     */ 
-	ICubClient(std::string moduleName, yarp::os::ResourceFinder &rf);
+    ICubClient(const std::string &moduleName, yarp::os::ResourceFinder &rf);
 
 
     /**
@@ -178,24 +178,24 @@ public:
     */ 
     bool playChoregraphy(const std::string &name, double speedFactor = 1.0,  bool isBlocking=true);
    
-	/**
+    /**
     * Replay a known choregraphyWith only a specific body part
     */ 
     bool playBodyPartChoregraphy(const std::string &name, const std::string &bodyPart, double speedFactor = 1.0, bool isBlocking=true );
     
-	/**
+    /**
     * Get the duration of a choregraphy given a specific speedFactor
     */ 
     double getChoregraphyLength(const std::string &name, double speedFactor = 1.0 );
 
-	/**
-	* Grasp an object with a position and a list of way points
-	* @param target is the position.
-	* @param waypoints is a list of waypoints, relative to the target position.
-	* @param shouldWait is the function blocking?
-	* @return true in case of successfull motor command, false either.
-	*/
-	bool grasp(yarp::sig::Vector target, const std::string usedHand = "right", std::list<yarp::sig::Vector>* waypoints = NULL );
+    /**
+    * Grasp an object with a position and a list of way points
+    * @param target is the position.
+    * @param waypoints is a list of waypoints, relative to the target position.
+    * @param shouldWait is the function blocking?
+    * @return true in case of successfull motor command, false either.
+    */
+    bool grasp(yarp::sig::Vector &target, const std::string &usedHand = "right", std::list<yarp::sig::Vector>* waypoints = NULL );
 
     /**
     * Grasp an object with a given name
@@ -205,14 +205,14 @@ public:
     * @param controlGaze should the robot look at the target?
     * @return true in case of successfull motor command, false either (Entity non existing, impossible to reach, etc.).
     */ 
-	bool sideGrasp(const std::string &oName, const std::string &usedHand = "right", bool wait = true, bool controlGaze = true);
+    bool sideGrasp(const std::string &oName, const std::string &usedHand = "right", bool wait = true, bool controlGaze = true);
 
     /**
     * Release the content of a hand on a given location
     * @param oName is the name of the entity in the OPC where the robot should release.
     * @return true in case of success navigation, false either (Entity non existing, impossible to reach, etc.).
     */ 
-	bool release(const std::string &oLocation, const std::string &usedHand = "right");
+    bool release(const std::string &oLocation, const std::string &usedHand = "right");
        
     /**
     * Start tracking a given entity
@@ -234,14 +234,14 @@ public:
     * Ask the robot to perform speech synthesis of a given sentence
     * @param text to be said.
     */ 
-    bool say(const std::string &text, bool shouldWait= true, bool emotionalIfPossible = false, std::string overrideVoice = "default");
+    bool say(const std::string &text, bool shouldWait= true, bool emotionalIfPossible = false, const std::string &overrideVoice = "default");
 
     /**
     * Ask the robot to perform speech recognition of a given sentence/grammar
     * @param timeout Timeout. If -1 the robot will wait until a sentence is recognized.
     * @return the sentence heard
     */ 
-    yarp::os::Bottle hear(std::string grammar, double timeout = -1.0);
+    yarp::os::Bottle hear(const std::string &grammar, double timeout = -1.0);
 
     /**
     * Ask the robot to execute a generic action, that can be composite
@@ -249,7 +249,7 @@ public:
     * @param applyEstimatedDriveEffect Should the iCub automatically modify its drives based on its estimation? False by default.
     * @return true in case of success, false either (Entity non existing, impossible to reach, etc.).
     */ 
-    bool execute(Action what, bool applyEstimatedDriveEffect = false);
+    bool execute(Action &what, bool applyEstimatedDriveEffect = false);
        
     /**
     * Get the strongest emotion
@@ -276,7 +276,7 @@ public:
     /**
     * Check if a given cartesian position is within the reach of the robot
     */ 
-    bool isTargetInRange(const yarp::sig::Vector & target);
+    bool isTargetInRange(const yarp::sig::Vector &target);
 
     /**
     * Closes properly ports opened. 

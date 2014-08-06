@@ -36,7 +36,7 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     yarp::os::ResourceFinder rfPostures;
     rfPostures.setVerbose(isRFVerbose);
     rfPostures.setDefaultContext(context.c_str());
-	rfPostures.setDefaultConfigFile(rfClient.check("posturesFile",Value("postures.ini")).asString().c_str());
+    rfPostures.setDefaultConfigFile(rfClient.check("posturesFile",Value("postures.ini")).asString().c_str());
     rfPostures.configure(0,NULL);
 
     yarp::os::ResourceFinder rfChoregraphies;
@@ -67,34 +67,34 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     opc = new OPCClient(fullName);
     opc->isVerbose = false;
 
-	//Susbsystems
-	Bottle* bSubsystems = rfClient.find("subsystems").asList();
-	if (bSubsystems)
-	{
-		for(int s=0;s<bSubsystems->size();s++)
-		{
-			std::string currentSS = bSubsystems->get(s).asString();
-			cout<<"Trying to open subsystem : "<<currentSS<<endl;
-			if (currentSS == SUBSYSTEM_ATTENTION)
-				subSystems[SUBSYSTEM_ATTENTION] = new SubSystem_Attention(fullName);
-			else if (currentSS == SUBSYSTEM_EXPRESSION)
-				subSystems[SUBSYSTEM_EXPRESSION] = new SubSystem_Expression(fullName);
-			else if (currentSS == SUBSYSTEM_POSTURES)
-				subSystems[SUBSYSTEM_POSTURES] = new SubSystem_Postures(fullName);
-			else if (currentSS == SUBSYSTEM_REACTABLE)
-				subSystems[SUBSYSTEM_REACTABLE] = new SubSystem_Reactable(fullName);
-			else if (currentSS == SUBSYSTEM_IKART)
-				subSystems[SUBSYSTEM_IKART] = new SubSystem_iKart(fullName);
-			else if (currentSS == SUBSYSTEM_ABM)
-				subSystems[SUBSYSTEM_ABM] = new SubSystem_ABM(fullName);
-			else if (currentSS == SUBSYSTEM_SPEECH)
-				subSystems[SUBSYSTEM_SPEECH] = new SubSystem_Speech(fullName);
-			else if (currentSS == SUBSYSTEM_SLIDING_CONTROLLER)
-				subSystems[SUBSYSTEM_SLIDING_CONTROLLER] = new SubSystem_SlidingController(fullName);
-			else if (currentSS == SUBSYSTEM_ARE)
-				subSystems[SUBSYSTEM_ARE] = new SubSystem_ARE(fullName);
-		}
-	}
+    //Susbsystems
+    Bottle* bSubsystems = rfClient.find("subsystems").asList();
+    if (bSubsystems)
+    {
+        for(int s=0;s<bSubsystems->size();s++)
+        {
+            std::string currentSS = bSubsystems->get(s).asString();
+            cout<<"Trying to open subsystem : "<<currentSS<<endl;
+            if (currentSS == SUBSYSTEM_ATTENTION)
+                subSystems[SUBSYSTEM_ATTENTION] = new SubSystem_Attention(fullName);
+            else if (currentSS == SUBSYSTEM_EXPRESSION)
+                subSystems[SUBSYSTEM_EXPRESSION] = new SubSystem_Expression(fullName);
+            else if (currentSS == SUBSYSTEM_POSTURES)
+                subSystems[SUBSYSTEM_POSTURES] = new SubSystem_Postures(fullName);
+            else if (currentSS == SUBSYSTEM_REACTABLE)
+                subSystems[SUBSYSTEM_REACTABLE] = new SubSystem_Reactable(fullName);
+            else if (currentSS == SUBSYSTEM_IKART)
+                subSystems[SUBSYSTEM_IKART] = new SubSystem_iKart(fullName);
+            else if (currentSS == SUBSYSTEM_ABM)
+                subSystems[SUBSYSTEM_ABM] = new SubSystem_ABM(fullName);
+            else if (currentSS == SUBSYSTEM_SPEECH)
+                subSystems[SUBSYSTEM_SPEECH] = new SubSystem_Speech(fullName);
+            else if (currentSS == SUBSYSTEM_SLIDING_CONTROLLER)
+                subSystems[SUBSYSTEM_SLIDING_CONTROLLER] = new SubSystem_SlidingController(fullName);
+            else if (currentSS == SUBSYSTEM_ARE)
+                subSystems[SUBSYSTEM_ARE] = new SubSystem_ARE(fullName);
+        }
+    }
 }
 
 void ICubClient::LoadPostures(yarp::os::ResourceFinder &rf)
@@ -251,7 +251,7 @@ bool ICubClient::moveBodyPartToPosture(const string &name, double time, const st
     return true;
 }
 
-	
+    
 bool ICubClient::playBodyPartChoregraphy(const std::string &name, const std::string &bodyPart, double speedFactor,  bool isBlocking )
 {
     if (choregraphiesKnown.find(name) == choregraphiesKnown.end())
@@ -281,13 +281,13 @@ double ICubClient::getChoregraphyLength(const std::string &name, double speedFac
         cout<<"Unknown choregraphy"<<endl;
         return 0.0;
     }
-	double totalTime = 0.0;
+    double totalTime = 0.0;
     std::list< std::pair<std::string, double> > chore = choregraphiesKnown[name];
     for( std::list< std::pair<std::string, double> >::iterator element = chore.begin() ; element != chore.end() ; element++)
         totalTime += element->second / speedFactor;
     
-	cout<<"Playing "<<name<<" at "<<speedFactor<<" speed should take "<<endl;   
-	return totalTime;
+    cout<<"Playing "<<name<<" at "<<speedFactor<<" speed should take "<<endl;   
+    return totalTime;
 }
 
 bool ICubClient::playChoregraphy(const std::string &name, double speedFactor, bool isBlocking)
@@ -314,138 +314,138 @@ bool ICubClient::playChoregraphy(const std::string &name, double speedFactor, bo
 
 bool ICubClient::goTo(const string &place)
 {
-	cerr << "Try to call \"gotTo\" on iCubClient but the method is not implemented." << endl;
-	return false;
+    cerr << "Try to call \"gotTo\" on iCubClient but the method is not implemented." << endl;
+    return false;
 }
 
-bool ICubClient::grasp(yarp::sig::Vector target, const std::string usedHand, std::list<yarp::sig::Vector>* waypoints )
+bool ICubClient::grasp(yarp::sig::Vector &target, const std::string &usedHand, std::list<yarp::sig::Vector>* waypoints )
 {
-	//Check for failing conditions
-	if (usedHand != "right" || usedHand != "left")
-	{
-		cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
-		return false;
-	}
+    //Check for failing conditions
+    if (usedHand != "right" || usedHand != "left")
+    {
+        cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
+        return false;
+    }
 
-	if (getSlidingController() == NULL)
-	{
-		cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
-		return false;
-	}
+    if (getSlidingController() == NULL)
+    {
+        cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
+        return false;
+    }
 
-	//work in progress
-	slidingController_IDL* usedCtrl;
-	if (usedHand == "right")
-		usedCtrl = getSlidingController()->clientIDL_slidingController_right;
-	else
-		usedCtrl = getSlidingController()->clientIDL_slidingController_left;
+    //work in progress
+    slidingController_IDL* usedCtrl;
+    if (usedHand == "right")
+        usedCtrl = getSlidingController()->clientIDL_slidingController_right;
+    else
+        usedCtrl = getSlidingController()->clientIDL_slidingController_left;
 
-	usedCtrl->hand("pre-grasp", true);
-	for (std::list<yarp::sig::Vector>::iterator it = waypoints->begin(); it != waypoints->end(); it++)
-	{
-		yarp::sig::Vector v = yarp::math::operator+(target, *it);
-		if (!isTargetInRange(v))
-		{
-			std::cerr << "Waypoint is not in range ! Skipping..." << std::endl;
-		}
-		else
-		{
-			usedCtrl->goTo(v[0], v[1], v[2], true);
-			Time::delay(2.0); // wait for the waypoint to be reached... Yeah ! Magic number ! Harcoded...
-		}
-	}
-	usedCtrl->hand("close", true);
-	return false;
+    usedCtrl->hand("pre-grasp", true);
+    for (std::list<yarp::sig::Vector>::iterator it = waypoints->begin(); it != waypoints->end(); it++)
+    {
+        yarp::sig::Vector v = yarp::math::operator+(target, *it);
+        if (!isTargetInRange(v))
+        {
+            std::cerr << "Waypoint is not in range ! Skipping..." << std::endl;
+        }
+        else
+        {
+            usedCtrl->goTo(v[0], v[1], v[2], true);
+            Time::delay(2.0); // wait for the waypoint to be reached... Yeah ! Magic number ! Harcoded...
+        }
+    }
+    usedCtrl->hand("close", true);
+    return false;
 }
 
 bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, bool wait, bool controlGaze)
 {   
-	if (usedHand != "right" || usedHand != "left")
-	{
-		cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
-		return false;
-	}
+    if (usedHand != "right" || usedHand != "left")
+    {
+        cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
+        return false;
+    }
 
-	if (getSlidingController() == NULL)
-	{
-		cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
-		return false;
-	}
+    if (getSlidingController() == NULL)
+    {
+        cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
+        return false;
+    }
 
-	Entity* target = opc->getEntity(oName,true);
-	if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
-	{
-		cerr << "[iCubClient] Called sideGrasp on a non-object entity." << endl;
-		return false;
-	}
+    Entity* target = opc->getEntity(oName,true);
+    if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
+    {
+        cerr << "[iCubClient] Called sideGrasp on a non-object entity." << endl;
+        return false;
+    }
 
-	Object* oTarget = (Object*)target;
-	if (!oTarget->m_present)
-	{
-		cerr << "[iCubClient] Called sideGrasp on a non-present entity " <<oName<< endl;
-		return false;
-	}
+    Object* oTarget = (Object*)target;
+    if (!oTarget->m_present)
+    {
+        cerr << "[iCubClient] Called sideGrasp on a non-present entity " <<oName<< endl;
+        return false;
+    }
 
-	if (isTargetInRange(oTarget->m_ego_position))
-	{
-		if (controlGaze)
-			look(oName);
-		
-		std::list<yarp::sig::Vector> waypoints;
-		//Build the waypoints
-		Vector wp(3);
-		
-		//1
-		wp[0] = 0.05;
-		if (usedHand == "right")
-			wp[1] = 0.05;
-		else
-			wp[1] = -0.05;
-		wp[2] = 0.1;
+    if (isTargetInRange(oTarget->m_ego_position))
+    {
+        if (controlGaze)
+            look(oName);
+        
+        std::list<yarp::sig::Vector> waypoints;
+        //Build the waypoints
+        Vector wp(3);
+        
+        //1
+        wp[0] = 0.05;
+        if (usedHand == "right")
+            wp[1] = 0.05;
+        else
+            wp[1] = -0.05;
+        wp[2] = 0.1;
 
-		waypoints.push_back(wp);
+        waypoints.push_back(wp);
 
-		//2
-		wp[0] = 0.05;
-		if (usedHand == "right")
-			wp[1] = 0.05;
-		else
-			wp[1] = -0.05;
-		wp[2] = 0.0;
+        //2
+        wp[0] = 0.05;
+        if (usedHand == "right")
+            wp[1] = 0.05;
+        else
+            wp[1] = -0.05;
+        wp[2] = 0.0;
 
-		waypoints.push_back(wp);
+        waypoints.push_back(wp);
 
-		//Use the generic grasp
-		
-		return grasp(oTarget->m_ego_position, usedHand, &waypoints);;
-	}
+        //Use the generic grasp
+        
+        return grasp(oTarget->m_ego_position, usedHand, &waypoints);;
+    }
 
-	return false;
+    return false;
 }
 
 bool ICubClient::release(const std::string &oLocation, const std::string &usedHand)
 {        
-	//Check for failing conditions
-	if (usedHand != "right" || usedHand != "left")
-	{
-		cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
-		return false;
-	}
+    //Check for failing conditions
+    if (usedHand != "right" || usedHand != "left")
+    {
+        cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
+        return false;
+    }
 
-	if (getSlidingController() == NULL)
-	{
-		cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
-		return false;
-	}
+    if (getSlidingController() == NULL)
+    {
+        cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
+        return false;
+    }
 
-	//work in progress
-	slidingController_IDL* usedCtrl;
-	if (usedHand == "right")
-		usedCtrl = getSlidingController()->clientIDL_slidingController_right;
-	else
-		usedCtrl = getSlidingController()->clientIDL_slidingController_left;
+    //work in progress
+    slidingController_IDL* usedCtrl;
+    if (usedHand == "right")
+        usedCtrl = getSlidingController()->clientIDL_slidingController_right;
+    else
+        usedCtrl = getSlidingController()->clientIDL_slidingController_left;
 
-	return usedCtrl->hand("open");;
+    return usedCtrl->hand("open");;
 }
 
 bool ICubClient::look(const string &target)
@@ -487,15 +487,16 @@ bool ICubClient::lookStop()
     ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
     return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
 }
+
 void ICubClient::getHighestEmotion(string &emotionName, double &intensity)
 {
     intensity = 0.0;
     emotionName = "joy";
-	
-	//cout<<"EMOTIONS : "<<endl;
+    
+    //cout<<"EMOTIONS : "<<endl;
     for(map<string,double>::iterator d=this->icubAgent->m_emotions_intrinsic.begin(); d != this->icubAgent->m_emotions_intrinsic.end(); d++)
     {
-		//cout<<'\t'<<d->first<<'\t'<<d->second<<endl;
+        //cout<<'\t'<<d->first<<'\t'<<d->second<<endl;
         if ( d->second > intensity )
         {
             emotionName = d->first;
@@ -504,7 +505,7 @@ void ICubClient::getHighestEmotion(string &emotionName, double &intensity)
     }
 }
 
-bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossible, std::string overrideVoice)
+bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossible, const std::string &overrideVoice)
 {        
     if (subSystems.find("speech") == subSystems.end())
     {
@@ -524,7 +525,7 @@ bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossib
     return true;
 }
 
-bool ICubClient::execute(Action what, bool applyEstimatedDriveEffect)
+bool ICubClient::execute(Action &what, bool applyEstimatedDriveEffect)
 {
     cout<<"iCubClient>> Executing plan: "<<what.toString()<<endl;
     bool overallResult = true;
@@ -644,7 +645,7 @@ list<Object*> ICubClient::getObjectsInRange()
     return inRange;
 }
 
-bool ICubClient::isTargetInRange(const Vector & target)
+bool ICubClient::isTargetInRange(const Vector &target)
 {
     //cout<<"Target current root position is : "<<target.toString(3,3)<<endl;
     //cout<<"Range is : \n"
@@ -658,5 +659,5 @@ bool ICubClient::isTargetInRange(const Vector & target)
     //cout<<"Target in range = "<<isIn<<endl;
 
     return isIn;
-}	
+}   
 
