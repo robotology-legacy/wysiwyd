@@ -50,7 +50,7 @@ namespace wysiwyd{namespace wrdac{
 /**
 * \ingroup wrdac_clients
 *
-* SubSystem for sliding motor control. Actually a simple IDL instantiation.
+* SubSystem for actionsRenderingEngine (a.k.a. ARE).
 */
 class SubSystem_ARE : public SubSystem
 {
@@ -155,7 +155,8 @@ public:
     }
 
     /**
-    * the robot tries to point the specified [target] with its index finger.    * @param target Target to grasp in cartesian coordinates
+    * the robot tries to point the specified [target] with its index finger. 
+    * @param target Target to grasp in cartesian coordinates
     * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
     * @param shouldWait is the function blocking ? 
     * @return true in case of successfull motor command, false 
@@ -194,7 +195,7 @@ public:
     }
 
     /**
-    * Drop an object on a given target
+    * Drop the object on a given target
     * @param target Target where to drop in cartesian coordinates
     * @param opts Options of ARE commands ("no_head", "no_gaze", "no_sacc", "still", "left", "right" Please refer to http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html)
     * @param shouldWait is the function blocking ? 
