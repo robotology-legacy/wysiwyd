@@ -43,7 +43,7 @@ protected:
     virtual bool connect() = 0;
 
 public:
-    SubSystem(std::string masterName) { m_isRunning = false; m_masterName=masterName; m_type = SUBSYSTEM;}
+    SubSystem(std::string &masterName) { m_isRunning = false; m_masterName=masterName; m_type = SUBSYSTEM;}
     bool isRunning(){ return m_isRunning; }
     bool Connect() { return (m_isRunning=connect());};
     virtual void Close()=0;

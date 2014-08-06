@@ -22,6 +22,7 @@
 #define SUBSYSTEM               "abstract"
 #include "subSystem.h"
 #include "subSystem_ABM.h"
+#include "subSystem_ARE.h"
 #include "subSystem_attention.h"
 #include "subSystem_facialExpression.h"
 #include "subSystem_iKart.h"
@@ -29,7 +30,6 @@
 #include "subSystem_reactable.h"
 #include "subSystem_speech.h"
 #include "subSystem_slidingCtrl.h"
-#include "subSystem_ARE.h"
 #endif
 
 

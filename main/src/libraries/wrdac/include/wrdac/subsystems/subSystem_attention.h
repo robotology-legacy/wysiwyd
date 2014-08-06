@@ -46,8 +46,8 @@ protected:
     virtual bool connect() { return yarp::os::Network::connect(attentionSelector.getName(), "/attentionSelector/rpc");}
 public:
     yarp::os::Port attentionSelector;
-    SubSystem_Attention(std::string masterName):SubSystem(masterName){
-        attentionSelector.open( ("/" + m_masterName + "/attention:rpc").c_str());
+    SubSystem_Attention(std::string &masterName):SubSystem(masterName){
+        attentionSelector.open(("/"+m_masterName+"/attention:rpc").c_str());
         m_type = SUBSYSTEM_ATTENTION;
     }
     virtual void Close() {attentionSelector.interrupt();attentionSelector.close();};

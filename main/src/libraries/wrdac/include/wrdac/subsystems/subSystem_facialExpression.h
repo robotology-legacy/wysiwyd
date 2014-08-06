@@ -243,7 +243,7 @@ public:
         connect();
     }
 
-    FaceLEDClient(std::string moduleName)
+    FaceLEDClient(std::string &moduleName)
     {
         std::string portName = "/";
         portName +=moduleName.c_str();
@@ -269,7 +269,7 @@ public:
     /**
     * Try to connect to the emotion interface port ("/icub/face/emotions/in")
     */
-    bool connect(std::string targetPort = "/icub/face/emotions/in")
+    bool connect(const std::string &targetPort = "/icub/face/emotions/in")
     {
         return yarp::os::Network::connect(toEmotionInterface.getName(),targetPort.c_str());
     }
@@ -280,7 +280,7 @@ public:
     void blink(double blink_time = 0.0750)
     {
         FaceLED led;
-		led.SetEyeOpening(0);
+        led.SetEyeOpening(0);
         send(led, false, false, false , true);
         yarp::os::Time::delay(blink_time);
         led.SetEyeOpening(1);
@@ -299,48 +299,48 @@ public:
     {
         yarp::os::Bottle cmd;
 
-		//Set the mouth
-		if (sendMouth)
-		{
-			cmd.addString("set");
-			cmd.addString("raw");
-			cmd.addString(face.mouthCode().c_str());
-			toEmotionInterface.write(cmd);
-			//cout<<"Sending..."<<cmd.toString().c_str()<<endl;
-		}
+        //Set the mouth
+        if (sendMouth)
+        {
+            cmd.addString("set");
+            cmd.addString("raw");
+            cmd.addString(face.mouthCode().c_str());
+            toEmotionInterface.write(cmd);
+            //cout<<"Sending..."<<cmd.toString().c_str()<<endl;
+        }
 
         //lEye
-		if (sendEyeBrowL)
-		{
-			cmd.clear();
-			cmd.addString("set");
-			cmd.addString("raw");
-			cmd.addString(face.leftEyeCode().c_str());
-			toEmotionInterface.write(cmd);
-			//cout<<"Sending..."<<cmd.toString().c_str()<<endl;
-		}
+        if (sendEyeBrowL)
+        {
+            cmd.clear();
+            cmd.addString("set");
+            cmd.addString("raw");
+            cmd.addString(face.leftEyeCode().c_str());
+            toEmotionInterface.write(cmd);
+            //cout<<"Sending..."<<cmd.toString().c_str()<<endl;
+        }
 
         //rEye
-		if (sendEyeBrowR)
-		{
-			cmd.clear();
-			cmd.addString("set");
-			cmd.addString("raw");
-			cmd.addString(face.rightEyeCode().c_str());
-			toEmotionInterface.write(cmd);
-			//cout<<"Sending..."<<cmd.toString().c_str()<<endl;
-		}
+        if (sendEyeBrowR)
+        {
+            cmd.clear();
+            cmd.addString("set");
+            cmd.addString("raw");
+            cmd.addString(face.rightEyeCode().c_str());
+            toEmotionInterface.write(cmd);
+            //cout<<"Sending..."<<cmd.toString().c_str()<<endl;
+        }
 
         //opening
-		if (sendEyeOpening)
-		{
-			cmd.clear();
-			cmd.addString("set");
-			cmd.addString("raw");
-			cmd.addString(face.eyesOpeningCode().c_str());
-			toEmotionInterface.write(cmd);
-			//cout<<"Sending..."<<cmd.toString().c_str()<<endl;
-		}
+        if (sendEyeOpening)
+        {
+            cmd.clear();
+            cmd.addString("set");
+            cmd.addString("raw");
+            cmd.addString(face.eyesOpeningCode().c_str());
+            toEmotionInterface.write(cmd);
+            //cout<<"Sending..."<<cmd.toString().c_str()<<endl;
+        }
     }
 };
 
@@ -421,12 +421,12 @@ private:
 
 public:
 
-	SubSystem_Expression(std::string masterName, yarp::os::ResourceFinder &rf) :FaceLEDClient(rf), SubSystem(masterName)
+    SubSystem_Expression(std::string &masterName, yarp::os::ResourceFinder &rf) :FaceLEDClient(rf), SubSystem(masterName)
     {
         LoadExpressions(rf);
     }
 
-	SubSystem_Expression(std::string moduleName, bool isRFVerbose = false) :FaceLEDClient(moduleName), SubSystem(moduleName)
+    SubSystem_Expression(std::string &moduleName, bool isRFVerbose = false) :FaceLEDClient(moduleName), SubSystem(moduleName)
     {
         yarp::os::ResourceFinder rf;
         rf.setVerbose(isRFVerbose);
@@ -451,7 +451,7 @@ public:
     /**
     * Express a given emotion to a given intensity
     */
-    bool express(std::string emotion, double intensity, SubSystem_Speech_eSpeak* voice = NULL, std::string overrideVoice = "default")
+    bool express(const std::string &emotion, double intensity, SubSystem_Speech_eSpeak* voice = NULL, const std::string &overrideVoice = "default")
     {
         if (emotions.find(emotion) != emotions.end())
         {
@@ -543,8 +543,8 @@ public:
         }
     }
 
-	virtual void Close() { this->FaceLEDClient::interrupt(); this->FaceLEDClient::close(); }
-	virtual bool connect() { return this->FaceLEDClient::connect(); }
+    virtual void Close() { this->FaceLEDClient::interrupt(); this->FaceLEDClient::close(); }
+    virtual bool connect() { return this->FaceLEDClient::connect(); }
 
 };
 

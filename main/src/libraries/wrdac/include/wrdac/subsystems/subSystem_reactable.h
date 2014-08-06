@@ -49,7 +49,7 @@ public:
     yarp::os::Port portRTrpc;
     yarp::os::BufferedPort<yarp::os::Bottle> portRTin;
 
-    SubSystem_Reactable(std::string masterName):SubSystem(masterName){
+    SubSystem_Reactable(std::string &masterName):SubSystem(masterName){
         portRTrpc.open( ("/" + m_masterName + "/reactable:rpc").c_str());
         portRTin.open(("/" + m_masterName + "/reactable/osc:i").c_str());
         m_type = SUBSYSTEM_REACTABLE;
@@ -65,7 +65,7 @@ public:
     * Display a virtual object on the reactable
     * @param o the object to be displayed
     */ 
-    void SendOSC(yarp::os::Bottle oscMsg)
+    void SendOSC(yarp::os::Bottle &oscMsg)
     {
             yarp::os::Bottle cmd; 
             cmd.addString("osc");
@@ -98,8 +98,8 @@ public:
             cmd.addList() = o->asBottle();
             portRTrpc.write(cmd);
     }
-	    
-	/**
+        
+    /**
     * Ask the module to refresh the calibration matrix from RFH
     * @param o the object to be displayed
     */ 

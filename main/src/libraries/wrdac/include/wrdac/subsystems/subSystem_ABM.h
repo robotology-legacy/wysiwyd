@@ -38,8 +38,8 @@ protected:
 
 public:
     yarp::os::Port portRPC;
-    SubSystem_ABM(std::string masterName):SubSystem(masterName){
-        portRPC.open( ("/" + m_masterName + "/abm:rpc").c_str());
+    SubSystem_ABM(std::string &masterName):SubSystem(masterName){
+        portRPC.open(("/"+m_masterName+"/abm:rpc").c_str());
         m_type = SUBSYSTEM_ABM;
     }
 
@@ -91,7 +91,7 @@ public:
         portRPC.write(bSnapshot);
     }
 
-    yarp::os::Bottle requestFromString(std::string sInput)
+    yarp::os::Bottle requestFromString(std::string &sInput)
     {
         yarp::os::Bottle bReplyRequest;
         //send the SQL query within a bottle to autobiographicalMemory

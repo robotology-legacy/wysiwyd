@@ -54,7 +54,7 @@ public:
     yarp::os::Port ctpRightArm;
     yarp::os::Port ctpTorso;
 
-    SubSystem_Postures(std::string masterName):SubSystem(masterName){
+    SubSystem_Postures(std::string &masterName):SubSystem(masterName){
         ctpHead.open( ("/" + m_masterName + "/ctp/head:rpc").c_str());
         ctpLeftArm.open( ("/" + m_masterName + "/ctp/left_arm:rpc").c_str());
         ctpRightArm.open( ("/" + m_masterName + "/ctp/right_arm:rpc").c_str());
@@ -76,7 +76,7 @@ public:
     * @param timing The time to execute the movement (the function is no blocking)
     * @param partUsed The part to be moved (head / left_arm / right_arm / left_hand / right_hand / torso)
     */ 
-    void Execute(BodyPosture p, double timing, std::string partUsed)
+    void Execute(BodyPosture &p, double timing, const std::string &partUsed)
     {
         if ( partUsed == "head")
         {
@@ -187,7 +187,7 @@ public:
     * @param p The body posture to be used
     * @param timing The time to execute the movement (the function is no blocking)
     */ 
-    void Execute(BodyPosture p, double timing)
+    void Execute(BodyPosture &p, double timing)
     {
         Execute(p,timing,"head");
         Execute(p,timing,"left_arm");

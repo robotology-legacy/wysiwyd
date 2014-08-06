@@ -45,7 +45,7 @@ protected:
 
 public:
       
-    SubSystem_Speech(std::string masterName):SubSystem(masterName)
+    SubSystem_Speech(std::string &masterName):SubSystem(masterName)
     {
         tts.open( ("/" + m_masterName + "/tts:o").c_str());
         ttsRpc.open( ("/" + m_masterName + "/tts:rpc").c_str());
@@ -74,10 +74,11 @@ public:
     * @param text The text to be said.
     * @param shouldWait Is the function blocking until the end of the sentence or not.
     */ 
-    virtual void TTS(std::string text, bool shouldWait=true) {
-		//Clean the input of underscores.
-		replace_all(text, "_", " ");
-        yarp::os::Bottle txt; txt.addString(text.c_str());
+    virtual void TTS(const std::string &text, bool shouldWait=true) {
+        //Clean the input of underscores.
+        std::string tmpText=text;
+        replace_all(tmpText, "_", " ");
+        yarp::os::Bottle txt; txt.addString(tmpText.c_str());
         tts.write(txt);            
         //int words = countWordsInString(text);
         //double durationMn =  words / (double)m_speed;
@@ -105,7 +106,7 @@ public:
     * @param timeout Timeout for recognition (<0 value means wait until something is recognized).
     * @return The sentence recognized
     */ 
-    virtual yarp::os::Bottle* STT(std::string grammar, double timeout=-1)
+    virtual yarp::os::Bottle* STT(std::string &grammar, double timeout=-1)
     {
         //todo
         return NULL;
@@ -126,7 +127,7 @@ public:
     * @param vocabuloryName The name of the vocabulory to expand
     * @param word The word to be added to this vocabulory
     */ 
-   virtual void STT_ExpandVocabulory(std::string vocabuloryName, std::string word)
+   virtual void STT_ExpandVocabulory(std::string &vocabuloryName, std::string &word)
    {
         yarp::os::Bottle bAugmentVocab;
         bAugmentVocab.addString("rgm");
@@ -143,7 +144,7 @@ public:
     * Set the command line options sent by iSpeak
     * @param custom The options as a string
     */  
-    void SetOptions(std::string custom) {
+    void SetOptions(std::string &custom) {
         yarp::os::Bottle param; 
         param.addString("set");
         param.addString("opt");
@@ -189,7 +190,7 @@ protected:
 
 public:
 
-    SubSystem_Speech_eSpeak(std::string masterName):SubSystem_Speech(masterName){
+    SubSystem_Speech_eSpeak(std::string &masterName):SubSystem_Speech(masterName){
 
         m_type = SUBSYSTEM_SPEECH_ESPEAK;
         m_speed = 100;
