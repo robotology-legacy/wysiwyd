@@ -25,6 +25,7 @@ namespace cvz {
             std::queue< std::vector< int > > winnersBuffer;
             int recurrenceDelay;
             int xBuff, yBuff, zBuff;
+			bool isUsingPopulationCode;
             yarp::os::Semaphore mutex;
 
         public:
@@ -90,6 +91,7 @@ namespace cvz {
                 width = rf.check("width", yarp::os::Value(10)).asInt();
                 layers = rf.check("layers", yarp::os::Value(1)).asInt();
                 lRate = rf.check("learningRate", yarp::os::Value(0.05)).asDouble();
+				isUsingPopulationCode = rf.check("populationCode");
                 int recModalitySize = rf.check("recurrentModality", yarp::os::Value(0)).asInt();
                 recurrenceDelay = rf.check("recurrentDelay", yarp::os::Value(10)).asInt();
                 if (recModalitySize > 0)
@@ -197,7 +199,8 @@ namespace cvz {
                 yarp::os::Bottle &botActivity = portActivity.prepare();
                 botActivity.clear();
 
-                //Compute map activity 
+				//------------------------------------------------------------------------------------------------------------------------
+				//Compute map activity 
                 for (int x = 0; x < width; x++)
                 {
                     for (int y = 0; y < height; y++)
@@ -265,9 +268,12 @@ namespace cvz {
                     }
                 }
 
+				//------------------------------------------------------------------------------------------------------------------------
                 //Send the output activity
                 portActivity.write();
 
+				//------------------------------------------------------------------------------------------------------------------------
+				//Keep track of the past winners in a buffer (not really used yet)
                 if (winnersBuffer.size() == (unsigned int) recurrenceDelay)
                     winnersBuffer.pop();
                 std::vector<int> currentWinner(3);
@@ -283,36 +289,24 @@ namespace cvz {
                     zBuff = zBuff;
                 }
 
+
+				//------------------------------------------------------------------------------------------------------------------------
                 //Learning
                 if (lRate > 0.0)
                     adaptWeights();
 
+
+				//------------------------------------------------------------------------------------------------------------------------
                 //Set the predicted values 
+
                 //feedback
                 for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
-                {
-                    std::vector<double> valuePrediction;
-                    valuePrediction.resize(it->second->Size());
-                    for (int i = 0; i < it->second->Size(); i++)
-                    {
-                        valuePrediction[i] = weights[it->second][i][xWin][yWin][zWin];
-                    }
-                    it->second->SetValuePrediction(valuePrediction);
-                }
-
+					predictModality(it->second, isUsingPopulationCode);
                 //feedforward
                 for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-                {
-                    std::vector<double> valuePrediction;
-                    valuePrediction.resize(it->second->Size());
-                    for (int i = 0; i < it->second->Size(); i++)
-                    {
-                        valuePrediction[i] = weights[it->second][i][xWin][yWin][zWin];
-                    }
-                    it->second->SetValuePrediction(valuePrediction);
-                }
+					predictModality(it->second, isUsingPopulationCode);
 
-                //Handle the reccurent modality I/O
+                //Recurrent
                 if (recurrentModality != NULL)
                 {
                     std::vector<double> valuePrediction;
@@ -326,6 +320,45 @@ namespace cvz {
                 }
                 mutex.post();
             }
+
+			void predictModality(IModality* mod, bool populationCode)
+			{
+				std::vector<double> valuePrediction;
+				valuePrediction.resize(mod->Size(), 0.0);
+
+				std::vector<double> valuePredictionWinner;
+				valuePredictionWinner.resize(mod->Size(), 0.0);
+				for (int i = 0; i < mod->Size(); i++)
+				{
+					valuePredictionWinner[i] = weights[mod][i][xWin][yWin][zWin];
+
+					if (populationCode)
+					{
+						double totalContribution = 0.0;
+						for (int x = 0; x < width; x++)
+						{
+							for (int y = 0; y < height; y++)
+							{
+								for (int z = 0; z < layers; z++)
+								{
+									double contribution = activity[x][y][z] / activity[xWin][yWin][zWin];
+									valuePrediction[i] += (weights[mod][i][x][y][z] * contribution);
+									totalContribution += contribution;
+								}
+							}
+						}
+						valuePrediction[i] /= totalContribution;
+					}
+				}
+				if (populationCode)
+				{
+					mod->SetValuePrediction(valuePrediction);
+				}
+				else
+				{
+					mod->SetValuePrediction(valuePredictionWinner);
+				}
+			}
 
             void adaptWeights()
             {
