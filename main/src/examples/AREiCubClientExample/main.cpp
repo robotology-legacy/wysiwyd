@@ -59,7 +59,7 @@ int main()
     // object location in the iCub frame
     Vector x(4);
     x[0]=-0.35;
-    x[1]=-0.1;
+    x[1]=-0.05;
     x[2]=-0.05;
     x[3]=1.0;
 
@@ -84,7 +84,7 @@ int main()
 
     iCub.home();
     cout<<"pointing at the object ... "<<endl;
-    iCub.point(x);
+    iCub.point(x);      // automatic selection of the hand
     Time::delay(2.0);
     iCub.home();
 
