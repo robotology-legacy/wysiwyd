@@ -82,6 +82,7 @@ int main()
     port.write(cmd,reply);
     port.close();
 
+    Time::delay(2.0);
     cout<<"pointing at the object ... "<<endl;
     iCub.point(x);
     Time::delay(2.0);
