@@ -17,9 +17,9 @@
  */
 
 /**
- * @defgroup wrdac EFAA Helper Routines
+ * @defgroup wrdac Helper Routines
  *
- * @ingroup efaa_libraries
+ * @ingroup wysiwyd_libraries
  *
  * A container library containing defines and structures to formalize
  * knowledge within an objectPropertiesCollector module.

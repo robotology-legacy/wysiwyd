@@ -240,6 +240,30 @@ public:
     bool release(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle());
 
     /**
+    * Point at a specified location. 
+    * @param oName is the name of the entity in the OPC where the 
+    *              robot should point at.
+    * @param options bottle containing a list of options (e.g. force
+    *                to use specific hand with "left"|"right"
+    *                option).
+    * @return true in case of success release, false otherwise 
+    *         (Entity non existing, impossible to reach, etc.).
+    */ 
+    bool point(const std::string &oLocation, const yarp::os::Bottle &options=yarp::os::Bottle());
+
+    /**
+    * Point at a specified location.
+    * @param target contains spatial information about the location 
+    *               where pointing at.
+    * @param options bottle containing a list of options (e.g. force
+    *                to use specific hand with "left"|"right"
+    *                option).
+    * @return true in case of success release, false otherwise 
+    *         (Entity non existing, impossible to reach, etc.).
+    */ 
+    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle());
+
+    /**
     * Start tracking a given entity
     * @param target is the name of the entity in the OPC where the robot should look.
     */ 

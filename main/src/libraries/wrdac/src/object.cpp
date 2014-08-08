@@ -40,13 +40,13 @@ Object::Object():Entity()
 
 Object::Object(const Object &b):Entity(b)
 {
-	this->m_entity_type = b.m_entity_type;
-	this->m_color = b.m_color;
-	this->m_dimensions = b.m_dimensions;
-	this->m_ego_orientation = b.m_ego_orientation;
-	this->m_ego_position = b.m_ego_position;
-	this->m_present = b.m_present;
-     this->m_saliency = b.m_saliency;
+    this->m_entity_type = b.m_entity_type;
+    this->m_color = b.m_color;
+    this->m_dimensions = b.m_dimensions;
+    this->m_ego_orientation = b.m_ego_orientation;
+    this->m_ego_position = b.m_ego_position;
+    this->m_present = b.m_present;
+    this->m_saliency = b.m_saliency;
 }
 
 Bottle Object::asBottle()
@@ -114,13 +114,13 @@ Bottle Object::asBottle()
     b.addList() = bSub;
     bSub.clear();
 
-	//Present
-	bSub.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-	if (this->m_present)
-		bSub.addInt(1);
-	else
-		bSub.addInt(0);
-	b.addList() = bSub;
+    //Present
+    bSub.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
+    if (this->m_present)
+        bSub.addInt(1);
+    else
+        bSub.addInt(0);
+    b.addList() = bSub;
 
     return b;
 }
@@ -142,7 +142,7 @@ bool Object::fromBottle(Bottle b)
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_R) || 
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) || 
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_B) ||
-		!b.check(EFAA_OPC_OBJECT_PRESENT_TAG))
+        !b.check(EFAA_OPC_OBJECT_PRESENT_TAG))
     {
         return false;
     }
@@ -178,7 +178,7 @@ string Object::toString()
     oss<< m_color.toString(3,3)<<endl;    
     oss<<"saliency : \t";
     oss<< m_saliency<<endl;
-	oss<<"present : \t";
+    oss<<"present : \t";
     oss<< m_present<<endl;
     return oss.str();
 }

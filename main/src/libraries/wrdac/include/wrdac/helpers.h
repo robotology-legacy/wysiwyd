@@ -17,9 +17,9 @@
  */
 
 /**
- * @defgroup wrdac EFAA Helpers
+ * @defgroup wrdac Helpers
  *  
- * @ingroup efaa_libraries
+ * @ingroup wysiwyd_libraries
  *  
  * A core library containing classes and clients designed to help to represent knowledge and interactive scenarios within the EFAA
  * project.

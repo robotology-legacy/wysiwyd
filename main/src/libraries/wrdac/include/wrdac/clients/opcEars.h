@@ -19,9 +19,9 @@
 */
 
 /**
- * @defgroup efaa_opcears OPC Ears
+ * @defgroup wysiwyd_opcears OPC Ears
  *  
- * @ingroup efaa_libraries
+ * @ingroup wysiwyd_libraries
  *  
  * Tool for operations on the OPC as : transforming in SQL request for the integration in the DataBase, difference between 2 OPCs...
  * Contact : gregoire.pointeau@inserm.fr
