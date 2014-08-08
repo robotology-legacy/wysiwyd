@@ -81,9 +81,7 @@ int main()
     //And we check them
     iCub.say("Checking my drives...");
     iCub.updateAgent(); //Just to refresh the agent from the OPC
-    for(map<string,Drive>::iterator d=iCub.icubAgent->m_drives.begin();
-        d!=iCub.icubAgent->m_drives.end();
-        d++)
+    for(map<string,Drive>::iterator d=iCub.icubAgent->m_drives.begin(); d!=iCub.icubAgent->m_drives.end(); d++)
     {
         if (d->second.value < d->second.homeoStasisMin || d->second.value > d->second.homeoStasisMax)
         {
@@ -102,26 +100,25 @@ int main()
         iCub.look(objectName);
         iCub.say("a " + objectName);
     }
+
     if (inSight.size() == 0)
         iCub.say("nothing.");
 
     //We check the objects that the robot can grasp and pick the first one
     list<Object*> inRange = iCub.getObjectsInRange();
-    if (inRange.size() > 0 )
+    if (inRange.size() > 0)
     {
         string chosenObject = inRange.front()->name();
         iCub.say("I can grasp the " + chosenObject);
         iCub.sideGrasp(chosenObject,"right",true,true);
-        //todo
         iCub.release(chosenObject,"right");
     }
     else
-    {
         iCub.say("But all of them are out of my range.");
-    }
-    iCub.say("And that is about everything I can do.");
 
+    iCub.say("And that is about everything I can do.");
     iCub.say("See you next time.");
+
     iCub.close();
     return 0;
 }

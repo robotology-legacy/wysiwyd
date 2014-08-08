@@ -60,40 +60,40 @@ public:
     {         
         if (subSystems.find(SUBSYSTEM_EXPRESSION) == subSystems.end())
             return NULL;
-       else
-           return ((SubSystem_Expression*) subSystems[SUBSYSTEM_EXPRESSION]);
+        else
+            return ((SubSystem_Expression*) subSystems[SUBSYSTEM_EXPRESSION]);
     } 
 
     SubSystem_Reactable* getReactableClient() 
     {         
         if (subSystems.find(SUBSYSTEM_REACTABLE) == subSystems.end())
             return NULL;
-       else
-           return (SubSystem_Reactable*) subSystems[SUBSYSTEM_REACTABLE];
+        else
+            return (SubSystem_Reactable*) subSystems[SUBSYSTEM_REACTABLE];
     } 
 
     SubSystem_iKart* getIkartClient() 
     {         
         if (subSystems.find(SUBSYSTEM_IKART) == subSystems.end())
             return NULL;
-       else
-           return (SubSystem_iKart*) subSystems[SUBSYSTEM_IKART];
+        else
+            return (SubSystem_iKart*) subSystems[SUBSYSTEM_IKART];
     }
 
     SubSystem_ABM* getABMClient() 
     {         
         if (subSystems.find(SUBSYSTEM_ABM) == subSystems.end())
             return NULL;
-       else
-           return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
+        else
+            return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
     }
 
     SubSystem_SlidingController* getSlidingController()
     {         
         if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
             return NULL;
-       else
-           return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
+        else
+            return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
     }
 
     SubSystem_ARE* getARE()
@@ -107,12 +107,14 @@ public:
     SubSystem_Speech* getSpeechClient() 
     {         
         if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
+        {
             if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
                 return NULL;
-           else
-               return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
-       else
-           return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
+            else
+                return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
+        }
+        else
+            return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
     }
 
     OPCClient*                  opc;
@@ -122,7 +124,6 @@ public:
     * Create an iCub client based on a specific RF
     */ 
     ICubClient(const std::string &moduleName, yarp::os::ResourceFinder &rf);
-
 
     /**
     * Create an iCub client
@@ -259,7 +260,7 @@ public:
     /**
     * Get the list of actions known the iCub
     */   
-    std::list<Action*>  getKnownActions();
+    std::list<Action*> getKnownActions();
 
     /**
     * Get the list of object that are in front of the iCub

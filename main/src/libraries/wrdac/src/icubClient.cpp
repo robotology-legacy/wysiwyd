@@ -416,7 +416,7 @@ bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, boo
 
         //Use the generic grasp
         
-        return grasp(oTarget->m_ego_position, usedHand, &waypoints);;
+        return grasp(oTarget->m_ego_position, usedHand, &waypoints);
     }
 
     return false;
