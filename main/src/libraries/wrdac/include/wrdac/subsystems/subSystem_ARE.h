@@ -20,32 +20,16 @@
 #define __EFAA_SUBSYSTEM_ARE_H__
 
 
-#define SUBSYSTEM_ARE     "ARE"
+#define SUBSYSTEM_ARE       "ARE"
 
-#include <yarp/os/Network.h>
+#include <yarp/os/all.h>
 #include <yarp/sig/all.h>
-#include <yarp/math/Math.h>
-#include <yarp/math/SVD.h>
 #include <iostream>
-#include <iterator>
-#include <algorithm>
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/knowledge/object.h"
 
-namespace wysiwyd{namespace wrdac{
-
-    //Defines extracted from ARE main.cpp
-#define CMD_GET                     VOCAB3('g','e','t')
-#define CMD_TAKE                    VOCAB4('t','a','k','e')
-#define CMD_GRASP                   VOCAB4('g','r','a','s')
-#define CMD_PUSH                    VOCAB4('p','u','s','h')
-#define CMD_POINT                   VOCAB4('p','o','i','n')
-#define CMD_EXPECT                  VOCAB4('e','x','p','e')
-#define CMD_GIVE                    VOCAB4('g','i','v','e')
-#define CMD_CLOSE                   VOCAB4('c','l','o','s')
-#define CMD_DROP                    VOCAB4('d','r','o','p')
-#define CMD_OBSERVE                 VOCAB4('o','b','s','e')
-#define CMD_HOME                    VOCAB4('h','o','m','e')
+namespace wysiwyd {
+namespace wrdac {
 
 /**
 * \ingroup wrdac_clients
@@ -61,17 +45,17 @@ private:
     {
         yarp::os::Bottle& sub = b.addList();
         sub.addString("cartesian");
-        for (size_t i = 0; i < t.length(); i++)
+        for (size_t i=0; i<t.length(); i++)
             sub.addDouble(t[i]);
     }
 
-    bool sendCmd(yarp::os::Bottle &cmd, bool shouldWait)
-    {
-        yarp::os::Bottle bReply;
+    bool sendCmd(yarp::os::Bottle &cmd, const bool shouldWait)
+    {        
         if (shouldWait)
         {
-            cmdPort.write(cmd, bReply);
-            return bReply.get(0).asString() == "ACK";
+            yarp::os::Bottle bReply;
+            cmdPort.write(cmd,bReply);
+            return (bReply.get(0).asVocab()==yarp::os::Vocab::encode("ack"));
         }
         else
             cmdPort.write(cmd);
@@ -88,7 +72,7 @@ protected:
 public:
     SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
     {
-        cmdPort.open(("/"+masterName+"/ARE/cmd:io").c_str());
+        cmdPort.open(("/"+masterName+"/"+SUBSYSTEM_ARE+"/cmd:io").c_str());
         m_type = SUBSYSTEM_ARE;
     }
 
@@ -105,12 +89,12 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool home(const std::string &part = "all", const bool shouldWait = true)
+    bool home(const std::string &part="all", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_HOME);
+        bCmd.addVocab(yarp::os::Vocab::encode("home"));
         bCmd.addString(part);
-        return sendCmd(bCmd, shouldWait);
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -121,17 +105,18 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool take(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
+    bool take(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_TAKE);
-        appendCartesianTarget(bCmd, target);
+        bCmd.addVocab(yarp::os::Vocab::encode("take"));
+        appendCartesianTarget(bCmd,target);
         if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -142,17 +127,18 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool push(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
+    bool push(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_PUSH);
-        appendCartesianTarget(bCmd, target);
-        if(!opts.empty())
+        bCmd.addVocab(yarp::os::Vocab::encode("push"));
+        appendCartesianTarget(bCmd,target);
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -163,17 +149,18 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool point(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
+    bool point(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_POINT);
-        appendCartesianTarget(bCmd, target);
-        if(!opts.empty())
+        bCmd.addVocab(yarp::os::Vocab::encode("point"));
+        appendCartesianTarget(bCmd,target);
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -183,16 +170,17 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool drop(const std::string &opts = "", const bool shouldWait = true)
+    bool drop(const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_DROP);
-        if(!opts.empty())
+        bCmd.addVocab(yarp::os::Vocab::encode("drop"));
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -203,18 +191,19 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool dropOn(const yarp::sig::Vector &target, const std::string &opts = "", const bool shouldWait = true)
+    bool dropOn(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_DROP);
+        bCmd.addVocab(yarp::os::Vocab::encode("drop"));
         bCmd.addString("over");
-        appendCartesianTarget(bCmd, target);
-        if(!opts.empty())
+        appendCartesianTarget(bCmd,target);
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -224,16 +213,17 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool observe(const std::string &opts = "", const bool shouldWait = true)
+    bool observe(const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_OBSERVE);
-        if(!opts.empty())
+        bCmd.addVocab(yarp::os::Vocab::encode("observe"));
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -243,16 +233,17 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool expect(const std::string &opts = "", const bool shouldWait = true)
+    bool expect(const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_EXPECT);
-        if(!opts.empty())
+        bCmd.addVocab(yarp::os::Vocab::encode("expect"));
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 
     /**
@@ -262,21 +253,23 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool give(const std::string &opts = "", const bool shouldWait = true)
+    bool give(const std::string &opts="", const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
-        bCmd.addVocab(CMD_GIVE);
-        if(!opts.empty())
+        bCmd.addVocab(yarp::os::Vocab::encode("give"));
+        if (!opts.empty())
         {
             yarp::os::Bottle params(opts.c_str());
             bCmd.append(params);
         }
-        return sendCmd(bCmd, shouldWait);
+
+        return sendCmd(bCmd,shouldWait);
     }
 };
 
+}
+}
 
-}}//Namespace
 #endif
 
 
