@@ -68,10 +68,9 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     opc->isVerbose = false;
 
     //Susbsystems
-    Bottle* bSubsystems = rfClient.find("subsystems").asList();
-    if (bSubsystems)
+    if (Bottle* bSubsystems = rfClient.find("subsystems").asList())
     {
-        for(int s=0;s<bSubsystems->size();s++)
+        for (int s=0; s<bSubsystems->size(); s++)
         {
             std::string currentSS = bSubsystems->get(s).asString();
             cout<<"Trying to open subsystem : "<<currentSS<<endl;
@@ -318,7 +317,7 @@ bool ICubClient::goTo(const string &place)
     return false;
 }
 
-bool ICubClient::grasp(yarp::sig::Vector &target, const std::string &usedHand, std::list<yarp::sig::Vector>* waypoints )
+bool ICubClient::grasp(const yarp::sig::Vector &target, const std::string &usedHand, std::list<yarp::sig::Vector>* waypoints )
 {
     //Check for failing conditions
     if (usedHand != "right" || usedHand != "left")
@@ -354,8 +353,8 @@ bool ICubClient::grasp(yarp::sig::Vector &target, const std::string &usedHand, s
             Time::delay(2.0); // wait for the waypoint to be reached... Yeah ! Magic number ! Harcoded...
         }
     }
-    usedCtrl->hand("close", true);
-    return false;
+
+    return usedCtrl->hand("close", true);
 }
 
 bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, bool wait, bool controlGaze)
@@ -445,7 +444,7 @@ bool ICubClient::release(const std::string &oLocation, const std::string &usedHa
     else
         usedCtrl = getSlidingController()->clientIDL_slidingController_left;
 
-    return usedCtrl->hand("open");;
+    return usedCtrl->hand("open");
 }
 
 bool ICubClient::look(const string &target)
