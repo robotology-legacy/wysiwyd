@@ -119,7 +119,9 @@ int main()
     iCub.say("And that is about everything I can do.");
     iCub.say("See you next time.");
 
+    // close the client or let the destructor do it for you
     iCub.close();
+
     return 0;
 }
 

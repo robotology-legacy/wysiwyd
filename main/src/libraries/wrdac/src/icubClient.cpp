@@ -94,6 +94,8 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_ARE] = new SubSystem_ARE(fullName);
         }
     }
+
+    closed=false;
 }
 
 void ICubClient::LoadPostures(yarp::os::ResourceFinder &rf)
@@ -181,17 +183,23 @@ bool ICubClient::connect()
 }
 
 void ICubClient::close()
-{        
-    cout<<"terminating subsystems:"<<endl;
+{
+    if (closed)
+        return;
+
+    cout<<"terminating subsystems:"<<endl; 
     for(map<string,SubSystem*>::iterator sIt = subSystems.begin();sIt!=subSystems.end();sIt++)
     {
         cout<<"\t"<<sIt->first<<endl;
         sIt->second->Close();
+        delete sIt->second;
     }
+
     opc->interrupt();
     opc->close();
-
     delete opc;
+
+    closed=true;
 }
 
 void ICubClient::updateAgent()

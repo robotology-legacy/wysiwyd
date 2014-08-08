@@ -2,7 +2,7 @@
 # Authors: Ugo Pattacini
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME areiCubClientExample)
+set(PROJECTNAME AREiCubClientExample)
 project(${PROJECTNAME})
 
 set(source_files main.cpp)

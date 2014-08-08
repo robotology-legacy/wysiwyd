@@ -40,6 +40,7 @@ class ICubClient
 private:
     std::map<std::string, SubSystem*>  subSystems;
     bool                               isFullyConnected;
+    bool                               closed;
     std::list<Action*>                 actionsKnown;
     std::map<std::string, BodyPosture> posturesKnown;
     std::map<std::string, std::list< std::pair<std::string, double> > > choregraphiesKnown;
@@ -120,11 +121,6 @@ public:
     OPCClient*                  opc;
     Agent*                      icubAgent;
         
-    /**
-    * Create an iCub client based on a specific RF
-    */ 
-    ICubClient(const std::string &moduleName, yarp::os::ResourceFinder &rf);
-
     /**
     * Create an iCub client
     * @param moduleName The port namespace that will precede the client ports names.
@@ -332,6 +328,11 @@ public:
     * Closes properly ports opened. 
     */ 
     void close();
+
+    /**
+    * Destructor.
+    */ 
+    virtual ~ICubClient() { close(); }
 };
 
 
