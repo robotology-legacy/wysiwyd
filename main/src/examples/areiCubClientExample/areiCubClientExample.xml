@@ -2,22 +2,21 @@
 <?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
  
 <module>
-
-   <name>wrdacExample</name>
+   <name>areiCubClientExample</name>
    <doxygen-group>wysiwyd_examples</doxygen-group>
-   <description>Example of instantiating an iCubClient from the wrdac library</description>
+   <description>Use case of the iCubClient using ARE for motor actions</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    
    <description-long>
-   Example/tutorial module about the possibilities offered by the wrdac library. The module creates an iCub client and triggers various actions. \n
+   Tutorial module about how to elicit ARE actions (e.g. point, grasp) from within the iCubClient.
    </description-long>
 
    <arguments>
    </arguments>
 
    <authors>
-       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+       <author email="ugo.pattacini@iit.it"> Ugo Pattacini </author>
    </authors>
 
    <data>

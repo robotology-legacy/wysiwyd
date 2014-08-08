@@ -326,7 +326,7 @@ public:
     /**
     * Check if a given cartesian position is within the reach of the robot
     */ 
-    bool isTargetInRange(const yarp::sig::Vector &target);
+    bool isTargetInRange(const yarp::sig::Vector &target) const;
 
     /**
     * Closes properly ports opened. 

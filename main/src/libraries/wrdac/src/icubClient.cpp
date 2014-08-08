@@ -630,7 +630,7 @@ list<Object*> ICubClient::getObjectsInRange()
     return inRange;
 }
 
-bool ICubClient::isTargetInRange(const Vector &target)
+bool ICubClient::isTargetInRange(const Vector &target) const
 {
     //cout<<"Target current root position is : "<<target.toString(3,3)<<endl;
     //cout<<"Range is : \n"
@@ -638,9 +638,9 @@ bool ICubClient::isTargetInRange(const Vector &target)
     //    <<"\t y in ["<<yRangeMin<<" ; "<<yRangeMax<<"]\n"
     //    <<"\t z in ["<<zRangeMin<<" ; "<<zRangeMax<<"]\n";
 
-    bool isIn = (target[0] > xRangeMin && target[0] < xRangeMax &&
-        target[1] > yRangeMin && target[1] < yRangeMax && 
-        target[2] > zRangeMin && target[2] < zRangeMax);
+    bool isIn = ((target[0]>xRangeMin) && (target[0]<xRangeMax) &&
+                 (target[1]>yRangeMin) && (target[1]<yRangeMax) && 
+                 (target[2]>zRangeMin) && (target[2]<zRangeMax));
     //cout<<"Target in range = "<<isIn<<endl;
 
     return isIn;
