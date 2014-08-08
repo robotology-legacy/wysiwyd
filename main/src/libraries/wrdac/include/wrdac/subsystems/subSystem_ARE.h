@@ -19,6 +19,7 @@
 #ifndef __EFAA_SUBSYSTEM_ARE_H__
 #define __EFAA_SUBSYSTEM_ARE_H__
 
+#include <string>
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include "wrdac/subsystems/subSystem.h"
@@ -32,14 +33,15 @@ namespace wrdac {
 /**
 * \ingroup wrdac_clients
 *
-* SubSystem for actionsRenderingEngine (a.k.a. ARE). 
+* SubSystem to deal with the actionsRenderingEngine module 
+* (a.k.a. ARE) for motor control. 
 *  
-* Please refer to 
+* For further details, please refer to the ARE main page:  
 * http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html 
 */
 class SubSystem_ARE : public SubSystem
 {
-private:
+protected:
     yarp::os::RpcClient cmdPort;
 
     /********************************************************************************/
@@ -66,7 +68,6 @@ private:
         return false;
     }
 
-protected:
     /********************************************************************************/
     bool connect() 
     { 
@@ -95,8 +96,8 @@ public:
 
     /**
     * Go to home position.
-    * @param part the part to be homed (gaze, head, hands, fingers,
-    *             all; all by default).
+    * @param part the part to be homed ("gaze", "head", "arms", 
+    *             "fingers", "all"; "all" by default).
     * @param shouldWait is the function blocking?
     * @return true in case of successfull motor command, false 
     *         otherwise.
@@ -121,18 +122,13 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool take(const yarp::sig::Vector &target, const std::string &opts="",
+    bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
               const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("take"));
         appendCartesianTarget(bCmd,target);
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -148,18 +144,13 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool push(const yarp::sig::Vector &target, const std::string &opts="",
+    bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
               const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("push"));
         appendCartesianTarget(bCmd,target);
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -172,18 +163,13 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool point(const yarp::sig::Vector &target, const std::string &opts="",
+    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
                const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("point"));
         appendCartesianTarget(bCmd,target);
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -196,16 +182,11 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool drop(const std::string &opts="", const bool shouldWait=true)
+    bool drop(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("drop"));
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -218,19 +199,14 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool dropOn(const yarp::sig::Vector &target, const std::string &opts="",
+    bool dropOn(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
                 const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("drop"));
         bCmd.addString("over");
         appendCartesianTarget(bCmd,target);
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -243,61 +219,46 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool observe(const std::string &opts="", const bool shouldWait=true)
+    bool observe(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("observe"));
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 
     /**
-    * Put one arm forward with the palm of the hand facing up and
-    * wait for an object. 
+    * Put one hand forward with the palm facing up and wait for an
+    * object. 
     * @param opts Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool expect(const std::string &opts="", const bool shouldWait=true)
+    bool expect(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("expect"));
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 
     /**
-    * Put one arm forward with the palm of the hand facing up and
-    * open the fingers so that the object held in the hand is free 
-    * to be taken. 
+    * Put one hand forward with the palm facing up and open the 
+    * fingers so that the object held in the hand is free to be 
+    * taken. 
     * @param opts Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking?
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool give(const std::string &opts="", const bool shouldWait=true)
+    bool give(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("give"));
-        if (!opts.empty())
-        {
-            yarp::os::Bottle params(opts.c_str());
-            bCmd.append(params);
-        }
-
+        bCmd.append(opts);
         return sendCmd(bCmd,shouldWait);
     }
 };
