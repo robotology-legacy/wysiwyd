@@ -68,7 +68,7 @@ public:
     * Try to connect the client to an OPC server
     * @param opcName the name of the OPC module to connect to.
     */ 
-    bool connect(const std::string &opcName) 
+    bool connect(const std::string &opcName)
     { 
         return 
             (yarp::os::Network::connect(opc.getName().c_str(), ("/" + opcName + "/rpc").c_str()) &&

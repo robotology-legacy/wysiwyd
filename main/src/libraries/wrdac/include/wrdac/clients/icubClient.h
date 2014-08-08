@@ -38,8 +38,7 @@ namespace wysiwyd{namespace wrdac{
 class ICubClient
 {
 private:
-    std::map<std::string, SubSystem*>  subSystems;
-    bool                               isFullyConnected;
+    std::map<std::string, SubSystem*>  subSystems;    
     bool                               closed;
     std::list<Action*>                 actionsKnown;
     std::map<std::string, BodyPosture> posturesKnown;
@@ -139,11 +138,25 @@ public:
     void LoadChoregraphies(yarp::os::ResourceFinder &rf);
 
     /**
-    * Try to connect all functionalities.
+    * Try to connect all functionalities. 
+    * @param opcName the stem-name of the OPC server.  
     * @return true in case of success false if some connections are missing.
     */ 
-    bool connect();
+    bool connect(const std::string &opcName="OPC");
         
+    /**
+    * Try to connect to OPC 
+    * @param opcName the stem-name of the OPC server. 
+    * @return true on success.
+    */ 
+    bool connectOPC(const std::string &opcName="OPC");
+
+    /**
+    * Try to connect to sub-systems.
+    * @return true on success.
+    */ 
+    bool connectSubSystems();
+
     /**
     * Retrieve fresh definition of the iCub agent from the OPC
     */ 
@@ -189,13 +202,23 @@ public:
 
     /**
     * Grasp an object.
+    * @param part the part to be homed ("gaze", "head", "arms", 
+    *             "fingers", "all"; "all" by default).
+    * @return true in case of successfull motor command, false 
+    *         otherwise (Entity non existing, impossible to reach,
+    *         etc.).
+    */ 
+    bool home(const std::string &part="all");
+
+    /**
+    * Grasp an object.
     * @param oName is the name of the entity in the OPC that the robot should grasp. 
     * @param options bottle containing a list of options (e.g. force
     *                to use specific hand with "left"|"right"
     *                option; grasp type such as "above", "side").
     * @return true in case of successfull motor command, false 
     *         otherwise (Entity non existing, impossible to reach,
-    *         etc.).
+    *         not grasped, etc.).
     */ 
     bool grasp(const std::string &oName, const yarp::os::Bottle &options=yarp::os::Bottle());
 
@@ -208,7 +231,7 @@ public:
     *                option; grasp type such as "above", "side").
     * @return true in case of successfull motor command, false 
     *         otherwise (Entity non existing, impossible to reach,
-    *         etc.).
+    *         not grasped, etc.).
     */ 
     bool grasp(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle());
 

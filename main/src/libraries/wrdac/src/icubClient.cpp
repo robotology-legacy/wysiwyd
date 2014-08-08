@@ -59,7 +59,6 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     yRangeMin = defaultRangeMin.get(1).asDouble(); yRangeMax =defaultRangeMax.get(1).asDouble();
     zRangeMin = defaultRangeMin.get(2).asDouble(); zRangeMax =defaultRangeMax.get(2).asDouble();
 
-    isFullyConnected = false;
     icubAgent = NULL;
 
     //OPC
@@ -98,6 +97,7 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     closed=false;
 }
 
+
 void ICubClient::LoadPostures(yarp::os::ResourceFinder &rf)
 {
     posturesKnown.clear();
@@ -134,6 +134,7 @@ void ICubClient::LoadPostures(yarp::os::ResourceFinder &rf)
     }
 }
 
+
 void ICubClient::LoadChoregraphies(yarp::os::ResourceFinder &rf)
 {
     choregraphiesKnown.clear();
@@ -162,25 +163,39 @@ void ICubClient::LoadChoregraphies(yarp::os::ResourceFinder &rf)
         choregraphiesKnown[name] = seq;
     }
 }
-bool ICubClient::connect()
-{
-    cout<<"iCub Client Connections status:"<<endl;
-    isFullyConnected = true;
-    bool bOPC = opc->connect("OPC");
-    if (bOPC)
-        updateAgent();
-    cout<<"\t OPC: "<<bOPC<<endl;
-    isFullyConnected = bOPC;
 
-    for(map<string,SubSystem*>::iterator sIt = subSystems.begin();sIt!=subSystems.end();sIt++)
+
+bool ICubClient::connectOPC(const string &opcName)
+{
+    bool isConnected=opc->connect(opcName);
+    if (isConnected)
+        updateAgent();
+    cout<<"Connection to OPC: "<<(isConnected?"successful":"failed")<<endl;
+    return isConnected;
+}
+
+
+bool ICubClient::connectSubSystems()
+{
+    bool isConnected=true;
+    for (map<string,SubSystem*>::iterator sIt=subSystems.begin(); sIt!=subSystems.end(); sIt++)
     {
-        bool result = sIt->second->Connect();
-        cout<<"\t"<<sIt->first<<": "<<result<<endl;
-        isFullyConnected = isFullyConnected && result;
+        bool result=sIt->second->Connect();
+        cout<<"Connection to "<<sIt->first<<": "<<(result?"successful":"failed")<<endl;
+        isConnected&=result;
     }
    
-    return isFullyConnected;
+    return isConnected;
 }
+
+
+bool ICubClient::connect(const string &opcName)
+{
+    bool isConnected=connectOPC(opcName);
+    isConnected&=connectSubSystems();
+    return isConnected;
+}
+
 
 void ICubClient::close()
 {
@@ -202,6 +217,7 @@ void ICubClient::close()
     closed=true;
 }
 
+
 void ICubClient::updateAgent()
 {
     if (opc->isConnected())
@@ -216,11 +232,13 @@ void ICubClient::updateAgent()
     opc->Entities(EFAA_OPC_ENTITY_TAG, "==", EFAA_OPC_ENTITY_ACTION);
 }
 
+
 void ICubClient::commitAgent()
 {       
     if (opc->isConnected())
         opc->commit(this->icubAgent);
 }
+    
     
 bool ICubClient::moveToPosture(const string &name, double time)
 {
@@ -239,6 +257,7 @@ bool ICubClient::moveToPosture(const string &name, double time)
     ((SubSystem_Postures*) subSystems["postures"])->Execute(posturesKnown[name], time);
     return true;
 }
+
 
 bool ICubClient::moveBodyPartToPosture(const string &name, double time, const string &bodyPart)
 {
@@ -280,7 +299,8 @@ bool ICubClient::playBodyPartChoregraphy(const std::string &name, const std::str
     }
     return overallError;
 }
-    
+
+
 double ICubClient::getChoregraphyLength(const std::string &name, double speedFactor)
 {
     if (choregraphiesKnown.find(name) == choregraphiesKnown.end())
@@ -296,6 +316,7 @@ double ICubClient::getChoregraphyLength(const std::string &name, double speedFac
     cout<<"Playing "<<name<<" at "<<speedFactor<<" speed should take "<<endl;   
     return totalTime;
 }
+
 
 bool ICubClient::playChoregraphy(const std::string &name, double speedFactor, bool isBlocking)
 {
@@ -319,10 +340,24 @@ bool ICubClient::playChoregraphy(const std::string &name, double speedFactor, bo
     return overallError;
 }
 
+
 bool ICubClient::goTo(const string &place)
 {
     cerr << "Try to call \"gotTo\" on iCubClient but the method is not implemented." << endl;
     return false;
+}
+
+
+bool ICubClient::home(const string &part)
+{
+    SubSystem_ARE *are=getARE();
+    if (are==NULL)
+    {
+        cerr<<"[iCubClient] Called home() but ARE subsystem is not available."<<endl;
+        return false;
+    }
+
+    return are->home(part);
 }
 
 
@@ -358,7 +393,7 @@ bool ICubClient::grasp(const Vector &target, const Bottle &options)
     if (isTargetInRange(target))
     {
         Bottle opt(options);
-        opt.addString("still"); // always avoid automatic releasing after grasp
+        opt.addString("still"); // always avoid automatic homing after grasp
         return are->take(target,opt);
     }
     else
@@ -437,7 +472,9 @@ bool ICubClient::point(const Vector &target, const Bottle &options)
         return false;
     }
 
-    return are->point(target,options);
+    Bottle opt(options);
+    opt.addString("still"); // always avoid automatic homing after point
+    return are->point(target,opt);
 }
 
 
@@ -454,7 +491,8 @@ bool ICubClient::look(const string &target)
     ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
     return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
 }
-    
+
+
 bool ICubClient::lookAround()
 {        
     if (subSystems.find("attention") == subSystems.end())
@@ -468,6 +506,7 @@ bool ICubClient::lookAround()
     return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
 }
 
+
 bool ICubClient::lookStop()
 {        
     if (subSystems.find("attention") == subSystems.end())
@@ -480,6 +519,7 @@ bool ICubClient::lookStop()
     ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
     return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
 }
+
 
 void ICubClient::getHighestEmotion(string &emotionName, double &intensity)
 {
@@ -497,6 +537,7 @@ void ICubClient::getHighestEmotion(string &emotionName, double &intensity)
         }
     }
 }
+
 
 bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossible, const std::string &overrideVoice)
 {        
@@ -517,6 +558,7 @@ bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossib
     ((SubSystem_Speech*) subSystems["speech"])->TTS(text,shouldWait);
     return true;
 }
+
 
 bool ICubClient::execute(Action &what, bool applyEstimatedDriveEffect)
 {
@@ -586,6 +628,7 @@ bool ICubClient::execute(Action &what, bool applyEstimatedDriveEffect)
     return overallResult;
 }
 
+
 list<Action*> ICubClient::getKnownActions()
 {        
     this->actionsKnown.clear();
@@ -596,6 +639,7 @@ list<Action*> ICubClient::getKnownActions()
     }
     return actionsKnown;
 }
+
 
 list<Object*> ICubClient::getObjectsInSight()
 {
@@ -615,7 +659,8 @@ list<Object*> ICubClient::getObjectsInSight()
     }
     return inSight;
 }
-    
+
+
 list<Object*> ICubClient::getObjectsInRange()
 {
     //float sideReachability = 0.3f; //30cm on each side
@@ -637,6 +682,7 @@ list<Object*> ICubClient::getObjectsInRange()
     }
     return inRange;
 }
+
 
 bool ICubClient::isTargetInRange(const Vector &target) const
 {

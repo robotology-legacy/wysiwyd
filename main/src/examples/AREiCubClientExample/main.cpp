@@ -38,16 +38,18 @@ int main()
         return -1;
     }
 
-    ICubClient iCub("AREiCubClientExample","icubClient","example_ARE.ini");   
-    if (!iCub.connect())
+    ICubClient iCub("AREiCubClientExample","icubClient","example_ARE.ini");
+
+    // we connect just to ARE (skip connecting to OPC)
+    if (!iCub.connectSubSystems())
     {
         cout<<"ARE seems unavailabe!"<<endl;
         return -1;
     }
 
     RpcClient port;
-    port.open("/sshp");
-    if (Network::connect(port.getName().c_str(),"/icubSim/world"))
+    port.open("/create_object");
+    if (!Network::connect(port.getName().c_str(),"/icubSim/world"))
     {
         cout<<"Unable to connect to the World!"<<endl;
         port.close();
@@ -65,31 +67,39 @@ int main()
     T(1,0)=0.0;  T(1,1)=0.0;  T(1,2)=1.0; T(1,3)=0.5976;
     T(2,0)=-1.0; T(2,1)=0.0;  T(2,2)=0.0; T(2,3)=-0.026;
     T(3,0)=0.0;  T(3,1)=0.0;  T(3,2)=0.0; T(3,3)=1.0;
-    Vector wx=pinv(T)*x;
+    Vector wx=T*x;
     x.pop_back();
 
-    // create a static sphere
+    // create a static object in the simulated world;
+    // note the different coordinates system
     Bottle cmd,reply;
     cmd.addString("world"); cmd.addString("mk"); cmd.addString("ssph");
-    cmd.addDouble(0.5);
+    cmd.addDouble(0.02);
     cmd.addDouble(wx[0]); cmd.addDouble(wx[1]); cmd.addDouble(wx[2]);
     cmd.addDouble(1.0);   cmd.addDouble(0.0);   cmd.addDouble(0.0);
     port.write(cmd,reply);
     port.close();
 
     Time::delay(2.0);
-    iCub.point(x);
+    //iCub.point(x);
+    //iCub.home();
 
-    Time::delay(2.0);
-    iCub.grasp(x);
+    cout<<"try to grasp ... ";
+    bool ok=iCub.grasp(x);
+    cout<<(ok?"grasped!":"missed!")<<endl;
+    iCub.home();
 
-    Time::delay(2.0);
-    x[0]=-0.2;
-    x[1]=0.0;
-    x[2]=-0.2;
-    iCub.release(x);
+    // it's very likely that we fail since
+    // we rely on the tactile model for perceiving
+    // in-hand objects within the simulated world
+    // ... and tactile model is not properly tuned yet :(
+    if (ok)
+    {
+        cout<<"releasing ... "<<endl;
+        iCub.release(x);
+        iCub.home();
+    }
 
-    Time::delay(2.0);
     iCub.close();
     return 0;
 }
