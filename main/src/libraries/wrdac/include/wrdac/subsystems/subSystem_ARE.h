@@ -55,7 +55,7 @@ namespace wysiwyd{namespace wrdac{
 class SubSystem_ARE : public SubSystem
 {
 private:
-    yarp::os::Port portARE;
+    yarp::os::Port cmdPort;
 
     void appendCartesianTarget(yarp::os::Bottle& b, const yarp::sig::Vector &t)
     {
@@ -70,31 +70,32 @@ private:
         yarp::os::Bottle bReply;
         if (shouldWait)
         {
-            portARE.write(cmd, bReply);
+            cmdPort.write(cmd, bReply);
             return bReply.get(0).asString() == "ACK";
         }
         else
-            portARE.write(cmd);
+            cmdPort.write(cmd);
+
         return true;
     }
 
 protected:
     virtual bool connect() 
     { 
-        return yarp::os::Network::connect(portARE.getName(), "/actionsRenderingEngine/cmd:io"); 
+        return yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
     }
 
 public:
-    SubSystem_ARE(std::string &masterName) : SubSystem(masterName)
+    SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
     {
-        portARE.open(("/"+masterName+"/ARE:rpc").c_str());
+        cmdPort.open(("/"+masterName+"/ARE/cmd:io").c_str());
         m_type = SUBSYSTEM_ARE;
     }
 
     virtual void Close() 
     { 
-        portARE.interrupt();
-        portARE.close();
+        cmdPort.interrupt();
+        cmdPort.close();
     }
 
     /**
@@ -104,7 +105,7 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool home(const std::string &part = "all", bool shouldWait = true)
+    bool home(const std::string &part = "all", const bool shouldWait = true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(CMD_HOME);

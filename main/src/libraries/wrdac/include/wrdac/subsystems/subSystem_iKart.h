@@ -59,7 +59,7 @@ public:
 
     double odometry_x, odometry_y, odometry_orientation;
 
-    SubSystem_iKart(std::string &masterName) :SubSystem(masterName)
+    SubSystem_iKart(const std::string &masterName) :SubSystem(masterName)
     {
         portCmd.open(("/" + m_masterName + "/ikart/cmd:o").c_str());
         portRpc.open(("/" + m_masterName + "/ikart/rpc:o").c_str());

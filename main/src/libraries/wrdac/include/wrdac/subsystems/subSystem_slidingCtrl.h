@@ -61,7 +61,8 @@ public:
     slidingController_IDL* clientIDL_slidingController_left;
     slidingController_IDL* clientIDL_slidingController_right;
 
-    SubSystem_SlidingController(std::string &masterName) :SubSystem(masterName){
+    SubSystem_SlidingController(const std::string &masterName) :SubSystem(masterName)
+    {
         clientIDL_slidingController_left = new slidingController_IDL();
         clientIDL_slidingController_right = new slidingController_IDL();
 

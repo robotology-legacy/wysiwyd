@@ -42,15 +42,16 @@ namespace wysiwyd{namespace wrdac{
 class SubSystem_Attention: public SubSystem
 {
 protected:
+    virtual bool connect() { return yarp::os::Network::connect(attentionSelector.getName(), "/attentionSelector/rpc"); }
 
-    virtual bool connect() { return yarp::os::Network::connect(attentionSelector.getName(), "/attentionSelector/rpc");}
 public:
     yarp::os::Port attentionSelector;
-    SubSystem_Attention(std::string &masterName):SubSystem(masterName){
+    SubSystem_Attention(const std::string &masterName) : SubSystem(masterName)
+    {
         attentionSelector.open(("/"+m_masterName+"/attention:rpc").c_str());
         m_type = SUBSYSTEM_ATTENTION;
     }
-    virtual void Close() {attentionSelector.interrupt();attentionSelector.close();};
+    virtual void Close() {attentionSelector.interrupt();attentionSelector.close(); }
 };
 
 

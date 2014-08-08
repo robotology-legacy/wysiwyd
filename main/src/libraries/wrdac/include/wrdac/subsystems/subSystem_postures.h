@@ -54,7 +54,8 @@ public:
     yarp::os::Port ctpRightArm;
     yarp::os::Port ctpTorso;
 
-    SubSystem_Postures(std::string &masterName):SubSystem(masterName){
+    SubSystem_Postures(const std::string &masterName):SubSystem(masterName)
+    {
         ctpHead.open( ("/" + m_masterName + "/ctp/head:rpc").c_str());
         ctpLeftArm.open( ("/" + m_masterName + "/ctp/left_arm:rpc").c_str());
         ctpRightArm.open( ("/" + m_masterName + "/ctp/right_arm:rpc").c_str());

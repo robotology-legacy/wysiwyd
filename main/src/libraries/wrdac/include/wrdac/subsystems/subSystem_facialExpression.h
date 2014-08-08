@@ -243,7 +243,7 @@ public:
         connect();
     }
 
-    FaceLEDClient(std::string &moduleName)
+    FaceLEDClient(const std::string &moduleName)
     {
         std::string portName = "/";
         portName +=moduleName.c_str();
@@ -420,13 +420,12 @@ private:
     std::string voiceFileUsed;
 
 public:
-
-    SubSystem_Expression(std::string &masterName, yarp::os::ResourceFinder &rf) :FaceLEDClient(rf), SubSystem(masterName)
+    SubSystem_Expression(const std::string &masterName, yarp::os::ResourceFinder &rf) :FaceLEDClient(rf), SubSystem(masterName)
     {
         LoadExpressions(rf);
     }
 
-    SubSystem_Expression(std::string &moduleName, bool isRFVerbose = false) :FaceLEDClient(moduleName), SubSystem(moduleName)
+    SubSystem_Expression(const std::string &moduleName, bool isRFVerbose = false) :FaceLEDClient(moduleName), SubSystem(moduleName)
     {
         yarp::os::ResourceFinder rf;
         rf.setVerbose(isRFVerbose);

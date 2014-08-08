@@ -34,11 +34,11 @@ namespace wysiwyd{namespace wrdac{
 class SubSystem_ABM: public SubSystem
 {
 protected:
-    virtual bool connect() { return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/request:i");}
+    virtual bool connect() { return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/request:i"); }
 
 public:
     yarp::os::Port portRPC;
-    SubSystem_ABM(std::string &masterName):SubSystem(masterName){
+    SubSystem_ABM(const std::string &masterName):SubSystem(masterName){
         portRPC.open(("/"+m_masterName+"/abm:rpc").c_str());
         m_type = SUBSYSTEM_ABM;
     }

@@ -43,11 +43,11 @@ protected:
     virtual bool connect() = 0;
 
 public:
-    SubSystem(std::string &masterName) { m_isRunning = false; m_masterName=masterName; m_type = SUBSYSTEM;}
-    bool isRunning(){ return m_isRunning; }
-    bool Connect() { return (m_isRunning=connect());};
+    SubSystem(const std::string &masterName) { m_isRunning = false; m_masterName=masterName; m_type = SUBSYSTEM; }
+    bool isRunning() const { return m_isRunning; }
+    bool Connect() { return (m_isRunning=connect()); }
     virtual void Close()=0;
-    std::string getType(){return m_type;};
+    std::string getType() const { return m_type; }
 };
 
 }}//Namespace

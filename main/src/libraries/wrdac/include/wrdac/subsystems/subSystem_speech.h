@@ -45,7 +45,7 @@ protected:
 
 public:
       
-    SubSystem_Speech(std::string &masterName):SubSystem(masterName)
+    SubSystem_Speech(const std::string &masterName):SubSystem(masterName)
     {
         tts.open( ("/" + m_masterName + "/tts:o").c_str());
         ttsRpc.open( ("/" + m_masterName + "/tts:rpc").c_str());
