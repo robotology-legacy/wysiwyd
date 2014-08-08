@@ -202,7 +202,7 @@ void ICubClient::close()
     if (closed)
         return;
 
-    cout<<"terminating subsystems:"<<endl; 
+    cout<<"Terminating subsystems:"<<endl; 
     for(map<string,SubSystem*>::iterator sIt = subSystems.begin();sIt!=subSystems.end();sIt++)
     {
         cout<<"\t"<<sIt->first<<endl;

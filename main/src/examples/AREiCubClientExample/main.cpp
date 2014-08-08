@@ -60,7 +60,7 @@ int main()
     Vector x(4);
     x[0]=-0.35;
     x[1]=-0.1;
-    x[2]=-0.1;
+    x[2]=-0.05;
     x[3]=1.0;
 
     // corresponding location in the world frame
@@ -74,7 +74,7 @@ int main()
 
     // create a static object in the simulated world
     Bottle cmd,reply;
-    double radius=0.02;
+    double radius=0.025;
     cmd.addString("world"); cmd.addString("mk"); cmd.addString("ssph");
     cmd.addDouble(radius);
     cmd.addDouble(wx[0]); cmd.addDouble(wx[1]); cmd.addDouble(wx[2]);
@@ -82,21 +82,19 @@ int main()
     port.write(cmd,reply);
     port.close();
 
-    Time::delay(2.0);
+    iCub.home();
     cout<<"pointing at the object ... "<<endl;
     iCub.point(x);
     Time::delay(2.0);
     iCub.home();
 
     cout<<"try to grasp ... ";
-    x[2]+=radius;
-    bool ok=iCub.grasp(x);
+    x[2]+=1.2*radius;
+    Bottle options("right");     // force the use of the right hand
+    bool ok=iCub.grasp(x,options);
     cout<<(ok?"grasped!":"missed!")<<endl;
     iCub.home();
 
-    // it's very likely that we fail since
-    // successful grasp detection in the
-    // simulated world is not properly handled yet :(
     if (ok)
     {
         cout<<"releasing ... "<<endl;
@@ -104,6 +102,7 @@ int main()
         iCub.home();
     }
 
+    cout<<"shutting down ... "<<endl;
     iCub.close();
     return 0;
 }
