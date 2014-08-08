@@ -33,8 +33,8 @@ namespace wrdac {
 /**
 * \ingroup wrdac_clients
 *
-* SubSystem to deal with the actionsRenderingEngine module 
-* (a.k.a. ARE) for motor control. 
+* SubSystem to deal with the <b>actionsRenderingEngine</b> 
+* module (a.k.a. <b>ARE</b>) for motor control. 
 *  
 * For further details, please refer to the ARE main page:  
 * http://wiki.icub.org/iCub_documentation/group__actionsRenderingEngine.html 
@@ -95,7 +95,7 @@ public:
     }
 
     /**
-    * Go to home position.
+    * Put the specified part ih home position.
     * @param part the part to be homed ("gaze", "head", "arms", 
     *             "fingers", "all"; "all" by default).
     * @param shouldWait is the function blocking?
