@@ -56,12 +56,14 @@ int main()
         return -1;
     }
 
+    // object location in the iCub frame
     Vector x(4);
     x[0]=-0.35;
     x[1]=-0.1;
     x[2]=-0.1;
     x[3]=1.0;
 
+    // corresponding location in the world frame
     Matrix T(4,4);
     T(0,0)=0.0;  T(0,1)=-1.0; T(0,2)=0.0; T(0,3)=0.0;
     T(1,0)=0.0;  T(1,1)=0.0;  T(1,2)=1.0; T(1,3)=0.5976;
@@ -70,29 +72,30 @@ int main()
     Vector wx=T*x;
     x.pop_back();
 
-    // create a static object in the simulated world;
-    // note the different coordinates system
+    // create a static object in the simulated world
     Bottle cmd,reply;
+    double radius=0.02;
     cmd.addString("world"); cmd.addString("mk"); cmd.addString("ssph");
-    cmd.addDouble(0.02);
+    cmd.addDouble(radius);
     cmd.addDouble(wx[0]); cmd.addDouble(wx[1]); cmd.addDouble(wx[2]);
     cmd.addDouble(1.0);   cmd.addDouble(0.0);   cmd.addDouble(0.0);
     port.write(cmd,reply);
     port.close();
 
+    cout<<"pointing at the object ... "<<endl;
+    iCub.point(x);
     Time::delay(2.0);
-    //iCub.point(x);
-    //iCub.home();
+    iCub.home();
 
     cout<<"try to grasp ... ";
+    x[2]+=radius;
     bool ok=iCub.grasp(x);
     cout<<(ok?"grasped!":"missed!")<<endl;
     iCub.home();
 
     // it's very likely that we fail since
-    // we rely on the tactile model for perceiving
-    // in-hand objects within the simulated world
-    // ... and tactile model is not properly tuned yet :(
+    // successful grasp detection in the
+    // simulated world is not properly handled yet :(
     if (ok)
     {
         cout<<"releasing ... "<<endl;
