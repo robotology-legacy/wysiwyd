@@ -28,7 +28,7 @@ int main(int argc, char * argv[])
     InterpersonalDistanceRegulator mod;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("interpersonalDistanceRegulator/conf");
+    rf.setDefaultContext("interpersonalDistanceRegulator");
     rf.setDefaultConfigFile("default.ini");
     rf.configure( argc, argv);
     mod.runModule(rf);

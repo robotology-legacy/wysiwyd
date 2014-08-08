@@ -72,7 +72,8 @@ The commands it is possible to send are:
 *
 * \section example_sec Example Instantiation of the Module
 * 
-* <tt>attentionSelector --name attentionSelector --context attentionSelector/conf --from attentionSelector.ini</tt>
+* <tt>attentionSelector --name attentionSelector --context
+* attentionSelector --from attentionSelector.ini</tt>
 *
 * \author Stéphane Lallée
 * 

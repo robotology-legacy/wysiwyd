@@ -430,9 +430,9 @@ public:
     {
         yarp::os::ResourceFinder rf;
         rf.setVerbose(isRFVerbose);
-        rf.setDefaultContext("facialEmotions/conf");
+        rf.setDefaultContext("facialEmotions");
         rf.setDefaultConfigFile("defaultFaces.ini");
-        rf.configure("EFAA_ROOT",0,NULL);
+        rf.configure(0,NULL);
         LoadExpressions(rf);
     }
       

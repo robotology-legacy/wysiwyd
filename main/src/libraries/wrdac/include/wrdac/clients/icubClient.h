@@ -128,7 +128,7 @@ public:
     * Create an iCub client
     * @param moduleName The port namespace that will precede the client ports names.
     */ 
-    ICubClient(const std::string &moduleName,const std::string &context="icubClient/conf", const std::string &clientConfigFile="client.ini", bool isRFVerbose = false);
+    ICubClient(const std::string &moduleName,const std::string &context="icubClient", const std::string &clientConfigFile="client.ini", bool isRFVerbose = false);
 
     /**
     * Load a library of postures from config file specified in rf
