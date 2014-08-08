@@ -50,7 +50,7 @@ namespace wysiwyd{namespace wrdac{
     private:
         int                 m_opc_id;
         std::string         m_name;
- 		std::map<std::string, std::string > m_properties;
+        std::map<std::string, std::string > m_properties;
 
     //The entity status when the class is updated by the OPCClient
     yarp::os::Bottle        m_original_entity;
@@ -63,7 +63,7 @@ namespace wysiwyd{namespace wrdac{
                             Entity();
                             Entity(const Entity &b);
                             Entity(yarp::os::Bottle &b);
-		
+        
 
 
         /**

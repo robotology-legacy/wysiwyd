@@ -110,8 +110,8 @@ int main()
     {
         string chosenObject = inRange.front()->name();
         iCub.say("I can grasp the " + chosenObject);
-        iCub.sideGrasp(chosenObject,"right",true,true);
-        iCub.release(chosenObject,"right");
+        iCub.grasp(chosenObject);
+        iCub.release(chosenObject);
     }
     else
         iCub.say("But all of them are out of my range.");

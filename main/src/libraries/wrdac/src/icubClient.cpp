@@ -317,135 +317,88 @@ bool ICubClient::goTo(const string &place)
     return false;
 }
 
-bool ICubClient::grasp(const yarp::sig::Vector &target, const std::string &usedHand, std::list<yarp::sig::Vector>* waypoints )
+
+bool ICubClient::grasp(const string &oName, const Bottle &options)
 {
-    //Check for failing conditions
-    if (usedHand != "right" || usedHand != "left")
-    {
-        cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
-        return false;
-    }
-
-    if (getSlidingController() == NULL)
-    {
-        cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
-        return false;
-    }
-
-    //work in progress
-    slidingController_IDL* usedCtrl;
-    if (usedHand == "right")
-        usedCtrl = getSlidingController()->clientIDL_slidingController_right;
-    else
-        usedCtrl = getSlidingController()->clientIDL_slidingController_left;
-
-    usedCtrl->hand("pre-grasp", true);
-    for (std::list<yarp::sig::Vector>::iterator it = waypoints->begin(); it != waypoints->end(); it++)
-    {
-        yarp::sig::Vector v = yarp::math::operator+(target, *it);
-        if (!isTargetInRange(v))
-        {
-            std::cerr << "Waypoint is not in range ! Skipping..." << std::endl;
-        }
-        else
-        {
-            usedCtrl->goTo(v[0], v[1], v[2], true);
-            Time::delay(2.0); // wait for the waypoint to be reached... Yeah ! Magic number ! Harcoded...
-        }
-    }
-
-    return usedCtrl->hand("close", true);
-}
-
-bool ICubClient::sideGrasp(const string &oName, const std::string &usedHand, bool wait, bool controlGaze)
-{   
-    if (usedHand != "right" || usedHand != "left")
-    {
-        cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
-        return false;
-    }
-
-    if (getSlidingController() == NULL)
-    {
-        cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
-        return false;
-    }
-
-    Entity* target = opc->getEntity(oName,true);
+    Entity *target=opc->getEntity(oName,true);
     if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
     {
-        cerr << "[iCubClient] Called sideGrasp on a non-object entity." << endl;
+        cerr<<"[iCubClient] Called grasp() on a unallowed entity: \""<<oName<<"\""<<endl;
         return false;
     }
 
-    Object* oTarget = (Object*)target;
+    Object *oTarget=dynamic_cast<Object*>(target);
     if (!oTarget->m_present)
     {
-        cerr << "[iCubClient] Called sideGrasp on a non-present entity " <<oName<< endl;
+        cerr<<"[iCubClient] Called grasp() on an unavailable entity: \""<<oName<<"\""<<endl;
         return false;
     }
 
-    if (isTargetInRange(oTarget->m_ego_position))
-    {
-        if (controlGaze)
-            look(oName);
-        
-        std::list<yarp::sig::Vector> waypoints;
-        //Build the waypoints
-        Vector wp(3);
-        
-        //1
-        wp[0] = 0.05;
-        if (usedHand == "right")
-            wp[1] = 0.05;
-        else
-            wp[1] = -0.05;
-        wp[2] = 0.1;
-
-        waypoints.push_back(wp);
-
-        //2
-        wp[0] = 0.05;
-        if (usedHand == "right")
-            wp[1] = 0.05;
-        else
-            wp[1] = -0.05;
-        wp[2] = 0.0;
-
-        waypoints.push_back(wp);
-
-        //Use the generic grasp
-        
-        return grasp(oTarget->m_ego_position, usedHand, &waypoints);
-    }
-
-    return false;
+    return grasp(oTarget->m_ego_position,options);
 }
 
-bool ICubClient::release(const std::string &oLocation, const std::string &usedHand)
-{        
-    //Check for failing conditions
-    if (usedHand != "right" || usedHand != "left")
+
+bool ICubClient::grasp(const Vector &target, const Bottle &options)
+{
+    SubSystem_ARE *are=getARE();
+    if (are==NULL)
     {
-        cerr << "[iCubClient] Called sideGrasp using unkown hand, please use right or left" << endl;
+        cerr<<"[iCubClient] Called grasp() but ARE subsystem is not available."<<endl;
         return false;
     }
 
-    if (getSlidingController() == NULL)
+    if (isTargetInRange(target))
     {
-        cerr << "[iCubClient] Called sideGrasp but slidingController subsystem is not loaded. Check config file for iCubClient." << endl;
-        return false;
+        Bottle opt(options);
+        opt.addString("still"); // always avoid automatic releasing after grasp
+        return are->take(target,opt);
     }
-
-    //work in progress
-    slidingController_IDL* usedCtrl;
-    if (usedHand == "right")
-        usedCtrl = getSlidingController()->clientIDL_slidingController_right;
     else
-        usedCtrl = getSlidingController()->clientIDL_slidingController_left;
-
-    return usedCtrl->hand("open");
+    {
+        cerr<<"[iCubClient] Called grasp() on a unreachable entity: ("<<target.toString(3,3).c_str()<<")"<<endl;
+        return false;
+    }
 }
+
+
+bool ICubClient::release(const string &oLocation, const Bottle &options)
+{
+    Entity *target=opc->getEntity(oLocation,true);
+    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
+    {
+        cerr<<"[iCubClient] Called release() on a unallowed location: \""<<oLocation<<"\""<<endl;
+        return false;
+    }
+
+    Object *oTarget=dynamic_cast<Object*>(target);
+    if (!oTarget->m_present)
+    {
+        cerr<<"[iCubClient] Called release() on an unavailable entity: \""<<oLocation<<"\""<<endl;
+        return false;
+    }
+
+    return release(oTarget->m_ego_position,options);
+}
+
+
+bool ICubClient::release(const Vector &target, const Bottle &options)
+{
+    SubSystem_ARE *are=getARE();
+    if (are==NULL)
+    {
+        cerr<<"[iCubClient] Called release() but ARE subsystem is not available."<<endl;
+        return false;
+    }
+
+    if (isTargetInRange(target))
+        return are->dropOn(target,options);
+    else
+    {
+        cerr<<"[iCubClient] Called release() on a unreachable location: ("<<target.toString(3,3).c_str()<<")"<<endl;
+        return false;
+    }
+}
+
 
 bool ICubClient::look(const string &target)
 {        
@@ -543,7 +496,7 @@ bool ICubClient::execute(Action &what, bool applyEstimatedDriveEffect)
             else if (a->name() == "go-to")
                 result = goTo(a->description().object());
             else if (a->name() == "grasp")
-                result = sideGrasp(a->description().object());
+                result = grasp(a->description().object());
             else if (a->name() == "release")
                 result = release(a->description().object());
             else 

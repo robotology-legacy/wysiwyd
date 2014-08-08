@@ -129,7 +129,8 @@ public:
     * Create an iCub client
     * @param moduleName The port namespace that will precede the client ports names.
     */ 
-    ICubClient(const std::string &moduleName,const std::string &context="icubClient", const std::string &clientConfigFile="client.ini", bool isRFVerbose = false);
+    ICubClient(const std::string &moduleName,const std::string &context="icubClient",
+               const std::string &clientConfigFile="client.ini", bool isRFVerbose = false);
 
     /**
     * Load a library of postures from config file specified in rf
@@ -182,39 +183,62 @@ public:
     /**
     * Replay a known choregraphyWith only a specific body part
     */ 
-    bool playBodyPartChoregraphy(const std::string &name, const std::string &bodyPart, double speedFactor = 1.0, bool isBlocking=true );
+    bool playBodyPartChoregraphy(const std::string &name, const std::string &bodyPart,
+                                 double speedFactor = 1.0, bool isBlocking=true );
     
     /**
     * Get the duration of a choregraphy given a specific speedFactor
     */ 
-    double getChoregraphyLength(const std::string &name, double speedFactor = 1.0 );
+    double getChoregraphyLength(const std::string &name, double speedFactor=1.0);
 
     /**
-    * Grasp an object with a position and a list of way points
-    * @param target is the position.
-    * @param waypoints is a list of waypoints, relative to the target position.
-    * @param shouldWait is the function blocking?
-    * @return true in case of successfull motor command, false either.
-    */
-    bool grasp(const yarp::sig::Vector &target, const std::string &usedHand = "right", std::list<yarp::sig::Vector>* waypoints = NULL );
-
-    /**
-    * Grasp an object with a given name
-    * @param oName is the name of the entity in the OPC that the robot should grasp.
-    * @param usedHand NOT IMPLEMENTED!! the hand to be used. Right by default.
-    * @param wait is the function blocking ?
-    * @param controlGaze should the robot look at the target?
-    * @return true in case of successfull motor command, false either (Entity non existing, impossible to reach, etc.).
+    * Grasp an object.
+    * @param oName is the name of the entity in the OPC that the robot should grasp. 
+    * @param options bottle containing a list of options (e.g. force
+    *                to use specific hand with "left"|"right"
+    *                option; grasp type such as "above", "side").
+    * @return true in case of successfull motor command, false 
+    *         otherwise (Entity non existing, impossible to reach,
+    *         etc.).
     */ 
-    bool sideGrasp(const std::string &oName, const std::string &usedHand = "right", bool wait = true, bool controlGaze = true);
+    bool grasp(const std::string &oName, const yarp::os::Bottle &options=yarp::os::Bottle());
 
     /**
-    * Release the content of a hand on a given location
-    * @param oName is the name of the entity in the OPC where the robot should release.
-    * @return true in case of success navigation, false either (Entity non existing, impossible to reach, etc.).
+    * Grasp an object.
+    * @param target contains spatial information about the object to 
+    *               be grasped.
+    * @param options bottle containing a list of options (e.g. force
+    *                to use specific hand with "left"|"right"
+    *                option; grasp type such as "above", "side").
+    * @return true in case of successfull motor command, false 
+    *         otherwise (Entity non existing, impossible to reach,
+    *         etc.).
     */ 
-    bool release(const std::string &oLocation, const std::string &usedHand = "right");
+    bool grasp(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle());
+
+    /**
+    * Release the hand-held object on a given location.
+    * @param oName is the name of the entity in the OPC where the robot should release. 
+    * @param options bottle containing a list of options (e.g. force
+    *                to use specific hand with "left"|"right"
+    *                option).
+    * @return true in case of success release, false otherwise 
+    *         (Entity non existing, impossible to reach, etc.).
+    */ 
+    bool release(const std::string &oLocation, const yarp::os::Bottle &options=yarp::os::Bottle());
        
+    /**
+    * Release the hand-held object on a given location.
+    * @param target contains spatial information about the location 
+    *               where releasing the object.
+    * @param options bottle containing a list of options (e.g. force
+    *                to use specific hand with "left"|"right"
+    *                option).
+    * @return true in case of success release, false otherwise 
+    *         (Entity non existing, impossible to reach, etc.).
+    */ 
+    bool release(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle());
+
     /**
     * Start tracking a given entity
     * @param target is the name of the entity in the OPC where the robot should look.
@@ -235,7 +259,8 @@ public:
     * Ask the robot to perform speech synthesis of a given sentence
     * @param text to be said.
     */ 
-    bool say(const std::string &text, bool shouldWait= true, bool emotionalIfPossible = false, const std::string &overrideVoice = "default");
+    bool say(const std::string &text, bool shouldWait= true, bool emotionalIfPossible = false,
+             const std::string &overrideVoice = "default");
 
     /**
     * Ask the robot to perform speech recognition of a given sentence/grammar

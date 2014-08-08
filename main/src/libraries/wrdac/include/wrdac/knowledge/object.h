@@ -65,11 +65,11 @@ public:
 
     virtual bool    isType(std::string _entityType)
         {
-			if (_entityType == EFAA_OPC_ENTITY_OBJECT)
-				return true;
-			else
-				return this->Entity::isType(_entityType);
-		}
+            if (_entityType == EFAA_OPC_ENTITY_OBJECT)
+                return true;
+            else
+                return this->Entity::isType(_entityType);
+        }
 
     virtual yarp::os::Bottle asBottle();
     virtual bool             fromBottle(yarp::os::Bottle b);

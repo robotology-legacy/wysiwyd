@@ -116,19 +116,19 @@ public:
     * the robot should keep while performing the action (default: 
     * "above"). 
     * @param target Target to grasp in cartesian coordinates
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
+    bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
               const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("take"));
         appendCartesianTarget(bCmd,target);
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -138,109 +138,109 @@ public:
     * to have the robot push the object away from its root reference 
     * frame. 
     * @param target Target to grasp in cartesian coordinates
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
+    bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
               const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("push"));
         appendCartesianTarget(bCmd,target);
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 
     /**
     * Point at the specified [target] with the index finger.
     * @param target Target to grasp in cartesian coordinates
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
+    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
                const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("point"));
         appendCartesianTarget(bCmd,target);
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 
     /**
     * If an object is held, bring it over the table and drop it on a
     * random position. 
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool drop(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
+    bool drop(const yarp::os::Bottle &options=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("drop"));
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 
     /**
     * Drop the object on a given target.
     * @param target Target where to drop in cartesian coordinates
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool dropOn(const yarp::sig::Vector &target, const yarp::os::Bottle &opts=yarp::os::Bottle(),
+    bool dropOn(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
                 const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("drop"));
         bCmd.addString("over");
         appendCartesianTarget(bCmd,target);
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 
     /**
     * Bring the hand in the visual field and move it with the 
     * purpose of visual exploration.
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool observe(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
+    bool observe(const yarp::os::Bottle &options=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("observe"));
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 
     /**
     * Put one hand forward with the palm facing up and wait for an
     * object. 
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking? 
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool expect(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
+    bool expect(const yarp::os::Bottle &options=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("expect"));
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -248,17 +248,17 @@ public:
     * Put one hand forward with the palm facing up and open the 
     * fingers so that the object held in the hand is free to be 
     * taken. 
-    * @param opts Options of ARE commands ("no_head", "no_gaze", 
+    * @param options Options of ARE commands ("no_head", "no_gaze", 
     *             "no_sacc", "still", "left", "right").
     * @param shouldWait is the function blocking?
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool give(const yarp::os::Bottle &opts=yarp::os::Bottle(), const bool shouldWait=true)
+    bool give(const yarp::os::Bottle &options=yarp::os::Bottle(), const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("give"));
-        bCmd.append(opts);
+        bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
     }
 };
