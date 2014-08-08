@@ -19,14 +19,12 @@
 #ifndef __EFAA_SUBSYSTEM_ARE_H__
 #define __EFAA_SUBSYSTEM_ARE_H__
 
-
-#define SUBSYSTEM_ARE       "ARE"
-
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
-#include <iostream>
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/knowledge/object.h"
+
+#define SUBSYSTEM_ARE       "ARE"
 
 namespace wysiwyd {
 namespace wrdac {
@@ -42,57 +40,63 @@ namespace wrdac {
 class SubSystem_ARE : public SubSystem
 {
 private:
-    yarp::os::Port cmdPort;
+    yarp::os::RpcClient cmdPort;
 
     /********************************************************************************/
     void appendCartesianTarget(yarp::os::Bottle& b, const yarp::sig::Vector &t)
     {
-        yarp::os::Bottle& sub = b.addList();
+        yarp::os::Bottle &sub=b.addList();
         sub.addString("cartesian");
         for (size_t i=0; i<t.length(); i++)
             sub.addDouble(t[i]);
     }
 
     /********************************************************************************/
-    bool sendCmd(yarp::os::Bottle &cmd, const bool shouldWait)
+    bool sendCmd(yarp::os::Bottle &cmd, const bool shouldWait=true)
     {        
         if (shouldWait)
         {
             yarp::os::Bottle bReply;
-            cmdPort.write(cmd,bReply);
-            return (bReply.get(0).asVocab()==yarp::os::Vocab::encode("ack"));
+            if (cmdPort.write(cmd,bReply))
+                return (bReply.get(0).asVocab()==yarp::os::Vocab::encode("ack"));
         }
         else
-            cmdPort.write(cmd);
+            return cmdPort.asPort().write(cmd);
 
-        return true;
+        return false;
     }
 
 protected:
     /********************************************************************************/
-    virtual bool connect() 
+    bool connect() 
     { 
         return yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
     }
 
 public:
-    /********************************************************************************/
+    /**
+    * Default constructor.
+    * @param masterName stem-name used to open up ports.
+    */
     SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
     {
         cmdPort.open(("/"+masterName+"/"+SUBSYSTEM_ARE+"/cmd:io").c_str());
-        m_type = SUBSYSTEM_ARE;
+        m_type=SUBSYSTEM_ARE;
     }
 
-    /********************************************************************************/
-    virtual void Close() 
+    /**
+    * Clean up resources.
+    */
+    void Close()
     { 
         cmdPort.interrupt();
         cmdPort.close();
     }
 
     /**
-    * Go to home position
-    * @param part (gaze, head, hands, finguers, all. All by default)
+    * Go to home position.
+    * @param part the part to be homed (gaze, head, hands, fingers,
+    *             all; all by default).
     * @param shouldWait is the function blocking?
     * @return true in case of successfull motor command, false 
     *         otherwise.
@@ -101,7 +105,7 @@ public:
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("home"));
-        bCmd.addString(part);
+        bCmd.addString(part.c_str());
         return sendCmd(bCmd,shouldWait);
     }
 
@@ -117,7 +121,8 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool take(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
+    bool take(const yarp::sig::Vector &target, const std::string &opts="",
+              const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("take"));
@@ -143,7 +148,8 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool push(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
+    bool push(const yarp::sig::Vector &target, const std::string &opts="",
+              const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("push"));
@@ -166,7 +172,8 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool point(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
+    bool point(const yarp::sig::Vector &target, const std::string &opts="",
+               const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("point"));
@@ -211,7 +218,8 @@ public:
     * @return true in case of successfull motor command, false 
     *         otherwise.
     */
-    bool dropOn(const yarp::sig::Vector &target, const std::string &opts="", const bool shouldWait=true)
+    bool dropOn(const yarp::sig::Vector &target, const std::string &opts="",
+                const bool shouldWait=true)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("drop"));
