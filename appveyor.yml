@@ -38,8 +38,9 @@ install:
   #- ps: rename-item c:\dev\Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack c:\dev\ipopt-3.10.1
   #- ps: rename-item c:\dev\gtkmm c:\dev\gtkmm-2.22.0-2
   
-  - cmd: yarp.exe /S
-  - cmd: icub-main.exe /S
+  - cmd: dir c:\
+  - cmd: c:\yarp.exe /S
+  - cmd: c:\icub-main.exe /S
   
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
