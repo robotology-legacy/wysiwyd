@@ -20,13 +20,13 @@ environment:
   ICUBcontrib_DIR: c:/iCubContrib
   
 install:
-  # to install unzipper do: "cinst 7zip.commandline -x86"
-  # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul"
-  # -
   # to install downloader do: "cinst wget -x86"
   # the format is: "wget -q URL -O c:\path-to-file\file_name"
   # special format is: wget -q --no-check-certificate URL -O c:\path-to-file\file_name
   # that accounts for downloading from e.g. https://googledrive.com/host/$HASH
+  # -
+  # to install unzipper do: "cinst 7zip.commandline -x86"
+  # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul" 
   - cmd: cinst wget -x86
   
   - cmd: wget -q http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe             -O c:\dev\yarp.exe
