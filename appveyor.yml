@@ -7,12 +7,12 @@ branches:
 clone_folder: c:\dev\wysiwyd
 
 environment:
-  GSL_DIR:         c:/dev/gsl-1.14
-  IPOPT_DIR:       c:/dev/ipopt-3.10.1
-  GTK_BASEPATH:    c:/dev/gtkmm-2.22.0-2
-  GTKMM_BASEPATH:  c:/dev/gtkmm-2.22.0-2
-  YARP_DIR:        c:/dev/yarp-2.3.63
-  ICUB_DIR:        c:/dev/icub-1.1.15
+  GSL_DIR:         c:/Program Files (x86)/gsl-1.14
+  IPOPT_DIR:       c:/Program Files (x86)/ipopt-3.10.1
+  GTK_BASEPATH:    c:/Program Files (x86)/gtkmm-2.22.0-2
+  GTKMM_BASEPATH:  c:/Program Files (x86)/gtkmm-2.22.0-2
+  YARP_DIR:        c:/Program Files (x86)/yarp-2.3.63
+  ICUB_DIR:        c:/Program Files (x86)/icub-1.1.15
   ICUBcontrib_DIR: c:/iCubContrib
   
 install:
@@ -25,14 +25,11 @@ install:
   # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul" 
   - cmd: cinst wget -x86
   
-  - cmd: wget -q http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe             -O c:\yarp.exe
-  - cmd: wget -q http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe -O c:\icub.exe
+  - cmd: wget -q http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe             -O c:\dev\yarp.exe
+  - cmd: wget -q http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe -O c:\dev\icub.exe
   
-  - cmd: cd c:\
-  - cmd: yarp.exe /S /D=c:\dev
-  - cmd: icub.exe /S /D=c:\dev
-  - cmd: dir c:\dev
-  - cmd: dir "c:\Program Files (x86)"
+  - cmd: c:\dev\yarp.exe /S
+  - cmd: c:\dev\icub.exe /S
   
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
