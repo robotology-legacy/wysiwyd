@@ -35,6 +35,7 @@ install:
   - cmd: cd c:\dev
   - cmd: yarp.exe /S
   - cmd: icub.exe /S
+  - cmd: set
   
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
