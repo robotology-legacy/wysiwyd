@@ -7,16 +7,16 @@ branches:
 clone_folder: c:\dev\wysiwyd
 
 environment:
-  ACE_ROOT: c:/Program Files (x86)/robotology/ace-6.1.1
-  GSL_DIR: c:/Program Files (x86)/robotology/gsl-1.14
-  IPOPT_DIR: c:/Program Files (x86)/robotology/ipopt-3.10.1
-  GLUT_DIR: c:/Program Files (x86)/robotology/glut-3.7.6
-  GTK_BASEPATH: c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
-  GTKMM_BASEPATH: c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
-  QTDIR: c:/Program Files (x86)/robotology/qt3
-  SDLDIR: c:/Program Files (x86)/robotology/sdl-1.2.13
-  YARP_DIR: c:/Program Files (x86)/robotology/yarp-2.3.63
-  ICUB_DIR: c:/Program Files (x86)/robotology/icub-1.1.15
+  #ACE_ROOT: c:/Program Files (x86)/robotology/ace-6.1.1
+  #GSL_DIR: c:/Program Files (x86)/robotology/gsl-1.14
+  #IPOPT_DIR: c:/Program Files (x86)/robotology/ipopt-3.10.1
+  #GLUT_DIR: c:/Program Files (x86)/robotology/glut-3.7.6
+  #GTK_BASEPATH: c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
+  #GTKMM_BASEPATH: c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
+  #QTDIR: c:/Program Files (x86)/robotology/qt3
+  #SDLDIR: c:/Program Files (x86)/robotology/sdl-1.2.13
+  #YARP_DIR: c:/Program Files (x86)/robotology/yarp-2.3.63
+  #ICUB_DIR: c:/Program Files (x86)/robotology/icub-1.1.15
   ICUBcontrib_DIR: c:/iCubContrib
   
 install:
