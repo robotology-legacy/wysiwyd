@@ -11,8 +11,8 @@ environment:
   #IPOPT_DIR: c:\dev\ipopt-3.10.1
   #GTK_BASEPATH: c:\dev\gtkmm-2.22.0-2
   #GTKMM_BASEPATH: c:\dev\gtkmm-2.22.0-2
-  YARP_DIR: "c:\Program Files (x86)\robotology\yarp"
-  ICUB_DIR: "c:\Program Files (x86)\robotology\iCub"
+  #YARP_DIR: c:\Program Files (x86)\robotology\yarp
+  #ICUB_DIR: c:\Program Files (x86)\robotology\iCub
   ICUBcontrib_DIR: c:\iCubContrib
   #YARP_DATA_DIRS: c:\YARP\share\yarp;c:\iCub\share\iCub
   #WYSIWYD_DIR: c:\dev\wysiwyd\main\build
