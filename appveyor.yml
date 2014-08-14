@@ -21,7 +21,7 @@ install:
   - cmd: cinst wget -x86
   #- cmd: cinst 7zip.commandline -x86
   
-  - cmd: wget -q http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe/download    -O c:\yarp.exe
+  - cmd: wget -q http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe             -O c:\yarp.exe
   - cmd: wget -q http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe -O c:\icub-main.exe
   #- cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/gsl-1.14-bin-msvc11.zip -O c:\dev\gsl.zip
   #- cmd: wget -q http://www.icub.org/download/packages/windows/msvc11/Ipopt-3.10.1-win32-msvc11_mumps+metis+clapack.zip -O c:\dev\ipopt.zip
