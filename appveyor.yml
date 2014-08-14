@@ -12,8 +12,8 @@ environment:
   #GTK_BASEPATH: c:\dev\gtkmm-2.22.0-2
   #GTKMM_BASEPATH: c:\dev\gtkmm-2.22.0-2
   YARP_DIR: c:\YARP
-  ICUB_DIR: c:\iCub
-  ICUBcontrib_DIR: c:\iCubContrib
+  #ICUB_DIR: c:\iCub
+  #ICUBcontrib_DIR: c:\iCubContrib
   #YARP_DATA_DIRS: c:\YARP\share\yarp;c:\iCub\share\iCub
   #WYSIWYD_DIR: c:\dev\wysiwyd\main\build
   
@@ -41,6 +41,7 @@ install:
   - cmd: cd c:\dev
   - cmd: yarp.exe /S
   - cmd: icub-main.exe /S
+  - cmd: dir c:\dev
   - cmd: dir "c:\Program Files (x86)"
   - cmd: set
   
