@@ -7,14 +7,15 @@ branches:
 clone_folder: c:\dev\wysiwyd
 
 environment:
-  GSL_DIR:         c:/Program Files (x86)/robotology/gsl-1.14
-  IPOPT_DIR:       c:/Program Files (x86)/robotology/ipopt-3.10.1
-  GTK_BASEPATH:    c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
-  GTKMM_BASEPATH:  c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
-  OpenCV_DIR:      c:/Program Files (x86)/robotology/opencv-git-snapshot-26-09-12
-  YARP_DIR:        c:/Program Files (x86)/robotology/yarp-2.3.63
-  ICUB_DIR:        c:/Program Files (x86)/robotology/icub-1.1.15
-  ICUBcontrib_DIR: c:/iCubContrib
+  GSL_DIR:           c:/Program Files (x86)/robotology/gsl-1.14
+  IPOPT_DIR:         c:/Program Files (x86)/robotology/ipopt-3.10.1
+  GTK_BASEPATH:      c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
+  GTKMM_BASEPATH:    c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
+  OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-git-snapshot-26-09-12
+  YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.63
+  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.15
+  ICUBcontrib_DIR:   c:/iCubContrib
+  CMAKE_PREFIX_PATH: c:/iCubContrib
   
 install:
   # to install downloader do: "cinst wget -x86"
