@@ -11,6 +11,7 @@ environment:
   IPOPT_DIR:       c:/Program Files (x86)/robotology/ipopt-3.10.1
   GTK_BASEPATH:    c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
   GTKMM_BASEPATH:  c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
+  OpenCV_DIR:      c:/Program Files (x86)/robotology/opencv-git-snapshot-26-09-12
   YARP_DIR:        c:/Program Files (x86)/robotology/yarp-2.3.63
   ICUB_DIR:        c:/Program Files (x86)/robotology/icub-1.1.15
   ICUBcontrib_DIR: c:/iCubContrib
@@ -30,12 +31,20 @@ install:
   
   - cmd: c:\dev\yarp.exe /S
   - cmd: c:\dev\icub.exe /S
+  - cmd: dir "c:\Program Files (x86)\robotology"
   
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
   - cmd: md build
   - cmd: cd build
   - cmd: cmake -DCMAKE_INSTALL_PREFIX=c:/iCubContrib -G"Visual Studio 11" ..
+  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" INSTALL.vcxproj
+
+  - cmd: git clone https://github.com/robotology/kinect-wrapper.git c:\dev\kinect-wrapper
+  - cmd: cd c:\dev\kinect-wrapper
+  - cmd: md build
+  - cmd: cd build
+  - cmd: cmake -G"Visual Studio 11" ..
   - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" INSTALL.vcxproj
 
 build:
