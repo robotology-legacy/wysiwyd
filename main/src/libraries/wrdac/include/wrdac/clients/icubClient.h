@@ -18,10 +18,15 @@
 
 #ifndef __EFAA_ICUBCLIENT_H__
 #define __EFAA_ICUBCLIENT_H__
+
+#include <iostream>
+#include <iomanip>
 #include <fstream>
+
 #include <yarp/os/Network.h>
+
 #include <wrdac/clients/opcClient.h>
-#include "wrdac/subsystems/all.h"
+#include <wrdac/subsystems/all.h>
 #include "animation.h"
 
 namespace wysiwyd{namespace wrdac{
@@ -55,31 +60,31 @@ public:
         return posturesKnown;
     }
 
-	bool addPosture(std::string postureName, BodyPosture postureJnts)
-	{
-		posturesKnown[postureName] = postureJnts;
-		return true;
-	}
+    bool addPosture(const std::string &postureName, BodyPosture postureJnts)
+    {
+        posturesKnown[postureName] = postureJnts;
+        return true;
+    }
 
-	void savePostures(std::string fileName = "defaultPostures.ini")
-	{
-		std::cout << "Saving postures...";
-		std::ofstream of(fileName);
-		of << "posturesCount \t" << posturesKnown.size() << std::endl;
-		int pCnt = 0;
-		for (std::map<std::string, BodyPosture>::iterator it = posturesKnown.begin(); it != posturesKnown.end(); it++)
-		{
-			of << "[posture_"<<pCnt<<"]"<<std::endl;
-			of << "name \t" << it->first << std::endl;
-			of << "head \t (" << it->second.head.toString() << ")" << std::endl;
-			of << "right_arm \t (" << it->second.right_arm.toString() << ")" << std::endl;
-			of << "left_arm \t (" << it->second.left_arm.toString() << ")" << std::endl;
-			of << "torso \t (" << it->second.torso.toString() << ")" << std::endl;
-			pCnt++;
-		}
-		of.close();
-		std::cout << "Done." << std::endl;
-	}
+    void savePostures(const std::string &fileName = "defaultPostures.ini")
+    {
+        std::cout << "Saving postures...";
+        std::ofstream of(fileName.c_str());
+        of << "posturesCount \t" << posturesKnown.size() << std::endl;
+        int pCnt = 0;
+        for (std::map<std::string, BodyPosture>::iterator it = posturesKnown.begin(); it != posturesKnown.end(); it++)
+        {
+            of << "[posture_"<<pCnt<<"]"<<std::endl;
+            of << "name \t" << it->first << std::endl;
+            of << "head \t (" << it->second.head.toString(3,3).c_str() << ")" << std::endl;
+            of << "right_arm \t (" << it->second.right_arm.toString(3,3).c_str() << ")" << std::endl;
+            of << "left_arm \t (" << it->second.left_arm.toString(3,3).c_str() << ")" << std::endl;
+            of << "torso \t (" << it->second.torso.toString(3,3).c_str() << ")" << std::endl;
+            pCnt++;
+        }
+        of.close();
+        std::cout << "Done." << std::endl;
+    }
 
     SubSystem*  getSubSystem(const std::string &name){return subSystems[name];}
 
