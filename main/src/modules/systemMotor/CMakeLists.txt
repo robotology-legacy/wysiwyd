@@ -5,3 +5,4 @@
 add_subdirectory(slidingController)
 add_subdirectory(imitationMotorBabbling)
 add_subdirectory(vector2cmd)
+add_subdirectory(postureRecorder)

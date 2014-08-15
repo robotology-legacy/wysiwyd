@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         return false;
 
     ResourceFinder rf;
-    rf.configure("EFAA_ROOT",argc,argv);
+    rf.configure(argc,argv);
 
     string moduleName = rf.check("name",Value("vector2cmd")).asString().c_str();
     string robotName = rf.check("robot",Value("icub")).asString().c_str();

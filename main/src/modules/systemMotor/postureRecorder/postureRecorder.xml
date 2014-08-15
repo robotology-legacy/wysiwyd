@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>postureRecorder</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Just a way to record upper body postures with the joystick</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   A simple module for recording postures of the robot in a format compatible with the iCubClient.
+   Whenever the user presses the blue button a new posture is recorded. When he presses the yellow one the postures are dumped to a file that can be loaded by iCubClient.
+   </description-long>
+
+   <arguments>
+   <param default="postureRecorder" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   <param default="icub" desc="To specify the robot's name">robot</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+   </data>
+   
+   <services>
+   </services>
+   
+</module>
+
