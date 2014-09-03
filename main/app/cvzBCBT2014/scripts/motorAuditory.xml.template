@@ -1,10 +1,24 @@
 <application>
-    <name>CVZ_BCBT2014_EyeHand</name>
+    <name>CVZ_BCBT2014_Piano</name>
+	
+	<module>
+        <name>yarpdev</name>
+        <parameters>--device grabber --subdevice portaudio --read --name /microphone --channels 1 --samples 4400</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+	
+	<module>
+        <name>yarphear</name>
+        <parameters>--name speakers</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>	
 	
     <module>
         <name>cvzCore</name>
-        <parameters>--context cvzBCBT2014 --from eyeHand.ini --displayGui</parameters>
-        <node>icubsrv</node>
+        <parameters>--context cvzBCBT2014 --from auditoryMotor.ini --displayGui</parameters>
+        <node>icubAlien</node>
         <prefix></prefix>
     </module>
 	
@@ -36,20 +50,8 @@
 	
     <connection>
         <from>/icub/right_arm/state:o</from>
-        <to>/dump/icub/right_arm/state</to>
+        <to>/dump/dump/icub/right_arm/state</to>
         <protocol>tcp</protocol>
-    </connection>
-	
-    <module>
-        <name>dataDumper</name>
-        <parameters>--name dump/cvz/parameters --rxTime</parameters>
-        <node>icubsrv</node>
-        <prefix></prefix>
-    </module>
-	
-    <connection>
-        <from>/mmcm/eyeHand/parameters:o</from>
-        <to>/dump/cvz/parameters</to>
-        <protocol>tcp</protocol>
-    </connection>			
+    </connection>	
+		
 </application>
