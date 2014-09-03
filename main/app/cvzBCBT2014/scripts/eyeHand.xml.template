@@ -22,14 +22,14 @@
     </module>
 	
     <connection>
-        <from>/mmcm/eyeHand/vision/prediction:o</from>
+        <from>/mmcm/eyeHand/right_arm/prediction:o</from>
         <to>/dump/cvz/right_arm/prediction</to>
         <protocol>tcp</protocol>
     </connection>
 	
     <module>
         <name>dataDumper</name>
-        <parameters>--name dump/icub/right_arm/state --rxTime</parameters>
+        <parameters>--name dump/icub/right_arm/state --rxTime --downsample 10</parameters>
         <node>icubsrv</node>
         <prefix></prefix>
     </module>

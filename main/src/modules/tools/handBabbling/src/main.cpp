@@ -34,7 +34,7 @@ int main()
     srand(time(NULL));
     
     Property options;
-    options.put("robot", "icub"); // typically from the command line.
+    options.put("robot", "icubSim"); // typically from the command line.
     options.put("device", "remote_controlboard");
 
     Value& robotname = options.find("robot");
