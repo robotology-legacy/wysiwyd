@@ -81,7 +81,7 @@ int main()
      
      // limits
 
-     vector<pair<int, int>> vLimitJoints;
+     vector<pair<int, int> > vLimitJoints;
      for (int i = 0; i < jnts; i++) {
          double min, max;
          lim->getLimits(i, &min, &max);
@@ -98,7 +98,7 @@ int main()
      {
          bool motionDone = false;
          for (int i = 4; i < jnts; i++) {
-             tmp[i] = rand()&(vLimitJoints[jnts].second-vLimitJoints[jnts].first)+vLimitJoints[jnts].first;
+             tmp[i] = (rand()&(vLimitJoints[jnts].second-vLimitJoints[jnts].first) )+ vLimitJoints[jnts].first;
              pos->positionMove(i,tmp[i]);
          }
          pos->checkMotionDone(&motionDone);
