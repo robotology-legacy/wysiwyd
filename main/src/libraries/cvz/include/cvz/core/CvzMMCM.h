@@ -35,7 +35,6 @@ namespace cvz {
             int W() { return width; }
             int L() { return layers; }
 
-
             IModality* recurrentModality;
 
             /*IDL methods*/
@@ -72,6 +71,14 @@ namespace cvz {
 				return loadWeights(fullPath);
             }
 
+			virtual yarp::os::Bottle getParametersForBroadcast()
+			{
+				yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
+				yarp::os::Bottle &bLearning = b.addList();
+				bLearning.addString("learningRate");
+				bLearning.addDouble(getLearningRate());
+				return b;
+			}
             virtual bool close()
             {
                 bool ok = this->IConvergenceZone::close();

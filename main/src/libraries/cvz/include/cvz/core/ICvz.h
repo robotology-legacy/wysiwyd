@@ -15,8 +15,12 @@ namespace cvz {
 		class IConvergenceZone //: public cvz_IDL
 		{
 
+		private:
+			void broadcastParameters(){parametersPortOut.write(getParametersForBroadcast());}
+
 		public:
 			yarp::os::RpcServer rpcPort;
+			yarp::os::Port	parametersPortOut;
 
 			std::string getRpcPortName(){ return rpcPort.getName(); }
 			std::string getName(){ return name; }
@@ -24,7 +28,7 @@ namespace cvz {
 			
 			//Thrifted methods
 			void moduleStart() { std::cout << "Started." << std::endl; isPaused = false; }
-			void modulePause() { std::cout << "Paused." << std::endl; isPaused = true; }
+			void modulePause() { std::cout << "Paused." << std::endl; isPaused = true; }			
 
 		protected:
 			std::string name;
@@ -98,6 +102,10 @@ namespace cvz {
 				}
 
 				isPaused = false;
+				std::string paraName = "/";
+				paraName += getName() + "/parameters:o";
+				parametersPortOut.open(paraName.c_str());
+
 				std::string rpcName = "/";
 				rpcName += getName() + "/rpc";
 				rpcPort.open(rpcName.c_str());
@@ -109,6 +117,21 @@ namespace cvz {
 				return true;
 			}
 			
+
+			/***************************************************************/
+			virtual yarp::os::Bottle getParametersForBroadcast()
+			{
+				yarp::os::Bottle b;
+				for (std::map<IModality*, double >::iterator itInf = modalitiesInfluence.begin(); itInf != modalitiesInfluence.end(); itInf++)
+				{
+					yarp::os::Bottle &bSub = b.addList();
+					bSub.addString(itInf->first->Name()); //Mod name
+					bSub.addDouble(itInf->second); //Influence
+					bSub.addDouble(modalitiesLearning[itInf->first]); //Learning
+				}
+				return b;
+			}
+
 			/***************************************************************/
 			virtual bool attach(yarp::os::RpcServer &source)
 			{
@@ -144,6 +167,8 @@ namespace cvz {
 				return true;
 			}
 
+
+
 			bool cycle()
 			{
 				if (isPaused)
@@ -171,6 +196,10 @@ namespace cvz {
 				{
 					it->second->Output();
 				}
+
+				//Send parameters
+				broadcastParameters();
+
 				if (cyclesElapsed % 500 == 0)
 					std::cout << getName() << "\t t=" << cyclesElapsed << std::endl;
 				cyclesElapsed++;
