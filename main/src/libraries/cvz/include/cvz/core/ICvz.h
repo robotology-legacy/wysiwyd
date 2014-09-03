@@ -16,7 +16,11 @@ namespace cvz {
 		{
 
 		private:
-			void broadcastParameters(){parametersPortOut.write(getParametersForBroadcast());}
+			void broadcastParameters()
+			{
+				yarp::os::Bottle b = getParametersForBroadcast();
+				parametersPortOut.write(b);
+			}
 
 		public:
 			yarp::os::RpcServer rpcPort;
