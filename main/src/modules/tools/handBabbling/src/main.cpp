@@ -34,7 +34,7 @@ int main()
     srand(time(NULL));
     
     Property options;
-    options.put("robot", "icubSim"); // typically from the command line.
+    options.put("robot", "icub"); // typically from the command line.
     options.put("device", "remote_controlboard");
 
     Value& robotname = options.find("robot");
@@ -104,10 +104,10 @@ int main()
 	 mask[1]	= false;
 	 mask[2]	= false;
 	 mask[3]	= false;
-	 mask[4]	= true;
-	 mask[5] = true;
-	 mask[6] = true;
-	 mask[7] = true;
+	 mask[4] = false;
+	 mask[5] = false;
+	 mask[6] = false;
+	 mask[7] = false;
 	 mask[8] = false;
 	 mask[9] = false;
 	 mask[10] = false;
@@ -122,7 +122,7 @@ int main()
 
 	 for (int i = 4; i < jnts; i++)
 	 {
-			 pos->positionMove(i, 0.0);
+		pos->positionMove(i, 0.0);
 	 }
 
 	 bool initDone = false;
@@ -169,7 +169,7 @@ int main()
 				 }
 			 }
 		 }
-
+		 Time::delay(15.0);
 		 cout << "ok" << endl;
      }
 
