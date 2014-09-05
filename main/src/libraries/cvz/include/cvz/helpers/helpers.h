@@ -17,6 +17,7 @@ namespace cvz {
 		double GaussianBell(const double &x, const double &sigma);
 		double tanhx(double x);
 		double sigmoidFunction(double x);
+		double sigmoidFunction(double x, double alpha, double beta);
 		void Clamp(double &value, const double &_min, const double &_max);
 		
 		//template<class pxT>
