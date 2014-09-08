@@ -49,6 +49,7 @@ namespace cvz {
 
 			virtual bool configure(yarp::os::Property &prop)
 			{
+
 				std::string name = prop.check("name", yarp::os::Value("defaultCvz")).asString();
 				period = prop.check("period", yarp::os::Value(0.01)).asDouble();
 				setName(name.c_str());
@@ -88,7 +89,10 @@ namespace cvz {
 					else if (modType == "yarpImageRgb")
 						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, bMod);
 					else
-						std::cout << "Warning, this modality type does not exist. Discarded." << std::endl;
+					{
+						std::cout << "Warning, this modality type does not exist. Using the IModality class...." << std::endl;
+						mod = new IModality(modPortPrefix, bMod);
+					}
 
 					if (mod != NULL)
 					{

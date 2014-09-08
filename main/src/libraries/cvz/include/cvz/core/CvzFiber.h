@@ -16,6 +16,11 @@ namespace cvz {
 			class CvzSheet:public std::vector<std::vector< IConvergenceZone* > >
 			{
 			public:
+				CvzSheet()
+				{
+
+				}
+
 				bool configure(int w, int h, yarp::os::Property &prop)
 				{
 					std::cout << "***********************************"<<std::endl
@@ -27,13 +32,14 @@ namespace cvz {
 						this->operator[](x).resize(h);
 						for (int y = 0; y < h; y++)
 						{
+							std::string debug = prop.toString();
 							yarp::os::Property prop2 = prop;
 							std::string nameRoot = prop2.check("name", yarp::os::Value("default")).asString();
 							prop2.unput("name");
 							std::stringstream nameTotal; 
 							nameTotal << nameRoot << "_" << x << "_" << y;
 							prop2.put("name", nameTotal.str());
-							this->operator[](x)[y] = new IConvergenceZone();
+							CvzBuilder::allocate(&this->operator[](x)[y], prop2.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString());
 							bool isFine = this->operator[](x)[y]->configure(prop2);
 							if (!isFine)
 							{
@@ -63,11 +69,18 @@ namespace cvz {
 
 			class CvzFiber
 			{
+			public:
 				std::vector<CvzSheet> layers;
 				std::map<IModality*, IModality*> connections;
 
+				CvzFiber()
+				{
+
+				}
+
 				bool configure(yarp::os::Property &prop)
 				{
+
 					yarp::os::Bottle* layersStructure = prop.find("layersStructure").asList();
 
 					//The size comes in the form :
@@ -78,9 +91,11 @@ namespace cvz {
 					//	) 
 					//for a 3 layered fiber with a 2x2, a single and a 5x5 sheets of cvz using their respective config file
 					//
-					std::cout << "Creating a fiber of " << layersStructure->size() << " layers " << layersStructure->toString() << std::endl;
-					layers.resize(layersStructure->size());
-					for (int l = 0; l < layersStructure->size(); l++)
+					int layersCount = layersStructure->size();
+					std::cout << "Creating a fiber of " << layersCount << " layers " << layersStructure->toString() << std::endl;
+					layers.resize(layersCount);
+
+					for (int l = 0; l < layersCount; l++)
 					{
 						int sqrSize = layersStructure->get(l).asList()->get(0).asInt();
 						yarp::os::Bottle* mapStructure = layersStructure->get(l).asList()->get(1).asList();
@@ -102,18 +117,18 @@ namespace cvz {
 							if (previousSqrSize >= sqrSize)
 							{
 								std::cout << "[CvzFiber] " << l-1 << "->" << l << " is convergent" << std::endl;
-								previousOutputModalitiesCount = pow(previousSqrSize/sqrSize, 2.0);
+								previousOutputModalitiesCount = (int) pow(previousSqrSize/sqrSize, 2.0);
 							}
 							else
 							{
 								std::cout << "[CvzFiber] " << l-1 << "->" << l << " is divergent" << std::endl;
-								inputModalitiesCount = pow(previousSqrSize / sqrSize, 2.0);
+								inputModalitiesCount = (int) pow(previousSqrSize / sqrSize, 2.0);
 							}
 
 							for (int iMod = 0; iMod < inputModalitiesCount; iMod++)
 							{
 								std::stringstream ssModGroup;
-								ssModGroup << "[modality_" << modalityCounter << "]";
+								ssModGroup << "modality_" << modalityCounter;
 								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
 								std::stringstream ssModName;
 								ssModName << "input_" << iMod;
@@ -126,7 +141,7 @@ namespace cvz {
 						{
 							yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
 							std::stringstream ssModGroup;
-							ssModGroup << "[modality_" << modalityCounter << "]";
+							ssModGroup << "modality_" << modalityCounter;
 							yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
 							inputModalityPrototype->write(pMod);
 							modalityCounter++;
@@ -138,22 +153,23 @@ namespace cvz {
 							int nextSqrSize = layersStructure->get(l + 1).asList()->get(0).asInt();
 							int outputModalitiesCount = 1;
 							int nextInputModalitiesCount = 1;
-							if (nextSqrSize >= sqrSize)
+							if (nextSqrSize <= sqrSize)
 							{
 								std::cout << "[CvzFiber] " << l << "->" << l + 1 << " is convergent" << std::endl;
-								nextInputModalitiesCount = pow(sqrSize / nextSqrSize,2.0);
+								nextInputModalitiesCount = (int)pow(sqrSize / nextSqrSize, 2.0);
 							}
 							else
 							{
 								std::cout << "[CvzFiber] " << l << "->" << l + 1 << " is divergent" << std::endl;
-								outputModalitiesCount = pow(sqrSize / nextSqrSize, 2.0);
+								outputModalitiesCount = (int) pow(sqrSize / nextSqrSize, 2.0);
 							}
 
 							for (int iMod = 0; iMod < outputModalitiesCount; iMod++)
 							{
 								std::stringstream ssModGroup;
-								ssModGroup << "[modality_" << modalityCounter << "]";
-								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+								ssModGroup << "modality_" << modalityCounter;
+								std::string buffssstr = ssModGroup.str();
+								yarp::os::Property &pMod = p.addGroup(buffssstr.c_str());
 								std::stringstream ssModName;
 								ssModName << "output_" << iMod;
 								pMod.put("name", ssModName.str());
@@ -162,7 +178,6 @@ namespace cvz {
 								modalityCounter++;
 							}
 						}
-
 
 						bool isFine = layers[l].configure(sqrSize, sqrSize, p);
 						if (!isFine)
@@ -174,6 +189,8 @@ namespace cvz {
 
 					//Compute the connectivity pattern
 					createConnections();
+
+					return true;
 				}
 
 				bool cycle()
@@ -183,22 +200,29 @@ namespace cvz {
 						//Refresh from bottom up
 						layers[l].cycle();
 
-						//Propagate to next layer
-						for (int x1 = 0; x1 < layers[l].size(); x1++)
+						if (l != layers.size() - 1)
 						{
-							for (int y1 = 0; y1 < layers[l][x1].size(); y1++)
+							//Propagate to next layer
+							for (int x1 = 0; x1 < layers[l].size(); x1++)
 							{
-								for (std::map<std::string, IModality*>::iterator itSrc = layers[l][x1][y1]->modalitiesTopDown.begin(); itSrc != layers[l][x1][y1]->modalitiesTopDown.end(); itSrc++)
+								for (int y1 = 0; y1 < layers[l][x1].size(); y1++)
 								{
-									IModality* src = itSrc->second;
-									IModality* target = connections[src];
+									for (std::map<std::string, IModality*>::iterator itSrc = layers[l][x1][y1]->modalitiesTopDown.begin(); itSrc != layers[l][x1][y1]->modalitiesTopDown.end(); itSrc++)
+									{
+										IModality* src = itSrc->second;
+										IModality* target = connections[src];
 
-									target->SetValueReal(src->GetValuePrediction());
-									src->SetValueReal(target->GetValuePrediction());
+										//BUG here we have a non connected modality
+										std::vector<double> srcPred = src->GetValuePrediction();
+										target->SetValueReal(srcPred);
+										std::vector<double> targetPred = target->GetValuePrediction();
+										src->SetValueReal(targetPred);
+									}
 								}
 							}
 						}
 					}
+					return true;
 				}
 
 
