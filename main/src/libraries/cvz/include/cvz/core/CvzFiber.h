@@ -57,9 +57,9 @@ namespace cvz {
 
                 void cycle()
                 {
-                    for (int x = 0; x < this->size(); x++)
+                    for (size_t x = 0; x < this->size(); x++)
                     {
-                        for (int y = 0; y < this->operator[](x).size(); y++)
+                        for (size_t y = 0; y < this->operator[](x).size(); y++)
                         {
                             bool isFine = this->operator[](x)[y]->cycle();
                         }
@@ -173,7 +173,7 @@ namespace cvz {
                                 std::stringstream ssModName;
                                 ssModName << "output_" << iMod;
                                 pMod.put("name", ssModName.str());
-                                pMod.put("isTopDown", NULL);
+                                pMod.put("isTopDown", (yarp::os::Value*)NULL);
                                 pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
                                 modalityCounter++;
                             }
