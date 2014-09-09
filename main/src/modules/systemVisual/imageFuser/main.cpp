@@ -61,7 +61,7 @@ public:
 			for (unsigned int y = 0; y < ports[x].size(); y++)
 			{
 				stringstream ssSource;
-				ssSource << splitterPrefix << "/" << x << "_" << y << splitterSuffix;
+				ssSource << splitterPrefix << x << "_" << y << splitterSuffix;
 				int attempt = 0;
 				while (attempt < 5 && !Network::connect(ssSource.str().c_str(), ports[x][y]->getName().c_str()))
 				{

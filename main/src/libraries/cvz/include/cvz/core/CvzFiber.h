@@ -32,7 +32,7 @@ namespace cvz {
                         this->operator[](x).resize(h);
                         for (int y = 0; y < h; y++)
                         {
-                            std::string debug = prop.toString();
+                            //std::string debug = prop.toString();
                             yarp::os::Property prop2 = prop;
                             std::string nameRoot = prop2.check("name", yarp::os::Value("default")).asString();
                             prop2.unput("name");
@@ -107,22 +107,29 @@ namespace cvz {
                             std::cout << "[CvzFiber] Warning: no map structure provided for layer " << l << std::endl;
                         }
 
+                        //Deal with the layer map names
+                        std::string nameRoot = p.check("name", yarp::os::Value("default")).asString();
+                        p.unput("name");
+                        std::stringstream nameTotal;
+                        nameTotal << nameRoot << "_"<<l;
+                        p.put("name", nameTotal.str());
+
                         int modalityCounter = 0;
                         //Automatic generation of the input modalities
                         if (l != 0)
                         {
                             int previousSqrSize = layersStructure->get(l - 1).asList()->get(0).asInt();
-                            int previousOutputModalitiesCount = 1;
+                            //int previousOutputModalitiesCount = 1;
                             int inputModalitiesCount = 1;
                             if (previousSqrSize >= sqrSize)
                             {
-                                std::cout << "[CvzFiber] " << l-1 << "->" << l << " is convergent" << std::endl;
-                                previousOutputModalitiesCount = (int) pow(previousSqrSize/sqrSize, 2.0);
+                                std::cout << "[CvzFiber] " << l - 1 << "->" << l << " is convergent" << std::endl;
+                                inputModalitiesCount = (int)pow(previousSqrSize / sqrSize, 2.0);
                             }
                             else
                             {
                                 std::cout << "[CvzFiber] " << l-1 << "->" << l << " is divergent" << std::endl;
-                                inputModalitiesCount = (int) pow(previousSqrSize / sqrSize, 2.0);
+                                //inputModalitiesCount = (int) pow(previousSqrSize / sqrSize, 2.0);
                             }
 
                             for (int iMod = 0; iMod < inputModalitiesCount; iMod++)
@@ -152,33 +159,31 @@ namespace cvz {
                         {
                             int nextSqrSize = layersStructure->get(l + 1).asList()->get(0).asInt();
                             int outputModalitiesCount = 1;
-                            int nextInputModalitiesCount = 1;
                             if (nextSqrSize <= sqrSize)
                             {
                                 std::cout << "[CvzFiber] " << l << "->" << l + 1 << " is convergent" << std::endl;
-                                nextInputModalitiesCount = (int)pow(sqrSize / nextSqrSize, 2.0);
                             }
                             else
                             {
                                 std::cout << "[CvzFiber] " << l << "->" << l + 1 << " is divergent" << std::endl;
-                                outputModalitiesCount = (int) pow(sqrSize / nextSqrSize, 2.0);
+                                outputModalitiesCount = (int)pow(nextSqrSize / sqrSize, 2.0);
                             }
-
+                            
                             for (int iMod = 0; iMod < outputModalitiesCount; iMod++)
                             {
                                 std::stringstream ssModGroup;
                                 ssModGroup << "modality_" << modalityCounter;
-                                std::string buffssstr = ssModGroup.str();
-                                yarp::os::Property &pMod = p.addGroup(buffssstr.c_str());
+                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
                                 std::stringstream ssModName;
                                 ssModName << "output_" << iMod;
                                 pMod.put("name", ssModName.str());
-                                pMod.put("isTopDown", (yarp::os::Value*)NULL);
+                                pMod.put("isTopDown", yarp::os::Value(1));
                                 pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
                                 modalityCounter++;
                             }
+                            
                         }
-
+                        
                         bool isFine = layers[l].configure(sqrSize, sqrSize, p);
                         if (!isFine)
                         {
@@ -190,16 +195,37 @@ namespace cvz {
                     //Compute the connectivity pattern
                     createConnections();
 
+                    //Autoconnect to the input prototype
+                    std::string autoConnectStem = prop.check("autoConnectInputStem",yarp::os::Value("")).asString();
+                    if (autoConnectStem != "")
+                    {
+                        std::cout << "Trying autoconnection of first layer on the stem name : " << autoConnectStem << std::endl;
+                        
+                        for (int x = 0; x < layers[0].size(); x++)
+                        {
+                            for (int y = 0; y < layers[0][x].size(); y++)
+                            {
+                                std::string inputModalityName = layers[0][x][y]->modalitiesBottomUp.begin()->second->GetFullNameReal();
+                                std::stringstream ssPortExt;
+                                ssPortExt << autoConnectStem << x << "_" << y << ":o";
+                                std::cout << "Trying to get input from " << ssPortExt.str() << " to " << inputModalityName << std::endl;
+                                yarp::os::Network::connect(ssPortExt.str(), inputModalityName);
+                            }
+                        }
+                    }
+
                     return true;
                 }
 
                 bool cycle()
                 {
+                    double t0 = yarp::os::Time::now();
                     for (int l = 0; l < layers.size(); l++)
                     {
+                        double t1 = yarp::os::Time::now();
                         //Refresh from bottom up
                         layers[l].cycle();
-
+                        //std::cout << "Layer " << l << " cycle time = " << yarp::os::Time::now() - t1 << std::endl;
                         if (l != layers.size() - 1)
                         {
                             //Propagate to next layer
@@ -212,7 +238,6 @@ namespace cvz {
                                         IModality* src = itSrc->second;
                                         IModality* target = connections[src];
 
-                                        //BUG here we have a non connected modality
                                         std::vector<double> srcPred = src->GetValuePrediction();
                                         target->SetValueReal(srcPred);
                                         std::vector<double> targetPred = target->GetValuePrediction();
@@ -222,6 +247,7 @@ namespace cvz {
                             }
                         }
                     }
+                    //std::cout << "Whole fiber cycle time = " << yarp::os::Time::now() - t0 << std::endl;
                     return true;
                 }
 
@@ -243,21 +269,14 @@ namespace cvz {
                                     connections[srcModality] = destModality;
                                     usedModalities.push_back(srcModality);
                                     usedModalities.push_back(destModality);
-                                }
-                                else
-                                {
-                                    std::cerr << "[CvzFiber] problem in the connectivity pattern (no free target modality)" << std::endl;
-                                    return false;
+                                    std::cout << "Established a connection from " << src->getName() << " to " << dest->getName() << " using " << srcModality->GetFullName() << "-->" << destModality->GetFullName() << std::endl;
+                                    return true;
                                 }
                             }
                         }
-                        else
-                        {
-                            std::cerr << "[CvzFiber] warning in the connectivity pattern (no free source modality)" << std::endl;
-                            return false;
-                        }
                     }
-                    return true;
+                    std::cerr << "[CvzFiber] warning in the connectivity pattern" << std::endl;
+                    return false;
                 }
 
                 //Create the connectivity matrix according to the convergence/divergence pattern between each layer of the fiber
@@ -287,13 +306,18 @@ namespace cvz {
                                     {
                                         for (int y2 = 0; y2 < layers[l+1][x2].size(); y2++)
                                         {
-                                            IConvergenceZone* destCvz = layers[l][x2][y2];
+                                            IConvergenceZone* destCvz = layers[l+1][x2][y2];
 
                                             if (convergenceRatio>1) //convergence : 1 to many
                                             {
                                                 //Check if those two are connected
-                                                bool isConnected = (x2 == x1 % (srcSheetSize / destSheetSize) + (int)(x1 / (srcSheetSize / destSheetSize)));
-                                                isConnected &= (y2 == y1 % (srcSheetSize / destSheetSize) + (int)(y1 / (srcSheetSize / destSheetSize)));
+                                                int modulo = x1 % (srcSheetSize / destSheetSize);
+                                                int base = x1 / (srcSheetSize / destSheetSize);
+                                                bool isConnected = (x2 == base);
+                                                
+                                                modulo = y1 % (srcSheetSize / destSheetSize);
+                                                base = y1 / (srcSheetSize / destSheetSize);
+                                                isConnected &= (y2 == base);
                                                 if (isConnected)
                                                     connectFreeModalities(srcCvz, destCvz, usedModalities);
                                             }
