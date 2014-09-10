@@ -17,11 +17,8 @@ add_subdirectory(systemHaptic)
 
 add_subdirectory(humanUnderstanding)
 
-#if (PYTHON_INCLUDE_DIRS)
-add_subdirectory(reservoirHandler)
 add_subdirectory(languageActionAnalysis)
-add_subdirectory(actionPerformer)
-#endif()
+
 
 if(WYSIWYD_USE_OpenCV)
         add_subdirectory(systemVisual)
