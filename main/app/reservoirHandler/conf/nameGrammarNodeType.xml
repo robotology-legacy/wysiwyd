@@ -4,7 +4,7 @@
     <ID NAME="type" VAL="1"/>
   </DEFINE>
 
-  <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
+  <RULE	NAME="stop the interaction"	TOPLEVEL="ACTIVE"	EXPORT="1">
     <P>stop</P>
   </RULE>
 

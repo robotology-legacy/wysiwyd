@@ -17,28 +17,6 @@
  * Public License for more details
 */
 
-/*
-
- * your program would get event descriptons, and then let the human subject ask qeustions about the events.  The questions would be based on those in slide 9, and they would allow ythe program to setermine wether it should use the force or result vector, and what to focus on.
-
-
-loop {
-read next event from file
-finished = 0
-While ( finished != 1) {
-      use synthesiser to say "any questions?"
-      if subject says "yes" then {
-                    say "go ahead"
-                    use speech recognizer to recognize subjects spoken question
-                    determine if the question is "What happened" "how did that happen" or "what did the X do"
-                    based on the question type, construct the appropriate response type using result or foce vector
-                    }
-       else {  subject is finished asking questions about this event, so we move on to the next event
-                   finished = 1
-                   }
-      }
-
-*/
 LanguageActionAnalysis::LanguageActionAnalysis(ResourceFinder &rf)
 {
     iCurrentInstance = -1;
@@ -205,7 +183,6 @@ string LanguageActionAnalysis::grammarToString(string sPath)
 
 list<int> LanguageActionAnalysis::nbCaracters(string ssequence)
 {
-
     int pos = 0;
     list<int> lposElements;
     for(pos = 0; pos < ssequence.size(); ++pos)
@@ -236,10 +213,6 @@ bool LanguageActionAnalysis::mainNode()
 
 bool LanguageActionAnalysis::grammarNode()
 {
-
-        cout << "svector   " << svector << endl;
-        cout << "iquestion :  " << iquestion << endl;
-        cout << endl;
         int id = svector.find(";");
         int idf = svector.size();
         string sforce = svector.substr(6, id -7); //  => sforce=   "push(Ag1,object)"
@@ -286,8 +259,6 @@ bool LanguageActionAnalysis::grammarNode()
         }
         else if(iquestion == 2)  // "what did Anne do ?" => active form
         {
-            cout << "in iquestion == 2" << endl;
-
             int i = sforce.find("(");
             int iend = sforce.size();
             sverb = sforce.substr(0,i); // => "result"
@@ -339,8 +310,6 @@ bool LanguageActionAnalysis::grammarNode()
 
         else if(iquestion == 3)  // "how did that happen" => passive form
         {
-            cout << "in iquestion == 3" << endl;
-
             int i = sforce.find("(");
             int iend = sforce.size();
             string sverb = sforce.substr(0,i); // => "result"

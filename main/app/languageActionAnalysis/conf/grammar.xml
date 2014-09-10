@@ -1,0 +1,67 @@
+<GRAMMAR	LANGID="409">
+
+  <DEFINE>
+    <ID NAME="question" VAL="1"/>
+    <ID NAME="agree" VAL="2"/>
+    <ID NAME="follow" VAL="6"/>
+    <ID NAME="yesno" VAL="7"/>
+  </DEFINE>
+
+  <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>stop</P>
+  </RULE>
+
+  <RULE	NAME="follow"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <RULEREF NAME="mode"/>
+  </RULE>
+
+  <RULE NAME="mode" DYNAMIC="TRUE">
+    <L>
+      <P>continue</P>
+      <P>exit</P>
+    </L>
+  </RULE>
+
+  <RULE	NAME="yesno"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <RULEREF NAME="agree"/>
+  </RULE>
+
+  <RULE NAME="agree" DYNAMIC="TRUE">
+    <L>
+      <P>yes</P>
+      <P>no</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="question" DYNAMIC="TRUE"	  TOPLEVEL="ACTIVE"	EXPORT="1">
+    <L>
+      <RULEREF NAME="happened"/>
+      <RULEREF NAME="whoagent"/>
+    </L>
+  </RULE>
+
+  <RULE NAME="happened" DYNAMIC="TRUE">
+    <L>
+      <P>what happened</P>
+      <P>how did that happen</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="whoagent" DYNAMIC="TRUE">
+      <P>what did the
+      <RULEREF NAME="agent"/>
+      <P>do</P>
+  </RULE>
+
+  <RULE NAME="agent" DYNAMIC="TRUE">
+    <L>
+      <P>Anne</P>
+      <P>Laure</P>
+      <P>Zhara</P>
+    </L>
+  </RULE>
+
+
+
+  <!--	End	of	Grammar	definition	-->
+</GRAMMAR>

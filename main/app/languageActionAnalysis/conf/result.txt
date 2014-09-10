@@ -1,0 +1,7 @@
+The object moved
+Ag2 received the object
+Ag1 got the object
+Ag1 took the object
+Ag1 deposit the object
+Ag1 hold the object
+Ag1 cleaned the object

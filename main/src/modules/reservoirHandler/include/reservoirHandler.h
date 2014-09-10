@@ -75,17 +75,21 @@ private:
     string sCurrentActivity;
     string sCurrentType;
     string sCurrentNode;
+    string sGrammarYesNo;
     string sCurrentCanonical;
     string sCurrentGrammarFile;
     string sLastSentence;
     string sSentence_type;
     string sSentence;
+    string sdataTestSD;
     // last sentence said (in case of a repeat)
     pair<string, string> psCurrentComplement;
 
     string sentence;
     std::list<string> lMeaningsSentences;
+    Vector coordinates;
 
+    bool nodeYesNo();
     bool nodeType();
     bool nodeModality();
     bool nodeTrainAP();
@@ -99,6 +103,9 @@ private:
     int trainSaveMeaningSentence(const char *filename);
     int createTestwithTrainData(const char* filename, string sMeaningSentence);
     string openResult(const char* fileNameIn);
+    int AREactions(vector<string> seq);
+    vector<string> extractVocabulary(string sequence);
+
 
 public:
     /**
