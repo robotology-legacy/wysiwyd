@@ -4,7 +4,7 @@
     <module>
         <name>cvzCore</name>
         <parameters>--context cvzBCBT2014 --from eyeHand.ini --displayGui</parameters>
-        <node>icubsrv</node>
+        <node>icubAlien</node>
         <prefix></prefix>
     </module>
 	
@@ -17,7 +17,7 @@
     <module>
         <name>dataDumper</name>
         <parameters>--name dump/cvz/right_arm/prediction --rxTime</parameters>
-        <node>icubsrv</node>
+        <node>icubAlien</node>
         <prefix></prefix>
     </module>
 	
@@ -26,11 +26,11 @@
         <to>/dump/cvz/right_arm/prediction</to>
         <protocol>tcp</protocol>
     </connection>
-	
+
     <module>
         <name>dataDumper</name>
         <parameters>--name dump/icub/right_arm/state --rxTime --downsample 10</parameters>
-        <node>icubsrv</node>
+        <node>icubAlien</node>
         <prefix></prefix>
     </module>
 	
@@ -39,11 +39,37 @@
         <to>/dump/icub/right_arm/state</to>
         <protocol>tcp</protocol>
     </connection>
+
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/cvz/vision/state --rxTime</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/icub/camcalib/right/out</from>
+        <to>/dump/cvz/vision/state</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/cvz/vision/prediction --rxTime --downsample 10</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/mmcm/eyeHand/vision/prediction:o</from>
+        <to>/dump/cvz/vision/prediction</to>
+        <protocol>tcp</protocol>
+    </connection>
 	
     <module>
         <name>dataDumper</name>
         <parameters>--name dump/cvz/parameters --rxTime</parameters>
-        <node>icubsrv</node>
+        <node>icubAlien</node>
         <prefix></prefix>
     </module>
 	

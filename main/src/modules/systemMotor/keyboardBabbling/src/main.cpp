@@ -24,7 +24,8 @@
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
 #include <yarp/sig/all.h>
-#include <time.h>
+#include <yarp/math/Math.h>
+#include <yarp/math/Rand.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <vector>
 
@@ -32,60 +33,16 @@ using namespace std;
 using namespace yarp::os;
 using namespace yarp::dev;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace iCub::iKin;
 using namespace iCub::ctrl;
 
-YARP_DECLARE_DEVICES(icubmod)
+YARP_DECLARE_DEVICES(icubmod);
 
 
-    int main(int argc, char *argv[])
+class keyboardBabbling: public RFModule
 {
-    Network::init();
-    srand(time(NULL));
-
-    ResourceFinder rf;
-    rf.setVerbose(true);
-    rf.setDefaultContext("keyboardBabbling/conf");
-    rf.setDefaultConfigFile("default.ini");
-
-    rf.configure(argc, argv);
-
-    Property options;
-    options.put("robot", "icubSim"); // typically from the command line.
-    options.put("device", "remote_controlboard");
-
-    Value& robotname = options.find("robot");
-    string s("/");
-    s += robotname.asString();
-    s += "/right_arm/keyBabbling";
-    options.put("local", s.c_str());
-    s.clear();
-    s += "/";
-    s += robotname.asString();
-    s += "/right_arm";
-    options.put("remote", s.c_str());
-
-
-
-    Property optionCart("(device cartesiancontrollerclient)");
-    optionCart.put("remote","/icubSim/cartesianController/right_arm");
-    optionCart.put("local","/cartesian_client/right_arm");
-    PolyDriver driverCart;
-    if (!driverCart.open(optionCart))
-        return false;
-
-
-
-
-
-    PolyDriver dd(options);
-    if (!dd.isValid()) {
-        cout << "Device not available.  Here are the known devices:\n"<< endl;
-        cout << Drivers::factory().toString().c_str() << endl;;
-        Network::fini();
-        return 0;
-    }
-
+private:
     IPositionControl *pos;
     IVelocityControl *vel;
     IPidControl *pid;
@@ -93,139 +50,248 @@ YARP_DECLARE_DEVICES(icubmod)
     IEncoders *armEncUsed;
     IControlMode *armCtrlModeUsed;
     IImpedanceControl *armImpUsed;
-    ICartesianControl *armCartUsed;
+    ICartesianControl *armCart;
     IControlLimits *ilimRight;
 
-    bool ok;
-    ok = dd.view(pos);
-    ok &= dd.view(vel);
-    ok &= dd.view(pid);
-    ok &= dd.view(amp);
-    ok &= dd.view(armCtrlModeUsed);
-    ok &= dd.view(armImpUsed);
-    ok &= driverCart.view(armCartUsed);
-    ok &= dd.view(ilimRight);
-
-
+    Port portStreamer;
+    PolyDriver driverCart, dd;
     iCubFinger *fingerUsed;
-    iCubFinger* fingerRight = new iCubFinger("right_index");
-    deque<IControlLimits*> limRight;
-    limRight.push_back(ilimRight);
-    fingerRight->alignJointsBounds(limRight);
 
+    double gap;
+    double minY;
+    double maxY;
+    double delay;
+    double thrMove;
+    double timeBeginIdle;
 
+    Vector tempPos;
+    Vector orientation;
 
-    if (!ok) {
-        cout << "Device not able to acquire views" << endl;
-        Network::fini();
-        dd.close();
-        return 0;
+    enum { idle, up, side, down } state;
+
+public:
+    bool close()
+    {
+        return true;
     }
 
-
-    int jnts = 0;
-    pos->getAxes(&jnts);
-    printf("Working with %d axes\n", jnts);
-
-
-    // closing the hand:
-    pos->positionMove(8, 10.0);
-    pos->positionMove(9, 17.0);
-    pos->positionMove(10, 150.0);
-    pos->positionMove(11, 0.0);
-    pos->positionMove(12, 30.0);
-    pos->positionMove(13, 75.0);
-    pos->positionMove(13, 50.0);
-    pos->positionMove(14, 50.0);
-    pos->positionMove(15, 160.0);
-
-
-    bool motionDone = false;
-    while (!motionDone)
+    double getPeriod()
     {
-        motionDone = true;
-        for (int i = 8; i < jnts; i++)
-        {
-            bool jntMotionDone = false;
-            pos->checkMotionDone(i, &jntMotionDone);
-            motionDone &= jntMotionDone;
-        }
+        return 0.1;
     }
 
-
-    // wait for the hand to be in initial position
-
-    string key = "";
-    cout << "waiting to be in intial position" << endl;
-    cin >> key;
-
-
-    Vector initPos(3);
-
-    if (rf.check("rightHandInitial"))
+    bool configure(ResourceFinder &rf)
     {
-        Bottle *botPos = rf.find("rightHandInitial").asList();
-        initPos[0] = botPos->get(0).asDouble();
-        initPos[1] = botPos->get(1).asDouble();
-        initPos[2] = botPos->get(2).asDouble();
-        cout<<"Reaching initial position with right hand"<<initPos.toString(3,3)<<endl;
-        armCartUsed->goToPositionSync(initPos);
-    }
-    else
-    {
-        cout << "Cannot find the inital position" << endl << "closing module" << endl;
-        return 0;
-    }
+        Property options;
+        options.put("robot", "icubSim"); // typically from the command line.
+        options.put("device", "remote_controlboard");
 
-    // get the x, y, z of the init point:
+        Value& robotname = options.find("robot");
+        string s("/");
+        s += robotname.asString();
+        s += "/right_arm/keyBabbling";
+        options.put("local", s.c_str());
+        s.clear();
+        s += "/";
+        s += robotname.asString();
+        s += "/right_arm";
+        options.put("remote", s.c_str());
 
-
-
-    double minY = -.10;
-    double maxY = 0.10;
-    double gap = 0.05;
-
-    Vector tempPos(3);
-
-    while (true)
-    {
-        tempPos[0] = initPos[0];
-        tempPos[1] = initPos[1];
-        tempPos[2] = initPos[2] + gap; //raise the arm
-
-        armCartUsed->goToPositionSync(tempPos);
-        bool raiseHand = false;
-        while (!raiseHand)
-        {
-            armCartUsed->checkMotionDone(&raiseHand);        		
+        if (!dd.open(options)) {
+            cout << "Device not available.  Here are the known devices:\n"<< endl;
+            cout << Drivers::factory().toString().c_str() << endl;;
+            return false;
         }
 
-        //hand is up!!
-        double tempV = yarp::os::Random::uniform(0,100);
-        tempPos[1] = (tempV*0.01* (maxY-minY) + minY);
+        portStreamer.open("/keyboardBabbling:stream");
 
-        armCartUsed->goToPositionSync(tempPos);
-        raiseHand = false;
-        while (!raiseHand)
-        {
-            armCartUsed->checkMotionDone(&raiseHand);        		
+        Property optionCart("(device cartesiancontrollerclient)");
+        optionCart.put("remote","/icubSim/cartesianController/right_arm");
+        optionCart.put("local","/cartesian_client/right_arm");
+        if (!driverCart.open(optionCart))
+            return false;
+
+        bool ok;
+        ok = dd.view(pos);
+        ok &= dd.view(vel);
+        ok &= dd.view(pid);
+        ok &= dd.view(amp);
+        ok &= dd.view(armCtrlModeUsed);
+        ok &= dd.view(armImpUsed);
+        ok &= driverCart.view(armCart);
+        ok &= dd.view(ilimRight);
+
+        iCubFinger* fingerRight = new iCubFinger("right_index");
+        deque<IControlLimits*> limRight;
+        limRight.push_back(ilimRight);
+        fingerRight->alignJointsBounds(limRight);
+
+        if (!ok) {
+            cout << "Device not able to acquire views" << endl;
+            dd.close();
+            return false;
         }
 
-        //hand is ready
-        tempPos[2] = initPos[2]; //raise the arm
-        armCartUsed->goToPositionSync(tempPos);
-        bool motionFinished = false;
-        while (!motionFinished)
+        int jnts = 0;
+        pos->getAxes(&jnts);
+        printf("Working with %d axes\n", jnts);
+
+        vector<bool> mask;
+        mask.resize(jnts);
+        mask[0] = false;
+        mask[1] = false;
+        mask[2] = false;
+        mask[3] = false;
+        mask[4] = true;
+        mask[5] = false;
+        mask[6] = true;
+        mask[7] = false;
+        mask[8] = true;
+        mask[9] = true;
+        mask[10] = true;
+        mask[11] = true;
+        mask[12] = true;
+        mask[13] = true;
+        mask[14] = true;
+        mask[15] = true;
+
+        // closing the hand:
+        pos->positionMove(4, 30.0);
+        pos->positionMove(6, 10.0);
+        pos->positionMove(8, 10.0);
+        pos->positionMove(9, 17.0);
+        pos->positionMove(10, 170.0);
+        pos->positionMove(11, 55.0);
+        pos->positionMove(12, 10.0);
+        pos->positionMove(13, 85.0);
+        pos->positionMove(14, 170.0);
+        pos->positionMove(15, 170.0);
+
+        bool motionDone=false;
+        while (!motionDone)
         {
-            armCartUsed->checkMotionDone(&motionFinished);        		
+            motionDone=true;
+            for (int i=0; i<jnts; i++)
+            {
+                if (mask[i])
+                {
+                    bool jntMotionDone = false;
+                    pos->checkMotionDone(i, &jntMotionDone);
+                    motionDone &= jntMotionDone;
+                }
+            }
+
+            Time::yield();  // to avoid killing cpu
         }
 
-        // hand is lowered
+        // wait for the hand to be in initial position
+        cout << "waiting to be in intial position" << endl;
 
-        Time::delay(5.0);
-        cout << "ok" << endl;
+        Matrix R=zeros(3,3);
+        R(0,0)=-1.0; R(1,1)=1.0; R(2,2)=-1.0;
+        orientation=dcm2axis(R);
+        
+        // enable torso movements as well
+        // in order to enlarge the workspace
+        Vector dof;
+        armCart->getDOF(dof);
+        dof=1.0; dof[1]=0.0;    // every dof but the torso roll
+        armCart->setDOF(dof,dof);
+        armCart->setTrajTime(1.0);
+
+        Vector initPos(3,0.0);
+        if (rf.check("rightHandInitial"))
+        {
+            Bottle *botPos = rf.find("rightHandInitial").asList();
+            initPos[0] = botPos->get(0).asDouble();
+            initPos[1] = botPos->get(1).asDouble();
+            initPos[2] = botPos->get(2).asDouble();
+            cout<<"Reaching initial position with right hand"<<initPos.toString(3,3).c_str()<<endl;            
+            armCart->goToPoseSync(initPos,orientation);
+            armCart->waitMotionDone();
+        }
+        else
+        {
+            cout << "Cannot find the inital position" << endl << "closing module" << endl;
+            return false;
+        }        
+
+        minY    = rf.find("min").asDouble();
+        maxY    = rf.find("max").asDouble();
+        gap     = rf.find("gap").asDouble();
+        delay   = rf.find("delay").asDouble();
+        thrMove = rf.find("threshold_move").asDouble();
+
+        tempPos=initPos;
+        state=up;
+
+        timeBeginIdle = Time::now();
+
+        Rand::init();
+        return true;
     }
 
-    return 0;
+    bool updateModule()
+    {
+        bool done;
+        armCart->checkMotionDone(&done);
+        if (!done)
+            return true;
+
+        if (state==idle)
+        {
+            if (Time::now() - timeBeginIdle > delay)
+            {
+                tempPos[2]+=gap;
+                state=up;            
+            }
+            else
+                return true;
+        }
+        else if (state==up)
+        {
+            tempPos[1]=minY+(maxY-minY)*Random::uniform();
+            state=side;
+        }
+        else if (state==side)
+        {
+            tempPos[2]-=gap;
+            state=down;
+        }
+        else if (state==down)
+        {
+            tempPos[2]+=gap;
+            state=idle;
+            timeBeginIdle = Time::now();
+        }
+
+        armCart->goToPoseSync(tempPos,orientation);
+        printf("Going to (%s)\n",tempPos.toString(3,3).c_str());
+        portStreamer.write(tempPos);
+
+        return true;
+    }
+};
+
+
+int main(int argc, char *argv[])
+{
+    Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        printf("yarp network is not available!\n");
+        return -1;
+    }
+
+    YARP_REGISTER_DEVICES(icubmod)
+
+    ResourceFinder rf;
+    rf.setVerbose(true);
+    rf.setDefaultContext("keyboardBabbling");
+    rf.setDefaultConfigFile("default.ini");
+    rf.configure(argc,argv);
+
+    keyboardBabbling mod;
+    return mod.runModule(rf);
 }
 

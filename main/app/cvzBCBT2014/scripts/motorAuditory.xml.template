@@ -3,7 +3,7 @@
 	
 	<module>
         <name>yarpdev</name>
-        <parameters>--device grabber --subdevice portaudio --read --name /microphone --channels 1 --samples 4400</parameters>
+        <parameters>--device grabber --subdevice portaudio --read --name /microphone --channels 1 --samples 4400 --rate 44100</parameters>
         <node>icubAlien</node>
         <prefix></prefix>
     </module>
