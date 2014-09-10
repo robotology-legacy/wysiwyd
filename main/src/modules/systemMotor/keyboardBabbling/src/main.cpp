@@ -62,6 +62,7 @@ private:
     double maxY;
     double delay;
     double thrMove;
+    double timeBeginIdle;
 
     Vector tempPos;
     Vector orientation;
@@ -222,7 +223,9 @@ public:
         thrMove = rf.find("threshold_move").asDouble();
 
         tempPos=initPos;
-        state=idle;
+        state=up;
+
+        timeBeginIdle = Time::now();
 
         Rand::init();
         return true;
@@ -237,8 +240,11 @@ public:
 
         if (state==idle)
         {
-            tempPos[2]+=gap;
-            state=up;            
+            if (Time::now() - timeBeginIdle > delay)
+            {
+                tempPos[2]+=gap;
+                state=up;            
+            }
         }
         else if (state==up)
         {
@@ -253,7 +259,8 @@ public:
         else if (state==down)
         {
             tempPos[2]+=gap;
-            state=up;
+            state=idle;
+            timeBeginIdle = Time::now();
         }
 
         armCart->goToPoseSync(tempPos,orientation);
