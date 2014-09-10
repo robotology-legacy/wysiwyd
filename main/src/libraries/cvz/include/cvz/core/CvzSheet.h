@@ -59,7 +59,7 @@ namespace cvz {
                     {
                         for (size_t y = 0; y < this->operator[](x).size(); y++)
                         {
-                            bool isFine = this->operator[](x)[y]->cycle();
+                            this->operator[](x)[y]->cycle();
                         }
                     }
                 }
