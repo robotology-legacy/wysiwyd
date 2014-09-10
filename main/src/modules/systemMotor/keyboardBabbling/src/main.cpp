@@ -245,6 +245,8 @@ public:
                 tempPos[2]+=gap;
                 state=up;            
             }
+            else
+                return true;
         }
         else if (state==up)
         {
