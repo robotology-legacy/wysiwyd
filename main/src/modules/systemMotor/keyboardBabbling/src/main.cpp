@@ -218,7 +218,8 @@ public:
         double arm_yaw=rf.check("arm_pitch",Value(0.0)).asDouble();
         
         Matrix R=zeros(4,4);
-        R(0,0)=-1.0; R(2,1)=-1.0; R(1,2)=-1.0; R(3,3)=1.0;
+        R(0,0)=-1.0; R(2,1)=-1.0; R(1,2)=1.0; R(3,3)=1.0;
+        //R(0,0)=-1.0; R(1,1)=1.0; R(2,2)=-1.0; R(3,3)=1.0;
 
         Vector pitch(4,0.0);
         pitch[2]=1.0;
@@ -235,7 +236,7 @@ public:
         orientation=dcm2axis(axis2dcm(pitch)*axis2dcm(roll)*axis2dcm(yaw)*R);
 
 
-        armCart->getPose(initPos,orientation);
+//        armCart->getPose(initPos,orientation);
 
         if (rf.check("rightHandInitial"))
         {
@@ -258,7 +259,7 @@ public:
             armCart->checkMotionDone(&isMoving);
         }
 
-        armCart->getPose(Vector(3),orientation);
+        //armCart->getPose(Vector(3),orientation);
 
         // get the x, y, z of the init point:
 
