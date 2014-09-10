@@ -247,6 +247,8 @@ bool attentionSelectorModule::updateModule() {
     {
         cout<<"Tracking tracking coordinates: "<<x_coord<<" "<<y_coord<<" "<<z_coord<<"."<<endl;
         Vector newTarget(3); newTarget[0]=x_coord;newTarget[1]=y_coord;newTarget[2]=z_coord;
+        if (isFixationPointSafe(newTarget))
+            igaze->lookAtFixationPoint(newTarget);
     }
     else if (trackedObject != NULL)
     {

@@ -1,0 +1,7 @@
+force<push(Ag1,object)>;result<move(object)>
+force<give(Ag1,Ag2,object)>;result<received(Ag2,object)>
+force<take(Ag1,object)>;result<got(Ag1,object)>
+force<lift(Ag1,object)>;result<placed(object)>
+force<putdown(Ag1,object);result<deposit(object)>
+force<grasp(Ag1,object);result<hold(Ag1,object)>
+force<sweep(Ag1,object);result<cleaned(object)>

@@ -118,9 +118,11 @@ bool CFFT::updateModule() {
         //int MaxFreqIdx = 0;
         for (int i = 1; i < K; i++)
         {
+
             double x = pSignalOut[i].norm() / (double)SAMPLES;
             if (x<0){ x = -x; }
             sig[i] = 2 * x; // Amplitude of the signal
+
             if (sig[i] > sig[MaxAmpIdx]) //stores max amplitude index
             {
                 MaxAmpIdx = i;

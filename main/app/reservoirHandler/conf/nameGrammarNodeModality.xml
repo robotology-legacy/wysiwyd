@@ -6,11 +6,11 @@
   </DEFINE>
 
   <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>stop</P>
+    <P>stop the interaction</P>
   </RULE>
 
   <RULE	NAME="INFORMATION"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>I want you to start</P>
+    <P>start</P>
     <RULEREF NAME="modality"/>
     <P>mode</P>
   </RULE>
@@ -23,7 +23,7 @@
   </RULE>
 
   <RULE	NAME="CANONICAL"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>I want you to focus the description about </P>
+    <P>focus on</P>
     <RULEREF NAME="focus"/>
   </RULE>
 
@@ -35,7 +35,7 @@
   </RULE>
 
   <RULE	NAME="return"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>return</P>
+    <P>return bloody hell</P>
   </RULE>
 
   <!--	End	of	Grammar	definition	-->

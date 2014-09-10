@@ -1,92 +1,41 @@
 <GRAMMAR	LANGID="409">
 
   <DEFINE>
-    <ID NAME="object" VAL="1"/>
-    <ID NAME="spatial" VAL="2"/>
-    <ID NAME="relative" VAL="3"/>
-    <ID NAME="follow" VAL="4"/>
+    <ID NAME="modality" VAL="1"/>
+    <ID NAME="focus" VAL="2"/>
   </DEFINE>
 
   <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>stop</P>
+    <P>stop the interaction</P>
   </RULE>
 
-  <RULE	NAME="follow"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <RULEREF NAME="mode"/>
+  <RULE	NAME="INFORMATION"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>start</P>
+    <RULEREF NAME="modality"/>
+    <P>mode</P>
   </RULE>
 
-  <RULE NAME="mode" DYNAMIC="TRUE">
+  <RULE NAME="modality" DYNAMIC="TRUE">
     <L>
-      <P>continue</P>
-      <P>exit</P>
+      <P>train</P>
+      <P>test</P>
     </L>
   </RULE>
 
+  <RULE	NAME="CANONICAL"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>focus on</P>
+    <RULEREF NAME="focus"/>
+  </RULE>
 
-  <RULE NAME="object" DYNAMIC="TRUE">
-    <P>the</P>
+  <RULE NAME="focus" DYNAMIC="TRUE">
     <L>
-      <P>cross</P>
-      <P>circle</P>
-      <P>eraser</P>
+      <P>object</P>
+      <P>location</P>
     </L>
   </RULE>
 
-  <RULE NAME="spatial" DYNAMIC="TRUE">
-    <P>the</P>
-    <L>
-      <P>left</P>
-      <P>middle</P>
-      <P>right</P>
-    </L>
-  </RULE>
-
-  <RULE NAME="relative" DYNAMIC="TRUE">
-    <L>
-      <P>to</P>
-      <P>on</P>
-    </L>
-  </RULE>
-
-  <RULE NAME="spatial_relative" DYNAMIC="TRUE">
-    <RULEREF NAME="relative"/>
-    <RULEREF NAME="spatial"/>
-    <P>of</P>
-  </RULE>
-
-  <RULE NAME="relative_complete" DYNAMIC="TRUE">
-    <RULEREF NAME="spatial_relative"/>
-    <RULEREF NAME="object"/>
-  </RULE>
-
-  <RULE NAME="and_relative_complete" DYNAMIC="TRUE">
-    <P>and</P>
-    <RULEREF NAME="relative_complete"/>
-  </RULE>
-
-  <RULE NAME="sentence1" DYNAMIC="TRUE">
-    <RULEREF NAME="object"/>
-    <P>is</P>
-    <RULEREF NAME="relative_complete"/>
-    <O>
-      <RULEREF NAME="and_relative_complete"/>
-    </O>
-  </RULE>
-
-  <RULE NAME="sentence2" DYNAMIC="TRUE">
-    <RULEREF NAME="relative_complete"/>
-    <O>
-      <RULEREF NAME="and_relative_complete"/>
-    </O>
-    <P>is</P>
-    <RULEREF NAME="object"/>
-  </RULE>
-
-  <RULE	NAME="sentence"	TOPLEVEL="ACTIVE"   EXPORT="1">
-    <L>
-       <RULEREF NAME="sentence1"/>
-       <RULEREF NAME="sentence2"/>
-    </L>
+  <RULE	NAME="return"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>return bloody hell</P>
   </RULE>
 
   <!--	End	of	Grammar	definition	-->

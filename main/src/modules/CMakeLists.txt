@@ -17,17 +17,14 @@ add_subdirectory(systemHaptic)
 
 add_subdirectory(humanUnderstanding)
 
-if (PYTHON_INCLUDE_DIRS)
-	add_subdirectory(reservoirHandler)
-endif()
 
 if(WYSIWYD_USE_OpenCV)
-	add_subdirectory(systemVisual)
+        add_subdirectory(systemVisual)
 endif()
 if(WYSIWYD_USE_TUIO)
-	add_subdirectory(reactableRelated)
+        add_subdirectory(reactableRelated)
 endif()
 if(WYSIWYD_USE_OTL)
-	add_subdirectory(bodySchema)
+        add_subdirectory(bodySchema)
 endif()
 

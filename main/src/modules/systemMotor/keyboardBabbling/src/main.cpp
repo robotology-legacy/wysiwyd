@@ -247,6 +247,8 @@ public:
                 state = up;
                 timeBeginIdle = Time::now();
             }
+            else
+                return true;
         }
         else if (state == up)
         {

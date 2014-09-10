@@ -11,7 +11,7 @@
   </DEFINE>
 
   <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>stop</P>
+    <P>stop the interaction</P>
   </RULE>
 
   <RULE	NAME="follow"	TOPLEVEL="ACTIVE"	EXPORT="1">
@@ -20,7 +20,7 @@
 
   <RULE NAME="mode" DYNAMIC="TRUE">
     <L>
-      <P>continue</P>
+      <P>continue the interaction</P>
       <P>exit</P>
     </L>
   </RULE>
@@ -43,7 +43,10 @@
       <P>the cross</P>
       <P>the circle</P>
       <P>the eraser</P>
-      <P>the wysiwyd sponge</P>
+      <P>glass</P>
+      <P>girafe</P>
+      <P>lion</P>
+      <P>wysiwyd sponge</P>
     </L>
   </RULE>
 
@@ -59,12 +62,17 @@
     <L>
       <P>grasp</P>
       <P>point</P>
+      <P>put</P>
+      <P>take</P>
     </L>
   </RULE>
 
   <RULE NAME="verb2" DYNAMIC="TRUE">
     <L>
       <P>put</P>
+      <P>take</P>
+      <P>grasp</P>
+      <P>point</P>
     </L>
   </RULE>
 

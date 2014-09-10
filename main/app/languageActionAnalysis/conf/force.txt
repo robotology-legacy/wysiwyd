@@ -1,0 +1,7 @@
+Ag1 pushed the object;the object has been pushed by Ag1
+Ag1 gives the object to Ag2;Ag2 has received the object by Ag1
+Ag1 takes the object;the object has been taken by Ag1
+Ag1 lifts the object;the object is lifted
+Ag1 puts down the object;the object is put down by the Ag1
+Ag1 grasps the object;the object is grasped by the Ag1
+Ag1 sweeps the object;the object is sweeped by the Ag1
