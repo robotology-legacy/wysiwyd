@@ -35,7 +35,6 @@ namespace cvz {
             int W() { return width; }
             int L() { return layers; }
 
-
             IModality* recurrentModality;
 
             /*IDL methods*/
@@ -72,6 +71,14 @@ namespace cvz {
 				return loadWeights(fullPath);
             }
 
+			virtual yarp::os::Bottle getParametersForBroadcast()
+			{
+				yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
+				yarp::os::Bottle &bLearning = b.addList();
+				bLearning.addString("learningRate");
+				bLearning.addDouble(getLearningRate());
+				return b;
+			}
             virtual bool close()
             {
                 bool ok = this->IConvergenceZone::close();
@@ -341,7 +348,7 @@ namespace cvz {
 							{
 								for (int z = 0; z < layers; z++)
 								{
-									double contribution = activity[x][y][z] / activity[xWin][yWin][zWin];
+									double contribution = activity[x][y][z];// / activity[xWin][yWin][zWin];
 									valuePrediction[i] += (weights[mod][i][x][y][z] * contribution);
 									totalContribution += contribution;
 								}
@@ -392,14 +399,14 @@ namespace cvz {
                                 {
                                     //double currentW = weights[it->second][i][x][y][z];
                                     //double desiredW = valueReal[i];
-                                    double dW = (valueReal[i] - weights[it->second][i][x][y][z]);
-                                    weights[it->second][i][x][y][z] +=
-                                        lRate *
-                                        //dHCoef *
-                                        //dVCoef *
-                                        modalitiesLearning[it->second] *
-                                        heta *
-                                        dW;
+									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
+									double dW = error;
+									dW = dW * lRate * modalitiesLearning[it->second];
+									if (!isUsingPopulationCode)
+										dW = dW * heta;
+									else
+										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
+                                    weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
                             }
@@ -409,15 +416,14 @@ namespace cvz {
                             {
                                 std::vector<double> valueReal = it->second->GetValueReal();
                                 for (int i = 0; i < it->second->Size(); i++)
-                                {
-                                    weights[it->second][i][x][y][z] +=
-                                        lRate *
-                                        //dHCoef *
-                                        //dVCoef *
-                                        modalitiesLearning[it->second] *
-                                        heta *
-                                        (valueReal[i] - weights[it->second][i][x][y][z]);
-
+								{
+									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
+									double dW = error * modalitiesLearning[it->second] * lRate * modalitiesLearning[it->second];
+									if (!isUsingPopulationCode)
+										dW = dW * heta;
+									else
+										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
+									weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
                             }
@@ -435,13 +441,14 @@ namespace cvz {
                                 {
                                     //double currentW = weights[recurrentModality][i][x][y][z];
                                     //double desiredW = valueReal[i];
-                                    double dW = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
-                                    weights[recurrentModality][i][x][y][z] +=
-                                        lRate *
-                                        //dHCoef *
-                                        //dVCoef *
-                                        heta *
-                                        dW;
+									double error = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
+									double dW = error * lRate * modalitiesLearning[recurrentModality];
+									if (!isUsingPopulationCode)
+										dW = dW * heta;
+									else
+										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
+
+                                    weights[recurrentModality][i][x][y][z] += dW;
                                     helpers::Clamp(weights[recurrentModality][i][x][y][z], 0.0, 1.0);
                                 }
                             }

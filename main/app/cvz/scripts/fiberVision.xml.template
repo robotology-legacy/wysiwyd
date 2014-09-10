@@ -1,0 +1,50 @@
+<application>
+    <name>MMCM_Fiber_Vision</name>
+
+    <module>
+        <name>imageSplitter</name>
+        <parameters>--splitW 3 --splitH 3 --splitFovea 1</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+
+    <module>
+        <name>cvzFiber</name>
+        <parameters>--from defaultFiber.ini</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+
+    <module>
+        <name>imageFuser</name>
+        <parameters>--splitW 3 --splitH 3 --nameSplitterPrefix /v1_0_ --nameSplitterSuffix /retina/prediction:o</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /reconstruct</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+
+    <connection>
+        <from>/icub/cam/left</from>
+        <to>/imageSplitter/image:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from>/imageFuser/reconstruct:o</from>
+        <to>/reconstruct</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
+        <from external="true">/icub/head/state:o</from>
+        <to>/v3/head_proprioception/real:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+</application>

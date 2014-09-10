@@ -79,6 +79,10 @@ double sigmoidFunction(double x){
 	return 1 / (1 + exp(-x));
 }
 
+double sigmoidFunction(double x, double alpha, double beta){
+	return 1 / (1 + exp( (x - alpha ) * beta));
+}
+
 void Clamp(double &value, const double &_min, const double &_max)
 {
 	value = std::min(_max, std::max(_min, value));

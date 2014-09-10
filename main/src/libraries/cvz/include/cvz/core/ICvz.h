@@ -15,8 +15,16 @@ namespace cvz {
 		class IConvergenceZone //: public cvz_IDL
 		{
 
+		private:
+			void broadcastParameters()
+			{
+				yarp::os::Bottle b = getParametersForBroadcast();
+				parametersPortOut.write(b);
+			}
+
 		public:
 			yarp::os::RpcServer rpcPort;
+			yarp::os::Port	parametersPortOut;
 
 			std::string getRpcPortName(){ return rpcPort.getName(); }
 			std::string getName(){ return name; }
@@ -24,7 +32,7 @@ namespace cvz {
 			
 			//Thrifted methods
 			void moduleStart() { std::cout << "Started." << std::endl; isPaused = false; }
-			void modulePause() { std::cout << "Paused." << std::endl; isPaused = true; }
+			void modulePause() { std::cout << "Paused." << std::endl; isPaused = true; }			
 
 		protected:
 			std::string name;
@@ -41,6 +49,7 @@ namespace cvz {
 
 			virtual bool configure(yarp::os::Property &prop)
 			{
+
 				std::string name = prop.check("name", yarp::os::Value("defaultCvz")).asString();
 				period = prop.check("period", yarp::os::Value(0.01)).asDouble();
 				setName(name.c_str());
@@ -80,7 +89,10 @@ namespace cvz {
 					else if (modType == "yarpImageRgb")
 						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, bMod);
 					else
-						std::cout << "Warning, this modality type does not exist. Discarded." << std::endl;
+					{
+						std::cout << "Warning, this modality type does not exist. Using the IModality class...." << std::endl;
+						mod = new IModality(modPortPrefix, bMod);
+					}
 
 					if (mod != NULL)
 					{
@@ -98,6 +110,10 @@ namespace cvz {
 				}
 
 				isPaused = false;
+				std::string paraName = "/";
+				paraName += getName() + "/parameters:o";
+				parametersPortOut.open(paraName.c_str());
+
 				std::string rpcName = "/";
 				rpcName += getName() + "/rpc";
 				rpcPort.open(rpcName.c_str());
@@ -109,6 +125,21 @@ namespace cvz {
 				return true;
 			}
 			
+
+			/***************************************************************/
+			virtual yarp::os::Bottle getParametersForBroadcast()
+			{
+				yarp::os::Bottle b;
+				for (std::map<IModality*, double >::iterator itInf = modalitiesInfluence.begin(); itInf != modalitiesInfluence.end(); itInf++)
+				{
+					yarp::os::Bottle &bSub = b.addList();
+					bSub.addString(itInf->first->Name()); //Mod name
+					bSub.addDouble(itInf->second); //Influence
+					bSub.addDouble(modalitiesLearning[itInf->first]); //Learning
+				}
+				return b;
+			}
+
 			/***************************************************************/
 			virtual bool attach(yarp::os::RpcServer &source)
 			{
@@ -144,6 +175,8 @@ namespace cvz {
 				return true;
 			}
 
+
+
 			bool cycle()
 			{
 				if (isPaused)
@@ -171,6 +204,10 @@ namespace cvz {
 				{
 					it->second->Output();
 				}
+
+				//Send parameters
+				broadcastParameters();
+
 				if (cyclesElapsed % 500 == 0)
 					std::cout << getName() << "\t t=" << cyclesElapsed << std::endl;
 				cyclesElapsed++;
