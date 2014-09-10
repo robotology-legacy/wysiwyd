@@ -362,20 +362,27 @@ public:
 
 };
 
+
 int main(int argc, char *argv[])
 {
-    yarp::os::Network::init();
-    srand(time(NULL));
-    YARP_REGISTER_DEVICES(icubmod);
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        printf("yarp network is not available!\n");
+        return -1;
+    }
 
-    keyboardBabbling  mod;
+    YARP_REGISTER_DEVICES(icubmod)
+
+    srand(time(NULL));
 
     yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("keyboardBabbling/conf");
+    rf.setDefaultContext("keyboardBabbling");
     rf.setDefaultConfigFile("default.ini");
     rf.configure(argc, argv);
 
+    keyboardBabbling mod;
     return mod.runModule(rf);
 }
 
