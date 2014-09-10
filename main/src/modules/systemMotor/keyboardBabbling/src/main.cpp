@@ -25,6 +25,7 @@
 #include <yarp/dev/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/math/Math.h>
+#include <yarp/math/Rand.h>
 #include <iCub/iKin/iKinFwd.h>
 #include <vector>
 
@@ -39,8 +40,8 @@ using namespace iCub::ctrl;
 YARP_DECLARE_DEVICES(icubmod);
 
 
-
-class keyboardBabbling: public yarp::os::RFModule {
+class keyboardBabbling: public RFModule
+{
 private:
     IPositionControl *pos;
     IVelocityControl *vel;
@@ -52,56 +53,39 @@ private:
     ICartesianControl *armCart;
     IControlLimits *ilimRight;
 
-    yarp::os::Port portStreamer;
+    Port portStreamer;
     PolyDriver driverCart, dd;
     iCubFinger *fingerUsed;
 
     double gap;
-    double period;
     double minY;
     double maxY;
     double delay;
     double thrMove;
 
-    Vector initPos;
     Vector tempPos;
     Vector orientation;
 
-    bool isGoingUp;
-    bool isGoingSide;
-    bool isGoingDown;
-    bool isWaiting;
-    bool isMoving;
-    double timeSinceLastAction;
-
+    enum { idle, up, side, down } state;
 
 public:
-
-    bool interruptModule()
-    {return true;}
-
-    bool close(){return true;}
+    bool close()
+    {
+        return true;
+    }
 
     double getPeriod()
     {
-        return period;
+        return 0.1;
     }
 
-
-    bool configure(yarp::os::ResourceFinder &rf)
+    bool configure(ResourceFinder &rf)
     {
-        isGoingUp = false;
-        isGoingDown = false;
-        isGoingSide = true;
-        isMoving = false;
-        isWaiting = false;
-        period = 0.01;
-
-        yarp::os::Property options;
+        Property options;
         options.put("robot", "icubSim"); // typically from the command line.
         options.put("device", "remote_controlboard");
 
-        yarp::os::Value& robotname = options.find("robot");
+        Value& robotname = options.find("robot");
         string s("/");
         s += robotname.asString();
         s += "/right_arm/keyBabbling";
@@ -115,14 +99,12 @@ public:
         if (!dd.open(options)) {
             cout << "Device not available.  Here are the known devices:\n"<< endl;
             cout << Drivers::factory().toString().c_str() << endl;;
-            yarp::os::Network::fini();
             return false;
         }
 
-
         portStreamer.open("/keyboardBabbling:stream");
 
-        yarp::os::Property optionCart("(device cartesiancontrollerclient)");
+        Property optionCart("(device cartesiancontrollerclient)");
         optionCart.put("remote","/icubSim/cartesianController/right_arm");
         optionCart.put("local","/cartesian_client/right_arm");
         if (!driverCart.open(optionCart))
@@ -138,7 +120,6 @@ public:
         ok &= driverCart.view(armCart);
         ok &= dd.view(ilimRight);
 
-
         iCubFinger* fingerRight = new iCubFinger("right_index");
         deque<IControlLimits*> limRight;
         limRight.push_back(ilimRight);
@@ -146,11 +127,9 @@ public:
 
         if (!ok) {
             cout << "Device not able to acquire views" << endl;
-            yarp::os::Network::fini();
             dd.close();
             return false;
         }
-
 
         int jnts = 0;
         pos->getAxes(&jnts);
@@ -158,10 +137,10 @@ public:
 
         vector<bool> mask;
         mask.resize(jnts);
-        mask[0]	= false;
-        mask[1]	= false;
-        mask[2]	= false;
-        mask[3]	= false;
+        mask[0] = false;
+        mask[1] = false;
+        mask[2] = false;
+        mask[3] = false;
         mask[4] = true;
         mask[5] = false;
         mask[6] = true;
@@ -175,7 +154,6 @@ public:
         mask[14] = true;
         mask[15] = true;
 
-
         // closing the hand:
         pos->positionMove(4, 30.0);
         pos->positionMove(6, 10.0);
@@ -188,12 +166,11 @@ public:
         pos->positionMove(14, 170.0);
         pos->positionMove(15, 170.0);
 
-
-        bool motionDone = false;
+        bool motionDone=false;
         while (!motionDone)
         {
-            motionDone = true;
-            for (int i = 0; i < jnts; i++)
+            motionDone=true;
+            for (int i=0; i<jnts; i++)
             {
                 if (mask[i])
                 {
@@ -202,170 +179,95 @@ public:
                     motionDone &= jntMotionDone;
                 }
             }
+
+            Time::yield();  // to avoid killing cpu
         }
 
-
         // wait for the hand to be in initial position
-
         cout << "waiting to be in intial position" << endl;
 
-        initPos = Vector(3);
-        tempPos = Vector(3);
-        orientation = Vector(3);
+        Matrix R=zeros(3,3);
+        R(0,0)=-1.0; R(1,1)=1.0; R(2,2)=-1.0;
+        orientation=dcm2axis(R);
+        
+        // enable torso movements as well
+        // in order to enlarge the workspace
+        Vector dof;
+        armCart->getDOF(dof);
+        dof=1.0; dof[1]=0.0;    // every dof but the torso roll
+        armCart->setDOF(dof,dof);
+        armCart->setTrajTime(1.0);
 
-        double arm_roll=rf.check("arm_roll",Value(0.0)).asDouble();
-        double arm_pitch=rf.check("arm_yaw",Value(0.0)).asDouble();        
-        double arm_yaw=rf.check("arm_pitch",Value(0.0)).asDouble();
-
-        Matrix R=zeros(4,4);
-        R(0,0)=-1.0; R(2,1)=-1.0; R(1,2)=1.0; R(3,3)=1.0;
-        //R(0,0)=-1.0; R(1,1)=1.0; R(2,2)=-1.0; R(3,3)=1.0;
-
-        Vector pitch(4,0.0);
-        pitch[2]=1.0;
-        pitch[3]=arm_pitch*CTRL_DEG2RAD;
-
-        Vector roll(4,0.0);
-        roll[0]=1.0;
-        roll[3]=arm_roll*CTRL_DEG2RAD;
-
-        Vector yaw(4,0.0);
-        yaw[1]=1.0;
-        yaw[3]=arm_yaw*CTRL_DEG2RAD;
-
-        orientation=dcm2axis(axis2dcm(pitch)*axis2dcm(roll)*axis2dcm(yaw)*R);
-
-
-        //        armCart->getPose(initPos,orientation);
-
+        Vector initPos(3,0.0);
         if (rf.check("rightHandInitial"))
         {
-            yarp::os::Bottle *botPos = rf.find("rightHandInitial").asList();
+            Bottle *botPos = rf.find("rightHandInitial").asList();
             initPos[0] = botPos->get(0).asDouble();
             initPos[1] = botPos->get(1).asDouble();
             initPos[2] = botPos->get(2).asDouble();
-            cout<<"Reaching initial position with right hand"<<initPos.toString(3,3)<<endl;
-            armCart->setTrajTime(1.5);
-            armCart->goToPose(initPos,orientation);
+            cout<<"Reaching initial position with right hand"<<initPos.toString(3,3).c_str()<<endl;            
+            armCart->goToPoseSync(initPos,orientation);
+            armCart->waitMotionDone();
         }
         else
         {
             cout << "Cannot find the inital position" << endl << "closing module" << endl;
-            return 0;
-        }
+            return false;
+        }        
 
-        armCart->checkMotionDone(&isMoving);
-        while (!isMoving)
-        {
-            armCart->checkMotionDone(&isMoving);
-        }
+        minY    = rf.find("min").asDouble();
+        maxY    = rf.find("max").asDouble();
+        gap     = rf.find("gap").asDouble();
+        delay   = rf.find("delay").asDouble();
+        thrMove = rf.find("threshold_move").asDouble();
 
-        //armCart->getPose(Vector(3),orientation);
+        tempPos=initPos;
+        state=idle;
 
-        // get the x, y, z of the init point:
-
-
-
-        minY = rf.find("min").asDouble();
-        maxY = rf.find("max").asDouble();
-        gap    = rf.find("gap").asDouble();
-        delay  = rf.find("delay").asDouble();
-        thrMove  = rf.find("threshold_move").asDouble();
-
-        tempPos[0] = initPos[0];
-        tempPos[1] = initPos[1];
-        tempPos[2] = initPos[2];
-
+        Rand::init();
         return true;
     }
-
 
     bool updateModule()
     {
-        armCart->setTrajTime(1.5);
-        if (isWaiting)
+        bool done;
+        armCart->checkMotionDone(&done);
+        if (!done)
+            return true;
+
+        if (state==idle)
         {
-            //if I've wait long enough
-            if (Time::now() - timeSinceLastAction > delay)
-            {
-                tempPos[2] += gap; //raise the arm
-                armCart->goToPose(tempPos,orientation);
-                //                armCart->goToPositionSync(tempPos);
-                isWaiting = false;
-                isGoingUp = true;
-                timeSinceLastAction = Time::now();
-                cout << "isGoingUp" << endl;
-            }
+            tempPos[2]+=gap;
+            state=up;            
         }
-        else if (isGoingUp)
+        else if (state==up)
         {
-
-            armCart->checkMotionDone(&isMoving);
-
-            if (isMoving || (Time::now()-timeSinceLastAction>thrMove))  // is goingup is finished
-            {
-                //hand is up!!
-                double tempV = yarp::os::Random::uniform(0,100);
-                tempPos[1] = (tempV*0.01* (maxY-minY) + minY);
-                //                armCart->goToPositionSync(tempPos);
-                armCart->goToPose(tempPos,orientation);
-                // now, robot is going side:
-                isGoingUp = false;
-                isGoingSide = true;
-                cout << "isGoingSide" << endl;
-                timeSinceLastAction = Time::now();
-            }
+            tempPos[1]=minY+(maxY-minY)*Random::uniform();
+            state=side;
         }
-        else if (isGoingSide)
+        else if (state==side)
         {
-
-            armCart->checkMotionDone(&isMoving);
-            // if goingside is finished, goind down
-            if (isMoving || (Time::now()-timeSinceLastAction>thrMove))  // is goingup is finished
-            {
-                tempPos[2] -= gap; //lower the arm
-                //                armCart->goToPositionSync(tempPos);
-                armCart->goToPose(tempPos,orientation);
-                isGoingSide = false;
-                isGoingDown = true;
-                cout << "isGoingDown" << endl;
-
-                timeSinceLastAction = Time::now();
-            }
+            tempPos[2]-=gap;
+            state=down;
         }
-        else if (isGoingDown)
+        else if (state==down)
         {
-
-            armCart->checkMotionDone(&isMoving);        		
-            // if the going down if finished, we wait !
-            if (isMoving || (Time::now()-timeSinceLastAction>thrMove))  // is goingup is finished
-            {
-                //hand is ready
-                timeSinceLastAction  =   Time::now();
-                isGoingDown = false;
-                isWaiting = true;
-                cout << "isWaiting" << endl;
-            }
-
+            tempPos[2]+=gap;
+            state=up;
         }
-        isMoving = true;
-        yarp::os::Bottle bStream;
 
-        bStream.addDouble(tempPos[0]);
-        bStream.addDouble(tempPos[1]);
-        bStream.addDouble(tempPos[2]);
-
-        portStreamer.write(bStream);
+        armCart->goToPoseSync(tempPos,orientation);
+        printf("Going to (%s)\n",tempPos.toString(3,3).c_str());
+        portStreamer.write(tempPos);
 
         return true;
     }
-
 };
 
 
 int main(int argc, char *argv[])
 {
-    yarp::os::Network yarp;
+    Network yarp;
     if (!yarp.checkNetwork())
     {
         printf("yarp network is not available!\n");
@@ -374,13 +276,11 @@ int main(int argc, char *argv[])
 
     YARP_REGISTER_DEVICES(icubmod)
 
-    srand(time(NULL));
-
-    yarp::os::ResourceFinder rf;
+    ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("keyboardBabbling");
     rf.setDefaultConfigFile("default.ini");
-    rf.configure(argc, argv);
+    rf.configure(argc,argv);
 
     keyboardBabbling mod;
     return mod.runModule(rf);
