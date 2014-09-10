@@ -40,6 +40,7 @@
         <name>dataDumper</name>
         <parameters>--name dump/icub/right_arm/state --rxTime</parameters>
         <node>icubAlien</node>
+	<workdir>C:\Robots\DataDumps\bcbt\piano_1</workdir>
         <prefix></prefix>
     </module>
 	
@@ -53,6 +54,7 @@
         <name>dataDumper</name>
         <parameters>--name dump/microphone --rxTime</parameters>
         <node>icubAlien</node>
+	<workdir>C:\Robots\DataDumps\bcbt\piano_1</workdir>
         <prefix></prefix>
     </module>
 	
@@ -66,13 +68,75 @@
         <name>dataDumper</name>
         <parameters>--name dump/icub/right_arm/cartesian --rxTime</parameters>
         <node>icubAlien</node>
+	<workdir>C:\Robots\DataDumps\bcbt\piano_1</workdir>
         <prefix></prefix>
     </module>
 	
     <connection>
-        <from>/keyboardBabbling:stream</from>
+        <from>/keyboardBabbling/stream:o</from>
         <to>/dump/icub/right_arm/cartesian</to>
         <protocol>tcp</protocol>
-    </connection>	
-		
+    </connection>
+	
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/icub/camcalib/right/out --rxTime</parameters>
+        <node>icubAlien</node>
+	<workdir>C:\Robots\DataDumps\bcbt\piano_1</workdir>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/icub/camcalib/right/out</from>
+        <to>/dump/icub/camcalib/right/out</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/fft/freq --rxTime</parameters>
+        <node>icubAlien</node>
+	<workdir>C:\Robots\DataDumps\bcbt\piano_1</workdir>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/fft/freq:o</from>
+        <to>/dump/fft/freq</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/mmcm/auditoryMotor/audition/prediction --rxTime</parameters>
+        <node>icubAlien</node>
+	<workdir>C:\Robots\DataDumps\bcbt\piano_1</workdir>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/mmcm/auditoryMotor/audition/prediction:o</from>
+        <to>/dump/mmcm/auditoryMotor/audition/prediction</to>
+        <protocol>tcp</protocol>
+    </connection>
+
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/mmcm/auditoryMotor/right_arm/prediction --rxTime</parameters>
+        <node>icubAlien</node>
+	<workdir>C:\Robots\DataDumps\bcbt\piano_1</workdir>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/mmcm/auditoryMotor/right_arm/prediction:o</from>
+        <to>/dump/mmcm/auditoryMotor/right_arm/prediction </to>
+        <protocol>tcp</protocol>
+    </connection>
+	
+    <connection>
+        <from>/mmcm/auditoryMotor/right_arm/prediction:o</from>
+        <to>/keyboardBabbling/stream:i </to>
+        <protocol>tcp</protocol>
+    </connection>			
 </application>
