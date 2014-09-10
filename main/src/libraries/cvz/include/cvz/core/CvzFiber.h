@@ -6,66 +6,12 @@
 #include <algorithm>
 #include "ICvz.h"
 #include "cvz/helpers/helpers.h"
-
+#include "cvz/core/CvzSheet.h"
 
 namespace cvz {
     namespace core {
 
 #define MAGIC_NUMBER_INTERNAL_MODALITY_SIZE 3
-
-            class CvzSheet:public std::vector<std::vector< IConvergenceZone* > >
-            {
-            public:
-                CvzSheet()
-                {
-
-                }
-
-                bool configure(int w, int h, yarp::os::Property &prop)
-                {
-                    std::cout << "***********************************"<<std::endl
-                        <<"Configuring CvzSheet (" << w << "x" << h << ")";
-
-                    this->resize(w);
-                    for (int x = 0; x < w; x++)
-                    {
-                        this->operator[](x).resize(h);
-                        for (int y = 0; y < h; y++)
-                        {
-                            //std::string debug = prop.toString();
-                            yarp::os::Property prop2 = prop;
-                            std::string nameRoot = prop2.check("name", yarp::os::Value("default")).asString();
-                            prop2.unput("name");
-                            std::stringstream nameTotal; 
-                            nameTotal << nameRoot << "_" << x << "_" << y;
-                            prop2.put("name", nameTotal.str());
-                            CvzBuilder::allocate(&this->operator[](x)[y], prop2.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString());
-                            bool isFine = this->operator[](x)[y]->configure(prop2);
-                            if (!isFine)
-                            {
-                                std::cout << "Problems during configuration... Aborting." << std::endl
-                                    << "***********************************" << std::endl;
-                                return false;
-                            }
-                        }
-                    }
-                    std::cout << "Configured CvzSheet" << std::endl
-                        << "***********************************" << std::endl;
-                    return true;
-                        
-                }
-
-                void cycle()
-                {
-                    for (size_t x = 0; x < this->size(); x++)
-                    {
-                        for (size_t y = 0; y < this->operator[](x).size(); y++)
-                        {
-                            bool isFine = this->operator[](x)[y]->cycle();
-                        }
-                    }
-                }
-            };
 
             class CvzFiber
             {
@@ -144,7 +90,7 @@ namespace cvz {
                                 modalityCounter++;
                             }
                         }
-                        else //first layer
+                        else //first layer, we generate the out-of-fiber inputs here
                         {
                             yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
                             std::stringstream ssModGroup;
@@ -180,8 +126,17 @@ namespace cvz {
                                 pMod.put("isTopDown", yarp::os::Value(1));
                                 pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
                                 modalityCounter++;
-                            }
-                            
+                            }        
+                        }
+                        
+                        if (l==(int)layers.size()-1)//last layer, we create the potential out-of-fiber convergence at this level
+                        {
+                            yarp::os::Bottle* outputModalityPrototype = prop.find("outputModalityPrototype").asList();
+                            std::stringstream ssModGroup;
+                            ssModGroup << "modality_" << modalityCounter;
+                            yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+                            outputModalityPrototype->write(pMod);
+                            modalityCounter++;
                         }
                         
                         bool isFine = layers[l].configure(sqrSize, sqrSize, p);
@@ -201,9 +156,9 @@ namespace cvz {
                     {
                         std::cout << "Trying autoconnection of first layer on the stem name : " << autoConnectStem << std::endl;
                         
-                        for (int x = 0; x < layers[0].size(); x++)
+                        for (size_t x = 0; x < layers[0].size(); x++)
                         {
-                            for (int y = 0; y < layers[0][x].size(); y++)
+                            for (size_t y = 0; y < layers[0][x].size(); y++)
                             {
                                 std::string inputModalityName = layers[0][x][y]->modalitiesBottomUp.begin()->second->GetFullNameReal();
                                 std::stringstream ssPortExt;
@@ -219,19 +174,19 @@ namespace cvz {
 
                 bool cycle()
                 {
-                    double t0 = yarp::os::Time::now();
-                    for (int l = 0; l < layers.size(); l++)
+                    //double t0 = yarp::os::Time::now();
+                    for (size_t l = 0; l < layers.size(); l++)
                     {
-                        double t1 = yarp::os::Time::now();
+                        //double t1 = yarp::os::Time::now();
                         //Refresh from bottom up
                         layers[l].cycle();
                         //std::cout << "Layer " << l << " cycle time = " << yarp::os::Time::now() - t1 << std::endl;
                         if (l != layers.size() - 1)
                         {
                             //Propagate to next layer
-                            for (int x1 = 0; x1 < layers[l].size(); x1++)
+                            for (size_t x1 = 0; x1 < layers[l].size(); x1++)
                             {
-                                for (int y1 = 0; y1 < layers[l][x1].size(); y1++)
+                                for (size_t y1 = 0; y1 < layers[l][x1].size(); y1++)
                                 {
                                     for (std::map<std::string, IModality*>::iterator itSrc = layers[l][x1][y1]->modalitiesTopDown.begin(); itSrc != layers[l][x1][y1]->modalitiesTopDown.end(); itSrc++)
                                     {
@@ -285,7 +240,7 @@ namespace cvz {
                     std::list<IModality*> usedModalities;
 
                     //Create the connections
-                    for (int l = 0; l < layers.size(); l++)
+                    for (size_t l = 0; l < layers.size(); l++)
                     {
                         //Refresh from bottom up
                         //layers[l].cycle();
@@ -297,14 +252,14 @@ namespace cvz {
                             int destSheetSize = layers[l + 1].size();
                             double convergenceRatio = srcSheetSize / destSheetSize;
 
-                            for (int x1 = 0; x1 < layers[l].size(); x1++)
+                            for (size_t x1 = 0; x1 < layers[l].size(); x1++)
                             {
-                                for (int y1 = 0; y1 < layers[l][x1].size(); y1++)
+                                for (size_t y1 = 0; y1 < layers[l][x1].size(); y1++)
                                 {
                                     IConvergenceZone* srcCvz = layers[l][x1][y1];
-                                    for (int x2 = 0; x2 < layers[l+1].size(); x2++)
+                                    for (size_t x2 = 0; x2 < layers[l+1].size(); x2++)
                                     {
-                                        for (int y2 = 0; y2 < layers[l+1][x2].size(); y2++)
+                                        for (size_t y2 = 0; y2 < layers[l+1][x2].size(); y2++)
                                         {
                                             IConvergenceZone* destCvz = layers[l+1][x2][y2];
 
@@ -313,11 +268,11 @@ namespace cvz {
                                                 //Check if those two are connected
                                                 int modulo = x1 % (srcSheetSize / destSheetSize);
                                                 int base = x1 / (srcSheetSize / destSheetSize);
-                                                bool isConnected = (x2 == base);
+                                                bool isConnected = ((int)x2 == base);
                                                 
                                                 modulo = y1 % (srcSheetSize / destSheetSize);
                                                 base = y1 / (srcSheetSize / destSheetSize);
-                                                isConnected &= (y2 == base);
+                                                isConnected &= ((int)y2 == base);
                                                 if (isConnected)
                                                     connectFreeModalities(srcCvz, destCvz, usedModalities);
                                             }
@@ -328,8 +283,8 @@ namespace cvz {
                                                 int maxX1 = minX1 + (destSheetSize / srcSheetSize);
                                                 int minY1 = y1 * (destSheetSize / srcSheetSize);
                                                 int maxY1 = minY1 + (destSheetSize / srcSheetSize);
-                                                bool isConnected = (x2 >= minX1 && x2 < maxX1);
-                                                isConnected &= (y2 >= minY1 && y2 < maxY1);
+                                                bool isConnected = (((int)x2 >= minX1) && ((int)x2 < maxX1));
+                                                isConnected &= (((int)y2 >= minY1) && ((int)y2 < maxY1));
                                                 if (isConnected)
                                                     connectFreeModalities(srcCvz, destCvz, usedModalities);
                                             }
