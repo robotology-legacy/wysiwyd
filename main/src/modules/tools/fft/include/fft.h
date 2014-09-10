@@ -29,6 +29,10 @@ public:
     {
         return true;
     }
+    double getPeriod()
+    {
+        return 0.1;
+    }
 
     bool close();
     void    mainLoop();
