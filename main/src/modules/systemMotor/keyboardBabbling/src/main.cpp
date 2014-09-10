@@ -92,9 +92,9 @@ public:
     {
         isGoingUp = false;
         isGoingDown = false;
-        isGoingSide = false;
+        isGoingSide = true;
         isMoving = false;
-        isWaiting = true;
+        isWaiting = false;
         period = 0.01;
 
         yarp::os::Property options;
@@ -155,7 +155,7 @@ public:
         int jnts = 0;
         pos->getAxes(&jnts);
         printf("Working with %d axes\n", jnts);
-        
+
         vector<bool> mask;
         mask.resize(jnts);
         mask[0]	= false;
@@ -216,7 +216,7 @@ public:
         double arm_roll=rf.check("arm_roll",Value(0.0)).asDouble();
         double arm_pitch=rf.check("arm_yaw",Value(0.0)).asDouble();        
         double arm_yaw=rf.check("arm_pitch",Value(0.0)).asDouble();
-        
+
         Matrix R=zeros(4,4);
         R(0,0)=-1.0; R(2,1)=-1.0; R(1,2)=1.0; R(3,3)=1.0;
         //R(0,0)=-1.0; R(1,1)=1.0; R(2,2)=-1.0; R(3,3)=1.0;
@@ -236,7 +236,7 @@ public:
         orientation=dcm2axis(axis2dcm(pitch)*axis2dcm(roll)*axis2dcm(yaw)*R);
 
 
-//        armCart->getPose(initPos,orientation);
+        //        armCart->getPose(initPos,orientation);
 
         if (rf.check("rightHandInitial"))
         {
@@ -245,6 +245,7 @@ public:
             initPos[1] = botPos->get(1).asDouble();
             initPos[2] = botPos->get(2).asDouble();
             cout<<"Reaching initial position with right hand"<<initPos.toString(3,3)<<endl;
+            armCart->setTrajTime(1.5);
             armCart->goToPose(initPos,orientation);
         }
         else
@@ -281,10 +282,9 @@ public:
 
     bool updateModule()
     {
+        armCart->setTrajTime(1.5);
         if (isWaiting)
         {
-            cout << "isWaiting" << endl;
-            cout << (Time::now()-timeSinceLastAction) << endl;
             //if I've wait long enough
             if (Time::now() - timeSinceLastAction > delay)
             {
@@ -294,14 +294,13 @@ public:
                 isWaiting = false;
                 isGoingUp = true;
                 timeSinceLastAction = Time::now();
+                cout << "isGoingUp" << endl;
             }
         }
         else if (isGoingUp)
         {
-            cout << "isGoingUp" << endl;
 
             armCart->checkMotionDone(&isMoving);
-            cout << (Time::now()-timeSinceLastAction) << endl;
 
             if (isMoving || (Time::now()-timeSinceLastAction>thrMove))  // is goingup is finished
             {
@@ -313,13 +312,12 @@ public:
                 // now, robot is going side:
                 isGoingUp = false;
                 isGoingSide = true;
+                cout << "isGoingSide" << endl;
                 timeSinceLastAction = Time::now();
             }
         }
         else if (isGoingSide)
         {
-            cout << "isGoingSide" << endl;
-            cout << (Time::now()-timeSinceLastAction) << endl;
 
             armCart->checkMotionDone(&isMoving);
             // if goingside is finished, goind down
@@ -330,14 +328,13 @@ public:
                 armCart->goToPose(tempPos,orientation);
                 isGoingSide = false;
                 isGoingDown = true;
+                cout << "isGoingDown" << endl;
 
                 timeSinceLastAction = Time::now();
             }
         }
         else if (isGoingDown)
         {
-            cout << "isGoingDown" << endl;
-            cout << (Time::now()-timeSinceLastAction) << endl;
 
             armCart->checkMotionDone(&isMoving);        		
             // if the going down if finished, we wait !
@@ -347,6 +344,7 @@ public:
                 timeSinceLastAction  =   Time::now();
                 isGoingDown = false;
                 isWaiting = true;
+                cout << "isWaiting" << endl;
             }
 
         }
