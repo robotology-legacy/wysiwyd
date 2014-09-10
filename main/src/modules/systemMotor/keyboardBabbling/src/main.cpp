@@ -54,6 +54,8 @@ private:
     IControlLimits *ilimRight;
 
     Port portStreamer;
+    Port portFromCartesian;
+
     PolyDriver driverCart, dd;
     iCubFinger *fingerUsed;
 
@@ -63,6 +65,8 @@ private:
     double delay;
     double thrMove;
     double timeBeginIdle;
+
+    bool forward;
 
     Vector tempPos;
     Vector orientation;
@@ -103,7 +107,8 @@ public:
             return false;
         }
 
-        portStreamer.open("/keyboardBabbling:stream");
+        portStreamer.open("/keyboardBabbling/stream:o");
+        portStreamer.open("/keyboardBabbling/stream:i");
 
         Property optionCart("(device cartesiancontrollerclient)");
         optionCart.put("remote","/icubSim/cartesianController/right_arm");
@@ -190,7 +195,7 @@ public:
         Matrix R=zeros(3,3);
         R(0,0)=-1.0; R(1,1)=1.0; R(2,2)=-1.0;
         orientation=dcm2axis(R);
-        
+
         // enable torso movements as well
         // in order to enlarge the workspace
         Vector dof;
@@ -224,6 +229,7 @@ public:
 
         tempPos=initPos;
         state=up;
+        forward = false;
 
         timeBeginIdle = Time::now();
 
@@ -233,44 +239,76 @@ public:
 
     bool updateModule()
     {
-        bool done;
-        armCart->checkMotionDone(&done);
-        if (!done)
-            return true;
-
-        if (state==idle)
+        if (forward)
         {
-            if (Time::now() - timeBeginIdle > delay)
+            bool done;
+            armCart->checkMotionDone(&done);
+            if (!done)
+                return true;
+
+            if (state==idle)
+            {
+                if (Time::now() - timeBeginIdle > delay)
+                {
+                    tempPos[2]+=gap;
+                    state=up;            
+                }
+                else
+                    return true;
+            }
+            else if (state==up)
+            {
+                tempPos[1]=minY+(maxY-minY)*Random::uniform();
+                state=side;
+            }
+            else if (state==side)
+            {
+                tempPos[2]-=gap;
+                state=down;
+            }
+            else if (state==down)
             {
                 tempPos[2]+=gap;
-                state=up;            
+                state=idle;
+                timeBeginIdle = Time::now();
             }
-            else
-                return true;
-        }
-        else if (state==up)
-        {
-            tempPos[1]=minY+(maxY-minY)*Random::uniform();
-            state=side;
-        }
-        else if (state==side)
-        {
-            tempPos[2]-=gap;
-            state=down;
-        }
-        else if (state==down)
-        {
-            tempPos[2]+=gap;
-            state=idle;
-            timeBeginIdle = Time::now();
+
+            armCart->goToPoseSync(tempPos,orientation);
+            printf("Going to (%s)\n",tempPos.toString(3,3).c_str());
+            portStreamer.write(tempPos);
         }
 
-        armCart->goToPoseSync(tempPos,orientation);
-        printf("Going to (%s)\n",tempPos.toString(3,3).c_str());
-        portStreamer.write(tempPos);
+        else
+        {
+            Vector cartPos;
+            portFromCartesian.read(cartPos);
+            armCart->goToPoseSync(cartPos,orientation);
+        }
 
         return true;
     }
+
+    bool respond(const Bottle& command, Bottle& reply) {
+
+    reply.clear(); 
+
+    if (command.get(0).asString()=="quit") {
+        reply.addString("quitting");
+        return false;     
+    }
+    else if (command.get(0).asString()=="forward") {
+        cout << "forwarding" << endl;
+        reply.addString("forwarding");
+        forward = true;
+    }
+    else if (command.get(0).asString()=="stop") {
+        cout << "stop forwarding" << endl;
+        reply.addString("stop forwarding");
+        forward = false;
+    }
+    return true;
+}
+
 };
 
 
@@ -285,7 +323,7 @@ int main(int argc, char *argv[])
 
     YARP_REGISTER_DEVICES(icubmod)
 
-    ResourceFinder rf;
+        ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("keyboardBabbling");
     rf.setDefaultConfigFile("default.ini");
