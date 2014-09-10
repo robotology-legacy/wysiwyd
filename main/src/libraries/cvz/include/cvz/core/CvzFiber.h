@@ -6,66 +6,12 @@
 #include <algorithm>
 #include "ICvz.h"
 #include "cvz/helpers/helpers.h"
-
+#include "cvz/core/CvzSheet.h"
 
 namespace cvz {
     namespace core {
 
 #define MAGIC_NUMBER_INTERNAL_MODALITY_SIZE 3
-
-            class CvzSheet:public std::vector<std::vector< IConvergenceZone* > >
-            {
-            public:
-                CvzSheet()
-                {
-
-                }
-
-                bool configure(int w, int h, yarp::os::Property &prop)
-                {
-                    std::cout << "***********************************"<<std::endl
-                        <<"Configuring CvzSheet (" << w << "x" << h << ")";
-
-                    this->resize(w);
-                    for (int x = 0; x < w; x++)
-                    {
-                        this->operator[](x).resize(h);
-                        for (int y = 0; y < h; y++)
-                        {
-                            //std::string debug = prop.toString();
-                            yarp::os::Property prop2 = prop;
-                            std::string nameRoot = prop2.check("name", yarp::os::Value("default")).asString();
-                            prop2.unput("name");
-                            std::stringstream nameTotal; 
-                            nameTotal << nameRoot << "_" << x << "_" << y;
-                            prop2.put("name", nameTotal.str());
-                            CvzBuilder::allocate(&this->operator[](x)[y], prop2.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString());
-                            bool isFine = this->operator[](x)[y]->configure(prop2);
-                            if (!isFine)
-                            {
-                                std::cout << "Problems during configuration... Aborting." << std::endl
-                                    << "***********************************" << std::endl;
-                                return false;
-                            }
-                        }
-                    }
-                    std::cout << "Configured CvzSheet" << std::endl
-                        << "***********************************" << std::endl;
-                    return true;
-                        
-                }
-
-                void cycle()
-                {
-                    for (size_t x = 0; x < this->size(); x++)
-                    {
-                        for (size_t y = 0; y < this->operator[](x).size(); y++)
-                        {
-                            bool isFine = this->operator[](x)[y]->cycle();
-                        }
-                    }
-                }
-            };
 
             class CvzFiber
             {
@@ -114,7 +60,7 @@ namespace cvz {
                         nameTotal << nameRoot << "_"<<l;
                         p.put("name", nameTotal.str());
 
-                        int modalityCounter = 0;
+						int modalityCounter = 0;
                         //Automatic generation of the input modalities
                         if (l != 0)
                         {
@@ -144,7 +90,7 @@ namespace cvz {
                                 modalityCounter++;
                             }
                         }
-                        else //first layer
+                        else //first layer, we generate the out-of-fiber inputs here
                         {
                             yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
                             std::stringstream ssModGroup;
@@ -180,9 +126,18 @@ namespace cvz {
                                 pMod.put("isTopDown", yarp::os::Value(1));
                                 pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
                                 modalityCounter++;
-                            }
-                            
-                        }
+                            }        
+						}
+						
+						if (l==layers.size()-1)//last layer, we create the potential out-of-fiber convergence at this level
+						{
+							yarp::os::Bottle* outputModalityPrototype = prop.find("outputModalityPrototype").asList();
+							std::stringstream ssModGroup;
+							ssModGroup << "modality_" << modalityCounter;
+							yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+							outputModalityPrototype->write(pMod);
+							modalityCounter++;
+						}
                         
                         bool isFine = layers[l].configure(sqrSize, sqrSize, p);
                         if (!isFine)
