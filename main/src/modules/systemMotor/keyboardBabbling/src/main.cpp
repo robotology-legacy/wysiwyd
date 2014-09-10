@@ -52,8 +52,10 @@ private:
     IImpedanceControl *armImpUsed;
     ICartesianControl *armCart;
     IControlLimits *ilimRight;
-
+    
     Port portStreamer;
+    Port portFromCart;
+
     PolyDriver driverCart, dd;
     iCubFinger *fingerUsed;
 
@@ -63,6 +65,8 @@ private:
     double delay;
     double thrMove;
     double timeBeginIdle;
+
+    bool forward;
 
     Vector tempPos;
     Vector orientation;
@@ -102,8 +106,9 @@ public:
             cout << Drivers::factory().toString().c_str() << endl;;
             return false;
         }
-
-        portStreamer.open("/keyboardBabbling:stream");
+        
+        portStreamer.open("/keyboardBabbling/stream:o");
+        portFromCart.open("/keyboardBabbling/stream:i");
 
         Property optionCart("(device cartesiancontrollerclient)");
         optionCart.put("remote", "/" + robotname +"/cartesianController/right_arm");
@@ -224,6 +229,7 @@ public:
 
         tempPos=initPos;
         state=up;
+        forward = false;
 
         timeBeginIdle = Time::now();
 
@@ -233,6 +239,9 @@ public:
 
     bool updateModule()
     {
+
+        if (forward)
+        {
         bool done;
         armCart->checkMotionDone(&done);
 /*
@@ -288,8 +297,41 @@ public:
         armCart->getPose(toSend,toSend2);
         portStreamer.write(toSend);
 
+        }
+        else
+        {
+            Vector cartPos;
+            portFromCart.read(cartPos);
+            armCart->goToPoseSync(cartPos, orientation);
+        }
+
         return true;
     }
+
+    bool respond(const Bottle& command, Bottle& reply) {
+
+        reply.clear(); 
+
+        if (command.get(0).asString()=="quit") {
+            reply.addString("quitting");
+            return false;     
+        }
+        else if (command.get(0).asString()=="forward") {
+            cout << "forward on" << endl;
+            reply.addString("forward on");
+            forward = true;
+        }
+        else if (command.get(0).asString()=="stop")
+        {
+            cout << "forward off" << endl;
+            reply.addString("forward off");
+            forward = false;
+        }
+
+
+        return true;
+    }
+
 };
 
 
