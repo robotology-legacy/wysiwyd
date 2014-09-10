@@ -268,11 +268,11 @@ namespace cvz {
                                                 //Check if those two are connected
                                                 int modulo = x1 % (srcSheetSize / destSheetSize);
                                                 int base = x1 / (srcSheetSize / destSheetSize);
-                                                bool isConnected = (x2 == base);
+                                                bool isConnected = ((int)x2 == base);
                                                 
                                                 modulo = y1 % (srcSheetSize / destSheetSize);
                                                 base = y1 / (srcSheetSize / destSheetSize);
-                                                isConnected &= (y2 == base);
+                                                isConnected &= ((int)y2 == base);
                                                 if (isConnected)
                                                     connectFreeModalities(srcCvz, destCvz, usedModalities);
                                             }
@@ -283,8 +283,8 @@ namespace cvz {
                                                 int maxX1 = minX1 + (destSheetSize / srcSheetSize);
                                                 int minY1 = y1 * (destSheetSize / srcSheetSize);
                                                 int maxY1 = minY1 + (destSheetSize / srcSheetSize);
-                                                bool isConnected = (x2 >= minX1 && x2 < maxX1);
-                                                isConnected &= (y2 >= minY1 && y2 < maxY1);
+                                                bool isConnected = (((int)x2 >= minX1) && ((int)x2 < maxX1));
+                                                isConnected &= (((int)y2 >= minY1) && ((int)y2 < maxY1));
                                                 if (isConnected)
                                                     connectFreeModalities(srcCvz, destCvz, usedModalities);
                                             }
