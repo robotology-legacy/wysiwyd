@@ -281,8 +281,6 @@ public:
 
     bool updateModule()
     {
-
-        bool speed = 5.;
         if (isWaiting)
         {
             cout << "isWaiting" << endl;
