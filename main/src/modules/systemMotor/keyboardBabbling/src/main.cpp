@@ -213,7 +213,7 @@ public:
             initPos[2] = botPos->get(2).asDouble();
             cout<<"Reaching initial position with right hand"<<initPos.toString(3,3).c_str()<<endl;            
             armCart->goToPoseSync(initPos,orientation);
-            armCart->waitMotionDone();
+            armCart->waitMotionDone(0.1,3.0);
         }
         else
         {
@@ -240,7 +240,7 @@ public:
     bool updateModule()
     {
 
-        if (forward)
+        if (!forward)
         {
         bool done;
         armCart->checkMotionDone(&done);
