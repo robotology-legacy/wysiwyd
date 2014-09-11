@@ -55,6 +55,7 @@ private:
     
     Port portStreamer;
     Port portFromCart;
+    Port portRpc;
 
     PolyDriver driverCart, dd;
     iCubFinger *fingerUsed;
@@ -109,6 +110,8 @@ public:
         
         portStreamer.open("/keyboardBabbling/stream:o");
         portFromCart.open("/keyboardBabbling/stream:i");
+        portRpc.open("/keyboarBabbling/rpc");
+        attach(portRpc);
 
         Property optionCart("(device cartesiancontrollerclient)");
         optionCart.put("remote", "/" + robotname +"/cartesianController/right_arm");
