@@ -94,7 +94,7 @@ bool CFFT::updateModule() {
         //	
         int Fs = signal->getFrequency();
         std::cout << Fs << endl;
-        int NFFT = nextpow2(SAMPLES); //Number of fast fourier transforms
+        int NFFT = (int)nextpow2(SAMPLES); //Number of fast fourier transforms
         int K = (NFFT / 2) + 1;
         vector<double> sig;
         sig.resize(K);
@@ -136,9 +136,9 @@ bool CFFT::updateModule() {
         double newMaxFreq = f[MaxAmpIdx];
         newMaxFreq = floor((double)newMaxFreq/4)*4;
         vector<double> shortFreq;
-        shortFreq.resize(ceil((double)K / 3));
+        shortFreq.resize((unsigned int) ceil((double)K / 3));
         vector<double> shortAmp;
-        shortAmp.resize(ceil((double)K / 3));
+        shortAmp.resize((unsigned int) ceil((double)K / 3));
         for (int i = 0; i < ceil((double)K / 3)-1; i++)
         {
             int j = (i * 3) + 2;

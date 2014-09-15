@@ -3,21 +3,21 @@
  
 <module>
 
-   <name>qRM</name>
+   <name>fft</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>Quick Robot Manager</description>
+   <description>Apply Fast Fourier Transform</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    
    <description-long>
-   Small module to interact easily with the robot. Include the calibration thread to synchronise the robot and the reactable.
+   Receives a sound signal over a yarp port, apply FFT on it and send the results
    </description-long>
 
    <arguments>
    </arguments>
 
    <authors>
-       <author email="greg.pointeau@gmail.com"> Grégoire Pointeau </author>
+       <author email="jordiysard@gmail.com"> Jordi-Ysard Puigbo</author>
    </authors>
    
 </module>
