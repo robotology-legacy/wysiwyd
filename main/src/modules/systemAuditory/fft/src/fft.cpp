@@ -139,6 +139,7 @@ bool CFFT::updateModule() {
         shortFreq.resize((unsigned int) ceil((double)K / 3));
         vector<double> shortAmp;
         shortAmp.resize((unsigned int) ceil((double)K / 3));
+
         for (int i = 0; i < ceil((double)K / 3)-1; i++)
         {
             int j = (i * 3) + 2;
