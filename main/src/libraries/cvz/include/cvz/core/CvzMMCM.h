@@ -103,14 +103,34 @@ namespace cvz {
                 recurrenceDelay = rf.check("recurrentDelay", yarp::os::Value(10)).asInt();
                 if (recModalitySize > 0)
                 {
-                    std::vector<double> maxBounds;
-                    maxBounds.resize(recModalitySize, 1.0);
-                    std::vector<double> minBounds;
-                    minBounds.resize(recModalitySize, 1.0);
                     std::string recModName = "/";
                     recModName += getName();
                     recModName += "/recurrent";
-                    recurrentModality = new IModality(recModName, recModalitySize, minBounds, maxBounds,false);
+                    yarp::os::Property propTmp;
+                    propTmp.unput("name");
+                    propTmp.put("name", recModName);
+                    propTmp.unput("size");
+                    propTmp.put("size", recModalitySize);
+
+                    yarp::os::Bottle bMinBounds;
+                    yarp::os::Bottle bMaxBounds;
+                    for (int i = 0; i < recModalitySize; i++)
+                    {
+                        bMinBounds.addDouble(0);
+                        bMaxBounds.addDouble(1);
+                    }
+                    yarp::os::Value pMin;
+                    bMinBounds.write(pMin);
+                    yarp::os::Value pMax;
+                    bMaxBounds.write(pMax);
+                    propTmp.unput("minBounds");
+                    propTmp.put("minBounds", pMin);
+                    propTmp.unput("maxBounds");
+                    propTmp.put("maxBounds", pMax);
+
+                    yarp::os::Bottle bTmp;
+                    bTmp.read(propTmp);
+                    recurrentModality = new IModality(recModName, bTmp);
                     modalitiesInfluence[recurrentModality] = rf.check("recurrentInfluence", yarp::os::Value(1.0)).asDouble();
                 }
                 else
