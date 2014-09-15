@@ -94,7 +94,7 @@
 	
     <module>
         <name>dataDumper</name>
-        <parameters>--name dump/icub/camcalib/right/out --rxTime --downsample 10</parameters>
+        <parameters>--name dump/icub/camcalib/right/out --rxTime --downsample 10 --type image</parameters>
         <node>icubAlien</node>
 	<workdir>C:/Robots/DataDumps/bcbt/piano_1</workdir>
         <prefix></prefix>
