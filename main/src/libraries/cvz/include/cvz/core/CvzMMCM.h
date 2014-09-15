@@ -377,7 +377,10 @@ namespace cvz {
                     {
                         for (int z = 0; z < layers; z++)
                         {
-                            float distanceH = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0));
+                            float distanceBoth = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0) + pow(z - zWin, 2.0));
+
+                            //Basic SOM algorithm
+                            //float distanceH = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0));
                             //float distanceV = sqrt(pow(z - zWin, 2.0));
                             //float dHCoef = helpers::GaussianBell(distanceH, sigmaH);
                             //float dVCoef = helpers::GaussianBell(distanceV, sigmaV);
@@ -386,7 +389,7 @@ namespace cvz {
                             float elasticity = 2.0;
                             float heta = 0.0;
                             if (activity[xWin][yWin][zWin] != 0.0)
-                                heta = expf(-(1 / pow(elasticity, 2)) * (distanceH / winnerError));
+                                heta = expf(-(1 / pow(elasticity, 2)) * (distanceBoth / winnerError));
 
                             //float dHCoef = MexicanHat(distanceH, sigmaH);
                             //float dVCoef = MexicanHat(distanceV, sigmaV);
