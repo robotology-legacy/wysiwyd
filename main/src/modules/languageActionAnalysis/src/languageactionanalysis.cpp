@@ -239,7 +239,8 @@ bool LanguageActionAnalysis::grammarNode()
             if (nb == 0){            //  "object"
                 sobject=sresult;
                 sanswer = "The " + sobject + " " + sverb;
-                iCub->say(sanswer);
+                iCub->say(sanswer,true);
+                cout << sanswer << endl;
             }
 
             else if(nb == 1)   //  "Ag2,object"
@@ -254,7 +255,8 @@ bool LanguageActionAnalysis::grammarNode()
                     cout << "sobject : " << sobject << endl;
                 }
                 sanswer = sagent1 + " " + sverb + " the " + sobject;
-                iCub->say(sanswer);
+                iCub->say(sanswer,true);
+                cout << sanswer << endl;
             }
         }
         else if(iquestion == 2)  // "what did Anne do ?" => active form
@@ -286,8 +288,10 @@ bool LanguageActionAnalysis::grammarNode()
                 cout << tab << endl;
                 sagent1=sforce.substr(0,tab[0]);
                 sobject=sforce.substr(tab[0]+1,sforce.size()-sforce.size()-tab[0]+1);
+                //sagent1 = sagent.c_str();
                 sanswer = sagent1 + " " + sverb + "s the " + sobject;
-                iCub->say(sanswer);
+                iCub->say(sanswer,true);
+                cout << sanswer << endl;
             }
             else if(nb == 2)   //  "Ag1,Ag2,object"
             {
@@ -303,8 +307,10 @@ bool LanguageActionAnalysis::grammarNode()
                 sagent1=sforce.substr(0,tab[0]);
                 sagent2=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
                 sobject=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
+                //sagent1 = sagent.c_str();
                 sanswer = sagent1 + " " + sverb + "s the " + sobject + " to " + sagent2;
-                iCub->say(sanswer);
+                iCub->say(sanswer,true);
+                cout << sanswer << endl;
             }
         }
 
@@ -339,7 +345,8 @@ bool LanguageActionAnalysis::grammarNode()
                 sobject=sforce.substr(tab[0]+1,sforce.size()-sforce.size()-tab[0]+1);
                 sanswer = "The " + sobject + " has been " + sverb + " by " + sagent1;
                 cout << "sanswer : " << endl;
-                iCub->say(sanswer);
+                iCub->say(sanswer,true);
+                cout << sanswer << endl;
             }
             else if(nb == 2)   //  "Ag2,object"
             {
@@ -357,12 +364,13 @@ bool LanguageActionAnalysis::grammarNode()
                 sobject=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
                 sanswer = "The " + sobject + " has been " + sverb + "ed by " + sagent1 + " to " +sagent2;
                 cout << "sanswer : " << endl;
-                iCub->say(sanswer);
+                iCub->say(sanswer,true);
+                cout << sanswer << endl;
             }
         }
-    //iCub->say("");
+
     cout << "##############################################################" << endl;
-    return mainNode();
+    return languageNode();
 }
 
 int LanguageActionAnalysis::languageNode()
@@ -382,10 +390,7 @@ int LanguageActionAnalysis::languageNode()
     Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
             bMessenger, //to be send TO speech recog
             bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic, // semantic information of the content of the recognition
-            bSendReasoning,	// send the information of recall to the abmReasoning
-            bSpeak,	// bottle for tts
-            bTemp;
+            bSemantic; // semantic information of the content of the recognition
 
     bMessenger.addString("recogBottle");
     bMessenger.addString("grammarXML");
@@ -416,7 +421,7 @@ int LanguageActionAnalysis::languageNode()
             //return bOutput;
         }
 
-
+        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
         bAnswer = *bSpeechRecognized.get(1).asList();
 
         if (bAnswer.toString() != "" && !bAnswer.isNull())
@@ -424,8 +429,6 @@ int LanguageActionAnalysis::languageNode()
             fGetaReply = true;
         }
     }
-
-    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
     if (bAnswer.get(0).asString() == "stop")
     {
@@ -438,16 +441,24 @@ int LanguageActionAnalysis::languageNode()
     }
 
     bAnswer = *bSpeechRecognized.get(1).asList();
-    cout << "bAnswer.get(0).asString() : " << bAnswer.get(0).asString() << endl;
+
+    if (bAnswer.get(0).asString() == "next")
+    {
+        return mainNode();
+    }
 
     if (bAnswer.get(0).asString() == "what happened")
     {
         iquestion = 1;
         return grammarNode();
     }
-    else if (bAnswer.get(0).asString() == "what did Anne do ?" || bAnswer.get(0).asString() == "what did Laure do ?" || bAnswer.get(0).asString() == "what did Zahra do ?")
+    else if (bAnswer.get(1).asList()->get(0).asString() == "whoagent")
     {
+        cout << "bAnswer.get(0).asString() : " << bAnswer.get(1).asList()->get(0).asString() << endl;
+        cout << "here    " << bAnswer.get(1).asString() << endl;
         iquestion = 2;
+        bSemantic = *bAnswer.get(1).asList()->get(1).asList();
+        sagent = bSemantic.check("agent", Value("none")).asString();
         return grammarNode();
     }
     else if (bAnswer.get(0).asString() == "how did that happen")
