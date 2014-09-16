@@ -19,7 +19,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${
 
 add_executable(${PROJECTNAME} ${folder_header} ${folder_source} ${doc_files})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES})
-set_target_properties(${PROJECTNAME} PROPERTIES FOLDER tools)
+set_target_properties(${PROJECTNAME} PROPERTIES FOLDER systemAuditory)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 

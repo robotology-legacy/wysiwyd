@@ -171,27 +171,6 @@ namespace cvz {
                 valueReal.resize(size);
                 valuePrediction.resize(size);
             }
-
-            /**
-            * Instantiate a new IModality.
-            * @parameter _name The name of the modality, including any prefix you want to use (like the cvz name)
-            * @parameter _size The size of the modality (i.e the number of components of the vectors)
-            * @parameter min The minimum limits of the input space, are used internally for scaling in [0,1].
-            * @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
-            * @parameter _autoScale If true the maximum/minimum boudaries will adapt to the input.
-            */
-            IModality(std::string _name, int _size, std::vector<double> min, std::vector<double> max, bool _autoScale, yarp::os::Property* prop=NULL)
-            {
-                name = _name;
-                size = _size;
-                minBound = min;
-                maxBound = max;
-                scaledValueReal.resize(size);
-                scaledValuePrediction.resize(size);
-                valueReal.resize(size);
-                valuePrediction.resize(size);
-                autoScale = _autoScale;
-            }
             
             /**
             * Returns the configuration of the modality in the conf file format

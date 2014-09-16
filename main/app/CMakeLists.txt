@@ -28,5 +28,3 @@ add_subdirectory(imitationMotorBabbling)
 add_subdirectory(postureRecorder)
 add_subdirectory(cvzBCBT2014)
 add_subdirectory(keyboardBabbling)
-add_subdirectory(languageActionAnalysis)
-

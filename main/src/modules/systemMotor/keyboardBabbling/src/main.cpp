@@ -52,8 +52,11 @@ private:
     IImpedanceControl *armImpUsed;
     ICartesianControl *armCart;
     IControlLimits *ilimRight;
-
+    
     Port portStreamer;
+    Port portFromCart;
+    Port portRpc;
+
     PolyDriver driverCart, dd;
     iCubFinger *fingerUsed;
 
@@ -63,6 +66,8 @@ private:
     double delay;
     double thrMove;
     double timeBeginIdle;
+
+    bool forward;
 
     Vector tempPos;
     Vector orientation;
@@ -82,18 +87,18 @@ public:
 
     bool configure(ResourceFinder &rf)
     {
+        std::string robotname = rf.check("robot",yarp::os::Value("icubSim")).asString();
         Property options;
-        options.put("robot", "icubSim"); // typically from the command line.
+        options.put("robot", robotname); // typically from the command line.
         options.put("device", "remote_controlboard");
 
-        Value& robotname = options.find("robot");
         string s("/");
-        s += robotname.asString();
+        s += robotname;
         s += "/right_arm/keyBabbling";
         options.put("local", s.c_str());
         s.clear();
         s += "/";
-        s += robotname.asString();
+        s += robotname;
         s += "/right_arm";
         options.put("remote", s.c_str());
 
@@ -102,12 +107,15 @@ public:
             cout << Drivers::factory().toString().c_str() << endl;;
             return false;
         }
-
-        portStreamer.open("/keyboardBabbling:stream");
+        
+        portStreamer.open("/keyboardBabbling/stream:o");
+        portFromCart.open("/keyboardBabbling/stream:i");
+        portRpc.open("/keyboarBabbling/rpc");
+        attach(portRpc);
 
         Property optionCart("(device cartesiancontrollerclient)");
-        optionCart.put("remote","/icubSim/cartesianController/right_arm");
-        optionCart.put("local","/cartesian_client/right_arm");
+        optionCart.put("remote", "/" + robotname +"/cartesianController/right_arm");
+        optionCart.put("local","/keyboardBabbling/cartesian_client/right_arm");
         if (!driverCart.open(optionCart))
             return false;
 
@@ -161,11 +169,11 @@ public:
         pos->positionMove(8, 10.0);
         pos->positionMove(9, 17.0);
         pos->positionMove(10, 170.0);
-        pos->positionMove(11, 55.0);
-        pos->positionMove(12, 10.0);
-        pos->positionMove(13, 85.0);
-        pos->positionMove(14, 170.0);
-        pos->positionMove(15, 170.0);
+        pos->positionMove(11, 0.0);
+        pos->positionMove(12, 0.0);
+        pos->positionMove(13, 90.0);
+        pos->positionMove(14, 180.0);
+        pos->positionMove(15, 180.0);
 
         bool motionDone=false;
         while (!motionDone)
@@ -188,7 +196,7 @@ public:
         cout << "waiting to be in intial position" << endl;
 
         Matrix R=zeros(3,3);
-        R(0,0)=-1.0; R(1,1)=1.0; R(2,2)=-1.0;
+        R(0,0)=-1.0; R(1,1)=1; R(2,2)=-1.0;
         orientation=dcm2axis(R);
         
         // enable torso movements as well
@@ -208,7 +216,7 @@ public:
             initPos[2] = botPos->get(2).asDouble();
             cout<<"Reaching initial position with right hand"<<initPos.toString(3,3).c_str()<<endl;            
             armCart->goToPoseSync(initPos,orientation);
-            armCart->waitMotionDone();
+            armCart->waitMotionDone(0.1,3.0);
         }
         else
         {
@@ -224,6 +232,7 @@ public:
 
         tempPos=initPos;
         state=up;
+        forward = false;
 
         timeBeginIdle = Time::now();
 
@@ -233,44 +242,99 @@ public:
 
     bool updateModule()
     {
+
+        if (!forward)
+        {
         bool done;
         armCart->checkMotionDone(&done);
+/*
         if (!done)
-            return true;
+            return true;*/
 
         if (state==idle)
         {
             if (Time::now() - timeBeginIdle > delay)
             {
-                tempPos[2]+=gap;
-                state=up;            
+                tempPos[2] += gap;
+                state = up;
+                timeBeginIdle = Time::now();
             }
             else
                 return true;
         }
-        else if (state==up)
+        else if (state == up)
         {
-            tempPos[1]=minY+(maxY-minY)*Random::uniform();
-            state=side;
+
+            if (done || Time::now() - timeBeginIdle > thrMove)
+            {
+                tempPos[1] = minY + (maxY - minY)*Random::uniform();
+                state = side;
+                timeBeginIdle = Time::now();
+            }
         }
-        else if (state==side)
+        else if (state == side)
         {
-            tempPos[2]-=gap;
-            state=down;
+            if (done || Time::now() - timeBeginIdle > thrMove)
+            {
+
+                tempPos[2] -= gap;
+                state = down;
+                timeBeginIdle = Time::now();
+            }
         }
-        else if (state==down)
+        else if (state == down)
         {
-            tempPos[2]+=gap;
-            state=idle;
-            timeBeginIdle = Time::now();
+            if (done || Time::now() - timeBeginIdle > thrMove)
+            {
+
+                state = idle;
+                timeBeginIdle = Time::now();
+            }
         }
 
         armCart->goToPoseSync(tempPos,orientation);
         printf("Going to (%s)\n",tempPos.toString(3,3).c_str());
-        portStreamer.write(tempPos);
+        
+        
+        Vector toSend,toSend2;
+        armCart->getPose(toSend,toSend2);
+        portStreamer.write(toSend);
+
+        }
+        else
+        {
+            Vector cartPos;
+            portFromCart.read(cartPos);
+            armCart->goToPoseSync(cartPos, orientation);
+        }
 
         return true;
     }
+
+    bool respond(const Bottle& command, Bottle& reply) {
+
+        reply.clear(); 
+
+        if (command.get(0).asString()=="quit") {
+            reply.addString("quitting");
+            return false;     
+        }
+        else if (command.get(0).asString()=="forward") {
+            cout << "forward on" << endl;
+            reply.addString("forward on");
+            forward = true;
+        }
+        else if (command.get(0).asString()=="stop")
+        {
+            cout << "forward off" << endl;
+            reply.addString("forward off");
+            forward = false;
+        }
+
+
+        return true;
+    }
+
 };
 
 

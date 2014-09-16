@@ -8,4 +8,3 @@ endif()
 
 add_subdirectory(guiUpdater)
 add_subdirectory(qRM)
-add_subdirectory(fft)
