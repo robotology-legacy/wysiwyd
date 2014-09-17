@@ -16,12 +16,13 @@ private:
 
     Port        rpc;
     yarp::os::BufferedPort<yarp::sig::Sound> portInput;
-    yarp::os::BufferedPort<yarp::os::Bottle> portOutput;
+    yarp::os::BufferedPort<yarp::os::Bottle> portOutputFreq;
+    yarp::os::BufferedPort<yarp::os::Bottle> portOutputGap;
 
     string port2audioName;
-    string port2outputName;
+    string port2outputNameFreq;
+    string port2outputNameGap;
 
-    bool forwardNoteGap;        // forward the gap is semi tone to a referent frequency (freqReference)
     double freqReference;       // frequency of reference if forwarding the gap in semi tone (default 440. Hz)
 
 public:

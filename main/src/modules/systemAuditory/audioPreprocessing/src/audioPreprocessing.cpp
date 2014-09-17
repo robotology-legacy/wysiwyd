@@ -6,7 +6,7 @@
 //   When utilizing credit LIBROW site
 
 //   Include declaration file
-#include "fft.h"
+#include "audioPreprocessing.h"
 //   Include math library
 #include <math.h>
 #include <stdlib.h>
@@ -16,11 +16,9 @@
 
 bool CFFT::configure(yarp::os::ResourceFinder &rf)
 {
-    string moduleName = rf.check("name", Value("fft")).asString().c_str();
+    string moduleName = rf.check("name", Value("audioPreprocessing")).asString().c_str();
     setName(moduleName.c_str());
 
-    
-    forwardNoteGap = rf.check("forwardNoteGap");
     freqReference = rf.check("freqReference", Value(440.)).asDouble();
 
     bool    bEveryThingisGood = true;
@@ -37,15 +35,25 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     }
 
 
-    // create an output port
-    // Open port2audio
-    port2outputName = "/";
-    port2outputName += getName() + "/freq:o";
+    // create an output port for frequency
+    port2outputNameFreq = "/";
+    port2outputNameFreq += getName() + "/freq:o";
 
-    if (!portOutput.open(port2outputName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2outputName << endl;
+    if (!portOutputFreq.open(port2outputNameFreq.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameFreq << endl;
         bEveryThingisGood &= false;
     }
+
+
+    // create an output port for gap
+    port2outputNameGap = "/";
+    port2outputNameGap += getName() + "/note:o";
+
+    if (!portOutputGap.open(port2outputNameGap.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameGap << endl;
+        bEveryThingisGood &= false;
+    }
+
 
     // connect input port to audio
     while (!Network::connect("/microphone", port2audioName.c_str()))
@@ -66,7 +74,8 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
 bool CFFT::close() {
     portInput.close();
-    portOutput.close();
+    portOutputFreq.close();
+    portOutputGap.close();
     return true;
 }
 
@@ -183,10 +192,16 @@ bool CFFT::updateModule() {
         meanFreq /= SAMPLES;
         cout << "Weighted Average Freq = " << weightedMean << "\t Max Frequency obtained in index=" << bestIndex << endl;
         */
-        cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << endl;
+        
+        double gap = log(newMaxFreq/freqReference)*12/log(2.);
+        cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << "\t Note gap : " << gap << endl;
 
-        yarp::os::Bottle &treatedSignal = portOutput.prepare();
-        treatedSignal.clear();
+        yarp::os::Bottle &treatedFrequency = portOutputFreq.prepare();
+        treatedFrequency.clear();
+
+        yarp::os::Bottle &treatedNote = portOutputGap.prepare();
+        treatedNote.clear();
+
         /*
         for (int i = 50; i < 100; i++)
         {
@@ -213,16 +228,11 @@ bool CFFT::updateModule() {
             }
         }*/
 
-        if (forwardNoteGap)
-        {
-            double gap = log(newMaxFreq/freqReference)*12/log(2.);
-            treatedSignal.addDouble(gap);
-        }
-        else
-        {
-            treatedSignal.addDouble(newMaxFreq);
-        }
-        portOutput.write();
+        treatedNote.addDouble(gap);
+        treatedFrequency.addDouble(newMaxFreq);
+
+        portOutputFreq.write();
+        portOutputGap.write();
 
         //   Free memory
         delete[] pSignal;
