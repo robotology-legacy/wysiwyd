@@ -19,6 +19,23 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("audioPreprocessing")).asString().c_str();
     setName(moduleName.c_str());
 
+    // buffer size is set to 4096 because: 
+    //      - It must be a power of 2
+    //      - As greater de num of samples (L), greater the resolution (Res)
+    //      - Remember that this should be tuned in function of the sampling frequency (Fs) of the microphone
+    //      - Res (Hz/sample) = Fs / L
+    L = 4096;
+    cout << "checking current buffer size..." << endl;
+    /*if (buffer.size() < L) 
+        {
+            cout << "Reallocating memory for buffer ... "<< endl;
+            buffer.resize(L);
+            for (int i=0;i<L;i++)
+            {
+                buffer[i] = 0;
+            }
+        }
+    */
     freqReference = rf.check("freqReference", Value(440.)).asDouble();
 
     bool    bEveryThingisGood = true;
@@ -117,13 +134,14 @@ bool CFFT::updateModule() {
         /* Number of Samples (ideally SAMPLES <= 2024 to ensure musical tone recognition)*/
         int SAMPLES = signal->getSamples();
 
+        std::cout <<"buffer size is " << L << endl;
         /* Sampling Frequency (ideally over 8KHz)*/
         int Fs = signal->getFrequency();
         std::cout << "Current Sampling Frequency is " << Fs << endl;
         std::cout << "Current Max Frequency is " << Fs/2 << endl;
 
         /* Number of discrimanble frequencies*/
-        int NFFT = (int)nextpow2(SAMPLES); //Number of fast fourier transforms
+        int NFFT = (int)nextpow2(L); //Number of fast fourier transforms
         
         /* Experiments should be made to ensure that the sampling frequency is good enough for speech recognition */
         std::cout << "Current Frequency Ressolution is " << Fs/NFFT << endl;
@@ -133,19 +151,37 @@ bool CFFT::updateModule() {
         sig.resize(K);
         vector<double> f;
         f.resize(NFFT);// frequencies vector
-        complex *pSignal = new complex[SAMPLES];
+        complex *pSignal = new complex[L];
 
 
-        for (int i = 0; i < SAMPLES; i++)
+        for (int i=0; i<(L-SAMPLES);i++)
+        {
+            buffer[i] = buffer[i+SAMPLES];
+        }
+        for (int i=L-SAMPLES; i<L;i++)
+        {
+            buffer[i] = signal->get(i-L);
+        }
+        //cout << endl << endl << &buffer<<endl<<endl<<endl;
+        /*
+        for (int i=0;i<SAMPLES;i++)
+        {
+            buffer.push_back(signal->get(i));
+            buffer.pop_back();
+        }*/
+
+        for (int i = 0; i < L; i++)
         {
             //pSignal[i] = signal->getSafe(i, 0); 
             //pSignal[i] = signal->get(i) / 65535.0;;
-            pSignal[i] = signal->get(i);
+            pSignal[i] = buffer[i];
+            
         }
 
         complex *fftOut = new complex[NFFT]; //complex[SAMPLES]
         //CFFT::Forward(pSignal, pSignalOut, SAMPLES);
         CFFT::Forward(pSignal, fftOut, NFFT);
+        //CFFT::Forward(buffer, fftOut, NFFT);
         //cout << "Frequency is " <<pSignal;
         //int MaxFreqIdx = 0;
         double MaxAmpIdx = 1;
@@ -202,21 +238,26 @@ bool CFFT::updateModule() {
         check == 2 ->  send 1 or 0 if frequency over a threshold
         */
         
+        delete[] pSignal;
 
+        cout << "preparing Spectral Signal..." << endl;
         for (int i = 1; i<K; i++)
             {
                 SpectralSignal.addDouble(log10(sig[i]));
             }
 
+        cout << "preparing rest of signals..." << endl;
         treatedNote.addDouble(gap);
         treatedFrequency.addDouble(newMaxFreq);
 
+        cout << "Writting to ports" << endl;
         portOutputFreq.write();
         portOutputGap.write();
         portSpectrumOutput.write();
 
+        cout << "freeing memory"<<endl;
         //   Free memory
-        delete[] pSignal;
+        //delete[] pSignal;
     }
 
     return true;

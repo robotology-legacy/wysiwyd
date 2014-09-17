@@ -26,6 +26,10 @@ private:
     string port2outputNameGap;
     string port2outputNameSpectrum;
 
+    int L;
+    //vector<complex> buffer;
+    complex *buffer = new complex[4096];
+
     double freqReference;       // frequency of reference if forwarding the gap in semi tone (default 440. Hz)
 
 public:
