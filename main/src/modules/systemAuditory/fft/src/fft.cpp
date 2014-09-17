@@ -19,6 +19,10 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("fft")).asString().c_str();
     setName(moduleName.c_str());
 
+    
+    forwardNoteGap = rf.check("forwardNoteGap");
+    freqReference = rf.check("freqReference", Value(440.)).asDouble();
+
     bool    bEveryThingisGood = true;
 
 
@@ -208,7 +212,16 @@ bool CFFT::updateModule() {
                     treatedSignal.addDouble(0.0);
             }
         }*/
-        treatedSignal.addDouble(newMaxFreq);
+
+        if (forwardNoteGap)
+        {
+            double gap = log(newMaxFreq/freqReference)*12/log(2.);
+            treatedSignal.addDouble(gap);
+        }
+        else
+        {
+            treatedSignal.addDouble(newMaxFreq);
+        }
         portOutput.write();
 
         //   Free memory

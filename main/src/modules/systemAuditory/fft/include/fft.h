@@ -15,13 +15,14 @@ class CFFT : public RFModule {
 private:
 
     Port        rpc;
-    // This is the port, I don't know yet where it should be declared
-    yarp::os::BufferedPort<yarp::sig::Sound> portInput;                // a port to communicate with autobiographicalMemory
-    // This is the port, I don't know yet where it should be declared
-    yarp::os::BufferedPort<yarp::os::Bottle> portOutput;                // a port to communicate with autobiographicalMemory
+    yarp::os::BufferedPort<yarp::sig::Sound> portInput;
+    yarp::os::BufferedPort<yarp::os::Bottle> portOutput;
 
     string port2audioName;
     string port2outputName;
+
+    bool forwardNoteGap;        // forward the gap is semi tone to a referent frequency (freqReference)
+    double freqReference;       // frequency of reference if forwarding the gap in semi tone (default 440. Hz)
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
