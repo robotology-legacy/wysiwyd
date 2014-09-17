@@ -184,7 +184,7 @@ bool CFFT::updateModule() {
         //CFFT::Forward(buffer, fftOut, NFFT);
         //cout << "Frequency is " <<pSignal;
         //int MaxFreqIdx = 0;
-        double MaxAmpIdx = 1;
+        int MaxAmpIdx = 1;
         /*Compute frequency amplitude*/
         for (int i = 1; i < K; i++)
         {
