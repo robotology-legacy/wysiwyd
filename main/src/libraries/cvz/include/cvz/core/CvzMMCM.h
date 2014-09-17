@@ -30,6 +30,7 @@ namespace cvz {
 
         public:
 
+            virtual std::string getType() { return cvz::core::TYPE_MMCM; };
             double lRate, sigmaH, sigmaV;
             int H() { return height; }
             int W() { return width; }
@@ -130,7 +131,7 @@ namespace cvz {
 
                     yarp::os::Bottle bTmp;
                     bTmp.read(propTmp);
-                    recurrentModality = new IModality(recModName, bTmp);
+                    recurrentModality = new IModality(recModName, bTmp, this);
                     modalitiesInfluence[recurrentModality] = rf.check("recurrentInfluence", yarp::os::Value(1.0)).asDouble();
                 }
                 else

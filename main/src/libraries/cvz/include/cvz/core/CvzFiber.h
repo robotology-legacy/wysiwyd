@@ -18,7 +18,8 @@ namespace cvz {
             public:
                 std::vector<CvzSheet> layers;
                 std::map<IModality*, IModality*> connections;
-
+                std::map<IModality*, IModality*> inverted_connections;
+                
                 CvzFiber()
                 {
 
@@ -92,12 +93,16 @@ namespace cvz {
                         }
                         else //first layer, we generate the out-of-fiber inputs here
                         {
+                            std::string debugFck = prop.toString();
                             yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
-                            std::stringstream ssModGroup;
-                            ssModGroup << "modality_" << modalityCounter;
-                            yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-                            inputModalityPrototype->write(pMod);
-                            modalityCounter++;
+                            if (inputModalityPrototype)
+                            {
+                                std::stringstream ssModGroup;
+                                ssModGroup << "modality_" << modalityCounter;
+                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+                                inputModalityPrototype->write(pMod);
+                                modalityCounter++;
+                            }
                         }
 
                         //Automatic generation of the output modalities
@@ -124,6 +129,7 @@ namespace cvz {
                                 ssModName << "output_" << iMod;
                                 pMod.put("name", ssModName.str());
                                 pMod.put("isTopDown", yarp::os::Value(1));
+                                pMod.put("learningRate", yarp::os::Value(0.0));
                                 pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
                                 modalityCounter++;
                             }        
@@ -132,11 +138,14 @@ namespace cvz {
                         if (l==(int)layers.size()-1)//last layer, we create the potential out-of-fiber convergence at this level
                         {
                             yarp::os::Bottle* outputModalityPrototype = prop.find("outputModalityPrototype").asList();
-                            std::stringstream ssModGroup;
-                            ssModGroup << "modality_" << modalityCounter;
-                            yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-                            outputModalityPrototype->write(pMod);
-                            modalityCounter++;
+                            if (outputModalityPrototype)
+                            {
+                                std::stringstream ssModGroup;
+                                ssModGroup << "modality_" << modalityCounter;
+                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+                                outputModalityPrototype->write(pMod);
+                                modalityCounter++;
+                            }
                         }
                         
                         bool isFine = layers[l].configure(sqrSize, sqrSize, p);
@@ -150,7 +159,7 @@ namespace cvz {
                     //Compute the connectivity pattern
                     createConnections();
 
-                    //Autoconnect to the input prototype
+                    //Autoconnect to the input prototype to a matrix of ports (e.g output of ImageSplitter)
                     std::string autoConnectStem = prop.check("autoConnectInputStem",yarp::os::Value("")).asString();
                     if (autoConnectStem != "")
                     {
@@ -206,8 +215,6 @@ namespace cvz {
                     return true;
                 }
 
-
-
                 //Search for the first not connected modality on the src cvz, connect it to the first available modality on the target cvz
                 bool connectFreeModalities(IConvergenceZone* src, IConvergenceZone* dest, std::list<IModality*>& usedModalities)
                 {
@@ -221,7 +228,8 @@ namespace cvz {
                                 if (find(usedModalities.begin(), usedModalities.end(), itDestMod->second) == usedModalities.end())
                                 {
                                     IModality* destModality = itDestMod->second;
-                                    connections[srcModality] = destModality;
+                                    connections[srcModality] = destModality; 
+                                    inverted_connections[destModality] = srcModality;
                                     usedModalities.push_back(srcModality);
                                     usedModalities.push_back(destModality);
                                     std::cout << "Established a connection from " << src->getName() << " to " << dest->getName() << " using " << srcModality->GetFullName() << "-->" << destModality->GetFullName() << std::endl;
@@ -296,6 +304,167 @@ namespace cvz {
                     }
                 }
 
+                void close()
+                {
+                    for (size_t l = 0; l < layers.size(); l++)
+                    {
+                        layers[l].close();
+                    }
+                }
+
+
+                //Recursive function. Will go down the fiber until it cannot anymore
+                IplImage* getRFforNeuron(CvzMMCM* map, int x, int y, int z)
+                {
+                    std::list<IplImage*> modImgs;
+                    for (std::map<std::string, IModality*>::iterator itBot = map->modalitiesBottomUp.begin(); itBot != map->modalitiesBottomUp.end(); itBot++)
+                    {
+                        IplImage* modalityRF;
+                        //Check something is sending input to this modality
+                        if (inverted_connections.find(itBot->second) != inverted_connections.end())
+                        {
+                            //Get the receptive field of this neuron
+                            std::vector<double> rf = map->getReceptiveFieldWeights(x, y, z, itBot->second);
+                            int bmuX, bmuY, bmuZ;
+
+                            //Get the best matching unit for the projecting map
+                            CvzMMCM* projectingMap = (CvzMMCM*)inverted_connections[itBot->second]->GetOwnerCvz();
+                            projectingMap->getBestMatchingUnit(rf, inverted_connections[itBot->second], bmuX, bmuY, bmuZ);
+                            modalityRF = getRFforNeuron(projectingMap, bmuX, bmuY, bmuZ);
+                        }
+                        else
+                        {
+                            yarp::sig::ImageOf<yarp::sig::PixelRgb> imgrf = map->getReceptiveFieldRepresentation(x, y, z, itBot->second);
+                            modalityRF = cvCreateImage(cvSize(imgrf.width(), imgrf.height()), 8, 3);
+                            cvCopyImage(imgrf.getIplImage(), modalityRF);
+                        }
+                        modImgs.push_back(modalityRF);
+                    }
+
+                    //Add up all the modalities
+                    //1. calculate the size of the full image
+                    int totalW = 0;
+                    int totalH = 0;
+                    for (std::list<IplImage*>::iterator it = modImgs.begin(); it != modImgs.end(); it++)
+                    {
+                        totalW += (*it)->width;
+                        totalH = std::max(totalH, (*it)->height);
+                    }
+
+                    //2. Create the image
+                    IplImage* fullImg = cvCreateImage(cvSize(totalW, totalH), 8, 3);
+                    
+                    //3. copy all sub parts in the right place && free memory
+                    int xOffset = 0;
+                    for (std::list<IplImage*>::iterator it = modImgs.begin(); it != modImgs.end(); it++)
+                    {
+                        cvSetImageROI(fullImg, cvRect(xOffset, 0, (*it)->width, (*it)->height));
+                        cvCopyImage((*it), fullImg);
+                        cvResetImageROI(fullImg);
+                        xOffset += (*it)->width;
+                        cvReleaseImage(&(*it));
+                    }
+
+                    return fullImg;
+                }
+
+                //Get the receptive field of a layer by going down to the first layer
+                IplImage* getRecursiveRFLayer(int layer)
+                {
+                    bool isMMCMFiber = true;
+                    for (std::vector<CvzSheet>::iterator it = layers.begin(); it != layers.end(); it++)
+                        isMMCMFiber &= layers[layer].isFullMMCM();
+                    if (!isMMCMFiber)
+                    {
+                        std::cerr << "Not full mmcm returning empty image." << std::endl;
+                        IplImage* fullImg = cvCreateImage(cvSize(1, 1), 8, 3);
+                        return fullImg;
+                    }
+                    
+                    IplImage* fullLayerImage;
+                    std::vector< std::vector< IplImage* > > subpartsFullLayer;
+                    subpartsFullLayer.resize(layers[layer].Width());
+
+                    for (int xMap = 0; xMap < layers[layer].Width(); xMap++)
+                    {
+                        subpartsFullLayer[xMap].resize(layers[layer].Height());
+
+                        for (int yMap = 0; yMap < layers[layer].Height(); yMap++)
+                        {
+                            CvzMMCM* map = (CvzMMCM*)layers[layer][xMap][yMap];
+
+                            std::vector< std::vector< IplImage* > > subparts;
+                            subparts.resize(map->W());
+                            for (int x = 0; x < map->W(); x++)
+                            {
+                                subparts[x].resize(map->H());
+                                for (int y = 0; y < map->H(); y++)
+                                {
+                                    IplImage* tmpForZ = NULL;
+                                    for (int z = 0; z < map->L(); z++)
+                                    {
+                                        IplImage* rf = getRFforNeuron(map, x, y, z);
+
+                                        if (tmpForZ == NULL)
+                                            tmpForZ = cvCreateImage(cvSize(rf->width*map->L(), rf->height), 8, 3);
+
+                                        cvSetImageROI(tmpForZ, cvRect(z*rf->width, 0, rf->width, rf->height));
+                                        cvCopyImage(rf, tmpForZ);
+                                        cvResetImageROI(tmpForZ);
+                                        cvReleaseImage(&rf);
+                                    }
+                                    subparts[x][y] = tmpForZ;
+                                }
+                            }
+
+                            //Add up all the modalities
+                            //1. calculate the size of the full image
+                            int totalW = subparts[0][0]->width * map->W();
+                            int totalH = subparts[0][0]->height * map->H();
+
+
+                            //2. Create the image
+                            IplImage* fullImg = cvCreateImage(cvSize(totalW, totalH), 8, 3);
+
+                            //3. copy all sub parts in the right place && free memory
+                            for (int x = 0; x < map->W(); x++)
+                            {
+                                for (int y = 0; y < map->H(); y++)
+                                {
+                                    cvSetImageROI(fullImg, cvRect(x*subparts[x][y]->width, y*subparts[x][y]->height, subparts[x][y]->width, subparts[x][y]->height));
+                                    cvCopyImage(subparts[x][y], fullImg);
+                                    cvResetImageROI(fullImg);
+                                    cvReleaseImage(&subparts[x][y]);
+                                }
+                            }
+
+                            subpartsFullLayer[xMap][yMap] = fullImg;
+                        }
+                    }
+
+                    //Add up all the modalities
+                    //1. calculate the size of the full image
+                            //HERE THERE MAY BE A BUG
+                            //I assumed that all the subparts would have the same size, which is not guaranted... 
+                    int totalW = subpartsFullLayer[0][0]->width * layers[layer].Width();
+                    int totalH = subpartsFullLayer[0][0]->height * layers[layer].Height();;
+
+                    //2. Create the image
+                    fullLayerImage = cvCreateImage(cvSize(totalW, totalH), 8, 3);
+
+                    //3. copy all sub parts in the right place && free memory
+                    for (int xMap = 0; xMap < layers[layer].Width(); xMap++)
+                    {
+                        for (int yMap = 0; yMap < layers[layer].Height(); yMap++)
+                        {
+                            cvSetImageROI(fullLayerImage, cvRect(xMap*subpartsFullLayer[xMap][yMap]->width, yMap*subpartsFullLayer[xMap][yMap]->height, subpartsFullLayer[xMap][yMap]->width, subpartsFullLayer[xMap][yMap]->height));
+                            cvCopyImage(subpartsFullLayer[xMap][yMap], fullLayerImage);
+                            cvResetImageROI(fullLayerImage);
+                            cvReleaseImage(&subpartsFullLayer[xMap][yMap]);
+                        }
+                    }
+                    return fullLayerImage;
+                }
             };
     }
 }

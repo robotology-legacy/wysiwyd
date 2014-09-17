@@ -1,6 +1,7 @@
 #ifndef __CVZ_ICVZ_H__
 #define __CVZ_ICVZ_H__
 
+#include "CvzTags.h"
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <map>
@@ -42,6 +43,8 @@ namespace cvz {
 
 		public:
 
+            virtual std::string getType() { return cvz::core::TYPE_ICVZ; };
+
 			std::map<std::string, IModality*> modalitiesBottomUp;
 			std::map<std::string, IModality*> modalitiesTopDown;
 			std::map<IModality*, double > modalitiesInfluence;
@@ -81,17 +84,17 @@ namespace cvz {
 					std::string modType = bMod.find("type").asString();
 					IModality* mod = NULL;
 					if (modType == "yarpVector")
-						mod = new ModalityBufferedPort<yarp::os::Bottle>(modPortPrefix, bMod);
+						mod = new ModalityBufferedPort<yarp::os::Bottle>(modPortPrefix, bMod,this);
 					else if (modType == "yarpSound")
-						mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, bMod);
+                        mod = new ModalityBufferedPort<yarp::sig::Sound>(modPortPrefix, bMod, this);
 					else if (modType == "yarpImageFloat")
-						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >(modPortPrefix, bMod);
+                        mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> >(modPortPrefix, bMod, this);
 					else if (modType == "yarpImageRgb")
-						mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, bMod);
+                        mod = new ModalityBufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >(modPortPrefix, bMod, this);
 					else
 					{
 						std::cout << "Warning, this modality type does not exist. Using the IModality class...." << std::endl;
-						mod = new IModality(modPortPrefix, bMod);
+                        mod = new IModality(modPortPrefix, bMod, this);
 					}
 
 					if (mod != NULL)

@@ -14,6 +14,7 @@ namespace cvz {
 
 #define MASKED_ELEMENT_VALUE 0.0
 
+        class IConvergenceZone;
 
         /**
         * \ingroup cvz_library
@@ -21,6 +22,9 @@ namespace cvz {
         */
         class IModality
         {
+        private:
+            IConvergenceZone* ownerCvz;
+
         protected:
             std::string nameWithoutPrefix;
             std::string name;
@@ -58,6 +62,11 @@ namespace cvz {
                 return "";
             }
         public:
+            /**
+            * Retrieve the CVZ to which this modality belong (NULL if not claimed)
+            */
+            IConvergenceZone* GetOwnerCvz() { return ownerCvz; }
+
             /**
             * Retrieve the name of the module. Excluding the name of the CVZ it belongs to (e.g /modalityName)
             */
@@ -126,8 +135,9 @@ namespace cvz {
             /**
             * Instantiate a new IModality from a property.
             */
-            IModality(std::string namePrefix, yarp::os::Bottle prop)
+            IModality(std::string namePrefix, yarp::os::Bottle prop, IConvergenceZone* owner=NULL)
             {
+                ownerCvz = owner;
                 parameters = prop;
                 nameWithoutPrefix = prop.find("name").asString();;
                 name = namePrefix;
@@ -242,6 +252,9 @@ namespace cvz {
                 mutex.wait();
                 if (input())
                 {
+                    //weird problem in debug mode about the size of scaledValueReal
+                    if (scaledValueReal.size() != size)
+                        scaledValueReal.resize(size);
                     //Scaling in [0,1]
                     for (int i = 0; i < size; i++)
                     {
@@ -379,7 +392,7 @@ namespace cvz {
             /**
             * Instantiate a new BufferedPortModality<T> from a property.
             */
-            ModalityBufferedPort(std::string namePrefix, yarp::os::Bottle prop) :IModality(namePrefix,prop)
+            ModalityBufferedPort(std::string namePrefix, yarp::os::Bottle prop, IConvergenceZone* owner = NULL) :IModality(namePrefix, prop, owner)
             {
 
                 isBlocking = prop.check("isBlocking");
@@ -689,7 +702,7 @@ namespace cvz {
             {
                 if (i> (unsigned int) (img.width() * img.height()) )
                 {
-                    std::cout << portReal.getName() << "-----> Warning: This should not happen (img resolution is too large)" << std::endl;
+                    std::cout << portReal.getName() << "-----> Warning: This should not happen (size of image modalities should be a square, you probably want size=" << desiredWidth*desiredWidth<<")"<< std::endl;
                     return v;
                 }
                 if (mask[i])
