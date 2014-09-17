@@ -6,7 +6,7 @@
 //   When utilizing credit LIBROW site
 
 //   Include declaration file
-#include "fft.h"
+#include "audioPreprocessing.h"
 //   Include math library
 #include <math.h>
 #include <stdlib.h>
@@ -16,11 +16,9 @@
 
 bool CFFT::configure(yarp::os::ResourceFinder &rf)
 {
-    string moduleName = rf.check("name", Value("fft")).asString().c_str();
+    string moduleName = rf.check("name", Value("audioPreprocessing")).asString().c_str();
     setName(moduleName.c_str());
 
-    
-    forwardNoteGap = rf.check("forwardNoteGap");
     freqReference = rf.check("freqReference", Value(440.)).asDouble();
 
     bool    bEveryThingisGood = true;
@@ -37,31 +35,31 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     }
 
 
-    // create an output port
-    // Open port2audio
-    port2outputName = "/";
-    port2outputName += getName() + "/freq:o";
+    // create an output port for frequency
+    port2outputNameFreq = "/";
+    port2outputNameFreq += getName() + "/freq:o";
 
-    if (!portOutput.open(port2outputName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2outputName << endl;
+    if (!portOutputFreq.open(port2outputNameFreq.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameFreq << endl;
         bEveryThingisGood &= false;
     }
 
-    //the output for gap in frequence
-    port2gapoutputName = "/";
-    port2gapoutputName += getName() + "/freqGap:o";
-
-    if (!portGapOutput.open(port2gapoutputName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2gapoutputName << endl;
-        bEveryThingisGood &= false;
-    }
 
     //the output for spectrum of frequencies
-    port2spectrumoutputName = "/";
-    port2spectrumoutputName += getName() + "/freqSpectrum:o";
+    port2outputNameSpectrum = "/";
+    port2outputNameSpectrum += getName() + "/freqSpectrum:o";
 
-    if (!portSpectrumOutput.open(port2spectrumoutputName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2spectrumoutputName << endl;
+    if (!portSpectrumOutput.open(port2outputNameSpectrum.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameSpectrum << endl;
+        bEveryThingisGood &= false;
+    }
+
+    // create an output port for gap
+    port2outputNameGap = "/";
+    port2outputNameGap += getName() + "/note:o";
+
+    if (!portOutputGap.open(port2outputNameGap.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameGap << endl;
         bEveryThingisGood &= false;
     }
 
@@ -84,9 +82,10 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
 bool CFFT::close() {
     portInput.close();
-    portOutput.close();
+
     portSpectrumOutput.close();
-    portGapOutput.close();
+    portOutputFreq.close();
+    portOutputGap.close();
     return true;
 }
 
@@ -177,14 +176,19 @@ bool CFFT::updateModule() {
         // Print frequency-amplitude
         // cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << endl;
 
-        yarp::os::Bottle &treatedSignal = portOutput.prepare();
-        treatedSignal.clear();
         
+        double gap = log(newMaxFreq/freqReference)*12/log(2.);
+        cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << "\t Note gap : " << gap << endl;
+
+        yarp::os::Bottle &treatedFrequency = portOutputFreq.prepare();
+        treatedFrequency.clear();
+
+        yarp::os::Bottle &treatedNote = portOutputGap.prepare();
+        treatedNote.clear();
+
         yarp::os::Bottle &SpectralSignal = portSpectrumOutput.prepare();
         SpectralSignal.clear();
 
-        yarp::os::Bottle &GapSignal = portGapOutput.prepare();
-        GapSignal.clear();
         /*
         for (int i = 50; i < 100; i++)
         {
@@ -198,35 +202,19 @@ bool CFFT::updateModule() {
         check == 1 ->  send amplitude values to the output
         check == 2 ->  send 1 or 0 if frequency over a threshold
         */
-        if (check == 1)
-        {
-           std::cout << "Writing something in freqSpectrum" << endl;
-             for (int i = 1; i<K; i++)
+        
+
+        for (int i = 1; i<K; i++)
             {
-                treatedSignal.addDouble(log10(sig[i]));
+                SpectralSignal.addDouble(log10(sig[i]));
             }
-        
-        }
-        else{
-            for (int i = 1; i < K; i++)
-            {
-                if (sig[i] / (double)1e8>150.0)
-                    treatedSignal.addDouble(1.0);
-                else
-                    treatedSignal.addDouble(0.0);
-            }
-        }
-        // treatedSignal.addDouble(newMaxFreq);
-        
-        
-        double gap = log(newMaxFreq/freqReference)*12/log(2.);
-        GapSignal.addDouble(gap);
-        
-        //treatedSignal.addDouble(newMaxFreq);
-        
-        portOutput.write();
+
+        treatedNote.addDouble(gap);
+        treatedFrequency.addDouble(newMaxFreq);
+
+        portOutputFreq.write();
+        portOutputGap.write();
         portSpectrumOutput.write();
-        portGapOutput.write();
 
         //   Free memory
         delete[] pSignal;

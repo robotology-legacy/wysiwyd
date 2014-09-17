@@ -2,7 +2,7 @@
 # Authors: Grégoire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME fft)
+set(PROJECTNAME audioPreprocessing)
 project(${PROJECTNAME})
 
 
