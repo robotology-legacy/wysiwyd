@@ -197,7 +197,6 @@ bool CFFT::updateModule() {
         */
 
        
-        int check = 1;
         /*
         check == 1 ->  send amplitude values to the output
         check == 2 ->  send 1 or 0 if frequency over a threshold
