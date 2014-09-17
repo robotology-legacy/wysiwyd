@@ -19,6 +19,10 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("fft")).asString().c_str();
     setName(moduleName.c_str());
 
+    
+    forwardNoteGap = rf.check("forwardNoteGap");
+    freqReference = rf.check("freqReference", Value(440.)).asDouble();
+
     bool    bEveryThingisGood = true;
 
 
@@ -43,8 +47,26 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
         bEveryThingisGood &= false;
     }
 
+    //the output for gap in frequence
+    port2gapoutputName = "/";
+    port2gapoutputName += getName() + "/freqGap:o";
+
+    if (!portGapOutput.open(port2gapoutputName.c_str())) {
+        cout << getName() << ": Unable to open port " << port2gapoutputName << endl;
+        bEveryThingisGood &= false;
+    }
+
+    //the output for spectrum of frequencies
+    port2spectrumoutputName = "/";
+    port2spectrumoutputName += getName() + "/freqSpectrum:o";
+
+    if (!portSpectrumOutput.open(port2spectrumoutputName.c_str())) {
+        cout << getName() << ": Unable to open port " << port2spectrumoutputName << endl;
+        bEveryThingisGood &= false;
+    }
+
     // connect input port to audio
-    while (!Network::connect("/microphone", port2audioName.c_str()))
+    while (!Network::connect("/mic", port2audioName.c_str()))
     {
         std::cout << "Trying to get input from microphone..." << std::endl;
         yarp::os::Time::delay(1.0);
@@ -63,6 +85,8 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 bool CFFT::close() {
     portInput.close();
     portOutput.close();
+    portSpectrumOutput.close();
+    portGapOutput.close();
     return true;
 }
 
@@ -125,7 +149,7 @@ bool CFFT::updateModule() {
         CFFT::Forward(pSignal, fftOut, NFFT);
         //cout << "Frequency is " <<pSignal;
         //int MaxFreqIdx = 0;
-        
+        double MaxAmpIdx = 1;
         /*Compute frequency amplitude*/
         for (int i = 1; i < K; i++)
         {
@@ -133,12 +157,12 @@ bool CFFT::updateModule() {
             double x = fftOut[i].norm() / (double)SAMPLES;
             if (x<0){ x = -x; }
             sig[i] = 2 * x; // Amplitude of the signal
-            /*
+            
             if (sig[i] > sig[MaxAmpIdx]) //stores max amplitude index
             {
                 MaxAmpIdx = i;
             }
-            */
+            
         }
 
         /*Compute Frequency vector*/
@@ -148,14 +172,19 @@ bool CFFT::updateModule() {
             f[i] = Fs / 2 * j; // This calculates the frequency. j should be multiplied by Fs/2 if everythng is right
         }
 
-        // double newMaxFreq = f[MaxAmpIdx];
-        // newMaxFreq = floor((double)newMaxFreq/4)*4;
+        double newMaxFreq = f[MaxAmpIdx];
         
         // Print frequency-amplitude
         // cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << endl;
 
         yarp::os::Bottle &treatedSignal = portOutput.prepare();
         treatedSignal.clear();
+        
+        yarp::os::Bottle &SpectralSignal = portSpectrumOutput.prepare();
+        SpectralSignal.clear();
+
+        yarp::os::Bottle &GapSignal = portGapOutput.prepare();
+        GapSignal.clear();
         /*
         for (int i = 50; i < 100; i++)
         {
@@ -163,7 +192,7 @@ bool CFFT::updateModule() {
         }
         */
 
-        
+       
         int check = 1;
         /*
         check == 1 ->  send amplitude values to the output
@@ -171,10 +200,12 @@ bool CFFT::updateModule() {
         */
         if (check == 1)
         {
-            for (int i = 1; i<K; i++)
+           std::cout << "Writing something in freqSpectrum" << endl;
+             for (int i = 1; i<K; i++)
             {
                 treatedSignal.addDouble(log10(sig[i]));
             }
+        
         }
         else{
             for (int i = 1; i < K; i++)
@@ -186,7 +217,16 @@ bool CFFT::updateModule() {
             }
         }
         // treatedSignal.addDouble(newMaxFreq);
+        
+        
+        double gap = log(newMaxFreq/freqReference)*12/log(2.);
+        GapSignal.addDouble(gap);
+        
+        //treatedSignal.addDouble(newMaxFreq);
+        
         portOutput.write();
+        portSpectrumOutput.write();
+        portGapOutput.write();
 
         //   Free memory
         delete[] pSignal;

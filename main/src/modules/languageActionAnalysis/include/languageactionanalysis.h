@@ -50,6 +50,7 @@ private:
 
     ifstream file;
     string svector,sanswer;
+    string sagent;
     int iquestion;
 
     Port handlerPort;				// a port to handle messages

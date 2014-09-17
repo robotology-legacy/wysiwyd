@@ -1,0 +1,64 @@
+<application>
+    <name>CVZ_PIANO</name>
+	
+	<module>
+        <name>yarpdev</name>
+        <parameters>--device grabber --subdevice portaudio --read --name /microphone --channels 1 --samples 2048 --rate 8000</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+	
+	<module>
+        <name>yarphear</name>
+        <parameters>--name speakers</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>	
+	
+    <module>
+        <name>fft</name>
+        <parameters>--name fft</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+    </module>   
+
+    <module>
+        <name>cvzCore</name>
+        <parameters>--context cvzBCBT2014 --from auditoryMotorSpectrum.ini --displayGui</parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/mmcm/eyeHand/vision/real:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/cvz/right_arm/prediction --rxTime</parameters>
+        <node>icubsrv</node>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/mmcm/eyeHand/vision/prediction:o</from>
+        <to>/dump/cvz/right_arm/prediction</to>
+        <protocol>tcp</protocol>
+    </connection>
+	
+    <module>
+        <name>dataDumper</name>
+        <parameters>--name dump/icub/right_arm/state --rxTime</parameters>
+        <node>icubsrv</node>
+        <prefix></prefix>
+    </module>
+	
+    <connection>
+        <from>/icub/right_arm/state:o</from>
+        <to>/dump/dump/icub/right_arm/state</to>
+        <protocol>tcp</protocol>
+    </connection>	
+		
+</application>
