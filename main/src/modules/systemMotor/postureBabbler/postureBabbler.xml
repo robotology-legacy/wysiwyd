@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>postureBabbler</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Just iterate randomly between a set of prerecorded postures, going back to "safe" in between. Makes use of the ctpService.</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+    Move the left and right arm independently among a set of pre-recorded postures (app/imitationBabbling/conf). \n
+   </description-long>
+
+   <arguments>
+     <param default="postureBabbler" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+     <param default="babbling_" desc="The stem name of the postures (e.g babbling_0 babbling_1 etc would have babbling_ as a stem name) /name">postureRootName</param>
+     <param default="3.0" desc="The time that will be passed to the ctpService for reaching the posture. /name">postureReachingTime</param>
+     <param default="safe" desc="Name of the posture to be reached in between two random postures. /name">inBeetweenPosture</param>
+     <param default="head left_arm right_arm torso" desc="The parts to be controller. /name">parts</param>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+   </data>
+   
+   
+</module>
+
