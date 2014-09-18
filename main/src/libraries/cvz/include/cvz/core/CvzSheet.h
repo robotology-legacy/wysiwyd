@@ -83,9 +83,9 @@ namespace cvz {
 
                 void cycle()
                 {
-                    for (size_t x = 0; x < width; x++)
+                    for (int x = 0; x < width; x++)
                     {
-                        for (size_t y = 0; y < height; y++)
+                        for (int y = 0; y < height; y++)
                         {
                             this->operator[](x)[y]->cycle();
                         }
@@ -94,9 +94,9 @@ namespace cvz {
 
                 void close()
                 {
-                    for (size_t x = 0; x < width; x++)
+                    for (int x = 0; x < width; x++)
                     {
-                        for (size_t y = 0; y < height; y++)
+                        for (int y = 0; y < height; y++)
                         {
                             this->operator[](x)[y]->close();
                         }
@@ -105,9 +105,9 @@ namespace cvz {
 
                 bool isFullMMCM()
                 {
-                    for (size_t x = 0; x < width; x++)
+                    for (int x = 0; x < width; x++)
                     {
-                        for (size_t y = 0; y < height; y++)
+                        for (int y = 0; y < height; y++)
                         {
                             IConvergenceZone* cvzPtr = this->operator[](x)[y];
                             if (cvzPtr->getType() != TYPE_MMCM)
@@ -185,9 +185,9 @@ namespace cvz {
                     int totalH = probe->height * height;
                     IplImage* fullImg = cvCreateImage(cvSize(totalW, totalH), 8, 3);
 
-                    for (size_t x = 0; x < width; x++)
+                    for (int x = 0; x < width; x++)
                     {
-                        for (size_t y = 0; y < height; y++)
+                        for (int y = 0; y < height; y++)
                         {
                             IplImage* thumbnail = getReceptiveField(x, y);
                             cvSetImageROI(fullImg, cvRect(x*probe->width, y*probe->height, probe->width, probe->height));

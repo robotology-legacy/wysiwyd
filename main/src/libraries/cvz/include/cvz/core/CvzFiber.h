@@ -312,7 +312,7 @@ namespace cvz {
                     }
                 }
 
-
+                //Retrieve the receptive field of a given neuron, on a given map by backpropagating it until it reaches the bottom of the fiber.
                 //Recursive function. Will go down the fiber until it cannot anymore
                 IplImage* getRFforNeuron(CvzMMCM* map, int x, int y, int z)
                 {
