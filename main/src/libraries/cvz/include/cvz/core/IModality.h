@@ -34,6 +34,7 @@ namespace cvz {
             std::vector<double> minBound;
             std::vector<double> maxBound;
             bool autoScale;
+            double stepFunctionTreshold;
 
             std::vector<double> scaledValueReal;
             std::vector<double> scaledValuePrediction;
@@ -175,6 +176,7 @@ namespace cvz {
                     else
                         maxBound.resize(size, 1.0);
                 }
+                stepFunctionTreshold = prop.check("stepFunctionTreshold", yarp::os::Value(-1.0)).asDouble();
 
                 scaledValueReal.resize(size);
                 scaledValuePrediction.resize(size);
@@ -273,6 +275,14 @@ namespace cvz {
 
                         scaledValueReal[i] = (valueReal[i] - minBound[i]) / (maxBound[i] - minBound[i]);
                         helpers::Clamp(scaledValueReal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
+
+                        if (stepFunctionTreshold != -1.0)
+                        {
+                            if (scaledValueReal[i] > stepFunctionTreshold)
+                                scaledValueReal[i] = 1.0;
+                            else
+                                scaledValueReal[i] = 0.0;
+                        }
                     }
                 }
                 mutex.post();
