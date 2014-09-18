@@ -261,12 +261,12 @@ namespace cvz {
                         if (autoScale && valueReal[i]>maxBound[i])
                         {
                             maxBound[i] = valueReal[i];
-                            std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
+                            //std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
                         }
                         else if (autoScale && valueReal[i]<minBound[i])
                         {
                             minBound[i] = valueReal[i];
-                            std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
+                            //std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
                         }
                         if (maxBound[i] == minBound[i])
                             minBound[i] -= 0.0000000001;//Avoid division by zeros
