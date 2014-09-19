@@ -320,7 +320,11 @@ namespace cvz {
 
 				//------------------------------------------------------------------------------------------------------------------------
                 //Learning
-                if (lRate > 0.0)
+                //check if all modalities learning is off
+                bool allModLearningZero = true;
+                for (std::map<IModality*, double>::iterator itL = modalitiesLearning.begin(); itL != modalitiesLearning.end(); itL++)
+                    allModLearningZero &= (itL->second == 0.0);
+                if (lRate > 0.0 && !allModLearningZero)
                     adaptWeights();
 
 
