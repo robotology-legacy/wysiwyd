@@ -2,7 +2,7 @@
 # Authors: Stéphane Lallée
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME imitationMotorBabbling)
+set(PROJECTNAME postureBabbler)
 project(${PROJECTNAME})
 
 

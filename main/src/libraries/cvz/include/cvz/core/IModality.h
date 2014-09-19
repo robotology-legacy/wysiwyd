@@ -34,6 +34,7 @@ namespace cvz {
             std::vector<double> minBound;
             std::vector<double> maxBound;
             bool autoScale;
+            double stepFunctionTreshold;
 
             std::vector<double> scaledValueReal;
             std::vector<double> scaledValuePrediction;
@@ -175,6 +176,7 @@ namespace cvz {
                     else
                         maxBound.resize(size, 1.0);
                 }
+                stepFunctionTreshold = prop.check("stepFunctionTreshold", yarp::os::Value(-1.0)).asDouble();
 
                 scaledValueReal.resize(size);
                 scaledValuePrediction.resize(size);
@@ -253,26 +255,37 @@ namespace cvz {
                 if (input())
                 {
                     //weird problem in debug mode about the size of scaledValueReal
-                    if (scaledValueReal.size() != size)
+                    if (scaledValueReal.size() != (unsigned int) size)
+                    {
+                        std::cerr<<"IModality: weird bug with scaledValueReal size. Workaround is fine, but should be fixed."<<std::endl;
                         scaledValueReal.resize(size);
+                    }
                     //Scaling in [0,1]
                     for (int i = 0; i < size; i++)
                     {
                         if (autoScale && valueReal[i]>maxBound[i])
                         {
                             maxBound[i] = valueReal[i];
-                            std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
+                            //std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
                         }
                         else if (autoScale && valueReal[i]<minBound[i])
                         {
                             minBound[i] = valueReal[i];
-                            std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
+                            //std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
                         }
                         if (maxBound[i] == minBound[i])
                             minBound[i] -= 0.0000000001;//Avoid division by zeros
 
                         scaledValueReal[i] = (valueReal[i] - minBound[i]) / (maxBound[i] - minBound[i]);
                         helpers::Clamp(scaledValueReal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
+
+                        if (stepFunctionTreshold != -1.0)
+                        {
+                            if (scaledValueReal[i] > stepFunctionTreshold)
+                                scaledValueReal[i] = 1.0;
+                            else
+                                scaledValueReal[i] = 0.0;
+                        }
                     }
                 }
                 mutex.post();

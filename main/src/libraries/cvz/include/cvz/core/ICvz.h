@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include "IModality.h"
 #include "cvz/helpers/helpers.h"
 
@@ -40,6 +41,7 @@ namespace cvz {
 			int cyclesElapsed;
 			double period;
 			bool isPaused;
+			bool logResultsEnabled;
 
 		public:
 
@@ -55,6 +57,8 @@ namespace cvz {
 
 				std::string name = prop.check("name", yarp::os::Value("defaultCvz")).asString();
 				period = prop.check("period", yarp::os::Value(0.01)).asDouble();
+				logResultsEnabled = prop.check("enableLog");
+
 				setName(name.c_str());
 				std::string modPortPrefix = "/";
 				modPortPrefix += getName() + "/";
@@ -122,6 +126,8 @@ namespace cvz {
 				rpcPort.open(rpcName.c_str());
 				attach(rpcPort);
 
+				if (logResultsEnabled)
+					logFillHeaders();
 				std::cout << std::endl << "Modalities added. Starting the CVZ process with " << period << "s period" << std::endl;
 				cyclesElapsed = 0;
 
@@ -194,6 +200,9 @@ namespace cvz {
 				{
 					it->second->Input();
 				}
+				
+				if (logResultsEnabled)
+					logFillData();
 
 				//Do some computation
 				ComputePrediction();
@@ -232,6 +241,103 @@ namespace cvz {
 				}
 			}
 
+			void logFillHeaders()
+			{
+				std::ofstream file((getName() + ".log").c_str(), std::ofstream::app);
+
+				for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
+				{
+					file << it->first->GetFullName() << "_realValue" << ';';
+					file << it->first->GetFullName() << "_fullInputPrediction" << ';';
+					file << it->first->GetFullName() << "_partialInputPrediction" << ';';
+					file << it->first->GetFullName() << "_fullMeanError" << ';';
+					file << it->first->GetFullName() << "_partialMeanError" << ';';
+				}
+				file << std::endl;
+				file.close();
+			}
+
+			//Given the current input, this function will generate all the possible modalities subsets and log the predictions
+			//May slow down the 
+			void logFillData()
+			{
+				double t0 = yarp::os::Time::now();
+
+				std::map<IModality*, double> previousInfluences = modalitiesInfluence;
+				std::map<IModality*, double> previousLearning = modalitiesLearning;
+
+				std::map < IModality*, std::vector< std::vector<double> > > entries; //[mod [real, fullPred, partialPred] ]
+
+				//Set all learning rates to 0, influence to 1 and create the entries
+				for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
+				{
+					modalitiesLearning[it->first] = 0.0;
+					modalitiesInfluence[it->first] = 1.0;
+
+					std::vector<double> vTmp(it->first->Size());
+					entries[it->first].resize(3, vTmp);
+					entries[it->first][0] = it->first->GetValueReal();
+				}
+
+				//Test prediction given the complete input
+				ComputePrediction();
+				for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
+				{
+					entries[it->first][1] = it->first->GetValuePrediction();
+				}
+
+				//Test prediction for all modalities given the others
+				for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
+				{
+					//Set all influences to 1.0 and the tested one to 0.0
+					for (std::map<IModality*, double>::iterator it2 = modalitiesInfluence.begin(); it2 != modalitiesInfluence.end(); it2++)
+					{
+						if (it->first == it2->first)
+							modalitiesInfluence[it2->first] = 0.0;
+						else
+							modalitiesInfluence[it2->first] = 1.0;
+					}
+
+					ComputePrediction();
+					entries[it->first][2] = it->first->GetValuePrediction();
+				}
+
+				//Compute errors && Write down the results
+				std::ofstream file((getName() + ".log").c_str(), std::ofstream::app);
+
+				for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
+				{
+					for (int c = 0; c < it->first->Size(); c++)
+						file << entries[it->first][0][c] << ' ';
+					file << ';';
+
+					for (int c = 0; c < it->first->Size(); c++)
+						file << entries[it->first][1][c] << ' ';
+					file << ';';
+
+					for (int c = 0; c < it->first->Size(); c++)
+						file << entries[it->first][2][c] << ' ';
+					file << ';';
+
+					double fullMeanError = 0.0;
+					double partialMeanError = 0.0;
+					for (int c = 0; c < it->first->Size(); c++)
+					{
+						fullMeanError += fabs(entries[it->first][0][c] - entries[it->first][1][c]);
+						partialMeanError += fabs(entries[it->first][0][c] - entries[it->first][2][c]);
+					}
+					file << fullMeanError / (double)it->first->Size() << ';';
+					file << partialMeanError / (double)it->first->Size() << ';';
+				}
+				file << std::endl;
+				file.close();
+
+				//Reset learning and influence as they were before
+				modalitiesInfluence = previousInfluences;
+				modalitiesLearning = previousLearning;
+
+				std::cout << "Logging time : " << yarp::os::Time::now() - t0 << std::endl;
+			}
 
 		};
 	}
