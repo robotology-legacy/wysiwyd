@@ -254,6 +254,10 @@ public:
 
     bool updateModule()
     {
+        //Always send the current position of the end effector
+        Vector toSend, toSend2;
+        armCart->getPose(toSend, toSend2);
+        portStreamer.write(toSend);
 
         if (!forward)
         {
@@ -323,11 +327,6 @@ public:
 
         armCart->goToPoseSync(tempPos,orientation);
         printf("Going to (%s)\n",tempPos.toString(3,3).c_str());
-        
-        
-        Vector toSend,toSend2;
-        armCart->getPose(toSend,toSend2);
-        portStreamer.write(toSend);
 
         }
         else
