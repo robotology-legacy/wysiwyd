@@ -20,11 +20,13 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portOutputFreq;
     yarp::os::BufferedPort<yarp::os::Bottle> portOutputGap;
     yarp::os::BufferedPort<yarp::os::Bottle> portSpectrumOutput;
+    yarp::os::BufferedPort<yarp::os::Bottle> portSpectBoolOutput;
 
     string port2audioName;
     string port2outputNameFreq;
     string port2outputNameGap;
     string port2outputNameSpectrum;
+    string port2outputNameBool;
 
     int L;
     //vector<complex> buffer;

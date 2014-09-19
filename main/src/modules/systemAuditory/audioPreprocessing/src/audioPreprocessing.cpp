@@ -19,6 +19,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("audioPreprocessing")).asString().c_str();
     setName(moduleName.c_str());
 
+    string moduleInput = rf.check("input", Value("/microphone")).asString().c_str();
     // buffer size is set to 4096 because: 
     //      - It must be a power of 2
     //      - As greater de num of samples (L), greater the resolution (Res)
@@ -71,6 +72,14 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
         bEveryThingisGood &= false;
     }
 
+    port2outputNameBool = "/";
+    port2outputNameBool += getName() + "/freqSpectrum:o";
+
+    if (!portSpectBoolOutput.open(port2outputNameBool.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameBool << endl;
+        bEveryThingisGood &= false;
+    }
+
     // create an output port for gap
     port2outputNameGap = "/";
     port2outputNameGap += getName() + "/note:o";
@@ -81,7 +90,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     }
 
     // connect input port to audio
-    while (!Network::connect("/mic", port2audioName.c_str()))
+    while (!Network::connect(moduleInput, port2audioName.c_str()))
     {
         std::cout << "Trying to get input from microphone..." << std::endl;
         yarp::os::Time::delay(1.0);
@@ -184,7 +193,7 @@ bool CFFT::updateModule() {
         //CFFT::Forward(buffer, fftOut, NFFT);
         //cout << "Frequency is " <<pSignal;
         //int MaxFreqIdx = 0;
-        int MaxAmpIdx = 1;
+        int MaxAmpIdx = 70;
         /*Compute frequency amplitude*/
         for (int i = 1; i < K; i++)
         {
@@ -192,16 +201,20 @@ bool CFFT::updateModule() {
             double x = fftOut[i].norm() / (double)SAMPLES;
             if (x<0){ x = -x; }
             sig[i] = 2 * x; // Amplitude of the signal
-            
-            if (sig[i] > sig[MaxAmpIdx]) //stores max amplitude index
+            if (i > 70)
             {
-                MaxAmpIdx = i;
+                if (sig[i] > sig[MaxAmpIdx]) //stores max amplitude index
+                {
+                    cout << "Storing new peak!" << endl;
+                    MaxAmpIdx = i;
+                }    
             }
+            
             
         }
 
         /*Compute Frequency vector*/
-        for (int i = 0; i < K; i++)
+        for (int i = 1; i < K; i++)
         {
             double j = i / (double)K;
             f[i] = Fs / 2 * j; // This calculates the frequency. j should be multiplied by Fs/2 if everythng is right
@@ -225,39 +238,29 @@ bool CFFT::updateModule() {
         yarp::os::Bottle &SpectralSignal = portSpectrumOutput.prepare();
         SpectralSignal.clear();
 
-        /*
-        for (int i = 50; i < 100; i++)
-        {
-        treatedSignal.addDouble(pSignalOut[i].norm() / maxFreq);
-        }
-        */
+        yarp::os::Bottle &SpectralBool = portSpectBoolOutput.prepare();
+        SpectralBool.clear();
 
-       
-        /*
-        check == 1 ->  send amplitude values to the output
-        check == 2 ->  send 1 or 0 if frequency over a threshold
-        */
-        
         delete[] pSignal;
 
-        cout << "preparing Spectral Signal..." << endl;
         for (int i = 1; i<K; i++)
             {
                 SpectralSignal.addDouble(log10(sig[i]));
+                if (log10(sig[i])>15)
+                {
+                    SpectralBool.addDouble(1.0);
+                }else{
+                    SpectralBool.addDouble(0.0);
+                }
             }
 
-        cout << "preparing rest of signals..." << endl;
         treatedNote.addDouble(gap);
         treatedFrequency.addDouble(newMaxFreq);
 
-        cout << "Writting to ports" << endl;
         portOutputFreq.write();
         portOutputGap.write();
         portSpectrumOutput.write();
 
-        cout << "freeing memory"<<endl;
-        //   Free memory
-        //delete[] pSignal;
     }
 
     return true;
