@@ -35,8 +35,8 @@ private:
     double freqReference;       // frequency of reference if forwarding the gap in semi tone (default 440. Hz)
 
 public:
-    CFFT() { buffer=new complex[4096]; }
-    virtual ~CFFT() { delete[] buffer; }
+    CFFT() {  }
+    virtual ~CFFT() {  }
     bool configure(yarp::os::ResourceFinder &rf);
     bool interruptModule()
     {

@@ -16,6 +16,8 @@
 
 bool CFFT::configure(yarp::os::ResourceFinder &rf)
 {
+    L = 4096;
+    buffer = new complex[L];
     string moduleName = rf.check("name", Value("audioPreprocessing")).asString().c_str();
     setName(moduleName.c_str());
 
@@ -25,7 +27,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     //      - As greater de num of samples (L), greater the resolution (Res)
     //      - Remember that this should be tuned in function of the sampling frequency (Fs) of the microphone
     //      - Res (Hz/sample) = Fs / L
-    L = 4096;
+    
     cout << "checking current buffer size..." << endl;
     /*if (buffer.size() < L) 
         {
@@ -108,10 +110,10 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
 bool CFFT::close() {
     portInput.close();
-
     portSpectrumOutput.close();
     portOutputFreq.close();
     portOutputGap.close();
+    delete[] buffer;
     return true;
 }
 
@@ -136,25 +138,19 @@ bool CFFT::updateModule() {
 
     if (signal)
     {
-        std::cout << "We got a sound ! Samples=" << signal->getSamples() << std::endl;
-
         /* Encoding of the fast Fourier Transform*/
 
         /* Number of Samples (ideally SAMPLES <= 2024 to ensure musical tone recognition)*/
         int SAMPLES = signal->getSamples();
 
-        std::cout <<"buffer size is " << L << endl;
         /* Sampling Frequency (ideally over 8KHz)*/
         int Fs = signal->getFrequency();
-        std::cout << "Current Sampling Frequency is " << Fs << endl;
-        std::cout << "Current Max Frequency is " << Fs/2 << endl;
 
         /* Number of discrimanble frequencies*/
         int NFFT = (int)nextpow2(L); //Number of fast fourier transforms
-        
-        /* Experiments should be made to ensure that the sampling frequency is good enough for speech recognition */
-        std::cout << "Current Frequency Ressolution is " << Fs/NFFT << endl;
-        
+
+        std::cout << "Incoming: Samples=" << SAMPLES << "\t SamplingFreq=" << Fs << "\t MaxFreq=" << Fs / 2 << "\t BufferSize=" << L << "\t Resolution=" << Fs / NFFT << std::endl;
+     
         int K = (NFFT / 2) + 1;
         vector<double> sig;
         sig.resize(K);
@@ -162,14 +158,13 @@ bool CFFT::updateModule() {
         f.resize(NFFT);// frequencies vector
         complex *pSignal = new complex[L];
 
-
         for (int i=0; i<(L-SAMPLES);i++)
         {
             buffer[i] = buffer[i+SAMPLES];
         }
-        for (int i=L-SAMPLES; i<L;i++)
+        for (int i = 0; i<SAMPLES; i++)
         {
-            buffer[i] = signal->get(i-L);
+            buffer[(L - SAMPLES) + i] = signal->get(i);
         }
         //cout << endl << endl << &buffer<<endl<<endl<<endl;
         /*
@@ -181,36 +176,27 @@ bool CFFT::updateModule() {
 
         for (int i = 0; i < L; i++)
         {
-            //pSignal[i] = signal->getSafe(i, 0); 
-            //pSignal[i] = signal->get(i) / 65535.0;;
-            pSignal[i] = buffer[i];
-            
+            pSignal[i] = buffer[i]; 
         }
 
-        complex *fftOut = new complex[NFFT]; //complex[SAMPLES]
-        //CFFT::Forward(pSignal, pSignalOut, SAMPLES);
+        complex *fftOut = new complex[NFFT];
         CFFT::Forward(pSignal, fftOut, NFFT);
-        //CFFT::Forward(buffer, fftOut, NFFT);
-        //cout << "Frequency is " <<pSignal;
-        //int MaxFreqIdx = 0;
-        int MaxAmpIdx = 70;
+        int maxAmpIdx = 70;
+
         /*Compute frequency amplitude*/
         for (int i = 1; i < K; i++)
         {
-
-            double x = fftOut[i].norm() / (double)SAMPLES;
-            if (x<0){ x = -x; }
+            double x = fabs( fftOut[i].norm() / (double)SAMPLES );
             sig[i] = 2 * x; // Amplitude of the signal
+
             if (i > 70)
             {
-                if (sig[i] > sig[MaxAmpIdx]) //stores max amplitude index
+                if (sig[i] > sig[maxAmpIdx]) //stores max amplitude index
                 {
-                    cout << "Storing new peak!" << endl;
-                    MaxAmpIdx = i;
+                    //cout << "Storing new peak!" << endl;
+                    maxAmpIdx = i;
                 }    
             }
-            
-            
         }
 
         /*Compute Frequency vector*/
@@ -220,14 +206,14 @@ bool CFFT::updateModule() {
             f[i] = Fs / 2 * j; // This calculates the frequency. j should be multiplied by Fs/2 if everythng is right
         }
 
-        double newMaxFreq = f[MaxAmpIdx];
+        double newMaxFreq = f[maxAmpIdx];
         
         // Print frequency-amplitude
-        // cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << endl;
+        // cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[maxAmpIdx] << endl;
 
         
         double gap = log(newMaxFreq/freqReference)*12/log(2.);
-        cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << "\t Note gap : " << gap << endl;
+        cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[maxAmpIdx] << "\t Note gap : " << gap << endl;
 
         yarp::os::Bottle &treatedFrequency = portOutputFreq.prepare();
         treatedFrequency.clear();
@@ -265,75 +251,6 @@ bool CFFT::updateModule() {
 
     return true;
 }
-
-
-/* Called periodically every getPeriod() seconds
-bool CFFT::updateModule() {
-
-// get the input
-yarp::sig::Sound* signal = portInput.read();
-
-if (signal)
-{
-std::cout << "We got a sound ! (Samples=" <<signal->getSamples()<< std::endl;
-
-int SAMPLES = signal->getSamples();
-
-complex *pSignal = new complex[SAMPLES];
-
-for (int i = 0; i < SAMPLES; i++)
-{
-//pSignal[i] = signal->getSafe(i, 0);
-pSignal[i] = signal->get(i) / 65535.0;;
-}
-
-//   Apply FFT
-//CFFT::Forward(pSignal, SAMPLES);
-
-complex *pSignalOut = new complex[SAMPLES];
-CFFT::Forward(pSignal, pSignalOut, SAMPLES);
-//cout << "Frequency is " <<pSignal;
-
-double meanFreq = 0.0;
-double maxFreq = 0.0;
-int bestIndex = 0;
-double weightedMean = 0.0;
-
-for (int i = 50; i < 100; i++)
-{
-double currentFreqValue = pSignalOut[i].norm();
-weightedMean += i * pSignalOut[i].norm();
-meanFreq += currentFreqValue;
-if (currentFreqValue>maxFreq)
-{
-bestIndex = i;
-maxFreq = currentFreqValue;
-}
-}
-weightedMean /= meanFreq;
-meanFreq /= SAMPLES;
-cout << "Weighted Average Freq = " << weightedMean << "\t Max Frequency obtained in index=" << bestIndex << endl;
-
-yarp::os::Bottle &treatedSignal = portOutput.prepare();
-treatedSignal.clear();
-for (int i = 50; i < 100; i++)
-{
-treatedSignal.addDouble(pSignalOut[i].norm() / maxFreq);
-}
-portOutput.write();
-
-//   Free memory
-delete[] pSignal;
-}
-
-return true;
-} */
-
-
-
-
-
-
 
 //   FORWARD FOURIER TRANSFORM
 //     Input  - input data
