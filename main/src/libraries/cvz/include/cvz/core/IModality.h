@@ -255,8 +255,11 @@ namespace cvz {
                 if (input())
                 {
                     //weird problem in debug mode about the size of scaledValueReal
-                    if (scaledValueReal.size() != size)
+                    if (scaledValueReal.size() != (unsigned int) size)
+                    {
+                        std::cerr<<"IModality: weird bug with scaledValueReal size. Workaround is fine, but should be fixed."<<std::endl;
                         scaledValueReal.resize(size);
+                    }
                     //Scaling in [0,1]
                     for (int i = 0; i < size; i++)
                     {

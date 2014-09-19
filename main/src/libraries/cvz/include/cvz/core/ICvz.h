@@ -243,7 +243,7 @@ namespace cvz {
 
 			void logFillHeaders()
 			{
-				std::ofstream file(getName() + ".log", std::ofstream::app);
+				std::ofstream file((getName() + ".log").c_str(), std::ofstream::app);
 
 				for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
 				{
@@ -303,7 +303,7 @@ namespace cvz {
 				}
 
 				//Compute errors && Write down the results
-				std::ofstream file(getName() + ".log", std::ofstream::app);
+				std::ofstream file((getName() + ".log").c_str(), std::ofstream::app);
 
 				for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
 				{
