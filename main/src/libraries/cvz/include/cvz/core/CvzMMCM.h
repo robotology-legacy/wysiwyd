@@ -51,47 +51,47 @@ namespace cvz {
             IModality* recurrentModality;
 
             /*IDL methods*/
-			/***************************************************************/
-			virtual bool attach(yarp::os::RpcServer &source)
-			{
-				return this->yarp().attachAsServer(source);
-			}
+            /***************************************************************/
+            virtual bool attach(yarp::os::RpcServer &source)
+            {
+                return this->yarp().attachAsServer(source);
+            }
 
-			void start()
-			{
-				moduleStart();
-			}
-			void pause()
-			{
-				modulePause();
-			}
+            void start()
+            {
+                moduleStart();
+            }
+            void pause()
+            {
+                modulePause();
+            }
             void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; lRate = l; }
             double getLearningRate() { return lRate; }
             void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; sigma = s; }
             double getSigma() { return sigma; }
-			double getActivity(const int32_t x, const int32_t y, const int32_t z) { return activity[x][y][z]; }
-			bool saveWeightsToFile(const std::string &path)
-			{ 
-				std::cout << "Trying to save weights to " << path << std::endl; 
-				return saveWeights(path); 
-			}
-			bool loadWeightsFromFile(const std::string &path)
-			{
-				std::cout << "Trying to load weights with name: " << path << std::endl;
+            double getActivity(const int32_t x, const int32_t y, const int32_t z) { return activity[x][y][z]; }
+            bool saveWeightsToFile(const std::string &path)
+            { 
+                std::cout << "Trying to save weights to " << path << std::endl; 
+                return saveWeights(path); 
+            }
+            bool loadWeightsFromFile(const std::string &path)
+            {
+                std::cout << "Trying to load weights with name: " << path << std::endl;
                 yarp::os::ResourceFinder rf;
                 std::string fullPath = rf.findFileByName(path);
-				std::cout << "Trying to load weights from : " << fullPath << std::endl;
-				return loadWeights(fullPath);
+                std::cout << "Trying to load weights from : " << fullPath << std::endl;
+                return loadWeights(fullPath);
             }
 
-			virtual yarp::os::Bottle getParametersForBroadcast()
-			{
-				yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
-				yarp::os::Bottle &bLearning = b.addList();
-				bLearning.addString("learningRate");
-				bLearning.addDouble(getLearningRate());
-				return b;
-			}
+            virtual yarp::os::Bottle getParametersForBroadcast()
+            {
+                yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
+                yarp::os::Bottle &bLearning = b.addList();
+                bLearning.addString("learningRate");
+                bLearning.addDouble(getLearningRate());
+                return b;
+            }
             virtual bool close()
             {
                 bool ok = this->IConvergenceZone::close();
@@ -243,8 +243,8 @@ namespace cvz {
                 yarp::os::Bottle &botActivity = portActivity.prepare();
                 botActivity.clear();
 
-				//------------------------------------------------------------------------------------------------------------------------
-				//Compute map activity 
+                //------------------------------------------------------------------------------------------------------------------------
+                //Compute map activity 
                 for (int x = 0; x < width; x++)
                 {
                     for (int y = 0; y < height; y++)
@@ -312,12 +312,12 @@ namespace cvz {
                     }
                 }
 
-				//------------------------------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------------------------------
                 //Send the output activity
                 portActivity.write();
 
-				//------------------------------------------------------------------------------------------------------------------------
-				//Keep track of the past winners in a buffer (not really used yet)
+                //------------------------------------------------------------------------------------------------------------------------
+                //Keep track of the past winners in a buffer (not really used yet)
                 if (winnersBuffer.size() == (unsigned int) recurrenceDelay)
                     winnersBuffer.pop();
                 std::vector<int> currentWinner(3);
@@ -334,7 +334,7 @@ namespace cvz {
                 }
 
 
-				//------------------------------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------------------------------
                 //Learning
                 //check if all modalities learning is off
                 bool allModLearningZero = true;
@@ -344,12 +344,12 @@ namespace cvz {
                     adaptWeights();
 
 
-				//------------------------------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------------------------------
                 //Set the predicted values 
 
                 //feedback
                 for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
-					predictModality(it->second, algorithm);
+                    predictModality(it->second, algorithm);
                 //feedforward
                 for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
                     predictModality(it->second, algorithm);
@@ -369,44 +369,44 @@ namespace cvz {
                 mutex.post();
             }
 
-			void predictModality(IModality* mod, std::string algorithmUsed)
-			{
-				std::vector<double> valuePrediction;
-				valuePrediction.resize(mod->Size(), 0.0);
+            void predictModality(IModality* mod, std::string algorithmUsed)
+            {
+                std::vector<double> valuePrediction;
+                valuePrediction.resize(mod->Size(), 0.0);
 
-				std::vector<double> valuePredictionWinner;
-				valuePredictionWinner.resize(mod->Size(), 0.0);
-				for (int i = 0; i < mod->Size(); i++)
-				{
-					valuePredictionWinner[i] = weights[mod][i][xWin][yWin][zWin];
+                std::vector<double> valuePredictionWinner;
+                valuePredictionWinner.resize(mod->Size(), 0.0);
+                for (int i = 0; i < mod->Size(); i++)
+                {
+                    valuePredictionWinner[i] = weights[mod][i][xWin][yWin][zWin];
 
-					if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
-					{
-						double totalContribution = 0.0;
-						for (int x = 0; x < width; x++)
-						{
-							for (int y = 0; y < height; y++)
-							{
-								for (int z = 0; z < layers; z++)
-								{
-									double contribution = activity[x][y][z];// / activity[xWin][yWin][zWin];
-									valuePrediction[i] += (weights[mod][i][x][y][z] * contribution);
-									totalContribution += contribution;
-								}
-							}
-						}
-						valuePrediction[i] /= totalContribution;
-					}
-				}
+                    if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
+                    {
+                        double totalContribution = 0.0;
+                        for (int x = 0; x < width; x++)
+                        {
+                            for (int y = 0; y < height; y++)
+                            {
+                                for (int z = 0; z < layers; z++)
+                                {
+                                    double contribution = activity[x][y][z];// / activity[xWin][yWin][zWin];
+                                    valuePrediction[i] += (weights[mod][i][x][y][z] * contribution);
+                                    totalContribution += contribution;
+                                }
+                            }
+                        }
+                        valuePrediction[i] /= totalContribution;
+                    }
+                }
                 if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
-				{
-					mod->SetValuePrediction(valuePrediction);
-				}
-				else
-				{
-					mod->SetValuePrediction(valuePredictionWinner);
-				}
-			}
+                {
+                    mod->SetValuePrediction(valuePrediction);
+                }
+                else
+                {
+                    mod->SetValuePrediction(valuePredictionWinner);
+                }
+            }
 
             double getDistance(int x1, int y1, int z1, int x2, int y2, int z2, std::string connectivity)
             {
@@ -415,7 +415,7 @@ namespace cvz {
                 if (connectivity == MMCM_CONNECTIVITY_SHEET)
                     d = euclideanDistance;
                 else if (connectivity == MMCM_CONNECTIVITY_TORUS)
-                    d = sqrt (pow(std::min(x1 - x2, x1 + (width - x2)), 2.0) + std::pow(std::min(y1 - y2, y1 + (height - y2)), 2.0) + std::pow(std::min(z1 - z2, z1 + (layers - z2)), 2.0));
+                    d = sqrt (pow(std::min(x1 - x2, x1 + (width - x2)), 2.0) + pow(std::min(y1 - y2, y1 + (height - y2)), 2.0) + pow(std::min(z1 - z2, z1 + (layers - z2)), 2.0));
 
                 return d;
             }
@@ -462,9 +462,9 @@ namespace cvz {
                                 {
                                     //double currentW = weights[it->second][i][x][y][z];
                                     //double desiredW = valueReal[i];
-									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
-									double dW = error;
-									dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
+                                    double error = (valueReal[i] - weights[it->second][i][x][y][z]);
+                                    double dW = error;
+                                    dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
                                     weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
@@ -475,11 +475,11 @@ namespace cvz {
                             {
                                 std::vector<double> valueReal = it->second->GetValueReal();
                                 for (int i = 0; i < it->second->Size(); i++)
-								{
-									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
+                                {
+                                    double error = (valueReal[i] - weights[it->second][i][x][y][z]);
                                     double dW = error * modalitiesLearning[it->second] * lRate * modalitiesLearning[it->second];
                                     dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
-									weights[it->second][i][x][y][z] += dW;
+                                    weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
                             }
@@ -497,7 +497,7 @@ namespace cvz {
                                 {
                                     //double currentW = weights[recurrentModality][i][x][y][z];
                                     //double desiredW = valueReal[i];
-									double error = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
+                                    double error = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
                                     double dW = error * lRate * modalitiesLearning[recurrentModality];
                                     dW = dW * dWCoefficient * lRate * modalitiesLearning[recurrentModality];
 
@@ -526,8 +526,8 @@ namespace cvz {
                     file << "[modality_" << modCount << "]" << std::endl;
                     //file << "name" << '\t' << wModIt->first->Name() << std::endl;
                     //file << "size" << '\t' << wModIt->first->Size() << std::endl;
-					file << wModIt->first->getModalityConfiguration();
-					yarp::os::Bottle b;
+                    file << wModIt->first->getModalityConfiguration();
+                    yarp::os::Bottle b;
                     for (unsigned int comp = 0; comp < wModIt->second.size(); comp++)
                     {
                         for (unsigned int x = 0; x < wModIt->second[comp].size(); x++)
@@ -586,7 +586,7 @@ namespace cvz {
                         return false;
                     }
 
-					int mSize = m->Size();
+                    int mSize = m->Size();
 
                     yarp::os::Bottle *bWeights = bGroup.find("weights").asList();
                     int wCtr = 0;
