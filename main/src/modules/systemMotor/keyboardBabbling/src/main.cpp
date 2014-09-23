@@ -294,7 +294,7 @@ public:
 
                     tempPos[1] = minY + ((maxY - minY) / (double)yDivisions)*sequenceToPlay[indexInSequence];
                     indexInSequence++;
-                    if (indexInSequence >= sequenceToPlay.size())
+                    if (indexInSequence >= (int)sequenceToPlay.size())
                         indexInSequence = 0;
                 }
                 else
