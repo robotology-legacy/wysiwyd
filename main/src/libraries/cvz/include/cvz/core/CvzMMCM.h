@@ -15,6 +15,14 @@
 
 namespace cvz {
     namespace core {
+        
+#define MMCM_CONNECTIVITY_SHEET "sheet"
+#define MMCM_CONNECTIVITY_TORUS "torus"
+
+#define MMCM_ALGORITHM_SOM          "som"
+#define MMCM_ALGORITHM_DSOM         "dsom"
+#define MMCM_ALGORITHM_POPULATION   "population"
+
         class CvzMMCM : public IConvergenceZone, public cvzMmcm_IDL
         {
             int height, width, layers;
@@ -25,16 +33,20 @@ namespace cvz {
             std::queue< std::vector< int > > winnersBuffer;
             int recurrenceDelay;
             int xBuff, yBuff, zBuff;
-			bool isUsingPopulationCode;
             yarp::os::Semaphore mutex;
+
+            std::string connectivityPatern;
+            std::string algorithm;
 
         public:
 
             virtual std::string getType() { return cvz::core::TYPE_MMCM; };
-            double lRate, sigmaH, sigmaV;
+            double lRate, sigma, elasticity;
             int H() { return height; }
             int W() { return width; }
             int L() { return layers; }
+            std::string ConnectivityPattern() { return connectivityPatern; }
+            std::string Algorithm() { return algorithm; }
 
             IModality* recurrentModality;
 
@@ -55,8 +67,8 @@ namespace cvz {
 			}
             void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; lRate = l; }
             double getLearningRate() { return lRate; }
-            void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; sigmaH = s; }
-            double getSigma() { return sigmaH; }
+            void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; sigma = s; }
+            double getSigma() { return sigma; }
 			double getActivity(const int32_t x, const int32_t y, const int32_t z) { return activity[x][y][z]; }
 			bool saveWeightsToFile(const std::string &path)
 			{ 
@@ -99,7 +111,9 @@ namespace cvz {
                 width = rf.check("width", yarp::os::Value(10)).asInt();
                 layers = rf.check("layers", yarp::os::Value(1)).asInt();
                 lRate = rf.check("learningRate", yarp::os::Value(0.05)).asDouble();
-				isUsingPopulationCode = rf.check("populationCode");
+                connectivityPatern = rf.check("connectivityPattern", yarp::os::Value(MMCM_CONNECTIVITY_SHEET)).asString();
+                algorithm = rf.check("algorithm", yarp::os::Value(MMCM_ALGORITHM_DSOM)).asString();
+
                 int recModalitySize = rf.check("recurrentModality", yarp::os::Value(0)).asInt();
                 recurrenceDelay = rf.check("recurrentDelay", yarp::os::Value(10)).asInt();
                 if (recModalitySize > 0)
@@ -138,8 +152,8 @@ namespace cvz {
                     recurrentModality = NULL;
 
                 double sigmaFactor = rf.check("sigmaFactor", yarp::os::Value(1.0)).asDouble();
-                sigmaH = sigmaFactor * (1.0 / 4.0) * (height + width) / 2.0;
-                sigmaV = sigmaFactor * (1.0 / 4.0) * layers;
+                sigma = sigmaFactor * (1.0 / 4.0) * (height + width) / 2.0;
+                elasticity = rf.check("elasticity", yarp::os::Value(2.0)).asDouble();
 
                 //Allocate the map
                 activity.allocate(width, height, layers);
@@ -207,7 +221,9 @@ namespace cvz {
                 std::cout << std::endl << "Multi Modal Convergence Map configured:" << std::endl
                     << "\t Width :  " << width << std::endl
                     << "\t Height : " << height << std::endl
-                    << "\t Layers : " << layers << std::endl;
+                    << "\t Layers : " << layers << std::endl
+                    << "\t Algorithm : " << algorithm << std::endl
+                    << "\t Connectivity : " << connectivityPatern << std::endl;
 
                 return true;
             }
@@ -333,10 +349,10 @@ namespace cvz {
 
                 //feedback
                 for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
-					predictModality(it->second, isUsingPopulationCode);
+					predictModality(it->second, algorithm);
                 //feedforward
                 for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-					predictModality(it->second, isUsingPopulationCode);
+                    predictModality(it->second, algorithm);
 
                 //Recurrent
                 if (recurrentModality != NULL)
@@ -353,7 +369,7 @@ namespace cvz {
                 mutex.post();
             }
 
-			void predictModality(IModality* mod, bool populationCode)
+			void predictModality(IModality* mod, std::string algorithmUsed)
 			{
 				std::vector<double> valuePrediction;
 				valuePrediction.resize(mod->Size(), 0.0);
@@ -364,7 +380,7 @@ namespace cvz {
 				{
 					valuePredictionWinner[i] = weights[mod][i][xWin][yWin][zWin];
 
-					if (populationCode)
+					if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
 					{
 						double totalContribution = 0.0;
 						for (int x = 0; x < width; x++)
@@ -382,7 +398,7 @@ namespace cvz {
 						valuePrediction[i] /= totalContribution;
 					}
 				}
-				if (populationCode)
+                if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
 				{
 					mod->SetValuePrediction(valuePrediction);
 				}
@@ -391,6 +407,39 @@ namespace cvz {
 					mod->SetValuePrediction(valuePredictionWinner);
 				}
 			}
+
+            double getDistance(int x1, int y1, int z1, int x2, int y2, int z2, std::string connectivity)
+            {
+                double d = 0.0;
+                double euclideanDistance = sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
+                if (connectivity == MMCM_CONNECTIVITY_SHEET)
+                    d = euclideanDistance;
+                else if (connectivity == MMCM_CONNECTIVITY_TORUS)
+                    d = sqrt (pow(std::min(x1 - x2, x1 + (width - x2)), 2.0) + std::pow(std::min(y1 - y2, y1 + (height - y2)), 2.0) + std::pow(std::min(z1 - z2, z1 + (layers - z2)), 2.0));
+
+                return d;
+            }
+
+
+            double getDWCoefficient(double distance2winner, double neuronError, double winnerError, std::string algorithmUsed)
+            {
+                double dW = 1.0;
+
+                if (algorithmUsed == MMCM_ALGORITHM_SOM)
+                    dW = helpers::GaussianBell(distance2winner, sigma);
+                else if (algorithmUsed == MMCM_ALGORITHM_DSOM)
+                {
+                    if (activity[xWin][yWin][zWin] != 0.0)
+                        dW = expf(-(1 / pow(elasticity, 2)) * (distance2winner / winnerError));
+                    else
+                        dW = 0.0;
+                }
+                else if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
+                {
+                    dW = helpers::sigmoidFunction(fabs(neuronError), 0.4, 10);
+                }
+                return dW;
+            }
 
             void adaptWeights()
             {
@@ -402,23 +451,9 @@ namespace cvz {
                     {
                         for (int z = 0; z < layers; z++)
                         {
-                            float distanceBoth = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0) + pow(z - zWin, 2.0));
-
-                            //Basic SOM algorithm
-                            //float distanceH = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0));
-                            //float distanceV = sqrt(pow(z - zWin, 2.0));
-                            //float dHCoef = helpers::GaussianBell(distanceH, sigmaH);
-                            //float dVCoef = helpers::GaussianBell(distanceV, sigmaV);
-
-                            //DSOM (refer to http://www.loria.fr/~rougier/coding/article/article.html#dynamic-neighbourhood)
-                            float elasticity = 2.0;
-                            float heta = 0.0;
-                            if (activity[xWin][yWin][zWin] != 0.0)
-                                heta = expf(-(1 / pow(elasticity, 2)) * (distanceBoth / winnerError));
-
-                            //float dHCoef = MexicanHat(distanceH, sigmaH);
-                            //float dVCoef = MexicanHat(distanceV, sigmaV);
-
+                            float distance2winner = getDistance(x,y,z,xWin,yWin,zWin, connectivityPatern);
+                            double dWCoefficient = getDWCoefficient(distance2winner, activity[x][y][z], winnerError, algorithm);
+                          
                             //from bottom up input
                             for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
                             {
@@ -429,11 +464,7 @@ namespace cvz {
                                     //double desiredW = valueReal[i];
 									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
 									double dW = error;
-									dW = dW * lRate * modalitiesLearning[it->second];
-									if (!isUsingPopulationCode)
-										dW = dW * heta;
-									else
-										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
+									dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
                                     weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
@@ -446,11 +477,8 @@ namespace cvz {
                                 for (int i = 0; i < it->second->Size(); i++)
 								{
 									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
-									double dW = error * modalitiesLearning[it->second] * lRate * modalitiesLearning[it->second];
-									if (!isUsingPopulationCode)
-										dW = dW * heta;
-									else
-										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
+                                    double dW = error * modalitiesLearning[it->second] * lRate * modalitiesLearning[it->second];
+                                    dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
 									weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
@@ -470,11 +498,8 @@ namespace cvz {
                                     //double currentW = weights[recurrentModality][i][x][y][z];
                                     //double desiredW = valueReal[i];
 									double error = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
-									double dW = error * lRate * modalitiesLearning[recurrentModality];
-									if (!isUsingPopulationCode)
-										dW = dW * heta;
-									else
-										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
+                                    double dW = error * lRate * modalitiesLearning[recurrentModality];
+                                    dW = dW * dWCoefficient * lRate * modalitiesLearning[recurrentModality];
 
                                     weights[recurrentModality][i][x][y][z] += dW;
                                     helpers::Clamp(weights[recurrentModality][i][x][y][z], 0.0, 1.0);

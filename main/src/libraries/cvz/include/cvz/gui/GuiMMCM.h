@@ -61,9 +61,9 @@ namespace cvz {
 				LabelledSlider sliderLearning;
 				sliderLearning.allocate("Learning Rate", &(m->lRate), 0.0, 1.0, 0.001);
 				gtk_box_pack_start(GTK_BOX(box_parameters), sliderLearning.box, FALSE, FALSE, 0);
-				LabelledSlider sliderSigma;
-				sliderSigma.allocate("Sigma", &(m->sigmaH), 0.5, sqrt(pow(m->W(), 2.0) + pow(m->H(), 2.0)), 0.5);
-				gtk_box_pack_start(GTK_BOX(box_parameters), sliderSigma.box, FALSE, FALSE, 0);
+				//LabelledSlider sliderSigma;
+				//sliderSigma.allocate("Sigma", &(m->sigmaH), 0.5, sqrt(pow(m->W(), 2.0) + pow(m->H(), 2.0)), 0.5);
+				//gtk_box_pack_start(GTK_BOX(box_parameters), sliderSigma.box, FALSE, FALSE, 0);
 
 				gtk_widget_show(box_parameters);
 				//Display the reccurent layer
