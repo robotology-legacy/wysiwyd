@@ -116,13 +116,10 @@ public:
         double* righttail)
     {
         int i;
-        bool samex;
-        bool samey;
         double x0;
         double y0;
         double xmean;
         double ymean;
-        double v;
         double stat;
         double s;
         double p;
@@ -180,7 +177,7 @@ public:
         }
         if( s==0 )
         {
-            if( xmean = ymean)
+            if( xmean == ymean)
             {
                 *bothtails = 1.0;
             }
