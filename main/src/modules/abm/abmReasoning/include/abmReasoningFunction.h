@@ -5,6 +5,9 @@
 #include <tuple>
 #include <time.h>
 
+#define ae_machineepsilon 5E-16
+#define ae_maxrealnumber  1E300
+#define ae_minrealnumber  1E-300
 
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
@@ -104,8 +107,892 @@ public:
     static tuple<int,int,int> tupleIntFromString(string sInput);
     static tuple<double,double,double> tupleDoubleFromString(string sInput);
 
-};
+    void studentttest2(/* Real    */ vector<double> x,
+        int n,
+        /* Real    */ vector<double> y,
+        int m,
+        double* bothtails,
+        double* lefttail,
+        double* righttail)
+    {
+        int i;
+        bool samex;
+        bool samey;
+        double x0;
+        double y0;
+        double xmean;
+        double ymean;
+        double v;
+        double stat;
+        double s;
+        double p;
 
+        *bothtails = 0;
+        *lefttail = 0;
+        *righttail = 0;
+
+        if( n<=0||m<=0 )
+        {
+            *bothtails = 1.0;
+            *lefttail = 1.0;
+            *righttail = 1.0;
+            return;
+        }
+
+        /*
+        * Mean
+        */
+        xmean = 0;
+        x0 = x[0];
+        for(i=0; i<=n-1; i++)
+        {
+
+            xmean = xmean+x[i];
+        }
+        xmean = xmean/n;
+
+
+        ymean = 0;
+
+        y0 = y[0];
+        for(i=0; i<=m-1; i++)
+        {
+            ymean = ymean+y[i];
+        }
+        ymean = ymean/m;
+
+
+        /*
+        * S
+        */
+        s = 0;
+        if( n+m>2 )
+        {
+            for(i=0; i<=n-1; i++)
+            {
+                s = s+(x[i]-xmean)*(x[i]-xmean);
+            }
+            for(i=0; i<=m-1; i++)
+            {
+                s = s+(y[i]-xmean)*(y[i]-xmean);
+            }
+            s = sqrt(s*(1./n+1./m)/(n+m-2));
+        }
+        if( s==0 )
+        {
+            if( xmean = ymean)
+            {
+                *bothtails = 1.0;
+            }
+            else
+            {
+                *bothtails = 0.0;
+            }
+            if(xmean>ymean)
+            {
+                *lefttail = 1.0;
+            }
+            else
+            {
+                *lefttail = 0.0;
+            }
+            if(xmean<=ymean)
+            {
+                *righttail = 1.0;
+            }
+            else
+            {
+                *righttail = 0.0;
+            }
+            return;
+        }
+
+        /*
+        * Statistic
+        */
+        stat = (xmean-ymean)/s;
+        p = studenttdistribution(n+m-2, stat);
+        *bothtails = 2* min(p, 1-p);
+        *lefttail = p;
+        *righttail = 1-p;
+    }
+
+
+    static double studenttdistribution(int k, double t)
+    {
+        double x;
+        double rk;
+        double z;
+        double f;
+        double tz;
+        double p;
+        double xsqk;
+        int j;
+        double result;
+
+
+        if( t == 0 )
+        {
+            result = 0.5;
+            return result;
+        }
+        if( t <-2.0 )
+        {
+            rk = k;
+            z = rk/(rk+t*t);
+            result = 0.5*incompletebeta(0.5*rk, 0.5, z);
+            return result;
+        }
+        if( t < 0 )
+        {
+            x = -t;
+        }
+        else
+        {
+            x = t;
+        }
+        rk = k;
+        z = 1.0+x*x/rk;
+        if( k%2!=0 )
+        {
+            xsqk = x/sqrt(rk);
+            p = atan(xsqk);
+            if( k>1 )
+            {
+                f = 1.0;
+                tz = 1.0;
+                j = 3;
+                while(j<=k-2&& (tz/f > ae_machineepsilon))
+                {
+                    tz = tz*((j-1)/(z*j));
+                    f = f+tz;
+                    j = j+2;
+                }
+                p = p+f*xsqk/z;
+            }
+            p = p*2.0/ PI;
+        }
+        else
+        {
+            f = 1.0;
+            tz = 1.0;
+            j = 2;
+            while(j<=k-2&&(tz/f > ae_machineepsilon))
+            {
+                tz = tz*((j-1)/(z*j));
+                f = f+tz;
+                j = j+2;
+            }
+            p = f*x/sqrt(z*rk);
+        }
+        if( t < 0 )
+        {
+            p = -p;
+        }
+        result = 0.5+0.5*p;
+        return result;
+    }
+
+
+    static double incompletebeta(double a, double b, double x)
+    {
+        double t;
+        double xc;
+        double w;
+        double y;
+        int flag;
+        double sg;
+        double big;
+        double biginv;
+        double maxgam;
+        double minlog;
+        double maxlog;
+        double result;
+
+
+        big = 4.503599627370496e15;
+        biginv = 2.22044604925031308085e-16;
+        maxgam = 171.624376956302725;
+        minlog = log(ae_minrealnumber);
+        maxlog = log(ae_maxrealnumber);
+
+        //    ae_assert(ae_fp_greater(a,0)&&ae_fp_greater(b,0), "Domain error in IncompleteBeta" );
+        //    ae_assert(ae_fp_greater_eq(x,0)&&ae_fp_less_eq(x,1), "Domain error in IncompleteBeta" );
+
+
+        if( x == 0)
+        {
+            result = 0.;
+            return result;
+        }
+        if( x == 1.)
+        {
+            result = 1;
+            return result;
+        }
+        flag = 0;
+        if( (b*x < 1.0) && (x <= 0.95) )
+        {
+            result = ibetaf_incompletebetaps(a, b, x, maxgam);
+            return result;
+        }
+        w = 1.0-x;
+        if( x > a/(a+b)) 
+        {
+            flag = 1;
+            t = a;
+            a = b;
+            b = t;
+            xc = x;
+            x = w;
+        }
+        else
+        {
+            xc = w;
+        }
+        if( flag==1 && (b*x <= 1.0) && (x <= 0.95) )
+        {
+            t = ibetaf_incompletebetaps(a, b, x, maxgam);
+            if( t <= ae_machineepsilon)
+            {
+                result = 1.0-ae_machineepsilon;
+            }
+            else
+            {
+                result = 1.0-t;
+            }
+            return result;
+        }
+        y = x*(a+b-2.0)-(a-1.0);
+        if( y < 0.0)
+        {
+            w = ibetaf_incompletebetafe(a, b, x, big, biginv);
+        }
+        else
+        {
+            w = ibetaf_incompletebetafe2(a, b, x, big, biginv)/xc;
+        }
+        y = a*log(x);
+        t = b*log(xc);
+        if( (a+b < maxgam) && (fabs(y) < maxlog) && (fabs(t)<maxlog) )
+        {
+            t = pow(xc, b);
+            t = t*pow(x, a);
+            t = t/a;
+            t = t*w;
+            t = t*(gammafunction(a+b)/(gammafunction(a)*gammafunction(b)));
+            if( flag==1 )
+            {
+                if( t <= ae_machineepsilon)
+                {
+                    result = 1.0-ae_machineepsilon;
+                }
+                else
+                {
+                    result = 1.0-t;
+                }
+            }
+            else
+            {
+                result = t;
+            }
+            return result;
+        }
+        y = y+t+lngamma(a+b, &sg)-lngamma(a, &sg)-lngamma(b, &sg);
+        y = y+log(w/a);
+        if( y < minlog)
+        {
+            t = 0.0;
+        }
+        else
+        {
+            t = exp(y);
+        }
+        if( flag==1 )
+        {
+            if( t <= ae_machineepsilon)
+            {
+                t = 1.0-ae_machineepsilon;
+            }
+            else
+            {
+                t = 1.0-t;
+            }
+        }
+        result = t;
+        return result;
+    }
+
+
+    /*************************************************************************
+    Power series for incomplete beta integral.
+    Use when b*x is small and x not too close to 1.
+
+    Cephes Math Library, Release 2.8:  June, 2000
+    Copyright 1984, 1995, 2000 by Stephen L. Moshier
+    *************************************************************************/
+    static double ibetaf_incompletebetaps(double a,
+        double b,
+        double x,
+        double maxgam)
+    {
+        double s;
+        double t;
+        double u;
+        double v;
+        double n;
+        double t1;
+        double z;
+        double ai;
+        double sg;
+        double result;
+
+
+        ai = 1.0/a;
+        u = (1.0-b)*x;
+        v = u/(a+1.0);
+        t1 = v;
+        t = u;
+        n = 2.0;
+        s = 0.0;
+        z = ae_machineepsilon*ai;
+        while(fabs(v) > z)
+        {
+            u = (n-b)*x/n;
+            t = t*u;
+            v = t/(a+n);
+            s = s+v;
+            n = n+1.0;
+        }
+        s = s+t1;
+        s = s+ai;
+        u = a*log(x);
+        if( (a+b < maxgam)&&(fabs(u)<log(ae_maxrealnumber)) )
+        {
+            t = gammafunction(a+b)/(gammafunction(a)*gammafunction(b));
+            s = s*t*pow(x, a);
+        }
+        else
+        {
+            t = lngamma(a+b, &sg)-lngamma(a, &sg)-lngamma(b, &sg)+u+log(s);
+            if( (t<log(ae_minrealnumber)) )
+            {
+                s = 0.0;
+            }
+            else
+            {
+                s = exp(t);
+            }
+        }
+        result = s;
+        return result;
+    }
+
+    /*************************************************************************
+    Continued fraction expansion #1 for incomplete beta integral
+
+    Cephes Math Library, Release 2.8:  June, 2000
+    Copyright 1984, 1995, 2000 by Stephen L. Moshier
+    *************************************************************************/
+    static double ibetaf_incompletebetafe(double a,
+        double b,
+        double x,
+        double big,
+        double biginv)
+    {
+        double xk;
+        double pk;
+        double pkm1;
+        double pkm2;
+        double qk;
+        double qkm1;
+        double qkm2;
+        double k1;
+        double k2;
+        double k3;
+        double k4;
+        double k5;
+        double k6;
+        double k7;
+        double k8;
+        double r;
+        double t;
+        double ans;
+        double thresh;
+        int n;
+        double result;
+
+
+        k1 = a;
+        k2 = a+b;
+        k3 = a;
+        k4 = a+1.0;
+        k5 = 1.0;
+        k6 = b-1.0;
+        k7 = k4;
+        k8 = a+2.0;
+        pkm2 = 0.0;
+        qkm2 = 1.0;
+        pkm1 = 1.0;
+        qkm1 = 1.0;
+        ans = 1.0;
+        r = 1.0;
+        n = 0;
+        thresh = 3.0*ae_machineepsilon;
+        do
+        {
+            xk = -x*k1*k2/(k3*k4);
+            pk = pkm1+pkm2*xk;
+            qk = qkm1+qkm2*xk;
+            pkm2 = pkm1;
+            pkm1 = pk;
+            qkm2 = qkm1;
+            qkm1 = qk;
+            xk = x*k5*k6/(k7*k8);
+            pk = pkm1+pkm2*xk;
+            qk = qkm1+qkm2*xk;
+            pkm2 = pkm1;
+            pkm1 = pk;
+            qkm2 = qkm1;
+            qkm1 = qk;
+            if( qk !=0)
+            {
+                r = pk/qk;
+            }
+            if( r != 0)
+            {
+                t = fabs((ans-r)/r );
+                ans = r;
+            }
+            else
+            {
+                t = 1.0;
+            }
+            if( t < thresh)
+            {
+                break;
+            }
+            k1 = k1+1.0;
+            k2 = k2+1.0;
+            k3 = k3+2.0;
+            k4 = k4+2.0;
+            k5 = k5+1.0;
+            k6 = k6-1.0;
+            k7 = k7+2.0;
+            k8 = k8+2.0;
+            if( (fabs(qk )+fabs(pk ) > big) )
+            {
+                pkm2 = pkm2*biginv;
+                pkm1 = pkm1*biginv;
+                qkm2 = qkm2*biginv;
+                qkm1 = qkm1*biginv;
+            }
+            if( (fabs(qk )<biginv)||(fabs(pk )<biginv) )
+            {
+                pkm2 = pkm2*big;
+                pkm1 = pkm1*big;
+                qkm2 = qkm2*big;
+                qkm1 = qkm1*big;
+            }
+            n = n+1;
+        }
+        while(n!=300);
+        result = ans;
+        return result;
+    }
+
+
+    /*************************************************************************
+    Continued fraction expansion #2
+    for incomplete beta integral
+
+    Cephes Math Library, Release 2.8:  June, 2000
+    Copyright 1984, 1995, 2000 by Stephen L. Moshier
+    *************************************************************************/
+    static double ibetaf_incompletebetafe2(double a,
+        double b,
+        double x,
+        double big,
+        double biginv)
+    {
+        double xk;
+        double pk;
+        double pkm1;
+        double pkm2;
+        double qk;
+        double qkm1;
+        double qkm2;
+        double k1;
+        double k2;
+        double k3;
+        double k4;
+        double k5;
+        double k6;
+        double k7;
+        double k8;
+        double r;
+        double t;
+        double ans;
+        double z;
+        double thresh;
+        int n;
+        double result;
+
+
+        k1 = a;
+        k2 = b-1.0;
+        k3 = a;
+        k4 = a+1.0;
+        k5 = 1.0;
+        k6 = a+b;
+        k7 = a+1.0;
+        k8 = a+2.0;
+        pkm2 = 0.0;
+        qkm2 = 1.0;
+        pkm1 = 1.0;
+        qkm1 = 1.0;
+        z = x/(1.0-x);
+        ans = 1.0;
+        r = 1.0;
+        n = 0;
+        thresh = 3.0*ae_machineepsilon;
+        do
+        {
+            xk = -z*k1*k2/(k3*k4);
+            pk = pkm1+pkm2*xk;
+            qk = qkm1+qkm2*xk;
+            pkm2 = pkm1;
+            pkm1 = pk;
+            qkm2 = qkm1;
+            qkm1 = qk;
+            xk = z*k5*k6/(k7*k8);
+            pk = pkm1+pkm2*xk;
+            qk = qkm1+qkm2*xk;
+            pkm2 = pkm1;
+            pkm1 = pk;
+            qkm2 = qkm1;
+            qkm1 = qk;
+            if( qk != 0)
+            {
+                r = pk/qk;
+            }
+            if( r != 0)
+            {
+                t = fabs((ans-r)/r );
+                ans = r;
+            }
+            else
+            {
+                t = 1.0;
+            }
+            if( t<thresh)
+            {
+                break;
+            }
+            k1 = k1+1.0;
+            k2 = k2-1.0;
+            k3 = k3+2.0;
+            k4 = k4+2.0;
+            k5 = k5+1.0;
+            k6 = k6+1.0;
+            k7 = k7+2.0;
+            k8 = k8+2.0;
+            if( (fabs(qk )+fabs(pk )>big) )
+            {
+                pkm2 = pkm2*biginv;
+                pkm1 = pkm1*biginv;
+                qkm2 = qkm2*biginv;
+                qkm1 = qkm1*biginv;
+            }
+            if( (fabs(qk )<biginv)||(fabs(pk )<biginv) )
+            {
+                pkm2 = pkm2*big;
+                pkm1 = pkm1*big;
+                qkm2 = qkm2*big;
+                qkm1 = qkm1*big;
+            }
+            n = n+1;
+        }
+        while(n!=300);
+        result = ans;
+        return result;
+    }
+
+
+    /*************************************************************************
+    Gamma function
+
+    Input parameters:
+    X   -   argument
+
+    Domain:
+    0 < X < 171.6
+    -170 < X < 0, X is not an integer.
+
+    Relative error:
+    arithmetic   domain     # trials      peak         rms
+    IEEE    -170,-33      20000       2.3e-15     3.3e-16
+    IEEE     -33,  33     20000       9.4e-16     2.2e-16
+    IEEE      33, 171.6   20000       2.3e-15     3.2e-16
+
+    Cephes Math Library Release 2.8:  June, 2000
+    Original copyright 1984, 1987, 1989, 1992, 2000 by Stephen L. Moshier
+    Translated to AlgoPascal by Bochkanov Sergey (2005, 2006, 2007).
+    *************************************************************************/
+    static double gammafunction(double x)
+    {
+#ifndef ALGLIB_INTERCEPTS_SPECFUNCS
+        double p;
+        double pp;
+        double q;
+        double qq;
+        double z;
+        int i;
+        double sgngam;
+        double result;
+
+
+        sgngam = 1;
+        q = fabs(x);
+        if( q > 33.0)
+        {
+            if( (x<0.0) )
+            {
+                p = (floor(q));
+                i = static_cast<int>(p);
+                if( i%2==0 )
+                {
+                    sgngam = -1;
+                }
+                z = q-p;
+                if( (z > 0.5) )
+                {
+                    p = p+1;
+                    z = q-p;
+                }
+                z = q*sin(PI*z);
+                z = fabs(z);
+                z = PI/(z*gammafunc_gammastirf(q));
+            }
+            else
+            {
+                z = gammafunc_gammastirf(x);
+            }
+            result = sgngam*z;
+            return result;
+        }
+        z = 1;
+        while((x >= 3))
+        {
+            x = x-1;
+            z = z*x;
+        }
+        while((x<0))
+        {
+            if( (x > -0.000000001) )
+            {
+                result = z/((1+0.5772156649015329*x)*x);
+                return result;
+            }
+            z = z/x;
+            x = x+1;
+        }
+        while((x < 2))
+        {
+            if( (x < 0.000000001) )
+            {
+                result = z/((1+0.5772156649015329*x)*x);
+                return result;
+            }
+            z = z/x;
+            x = x+1.0;
+        }
+        if( (x == 2) )
+        {
+            result = z;
+            return result;
+        }
+        x = x-2.0;
+        pp = 1.60119522476751861407E-4;
+        pp = 1.19135147006586384913E-3+x*pp;
+        pp = 1.04213797561761569935E-2+x*pp;
+        pp = 4.76367800457137231464E-2+x*pp;
+        pp = 2.07448227648435975150E-1+x*pp;
+        pp = 4.94214826801497100753E-1+x*pp;
+        pp = 9.99999999999999996796E-1+x*pp;
+        qq = -2.31581873324120129819E-5;
+        qq = 5.39605580493303397842E-4+x*qq;
+        qq = -4.45641913851797240494E-3+x*qq;
+        qq = 1.18139785222060435552E-2+x*qq;
+        qq = 3.58236398605498653373E-2+x*qq;
+        qq = -2.34591795718243348568E-1+x*qq;
+        qq = 7.14304917030273074085E-2+x*qq;
+        qq = 1.00000000000000000320+x*qq;
+        result = z*pp/qq;
+        return result;
+#else
+        return _ialglib_i_gammafunction(x);
+#endif
+    }
+
+
+    static double gammafunc_gammastirf(double x)
+    {
+        double y;
+        double w;
+        double v;
+        double stir;
+        double result;
+
+
+        w = 1/x;
+        stir = 7.87311395793093628397E-4;
+        stir = -2.29549961613378126380E-4+w*stir;
+        stir = -2.68132617805781232825E-3+w*stir;
+        stir = 3.47222221605458667310E-3+w*stir;
+        stir = 8.33333333333482257126E-2+w*stir;
+        w = 1+w*stir;
+        y = exp(x);
+        if( (x > 143.01608) )
+        {
+            v = pow(x, 0.5*x-0.25);
+            y = v*(v/y);
+        }
+        else
+        {
+            y = pow(x, x-0.5)/y;
+        }
+        result = 2.50662827463100050242*y*w;
+        return result;
+    }
+
+
+
+    static double lngamma(double x, double* sgngam)
+    {
+#ifndef ALGLIB_INTERCEPTS_SPECFUNCS
+        double a;
+        double b;
+        double c;
+        double p;
+        double q;
+        double u;
+        double w;
+        double z;
+        int i;
+        double logpi;
+        double ls2pi;
+        double tmp;
+        double result;
+
+        *sgngam = 0;
+
+        *sgngam = 1;
+        logpi = 1.14472988584940017414;
+        ls2pi = 0.91893853320467274178;
+        if( (x < -34.0) )
+        {
+            q = -x;
+            w = lngamma(q, &tmp);
+            p = (floor(q));
+            i = static_cast<int>(p);
+            if( i%2==0 )
+            {
+                *sgngam = -1;
+            }
+            else
+            {
+                *sgngam = 1;
+            }
+            z = q-p;
+            if( (z > 0.5) )
+            {
+                p = p+1;
+                z = p-q;
+            }
+            z = q*sin(PI*z);
+            result = logpi-log(z)-w;
+            return result;
+        }
+        if( (x < 13) )
+        {
+            z = 1;
+            p = 0;
+            u = x;
+            while((u >= 3))
+            {
+                p = p-1;
+                u = x+p;
+                z = z*u;
+            }
+            while((u<2))
+            {
+                z = z/u;
+                p = p+1;
+                u = x+p;
+            }
+            if( (z<0) )
+            {
+                *sgngam = -1;
+                z = -z;
+            }
+            else
+            {
+                *sgngam = 1;
+            }
+            if( (u == 2) )
+            {
+                result = log(z);
+                return result;
+            }
+            p = p-2;
+            x = x+p;
+            b = -1378.25152569120859100;
+            b = -38801.6315134637840924+x*b;
+            b = -331612.992738871184744+x*b;
+            b = -1162370.97492762307383+x*b;
+            b = -1721737.00820839662146+x*b;
+            b = -853555.664245765465627+x*b;
+            c = 1;
+            c = -351.815701436523470549+x*c;
+            c = -17064.2106651881159223+x*c;
+            c = -220528.590553854454839+x*c;
+            c = -1139334.44367982507207+x*c;
+            c = -2532523.07177582951285+x*c;
+            c = -2018891.41433532773231+x*c;
+            p = x*b/c;
+            result = log(z)+p;
+            return result;
+        }
+        q = (x-0.5)*log(x)-x+ls2pi;
+        if( (x > 100000000) )
+        {
+            result = q;
+            return result;
+        }
+        p = 1/(x*x);
+        if( (x >= 1000.0) )
+        {
+            q = q+((7.9365079365079365079365*0.0001*p-2.7777777777777777777778*0.001)*p+0.0833333333333333333333)/x;
+        }
+        else
+        {
+            a = 8.11614167470508450300*0.0001;
+            a = -5.95061904284301438324*0.0001+p*a;
+            a = 7.93650340457716943945*0.0001+p*a;
+            a = -2.77777777730099687205*0.001+p*a;
+            a = 8.33333333333331927722*0.01+p*a;
+            q = q+a/x;
+        }
+        result = q;
+        return result;
+#else
+        return _ialglib_i_lngamma(x, sgngam);
+#endif
+    }
+
+
+};
 
 class matrix3D          // personnal class of 3D matrix (cubic)
     // X is the speaker
@@ -820,8 +1707,5 @@ public:
 
 
 
-
-
-
-
 #endif
+

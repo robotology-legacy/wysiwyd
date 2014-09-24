@@ -478,10 +478,10 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
     /* Calcul of the determinant of the covariance matrix.
 
     1/N * M *tM =   | a , b |
-    | c , d |
+    .               | c , d |
 
     but here :  | a , b |
-    | b , d |
+    .           | b , d |
 
     */
     double  a = 0,
@@ -703,3 +703,5 @@ tuple<double, double, double> abmReasoningFunction::tupleDoubleFromString(string
 
     return tOutput;
 }
+
+
