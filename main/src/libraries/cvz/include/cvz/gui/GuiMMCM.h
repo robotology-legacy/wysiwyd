@@ -66,14 +66,6 @@ namespace cvz {
 				//gtk_box_pack_start(GTK_BOX(box_parameters), sliderSigma.box, FALSE, FALSE, 0);
 
 				gtk_widget_show(box_parameters);
-				//Display the reccurent layer
-				if (m->recurrentModality)
-				{
-					recurrentGuiIModality = new GuiIModality();
-					GtkWidget* boxMod = recurrentGuiIModality->allocate(m->recurrentModality);
-					gtk_box_pack_start(GTK_BOX(boxModalities), boxMod, FALSE, FALSE, 0);
-					wModalities[m->recurrentModality] = recurrentGuiIModality;
-				}
 
 				//Add the influence/learning slider to every modality
 				for (std::map < core::IModality*, GuiIModality*>::iterator wMod = wModalities.begin(); wMod != wModalities.end(); wMod++)

@@ -336,7 +336,7 @@ namespace cvz {
 				modalitiesInfluence = previousInfluences;
 				modalitiesLearning = previousLearning;
 
-				std::cout << "Logging time : " << yarp::os::Time::now() - t0 << std::endl;
+				//std::cout << "Logging time : " << yarp::os::Time::now() - t0 << std::endl;
 			}
 
 		};

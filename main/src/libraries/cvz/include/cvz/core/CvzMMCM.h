@@ -30,8 +30,6 @@ namespace cvz {
             helpers::Cube activity;
             std::map<IModality*, std::vector< helpers::Cube > > weights;
             yarp::os::BufferedPort<yarp::os::Bottle> portActivity;
-            std::queue< std::vector< int > > winnersBuffer;
-            int recurrenceDelay;
             int xBuff, yBuff, zBuff;
             yarp::os::Semaphore mutex;
 
@@ -47,8 +45,6 @@ namespace cvz {
             int L() { return layers; }
             std::string ConnectivityPattern() { return connectivityPatern; }
             std::string Algorithm() { return algorithm; }
-
-            IModality* recurrentModality;
 
             /*IDL methods*/
             /***************************************************************/
@@ -114,42 +110,6 @@ namespace cvz {
                 connectivityPatern = rf.check("connectivityPattern", yarp::os::Value(MMCM_CONNECTIVITY_SHEET)).asString();
                 algorithm = rf.check("algorithm", yarp::os::Value(MMCM_ALGORITHM_DSOM)).asString();
 
-                int recModalitySize = rf.check("recurrentModality", yarp::os::Value(0)).asInt();
-                recurrenceDelay = rf.check("recurrentDelay", yarp::os::Value(10)).asInt();
-                if (recModalitySize > 0)
-                {
-                    std::string recModName = "/";
-                    recModName += getName();
-                    recModName += "/recurrent";
-                    yarp::os::Property propTmp;
-                    propTmp.unput("name");
-                    propTmp.put("name", recModName);
-                    propTmp.unput("size");
-                    propTmp.put("size", recModalitySize);
-
-                    yarp::os::Bottle bMinBounds;
-                    yarp::os::Bottle bMaxBounds;
-                    for (int i = 0; i < recModalitySize; i++)
-                    {
-                        bMinBounds.addDouble(0);
-                        bMaxBounds.addDouble(1);
-                    }
-                    yarp::os::Value pMin;
-                    bMinBounds.write(pMin);
-                    yarp::os::Value pMax;
-                    bMaxBounds.write(pMax);
-                    propTmp.unput("minBounds");
-                    propTmp.put("minBounds", pMin);
-                    propTmp.unput("maxBounds");
-                    propTmp.put("maxBounds", pMax);
-
-                    yarp::os::Bottle bTmp;
-                    bTmp.read(propTmp);
-                    recurrentModality = new IModality(recModName, bTmp, this);
-                    modalitiesInfluence[recurrentModality] = rf.check("recurrentInfluence", yarp::os::Value(1.0)).asDouble();
-                }
-                else
-                    recurrentModality = NULL;
 
                 double sigmaFactor = rf.check("sigmaFactor", yarp::os::Value(1.0)).asDouble();
                 sigma = sigmaFactor * (1.0 / 4.0) * (height + width) / 2.0;
@@ -159,54 +119,16 @@ namespace cvz {
                 activity.allocate(width, height, layers);
 
                 //Allocate the weights
-                for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
+                for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
                 {
-                    //Check if MMCM specifics parameters where added into the modality
-
                     std::vector< helpers::Cube > w;
-                    w.resize(it->second->Size());
-                    for (int i = 0; i < it->second->Size(); i++)
+                    w.resize(it->first->Size());
+                    for (int i = 0; i < it->first->Size(); i++)
                     {
                         w[i].allocate(width, height, layers);
                         w[i].randomize(0.0, 1.0);
                     }
-                    weights[it->second] = w;
-                }
-
-                for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-                {
-                    std::vector< helpers::Cube > w;
-                    w.resize(it->second->Size());
-                    for (int i = 0; i < it->second->Size(); i++)
-                    {
-                        w[i].allocate(width, height, layers);
-                        w[i].randomize(0.0, 1.0);
-                    }
-                    weights[it->second] = w;
-                }
-
-                if (recurrentModality != NULL)
-                {
-                    std::vector< helpers::Cube > w;
-                    w.resize(recurrentModality->Size());
-                    for (int i = 0; i < recurrentModality->Size(); i++)
-                    {
-                        w[i].allocate(width, height, layers);
-                        w[i].randomize(0.0, 1.0);
-                    }
-                    weights[recurrentModality] = w;
-                }
-
-                //Set modalitiesInfluence and modalitiesLearning to 1.0 by default
-                for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
-                {
-                    modalitiesInfluence[it->second] = 1.0;
-                    modalitiesLearning[it->second] = 1.0;
-                }
-                for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-                {
-                    modalitiesInfluence[it->second] = 1.0;
-                    modalitiesLearning[it->second] = 1.0;
+                    weights[it->first] = w;
                 }
 
                 //Zero everything
@@ -277,19 +199,6 @@ namespace cvz {
                                 activity[x][y][z] += 1.0 - (modalityMeanError * modalitiesInfluence[it->second]);
                             }
 
-                            //Reccurent modality
-                            if (recurrentModality != NULL)
-                            {
-                                std::vector<double> recVReal = recurrentModality->GetValueReal();
-                                double modalityMeanError = 0.0;
-                                for (int i = 0; i < recurrentModality->Size(); i++)
-                                {
-                                    modalityMeanError += fabs(weights[recurrentModality][i][x][y][z] - recVReal[i]);
-                                }
-                                modalityMeanError /= recurrentModality->Size();
-                                activity[x][y][z] += 1.0 - (modalityMeanError * modalitiesInfluence[recurrentModality]);
-                            }
-
                             //Get the whole activity in [0,1]
                             activity[x][y][z] /= influenceTotal;// modalitiesBottomUp.size();
 
@@ -317,24 +226,6 @@ namespace cvz {
                 portActivity.write();
 
                 //------------------------------------------------------------------------------------------------------------------------
-                //Keep track of the past winners in a buffer (not really used yet)
-                if (winnersBuffer.size() == (unsigned int) recurrenceDelay)
-                    winnersBuffer.pop();
-                std::vector<int> currentWinner(3);
-                currentWinner[0] = xWin;
-                currentWinner[1] = yWin;
-                currentWinner[2] = zWin;
-                winnersBuffer.push(currentWinner);
-
-                if (cyclesElapsed % recurrenceDelay == 0)
-                {
-                    xBuff = xWin;
-                    yBuff = yBuff;
-                    zBuff = zBuff;
-                }
-
-
-                //------------------------------------------------------------------------------------------------------------------------
                 //Learning
                 //check if all modalities learning is off
                 bool allModLearningZero = true;
@@ -354,18 +245,6 @@ namespace cvz {
                 for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
                     predictModality(it->second, algorithm);
 
-                //Recurrent
-                if (recurrentModality != NULL)
-                {
-                    std::vector<double> valuePrediction;
-                    valuePrediction.resize(recurrentModality->Size());
-                    for (int i = 0; i < recurrentModality->Size(); i++)
-                    {
-                        valuePrediction[i] = weights[recurrentModality][i][xWin][yWin][zWin];
-                    }
-                    recurrentModality->SetValuePrediction(valuePrediction);
-                    recurrentModality->SetValueReal(valuePrediction); //we set the next input of this modality to be the last prediction
-                }
                 mutex.post();
             }
 
@@ -411,12 +290,22 @@ namespace cvz {
             double getDistance(int x1, int y1, int z1, int x2, int y2, int z2, std::string connectivity)
             {
                 double d = 0.0;
-                double euclideanDistance = sqrt(pow(x1 - x2, 2.0) + pow(y1 - y2, 2.0) + pow(z1 - z2, 2.0));
+                double dX = abs(x1 - x2);
+                double dY = abs(y1 - y2);
+                double dZ = abs(z1 - z2);
+
+                double euclideanDistance = sqrt(pow(dX, 2.0) + pow(dY, 2.0) + pow(dZ, 2.0));
                 if (connectivity == MMCM_CONNECTIVITY_SHEET)
                     d = euclideanDistance;
                 else if (connectivity == MMCM_CONNECTIVITY_TORUS)
-                    d = sqrt (pow(std::min(x1 - x2, x1 + (width - x2)), 2.0) + pow(std::min(y1 - y2, y1 + (height - y2)), 2.0) + pow(std::min(z1 - z2, z1 + (layers - z2)), 2.0));
-
+                {
+                    double tdX = abs(x1 + (width - x2));
+                    double tdY = abs(y1 + (height - y2));
+                    double tdZ = abs(z1 + (layers - z2));
+                    d = sqrt(pow(std::min(dX, tdX), 2.0) + pow(std::min(dY, tdY), 2.0) + pow(std::min(dZ, tdZ), 2.0));
+                }
+                else
+                    std::cerr << "Error : Unknown connectivity pattern. Probably no learning will occur." << std::endl;
                 return d;
             }
 
@@ -438,6 +327,8 @@ namespace cvz {
                 {
                     dW = helpers::sigmoidFunction(fabs(neuronError), 0.4, 10);
                 }
+                else
+                    std::cerr << "Error : Unknown algorithm. All neurons will learn equally." << std::endl;
                 return dW;
             }
 
@@ -481,28 +372,6 @@ namespace cvz {
                                     dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
                                     weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
-                                }
-                            }
-
-                            //recurrent connection is buffered
-                            if (recurrentModality)
-                            {
-
-                                //float pastDistanceH = sqrt(pow(x - winnersBuffer.back()[0], 2.0) + pow(y - winnersBuffer.back()[1], 2.0));
-                                //float pastDistanceV = sqrt(pow(z - winnersBuffer.back()[2], 2.0));
-                                //float pdHCoef = helpers::GaussianBell(pastDistanceH, sigmaH);
-                                //float pdVCoef = helpers::GaussianBell(pastDistanceV, sigmaV);
-                                std::vector<double> valueReal = recurrentModality->GetValueReal();
-                                for (int i = 0; i < recurrentModality->Size(); i++)
-                                {
-                                    //double currentW = weights[recurrentModality][i][x][y][z];
-                                    //double desiredW = valueReal[i];
-                                    double error = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
-                                    double dW = error * lRate * modalitiesLearning[recurrentModality];
-                                    dW = dW * dWCoefficient * lRate * modalitiesLearning[recurrentModality];
-
-                                    weights[recurrentModality][i][x][y][z] += dW;
-                                    helpers::Clamp(weights[recurrentModality][i][x][y][z], 0.0, 1.0);
                                 }
                             }
                         }
