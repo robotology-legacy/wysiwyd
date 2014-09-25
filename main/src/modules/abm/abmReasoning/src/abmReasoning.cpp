@@ -10,7 +10,7 @@ abmReasoning::abmReasoning(ResourceFinder &rf)
 {
     iFunction = new abmReasoningFunction(rf);
     path = rf.getContextPath();
-    savefile = (rf.getContextPath()+"/saveRequest.txt").c_str();
+    savefile = (path+"/saveRequest.txt").c_str();
     opcNameTable.push_back(EFAA_OPC_ENTITY_TAG);
     opcNameTable.push_back(EFAA_OPC_ENTITY_RELATION);
     opcNameTable.push_back(EFAA_OPC_ENTITY_OBJECT);
@@ -76,25 +76,34 @@ bool abmReasoning::configure(ResourceFinder &rf)
     std::cout << endl << endl << "----------------------------------------------" << endl << endl << "abmReasoning ready !" << endl << endl;
 
     bReady = true;
-    bool bTestLanguage = false;
 
-   // WordKnowledge.simulateData();
 
-    if (bTestLanguage)
-    {
-        //  if (!rf.check("noSentences"))   findAllSentence();
-        if (!rf.check("noSentences"))   findAllSentence();
-        listGrammarKnowledge.testModel(100,2);
-        for (int i = 1 ; i < 8 ; i++)
-        {
-            if (i !=2)
-            {
-                listGrammarKnowledge.clear();
-                listGrammarKnowledge.simulateLearning(i,5);
-                listGrammarKnowledge.testModel(100,i);
-            }
-        }
-    }
+
+
+    adjKnowledge test;
+    test.determineTimingInfluence();
+
+
+
+   // bool bTestLanguage = false;
+
+   //// WordKnowledge.simulateData();
+
+   // if (bTestLanguage)
+   // {
+   //     //  if (!rf.check("noSentences"))   findAllSentence();
+   //     if (!rf.check("noSentences"))   findAllSentence();
+   //     listGrammarKnowledge.testModel(100,2);
+   //     for (int i = 1 ; i < 8 ; i++)
+   //     {
+   //         if (i !=2)
+   //         {
+   //             listGrammarKnowledge.clear();
+   //             listGrammarKnowledge.simulateLearning(i,5);
+   //             listGrammarKnowledge.testModel(100,i);
+   //         }
+   //     }
+   // }
     return true;
 }
 

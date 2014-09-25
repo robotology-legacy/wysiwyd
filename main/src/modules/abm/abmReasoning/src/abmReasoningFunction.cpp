@@ -109,6 +109,11 @@ string abmReasoningFunction::TAG_ADRESSEE_IS_AGENT  = "addressee_is_agent" ;
 int abmReasoningFunction::SIGMA_LEARNING_GRAMMAR = 1;
 double abmReasoningFunction::THRESHOLD_CONFIDENCE_GRAMMAR = 0.13;
 
+
+// ADJ KNOWLEDGE
+double abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING = 0.05;
+
+
 abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 {
     Bottle &bOPC = rf.findGroup("opc");
@@ -195,6 +200,11 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     TAG_ADRESSEE_IS_AGENT           = bGK.check("TAG_ADRESSEE_IS_AGENT", Value("addressee_is_agent")).asString();
     SIGMA_LEARNING_GRAMMAR          = bGK.check("SIGMA_LEARNING_GRAMMAR", Value(1)).asInt();
     THRESHOLD_CONFIDENCE_GRAMMAR    = bGK.check("THRESHOLD_CONFIDENCE_GRAMMAR", Value(0.13)).asDouble();
+
+    Bottle &bADJ = rf.findGroup("ADJ");
+    THRESHOLD_PVALUE_INFLUENCE_TIMING    = bGK.check("THRESHOLD_PVALUE_INFLUENCE_TIMING", Value(0.05)).asDouble();
+
+    
 }
 
 

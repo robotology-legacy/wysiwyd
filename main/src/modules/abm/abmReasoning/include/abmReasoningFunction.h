@@ -93,6 +93,16 @@ public:
     static int  SIGMA_LEARNING_GRAMMAR;
     static double   THRESHOLD_CONFIDENCE_GRAMMAR;
 
+    //ADJ
+    static double THRESHOLD_PVALUE_INFLUENCE_TIMING;
+
+
+
+
+
+
+    // FUNCTIONS
+
     static pair<double, double> coordFromString(string);
 
     static bool timeDiff(struct tm TM1, struct tm TM2);
@@ -107,10 +117,8 @@ public:
     static tuple<int,int,int> tupleIntFromString(string sInput);
     static tuple<double,double,double> tupleDoubleFromString(string sInput);
 
-    void studentttest2(/* Real    */ vector<double> x,
-        int n,
+    static void studentttest2(/* Real    */ vector<double> x,
         /* Real    */ vector<double> y,
-        int m,
         double* bothtails,
         double* lefttail,
         double* righttail)
@@ -123,6 +131,10 @@ public:
         double stat;
         double s;
         double p;
+
+        int n = x.size();
+        int m = y.size();
+
 
         *bothtails = 0;
         *lefttail = 0;

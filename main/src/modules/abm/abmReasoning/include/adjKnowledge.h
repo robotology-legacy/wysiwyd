@@ -12,11 +12,15 @@ public:
     string      sLabel;
     string      sTag;
 
+    bool fTimingInfluence;
+    bool fAbsolutInfluence;
+    bool fDeltaInfluence;
+    bool fFromInfluence;
 
     // TIMING
 
     vector<double>      vdGnlTiming;             // global timing of any action with this adjective
-    vector<double>      vdNoGlnTiming;           // global timing of any action without this adjective
+    vector<double>      vdNoGnlTiming;           // global timing of any action without this adjective
 
     map<string, pair< vector<double>, vector<double> > >     mActionTiming;     // map with timing of adj + act ; and no_adj + act.  key is action name
 
@@ -30,12 +34,28 @@ public:
 
     map<string, pair< vector<pair<double, double> >, vector<pair<double, double> > > >     mActionAbsolut;     // map with absolute final location of adj + act ; and no_adj + act.  key is action name
 
-    //delta
+    // DELTA
 
     vector<pair<double, double> >       vdGnlDelta;          // Relative displacement of any action with this adjective
     vector<pair<double, double> >       vdNoGnlDelta;        // Relative displacement of any action without this adjective
 
     map<string, pair< vector<pair<double, double> >, vector<pair<double, double> > > >     mActionDelta;     // map with Relative displacement of adj + act ; and no_adj + act.  key is action name
+
+
+    // FROM
+
+    vector<pair<double, double> >       vdGnlFROM;          // Relative displacement of any action with this adjective
+    vector<pair<double, double> >       vdNoGnlFROM;        // Relative displacement of any action without this adjective
+
+    map<string, pair< vector<pair<double, double> >, vector<pair<double, double> > > >     mActionFROM;     // map with Relative displacement of adj + act ; and no_adj + act.  key is action name
+
+
+
+
+    // FUNCTIONS
+
+    void determineTimingInfluence();        // return true if the differences btw the values of timing of the adj or no_adj is significant.
+
 
 
     void test();
