@@ -10,11 +10,47 @@ adjKnowledge::adjKnowledge()
 }
 
 
-bool adjKnowledge::fromBottle(Bottle bInput)
+/**
+Add an interaction in the adjKnowledge
+bInput format: 
+(action sAction_name)
+(timing timing)
+(coordinate X Y dX dY)
+*/
+void    adjKnowledge::addInteraction(Bottle bInput)
 {
 
-    return true;
+    string sAction = bInput.check("action", Value("none")).asString();
+    vdGnlTiming.push_back(bInput.check("timing", Value(0.)).asDouble());
+
+    Bottle bTemp = *bInput.get(2).asList();
+    pair<double, double>    pXY(bTemp.get(1).asDouble(), bTemp.get(2).asDouble());
+    pair<double, double>    pDXY(bTemp.get(3).asDouble(), bTemp.get(4).asDouble());
+
+    mActionTiming[sAction].first.push_back(bInput.check("timing", Value(0.)).asDouble());
+
+    vdGnlXY.push_back(pXY);
+    vdGnlDelta.push_back(pDXY);
+
+    mActionAbsolut[sAction].push_back(pXY);
+    mActionDelta[sAction].push_back(pDXY);
 }
+
+
+/**
+Add an other interaction in the adjKnowledge (event adj is not this one, this is used for a comparaison)
+bInput format: 
+(action sAction_name)
+(timing timing)
+(coordinate X Y dX dY)
+*/
+void    adjKnowledge::addOtherInteraction(Bottle bInput)
+{
+    string sAction = bInput.check("action", Value("none")).asString();
+    vdNoGnlTiming.push_back(bInput.check("timing", Value(0.)).asDouble());
+    mActionTiming[sAction].second.push_back(bInput.check("timing", Value(0.)).asDouble());
+}
+
 
 /**
 * Return the distance of a move from a cluster (skInput)
@@ -80,10 +116,25 @@ pair <double, double> adjKnowledge::coordRelative(double Xo, double Yo, double X
 }
 
 
-
-void adjKnowledge::test()
+/**
+Will try to determine if the adjective is related to space, or time.
+First, tries time, if not, try if spatial.
+*/
+void adjKnowledge::determineInfluence()
 {
+    fTimingInfluence = false;
+    fAbsolutInfluence = false;
+    fDeltaInfluence = false;
+    fFromInfluence = false;
 
+    if (vdGnlTiming.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE)
+    {
+        determineTimingInfluence();
+        if (!fTimingInfluence)
+        {
+            determineSpatialInfluence();
+        }
+    }
 }
 
 
@@ -167,10 +218,10 @@ void adjKnowledge::determineSpatialInfluence()
 
     // 2 if no influence, check action by action
 
-    for (map<string, pair< vector<pair<double, double> >, vector<pair<double, double> > > >::iterator itMap = mActionAbsolut.begin() ; itMap != mActionAbsolut.end() ; itMap ++)
+    for (map<string, vector< pair<double, double > > >::iterator itMap = mActionAbsolut.begin() ; itMap != mActionAbsolut.end() ; itMap ++)
     {
-        covMatrixB = abmReasoningFunction::getCovMatrix(itMap->second.first);
-        covMatrixD = abmReasoningFunction::getCovMatrix(mActionDelta[itMap->first].first);
+        covMatrixB = abmReasoningFunction::getCovMatrix(itMap->second);
+        covMatrixD = abmReasoningFunction::getCovMatrix(mActionDelta[itMap->first]);
 
         deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
         deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
@@ -181,7 +232,8 @@ void adjKnowledge::determineSpatialInfluence()
 
         fFromInfluence |= (abmReasoningFunction::threshold_is_dispersion > deter_CovD) && (abmReasoningFunction::threshold_is_dispersion > deter_CovB) ;
     }
-
-
-
 }
+
+
+
+

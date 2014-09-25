@@ -51,7 +51,7 @@ public:
     static double lifetime_relation;                // life time of a relation about the objects in the OPC
 
     //Spatialisation
-    static unsigned int  threshold_determine_Location;           // number of tries before determine if location
+    static unsigned int  THRESHOLD_DETERMINE_INFLUENCE;           // number of tries before determine if location
     static double factor_location;                  // factor of the size of a location : center +/- factor_location * std dev
     static double threshold_is_at_location;
     static double threshold_is_at_temporal_location;

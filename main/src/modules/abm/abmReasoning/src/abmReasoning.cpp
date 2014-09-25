@@ -4289,7 +4289,7 @@ void abmReasoning::checkContextLocation()
     for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end() ; it++)
     {
         // Is the spatialKnowledge absolut (put) or relative (push)
-        if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::threshold_determine_Location && it->sArgument != "near" && it->sName != "hanoi")
+        if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
         {
             pair <vector <double> , vector<double> > vData;
             vData.first = it->vX;
@@ -5192,7 +5192,7 @@ Bottle abmReasoning::updateKnownLocations()
         {
 
             // Is the spatialKnowledge absolut (put) or relative (push)
-            if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::threshold_determine_Location && it->sArgument != "near" && it->sName != "hanoi")
+            if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
             {
                 vector<double> CovMat = abmReasoningFunction::getCovMatrix(it->vX, it->vY);
                 double a = CovMat[0],
@@ -5333,7 +5333,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
         for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end() ; it++)
         {
             // Is the spatialKnowledge absolut (put) or relative (push)
-            if (it->isAbsolut && it->sArgument == sLocation  && it->vX.size() >= abmReasoningFunction::threshold_determine_Location && it->sArgument != "near" && it->sName != "hanoi")
+            if (it->isAbsolut && it->sArgument == sLocation  && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
             {
                 vector<double> CovMat = abmReasoningFunction::getCovMatrix(it->vX, it->vY);
                 double a = CovMat[0],

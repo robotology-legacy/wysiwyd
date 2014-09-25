@@ -61,7 +61,7 @@ int abmReasoningFunction::color_loc_B = 255;
 
 int abmReasoningFunction::difference_date_in_second = 10000;    // threshold return of second if 2 actions are at different dates
 
-unsigned int abmReasoningFunction::threshold_determine_Location = 3;         // number of tries before determine if location
+unsigned int abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE = 3;         // number of tries before determine if location
 
 double abmReasoningFunction::factor_location = 2 ;                  // factor of the size of a location : center +/- factor_location * std dev
 double abmReasoningFunction::threshold_is_at_location = 4;
@@ -151,7 +151,7 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 
     Bottle &bSpatialisation = rf.findGroup("spatialisation");
 
-    threshold_determine_Location = bSpatialisation.check("threshold_determine_Location", Value(3)).asInt();
+    THRESHOLD_DETERMINE_INFLUENCE = bSpatialisation.check("THRESHOLD_DETERMINE_INFLUENCE", Value(3)).asInt();
     factor_location = bSpatialisation.check("factor_location", Value(2)).asDouble();
     threshold_is_at_location = bSpatialisation.check("threshold_is_at_location", Value(4)).asDouble();
     threshold_is_at_temporal_location = bSpatialisation.check("threshold_is_at_temporal_location", Value(12)).asDouble();
