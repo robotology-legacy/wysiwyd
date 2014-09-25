@@ -202,9 +202,9 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     THRESHOLD_CONFIDENCE_GRAMMAR    = bGK.check("THRESHOLD_CONFIDENCE_GRAMMAR", Value(0.13)).asDouble();
 
     Bottle &bADJ = rf.findGroup("ADJ");
-    THRESHOLD_PVALUE_INFLUENCE_TIMING    = bGK.check("THRESHOLD_PVALUE_INFLUENCE_TIMING", Value(0.05)).asDouble();
+    THRESHOLD_PVALUE_INFLUENCE_TIMING    = bADJ.check("THRESHOLD_PVALUE_INFLUENCE_TIMING", Value(0.05)).asDouble();
 
-    
+
 }
 
 
@@ -461,22 +461,17 @@ pair<string, string> abmReasoningFunction::ago2string(pair<int, string> pInput)
 }
 
 
-vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY)
+vector<double> abmReasoningFunction::getCovMatrix(vector<pair<double, double> > vXY)
 {
-    if (vX.size() != vY.size())
-    {
-        std::cout << "Problem in abmReasoningFunction::GetCovMatrix(vector<double> vX, vector<double> vY),\nthe vectors are not of the same size." << endl;
-        return vX;
-    }
-    int N = vX.size(); // number of element
+    int N = vXY.size(); // number of element
 
     double  muX = 0, // means
         muY = 0;
 
     for (int i = 0; i < N; i++)
     {
-        muX += vX[i];
-        muY += vY[i];
+        muX += vXY[i].first;
+        muY += vXY[i].second;
     }
 
     muX  /= (N*1.);
@@ -502,8 +497,8 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
     // Creation of the matrix M for the abs values and M' the relatives values
     for (int i = 0; i < N ; i++)
     {
-        XimuX.push_back(vX[i]-muX);
-        YimuY.push_back(vY[i]-muY);
+        XimuX.push_back(vXY[i].first-muX);
+        YimuY.push_back(vXY[i].second-muY);
     }
 
     for (int i = 0; i < N ; i++)
@@ -528,6 +523,33 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
 
     return vOutput;
 }
+
+
+
+vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY)
+{
+    if (vX.size() == vY.size() )
+    {
+        cout << "Error in abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY) : vX and vY size different" << endl;
+        vector<double> vOutput;
+        return vOutput;
+    }
+
+    int N = vX.size(); // number of element
+
+    vector<pair<double, double> > vectDouble;
+
+    for (int i = 0 ; i < N ; i++)
+    {
+        pair<double, double> pTemp(vX[i], vY[i]);
+        vectDouble.push_back(pTemp);
+    }
+
+    return getCovMatrix(vectDouble);
+
+}
+
+
 
 /**
 * Return the Mahalanobis distance of a point to a cluster

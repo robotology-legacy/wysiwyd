@@ -1,6 +1,15 @@
 #include <adjKnowledge.h>
 
 
+adjKnowledge::adjKnowledge()
+{
+    fTimingInfluence = false;
+    fAbsolutInfluence = false;
+    fDeltaInfluence = false;
+    fFromInfluence = false;
+}
+
+
 bool adjKnowledge::fromBottle(Bottle bInput)
 {
 
@@ -78,9 +87,11 @@ void adjKnowledge::test()
 }
 
 
-/* Determine if the adjective influences the timing.
+/** Determine if the adjective influences the timing.
 First check the adjtive globaly
 then check for each action if there is a link.
+
+update the parameter: fTimingInfluence
 */
 void adjKnowledge::determineTimingInfluence()
 {
@@ -113,4 +124,64 @@ void adjKnowledge::determineTimingInfluence()
             fTimingInfluence = true;
         }
     }
+}
+
+
+/**
+Determine if the adjective influence in term of spatial relations
+*/
+void adjKnowledge::determineSpatialInfluence()
+{
+
+    // 1 For all actions:
+
+    // B : Final point
+    // D : move (delta)
+
+    // Get the covariance matrix for abs and delta.
+    vector<double>      covMatrixB = abmReasoningFunction::getCovMatrix(vdGnlXY),
+        covMatrixD = abmReasoningFunction::getCovMatrix(vdGnlDelta);
+
+
+    //double sigmaD;
+    //double sumdX = 0, sumdY =0;
+    //for (unsigned int i = 0 ; i < vDX.size() ; i++)
+    //{
+    //    sumdX += vDX[i];
+    //    sumdY += vDY[i];
+    //}
+
+    //sigmaD = sqrt(sumdX*sumdX + sumdY*sumdY);
+
+    double deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
+    double deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
+
+    fDeltaInfluence = (abmReasoningFunction::threshold_is_dispersion > deter_CovD);
+
+    fAbsolutInfluence =  (abmReasoningFunction::threshold_is_dispersion > deter_CovB);
+
+    fFromInfluence = fAbsolutInfluence && fDeltaInfluence;
+
+    if (fDeltaInfluence || fAbsolutInfluence)
+        return ;
+
+    // 2 if no influence, check action by action
+
+    for (map<string, pair< vector<pair<double, double> >, vector<pair<double, double> > > >::iterator itMap = mActionAbsolut.begin() ; itMap != mActionAbsolut.end() ; itMap ++)
+    {
+        covMatrixB = abmReasoningFunction::getCovMatrix(itMap->second.first);
+        covMatrixD = abmReasoningFunction::getCovMatrix(mActionDelta[itMap->first].first);
+
+        deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
+        deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
+
+        fDeltaInfluence |= (abmReasoningFunction::threshold_is_dispersion > deter_CovD);
+
+        fAbsolutInfluence |=  (abmReasoningFunction::threshold_is_dispersion > deter_CovB);
+
+        fFromInfluence |= (abmReasoningFunction::threshold_is_dispersion > deter_CovD) && (abmReasoningFunction::threshold_is_dispersion > deter_CovB) ;
+    }
+
+
+
 }

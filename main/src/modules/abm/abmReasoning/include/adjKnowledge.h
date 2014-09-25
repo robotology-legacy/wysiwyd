@@ -9,6 +9,8 @@ class adjKnowledge
 {
 public:
 
+    adjKnowledge();
+
     string      sLabel;
     string      sTag;
 
@@ -42,20 +44,11 @@ public:
     map<string, pair< vector<pair<double, double> >, vector<pair<double, double> > > >     mActionDelta;     // map with Relative displacement of adj + act ; and no_adj + act.  key is action name
 
 
-    // FROM
-
-    vector<pair<double, double> >       vdGnlFROM;          // Relative displacement of any action with this adjective
-    vector<pair<double, double> >       vdNoGnlFROM;        // Relative displacement of any action without this adjective
-
-    map<string, pair< vector<pair<double, double> >, vector<pair<double, double> > > >     mActionFROM;     // map with Relative displacement of adj + act ; and no_adj + act.  key is action name
-
-
-
 
     // FUNCTIONS
 
     void determineTimingInfluence();        // return true if the differences btw the values of timing of the adj or no_adj is significant.
-
+    void determineSpatialInfluence();
 
 
     void test();

@@ -111,7 +111,9 @@ public:
     static int  timeDiffSecondFromString(string T1, string T2);
     static pair<string, string> ago2string(pair<int, string> pInput);
 
+    static vector<double> getCovMatrix(vector<pair<double, double> > vXY);
     static vector<double> getCovMatrix(vector<double> vX, vector<double> vY);
+
     static double getMahalaDist(vector<double> vX, vector<double> vY, pair<double, double> XY);
 
     static tuple<int,int,int> tupleIntFromString(string sInput);
