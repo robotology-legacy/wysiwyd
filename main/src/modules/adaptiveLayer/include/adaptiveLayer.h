@@ -1,30 +1,25 @@
 #include "wrdac/clients/icubClient.h"
-#include <map>
-
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::math;
-using namespace wysiwyd::wrdac;
+//#include <std::map>
 
 struct StimulusEmotionalResponse
 {
-    vector<string> m_sentences;
-    vector<string> m_choregraphies;
-    map<string, double> m_emotionalEffect;
-    string getRandomSentence() { if (m_sentences.size()==0) return ""; return m_sentences[yarp::os::Random::uniform(0,m_sentences.size()-1)];}
-    string getRandomChoregraphy() { if(m_choregraphies.size()==0) return "default"; return m_choregraphies[yarp::os::Random::uniform(0,m_choregraphies.size()-1)];}
+    std::vector<std::string> m_sentences;
+    std::vector<std::string> m_choregraphies;
+    std::map<std::string, double> m_emotionalEffect;
+    std::string getRandomSentence() { if (m_sentences.size()==0) return ""; return m_sentences[yarp::os::Random::uniform(0,m_sentences.size()-1)];}
+    std::string getRandomChoregraphy() { if(m_choregraphies.size()==0) return "default"; return m_choregraphies[yarp::os::Random::uniform(0,m_choregraphies.size()-1)];}
 };
 
-class AdaptiveLayer : public RFModule
+class AdaptiveLayer : public yarp::os::RFModule
 {
 private:
-    ICubClient *iCub;
+    wysiwyd::wrdac::ICubClient *iCub;
 
-    Port pSpeechRecognizerKeywordOut;
+    yarp::os::Port pSpeechRecognizerKeywordOut;
 
     double period;
-    map<string, StimulusEmotionalResponse> gestureEffects;
-    Port    rpc;
+    std::map<std::string, StimulusEmotionalResponse> gestureEffects;
+    yarp::os::Port    rpc;
 
     //Configuration
     void populateSpeechRecognizerVocabulary();
@@ -58,13 +53,13 @@ public:
 
     //Retrieve and treat the speech input
     bool handleSpeech();
-    Relation getRelationFromSemantic(Bottle b);
-    string getEntityFromWordGroup(Bottle *b);
+    wysiwyd::wrdac::Relation getRelationFromSemantic(yarp::os::Bottle b);
+    std::string getEntityFromWordGroup(yarp::os::Bottle *b);
 
     //Retrieve and treat the gesture information input
     bool handleGesture();
 
     //RPC & scenarios
-    bool respond(const Bottle& cmd, Bottle& reply);
+    bool respond(const yarp::os::Bottle &cmd, yarp::os::Bottle &reply);
 
 };

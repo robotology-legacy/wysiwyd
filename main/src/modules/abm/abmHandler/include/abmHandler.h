@@ -21,27 +21,23 @@
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace wysiwyd::wrdac;
 
-
-class abmHandler : public RFModule {
+class abmHandler : public yarp::os::RFModule {
 private:
-    string moduleName;
-    string sKeyWord;
+    std::string moduleName;
+    std::string sKeyWord;
 
-    string handlerPortName;
-    string port2SpeechRecogName;
-    string port2abmName;
-    string port2abmReasoningName;
-    string port2iSpeakName;
-    string port2OPCmanagerName;
+    std::string handlerPortName;
+    std::string port2SpeechRecogName;
+    std::string port2abmName;
+    std::string port2abmReasoningName;
+    std::string port2iSpeakName;
+    std::string port2OPCmanagerName;
 
-    string nameGrammarNode1;
-    string nameGrammarNode2;
-    string nameGrammarNode3;
-    string nameGrammarNode4;
+    std::string nameGrammarNode1;
+    std::string nameGrammarNode2;
+    std::string nameGrammarNode3;
+    std::string nameGrammarNode4;
 
     yarp::os::Port handlerPort;             // a port to handle messages 
     yarp::os::Port Port2SpeechRecog;        // a port to send grammar to the speech recog
@@ -51,24 +47,24 @@ private:
     yarp::os::Port Port2iSpeak;             // a port to communicate with the speech synthesis
 
     bool isAwake;
-    ICubClient *iCub;
+    wysiwyd::wrdac::ICubClient *iCub;
 
     int iCurrentInstance;                   // instance of the current request
-    string sCurrentActivity;
-    string sCurrentPronom;
-    string sCurrentNode;
-    string sCurrentGrammarFile;
-    string sLastSentence;                   // last sentence said (in case of a repeat)
-    pair<string, string> psCurrentComplement;
+    std::string sCurrentActivity;
+    std::string sCurrentPronom;
+    std::string sCurrentNode;
+    std::string sCurrentGrammarFile;
+    std::string sLastSentence;                   // last sentence said (in case of a repeat)
+    std::pair<std::string, std::string> psCurrentComplement;
 
 
-    Bottle node1();
-    Bottle node2();
-    Bottle node3();
+    yarp::os::Bottle node1();
+    yarp::os::Bottle node2();
+    yarp::os::Bottle node3();
 
-    string dateToSpeech(string sDate);
+    std::string dateToSpeech(std::string sDate);
 
-    string  grammarToString(string sPath);
+    std::string  grammarToString(std::string sPath);
 
 public:
     /** 
