@@ -1,9 +1,7 @@
+#ifndef _ADJKNOWLEDGE_H_
+#define _ADJKNOWLEDGE_H_
+
 #include <abmReasoningFunction.h>
-
-using namespace yarp::os;
-using namespace wysiwyd::wrdac;
-using namespace std;
-
 
 class adjKnowledge
 {
@@ -24,7 +22,7 @@ public:
     std::vector<double>      vdGnlTiming;             // global timing of any action with this adjective
     std::vector<double>      vdNoGnlTiming;           // global timing of any action without this adjective
 
-    map<std::string, std::pair< std::vector<double>, std::vector<double> > >     mActionTiming;     // map with timing of adj + act , adj + no_act ; key is action name;
+    std::map<std::string, std::pair< std::vector<double>, std::vector<double> > >     mActionTiming;     // map with timing of adj + act , adj + no_act ; key is action name;
 
 
     // SPATIAL
@@ -34,14 +32,14 @@ public:
     std::vector<std::pair<double, double> >       vdGnlXY;          // absolute final location of any action with this adjective
     std::vector<std::pair<double, double> >       vdNoGnlXY;        // absolute final location of any action without this adjective
 
-    map<std::string, std::vector< std::pair<double, double > > >     mActionAbsolut;     // map with absolute final location of adj + act ; key is action name;
+    std::map<std::string, std::vector< std::pair<double, double > > >     mActionAbsolut;     // map with absolute final location of adj + act ; key is action name;
 
     // DELTA
 
     std::vector<std::pair<double, double> >       vdGnlDelta;          // Relative displacement of any action with this adjective
     std::vector<std::pair<double, double> >       vdNoGnlDelta;        // Relative displacement of any action without this adjective
 
-    map<std::string, std::vector<std::pair<double, double> >  >     mActionDelta;     // map with Relative displacement of adj + act ; key is action name;
+    std::map<std::string, std::vector<std::pair<double, double> >  >     mActionDelta;     // map with Relative displacement of adj + act ; key is action name;
 
 
 
@@ -64,3 +62,7 @@ public:
 
 
 };
+
+
+
+#endif

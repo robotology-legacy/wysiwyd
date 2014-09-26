@@ -1,3 +1,6 @@
+#ifndef _CONTEXTUALKNOWLEDGE_H_
+#define _CONTEXTUALKNOWLEDGE_H_
+
 #include <abmReasoningFunction.h>
 
 class contextualKnowledge
@@ -28,3 +31,4 @@ public:
     void                            presenceConditions();
 };
 
+#endif

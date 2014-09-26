@@ -1258,8 +1258,8 @@ public:
 
     // Functions
     int oneCoord(int x, int y, int z) {
-        //		int test = x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size();
-        //		std::cout << "ici " << test << std::endl;
+        //        int test = x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size();
+        //        std::cout << "ici " << test << std::endl;
         return (x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size());
     }       // return the 1D coordinate from a 3D coordinate    
 
@@ -1267,9 +1267,9 @@ public:
 
     int get(std::string sX, std::string sY, std::string sZ)
     {
-        //		addLabelX(sX, true);
-        //		addLabelY(sY, true);
-        //		addLabelZ(sZ, true);
+        //        addLabelX(sX, true);
+        //        addLabelY(sY, true);
+        //        addLabelZ(sZ, true);
 
         int X = -1,
             Y = -1,
@@ -1346,7 +1346,7 @@ public:
         {
             if (sLabel == it->first)
             {
-                if (!check)	it->second++;
+                if (!check)    it->second++;
                 return false;
             }
         }
@@ -1383,7 +1383,7 @@ public:
         {
             if (sLabel == it->first)
             {
-                if (!check)	it->second++;
+                if (!check)    it->second++;
                 return false;
             }
         }
@@ -1656,7 +1656,7 @@ public:
     // if !bPositive multiplie the result by -1
     double  getScoreSum(bool bPositive = true)
     {
-        if (A < 0 || B < 0 || C < 0 || D < 0)	return 0.;
+        if (A < 0 || B < 0 || C < 0 || D < 0)    return 0.;
         if (B+C+D == 0 && A !=0)    return 1.;
         if (A+B == 0 || A+C == 0 || C+D == 0)   return 0.;
         if (B+D == 0) 

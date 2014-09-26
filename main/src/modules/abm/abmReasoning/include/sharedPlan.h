@@ -1,3 +1,6 @@
+#ifndef _SHAREDPLAN_H_
+#define _SHAREDPLAN_H_
+
 #include <abmReasoningFunction.h>
 #include <plan.h>
 
@@ -11,3 +14,4 @@ public:
     std::vector< std::pair < std::string , std::string > >              vArguments; // argument of the shared plan
 };
 
+#endif

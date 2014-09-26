@@ -1,3 +1,6 @@
+#ifndef _PRONOM_H_
+#define _PRONOM_H_
+
 #include <abmReasoningFunction.h>
 
 
@@ -29,3 +32,6 @@ public:
     
 
 };
+
+
+#endif

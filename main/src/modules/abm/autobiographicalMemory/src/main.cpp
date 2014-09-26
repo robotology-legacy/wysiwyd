@@ -83,10 +83,10 @@ should look like as follows:
 
 //properties of the database - change according to your setup
 [database_properties]
-server					"127.0.0.1"
-user					"postgres"
-password				"rclab"
-dataB					"ABM"
+server                    "127.0.0.1"
+user                    "postgres"
+password                "rclab"
+dataB                    "ABM"
 
 \endcode
 
@@ -105,14 +105,14 @@ Windows
 
 int main(int argc, char * argv[]) {
     /* initialize yarp network */ 
-    Network yarp;
+    yarp::os::Network yarp;
     srand(time(NULL));
 
     //system("mode con COLS=100");
 
 
     /* prepare and configure the resource finder */
-    ResourceFinder rf;
+    yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("autobiographicalMemory.ini"); //overridden by --from parameter
     rf.setDefaultContext("autobiographicalMemory");   //overridden by --context parameter

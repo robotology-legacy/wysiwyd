@@ -1,3 +1,6 @@
+#ifndef _BEHAVIOR_H_
+#define _BEHAVIOR_H_
+
 #include <abmReasoningFunction.h>
 
 class behavior
@@ -11,3 +14,4 @@ public:
 
 };
 
+#endif

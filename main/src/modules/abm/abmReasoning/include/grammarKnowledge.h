@@ -1,3 +1,6 @@
+#ifndef _GRAMMARKNOWLEDGE_H_
+#define _GRAMMARKNOWLEDGE_H_
+
 #include <pronom.h>
 
 
@@ -38,3 +41,5 @@ public:
     void clear();
 };
 
+
+#endif

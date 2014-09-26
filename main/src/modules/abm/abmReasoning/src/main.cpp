@@ -99,7 +99,7 @@ Windows
 
 int main(int argc, char * argv[]) {
     /* initialize yarp network */ 
-    Network yarp;
+    yarp::os::Network yarp;
 
 
     //system("mode con COLS=100");
@@ -110,7 +110,7 @@ int main(int argc, char * argv[]) {
 
 
     /* prepare and configure the resource finder */
-    ResourceFinder rf;
+    yarp::os::ResourceFinder rf;
     rf.setVerbose(true); 
     rf.setDefaultConfigFile("abmReasoning.ini"); //overridden by --from parameter
     rf.setDefaultContext("abmReasoning");   //overridden by --context parameter

@@ -1,3 +1,6 @@
+#ifndef _SPATIALKNOWLEDGE_H_
+#define _SPATIALKNOWLEDGE_H_
+
 #include <abmReasoningFunction.h>
 
 
@@ -31,3 +34,5 @@ public:
     void                    updateDataFinalDepart();
 
 };
+
+#endif

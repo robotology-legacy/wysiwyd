@@ -2,7 +2,7 @@
 
 
 
-class abmReasoning: public RFModule
+class abmReasoning: public yarp::os::RFModule
 {
 private :
 
@@ -11,16 +11,16 @@ private :
     std::string  savefile,
         path;
     interlocutor        Interlocutor;           // interlocutor with the ABM
-    OPCClient           *realOPC;                       // OPC
-    OPCClient           *mentalOPC;
+    wysiwyd::wrdac::OPCClient           *realOPC;                       // OPC
+    wysiwyd::wrdac::OPCClient           *mentalOPC;
 
-    ICubClient *iCub;
+    wysiwyd::wrdac::ICubClient *iCub;
 
     yarp::os::Bottle              connectOPC(yarp::os::Bottle bInput);
     std::string              moduleName;
 
-    Port handlerPort;     //a port to handle messages 
-    Port senderPort;      //a port to send command to autobiographicalMemory (retrieve data from SQL db)
+    yarp::os::Port handlerPort;     //a port to handle messages 
+    yarp::os::Port senderPort;      //a port to send command to autobiographicalMemory (retrieve data from SQL db)
 
     // internal boolean
     bool                bDreaming;      // is the dreaming display is active for the KCF
@@ -37,10 +37,10 @@ private :
     std::vector<behavior>                listBehaviors;
     std::vector<contextualKnowledge>     listContextualKnowledge;
     std::vector<knownInteraction>        listKnownInteraction;
-    map<std::string, std::pair<std::vector<double> , std::vector<double> > >    mapLocation;                    //  known durable locations
-    map<std::string, tuple<std::string, std::vector<double> , std::vector<double> > >   mapTemporalLocation;    // relative location
+    std::map<std::string, std::pair<std::vector<double> , std::vector<double> > >    mapLocation;                    //  known durable locations
+    std::map<std::string, std::tuple<std::string, std::vector<double> , std::vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
-    wordKnowledge					WordKnowledge;
+    wordKnowledge                    WordKnowledge;
 
     //PDDL planner variable
     std::string      plannerPath ;
@@ -57,7 +57,7 @@ private :
     int         pddlNb ;       //nb max of produced solution
     int         pddlCpu ;      //nb of second max taken by the planner to find solution
 
-    void        initialisePlanner(ResourceFinder &rf);      // initialise all variables of the planner
+    void        initialisePlanner(yarp::os::ResourceFinder &rf);      // initialise all variables of the planner
     int         pddlPlannerLauncher() ;
     yarp::os::Bottle      pddlPlannerSolParser() ;
 
@@ -74,10 +74,10 @@ private :
 
 public : 
 
-    abmReasoning(ResourceFinder &rf);
+    abmReasoning(yarp::os::ResourceFinder &rf);
     ~abmReasoning();
 
-    deque<std::string> opcNameTable;
+    std::deque<std::string> opcNameTable;
 
     //
     // module related functions

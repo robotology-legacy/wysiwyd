@@ -1,6 +1,10 @@
 #include <autobiographicalMemory.h>
 
 
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
 autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
 {
     Bottle &bDBProperties = rf.findGroup("database_properties");
@@ -22,7 +26,7 @@ autobiographicalMemory::~autobiographicalMemory()
 
 /* configure the module */
 bool autobiographicalMemory::configure(ResourceFinder &rf)
-{		
+{        
     moduleName = rf.check("name", 
         Value("autobiographicalMemory"), 
         "module name (string)").asString();
@@ -43,7 +47,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     string name_abm2reasoning = "/";
     name_abm2reasoning +=  getName() + "/to_reasoning";
     abm2reasoning.open(name_abm2reasoning.c_str());
-    //	Network::connect(name_abm2reasoning.c_str(), "/efaa/abmReasoning/rpc");
+    //    Network::connect(name_abm2reasoning.c_str(), "/efaa/abmReasoning/rpc");
 
 
     isconnected2reasoning = false;
@@ -57,7 +61,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     bConnect.addString("OPC");
     connectOPC(bConnect);
 
-    //	populateOPC();
+    //    populateOPC();
 
     cout << endl << endl << "----------------------------------------------" << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
 
@@ -153,7 +157,7 @@ Bottle autobiographicalMemory::save(Bottle bInput)
     //TODO
     Bottle bOutput;
     bOutput = bInput;
-    //	output.addString("file saved");
+    //    output.addString("file saved");
     return bOutput;
 }
 
@@ -593,7 +597,7 @@ bool autobiographicalMemory::updateModule()
         if (bCommand.get(0) == "snapshotSP")
         {
             bReply = snapshotSP(bCommand);
-        }		
+        }        
 
         if (bCommand.get(0) == "snapshotBE")
         {
@@ -700,11 +704,11 @@ bool autobiographicalMemory::close()
 void autobiographicalMemory::writeInsert(string sRequest)
 {
     ofstream file(savefile.c_str(),ios::out | ios::trunc);
-    if (file)	{
+    if (file)    {
         file << sRequest <<endl;
     }
-    else	{
-        cout<<"Error, can not save request in "<<savefile<<endl;	return;
+    else    {
+        cout<<"Error, can not save request in "<<savefile<<endl;    return;
     }
 }
 
@@ -712,11 +716,11 @@ void autobiographicalMemory::writeInsert(string sRequest)
 bool autobiographicalMemory::readInsert()
 {
     ifstream file(savefile.c_str(),ios::in);
-    if (file)	{
+    if (file)    {
         cout<<endl<<"readFile of requests from "<<savefile.c_str()<<endl<<endl;
     }
-    else	{
-        cout<<"Error, can not open "<<file<<endl;	return false;
+    else    {
+        cout<<"Error, can not open "<<file<<endl;    return false;
     }
 
     string line;
@@ -728,7 +732,7 @@ bool autobiographicalMemory::readInsert()
         bRequest.addString("request");
         bRequest.addString(line.c_str());
         bRequest = request(bRequest);
-        //		*ABMDataBase << line ;
+        //        *ABMDataBase << line ;
     }
     return true;
 }
@@ -818,7 +822,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 
 
     bMain.addString(string(osMain.str()).c_str());
-    //	cout << "\n\n" << string(osMain.str()).c_str() << endl;
+    //    cout << "\n\n" << string(osMain.str()).c_str() << endl;
     bMain = request(bMain);
 
     //Connexion to the OPC
@@ -853,9 +857,9 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
                     }
                 } else {
                     if (bTemp.get(j).asList()->size() > 1) {
-                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', '" << bTemp.get(j).asList()->get(1).asString() << "');";	
+                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', '" << bTemp.get(j).asList()->get(1).asString() << "');";    
                     } else {
-                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'unknown');";	
+                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'unknown');";    
                     }
                 }
                 bRequest.addString(string(osArg.str()).c_str());
@@ -981,8 +985,8 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
 
     // catch the arguments and the role associate
 
-    bArguments	= *bInput.get(2).asList();
-    bRoles		= *bInput.get(3).asList();
+    bArguments    = *bInput.get(2).asList();
+    bRoles        = *bInput.get(3).asList();
 
     for (unsigned int i = 0 ; i < iNbArg ; i++)
     {
@@ -1019,7 +1023,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
             osArg << " ( " << instance << ", '"<< vArgument[i] << "', " << "'external', 'default', '" << vRole[i] << "') ";
         }
         else {
-            osArg << " ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', '" << vRole[i] << "') ";	
+            osArg << " ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', '" << vRole[i] << "') ";    
         }
     }
 
@@ -1028,7 +1032,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     bMain = requestFromString(osMain.str().c_str());
 
     // send filling contentarg
-    bArg =	requestFromString(osArg.str().c_str());
+    bArg =    requestFromString(osArg.str().c_str());
 
     for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
     {
@@ -1144,8 +1148,8 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
 
     // catch the arguments and the role associate
 
-    bArguments	= *bInput.get(2).asList();
-    bRoles		= *bInput.get(3).asList();
+    bArguments    = *bInput.get(2).asList();
+    bRoles        = *bInput.get(3).asList();
 
     for (unsigned int i = 0 ; i < iNbArg ; i++)
     {
@@ -1187,7 +1191,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         if(currentEntity == NULL)
             osArg << ", ( " << instance << ", '"<< vAgent[i] << "', " << "'external', 'default', 'agent" << i+1 << "') ";
         else
-            osArg << ", ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'agent" << i+1 << "') ";	
+            osArg << ", ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'agent" << i+1 << "') ";    
     }
 
     // Fill objects :
@@ -1198,7 +1202,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         if(currentEntity == NULL)
             osArg << ", ( " << instance << ", '"<< vObject[i] << "', " << "'external', 'default', 'object" << i+1 << "') ";
         else
-            osArg << ", ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'object" << i+1 << "') ";	
+            osArg << ", ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'object" << i+1 << "') ";    
     }
 
 
@@ -1210,7 +1214,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         if(currentEntity == NULL)
             osArg << ", ( " << instance << ", '"<< vSpatial[i] << "', " << "'external', 'default', 'spatial" << i+1 << "') ";
         else
-            osArg << ", ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'spatial" << i+1 << "') ";	
+            osArg << ", ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'spatial" << i+1 << "') ";    
     }
 
 
@@ -1218,7 +1222,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     bMain = requestFromString(osMain.str().c_str());
 
     // send filling contentarg
-    bArg =	requestFromString(osArg.str().c_str());
+    bArg =    requestFromString(osArg.str().c_str());
 
     for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
     {
@@ -1336,8 +1340,8 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
 
     // catch the arguments and the role associate
 
-    string	sArguments	= (*bInput.get(2).asList()).get(0).toString();
-    string sRole		= (*bInput.get(3).asList()).get(0).toString();
+    string    sArguments    = (*bInput.get(2).asList()).get(0).toString();
+    string sRole        = (*bInput.get(3).asList()).get(0).toString();
 
 
     //Connexion to the OPC and snapshot
@@ -1355,7 +1359,7 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     bMain = requestFromString(osMain.str().c_str());
 
     // send filling contentarg
-    bArg =	requestFromString(osArg.str().c_str());
+    bArg =    requestFromString(osArg.str().c_str());
 
     for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
     {
@@ -1407,8 +1411,8 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
             return bOutput;
         }
     }
-    //	opcWorld->checkout();
-    //	opcWorld->update();
+    //    opcWorld->checkout();
+    //    opcWorld->update();
     bOutput.addString("Connection done");
     return bOutput;
 }
@@ -1418,15 +1422,15 @@ string autobiographicalMemory::getCurrentTime()
 {
     struct tm Time;
     time_t myTime;
-    time(&myTime);					// get unix time
-    tm *t = localtime(&myTime);		// conversion in local time
+    time(&myTime);                    // get unix time
+    tm *t = localtime(&myTime);        // conversion in local time
 
-    Time.tm_hour	=	(*t).tm_hour;
-    Time.tm_min		=	(*t).tm_min;
-    Time.tm_sec		=	(*t).tm_sec;
-    Time.tm_mday	=	(*t).tm_mday;
-    Time.tm_mon		=	(*t).tm_mon;
-    Time.tm_year	=	(*t).tm_year;
+    Time.tm_hour    =    (*t).tm_hour;
+    Time.tm_min        =    (*t).tm_min;
+    Time.tm_sec        =    (*t).tm_sec;
+    Time.tm_mday    =    (*t).tm_mday;
+    Time.tm_mon        =    (*t).tm_mon;
+    Time.tm_year    =    (*t).tm_year;
     Time.tm_mday=(*t).tm_mday;
     Time.tm_mon=(*t).tm_mon;
     Time.tm_year=(*t).tm_year;
@@ -1698,7 +1702,7 @@ Bottle autobiographicalMemory::connect2reasoning()
 Bottle autobiographicalMemory::detectFailed()
 {
     Bottle bOutput;
-    Bottle	bMessenger = requestFromString("SELECT instance FROM main WHERE activitytype = 'actionfailed' AND begin = true");
+    Bottle    bMessenger = requestFromString("SELECT instance FROM main WHERE activitytype = 'actionfailed' AND begin = true");
 
 
     return bOutput;
@@ -1752,7 +1756,7 @@ Bottle autobiographicalMemory::populateOPC()
             Agent *TempAgent = opcWorld->addAgent(sName.c_str());
             TempAgent->m_color[0] = get<0>(colorAgent);
             TempAgent->m_color[1] = get<1>(colorAgent);
-            TempAgent->m_color[2] = get<2>(colorAgent);	
+            TempAgent->m_color[2] = get<2>(colorAgent);    
             TempAgent->m_present = false;
 
             opcWorld->commit(TempAgent);
@@ -1784,7 +1788,7 @@ Bottle autobiographicalMemory::populateOPC()
             RTObject *RTO = opcWorld->addRTObject(sName.c_str());
             RTO->m_color[0] = get<0>(colorRto);
             RTO->m_color[1] = get<1>(colorRto);
-            RTO->m_color[2] = get<2>(colorRto);	
+            RTO->m_color[2] = get<2>(colorRto);    
             RTO->m_present = false;
 
             opcWorld->commit(RTO);
@@ -1818,7 +1822,7 @@ Bottle autobiographicalMemory::populateOPC()
                 Object *TempObj = opcWorld->addObject(sName.c_str());
                 TempObj->m_color[0] = get<0>(colorObject);
                 TempObj->m_color[1] = get<1>(colorObject);
-                TempObj->m_color[2] = get<2>(colorObject);	
+                TempObj->m_color[2] = get<2>(colorObject);    
 
 
                 osObject.str("");
@@ -1829,7 +1833,7 @@ Bottle autobiographicalMemory::populateOPC()
 
                 TempObj->m_color[0] = get<0>(sizeObject);
                 TempObj->m_color[1] = get<1>(sizeObject);
-                TempObj->m_color[2] = get<2>(sizeObject);	
+                TempObj->m_color[2] = get<2>(sizeObject);    
 
                 osObject.str("");
                 osObject << "SELECT orientation FROM object WHERE (instance = " << instance << " and name = '" << sName <<"')";
@@ -1839,7 +1843,7 @@ Bottle autobiographicalMemory::populateOPC()
 
                 TempObj->m_ego_orientation[0] = get<0>(orientationObject);
                 TempObj->m_ego_orientation[1] = get<1>(orientationObject);
-                TempObj->m_ego_orientation[2] = get<2>(orientationObject);	
+                TempObj->m_ego_orientation[2] = get<2>(orientationObject);    
 
                 TempObj->m_present = false;
 
@@ -1864,10 +1868,10 @@ Bottle autobiographicalMemory::populateOPC()
 */
 tuple<int, int, int> autobiographicalMemory::tupleIntFromString(string sInput)
 {
-    tuple<int, int, int>	tOutput;
+    tuple<int, int, int>    tOutput;
     char *cInput;
     cInput = (char*)sInput.c_str();
-    int	iLevel = 0;
+    int    iLevel = 0;
     unsigned int data =0;
     string sX = "", sY = "", sZ ="";
     while (cInput[data] != '\0')
@@ -1907,10 +1911,10 @@ tuple<int, int, int> autobiographicalMemory::tupleIntFromString(string sInput)
 */
 tuple<double, double, double> autobiographicalMemory::tupleDoubleFromString(string sInput)
 {
-    tuple<double, double, double>	tOutput;
+    tuple<double, double, double>    tOutput;
     char *cInput;
     cInput = (char*)sInput.c_str();
-    int	iLevel = 0;
+    int    iLevel = 0;
     unsigned int data =0;
     string sX = "", sY = "", sZ ="";
     while (cInput[data] != '\0')

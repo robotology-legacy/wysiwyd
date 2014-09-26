@@ -1,3 +1,6 @@
+#ifndef _TIMEKNOWLEDGE_H_
+#define _TIMEKNOWLEDGE_H_
+
 #include <abmReasoningFunction.h>
 
 
@@ -20,3 +23,4 @@ public:
     std::vector<struct tm>           timeArg2;
 };
 
+#endif

@@ -1,3 +1,6 @@
+#ifndef _PLAN_H_
+#define _PLAN_H_
+
 #include <abmReasoningFunction.h>
 
 
@@ -13,3 +16,4 @@ public:
     std::vector< std::pair <std::string, std::string> >                 vArguments;                 // std::pair of argument + role of the plan (expl : circle-object1 , icub-agent2 ... )
 };
 
+#endif
