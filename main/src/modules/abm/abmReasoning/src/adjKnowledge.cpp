@@ -1,6 +1,11 @@
 #include <adjKnowledge.h>
 
 
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+
 adjKnowledge::adjKnowledge()
 {
     fTimingInfluence = false;
@@ -207,9 +212,9 @@ void adjKnowledge::determineSpatialInfluence()
     double deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
     double deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
 
-    fDeltaInfluence = (abmReasoningFunction::threshold_is_dispersion > deter_CovD);
+    fDeltaInfluence = (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD);
 
-    fAbsolutInfluence =  (abmReasoningFunction::threshold_is_dispersion > deter_CovB);
+    fAbsolutInfluence =  (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB);
 
     fFromInfluence = fAbsolutInfluence && fDeltaInfluence;
 
@@ -226,11 +231,11 @@ void adjKnowledge::determineSpatialInfluence()
         deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
         deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
 
-        fDeltaInfluence |= (abmReasoningFunction::threshold_is_dispersion > deter_CovD);
+        fDeltaInfluence |= (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD);
 
-        fAbsolutInfluence |=  (abmReasoningFunction::threshold_is_dispersion > deter_CovB);
+        fAbsolutInfluence |=  (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB);
 
-        fFromInfluence |= (abmReasoningFunction::threshold_is_dispersion > deter_CovD) && (abmReasoningFunction::threshold_is_dispersion > deter_CovB) ;
+        fFromInfluence |= (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD) && (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB) ;
     }
 }
 

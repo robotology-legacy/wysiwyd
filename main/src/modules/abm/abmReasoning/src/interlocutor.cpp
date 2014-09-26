@@ -1,5 +1,11 @@
 #include <interlocutor.h>
 
+
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+
 void interlocutor::initialize()
 {
     senderPort.open("/abmReasoning/interlocutor/toAbm/request:o");

@@ -9,10 +9,6 @@
 #define ae_maxrealnumber  1E300
 #define ae_minrealnumber  1E-300
 
-using namespace yarp::os;
-using namespace wysiwyd::wrdac;
-using namespace std;
-
 
 const double PI = 3.141592654;
 
@@ -21,10 +17,10 @@ class abmReasoningFunction
 {
 public:
 
-    abmReasoningFunction(ResourceFinder &rf);
+    abmReasoningFunction(yarp::os::ResourceFinder &rf);
 
-    static string s_realOPC ;               // name of the real OPC
-    static string s_mentalOPC;              // name of the mental OPC
+    static std::string s_realOPC ;               // name of the real OPC
+    static std::string s_mentalOPC;              // name of the mental OPC
 
     //table
     static double   X_center;               // X of the center of the table
@@ -46,50 +42,50 @@ public:
     static int  color_loc_G;
     static int  color_loc_B;
 
-    static int  difference_date_in_second;      // threshold return of second if 2 actions are at different dates
+    static int  DIFFERENCE_DATE_IN_SECOND;      // threshold return of second if 2 actions are at different dates
 
-    static double lifetime_relation;                // life time of a relation about the objects in the OPC
+    static double LIFETIME_RELATION;                // life time of a relation about the objects in the OPC
 
     //Spatialisation
-    static unsigned int  THRESHOLD_DETERMINE_INFLUENCE;           // number of tries before determine if location
-    static double factor_location;                  // factor of the size of a location : center +/- factor_location * std dev
-    static double threshold_is_at_location;
-    static double threshold_is_at_temporal_location;
-    static double threshold_is_dispersion;          // is lower, then the dispersion of a cloud of point is "null".
+    static unsigned int  THRESHOLD_DETERMINE_INFLUENCE;           // number of tries before deterstd::mine if location
+    static double FACTOR_LOCATION;                  // factor of the size of a location : center +/- FACTOR_LOCATION * std dev
+    static double THRESHOLD_IS_AT_LOCATION;
+    static double THRESHOLD_IS_AT_TEMPORAL_LOCATION;
+    static double THRESHOLD_IS_DISPERSION;          // is lower, then the dispersion of a cloud of point is "null".
 
     // PDDL
-    static double threshold_intersect_sup;
-    static double threshold_intersect_inf;
-    static double threshold_presence;
-    static double threshold_absence;
+    static double THRESHOLD_INTERSECT_SUP;
+    static double THRESHOLD_INTERSECT_INF;
+    static double THRESHOLD_PRESENCE;
+    static double THRESHOLD_ABSENCE;
 
     //TAGS
-    static string TAG_LOCATION;
-    static string TAG_IS_AT_LOC;
-    static string TAG_DEFAULT;
-    static string TAG_SPEAKER;
-    static string TAG_ADRESSEE;
-    static string TAG_SUBJECT;
-    static string TAG_AGENT;
-    static string TAG_NONE;
+    static std::string TAG_LOCATION;
+    static std::string TAG_IS_AT_LOC;
+    static std::string TAG_DEFAULT;
+    static std::string TAG_SPEAKER;
+    static std::string TAG_ADRESSEE;
+    static std::string TAG_SUBJECT;
+    static std::string TAG_AGENT;
+    static std::string TAG_NONE;
 
     //DB
-    static string TAG_DB_ACTION;
-    static string TAG_DB_COMPLEX;
-    static string TAG_DB_BEHAVIOR;
-    static string TAG_DB_SHARED_PLAN;
-    static string TAG_DB_ARGUMENT;
-    static string TAG_DB_NONE;
-    static string TAG_DB_MANNER;
-    static string TAG_DB_UNKNOWN;
+    static std::string TAG_DB_ACTION;
+    static std::string TAG_DB_COMPLEX;
+    static std::string TAG_DB_BEHAVIOR;
+    static std::string TAG_DB_SHARED_PLAN;
+    static std::string TAG_DB_ARGUMENT;
+    static std::string TAG_DB_NONE;
+    static std::string TAG_DB_MANNER;
+    static std::string TAG_DB_UNKNOWN;
 
     //GK
-    static string TAG_SPEAKER_IS_RECEIVER;
-    static string TAG_ADRESSEE_IS_SPEAKER;
-    static string TAG_SPEAKER_IS_AGENT;
-    static string TAG_AGENT_IS_SPEAKER;
-    static string TAG_AGENT_IS_RECEIVER;
-    static string TAG_ADRESSEE_IS_AGENT;
+    static std::string TAG_SPEAKER_IS_RECEIVER;
+    static std::string TAG_ADRESSEE_IS_SPEAKER;
+    static std::string TAG_SPEAKER_IS_AGENT;
+    static std::string TAG_AGENT_IS_SPEAKER;
+    static std::string TAG_AGENT_IS_RECEIVER;
+    static std::string TAG_ADRESSEE_IS_AGENT;
     static int  SIGMA_LEARNING_GRAMMAR;
     static double   THRESHOLD_CONFIDENCE_GRAMMAR;
 
@@ -103,24 +99,24 @@ public:
 
     // FUNCTIONS
 
-    static pair<double, double> coordFromString(string);
+    static std::pair<double, double> coordFromString(std::string);
 
     static bool timeDiff(struct tm TM1, struct tm TM2);
-    static struct tm string2Time(string sTime);
-    static string time2string(struct tm Time);
-    static int  timeDiffSecondFromString(string T1, string T2);
-    static pair<string, string> ago2string(pair<int, string> pInput);
+    static struct tm string2Time(std::string sTime);
+    static std::string time2string(struct tm Time);
+    static int  timeDiffSecondFromString(std::string T1, std::string T2);
+    static std::pair<std::string, std::string> ago2string(std::pair<int, std::string> pInput);
 
-    static vector<double> getCovMatrix(vector<pair<double, double> > vXY);
-    static vector<double> getCovMatrix(vector<double> vX, vector<double> vY);
+    static std::vector<double> getCovMatrix(std::vector<std::pair<double, double> > vXY);
+    static std::vector<double> getCovMatrix(std::vector<double> vX, std::vector<double> vY);
 
-    static double getMahalaDist(vector<double> vX, vector<double> vY, pair<double, double> XY);
+    static double getMahalaDist(std::vector<double> vX, std::vector<double> vY, std::pair<double, double> XY);
 
-    static tuple<int,int,int> tupleIntFromString(string sInput);
-    static tuple<double,double,double> tupleDoubleFromString(string sInput);
+    static std::tuple<int,int,int> tupleIntFromString(std::string sInput);
+    static std::tuple<double,double,double> tupleDoubleFromString(std::string sInput);
 
-    static void studentttest2(/* Real    */ vector<double> x,
-        /* Real    */ vector<double> y,
+    static void studentttest2(/* Real    */ std::vector<double> x,
+        /* Real    */ std::vector<double> y,
         double* bothtails,
         double* lefttail,
         double* righttail)
@@ -223,7 +219,7 @@ public:
         */
         stat = (xmean-ymean)/s;
         p = studenttdistribution(n+m-2, stat);
-        *bothtails = 2* min(p, 1-p);
+        *bothtails = 2* std::min(p, 1-p);
         *lefttail = p;
         *righttail = 1-p;
     }
@@ -1011,7 +1007,7 @@ class matrix3D          // personnal class of 3D matrix (cubic)
     // Z is the agent
 {
 protected:
-    vector<int>     viData;         // data of the matrix
+    std::vector<int>     viData;         // data of the matrix
 
 
 public:
@@ -1019,7 +1015,7 @@ public:
     // Variables : 
     int             iSize;          // size of each size of the 3D matrix (cubic)
     int             iSum;
-    vector<string>  vsLabels;       // label associated to each col/row/deepth
+    std::vector<std::string>  vsLabels;       // label associated to each col/row/deepth
 
     //Constructor 
     matrix3D() {iSize = 0; iSum = 0;}
@@ -1029,7 +1025,7 @@ public:
 
     int get(int x, int y, int z) {return viData[oneCoord(x, y, z)];}            // get the x y z position in the matrix
 
-    int get(string sSpeaker, string sAddressee, string sAgent)
+    int get(std::string sSpeaker, std::string sAddressee, std::string sAgent)
     {
         addLabel(sSpeaker);
         addLabel(sAddressee);
@@ -1049,7 +1045,7 @@ public:
         // check 
         if (X==-1 || Y == -1 || Z == -1)
         {
-            //cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
+            //std::cout << std::endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::get(std::string, std::string, std::string) | One of the label is missing" << std::endl;
             return 0;
         }
 
@@ -1058,26 +1054,26 @@ public:
 
     void incr(int x, int y, int z) {viData[oneCoord(x, y, z)]++;}               // increment the x y z position of the matrix of 1
 
-    void addLabel(string sLabel)    // add 1 to the x y and z size, and add the label to the list
+    void addLabel(std::string sLabel)    // add 1 to the x y and z size, and add the label to the list
     {
         //check if label already in the matrix
 
         bool bFound = false;
-        for (vector<string>::iterator itS = vsLabels.begin() ; itS != vsLabels.end() ; itS++)
+        for (std::vector<std::string>::iterator itS = vsLabels.begin() ; itS != vsLabels.end() ; itS++)
         {
             if (*itS == sLabel)     bFound = true;
         }
 
         if (bFound)
         {
-            //cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::addLabel | Label already existing" << endl;
+            //std::cout << std::endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::addLabel | Label already existing" << std::endl;
             return;
         }
 
 
         vsLabels.push_back(sLabel);
 
-        vector<int> matTemp;
+        std::vector<int> matTemp;
         for (int k = 0 ; k < iSize+1 ; k ++)
         {
             for (int j = 0 ; j < iSize+1 ; j++)
@@ -1100,7 +1096,7 @@ public:
         iSize++;
     }
 
-    void incr(string sSpeaker, string sAddressee, string sAgent)
+    void incr(std::string sSpeaker, std::string sAddressee, std::string sAgent)
         // increment in the matrix for the use of a pronom with information about the sentence
     {
         // first check if the speaker, receiver and agent are known
@@ -1122,7 +1118,7 @@ public:
         // check 
         if (X==-1 || Y == -1 || Z == -1)
         {
-            //cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::incr(string, string, string) | One of the label is missing" << endl;
+            //std::cout << std::endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::incr(std::string, std::string, std::string) | One of the label is missing" << std::endl;
             return;
         }
 
@@ -1134,11 +1130,11 @@ public:
     int getSize()   {return iSize;}
 
     /* get the sum of the diagonal of the correspondant plan (x, y or z) */
-    int sumDiagDouble(string W)
+    int sumDiagDouble(std::string W)
     {
         int sum = 0;
         if (W != "x" && W != "y" && W != "z")
-        {cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumDiag(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+        {std::cout << std::endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumDiag(std::string) | wrong coordinate ('x', 'y' or 'z')" << std::endl; }
         for (int b = 0 ; b < iSize ; b++)
         {
             for (int a = 0 ; a < iSize ; a++)
@@ -1152,7 +1148,7 @@ public:
     }
 
 
-    int sumPlan(string W, string sLabel)    // W is x y or z and Label is the name
+    int sumPlan(std::string W, std::string sLabel)    // W is x y or z and Label is the name
     {
         int iLabel= -1;
         for (int i = 0 ; i < iSize ; i++)
@@ -1162,7 +1158,7 @@ public:
 
         int sum = 0;
         if (W != "x" && W != "y" && W != "z")
-        {cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumPlan(string) | wrong coordinate ('x', 'y' or 'z')" << endl; }
+        {std::cout << std::endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumPlan(std::string) | wrong coordinate ('x', 'y' or 'z')" << std::endl; }
         for (int a = 0 ; a < iSize ; a++)
         {
             for (int b = 0 ; b < iSize ; b++)
@@ -1176,7 +1172,7 @@ public:
     }
 
     /* For a given X and Y, return the sum of the Z line*/
-    int sumLineXY(string X, string Y)
+    int sumLineXY(std::string X, std::string Y)
     {
         int xLabel= -1,
             yLabel = -1;
@@ -1195,7 +1191,7 @@ public:
     }
 
     /* For a given X and Z, return the sum of the Y line*/
-    int sumLineXZ(string X, string Z)
+    int sumLineXZ(std::string X, std::string Z)
     {
         int xLabel= -1,
             zLabel = -1;
@@ -1214,7 +1210,7 @@ public:
     }
 
     /* For a given Y and Z, return the sum of the X line*/
-    int sumLineYZ(string Y, string Z)
+    int sumLineYZ(std::string Y, std::string Z)
     {
         int zLabel= -1,
             yLabel = -1;
@@ -1249,10 +1245,10 @@ public:
 class matrix3D_nonCubic          // personnal class of 3D matrix
 {
 public:
-    vector<int>         viData;         // data of the matrix
-    vector<pair<string, int> >      vLabelX;
-    vector<pair<string, int> >      vLabelY;
-    vector<pair<string, int> >      vLabelZ;
+    std::vector<int>         viData;         // data of the matrix
+    std::vector<std::pair<std::string, int> >      vLabelX;
+    std::vector<std::pair<std::string, int> >      vLabelY;
+    std::vector<std::pair<std::string, int> >      vLabelZ;
 
     // Variables : 
     int             iSum;
@@ -1263,13 +1259,13 @@ public:
     // Functions
     int oneCoord(int x, int y, int z) {
         //		int test = x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size();
-        //		cout << "ici " << test << endl;
+        //		std::cout << "ici " << test << std::endl;
         return (x+y*vLabelX.size()+z*vLabelX.size()*vLabelY.size());
     }       // return the 1D coordinate from a 3D coordinate    
 
     int get(int x, int y, int z) {return viData[oneCoord(x, y, z)];}            // get the x y z position in the matrix
 
-    int get(string sX, string sY, string sZ)
+    int get(std::string sX, std::string sY, std::string sZ)
     {
         //		addLabelX(sX, true);
         //		addLabelY(sY, true);
@@ -1297,7 +1293,7 @@ public:
         // check 
         if (X==-1 || Y == -1 || Z == -1)
         {
-            //cout << endl << "Error in abmReasoning::abmReasoning.h::matrix3D::get(string, string, string) | One of the label is missing" << endl;
+            //std::cout << std::endl << "Error in abmReasoning::abmReasoning.h::matrix3D::get(std::string, std::string, std::string) | One of the label is missing" << std::endl;
             return 0;
         }
 
@@ -1307,11 +1303,11 @@ public:
 
     void incr(int x, int y, int z) {viData[oneCoord(x, y, z)]++;}               // increment the x y z position of the matrix of 1
 
-    bool addLabelX(string sLabel, bool check)    // add 1 to the x size, and add the label to the list; return FALSE if already existing
+    bool addLabelX(std::string sLabel, bool check)    // add 1 to the x size, and add the label to the list; return FALSE if already existing
     {
 
         //check if label already in the matrix
-        for (vector<pair<string, int> >::iterator it = vLabelX.begin(); it != vLabelX.end() ; it++)
+        for (std::vector<std::pair<std::string, int> >::iterator it = vLabelX.begin(); it != vLabelX.end() ; it++)
         {
             if (sLabel == it->first)
             {
@@ -1320,7 +1316,7 @@ public:
             }
         }
 
-        vector<int>     matrixTemp;
+        std::vector<int>     matrixTemp;
 
         for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
         {
@@ -1336,17 +1332,17 @@ public:
             }
         }
 
-        pair<string, int> pTemp(sLabel, check?0:1);
+        std::pair<std::string, int> pTemp(sLabel, check?0:1);
         vLabelX.push_back(pTemp);
         viData = matrixTemp;
         return true;
     }
 
-    bool addLabelY(string sLabel, bool check)    // add 1 to the y size, and add the label to the list; return FALSE if already existing
+    bool addLabelY(std::string sLabel, bool check)    // add 1 to the y size, and add the label to the list; return FALSE if already existing
     {
 
         //check if label already in the matrix
-        for (vector<pair<string, int> >::iterator it = vLabelY.begin(); it != vLabelY.end() ; it++)
+        for (std::vector<std::pair<std::string, int> >::iterator it = vLabelY.begin(); it != vLabelY.end() ; it++)
         {
             if (sLabel == it->first)
             {
@@ -1355,7 +1351,7 @@ public:
             }
         }
 
-        vector<int>     matrixTemp;
+        std::vector<int>     matrixTemp;
 
         for (unsigned int i = 0 ; i < vLabelZ.size() ; i++)
         {
@@ -1373,17 +1369,17 @@ public:
         }
 
 
-        pair<string, int> pTemp(sLabel,check? 0 : 1);
+        std::pair<std::string, int> pTemp(sLabel,check? 0 : 1);
         vLabelY.push_back(pTemp);
         viData = matrixTemp;
         return true;
     }
 
-    bool addLabelZ(string sLabel, bool check)    // add 1 to the z size, and add the label to the list; return FALSE if already existing
+    bool addLabelZ(std::string sLabel, bool check)    // add 1 to the z size, and add the label to the list; return FALSE if already existing
     {
 
         //check if label already in the matrix
-        for (vector<pair<string, int> >::iterator it = vLabelZ.begin(); it != vLabelZ.end() ; it++)
+        for (std::vector<std::pair<std::string, int> >::iterator it = vLabelZ.begin(); it != vLabelZ.end() ; it++)
         {
             if (sLabel == it->first)
             {
@@ -1392,7 +1388,7 @@ public:
             }
         }
 
-        vector<int>     matrixTemp;
+        std::vector<int>     matrixTemp;
 
 
         for (unsigned int j = 0 ; j < vLabelY.size() ; j++)
@@ -1404,13 +1400,13 @@ public:
         }
 
 
-        pair<string, int> pTemp(sLabel,check?0:1);
+        std::pair<std::string, int> pTemp(sLabel,check?0:1);
         vLabelZ.push_back(pTemp);
         //viData = matrixTemp;
         return true;
     }
 
-    void incr(string sX, vector<string> vY, string sZ)
+    void incr(std::string sX, std::vector<std::string> vY, std::string sZ)
         // increment in the matrix for the use of a pronom with information about the sentence
     {
         // first check if the speaker, receiver and agent are known
@@ -1445,13 +1441,13 @@ public:
         // check 
         if (iX==-1 || iZ == -1)
         {
-            cout << endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D_nonCubic::incr(string, vector<string>, string) | One of the label is missing" << endl;
+            std::cout << std::endl << "Error in abmReasoning::abmReasoningFunction.h::matrix3D_nonCubic::incr(std::string, std::vector<std::string>, std::string) | One of the label is missing" << std::endl;
             return;
         }
 
 
         // search for Y
-        for (vector<string>::iterator itYinput = vY.begin() ; itYinput != vY.end() ; itYinput++)
+        for (std::vector<std::string>::iterator itYinput = vY.begin() ; itYinput != vY.end() ; itYinput++)
         {
             addLabelY(*itYinput, false);
             for (unsigned int i = 0 ; i < vLabelY.size() ; i++)
@@ -1468,7 +1464,7 @@ public:
     }
 
     /* For a given X and Y, return the sum of the Z line*/
-    int sumLineXY(string sX, string sY)
+    int sumLineXY(std::string sX, std::string sY)
     {
         int iX = -1,
             iY = -1;
@@ -1494,7 +1490,7 @@ public:
     }
 
     /* For a given X and Y, return the sum of the Z line*/
-    int sumLineYZ(string sY, string sZ)
+    int sumLineYZ(std::string sY, std::string sZ)
     {
         int iY = -1,
             iZ = -1;
@@ -1520,7 +1516,7 @@ public:
     }
 
     /* For a given X and Y, return the sum of the Z line*/
-    int sumLineXZ(string sX, string sZ)
+    int sumLineXZ(std::string sX, std::string sZ)
     {
         int iX = -1,
             iZ = -1;
@@ -1701,7 +1697,7 @@ public:
         D += score2.D;
     }
 
-    void addScore(pair<int, int> pInput, bool bFirstCol)
+    void addScore(std::pair<int, int> pInput, bool bFirstCol)
     {
         if (bFirstCol)  {
             A += pInput.first;

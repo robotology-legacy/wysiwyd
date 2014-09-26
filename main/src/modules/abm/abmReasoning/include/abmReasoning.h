@@ -1,5 +1,4 @@
 #include <interlocutor.h>
-using namespace std;
 
 
 
@@ -9,7 +8,7 @@ private :
 
     // Internal member, module-related :
     abmReasoningFunction *iFunction;            //  class of generic functions
-    string  savefile,
+    std::string  savefile,
         path;
     interlocutor        Interlocutor;           // interlocutor with the ABM
     OPCClient           *realOPC;                       // OPC
@@ -17,8 +16,8 @@ private :
 
     ICubClient *iCub;
 
-    Bottle              connectOPC(Bottle bInput);
-    string              moduleName;
+    yarp::os::Bottle              connectOPC(yarp::os::Bottle bInput);
+    std::string              moduleName;
 
     Port handlerPort;     //a port to handle messages 
     Port senderPort;      //a port to send command to autobiographicalMemory (retrieve data from SQL db)
@@ -28,47 +27,47 @@ private :
     bool                bReady;         // is the system initialize
     bool                bPopulateOPC;   // send the knowledge to the OPC
 
-    Bottle getActionFromPostCondition(pair<string,int>) ;
+    yarp::os::Bottle getActionFromPostCondition(std::pair<std::string,int>) ;
 
     // List of knowledge : 
-    vector<spatialKnowledge>        listSpatialKnowledge;
-    vector<timeKnowledge>           listTimeKnowledge;
-    vector<sharedPlan>              listSharedPlan;
-    vector<plan>                    listPlan;
-    vector<behavior>                listBehaviors;
-    vector<contextualKnowledge>     listContextualKnowledge;
-    vector<knownInteraction>        listKnownInteraction;
-    map<string, pair<vector<double> , vector<double> > >    mapLocation;                    //  known durable locations
-    map<string, tuple<string, vector<double> , vector<double> > >   mapTemporalLocation;    // relative location
+    std::vector<spatialKnowledge>        listSpatialKnowledge;
+    std::vector<timeKnowledge>           listTimeKnowledge;
+    std::vector<sharedPlan>              listSharedPlan;
+    std::vector<plan>                    listPlan;
+    std::vector<behavior>                listBehaviors;
+    std::vector<contextualKnowledge>     listContextualKnowledge;
+    std::vector<knownInteraction>        listKnownInteraction;
+    map<std::string, std::pair<std::vector<double> , std::vector<double> > >    mapLocation;                    //  known durable locations
+    map<std::string, tuple<std::string, std::vector<double> , std::vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
     wordKnowledge					WordKnowledge;
 
     //PDDL planner variable
-    string      plannerPath ;
-    string      plannerExec ;
-    string      plannerOptDom ;
-    string      plannerOptProb ;
-    string      plannerOptOut ;
-    string      plannerOptNb ;  //option : number of plan/solution before stop
-    string      plannerOptCpu ; //option : nb of second max taken by the planner
+    std::string      plannerPath ;
+    std::string      plannerExec ;
+    std::string      plannerOptDom ;
+    std::string      plannerOptProb ;
+    std::string      plannerOptOut ;
+    std::string      plannerOptNb ;  //option : number of plan/solution before stop
+    std::string      plannerOptCpu ; //option : nb of second max taken by the planner
 
-    string      pddlDomain;    //name of the domain pddl file
-    string      pddlProblem  ; //name of the problem pddl file
-    string      pddlOut ;      //name of the solution plan file
+    std::string      pddlDomain;    //name of the domain pddl file
+    std::string      pddlProblem  ; //name of the problem pddl file
+    std::string      pddlOut ;      //name of the solution plan file
     int         pddlNb ;       //nb max of produced solution
     int         pddlCpu ;      //nb of second max taken by the planner to find solution
 
     void        initialisePlanner(ResourceFinder &rf);      // initialise all variables of the planner
     int         pddlPlannerLauncher() ;
-    Bottle      pddlPlannerSolParser() ;
+    yarp::os::Bottle      pddlPlannerSolParser() ;
 
-    vector<vector<int> >    testListSharedPlan ;
-    vector<vector<int> >    testListSharedPlanPossible ;
-    vector<int>             testListCurrentAction ;
+    std::vector<std::vector<int> >    testListSharedPlan ;
+    std::vector<std::vector<int> >    testListSharedPlanPossible ;
+    std::vector<int>             testListCurrentAction ;
 
-    vector <plan>               vBuiltSharedPlan;
-    vector <vector<plan> >      vAvailablePlans ;
-    vector < pair <int,int> >   vCurrentActions ;
+    std::vector <plan>               vBuiltSharedPlan;
+    std::vector <std::vector<plan> >      vAvailablePlans ;
+    std::vector < std::pair <int,int> >   vCurrentActions ;
 
     int saveEndLastAction;
 
@@ -78,125 +77,125 @@ public :
     abmReasoning(ResourceFinder &rf);
     ~abmReasoning();
 
-    deque<string> opcNameTable;
+    deque<std::string> opcNameTable;
 
     //
     // module related functions
     double getPeriod();
     bool updateModule();    //  This is our main function. Will be called periodically every getPeriod() seconds.
     bool configure(yarp::os::ResourceFinder &rf);
-    bool respond(const Bottle& command, Bottle& reply);
+    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     bool interruptModule();
     bool close();   //  Close function, to perform cleanup.
     void changeDreaming();
 
     //method called via handlerPort
-    Bottle request(Bottle request);
-    Bottle requestFromStream(string sInput);
-    Bottle save(Bottle bInput);
-    Bottle sqlQueryTest();
+    yarp::os::Bottle request(yarp::os::Bottle request);
+    yarp::os::Bottle requestFromStream(std::string sInput);
+    yarp::os::Bottle save(yarp::os::Bottle bInput);
+    yarp::os::Bottle sqlQueryTest();
 
 
     // query from outside
-    Bottle findActivity(string actionName, string beginOrEnd, string select = "*");
-    Bottle findActivityById(int id, string select = "*");
-    // Bottle findOPC(string actionName, string beginOrEnd);
-    Bottle queryBehavior(Bottle bInput);
+    yarp::os::Bottle findActivity(std::string actionName, std::string beginOrEnd, std::string select = "*");
+    yarp::os::Bottle findActivityById(int id, std::string select = "*");
+    // yarp::os::Bottle findOPC(std::string actionName, std::string beginOrEnd);
+    yarp::os::Bottle queryBehavior(yarp::os::Bottle bInput);
 
 
     // Get ID (main.instance)
 
-    vector<pair<int, int> > getIdFromActivity(string actionName, Bottle bRoleAndRoleValue);
-    vector<pair<int, int> > getIdPairsFromBottle(Bottle idBottle);
-    vector<pair<int, int> > getIDfromTime(Bottle bInput);
+    std::vector<std::pair<int, int> > getIdFromActivity(std::string actionName, yarp::os::Bottle bRoleAndRoleValue);
+    std::vector<std::pair<int, int> > getIdPairsFromBottle(yarp::os::Bottle idBottle);
+    std::vector<std::pair<int, int> > getIDfromTime(yarp::os::Bottle bInput);
 
-    Bottle getActionConsequence(pair<string, string> pNameArg);
-    Bottle getActionConsequenceDrives(pair<string, string> pNameArg);
-    Bottle testGetIdFromActivity();
+    yarp::os::Bottle getActionConsequence(std::pair<std::string, std::string> pNameArg);
+    yarp::os::Bottle getActionConsequenceDrives(std::pair<std::string, std::string> pNameArg);
+    yarp::os::Bottle testGetIdFromActivity();
 
-    Bottle renameAction(Bottle bInput);
+    yarp::os::Bottle renameAction(yarp::os::Bottle bInput);
 
 
     // finding function
-    Bottle findAllActions();
-    Bottle findAllBehaviors();
-    Bottle findAllComplex();
-    Bottle findAllSentence();
-    Bottle findAllSharedPlan();
-    Bottle findAllInteractions();
-    Bottle findAllActions(int from);
-    Bottle findAllBehaviors(int from);
-    Bottle findAllComplex(int from);
-    Bottle findAllSentence(int from);
-    Bottle findAllSharedPlan(int from);
-    Bottle findAllInteractions(int from);
+    yarp::os::Bottle findAllActions();
+    yarp::os::Bottle findAllBehaviors();
+    yarp::os::Bottle findAllComplex();
+    yarp::os::Bottle findAllSentence();
+    yarp::os::Bottle findAllSharedPlan();
+    yarp::os::Bottle findAllInteractions();
+    yarp::os::Bottle findAllActions(int from);
+    yarp::os::Bottle findAllBehaviors(int from);
+    yarp::os::Bottle findAllComplex(int from);
+    yarp::os::Bottle findAllSentence(int from);
+    yarp::os::Bottle findAllSharedPlan(int from);
+    yarp::os::Bottle findAllInteractions(int from);
 
     //find possible plan into list action
-    Bottle findPossibleSharedPlan(int, int);
-    Bottle availableSharedPlan(int, int);
+    yarp::os::Bottle findPossibleSharedPlan(int, int);
+    yarp::os::Bottle availableSharedPlan(int, int);
     plan actionsToPlan(int, int) ;
-    vector<plan> checkPlan(plan, vector<plan>);
+    std::vector<plan> checkPlan(plan, std::vector<plan>);
 
 
     // adding functions
-    Bottle addLastActivity(Bottle bInput);
-    Bottle addLastAction();
-    Bottle addLastComplex();
-    Bottle addLastBehavior();
-    Bottle addLastSharedPlan();
+    yarp::os::Bottle addLastActivity(yarp::os::Bottle bInput);
+    yarp::os::Bottle addLastAction();
+    yarp::os::Bottle addLastComplex();
+    yarp::os::Bottle addLastBehavior();
+    yarp::os::Bottle addLastSharedPlan();
     plan addLastPlan();
 
     // asking functions
-    Bottle askLastActivity(Bottle bInput);
+    yarp::os::Bottle askLastActivity(yarp::os::Bottle bInput);
 
     // discriminate functions
-    Bottle discriminateLastAction();
-    Bottle discriminateAction(Bottle bInput);
-    Bottle discriminateUnknownActions();
+    yarp::os::Bottle discriminateLastAction();
+    yarp::os::Bottle discriminateAction(yarp::os::Bottle bInput);
+    yarp::os::Bottle discriminateUnknownActions();
 
 
     // execution functions
-    Bottle executeAction(Bottle bInput);
-    Bottle executeComplex(Bottle bInput);
-    Bottle executeActivity(Bottle bInput);
-    Bottle executeSharedPlan(Bottle bInput);
-    Bottle executeReasoning(Bottle bInput);
+    yarp::os::Bottle executeAction(yarp::os::Bottle bInput);
+    yarp::os::Bottle executeComplex(yarp::os::Bottle bInput);
+    yarp::os::Bottle executeActivity(yarp::os::Bottle bInput);
+    yarp::os::Bottle executeSharedPlan(yarp::os::Bottle bInput);
+    yarp::os::Bottle executeReasoning(yarp::os::Bottle bInput);
 
 
     // knowledge related functions
     void printSpatialKnowledge();
     void checkContextLocation();
-    Bottle addSpatialKnowledge(spatialKnowledge skInput, bool b_update);
-    Bottle addTimeKnowledge(Bottle bInput);
+    yarp::os::Bottle addSpatialKnowledge(spatialKnowledge skInput, bool b_update);
+    yarp::os::Bottle addTimeKnowledge(yarp::os::Bottle bInput);
     plan addPlan(plan pInput);
-    Bottle addSharedPlan(plan pInput);
-    Bottle resetKnowledge();
-    Bottle resetKnowledge(int from);
-    Bottle reasoningFrom(int instance);
-    Bottle getKnowledge();
-    Bottle updateKnownLocations();
-    Bottle DeleteKnownLocations();
-    Bottle updateLocation(string sLocation);
-    Bottle addContextualKnowledge(Bottle bInput);
-    Bottle addBehavior(behavior beInput);
-    Bottle saveKnowledge();
-    Bottle askGrammar(Bottle bInput);
-    Bottle askWordKnowledge(Bottle bInput);
+    yarp::os::Bottle addSharedPlan(plan pInput);
+    yarp::os::Bottle resetKnowledge();
+    yarp::os::Bottle resetKnowledge(int from);
+    yarp::os::Bottle reasoningFrom(int instance);
+    yarp::os::Bottle getKnowledge();
+    yarp::os::Bottle updateKnownLocations();
+    yarp::os::Bottle DeleteKnownLocations();
+    yarp::os::Bottle updateLocation(std::string sLocation);
+    yarp::os::Bottle addContextualKnowledge(yarp::os::Bottle bInput);
+    yarp::os::Bottle addBehavior(behavior beInput);
+    yarp::os::Bottle saveKnowledge();
+    yarp::os::Bottle askGrammar(yarp::os::Bottle bInput);
+    yarp::os::Bottle askWordKnowledge(yarp::os::Bottle bInput);
 
 
     // memory related
-    Bottle getInfoAbout(string sName);
+    yarp::os::Bottle getInfoAbout(std::string sName);
 
 
     // RETRO REASONING
-    Bottle  retroReasoning();
-    Bottle  level3Reasoning();
-    Bottle  retroReasoning(int from);
-    Bottle  level3Reasoning(int from);
+    yarp::os::Bottle  retroReasoning();
+    yarp::os::Bottle  level3Reasoning();
+    yarp::os::Bottle  retroReasoning(int from);
+    yarp::os::Bottle  level3Reasoning(int from);
 
     //print functions
-    Bottle printPDDLContextualKnowledgeDomain();
-    Bottle printPDDLContextualKnowledgeProblem(Bottle bGoal);
+    yarp::os::Bottle printPDDLContextualKnowledgeDomain();
+    yarp::os::Bottle printPDDLContextualKnowledgeProblem(yarp::os::Bottle bGoal);
 
     //pddl File functions
     void pddlSolFileName(int i, char* filename);
@@ -206,10 +205,10 @@ public :
     int bestSol ;
 
     // display functions
-    void displayResult(Bottle bInput);
+    void displayResult(yarp::os::Bottle bInput);
     void displaySharedPlan();
 
     // OPC related
-    Bottle updateOpcObjectLocation(string sOPCname);
+    yarp::os::Bottle updateOpcObjectLocation(std::string sOPCname);
 
 };

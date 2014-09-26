@@ -1,19 +1,13 @@
 #include <abmReasoningFunction.h>
 
-using namespace yarp::os;
-using namespace wysiwyd::wrdac;
-using namespace std;
-
-
-
 class behavior
 {   
 public:
-    string                                          sName;
-    string                                          sArgument;
-    vector < vector< pair <string, double> > >      vEffect;
-    Bottle                      getConsequence();
-    Bottle                      getConsequence(int last);
+    std::string                                          sName;
+    std::string                                          sArgument;
+    std::vector < std::vector< std::pair <std::string, double> > >      vEffect;
+    yarp::os::Bottle                      getConsequence();
+    yarp::os::Bottle                      getConsequence(int last);
 
 };
 

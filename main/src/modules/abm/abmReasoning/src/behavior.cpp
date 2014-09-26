@@ -1,5 +1,11 @@
 #include <behavior.h>
 
+
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+
 Bottle behavior::getConsequence()
 {
     Bottle bOutput;

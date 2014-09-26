@@ -1,33 +1,27 @@
 #include <abmReasoningFunction.h>
 
-using namespace yarp::os;
-using namespace wysiwyd::wrdac;
-using namespace std;
-
-
-
 class wordKnowledge
 {
 public:
 
-    vector<pair<string, int>>	listWordObjects;
-    vector<pair<string, int>>	listWordContexts;
-    vector<pair<string, int>>	listWordWord;
+    std::vector<std::pair<std::string, int>>   listWordObjects;
+    std::vector<std::pair<std::string, int>>   listWordContexts;
+    std::vector<std::pair<std::string, int>>   listWordWord;
 
-    vector<vector<int>>     matObject2Context;
-    vector<vector<int>>     matWord2Context;
+    std::vector<std::vector<int>>     matObject2Context;
+    std::vector<std::vector<int>>     matWord2Context;
 
     matrix3D_nonCubic       matObject2Word;
     matrix3D_nonCubic       matWord2Object;
 
 
-    void					simulateData();
+    void                    simulateData();
 
-    pair<string, double>	getObjectFromWord(string sWord, vector<string> vContext);
-    pair<string, double>	getWordFromObject(string sObject, vector<string> vContext);
-    
-    Bottle                  addInstance(string sObjectIdOPC, string sWord, vector<string> vContext);
-    Bottle                  askWordKnowledge(string sQuestion, string sWhat, vector<string> vContext);
+    std::pair<std::string, double>    getObjectFromWord(std::string sWord, std::vector<std::string> vContext);
+    std::pair<std::string, double>    getWordFromObject(std::string sObject, std::vector<std::string> vContext);
+
+    yarp::os::Bottle                  addInstance(std::string sObjectIdOPC, std::string sWord, std::vector<std::string> vContext);
+    yarp::os::Bottle                  askWordKnowledge(std::string sQuestion, std::string sWhat, std::vector<std::string> vContext);
 };
 
 

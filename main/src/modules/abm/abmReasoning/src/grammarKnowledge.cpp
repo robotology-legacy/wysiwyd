@@ -1,5 +1,11 @@
 #include <grammarKnowledge.h>
 
+
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+
 const double weightSimple = 5.;
 const double weightDouble = 2;
 const double weightTriple = 5.;

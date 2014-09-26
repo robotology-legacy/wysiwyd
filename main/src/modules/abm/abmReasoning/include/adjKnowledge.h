@@ -11,8 +11,8 @@ public:
 
     adjKnowledge();
 
-    string      sLabel;
-    string      sTag;
+    std::string      sLabel;
+    std::string      sTag;
 
     bool fTimingInfluence;
     bool fAbsolutInfluence;
@@ -21,27 +21,27 @@ public:
 
     // TIMING
 
-    vector<double>      vdGnlTiming;             // global timing of any action with this adjective
-    vector<double>      vdNoGnlTiming;           // global timing of any action without this adjective
+    std::vector<double>      vdGnlTiming;             // global timing of any action with this adjective
+    std::vector<double>      vdNoGnlTiming;           // global timing of any action without this adjective
 
-    map<string, pair< vector<double>, vector<double> > >     mActionTiming;     // map with timing of adj + act , adj + no_act ; key is action name;
+    map<std::string, std::pair< std::vector<double>, std::vector<double> > >     mActionTiming;     // map with timing of adj + act , adj + no_act ; key is action name;
 
 
     // SPATIAL
 
     //absolut
 
-    vector<pair<double, double> >       vdGnlXY;          // absolute final location of any action with this adjective
-    vector<pair<double, double> >       vdNoGnlXY;        // absolute final location of any action without this adjective
+    std::vector<std::pair<double, double> >       vdGnlXY;          // absolute final location of any action with this adjective
+    std::vector<std::pair<double, double> >       vdNoGnlXY;        // absolute final location of any action without this adjective
 
-    map<string, vector< pair<double, double > > >     mActionAbsolut;     // map with absolute final location of adj + act ; key is action name;
+    map<std::string, std::vector< std::pair<double, double > > >     mActionAbsolut;     // map with absolute final location of adj + act ; key is action name;
 
     // DELTA
 
-    vector<pair<double, double> >       vdGnlDelta;          // Relative displacement of any action with this adjective
-    vector<pair<double, double> >       vdNoGnlDelta;        // Relative displacement of any action without this adjective
+    std::vector<std::pair<double, double> >       vdGnlDelta;          // Relative displacement of any action with this adjective
+    std::vector<std::pair<double, double> >       vdNoGnlDelta;        // Relative displacement of any action without this adjective
 
-    map<string, vector<pair<double, double> >  >     mActionDelta;     // map with Relative displacement of adj + act ; key is action name;
+    map<std::string, std::vector<std::pair<double, double> >  >     mActionDelta;     // map with Relative displacement of adj + act ; key is action name;
 
 
 
@@ -51,16 +51,16 @@ public:
     void    determineTimingInfluence();
     void    determineSpatialInfluence();
 
-    void    addInteraction(Bottle bInput);
-    void    addOtherInteraction(Bottle bInput);
+    void    addInteraction(yarp::os::Bottle bInput);
+    void    addOtherInteraction(yarp::os::Bottle bInput);
 
     
 
-    pair<double, double>    coordRelative(double Xo, double Yo, double Xh, double Yh);      // return the relatve coordinates of an object from an other agent
+    std::pair<double, double>    coordRelative(double Xo, double Yo, double Xh, double Yh);      // return the relatve coordinates of an object from an other agent
 
 
-    pair <int, double>      distFromMove(pair<double, double> XY, pair<double, double> MOVE);
-    vector<double>          determineAbsolut();
+    std::pair <int, double>      distFromMove(std::pair<double, double> XY, std::pair<double, double> MOVE);
+    std::vector<double>          determineAbsolut();
 
 
 };
