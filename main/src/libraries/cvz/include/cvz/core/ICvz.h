@@ -261,7 +261,7 @@ namespace cvz {
 			//May slow down the 
 			void logFillData()
 			{
-				double t0 = yarp::os::Time::now();
+				//double t0 = yarp::os::Time::now();
 
 				std::map<IModality*, double> previousInfluences = modalitiesInfluence;
 				std::map<IModality*, double> previousLearning = modalitiesLearning;
