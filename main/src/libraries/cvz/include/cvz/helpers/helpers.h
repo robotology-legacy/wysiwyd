@@ -39,6 +39,34 @@ namespace cvz {
 			return out;
 		}
 
+        /*
+        void fillRnd(yarp::sig::Matrix &m)
+        {
+            for (int x = 0; x < m.rows(); x++)
+            {
+                for (int y = 0; y < m.cols(); y++)
+                {
+                    m[x][y] = yarp::os::Random::uniform();
+                }
+            }
+        }
+
+        yarp::sig::Vector std2yarpVector(std::vector<double> v)
+        {
+            yarp::sig::Vector v2(v.size());
+            for (int i = 0; i < v.size(); i++)
+                v2[i] = v[i];
+            return v2;
+        }
+
+        std::vector<double> yarp2stdVector(yarp::sig::Vector v)
+        {
+            std::vector<double> v2(v.size());
+            for (int i = 0; i < v.size(); i++)
+                v2[i] = v[i];
+            return v2;
+        }*/
+
 		struct Cube : public std::vector< std::vector< std::vector< double > > >
 		{
 			Cube(){}

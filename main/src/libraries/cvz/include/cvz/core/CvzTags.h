@@ -7,6 +7,7 @@ namespace cvz {
         const std::string TYPE_ICVZ("icvz");
         const std::string TYPE_MLP("mlp");
         const std::string TYPE_MMCM("mmcm");
+        const std::string TYPE_ESOM("esom");
     }
 }
 #endif
