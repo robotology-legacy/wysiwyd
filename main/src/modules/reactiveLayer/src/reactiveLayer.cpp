@@ -22,6 +22,11 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
+    //Set the voice
+    std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
+    if (iCub->getSpeechClient())
+        iCub->getSpeechClient()->SetOptions(ttsOptions);
+
     //Configure the various components
 	configureOPC(rf);
 	configureAllostatic(rf);
@@ -105,6 +110,10 @@ void ReactiveLayer::configureSalutation(yarp::os::ResourceFinder &rf)
 			salutationEffects[socialStimulusName] = response;
 		}
 	}
+
+    //Add the relevant Entities for handling salutation
+    iCub->opc->addAction("is");
+    iCub->opc->addAdjective("saluted");
 }
 
 void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
