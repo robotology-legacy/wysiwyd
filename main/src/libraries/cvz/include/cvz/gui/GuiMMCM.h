@@ -32,14 +32,10 @@ namespace cvz {
 
 		class GuiMMCM : public GuiICvz
 		{
-			GtkWidget *label_dimension;
 			GtkWidget *box_activity;
-			GtkWidget *box_parameters;
-			GtkWidget *slider_learning;
-			GtkWidget *slider_sigma;
+			//GtkWidget *slider_sigma;
 			std::vector< GtkWidget* > frames_activity;
 			std::vector< GdkPixbuf* > pxBuf_activity;
-			GuiIModality* recurrentGuiIModality;
 
 			void initElements()
 			{
@@ -47,41 +43,6 @@ namespace cvz {
 
 				core::CvzMMCM* m = getCvz();
 				gtk_label_set_text(GTK_LABEL(label_type), "Cvz Type - MMCM");
-				//Add suplementary info to the infobox
-				std::string dim = "Dimension (" + helpers::int2str(m->W()) + "x" + helpers::int2str(m->H()) + "x" + helpers::int2str(m->L()) + ")";
-				label_dimension = gtk_label_new(dim.c_str());
-				gtk_label_set_text(GTK_LABEL(label_dimension), dim.c_str());
-
-				gtk_box_pack_start(GTK_BOX(boxMainInfo), label_dimension, FALSE, FALSE, 0);
-				gtk_widget_show(label_dimension);
-
-				//Add box for parameters manipulation
-				box_parameters = gtk_vbox_new(FALSE, 10);
-				gtk_box_pack_start(GTK_BOX(boxMainInfo), box_parameters, FALSE, FALSE, 0);
-				LabelledSlider sliderLearning;
-				sliderLearning.allocate("Learning Rate", &(m->lRate), 0.0, 1.0, 0.001);
-				gtk_box_pack_start(GTK_BOX(box_parameters), sliderLearning.box, FALSE, FALSE, 0);
-				//LabelledSlider sliderSigma;
-				//sliderSigma.allocate("Sigma", &(m->sigmaH), 0.5, sqrt(pow(m->W(), 2.0) + pow(m->H(), 2.0)), 0.5);
-				//gtk_box_pack_start(GTK_BOX(box_parameters), sliderSigma.box, FALSE, FALSE, 0);
-
-				gtk_widget_show(box_parameters);
-
-				//Add the influence/learning slider to every modality
-				for (std::map < core::IModality*, GuiIModality*>::iterator wMod = wModalities.begin(); wMod != wModalities.end(); wMod++)
-				{
-					GtkWidget* paramModBox = gtk_vbox_new(FALSE, 0);
-					gtk_box_pack_start(GTK_BOX(wMod->second->box), paramModBox, FALSE, FALSE, 0);
-
-					LabelledSlider sliderInf;
-					sliderInf.allocate("Influence", &(m->modalitiesInfluence[wMod->first]), 0.0, 1.0, 0.1);
-					gtk_box_pack_start(GTK_BOX(paramModBox), sliderInf.box, FALSE, FALSE, 0);
-					LabelledSlider sliderLear;
-					sliderLear.allocate("Learning", &(m->modalitiesLearning[wMod->first]), 0.0, 1.0, 0.1);
-					gtk_box_pack_start(GTK_BOX(paramModBox), sliderLear.box, FALSE, FALSE, 0);
-
-					gtk_widget_show(paramModBox);
-				}
 
 				//Display the map activity for every layer
 				box_activity = gtk_hbox_new(TRUE, 0);

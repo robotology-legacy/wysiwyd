@@ -18,15 +18,30 @@ namespace cvz {
 		{
 
 		private:
+
+            std::string name;
+            int cyclesElapsed;
+            double period;
+            bool isPaused;
+            bool logResultsEnabled;
+
 			void broadcastParameters()
 			{
 				yarp::os::Bottle b = getParametersForBroadcast();
 				parametersPortOut.write(b);
 			}
 
+        protected:
+            //Parameters defined when the CVZ is instantiated and read only after that
+            yarp::os::Property parametersStartTime;
+
 		public:
 			yarp::os::RpcServer rpcPort;
 			yarp::os::Port	parametersPortOut;
+
+            //Parameters accesible in read/write mode at runtime
+            yarp::os::Property parametersRuntime;
+            yarp::os::Property getParametersStartTime(){ return parametersStartTime; };
 
 			std::string getRpcPortName(){ return rpcPort.getName(); }
 			std::string getName(){ return name; }
@@ -36,14 +51,6 @@ namespace cvz {
 			void moduleStart() { std::cout << "Started." << std::endl; isPaused = false; }
 			void modulePause() { std::cout << "Paused." << std::endl; isPaused = true; }			
 
-		protected:
-			std::string name;
-			int cyclesElapsed;
-			double period;
-			bool isPaused;
-			bool logResultsEnabled;
-
-		public:
 
             virtual std::string getType() { return cvz::core::TYPE_ICVZ; };
 
@@ -54,10 +61,20 @@ namespace cvz {
 
 			virtual bool configure(yarp::os::Property &prop)
 			{
+                yarp::os::Bottle& bParamsFixed = prop.findGroup("Parameters StartTime");
+                bParamsFixed.write(parametersStartTime);
+                
+                if (!parametersStartTime.check("name"))
+                    parametersStartTime.put("name", yarp::os::Value("defaultCvz"));
+                if (!parametersStartTime.check("period"))
+                    parametersStartTime.put("period", yarp::os::Value(0.01));
 
-				std::string name = prop.check("name", yarp::os::Value("defaultCvz")).asString();
-				period = prop.check("period", yarp::os::Value(0.01)).asDouble();
-				logResultsEnabled = prop.check("enableLog");
+                std::string name = parametersStartTime.find("name").asString();
+                period = parametersStartTime.find("period").asDouble();;
+                logResultsEnabled = parametersStartTime.check("enableLog");
+
+                yarp::os::Bottle& bParamsVariable = prop.findGroup("Parameters RunTime");
+                bParamsVariable.write(parametersRuntime);
 
 				setName(name.c_str());
 				std::string modPortPrefix = "/";
@@ -146,6 +163,15 @@ namespace cvz {
 					bSub.addDouble(itInf->second); //Influence
 					bSub.addDouble(modalitiesLearning[itInf->first]); //Learning
 				}
+
+                yarp::os::Bottle btmp;
+                btmp.read(parametersRuntime);
+                b.append(btmp);
+
+                yarp::os::Bottle btmp2;
+                btmp2.read(parametersStartTime);
+                b.append(btmp2);
+
 				return b;
 			}
 

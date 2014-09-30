@@ -47,16 +47,29 @@ namespace cvz {
         {
             std::list< ESOMNode* > nodes;
             std::map<ESOMNode*, std::map< ESOMNode *, double > > connections;
-            double distanceTreshold;
-            double learningRate;
-            double sigma;
-            int learnStepCnt, stepsBeforePrunning, prunningStrTreshold;
+
+            int learnStepCnt;
+            bool useSoftMaxPrediction;
             yarp::os::Semaphore mutex;
 
         public:
 
             virtual std::string getType() { return cvz::core::TYPE_ESOM; };
-
+            int getNodesCount() { return nodes.size(); }
+            int getConnectionsCount() {
+                int cnt = 0;
+                for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
+                {
+                    for (std::list<ESOMNode*>::iterator itNode2 = nodes.begin(); itNode2 != nodes.end(); itNode2++)
+                    {
+                        if (connections[*itNode][*itNode2] != -1.0)
+                        {
+                            cnt++;
+                        }
+                    }
+                }
+                return cnt;
+            }
 
             /*IDL methods*/
             /***************************************************************/
@@ -77,16 +90,24 @@ namespace cvz {
                 this->IConvergenceZone::configure(rf);
 
                 //Get additional parameters
-                distanceTreshold = rf.check("dtreshold", yarp::os::Value(0.1)).asDouble();
-                learningRate = rf.check("learningRate", yarp::os::Value(0.1)).asDouble();
-                sigma = rf.check("sigma", yarp::os::Value(distanceTreshold)).asDouble();
-                stepsBeforePrunning = rf.check("stepsBeforePrunning", yarp::os::Value(50)).asInt();
-                prunningStrTreshold = rf.check("prunningStrenghtTreshold", yarp::os::Value(0.1)).asInt();
+                double default_dtreshold = 0.01;
+                if (!parametersRuntime.check("dtreshold"))
+                    parametersRuntime.put("dtreshold", yarp::os::Value(default_dtreshold));
+                if (!parametersRuntime.check("learningRate"))
+                    parametersRuntime.put("learningRate", yarp::os::Value(0.01));
+                if (!parametersRuntime.check("sigma"))
+                    parametersRuntime.put("sigma", yarp::os::Value(default_dtreshold));
+                if (!parametersRuntime.check("stepsBeforePrunning"))
+                    parametersRuntime.put("stepsBeforePrunning", yarp::os::Value(10));
+                if (!parametersRuntime.check("prunningStrenghtTreshold"))
+                    parametersRuntime.put("prunningStrenghtTreshold", yarp::os::Value(1.0));
+
+                useSoftMaxPrediction = !rf.check("noSoftMax");
                 learnStepCnt = 0;
 
                 //Good to go!
                 std::cout << std::endl << "ESOM Model:" << std::endl
-                    << "Distance treshold = " << distanceTreshold<<std::endl;
+                    << "Distance treshold = " << parametersRuntime.find("dtreshold").asDouble() <<std::endl;
 
                 return true;
             }
@@ -131,7 +152,7 @@ namespace cvz {
                 }
 
                 //Check if we need to create a new node
-                if (bestNode == NULL || bestNode->activity > distanceTreshold)
+                if (bestNode == NULL || bestNode->activity > parametersRuntime.find("dtreshold").asDouble())
                 {
                     bestNode = addNewNode();
                 }
@@ -140,7 +161,7 @@ namespace cvz {
                 bool allModLearningZero = true;
                 for (std::map<IModality*, double>::iterator itL = modalitiesLearning.begin(); itL != modalitiesLearning.end(); itL++)
                     allModLearningZero &= (itL->second == 0.0);
-                if (learningRate > 0.0 && !allModLearningZero)
+                if (parametersRuntime.find("learningRate").asDouble() > 0.0 && !allModLearningZero)
                     adaptWeights(bestNode);
 
                 //feedback
@@ -202,7 +223,6 @@ namespace cvz {
                             near2d = d;
                         }
                     }
-
                 }
 
                 nodes.push_back(newNode);
@@ -223,7 +243,7 @@ namespace cvz {
                     connections[newNode][near2] = 1.0;
                     connections[near2][newNode] = 1.0;
                 }
-                if (near1 != NULL && near2 != NULL && connections[near1][near2] == 0.0)
+                if (near1 != NULL && near2 != NULL && connections[near1][near2] == -1.0)
                 {
                     connections[near1][near2] = 1.0;
                     connections[near2][near1] = 1.0;
@@ -246,7 +266,7 @@ namespace cvz {
                             for (int i = 0; i < itMod->first->Size(); i++)
                             {
                                 double error = vReal[i] - (*itNode)->prototype[itMod->first][i];
-                                double dW = learningRate * exp( -pow( (*itNode)->activity, 2.0) / (2*sigma*sigma)) * error;
+                                double dW = parametersRuntime.find("learningRate").asDouble() * exp(-pow((*itNode)->activity, 2.0) / (2 * pow(parametersRuntime.find("sigma").asDouble(),2.0))) * error;
                                 (*itNode)->prototype[itMod->first][i] += dW;
                             }
                         }
@@ -258,14 +278,14 @@ namespace cvz {
                 {
                     if (connections[winner][*itNode] != -1.0)
                     {
-                        connections[winner][*itNode] = distanceTreshold / getDistanceOf(*itNode);
+                        connections[winner][*itNode] = parametersRuntime.find("dtreshold").asDouble() / getDistanceOf(*itNode);
                         connections[*itNode][winner] = connections[winner][*itNode];
                     }
                 }
 
                 //Increase the learning counter for prunning
                 learnStepCnt++;
-                if (learnStepCnt>stepsBeforePrunning)
+                if (learnStepCnt>parametersRuntime.find("stepsBeforePrunning").asInt())
                 {
                     std::cout << "Prunning connection...";
                     learnStepCnt = 0;
@@ -287,7 +307,7 @@ namespace cvz {
                         }
                     }
 
-                    if (nodes.size() == 1 || connections[*a][*b] > prunningStrTreshold)
+                    if (nodes.size() <= 3 || connections[*a][*b] > parametersRuntime.find("prunningStrenghtTreshold").asDouble())
                     {
                         std::cout << "cancelled. (Only one node or connection too strong = " << connections[*a][*b] <<")." << std::endl;
                         return;
@@ -334,11 +354,41 @@ namespace cvz {
                         nodes.erase(b);
                     }
                     std::cout << "Done" << std::endl;
+                    std::cout << "Prunning over. Node count=" << nodes.size() << std::endl;
                 }
             }
 
             void predictModality(IModality* mod, ESOMNode* winner)
             {
+                //SINGLE WINNER PREDICTION
+                if (!useSoftMaxPrediction)
+                {
+                    mod->SetValuePrediction(winner->prototype[mod]);
+                    return;
+                }
+                //SOFT MAX
+                //Get all the nodes connected to the winner
+                std::vector<double> softMax(winner->prototype[mod].size(), 0.0);
+                double sum = 0.0;
+                for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
+                {
+                    if (connections[winner][*itNode] != -1.0)
+                    {
+                        sum += exp(1 - (*itNode)->activity);
+                    }
+                }
+
+                for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
+                {
+                    if (connections[winner][*itNode] != -1.0)
+                    {
+                        for (int c = 0; c < (*itNode)->prototype[mod].size(); c++)
+                        {
+                            softMax[c] += (*itNode)->prototype[mod][c] * exp((1 - (*itNode)->activity)) / sum;
+                        }
+                    }
+                }
+
                 mod->SetValuePrediction(winner->prototype[mod]);
             }
         };

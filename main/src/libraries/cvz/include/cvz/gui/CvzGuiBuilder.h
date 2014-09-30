@@ -4,6 +4,7 @@
 #include "cvz/core/CvzBuilder.h"
 #include "cvz/gui/GuiICvz.h"
 #include "cvz/gui/GuiMMCM.h"
+#include "cvz/gui/GuiESOM.h"
 
 namespace cvz {
 	namespace gui {
@@ -35,7 +36,7 @@ public:
 		else if (type == cvz::core::TYPE_MLP)
             (*ptr) = new cvz::gui::GuiICvz(ptrCvz);
         else if (type == cvz::core::TYPE_ESOM)
-            (*ptr) = new cvz::gui::GuiICvz(ptrCvz);
+            (*ptr) = new cvz::gui::GuiESOM(ptrCvz);
 		else
 			return false;
 		return true;

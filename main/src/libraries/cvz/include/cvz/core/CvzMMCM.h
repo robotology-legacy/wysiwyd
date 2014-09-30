@@ -39,7 +39,6 @@ namespace cvz {
         public:
 
             virtual std::string getType() { return cvz::core::TYPE_MMCM; };
-            double lRate, sigma, elasticity;
             int H() { return height; }
             int W() { return width; }
             int L() { return layers; }
@@ -61,10 +60,10 @@ namespace cvz {
             {
                 modulePause();
             }
-            void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; lRate = l; }
-            double getLearningRate() { return lRate; }
-            void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; sigma = s; }
-            double getSigma() { return sigma; }
+            void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; parametersRuntime.put("learningRate", l); }
+            double getLearningRate() { return parametersRuntime.find("learningRate").asDouble(); }
+            void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; parametersRuntime.put("sigma",s); }
+            double getSigma() { return parametersRuntime.find("sigma").asDouble(); }
             double getActivity(const int32_t x, const int32_t y, const int32_t z) { return activity[x][y][z]; }
             bool saveWeightsToFile(const std::string &path)
             { 
@@ -80,14 +79,15 @@ namespace cvz {
                 return loadWeights(fullPath);
             }
 
-            virtual yarp::os::Bottle getParametersForBroadcast()
-            {
-                yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
-                yarp::os::Bottle &bLearning = b.addList();
-                bLearning.addString("learningRate");
-                bLearning.addDouble(getLearningRate());
-                return b;
-            }
+            //virtual yarp::os::Bottle getParametersForBroadcast()
+            //{
+            //    yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
+            //    yarp::os::Bottle &bLearning = b.addList();
+            //    bLearning.addString("learningRate");
+            //    bLearning.addDouble(getLearningRate());
+            //    return b;
+            //}
+
             virtual bool close()
             {
                 bool ok = this->IConvergenceZone::close();
@@ -103,17 +103,31 @@ namespace cvz {
                 this->IConvergenceZone::configure(rf);
 
                 //Get additional parameters
-                height = rf.check("height", yarp::os::Value(10)).asInt();
-                width = rf.check("width", yarp::os::Value(10)).asInt();
-                layers = rf.check("layers", yarp::os::Value(1)).asInt();
-                lRate = rf.check("learningRate", yarp::os::Value(0.05)).asDouble();
-                connectivityPatern = rf.check("connectivityPattern", yarp::os::Value(MMCM_CONNECTIVITY_SHEET)).asString();
-                algorithm = rf.check("algorithm", yarp::os::Value(MMCM_ALGORITHM_DSOM)).asString();
+                if (!parametersStartTime.check("height"))
+                    parametersStartTime.put("height", yarp::os::Value(10));
+                if (!parametersStartTime.check("width"))
+                    parametersStartTime.put("width", yarp::os::Value(10));
+                if (!parametersStartTime.check("layers"))
+                    parametersStartTime.put("layers", yarp::os::Value(1));
+                if (!parametersStartTime.check("connectivityPattern"))
+                    parametersStartTime.put("connectivityPattern", yarp::os::Value(MMCM_CONNECTIVITY_SHEET));
+                if (!parametersStartTime.check("algorithm"))
+                    parametersStartTime.put("algorithm", yarp::os::Value(MMCM_ALGORITHM_DSOM));
 
+                //Starttime parameters
+                height = parametersStartTime.find("height").asInt();
+                width = parametersStartTime.find("width").asInt();
+                layers = parametersStartTime.find("layers").asInt();
+                connectivityPatern = parametersStartTime.find("connectivityPattern").asString();
+                algorithm = parametersStartTime.find("algorithm").asString();
 
-                double sigmaFactor = rf.check("sigmaFactor", yarp::os::Value(1.0)).asDouble();
-                sigma = sigmaFactor * (1.0 / 4.0) * (height + width) / 2.0;
-                elasticity = rf.check("elasticity", yarp::os::Value(2.0)).asDouble();
+                //Runtime parameters
+                if (!parametersRuntime.check("learningRate"))
+                    parametersRuntime.put("learningRate", yarp::os::Value(0.05));
+                if (!parametersRuntime.check("sigma"))
+                    parametersRuntime.put("sigma", yarp::os::Value((1.0 / 4.0) * (height + width) / 2.0));
+                if (!parametersRuntime.check("elasticity"))
+                    parametersRuntime.put("elasticity", yarp::os::Value(2.0));
 
                 //Allocate the map
                 activity.allocate(width, height, layers);
@@ -231,7 +245,7 @@ namespace cvz {
                 bool allModLearningZero = true;
                 for (std::map<IModality*, double>::iterator itL = modalitiesLearning.begin(); itL != modalitiesLearning.end(); itL++)
                     allModLearningZero &= (itL->second == 0.0);
-                if (lRate > 0.0 && !allModLearningZero)
+                if (parametersRuntime.find("learningRate").asDouble() > 0.0 && !allModLearningZero)
                     adaptWeights();
 
 
@@ -315,11 +329,11 @@ namespace cvz {
                 double dW = 1.0;
 
                 if (algorithmUsed == MMCM_ALGORITHM_SOM)
-                    dW = helpers::GaussianBell(distance2winner, sigma);
+                    dW = helpers::GaussianBell(distance2winner, parametersRuntime.find("sigma").asDouble());
                 else if (algorithmUsed == MMCM_ALGORITHM_DSOM)
                 {
                     if (activity[xWin][yWin][zWin] != 0.0)
-                        dW = expf(-(1 / pow(elasticity, 2)) * (distance2winner / winnerError));
+                        dW = expf(-(1 / pow(parametersRuntime.find("elasticity").asDouble(), 2)) * (distance2winner / winnerError));
                     else
                         dW = 0.0;
                 }
@@ -354,8 +368,7 @@ namespace cvz {
                                     //double currentW = weights[it->second][i][x][y][z];
                                     //double desiredW = valueReal[i];
                                     double error = (valueReal[i] - weights[it->second][i][x][y][z]);
-                                    double dW = error;
-                                    dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
+                                    double dW = error * dWCoefficient * getLearningRate() * modalitiesLearning[it->second];
                                     weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
@@ -368,8 +381,7 @@ namespace cvz {
                                 for (int i = 0; i < it->second->Size(); i++)
                                 {
                                     double error = (valueReal[i] - weights[it->second][i][x][y][z]);
-                                    double dW = error * modalitiesLearning[it->second] * lRate * modalitiesLearning[it->second];
-                                    dW = dW * dWCoefficient * lRate * modalitiesLearning[it->second];
+                                    double dW = error * dWCoefficient * getLearningRate() * modalitiesLearning[it->second];
                                     weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }

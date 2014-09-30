@@ -25,6 +25,7 @@ namespace cvz {
 
 		class GuiICvz : public yarp::os::Thread
 		{
+
 		protected:
 			GtkWidget *mainWindow;
 			GtkWidget *boxTabs;
@@ -77,6 +78,35 @@ namespace cvz {
 				gtk_box_pack_start(GTK_BOX(boxMainInfo), label_type, FALSE, FALSE, 0);
 				gtk_widget_show(label_type);
 
+                
+                //Display the fixed parameters
+                yarp::os::Bottle bFixedParameters;
+                bFixedParameters.read(myCvz->getParametersStartTime());
+
+                for (int i = 0; i < bFixedParameters.size(); i++)
+                {
+                    std::string key = bFixedParameters.get(i).asList()->get(0).asString();
+                    yarp::os::Value value = bFixedParameters.get(i).asList()->get(1);
+
+                    GtkWidget *tmpWidget = gtk_label_new( (key + " : " + value.toString().c_str()).c_str());
+                    gtk_box_pack_start(GTK_BOX(boxMainInfo), tmpWidget, TRUE, TRUE, 0);
+                    gtk_widget_show(tmpWidget);
+                }
+                //Display the runtime parameters
+                yarp::os::Bottle bVariableParameters;
+                bVariableParameters.read(myCvz->parametersRuntime);
+                for (int i = 0; i < bVariableParameters.size(); i++)
+                {
+                    std::string key = bVariableParameters.get(i).asList()->get(0).asString();
+                    yarp::os::Value value = bVariableParameters.get(i).asList()->get(1);
+                    if (value.isDouble() || value.isInt())
+                    {                     
+                        LabelledSlider* sliderTmp = new LabelledSlider();
+                        sliderTmp->allocate(key.c_str(), &myCvz->parametersRuntime, 0.0, 1.0, 0.1);
+                        gtk_box_pack_start(GTK_BOX(boxMainInfo), sliderTmp->box, FALSE, FALSE, 0);
+                    }
+                }
+                
 				GtkWidget *labelModTitle = gtk_label_new("<--Modalities Bottom Up-->");
 				gtk_box_pack_start(GTK_BOX(boxModalities), labelModTitle, FALSE, FALSE, 10);
 				gtk_widget_show(labelModTitle);
@@ -100,6 +130,22 @@ namespace cvz {
 					wModalities[it->second] = mW;
 					gtk_box_pack_start(GTK_BOX(boxModalities), boxMod, FALSE, FALSE, 10);
 				}
+                
+                //Add the influence/learning slider to every modality
+                for (std::map < core::IModality*, GuiIModality*>::iterator wMod = wModalities.begin(); wMod != wModalities.end(); wMod++)
+                {
+                    GtkWidget* paramModBox = gtk_vbox_new(FALSE, 0);
+                    gtk_box_pack_start(GTK_BOX(wMod->second->box), paramModBox, FALSE, FALSE, 0);
+
+                    LabelledSlider sliderInf;
+                    sliderInf.allocate("Influence", &(myCvz->modalitiesInfluence[wMod->first]), 0.0, 1.0, 0.1);
+                    gtk_box_pack_start(GTK_BOX(paramModBox), sliderInf.box, FALSE, FALSE, 0);
+                    LabelledSlider sliderLear;
+                    sliderLear.allocate("Learning", &(myCvz->modalitiesLearning[wMod->first]), 0.0, 1.0, 0.1);
+                    gtk_box_pack_start(GTK_BOX(paramModBox), sliderLear.box, FALSE, FALSE, 0);
+
+                    gtk_widget_show(paramModBox);
+                }
 			}
 
 			virtual void refreshElements()
