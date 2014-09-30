@@ -34,7 +34,7 @@ namespace cvz {
                         return -1;
                     
                     double dMod = 0.0;
-                    for (int i = 0; i < itMod->second.size(); i++)
+                    for (size_t i = 0; i < itMod->second.size(); i++)
                         d += fabs(prototype[itMod->first][i] - n->prototype[itMod->first][i]);
                     d += dMod / itMod->second.size();
                 }
@@ -382,7 +382,7 @@ namespace cvz {
                 {
                     if (connections[winner][*itNode] != -1.0)
                     {
-                        for (int c = 0; c < (*itNode)->prototype[mod].size(); c++)
+                        for (size_t c = 0; c < (*itNode)->prototype[mod].size(); c++)
                         {
                             softMax[c] += (*itNode)->prototype[mod][c] * exp((1 - (*itNode)->activity)) / sum;
                         }
