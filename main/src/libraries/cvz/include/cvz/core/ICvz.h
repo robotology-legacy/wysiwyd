@@ -61,9 +61,29 @@ namespace cvz {
 
             virtual bool configure(yarp::os::Property &prop)
             {
-                yarp::os::Bottle& bParamsFixed = prop.findGroup("Parameters StartTime");
-                bParamsFixed.write(parametersStartTime);
                 
+
+                //For legacy config files and easier configuration, everything that is not in a group is appended to startime parameters
+                yarp::os::Bottle bFull;
+                bFull.read(prop);
+                yarp::os::Property outOfGroupProps;
+                for (int i = 0; i < bFull.size(); i++)
+                {
+                    std::string key = bFull.get(i).asList()->get(0).asString();
+                    int test = prop.findGroup(key).size();
+                    if (key != "" && prop.findGroup(key).size() == 2)
+                    {
+                        outOfGroupProps.put(key, prop.find(key));
+                    }
+                }
+                bFull.clear();
+                bFull.read(outOfGroupProps);
+
+                yarp::os::Bottle& bParamsFixed = prop.findGroup("Parameters StartTime");
+                bParamsFixed.append(bFull);
+                bParamsFixed.write(parametersStartTime);
+
+                //Add the required parameters if they are not specified
                 if (!parametersStartTime.check("name"))
                     parametersStartTime.put("name", yarp::os::Value("defaultCvz"));
                 if (!parametersStartTime.check("period"))
