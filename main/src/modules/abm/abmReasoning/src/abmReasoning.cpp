@@ -4909,7 +4909,8 @@ Bottle abmReasoning::getKnowledge()
                     skAction.vDX.push_back(atof((*bSpatialData.get(j).asList()).get(2).toString().c_str()));
                     skAction.vDY.push_back(atof((*bSpatialData.get(j).asList()).get(3).toString().c_str()));
                 }
-                addSpatialKnowledge(skAction, false);
+
+				addSpatialKnowledge(skAction, false);
             }
         }
     }

@@ -10,8 +10,8 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     Bottle &bDBProperties = rf.findGroup("database_properties");
     server = bDBProperties.check("server",Value("127.0.0.1")).asString();
     user = bDBProperties.check("user",Value("postgres")).asString();
-    password = bDBProperties.check("password",Value("rclab")).asString();
-    dataB = bDBProperties.check("dataB",Value("ABM")).asString();
+    password = bDBProperties.check("password",Value("postgres")).asString();
+    dataB = bDBProperties.check("dataB",Value("postgres")).asString();
     savefile = (rf.getContextPath()+"/saveRequest.txt").c_str();
     ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
     inSharedPlan = false;
@@ -26,7 +26,10 @@ autobiographicalMemory::~autobiographicalMemory()
 
 /* configure the module */
 bool autobiographicalMemory::configure(ResourceFinder &rf)
-{        
+{   
+
+	cout << "blop" << endl;
+
     moduleName = rf.check("name", 
         Value("autobiographicalMemory"), 
         "module name (string)").asString();
