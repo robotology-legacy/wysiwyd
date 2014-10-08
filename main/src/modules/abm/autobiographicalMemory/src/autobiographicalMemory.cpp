@@ -1,9 +1,10 @@
 #include <autobiographicalMemory.h>
 
-
+using namespace yarp::sig; //ADD
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
 using namespace std;
+using namespace cv;
 
 autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
 {
@@ -13,7 +14,12 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     password = bDBProperties.check("password",Value("postgres")).asString();
     dataB = bDBProperties.check("dataB",Value("ABM")).asString();
     savefile = (rf.getContextPath()+"/saveRequest.txt").c_str();
+
+	//context/conf path to store data by default
+	storingPath = bDBProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
+
     ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+
     inSharedPlan = false;
 }
 
@@ -112,20 +118,20 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
     ResultSet rs1;
     Bottle bReply;
     bReply.clear();
-    //cout << "in request : "  << request.toString().c_str() << endl;
+    cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
 
     //send the request to the database
 
     try
     {
         //verbose debug
-        //cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
+        cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
 
         *ABMDataBase << bRequest.get(1).asString().c_str(), rs1;
         bReply = restoBottle(rs1);
 
         //verbose print reply
-        //cout << "bReply = " << bReply.toString().c_str() << endl ;
+        cout << "bReply = " << bReply.toString().c_str() << endl ;
 
     }
     catch (DataBaseError& e)
@@ -438,7 +444,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
 
         // Read a file, and load the requests
-        if (bCommand.get(0) == "read")
+        else if (bCommand.get(0) == "read")
         {
             if (readInsert())
             {
@@ -453,43 +459,43 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
 
         //database from sratch considering the history [but load the other tables from the OPC]
-        if (bCommand.get(0) == "new")
+        else if (bCommand.get(0) == "new")
         {
             bReply = newDB(bCommand);
         }
 
-        if (bCommand.get(0) == "snapshot")
+        else if (bCommand.get(0) == "snapshot")
         {
             bReply = snapshot(bCommand);
         }
 
-        if (bCommand.get(0) == "snapshotSP")
+        else if (bCommand.get(0) == "snapshotSP")
         {
             bReply = snapshotSP(bCommand);
         }
 
-        if (bCommand.get(0) == "snapshotBE")
+        else if (bCommand.get(0) == "snapshotBE")
         {
             bReply = snapshotBehavior(bCommand);
         }
 
-        if (bCommand.get(0) == "save")
+        else if (bCommand.get(0) == "save")
         {
             bReply = save(bCommand);
         }
 
 
-        if (bCommand.get(0) == "load")
+        else if (bCommand.get(0) == "load")
         {
             bReply = load(bCommand);
         }
 
-        if (bCommand.get(0) == "connect")
+        else if (bCommand.get(0) == "connect")
         {
             bReply = connect2reasoning();
         }
 
-        if (bCommand.get(0) == "request")
+        else if (bCommand.get(0) == "request")
         {
 
             if (bCommand.size()>1)
@@ -504,7 +510,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
 
 
-        if (bCommand.get(0) == "insert")
+        else if (bCommand.get(0) == "insert")
         {
 
             if (bCommand.size() > 1)
@@ -519,15 +525,29 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
 
-        if (bCommand.get(0) == "resetKnowledge")
+        else if (bCommand.get(0) == "resetKnowledge")
         {
             bReply = resetKnowledge();
         }
 
 
-        if (bCommand.get(0) == "eraseInstance")
+        else if (bCommand.get(0) == "eraseInstance")
         {
             bReply = eraseInstance(bCommand);
+        }
+
+		else if (bCommand.get(0) == "testImage")
+        {
+            
+			if (bCommand.size() > 1)
+            {
+                bReply = testImage(bCommand);
+            }
+            else
+            {
+                bError.addString("in testImage : number of element insufficient");
+                bReply = bError;
+            }
         }
 
     }
@@ -1242,7 +1262,6 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     return bSnapShot;
 }
 
-
 Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
 {
 
@@ -1378,6 +1397,108 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     return bSnapShot;
 }
 
+//test to extract a temp copy of an image by giving the label
+//WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
+Bottle autobiographicalMemory::testImage(Bottle bInput)
+{
+	//Previously created a tables images in ABM
+	/*-- Table: images
+
+	-- DROP TABLE images;
+
+	CREATE TABLE images
+	(
+	  id integer NOT NULL,
+	  label text,
+	  img_oid oid,
+	  filename text,
+	  CONSTRAINT images_pkey PRIMARY KEY (id)
+	)
+	WITH (
+	  OIDS=FALSE
+	);
+	ALTER TABLE images OWNER TO postgres;*/
+
+	/*Then to fill in 
+	INSERT INTO images VALUES (0, 'test', lo_import('C:/robot/ABMStoring/move-solution.PNG'), 'move-solution.PNG');
+	*/
+
+	Bottle bOutput, bRequest, bResult ;
+
+	bOutput.clear();
+
+	//export the desired image, doing a temp copy
+	bRequest.addString("request");
+    ostringstream osArg;
+    osArg << "SELECT filename FROM images WHERE label = '" << bInput.get(1).asString() << "';" ;
+	bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
+
+	cout << "Reply : " << bRequest.toString() << endl ;
+	//assuming just one result first
+    string filename = bRequest.get(0).asList()->get(0).asString();
+	bRequest.clear();
+	osArg.str("");
+	osArg.clear();
+
+	//path of the temp image
+	char tmpPath[512] = "" ;
+    stringstream ss;
+    ss << storingPath << "/temp" << filename ;
+    strcpy(tmpPath, ss.str().c_str());
+
+	bRequest.addString("request");
+	//lo_export to make a copy before sending (in case...)
+	osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
+	
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
+
+	//clear
+	bRequest.clear();
+	osArg.str("");
+	osArg.clear();
+
+	//send the image through a port
+	BufferedPort<ImageOf<PixelRgb> > imagePort;
+	imagePort.open("/test/bufferimage/out");
+	Network::connect("/test/bufferimage/out", "/yarpview/img:i"); //just to check with a default yarpview
+
+	IplImage* img = NULL;
+    img = cvLoadImage( tmpPath, CV_LOAD_IMAGE_UNCHANGED );
+
+    if( img == 0 )
+    {
+        fprintf( stderr, "Cannot load file %s !\n", tmpPath );
+		bOutput.addString("Cannot load image");
+        return bOutput;
+    }else
+    {
+        cvCvtColor( img, img, CV_BGR2RGB );
+        ImageOf<PixelRgb> &temp = imagePort.prepare();
+        temp.resize(img->width,img->height);
+        cvCopyImage( img, (IplImage *) temp.getIplImage());
+
+		//remove the temp file after been sent
+		if( remove(tmpPath) != 0){
+                cout << "ERROR : " << tmpPath<< " NOT DELETED" << endl ;
+            } else {
+                cout << "Temp File : " << tmpPath << " successfully deleted" << endl ;
+        }
+
+		//imagePort.writeStrict();
+		imagePort.write();
+        
+		
+		cvReleaseImage(&img);
+    }
+
+	//remove the copy at the end
+
+
+	bOutput.addString("ack");
+	return bOutput ;
+}
 
 Bottle autobiographicalMemory::connectOPC(Bottle bInput)
 {

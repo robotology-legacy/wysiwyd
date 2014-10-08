@@ -512,7 +512,6 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addList() = updateOpcObjectLocation(bCommand.get(1).toString().c_str());
     }
 
-
     //no command recognize
     else {
         bReply.addString("nack");

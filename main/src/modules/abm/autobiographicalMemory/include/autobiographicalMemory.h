@@ -2,6 +2,9 @@
 #include "wrdac/clients/opcEars.h"
 #include <yarp/os/all.h>
 #include <tuple>
+#include <cv.h>
+#include <highgui.h>
+#include <stdio.h>
 
 const double threshold_time_sequence = 3.    ;        //threshold of a same sequence
 
@@ -16,6 +19,9 @@ private :
     std::string password;
     std::string dataB;
     std::string savefile;
+
+	std::string storingPath;
+
     yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
     wysiwyd::wrdac::OPCClient *opcWorld;
@@ -57,6 +63,8 @@ public :
     yarp::os::Bottle resetKnowledge();
 
     yarp::os::Bottle eraseInstance(yarp::os::Bottle bInput);
+
+	yarp::os::Bottle testImage(yarp::os::Bottle bInput);
 
     yarp::os::Bottle    connect2reasoning();
 
