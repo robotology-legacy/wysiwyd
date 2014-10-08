@@ -118,20 +118,20 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
     ResultSet rs1;
     Bottle bReply;
     bReply.clear();
-    cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
+    //cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
 
     //send the request to the database
 
     try
     {
         //verbose debug
-        cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
+        //cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
 
         *ABMDataBase << bRequest.get(1).asString().c_str(), rs1;
         bReply = restoBottle(rs1);
 
         //verbose print reply
-        cout << "bReply = " << bReply.toString().c_str() << endl ;
+        //cout << "bReply = " << bReply.toString().c_str() << endl ;
 
     }
     catch (DataBaseError& e)
