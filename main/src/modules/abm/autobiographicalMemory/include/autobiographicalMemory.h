@@ -67,7 +67,8 @@ public :
 
     yarp::os::Bottle eraseInstance(yarp::os::Bottle bInput);
 
-    yarp::os::Bottle testImage(yarp::os::Bottle bInput);
+    yarp::os::Bottle testSaveImage(yarp::os::Bottle bInput);
+    yarp::os::Bottle testSendImage(yarp::os::Bottle bInput);
 
     yarp::os::Bottle    connect2reasoning();
 

@@ -548,16 +548,30 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             bReply = eraseInstance(bCommand);
         }
 
-        else if (bCommand.get(0) == "testImage")
+        else if (bCommand.get(0) == "testSaveImage")
+        {
+
+            if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1 ) )
+            {
+                bReply = testSaveImage(bCommand);
+            }
+            else
+            {
+                bError.addString("in testSaveImage : number of element insufficient : (testSaveImage (label, filename))");
+                bReply = bError;
+            }
+        }
+
+        else if (bCommand.get(0) == "testSendImage")
         {
 
             if (bCommand.size() > 1)
             {
-                bReply = testImage(bCommand);
+                bReply = testSendImage(bCommand);
             }
             else
             {
-                bError.addString("in testImage : number of element insufficient");
+                bError.addString("in testSendImage : number of element insufficient");
                 bReply = bError;
             }
         }
@@ -1409,9 +1423,11 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     return bSnapShot;
 }
 
-//test to extract a temp copy of an image by giving the label
+//test to save an image into the db
+//should send a label for the image + filename?
 //WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
-Bottle autobiographicalMemory::testImage(Bottle bInput)
+//bInput = (testSaveImage (label, filename))
+Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
 {
     //Previously created a tables images in ABM
     /*-- Table: images
@@ -1420,7 +1436,7 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
 
     CREATE TABLE images
     (
-    id integer NOT NULL,
+    id serial NOT NULL,
     label text,
     img_oid oid,
     filename text,
@@ -1431,13 +1447,119 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
     );
     ALTER TABLE images OWNER TO postgres;*/
 
-    /*Then to fill in 
-    INSERT INTO images VALUES (0, 'test', lo_import('C:/robot/ABMStoring/move-solution.PNG'), 'move-solution.PNG');
-    INSERT INTO images VALUES (1, 'test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
+
+    Bottle bOutput, bRequest, bResult ;
+    bOutput.clear();
+    ostringstream osArg;
+
+    if (!Network::connect("/icubSim/cam/left", "/test/bufferimage/in"))
+    {
+        cout << "Error in aubotiographicalMemory::testSaveImage : cannot connect to sim camera." << endl;
+    }// hack just to check with a default yarpview
+    else
+    {
+
+        //Extract the images
+        ImageOf<PixelRgb> *yarpImage = imagePortIn.read() ;
+        if (yarpImage!=NULL) { // check we actually got something
+
+            //print to say we have something
+            printf("We got an image of size %dx%d\n", yarpImage->width(), yarpImage->height());
+
+            //go through opencv
+            printf("Copying YARP image to an OpenCV/IPL image\n");
+            IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3 );
+            cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
+            ImageOf<PixelBgr> yarpReturnImage;
+            yarpReturnImage.wrapIplImage(cvImage);
+
+            //conatenation of the path to store
+            char tmpPath[512] = "" ;
+            stringstream ss;
+            ss << storingPath << "/" << bInput.get(1).asList()->get(1).asString() ;
+            strcpy(tmpPath, ss.str().c_str());
+
+            //writing
+            yarp::sig::file::write(yarpReturnImage,tmpPath);
+            cout << "Saving YARP image to " << tmpPath << endl;
+
+            cvReleaseImage(&cvImage);
+
+
+
+            //cvSaveImage("C:/robot/ABMStoring/testopencv.PNG", imgCV);
+
+            //cvReleaseImage(&imgCV);
+
+        } else {
+            cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl ;
+            bOutput.addString("ERROR CANNOT SAVE : no image come from sim camera!");
+            return bOutput ;
+        }
+
+        //sql request with label and filename
+        //export the desired image, doing a temp copy
+        bRequest.addString("request");
+        //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
+        osArg << "INSERT INTO images(label, img_oid, filename) VALUES ('" << bInput.get(1).asList()->get(0).asString() << "', lo_import('" << storingPath << "/" << bInput.get(1).asList()->get(1).asString() << "'), '" << bInput.get(1).asList()->get(1).asString() << "');";
+        bRequest.addString(string(osArg.str()).c_str());
+        bRequest = request(bRequest);
+   
+
+        //debug : remove the file to try again
+
+        //1. first unlink large object
+        //SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = 'blopfile') AS images_subquery ;
+        /*osArg.str("");
+        osArg.clear();
+        osArg << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "') AS images_subquery;";
+        bRequest.addString(string(osArg.str()).c_str());
+        bRequest = request(bRequest);*/
+
+        //2. remove the line from images
+        //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
+        /*osArg.str("");
+        osArg.clear();
+        osArg << "DELETE FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "';";
+        bRequest.addString(string(osArg.str()).c_str());
+        bRequest = request(bRequest);*/
+
+
+    }
+
+    bOutput.addString("ack");
+
+    return bOutput;
+}
+
+//test to extract a temp copy of an image by giving the label
+//WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
+Bottle autobiographicalMemory::testSendImage(Bottle bInput)
+{
+    //Previously created a tables images in ABM
+    /*-- Table: images
+
+    -- DROP TABLE images;
+
+    CREATE TABLE images
+    (
+    id serial NOT NULL,
+    label text,
+    img_oid oid,
+    filename text,
+    CONSTRAINT images_pkey PRIMARY KEY (id)
+    )
+    WITH (
+    OIDS=FALSE
+    );
+    ALTER TABLE images OWNER TO postgres;*/
+
+    /*Then to fill in
+    INSERT INTO images(label, img_oid, filename) VALUES ('test', lo_import('C:/robot/ABMStoring/move-solution.PNG'), 'move-solution.PNG');
+    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
     */
 
     Bottle bOutput, bRequest, bResult ;
-
     bOutput.clear();
 
     //export the desired image, doing a temp copy
@@ -1475,16 +1597,14 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
         bRequest.addString("request");
 
         osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
-    } 
-    else 
-    {
+    } else {
         //for open
         ss << storingPath << "/" << filename ;
         strcpy(tmpPath, ss.str().c_str());
         bRequest.addString("request");
 
         //#define INV_WRITE 0x00020000 /* Write access */
-        //#define INV_READ 0x00040000 /* Read access */ 
+        //#define INV_READ 0x00040000 /* Read access */
         //60000 : read and write access
 
         //no export anymore : opencv copy the image before doing something
@@ -1501,9 +1621,9 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
 
     if (!Network::connect("/test/bufferimage/out", "/yarpview/img:i"))
     {
-        cout << "Error in aubotiographicalMemory::testImage : cannot connect to camera." << endl;
+        cout << "Error in aubotiographicalMemory::testSendImage : cannot connect to camera." << endl;
     }// hack just to check with a default yarpview
-    else 
+    else
     {
         IplImage* img = NULL;
         img = cvLoadImage( tmpPath, CV_LOAD_IMAGE_UNCHANGED );
@@ -1522,7 +1642,7 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
             cvCopyImage( img, (IplImage *) temp.getIplImage());
 
             //remove the temp file if used
-            if(tempFile) {
+            if(tempFile == 1) {
                 if( remove(tmpPath) != 0){
                     cout << "ERROR : " << tmpPath<< " NOT DELETED" << endl ;
                 } else {
@@ -1542,6 +1662,8 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
     bOutput.addString("ack");
     return bOutput ;
 }
+
+
 
 Bottle autobiographicalMemory::connectOPC(Bottle bInput)
 {
