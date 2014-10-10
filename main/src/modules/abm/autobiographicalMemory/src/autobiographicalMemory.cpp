@@ -8,15 +8,20 @@ using namespace cv;
 
 autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
 {
+	//conf group for database properties
     Bottle &bDBProperties = rf.findGroup("database_properties");
     server = bDBProperties.check("server",Value("127.0.0.1")).asString();
     user = bDBProperties.check("user",Value("postgres")).asString();
     password = bDBProperties.check("password",Value("postgres")).asString();
     dataB = bDBProperties.check("dataB",Value("ABM")).asString();
     savefile = (rf.getContextPath()+"/saveRequest.txt").c_str();
-    storingPath = bDBProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
 
-    ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+	ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+
+	//conf group for image storing properties
+	Bottle &bISProperties = rf.findGroup("image_storing");
+    storingPath = bISProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
+	tempFile = bISProperties.check("tempFile",Value(0)).asInt();
 
     inSharedPlan = false;
 }
@@ -1428,6 +1433,7 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
 
     /*Then to fill in 
     INSERT INTO images VALUES (0, 'test', lo_import('C:/robot/ABMStoring/move-solution.PNG'), 'move-solution.PNG');
+	INSERT INTO images VALUES (1, 'test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
     */
 
     Bottle bOutput, bRequest, bResult ;
@@ -1441,7 +1447,16 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
 
+	//verbose debug
     cout << "Reply : " << bRequest.toString() << endl ;
+
+	//if nothing is found : go out with ERROR message
+	if (bRequest.toString() == "NULL"){
+		cout << "ERROR : not result is found, no image match the label!" << endl ;
+		bOutput.addString("ERROR : not result is found, no image match the label!");
+		return bOutput ;
+	}
+
     //assuming just one result first
     string filename = bRequest.get(0).asList()->get(0).asString();
     bRequest.clear();
@@ -1451,12 +1466,28 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
     //path of the temp image
     char tmpPath[512] = "" ;
     stringstream ss;
-    ss << storingPath << "/temp" << filename ;
-    strcpy(tmpPath, ss.str().c_str());
 
-    bRequest.addString("request");
     //lo_export to make a copy before sending (in case...)
-    osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
+	if (tempFile == 1){
+		//for open
+	    ss << storingPath << "/temp" << filename ;
+        strcpy(tmpPath, ss.str().c_str());
+        bRequest.addString("request");
+
+		osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
+	} else {
+        //for open
+	    ss << storingPath << "/" << filename ;
+		strcpy(tmpPath, ss.str().c_str());
+        bRequest.addString("request");
+
+	    //#define INV_WRITE 0x00020000 /* Write access */
+	    //#define INV_READ 0x00040000 /* Read access */ 
+	    //60000 : read and write access
+
+	    //no export anymore : opencv copy the image before doing something
+	    osArg << "SELECT lo_open(img_oid, x'60000'::int) from images WHERE label = '" << bInput.get(1).asString() <<"';";
+	}
 
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
@@ -1469,7 +1500,7 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
     if (!Network::connect("/test/bufferimage/out", "/yarpview/img:i"))
     {
         cout << "Error in aubotiographicalMemory::testImage : cannot connect to camera." << endl;
-    }//just to check with a default yarpview
+    }// hack just to check with a default yarpview
     else 
     {
         IplImage* img = NULL;
@@ -1488,16 +1519,17 @@ Bottle autobiographicalMemory::testImage(Bottle bInput)
             temp.resize(img->width,img->height);
             cvCopyImage( img, (IplImage *) temp.getIplImage());
 
-            //remove the temp file after been sent
-            if( remove(tmpPath) != 0){
-                cout << "ERROR : " << tmpPath<< " NOT DELETED" << endl ;
-            } else {
-                cout << "Temp File : " << tmpPath << " successfully deleted" << endl ;
-            }
+            //remove the temp file if used
+			if(tempFile == 1) {
+                if( remove(tmpPath) != 0){
+                    cout << "ERROR : " << tmpPath<< " NOT DELETED" << endl ;
+                } else {
+                    cout << "Temp File : " << tmpPath << " successfully deleted" << endl ;
+                }
+			}
 
             //imagePort.writeStrict();
             imagePortOut.write();
-
 
             cvReleaseImage(&img);
         }
