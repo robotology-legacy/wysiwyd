@@ -20,7 +20,7 @@ private :
     std::string dataB;
     std::string savefile;
     std::string storingPath;        //context/conf path to store data by default
-	int tempFile ;                  //tempFile = 1 => lo_export (temp copy) before opencv, which remove afterward. Otherwise lo_open
+    bool tempFile ;                  //tempFile = 1 => lo_export (temp copy) before opencv, which remove afterward. Otherwise lo_open
 
     yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
