@@ -19,8 +19,7 @@ private :
     std::string password;
     std::string dataB;
     std::string savefile;
-
-	std::string storingPath;
+    std::string storingPath;        //context/conf path to store data by default
 
     yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
@@ -45,6 +44,9 @@ public :
     yarp::os::Port handlerPort;      //a port to handle messages
     yarp::os::Port abm2reasoning;
 
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
+
     void writeInsert(std::string request);
     bool readInsert();
 
@@ -64,7 +66,7 @@ public :
 
     yarp::os::Bottle eraseInstance(yarp::os::Bottle bInput);
 
-	yarp::os::Bottle testImage(yarp::os::Bottle bInput);
+    yarp::os::Bottle testImage(yarp::os::Bottle bInput);
 
     yarp::os::Bottle    connect2reasoning();
 

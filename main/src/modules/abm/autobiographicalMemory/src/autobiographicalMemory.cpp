@@ -14,9 +14,7 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     password = bDBProperties.check("password",Value("postgres")).asString();
     dataB = bDBProperties.check("dataB",Value("ABM")).asString();
     savefile = (rf.getContextPath()+"/saveRequest.txt").c_str();
-
-	//context/conf path to store data by default
-	storingPath = bDBProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
+    storingPath = bDBProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
 
     ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
 
@@ -54,6 +52,15 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     name_abm2reasoning +=  getName() + "/to_reasoning";
     abm2reasoning.open(name_abm2reasoning.c_str());
     //    Network::connect(name_abm2reasoning.c_str(), "/efaa/abmReasoning/rpc");
+
+
+    //port for images :
+
+
+    
+    //send the image through a port
+    imagePortOut.open("/test/bufferimage/out");
+    imagePortIn.open("/test/bufferimage/in");
 
 
     isconnected2reasoning = false;
@@ -536,10 +543,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             bReply = eraseInstance(bCommand);
         }
 
-		else if (bCommand.get(0) == "testImage")
+        else if (bCommand.get(0) == "testImage")
         {
-            
-			if (bCommand.size() > 1)
+
+            if (bCommand.size() > 1)
             {
                 bReply = testImage(bCommand);
             }
@@ -566,129 +573,129 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 bool autobiographicalMemory::updateModule()
 {
 
-    Bottle bCommand, bReply, bError;
-    portEventsIn.read(bCommand,true);
-    cout << endl  << "Got something, echo is on" << endl;
-    cout << bCommand.toString() << endl << endl;
-    bError.addString("ERROR");
-
-    if (bCommand.get(0).isString())
-    {
-        if (bCommand.get(0) == "quit" || bCommand.get(0) == "close")
-        {
-            bReply.addString("close module");
-            portEventsIn.reply(bReply);
-            interruptModule();
-            return false;
-        }
-
-
-        // Read a file, and load the requests
-        if (bCommand.get(0) == "read")
-        {
-            if (readInsert())
-            {
-                bReply.addString("File loaded");
-            }
-            else
-            {
-                bError.addString("Canot open the file");
-                bReply = bError;
-            }
-        }
-
-
-        //database from sratch considering the history [but load the other tables from the OPC]
-        if (bCommand.get(0) == "new")
-        {
-            bReply = newDB(bCommand);
-        }
-
-        if (bCommand.get(0) == "snapshot")
-        {
-            bReply = snapshot2(bCommand);
-        }
-
-        if (bCommand.get(0) == "eraseInstance")
-        {
-            bReply = eraseInstance(bCommand);
-        }
-
-        if (bCommand.get(0) == "snapshotSP")
-        {
-            bReply = snapshotSP(bCommand);
-        }        
-
-        if (bCommand.get(0) == "snapshotBE")
-        {
-            bReply = snapshotBehavior(bCommand);
-        }
-
-        if (bCommand.get(0) == "connectOPC")
-        {
-            bReply = connectOPC(bCommand);
-        }
-
-        if (bCommand.get(0) == "connect")
-        {
-            bReply = connect2reasoning();
-        }
-
-        if (bCommand.get(0) == "save")
-        {
-            bReply = save(bCommand);
-        }
-
-        if (bCommand.get(0) == "load")
-        {
-            bReply = load(bCommand);
-        }
-
-        if (bCommand.get(0) == "resetKnowledge")
-        {
-            bReply = resetKnowledge();
-        }
-
-
-        if (bCommand.get(0) == "request")
-        {
-
-            if (bCommand.size()>1)
-            {
-                bReply = request(bCommand);
-            }
-            else
-            {
-                bError.addString("in request : number of element insufficient");
-                bReply = bError;
-            }
-        }
-
-
-        if (bCommand.get(0) == "insert")
-        {
-
-            if (bCommand.size() > 1)
-            {
-                bReply.addString("insert");
-                bReply.addList() = addInteraction(bCommand);
-            }
-            else
-            {
-                bError.addString("in insert : number of element insufficient");
-                bReply = bError;
-            }
-        }
-
-    }
-    else
-    {
-        bError.addString("wrong input bottle format");
-        bReply = bError;
-    }
-
-    portEventsIn.reply(bReply);
-
+    //    Bottle bCommand, bReply, bError;
+    ////    portEventsIn.read(bCommand,true);
+    //    cout << endl  << "Got something, echo is on" << endl;
+    //    cout << bCommand.toString() << endl << endl;
+    //    bError.addString("ERROR");
+    //
+    //    if (bCommand.get(0).isString())
+    //    {
+    //        if (bCommand.get(0) == "quit" || bCommand.get(0) == "close")
+    //        {
+    //            bReply.addString("close module");
+    //            portEventsIn.reply(bReply);
+    //            interruptModule();
+    //            return false;
+    //        }
+    //
+    //
+    //        // Read a file, and load the requests
+    //        if (bCommand.get(0) == "read")
+    //        {
+    //            if (readInsert())
+    //            {
+    //                bReply.addString("File loaded");
+    //            }
+    //            else
+    //            {
+    //                bError.addString("Canot open the file");
+    //                bReply = bError;
+    //            }
+    //        }
+    //
+    //
+    //        //database from sratch considering the history [but load the other tables from the OPC]
+    //        if (bCommand.get(0) == "new")
+    //        {
+    //            bReply = newDB(bCommand);
+    //        }
+    //
+    //        if (bCommand.get(0) == "snapshot")
+    //        {
+    //            bReply = snapshot2(bCommand);
+    //        }
+    //
+    //        if (bCommand.get(0) == "eraseInstance")
+    //        {
+    //            bReply = eraseInstance(bCommand);
+    //        }
+    //
+    //        if (bCommand.get(0) == "snapshotSP")
+    //        {
+    //            bReply = snapshotSP(bCommand);
+    //        }        
+    //
+    //        if (bCommand.get(0) == "snapshotBE")
+    //        {
+    //            bReply = snapshotBehavior(bCommand);
+    //        }
+    //
+    //        if (bCommand.get(0) == "connectOPC")
+    //        {
+    //            bReply = connectOPC(bCommand);
+    //        }
+    //
+    //        if (bCommand.get(0) == "connect")
+    //        {
+    //            bReply = connect2reasoning();
+    //        }
+    //
+    //        if (bCommand.get(0) == "save")
+    //        {
+    //            bReply = save(bCommand);
+    //        }
+    //
+    //        if (bCommand.get(0) == "load")
+    //        {
+    //            bReply = load(bCommand);
+    //        }
+    //
+    //        if (bCommand.get(0) == "resetKnowledge")
+    //        {
+    //            bReply = resetKnowledge();
+    //        }
+    //
+    //
+    //        if (bCommand.get(0) == "request")
+    //        {
+    //
+    //            if (bCommand.size()>1)
+    //            {
+    //                bReply = request(bCommand);
+    //            }
+    //            else
+    //            {
+    //                bError.addString("in request : number of element insufficient");
+    //                bReply = bError;
+    //            }
+    //        }
+    //
+    //
+    //        if (bCommand.get(0) == "insert")
+    //        {
+    //
+    //            if (bCommand.size() > 1)
+    //            {
+    //                bReply.addString("insert");
+    //                bReply.addList() = addInteraction(bCommand);
+    //            }
+    //            else
+    //            {
+    //                bError.addString("in insert : number of element insufficient");
+    //                bReply = bError;
+    //            }
+    //        }
+    //
+    //    }
+    //    else
+    //    {
+    //        bError.addString("wrong input bottle format");
+    //        bReply = bError;
+    //    }
+    //
+    //    portEventsIn.reply(bReply);
+    //
     return true;
 }
 
@@ -1401,103 +1408,105 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
 //WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
 Bottle autobiographicalMemory::testImage(Bottle bInput)
 {
-	//Previously created a tables images in ABM
-	/*-- Table: images
+    //Previously created a tables images in ABM
+    /*-- Table: images
 
-	-- DROP TABLE images;
+    -- DROP TABLE images;
 
-	CREATE TABLE images
-	(
-	  id integer NOT NULL,
-	  label text,
-	  img_oid oid,
-	  filename text,
-	  CONSTRAINT images_pkey PRIMARY KEY (id)
-	)
-	WITH (
-	  OIDS=FALSE
-	);
-	ALTER TABLE images OWNER TO postgres;*/
+    CREATE TABLE images
+    (
+    id integer NOT NULL,
+    label text,
+    img_oid oid,
+    filename text,
+    CONSTRAINT images_pkey PRIMARY KEY (id)
+    )
+    WITH (
+    OIDS=FALSE
+    );
+    ALTER TABLE images OWNER TO postgres;*/
 
-	/*Then to fill in 
-	INSERT INTO images VALUES (0, 'test', lo_import('C:/robot/ABMStoring/move-solution.PNG'), 'move-solution.PNG');
-	*/
+    /*Then to fill in 
+    INSERT INTO images VALUES (0, 'test', lo_import('C:/robot/ABMStoring/move-solution.PNG'), 'move-solution.PNG');
+    */
 
-	Bottle bOutput, bRequest, bResult ;
+    Bottle bOutput, bRequest, bResult ;
 
-	bOutput.clear();
+    bOutput.clear();
 
-	//export the desired image, doing a temp copy
-	bRequest.addString("request");
+    //export the desired image, doing a temp copy
+    bRequest.addString("request");
     ostringstream osArg;
     osArg << "SELECT filename FROM images WHERE label = '" << bInput.get(1).asString() << "';" ;
-	bRequest.addString(string(osArg.str()).c_str());
+    bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
 
-	cout << "Reply : " << bRequest.toString() << endl ;
-	//assuming just one result first
+    cout << "Reply : " << bRequest.toString() << endl ;
+    //assuming just one result first
     string filename = bRequest.get(0).asList()->get(0).asString();
-	bRequest.clear();
-	osArg.str("");
-	osArg.clear();
+    bRequest.clear();
+    osArg.str("");
+    osArg.clear();
 
-	//path of the temp image
-	char tmpPath[512] = "" ;
+    //path of the temp image
+    char tmpPath[512] = "" ;
     stringstream ss;
     ss << storingPath << "/temp" << filename ;
     strcpy(tmpPath, ss.str().c_str());
 
-	bRequest.addString("request");
-	//lo_export to make a copy before sending (in case...)
-	osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
-	
+    bRequest.addString("request");
+    //lo_export to make a copy before sending (in case...)
+    osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
+
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
 
-	//clear
-	bRequest.clear();
-	osArg.str("");
-	osArg.clear();
+    //clear
+    bRequest.clear();
+    osArg.str("");
+    osArg.clear();
 
-	//send the image through a port
-	BufferedPort<ImageOf<PixelRgb> > imagePort;
-	imagePort.open("/test/bufferimage/out");
-	Network::connect("/test/bufferimage/out", "/yarpview/img:i"); //just to check with a default yarpview
-
-	IplImage* img = NULL;
-    img = cvLoadImage( tmpPath, CV_LOAD_IMAGE_UNCHANGED );
-
-    if( img == 0 )
+    if (!Network::connect("/test/bufferimage/out", "/yarpview/img:i"))
     {
-        fprintf( stderr, "Cannot load file %s !\n", tmpPath );
-		bOutput.addString("Cannot load image");
-        return bOutput;
-    }else
+        cout << "Error in aubotiographicalMemory::testImage : cannot connect to camera." << endl;
+    }//just to check with a default yarpview
+    else 
     {
-        cvCvtColor( img, img, CV_BGR2RGB );
-        ImageOf<PixelRgb> &temp = imagePort.prepare();
-        temp.resize(img->width,img->height);
-        cvCopyImage( img, (IplImage *) temp.getIplImage());
+        IplImage* img = NULL;
+        img = cvLoadImage( tmpPath, CV_LOAD_IMAGE_UNCHANGED );
 
-		//remove the temp file after been sent
-		if( remove(tmpPath) != 0){
+        if( img == 0 )
+        {
+            fprintf( stderr, "Cannot load file %s !\n", tmpPath );
+            bOutput.addString("Cannot load image");
+            return bOutput;
+        }
+        else
+        {
+            cvCvtColor( img, img, CV_BGR2RGB );
+            ImageOf<PixelRgb> &temp = imagePortOut.prepare();
+            temp.resize(img->width,img->height);
+            cvCopyImage( img, (IplImage *) temp.getIplImage());
+
+            //remove the temp file after been sent
+            if( remove(tmpPath) != 0){
                 cout << "ERROR : " << tmpPath<< " NOT DELETED" << endl ;
             } else {
                 cout << "Temp File : " << tmpPath << " successfully deleted" << endl ;
+            }
+
+            //imagePort.writeStrict();
+            imagePortOut.write();
+
+
+            cvReleaseImage(&img);
         }
 
-		//imagePort.writeStrict();
-		imagePort.write();
-        
-		
-		cvReleaseImage(&img);
+        //remove the copy at the end
     }
 
-	//remove the copy at the end
-
-
-	bOutput.addString("ack");
-	return bOutput ;
+    bOutput.addString("ack");
+    return bOutput ;
 }
 
 Bottle autobiographicalMemory::connectOPC(Bottle bInput)
