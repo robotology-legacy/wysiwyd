@@ -21,9 +21,15 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     //conf group for image storing properties
     Bottle &bISProperties = rf.findGroup("image_storing");
     storingPath = bISProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
-    tempFile = bISProperties.check("tempFile",Value(0)).asInt() == 1;
+    storingTmpPath = bISProperties.check("storingTmpPath",Value("tmp")).asString();
+    robotName = bISProperties.check("robotName",Value("icubSim")).asString();
+
 
     inSharedPlan = false;
+
+    streamStatus = "none" ; //none, record or stop
+    imgLabel = "defaultLabel" ;
+    imgNb = 0;
 }
 
 
@@ -66,6 +72,25 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     //send the image through a port
     imagePortOut.open("/test/bufferimage/out");
     imagePortIn.open("/test/bufferimage/in");
+
+    string robotPortCam = "/";
+    robotPortCam += robotName + "/cam/left" ;
+
+    Network::connect(robotPortCam, "/test/bufferimage/in") ;
+    isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+
+    if (isconnected2Cam)
+    {
+        cout << "\n" << "ABM is now connected to Camera!\n" << endl ;
+    } else {
+        cout << "ABM failed to connect to Camera!" << endl ;;
+    }
+
+
+    //create the storingPath and the tmp also
+    string fullTmpPath = storingPath + "/" + storingTmpPath ;
+    yarp::os::mkdir(storingPath.c_str()) ;
+    yarp::os::mkdir(fullTmpPath.c_str()) ;
 
 
     isconnected2reasoning = false;
@@ -548,13 +573,48 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             bReply = eraseInstance(bCommand);
         }
 
+        else if (bCommand.get(0) == "testStreamImage")
+        {
+            string robotPortCam = "/";
+            robotPortCam += robotName + "/cam/left" ;
+
+            //Network::connect(robotPortCam, "/test/bufferimage/in") ;
+            isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+
+            if (!isconnected2Cam) {
+                cout << "ABM failed to connect to Camera!" << endl ;
+                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " and /test/bufferimage/in");
+                bReply = bError ;
+            } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1 ) )
+            {
+                streamStatus = bCommand.get(1).asList()->get(0).asString() ;
+                imgLabel = bCommand.get(1).asList()->get(1).asString() ;
+                bReply.addString(streamStatus);
+            }
+            else
+            {
+                bError.addString("in testStreamImage : number of element incorrect : (testStreamImage (begin/stop))");
+                bReply = bError;
+            }
+        }
+
+
         else if (bCommand.get(0) == "testSaveImage")
         {
+            string robotPortCam = "/";
+            robotPortCam += robotName + "/cam/left" ;
 
-            if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1 ) )
-            {
-                bReply = testSaveImage(bCommand);
-            }
+            //Network::connect(robotPortCam, "/test/bufferimage/in") ;
+            isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+
+            if (!isconnected2Cam) {
+                cout << "ABM failed to connect to Camera!" << endl ;
+                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " and /test/bufferimage/in");
+                bReply = bError ;
+            } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1 ) )
+                {
+                    bReply = testSaveImage(bCommand);
+                }
             else
             {
                 bError.addString("in testSaveImage : number of element insufficient : (testSaveImage (label, filename))");
@@ -591,130 +651,82 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 /* rpc update module */
 bool autobiographicalMemory::updateModule()
 {
+    Bottle imageCmd();
 
-    //    Bottle bCommand, bReply, bError;
-    ////    portEventsIn.read(bCommand,true);
-    //    cout << endl  << "Got something, echo is on" << endl;
-    //    cout << bCommand.toString() << endl << endl;
-    //    bError.addString("ERROR");
-    //
-    //    if (bCommand.get(0).isString())
-    //    {
-    //        if (bCommand.get(0) == "quit" || bCommand.get(0) == "close")
-    //        {
-    //            bReply.addString("close module");
-    //            portEventsIn.reply(bReply);
-    //            interruptModule();
-    //            return false;
-    //        }
-    //
-    //
-    //        // Read a file, and load the requests
-    //        if (bCommand.get(0) == "read")
-    //        {
-    //            if (readInsert())
-    //            {
-    //                bReply.addString("File loaded");
-    //            }
-    //            else
-    //            {
-    //                bError.addString("Canot open the file");
-    //                bReply = bError;
-    //            }
-    //        }
-    //
-    //
-    //        //database from sratch considering the history [but load the other tables from the OPC]
-    //        if (bCommand.get(0) == "new")
-    //        {
-    //            bReply = newDB(bCommand);
-    //        }
-    //
-    //        if (bCommand.get(0) == "snapshot")
-    //        {
-    //            bReply = snapshot2(bCommand);
-    //        }
-    //
-    //        if (bCommand.get(0) == "eraseInstance")
-    //        {
-    //            bReply = eraseInstance(bCommand);
-    //        }
-    //
-    //        if (bCommand.get(0) == "snapshotSP")
-    //        {
-    //            bReply = snapshotSP(bCommand);
-    //        }        
-    //
-    //        if (bCommand.get(0) == "snapshotBE")
-    //        {
-    //            bReply = snapshotBehavior(bCommand);
-    //        }
-    //
-    //        if (bCommand.get(0) == "connectOPC")
-    //        {
-    //            bReply = connectOPC(bCommand);
-    //        }
-    //
-    //        if (bCommand.get(0) == "connect")
-    //        {
-    //            bReply = connect2reasoning();
-    //        }
-    //
-    //        if (bCommand.get(0) == "save")
-    //        {
-    //            bReply = save(bCommand);
-    //        }
-    //
-    //        if (bCommand.get(0) == "load")
-    //        {
-    //            bReply = load(bCommand);
-    //        }
-    //
-    //        if (bCommand.get(0) == "resetKnowledge")
-    //        {
-    //            bReply = resetKnowledge();
-    //        }
-    //
-    //
-    //        if (bCommand.get(0) == "request")
-    //        {
-    //
-    //            if (bCommand.size()>1)
-    //            {
-    //                bReply = request(bCommand);
-    //            }
-    //            else
-    //            {
-    //                bError.addString("in request : number of element insufficient");
-    //                bReply = bError;
-    //            }
-    //        }
-    //
-    //
-    //        if (bCommand.get(0) == "insert")
-    //        {
-    //
-    //            if (bCommand.size() > 1)
-    //            {
-    //                bReply.addString("insert");
-    //                bReply.addList() = addInteraction(bCommand);
-    //            }
-    //            else
-    //            {
-    //                bError.addString("in insert : number of element insufficient");
-    //                bReply = bError;
-    //            }
-    //        }
-    //
-    //    }
-    //    else
-    //    {
-    //        bError.addString("wrong input bottle format");
-    //        bReply = bError;
-    //    }
-    //
-    //    portEventsIn.reply(bReply);
-    //
+    if(streamStatus == "begin"){
+
+        cout << "============================= STREAM BEGIN =================================" << endl;
+
+        streamStatus = "record";
+
+        //string folderName = "test" ; //to replace by argument/label/instance?
+
+        //create folder
+        currentPathFolder = "";
+        currentPathFolder +=  storingPath + "/" + imgLabel;
+        cout << "Going to create folder : " << currentPathFolder << endl;
+
+        //if -1 : repo already there
+        if(yarp::os::mkdir(currentPathFolder.c_str()) == -1){
+            cout << "WARNING :  folder already exist, add getTime to it!" << endl ;
+            string folderWithTime = imgLabel ;
+            string currentTime = getCurrentTime();
+
+            //need to change ':' and ' ' by _ for folder name
+            replace(currentTime.begin(), currentTime.end(), ':', '_') ;
+            replace(currentTime.begin(), currentTime.end(), ' ', '_') ;
+            folderWithTime += currentTime ; 
+
+            currentPathFolder = "" ;
+            currentPathFolder += storingPath + "/" + folderWithTime;
+            cout << "Going to create folder : " << currentPathFolder << endl;
+
+            yarp::os::mkdir(currentPathFolder.c_str()) ;
+        }
+
+        //concatenation of the path to store
+        char fullPath[512] = "" ;
+        stringstream ss;
+        ss << currentPathFolder << "/" << imgLabel << imgNb << ".ppm" ;
+        strcpy(fullPath, ss.str().c_str());
+
+        //create the image file
+        if(!createImage(fullPath)){
+            cout << "Error in Update : image not created" << endl ;
+        }
+        
+        //create SQL entry, register the cam image in specific folder
+
+
+    } else if (streamStatus == "record"){
+        imgNb += 1;
+
+        //cout << "Image Nb " << imgNb << endl;
+
+        //conatenation of the path to store
+        char fullPath[512] = "" ;
+        stringstream ss;
+        ss << currentPathFolder << "/" << imgLabel << imgNb << ".ppm" ;
+        strcpy(fullPath, ss.str().c_str());
+
+        //create the image file
+        if(!createImage(fullPath)){
+            cout << "Error in Update : image not created" << endl ;
+        }
+
+
+    } else if (streamStatus == "stop") {
+
+        cout << "============================= STREAM STOP =================================" << endl;
+        //close folder and SQL entry
+
+
+        streamStatus = "none" ;
+        imgLabel = "defaultLabel" ;
+        imgNb = 0;
+    }
+
+    
     return true;
 }
 
@@ -1423,7 +1435,7 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     return bSnapShot;
 }
 
-//test to save an image into the db
+//test to save a single image into the db
 //should send a label for the image + filename?
 //WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
 //bInput = (testSaveImage (label, filename))
@@ -1447,85 +1459,52 @@ Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
     );
     ALTER TABLE images OWNER TO postgres;*/
 
-
     Bottle bOutput, bRequest, bResult ;
     bOutput.clear();
     ostringstream osArg;
 
-    if (!Network::connect("/icubSim/cam/left", "/test/bufferimage/in"))
-    {
-        cout << "Error in aubotiographicalMemory::testSaveImage : cannot connect to sim camera." << endl;
-    }// hack just to check with a default yarpview
-    else
-    {
+    //concatenation of the path to store
+    char tmpPath[512] = "" ;
+    stringstream ss;
+    ss << storingPath << "/" << bInput.get(1).asList()->get(1).asString() ;
+    strcpy(tmpPath, ss.str().c_str());
 
-        //Extract the images
-        ImageOf<PixelRgb> *yarpImage = imagePortIn.read() ;
-        if (yarpImage!=NULL) { // check we actually got something
-
-            //print to say we have something
-            printf("We got an image of size %dx%d\n", yarpImage->width(), yarpImage->height());
-
-            //go through opencv
-            printf("Copying YARP image to an OpenCV/IPL image\n");
-            IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3 );
-            cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
-            ImageOf<PixelBgr> yarpReturnImage;
-            yarpReturnImage.wrapIplImage(cvImage);
-
-            //conatenation of the path to store
-            char tmpPath[512] = "" ;
-            stringstream ss;
-            ss << storingPath << "/" << bInput.get(1).asList()->get(1).asString() ;
-            strcpy(tmpPath, ss.str().c_str());
-
-            //writing
-            yarp::sig::file::write(yarpReturnImage,tmpPath);
-            cout << "Saving YARP image to " << tmpPath << endl;
-
-            cvReleaseImage(&cvImage);
+    //create image
+    if(!createImage(tmpPath)){
+        cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl ;
+        bOutput.addString("ERROR CANNOT SAVE : no image come from sim camera!");
+        return bOutput ;
+    }
 
 
-
-            //cvSaveImage("C:/robot/ABMStoring/testopencv.PNG", imgCV);
-
-            //cvReleaseImage(&imgCV);
-
-        } else {
-            cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl ;
-            bOutput.addString("ERROR CANNOT SAVE : no image come from sim camera!");
-            return bOutput ;
-        }
-
-        //sql request with label and filename
-        //export the desired image, doing a temp copy
-        bRequest.addString("request");
-        //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
-        osArg << "INSERT INTO images(label, img_oid, filename) VALUES ('" << bInput.get(1).asList()->get(0).asString() << "', lo_import('" << storingPath << "/" << bInput.get(1).asList()->get(1).asString() << "'), '" << bInput.get(1).asList()->get(1).asString() << "');";
-        bRequest.addString(string(osArg.str()).c_str());
-        bRequest = request(bRequest);
+    //sql request with label and filename
+    //export the desired image, doing a temp copy
+    bRequest.addString("request");
+    //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
+    osArg << "INSERT INTO images(label, img_oid, filename) VALUES ('" << bInput.get(1).asList()->get(0).asString() << "', lo_import('" << storingPath << "/" << bInput.get(1).asList()->get(1).asString() << "'), '" << bInput.get(1).asList()->get(1).asString() << "');";
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
    
 
-        //debug : remove the file to try again
+    //debug : remove the file to try again
 
-        //1. first unlink large object
-        //SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = 'blopfile') AS images_subquery ;
-        /*osArg.str("");
-        osArg.clear();
-        osArg << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "') AS images_subquery;";
-        bRequest.addString(string(osArg.str()).c_str());
-        bRequest = request(bRequest);*/
+    //1. first unlink large object
+    //SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = 'blopfile') AS images_subquery ;
+    /*osArg.str("");
+    osArg.clear();
+    osArg << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "') AS images_subquery;";
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);*/
 
-        //2. remove the line from images
-        //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
-        /*osArg.str("");
-        osArg.clear();
-        osArg << "DELETE FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "';";
-        bRequest.addString(string(osArg.str()).c_str());
-        bRequest = request(bRequest);*/
+    //2. remove the line from images
+    //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
+    /*osArg.str("");
+    osArg.clear();
+    osArg << "DELETE FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "';";
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);*/
 
 
-    }
 
     bOutput.addString("ack");
 
@@ -1589,27 +1568,13 @@ Bottle autobiographicalMemory::testSendImage(Bottle bInput)
     char tmpPath[512] = "" ;
     stringstream ss;
 
-    //lo_export to make a copy before sending (in case...)
-    if (tempFile){
-        //for open
-        ss << storingPath << "/temp" << filename ;
-        strcpy(tmpPath, ss.str().c_str());
-        bRequest.addString("request");
+    //lo_export to make a tmp copy before sending
+    ss << storingPath << "/" <<storingTmpPath << "/" << filename ;
+    strcpy(tmpPath, ss.str().c_str());
+    bRequest.addString("request");
 
-        osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
-    } else {
-        //for open
-        ss << storingPath << "/" << filename ;
-        strcpy(tmpPath, ss.str().c_str());
-        bRequest.addString("request");
-
-        //#define INV_WRITE 0x00020000 /* Write access */
-        //#define INV_READ 0x00040000 /* Read access */
-        //60000 : read and write access
-
-        //no export anymore : opencv copy the image before doing something
-        osArg << "SELECT lo_open(img_oid, x'60000'::int) from images WHERE label = '" << bInput.get(1).asString() <<"';";
-    }
+    //retrieve the image from the db and print it to /storingPath/temp folder
+    osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
 
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
@@ -1624,39 +1589,13 @@ Bottle autobiographicalMemory::testSendImage(Bottle bInput)
         cout << "Error in aubotiographicalMemory::testSendImage : cannot connect to camera." << endl;
     }// hack just to check with a default yarpview
     else
-    {
-        IplImage* img = NULL;
-        img = cvLoadImage( tmpPath, CV_LOAD_IMAGE_UNCHANGED );
-
-        if( img == 0 )
-        {
+    {     
+        if(!sendImage(tmpPath)){
             fprintf( stderr, "Cannot load file %s !\n", tmpPath );
             bOutput.addString("Cannot load image");
-            return bOutput;
+            return bOutput ;
         }
-        else
-        {
-            cvCvtColor( img, img, CV_BGR2RGB );
-            ImageOf<PixelRgb> &temp = imagePortOut.prepare();
-            temp.resize(img->width,img->height);
-            cvCopyImage( img, (IplImage *) temp.getIplImage());
-
-            //remove the temp file if used
-            if(tempFile == 1) {
-                if( remove(tmpPath) != 0){
-                    cout << "ERROR : " << tmpPath<< " NOT DELETED" << endl ;
-                } else {
-                    cout << "Temp File : " << tmpPath << " successfully deleted" << endl ;
-                }
-            }
-
-            //imagePort.writeStrict();
-            imagePortOut.write();
-
-            cvReleaseImage(&img);
-        }
-
-        //remove the copy at the end
+        
     }
 
     bOutput.addString("ack");
@@ -1703,6 +1642,69 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
     return bOutput;
 }
 
+bool autobiographicalMemory::createImage(string fullPath){
+
+    //Extract the images
+    ImageOf<PixelRgb> *yarpImage = imagePortIn.read() ;
+    if (yarpImage!=NULL) { // check we actually got something
+
+        //print to say we have something
+        //printf("We got an image of size %dx%d\n", yarpImage->width(), yarpImage->height());
+
+        //go through opencv
+        //printf("Copying YARP image to an OpenCV/IPL image\n");
+        IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3 );
+        cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
+        ImageOf<PixelBgr> yarpReturnImage;
+        yarpReturnImage.wrapIplImage(cvImage);
+
+
+        //writing
+        yarp::sig::file::write(yarpReturnImage,fullPath);
+        //cout << "Saving YARP image to " << fullPath << endl;
+
+        cvReleaseImage(&cvImage);
+
+    } else {
+        cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl ;
+        return false;
+    }
+
+    return true;
+}
+
+bool autobiographicalMemory::sendImage(string fullPath){
+
+    IplImage* img = NULL;
+    img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED );
+
+    if( img == 0 )
+    {
+        return false;
+    }
+    else
+    {
+        cvCvtColor( img, img, CV_BGR2RGB );
+        ImageOf<PixelRgb> &temp = imagePortOut.prepare();
+        temp.resize(img->width,img->height);
+        cvCopyImage( img, (IplImage *) temp.getIplImage());
+
+        //remove the temp file if used
+        /*if( remove(fullPath.c_str()) != 0){
+            cout << "ERROR : " << fullPath<< " NOT DELETED" << endl ;
+            return false ;
+        } else {
+            cout << "Temp File : " << fullPath << " successfully deleted" << endl ;
+        }*/
+
+        //imagePort.writeStrict();
+        imagePortOut.write();
+
+        cvReleaseImage(&img);
+    }
+
+    return true ;
+}
 
 string autobiographicalMemory::getCurrentTime()
 {
@@ -1983,7 +1985,6 @@ Bottle autobiographicalMemory::connect2reasoning()
 
     return bOutput;
 }
-
 
 Bottle autobiographicalMemory::detectFailed()
 {
