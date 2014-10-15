@@ -14,15 +14,21 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 
+bool brightnessSensor::connect(const std::string &targetPort = "/icub/face/emotions/in")
+     {
+         return yarp::os::Network::connect(toEmotionInterface.getName(),targetPort.c_str());
+     }
+
 bool brightnessSensor::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name",Value("brightnessSensor")).asString().c_str();
     setName(moduleName.c_str());
 
     pBrightness = 0;
-    // by default uses right cam
-    boolRightCam        = rf.check("rightArm", Value((int)1)).asInt();
-    boolLeftCam         = rf.check("leftArm", Value((int)0)).asInt();
+    cout<<"If you see this printed is that the eyelid opening is still hardcoded"<<endl;
+    minEyeOpening = 40;
+    maxEyeOpening = 60;
+    scaledValue = maxEyeOpening;
 
     cout<<moduleName<<": finding configuration files..."<<endl;
     period = rf.check("period",Value(0.1)).asDouble();
@@ -31,27 +37,11 @@ bool brightnessSensor::configure(yarp::os::ResourceFinder &rf)
 
     bool    bEveryThingisGood = true;
 
-    cout << "hi!";
-    // create one input port from left cam
-    // Open port2leftCam
-    if (boolLeftCam) {
-        Port2camLeftName = "/";
-        Port2camLeftName += getName() + "/camLeft:i";
-    }
-    cout << "1";
 
-    if (!Port2camLeft.open(Port2camLeftName.c_str())) {
-        cout << getName() << ": Unable to open port " << Port2camLeftName << endl;
-        bEveryThingisGood &= false;
-    }
-    cout << "1";
-    // create one input port from left cam
+    // create one input port from right cam
     // Open port2rightCam
-    if (boolRightCam) {
-        Port2camRightName = "/";
-        Port2camRightName += getName() + "/camRight:i";
-    }
-    cout << "1";
+    Port2camRightName = "/";
+    Port2camRightName += getName() + "/camRight:i";
     if (!Port2camRight.open(Port2camRightName.c_str())) {
         cout << getName() << ": Unable to open port " << Port2camRightName << endl;
         bEveryThingisGood &= false;
@@ -63,39 +53,30 @@ bool brightnessSensor::configure(yarp::os::ResourceFinder &rf)
     Port2outBrightnessName += getName() + "/brightness:o";
 
 
-    cout << "yihaa";
     if (!Port2outBrightness.open(Port2outBrightnessName.c_str())) {
         cout << getName() << ": Unable to open port " << Port2outBrightnessName << endl;
         bEveryThingisGood &= false;
     }
-    cout << "ehiiy!";
 
     while (!Network::connect("/icub/cam/right", Port2camRightName))
     {
         std::cout << "Trying to get input from RIGHTCAM..." << std::endl;
         yarp::os::Time::delay(1.0);
     }
-    cout<<moduleName<<": finding configuration files..."<<endl;
-    /*
-    if (boolRightCam) {
-        bEveryThingisGood &= Network::connect("/icub/cam/right", Port2camRightName);
-    }   
-    if (boolLeftCam) {
-        bEveryThingisGood &= Network::connect("/icub/cam/left", Port2camLeftName);
+    cout<<moduleName<<": finding configuration files... 12"<<endl;
+
+
+    std::string portName = "/";
+    portName +=moduleName.c_str();
+    portName +="/emotions:o";
+    toEmotionInterface.open(portName.c_str());
+    connect();
+
+    if(!Network::exists(("/" + moduleName + "/rpc").c_str())){
+        rpc.open(("/" + moduleName + "/rpc").c_str());
+        attach(rpc);
     }
-    */
-    
-    /*
-    bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
-    bEveryThingisGood &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
-    bEveryThingisGood &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
-    */
 
-    rpc.open(("/" + moduleName + "/rpc").c_str());
-    cout << "almost done";
-    attach(rpc);
-
-    cout<<"Configuration finished!";
     return true;
 }
 
@@ -116,14 +97,12 @@ bool brightnessSensor::respond(const Bottle& command, Bottle& reply) {
     return true;
 }
 
-
 /* Called periodically every getPeriod() seconds */
 bool brightnessSensor::updateModule() {
     // get the input from camRight
-    cout << "something else";
     yarp::sig::ImageOf<yarp::sig::PixelRgb>* img = Port2camRight.read();
-    cout << "something";
     if (img){
+
         IplImage* cvImg = (IplImage*)img->getIplImage();
         unsigned int w = cvImg->width;
         unsigned int h = cvImg->height;
@@ -136,23 +115,47 @@ bool brightnessSensor::updateModule() {
             uchar* ptr = (uchar*)(cvImg->imageData + cvImg->widthStep*y); //read line of image
             for (unsigned int x = 0; x < w; x++)
             {
-                pBlue += ptr[3*x]/(double)255;
-                pGreen += ptr[3*x+1]/(double)255;
-                pRed += ptr[3*x+2]/(double)255;
+                pBlue += pow(ptr[3*x]/(double)255,2);
+                pGreen += pow(ptr[3*x+1]/(double)255,2);
+                pRed += pow(ptr[3*x+2]/(double)255,2);
             }
         }
-        pBrightness = pBlue * 0.114 + pGreen * 0.587 + pRed * 0.299; //Brightenss formula for RGB. Data is in BGR :S
+        //pBrightness = pBlue * 0.114 + pGreen * 0.587 + pRed * 0.299; //Brightenss formula for RGB. Data is in BGR :S
+        pBrightness = (pBlue + pGreen + pRed) / 3; //Brightenss as mean intensity of colors
         pBrightness = pBrightness/(double)(cvImg->width*cvImg->height);
 
-
+        if (true){
+        //Eyelids to be move in the new function
+        if(pBrightness>0.35){
+            scaledValue -= 1;
+            scaledValue = max(minEyeOpening,min(maxEyeOpening,scaledValue));
+        }else if(pBrightness<0.22){
+            scaledValue += 1;
+            scaledValue = max(minEyeOpening,min(maxEyeOpening,scaledValue));
+        }
+        std::stringstream strstr;
+        strstr<<'S'<<scaledValue;
+        std::string code = strstr.str();
+        cmd.clear();
+        cmd.addString("set");
+        cmd.addString("raw");
+        cmd.addString(code.c_str());
+        toEmotionInterface.write(cmd);
+        //cout<<"Sending..."<<cmd.toString().c_str()<<endl;
+        }
         yarp::os::Bottle &brightness = Port2outBrightness.prepare();
         brightness.clear();
 
+
         brightness.addDouble(pBrightness);
         Port2outBrightness.write();
+        cout<<"WARNING: The image is not being released!!"<<endl;
 
-        cvReleaseImage(&cvImg);
+
+        //cvReleaseImage(&cvImg);
+
     }
+    cout<<"or here"<<endl;
 
     return true;
 }

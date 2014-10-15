@@ -12,6 +12,9 @@ private:
     //ICubClient *iCub;
     double      period;
     double      pBrightness;
+    int         scaledValue; // Test for eyelids opening
+    int         minEyeOpening;
+    int         maxEyeOpening;
     string      grammarToString(string sPath);
     //AutomaticCalibrationThread* calibrationThread;
     Port        rpc;
@@ -23,11 +26,16 @@ private:
     yarp::os::BufferedPort<ImageOf<PixelRgb> > Port2camLeft;            // a port to get the input from camera
     yarp::os::BufferedPort<yarp::os::Bottle> Port2outBrightness;      // a port for publishing camera's brightness
 
+    yarp::os::Port toEmotionInterface;  // port for eyelid commands
+    yarp::os::Bottle cmd;  //bottle to contain the command for the eyelids
+
     string Port2outBrightnessName;
     string Port2camLeftName;
     string Port2camRightName;
 
+
 public:
+    bool connect(const std::string &targetPort);
     bool configure(yarp::os::ResourceFinder &rf);
 
     bool interruptModule()
@@ -41,6 +49,7 @@ public:
     {
         return period;
     }
+
 
     bool updateModule();
 

@@ -9,6 +9,7 @@ if (WYSIWYD_USE_OpenCV)
 	add_subdirectory(imageSplitter)
 	add_subdirectory(imageFuser)
 	add_subdirectory(caltechDatasetPlayer)
+	add_subdirectory(brightnessSensor)
 endif()
 
 
