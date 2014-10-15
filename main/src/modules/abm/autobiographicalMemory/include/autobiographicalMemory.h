@@ -28,8 +28,10 @@ private :
     //for update camera stream
     std::string streamStatus ;
     int imgNb ;
+    int imgNbInStream ;
     std::string currentPathFolder ;
     std::string imgLabel ;
+    int imgInstance ;
 
     yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
@@ -82,6 +84,9 @@ public :
 
     bool createImage(std::string fullPath);
     bool sendImage(std::string fullPath);
+    bool exportImage(int img_oid, std::string path);
+    bool storeImage(int instance, std::string label, std::string fullPath, std::string imgName);
+    bool sendStreamImage(int instance);
 
 
     yarp::os::Bottle    connect2reasoning();

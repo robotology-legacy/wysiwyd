@@ -29,6 +29,7 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
 
     streamStatus = "none" ; //none, record or stop
     imgLabel = "defaultLabel" ;
+    imgInstance = -1 ;
     imgNb = 0;
 }
 
@@ -573,7 +574,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             bReply = eraseInstance(bCommand);
         }
 
-        else if (bCommand.get(0) == "testStreamImage")
+        else if (bCommand.get(0) == "testSaveStreamImage")
         {
             string robotPortCam = "/";
             robotPortCam += robotName + "/cam/left" ;
@@ -583,7 +584,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
             if (!isconnected2Cam) {
                 cout << "ABM failed to connect to Camera!" << endl ;
-                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " and /test/bufferimage/in");
+                bError.addString("in testSaveStreamImage :  Error, connexion missing between" + robotPortCam + " and /test/bufferimage/in");
                 bReply = bError ;
             } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1 ) )
             {
@@ -593,7 +594,35 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else
             {
-                bError.addString("in testStreamImage : number of element incorrect : (testStreamImage (begin/stop))");
+                bError.addString("in testSaveStreamImage : number of element incorrect : (testSaveStreamImage (begin/end, imgLabel))");
+                bReply = bError;
+            }
+        }
+
+        //testSendStreamImage (instance)
+        else if (bCommand.get(0) == "testSendStreamImage")
+        {
+            //Network::connect(robotPortCam, "/test/bufferimage/in") ;
+            bool isconnected2Yarpview = Network::isConnected("/test/bufferimage/out", "/yarpview/img:i");
+
+            if (!isconnected2Yarpview) {
+                cout << "ABM failed to connect to Yarpview!" << endl ;
+                bError.addString("in testSendStreamImage :  Error, connexion missing between /test/bufferimage/out and /yarpview/img:i ");
+                bReply = bError ;
+            } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() == 1 ) )
+            {
+                imgInstance = bCommand.get(1).asList()->get(0).asInt() ;
+                if (sendStreamImage(imgInstance)){
+                    bReply.addString(streamStatus);
+                }
+                /*streamStatus = "send" ;
+                instanceImage = bCommand.get(1).asList()->get(0).asInt() ;
+
+                bReply.addString(streamStatus);*/
+            }
+            else
+            {
+                bError.addString("in testSendStreamImage : number of element incorrect : (testSendStreamImage (instance, labelImg))");
                 bReply = bError;
             }
         }
@@ -651,7 +680,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 /* rpc update module */
 bool autobiographicalMemory::updateModule()
 {
-    Bottle imageCmd();
 
     if(streamStatus == "begin"){
 
@@ -685,14 +713,23 @@ bool autobiographicalMemory::updateModule()
         }
 
         //concatenation of the path to store
+        char imgName[512] = "";
         char fullPath[512] = "" ;
-        stringstream ss;
-        ss << currentPathFolder << "/" << imgLabel << imgNb << ".ppm" ;
-        strcpy(fullPath, ss.str().c_str());
+
+        stringstream ssImgName;
+        ssImgName << imgLabel << imgNb << ".ppm" ;
+        strcpy(imgName, ssImgName.str().c_str());
+
+        stringstream ssPath;
+        ssPath << currentPathFolder << "/" << imgName ;
+        strcpy(fullPath, ssPath.str().c_str());
+        
 
         //create the image file
         if(!createImage(fullPath)){
             cout << "Error in Update : image not created" << endl ;
+        } else {
+            storeImage(42, imgLabel, fullPath, imgName);
         }
         
         //create SQL entry, register the cam image in specific folder
@@ -704,18 +741,60 @@ bool autobiographicalMemory::updateModule()
         //cout << "Image Nb " << imgNb << endl;
 
         //conatenation of the path to store
+        char imgName[512] = "";
         char fullPath[512] = "" ;
-        stringstream ss;
-        ss << currentPathFolder << "/" << imgLabel << imgNb << ".ppm" ;
-        strcpy(fullPath, ss.str().c_str());
+
+        stringstream ssImgName;
+        ssImgName << imgLabel << imgNb << ".ppm" ;
+        strcpy(imgName, ssImgName.str().c_str());
+
+        stringstream ssPath;
+        ssPath << currentPathFolder << "/" << imgName ;
+        strcpy(fullPath, ssPath.str().c_str());
 
         //create the image file
         if(!createImage(fullPath)){
             cout << "Error in Update : image not created" << endl ;
+        } else {
+            storeImage(42, imgLabel, fullPath, imgName);
         }
 
+        //stream not begin nor record
+    } else if (streamStatus == "send") {
 
-    } else if (streamStatus == "stop") {
+        if (imgNb == 0) {         
+            cout << "============================= STREAM SEND =================================" << endl;
+        }
+
+        if(imgNb < imgNbInStream) {
+            cout << "image number " << imgNb << endl ;
+
+            //concatenation of the storing path
+            char imgName[512] = "";
+            char fullPath[512] = "" ;
+
+            stringstream ssImgName, ss;
+            ssImgName << imgLabel << imgNb << ".ppm" ;
+            strcpy(imgName, ssImgName.str().c_str());
+
+            ss << storingPath << "/" << storingTmpPath << "/" << imgName ;
+            strcpy(fullPath, ss.str().c_str());
+
+            sendImage(fullPath);
+
+
+        } else {
+
+            streamStatus = "end" ;
+            //cout << "============================= STREAM END =================================" << endl;
+        }
+
+        imgNb += 1 ;
+    
+    }
+
+    //go back to default global value
+    if (streamStatus == "end") {
 
         cout << "============================= STREAM STOP =================================" << endl;
         //close folder and SQL entry
@@ -723,7 +802,9 @@ bool autobiographicalMemory::updateModule()
 
         streamStatus = "none" ;
         imgLabel = "defaultLabel" ;
+        imgInstance = -1 ;
         imgNb = 0;
+        imgNbInStream = 0;
     }
 
     
@@ -1497,7 +1578,7 @@ Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
     bRequest = request(bRequest);*/
 
     //2. remove the line from images
-    //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
+    //    DELETE FROM images WHERE label = 'test' ;
     /*osArg.str("");
     osArg.clear();
     osArg << "DELETE FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "';";
@@ -1702,6 +1783,102 @@ bool autobiographicalMemory::sendImage(string fullPath){
 
         cvReleaseImage(&img);
     }
+
+    return true ;
+}
+
+bool autobiographicalMemory::sendStreamImage(int instance){
+
+    Bottle bRequest ;
+    ostringstream osArg ;
+
+    //extract label of the instance (should be unique)
+    bRequest.addString("request") ;
+    //SELECT DISTINCT label from images WHERE instance = 42 ;
+    osArg << "SELECT DISTINCT label FROM images WHERE instance = " << instance << endl ;
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
+
+    //put global imgLabel (for full path completion after in update)
+    imgLabel = bRequest.get(0).asList()->get(0).asString() ;
+
+    bRequest.clear();
+    osArg.str("");
+    osArg.clear();
+
+
+    //extract oid of all the images
+    bRequest.addString("request");
+    //SELECT img_oid from images WHERE instance = 42;
+    osArg << "SELECT img_oid FROM images WHERE instance = " << instance << endl ;
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
+
+    cout << "bRequest has " << bRequest.size() << "images : " << bRequest.toString() << endl ;;
+    imgNbInStream = bRequest.size();
+
+    for (unsigned int i = 0 ; i < bRequest.size() ; i++){
+        exportImage(atoi(bRequest.get(i).asList()->get(0).toString().c_str()), storingTmpPath);
+    }
+
+    streamStatus = "send" ;
+    //bOutput.addString("ack");
+
+
+    return true ;
+}
+
+bool autobiographicalMemory::storeImage(int instance, string label, string fullPath, string imgName){
+
+    Bottle bRequest ;
+    ostringstream osArg ;
+    //sql request with label and filename
+    //export the desired image, doing a temp copy
+    bRequest.addString("request");
+    osArg << "INSERT INTO images(instance, label, img_oid, filename) VALUES (" << instance << ", '" << label << "', lo_import('" << fullPath << "'), '" << imgName << "');";
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
+   
+    //bOutput.addString("ack");
+
+    return true ;
+}
+
+bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath){
+
+    Bottle bRequest ;
+    ostringstream osArg ;
+
+    //extract filename of the image to export
+    bRequest.addString("request");
+    //SELECT filename from images WHERE img_oid = 33275 ;
+    osArg << "SELECT filename from images WHERE img_oid = " << img_oid << " ;";
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
+    cout << "filename = " << bRequest.toString() << endl ;
+    string filename = bRequest.get(0).asList()->get(0).asString() ;
+
+    bRequest.clear();
+    osArg.str("");
+    osArg.clear();
+
+    //path of the temp image
+    char tmpPath[512] = "" ;
+    stringstream ss;
+
+    //lo_export to make a tmp copy before sending
+    ss << storingPath << "/" << myTmpPath << "/" << filename ;
+    strcpy(tmpPath, ss.str().c_str());
+
+    bRequest.addString("request");
+    //retrieve the image from the db and print it to /storingPath/temp folder
+    osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE img_oid = '" << img_oid <<"';";
+
+
+    bRequest.addString(string(osArg.str()).c_str());
+    bRequest = request(bRequest);
+   
+    //bOutput.addString("ack");
 
     return true ;
 }
