@@ -20,7 +20,16 @@ private :
     std::string dataB;
     std::string savefile;
     std::string storingPath;        //context/conf path to store data by default
+    std::string storingTmpPath ;      //folder inside storingPath for temp image to transfer
+    std::string robotName ;
+
     bool tempFile ;                  //tempFile = 1 => lo_export (temp copy) before opencv, which remove afterward. Otherwise lo_open
+
+    //for update camera stream
+    std::string streamStatus ;
+    int imgNb ;
+    std::string currentPathFolder ;
+    std::string imgLabel ;
 
     yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
@@ -28,6 +37,7 @@ private :
     std::string        getCurrentTime();
     bool        inSharedPlan;
     bool        isconnected2reasoning;
+    bool        isconnected2Cam ;
     bool        bPutObjectsOPC;
 
     yarp::os::Bottle        detectFailed();
@@ -69,6 +79,10 @@ public :
 
     yarp::os::Bottle testSaveImage(yarp::os::Bottle bInput);
     yarp::os::Bottle testSendImage(yarp::os::Bottle bInput);
+
+    bool createImage(std::string fullPath);
+    bool sendImage(std::string fullPath);
+
 
     yarp::os::Bottle    connect2reasoning();
 
