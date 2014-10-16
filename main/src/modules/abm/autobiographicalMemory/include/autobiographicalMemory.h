@@ -22,12 +22,15 @@ private :
     std::string storingPath;        //context/conf path to store data by default
     std::string storingTmpPath ;      //folder inside storingPath for temp image to transfer
     std::string robotName ;
+    std::string camName ;
+    std::string camSide ;
+    std::string camExtension ;
 
     bool tempFile ;                  //tempFile = 1 => lo_export (temp copy) before opencv, which remove afterward. Otherwise lo_open
 
     //for update camera stream
     std::string streamStatus ;
-    int imgNb ;
+    int imgNb; 
     int imgNbInStream ;
     std::string currentPathFolder ;
     std::string imgLabel ;

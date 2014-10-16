@@ -23,6 +23,9 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     storingPath = bISProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
     storingTmpPath = bISProperties.check("storingTmpPath",Value("tmp")).asString();
     robotName = bISProperties.check("robotName",Value("icubSim")).asString();
+    camName = bISProperties.check("camName",Value("cam")).asString();
+    camSide = bISProperties.check("camSide",Value("left")).asString();
+    camExtension = bISProperties.check("camExtension",Value("none")).asString();
 
 
     inSharedPlan = false;
@@ -75,7 +78,10 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imagePortIn.open("/test/bufferimage/in");
 
     string robotPortCam = "/";
-    robotPortCam += robotName + "/cam/left" ;
+    robotPortCam += robotName + "/" + camName + "/" + camSide ;
+    if(camExtension != "none") {
+        robotPortCam += "/" + camExtension ;
+    }
 
     Network::connect(robotPortCam, "/test/bufferimage/in") ;
     isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
@@ -684,9 +690,6 @@ bool autobiographicalMemory::updateModule()
     if(streamStatus == "begin"){
 
         cout << "============================= STREAM BEGIN =================================" << endl;
-
-        streamStatus = "record";
-
         //string folderName = "test" ; //to replace by argument/label/instance?
 
         //create folder
@@ -729,10 +732,11 @@ bool autobiographicalMemory::updateModule()
         if(!createImage(fullPath)){
             cout << "Error in Update : image not created" << endl ;
         } else {
+            //create SQL entry, register the cam image in specific folder
             storeImage(42, imgLabel, fullPath, imgName);
         }
         
-        //create SQL entry, register the cam image in specific folder
+        streamStatus = "record";
 
 
     } else if (streamStatus == "record"){
@@ -1545,26 +1549,29 @@ Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
     ostringstream osArg;
 
     //concatenation of the path to store
-    char tmpPath[512] = "" ;
+    char fullPath[512] = "" ;
     stringstream ss;
     ss << storingPath << "/" << bInput.get(1).asList()->get(1).asString() ;
-    strcpy(tmpPath, ss.str().c_str());
+    strcpy(fullPath, ss.str().c_str());
 
     //create image
-    if(!createImage(tmpPath)){
+    if(!createImage(fullPath)){
         cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl ;
         bOutput.addString("ERROR CANNOT SAVE : no image come from sim camera!");
         return bOutput ;
     }
 
-
     //sql request with label and filename
-    //export the desired image, doing a temp copy
-    bRequest.addString("request");
+    //export the desired image
+
+    storeImage(43, bInput.get(1).asList()->get(0).asString(), fullPath, bInput.get(1).asList()->get(1).asString());
+
+
+    /*bRequest.addString("request");
     //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
     osArg << "INSERT INTO images(label, img_oid, filename) VALUES ('" << bInput.get(1).asList()->get(0).asString() << "', lo_import('" << storingPath << "/" << bInput.get(1).asList()->get(1).asString() << "'), '" << bInput.get(1).asList()->get(1).asString() << "');";
     bRequest.addString(string(osArg.str()).c_str());
-    bRequest = request(bRequest);
+    bRequest = request(bRequest);*/
    
 
     //debug : remove the file to try again
@@ -1596,28 +1603,6 @@ Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
 //WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
 Bottle autobiographicalMemory::testSendImage(Bottle bInput)
 {
-    //Previously created a tables images in ABM
-    /*-- Table: images
-
-    -- DROP TABLE images;
-
-    CREATE TABLE images
-    (
-    id serial NOT NULL,
-    label text,
-    img_oid oid,
-    filename text,
-    CONSTRAINT images_pkey PRIMARY KEY (id)
-    )
-    WITH (
-    OIDS=FALSE
-    );
-    ALTER TABLE images OWNER TO postgres;*/
-
-    /*Then to fill in
-    INSERT INTO images(label, img_oid, filename) VALUES ('test', lo_import('C:/robot/ABMStoring/move-solution.PNG'), 'move-solution.PNG');
-    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
-    */
 
     Bottle bOutput, bRequest, bResult ;
     bOutput.clear();
