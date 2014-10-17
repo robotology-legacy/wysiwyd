@@ -694,7 +694,6 @@ bool autobiographicalMemory::updateModule()
         //create folder
         currentPathFolder = "";
         currentPathFolder +=  storingPath + "/" + imgLabel;
-        cout << "Going to create folder : " << currentPathFolder << endl;
 
         //if -1 : repo already there
         if(yarp::os::mkdir(currentPathFolder.c_str()) == -1){
@@ -709,17 +708,18 @@ bool autobiographicalMemory::updateModule()
 
             currentPathFolder = "" ;
             currentPathFolder += storingPath + "/" + folderWithTime;
-            cout << "Going to create folder : " << currentPathFolder << endl;
 
             yarp::os::mkdir(currentPathFolder.c_str()) ;
         }
+
+        cout << "Going to create folder : " << currentPathFolder << endl;
 
         //concatenation of the path to store
         char imgName[512] = "";
         char fullPath[512] = "" ;
 
         stringstream ssImgName;
-        ssImgName << imgLabel << imgNb << ".ppm" ;
+        ssImgName << imgLabel << imgNb << ".tif" ;
         strcpy(imgName, ssImgName.str().c_str());
 
         stringstream ssPath;
@@ -748,7 +748,7 @@ bool autobiographicalMemory::updateModule()
         char fullPath[512] = "" ;
 
         stringstream ssImgName;
-        ssImgName << imgLabel << imgNb << ".ppm" ;
+        ssImgName << imgLabel << imgNb << ".tif" ;
         strcpy(imgName, ssImgName.str().c_str());
 
         stringstream ssPath;
@@ -1729,10 +1729,14 @@ bool autobiographicalMemory::createImage(string fullPath){
         cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
         ImageOf<PixelBgr> yarpReturnImage;
         yarpReturnImage.wrapIplImage(cvImage);
+        
+        //create the image
+        cvSaveImage(fullPath.c_str(), cvImage);
 
+        //writing : old one
+        //yarp::sig::file::write(yarpReturnImage,fullPath);
 
-        //writing
-        yarp::sig::file::write(yarpReturnImage,fullPath);
+        //verbose for debuf
         //cout << "Saving YARP image to " << fullPath << endl;
 
         cvReleaseImage(&cvImage);
@@ -1805,7 +1809,7 @@ bool autobiographicalMemory::sendStreamImage(int instance){
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
 
-    cout << "bRequest has " << bRequest.size() << "images : " << bRequest.toString() << endl ;;
+    //cout << "bRequest has " << bRequest.size() << "images : " << bRequest.toString() << endl ;;
     imgNbInStream = bRequest.size();
 
     for (unsigned int i = 0 ; i < bRequest.size() ; i++){
@@ -1846,7 +1850,8 @@ bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath){
     osArg << "SELECT filename from images WHERE img_oid = " << img_oid << " ;";
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
-    cout << "filename = " << bRequest.toString() << endl ;
+
+    //cout << "filename = " << bRequest.toString() << endl ;
     string filename = bRequest.get(0).asList()->get(0).asString() ;
 
     bRequest.clear();
