@@ -30,10 +30,11 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
 
     inSharedPlan = false;
 
-    streamStatus = "none" ; //none, record or stop
+    streamStatus = "none" ; //none, record, stop, send
     imgLabel = "defaultLabel" ;
     imgInstance = -1 ;
     imgNb = 0;
+    imgNbInStream = 0;
 }
 
 
@@ -70,10 +71,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
 
     //port for images :
-
-
-
-    //send the image through a port
     imagePortOut.open("/test/bufferimage/out");
     imagePortIn.open("/test/bufferimage/in");
 
@@ -92,7 +89,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     } else {
         cout << "ABM failed to connect to Camera!" << endl ;;
     }
-
 
     //create the storingPath and the tmp also
     string fullTmpPath = storingPath + "/" + storingTmpPath ;
@@ -583,9 +579,12 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         else if (bCommand.get(0) == "testSaveStreamImage")
         {
             string robotPortCam = "/";
-            robotPortCam += robotName + "/cam/left" ;
+            robotPortCam += robotName + "/" + camName + "/" + camSide ;
+            if(camExtension != "none") {
+                robotPortCam += "/" + camExtension ;
+            }
 
-            //Network::connect(robotPortCam, "/test/bufferimage/in") ;
+            //Network::connect(robotPortCam, "/test/bufferimage/in") ; //do not try to connect but check it anyway
             isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
 
             if (!isconnected2Cam) {
@@ -608,7 +607,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         //testSendStreamImage (instance)
         else if (bCommand.get(0) == "testSendStreamImage")
         {
-            //Network::connect(robotPortCam, "/test/bufferimage/in") ;
+            //Network::connect(robotPortCam, "/test/bufferimage/in") ; // do not try to connect but check it anyway
             bool isconnected2Yarpview = Network::isConnected("/test/bufferimage/out", "/yarpview/img:i");
 
             if (!isconnected2Yarpview) {
@@ -621,10 +620,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 if (sendStreamImage(imgInstance)){
                     bReply.addString(streamStatus);
                 }
-                /*streamStatus = "send" ;
-                instanceImage = bCommand.get(1).asList()->get(0).asInt() ;
 
-                bReply.addString(streamStatus);*/
             }
             else
             {
@@ -637,7 +633,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         else if (bCommand.get(0) == "testSaveImage")
         {
             string robotPortCam = "/";
-            robotPortCam += robotName + "/cam/left" ;
+            robotPortCam += robotName + "/" + camName + "/" + camSide ;
+            if(camExtension != "none") {
+                robotPortCam += "/" + camExtension ;
+            }
 
             //Network::connect(robotPortCam, "/test/bufferimage/in") ;
             isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
@@ -832,6 +831,13 @@ bool autobiographicalMemory::interruptModule()
 
     abm2reasoning.interrupt();
     abm2reasoning.close();
+
+    imagePortOut.interrupt();
+    imagePortOut.close();
+
+    imagePortIn.interrupt();
+    imagePortIn.close();
+
     return true;
 }
 
