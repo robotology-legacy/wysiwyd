@@ -80,14 +80,14 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
         robotPortCam += "/" + camExtension ;
     }
 
-    Network::connect(robotPortCam, "/test/bufferimage/in") ;
-    isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+    //Network::connect(robotPortCam, "/test/bufferimage/in") ;
+    isconnected2Cam = Network::connect(robotPortCam, "/test/bufferimage/in");
 
     if (isconnected2Cam)
     {
-        cout << "\n" << "ABM is now connected to Camera!\n" << endl ;
+        cout << endl << "ABM is now connected to Camera!\n" << endl ;
     } else {
-        cout << "ABM failed to connect to Camera!" << endl ;;
+        cout << "ABM failed to connect to Camera!" << endl ;
     }
 
     //create the storingPath and the tmp also
