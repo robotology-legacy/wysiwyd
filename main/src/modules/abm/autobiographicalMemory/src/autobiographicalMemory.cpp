@@ -772,7 +772,7 @@ bool autobiographicalMemory::updateModule()
             char fullPath[512] = "" ;
 
             stringstream ssImgName, ss;
-            ssImgName << imgLabel << imgNb << ".ppm" ;
+            ssImgName << imgLabel << imgNb << ".tif" ;
             strcpy(imgName, ssImgName.str().c_str());
 
             ss << storingPath << "/" << storingTmpPath << "/" << imgName ;
