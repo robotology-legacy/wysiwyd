@@ -18,14 +18,12 @@
 #include <yarp/os/all.h>
 #include "adaptiveLayer.h"
 
-using namespace std;
-using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
-    Network::init();
+    yarp::os::Network::init();
     AdaptiveLayer mod;
-    ResourceFinder rf;
+    yarp::os::ResourceFinder rf;
     rf.setVerbose(false);
     rf.setDefaultContext("adaptiveLayer");
     rf.setDefaultConfigFile("adaptiveLayer.ini");

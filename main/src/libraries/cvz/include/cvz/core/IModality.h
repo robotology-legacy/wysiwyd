@@ -14,6 +14,7 @@ namespace cvz {
 
 #define MASKED_ELEMENT_VALUE 0.0
 
+        class IConvergenceZone;
 
         /**
         * \ingroup cvz_library
@@ -21,6 +22,9 @@ namespace cvz {
         */
         class IModality
         {
+        private:
+            IConvergenceZone* ownerCvz;
+
         protected:
             std::string nameWithoutPrefix;
             std::string name;
@@ -30,6 +34,7 @@ namespace cvz {
             std::vector<double> minBound;
             std::vector<double> maxBound;
             bool autoScale;
+            double stepFunctionTreshold;
 
             std::vector<double> scaledValueReal;
             std::vector<double> scaledValuePrediction;
@@ -58,6 +63,11 @@ namespace cvz {
                 return "";
             }
         public:
+            /**
+            * Retrieve the CVZ to which this modality belong (NULL if not claimed)
+            */
+            IConvergenceZone* GetOwnerCvz() { return ownerCvz; }
+
             /**
             * Retrieve the name of the module. Excluding the name of the CVZ it belongs to (e.g /modalityName)
             */
@@ -126,8 +136,9 @@ namespace cvz {
             /**
             * Instantiate a new IModality from a property.
             */
-            IModality(std::string namePrefix, yarp::os::Bottle prop)
+            IModality(std::string namePrefix, yarp::os::Bottle prop, IConvergenceZone* owner=NULL)
             {
+                ownerCvz = owner;
                 parameters = prop;
                 nameWithoutPrefix = prop.find("name").asString();;
                 name = namePrefix;
@@ -165,6 +176,7 @@ namespace cvz {
                     else
                         maxBound.resize(size, 1.0);
                 }
+                stepFunctionTreshold = prop.check("stepFunctionTreshold", yarp::os::Value(-1.0)).asDouble();
 
                 scaledValueReal.resize(size);
                 scaledValuePrediction.resize(size);
@@ -242,24 +254,38 @@ namespace cvz {
                 mutex.wait();
                 if (input())
                 {
+                    //weird problem in debug mode about the size of scaledValueReal
+                    if (scaledValueReal.size() != (unsigned int) size)
+                    {
+                        std::cerr<<"IModality: weird bug with scaledValueReal size. Workaround is fine, but should be fixed."<<std::endl;
+                        scaledValueReal.resize(size);
+                    }
                     //Scaling in [0,1]
                     for (int i = 0; i < size; i++)
                     {
                         if (autoScale && valueReal[i]>maxBound[i])
                         {
                             maxBound[i] = valueReal[i];
-                            std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
+                            //std::cout<<name<<" updating maximum boundary of component "<<i<<" to "<<maxBound[i]<<std::endl;
                         }
                         else if (autoScale && valueReal[i]<minBound[i])
                         {
                             minBound[i] = valueReal[i];
-                            std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
+                            //std::cout<<name<<" updating minimum boundary of component "<<i<<" to "<<minBound[i]<<std::endl;
                         }
                         if (maxBound[i] == minBound[i])
                             minBound[i] -= 0.0000000001;//Avoid division by zeros
 
                         scaledValueReal[i] = (valueReal[i] - minBound[i]) / (maxBound[i] - minBound[i]);
                         helpers::Clamp(scaledValueReal[i], 0.0, 1.0); //Clamp when we read out of boundaries values
+
+                        if (stepFunctionTreshold != -1.0)
+                        {
+                            if (scaledValueReal[i] > stepFunctionTreshold)
+                                scaledValueReal[i] = 1.0;
+                            else
+                                scaledValueReal[i] = 0.0;
+                        }
                     }
                 }
                 mutex.post();
@@ -379,7 +405,7 @@ namespace cvz {
             /**
             * Instantiate a new BufferedPortModality<T> from a property.
             */
-            ModalityBufferedPort(std::string namePrefix, yarp::os::Bottle prop) :IModality(namePrefix,prop)
+            ModalityBufferedPort(std::string namePrefix, yarp::os::Bottle prop, IConvergenceZone* owner = NULL) :IModality(namePrefix, prop, owner)
             {
 
                 isBlocking = prop.check("isBlocking");
@@ -689,7 +715,7 @@ namespace cvz {
             {
                 if (i> (unsigned int) (img.width() * img.height()) )
                 {
-                    std::cout << portReal.getName() << "-----> Warning: This should not happen (img resolution is too large)" << std::endl;
+                    std::cout << portReal.getName() << "-----> Warning: This should not happen (size of image modalities should be a square, you probably want size=" << desiredWidth*desiredWidth<<")"<< std::endl;
                     return v;
                 }
                 if (mask[i])

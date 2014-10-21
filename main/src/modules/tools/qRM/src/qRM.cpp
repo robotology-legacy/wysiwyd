@@ -143,6 +143,7 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool qRM::updateModule() {
+    mainLoop();
     return true;
 }
 
@@ -383,7 +384,6 @@ void    qRM::mainLoop()
 
     }
 
-    mainLoop();
 
 }
 

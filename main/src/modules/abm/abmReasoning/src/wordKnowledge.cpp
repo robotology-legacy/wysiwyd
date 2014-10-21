@@ -1,5 +1,11 @@
 #include <wordKnowledge.h>
 
+
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+
 Bottle wordKnowledge::addInstance(string sObject, string sWord, vector<string> vContext)
 {
     Bottle bOutput;

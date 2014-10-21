@@ -40,6 +40,7 @@ namespace cvz {
 
 		public:
 
+            virtual std::string getType() { return cvz::core::TYPE_MLP; };
 
 			//calculate output activity - NEW
 			void computOutputActivity(std::vector<double> &outputs)

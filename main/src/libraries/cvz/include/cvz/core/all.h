@@ -1,6 +1,7 @@
 #include "IModality.h"
 #include "ICvz.h"
 #include "CvzMMCM.h"
+#include "CvzESOM.h"
 #include "CvzMLP.h"
 #include "CvzBuilder.h"
 #include "CvzStack.h"

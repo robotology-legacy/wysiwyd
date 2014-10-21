@@ -38,6 +38,10 @@ Windows
 
 #include <abmReasoningFunction.h>
 
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
 string abmReasoningFunction::s_realOPC = "opc";
 string abmReasoningFunction::s_mentalOPC = "mentalOPC";
 
@@ -59,22 +63,22 @@ int abmReasoningFunction::color_loc_R = 255;                    // color of the 
 int abmReasoningFunction::color_loc_G = 255;
 int abmReasoningFunction::color_loc_B = 255;
 
-int abmReasoningFunction::difference_date_in_second = 10000;    // threshold return of second if 2 actions are at different dates
+int abmReasoningFunction::DIFFERENCE_DATE_IN_SECOND = 10000;    // threshold return of second if 2 actions are at different dates
 
-unsigned int abmReasoningFunction::threshold_determine_Location = 3;         // number of tries before determine if location
+unsigned int abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE = 3;         // number of tries before determine if location
 
-double abmReasoningFunction::factor_location = 2 ;                  // factor of the size of a location : center +/- factor_location * std dev
-double abmReasoningFunction::threshold_is_at_location = 4;
-double abmReasoningFunction::threshold_is_at_temporal_location = 12;
-double abmReasoningFunction::threshold_is_dispersion = 0.0001;
+double abmReasoningFunction::FACTOR_LOCATION = 2 ;                  // factor of the size of a location : center +/- FACTOR_LOCATION * std dev
+double abmReasoningFunction::THRESHOLD_IS_AT_LOCATION = 4;
+double abmReasoningFunction::THRESHOLD_IS_AT_TEMPORAL_LOCATION = 12;
+double abmReasoningFunction::THRESHOLD_IS_DISPERSION = 0.0001;
 
-double abmReasoningFunction::lifetime_relation = 2. ;               // life time of a relation about the objects in the OPC
+double abmReasoningFunction::LIFETIME_RELATION = 2. ;               // life time of a relation about the objects in the OPC
 
 // PDDL
-double abmReasoningFunction::threshold_intersect_sup = 0.75;
-double abmReasoningFunction::threshold_intersect_inf = 0.25;
-double abmReasoningFunction::threshold_presence = 0.9;
-double abmReasoningFunction::threshold_absence = 0.1;
+double abmReasoningFunction::THRESHOLD_INTERSECT_SUP = 0.75;
+double abmReasoningFunction::THRESHOLD_INTERSECT_INF = 0.25;
+double abmReasoningFunction::THRESHOLD_PRESENCE = 0.9;
+double abmReasoningFunction::THRESHOLD_ABSENCE = 0.1;
 
 
 //TAGS
@@ -109,6 +113,11 @@ string abmReasoningFunction::TAG_ADRESSEE_IS_AGENT  = "addressee_is_agent" ;
 int abmReasoningFunction::SIGMA_LEARNING_GRAMMAR = 1;
 double abmReasoningFunction::THRESHOLD_CONFIDENCE_GRAMMAR = 0.13;
 
+
+// ADJ KNOWLEDGE
+double abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING = 0.05;
+
+
 abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 {
     Bottle &bOPC = rf.findGroup("opc");
@@ -138,27 +147,27 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     color_loc_R = bMental.check("color_loc_R", Value(255)).asInt();
     color_loc_G = bMental.check("color_loc_G", Value(255)).asInt();
     color_loc_B = bMental.check("color_loc_B", Value(255)).asInt();
-    difference_date_in_second = bMental.check("difference_date_in_second", Value(10000)).asInt();
+    DIFFERENCE_DATE_IN_SECOND = bMental.check("DIFFERENCE_DATE_IN_SECOND", Value(10000)).asInt();
 
 
-    lifetime_relation   = bMental.check("lifetime_relation", Value(0.005)).asDouble();
+    LIFETIME_RELATION   = bMental.check("LIFETIME_RELATION", Value(0.005)).asDouble();
 
 
     Bottle &bSpatialisation = rf.findGroup("spatialisation");
 
-    threshold_determine_Location = bSpatialisation.check("threshold_determine_Location", Value(3)).asInt();
-    factor_location = bSpatialisation.check("factor_location", Value(2)).asDouble();
-    threshold_is_at_location = bSpatialisation.check("threshold_is_at_location", Value(4)).asDouble();
-    threshold_is_at_temporal_location = bSpatialisation.check("threshold_is_at_temporal_location", Value(12)).asDouble();
-    threshold_is_dispersion = bSpatialisation.check("threshold_is_dispersion", Value(0.0001)).asDouble();
+    THRESHOLD_DETERMINE_INFLUENCE = bSpatialisation.check("THRESHOLD_DETERMINE_INFLUENCE", Value(3)).asInt();
+    FACTOR_LOCATION = bSpatialisation.check("FACTOR_LOCATION", Value(2)).asDouble();
+    THRESHOLD_IS_AT_LOCATION = bSpatialisation.check("THRESHOLD_IS_AT_LOCATION", Value(4)).asDouble();
+    THRESHOLD_IS_AT_TEMPORAL_LOCATION = bSpatialisation.check("THRESHOLD_IS_AT_TEMPORAL_LOCATION", Value(12)).asDouble();
+    THRESHOLD_IS_DISPERSION = bSpatialisation.check("THRESHOLD_IS_DISPERSION", Value(0.0001)).asDouble();
 
 
     Bottle &bPDDL = rf.findGroup("PDDL");
 
-    threshold_intersect_sup = (bPDDL.check("threshold_intersect_sup", Value(0.75)).asDouble());
-    threshold_intersect_inf = (bPDDL.check("threshold_intersect_inf", Value(0.25)).asDouble());
-    threshold_presence = (bPDDL.check("threshold_presence", Value(0.9)).asDouble());
-    threshold_absence = (bPDDL.check("threshold_absence", Value(0.1)).asDouble());
+    THRESHOLD_INTERSECT_SUP = (bPDDL.check("THRESHOLD_INTERSECT_SUP", Value(0.75)).asDouble());
+    THRESHOLD_INTERSECT_INF = (bPDDL.check("THRESHOLD_INTERSECT_INF", Value(0.25)).asDouble());
+    THRESHOLD_PRESENCE = (bPDDL.check("THRESHOLD_PRESENCE", Value(0.9)).asDouble());
+    THRESHOLD_ABSENCE = (bPDDL.check("THRESHOLD_ABSENCE", Value(0.1)).asDouble());
 
 
     Bottle &bTag = rf.findGroup("TAGS");
@@ -195,6 +204,11 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     TAG_ADRESSEE_IS_AGENT           = bGK.check("TAG_ADRESSEE_IS_AGENT", Value("addressee_is_agent")).asString();
     SIGMA_LEARNING_GRAMMAR          = bGK.check("SIGMA_LEARNING_GRAMMAR", Value(1)).asInt();
     THRESHOLD_CONFIDENCE_GRAMMAR    = bGK.check("THRESHOLD_CONFIDENCE_GRAMMAR", Value(0.13)).asDouble();
+
+    Bottle &bADJ = rf.findGroup("ADJ");
+    THRESHOLD_PVALUE_INFLUENCE_TIMING    = bADJ.check("THRESHOLD_PVALUE_INFLUENCE_TIMING", Value(0.05)).asDouble();
+
+
 }
 
 
@@ -239,7 +253,7 @@ int abmReasoningFunction::timeDiffSecondFromString(string T1, string T2)
 
     // if the 2 actions didn't occured the same day
     if (TM1.tm_year != TM2.tm_year || TM1.tm_mday != TM2.tm_mday || TM1.tm_mon != TM2.tm_mon)
-        return difference_date_in_second;
+        return DIFFERENCE_DATE_IN_SECOND;
 
     iHours = (TM2.tm_hour-TM1.tm_hour);
     iMinutes = iHours*60 + (TM2.tm_min - TM1.tm_min);
@@ -451,22 +465,17 @@ pair<string, string> abmReasoningFunction::ago2string(pair<int, string> pInput)
 }
 
 
-vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY)
+vector<double> abmReasoningFunction::getCovMatrix(vector<pair<double, double> > vXY)
 {
-    if (vX.size() != vY.size())
-    {
-        std::cout << "Problem in abmReasoningFunction::GetCovMatrix(vector<double> vX, vector<double> vY),\nthe vectors are not of the same size." << endl;
-        return vX;
-    }
-    int N = vX.size(); // number of element
+    int N = vXY.size(); // number of element
 
     double  muX = 0, // means
         muY = 0;
 
     for (int i = 0; i < N; i++)
     {
-        muX += vX[i];
-        muY += vY[i];
+        muX += vXY[i].first;
+        muY += vXY[i].second;
     }
 
     muX  /= (N*1.);
@@ -478,10 +487,10 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
     /* Calcul of the determinant of the covariance matrix.
 
     1/N * M *tM =   | a , b |
-    | c , d |
+    .               | c , d |
 
     but here :  | a , b |
-    | b , d |
+    .           | b , d |
 
     */
     double  a = 0,
@@ -492,8 +501,8 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
     // Creation of the matrix M for the abs values and M' the relatives values
     for (int i = 0; i < N ; i++)
     {
-        XimuX.push_back(vX[i]-muX);
-        YimuY.push_back(vY[i]-muY);
+        XimuX.push_back(vXY[i].first-muX);
+        YimuY.push_back(vXY[i].second-muY);
     }
 
     for (int i = 0; i < N ; i++)
@@ -518,6 +527,33 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
 
     return vOutput;
 }
+
+
+
+vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY)
+{
+    if (vX.size() != vY.size() )
+    {
+        cout << "Error in abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY) : vX and vY size different" << endl;
+        vector<double> vOutput;
+        return vOutput;
+    }
+
+    int N = vX.size(); // number of element
+
+    vector<pair<double, double> > vectDouble;
+
+    for (int i = 0 ; i < N ; i++)
+    {
+        pair<double, double> pTemp(vX[i], vY[i]);
+        vectDouble.push_back(pTemp);
+    }
+
+    return getCovMatrix(vectDouble);
+
+}
+
+
 
 /**
 * Return the Mahalanobis distance of a point to a cluster
@@ -703,3 +739,5 @@ tuple<double, double, double> abmReasoningFunction::tupleDoubleFromString(string
 
     return tOutput;
 }
+
+

@@ -66,8 +66,10 @@ private:
     double delay;
     double thrMove;
     double timeBeginIdle;
-
-    bool forward;
+    int    yDivisions;
+    vector<int> sequenceToPlay;
+    int         indexInSequence;
+    bool   forward;
 
     Vector tempPos;
     Vector orientation;
@@ -163,6 +165,7 @@ public:
         mask[14] = true;
         mask[15] = true;
 
+        cout << "Closing the hand" << endl;
         // closing the hand:
         pos->positionMove(4, 30.0);
         pos->positionMove(6, 10.0);
@@ -175,6 +178,7 @@ public:
         pos->positionMove(14, 180.0);
         pos->positionMove(15, 180.0);
 
+        cout << "Waiting to be in initial position...";
         bool motionDone=false;
         while (!motionDone)
         {
@@ -191,9 +195,8 @@ public:
 
             Time::yield();  // to avoid killing cpu
         }
-
+        cout << "ok" << endl;
         // wait for the hand to be in initial position
-        cout << "waiting to be in intial position" << endl;
 
         Matrix R=zeros(3,3);
         R(0,0)=-1.0; R(1,1)=1; R(2,2)=-1.0;
@@ -229,6 +232,15 @@ public:
         gap     = rf.find("gap").asDouble();
         delay   = rf.find("delay").asDouble();
         thrMove = rf.find("threshold_move").asDouble();
+        yDivisions = rf.check("yDivisions",Value(10)).asInt();
+        Bottle* bsequenceToPlay = rf.find("sequence").asList();
+        if (bsequenceToPlay)
+        {
+            cout << "Using sequence, not random." << endl;
+            for (int i = 0; i < bsequenceToPlay->size(); i++)
+                sequenceToPlay.push_back(bsequenceToPlay->get(i).asInt());
+            indexInSequence = 0;
+        }
 
         tempPos=initPos;
         state=up;
@@ -242,6 +254,10 @@ public:
 
     bool updateModule()
     {
+        //Always send the current position of the end effector
+        Vector toSend, toSend2;
+        armCart->getPose(toSend, toSend2);
+        portStreamer.write(toSend);
 
         if (!forward)
         {
@@ -267,7 +283,24 @@ public:
 
             if (done || Time::now() - timeBeginIdle > thrMove)
             {
-                tempPos[1] = minY + (maxY - minY)*Random::uniform();
+                if (sequenceToPlay.size() > 0)
+                {
+                    int nextIndex = sequenceToPlay[indexInSequence];
+                    if (nextIndex >= yDivisions)
+                    {
+                        cout << "The index in the sequence is larger than the number of division. Clamping." << endl;
+                        nextIndex = yDivisions - 1;
+                    }
+
+                    tempPos[1] = minY + ((maxY - minY) / (double)yDivisions)*sequenceToPlay[indexInSequence];
+                    indexInSequence++;
+                    if (indexInSequence >= (int)sequenceToPlay.size())
+                        indexInSequence = 0;
+                }
+                else
+                {
+                    tempPos[1] = minY + ((maxY - minY) / (double)yDivisions)*Random::uniform(0, yDivisions);
+                }
                 state = side;
                 timeBeginIdle = Time::now();
             }
@@ -294,11 +327,6 @@ public:
 
         armCart->goToPoseSync(tempPos,orientation);
         printf("Going to (%s)\n",tempPos.toString(3,3).c_str());
-        
-        
-        Vector toSend,toSend2;
-        armCart->getPose(toSend,toSend2);
-        portStreamer.write(toSend);
 
         }
         else

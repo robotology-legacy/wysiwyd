@@ -1,5 +1,10 @@
 #include <abmReasoning.h>
-#include <functional>
+
+
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
 
 #define THRESHOLD_CONFIDENCE 5.0
 
@@ -10,7 +15,7 @@ abmReasoning::abmReasoning(ResourceFinder &rf)
 {
     iFunction = new abmReasoningFunction(rf);
     path = rf.getContextPath();
-    savefile = (rf.getContextPath()+"/saveRequest.txt").c_str();
+    savefile = (path+"/saveRequest.txt").c_str();
     opcNameTable.push_back(EFAA_OPC_ENTITY_TAG);
     opcNameTable.push_back(EFAA_OPC_ENTITY_RELATION);
     opcNameTable.push_back(EFAA_OPC_ENTITY_OBJECT);
@@ -76,25 +81,34 @@ bool abmReasoning::configure(ResourceFinder &rf)
     std::cout << endl << endl << "----------------------------------------------" << endl << endl << "abmReasoning ready !" << endl << endl;
 
     bReady = true;
-    bool bTestLanguage = false;
 
-   // WordKnowledge.simulateData();
 
-    if (bTestLanguage)
-    {
-        //  if (!rf.check("noSentences"))   findAllSentence();
-        if (!rf.check("noSentences"))   findAllSentence();
-        listGrammarKnowledge.testModel(100,2);
-        for (int i = 1 ; i < 8 ; i++)
-        {
-            if (i !=2)
-            {
-                listGrammarKnowledge.clear();
-                listGrammarKnowledge.simulateLearning(i,5);
-                listGrammarKnowledge.testModel(100,i);
-            }
-        }
-    }
+
+
+    adjKnowledge test;
+    test.determineTimingInfluence();
+
+
+
+   // bool bTestLanguage = false;
+
+   //// WordKnowledge.simulateData();
+
+   // if (bTestLanguage)
+   // {
+   //     //  if (!rf.check("noSentences"))   findAllSentence();
+   //     if (!rf.check("noSentences"))   findAllSentence();
+   //     listGrammarKnowledge.testModel(100,2);
+   //     for (int i = 1 ; i < 8 ; i++)
+   //     {
+   //         if (i !=2)
+   //         {
+   //             listGrammarKnowledge.clear();
+   //             listGrammarKnowledge.simulateLearning(i,5);
+   //             listGrammarKnowledge.testModel(100,i);
+   //         }
+   //     }
+   // }
     return true;
 }
 
@@ -497,7 +511,6 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addString("ack");
         bReply.addList() = updateOpcObjectLocation(bCommand.get(1).toString().c_str());
     }
-
 
     //no command recognize
     else {
@@ -1743,22 +1756,22 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
             for (map<string ,  pair<double, double > >::iterator itIntersect = it->mPercentObjectFromTo.begin() ; itIntersect != it->mPercentObjectFromTo.end() ; itIntersect++)
             {           
                 //if percentage isAtLoc > treshold_sup : isAtLoc
-                if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
+                if (itIntersect->second.first > abmReasoningFunction::THRESHOLD_INTERSECT_SUP) {
                     myfile << "(isAtLoc " << itIntersect->first << " ?from) " ;
                 }
 
                 //if percentage isAtLoc < treshold_inf : not(isAtLoc)
-                if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
+                if (itIntersect->second.first < abmReasoningFunction::THRESHOLD_INTERSECT_INF) {
                     myfile << "(not (isAtLoc " << itIntersect->first << " ?from)) " ;
                 }
 
                 //if percentage isAtLoc > treshold_sup : isAtLoc
-                if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
+                if (itIntersect->second.second > abmReasoningFunction::THRESHOLD_INTERSECT_SUP) {
                     myfile << "(isAtLoc " << itIntersect->first << " ?to) " ;
                 }
 
                 //if percentage isAtLoc < treshold_inf : not(isAtLoc)
-                if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
+                if (itIntersect->second.second < abmReasoningFunction::THRESHOLD_INTERSECT_INF) {
                     myfile << "(not (isAtLoc " << itIntersect->first << " ?to)) " ;
                 }
 
@@ -1773,12 +1786,12 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
                     //second.first = begin = precondition
 
                     //if percentage isAtLoc > treshold_sup : isAtLoc
-                    if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
+                    if (itIntersect->second.first > abmReasoningFunction::THRESHOLD_INTERSECT_SUP) {
                         myfile << "(isAtLoc " << it->sArgument << " ?" << itIntersect->first << ") " ;
                     }
 
                     //if percentage isAtLoc < treshold_inf : not(isAtLoc)
-                    if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
+                    if (itIntersect->second.first < abmReasoningFunction::THRESHOLD_INTERSECT_INF) {
                         myfile << "(not (isAtLoc " << it->sArgument << " ?" << itIntersect->first << ")) " ;
                     }
                 }
@@ -1788,9 +1801,9 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
         } else {
 
             //----------------------> for isPresent
-            if(it->PercentPresence.first > abmReasoningFunction::threshold_presence){
+            if(it->PercentPresence.first > abmReasoningFunction::THRESHOLD_PRESENCE){
                 myfile << "(isPresent " << obj1 << ") " ;
-            } else if (it->PercentPresence.first < abmReasoningFunction::threshold_absence){
+            } else if (it->PercentPresence.first < abmReasoningFunction::THRESHOLD_ABSENCE){
                 myfile << "(not (isPresent " << obj1 << ") ) " ;
             }
 
@@ -1800,12 +1813,12 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
                 //second: <before,after> => second.first : percent of presence in a loc before
 
                 //if percentage isAtLoc > treshold_sup : isAtLoc
-                if (itIntersect->second.first > abmReasoningFunction::threshold_intersect_sup) {
+                if (itIntersect->second.first > abmReasoningFunction::THRESHOLD_INTERSECT_SUP) {
                     myfile << "(isAtLoc " << obj1 << " " << itIntersect->first <<" ) " ;
                 }
 
                 //if percentage isAtLoc < treshold_inf : not (isAtLoc)
-                if (itIntersect->second.first < abmReasoningFunction::threshold_intersect_inf) {
+                if (itIntersect->second.first < abmReasoningFunction::THRESHOLD_INTERSECT_INF) {
                     myfile << "(not (isAtLoc " << obj1 << " " << itIntersect->first <<" )) " ;
                 } 
             }
@@ -1841,12 +1854,12 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
                     //second.second = end = effect
 
                     //if percentage isAtLoc > treshold_sup : isAtLoc
-                    if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
+                    if (itIntersect->second.second > abmReasoningFunction::THRESHOLD_INTERSECT_SUP) {
                         myfile << "(isAtLoc " << it->sArgument << " ?" << itIntersect->first << ") " ;
                     }
 
                     //if percentage isAtLoc < treshold_inf : not(isAtLoc)
-                    if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
+                    if (itIntersect->second.second < abmReasoningFunction::THRESHOLD_INTERSECT_INF) {
                         myfile << "(not (isAtLoc " << it->sArgument << " ?" << itIntersect->first << ")) " ;
                     }
                 }
@@ -1854,9 +1867,9 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
 
         } else {
 
-            if(it->PercentPresence.second > abmReasoningFunction::threshold_presence){
+            if(it->PercentPresence.second > abmReasoningFunction::THRESHOLD_PRESENCE){
                 myfile << "(isPresent " << obj1 << ") " ;
-            } else if (it->PercentPresence.second < abmReasoningFunction::threshold_absence){
+            } else if (it->PercentPresence.second < abmReasoningFunction::THRESHOLD_ABSENCE){
                 myfile << "(not (isPresent " << obj1 << ") ) ";
             }
 
@@ -1867,12 +1880,12 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
                 //second: <before,after> => second.second : percent of presence in a loc after
 
                 //if percentage isAtLoc > treshold_sup : isAtLoc
-                if (itIntersect->second.second > abmReasoningFunction::threshold_intersect_sup) {
+                if (itIntersect->second.second > abmReasoningFunction::THRESHOLD_INTERSECT_SUP) {
                     myfile << "(isAtLoc " << obj1 << " "<< itIntersect->first <<") " ;
                 } 
 
                 //if percentage isAtLoc < treshold_inf : not (isAtLoc)
-                if (itIntersect->second.second < abmReasoningFunction::threshold_intersect_inf) {
+                if (itIntersect->second.second < abmReasoningFunction::THRESHOLD_INTERSECT_INF) {
                     myfile << "(not (isAtLoc " << obj1 << " "<< itIntersect->first <<")) " ;
                 } 
             }
@@ -4280,7 +4293,7 @@ void abmReasoning::checkContextLocation()
     for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end() ; it++)
     {
         // Is the spatialKnowledge absolut (put) or relative (push)
-        if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::threshold_determine_Location && it->sArgument != "near" && it->sName != "hanoi")
+        if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
         {
             pair <vector <double> , vector<double> > vData;
             vData.first = it->vX;
@@ -4315,11 +4328,11 @@ void abmReasoning::checkContextLocation()
                             after = false;
 
                         // BEFORE :
-                        if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, BEFORE) < abmReasoningFunction::threshold_is_at_location)
+                        if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, BEFORE) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
                             before = true;
 
                         // AFTER
-                        if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, AFTER) < abmReasoningFunction::threshold_is_at_location)
+                        if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, AFTER) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
                             after = true;
 
                         pair < bool, bool > pLoc (before, after);
@@ -4895,7 +4908,8 @@ Bottle abmReasoning::getKnowledge()
                     skAction.vDX.push_back(atof((*bSpatialData.get(j).asList()).get(2).toString().c_str()));
                     skAction.vDY.push_back(atof((*bSpatialData.get(j).asList()).get(3).toString().c_str()));
                 }
-                addSpatialKnowledge(skAction, false);
+
+				addSpatialKnowledge(skAction, false);
             }
         }
     }
@@ -5183,7 +5197,7 @@ Bottle abmReasoning::updateKnownLocations()
         {
 
             // Is the spatialKnowledge absolut (put) or relative (push)
-            if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::threshold_determine_Location && it->sArgument != "near" && it->sName != "hanoi")
+            if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
             {
                 vector<double> CovMat = abmReasoningFunction::getCovMatrix(it->vX, it->vY);
                 double a = CovMat[0],
@@ -5235,8 +5249,8 @@ Bottle abmReasoning::updateKnownLocations()
                     LOCATION->m_ego_position[0] = vData[0] ;
                     LOCATION->m_ego_position[1] = vData[1] ;
                     LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::factor_location;
-                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::factor_location;
+                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[2] = abmReasoningFunction::size_location*2 ;
                     LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI;   
                     LOCATION->m_present = 1;
@@ -5248,8 +5262,8 @@ Bottle abmReasoning::updateKnownLocations()
                     LOCATION_LARGE->m_ego_position[0] = vData[0] ;
                     LOCATION_LARGE->m_ego_position[1] = vData[1] ;
                     LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::factor_location;
-                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::factor_location;
+                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location ;
                     LOCATION_LARGE->m_present = 1;
                     LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI; 
@@ -5270,8 +5284,8 @@ Bottle abmReasoning::updateKnownLocations()
                     LOCATION->m_ego_position[0] = vData[0] ;
                     LOCATION->m_ego_position[1] = vData[1] ;
                     LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::factor_location;
-                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::factor_location;
+                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[2] = abmReasoningFunction::size_location*2 ;
                     LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI;   
                     LOCATION->m_present = 1;
@@ -5283,8 +5297,8 @@ Bottle abmReasoning::updateKnownLocations()
                     LOCATION_LARGE->m_ego_position[0] = vData[0] ;
                     LOCATION_LARGE->m_ego_position[1] = vData[1] ;
                     LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::factor_location;
-                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::factor_location;
+                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location ;
                     LOCATION_LARGE->m_present = 1;
                     LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI; 
@@ -5324,7 +5338,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
         for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end() ; it++)
         {
             // Is the spatialKnowledge absolut (put) or relative (push)
-            if (it->isAbsolut && it->sArgument == sLocation  && it->vX.size() >= abmReasoningFunction::threshold_determine_Location && it->sArgument != "near" && it->sName != "hanoi")
+            if (it->isAbsolut && it->sArgument == sLocation  && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
             {
                 vector<double> CovMat = abmReasoningFunction::getCovMatrix(it->vX, it->vY);
                 double a = CovMat[0],
@@ -5372,8 +5386,8 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION->m_ego_position[0] = vData[0] ;
                     LOCATION->m_ego_position[1] = vData[1] ;
                     LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::factor_location;
-                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::factor_location;
+                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[2] = 0.04 ;
                     LOCATION->m_present = 1;
                     LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI;   
@@ -5385,8 +5399,8 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION_LARGE->m_ego_position[0] = vData[0] ;
                     LOCATION_LARGE->m_ego_position[1] = vData[1] ;
                     LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::factor_location;
-                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::factor_location;
+                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[2] = 0.02 ;
                     LOCATION_LARGE->m_present = 1;
                     LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI; 
@@ -5406,8 +5420,8 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION->m_ego_position[0] = vData[0] ;
                     LOCATION->m_ego_position[1] = vData[1] ;
                     LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::factor_location;
-                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::factor_location;
+                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[2] = 0.04 ;
                     LOCATION->m_present = 1;
                     LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI;   
@@ -5419,8 +5433,8 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION_LARGE->m_ego_position[0] = vData[0] ;
                     LOCATION_LARGE->m_ego_position[1] = vData[1] ;
                     LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::factor_location;
-                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::factor_location;
+                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2)*2*abmReasoningFunction::FACTOR_LOCATION;
+                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1)*2*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[2] = 0.02 ;
                     LOCATION_LARGE->m_present = 1;
                     LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180./PI; 
@@ -6305,7 +6319,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
         {
             pair <double, double > pLoc (RTTemp->m_ego_position[0], RTTemp->m_ego_position[1]) ;
 
-            if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, pLoc) < abmReasoningFunction::threshold_is_at_location)
+            if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, pLoc) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
             {
                 Adjective* presence;
                 if (bReal)
@@ -6314,7 +6328,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                     presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
                     Action* is = realOPC->addAction(abmReasoningFunction::TAG_IS_AT_LOC);
                     realOPC->commit();
-                    realOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::lifetime_relation);
+                    realOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::LIFETIME_RELATION);
                 }
                 else
                 {       
@@ -6323,7 +6337,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                     presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
                     Action* is = mentalOPC->addAction(abmReasoningFunction::TAG_IS_AT_LOC);
                     mentalOPC->commit();
-                    mentalOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::lifetime_relation);
+                    mentalOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::LIFETIME_RELATION);
                 }
 
             }
@@ -6336,7 +6350,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
             {
                 pair <double, double > pLoc (RTTemp->m_ego_position[0], RTTemp->m_ego_position[1]) ;
 
-                if (abmReasoningFunction::getMahalaDist(get<1>(itMAP->second), get<2>(itMAP->second), pLoc) < abmReasoningFunction::threshold_is_at_temporal_location)
+                if (abmReasoningFunction::getMahalaDist(get<1>(itMAP->second), get<2>(itMAP->second), pLoc) < abmReasoningFunction::THRESHOLD_IS_AT_TEMPORAL_LOCATION)
                 {
                     Adjective* presence;
                     if (bReal)
@@ -6345,7 +6359,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                         presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
                         Action* is = realOPC->addAction(abmReasoningFunction::TAG_IS_AT_LOC);
                         realOPC->commit();
-                        realOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::lifetime_relation);
+                        realOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::LIFETIME_RELATION);
                     }
                     else
                     {
@@ -6353,7 +6367,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                         presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
                         Action* is = mentalOPC->addAction(abmReasoningFunction::TAG_IS_AT_LOC);
                         mentalOPC->commit();
-                        mentalOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::lifetime_relation);
+                        mentalOPC->addRelation(*it_E, is, presence, 2*abmReasoningFunction::LIFETIME_RELATION);
                     }
                 }
             }

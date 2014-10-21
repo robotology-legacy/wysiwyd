@@ -43,6 +43,7 @@ class SubSystem_ARE : public SubSystem
 {
 protected:
     yarp::os::RpcClient cmdPort;
+    yarp::os::RpcClient rpcPort;
 
     /********************************************************************************/
     void appendCartesianTarget(yarp::os::Bottle& b, const yarp::sig::Vector &t)
@@ -69,9 +70,12 @@ protected:
     }
 
     /********************************************************************************/
-    bool connect() 
+    bool connect()
     { 
-        return yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
+        bool ret=true;
+        ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
+        ret&=yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
+        return ret;
     }
 
 public:
@@ -82,6 +86,7 @@ public:
     SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
     {
         cmdPort.open(("/"+masterName+"/"+SUBSYSTEM_ARE+"/cmd:io").c_str());
+        rpcPort.open(("/"+masterName+"/"+SUBSYSTEM_ARE+"/rpc").c_str());
         m_type=SUBSYSTEM_ARE;
     }
 
@@ -91,7 +96,10 @@ public:
     void Close()
     { 
         cmdPort.interrupt();
+        rpcPort.interrupt();
+
         cmdPort.close();
+        rpcPort.close();
     }
 
     /**
@@ -260,6 +268,20 @@ public:
         bCmd.addVocab(yarp::os::Vocab::encode("give"));
         bCmd.append(options);
         return sendCmd(bCmd,shouldWait);
+    }
+
+    /**
+    * Enable/disable arms waving.
+    * @param sw enable/disable if true/false.
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
+    */
+    bool waving(const bool sw)
+    {
+        yarp::os::Bottle bCmd;
+        bCmd.addVocab(yarp::os::Vocab::encode("waveing"));
+        bCmd.addString(sw?"on":"off");
+        return rpcPort.asPort().write(bCmd);
     }
 };
 

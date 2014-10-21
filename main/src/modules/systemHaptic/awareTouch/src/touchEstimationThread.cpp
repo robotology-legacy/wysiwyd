@@ -64,7 +64,7 @@ TouchEstimationThread::TouchEstimationThread(string skinManagerPortName, string 
     port_skin_contacts->open(skinPortName.c_str());
     cout<< "||  Opened port in  Thread Touch estimat"<<endl;
     while(!Network::connect(skinManagerPortName.c_str(),skinPortName.c_str(),"tcp",false)) {
-       cout<< "||  Truing to connect with skinManager"<<endl;
+       cout<< "||  Trying to connect with skinManager"<<endl;
     }           
     cout<< "||  Connected with skinManager"<<endl;
     

@@ -1,4 +1,4 @@
-//   CFFT.cpp - impelementation of class
+//   ELid.cpp - impelementation of class
 //   of fast Fourier transform - FFT
 //
 //   The code is property of LIBROW
@@ -6,7 +6,7 @@
 //   When utilizing credit LIBROW site
 
 //   Include declaration file
-#include "fft.h"
+#include "eyeControl.h"
 //   Include math library
 #include <math.h>
 #include <stdlib.h>
@@ -14,10 +14,32 @@
 
 
 
-bool CFFT::configure(yarp::os::ResourceFinder &rf)
+bool ELid::configure(yarp::os::ResourceFinder &rf)
 {
-    string moduleName = rf.check("name", Value("fft")).asString().c_str();
+    L = 4096;
+    buffer = new complex[L];
+    string moduleName = rf.check("name", Value("audioPreprocessing")).asString().c_str();
     setName(moduleName.c_str());
+
+    string moduleInput = rf.check("input", Value("/microphone")).asString().c_str();
+    // buffer size is set to 4096 because: 
+    //      - It must be a power of 2
+    //      - As greater de num of samples (L), greater the resolution (Res)
+    //      - Remember that this should be tuned in function of the sampling frequency (Fs) of the microphone
+    //      - Res (Hz/sample) = Fs / L
+    
+    cout << "checking current buffer size..." << endl;
+    /*if (buffer.size() < L) 
+        {
+            cout << "Reallocating memory for buffer ... "<< endl;
+            buffer.resize(L);
+            for (int i=0;i<L;i++)
+            {
+                buffer[i] = 0;
+            }
+        }
+    */
+    freqReference = rf.check("freqReference", Value(440.)).asDouble();
 
     bool    bEveryThingisGood = true;
 
@@ -33,18 +55,44 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     }
 
 
-    // create an output port
-    // Open port2audio
-    port2outputName = "/";
-    port2outputName += getName() + "/freq:o";
+    // create an output port for frequency
+    port2outputNameFreq = "/";
+    port2outputNameFreq += getName() + "/freq:o";
 
-    if (!portOutput.open(port2outputName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2outputName << endl;
+    if (!portOutputFreq.open(port2outputNameFreq.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameFreq << endl;
+        bEveryThingisGood &= false;
+    }
+
+
+    //the output for spectrum of frequencies
+    port2outputNameSpectrum = "/";
+    port2outputNameSpectrum += getName() + "/freqSpectrum:o";
+
+    if (!portSpectrumOutput.open(port2outputNameSpectrum.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameSpectrum << endl;
+        bEveryThingisGood &= false;
+    }
+
+    port2outputNameBool = "/";
+    port2outputNameBool += getName() + "/freqSpectrum:o";
+
+    if (!portSpectBoolOutput.open(port2outputNameBool.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameBool << endl;
+        bEveryThingisGood &= false;
+    }
+
+    // create an output port for gap
+    port2outputNameGap = "/";
+    port2outputNameGap += getName() + "/note:o";
+
+    if (!portOutputGap.open(port2outputNameGap.c_str())) {
+        cout << getName() << ": Unable to open port " << port2outputNameGap << endl;
         bEveryThingisGood &= false;
     }
 
     // connect input port to audio
-    while (!Network::connect("/microphone", port2audioName.c_str()))
+    while (!Network::connect(moduleInput, port2audioName.c_str()))
     {
         std::cout << "Trying to get input from microphone..." << std::endl;
         yarp::os::Time::delay(1.0);
@@ -60,20 +108,23 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 }
 
 
-bool CFFT::close() {
+bool ELid::close() {
     portInput.close();
-    portOutput.close();
+    portSpectrumOutput.close();
+    portOutputFreq.close();
+    portOutputGap.close();
+    delete[] buffer;
     return true;
 }
 
 
-bool CFFT::respond(const Bottle& command, Bottle& reply) {
+bool ELid::respond(const Bottle& command, Bottle& reply) {
     reply.addString("nack");
     return true;
 }
 
 // Check if it works. Created without debugging...
-double CFFT::nextpow2(int num) {
+double ELid::nextpow2(int num) {
     double y = (double)num;
     double x = log10(y) / log10(2.0);
     return pow(2.0, ceil(x));
@@ -81,217 +132,131 @@ double CFFT::nextpow2(int num) {
 
 
 /* Called periodically every getPeriod() seconds */
-bool CFFT::updateModule() {
-
+bool ELid::updateModule() {
     // get the input
     yarp::sig::Sound* signal = portInput.read();
 
     if (signal)
     {
-        std::cout << "We got a sound ! Samples=" << signal->getSamples() << std::endl;
+        /* Encoding of the fast Fourier Transform*/
 
+        /* Number of Samples (ideally SAMPLES <= 2024 to ensure musical tone recognition)*/
         int SAMPLES = signal->getSamples();
-        //	
+
+        /* Sampling Frequency (ideally over 8KHz)*/
         int Fs = signal->getFrequency();
-        std::cout << Fs << endl;
-        int NFFT = (int)nextpow2(SAMPLES); //Number of fast fourier transforms
+
+        /* Number of discrimanble frequencies*/
+        int NFFT = (int)nextpow2(L); //Number of fast fourier transforms
+
+        std::cout << "Incoming: Samples=" << SAMPLES << "\t SamplingFreq=" << Fs << "\t MaxFreq=" << Fs / 2 << "\t BufferSize=" << L << "\t Resolution=" << Fs / NFFT << std::endl;
+     
         int K = (NFFT / 2) + 1;
         vector<double> sig;
         sig.resize(K);
         vector<double> f;
         f.resize(NFFT);// frequencies vector
-        complex *pSignal = new complex[SAMPLES];
+        complex *pSignal = new complex[L];
 
-
-        for (int i = 0; i < SAMPLES; i++)
+        for (int i=0; i<(L-SAMPLES);i++)
         {
-            //pSignal[i] = signal->getSafe(i, 0); 
-            //pSignal[i] = signal->get(i) / 65535.0;;
-            pSignal[i] = signal->get(i);
+            buffer[i] = buffer[i+SAMPLES];
+        }
+        for (int i = 0; i<SAMPLES; i++)
+        {
+            buffer[(L - SAMPLES) + i] = signal->get(i);
+        }
+        //cout << endl << endl << &buffer<<endl<<endl<<endl;
+        /*
+        for (int i=0;i<SAMPLES;i++)
+        {
+            buffer.push_back(signal->get(i));
+            buffer.pop_back();
+        }*/
+
+        for (int i = 0; i < L; i++)
+        {
+            pSignal[i] = buffer[i]; 
         }
 
-        complex *pSignalOut = new complex[NFFT]; //complex[SAMPLES]
-        //CFFT::Forward(pSignal, pSignalOut, SAMPLES);
-        CFFT::Forward(pSignal, pSignalOut, NFFT);
-        //cout << "Frequency is " <<pSignal;
-        int MaxAmpIdx = 1;
-        //int MaxFreqIdx = 0;
+        complex *fftOut = new complex[NFFT];
+        ELid::Forward(pSignal, fftOut, NFFT);
+        int maxAmpIdx = 70;
+
+        /*Compute frequency amplitude*/
         for (int i = 1; i < K; i++)
         {
-
-            double x = pSignalOut[i].norm() / (double)SAMPLES;
-            if (x<0){ x = -x; }
+            double x = fabs( fftOut[i].norm() / (double)SAMPLES );
             sig[i] = 2 * x; // Amplitude of the signal
 
-            if (sig[i] > sig[MaxAmpIdx]) //stores max amplitude index
+            if (i > 70)
             {
-                MaxAmpIdx = i;
+                if (sig[i] > sig[maxAmpIdx]) //stores max amplitude index
+                {
+                    //cout << "Storing new peak!" << endl;
+                    maxAmpIdx = i;
+                }    
             }
         }
-        for (int i = 0; i < K; i++)
+
+        /*Compute Frequency vector*/
+        for (int i = 1; i < K; i++)
         {
             double j = i / (double)K;
             f[i] = Fs / 2 * j; // This calculates the frequency. j should be multiplied by Fs/2 if everythng is right
         }
-        double newMaxFreq = f[MaxAmpIdx];
-        newMaxFreq = floor((double)newMaxFreq/4)*4;
-        vector<double> shortFreq;
-        shortFreq.resize((unsigned int) ceil((double)K / 3));
-        vector<double> shortAmp;
-        shortAmp.resize((unsigned int) ceil((double)K / 3));
 
-        for (int i = 0; i < ceil((double)K / 3)-1; i++)
-        {
-            int j = (i * 3) + 2;
-            shortFreq[i] = f[j];
-            //Use mean amplitude from bucket
-            shortAmp[i] = (sig[j - 1] + sig[j] + sig[j + 1]) / 3; // Use mean amplitude
-            /* // Use max amplitude from bucket
-            MAmp = 0;
-            for ( q = -1; q <= 1; q++)
-            {
-            if (sig[j+q]>MAmp){
-            MAmp = sig[j+q]; // Use max amplitude
-            }
-            }
-            shortAmp[i] = MAmp;
-            */
-        }
-        //newMaxFreq = shortFreq[MaxAmpIdx + MaxAmpIdx % 3 - 1]; //comment for previous response
-        /*
-        double meanFreq = 0.0;
-        double maxFreq = 0.0;
-        int bestIndex = 0;
-        double weightedMean = 0.0;
+        double newMaxFreq = f[maxAmpIdx];
+        
+        // Print frequency-amplitude
+        // cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[maxAmpIdx] << endl;
 
-        for (int i = 50; i < 100; i++)
-        {
-        double currentFreqValue = pSignalOut[i].norm();
-        weightedMean += i * pSignalOut[i].norm();
-        meanFreq += currentFreqValue;
-        if (currentFreqValue>maxFreq)
-        {
-        bestIndex = i;
-        maxFreq = currentFreqValue;
-        }
-        }
-        weightedMean /= meanFreq;
-        meanFreq /= SAMPLES;
-        cout << "Weighted Average Freq = " << weightedMean << "\t Max Frequency obtained in index=" << bestIndex << endl;
-        */
-        cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[MaxAmpIdx] << endl;
+        
+        double gap = log(newMaxFreq/freqReference)*12/log(2.);
+        cout << "Peak Frequency at = " << newMaxFreq << "\t Amplitude = " << sig[maxAmpIdx] << "\t Note gap : " << gap << endl;
 
-        yarp::os::Bottle &treatedSignal = portOutput.prepare();
-        treatedSignal.clear();
-        /*
-        for (int i = 50; i < 100; i++)
-        {
-        treatedSignal.addDouble(pSignalOut[i].norm() / maxFreq);
-        }
-        */
+        yarp::os::Bottle &treatedFrequency = portOutputFreq.prepare();
+        treatedFrequency.clear();
 
-        /*
-        int check = 2;
-        if (check == 1)
-        {
-            for (int i = 0; i<K; i++)
-            {
-                treatedSignal.addDouble(sig[i]);
-            }
-        }
-        else{
-            for (int i = 0; i<ceil((double)K / 3); i++)
-            {
-                if (shortAmp[i] / (double)1e8>150.0)
-                    treatedSignal.addDouble(1.0);
-                else
-                    treatedSignal.addDouble(0.0);
-            }
-        }*/
-        treatedSignal.addDouble(newMaxFreq);
-        portOutput.write();
+        yarp::os::Bottle &treatedNote = portOutputGap.prepare();
+        treatedNote.clear();
 
-        //   Free memory
+        yarp::os::Bottle &SpectralSignal = portSpectrumOutput.prepare();
+        SpectralSignal.clear();
+
+        yarp::os::Bottle &SpectralBool = portSpectBoolOutput.prepare();
+        SpectralBool.clear();
+
         delete[] pSignal;
+
+        for (int i = 1; i<K; i++)
+            {
+                SpectralSignal.addDouble(log10(sig[i]));
+                if (log10(sig[i])>15)
+                {
+                    SpectralBool.addDouble(1.0);
+                }else{
+                    SpectralBool.addDouble(0.0);
+                }
+            }
+
+        treatedNote.addDouble(gap);
+        treatedFrequency.addDouble(newMaxFreq);
+
+        portOutputFreq.write();
+        portOutputGap.write();
+        portSpectrumOutput.write();
+
     }
 
     return true;
 }
 
-
-/* Called periodically every getPeriod() seconds
-bool CFFT::updateModule() {
-
-// get the input
-yarp::sig::Sound* signal = portInput.read();
-
-if (signal)
-{
-std::cout << "We got a sound ! (Samples=" <<signal->getSamples()<< std::endl;
-
-int SAMPLES = signal->getSamples();
-
-complex *pSignal = new complex[SAMPLES];
-
-for (int i = 0; i < SAMPLES; i++)
-{
-//pSignal[i] = signal->getSafe(i, 0);
-pSignal[i] = signal->get(i) / 65535.0;;
-}
-
-//   Apply FFT
-//CFFT::Forward(pSignal, SAMPLES);
-
-complex *pSignalOut = new complex[SAMPLES];
-CFFT::Forward(pSignal, pSignalOut, SAMPLES);
-//cout << "Frequency is " <<pSignal;
-
-double meanFreq = 0.0;
-double maxFreq = 0.0;
-int bestIndex = 0;
-double weightedMean = 0.0;
-
-for (int i = 50; i < 100; i++)
-{
-double currentFreqValue = pSignalOut[i].norm();
-weightedMean += i * pSignalOut[i].norm();
-meanFreq += currentFreqValue;
-if (currentFreqValue>maxFreq)
-{
-bestIndex = i;
-maxFreq = currentFreqValue;
-}
-}
-weightedMean /= meanFreq;
-meanFreq /= SAMPLES;
-cout << "Weighted Average Freq = " << weightedMean << "\t Max Frequency obtained in index=" << bestIndex << endl;
-
-yarp::os::Bottle &treatedSignal = portOutput.prepare();
-treatedSignal.clear();
-for (int i = 50; i < 100; i++)
-{
-treatedSignal.addDouble(pSignalOut[i].norm() / maxFreq);
-}
-portOutput.write();
-
-//   Free memory
-delete[] pSignal;
-}
-
-return true;
-} */
-
-
-
-
-
-
-
 //   FORWARD FOURIER TRANSFORM
 //     Input  - input data
 //     Output - transform result
 //     N      - length of both input data and result
-bool CFFT::Forward(const complex *const Input, complex *const Output, const unsigned int N)
+bool ELid::Forward(const complex *const Input, complex *const Output, const unsigned int N)
 {
     //   Check input parameters
     if (!Input || !Output || N < 1 || N & (N - 1))
@@ -307,7 +272,7 @@ bool CFFT::Forward(const complex *const Input, complex *const Output, const unsi
 //   FORWARD FOURIER TRANSFORM, INPLACE VERSION
 //     Data - both input data and output
 //     N    - length of input data
-bool CFFT::Forward(complex *const Data, const unsigned int N)
+bool ELid::Forward(complex *const Data, const unsigned int N)
 {
     //   Check input parameters
     if (!Data || N < 1 || N & (N - 1))
@@ -325,7 +290,7 @@ bool CFFT::Forward(complex *const Data, const unsigned int N)
 //     Output - transform result
 //     N      - length of both input data and result
 //     Scale  - if to scale result
-bool CFFT::Inverse(const complex *const Input, complex *const Output, const unsigned int N, const bool Scale /* = true */)
+bool ELid::Inverse(const complex *const Input, complex *const Output, const unsigned int N, const bool Scale /* = true */)
 {
     //   Check input parameters
     if (!Input || !Output || N < 1 || N & (N - 1))
@@ -336,7 +301,7 @@ bool CFFT::Inverse(const complex *const Input, complex *const Output, const unsi
     Perform(Output, N, true);
     //   Scale if necessary
     if (Scale)
-        CFFT::Scale(Output, N);
+        ELid::Scale(Output, N);
     //   Succeeded
     return true;
 }
@@ -345,7 +310,7 @@ bool CFFT::Inverse(const complex *const Input, complex *const Output, const unsi
 //     Data  - both input data and output
 //     N     - length of both input data and result
 //     Scale - if to scale result
-bool CFFT::Inverse(complex *const Data, const unsigned int N, const bool Scale /* = true */)
+bool ELid::Inverse(complex *const Data, const unsigned int N, const bool Scale /* = true */)
 {
     //   Check input parameters
     if (!Data || N < 1 || N & (N - 1))
@@ -356,13 +321,13 @@ bool CFFT::Inverse(complex *const Data, const unsigned int N, const bool Scale /
     Perform(Data, N, true);
     //   Scale if necessary
     if (Scale)
-        CFFT::Scale(Data, N);
+        ELid::Scale(Data, N);
     //   Succeeded
     return true;
 }
 
 //   Rearrange function
-void CFFT::Rearrange(const complex *const Input, complex *const Output, const unsigned int N)
+void ELid::Rearrange(const complex *const Input, complex *const Output, const unsigned int N)
 {
     //   Data entry position
     unsigned int Target = 0;
@@ -383,7 +348,7 @@ void CFFT::Rearrange(const complex *const Input, complex *const Output, const un
 }
 
 //   Inplace version of rearrange function
-void CFFT::Rearrange(complex *const Data, const unsigned int N)
+void ELid::Rearrange(complex *const Data, const unsigned int N)
 {
     //   Swap position
     unsigned int Target = 0;
@@ -410,7 +375,7 @@ void CFFT::Rearrange(complex *const Data, const unsigned int N)
 }
 
 //   FFT implementation
-void CFFT::Perform(complex *const Data, const unsigned int N, const bool Inverse /* = false */)
+void ELid::Perform(complex *const Data, const unsigned int N, const bool Inverse /* = false */)
 {
     const double pi = Inverse ? 3.14159265358979323846 : -3.14159265358979323846;
     //   Iteration through dyads, quadruples, octads and so on...
@@ -448,7 +413,7 @@ void CFFT::Perform(complex *const Data, const unsigned int N, const bool Inverse
 }
 
 //   Scaling of inverse FFT result
-void CFFT::Scale(complex *const Data, const unsigned int N)
+void ELid::Scale(complex *const Data, const unsigned int N)
 {
     const double Factor = 1. / double(N);
     //   Scale all data entries

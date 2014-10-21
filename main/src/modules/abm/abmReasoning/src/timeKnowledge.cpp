@@ -1,6 +1,11 @@
 #include <timeKnowledge.h>
 
 
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+
 /*
 * Transform a shared plan in a timeKnowledge
 * input format : 

@@ -1,5 +1,11 @@
 #include "adaptiveLayer.h"
 
+
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::math;
+using namespace wysiwyd::wrdac;
+
 bool AdaptiveLayer::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name",Value("adaptiveLayer")).asString().c_str();
@@ -26,7 +32,7 @@ bool AdaptiveLayer::configure(yarp::os::ResourceFinder &rf)
     configureOPC(rf);
     configureSpeech(rf);
     configureGestures(rf);
-    cout<<"Configuration done."<<endl;
+    cout << "Configuration done."<<endl;
 
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);

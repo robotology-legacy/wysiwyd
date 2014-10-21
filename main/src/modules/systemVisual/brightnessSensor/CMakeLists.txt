@@ -1,8 +1,8 @@
 # Copyright: (C) 2014 WYSIWYD Consortium
-# Authors: Grégoire Pointeau
+# Authors: Jordi-Ysard Puigbo
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME fft)
+set(PROJECTNAME brightnessSensor)
 project(${PROJECTNAME})
 
 
@@ -17,9 +17,12 @@ source_group("DOC Files"    FILES ${doc_files})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 
+find_package( OpenCV REQUIRED )
 add_executable(${PROJECTNAME} ${folder_header} ${folder_source} ${doc_files})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES})
-set_target_properties(${PROJECTNAME} PROPERTIES FOLDER systemAuditory)
+set_target_properties(${PROJECTNAME} PROPERTIES FOLDER blinkExperiment)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
+target_link_libraries( brightnessSensor ${OpenCV_LIBS} )
+
 

@@ -20,13 +20,9 @@ public:
 		guiThread = NULL;
 
 		std::string cvzType = rf.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString();
-		yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
 
-		if (prop.check("name") && rf.check("name"))
-		{
-			prop.unput("name");
-			prop.put("name", rf.find("name").asString());
-		}
+		yarp::os::Property prop(rf.toString().c_str());// prop.fromConfigFile(rf.findFile("from"));
+
 		thread = new cvz::core::ThreadedCvz(prop, rf.check("period", yarp::os::Value(100)).asInt());
 		bool success = thread->start();
 

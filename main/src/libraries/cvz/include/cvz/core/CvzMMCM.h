@@ -15,6 +15,14 @@
 
 namespace cvz {
     namespace core {
+        
+#define MMCM_CONNECTIVITY_SHEET "sheet"
+#define MMCM_CONNECTIVITY_TORUS "torus"
+
+#define MMCM_ALGORITHM_SOM          "som"
+#define MMCM_ALGORITHM_DSOM         "dsom"
+#define MMCM_ALGORITHM_POPULATION   "population"
+
         class CvzMMCM : public IConvergenceZone, public cvzMmcm_IDL
         {
             int height, width, layers;
@@ -22,63 +30,64 @@ namespace cvz {
             helpers::Cube activity;
             std::map<IModality*, std::vector< helpers::Cube > > weights;
             yarp::os::BufferedPort<yarp::os::Bottle> portActivity;
-            std::queue< std::vector< int > > winnersBuffer;
-            int recurrenceDelay;
             int xBuff, yBuff, zBuff;
-			bool isUsingPopulationCode;
             yarp::os::Semaphore mutex;
+
+            std::string connectivityPatern;
+            std::string algorithm;
 
         public:
 
-            double lRate, sigmaH, sigmaV;
+            virtual std::string getType() { return cvz::core::TYPE_MMCM; };
             int H() { return height; }
             int W() { return width; }
             int L() { return layers; }
-
-            IModality* recurrentModality;
+            std::string ConnectivityPattern() { return connectivityPatern; }
+            std::string Algorithm() { return algorithm; }
 
             /*IDL methods*/
-			/***************************************************************/
-			virtual bool attach(yarp::os::RpcServer &source)
-			{
-				return this->yarp().attachAsServer(source);
-			}
-
-			void start()
-			{
-				moduleStart();
-			}
-			void pause()
-			{
-				modulePause();
-			}
-            void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; lRate = l; }
-            double getLearningRate() { return lRate; }
-            void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; sigmaH = s; }
-            double getSigma() { return sigmaH; }
-			double getActivity(const int32_t x, const int32_t y, const int32_t z) { return activity[x][y][z]; }
-			bool saveWeightsToFile(const std::string &path)
-			{ 
-				std::cout << "Trying to save weights to " << path << std::endl; 
-				return saveWeights(path); 
-			}
-			bool loadWeightsFromFile(const std::string &path)
-			{
-				std::cout << "Trying to load weights with name: " << path << std::endl;
-                yarp::os::ResourceFinder rf;
-                std::string fullPath = rf.findFileByName(path);
-				std::cout << "Trying to load weights from : " << fullPath << std::endl;
-				return loadWeights(fullPath);
+            /***************************************************************/
+            virtual bool attach(yarp::os::RpcServer &source)
+            {
+                return this->yarp().attachAsServer(source);
             }
 
-			virtual yarp::os::Bottle getParametersForBroadcast()
-			{
-				yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
-				yarp::os::Bottle &bLearning = b.addList();
-				bLearning.addString("learningRate");
-				bLearning.addDouble(getLearningRate());
-				return b;
-			}
+            void start()
+            {
+                moduleStart();
+            }
+            void pause()
+            {
+                modulePause();
+            }
+            void setLearningRate(const double l) { std::cout << "Learning rate set to : " << l << std::endl; parametersRuntime.put("learningRate", l); }
+            double getLearningRate() { return parametersRuntime.find("learningRate").asDouble(); }
+            void setSigma(const double s) { std::cout << "Sigma set to : " << s << std::endl; parametersRuntime.put("sigma",s); }
+            double getSigma() { return parametersRuntime.find("sigma").asDouble(); }
+            double getActivity(const int32_t x, const int32_t y, const int32_t z) { return activity[x][y][z]; }
+            bool saveWeightsToFile(const std::string &path)
+            { 
+                std::cout << "Trying to save weights to " << path << std::endl; 
+                return saveWeights(path); 
+            }
+            bool loadWeightsFromFile(const std::string &path)
+            {
+                std::cout << "Trying to load weights with name: " << path << std::endl;
+                yarp::os::ResourceFinder rf;
+                std::string fullPath = rf.findFileByName(path);
+                std::cout << "Trying to load weights from : " << fullPath << std::endl;
+                return loadWeights(fullPath);
+            }
+
+            //virtual yarp::os::Bottle getParametersForBroadcast()
+            //{
+            //    yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
+            //    yarp::os::Bottle &bLearning = b.addList();
+            //    bLearning.addString("learningRate");
+            //    bLearning.addDouble(getLearningRate());
+            //    return b;
+            //}
+
             virtual bool close()
             {
                 bool ok = this->IConvergenceZone::close();
@@ -94,104 +103,46 @@ namespace cvz {
                 this->IConvergenceZone::configure(rf);
 
                 //Get additional parameters
-                height = rf.check("height", yarp::os::Value(10)).asInt();
-                width = rf.check("width", yarp::os::Value(10)).asInt();
-                layers = rf.check("layers", yarp::os::Value(1)).asInt();
-                lRate = rf.check("learningRate", yarp::os::Value(0.05)).asDouble();
-				isUsingPopulationCode = rf.check("populationCode");
-                int recModalitySize = rf.check("recurrentModality", yarp::os::Value(0)).asInt();
-                recurrenceDelay = rf.check("recurrentDelay", yarp::os::Value(10)).asInt();
-                if (recModalitySize > 0)
-                {
-                    std::string recModName = "/";
-                    recModName += getName();
-                    recModName += "/recurrent";
-                    yarp::os::Property propTmp;
-                    propTmp.unput("name");
-                    propTmp.put("name", recModName);
-                    propTmp.unput("size");
-                    propTmp.put("size", recModalitySize);
+                if (!parametersStartTime.check("height"))
+                    parametersStartTime.put("height", yarp::os::Value(10));
+                if (!parametersStartTime.check("width"))
+                    parametersStartTime.put("width", yarp::os::Value(10));
+                if (!parametersStartTime.check("layers"))
+                    parametersStartTime.put("layers", yarp::os::Value(1));
+                if (!parametersStartTime.check("connectivityPattern"))
+                    parametersStartTime.put("connectivityPattern", yarp::os::Value(MMCM_CONNECTIVITY_SHEET));
+                if (!parametersStartTime.check("algorithm"))
+                    parametersStartTime.put("algorithm", yarp::os::Value(MMCM_ALGORITHM_DSOM));
 
-                    yarp::os::Bottle bMinBounds;
-                    yarp::os::Bottle bMaxBounds;
-                    for (int i = 0; i < recModalitySize; i++)
-                    {
-                        bMinBounds.addDouble(0);
-                        bMaxBounds.addDouble(1);
-                    }
-                    yarp::os::Value pMin;
-                    bMinBounds.write(pMin);
-                    yarp::os::Value pMax;
-                    bMaxBounds.write(pMax);
-                    propTmp.unput("minBounds");
-                    propTmp.put("minBounds", pMin);
-                    propTmp.unput("maxBounds");
-                    propTmp.put("maxBounds", pMax);
+                //Starttime parameters
+                height = parametersStartTime.find("height").asInt();
+                width = parametersStartTime.find("width").asInt();
+                layers = parametersStartTime.find("layers").asInt();
+                connectivityPatern = parametersStartTime.find("connectivityPattern").asString();
+                algorithm = parametersStartTime.find("algorithm").asString();
 
-                    yarp::os::Bottle bTmp;
-                    bTmp.read(propTmp);
-                    recurrentModality = new IModality(recModName, bTmp);
-                    modalitiesInfluence[recurrentModality] = rf.check("recurrentInfluence", yarp::os::Value(1.0)).asDouble();
-                }
-                else
-                    recurrentModality = NULL;
-
-                double sigmaFactor = rf.check("sigmaFactor", yarp::os::Value(1.0)).asDouble();
-                sigmaH = sigmaFactor * (1.0 / 4.0) * (height + width) / 2.0;
-                sigmaV = sigmaFactor * (1.0 / 4.0) * layers;
+                //Runtime parameters
+                if (!parametersRuntime.check("learningRate"))
+                    parametersRuntime.put("learningRate", yarp::os::Value(0.05));
+                if (!parametersRuntime.check("sigma"))
+                    parametersRuntime.put("sigma", yarp::os::Value((1.0 / 4.0) * (height + width) / 2.0));
+                if (!parametersRuntime.check("elasticity"))
+                    parametersRuntime.put("elasticity", yarp::os::Value(2.0));
 
                 //Allocate the map
                 activity.allocate(width, height, layers);
 
                 //Allocate the weights
-                for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
+                for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
                 {
-                    //Check if MMCM specifics parameters where added into the modality
-
                     std::vector< helpers::Cube > w;
-                    w.resize(it->second->Size());
-                    for (int i = 0; i < it->second->Size(); i++)
+                    w.resize(it->first->Size());
+                    for (int i = 0; i < it->first->Size(); i++)
                     {
                         w[i].allocate(width, height, layers);
                         w[i].randomize(0.0, 1.0);
                     }
-                    weights[it->second] = w;
-                }
-
-                for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-                {
-                    std::vector< helpers::Cube > w;
-                    w.resize(it->second->Size());
-                    for (int i = 0; i < it->second->Size(); i++)
-                    {
-                        w[i].allocate(width, height, layers);
-                        w[i].randomize(0.0, 1.0);
-                    }
-                    weights[it->second] = w;
-                }
-
-                if (recurrentModality != NULL)
-                {
-                    std::vector< helpers::Cube > w;
-                    w.resize(recurrentModality->Size());
-                    for (int i = 0; i < recurrentModality->Size(); i++)
-                    {
-                        w[i].allocate(width, height, layers);
-                        w[i].randomize(0.0, 1.0);
-                    }
-                    weights[recurrentModality] = w;
-                }
-
-                //Set modalitiesInfluence and modalitiesLearning to 1.0 by default
-                for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
-                {
-                    modalitiesInfluence[it->second] = 1.0;
-                    modalitiesLearning[it->second] = 1.0;
-                }
-                for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-                {
-                    modalitiesInfluence[it->second] = 1.0;
-                    modalitiesLearning[it->second] = 1.0;
+                    weights[it->first] = w;
                 }
 
                 //Zero everything
@@ -206,7 +157,9 @@ namespace cvz {
                 std::cout << std::endl << "Multi Modal Convergence Map configured:" << std::endl
                     << "\t Width :  " << width << std::endl
                     << "\t Height : " << height << std::endl
-                    << "\t Layers : " << layers << std::endl;
+                    << "\t Layers : " << layers << std::endl
+                    << "\t Algorithm : " << algorithm << std::endl
+                    << "\t Connectivity : " << connectivityPatern << std::endl;
 
                 return true;
             }
@@ -226,8 +179,8 @@ namespace cvz {
                 yarp::os::Bottle &botActivity = portActivity.prepare();
                 botActivity.clear();
 
-				//------------------------------------------------------------------------------------------------------------------------
-				//Compute map activity 
+                //------------------------------------------------------------------------------------------------------------------------
+                //Compute map activity 
                 for (int x = 0; x < width; x++)
                 {
                     for (int y = 0; y < height; y++)
@@ -260,19 +213,6 @@ namespace cvz {
                                 activity[x][y][z] += 1.0 - (modalityMeanError * modalitiesInfluence[it->second]);
                             }
 
-                            //Reccurent modality
-                            if (recurrentModality != NULL)
-                            {
-                                std::vector<double> recVReal = recurrentModality->GetValueReal();
-                                double modalityMeanError = 0.0;
-                                for (int i = 0; i < recurrentModality->Size(); i++)
-                                {
-                                    modalityMeanError += fabs(weights[recurrentModality][i][x][y][z] - recVReal[i]);
-                                }
-                                modalityMeanError /= recurrentModality->Size();
-                                activity[x][y][z] += 1.0 - (modalityMeanError * modalitiesInfluence[recurrentModality]);
-                            }
-
                             //Get the whole activity in [0,1]
                             activity[x][y][z] /= influenceTotal;// modalitiesBottomUp.size();
 
@@ -295,97 +235,116 @@ namespace cvz {
                     }
                 }
 
-				//------------------------------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------------------------------
                 //Send the output activity
                 portActivity.write();
 
-				//------------------------------------------------------------------------------------------------------------------------
-				//Keep track of the past winners in a buffer (not really used yet)
-                if (winnersBuffer.size() == (unsigned int) recurrenceDelay)
-                    winnersBuffer.pop();
-                std::vector<int> currentWinner(3);
-                currentWinner[0] = xWin;
-                currentWinner[1] = yWin;
-                currentWinner[2] = zWin;
-                winnersBuffer.push(currentWinner);
-
-                if (cyclesElapsed % recurrenceDelay == 0)
-                {
-                    xBuff = xWin;
-                    yBuff = yBuff;
-                    zBuff = zBuff;
-                }
-
-
-				//------------------------------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------------------------------
                 //Learning
-                if (lRate > 0.0)
+                //check if all modalities learning is off
+                bool allModLearningZero = true;
+                for (std::map<IModality*, double>::iterator itL = modalitiesLearning.begin(); itL != modalitiesLearning.end(); itL++)
+                    allModLearningZero &= (itL->second == 0.0);
+                if (parametersRuntime.find("learningRate").asDouble() > 0.0 && !allModLearningZero)
                     adaptWeights();
 
 
-				//------------------------------------------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------------------------------------------------------
                 //Set the predicted values 
 
                 //feedback
                 for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
-					predictModality(it->second, isUsingPopulationCode);
+                    predictModality(it->second, algorithm);
                 //feedforward
                 for (std::map<std::string, IModality*>::iterator it = modalitiesTopDown.begin(); it != modalitiesTopDown.end(); it++)
-					predictModality(it->second, isUsingPopulationCode);
+                    predictModality(it->second, algorithm);
 
-                //Recurrent
-                if (recurrentModality != NULL)
-                {
-                    std::vector<double> valuePrediction;
-                    valuePrediction.resize(recurrentModality->Size());
-                    for (int i = 0; i < recurrentModality->Size(); i++)
-                    {
-                        valuePrediction[i] = weights[recurrentModality][i][xWin][yWin][zWin];
-                    }
-                    recurrentModality->SetValuePrediction(valuePrediction);
-                    recurrentModality->SetValueReal(valuePrediction); //we set the next input of this modality to be the last prediction
-                }
                 mutex.post();
             }
 
-			void predictModality(IModality* mod, bool populationCode)
-			{
-				std::vector<double> valuePrediction;
-				valuePrediction.resize(mod->Size(), 0.0);
+            void predictModality(IModality* mod, std::string algorithmUsed)
+            {
+                std::vector<double> valuePrediction;
+                valuePrediction.resize(mod->Size(), 0.0);
 
-				std::vector<double> valuePredictionWinner;
-				valuePredictionWinner.resize(mod->Size(), 0.0);
-				for (int i = 0; i < mod->Size(); i++)
-				{
-					valuePredictionWinner[i] = weights[mod][i][xWin][yWin][zWin];
+                std::vector<double> valuePredictionWinner;
+                valuePredictionWinner.resize(mod->Size(), 0.0);
+                for (int i = 0; i < mod->Size(); i++)
+                {
+                    valuePredictionWinner[i] = weights[mod][i][xWin][yWin][zWin];
 
-					if (populationCode)
-					{
-						double totalContribution = 0.0;
-						for (int x = 0; x < width; x++)
-						{
-							for (int y = 0; y < height; y++)
-							{
-								for (int z = 0; z < layers; z++)
-								{
-									double contribution = activity[x][y][z];// / activity[xWin][yWin][zWin];
-									valuePrediction[i] += (weights[mod][i][x][y][z] * contribution);
-									totalContribution += contribution;
-								}
-							}
-						}
-						valuePrediction[i] /= totalContribution;
-					}
-				}
-				if (populationCode)
-				{
-					mod->SetValuePrediction(valuePrediction);
-				}
-				else
-				{
-					mod->SetValuePrediction(valuePredictionWinner);
-				}
-			}
+                    if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
+                    {
+                        double totalContribution = 0.0;
+                        for (int x = 0; x < width; x++)
+                        {
+                            for (int y = 0; y < height; y++)
+                            {
+                                for (int z = 0; z < layers; z++)
+                                {
+                                    double contribution = activity[x][y][z];// / activity[xWin][yWin][zWin];
+                                    valuePrediction[i] += (weights[mod][i][x][y][z] * contribution);
+                                    totalContribution += contribution;
+                                }
+                            }
+                        }
+                        valuePrediction[i] /= totalContribution;
+                    }
+                }
+                if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
+                {
+                    mod->SetValuePrediction(valuePrediction);
+                }
+                else
+                {
+                    mod->SetValuePrediction(valuePredictionWinner);
+                }
+            }
+
+            double getDistance(int x1, int y1, int z1, int x2, int y2, int z2, std::string connectivity)
+            {
+                double d = 0.0;
+                double dX = abs(x1 - x2);
+                double dY = abs(y1 - y2);
+                double dZ = abs(z1 - z2);
+
+                double euclideanDistance = sqrt(pow(dX, 2.0) + pow(dY, 2.0) + pow(dZ, 2.0));
+                if (connectivity == MMCM_CONNECTIVITY_SHEET)
+                    d = euclideanDistance;
+                else if (connectivity == MMCM_CONNECTIVITY_TORUS)
+                {
+                    double tdX = abs(x1 + (width - x2));
+                    double tdY = abs(y1 + (height - y2));
+                    double tdZ = abs(z1 + (layers - z2));
+                    d = sqrt(pow(std::min(dX, tdX), 2.0) + pow(std::min(dY, tdY), 2.0) + pow(std::min(dZ, tdZ), 2.0));
+                }
+                else
+                    std::cerr << "Error : Unknown connectivity pattern. Probably no learning will occur." << std::endl;
+                return d;
+            }
+
+
+            double getDWCoefficient(double distance2winner, double neuronError, double winnerError, std::string algorithmUsed)
+            {
+                double dW = 1.0;
+
+                if (algorithmUsed == MMCM_ALGORITHM_SOM)
+                    dW = helpers::GaussianBell(distance2winner, parametersRuntime.find("sigma").asDouble());
+                else if (algorithmUsed == MMCM_ALGORITHM_DSOM)
+                {
+                    if (activity[xWin][yWin][zWin] != 0.0)
+                        dW = expf(-(1 / pow(parametersRuntime.find("elasticity").asDouble(), 2)) * (distance2winner / winnerError));
+                    else
+                        dW = 0.0;
+                }
+                else if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
+                {
+                    dW = helpers::sigmoidFunction(fabs(neuronError), 0.4, 10);
+                }
+                else
+                    std::cerr << "Error : Unknown algorithm. All neurons will learn equally." << std::endl;
+                return dW;
+            }
 
             void adaptWeights()
             {
@@ -397,23 +356,9 @@ namespace cvz {
                     {
                         for (int z = 0; z < layers; z++)
                         {
-                            float distanceBoth = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0) + pow(z - zWin, 2.0));
-
-                            //Basic SOM algorithm
-                            //float distanceH = sqrt(pow(x - xWin, 2.0) + pow(y - yWin, 2.0));
-                            //float distanceV = sqrt(pow(z - zWin, 2.0));
-                            //float dHCoef = helpers::GaussianBell(distanceH, sigmaH);
-                            //float dVCoef = helpers::GaussianBell(distanceV, sigmaV);
-
-                            //DSOM (refer to http://www.loria.fr/~rougier/coding/article/article.html#dynamic-neighbourhood)
-                            float elasticity = 2.0;
-                            float heta = 0.0;
-                            if (activity[xWin][yWin][zWin] != 0.0)
-                                heta = expf(-(1 / pow(elasticity, 2)) * (distanceBoth / winnerError));
-
-                            //float dHCoef = MexicanHat(distanceH, sigmaH);
-                            //float dVCoef = MexicanHat(distanceV, sigmaV);
-
+                            float distance2winner = getDistance(x,y,z,xWin,yWin,zWin, connectivityPatern);
+                            double dWCoefficient = getDWCoefficient(distance2winner, activity[x][y][z], winnerError, algorithm);
+                          
                             //from bottom up input
                             for (std::map<std::string, IModality*>::iterator it = modalitiesBottomUp.begin(); it != modalitiesBottomUp.end(); it++)
                             {
@@ -422,13 +367,8 @@ namespace cvz {
                                 {
                                     //double currentW = weights[it->second][i][x][y][z];
                                     //double desiredW = valueReal[i];
-									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
-									double dW = error;
-									dW = dW * lRate * modalitiesLearning[it->second];
-									if (!isUsingPopulationCode)
-										dW = dW * heta;
-									else
-										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
+                                    double error = (valueReal[i] - weights[it->second][i][x][y][z]);
+                                    double dW = error * dWCoefficient * getLearningRate() * modalitiesLearning[it->second];
                                     weights[it->second][i][x][y][z] += dW;
                                     helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
@@ -439,40 +379,11 @@ namespace cvz {
                             {
                                 std::vector<double> valueReal = it->second->GetValueReal();
                                 for (int i = 0; i < it->second->Size(); i++)
-								{
-									double error = (valueReal[i] - weights[it->second][i][x][y][z]);
-									double dW = error * modalitiesLearning[it->second] * lRate * modalitiesLearning[it->second];
-									if (!isUsingPopulationCode)
-										dW = dW * heta;
-									else
-										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
-									weights[it->second][i][x][y][z] += dW;
-                                    helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
-                                }
-                            }
-
-                            //recurrent connection is buffered
-                            if (recurrentModality)
-                            {
-
-                                //float pastDistanceH = sqrt(pow(x - winnersBuffer.back()[0], 2.0) + pow(y - winnersBuffer.back()[1], 2.0));
-                                //float pastDistanceV = sqrt(pow(z - winnersBuffer.back()[2], 2.0));
-                                //float pdHCoef = helpers::GaussianBell(pastDistanceH, sigmaH);
-                                //float pdVCoef = helpers::GaussianBell(pastDistanceV, sigmaV);
-                                std::vector<double> valueReal = recurrentModality->GetValueReal();
-                                for (int i = 0; i < recurrentModality->Size(); i++)
                                 {
-                                    //double currentW = weights[recurrentModality][i][x][y][z];
-                                    //double desiredW = valueReal[i];
-									double error = (weights[recurrentModality][i][xWin][yWin][zWin] - weights[recurrentModality][i][x][y][z]);
-									double dW = error * lRate * modalitiesLearning[recurrentModality];
-									if (!isUsingPopulationCode)
-										dW = dW * heta;
-									else
-										dW = dW * helpers::sigmoidFunction(fabs(error), 0.4, 10);
-
-                                    weights[recurrentModality][i][x][y][z] += dW;
-                                    helpers::Clamp(weights[recurrentModality][i][x][y][z], 0.0, 1.0);
+                                    double error = (valueReal[i] - weights[it->second][i][x][y][z]);
+                                    double dW = error * dWCoefficient * getLearningRate() * modalitiesLearning[it->second];
+                                    weights[it->second][i][x][y][z] += dW;
+                                    helpers::Clamp(weights[it->second][i][x][y][z], 0.0, 1.0);
                                 }
                             }
                         }
@@ -496,8 +407,8 @@ namespace cvz {
                     file << "[modality_" << modCount << "]" << std::endl;
                     //file << "name" << '\t' << wModIt->first->Name() << std::endl;
                     //file << "size" << '\t' << wModIt->first->Size() << std::endl;
-					file << wModIt->first->getModalityConfiguration();
-					yarp::os::Bottle b;
+                    file << wModIt->first->getModalityConfiguration();
+                    yarp::os::Bottle b;
                     for (unsigned int comp = 0; comp < wModIt->second.size(); comp++)
                     {
                         for (unsigned int x = 0; x < wModIt->second[comp].size(); x++)
@@ -556,7 +467,7 @@ namespace cvz {
                         return false;
                     }
 
-					int mSize = m->Size();
+                    int mSize = m->Size();
 
                     yarp::os::Bottle *bWeights = bGroup.find("weights").asList();
                     int wCtr = 0;

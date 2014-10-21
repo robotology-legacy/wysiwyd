@@ -10,13 +10,13 @@
    <version>1.0</version>
    
    <description-long>
-   A simple module for recording postures of the robot in a format compatible with the iCubClient.
-   Whenever the user presses the blue button a new posture is recorded. When he presses the yellow one the postures are dumped to a file that can be loaded by iCubClient.
+     A simple module for recording postures of the robot in a format compatible with the iCubClient.
+     Whenever the user presses the blue button a new posture is recorded. When he presses the yellow one the postures are dumped to a file that can be loaded by iCubClient.
    </description-long>
 
    <arguments>
-   <param default="postureRecorder" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
-   <param default="icub" desc="To specify the robot's name">robot</param>
+     <param default="postureRecorder" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+     <param default="icub" desc="To specify the robot's name">robot</param>
    </arguments>
 
    <authors>

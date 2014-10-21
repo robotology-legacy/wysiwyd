@@ -8,181 +8,229 @@
 #include "GuiIModality.h"
 #include "cvz/helpers/YarpImage2Pixbuf.h"
 namespace cvz {
-	namespace gui {
-		static gboolean delete_event(GtkWidget *widget,
-			GdkEvent  *event,
-			gpointer   data)
-		{
-			return FALSE;
-		}
+    namespace gui {
+        static gboolean delete_event(GtkWidget *widget,
+            GdkEvent  *event,
+            gpointer   data)
+        {
+            return FALSE;
+        }
 
-		static void destroy(GtkWidget *widget,
-			gpointer   data)
-		{
-			gtk_main_quit();
-		}
+        static void destroy(GtkWidget *widget,
+            gpointer   data)
+        {
+            gtk_main_quit();
+        }
 
 
-		class GuiICvz : public yarp::os::Thread
-		{
-		protected:
-			GtkWidget *mainWindow;
-			GtkWidget *boxTabs;
-			GtkWidget *boxMainInfo;
-			GtkWidget *boxModalities;
-			std::map<core::IModality*, GuiIModality* > wModalities;
-			GtkWidget *label_name;
-			GtkWidget *label_type;
-			core::IConvergenceZone* myCvz;
+        class GuiICvz : public yarp::os::Thread
+        {
 
-			virtual void initElements()
-			{
-				mainWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-				gtk_window_set_title(GTK_WINDOW(mainWindow), "Convergence Zone GUI");
+        protected:
+            GtkWidget *mainWindow;
+            GtkWidget *boxTabs;
+            GtkWidget *boxMainInfo;
+            GtkWidget *boxModalities;
+            std::map<core::IModality*, GuiIModality* > wModalities;
+            GtkWidget *label_name;
+            GtkWidget *label_type;
+            core::IConvergenceZone* myCvz;
 
-				/* When the window is given the "delete-event" signal (this is given
-				* by the window manager, usually by the "close" option, or on the
-				* titlebar), we ask it to call the delete_event () function
-				* as defined above. The data passed to the callback
-				* function is NULL and is ignored in the callback function. */
-				g_signal_connect(mainWindow, "delete-event",
-					G_CALLBACK(delete_event), NULL);
+            virtual void initElements()
+            {
+                mainWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+                gtk_window_set_title(GTK_WINDOW(mainWindow), "Convergence Zone GUI");
 
-				/* Here we connect the "destroy" event to a signal handler.
-				* This event occurs when we call gtk_widget_destroy() on the window,
-				* or if we return FALSE in the "delete-event" callback. */
-				g_signal_connect(mainWindow, "destroy",
-					G_CALLBACK(destroy), NULL);
+                /* When the window is given the "delete-event" signal (this is given
+                * by the window manager, usually by the "close" option, or on the
+                * titlebar), we ask it to call the delete_event () function
+                * as defined above. The data passed to the callback
+                * function is NULL and is ignored in the callback function. */
+                g_signal_connect(mainWindow, "delete-event",
+                    G_CALLBACK(delete_event), NULL);
 
-				gtk_container_set_border_width(GTK_CONTAINER(mainWindow), 10);
+                /* Here we connect the "destroy" event to a signal handler.
+                * This event occurs when we call gtk_widget_destroy() on the window,
+                * or if we return FALSE in the "delete-event" callback. */
+                g_signal_connect(mainWindow, "destroy",
+                    G_CALLBACK(destroy), NULL);
 
-				boxTabs = gtk_hbox_new(FALSE, 0);
-				gtk_container_add(GTK_CONTAINER(mainWindow), boxTabs);
-				gtk_widget_show(boxTabs);
+                gtk_container_set_border_width(GTK_CONTAINER(mainWindow), 10);
 
-				boxMainInfo = gtk_vbox_new(FALSE, 0);
-				gtk_box_pack_start(GTK_BOX(boxTabs), boxMainInfo, FALSE, FALSE, 0);
-				gtk_widget_show(boxMainInfo);
+                boxTabs = gtk_hbox_new(FALSE, 0);
+                gtk_container_add(GTK_CONTAINER(mainWindow), boxTabs);
+                gtk_widget_show(boxTabs);
 
-				boxModalities = gtk_vbox_new(FALSE, 0);
-				gtk_box_pack_start(GTK_BOX(boxTabs), boxModalities, FALSE, FALSE, 50);
-				gtk_widget_show(boxModalities);
+                boxMainInfo = gtk_vbox_new(FALSE, 0);
+                gtk_box_pack_start(GTK_BOX(boxTabs), boxMainInfo, FALSE, FALSE, 0);
+                gtk_widget_show(boxMainInfo);
 
-				//Basic info in label form
-				label_name = gtk_label_new(myCvz->getName().c_str());
-				gtk_box_pack_start(GTK_BOX(boxMainInfo), label_name, FALSE, FALSE, 0);
-				gtk_widget_show(label_name);
+                boxModalities = gtk_vbox_new(FALSE, 0);
+                gtk_box_pack_start(GTK_BOX(boxTabs), boxModalities, FALSE, FALSE, 50);
+                gtk_widget_show(boxModalities);
 
-				label_type = gtk_label_new("Cvz Type - ICvz");
-				gtk_box_pack_start(GTK_BOX(boxMainInfo), label_type, FALSE, FALSE, 0);
-				gtk_widget_show(label_type);
+                //Basic info in label form
+                label_name = gtk_label_new(myCvz->getName().c_str());
+                gtk_box_pack_start(GTK_BOX(boxMainInfo), label_name, FALSE, FALSE, 0);
+                gtk_widget_show(label_name);
 
-				GtkWidget *labelModTitle = gtk_label_new("<--Modalities Bottom Up-->");
-				gtk_box_pack_start(GTK_BOX(boxModalities), labelModTitle, FALSE, FALSE, 10);
-				gtk_widget_show(labelModTitle);
+                label_type = gtk_label_new("Cvz Type - ICvz");
+                gtk_box_pack_start(GTK_BOX(boxMainInfo), label_type, FALSE, FALSE, 0);
+                gtk_widget_show(label_type);
+                                
+                //Display the fixed parameters
+                yarp::os::Bottle bFixedParameters;
+                yarp::os::Property paramsStartTime=myCvz->getParametersStartTime();
+                bFixedParameters.read(paramsStartTime);
 
-				for (std::map<std::string, core::IModality*>::iterator it = myCvz->modalitiesBottomUp.begin(); it != myCvz->modalitiesBottomUp.end(); it++)
-				{
-					GuiIModality* mW = new GuiIModality();
-					GtkWidget* boxMod = mW->allocate(it->second);
-					wModalities[it->second] = mW;
-					gtk_box_pack_start(GTK_BOX(boxModalities), boxMod, FALSE, FALSE, 10);
-				}
+                for (int i = 0; i < bFixedParameters.size(); i++)
+                {
+                    std::string key = bFixedParameters.get(i).asList()->get(0).asString().c_str();
+                    yarp::os::Value value = bFixedParameters.get(i).asList()->get(1);
 
-				GtkWidget *labelModTDTitle = gtk_label_new("<--Modalities Top Down-->");
-				gtk_box_pack_start(GTK_BOX(boxModalities), labelModTDTitle, FALSE, FALSE, 10);
-				gtk_widget_show(labelModTDTitle);
+                    GtkWidget *tmpWidget = gtk_label_new( (key + " : " + value.toString().c_str()).c_str());
+                    gtk_box_pack_start(GTK_BOX(boxMainInfo), tmpWidget, TRUE, TRUE, 0);
+                    gtk_widget_show(tmpWidget);
+                }
 
-				for (std::map<std::string, core::IModality*>::iterator it = myCvz->modalitiesTopDown.begin(); it != myCvz->modalitiesTopDown.end(); it++)
-				{
-					GuiIModality* mW = new GuiIModality();
-					GtkWidget* boxMod = mW->allocate(it->second);
-					wModalities[it->second] = mW;
-					gtk_box_pack_start(GTK_BOX(boxModalities), boxMod, FALSE, FALSE, 10);
-				}
-			}
+                //Display the runtime parameters
+                yarp::os::Bottle bVariableParameters;
+                bVariableParameters.read(myCvz->parametersRuntime);
 
-			virtual void refreshElements()
-			{
-				for (std::map<core::IModality*, GuiIModality* >::iterator it = wModalities.begin(); it != wModalities.end(); it++)
-				{
-					yarp::sig::ImageOf<yarp::sig::PixelRgb> imgR = it->first->getVisualization();
-					helpers::yarpImage2Pixbuf(&imgR, it->second->pxBufReal);
-					gtk_widget_queue_draw(it->second->frameReal);
-					yarp::sig::ImageOf<yarp::sig::PixelRgb> imgP = it->first->getVisualization(true);
-					helpers::yarpImage2Pixbuf(&imgP, it->second->pxBufPredicted);
-					gtk_widget_queue_draw(it->second->framePredicted);
-				}
-			}
+                for (int i = 0; i < bVariableParameters.size(); i++)
+                {
+                    std::string key = bVariableParameters.get(i).asList()->get(0).asString().c_str();
+                    yarp::os::Value value = bVariableParameters.get(i).asList()->get(1);
+                    if (value.isDouble() || value.isInt())
+                    {                     
+                        LabelledSlider* sliderTmp = new LabelledSlider();
+                        sliderTmp->allocate(key.c_str(), &myCvz->parametersRuntime, 0.0, 1.0, 0.1);
+                        gtk_box_pack_start(GTK_BOX(boxMainInfo), sliderTmp->box, FALSE, FALSE, 0);
+                    }
+                }
+                
+                GtkWidget *labelModTitle = gtk_label_new("<--Modalities Bottom Up-->");
+                gtk_box_pack_start(GTK_BOX(boxModalities), labelModTitle, FALSE, FALSE, 10);
+                gtk_widget_show(labelModTitle);
 
-		private:
+                for (std::map<std::string, core::IModality*>::iterator it = myCvz->modalitiesBottomUp.begin(); it != myCvz->modalitiesBottomUp.end(); it++)
+                {
+                    GuiIModality* mW = new GuiIModality();
+                    GtkWidget* boxMod = mW->allocate(it->second);
+                    wModalities[it->second] = mW;
+                    gtk_box_pack_start(GTK_BOX(boxModalities), boxMod, FALSE, FALSE, 10);
+                }
 
-			bool threadInit()
-			{
-				gtk_init(0, NULL);
-				gdk_threads_init();
-				gdk_threads_enter();
+                GtkWidget *labelModTDTitle = gtk_label_new("<--Modalities Top Down-->");
+                gtk_box_pack_start(GTK_BOX(boxModalities), labelModTDTitle, FALSE, FALSE, 10);
+                gtk_widget_show(labelModTDTitle);
 
-				//Init the subclass elements
-				initElements();
+                for (std::map<std::string, core::IModality*>::iterator it = myCvz->modalitiesTopDown.begin(); it != myCvz->modalitiesTopDown.end(); it++)
+                {
+                    GuiIModality* mW = new GuiIModality();
+                    GtkWidget* boxMod = mW->allocate(it->second);
+                    wModalities[it->second] = mW;
+                    gtk_box_pack_start(GTK_BOX(boxModalities), boxMod, FALSE, FALSE, 10);
+                }
+                
+                //Add the influence/learning slider to every modality
+                for (std::map < core::IModality*, GuiIModality*>::iterator wMod = wModalities.begin(); wMod != wModalities.end(); wMod++)
+                {
+                    GtkWidget* paramModBox = gtk_vbox_new(FALSE, 0);
+                    gtk_box_pack_start(GTK_BOX(wMod->second->box), paramModBox, FALSE, FALSE, 0);
 
-				gdk_threads_leave();
+                    LabelledSlider sliderInf;
+                    sliderInf.allocate("Influence", &(myCvz->modalitiesInfluence[wMod->first]), 0.0, 1.0, 0.1);
+                    gtk_box_pack_start(GTK_BOX(paramModBox), sliderInf.box, FALSE, FALSE, 0);
+                    LabelledSlider sliderLear;
+                    sliderLear.allocate("Learning", &(myCvz->modalitiesLearning[wMod->first]), 0.0, 1.0, 0.1);
+                    gtk_box_pack_start(GTK_BOX(paramModBox), sliderLear.box, FALSE, FALSE, 0);
 
-				//RefreshElements();
+                    gtk_widget_show(paramModBox);
+                }
+            }
 
-				gtk_widget_show(mainWindow);
-				return true;
-			}
+            virtual void refreshElements()
+            {
+                for (std::map<core::IModality*, GuiIModality* >::iterator it = wModalities.begin(); it != wModalities.end(); it++)
+                {
+                    yarp::sig::ImageOf<yarp::sig::PixelRgb> imgR = it->first->getVisualization();
+                    helpers::yarpImage2Pixbuf(&imgR, it->second->pxBufReal);
+                    gtk_widget_queue_draw(it->second->frameReal);
+                    yarp::sig::ImageOf<yarp::sig::PixelRgb> imgP = it->first->getVisualization(true);
+                    helpers::yarpImage2Pixbuf(&imgP, it->second->pxBufPredicted);
+                    gtk_widget_queue_draw(it->second->framePredicted);
+                }
+            }
 
-			void threadRelease()
-			{
-				gtk_main_quit();
-			}
+        private:
 
-			void run()
-			{
-				gtk_main();
-			}
+            bool threadInit()
+            {
+                gtk_init(0, NULL);
+                gdk_threads_init();
+                gdk_threads_enter();
 
-		public:
+                //Init the subclass elements
+                initElements();
 
-			GuiICvz(core::IConvergenceZone* linkedCvz)
-			{
-				myCvz = linkedCvz;
-			}
+                gdk_threads_leave();
 
-			virtual void RefreshElements()
-			{
-				gdk_threads_enter();
-				if (myCvz == NULL)
-					return;
-				refreshElements();
-				gdk_threads_leave();
-			}
+                //RefreshElements();
 
-		};
+                gtk_widget_show(mainWindow);
+                return true;
+            }
 
-		class GuiThread : public yarp::os::RateThread
-		{
-			GuiICvz* gui;
+            void threadRelease()
+            {
+                gtk_main_quit();
+            }
 
-		public:
+            void run()
+            {
+                gtk_main();
+            }
 
-			GuiThread(GuiICvz* _gui, int _period) :yarp::os::RateThread(_period)
-			{
-				gui = _gui;
-			}
+        public:
 
-			void run()
-			{
-				gui->RefreshElements();
-			}
+            GuiICvz(core::IConvergenceZone* linkedCvz)
+            {
+                myCvz = linkedCvz;
+            }
 
-			void threadRelease()
-			{
-				gtk_main_quit();
-			}
-		};
-	}
+            virtual void RefreshElements()
+            {
+                gdk_threads_enter();
+                if (myCvz == NULL)
+                    return;
+                refreshElements();
+                gdk_threads_leave();
+            }
+
+        };
+
+        class GuiThread : public yarp::os::RateThread
+        {
+            GuiICvz* gui;
+
+        public:
+
+            GuiThread(GuiICvz* _gui, int _period) :yarp::os::RateThread(_period)
+            {
+                gui = _gui;
+            }
+
+            void run()
+            {
+                gui->RefreshElements();
+            }
+
+            void threadRelease()
+            {
+                gtk_main_quit();
+            }
+        };
+    }
 }
 #endif

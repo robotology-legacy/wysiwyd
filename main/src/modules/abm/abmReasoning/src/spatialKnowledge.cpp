@@ -1,6 +1,11 @@
 #include <spatialKnowledge.h>
 
 
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+
 bool spatialKnowledge::fromBottle(Bottle bInput)
 {
     //std::cout << endl << "input : " << endl << bInput.toString() << endl << endl;
@@ -102,23 +107,9 @@ void spatialKnowledge::determineInfluence()
     double deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
     double deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
 
-    if (abmReasoningFunction::threshold_is_dispersion > deter_CovD)
-    {
-        isRelative = true;
-    }
-    else
-    {
-        isRelative = false;
-    }
+    isRelative = (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD);
 
-    if (abmReasoningFunction::threshold_is_dispersion > deter_CovB)
-    {
-        isAbsolut = true;
-    }
-    else
-    {
-        isAbsolut = false;
-    }
+    isAbsolut =  (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB);
 }
 
 /**

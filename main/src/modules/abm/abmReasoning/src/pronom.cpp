@@ -1,4 +1,9 @@
-#include <grammarKnowledge.h>
+#include <pronom.h>
+
+
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+using namespace std;
 
 
 bool pronom::AddInstance(Bottle bInput)

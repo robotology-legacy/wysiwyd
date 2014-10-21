@@ -24,7 +24,14 @@
 
     <module>
         <name>yarpview</name>
-        <parameters>--name /reconstruct</parameters>
+        <parameters>--name /viewer/real</parameters>
+        <node>icubAlien</node>
+        <prefix></prefix>
+    </module>
+
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /viewer/reconstruct</parameters>
         <node>icubAlien</node>
         <prefix></prefix>
     </module>
@@ -36,8 +43,14 @@
     </connection>
 
     <connection>
+        <from>/icub/cam/left</from>
+        <to>/viewer/real</to>
+        <protocol>udp</protocol>
+    </connection>
+
+    <connection>
         <from>/imageFuser/reconstruct:o</from>
-        <to>/reconstruct</to>
+        <to>/viewer/reconstruct</to>
         <protocol>udp</protocol>
     </connection>
 

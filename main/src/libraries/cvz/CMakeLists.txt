@@ -31,12 +31,13 @@ yarp_idl_to_dir(${idl_files_mmcm} ${IDL_GENERATED_CODE_DIR})
 find_package(GTK2)
 add_definitions(${GTK2_DEFINITIONS})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${IDL_GENERATED_CODE_DIR}/include ${YARP_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${IDL_GENERATED_CODE_DIR}/include ${YARP_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 add_library(${PROJECTNAME} ${folder_source} ${folder_header} ${folder_header_core} ${folder_header_gui} ${folder_header_helpers} ${idl_files_cvz} ${idl_files_mmcm} ${doc_files})
 
 set_target_properties(${PROJECTNAME} PROPERTIES DEBUG_POSTFIX "d")
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
+									 ${OpenCV_LIBRARIES}
                                      ${GTK2_GTK_LIBRARY}
                                      ${GTK2_GLIB_LIBRARY}
                                      ${GTK2_GDK_LIBRARY}

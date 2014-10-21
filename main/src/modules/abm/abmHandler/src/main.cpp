@@ -19,11 +19,11 @@
 
 int main(int argc, char * argv[]) {
     /* initialize yarp network */ 
-    Network yarp;
+    yarp::os::Network yarp;
 
-    Network::init();
+    yarp::os::Network::init();
     abmHandler mod;
-    ResourceFinder rf;
+    yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("abmHandler");
     rf.setDefaultConfigFile("abmHandler.ini");

@@ -4,13 +4,10 @@
 #include "ICvz.h"
 #include "CvzMMCM.h"
 #include "CvzMLP.h"
+#include "CvzESOM.h"
 
 namespace cvz {
 	namespace core {
-
-const std::string TYPE_ICVZ("icvz");
-const std::string TYPE_MLP("mlp");
-const std::string TYPE_MMCM("mmcm");
 
 class CvzBuilder
 {
@@ -35,7 +32,9 @@ public:
 		else if (type == TYPE_MMCM)
 			(*ptr) = new CvzMMCM();
 		else if (type == TYPE_MLP)
-			(*ptr) = new CvzMLP();
+            (*ptr) = new CvzMLP();
+        else if (type == TYPE_ESOM)
+            (*ptr) = new CvzESOM();
 		else
 			return false;
 		return true;
