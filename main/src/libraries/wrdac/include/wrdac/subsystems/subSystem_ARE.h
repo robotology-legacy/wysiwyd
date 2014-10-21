@@ -273,8 +273,7 @@ public:
     /**
     * Enable/disable arms waving.
     * @param sw enable/disable if true/false.
-    * @return true in case of successfull motor command, false 
-    *         otherwise.
+    * @return true in case of successfull request, false otherwise. 
     */
     bool waving(const bool sw)
     {
@@ -287,14 +286,27 @@ public:
     /**
     * Enable/disable impedance control.
     * @param sw enable/disable if true/false.
-    * @return true in case of successfull motor command, false 
-    *         otherwise.
+    * @return true in case of successfull request, false otherwise.
     */
     bool impedance(const bool sw)
     {
         yarp::os::Bottle bCmd;
         bCmd.addVocab(yarp::os::Vocab::encode("impedance"));
         bCmd.addString(sw?"on":"off");
+        return rpcPort.asPort().write(bCmd);
+    }
+
+    /**
+    * Change default arm movement execution time.
+    * @param execTime the arm movement execution time given in 
+    *                 seconds.
+    * @return true in case of successfull request, false otherwise. 
+    */
+    bool setExecTime(const double execTime)
+    {
+        yarp::os::Bottle bCmd;
+        bCmd.addVocab(yarp::os::Vocab::encode("time"));
+        bCmd.addDouble(execTime);
         return rpcPort.asPort().write(bCmd);
     }
 };
