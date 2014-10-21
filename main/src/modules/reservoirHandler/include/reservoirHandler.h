@@ -39,6 +39,13 @@ using namespace wysiwyd::wrdac;
 
 class reservoirHandler : public RFModule {
 private:
+
+    string testObject;
+    string testAction;
+    string testLocation;
+
+    double offsetGrasp;
+
     string moduleName;
     string sKeyWord;
 
@@ -62,6 +69,11 @@ private:
     string fileAP;
 
     string pythonPath;
+
+    string sHand;
+    string bMode;
+    double ZRTObjects;
+
 
     Port handlerPort;				// a port to handle messages
     Port Port2SpeechRecog;		// a port to send grammar to the speech recog
@@ -89,12 +101,32 @@ private:
     std::list<string> lMeaningsSentences;
     Vector coordinates;
 
+    ofstream fileVectorAP;
+    ifstream fileVectorAPRead;
+    string nameGrammarNodeInteraction;
+    string svector,sanswer;
+    string fvector;
+    string sVectorFileAP;
+    string sagent;
+    int iquestion;
+    std::list<int> nbCaracters(string ssequence);
+    string sConstrualLocation;
+    string sobjectFocusChanged;
+
     bool nodeYesNo();
     bool nodeType();
     bool nodeModality();
     bool nodeTrainAP();
     bool nodeTestAP();
-    bool nodeTrainSD();
+    bool nodeTestSD();
+    int languageNodeInteraction();
+    bool languageNodeInteractionSD();
+    bool grammarNodeInteraction();
+    bool mainNodeInteraction();
+
+    bool createVectorFile(string sVectorFile);
+    bool spatialRelation();
+
     bool callReservoir(string fPython);
     string	grammarToString(string sPath);
 
@@ -103,9 +135,13 @@ private:
     int trainSaveMeaningSentence(const char *filename);
     int createTestwithTrainData(const char* filename, string sMeaningSentence);
     string openResult(const char* fileNameIn);
-    int AREactions(vector<string> seq);
+    bool AREactions(vector<string> seq);
     vector<string> extractVocabulary(string sequence);
 
+
+    // For simulator
+    bool populateOPC();
+    bool testARE();
 
 public:
     /**
