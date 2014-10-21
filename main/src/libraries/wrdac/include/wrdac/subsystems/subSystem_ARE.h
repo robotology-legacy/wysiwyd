@@ -283,6 +283,20 @@ public:
         bCmd.addString(sw?"on":"off");
         return rpcPort.asPort().write(bCmd);
     }
+
+    /**
+    * Enable/disable impedance control.
+    * @param sw enable/disable if true/false.
+    * @return true in case of successfull motor command, false 
+    *         otherwise.
+    */
+    bool impedance(const bool sw)
+    {
+        yarp::os::Bottle bCmd;
+        bCmd.addVocab(yarp::os::Vocab::encode("impedance"));
+        bCmd.addString(sw?"on":"off");
+        return rpcPort.asPort().write(bCmd);
+    }
 };
 
 }
