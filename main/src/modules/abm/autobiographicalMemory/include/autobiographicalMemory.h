@@ -91,7 +91,7 @@ public :
     bool sendImage(std::string fullPath);
     bool exportImage(int img_oid, std::string path);
     bool storeImage(int instance, std::string label, std::string fullPath, std::string imgName);
-    bool sendStreamImage(int instance);
+    int sendStreamImage(int instance); //return nb of images that will be sent
 
 
     yarp::os::Bottle    connect2reasoning();

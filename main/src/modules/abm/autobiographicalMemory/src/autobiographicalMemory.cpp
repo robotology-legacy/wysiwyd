@@ -628,8 +628,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() == 1 ) )
             {
                 imgInstance = bCommand.get(1).asList()->get(0).asInt() ;
-                if (sendStreamImage(imgInstance)){
+                int nbSentImages = sendStreamImage(imgInstance) ;
+                if (nbsentImages > 0){
                     bReply.addString(streamStatus);
+                    bReply.addInt(nbSentImages);
                 }
 
             }
@@ -1862,7 +1864,7 @@ bool autobiographicalMemory::sendImage(string fullPath){
     return true ;
 }
 
-bool autobiographicalMemory::sendStreamImage(int instance){
+int autobiographicalMemory::sendStreamImage(int instance){
 
     Bottle bRequest ;
     ostringstream osArg ;
@@ -1898,7 +1900,7 @@ bool autobiographicalMemory::sendStreamImage(int instance){
     streamStatus = "send" ;
     //bOutput.addString("ack");
 
-    return true ;
+    return bRequest.size() ;
 }
 
 bool autobiographicalMemory::storeImage(int instance, string label, string fullPath, string imgName){
