@@ -645,11 +645,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
         else if (bCommand.get(0) == "testSaveImage")
         {
+            //name of the image provider
             string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
             if(camExtension != "none") {
                 robotPortCam += "/" + camExtension ;
             }
 
+            //check connection with the image provider
             isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
 
             if (!isconnected2Cam) {
@@ -700,7 +702,6 @@ bool autobiographicalMemory::updateModule()
     if(streamStatus == "begin"){
 
         cout << "============================= STREAM BEGIN =================================" << endl;
-        //string folderName = "test" ; //to replace by argument/label/instance?
 
         //create folder
         currentPathFolder = "";
@@ -746,15 +747,16 @@ bool autobiographicalMemory::updateModule()
             storeImage(imgInstance, imgLabel, fullPath, imgName);
         }
 
+        //init of the stream record done : go through the classic record phase
         streamStatus = "record";
 
 
     } else if (streamStatus == "record"){
-        imgNb += 1;
 
+        imgNb += 1;
         //cout << "Image Nb " << imgNb << endl;
 
-        //conatenation of the path to store
+        //concatenation of the path to store
         char imgName[512] = "";
         char fullPath[512] = "" ;
 
@@ -773,9 +775,10 @@ bool autobiographicalMemory::updateModule()
             storeImage(imgInstance, imgLabel, fullPath, imgName);
         }
 
-        //stream not begin nor record
+        //stream to send
     } else if (streamStatus == "send") {
 
+        //select all the images (through primary key oid) corresponding to a precise instance
         if (imgNb == 0) {         
             cout << "============================= STREAM SEND =================================" << endl;
             bListImages.addString("request");
@@ -788,6 +791,7 @@ bool autobiographicalMemory::updateModule()
             //cout << "bListImages size : " << bListImages.size() << endl ;
         }
 
+        //If we currently have images left to be send
         if(imgNb < bListImages.size()) {
             //cout << "image number " << imgNb << endl ;
 
@@ -807,29 +811,7 @@ bool autobiographicalMemory::updateModule()
             //cout << "============================= STREAM END =================================" << endl;
         }
 
-        /*if(imgNb < imgNbInStream) {
-            cout << "image number " << imgNb << endl ;
-
-            //concatenation of the storing path
-            char imgName[512] = "";
-            char fullPath[512] = "" ;
-
-            stringstream ssImgName, ss;
-            ssImgName << imgLabel << imgNb << ".tif" ;
-            strcpy(imgName, ssImgName.str().c_str());
-
-            ss << storingPath << "/" << storingTmpPath << "/" << imgName ;
-            strcpy(fullPath, ss.str().c_str());
-
-            sendImage(fullPath);
-
-
-        } else {
-
-            streamStatus = "end" ;
-            //cout << "============================= STREAM END =================================" << endl;
-        }*/
-
+        //next image
         imgNb += 1 ;
 
     }
@@ -1800,15 +1782,12 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
 
 bool autobiographicalMemory::createImage(string fullPath){
 
-    //Extract the images
+    //Extract the incoming images from yarp
     ImageOf<PixelRgb> *yarpImage = imagePortIn.read() ;
+
     if (yarpImage!=NULL) { // check we actually got something
 
-        //print to say we have something
-        //printf("We got an image of size %dx%d\n", yarpImage->width(), yarpImage->height());
-
-        //go through opencv
-        //printf("Copying YARP image to an OpenCV/IPL image\n");
+        //user opencv to load the image
         IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3 );
         cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
         ImageOf<PixelBgr> yarpReturnImage;
@@ -1816,12 +1795,6 @@ bool autobiographicalMemory::createImage(string fullPath){
 
         //create the image
         cvSaveImage(fullPath.c_str(), cvImage);
-
-        //writing : old one
-        //yarp::sig::file::write(yarpReturnImage,fullPath);
-
-        //verbose for debuf
-        //cout << "Saving YARP image to " << fullPath << endl;
 
         cvReleaseImage(&cvImage);
 
@@ -1839,24 +1812,18 @@ bool autobiographicalMemory::sendImage(string fullPath){
 
     cout << "Going to send : "  << fullPath << endl ;
 
+    //load image with opencv
     img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED );
 
     if( img == 0 )  return false;
 
+    //create a yarp image
     cvCvtColor( img, img, CV_BGR2RGB );
     ImageOf<PixelRgb> &temp = imagePortOut.prepare();
     temp.resize(img->width,img->height);
     cvCopyImage( img, (IplImage *) temp.getIplImage());
 
-    //remove the temp file if used
-    /*if( remove(fullPath.c_str()) != 0){
-    cout << "ERROR : " << fullPath<< " NOT DELETED" << endl ;
-    return false ;
-    } else {
-    cout << "Temp File : " << fullPath << " successfully deleted" << endl ;
-    }*/
-
-    //imagePort.writeStrict();
+    //send the image
     imagePortOut.write();
 
     cvReleaseImage(&img);
@@ -1869,9 +1836,8 @@ int autobiographicalMemory::sendStreamImage(int instance){
     Bottle bRequest ;
     ostringstream osArg ;
 
-    //extract label of the instance (should be unique)
+    //extract label of the instance
     bRequest.addString("request") ;
-    //SELECT DISTINCT label from images WHERE instance = 42 ;
     osArg << "SELECT DISTINCT label FROM images WHERE instance = " << instance << endl ;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
@@ -1882,10 +1848,8 @@ int autobiographicalMemory::sendStreamImage(int instance){
     bRequest.clear();
     osArg.str("");
 
-
-    //extract oid of all the images
+    //extract oid of all the images (primary key)
     bRequest.addString("request");
-    //SELECT img_oid from images WHERE instance = 42;
     osArg << "SELECT img_oid FROM images WHERE instance = " << instance << endl ;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
@@ -1893,22 +1857,24 @@ int autobiographicalMemory::sendStreamImage(int instance){
     //cout << "bRequest has " << bRequest.size() << "images : " << bRequest.toString() << endl ;;
     imgNbInStream = bRequest.size();
 
+    //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
     for (unsigned int i = 0 ; i < bRequest.size() ; i++){
         exportImage(atoi(bRequest.get(i).asList()->get(0).toString().c_str()), storingTmpPath);
     }
 
+    //streamStatus changed (triggered in update()
     streamStatus = "send" ;
     //bOutput.addString("ack");
 
     return bRequest.size() ;
 }
 
+//store an image into the SQL db
 bool autobiographicalMemory::storeImage(int instance, string label, string fullPath, string imgName){
 
     Bottle bRequest ;
     ostringstream osArg ;
-    //sql request with label and filename
-    //export the desired image, doing a temp copy
+    //sql request with instance and label, images are stored from their location
     bRequest.addString("request");
     osArg << "INSERT INTO images(instance, label, img_oid, filename) VALUES (" << instance << ", '" << label << "', lo_import('" << fullPath << "'), '" << imgName << "');";
     bRequest.addString(osArg.str());
@@ -1919,12 +1885,13 @@ bool autobiographicalMemory::storeImage(int instance, string label, string fullP
     return true ;
 }
 
+//export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
 bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath){
 
     Bottle bRequest ;
     ostringstream osArg ;
 
-    //extract filename of the image to export
+    //extract filename of the image to export fromn primary key oid
     bRequest.addString("request");
     //SELECT filename from images WHERE img_oid = 33275 ;
     osArg << "SELECT filename from images WHERE img_oid = " << img_oid << " ;";
