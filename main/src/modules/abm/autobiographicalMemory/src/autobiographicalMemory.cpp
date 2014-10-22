@@ -22,6 +22,7 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     Bottle &bISProperties = rf.findGroup("image_storing");
     storingPath = bISProperties.check("storingPath",Value("C:/robot/ABMStoring")).asString();
     storingTmpPath = bISProperties.check("storingTmpPath",Value("tmp")).asString();
+    imgFormat = bISProperties.check("imgFormat",Value("tif")).asString();
     robotName = bISProperties.check("robotName",Value("icubSim")).asString();
     camName = bISProperties.check("camName",Value("cam")).asString();
     camSide = bISProperties.check("camSide",Value("left")).asString();
@@ -71,23 +72,36 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
 
     //port for images :
-    imagePortOut.open("/test/bufferimage/out");
-    imagePortIn.open("/test/bufferimage/in");
+    string name_imagePortOut = "/";
+    name_imagePortOut +=  getName() + "/images/out";
+    imagePortOut.open(name_imagePortOut.c_str());
 
-    string robotPortCam = "/";
-    robotPortCam += robotName + "/" + camName + "/" + camSide ;
+    string name_imagePortIn = "/";
+    name_imagePortIn +=  getName() + "/images/in";
+    imagePortIn.open(name_imagePortIn.c_str());
+
+    string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
     if(camExtension != "none") {
         robotPortCam += "/" + camExtension ;
     }
 
-    //Network::connect(robotPortCam, "/test/bufferimage/in") ;
-    isconnected2Cam = Network::connect(robotPortCam, "/test/bufferimage/in");
+    isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
 
     if (isconnected2Cam)
     {
         cout << endl << "ABM is now connected to Camera!\n" << endl ;
     } else {
         cout << "ABM failed to connect to Camera!" << endl ;
+    }
+
+    //Temp to test data : wil be send without checking connection after
+    bool isconnected2Yarpview = Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i");
+
+    if (isconnected2Yarpview)
+    {
+        cout << endl << "ABM is now connected to Yarpview!\n" << endl ;
+    } else {
+        cout << "ABM failed to connect to Yarpview!" << endl ;
     }
 
     //create the storingPath and the tmp also
@@ -585,11 +599,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
 
             //Network::connect(robotPortCam, "/test/bufferimage/in") ; //do not try to connect but check it anyway
-            isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+            isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
 
             if (!isconnected2Cam) {
                 cout << "ABM failed to connect to Camera!" << endl ;
-                bError.addString("in testSaveStreamImage :  Error, connexion missing between" + robotPortCam + " and /test/bufferimage/in");
+                bError.addString("in testSaveStreamImage :  Error, connexion missing between" + robotPortCam + " and " + imagePortIn.getName().c_str());
                 bReply = bError ;
             } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1 ) )
             {
@@ -607,9 +621,9 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         //testSendStreamImage (instance)
         else if (bCommand.get(0) == "testSendStreamImage")
         {
-            if (!Network::isConnected("/test/bufferimage/out", "/yarpview/img:i")) {
+            if (!Network::isConnected(imagePortOut.getName(), "/yarpview/img:i")) {
                 cout << "ABM failed to connect to Yarpview!" << endl ;
-                bError.addString("in testSendStreamImage :  Error, connexion missing between /test/bufferimage/out and /yarpview/img:i ");
+                bError.addString("in testSendStreamImage :  Error, connexion missing between " + imagePortOut.getName() + " and /yarpview/img:i ");
                 bReply = bError ;
             } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() == 1 ) )
             {
@@ -634,11 +648,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 robotPortCam += "/" + camExtension ;
             }
 
-            isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+            isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
 
             if (!isconnected2Cam) {
                 cout << "ABM failed to connect to Camera!" << endl ;
-                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " and /test/bufferimage/in");
+                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " and " + imagePortIn.getName().c_str());
                 bReply = bError ;
             } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1 ) )
             {
@@ -714,20 +728,20 @@ bool autobiographicalMemory::updateModule()
         char fullPath[512] = "" ;
 
         stringstream ssImgName;
-        ssImgName << imgLabel << imgNb << ".tif" ;
+        ssImgName << imgLabel << imgNb << "." << imgFormat ;
         strcpy(imgName, ssImgName.str().c_str());
 
         stringstream ssPath;
         ssPath << currentPathFolder << "/" << imgName ;
         strcpy(fullPath, ssPath.str().c_str());
 
-
+        imgInstance = currentInstance ; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
         //create the image file
         if(!createImage(fullPath)){
             cout << "Error in Update : image not created" << endl ;
         } else {
             //create SQL entry, register the cam image in specific folder
-            storeImage(42, imgLabel, fullPath, imgName);
+            storeImage(imgInstance, imgLabel, fullPath, imgName);
         }
 
         streamStatus = "record";
@@ -743,7 +757,7 @@ bool autobiographicalMemory::updateModule()
         char fullPath[512] = "" ;
 
         stringstream ssImgName;
-        ssImgName << imgLabel << imgNb << ".tif" ;
+        ssImgName << imgLabel << imgNb << "." << imgFormat ;
         strcpy(imgName, ssImgName.str().c_str());
 
         stringstream ssPath;
@@ -754,7 +768,7 @@ bool autobiographicalMemory::updateModule()
         if(!createImage(fullPath)){
             cout << "Error in Update : image not created" << endl ;
         } else {
-            storeImage(42, imgLabel, fullPath, imgName);
+            storeImage(imgInstance, imgLabel, fullPath, imgName);
         }
 
         //stream not begin nor record
@@ -762,9 +776,36 @@ bool autobiographicalMemory::updateModule()
 
         if (imgNb == 0) {         
             cout << "============================= STREAM SEND =================================" << endl;
+            bListImages.addString("request");
+            ostringstream osArg;
+            osArg << "SELECT filename FROM images WHERE label = '" << imgLabel << "';" ;
+            bListImages.addString(osArg.str());
+            bListImages = request(bListImages);
+
+            //cout << "bListImages : " << bListImages.toString() << endl ;
+            //cout << "bListImages size : " << bListImages.size() << endl ;
         }
 
-        if(imgNb < imgNbInStream) {
+        if(imgNb < bListImages.size()) {
+            //cout << "image number " << imgNb << endl ;
+
+            //concatenation of the storing path
+            char fullPath[512] = "" ;
+
+            stringstream ss;
+            ss << storingPath << "/" << storingTmpPath << "/" << bListImages.get(imgNb).asString().c_str();
+            strcpy(fullPath, ss.str().c_str());
+
+            sendImage(fullPath);
+
+
+        } else {
+
+            streamStatus = "end" ;
+            //cout << "============================= STREAM END =================================" << endl;
+        }
+
+        /*if(imgNb < imgNbInStream) {
             cout << "image number " << imgNb << endl ;
 
             //concatenation of the storing path
@@ -785,7 +826,7 @@ bool autobiographicalMemory::updateModule()
 
             streamStatus = "end" ;
             //cout << "============================= STREAM END =================================" << endl;
-        }
+        }*/
 
         imgNb += 1 ;
 
@@ -881,7 +922,6 @@ bool autobiographicalMemory::readInsert()
     return true;
 }
 
-
 Bottle autobiographicalMemory::snapshot(Bottle bInput)
 {
 
@@ -912,6 +952,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     bResult = *((bRequest.get(0)).asList());
     int instance = (atoi((bResult.get(0)).toString().c_str())) + 1;
     OPCEARS.setInstance(instance);
+    currentInstance = instance ;
 
     // Filling table main :
     Bottle bMain;
@@ -920,21 +961,29 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     bool done = false;
     osMain <<  "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES ('";
     string sName;
+
+    //for stream image
+    string activityName ;
+    bool isStreamActivity = false ;
+
     //Action
     for (int i = 1; i < bInput.size() ; i++)
     {
         bTemp = *(bInput.get(i).asList());
         if (bTemp.get(0) == "action" && !done)
         {
+            //if it is an action, will store stream image after
+            isStreamActivity = true ;
+
             osMain << bTemp.get(1).asString() << "' , '";
             sName = bTemp.get(1).asString();
+            activityName = bTemp.get(1).asString(); //sName is concatenated after...need to save label
             osMain << bTemp.get(2).asString() << "' , '";
             done = true;
         }
     }
     if (!done)
         osMain << "unknown' , '" ;
-
     // Time
     done = false;
     string sTime = getCurrentTime();
@@ -943,6 +992,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     //Begin
     done = false;
     bool bBegin;
+    cout << "bInput has a size of " << bInput.size() << " and is : " << bInput.toString().c_str() << endl ;
     for (int i = 1; i < bInput.size() ; i++)
     {
         bTemp = *(bInput.get(i).asList());
@@ -962,7 +1012,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         }
     }
     if (!done)
-        osMain << "FALSE;)";
+        osMain << "FALSE);";
 
 
     bMain.addString(string(osMain.str()).c_str());
@@ -975,7 +1025,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     OPCEARS.snapshot(bInput, opcWorld);
     ostringstream osName;
     osName << sName << instance;
-    sName += osName.str();
+    sName += osName.str();                         //I dont understand this Gregoire : you concatenate the name with nameInstance with itself, producing namenameinstance
     Bottle bSnapShot = OPCEARS.insertOPC(sName);
 
     // Filling contentArg
@@ -1012,7 +1062,6 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         }
     }
 
-
     for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
     {
 
@@ -1023,7 +1072,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     }
 
 
-    if (!bBegin && isconnected2reasoning)
+    if ( (!bBegin) && isconnected2reasoning)
     {
         Bottle b2reasoning;
         b2reasoning.addString("addLastActivity");
@@ -1031,6 +1080,23 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 
         abm2reasoning.write(b2reasoning);
     }
+
+    //begin/end stream
+    //isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+
+    if (!isconnected2Cam) {
+        cout << "ABM failed to connect to Camera!" << endl ;
+    } else if (isStreamActivity == true) //just launch stream images stores when relevant activity
+    {
+        if (bBegin) {
+            streamStatus = "begin" ;
+        } else {
+            streamStatus = "end" ;
+        }
+
+        imgLabel = activityName ; //not sName, weird concatenation has happened to it
+    }
+
 
     return bSnapShot;
 }
@@ -1092,12 +1158,18 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     bool done = false;
     osMain <<  "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES ('";
     string sName;
+    bool isBegin = false ;
+    bool isStreamActivity = false ;
 
     //Action
     bTemp = *(bInput.get(1).asList());
     sName = bTemp.get(1).asString();
     osMain << sName << "' , '";
     osMain << bTemp.get(2).asString() << "' , '";
+    //if it is an action, will store stream image after
+    if (bTemp.get(2).asString() == "action") {
+        isStreamActivity = true ;
+    }
 
     // Time
     osMain << getCurrentTime() << "' , " << instance << " , ";
@@ -1111,6 +1183,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
         {
             osMain << "TRUE ); ";
             inSharedPlan = true;
+            isBegin = true ;
         }
         else
         {
@@ -1120,7 +1193,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
         done = true;
     }
     if (!done)
-        osMain << "FALSE;)";
+        osMain << "FALSE);";
 
 
 
@@ -1182,6 +1255,24 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     {
         bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
     }
+
+    
+    //begin/end stream
+    //isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+
+    if (!isconnected2Cam) {
+        cout << "ABM failed to connect to Camera!" << endl ;
+    } else if (isStreamActivity == true) //just launch stream images stores when relevant activity
+    {
+        if (isBegin) {
+            streamStatus = "begin" ;
+        } else {
+            streamStatus = "end" ;
+        }
+
+        imgLabel = sName ;
+    }
+
 
     return bSnapShot;
 }
@@ -1278,7 +1369,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         done = true;
     }
     if (!done)
-        osMain << "FALSE;)";
+        osMain << "FALSE);";
 
 
 
@@ -1478,7 +1569,7 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
         done = true;
     }
     if (!done)
-        osMain << "FALSE;)";
+        osMain << "FALSE);";
 
 
     // catch the arguments and the role associate
@@ -1647,7 +1738,7 @@ Bottle autobiographicalMemory::testSendImage(Bottle bInput)
     bRequest.clear();
     osArg.str("");
 
-    if (!Network::connect("/test/bufferimage/out", "/yarpview/img:i"))
+    if (!Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i"))
     {
         cout << "Error in aubotiographicalMemory::testSendImage : cannot connect to camera." << endl;
     }// hack just to check with a default yarpview
@@ -1743,6 +1834,9 @@ bool autobiographicalMemory::createImage(string fullPath){
 bool autobiographicalMemory::sendImage(string fullPath){
 
     IplImage* img = NULL;
+
+    cout << "Going to send : "  << fullPath << endl ;
+
     img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED );
 
     if( img == 0 )  return false;

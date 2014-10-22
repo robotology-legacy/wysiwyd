@@ -25,8 +25,7 @@ private :
     std::string camName ;
     std::string camSide ;
     std::string camExtension ;
-
-    bool tempFile ;                  //tempFile = 1 => lo_export (temp copy) before opencv, which remove afterward. Otherwise lo_open
+    std::string imgFormat ;
 
     //for update camera stream
     std::string streamStatus ;
@@ -35,6 +34,9 @@ private :
     std::string currentPathFolder ;
     std::string imgLabel ;
     int imgInstance ;
+    int currentInstance ;
+
+    yarp::os::Bottle bListImages ;
 
     yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
