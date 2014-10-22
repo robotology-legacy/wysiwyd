@@ -128,6 +128,7 @@ private:
 
     bool createVectorFile(string sVectorFile);
     bool spatialRelation();
+    bool launchSpatialRelation();
 
     bool callReservoir(string fPython);
     string	grammarToString(string sPath);
