@@ -58,6 +58,7 @@ private:
     string nameGrammarNodeTrainAP;
     string nameGrammarNodeTestAP;
     string nameGrammarNodeTrainSD;
+    string nameGrammarYesNo;
 
     string fileAPimputS;
     string fileAPoutputM;
@@ -87,7 +88,6 @@ private:
     string sCurrentActivity;
     string sCurrentType;
     string sCurrentNode;
-    string sGrammarYesNo;
     string sCurrentCanonical;
     string sCurrentGrammarFile;
     string sLastSentence;
@@ -112,8 +112,10 @@ private:
     std::list<int> nbCaracters(string ssequence);
     string sConstrualLocation;
     string sobjectFocusChanged;
+    map<string, string> mAssociation;
 
     bool nodeYesNo();
+    bool nodeYesNoInteraction();
     bool nodeType();
     bool nodeModality();
     bool nodeTrainAP();

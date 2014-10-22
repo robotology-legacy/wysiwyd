@@ -54,8 +54,8 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     nameGrammarNodeTestAP	+= rf.check("nameGrammarNodeTestAP",  Value("/nameGrammarNodeTestAP.xml")).toString().c_str();
     nameGrammarNodeTrainSD	 = rf.getContextPath().c_str();
     nameGrammarNodeTrainSD	+= rf.check("nameGrammarNodeTrainSD",  Value("/nameGrammarNodeTrainSD.xml")).toString().c_str();
-    sGrammarYesNo	 = rf.getContextPath().c_str();
-    sGrammarYesNo	+= rf.check("nodeYesNo",  Value("/nodeYesNo.xml")).toString().c_str();
+    nameGrammarYesNo	 = rf.getContextPath().c_str();
+    nameGrammarYesNo	+= rf.check("nameGrammarYesNo",  Value("/nameGrammarYesNo.xml")).toString().c_str();
     nameGrammarNodeInteraction	 = rf.getContextPath().c_str();
     nameGrammarNodeInteraction	+= rf.check("nameGrammarNodeInteraction",  Value("/nameGrammarNodeInteraction.xml")).toString().c_str();
 
@@ -437,12 +437,14 @@ bool reservoirHandler::nodeType()
                  * 1. Human arranges objects on the table [meaning]
                  * 2. Robot describes the scene [sentence]
                  */
-
+            sCurrentType = "test";
             return nodeModality();
         }
 
-        else
+        else{
+            sCurrentType = "test";
             return nodeType();
+        }
     }
 
     return true;
@@ -581,14 +583,11 @@ bool reservoirHandler::nodeModality()
             }
             else if(sCurrentType == "test")
             {
-                cout << "I am here" << endl;
                 /*
                 * Testing
                  * 1. Human says a command [sentence]
                  * 2. Robot performs corresponding actions [meaning]
                 */
-                iCub->say("Go in test mode", false);
-                cout << "go on test mode " << endl;
                 iCub->say("I'm ready...", false);
                 iCub->say("Say a sentence",false);
                 nodeTestAP();
@@ -847,7 +846,6 @@ bool reservoirHandler::nodeTestAP()
 
         if (yesNo == "it's right")
         {
-            cout << "sentence here : " << sentence << endl;
             copyPastFile(fileXavierTrainAP.c_str(), fileAPimputS.c_str());
             cout << fileXavierTrainAP << endl;
             cout << fileAPimputS << endl;
@@ -856,7 +854,6 @@ bool reservoirHandler::nodeTestAP()
             cout << fileAPoutputM << endl;
             string result = openResult(fileAPoutputM.c_str());
             iCub->say(result,false);
-            cout << result << endl;
 
             int id = result.find(",");
             int idf = result.size()-id;
@@ -865,9 +862,18 @@ bool reservoirHandler::nodeTestAP()
 
             iCub->say("I will do the actions", false);
 
+
+            // CREATE VECTOR FILE
+            //force<push(You,circle)>;moved(circle)>
+            mAssociation["put"]="moved";
+            mAssociation["take"]="got";
+            mAssociation["grasp"]="hold";
+            mAssociation["push"]="placed";
+            mAssociation["point"]="stayed";
+
+
             if (result.find(",")!= string::npos)
             {
-                cout << "here " << endl;
                 cout << result.substr(0, id) << endl;
                 cout << result.substr(id +1,idf) << endl;
                 string firstCommand = result.substr(0, id);
@@ -881,7 +887,7 @@ bool reservoirHandler::nodeTestAP()
             }
             else
             {
-                cout << "result : " << result;
+                cout << "result : " << result << endl;
                 AREactions(extractVocabulary(result));
                 sentence = " ";
             }
@@ -890,10 +896,8 @@ bool reservoirHandler::nodeTestAP()
             fileVectorAP.close();
 
             //
-            fileVectorAPRead.open(fvector.c_str());
-            mainNodeInteraction();
-            fileVectorAPRead.close();
-            return nodeTestAP();
+            iCub->say("Do you have any questions");
+            return nodeYesNoInteraction();
         }
 
         else if(yesNo == "not the good sentence")
@@ -918,6 +922,12 @@ bool reservoirHandler::nodeTestAP()
             }
         }
     }
+
+    if (bAnswer.get(0).asString() == "change the interaction")
+    {
+        return nodeType();
+    }
+
     return true;
 }
 
@@ -1025,7 +1035,8 @@ bool reservoirHandler::nodeTestSD()
         while (!nodeYesNo())
         {}
         spatialRelation();
-        cout << "Do you have any Questions '" << endl ;
+        iCub->say("Do you have any Questions",true);
+        cout << "Do you have any Questions" << endl ;
         languageNodeInteractionSD();
     }
 
@@ -1060,10 +1071,13 @@ bool reservoirHandler::spatialRelation()
     }
 
     //get the focus object
-    string sObjectFocus = "none";
+    //string sObjectFocus = "none";
+    string sObjectFocus = "circle";
+
     if (sobjectFocusChanged.empty())
     {
-        double maxSalience = 0;
+        //double maxSalience = 0.4;
+        double maxSalience = 0.;
 
         for (std::vector<RTObject>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
         {
@@ -1231,24 +1245,31 @@ bool reservoirHandler::languageNodeInteractionSD()
         }
     }
 
-    if (bAnswer.get(0).asString() == "stop")
+    if (bAnswer.get(0).asString() == "stop the interaction")
     {
         iCurrentInstance = -1;
         osError.str("");
         osError << " | STOP called";
         bOutput.addString(osError.str());
         cout << osError.str() << endl;
-        //return bOutput;
+        return false;
     }
 
     bAnswer = *bSpeechRecognized.get(1).asList();
 
-    if(bAnswer.get(1).asList()->get(1).toString() == "no")
+
+    if (bAnswer.get(1).asList()->get(0).asString() == "answer")
     {
-        return nodeTestSD();
+        if (bAnswer.get(1).asList()->get(1).asString() == "positive"){
+            return languageNodeInteractionSD();
+        }
+        else if (bAnswer.get(1).asList()->get(1).asString() == "negative"){
+            return nodeTestSD();
+        }
     }
 
-    if (bAnswer.get(1).asList()->get(0).toString() == "happened")
+
+    if (bAnswer.get(1).asList()->get(0).toString() == "happenedTo")
     {
         bSemantic = *bAnswer.get(1).asList()->get(1).asList();
         sobjectFocusChanged = bSemantic.check("object", Value("none")).asString();
@@ -1258,10 +1279,76 @@ bool reservoirHandler::languageNodeInteractionSD()
     return languageNodeInteractionSD();
 }
 
+
+bool reservoirHandler::nodeYesNoInteraction()
+{
+    sCurrentNode = "nodeYesNoInteraction";
+    sCurrentGrammarFile = nameGrammarYesNo;
+    ostringstream osError;			// Error message
+    osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
+    cout << endl << "In " << sCurrentNode << endl << endl;
+
+    Bottle bOutput;
+
+    bool fGetaReply = false;
+    Bottle  bMessenger,
+            bSpeechRecognized,
+            bAnswer;
+
+    bMessenger.addString("recog");
+    bMessenger.addString("grammarXML");
+    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
+
+    //to be replace by Say
+
+    while (!fGetaReply)
+    {
+        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
+
+        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        {
+            osError << "Check " << sCurrentGrammarFile;
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return false;
+        }
+
+        if (bSpeechRecognized.get(0).toString() == "0")
+        {
+            osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return false;
+        }
+
+
+        bAnswer = *bSpeechRecognized.get(1).asList();
+
+        if (bAnswer.toString() != "" && !bAnswer.isNull())
+        {
+            fGetaReply = true;
+        }
+    }
+
+    if (bAnswer.get(0).asString() == "yes"){
+        fileVectorAPRead.open(fvector.c_str());
+        return mainNodeInteraction();
+    }
+    else if(bAnswer.get(0).asString() == "no"){
+        fileVectorAPRead.close();
+        return nodeTestAP();
+    }
+    return nodeYesNoInteraction();
+}
+
+
+
 bool reservoirHandler::nodeYesNo()
 {
     sCurrentNode = "nodeYesNo";
-    sCurrentGrammarFile = sGrammarYesNo;
+    sCurrentGrammarFile = nameGrammarYesNo;
     ostringstream osError;			// Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
@@ -1432,13 +1519,11 @@ vector<string> reservoirHandler::extractVocabulary(string sequence)
     }
     else if (sequence.find("point") != string::npos)
     {
-        cout << "recipient point" << endl;
         recipient = "point";
     }
 
     else if (sequence.find("push") != string::npos)
     {
-        cout << "recipient push" << endl;
         recipient = "push";
     }
 
@@ -1515,14 +1600,11 @@ vector<string> reservoirHandler::extractVocabulary(string sequence)
         seq.push_back(location);
 
     if (seq.size()==2){
-        cout << "extract vocabulary ................" << endl;
         cout << seq[0] << " " << seq[1] << endl;
     }
     else if (seq.size()==3){
-        cout << "extract vocabulary ................" << endl;
         cout << seq[0] << " " << seq[1] << " " << seq[2] << endl;
     }
-    cout << "end of extractVocabulary" << endl;
     return seq;
 }
 
@@ -1537,6 +1619,7 @@ bool reservoirHandler::AREactions(vector<string> seq)
     else if(seq.size()== 2){
         sPredicat = seq[0];
         sObject   = seq[1];
+        sLocation = "";
     }
 
     if (sPredicat == "none")
@@ -1637,30 +1720,14 @@ bool reservoirHandler::AREactions(vector<string> seq)
             iCub->getARE()->home(sHand);
         }
 
-        // CREATE VECTOR FILE
-        //force<push(You,circle)>;moved(circle)>
-        map<string, string> mAssociation;
-        mAssociation["put"]="moved";
-        mAssociation["took"]="got";
-        mAssociation["grasped"]="hold";
-        mAssociation["pushed"]="placed";
-        mAssociation["pointed"]="stayed";
-
-        for(map<string,string>::iterator ii=mAssociation.begin(); ii!=mAssociation.end(); ++ii)
-        {
-            //cout << (*ii).first << ": " << (*ii).second << endl;
-            if(sPredicat==(*ii).first){
-                if(sLocation != "none"){
-                    sVectorFileAP = "force<" + sPredicat + "(I," + sObject + ")>;" + (*ii).second + "(" + sObject + "," + sLocation+ ")>";
-                }
-                else if(sLocation == "none"){
-                        sVectorFileAP = "force<" + sPredicat + "(I," + sObject + ")>;" + (*ii).second + "(" + sObject + ")>";
-                }
-                cout << "createVectorFile(sVectorFileAP); " << endl;
-                cout << "sVectorFileAP : " << sVectorFileAP << endl;
-                createVectorFile(sVectorFileAP);
-            }
+        if(!sLocation.empty()){
+            sVectorFileAP = "force<" + sPredicat + "(I," + sObject + "," + sLocation + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + "," + sLocation + ")>";
         }
+        else if(sLocation.empty()){
+            sVectorFileAP = "force<" + sPredicat + "(I," + sObject + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + ")>";
+        }
+        createVectorFile(sVectorFileAP);
+
     }
     else
     {
@@ -1681,7 +1748,6 @@ std::list<int> reservoirHandler::nbCaracters(string ssequence)
     {
         if (ssequence[pos]==','){
             lposElements.push_back(pos);
-            cout << pos << " " << endl;
         }
 
     }
@@ -1692,18 +1758,18 @@ bool reservoirHandler::mainNodeInteraction()
 {
     if(getline(fileVectorAPRead,svector))
     {
-        cout << svector << endl;
-        iCub->say("Do you have any questions");
         iquestion = languageNodeInteraction();
     }
     else{
-        iCub->say("I have no more information");
+        iCub->say("I have no more information",false);
+        return nodeTestAP();
     }
     return 0;
 }
 
 bool reservoirHandler::grammarNodeInteraction()
 {
+    cout << "################################################################" << endl;
     int id = svector.find(";");
     int idf = svector.size();
     string sforce = svector.substr(6, id -7); //  => sforce=   "push(Ag1,object)"
@@ -1726,6 +1792,7 @@ bool reservoirHandler::grammarNodeInteraction()
 
 
         if (nb == 0){            //  "object"
+            cout << "nb elements " << nb << endl;
             sobject=sresult;
             sanswer = "The " + sobject + " " + sverb;
             iCub->say(sanswer,true);
@@ -1734,6 +1801,7 @@ bool reservoirHandler::grammarNodeInteraction()
 
         else if(nb == 1)   //  "object,location"
         {
+            cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
 
             for(it=lposElements.begin(); it!=lposElements.end(); ++it)
@@ -1743,7 +1811,7 @@ bool reservoirHandler::grammarNodeInteraction()
                 slocation=sresult.substr(*it+1,lposElements.size()-(*it+1));
                 cout << "sobject : " << slocation << endl;
             }
-            sanswer = sobject + " " + sverb + " on the " + slocation;
+            sanswer = "The " + sobject + " " + sverb + " on the " + slocation;
             iCub->say(sanswer,true);
             cout << sanswer << endl;
         }
@@ -1753,18 +1821,24 @@ bool reservoirHandler::grammarNodeInteraction()
         int i = sforce.find("(");
         int iend = sforce.size();
         sverb = sforce.substr(0,i); // => "result"
+        cout << "sverb : " << sverb << endl;
 
         sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
+        cout << "sforce : " << sforce << endl;
 
         std::list<int> lposElements = nbCaracters(sforce);
         int nb = lposElements.size();
 
         if (nb == 0){            //  "object"
+            cout << "nb elements " << nb  << endl;
             sobject=sforce;
+            iCub->say(sanswer,true);
+            cout << sanswer << endl;
         }
 
         else if(nb == 1)   //  "Ag2,object"
         {
+            cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
             int cpt=0;
 
@@ -1773,17 +1847,21 @@ bool reservoirHandler::grammarNodeInteraction()
             {
                 tab[cpt]=*it;
                 cpt++;
+                cout << tab << endl;
             }
-            cout << tab << endl;
+
             sagent1=sforce.substr(0,tab[0]);
-            sobject=sforce.substr(tab[0]+1,sforce.size()-sforce.size()-tab[0]+1);
-            //sagent1 = sagent.c_str();
+            cout << "sagent1 : " << sagent1 << endl;
+            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
+            cout << "sobject : " << sobject << endl;
+            cout << "tab : " << tab[0] << endl;
             sanswer = sagent1 + " " + sverb + "ed the " + sobject;
             iCub->say(sanswer,true);
             cout << sanswer << endl;
         }
         else if(nb == 2)   //  "Ag1,object,location"
         {
+            cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
             int cpt=0;
             int tab[lposElements.size()];
@@ -1794,9 +1872,14 @@ bool reservoirHandler::grammarNodeInteraction()
                 cout << tab << endl;
             }
             sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
             sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
             slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
-            //sagent1 = sagent.c_str();
+            cout << "slocation : " << slocation << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
             sanswer = sagent1 + " " + sverb + "ed the " + sobject + " on the " + slocation;
             iCub->say(sanswer,true);
             cout << sanswer << endl;
@@ -1807,18 +1890,24 @@ bool reservoirHandler::grammarNodeInteraction()
         int i = sforce.find("(");
         int iend = sforce.size();
         string sverb = sforce.substr(0,i); // => "result"
+        cout << "sverb : " << sverb << endl;
 
         sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
+        cout << "sforce : " << sforce << endl;
 
         std::list<int> lposElements = nbCaracters(sforce);
         int nb = lposElements.size();
 
         if (nb == 0){            //  "object"
+            cout << "nb elements " << nb << endl;
             string object=sforce;
+            sanswer = "The " + sobject + " has been " + sverb;
+            iCub->say(sanswer,true);
         }
 
         else if(nb == 1)   //  "Ag2,object"
         {
+            cout << "nb elements " << nb << endl;
             std::list<int>::iterator it;
             int cpt=0;
 
@@ -1828,16 +1917,20 @@ bool reservoirHandler::grammarNodeInteraction()
                 tab[cpt]=*it;
                 cpt++;
             }
-            cout << tab << endl;
             sagent1=sforce.substr(0,tab[0]);
-            sobject=sforce.substr(tab[0]+1,sforce.size()-sforce.size()-tab[0]+1);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
+            cout << "sobject : " << sobject << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
+
             sanswer = "The " + sobject + " has been " + sverb + " by me";
-            cout << "sanswer : " << endl;
             iCub->say(sanswer,true);
             cout << sanswer << endl;
         }
-        else if(nb == 2)   //  "Ag2,object"
+        else if(nb == 2)   //  "Ag2,object,location"
         {
+            cout << "nb elements " << nb;
             std::list<int>::iterator it;
             int cpt=0;
             int tab[lposElements.size()];
@@ -1845,11 +1938,17 @@ bool reservoirHandler::grammarNodeInteraction()
             {
                 tab[cpt]=*it;
                 cpt++;
-                cout << tab << endl;
             }
             sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
             sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
             slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
+            cout << "sobject : " << slocation << endl;
+
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
             sanswer = "The " + sobject + " has been " + sverb + "ed by me on the " +slocation;
             cout << "sanswer : " << endl;
             iCub->say(sanswer,true);
@@ -1915,7 +2014,7 @@ int reservoirHandler::languageNodeInteraction()
         }
     }
 
-    if (bAnswer.get(0).asString() == "stop")
+    if (bAnswer.get(0).asString() == "stop the interaction")
     {
         iCurrentInstance = -1;
         osError.str("");
@@ -1932,8 +2031,9 @@ int reservoirHandler::languageNodeInteraction()
         if (bAnswer.get(1).asList()->get(1).asString() == "positive"){
             return languageNodeInteraction();
         }
-        else
-            return nodeType();
+        else if (bAnswer.get(1).asList()->get(1).asString() == "negative"){
+            return nodeTestAP();
+        }
     }
 
     if (bAnswer.get(1).asList()->get(0).toString() == "continue")
