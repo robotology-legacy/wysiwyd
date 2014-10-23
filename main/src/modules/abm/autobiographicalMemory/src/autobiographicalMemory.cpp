@@ -629,7 +629,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             {
                 imgInstance = bCommand.get(1).asList()->get(0).asInt() ;
                 int nbSentImages = sendStreamImage(imgInstance) ;
-                if (nbsentImages > 0){
+                if (nbSentImages > 0){
                     bReply.addString(streamStatus);
                     bReply.addInt(nbSentImages);
                 }
@@ -1066,7 +1066,12 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     }
 
     //begin/end stream
-    //isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+    string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
+    if(camExtension != "none") {
+        robotPortCam += "/" + camExtension ;
+    }
+
+    isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
 
     if (!isconnected2Cam) {
         cout << "ABM failed to connect to Camera!" << endl ;
@@ -1242,7 +1247,12 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
 
     
     //begin/end stream
-    //isconnected2Cam = Network::isConnected(robotPortCam, "/test/bufferimage/in");
+    string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
+    if(camExtension != "none") {
+        robotPortCam += "/" + camExtension ;
+    }
+
+    isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
 
     if (!isconnected2Cam) {
         cout << "ABM failed to connect to Camera!" << endl ;
@@ -2161,6 +2171,23 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
 
         osRequest.str("");
         osRequest << "DELETE FROM contentopc WHERE instance = " << *it ;
+        bRequest.clear();
+        bRequest.addString("request");
+        bRequest.addString(osRequest.str().c_str());
+        request(bRequest);
+
+        //images : remove from pg_largeobjects = unlink
+        //SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE instance = 42) AS images_subquery ;
+        osRequest.str("");
+        osRequest << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE instance = " << *it << ") AS images_subquery ;" ;
+        bRequest.clear();
+        bRequest.addString("request");
+        bRequest.addString(osRequest.str().c_str());
+        request(bRequest);
+
+        //remove from images table
+        osRequest.str("");
+        osRequest << "DELETE FROM images WHERE instance = " << *it ;
         bRequest.clear();
         bRequest.addString("request");
         bRequest.addString(osRequest.str().c_str());
