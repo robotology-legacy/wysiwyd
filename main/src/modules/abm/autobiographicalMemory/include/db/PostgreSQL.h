@@ -37,9 +37,9 @@ public:
 	virtual ~PostgreSql()
 	{
 	}
-	
+
 	void connect(const std::string& server, const std::string& user, const std::string& password, const std::string& database)
-	{		
+	{
 		_connectionHandlerPtr = PQsetdbLogin(
 					server.c_str(),
                     NULL,
@@ -66,7 +66,7 @@ public:
 	{
 		std::cout << sql << std::endl;
 
-		if(_hasResult) 
+		if(_hasResult)
 			PQclear(_resultPtr);
 
 		_resultPtr = PQexec(_connectionHandlerPtr, sql.c_str());
@@ -84,17 +84,20 @@ public:
 
 			_hasResult = false;
 
-			throw DataBaseError("Failed to execute sql: Error: " 
-				+ std::string(PQresStatus(_status)) 
+			throw DataBaseError("Failed to execute sql: Error: "
+				+ std::string(PQresStatus(_status))
 				+ " : " + std::string(PQerrorMessage(_connectionHandlerPtr)));
 		}
 
-		(_status != PGRES_TUPLES_OK) ? PQclear(_resultPtr) : _hasResult = true;
+		if (_status != PGRES_TUPLES_OK) {
+                     PQclear(_resultPtr) ;
+                } else {
+                    _hasResult = true;}
 	}
 
 	void populate(ResultSet& rs)
 	{
-		if(_status != PGRES_TUPLES_OK) 
+		if(_status != PGRES_TUPLES_OK)
 			throw DataBaseError("This command don't support results");
 
 		if(_hasResult == false)
@@ -103,18 +106,18 @@ public:
 		unsigned int num_tuples = PQntuples(_resultPtr);
 		unsigned int num_fields = PQnfields(_resultPtr);
 
-		for(int i = 0; i < num_tuples; ++i)
+		for(unsigned int i = 0; i < num_tuples; ++i)
 		{
 			std::vector<std::string> myRow;
 
-			for(int j = 0; j < num_fields; ++j)
+			for(unsigned int j = 0; j < num_fields; ++j)
 			{
 				myRow.push_back(PQgetvalue(_resultPtr, i, j));
 			}
 
 			rs.addRow(myRow);
 		}
-	
+
 		PQclear(_resultPtr);
 
 		_hasResult = false;
@@ -128,7 +131,7 @@ protected:
 		PQfinish(_connectionHandlerPtr);
 	}
 
-	
+
 private:
 	ExecStatusType	_status;
 	bool			_hasResult;

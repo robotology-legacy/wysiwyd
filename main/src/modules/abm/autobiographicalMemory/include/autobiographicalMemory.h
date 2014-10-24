@@ -1,7 +1,6 @@
 #include <db/PostgreSQL.h>
 #include "wrdac/clients/opcEars.h"
 #include <yarp/os/all.h>
-#include <tuple>
 #include <cv.h>
 #include <highgui.h>
 #include <stdio.h>
@@ -105,8 +104,8 @@ public :
     bool updateModule();    //    This is our main function. Will be called periodically every getPeriod() seconds.
     bool configure(yarp::os::ResourceFinder &rf);
     bool close();    //  Close function, to perform cleanup.
-    static std::tuple<int,int,int> tupleIntFromString(std::string sInput);
-    static std::tuple<double,double,double> tupleDoubleFromString(std::string sInput);
+    static std::vector<int> tupleIntFromString(std::string sInput);
+    static std::vector<double> tupleDoubleFromString(std::string sInput);
 
     yarp::os::Bottle populateOPC();
 

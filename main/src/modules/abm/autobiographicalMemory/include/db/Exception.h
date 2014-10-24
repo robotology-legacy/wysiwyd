@@ -16,17 +16,14 @@
 //
 
 
-#include <iostream>
+#include <stdexcept>
+#include <string>
 
-
-class DataBaseError 
-	: public std::exception
+class DataBaseError : public std::runtime_error
 	/// DataBaseError class
 {
 public:
-	DataBaseError(const std::string& what)
-		: exception(what.c_str())
+	DataBaseError(const std::string& what)	: runtime_error(what.c_str())
 	{
 	}
-	
 }; // DataBaseError

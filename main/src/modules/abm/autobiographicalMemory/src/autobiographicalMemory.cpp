@@ -121,7 +121,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     bConnect.addString("OPC");
     connectOPC(bConnect);
 
-    //    populateOPC();
+    populateOPC();
 
     cout << endl << endl << "----------------------------------------------" << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
 
@@ -144,7 +144,6 @@ Bottle autobiographicalMemory::restoBottle(ResultSet bResult)
     {
         isResult = true;
         Bottle bLineBottle ;
-        int test = vRow.size();
         //parse the current row of the result and add each column values to a bottle
         for (size_t i = 0; i < vRow.size(); i++)
         {
@@ -961,7 +960,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 
     //Begin
     done = false;
-    bool bBegin;
+    bool bBegin = false ;
     cout << "bInput has a size of " << bInput.size() << " and is : " << bInput.toString().c_str() << endl ;
     for (int i = 1; i < bInput.size() ; i++)
     {
@@ -1032,7 +1031,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         }
     }
 
-    for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
+    for (int i = 0 ; i < bSnapShot.size() ; i++)
     {
 
         bTemp.clear();
@@ -1172,7 +1171,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     bArguments    = *bInput.get(2).asList();
     bRoles        = *bInput.get(3).asList();
 
-    for (unsigned int i = 0 ; i < iNbArg ; i++)
+    for (int i = 0 ; i < iNbArg ; i++)
     {
         vArgument.push_back(bArguments.get(i).toString().c_str());
         vRole.push_back(bRoles.get(i).toString().c_str());
@@ -1198,7 +1197,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES " ;
 
     // Fill argument :
-    for (int i = 0 ; i < vArgument.size() ; i++)
+    for (unsigned int i = 0 ; i < vArgument.size() ; i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vArgument[i]);
         if (i !=0)
@@ -1218,7 +1217,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     // send filling contentarg
     bArg =    requestFromString(osArg.str().c_str());
 
-    for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
+    for (int i = 0 ; i < bSnapShot.size() ; i++)
     {
         bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
     }
@@ -1349,7 +1348,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     bArguments    = *bInput.get(2).asList();
     bRoles        = *bInput.get(3).asList();
 
-    for (unsigned int i = 0 ; i < iNbArg ; i++)
+    for (int i = 0 ; i < iNbArg ; i++)
     {
         if (bRoles.get(i).toString() == "agent" )
             vAgent.push_back(bArguments.get(i).toString().c_str());
@@ -1382,7 +1381,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << " , '" << sManner << "' , 'manner' , 'manner' , 'manner' ) " ;
 
     // Fill agents :
-    for (int i = 0 ; i < vAgent.size() ; i++)
+    for (unsigned int i = 0 ; i < vAgent.size() ; i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vAgent[i]);
 
@@ -1393,7 +1392,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     }
 
     // Fill objects :
-    for (int i = 0 ; i < vObject.size() ; i++)
+    for (unsigned int i = 0 ; i < vObject.size() ; i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vObject[i]);
 
@@ -1405,7 +1404,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
 
 
     // Fill spatials :
-    for (int i = 0 ; i < vSpatial.size() ; i++)
+    for (unsigned int i = 0 ; i < vSpatial.size() ; i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vSpatial[i]);
 
@@ -1422,7 +1421,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     // send filling contentarg
     bArg =    requestFromString(osArg.str().c_str());
 
-    for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
+    for (int i = 0 ; i < bSnapShot.size() ; i++)
     {
         bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
     }
@@ -1494,8 +1493,8 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     // Filling table main :
     Bottle bMain;
     ostringstream osMain;
-    bool done = false,
-        bBegin;
+    bool done = false ;
+    bool bBegin = false ;
     osMain <<  "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES('";
     string sName;
 
@@ -1558,7 +1557,7 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     // send filling contentarg
     bArg =    requestFromString(osArg.str().c_str());
 
-    for (unsigned int i = 0 ; i < bSnapShot.size() ; i++)
+    for (int i = 0 ; i < bSnapShot.size() ; i++)
     {
         bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
     }
@@ -1837,7 +1836,7 @@ int autobiographicalMemory::sendStreamImage(int instance){
     imgNbInStream = bRequest.size();
 
     //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
-    for (unsigned int i = 0 ; i < bRequest.size() ; i++){
+    for (int i = 0 ; i < bRequest.size() ; i++){
         exportImage(atoi(bRequest.get(i).asList()->get(0).toString().c_str()), storingTmpPath);
     }
 
@@ -2047,6 +2046,8 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
     {
         bInstances = *bInput.get(1).asList();
         int begin, end;
+        begin = 0;
+        end = -1;
         if (bInstances.size() == 2)
         {
             begin = atoi(bInstances.get(0).toString().c_str());
@@ -2059,7 +2060,7 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
     }
     else
     {
-        for (unsigned int i = 1; i < bInput.size(); i++)
+        for (int i = 1; i < bInput.size(); i++)
         {
             vecToErase.push_back(bInput.get(i).asInt());
         }
@@ -2226,10 +2227,10 @@ Bottle autobiographicalMemory::populateOPC()
         incrRTO = 0;
 
     // 1. agent
-    Bottle bMessenger, bReply, bDistinctAgent;
+    Bottle bReply, bDistinctAgent;
     bDistinctAgent = requestFromString("SELECT DISTINCT name FROM agent");
 
-    for (unsigned int iDA = 0 ; iDA < bDistinctAgent.size() ; iDA++)
+    for (int iDA = 0 ; iDA < bDistinctAgent.size() ; iDA++)
     {
         string sName = bDistinctAgent.get(iDA).toString();
         ostringstream osAgent;
@@ -2245,12 +2246,17 @@ Bottle autobiographicalMemory::populateOPC()
             osAgent << "SELECT color FROM agent WHERE (instance = " << instance << " and name = '" << sName <<"')";
 
             bReply = requestFromString(osAgent.str());
-            tuple<int, int, int> colorAgent = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
+            vector<int> colorAgent = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
             Agent *TempAgent = opcWorld->addAgent(sName.c_str());
-            TempAgent->m_color[0] = get<0>(colorAgent);
-            TempAgent->m_color[1] = get<1>(colorAgent);
-            TempAgent->m_color[2] = get<2>(colorAgent);
+
+            TempAgent->m_color.clear();
+            for(vector<int>::iterator it = colorAgent.begin(); it!= colorAgent.end() ; it++){
+                TempAgent->m_color.push_back(*it);
+            //TempAgent->m_color[0] = get<0>(colorAgent);
+            //TempAgent->m_color[1] = get<1>(colorAgent);
+            //TempAgent->m_color[2] = get<2>(colorAgent);
+            }
             TempAgent->m_present = false;
 
             opcWorld->commit(TempAgent);
@@ -2262,7 +2268,7 @@ Bottle autobiographicalMemory::populateOPC()
     // 2. RTObjects : 
     Bottle bDistincRto = requestFromString("SELECT DISTINCT name FROM rtobject");
 
-    for (unsigned int iDTRO = 0 ; iDTRO < bDistincRto.size() ; iDTRO++)
+    for (int iDTRO = 0 ; iDTRO < bDistincRto.size() ; iDTRO++)
     {
         string sName = bDistincRto.get(iDTRO).toString();
         ostringstream osRto;
@@ -2277,12 +2283,18 @@ Bottle autobiographicalMemory::populateOPC()
             osRto << "SELECT color FROM rtobject WHERE (instance = " << instance << " and name = '" << sName <<"')";
 
             bReply = requestFromString(osRto.str());
-            tuple<int, int, int> colorRto = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
+            vector<int> colorRto = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
             RTObject *RTO = opcWorld->addRTObject(sName.c_str());
-            RTO->m_color[0] = get<0>(colorRto);
-            RTO->m_color[1] = get<1>(colorRto);
-            RTO->m_color[2] = get<2>(colorRto);    
+
+            //RTO->m_color[0] = get<0>(colorRto);
+            //RTO->m_color[1] = get<1>(colorRto);
+            //RTO->m_color[2] = get<2>(colorRto);    
+            //RTO->m_present = false;
+            RTO->m_color.clear();
+            for(vector<int>::iterator it = colorRto.begin(); it!= colorRto.end() ; it++){
+                RTO->m_color.push_back(*it);
+            }
             RTO->m_present = false;
 
             opcWorld->commit(RTO);
@@ -2296,7 +2308,7 @@ Bottle autobiographicalMemory::populateOPC()
     {
         Bottle bDistinctObject = requestFromString("SELECT DISTINCT name FROM object");
 
-        for (unsigned int iDO = 0 ; iDO < bDistinctObject.size() ; iDO++)
+        for (int iDO = 0 ; iDO < bDistinctObject.size() ; iDO++)
         {
             string sName = bDistinctObject.get(iDO).toString();
             ostringstream osObject;
@@ -2311,33 +2323,46 @@ Bottle autobiographicalMemory::populateOPC()
                 osObject << "SELECT color FROM object WHERE (instance = " << instance << " and name = '" << sName <<"')";
 
                 bReply = requestFromString(osObject.str());
-                tuple<int, int, int> colorObject = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
+                vector<int> colorObject = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
                 Object *TempObj = opcWorld->addObject(sName.c_str());
-                TempObj->m_color[0] = get<0>(colorObject);
-                TempObj->m_color[1] = get<1>(colorObject);
-                TempObj->m_color[2] = get<2>(colorObject);    
-
+                //TempObj->m_color[0] = get<0>(colorObject);
+                //TempObj->m_color[1] = get<1>(colorObject);
+                //TempObj->m_color[2] = get<2>(colorObject); 
+                TempObj->m_color.clear();
+                for(vector<int>::iterator it = colorObject.begin(); it!= colorObject.end() ; it++){
+                    TempObj->m_color.push_back(*it);
+                }
 
                 osObject.str("");
                 osObject << "SELECT dimension FROM object WHERE (instance = " << instance << " and name = '" << sName <<"')";
 
                 bReply = requestFromString(osObject.str());
-                tuple<double, double, double> sizeObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
+                vector<double> sizeObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-                TempObj->m_color[0] = get<0>(sizeObject);
-                TempObj->m_color[1] = get<1>(sizeObject);
-                TempObj->m_color[2] = get<2>(sizeObject);    
+                //------------------------------------------------- SHOULD BE DIMENSION!!!!!!
+                //TempObj->m_color[0] = get<0>(sizeObject);
+                //TempObj->m_color[1] = get<1>(sizeObject);
+                //TempObj->m_color[2] = get<2>(sizeObject);  
+                TempObj->m_dimensions.clear();
+                for(vector<double>::iterator it = sizeObject.begin(); it!= sizeObject.end() ; it++){
+                    TempObj->m_color.push_back(*it);
+                }
+
 
                 osObject.str("");
                 osObject << "SELECT orientation FROM object WHERE (instance = " << instance << " and name = '" << sName <<"')";
 
                 bReply = requestFromString(osObject.str());
-                tuple<double, double, double> orientationObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
+                vector<double> orientationObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-                TempObj->m_ego_orientation[0] = get<0>(orientationObject);
-                TempObj->m_ego_orientation[1] = get<1>(orientationObject);
-                TempObj->m_ego_orientation[2] = get<2>(orientationObject);    
+                //TempObj->m_ego_orientation[0] = get<0>(orientationObject);
+                //TempObj->m_ego_orientation[1] = get<1>(orientationObject);
+                //TempObj->m_ego_orientation[2] = get<2>(orientationObject); 
+                TempObj->m_ego_orientation.clear();
+                for(vector<double>::iterator it = orientationObject.begin(); it!= orientationObject.end() ; it++){
+                    TempObj->m_color.push_back(*it);
+                }
 
                 TempObj->m_present = false;
 
@@ -2360,9 +2385,9 @@ Bottle autobiographicalMemory::populateOPC()
 /*
 * return a tuple of 3 int from a string input
 */
-tuple<int, int, int> autobiographicalMemory::tupleIntFromString(string sInput)
+vector<int> autobiographicalMemory::tupleIntFromString(string sInput)
 {
-    tuple<int, int, int>    tOutput;
+    vector<int>    tOutput;
     char *cInput;
     cInput = (char*)sInput.c_str();
     int    iLevel = 0;
@@ -2393,9 +2418,12 @@ tuple<int, int, int> autobiographicalMemory::tupleIntFromString(string sInput)
         data++;
     }
 
-    get<0>(tOutput) = atoi(sX.c_str());
-    get<1>(tOutput) = atoi(sY.c_str());
-    get<2>(tOutput) = atoi(sZ.c_str());
+    tOutput.push_back(atoi(sX.c_str()));
+    tOutput.push_back(atoi(sY.c_str()));
+    tOutput.push_back(atoi(sZ.c_str()));
+    //get<0>(tOutput) = atoi(sX.c_str());
+    //get<1>(tOutput) = atoi(sY.c_str());
+    //get<2>(tOutput) = atoi(sZ.c_str());
 
     return tOutput;
 }
@@ -2403,9 +2431,9 @@ tuple<int, int, int> autobiographicalMemory::tupleIntFromString(string sInput)
 /*
 * return a tuple of 3 double from a string input
 */
-tuple<double, double, double> autobiographicalMemory::tupleDoubleFromString(string sInput)
+vector<double> autobiographicalMemory::tupleDoubleFromString(string sInput)
 {
-    tuple<double, double, double>    tOutput;
+    vector<double>    tOutput;
     char *cInput;
     cInput = (char*)sInput.c_str();
     int    iLevel = 0;
@@ -2435,9 +2463,12 @@ tuple<double, double, double> autobiographicalMemory::tupleDoubleFromString(stri
         data++;
     }
 
-    get<0>(tOutput) = atof(sX.c_str());
-    get<1>(tOutput) = atof(sY.c_str());
-    get<2>(tOutput) = atof(sZ.c_str());
+    tOutput.push_back(atof(sX.c_str()));
+    tOutput.push_back(atof(sY.c_str()));
+    tOutput.push_back(atof(sZ.c_str()));
+    //get<0>(tOutput) = atof(sX.c_str());
+    //get<1>(tOutput) = atof(sY.c_str());
+    //get<2>(tOutput) = atof(sZ.c_str());
 
     return tOutput;
 }
