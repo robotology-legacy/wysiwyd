@@ -29,10 +29,11 @@ private :
 
     //for update camera stream
     std::string streamStatus ;
-    int imgNb; 
-    int imgNbInStream ;
     std::string currentPathFolder ;
     std::string imgLabel ;
+    std::string robotPortCam ;
+    int imgNb; 
+    int imgNbInStream ;
     int imgInstance ;
     int currentInstance ;
 

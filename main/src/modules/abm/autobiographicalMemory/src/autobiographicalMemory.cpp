@@ -80,7 +80,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     name_imagePortIn +=  getName() + "/images/in";
     imagePortIn.open(name_imagePortIn.c_str());
 
-    string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
+    robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
     if(camExtension != "none") {
         robotPortCam += "/" + camExtension ;
     }
@@ -486,6 +486,9 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     cout << bCommand.toString() << endl << endl;
     bError.addString("ERROR");
 
+    //check connection with the image provider
+    isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
+
     if (bCommand.get(0).isString())
     {
         if (bCommand.get(0) == "quit" || bCommand.get(0) == "close")
@@ -592,15 +595,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
         else if (bCommand.get(0) == "testSaveStreamImage")
         {
-            string robotPortCam = "/";
-            robotPortCam += robotName + "/" + camName + "/" + camSide ;
-            if(camExtension != "none") {
-                robotPortCam += "/" + camExtension ;
-            }
-
-            //Network::connect(robotPortCam, "/test/bufferimage/in") ; //do not try to connect but check it anyway
-            isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
-
             if (!isconnected2Cam) {
                 cout << "ABM failed to connect to Camera!" << endl ;
                 bError.addString("in testSaveStreamImage :  Error, connexion missing between" + robotPortCam + " and " + imagePortIn.getName().c_str());
@@ -645,14 +639,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
         else if (bCommand.get(0) == "testSaveImage")
         {
-            //name of the image provider
-            string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
-            if(camExtension != "none") {
-                robotPortCam += "/" + camExtension ;
-            }
-
-            //check connection with the image provider
-            isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
 
             if (!isconnected2Cam) {
                 cout << "ABM failed to connect to Camera!" << endl ;
@@ -1065,15 +1051,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-    //begin/end stream
-    string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
-    if(camExtension != "none") {
-        robotPortCam += "/" + camExtension ;
-    }
-
-    isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
-
-    if (!isconnected2Cam) {
+    if (!Network::connect(robotPortCam, imagePortIn.getName().c_str())) {
         cout << "ABM failed to connect to Camera!" << endl ;
     } else if (isStreamActivity == true) //just launch stream images stores when relevant activity
     {
@@ -1245,16 +1223,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
         bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
     }
 
-    
-    //begin/end stream
-    string robotPortCam = "/" + robotName + "/" + camName + "/" + camSide ;
-    if(camExtension != "none") {
-        robotPortCam += "/" + camExtension ;
-    }
-
-    isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
-
-    if (!isconnected2Cam) {
+    if (!Network::connect(robotPortCam, imagePortIn.getName().c_str())) {
         cout << "ABM failed to connect to Camera!" << endl ;
     } else if (isStreamActivity == true) //just launch stream images stores when relevant activity
     {
