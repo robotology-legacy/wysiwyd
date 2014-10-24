@@ -121,7 +121,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     bConnect.addString("OPC");
     connectOPC(bConnect);
 
-    populateOPC();
+    //populateOPC();
 
     cout << endl << endl << "----------------------------------------------" << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
 
