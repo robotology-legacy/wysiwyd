@@ -5,6 +5,7 @@
 #include "CvzMMCM.h"
 #include "CvzMLP.h"
 #include "CvzESOM.h"
+#include "CvzTemplate.h"
 
 namespace cvz {
 	namespace core {
@@ -21,7 +22,9 @@ public:
 		s += TYPE_MMCM;
 		s += " (Multi Modal Convergence Map)" + '\n';
 		s += TYPE_MLP;
-		s += " (Multiple Layered Perceptron)" + '\n';
+        s += " (Multiple Layered Perceptron)" + '\n';
+        s += TYPE_TEMPLATE;
+        s += " (Dummy template for new CVZ)" + '\n';
 		return s;
 	}
 
@@ -35,6 +38,8 @@ public:
             (*ptr) = new CvzMLP();
         else if (type == TYPE_ESOM)
             (*ptr) = new CvzESOM();
+        else if (type == TYPE_TEMPLATE)
+            (*ptr) = new CvzTemplate();
 		else
 			return false;
 		return true;

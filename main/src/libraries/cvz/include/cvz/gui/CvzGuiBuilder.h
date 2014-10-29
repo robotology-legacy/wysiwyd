@@ -5,6 +5,7 @@
 #include "cvz/gui/GuiICvz.h"
 #include "cvz/gui/GuiMMCM.h"
 #include "cvz/gui/GuiESOM.h"
+#include "cvz/gui/GuiTemplate.h"
 
 namespace cvz {
 	namespace gui {
@@ -24,6 +25,8 @@ public:
         s += " (Multiple Layered Perceptron)" + '\n';
         s += core::TYPE_ESOM;
         s += " (Evolving Self Organizing Map)" + '\n';
+        s += core::TYPE_TEMPLATE;
+        s += " (Dummy Template)" + '\n';
 		return s;
 	}
 
@@ -37,6 +40,8 @@ public:
             (*ptr) = new cvz::gui::GuiICvz(ptrCvz);
         else if (type == cvz::core::TYPE_ESOM)
             (*ptr) = new cvz::gui::GuiESOM(ptrCvz);
+        else if (type == cvz::core::TYPE_TEMPLATE)
+            (*ptr) = new cvz::gui::GuiTemplate(ptrCvz);
 		else
 			return false;
 		return true;

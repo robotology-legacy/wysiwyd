@@ -12,6 +12,11 @@
 #include "IModality.h"
 #include "cvz/helpers/helpers.h"
 
+//OpenCV
+#include <cv.h>
+#include <cvaux.h>
+#include "highgui.h"
+
 namespace cvz {
     namespace core {
         class IConvergenceZone //: public cvz_IDL
@@ -24,7 +29,7 @@ namespace cvz {
             double period;
             bool isPaused;
             bool logResultsEnabled;
-
+            double logStartTime;
             void broadcastParameters()
             {
                 yarp::os::Bottle b = getParametersForBroadcast();
@@ -61,17 +66,15 @@ namespace cvz {
 
             virtual bool configure(yarp::os::Property &prop)
             {
-                
-
                 //For legacy config files and easier configuration, everything that is not in a group is appended to startime parameters
                 yarp::os::Bottle bFull;
                 bFull.read(prop);
+                //std::string debug = bFull.toString();
                 yarp::os::Property outOfGroupProps;
                 for (int i = 0; i < bFull.size(); i++)
                 {
                     std::string key = bFull.get(i).asList()->get(0).asString();
-                    int test = prop.findGroup(key).size();
-                    if (key != "" && prop.findGroup(key).size() == 2)
+                    if (key.find("modality_") == std::string::npos && key != "Parameters_RunTime" && key != "Parameters_StartTime")
                     {
                         outOfGroupProps.put(key, prop.find(key));
                     }
@@ -79,7 +82,7 @@ namespace cvz {
                 bFull.clear();
                 bFull.read(outOfGroupProps);
 
-                yarp::os::Bottle& bParamsFixed = prop.findGroup("Parameters StartTime");
+                yarp::os::Bottle& bParamsFixed = prop.findGroup("Parameters_StartTime");
                 bParamsFixed.append(bFull);
                 bParamsFixed.write(parametersStartTime);
 
@@ -93,8 +96,10 @@ namespace cvz {
                 period = parametersStartTime.find("period").asDouble();;
                 logResultsEnabled = parametersStartTime.check("enableLog");
 
-                yarp::os::Bottle& bParamsVariable = prop.findGroup("Parameters RunTime");
+                yarp::os::Bottle& bParamsVariable = prop.findGroup("Parameters_RunTime");
                 bParamsVariable.write(parametersRuntime);
+                std::string debug = parametersRuntime.toString();
+                std::string debug2 = bParamsVariable.toString();
 
                 setName(name.c_str());
                 std::string modPortPrefix = "/";
@@ -266,10 +271,17 @@ namespace cvz {
                 //Send parameters
                 broadcastParameters();
 
-                if (cyclesElapsed % 500 == 0)
-                    std::cout << getName() << "\t t=" << cyclesElapsed << std::endl;
+                //if (cyclesElapsed % 500 == 0)
+                //    std::cout << getName() << "\t t=" << cyclesElapsed << std::endl;
+                performPeriodicAction(cyclesElapsed);
                 cyclesElapsed++;
                 return true;
+            }
+
+            virtual void performPeriodicAction(const int &cyclesElapsed)
+            {
+                if (cyclesElapsed % 500 == 0)
+                    std::cout << getName() << "\t t=" << cyclesElapsed << std::endl;
             }
 
             virtual void ComputePrediction()
@@ -291,6 +303,7 @@ namespace cvz {
             {
                 std::ofstream file((getName() + ".log").c_str(), std::ofstream::app);
 
+                file << "time;";
                 for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
                 {
                     file << it->first->GetFullName() << "_realValue" << ';';
@@ -301,6 +314,7 @@ namespace cvz {
                 }
                 file << std::endl;
                 file.close();
+                logStartTime = yarp::os::Time::now();
             }
 
             //Given the current input, this function will generate all the possible modalities subsets and log the predictions
@@ -350,6 +364,8 @@ namespace cvz {
 
                 //Compute errors && Write down the results
                 std::ofstream file((getName() + ".log").c_str(), std::ofstream::app);
+
+                file << yarp::os::Time::now() - logStartTime << ';';
 
                 for (std::map<IModality*, double>::iterator it = modalitiesInfluence.begin(); it != modalitiesInfluence.end(); it++)
                 {

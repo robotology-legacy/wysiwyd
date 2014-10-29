@@ -2,4 +2,5 @@
 #include "GuiIModality.h"
 #include "GuiICvz.h"
 #include "GuiMMCM.h"
+#include "GuiTemplate.h"
 #include "CvzGuiBuilder.h"

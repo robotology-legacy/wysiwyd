@@ -200,6 +200,28 @@ public:
   }
 };
 
+class cvzMmcm_IDL_saveRF : public yarp::os::Portable {
+public:
+  std::string path;
+  bool _return;
+  virtual bool write(yarp::os::ConnectionWriter& connection) {
+    yarp::os::idl::WireWriter writer(connection);
+    if (!writer.writeListHeader(2)) return false;
+    if (!writer.writeTag("saveRF",1,1)) return false;
+    if (!writer.writeString(path)) return false;
+    return true;
+  }
+  virtual bool read(yarp::os::ConnectionReader& connection) {
+    yarp::os::idl::WireReader reader(connection);
+    if (!reader.readListReturn()) return false;
+    if (!reader.readBool(_return)) {
+      reader.fail();
+      return false;
+    }
+    return true;
+  }
+};
+
 void cvzMmcm_IDL::start() {
   cvzMmcm_IDL_start helper;
   if (!yarp().canWrite()) {
@@ -285,6 +307,16 @@ bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path) {
   helper.path = path;
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool cvzMmcm_IDL::saveRF(const std::string& path) {
+  bool _return = false;
+  cvzMmcm_IDL_saveRF helper;
+  helper.path = path;
+  if (!yarp().canWrite()) {
+    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::saveRF(const std::string& path)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -434,6 +466,22 @@ bool cvzMmcm_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "saveRF") {
+      std::string path;
+      if (!reader.readString(path)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = saveRF(path);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -478,6 +526,7 @@ std::vector<std::string> cvzMmcm_IDL::help(const std::string& functionName) {
     helpString.push_back("getActivity");
     helpString.push_back("saveWeightsToFile");
     helpString.push_back("loadWeightsFromFile");
+    helpString.push_back("saveRF");
     helpString.push_back("help");
   }
   else {
@@ -529,6 +578,13 @@ std::vector<std::string> cvzMmcm_IDL::help(const std::string& functionName) {
       helpString.push_back("Load the weights of the map from a file. ");
       helpString.push_back("The file should have been saved from a map using the same config file (modaility names & size, map size, etc.). ");
       helpString.push_back("@param path Path to the file containing the weights. ");
+      helpString.push_back("@return true/false in case of success/failure. ");
+    }
+    if (functionName=="saveRF") {
+      helpString.push_back("bool saveRF(const std::string& path) ");
+      helpString.push_back("Save the receptive fields of a map. A different file will be produced for each modality. ");
+      helpString.push_back("Produces an image ");
+      helpString.push_back("@param path Path to the file that will receive the RF without extension (.jpg). ");
       helpString.push_back("@return true/false in case of success/failure. ");
     }
     if (functionName=="help") {

@@ -66,6 +66,8 @@ namespace cvz {
                 }
                 if (currentValue < step)
                     step = currentValue;
+                if (step == 0.0)
+                    step = 0.0001;
 
                 parameterName = lab;
                 parameters = val;

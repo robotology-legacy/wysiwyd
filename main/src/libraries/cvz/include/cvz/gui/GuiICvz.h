@@ -96,7 +96,8 @@ namespace cvz {
                 //Display the runtime parameters
                 yarp::os::Bottle bVariableParameters;
                 bVariableParameters.read(myCvz->parametersRuntime);
-
+                std::string debug1 = myCvz->parametersRuntime.toString();
+                std::string debug2 = bVariableParameters.toString();
                 for (int i = 0; i < bVariableParameters.size(); i++)
                 {
                     std::string key = bVariableParameters.get(i).asList()->get(0).asString().c_str();

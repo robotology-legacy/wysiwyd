@@ -67,6 +67,13 @@ public:
  * @return true/false in case of success/failure.
  */
   virtual bool loadWeightsFromFile(const std::string& path);
+/**
+ * Save the receptive fields of a map. A different file will be produced for each modality.
+ * Produces an image
+ * @param path Path to the file that will receive the RF without extension (.jpg).
+ * @return true/false in case of success/failure.
+ */
+  virtual bool saveRF(const std::string& path);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

@@ -78,7 +78,24 @@ namespace cvz {
                 std::cout << "Trying to load weights from : " << fullPath << std::endl;
                 return loadWeights(fullPath);
             }
-
+            bool saveRF(const std::string &path)
+            {
+                bool globalError = true;
+                std::cout << "Trying to save the receptive fields to " << path << std::endl;
+                for (std::map<cvz::core::IModality*, double>::iterator itMod = modalitiesInfluence.begin(); itMod != modalitiesInfluence.end(); itMod++)
+                {
+                    IplImage* imgRF = this->getReceptiveFieldRepresentation(itMod->first);
+                    std::stringstream fileName;
+                    fileName << path << itMod->first->Name() << ".jpg";
+                    int errorCode = cvSaveImage(fileName.str().c_str(), imgRF);
+                    std::cout << "Saving receptive fields of " << fileName.str() << " --> " << cvErrorStr(errorCode) << std::endl;
+                    if (errorCode != 1)
+                        globalError = false;
+                    cvReleaseImage(&imgRF);
+                }
+                std::cout << "Done. " << std::endl;
+                return globalError;
+            }
             //virtual yarp::os::Bottle getParametersForBroadcast()
             //{
             //    yarp::os::Bottle b = this->IConvergenceZone::getParametersForBroadcast();
@@ -164,6 +181,17 @@ namespace cvz {
                 return true;
             }
 
+            virtual void performPeriodicAction(const int &cyclesElapsed)
+            {
+                this->IConvergenceZone::performPeriodicAction(cyclesElapsed);
+                if (cyclesElapsed % 500 == 0)
+                {
+                    std::stringstream spath;
+                    spath << this->getName() << "_" << cyclesElapsed << "_";
+                    saveRF(spath.str().c_str());
+                }
+            }
+
             virtual void ComputePrediction()
             {
                 mutex.wait();
@@ -235,6 +263,28 @@ namespace cvz {
                     }
                 }
 
+
+                //Do an E%MAX
+                if (true /*algorithm == MMCM_ALGORITHM_POPULATION*/)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        for (int y = 0; y < height; y++)
+                        {
+                            for (int z = 0; z < layers; z++)
+                            {
+                                if (fabs(activity[xWin][yWin][zWin] - activity[x][y][z]) > fabs(0.05*activity[xWin][yWin][zWin]))
+                                {
+                                    activity[x][y][z] = 0.0;
+                                    xLoose = x;
+                                    yLoose = y;
+                                    zLoose = z;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 //------------------------------------------------------------------------------------------------------------------------
                 //Send the output activity
                 portActivity.write();
@@ -264,6 +314,21 @@ namespace cvz {
 
             void predictModality(IModality* mod, std::string algorithmUsed)
             {
+                //SOFT MAX
+                /*
+                double totalActivity = 0.0;
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        for (int z = 0; z < layers; z++)
+                        {
+                            totalActivity += exp(activity[x][y][z]);
+                        }
+                    }
+                }
+                */
+
                 std::vector<double> valuePrediction;
                 valuePrediction.resize(mod->Size(), 0.0);
 
@@ -273,25 +338,28 @@ namespace cvz {
                 {
                     valuePredictionWinner[i] = weights[mod][i][xWin][yWin][zWin];
 
-                    if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
+                    int contributingNeurons = 0;
+                    if (true /*algorithmUsed == MMCM_ALGORITHM_POPULATION*/)
                     {
-                        double totalContribution = 0.0;
                         for (int x = 0; x < width; x++)
                         {
                             for (int y = 0; y < height; y++)
                             {
                                 for (int z = 0; z < layers; z++)
-                                {
-                                    double contribution = activity[x][y][z];// / activity[xWin][yWin][zWin];
-                                    valuePrediction[i] += (weights[mod][i][x][y][z] * contribution);
-                                    totalContribution += contribution;
+                                {  
+                                    //double contribution = activity[x][y][z];//SOFTMAX exp(activity[x][y][z]) / totalActivity;// / activity[xWin][yWin][zWin];
+                                    if (activity[x][y][z]>0)
+                                    {
+                                        contributingNeurons++;
+                                        valuePrediction[i] += weights[mod][i][x][y][z];
+                                    }
                                 }
                             }
                         }
-                        valuePrediction[i] /= totalContribution;
+                        valuePrediction[i] /= (double)contributingNeurons;
                     }
                 }
-                if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
+                if (true /*algorithmUsed == MMCM_ALGORITHM_POPULATION*/)
                 {
                     mod->SetValuePrediction(valuePrediction);
                 }
@@ -339,7 +407,7 @@ namespace cvz {
                 }
                 else if (algorithmUsed == MMCM_ALGORITHM_POPULATION)
                 {
-                    dW = helpers::sigmoidFunction(fabs(neuronError), 0.4, 10);
+                    return fabs(neuronError / winnerError);
                 }
                 else
                     std::cerr << "Error : Unknown algorithm. All neurons will learn equally." << std::endl;
@@ -527,6 +595,47 @@ namespace cvz {
 
                 //Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
                 return img;
+            }
+
+            /**
+            * Returns as an image the receptive field for a given modality of a given neuron of the map.
+            * @param x x coordinate of the neuron to plot
+            * @param y y coordinate of the neuron to plot
+            * @param z z coordinate of the neuron to plot
+            * @param modalityToPlot Pointer to the modality you want to plot
+            * @return An image representing the receptive field of the whole map.
+            */
+            IplImage* getReceptiveFieldRepresentation(IModality* modalityToPlot)
+            {
+                //First we probe the size of one RF.
+                int singlelW = 0; //We display the potential layers next to each other
+                int singleH = 0;
+                yarp::sig::ImageOf<yarp::sig::PixelRgb> probe = getReceptiveFieldRepresentation(0, 0, 0, modalityToPlot);
+                singlelW += probe.width();
+                singleH = std::max(singleH, probe.height());
+   
+                int totalW = singlelW * (W() * L()); //We display the potential layers next to each other
+                int totalH = singleH * H();
+
+                IplImage* fullImg = cvCreateImage(cvSize(totalW, totalH), 8, 3);
+                //here we should fill image with black
+                for (int x = 0; x < W(); x++)
+                {
+                    for (int y = 0; y < H(); y++)
+                    {
+                        for (int z = 0; z < L(); z++)
+                        {
+                            int xOffset = x*singlelW + z*singlelW;
+                            int yOffset = y*singleH;
+                            yarp::sig::ImageOf<yarp::sig::PixelRgb> thumbnail = getReceptiveFieldRepresentation(x, y, z, modalityToPlot);
+                            cvSetImageROI(fullImg, cvRect(xOffset, yOffset, thumbnail.width(), thumbnail.height()));
+                            cvCopyImage(thumbnail.getIplImage(), fullImg);
+                            cvResetImageROI(fullImg);
+                            xOffset += thumbnail.width();
+                        }
+                    }
+                }
+                return fullImg;
             }
 
             /**

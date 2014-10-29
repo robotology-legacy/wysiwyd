@@ -70,5 +70,13 @@ service cvzMmcm_IDL
    * @return true/false in case of success/failure.
    */
    bool loadWeightsFromFile(1:string path);
+
+   /**
+   * Save the receptive fields of a map. A different file will be produced for each modality.
+   * Produces an image
+   * @param path Path to the file that will receive the RF without extension (.jpg).
+   * @return true/false in case of success/failure.
+   */
+   bool saveRF(1:string path);
 }
 

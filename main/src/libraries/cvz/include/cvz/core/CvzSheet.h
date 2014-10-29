@@ -7,12 +7,6 @@
 #include "ICvz.h"
 #include "cvz/helpers/helpers.h"
 
-//OpenCV
-#include <cv.h>
-#include <cvaux.h>
-#include "highgui.h"
-
-
 namespace cvz {
     namespace core {
 

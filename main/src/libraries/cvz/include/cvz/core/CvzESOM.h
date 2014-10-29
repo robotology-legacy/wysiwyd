@@ -31,7 +31,10 @@ namespace cvz {
                 for (std::map<IModality*, std::vector<double> >::iterator itMod = prototype.begin(); itMod != prototype.end(); itMod++)
                 {
                     if (n->prototype.find(itMod->first) == n->prototype.end())
+                    {
+                        std::cerr << "Error while getting the distanceTo neuron. Modalities do not match..." << std::endl;
                         return -1;
+                    }
                     
                     double dMod = 0.0;
                     for (size_t i = 0; i < itMod->second.size(); i++)
@@ -39,6 +42,26 @@ namespace cvz {
                     d += dMod / itMod->second.size();
                 }
                 d /= (double)prototype.size();
+                return d;
+            }
+
+
+            double distanceTo(ESOMNode* n, std::map<std::string, IModality*> usedModalities)
+            {
+                double d = 0.0;
+                for (std::map<std::string, IModality* >::iterator itMod = usedModalities.begin(); itMod != usedModalities.end(); itMod++)
+                {
+                    if (n->prototype.find(itMod->second) == n->prototype.end() || this->prototype.find(itMod->second) == this->prototype.end())
+                    {
+                        std::cerr << "Error while getting the distanceTo neuron. Modalities do not match..." << std::endl;
+                        return -1;
+                    }
+                    double dMod = 0.0;
+                    for (size_t i = 0; i < prototype[itMod->second].size(); i++)
+                        d += fabs(prototype[itMod->second][i] - n->prototype[itMod->second][i]);
+                    d += dMod / prototype[itMod->second].size();
+                }
+                d /= (double)usedModalities.size();
                 return d;
             }
         };
@@ -56,7 +79,7 @@ namespace cvz {
 
             virtual std::string getType() { return cvz::core::TYPE_ESOM; };
             int getNodesCount() { return nodes.size(); }
-            int getConnectionsCount() {
+            int getConnectionsCount() {/*
                 int cnt = 0;
                 for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
                 {
@@ -68,7 +91,8 @@ namespace cvz {
                         }
                     }
                 }
-                return cnt;
+                return cnt;*/
+                return 0;
             }
 
             /*IDL methods*/
@@ -103,7 +127,17 @@ namespace cvz {
                     parametersRuntime.put("prunningStrenghtTreshold", yarp::os::Value(1.0));
 
                 useSoftMaxPrediction = !rf.check("noSoftMax");
+                parametersStartTime.put("SoftMax prediction", yarp::os::Value(useSoftMaxPrediction)); //Just for display
+
                 learnStepCnt = 0;
+                if (!parametersStartTime.check("initialNodes"))
+                    parametersStartTime.put("initialNodes", yarp::os::Value(3));
+                
+                //Create the initial nodes
+                for (int i = 0; i < parametersStartTime.find("initialNodes").asInt(); i++)
+                {
+                    addNewNode(true);
+                }
 
                 //Good to go!
                 std::cout << std::endl << "ESOM Model:" << std::endl
@@ -191,23 +225,33 @@ namespace cvz {
                 return d;
             }
 
-            ESOMNode* addNewNode()
+            ESOMNode* addNewNode(bool assignRandomWeghts = false)
             {
                 std::cout << "Adding a new node. Node count=" << nodes.size() + 1 << std::endl;
                 ESOMNode* newNode = new ESOMNode();
-                for (std::map< IModality*, double>::iterator itMod = modalitiesInfluence.begin(); itMod != modalitiesInfluence.end(); itMod++)
+
+                //For the bottom up modality we just take the current input stimulus
+                for (std::map< std::string, IModality*>::iterator itMod = modalitiesBottomUp.begin(); itMod != modalitiesBottomUp.end(); itMod++)
                 {
-                    newNode->prototype[itMod->first] = itMod->first->GetValueReal();
+                    newNode->prototype[itMod->second].resize(itMod->second->Size());
+
+                    if (!assignRandomWeghts)
+                        newNode->prototype[itMod->second] = itMod->second->GetValueReal();
+                    else
+                    for (int i = 0; i < newNode->prototype[itMod->second].size(); i++)
+                        newNode->prototype[itMod->second][i] = yarp::os::Random::uniform();
                 }
 
-                //Identify the 2 nearest neighbhoors
+                //For the top down modality we do an interpolation of the two nearest nodes (see at the end)
+
+                //Identify the 3 nearest neighbhoors
                 ESOMNode* near1 = NULL;
                 ESOMNode* near2 = NULL;
                 double near1d = 999.99;
                 double near2d = 999.99;
                 for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
                 {
-                    double d = newNode->distanceTo(*itNode);
+                    double d = newNode->distanceTo(*itNode, modalitiesBottomUp);
                     if (d <= near2d)
                     {
                         if (d <= near1d)
@@ -250,24 +294,57 @@ namespace cvz {
                 }
 
                 connections[newNode][newNode] = 1.0;
+
+                //We treat the topdown modalities
+                for (std::map< std::string, IModality*>::iterator itMod = modalitiesTopDown.begin(); itMod != modalitiesTopDown.end(); itMod++)
+                {
+                    newNode->prototype[itMod->second].resize(itMod->second->Size());
+
+                    for (int i = 0; i < newNode->prototype[itMod->second].size(); i++)
+                    {
+                        if (!assignRandomWeghts)
+                            newNode->prototype[itMod->second][i] = (near1->prototype[itMod->second][i] * near1d + near2->prototype[itMod->second][i]) * near2d / (near1d + near2d);
+                        else
+                            newNode->prototype[itMod->second][i] = yarp::os::Random::uniform();
+                    }
+                }
                 return newNode;
             }
 
 
             void adaptWeights(ESOMNode* winner)
             {
-                for (std::map< IModality*, double>::iterator itMod = modalitiesInfluence.begin(); itMod != modalitiesInfluence.end(); itMod++)
+                //We train the bottomup modalities
+                for (std::map< std::string, IModality*>::iterator itMod = modalitiesBottomUp.begin(); itMod != modalitiesBottomUp.end(); itMod++)
                 {
-                    std::vector<double> vReal = itMod->first->GetValueReal();
+                    std::vector<double> vReal = itMod->second->GetValueReal();
                     for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
                     {
                         if (connections[winner][*itNode] != -1.0)
                         {
-                            for (int i = 0; i < itMod->first->Size(); i++)
+                            for (int i = 0; i < itMod->second->Size(); i++)
                             {
-                                double error = vReal[i] - (*itNode)->prototype[itMod->first][i];
+                                double error = vReal[i] - (*itNode)->prototype[itMod->second][i];
                                 double dW = parametersRuntime.find("learningRate").asDouble() * exp(-pow((*itNode)->activity, 2.0) / (2 * pow(parametersRuntime.find("sigma").asDouble(),2.0))) * error;
-                                (*itNode)->prototype[itMod->first][i] += dW;
+                                (*itNode)->prototype[itMod->second][i] += dW;
+                            }
+                        }
+                    }
+                }
+
+                //For topdown we keep the winner one as it is but adapt the connected nodes
+                for (std::map< std::string, IModality*>::iterator itMod = modalitiesTopDown.begin(); itMod != modalitiesTopDown.end(); itMod++)
+                {
+                    std::vector<double> vReal = winner->prototype[itMod->second];
+                    for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
+                    {
+                        if (connections[winner][*itNode] != -1.0)
+                        {
+                            for (int i = 0; i < itMod->second->Size(); i++)
+                            {
+                                double error = vReal[i] - (*itNode)->prototype[itMod->second][i];
+                                double dW = parametersRuntime.find("learningRate").asDouble() * exp(-pow((*itNode)->activity, 2.0) / (2 * pow(parametersRuntime.find("sigma").asDouble(), 2.0))) * error;
+                                (*itNode)->prototype[itMod->second][i] += dW;
                             }
                         }
                     }
@@ -295,7 +372,7 @@ namespace cvz {
                     {
                         for (std::list<ESOMNode*>::iterator itNode2 = nodes.begin(); itNode2 != nodes.end(); itNode2++)
                         {
-                            if (connections[*itNode][*itNode2] != -1.0)
+                            if (connections[*itNode][*itNode2] != -1.0 && itNode != itNode2)
                             {
 
                                 if (a == nodes.end() || connections[*itNode][*itNode2] < connections[*a][*b])
@@ -306,52 +383,51 @@ namespace cvz {
                             }
                         }
                     }
-
-                    if (nodes.size() <= 3 || connections[*a][*b] > parametersRuntime.find("prunningStrenghtTreshold").asDouble())
+                    if (a == nodes.end() || b == nodes.end())                    
+                    {
+                        std::cout << "cancelled. (Impossible to find any connection to prune)"<< std::endl;
+                        //return;
+                    }
+                    else if (nodes.size() <= 3 || connections[*a][*b] > parametersRuntime.find("prunningStrenghtTreshold").asDouble())
                     {
                         std::cout << "cancelled. (Only one node or connection too strong = " << connections[*a][*b] <<")." << std::endl;
-                        return;
+                        //return;
                     }
-
-                    //Prune the connection
-                    connections[*a][*b] = -1;
-                    connections[*b][*a] = -1;
-                    std::cout << "Done" << std::endl;
+                    else
+                    {
+                        //Prune the connection
+                        connections[*a][*b] = -1;
+                        connections[*b][*a] = -1;
+                        std::cout << "Pruned." << std::endl;
+                    }
 
                     //check if a should be pruned
                     std::cout << "Prunning node...";
-                    bool isConnectedA = false;
-                    bool isConnectedB = false;
+                    std::list< std::list<ESOMNode*>::iterator > singleNodes;
                     for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
                     {
-                        if (connections[*a][*itNode] != -1.0)
-                            isConnectedA = true;
-                        if (connections[*b][*itNode] != -1.0)
-                            isConnectedB = true;
+                        int degree = 0;
+                        for (std::list<ESOMNode*>::iterator itNode2 = nodes.begin(); itNode2 != nodes.end(); itNode2++)
+                        {
+                            if (connections[*itNode][*itNode2] != -1.0)
+                            {
+                                degree++;
+                            }
+                        }
+                        if (degree <= 1)
+                            singleNodes.push_back(itNode);
                     }
-
-                    ESOMNode* ptra = *a;
-                    ESOMNode* ptrb = *b;
-
-                    if (!isConnectedA)
+                    
+                    //Prune
+                    for (std::list< std::list<ESOMNode*>::iterator >::iterator itNode2 = singleNodes.begin(); itNode2 != singleNodes.end(); itNode2++)
                     {
                         std::cout << "Erasing one node...";
                         for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
                         {
-                            connections[*itNode].erase(ptra);
+                            connections[*itNode].erase(**itNode2);
                         }
-                        connections.erase(ptra);
-                        nodes.erase(a);
-                    }
-                    if (!isConnectedB)
-                    {
-                        std::cout << "Erasing one node...";
-                        for (std::list<ESOMNode*>::iterator itNode = nodes.begin(); itNode != nodes.end(); itNode++)
-                        {
-                            connections[*itNode].erase(ptrb);
-                        }
-                        connections.erase(ptrb);
-                        nodes.erase(b);
+                        connections.erase(**itNode2);
+                        nodes.erase(*itNode2);
                     }
                     std::cout << "Done" << std::endl;
                     std::cout << "Prunning over. Node count=" << nodes.size() << std::endl;
