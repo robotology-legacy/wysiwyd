@@ -8,10 +8,18 @@
 //   Include declaration file
 #include "audioPreprocessing.h"
 //   Include math library
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
 #include <vector>
 
+
+#if WIN32
+// apparently not defined in windows
+double log2(const double x)
+{
+    return (log(x)/log(2.0));
+}
+#endif
 
 
 bool CFFT::configure(yarp::os::ResourceFinder &rf)
@@ -51,7 +59,6 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     {
         cout << getName() << ": ERROR! Buffer size must be a power of 2! Please, change the value (Default: 4096) "<<endl;
                 bEveryThingisGood &= false;
-
     }
 
     // create one input port from audio
