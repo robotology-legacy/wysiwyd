@@ -21,6 +21,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("audioPreprocessing")).asString().c_str();
     setName(moduleName.c_str());
 
+
     string moduleInput = rf.check("input", Value("/microphone")).asString().c_str();
     // buffer size is set to 4096 because: 
     //      - It must be a power of 2
@@ -43,6 +44,15 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
     bool    bEveryThingisGood = true;
 
+
+    // Check buffer size as a power of 2
+    int L = rf.check("BufferSize", Value(4096)).asInt();
+    if ( (10*(int)log2((double)L)%10) != 0)
+    {
+        cout << getName() << ": ERROR! Buffer size must be a power of 2! Please, change the value (Default: 4096) "<<endl;
+                bEveryThingisGood &= false;
+
+    }
 
     // create one input port from audio
     // Open port2audio
@@ -224,20 +234,23 @@ bool CFFT::updateModule() {
         yarp::os::Bottle &SpectralSignal = portSpectrumOutput.prepare();
         SpectralSignal.clear();
 
+        /*
         yarp::os::Bottle &SpectralBool = portSpectBoolOutput.prepare();
         SpectralBool.clear();
-
+        */
         delete[] pSignal;
+        pSignal = NULL;
 
         for (int i = 1; i<K; i++)
             {
                 SpectralSignal.addDouble(log10(sig[i]));
+                /*
                 if (log10(sig[i])>15)
                 {
                     SpectralBool.addDouble(1.0);
                 }else{
                     SpectralBool.addDouble(0.0);
-                }
+                }*/
             }
 
         treatedNote.addDouble(gap);
@@ -246,6 +259,10 @@ bool CFFT::updateModule() {
         portOutputFreq.write();
         portOutputGap.write();
         portSpectrumOutput.write();
+
+        delete[] fftOut;
+        fftOut = NULL;
+        delete signal;
 
     }
 
