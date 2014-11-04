@@ -6,7 +6,7 @@
 #include <map>
 #include <yarp/sig/all.h>
 #include <cv.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <stdio.h> // for replacing files
 
 using namespace std;
@@ -14,7 +14,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 
 static const char *DEFAULT_CONFIG_FILE = "default.ini";
-static const double SQ2 = sqrt(2);
+#define static const double SQ2 = sqrt(2);
 
 //Inicialization functions for Input:
 

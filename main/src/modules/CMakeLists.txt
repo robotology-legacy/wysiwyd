@@ -15,6 +15,7 @@ add_subdirectory(adaptiveLayer)
 add_subdirectory(systemMotor)
 add_subdirectory(systemHaptic)
 add_subdirectory(systemAuditory)
+add_subdirectory(sensorySensory)
 
 add_subdirectory(humanUnderstanding)
 
