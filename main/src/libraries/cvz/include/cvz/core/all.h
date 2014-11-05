@@ -7,6 +7,7 @@
 #include "CvzBuilder.h"
 #include "CvzStack.h"
 #include "CvzFiber.h"
+#include "CvzNN.h"
 
 /**
 *
