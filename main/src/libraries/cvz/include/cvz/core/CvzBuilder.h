@@ -6,7 +6,6 @@
 #include "CvzMLP.h"
 #include "CvzESOM.h"
 #include "CvzTemplate.h"
-#include "CvzNN.h"
 
 namespace cvz {
 	namespace core {
@@ -26,8 +25,6 @@ public:
         s += " (Multiple Layered Perceptron)" + '\n';
         s += TYPE_TEMPLATE;
         s += " (Dummy template for new CVZ)" + '\n';
-        s += TYPE_NN;
-        s += " (Neural Network template)" + '\n';
 		return s;
 	}
 
@@ -43,8 +40,6 @@ public:
             (*ptr) = new CvzESOM();
         else if (type == TYPE_TEMPLATE)
             (*ptr) = new CvzTemplate();
-        else if (type == TYPE_NN)
-            (*ptr) = new CvzNN();
 		else
 			return false;
 		return true;
