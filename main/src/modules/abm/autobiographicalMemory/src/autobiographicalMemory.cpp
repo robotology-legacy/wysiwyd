@@ -934,6 +934,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     //for stream image
     string activityName ;
     bool isStreamActivity = false ;
+    string fullSentence ;
 
     //Action
     for (int i = 1; i < bInput.size() ; i++)
@@ -941,12 +942,16 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         bTemp = *(bInput.get(i).asList());
         if (bTemp.get(0) == "action" && !done)
         {
-            //if it is an action, will store stream image after
-            isStreamActivity = true ;
-
             osMain << bTemp.get(1).asString() << "' , '";
             sName = bTemp.get(1).asString();
             activityName = bTemp.get(1).asString(); //sName is concatenated after...need to save label
+            imgLabel = activityName ;
+
+            //if it is not a sentence -> stream
+            if (activityName != "sentence") {
+                   isStreamActivity = true ;
+            }
+
             osMain << bTemp.get(2).asString() << "' , '";
             done = true;
         }
@@ -1015,12 +1020,24 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
                 if(currentEntity == NULL){
                     if (bTemp.get(j).asList()->size() > 1) {
                         osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< bTemp.get(j).asList()->get(0).asString() << "', " << "'external', 'default', '" << bTemp.get(j).asList()->get(1).asString() << "');";
+
+                        //add sentence for single img label
+                        if(bTemp.get(j).asList()->get(1).asString() == "sentence"){
+                            fullSentence = bTemp.get(j).asList()->get(0).asString();
+                        }
+
                     } else {
                         osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< bTemp.get(j).asList()->get(0).asString() << "', " << "'external', 'default', 'unknown');";
                     }
                 } else {
                     if (bTemp.get(j).asList()->size() > 1) {
                         osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', '" << bTemp.get(j).asList()->get(1).asString() << "');";    
+                    
+                        //add sentence for single img label
+                        if(bTemp.get(j).asList()->get(1).asString() == "sentence"){
+                            fullSentence = bTemp.get(j).asList()->get(0).asString();
+                        }
+
                     } else {
                         osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '"<< currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'unknown');";    
                     }
@@ -1060,7 +1077,33 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
             streamStatus = "end" ;
         }
 
-        imgLabel = activityName ; //not sName, weird concatenation has happened to it
+    } else {                              //just one image (sentence?)
+
+        //concatenation of the path to store
+        char imgName[512] = "";
+        char fullPath[512] = "" ;
+
+        stringstream ssImgName;
+        if (fullSentence == ""){
+            fullSentence = imgLabel ;
+        } 
+
+        //take the full sentence, replace space by _ to have the img name
+        replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
+        ssImgName << fullSentence << "." << imgFormat ;
+        strcpy(imgName, ssImgName.str().c_str());
+
+        stringstream ssPath;
+        ssPath << storingPath << "/" << imgName ;
+        strcpy(fullPath, ssPath.str().c_str());
+
+        //create the image file
+        if(!createImage(fullPath)){
+            cout << "Error in snapshot : image not created" << endl ;
+        } else {
+            //create SQL entry, register the cam image in specific folder
+            storeImage(instance, imgLabel, fullPath, imgName);
+        }
     }
 
 

@@ -375,11 +375,14 @@ Bottle opcEars::insertOPC(string sName)
 
 
     // ---- Entities ---- //
+    list<Entity*>::iterator it_E = opcTemp.lEntities.begin() ;
 
-    for (list<Entity*>::iterator it_E = opcTemp.lEntities.begin(); it_E != opcTemp.lEntities.end(); it_E++ )
+    for (it_E; it_E != opcTemp.lEntities.end(); it_E++ )
     {
         bTemp = insertEntity(*it_E);
     
+        cout << "bTemp = " << bTemp.toString() << endl ;
+
         if (!fContent)
             osContent << bTemp.get(1).toString().c_str() ;
         else
