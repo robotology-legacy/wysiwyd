@@ -10,13 +10,15 @@ static const double SQ2 = sqrt((double) 2.0);
 class NeuralModel
 {
 public:
-    std::vector< std::vector< double > >    connections;
+
+    std::vector<double>*                    SDev;
+    std::vector<double>*                    Means;
     std::vector<double>*                    activity;
     std::vector<double>*                    diff_activity;
     std::vector<double*>                    input;
     std::vector<double*>                    output;
-    std::vector<double>*                    SDev;
-    std::vector<double>*                    Mean;
+
+    std::vector< std::vector< double >* >*    connections;
     double                                  alpha;
     double                                  max_activity;
     double                                  total_activity;
@@ -49,7 +51,7 @@ public:
         {
             for (unsigned int j = input.size(); j < activity->size(); j++)
             {
-                connections[j][i] = (rand() % 1000) / (double)1000;
+               ( connections->at(j))->at(i) = (rand() % 1000) / (double)1000;
             }
         }
     }
@@ -65,7 +67,7 @@ public:
     //------------------------------------------------------------------------------------------------------
     //Init functions
 
-    NeuralModel(int n_neurons, std::vector<double> loaded_mean, std::vector<double> loaded_std, double a = 0.001, double E = 0.95, double LR = 0.1, int input_size = 2048, int output_size = 50)
+    NeuralModel(unsigned int n_neurons, std::vector<double>* loaded_mean, std::vector<double>* loaded_std, double a = 0.001, double E = 0.95, double LR = 0.1, unsigned int input_size = 2048, unsigned int output_size = 50)
     {
         //initialize constants
         i_size = input_size;
@@ -81,35 +83,50 @@ public:
         if (size < o_size){ std::cout << "ERROR: More outputs than neurons" << std::endl; }
 
         //reallocate vector sizes
+        activity = new std::vector<double>;
         activity->resize(size);
+        diff_activity = new std::vector<double>;
         diff_activity->resize(size);
         input.resize(i_size);
         output.resize(o_size);
+        /*
+        SDev = new std::vector<double>;
         SDev->resize(i_size);
-        Mean->resize(i_size);
+        Means = new std::vector<double>;
+        Means->resize(i_size);
+*/
+        //initialize connections matrix
+        connections = new std::vector<std::vector<double>* >;
+        connections->resize(size);
+        for(unsigned int i = 0;i<size;i++)
+        {
+            connections->at(i) = new std::vector<double>;
+            (connections->at(i))->resize(size);
+        }
 
         //assign pre-loaded data
-        if (loaded_std.size() != (unsigned int)input_size)
+        if (loaded_std->size() != i_size)
         {
-            std::vector<double> newS(input_size);
-            setSDev(&newS);
+            SDev=loaded_std;
+            SDev->resize(i_size);
+
         }
         else{
-            setSDev(&loaded_std);
+            setSDev(loaded_std);
         }
-        if (loaded_mean.size() != (unsigned int)input_size)
+        if (loaded_mean->size() != i_size)
         {
-            std::vector<double> newM(input_size);
-            setMean(&newM);
+            Means=loaded_mean;
+            Means->resize(i_size);
+
         }
         else{
-            setMean(&loaded_mean);
+            setMean(loaded_mean);
         }
 
-        //sizes[0] = (int)input_size;
-        //sizes[1] = (int)n_neurons / input_size;
 
-        generateModel(n_neurons, input_size);
+        this->generateModel();
+
 
     }
 
@@ -120,27 +137,28 @@ public:
         {
             for (unsigned int j = 0; j < (size); j++)
             {
-                connections[j][i] = 0.0;
+                (connections->at(j))->at(i) = 0.0;
             }
         }
     }
 
-    bool generateModel(int number_neurons = 8192, int max_neurons = 5, int min_neurons = 1, int input_size = 2048, std::string input_connections = "allRandom", std::string inner_topology = "none")
+    void generateModel(std::string input_connections = "allRandom", std::string inner_topology = "none")
     {
 
         //Generate the neurons        
-        for (int n = 0; n < size; n++)
+        for (unsigned int n = 0; n < size; n++)
         {
             activity->at(n) = 0;
             diff_activity->at(n) = 0;
         }
 
         //Initialize input neurons
-        for (int n = 0; n < input_size; n++)
+        for (unsigned int n = 0; n < i_size; n++)
         {
-            input[n] = ((double*)&activity[n]);
-            std::cout << "Testing: input adress, content and neuron content and adress" << std::endl;
-            std::cout << input[n] << *input[n] << activity->at(n) << &activity[n] << std::endl;
+
+            input[n] = &((*activity)[n]);
+            //std::cout << "Testing: input adress, content and neuron content and adress" << std::endl;
+            //std::cout << input[n] << "  "<<*(input[n]) << "  "<< activity->at(n) << "  "<< &activity[n] << std::endl;
         }
 
         //Initialize input weights
@@ -158,23 +176,22 @@ public:
         {
             TopologyNone();
         }
-
-        return true;
     }
 
     //------------------------------------------------------------------------------------------------------
     //Utilitari functions
-    std::vector<double> getMean(){ return *Mean; }
+    std::vector<double> getMean(){ return *Means; }
     std::vector<double> getSDev(){ return *SDev; }
-    void setMean(std::vector<double>* m){ Mean = m; }
+    void setMean(std::vector<double>* m){ Means = m; }
     void setSDev(std::vector<double>* s){ SDev = s; }
 
     void normalizeInput(double *in, unsigned int i)
     {
 
-        Mean->at(i) = (Mean->at(i) * (1 - alpha)) + alpha* (*in);
-        SDev->at(i) = sqrt(SDev->at(i) * SDev->at(i) * (1 - alpha) + alpha*pow((*in) - Mean->at(i), 2));
-        *in = 0.5 + 0.5*tanh(((*in) - Mean->at(i))*SDev->at(i) / SQ2);
+        Means->at(i) = (Means->at(i) * (1 - alpha)) + alpha* (*in);
+
+        SDev->at(i) = sqrt(SDev->at(i) * SDev->at(i) * (1 - alpha) + alpha*pow((*in) - Means->at(i), 2));
+        *in = 0.5 + 0.5*tanh(((*in) - Means->at(i))*SDev->at(i) / SQ2);
 
     }
 
@@ -208,10 +225,10 @@ public:
         //This could be parallelized!!!
         for (unsigned int j = i_size; j<size; j++) //receiving neuron
         {
-            diff_activity->at(j) = 0;
+            diff_activity->at(j) = (double)0;
             for (unsigned int i = 0; i<size; i++) //signaling neuron
             {
-                diff_activity->at(i) += connections[j][i] * activity->at(i);
+                diff_activity->at(j) += (connections->at(j))->at(i) * activity->at(i);
             }
         }
     }
@@ -240,7 +257,6 @@ public:
         //Compute current E%max
         double Emax = E_percent;
         aux_max = 1 / max_activity;
-
         if (normalization.compare("total") == 0)        //Total activity of the network is 1
         {
             double aux_total = 1 / total_activity;
@@ -264,7 +280,7 @@ public:
             //4.2 Select: E%-max
             if (activity->at(n) < Emax)
             {
-                *output[n] *= 0;
+                activity->at(n) = 0;
             }
             else
             {
@@ -296,13 +312,12 @@ public:
                 activity->at(n) /= aux_max;
             }
         }
-
         for (unsigned int n = i_size; n < size; n++)
         {
             //4.2 Select: E%-max
             if (activity->at(n) < Emax)
             {
-                *output[n] *= 0;
+                activity->at(n) = 0;
             }
             else
             {
@@ -320,7 +335,7 @@ public:
             for (unsigned int i = 0; i < size; i++)      //spiking neuron
             {
                 // Learning Rule
-                connections[j][i] += learning_rate * (diff_activity->at(j) * aux_max - diff_activity->at(i) * aux_max);
+                (connections->at(j))->at(i) += learning_rate * (diff_activity->at(j) * aux_max - diff_activity->at(i) * aux_max);
             }
         }
     }

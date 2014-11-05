@@ -56,7 +56,6 @@ namespace cvz {
             {
                 //Call the base class configure
                 this->IConvergenceZone::configure(rf);
-
                 //Get additional parameters
                 if (!parametersStartTime.check("size"))
                     parametersStartTime.put("size", yarp::os::Value(50));
@@ -66,7 +65,7 @@ namespace cvz {
                     parametersStartTime.put("layers", yarp::os::Value(1));
                 if (!parametersStartTime.check("topology"))
                     parametersStartTime.put("topology", yarp::os::Value(MMCM_CONNECTIVITY_SHEET));
-                
+
                 //Starttime parameters
                 size = parametersStartTime.find("size").asInt();
                 input_size = parametersStartTime.find("inputSize").asInt();
@@ -80,7 +79,6 @@ namespace cvz {
                     parametersRuntime.put("alpha", yarp::os::Value(3600));
                 if (!parametersRuntime.check("SDev"))
                     parametersRuntime.put("SDev", yarp::os::Value(2.0));
-
 
                 //Load previous normalization parameters
                 yarp::os::Bottle bGroup = rf.findGroup("Auditory");
@@ -129,8 +127,7 @@ namespace cvz {
                 portActivity.open(actPortName);
 
                 //Configure network
-                NN = new NeuralModel(50, Mean, SDev);
-
+                NN = new NeuralModel(50, &Mean, &SDev);
 
                 return true;
             }
@@ -166,13 +163,11 @@ namespace cvz {
                 {
                     input_vector[i] = input_bottle->get(i).asDouble();
                 }
-
                 NN->updateInput(input_vector);
                 NN->processActivity();
                 NN->updateActivity();
                 //NN->normalizeAndSelect();
                 NN->normalizeAndSelect(botActivity);
-                std::cout << NN->firing << std::endl;
                 portActivity.write();
                 NN->updateWeights();
                 NN->resetLoop();
