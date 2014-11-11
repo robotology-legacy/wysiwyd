@@ -392,6 +392,11 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "CREATE TABLE interactionknowledge (subject text NOT NULL, argument text NOT NULL, number integer NOT NULL, type text NOT NULL DEFAULT 'none'::text, role text NOT NULL DEFAULT 'none'::text, CONSTRAINT interactionknowledge_pkey PRIMARY KEY (subject, argument, type, role) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE interactionknowledge OWNER  TO postgres;" ; 
 
+    /****************************** images *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS images CASCADE;";
+    *ABMDataBase << "CREATE TABLE images (instance integer NOT NULL, label text, img_oid oid NOT NULL, filename text, CONSTRAINT img_id PRIMARY KEY (img_oid), CONSTRAINT images_instancee_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE images OWNER  TO postgres;" ;
+
     string sFilename ;
 
     //if filename after, load the database through this
@@ -1780,7 +1785,7 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
     else
     {
         OPC_name = bInput.get(1).toString();
-    }
+   } 
 
     opcWorld = new OPCClient(moduleName.c_str());
     int iTry = 0;
