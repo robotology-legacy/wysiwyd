@@ -14,7 +14,7 @@ namespace cvz {
 			void initElements()
 			{
 				this->GuiICvz::initElements();
-				core::CvzTemplate* m = getCvz();
+                //core::CvzTemplate* m = getCvz();
 				gtk_label_set_text(GTK_LABEL(label_type), "Cvz Type - Template");
                 //Create your widgets
 			}
@@ -23,7 +23,7 @@ namespace cvz {
 			virtual void refreshElements()
 			{
 				this->GuiICvz::refreshElements();
-				core::CvzTemplate* m = getCvz();
+                //core::CvzTemplate* m = getCvz();
                 //Be carefull with semaphores (access data through methods of the CVZ that are using mutex to not overlap with the computePrediction() method.
 			}
 

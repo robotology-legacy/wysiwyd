@@ -6,6 +6,8 @@
 #include "cvz/gui/GuiMMCM.h"
 #include "cvz/gui/GuiESOM.h"
 #include "cvz/gui/GuiTemplate.h"
+#include "cvz/gui/GuiNN.h"
+
 
 namespace cvz {
 	namespace gui {
@@ -27,6 +29,8 @@ public:
         s += " (Evolving Self Organizing Map)" + '\n';
         s += core::TYPE_TEMPLATE;
         s += " (Dummy Template)" + '\n';
+        s += core::TYPE_NN;
+        s += " (Neural Model Test)" + '\n';
 		return s;
 	}
 
@@ -42,6 +46,8 @@ public:
             (*ptr) = new cvz::gui::GuiESOM(ptrCvz);
         else if (type == cvz::core::TYPE_TEMPLATE)
             (*ptr) = new cvz::gui::GuiTemplate(ptrCvz);
+        else if (type == cvz::core::TYPE_NN)
+            (*ptr) = new cvz::gui::GuiNN(ptrCvz);
 		else
 			return false;
 		return true;

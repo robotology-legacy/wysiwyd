@@ -238,7 +238,7 @@ namespace cvz {
                     if (!assignRandomWeghts)
                         newNode->prototype[itMod->second] = itMod->second->GetValueReal();
                     else
-                    for (int i = 0; i < newNode->prototype[itMod->second].size(); i++)
+                    for (unsigned int i = 0; i < newNode->prototype[itMod->second].size(); i++)
                         newNode->prototype[itMod->second][i] = yarp::os::Random::uniform();
                 }
 
@@ -300,7 +300,7 @@ namespace cvz {
                 {
                     newNode->prototype[itMod->second].resize(itMod->second->Size());
 
-                    for (int i = 0; i < newNode->prototype[itMod->second].size(); i++)
+                    for (unsigned int i = 0; i < newNode->prototype[itMod->second].size(); i++)
                     {
                         if (!assignRandomWeghts)
                             newNode->prototype[itMod->second][i] = (near1->prototype[itMod->second][i] * near1d + near2->prototype[itMod->second][i]) * near2d / (near1d + near2d);

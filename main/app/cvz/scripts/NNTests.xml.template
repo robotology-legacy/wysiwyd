@@ -32,7 +32,7 @@
 
     <module>
         <name>cvzCore</name>
-        <parameters>--context cvz--from default_NN.ini --displayGui</parameters>
+        <parameters>--context cvz--from default_NN.ini</parameters>
         <node>localhost</node>
         <prefix></prefix>
     </module>

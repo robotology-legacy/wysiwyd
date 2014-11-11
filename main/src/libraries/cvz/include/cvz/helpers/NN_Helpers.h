@@ -36,12 +36,12 @@ public:
 
     //Gaussian weight distribution
     std::vector<double>* InputGaussian(std::vector<double>* x, double sigma, double mu)
-    {
-        for (unsigned int i = 0; i < x->size(); i++)
+    {/*
+        for (unsigned int i = i_size; i < 2*i_size; i++)
         {
-            x->at(i) = (double)(1 / (sigma*sqrt(2 * 3.141592)))*exp(-pow(i - mu, 2) / (2 * pow(sigma, 2)));
+            connections->at(i) = (double)(1 / (sigma*sqrt(2 * 3.141592)))*exp(-pow(i - mu, 2) / (2 * pow(sigma, 2)));
         }
-        return x;
+        */return x;
     }
 
     //All2all random weight distribution
@@ -63,11 +63,26 @@ public:
     //No connections
     void TopologyNone(){}
 
+    //No connections
+    void TopologyGrid(unsigned int n)
+    {
+        unsigned int k = 0;
+        unsigned int s = (int)sqrt(n);
+        for(unsigned int i = i_size;i<s;i++)
+        {
+            for(unsigned int j = i_size;j<s;j++)
+            {
+                (connections->at(j))->at(i) = std::max(0, (rand() % 4) -2);
+                k++;
+            }
+        }
+    }
+
 
     //------------------------------------------------------------------------------------------------------
     //Init functions
 
-    NeuralModel(unsigned int n_neurons, std::vector<double>* loaded_mean, std::vector<double>* loaded_std, double a = 0.001, double E = 0.95, double LR = 0.1, unsigned int input_size = 2048, unsigned int output_size = 50)
+    NeuralModel(unsigned int n_neurons, std::vector<double>* loaded_mean, std::vector<double>* loaded_std, double a = 0.001, double E = 0.95, double LR = 0.3, unsigned int input_size = 2048, unsigned int output_size = 50)
     {
         //initialize constants
         i_size = input_size;
@@ -175,6 +190,9 @@ public:
         if (inner_topology.compare("none") == 0)
         {
             TopologyNone();
+        }else if (inner_topology.compare("grid") == 0)
+        {
+            TopologyGrid(size-i_size);
         }
     }
 
@@ -193,6 +211,20 @@ public:
         SDev->at(i) = sqrt(SDev->at(i) * SDev->at(i) * (1 - alpha) + alpha*pow((*in) - Means->at(i), 2));
         *in = 0.5 + 0.5*tanh(((*in) - Means->at(i))*SDev->at(i) / SQ2);
 
+    }
+
+    //setConnections from outside
+    void setConnections(yarp::os::Bottle *bWeights)
+    {
+        int wCtr = 0;
+        for (unsigned int x = 0; x < size; x++)
+        {
+            for (unsigned int y = 0; y < size; y++)
+            {
+                connections->at(y)->at(x) = bWeights->get(wCtr).asDouble();
+                wCtr++;
+            }
+        }
     }
 
     //------------------------------------------------------------------------------------------------------
@@ -252,15 +284,18 @@ public:
 
 
     //4: Normalize & select
-    void normalizeAndSelect(std::string normalization = "total")
+    void normalizeAndSelect(std::string normalization = "max")
     {
         //Compute current E%max
         double Emax = E_percent;
         aux_max = 1 / max_activity;
+        bool select = true;
+
         if (normalization.compare("total") == 0)        //Total activity of the network is 1
         {
             double aux_total = 1 / total_activity;
             Emax *= (max_activity * aux_total);
+            aux_max = total_activity * aux_max; // 1/(scaled max activity)
 
             for (unsigned int n = i_size; n<size; n++)
             {
@@ -271,60 +306,38 @@ public:
         {
             for (unsigned int n = i_size; n<size; n++)
             {
-                activity->at(n) /= aux_max;
+                activity->at(n) *= aux_max;
             }
         }
-
-        for (unsigned int n = i_size; n < size; n++)
+        else if (normalization.compare("min-max") == 0)     //Max activity in the network is 1
         {
-            //4.2 Select: E%-max
-            if (activity->at(n) < Emax)
-            {
-                activity->at(n) = 0;
-            }
-            else
-            {
-                firing += 1;
-            }
-        }
-    }
-    //4: Normalize & select
-    void normalizeAndSelect(yarp::os::Bottle port, std::string normalization = "total")
-    {
-        //Compute current E%max
-        double Emax = E_percent;
-        aux_max = 1 / max_activity;
-
-        if (normalization.compare("total") == 0)        //Total activity of the network is 1
-        {
-            double aux_total = 1 / total_activity;
-            Emax *= (max_activity * aux_total);
-
+            select &= false;
             for (unsigned int n = i_size; n<size; n++)
             {
-                activity->at(n) *= aux_total;
+                activity->at(n) *= aux_max;
+                activity->at(n) = std::max(0.0, activity->at(n) - Emax);
+                std::cout << Emax<<std::endl;
             }
+            //Emax=0;
         }
-        else if (normalization.compare("max") == 0)     //Max activity in the network is 1
+
+        if (select)
         {
-            for (unsigned int n = i_size; n<size; n++)
+            for (unsigned int n = i_size; n < size; n++)
             {
-                activity->at(n) /= aux_max;
+                //4.2 Select: E%-max
+                if (activity->at(n) < Emax)
+                {
+                    activity->at(n) = 0;
+                }
+                else
+                {
+                    //activity->at(n) = 1;
+                    firing += 1;
+                }
+                //std::cout<<activity->at(n)<<std::endl;
+
             }
-        }
-        for (unsigned int n = i_size; n < size; n++)
-        {
-            //4.2 Select: E%-max
-            if (activity->at(n) < Emax)
-            {
-                activity->at(n) = 0;
-            }
-            else
-            {
-                firing += 1;
-            }
-            //Write on port
-            port.addDouble(activity->at(n));
         }
     }
 
@@ -334,9 +347,14 @@ public:
         {
             for (unsigned int i = 0; i < size; i++)      //spiking neuron
             {
-                // Learning Rule
-                (connections->at(j))->at(i) += learning_rate * (diff_activity->at(j) * aux_max - diff_activity->at(i) * aux_max);
+                if((connections->at(j))->at(i)!=0)
+                {
+                    // Learning Rule  y*(x-y*W)
+                    //(connections->at(j))->at(i) += learning_rate * (diff_activity->at(j) * aux_max - diff_activity->at(i) * aux_max);
+                    (connections->at(j))->at(i) += learning_rate * activity->at(i)*(activity->at(j) - activity->at(i)*(connections->at(j))->at(i));
+                }
             }
+
         }
     }
 
