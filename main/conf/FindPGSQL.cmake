@@ -12,7 +12,7 @@ if(NOT PGSQL_DIR)
 endif()
 
 if(PGSQL_DIR)
-   find_path(PGSQL_INCLUDE_DIRS libpq-fe.h ${PGSQL_DIR}/include)
+   find_path(PGSQL_INCLUDE_DIRS libpq-fe.h ${PGSQL_DIR}/include /usr/include/postgresql)
    if(WIN32)
       find_library(PGSQL_LIBRARIES libpq ${PGSQL_DIR}/lib)
    else()
