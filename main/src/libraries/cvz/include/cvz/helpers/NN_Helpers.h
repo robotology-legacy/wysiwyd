@@ -67,7 +67,7 @@ public:
     void TopologyGrid(unsigned int n)
     {
         unsigned int k = 0;
-        unsigned int s = (int)sqrt(n);
+        unsigned int s = (int)sqrt((double)n);
         for(unsigned int i = i_size;i<s;i++)
         {
             for(unsigned int j = i_size;j<s;j++)
