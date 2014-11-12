@@ -151,8 +151,8 @@ double CFFT::nextpow2(int num) {
 /* Called periodically every getPeriod() seconds */
 bool CFFT::updateModule() {
     // get the input
-    yarp::sig::Sound* signal = portInput.read();
 
+    yarp::sig::Sound* signal = portInput.read();
     if (signal)
     {
         /* Encoding of the fast Fourier Transform*/
@@ -167,7 +167,6 @@ bool CFFT::updateModule() {
         int NFFT = (int)nextpow2(L); //Number of fast fourier transforms
 
         std::cout << "Incoming: Samples=" << SAMPLES << "\t SamplingFreq=" << Fs << "\t MaxFreq=" << Fs / 2 << "\t BufferSize=" << L << "\t Resolution=" << Fs / NFFT << std::endl;
-     
         int K = (NFFT / 2) + 1;
         vector<double> sig;
         sig.resize(K);
@@ -247,7 +246,7 @@ bool CFFT::updateModule() {
         */
         delete[] pSignal;
         pSignal = NULL;
-
+        std::cout << K << std::endl;
         for (int i = 1; i<K; i++)
             {
                 SpectralSignal.addDouble(log10(sig[i]));
@@ -269,8 +268,7 @@ bool CFFT::updateModule() {
 
         delete[] fftOut;
         fftOut = NULL;
-        delete signal;
-
+        //delete signal;
     }
 
     return true;

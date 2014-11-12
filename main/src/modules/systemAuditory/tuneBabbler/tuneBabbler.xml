@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>tuneBabbler</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Populate the microphone with a series of tunes</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+populates the port /microphone with sound-like input. It generates pure tunes (sinus) perturbed by random noise. It can generate them at random or populate the microphone with a predefined order   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="jordiysard@gmail.com"> Jordi-Ysard Puigbo</author>
+   </authors>
+   
+</module>
+

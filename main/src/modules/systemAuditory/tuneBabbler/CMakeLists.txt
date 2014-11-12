@@ -2,7 +2,7 @@
 # Authors: Jordi-Ysard Puigbo
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME audioPreprocessing)
+set(PROJECTNAME tuneBabbler)
 project(${PROJECTNAME})
 
 
