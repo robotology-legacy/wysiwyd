@@ -152,7 +152,7 @@ namespace cvz {
             }
 
             virtual void refreshElements()
-            {/*
+            {
                 for (std::map<core::IModality*, GuiIModality* >::iterator it = wModalities.begin(); it != wModalities.end(); it++)
                 {
                     yarp::sig::ImageOf<yarp::sig::PixelRgb> imgR = it->first->getVisualization();
@@ -161,7 +161,7 @@ namespace cvz {
                     yarp::sig::ImageOf<yarp::sig::PixelRgb> imgP = it->first->getVisualization(true);
                     helpers::yarpImage2Pixbuf(&imgP, it->second->pxBufPredicted);
                     gtk_widget_queue_draw(it->second->framePredicted);
-                }*/
+                }
             }
 
         private:
