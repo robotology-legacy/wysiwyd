@@ -69,7 +69,7 @@ namespace cvz {
                 //For legacy config files and easier configuration, everything that is not in a group is appended to startime parameters
                 yarp::os::Bottle bFull;
                 bFull.read(prop);
-                //std::string debug = bFull.toString();
+                std::string debug = bFull.toString();
                 yarp::os::Property outOfGroupProps;
                 for (int i = 0; i < bFull.size(); i++)
                 {
@@ -80,11 +80,19 @@ namespace cvz {
                     }
                 }
                 bFull.clear();
-                bFull.read(outOfGroupProps);
+				bFull.read(outOfGroupProps);
+				debug = bFull.toString();
 
                 yarp::os::Bottle& bParamsFixed = prop.findGroup("Parameters_StartTime");
-                bParamsFixed.append(bFull);
-                bParamsFixed.write(parametersStartTime);
+				if (!bParamsFixed.isNull())
+				{
+					bParamsFixed.append(bFull);
+					bParamsFixed.write(parametersStartTime);
+				}
+				else
+				{
+					bFull.write(parametersStartTime);
+				}
 
                 //Add the required parameters if they are not specified
                 if (!parametersStartTime.check("name"))
@@ -98,8 +106,8 @@ namespace cvz {
 
                 yarp::os::Bottle& bParamsVariable = prop.findGroup("Parameters_RunTime");
                 bParamsVariable.write(parametersRuntime);
-                std::string debug = parametersRuntime.toString();
-                std::string debug2 = bParamsVariable.toString();
+                //std::string debug = parametersRuntime.toString();
+                //std::string debug2 = bParamsVariable.toString();
 
                 setName(name.c_str());
                 std::string modPortPrefix = "/";
