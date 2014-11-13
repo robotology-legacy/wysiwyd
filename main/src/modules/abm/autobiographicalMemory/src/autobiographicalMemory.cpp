@@ -618,13 +618,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
 
         //testSendStreamImage (instance)
-        else if (bCommand.get(0) == "testSendStreamImage")
+        else if (bCommand.get(0) == "sendStreamImage")
         {
             if (!Network::isConnected(imagePortOut.getName(), "/yarpview/img:i")) {
                 cout << "ABM failed to connect to Yarpview!" << endl ;
-                bError.addString("in testSendStreamImage :  Error, connexion missing between " + imagePortOut.getName() + " and /yarpview/img:i ");
+                bError.addString("in sendStreamImage :  Error, connexion missing between " + imagePortOut.getName() + " and /yarpview/img:i ");
                 bReply = bError ;
-            } else if ( (bCommand.size() > 1) && (bCommand.get(1).asList()->size() == 1 ) )
+            } else if ( (bCommand.size() > 1) && (bCommand.get(1).isList()) )
             {
                 imgInstance = bCommand.get(1).asList()->get(0).asInt() ;
                 int nbSentImages = sendStreamImage(imgInstance) ;
@@ -636,7 +636,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else
             {
-                bError.addString("in testSendStreamImage : number of element incorrect : (testSendStreamImage (instance, labelImg))");
+                bError.addString("in sendStreamImage : number of element incorrect : testSendStreamImage (instance)");
                 bReply = bError;
             }
         }
@@ -676,7 +676,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else
             {
-                bError.addString("in askImage : number of element insufficient");
+                bError.addString("ERROR in askImage : wrong number of element -> askImage instanceNb");
                 bReply = bError;
             }
         }
