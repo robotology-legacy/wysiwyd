@@ -85,7 +85,7 @@ public :
     yarp::os::Bottle eraseInstance(yarp::os::Bottle bInput);
 
     yarp::os::Bottle testSaveImage(yarp::os::Bottle bInput);
-    yarp::os::Bottle testSendImage(yarp::os::Bottle bInput);
+    yarp::os::Bottle askImage(int instance);
 
     bool createImage(std::string fullPath);
     bool sendImage(std::string fullPath);

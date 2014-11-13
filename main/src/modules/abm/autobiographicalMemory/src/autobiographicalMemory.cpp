@@ -597,6 +597,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             bReply = eraseInstance(bCommand);
         }
 
+        //not needed anymore, save stream in snapshot when "action"
         else if (bCommand.get(0) == "testSaveStreamImage")
         {
             if (!isconnected2Cam) {
@@ -640,7 +641,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
 
-
+        //in snapshot when "sentence"
         else if (bCommand.get(0) == "testSaveImage")
         {
 
@@ -659,16 +660,23 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
 
-        else if (bCommand.get(0) == "testSendImage")
+        //askImage
+        else if (bCommand.get(0) == "askImage")
         {
-
+            
             if (bCommand.size() > 1)
             {
-                bReply = testSendImage(bCommand);
+                int instance = (atoi((bCommand.get(1)).toString().c_str())) ;
+                if(instance > 0){
+                    bReply = askImage(instance);
+                } else {
+                    bError.addString("in askImage : not valid int number for the instance");
+                    bReply = bError;
+                }
             }
             else
             {
-                bError.addString("in testSendImage : number of element insufficient");
+                bError.addString("in askImage : number of element insufficient");
                 bReply = bError;
             }
         }
@@ -743,7 +751,7 @@ bool autobiographicalMemory::updateModule()
 
     } else if (streamStatus == "record"){
 
-        imgNb += 1;
+        imgNb += 1; 
         //cout << "Image Nb " << imgNb << endl;
 
         //concatenation of the path to store
@@ -1701,7 +1709,9 @@ Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
 
 //test to extract a temp copy of an image by giving the label
 //WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
-Bottle autobiographicalMemory::testSendImage(Bottle bInput)
+
+//with instance nb
+Bottle autobiographicalMemory::askImage(int instance)
 {
 
     Bottle bOutput, bRequest, bResult ;
@@ -1710,7 +1720,10 @@ Bottle autobiographicalMemory::testSendImage(Bottle bInput)
     //export the desired image, doing a temp copy
     bRequest.addString("request");
     ostringstream osArg;
-    osArg << "SELECT filename FROM images WHERE label = '" << bInput.get(1).asString() << "';" ;
+    //osArg << "SELECT filename FROM images WHERE label = '" << bInput.get(1).asString() << "';" ;
+
+    osArg << "SELECT filename FROM images WHERE instance = '" << instance << "';" ;
+
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -1724,7 +1737,14 @@ Bottle autobiographicalMemory::testSendImage(Bottle bInput)
         return bOutput ;
     }
 
-    //assuming just one result first
+    //if streaming : ERROR (switch to send the 1st image by default?)
+    if (bRequest.size() > 1) {
+        cout << "ERROR : You ask for a single image for a stream instance!" << endl ;
+        bOutput.addString("ERROR : You ask for a single image for a stream instance!");
+        return bOutput ;
+    }
+
+    //just one result
     string filename = bRequest.get(0).asList()->get(0).asString();
     bRequest.clear();
     osArg.str("");
@@ -1739,7 +1759,7 @@ Bottle autobiographicalMemory::testSendImage(Bottle bInput)
     bRequest.addString("request");
 
     //retrieve the image from the db and print it to /storingPath/temp folder
-    osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE label = '" << bInput.get(1).asString() <<"';";
+    osArg << "SELECT lo_export(img_oid, '" << tmpPath <<"') from images WHERE instance = '" << instance <<"';";
 
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
