@@ -1,9 +1,4 @@
-//   CFFT.cpp - impelementation of class
-//   of fast Fourier transform - FFT
-//
-//   The code is property of LIBROW
-//   You can use it on your own
-//   When utilizing credit LIBROW site
+
 
 //   Include declaration file
 #include "soundGenerator.h"
@@ -26,6 +21,7 @@ bool babbler::configure(yarp::os::ResourceFinder &rf)
 {
 
     elapsedCycles = 0;
+    f = 0;
     string moduleName = rf.check("name", Value("tuneBabbler")).asString().c_str();
     setName(moduleName.c_str());
 
@@ -59,26 +55,36 @@ bool babbler::configure(yarp::os::ResourceFinder &rf)
 }
 
 //Generates frequencies between 220 and 880 Hz aprox. Separated as clear tones
-int newFrequency(int base_frequency=220)
+int babbler::newFrequency(int base_frequency=220)
 {
     return base_frequency * ((int)pow(2 ,(rand() % 10)*0.25));
 }
 
 //Defines new sound, having white noise + pure tone
-int babbler::getValue(int wave_intensity=75, int random_offset=25)
+int babbler::getNoisySinus(int wave_intensity=75, int random_offset=25)
 {
-    if (elapsedCycles % 500 == 0)
+    if (elapsedCycles % 40 == 0)
     {
         f = newFrequency();
     }
-    if ((elapsedCycles % 500) - 400 == 0)
+    if ((elapsedCycles % 40) - 15 == 0)
     {
         f = 0;
     }
+    std::cout << "frequency: " << f << std::endl;
     //Format: ([mat][mo16](2 2048 2 512 2) {nums})(8000)
     //Constants chosen at random
     return ((unsigned int)(wave_intensity * (std::sin(f * 2 * M_PI*elapsedCycles)+1) + rand() % random_offset));
 
+}
+
+int babbler::getValue(std::string soundType="noisySinus")
+{
+    if (soundType.compare("noisySinus")==0)
+    {
+        return getNoisySinus();
+    }
+    else{ std::cout << 123 << std::endl; }
 }
 
 void babbler::generateSound()

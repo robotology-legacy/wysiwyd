@@ -103,7 +103,6 @@ namespace cvz {
             yarp::os::Time      t;
             std::string         selfpath;
             std::string         conf_file;
-            int                 maxCycles;
 
 
             int H() { return height;}
@@ -355,9 +354,6 @@ namespace cvz {
                 if (!parametersStartTime.check("topology"))
                     parametersStartTime.put("topology", yarp::os::Value(MMCM_CONNECTIVITY_SHEET));
 
-                if (!parametersStartTime.check("maxCycles"))
-                    parametersStartTime.put("maxCycles", yarp::os::Value(0));
-
                 //Starttime parameters
                 size = parametersStartTime.find("size").asInt();
                 //emax = parametersStartTime.find("emax").asDouble();
@@ -367,7 +363,6 @@ namespace cvz {
                 output_size = parametersStartTime.find("outputSize").asInt();
                 layers = parametersStartTime.find("layers").asInt();
                 topology = parametersStartTime.find("topology").asString();
-                maxCycles = parametersStartTime.find("maxCycles").asInt();
 
 
                 //Runtime parameters
@@ -464,15 +459,11 @@ namespace cvz {
                     printWeights(weiPath,cyclesElapsed);
                 }
 
-                if (maxCycles > 0)
+                if (cyclesElapsed % 5000 == 4999)
                 {
-
-                    if (cyclesElapsed % (maxCycles+1) == maxCycles)
-                    {
-                        std::cout << "5000 cycles elapsed. Exiting..." << std::endl;
-                        yarp::os::Time::delay(1.0);
-                        close();
-                    }
+                    std::cout << "5000 cycles elapsed. Exiting..." << std::endl;
+                    yarp::os::Time::delay(1.0);
+                    close();
                 }
             }
 
