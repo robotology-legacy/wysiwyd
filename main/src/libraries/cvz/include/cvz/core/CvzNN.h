@@ -64,7 +64,7 @@
 #endif
 
 
-static const char *DEFAULT_CONFIG_FILE = "default_NN.ini";
+static const char *DEFAULT_CONFIG_FILE = "normals_NN.ini";
 
 namespace cvz {
     namespace core {
@@ -81,6 +81,10 @@ namespace cvz {
             yarp::os::BufferedPort<yarp::os::Bottle>    portActivity;
 
             yarp::os::BufferedPort<yarp::sig::ImageOf <yarp::sig::PixelRgb> >           imagePort;
+
+            yarp::os::Port toSoundGenerator; // port to sound generator, if testing
+
+            yarp::os::Bottle cmd;  //bottle to contain the command for the soundGenerator
 
             std::string              imagePortName;
             std::string         portFromCocleaName;
@@ -105,6 +109,8 @@ namespace cvz {
             std::string         selfpath;
             std::string         conf_file;
             int                 maxCycles;
+            int                 testing_frequency;
+            bool                testing;
 
 
             int H() { return height;}
@@ -347,11 +353,17 @@ namespace cvz {
 
             virtual bool configure(yarp::os::Property &rf)
             {
-                std::cout<<121212<<std::endl;
+                std::cout << 121212 << std::endl;
+
+                testing_frequency = 0;
+
                 //Call the base class configure
                 this->IConvergenceZone::configure(rf);
 
                 conf_file = rf.check("from", yarp::os::Value(DEFAULT_CONFIG_FILE)).asString().c_str();
+
+                testing = rf.check("test");
+
                 //Get additional parameters
                 if (!parametersStartTime.check("size"))
                     parametersStartTime.put("size", yarp::os::Value(100));
@@ -387,11 +399,11 @@ namespace cvz {
                 if (!parametersRuntime.check("learningRate"))
                     parametersRuntime.put("learningRate", yarp::os::Value(0.01));
                 if (!parametersRuntime.check("alpha"))
-                    parametersRuntime.put("alpha", yarp::os::Value(1/3600));
+                    parametersRuntime.put("alpha", yarp::os::Value(1 / 3600));
                 if (!parametersRuntime.check("emax"))
                     parametersRuntime.put("emax", yarp::os::Value(0.95));
 
-				//I think you forgot to upload the configuration file you are using in app, the auditory group does not contains std or mean
+                //I think you forgot to upload the configuration file you are using in app, the auditory group does not contains std or mean
                 //Load previous normalization parameters
                 yarp::os::Bottle bGroup = rf.findGroup("Auditory");
 
@@ -413,26 +425,26 @@ namespace cvz {
 
                 //<<<<<<< HEAD
                 //Auditory input
-                
-                //std::string moduleInput = rf.check("input", yarp::os::Value("/audioPreprocessing/freqSpectrum:o")).asString().c_str();
-                
-				//You should try to use modalities for ports that are actually modalities
-				//THe inputs of your NN should be independent of the modalities used
-                //configure input port
-                
-				//portFromCocleaName = "/";
-    //            portFromCocleaName += getName() + "/coclea:i";
 
-    //            if (!portFromCoclea.open(portFromCocleaName.c_str()))
-    //            {
-    //                std::cout << getName() << ": Unable to open port " << portFromCocleaName << std::endl;
-    //                bEveryThingisGood &= false;
-    //            }
-    //            while (!yarp::os::Network::connect(moduleInput, portFromCocleaName.c_str()))
-    //            {
-    //                std::cout << "Trying to get input from FFT..." << std::endl;
-    //                yarp::os::Time::delay(1.0);
-    //            }
+                //std::string moduleInput = rf.check("input", yarp::os::Value("/audioPreprocessing/freqSpectrum:o")).asString().c_str();
+
+                //You should try to use modalities for ports that are actually modalities
+                //THe inputs of your NN should be independent of the modalities used
+                //configure input port
+
+                //portFromCocleaName = "/";
+                //            portFromCocleaName += getName() + "/coclea:i";
+
+                //            if (!portFromCoclea.open(portFromCocleaName.c_str()))
+                //            {
+                //                std::cout << getName() << ": Unable to open port " << portFromCocleaName << std::endl;
+                //                bEveryThingisGood &= false;
+                //            }
+                //            while (!yarp::os::Network::connect(moduleInput, portFromCocleaName.c_str()))
+                //            {
+                //                std::cout << "Trying to get input from FFT..." << std::endl;
+                //                yarp::os::Time::delay(1.0);
+                //            }
                 //=======
 
 
@@ -445,12 +457,20 @@ namespace cvz {
                 //Open imagePort
                 imagePortName = "/";
                 imagePortName += getName() + "/image:o";
-                if(!imagePort.open(imagePortName.c_str()))
+                if (!imagePort.open(imagePortName.c_str()))
                 {
                     std::cout << getName() << ": Unable to open port " << imagePortName << std::endl;
                     bEveryThingisGood &= false;
                 }
 
+                if (testing){
+                std::string portName = "/";
+                portName += getName();
+                portName += "/frequency/rpc:o";
+                toSoundGenerator.open(portName.c_str());
+                connect();
+                }
+                
                 //Configure network
                 NN = new NeuralModel(size, &Mean, &SDev, getAlpha(), getEMax(), getLearningRate(),input_size,output_size);
 
@@ -467,6 +487,11 @@ namespace cvz {
                 return true;
             }
 
+            bool connect(const std::string &targetPort = "/tuneBabbler/rpc")
+            {
+                return yarp::os::Network::connect(toSoundGenerator.getName(), targetPort.c_str());
+            }
+
             virtual void performPeriodicAction(const int &cyclesElapsed)
             {
                 this->IConvergenceZone::performPeriodicAction(cyclesElapsed);
@@ -476,7 +501,18 @@ namespace cvz {
                     std::cout << cyclesElapsed << std::endl;
 
                     printActivity(actPath,cyclesElapsed);
-                    printWeights(weiPath,cyclesElapsed);
+                    //printWeights(weiPath,cyclesElapsed);
+                }
+                if (testing)
+                {
+                    if (cyclesElapsed % 50 == 0)
+                    {
+                        changeFrequency();
+                    }
+                    if ((cyclesElapsed % 50)-25 == 0)
+                    {
+                        setFrequency();
+                    }
                 }
 
                 if (maxCycles > 0)
@@ -491,9 +527,27 @@ namespace cvz {
                 }
             }
 
+            void changeFrequency()
+            {
+                cmd.clear();
+                cmd.addString("RF");
+                testing_frequency = toSoundGenerator.write(cmd);
+            }
+            void setFrequency(int F=0)
+            {
+                cmd.clear();
+                cmd.addString("F");
+                cmd.addInt(F);
+                testing_frequency = toSoundGenerator.write(cmd);
+            }
+
             bool printActivity(std::ofstream &outfile, int cycles)
                 {
                     outfile<< cycles <<";"<<t.now()<<";";
+                    if (testing)
+                    {
+                        outfile << testing_frequency << ";";
+                    }
                     for (unsigned int n = 0; n<NN->activity->size();n++)
                     {
                         if(n!=0){outfile<<";";}
@@ -506,6 +560,10 @@ namespace cvz {
             bool printWeights(std::ofstream &outfile, int cycles)
                 {
                     outfile<< cycles <<";"<<t.now()<<";";
+                    if (testing)
+                    {
+                        outfile << testing_frequency << ";";
+                    }
                     for (unsigned int j = 0; j<NN->connections->size();j++)
                     {
                         for (unsigned int i = 0; i<NN->connections->size();i++)

@@ -42,7 +42,9 @@ public:
 
     void generateSound();
     int getNoisySinus(int wave_intensity, int random_offset);
-    int newFrequency(int base_frequency);
+    int setNewFrequency(int base_frequency);
+    int newRandomFrequency(int base_frequency);
+
     int getValue(std::string soundType);
 
     bool close();
