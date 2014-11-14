@@ -55,7 +55,7 @@ namespace cvz {
 					pxBuf_activity[i] = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, m->W(), m->H());
 					frames_activity[i] = gtk_drawing_area_new();
 					g_signal_connect(frames_activity[i], "expose-event", G_CALLBACK(paintActivity), pxBuf_activity[i]);
-					gtk_widget_set_size_request(frames_activity[i], 200, 200);
+					gtk_widget_set_size_request(frames_activity[i], MMCM_GUI_ACTIVITY_W, MMCM_GUI_ACTIVITY_H);
 					gtk_box_pack_start(GTK_BOX(box_activity), frames_activity[i], TRUE, TRUE, 5);
 					gtk_widget_show(frames_activity[i]);
 				}

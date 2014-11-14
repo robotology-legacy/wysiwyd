@@ -76,7 +76,7 @@ namespace cvz {
             yarp::os::Semaphore mutex;
 
         public:
-            yarp::os::BufferedPort<yarp::os::Bottle>    portFromCoclea;
+            //yarp::os::BufferedPort<yarp::os::Bottle>    portFromCoclea;
             yarp::os::BufferedPort<yarp::os::Bottle>    portActivity;
 
             yarp::os::BufferedPort<yarp::sig::ImageOf <yarp::sig::PixelRgb> >           imagePort;
@@ -109,10 +109,11 @@ namespace cvz {
             int H() { return height;}
             int W() { return width; }
             int L() { return layers; }
-            void sL(int l) { layers = l; }
-            void sH(int h) { height = h; }
-            void sW(int w) { width = w; }
 
+			//Those are setup at start time. Are you sure you want to be able to modify them during simulation ?
+            //void sL(int l) { layers = l; }
+            //void sH(int h) { height = h; }
+            //void sW(int w) { width = w; }
             
 
             /*IDL methods*/
@@ -138,8 +139,8 @@ namespace cvz {
             double getEMax() { return parametersRuntime.find("emax").asDouble(); }
             void setAlpha(const double s) { std::cout << "Alpha set to : " << s << std::endl; parametersRuntime.put("alpha",s); }
             double getAlpha() { return parametersRuntime.find("alpha").asDouble(); }
-            double getActivity(const int32_t x) { return (NN->activity)->at(x); }
-            double getActivity(const int32_t x, const int32_t y) { return (NN->activity)->at(y*width+x); }
+            double getActivity(const int &x) { return (NN->activity)->at(x); }
+            double getActivity(const int &x, const int &y) { return (NN->activity)->at(y*width+x); }
             bool saveWeightsToFile(const std::string &path)
             {
                 std::cout << "Trying to save weights to " << path << std::endl;
@@ -175,18 +176,20 @@ namespace cvz {
 
             virtual std::string getType() { return cvz::core::TYPE_NN; };
 
-            yarp::sig::ImageOf<yarp::sig::PixelRgb> getLayerActivity(int i)
+            yarp::sig::ImageOf<yarp::sig::PixelRgb> getNetworkActivity()
             {
                 mutex.wait();
-
-
-
                 yarp::sig::ImageOf<yarp::sig::PixelRgb> img;
                 //yarp::sig::ImageOf<yarp::sig::PixelRgb> &img = imagePort.prepare();
 
                 /*double maxActivity = NN->activity[xWin][yWin][zWin];
                 double minActivity = activity[xLoose][yLoose][zLoose];*/
-                img.resize(width, size);
+				img.resize(width, height);
+
+				if (width*height != size)
+				{
+					std::cerr << "getNetworkActivity: incongruency between w,h and size" << std::endl;
+				}
                 unsigned int k = 0;
                 std::cout << "width: "<<width<<std::endl;
                 for (int x = 0; x < width; x++)
@@ -197,9 +200,9 @@ namespace cvz {
                         double normalisedValue = activity[x][y][i];
                         if (maxActivity - minActivity != 0)
                             normalisedValue = (normalisedValue - minActivity) / (maxActivity - minActivity);*/
-                        double normalisedValue = (NN->activity)->at(k);
+						double normalisedValue = getActivity(x, y);
                         img.pixel(x, y) = helpers::double2RGB( normalisedValue);
-                        k++;
+
                         /*
                         img.pixel(x, y).r = (int)(255*(NN->activity)->at(y));
                         img.pixel(x, y).g = 0;
@@ -220,13 +223,22 @@ namespace cvz {
                             img.pixel(x, y).b = 0;
                         }*/
                         //IplImage* iplimg = img.getIplImage();
-
-                        yarp::sig::ImageOf<yarp::sig::PixelRgb> &temp = imagePort.prepare();
-                        temp.resize(640,480);
-                        cvResize((IplImage*) img.getIplImage(),(IplImage*) temp.getIplImage());
-                        imagePort.write();
                     }
                 }
+
+				//You want to send you image only when it is completed, not at every pixel
+				//yarp::sig::ImageOf<yarp::sig::PixelRgb> &temp = imagePort.prepare();
+				
+				//Here:
+						//temp.resize(640, 480);
+						//cvResize((IplImage*)img.getIplImage(), (IplImage*)temp.getIplImage());
+				//I suppose you wanted to do this
+						//temp.copy(img, 640, 480);
+				//But you should not. The original image size is W() x H(), then you can resize on display or within the yarpview
+
+				//temp.copy(img, 640, 480);
+				//imagePort.write();
+
                 mutex.post();
 
                 //Console.WriteLine("Visualization computed in " + (time2 - time1).ToString());
@@ -328,7 +340,7 @@ namespace cvz {
                 actPath.close();
                 weiPath.close();
                 portActivity.close();
-                portFromCoclea.close();
+                //portFromCoclea.close();
                 return ok;
             }
 
@@ -364,7 +376,7 @@ namespace cvz {
                 height = parametersStartTime.find("height").asInt();
                 width = parametersStartTime.find("width").asInt();
                 input_size = parametersStartTime.find("inputSize").asInt();
-                output_size = parametersStartTime.find("outputSize").asInt();
+                output_size = parametersStartTime.find("outputSize").asInt(); //careful you do not have a default value for this
                 layers = parametersStartTime.find("layers").asInt();
                 topology = parametersStartTime.find("topology").asString();
                 maxCycles = parametersStartTime.find("maxCycles").asInt();
@@ -378,7 +390,7 @@ namespace cvz {
                 if (!parametersRuntime.check("emax"))
                     parametersRuntime.put("emax", yarp::os::Value(0.95));
 
-
+				//I think you forgot to upload the configuration file you are using in app, the auditory group does not contains std or mean
                 //Load previous normalization parameters
                 yarp::os::Bottle bGroup = rf.findGroup("Auditory");
 
@@ -398,35 +410,38 @@ namespace cvz {
 
                 bool    bEveryThingisGood = true;
 
-
+                //<<<<<<< HEAD
                 //Auditory input
                 
-                std::string moduleInput = rf.check("input", yarp::os::Value("/audioPreprocessing/freqSpectrum:o")).asString().c_str();
+                //std::string moduleInput = rf.check("input", yarp::os::Value("/audioPreprocessing/freqSpectrum:o")).asString().c_str();
                 
+				//You should try to use modalities for ports that are actually modalities
+				//THe inputs of your NN should be independent of the modalities used
                 //configure input port
-                portFromCocleaName = "/";
-                portFromCocleaName += getName() + "/coclea:i";
+                
+				//portFromCocleaName = "/";
+    //            portFromCocleaName += getName() + "/coclea:i";
 
-                if (!portFromCoclea.open(portFromCocleaName.c_str()))
-                {
-                    std::cout << getName() << ": Unable to open port " << portFromCocleaName << std::endl;
-                    bEveryThingisGood &= false;
-                }
-                while (!yarp::os::Network::connect(moduleInput, portFromCocleaName.c_str()))
-                {
-                    std::cout << 1 << std::endl;
-                    std::cout << "Trying to get input from FFT..." << std::endl;
-                    yarp::os::Time::delay(1.0);
-                }
+    //            if (!portFromCoclea.open(portFromCocleaName.c_str()))
+    //            {
+    //                std::cout << getName() << ": Unable to open port " << portFromCocleaName << std::endl;
+    //                bEveryThingisGood &= false;
+    //            }
+    //            while (!yarp::os::Network::connect(moduleInput, portFromCocleaName.c_str()))
+    //            {
+    //                std::cout << "Trying to get input from FFT..." << std::endl;
+    //                yarp::os::Time::delay(1.0);
+    //            }
+                //=======
 
 
-                //Zero everything
+                //Open activity port
                 actPortName = "/";
                 actPortName += getName();
                 actPortName += "/activity:o";
                 portActivity.open(actPortName);
 
-                //imagePort
+                //Open imagePort
                 imagePortName = "/";
                 imagePortName += getName() + "/image:o";
                 if(!imagePort.open(imagePortName.c_str()))
@@ -434,7 +449,6 @@ namespace cvz {
                     std::cout << getName() << ": Unable to open port " << imagePortName << std::endl;
                     bEveryThingisGood &= false;
                 }
-
 
                 //Configure network
                 NN = new NeuralModel(size, &Mean, &SDev, getAlpha(), getEMax(), getLearningRate(),input_size,output_size);
@@ -507,35 +521,33 @@ namespace cvz {
             {
                 mutex.wait();
 
-                yarp::os::Bottle* input_bottle = portFromCoclea.read();
-                yarp::os::Bottle &botActivity = portActivity.prepare();
-                botActivity.clear();
+                //yarp::os::Bottle* input_bottle = portFromCoclea.read();
 
-                std::vector<double> input_vector;
-                if (input_bottle->size() != input_size)
+				//Here you are assuming that you network only has one input modality...
+                std::vector<double> input_vector = modalitiesBottomUp["coclea"]->GetValueReal();
+				if (input_vector.size() != input_size)
                 {
-                    std::cout << "input different than "<< input_size <<"!!" << std::endl;
-                    std::cout << "input size" << input_bottle->size() << std::endl;
-                    std::cout << "content of bottle" << input_bottle->toString() << std::endl;
-                    std::cout << "test" << input_bottle->get(1).asDouble() << std::endl;
+					std::cout << "input different than " << input_size << "!!" << std::endl;
+					std::cout << "input size for modality " << modalitiesBottomUp["coclea"]->Name() << std::endl;
+					std::cout << "input size" << modalitiesBottomUp["coclea"]->Size() << std::endl;
+                    //std::cout << "content of bottle" << input_bottle->toString() << std::endl;
+                    //std::cout << "test" << input_bottle->get(1).asDouble() << std::endl;
 
                 }
-                input_vector.resize(input_bottle->size());
-                for (int i = 0; i < input_bottle->size(); i++)
-                {
-                    input_vector[i] = input_bottle->get(i).asDouble();
-                }
+
                 NN->updateInput(input_vector);
                 NN->processActivity();
                 NN->updateActivity();
                 //NN->normalizeAndSelect();
                 NN->normalizeAndSelect("max");
+
+				yarp::os::Bottle &botActivity = portActivity.prepare();
+				botActivity.clear();
                 for (int i=0;i<size;i++)
-                {botActivity.addDouble((NN->activity)->at(i+input_size));}
-                for (int i = 0; i<size; i++)
+
                 {
-                    botActivity.addDouble((NN->activity)->at(i + input_size));
-                }
+					botActivity.addDouble((NN->activity)->at(i+input_size));
+				}
 
                 portActivity.write();
                 //update Weights from LR!!!

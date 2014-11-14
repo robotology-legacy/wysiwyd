@@ -183,13 +183,13 @@ namespace cvz {
 
                 bool cycle()
                 {
-                    //double t0 = yarp::os::Time::now();
+                    double t0 = yarp::os::Time::now();
                     for (size_t l = 0; l < layers.size(); l++)
                     {
-                        //double t1 = yarp::os::Time::now();
+                        double t1 = yarp::os::Time::now();
                         //Refresh from bottom up
                         layers[l].cycle();
-                        //std::cout << "Layer " << l << " cycle time = " << yarp::os::Time::now() - t1 << std::endl;
+                        std::cout << "Layer " << l << " cycle time = " << yarp::os::Time::now() - t1 << std::endl;
                         if (l != layers.size() - 1)
                         {
                             //Propagate to next layer
@@ -211,7 +211,7 @@ namespace cvz {
                             }
                         }
                     }
-                    //std::cout << "Whole fiber cycle time = " << yarp::os::Time::now() - t0 << std::endl;
+                    std::cout << "Whole fiber cycle time = " << yarp::os::Time::now() - t0 << std::endl;
                     return true;
                 }
 
@@ -258,7 +258,7 @@ namespace cvz {
                         {
                             int srcSheetSize = layers[l].size();
                             int destSheetSize = layers[l + 1].size();
-                            double convergenceRatio = srcSheetSize / destSheetSize;
+                            double convergenceRatio = srcSheetSize / (double)destSheetSize;
 
                             for (size_t x1 = 0; x1 < layers[l].size(); x1++)
                             {
