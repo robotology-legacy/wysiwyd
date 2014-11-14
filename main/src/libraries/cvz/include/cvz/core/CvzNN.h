@@ -59,7 +59,8 @@
             return "./";
         }
     }
-    const std::string SELFPATH = (get_selfpath()).substr(0, (get_selfpath()).find("/cvzCore")) + "/../share/wysiwyd/contexts/cvz/");
+    const std::string SELFPATH = (get_selfpath()).substr(0, (get_selfpath()).find("/cvzCore")) + "/../share/wysiwyd/contexts/cvz/";
+    //std::string SELFPATH = get_selfpath()).substr(0, (get_selfpath()).find("/cvzCore")) + "/../share/wysiwyd/contexts/cvz/";
 #endif
 
 
@@ -190,7 +191,7 @@ namespace cvz {
 				{
 					std::cerr << "getNetworkActivity: incongruency between w,h and size" << std::endl;
 				}
-                unsigned int k = 0;
+                //unsigned int k = 0;
                 std::cout << "width: "<<width<<std::endl;
                 for (int x = 0; x < width; x++)
                 {
