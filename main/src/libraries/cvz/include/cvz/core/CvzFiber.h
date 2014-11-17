@@ -24,10 +24,63 @@ namespace cvz {
                 {
 
                 }
+				double getDistance(double x1, double y1, double x2, double y2)
+				{
+					double d = 0.0;
+					double dX = abs(x1 - x2);
+					double dY = abs(y1 - y2);
+					double tdX = abs(x1 + (1.0 - x2));
+					double tdY = abs(y1 + (1.0 - y2));
+					d = sqrt(pow(std::min(dX, tdX), 2.0) + pow(std::min(dY, tdY), 2.0));
+					return d;
+				}
 
+				int countInputModalities(const int &sizePrevious, const int &size, const double &radius)
+				{
+
+					double spacing = 1.0 / (double)(1.0 + size);
+					double spacingPrevious = 1.0 / (double)(1.0 + sizePrevious);
+
+					//Count incoming
+					int input = 0;
+					for (int aX = 1; aX <= sizePrevious; aX++)
+					{
+						for (int aY = 1; aY <= sizePrevious; aY++)
+						{
+							double ab = getDistance(aX*spacingPrevious, aY*spacingPrevious, spacing, spacing);
+							if (ab <= radius)
+							{
+								input++;
+							}
+						}
+					}
+					return input;
+				}
+
+				int countOutputModalities(const int &size, const int &sizeNext, const double &radius)
+				{
+
+					double spacingNext = 1.0 / (double)(1.0 + sizeNext);
+					double spacing = 1.0 / (double)(1.0 + size);
+
+					//Count outgoing
+					int output = 0;
+					for (int bX = 1; bX <= sizeNext; bX++)
+					{
+						for (int bY = 1; bY <= sizeNext; bY++)
+						{
+							double ab = getDistance(spacing, spacing, bX*spacingNext, bY*spacingNext);
+							if (ab <= radius)
+							{
+								output++;
+							}
+						}
+					}
+					return output;
+				}
                 bool configure(yarp::os::Property &prop)
                 {
-
+					double arborisationRadius = prop.check("arborisationRadius", 0.75).asDouble();
                     yarp::os::Bottle* layersStructure = prop.find("layersStructure").asList();
 
                     //The size comes in the form :
@@ -39,103 +92,93 @@ namespace cvz {
                     //for a 3 layered fiber with a 2x2, a single and a 5x5 sheets of cvz using their respective config file
                     //
                     int layersCount = layersStructure->size();
-                    std::cout << "Creating a fiber of " << layersCount << " layers " << layersStructure->toString() << std::endl;
+					std::cout << "Creating a fiber of " << layersCount << " layers " << layersStructure->toString() << " with an arborisationRadius of " << arborisationRadius<< std::endl;
                     layers.resize(layersCount);
 
-                    for (int l = 0; l < layersCount; l++)
-                    {
-                        int sqrSize = layersStructure->get(l).asList()->get(0).asInt();
-                        yarp::os::Bottle* mapStructure = layersStructure->get(l).asList()->get(1).asList();
-                        yarp::os::Property p;
-                        if (mapStructure != NULL)
-                            mapStructure->write(p);
-                        else
-                        {
-                            std::cout << "[CvzFiber] Warning: no map structure provided for layer " << l << std::endl;
-                        }
+					for (int l = 0; l < layersCount; l++)
+					{
+						int sqrSize = layersStructure->get(l).asList()->get(0).asInt();
+						yarp::os::Bottle* mapStructure = layersStructure->get(l).asList()->get(1).asList();
+						yarp::os::Property p;
+						if (mapStructure != NULL)
+							mapStructure->write(p);
+						else
+						{
+							std::cout << "[CvzFiber] Warning: no map structure provided for layer " << l << std::endl;
+						}
 
-                        //Deal with the layer map names
-                        std::string nameRoot = p.check("name", yarp::os::Value("default")).asString();
-                        p.unput("name");
-                        std::stringstream nameTotal;
-                        nameTotal << nameRoot << "_"<<l;
-                        p.put("name", nameTotal.str());
+						//Deal with the layer map names
+						std::string nameRoot = p.check("name", yarp::os::Value("default")).asString();
+						p.unput("name");
+						std::stringstream nameTotal;
+						nameTotal << nameRoot << "_" << l;
+						p.put("name", nameTotal.str());
 
-                        int modalityCounter = 0;
-                        //Automatic generation of the input modalities
-                        if (l != 0)
-                        {
-                            int previousSqrSize = layersStructure->get(l - 1).asList()->get(0).asInt();
-                            //int previousOutputModalitiesCount = 1;
-                            int inputModalitiesCount = 1;
-                            if (previousSqrSize >= sqrSize)
-                            {
-                                std::cout << "[CvzFiber] " << l - 1 << "->" << l << " is convergent" << std::endl;
-                                inputModalitiesCount = (int)pow(previousSqrSize / sqrSize, 2.0);
-                            }
-                            else
-                            {
-                                std::cout << "[CvzFiber] " << l-1 << "->" << l << " is divergent" << std::endl;
-                                //inputModalitiesCount = (int) pow(previousSqrSize / sqrSize, 2.0);
-                            }
+						int modalityCounter = 0;
+						//Automatic generation of the input modalities
 
-                            for (int iMod = 0; iMod < inputModalitiesCount; iMod++)
-                            {
-                                std::stringstream ssModGroup;
-                                ssModGroup << "modality_" << modalityCounter;
-                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-                                std::stringstream ssModName;
-                                ssModName << "input_" << iMod;
-                                pMod.put("name", ssModName.str());
-                                pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
-                                modalityCounter++;
-                            }
-                        }
-                        else //first layer, we generate the out-of-fiber inputs here
-                        {
-                            std::string debugFck = prop.toString();
-                            yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
-                            if (inputModalityPrototype)
-                            {
-                                std::stringstream ssModGroup;
-                                ssModGroup << "modality_" << modalityCounter;
-                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-                                inputModalityPrototype->write(pMod);
-                                modalityCounter++;
-                            }
-                        }
+						int inputModalitiesCount = 0;
+						int outputModalitiesCount = 0;
+						int previousSqrSize = 0;
+						int nextSize = 0;
+						if (l != 0)
+						{
+							previousSqrSize = layersStructure->get(l - 1).asList()->get(0).asInt();
+							inputModalitiesCount = countInputModalities(previousSqrSize, sqrSize, arborisationRadius);
+						}
+						if (l != (int)layers.size() - 1)
+						{
+							nextSize = layersStructure->get(l + 1).asList()->get(0).asInt();
+							outputModalitiesCount = countOutputModalities(sqrSize, nextSize, arborisationRadius);
+						}
 
-                        //Automatic generation of the output modalities
-                        if (l != layersStructure->size() - 1)
-                        {
-                            int nextSqrSize = layersStructure->get(l + 1).asList()->get(0).asInt();
-                            int outputModalitiesCount = 1;
-                            if (nextSqrSize <= sqrSize)
-                            {
-                                std::cout << "[CvzFiber] " << l << "->" << l + 1 << " is convergent" << std::endl;
-                            }
-                            else
-                            {
-                                std::cout << "[CvzFiber] " << l << "->" << l + 1 << " is divergent" << std::endl;
-                                outputModalitiesCount = (int)pow(nextSqrSize / sqrSize, 2.0);
-                            }
-                            
-                            for (int iMod = 0; iMod < outputModalitiesCount; iMod++)
-                            {
-                                std::stringstream ssModGroup;
-                                ssModGroup << "modality_" << modalityCounter;
-                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-                                std::stringstream ssModName;
-                                ssModName << "output_" << iMod;
-                                pMod.put("name", ssModName.str());
-                                pMod.put("isTopDown", yarp::os::Value(1));
-                                pMod.put("learningRate", yarp::os::Value(0.0));
-                                pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
-                                modalityCounter++;
-                            }        
-                        }
-                        
-                        if (l==(int)layers.size()-1)//last layer, we create the potential out-of-fiber convergence at this level
+						//Input
+						if (l != 0)
+						{
+							for (int iMod = 0; iMod < inputModalitiesCount; iMod++)
+							{
+								std::stringstream ssModGroup;
+								ssModGroup << "modality_" << modalityCounter;
+								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+								std::stringstream ssModName;
+								ssModName << "input_" << iMod;
+								pMod.put("name", ssModName.str());
+								pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
+								modalityCounter++;
+							}
+						}
+						else
+						{
+							std::string debugFck = prop.toString();
+							yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
+							if (inputModalityPrototype)
+							{
+								std::stringstream ssModGroup;
+								ssModGroup << "modality_" << modalityCounter;
+								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+								inputModalityPrototype->write(pMod);
+								modalityCounter++;
+							}
+						}
+
+						//Output
+						if (l != (int)layers.size() - 1)
+						{
+							for (int iMod = 0; iMod < outputModalitiesCount; iMod++)
+							{
+								std::stringstream ssModGroup;
+								ssModGroup << "modality_" << modalityCounter;
+								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+								std::stringstream ssModName;
+								ssModName << "output_" << iMod;
+								pMod.put("name", ssModName.str());
+								pMod.put("isTopDown", yarp::os::Value(1));
+								pMod.put("learningRate", yarp::os::Value(0.0));
+								pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
+								modalityCounter++;
+							}
+						}
+						else
                         {
                             yarp::os::Bottle* outputModalityPrototype = prop.find("outputModalityPrototype").asList();
                             if (outputModalityPrototype)
@@ -157,7 +200,7 @@ namespace cvz {
                     }
 
                     //Compute the connectivity pattern
-                    createConnections();
+					createConnections(arborisationRadius);
 
                     //Autoconnect to the input prototype to a matrix of ports (e.g output of ImageSplitter)
                     std::string autoConnectStem = prop.check("autoConnectInputStem",yarp::os::Value("")).asString();
@@ -243,7 +286,7 @@ namespace cvz {
                 }
 
                 //Create the connectivity matrix according to the convergence/divergence pattern between each layer of the fiber
-                void createConnections()
+                void createConnections(double radius)
                 {
                     std::list<IModality*> usedModalities;
 
@@ -258,7 +301,9 @@ namespace cvz {
                         {
                             int srcSheetSize = layers[l].size();
                             int destSheetSize = layers[l + 1].size();
-                            double convergenceRatio = srcSheetSize / (double)destSheetSize;
+
+							double spacingA = 1.0 / (double)(1.0 + srcSheetSize);
+							double spacingB = 1.0 / (double)(1.0 + destSheetSize);
 
                             for (size_t x1 = 0; x1 < layers[l].size(); x1++)
                             {
@@ -270,32 +315,10 @@ namespace cvz {
                                         for (size_t y2 = 0; y2 < layers[l+1][x2].size(); y2++)
                                         {
                                             IConvergenceZone* destCvz = layers[l+1][x2][y2];
-
-                                            if (convergenceRatio>1) //convergence : 1 to many
-                                            {
-                                                //Check if those two are connected
-                                                int modulo = x1 % (srcSheetSize / destSheetSize);
-                                                int base = x1 / (srcSheetSize / destSheetSize);
-                                                bool isConnected = ((int)x2 == base);
-                                                
-                                                modulo = y1 % (srcSheetSize / destSheetSize);
-                                                base = y1 / (srcSheetSize / destSheetSize);
-                                                isConnected &= ((int)y2 == base);
-                                                if (isConnected)
-                                                    connectFreeModalities(srcCvz, destCvz, usedModalities);
-                                            }
-                                            else //divergence many to 1
-                                            {
-                                                //Check if those two are connected
-                                                int minX1 = x1 * (destSheetSize / srcSheetSize);
-                                                int maxX1 = minX1 + (destSheetSize / srcSheetSize);
-                                                int minY1 = y1 * (destSheetSize / srcSheetSize);
-                                                int maxY1 = minY1 + (destSheetSize / srcSheetSize);
-                                                bool isConnected = (((int)x2 >= minX1) && ((int)x2 < maxX1));
-                                                isConnected &= (((int)y2 >= minY1) && ((int)y2 < maxY1));
-                                                if (isConnected)
-                                                    connectFreeModalities(srcCvz, destCvz, usedModalities);
-                                            }
+											
+											double ab = getDistance((1+x1)*spacingA, (1+y1)*spacingA, (1+x2)*spacingB, (1+y2)*spacingB);
+											if (ab <= radius)
+												connectFreeModalities(srcCvz, destCvz, usedModalities);
                                         }
                                     }
                                 }
