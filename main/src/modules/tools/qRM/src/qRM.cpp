@@ -35,6 +35,9 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     nameMainGrammar     = rf.getContextPath().c_str();
     nameMainGrammar    += rf.check("nameMainGrammar",  Value("/MainGrammar.xml")).toString().c_str();
 
+    nameGrammarSentenceTemporal     = rf.getContextPath().c_str();
+    nameGrammarSentenceTemporal    += rf.check("nameGrammarSentenceTemporal",  Value("/GrammarSentenceTemporal.xml")).toString().c_str();
+
     cout<<moduleName<<": finding configuration files..."<<endl;
     period = rf.check("period",Value(0.1)).asDouble();
 
@@ -80,14 +83,14 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    
+
     bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
     bEveryThingisGood &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
     bEveryThingisGood &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
 
- //   calibrationThread = new AutomaticCalibrationThread(100,"ical");
- //   calibrationThread->start();
- //   calibrationThread->suspend();
+    //   calibrationThread = new AutomaticCalibrationThread(100,"ical");
+    //   calibrationThread->start();
+    //   calibrationThread->suspend();
 
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
@@ -143,7 +146,6 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool qRM::updateModule() {
-    mainLoop();
     return true;
 }
 
@@ -389,4 +391,160 @@ void    qRM::mainLoop()
 
 
 
+void    qRM::nodeSentenceTemporal()
+{
+    ostringstream osError;          // Error message
 
+    Bottle bOutput;
+
+    bool fGetaReply = false;
+    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
+        bMessenger, //to be send TO speech recog
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bTemp;
+
+    bMessenger.addString("recog");
+    bMessenger.addString("grammarXML");
+    bMessenger.addString(grammarToString(nameGrammarSentenceTemporal).c_str());
+
+
+    while (!fGetaReply)
+    {
+        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
+
+        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
+        {
+            osError << "Check " << nameMainGrammar;
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+        }
+
+        if (bSpeechRecognized.get(0).toString() == "0")
+        {
+            osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+        }
+
+        bAnswer = *bSpeechRecognized.get(1).asList();
+
+        if (bAnswer.toString() != "" && !bAnswer.isNull())
+        {
+            fGetaReply = true;
+        }
+
+    }
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+
+    if (bAnswer.get(0).asString() == "stop")
+    {
+        osError.str("");
+        osError << " | STOP called";
+        bOutput.addString(osError.str());
+        cout << osError.str() << endl;
+    }
+
+
+    string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
+
+    // semantic is the list of the semantic elements of the sentence except the type ef sentence
+    bSemantic = *bAnswer.get(1).asList()->get(1).asList();
+
+    string sObject      = bSemantic.check("object", Value("none")).asString();
+    string sAgent       = bSemantic.check("agent", Value("none")).asString();
+    string sVerb        = bSemantic.check("action", Value("none")).asString();
+    string sLocation    = bSemantic.check("location", Value("none")).asString();
+    string sAdverb      = bSemantic.check("adverb", Value("none")).asString();
+
+    list<string> lRole, lArgument;
+
+    if  (sObject != "none") { lRole.push_back("object"); lArgument.push_back(sObject); }
+    if  (sAgent != "none") { lRole.push_back("agent"); lArgument.push_back(sAgent); }
+    if  (sVerb != "none") { lRole.push_back("verb"); lArgument.push_back(sVerb); }
+    if  (sLocation != "none") { lRole.push_back("action"); lArgument.push_back(sLocation); }
+    if  (sAdverb != "none") { lRole.push_back("adverb"); lArgument.push_back(sAdverb); }
+
+    if (sAgent == "none" || sVerb == "none" || sObject == "none")
+    {
+        iCub->say("I didn't really catch what you said...");
+        nodeSentenceTemporal();
+        return;
+    }
+
+    ostringstream osResponse;
+    osResponse << "So, you said that " << (sAgent=="I")? "you " : ( (sAgent=="You")? "I" : sAgent);
+    osResponse << " will " << sVerb << "to the " << sLocation << " " << sAdverb << " ?";
+
+    iCub->say(osResponse.str().c_str());
+
+    if (!nodeYesNo())
+    {
+        nodeSentenceTemporal();
+        return;
+    }
+
+    iCub->getABMClient()->sendActivity("action", sVerb, "qRM", lArgument, lRole, true);
+
+    nodeYesNo();        // wait for end of action
+
+    iCub->getABMClient()->sendActivity("action", sVerb, "qRM", lArgument, lRole, false);
+
+    iCub->say("Ok ! Another ?");
+
+    nodeSentenceTemporal();
+}
+
+
+
+bool qRM::nodeYesNo()
+{
+    ostringstream osError;          // Error message
+    osError << "Error in reservoirHandler | "<< nameGrammarYesNo << " :: ";
+    cout << endl << "In " << nameGrammarYesNo << endl << endl;
+
+    Bottle bOutput;
+
+    bool fGetaReply = false;
+    Bottle  bMessenger,
+        bSpeechRecognized,
+        bAnswer;
+
+    bMessenger.addString("recog");
+    bMessenger.addString("grammarXML");
+    bMessenger.addString(grammarToString(nameGrammarYesNo).c_str());
+
+    while (!fGetaReply)
+    {
+        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
+        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
+        {
+            osError << "Check " << sCurrentGrammarFile;
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return false;
+        }
+
+        if (bSpeechRecognized.get(0).toString() == "0")
+        {
+            osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return false;
+        }
+        bAnswer = *bSpeechRecognized.get(1).asList();
+        if (bAnswer.toString() != "" && !bAnswer.isNull())
+        {
+            fGetaReply = true;
+        }
+    }
+
+    if (bAnswer.get(0).asString() == "yes")        return true;
+
+    return false;
+}
