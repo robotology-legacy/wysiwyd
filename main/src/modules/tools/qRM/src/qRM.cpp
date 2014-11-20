@@ -524,7 +524,7 @@ bool qRM::nodeYesNo()
 
         if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
-            osError << "Check " << sCurrentGrammarFile;
+            osError << "Check " << nameGrammarYesNo;
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
             return false;
