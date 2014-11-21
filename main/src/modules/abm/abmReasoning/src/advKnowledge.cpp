@@ -1,4 +1,4 @@
-#include <adjKnowledge.h>
+#include <advKnowledge.h>
 
 
 using namespace yarp::os;
@@ -6,7 +6,7 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 
-adjKnowledge::adjKnowledge()
+advKnowledge::advKnowledge()
 {
     fTimingInfluence = false;
     fAbsolutInfluence = false;
@@ -16,13 +16,13 @@ adjKnowledge::adjKnowledge()
 
 
 /**
-Add an interaction in the adjKnowledge
+Add an interaction in the advKnowledge
 bInput format: 
 (action sAction_name)
 (timing timing)
 (coordinate X Y dX dY)
 */
-void    adjKnowledge::addInteraction(Bottle bInput)
+void    advKnowledge::addInteraction(Bottle bInput)
 {
 
     string sAction = bInput.check("action", Value("none")).asString();
@@ -43,13 +43,13 @@ void    adjKnowledge::addInteraction(Bottle bInput)
 
 
 /**
-Add an other interaction in the adjKnowledge (event adj is not this one, this is used for a comparaison)
+Add an other interaction in the advKnowledge (event adj is not this one, this is used for a comparaison)
 bInput format: 
 (action sAction_name)
 (timing timing)
 (coordinate X Y dX dY)
 */
-void    adjKnowledge::addOtherInteraction(Bottle bInput)
+void    advKnowledge::addOtherInteraction(Bottle bInput)
 {
     string sAction = bInput.check("action", Value("none")).asString();
     vdNoGnlTiming.push_back(bInput.check("timing", Value(0.)).asDouble());
@@ -64,7 +64,7 @@ void    adjKnowledge::addOtherInteraction(Bottle bInput)
 * @param XY is the final state of the move
 * @param MOVE is the delta of the move done
 */
-pair <int, double> adjKnowledge::distFromMove(pair<double, double> XY, pair<double, double> MOVE)
+pair <int, double> advKnowledge::distFromMove(pair<double, double> XY, pair<double, double> MOVE)
 {
     //// return the influence (Abs or Delta) and the Mahalanobis distance
     //int Influence =0;
@@ -92,7 +92,7 @@ pair <int, double> adjKnowledge::distFromMove(pair<double, double> XY, pair<doub
 *   Return the relative coordinates of an object of coordinates Xo Yo on the table, for an agent in Xh Yh, looking to the center of the table
 *
 */
-pair <double, double> adjKnowledge::coordRelative(double Xo, double Yo, double Xh, double Yh)
+pair <double, double> advKnowledge::coordRelative(double Xo, double Yo, double Xh, double Yh)
 {
     pair<double, double>  pReturn;
 
@@ -125,7 +125,7 @@ pair <double, double> adjKnowledge::coordRelative(double Xo, double Yo, double X
 Will try to determine if the adjective is related to space, or time.
 First, tries time, if not, try if spatial.
 */
-void adjKnowledge::determineInfluence()
+void advKnowledge::determineInfluence()
 {
     fTimingInfluence = false;
     fAbsolutInfluence = false;
@@ -149,7 +149,7 @@ then check for each action if there is a link.
 
 update the parameter: fTimingInfluence
 */
-void adjKnowledge::determineTimingInfluence()
+void advKnowledge::determineTimingInfluence()
 {
     double bothtails,
         lefttail,
@@ -186,7 +186,7 @@ void adjKnowledge::determineTimingInfluence()
 /**
 Determine if the adjective influence in term of spatial relations
 */
-void adjKnowledge::determineSpatialInfluence()
+void advKnowledge::determineSpatialInfluence()
 {
 
     // 1 For all actions:

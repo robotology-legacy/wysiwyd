@@ -38,21 +38,13 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     nameGrammarSentenceTemporal     = rf.getContextPath().c_str();
     nameGrammarSentenceTemporal    += rf.check("nameGrammarSentenceTemporal",  Value("/GrammarSentenceTemporal.xml")).toString().c_str();
 
+    nameGrammarYesNo     = rf.getContextPath().c_str();
+    nameGrammarYesNo    += rf.check("nameGrammarYesNo",  Value("/nodeYesNo.xml")).toString().c_str();
+
     cout<<moduleName<<": finding configuration files..."<<endl;
     period = rf.check("period",Value(0.1)).asDouble();
 
-
-
     bool    bEveryThingisGood = true;
-
-    // Open port2abm
-    port2abmName = "/";
-    port2abmName += getName() + "/toABM";
-
-    if (!Port2ABM.open(port2abmName.c_str())) {           
-        cout << getName() << ": Unable to open port " << port2abmName << endl;  
-        bEveryThingisGood &= false;
-    }
 
     // Open port2speech
     port2SpeechRecogName = "/";
@@ -83,8 +75,6 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-
-    bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
     bEveryThingisGood &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
     bEveryThingisGood &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
 
@@ -495,7 +485,15 @@ void    qRM::nodeSentenceTemporal()
 
     iCub->say("Ok ! Another ?");
 
-    nodeSentenceTemporal();
+    if (!nodeYesNo())
+    {
+        nodeSentenceTemporal();
+        return;
+    }
+    else
+    {
+        return;
+    }
 }
 
 
