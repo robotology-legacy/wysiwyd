@@ -85,6 +85,13 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
 
+
+    if (!iCub->getRecogClient())
+    {
+        cout << "WARNING SPEECH RECOGNIZER NOT CONNECTED" << endl;
+    }
+
+
     mainLoop();
 
     return true;
@@ -204,53 +211,28 @@ Bottle qRM::calibrationRT(string side)
 
 void    qRM::mainLoop()
 {
+
     ostringstream osError;          // Error message
 
     Bottle bOutput;
 
     bool fGetaReply = false;
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-        bMessenger, //to be send TO speech recog
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic, // semantic information of the content of the recognition
         bSendReasoning, // send the information of recall to the abmReasoning
-        bSpeak, // bottle for tts
-        bTemp;
-
-    bMessenger.addString("recog");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(nameMainGrammar).c_str());
+        bMessenger;
 
 
-    while (!fGetaReply)
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameMainGrammar));
+
+    if (bRecognized.get(0).asInt() == 0)
     {
-        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
-
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
-        {
-            osError << "Check " << nameMainGrammar;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-        }
-
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-
+        cout << bRecognized.get(1).toString() << endl;
+        return;
     }
-    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    bAnswer = *bRecognized.get(1).asList();    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
 
     if (bAnswer.get(0).asString() == "stop")
