@@ -1,7 +1,7 @@
 #include "qRM.h"
 
 
-/*
+/**
 *   Get the context path of a .grxml grammar, and return it as a string
 *
 */

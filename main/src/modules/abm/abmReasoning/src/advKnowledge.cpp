@@ -144,7 +144,7 @@ void advKnowledge::determineInfluence()
 
 
 /** Determine if the adjective influences the timing.
-First check the adjtive globaly
+First check the adjtive globaly'
 then check for each action if there is a link.
 
 update the parameter: fTimingInfluence
