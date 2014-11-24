@@ -90,6 +90,10 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     {
         cout << "WARNING SPEECH RECOGNIZER NOT CONNECTED" << endl;
     }
+    if (!iCub->getABMClient())
+    {
+        cout << "WARNING ABM NOT CONNECTED" << endl;
+    }
 
 
     mainLoop();
