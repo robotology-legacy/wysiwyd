@@ -81,7 +81,9 @@ namespace wysiwyd{namespace wrdac{
             bMessenger.addString("grammarXML");
             bMessenger.addString(sInput);
 
-            while (!fGetaReply)
+            int loop = 0;
+
+            while (!fGetaReply || loop < iLoop)
             {
                 portRPC.write(bMessenger,bReply);
 
@@ -113,6 +115,14 @@ namespace wysiwyd{namespace wrdac{
                     bOutput.addInt(1);
                     bOutput.addList() = bAnswer;
                 }
+            }
+
+            if (!fGetaReply)
+            {
+                bOutput.addInt(0);
+                osError << "no vocal input";
+                bOutput.addString(osError.str());
+                std::cout << osError.str() << std::endl;
             }
 
             return bOutput;

@@ -228,7 +228,7 @@ void    qRM::mainLoop()
         bMessenger;
 
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameMainGrammar));
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameMainGrammar), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
