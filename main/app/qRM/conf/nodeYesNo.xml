@@ -1,0 +1,17 @@
+<GRAMMAR  LANGID="409">
+
+  <RULE NAME="yes"  TOPLEVEL="ACTIVE" EXPORT="1">
+    <L>
+      <P>yes</P>
+      <P>ok</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="no" TOPLEVEL="ACTIVE" EXPORT="1">
+    <P>no</P>
+  </RULE>
+
+
+
+
+</GRAMMAR>

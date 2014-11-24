@@ -91,6 +91,8 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_SLIDING_CONTROLLER] = new SubSystem_SlidingController(fullName);
             else if (currentSS == SUBSYSTEM_ARE)
                 subSystems[SUBSYSTEM_ARE] = new SubSystem_ARE(fullName);
+            else if (currentSS == SUBSYSTEM_RECOG)
+                subSystems[SUBSYSTEM_RECOG] = new SubSystem_Recog(fullName);
         }
     }
 
