@@ -68,7 +68,7 @@ namespace wysiwyd{namespace wrdac{
         *   From one grxml grammar, return the first sentence non-empty recognized
         *   can last for several timeout (by default 50
         */
-        yarp::os::Bottle recogFromGrammarLoop(std::string &sInput, const int &iLoop = 50)
+        yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50)
         {
             std::ostringstream osError;          
             bool fGetaReply = false;
@@ -115,6 +115,7 @@ namespace wysiwyd{namespace wrdac{
                     bOutput.addInt(1);
                     bOutput.addList() = bAnswer;
                 }
+                loop++;
             }
 
             if (!fGetaReply)
