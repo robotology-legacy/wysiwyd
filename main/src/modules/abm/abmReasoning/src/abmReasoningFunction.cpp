@@ -1,6 +1,6 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/*
+/* 
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
 * Authors: Grégoire Pointeau
 * email:   gregoire.pointeau@inserm.fr
@@ -19,7 +19,7 @@
 
 /!\ This module is under development and is not useable as it is right now /!\
 
-Function used by abmReasoning to reason about ABM data
+Function used by abmReasoning to reason about ABM data 
 
 @b timeDiff()string sTime1, string sTime2) : return a boolean informing if sTime1<sTime2. Not currently available.
 
@@ -34,7 +34,7 @@ Function used by abmReasoning to reason about ABM data
 Windows
 
 \author Grégoire Pointeau, Maxime Petit
-*/
+*/ 
 
 #include <abmReasoningFunction.h>
 
@@ -45,14 +45,14 @@ using namespace std;
 string abmReasoningFunction::s_realOPC = "opc";
 string abmReasoningFunction::s_mentalOPC = "mentalOPC";
 
-double abmReasoningFunction::X_center = -0.68;
-double abmReasoningFunction::Y_center = -0.8;
-double abmReasoningFunction::X_origin = 0;
-double abmReasoningFunction::Y_origin = 0;
-double abmReasoningFunction::table_radius = 0.68;
+double abmReasoningFunction::X_center   =  -0.68;
+double abmReasoningFunction::Y_center   = -0.8;
+double abmReasoningFunction::X_origin   =  0;
+double abmReasoningFunction::Y_origin   = 0;
+double abmReasoningFunction::table_radius   = 0.68;
 
-double abmReasoningFunction::threshold_time_sequence = 3.;       //threshold of a same sequence
-double abmReasoningFunction::height_location = 0.016;       // coordonate in Z of a location in the OPC
+double abmReasoningFunction::threshold_time_sequence = 3.   ;       //threshold of a same sequence
+double abmReasoningFunction::height_location = 0.016        ;       // coordonate in Z of a location in the OPC
 double abmReasoningFunction::size_location = 0.0005;                    // size in Z of a location
 
 int abmReasoningFunction::color_dream_R = 255;                  // color of the dreamed object in the OPC
@@ -67,12 +67,12 @@ int abmReasoningFunction::DIFFERENCE_DATE_IN_SECOND = 10000;    // threshold ret
 
 unsigned int abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE = 3;         // number of tries before determine if location
 
-double abmReasoningFunction::FACTOR_LOCATION = 2;                  // factor of the size of a location : center +/- FACTOR_LOCATION * std dev
+double abmReasoningFunction::FACTOR_LOCATION = 2 ;                  // factor of the size of a location : center +/- FACTOR_LOCATION * std dev
 double abmReasoningFunction::THRESHOLD_IS_AT_LOCATION = 4;
 double abmReasoningFunction::THRESHOLD_IS_AT_TEMPORAL_LOCATION = 12;
 double abmReasoningFunction::THRESHOLD_IS_DISPERSION = 0.0001;
 
-double abmReasoningFunction::LIFETIME_RELATION = 2.;               // life time of a relation about the objects in the OPC
+double abmReasoningFunction::LIFETIME_RELATION = 2. ;               // life time of a relation about the objects in the OPC
 
 // PDDL
 double abmReasoningFunction::THRESHOLD_INTERSECT_SUP = 0.75;
@@ -82,34 +82,34 @@ double abmReasoningFunction::THRESHOLD_ABSENCE = 0.1;
 
 
 //TAGS
-string abmReasoningFunction::TAG_LOCATION = "location";
-string abmReasoningFunction::TAG_IS_AT_LOC = "isAtLoc";
-string abmReasoningFunction::TAG_DEFAULT = "default";
-string abmReasoningFunction::TAG_SPEAKER = "speaker";
-string abmReasoningFunction::TAG_ADRESSEE = "addressee";
-string abmReasoningFunction::TAG_SUBJECT = "subject";
-string abmReasoningFunction::TAG_AGENT = "agent";
-string abmReasoningFunction::TAG_NONE = abmReasoningFunction::TAG_NONE;
+string abmReasoningFunction::TAG_LOCATION   = "location";
+string abmReasoningFunction::TAG_IS_AT_LOC  = "isAtLoc";
+string abmReasoningFunction::TAG_DEFAULT    = "default";
+string abmReasoningFunction::TAG_SPEAKER    = "speaker";
+string abmReasoningFunction::TAG_ADRESSEE   = "addressee";
+string abmReasoningFunction::TAG_SUBJECT    = "subject";
+string abmReasoningFunction::TAG_AGENT      = "agent";
+string abmReasoningFunction::TAG_NONE       = abmReasoningFunction::TAG_NONE;
 
 
 //DB
-string abmReasoningFunction::TAG_DB_ACTION = "action";
-string abmReasoningFunction::TAG_DB_COMPLEX = "complex";
-string abmReasoningFunction::TAG_DB_BEHAVIOR = "behavior";
+string abmReasoningFunction::TAG_DB_ACTION      = "action";
+string abmReasoningFunction::TAG_DB_COMPLEX     = "complex";
+string abmReasoningFunction::TAG_DB_BEHAVIOR    = "behavior";
 string abmReasoningFunction::TAG_DB_SHARED_PLAN = "sharedplan";
-string abmReasoningFunction::TAG_DB_ARGUMENT = "argument";
-string abmReasoningFunction::TAG_DB_NONE = abmReasoningFunction::TAG_NONE;
-string abmReasoningFunction::TAG_DB_MANNER = "manner";
-string abmReasoningFunction::TAG_DB_UNKNOWN = "unknown";
+string abmReasoningFunction::TAG_DB_ARGUMENT    = "argument";
+string abmReasoningFunction::TAG_DB_NONE        = abmReasoningFunction::TAG_NONE;
+string abmReasoningFunction::TAG_DB_MANNER      = "manner";
+string abmReasoningFunction::TAG_DB_UNKNOWN     = "unknown";
 
 
 //GK
-string abmReasoningFunction::TAG_SPEAKER_IS_RECEIVER = "speaker_is_addressee";
+string abmReasoningFunction::TAG_SPEAKER_IS_RECEIVER    = "speaker_is_addressee";
 string abmReasoningFunction::TAG_ADRESSEE_IS_SPEAKER = "addressee_is_speaker";
-string abmReasoningFunction::TAG_SPEAKER_IS_AGENT = "speaker_is_agent";
-string abmReasoningFunction::TAG_AGENT_IS_SPEAKER = "agent_is_speaker";
-string abmReasoningFunction::TAG_AGENT_IS_RECEIVER = "agent_is_addressee";
-string abmReasoningFunction::TAG_ADRESSEE_IS_AGENT = "addressee_is_agent";
+string abmReasoningFunction::TAG_SPEAKER_IS_AGENT   = "speaker_is_agent" ;
+string abmReasoningFunction::TAG_AGENT_IS_SPEAKER   = "agent_is_speaker" ;
+string abmReasoningFunction::TAG_AGENT_IS_RECEIVER  = "agent_is_addressee" ;
+string abmReasoningFunction::TAG_ADRESSEE_IS_AGENT  = "addressee_is_agent" ;
 int abmReasoningFunction::SIGMA_LEARNING_GRAMMAR = 1;
 double abmReasoningFunction::THRESHOLD_CONFIDENCE_GRAMMAR = 0.13;
 
@@ -122,23 +122,23 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 {
     Bottle &bOPC = rf.findGroup("opc");
 
-    s_realOPC = (bOPC.check("s_realOPC", Value("OPC")).asString());
-    s_mentalOPC = (bOPC.check("s_mentalOPC", Value("mentalOPC")).asString());
+    s_realOPC = (bOPC.check("s_realOPC",Value("OPC")).asString());  
+    s_mentalOPC = (bOPC.check("s_mentalOPC",Value("mentalOPC")).asString());  
 
     Bottle &bTable = rf.findGroup("table");
 
-    X_center = (bTable.check("X_center", Value(-0.68)).asDouble());
-    Y_center = (bTable.check("Y_center", Value(-0.8)).asDouble());
-    X_origin = (bTable.check("X_origin", Value(0)).asDouble());
-    Y_origin = (bTable.check("Y_origin", Value(0)).asDouble());
+    X_center = (bTable.check("X_center",Value(-0.68)).asDouble());  
+    Y_center = (bTable.check("Y_center",Value(-0.8)).asDouble());  
+    X_origin = (bTable.check("X_origin",Value(0)).asDouble());  
+    Y_origin = (bTable.check("Y_origin",Value(0)).asDouble());  
 
-    table_radius = sqrt((X_center - X_origin)*(X_center - X_origin) + (Y_center - Y_origin)*(Y_center - Y_origin));
+    table_radius = sqrt((X_center-X_origin)*(X_center-X_origin)+(Y_center-Y_origin)*(Y_center-Y_origin));
 
     Bottle &bMental = rf.findGroup("mental");
 
     threshold_time_sequence = bMental.check("threshold_time_sequence", Value(3)).asDouble();
     height_location = bMental.check("height_location", Value(0.016)).asDouble();
-    size_location = bMental.check("size_location", Value(0.005)).asDouble();
+    size_location   = bMental.check("size_location", Value(0.005)).asDouble();
 
     color_dream_R = bMental.check("color_dream_R", Value(255)).asInt();
     color_dream_G = bMental.check("color_dream_G", Value(255)).asInt();
@@ -150,7 +150,7 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     DIFFERENCE_DATE_IN_SECOND = bMental.check("DIFFERENCE_DATE_IN_SECOND", Value(10000)).asInt();
 
 
-    LIFETIME_RELATION = bMental.check("LIFETIME_RELATION", Value(0.005)).asDouble();
+    LIFETIME_RELATION   = bMental.check("LIFETIME_RELATION", Value(0.005)).asDouble();
 
 
     Bottle &bSpatialisation = rf.findGroup("spatialisation");
@@ -172,7 +172,7 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 
     Bottle &bTag = rf.findGroup("TAGS");
 
-    TAG_LOCATION = (bTag.check("TAG_LOCATION", Value("location")).asString());
+    TAG_LOCATION = (bTag.check("TAG_LOCATION",Value("location")).asString());  
     TAG_IS_AT_LOC = (bTag.check("TAG_IS_AT_LOC", Value("isAtLoc")).asString());
     TAG_DEFAULT = (bTag.check("TAG_DEFAULT", Value("default")).asString());
     TAG_SPEAKER = (bTag.check("TAG_SPEAKER", Value("speaker")).asString());
@@ -185,28 +185,28 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 
     Bottle &bDB = rf.findGroup("DB");
 
-    TAG_DB_ACTION = bDB.check("TAG_DB_ACTION", Value("action")).asString();
-    TAG_DB_COMPLEX = bDB.check("TAG_DB_COMPLEX", Value("complex")).asString();
-    TAG_DB_BEHAVIOR = bDB.check("TAG_DB_BEHAVIOR", Value("behavior")).asString();
-    TAG_DB_SHARED_PLAN = bDB.check("TAG_DB_SHARED_PLAN", Value("sharedplan")).asString();
-    TAG_DB_ARGUMENT = bDB.check("TAG_DB_ARGUMENT", Value("argument")).asString();
-    TAG_DB_NONE = bDB.check("TAG_DB_NONE", Value(abmReasoningFunction::TAG_NONE)).asString();
-    TAG_DB_MANNER = bDB.check("TAG_DB_MANNER", Value("manner")).asString();
-    TAG_DB_UNKNOWN = bDB.check("TAG_DB_UNKNOWN", Value("unknown")).asString();
+    TAG_DB_ACTION       = bDB.check("TAG_DB_ACTION", Value("action")).asString();
+    TAG_DB_COMPLEX      = bDB.check("TAG_DB_COMPLEX", Value("complex")).asString();
+    TAG_DB_BEHAVIOR     = bDB.check("TAG_DB_BEHAVIOR", Value("behavior")).asString();
+    TAG_DB_SHARED_PLAN  = bDB.check("TAG_DB_SHARED_PLAN", Value("sharedplan")).asString();
+    TAG_DB_ARGUMENT     = bDB.check("TAG_DB_ARGUMENT", Value("argument")).asString();
+    TAG_DB_NONE         = bDB.check("TAG_DB_NONE", Value(abmReasoningFunction::TAG_NONE)).asString();
+    TAG_DB_MANNER       = bDB.check("TAG_DB_MANNER", Value("manner")).asString();
+    TAG_DB_UNKNOWN      = bDB.check("TAG_DB_UNKNOWN", Value("unknown")).asString();
 
 
     Bottle &bGK = rf.findGroup("GK");
-    TAG_SPEAKER_IS_RECEIVER = bGK.check("TAG_SPEAKER_IS_RECEIVER", Value("speaker_is_addressee")).asString();
-    TAG_ADRESSEE_IS_SPEAKER = bGK.check("TAG_ADRESSEE_IS_SPEAKER", Value("addressee_is_speaker")).asString();
-    TAG_SPEAKER_IS_AGENT = bGK.check("TAG_SPEAKER_IS_AGENT", Value("speaker_is_agent")).asString();
-    TAG_AGENT_IS_SPEAKER = bGK.check("TAG_AGENT_IS_SPEAKER", Value("agent_is_speaker")).asString();
-    TAG_AGENT_IS_RECEIVER = bGK.check("TAG_AGENT_IS_RECEIVER", Value("agent_is_addressee")).asString();
-    TAG_ADRESSEE_IS_AGENT = bGK.check("TAG_ADRESSEE_IS_AGENT", Value("addressee_is_agent")).asString();
-    SIGMA_LEARNING_GRAMMAR = bGK.check("SIGMA_LEARNING_GRAMMAR", Value(1)).asInt();
-    THRESHOLD_CONFIDENCE_GRAMMAR = bGK.check("THRESHOLD_CONFIDENCE_GRAMMAR", Value(0.13)).asDouble();
+    TAG_SPEAKER_IS_RECEIVER         = bGK.check("TAG_SPEAKER_IS_RECEIVER", Value("speaker_is_addressee")).asString();
+    TAG_ADRESSEE_IS_SPEAKER         = bGK.check("TAG_ADRESSEE_IS_SPEAKER", Value("addressee_is_speaker")).asString();
+    TAG_SPEAKER_IS_AGENT            = bGK.check("TAG_SPEAKER_IS_AGENT", Value("speaker_is_agent")).asString();
+    TAG_AGENT_IS_SPEAKER            = bGK.check("TAG_AGENT_IS_SPEAKER", Value("agent_is_speaker")).asString();
+    TAG_AGENT_IS_RECEIVER           = bGK.check("TAG_AGENT_IS_RECEIVER", Value("agent_is_addressee")).asString();
+    TAG_ADRESSEE_IS_AGENT           = bGK.check("TAG_ADRESSEE_IS_AGENT", Value("addressee_is_agent")).asString();
+    SIGMA_LEARNING_GRAMMAR          = bGK.check("SIGMA_LEARNING_GRAMMAR", Value(1)).asInt();
+    THRESHOLD_CONFIDENCE_GRAMMAR    = bGK.check("THRESHOLD_CONFIDENCE_GRAMMAR", Value(0.13)).asDouble();
 
     Bottle &bADJ = rf.findGroup("ADJ");
-    THRESHOLD_PVALUE_INFLUENCE_TIMING = bADJ.check("THRESHOLD_PVALUE_INFLUENCE_TIMING", Value(0.05)).asDouble();
+    THRESHOLD_PVALUE_INFLUENCE_TIMING    = bADJ.check("THRESHOLD_PVALUE_INFLUENCE_TIMING", Value(0.05)).asDouble();
 
 
 }
@@ -215,25 +215,25 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
 // return if TM1 < TM2
 bool abmReasoningFunction::timeDiff(struct tm TM1, struct tm TM2)
 {
-    if (TM1.tm_year < TM2.tm_year)
+    if (TM1.tm_year<TM2.tm_year)
         return true;
-    if (TM1.tm_year > TM2.tm_year)
+    if (TM1.tm_year>TM2.tm_year)
         return false;
-    if (TM1.tm_yday < TM2.tm_yday)
+    if (TM1.tm_yday<TM2.tm_yday)
         return true;
-    if (TM1.tm_yday > TM2.tm_yday)
+    if (TM1.tm_yday>TM2.tm_yday)
         return false;
-    if (TM1.tm_hour < TM2.tm_hour)
+    if (TM1.tm_hour<TM2.tm_hour)
         return true;
-    if (TM1.tm_hour > TM2.tm_hour)
+    if (TM1.tm_hour>TM2.tm_hour)
         return false;
-    if (TM1.tm_min < TM2.tm_min)
+    if (TM1.tm_min<TM2.tm_min)
         return true;
-    if (TM1.tm_min > TM2.tm_min)
+    if (TM1.tm_min>TM2.tm_min)
         return false;
-    if (TM1.tm_sec < TM2.tm_sec)
+    if (TM1.tm_sec<TM2.tm_sec)
         return true;
-    if (TM1.tm_sec > TM2.tm_sec)
+    if (TM1.tm_sec>TM2.tm_sec)
         return false;
     return false;
 }
@@ -255,9 +255,9 @@ int abmReasoningFunction::timeDiffSecondFromString(string T1, string T2)
     if (TM1.tm_year != TM2.tm_year || TM1.tm_mday != TM2.tm_mday || TM1.tm_mon != TM2.tm_mon)
         return DIFFERENCE_DATE_IN_SECOND;
 
-    iHours = (TM2.tm_hour - TM1.tm_hour);
-    iMinutes = iHours * 60 + (TM2.tm_min - TM1.tm_min);
-    iSecondReturn = iMinutes * 60 + (TM2.tm_sec - TM1.tm_sec);
+    iHours = (TM2.tm_hour-TM1.tm_hour);
+    iMinutes = iHours*60 + (TM2.tm_min - TM1.tm_min);
+    iSecondReturn = iMinutes*60 + (TM2.tm_sec - TM1.tm_sec);
 
     return iSecondReturn;
 }
@@ -265,7 +265,7 @@ int abmReasoningFunction::timeDiffSecondFromString(string T1, string T2)
 struct tm  abmReasoningFunction::string2Time(string sTime)
 {
     char *cBuffer;
-    cBuffer = (char*)sTime.c_str();
+    cBuffer =  (char*)sTime.c_str();
     unsigned int i = 0;
     int iLevel = 0;
     //  int iHH,iMM,iSS; //iYear,iMonth,iDay,
@@ -306,7 +306,7 @@ struct tm  abmReasoningFunction::string2Time(string sTime)
     }
     struct tm *tOutput;
     time_t myTime;
-    time(&myTime);
+    time(&myTime);  
 
     tOutput = localtime(&myTime);
     tOutput->tm_hour = atoi(sHH.c_str());
@@ -334,30 +334,30 @@ string abmReasoningFunction::time2string(struct tm Time)
     iYear = Time.tm_year;
     char cBuffer[19];
     string sRet;
-    sRet = "";
+    sRet ="";
 
     sprintf(cBuffer, "%d", int(iYear));
-    sRet += (cBuffer);
-    sRet += ("-");
+    sRet+=(cBuffer);
+    sRet+=("-");
 
     sprintf(cBuffer, "%d", int(iMonth));
-    sRet += (cBuffer);
-    sRet += ("-");
+    sRet+=(cBuffer);
+    sRet+=("-");
 
     sprintf(cBuffer, "%d", int(iDay));
-    sRet += (cBuffer);
-    sRet += (" ");
+    sRet+=(cBuffer);
+    sRet+=(" ");
 
     sprintf(cBuffer, "%d", int(iHH));
-    sRet += (cBuffer);
-    sRet += (":");
+    sRet+=(cBuffer);
+    sRet+=(":");
 
     sprintf(cBuffer, "%d", int(iMM));
-    sRet += (cBuffer);
-    sRet += (":");
+    sRet+=(cBuffer);
+    sRet+=(":");
 
     sprintf(cBuffer, "%d", int(iSS));
-    sRet += (cBuffer);
+    sRet+=(cBuffer);
 
     return sRet;
 }
@@ -379,15 +379,15 @@ pair<string, string> abmReasoningFunction::ago2string(pair<int, string> pInput)
     // set begin and end time
     if (sUnit == "month" || sUnit == "months")
     {
-        tmDate->tm_mon += (-iDelay);
+        tmDate->tm_mon += (- iDelay );
         tmDate->tm_mday = 1;
         tmDate->tm_hour = 0;
         tmDate->tm_min = 0;
         tmDate->tm_sec = 0;
-        mktime(tmDate);
+        mktime (tmDate);
         sBegin = time2string(*tmDate);
         tmDate = localtime(&myTime);
-        tmDate->tm_mon += (-iDelay + 1);
+        tmDate->tm_mon += (- iDelay + 1);
         tmDate->tm_mday = 1;
         tmDate->tm_hour = 0;
         tmDate->tm_min = 0;
@@ -398,14 +398,14 @@ pair<string, string> abmReasoningFunction::ago2string(pair<int, string> pInput)
 
     if (sUnit == "week" || sUnit == "weeks")
     {
-        tmDate->tm_mday += (-7 * iDelay);
+        tmDate->tm_mday += (- 7*iDelay );
         tmDate->tm_hour = 0;
         tmDate->tm_min = 0;
         tmDate->tm_sec = 0;
-        mktime(tmDate);
+        mktime (tmDate);
         sBegin = time2string(*tmDate);
         tmDate = localtime(&myTime);
-        tmDate->tm_mday += (-7 * iDelay + 7);
+        tmDate->tm_mday += (- 7*iDelay + 7);
         tmDate->tm_hour = 0;
         tmDate->tm_min = 0;
         tmDate->tm_sec = 0;
@@ -415,14 +415,14 @@ pair<string, string> abmReasoningFunction::ago2string(pair<int, string> pInput)
 
     if (sUnit == "day" || sUnit == "days")
     {
-        tmDate->tm_mday += (-iDelay);
+        tmDate->tm_mday += (- iDelay );
         tmDate->tm_hour = 0;
         tmDate->tm_min = 0;
         tmDate->tm_sec = 0;
-        mktime(tmDate);
+        mktime (tmDate);
         sBegin = time2string(*tmDate);
         tmDate = localtime(&myTime);
-        tmDate->tm_mday += (-iDelay + 1);
+        tmDate->tm_mday += (- iDelay + 1);
         tmDate->tm_hour = 0;
         tmDate->tm_min = 0;
         tmDate->tm_sec = 0;
@@ -432,13 +432,13 @@ pair<string, string> abmReasoningFunction::ago2string(pair<int, string> pInput)
 
     if (sUnit == "hour" || sUnit == "hours")
     {
-        tmDate->tm_hour += (-iDelay);
+        tmDate->tm_hour += (- iDelay );
         tmDate->tm_min = 0;
         tmDate->tm_sec = 0;
-        mktime(tmDate);
+        mktime (tmDate);
         sBegin = time2string(*tmDate);
         tmDate = localtime(&myTime);
-        tmDate->tm_hour += (-iDelay + 1);
+        tmDate->tm_hour += (- iDelay + 1);
         tmDate->tm_min = 0;
         tmDate->tm_sec = 0;
         mktime(tmDate);
@@ -446,13 +446,13 @@ pair<string, string> abmReasoningFunction::ago2string(pair<int, string> pInput)
     }
 
     if (sUnit == "minut" || sUnit == "minuts")
-    {
-        tmDate->tm_min += (-iDelay);
+    {   
+        tmDate->tm_min += (- iDelay );
         tmDate->tm_sec = 0;
-        mktime(tmDate);
+        mktime (tmDate);
         sBegin = time2string(*tmDate);
         tmDate = localtime(&myTime);
-        tmDate->tm_min += (-iDelay + 1);
+        tmDate->tm_min += (- iDelay + 1);
         tmDate->tm_sec = 0;
         mktime(tmDate);
         sEnd = time2string(*tmDate);
@@ -478,8 +478,8 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<pair<double, double> > 
         muY += vXY[i].second;
     }
 
-    muX /= (N*1.);
-    muY /= (N*1.);
+    muX  /= (N*1.);
+    muY  /= (N*1.);
 
     vector<double>  XimuX,  // (Xi - muX)
         YimuY;  // (Yi - muX)
@@ -499,18 +499,18 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<pair<double, double> > 
         d = 0;
 
     // Creation of the matrix M for the abs values and M' the relatives values
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < N ; i++)
     {
-        XimuX.push_back(vXY[i].first - muX);
-        YimuY.push_back(vXY[i].second - muY);
+        XimuX.push_back(vXY[i].first-muX);
+        YimuY.push_back(vXY[i].second-muY);
     }
 
-    for (int i = 0; i < N; i++)
+    for (int i = 0; i < N ; i++)
     {
-        a += XimuX[i] * XimuX[i];
-        b += XimuX[i] * YimuY[i];
-        c += YimuY[i] * XimuX[i];
-        d += YimuY[i] * YimuY[i];
+        a       += XimuX[i] * XimuX[i];
+        b       += XimuX[i] * YimuY[i];
+        c       += YimuY[i] * XimuX[i];
+        d       += YimuY[i] * YimuY[i];
     }
 
     a /= (N*1.);
@@ -532,7 +532,7 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<pair<double, double> > 
 
 vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY)
 {
-    if (vX.size() != vY.size())
+    if (vX.size() != vY.size() )
     {
         cout << "Error in abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY) : vX and vY size different" << endl;
         vector<double> vOutput;
@@ -543,7 +543,7 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
 
     vector<pair<double, double> > vectDouble;
 
-    for (int i = 0; i < N; i++)
+    for (int i = 0 ; i < N ; i++)
     {
         pair<double, double> pTemp(vX[i], vY[i]);
         vectDouble.push_back(pTemp);
@@ -565,7 +565,7 @@ double abmReasoningFunction::getMahalaDist(vector<double> vX, vector<double> vY,
 
     vector<double> covMatrix = getCovMatrix(vX, vY);
 
-    double X, Y, Xp, Yp, D, a, b, c, d, muX = 0, muY = 0;
+    double X, Y, Xp, Yp,D, a, b, c, d, muX=0, muY=0;
 
     for (unsigned int i = 0; i < vX.size(); i++)
     {
@@ -590,9 +590,9 @@ double abmReasoningFunction::getMahalaDist(vector<double> vX, vector<double> vY,
     | c , d |
 
 
-    Inverse :
+    Inverse : 
 
-    1     | d , -b |
+    1     | d , -b | 
     --- * |        |
     det   |-c ,  a |
 
@@ -605,12 +605,12 @@ double abmReasoningFunction::getMahalaDist(vector<double> vX, vector<double> vY,
     det
     */
 
-    Xp = d*X - c*Y;
+    Xp =  d*X - c*Y;
     Yp = -b*X + a*Y;
 
     D = X*Xp + Y*Yp;
 
-    D /= (a*d - b*c);
+    D /= (a*d-b*c);
 
     return D;
 }
@@ -624,7 +624,7 @@ pair<double, double> abmReasoningFunction::coordFromString(string sInput)
     char *cInput;
     cInput = (char*)sInput.c_str();
     int iLevel = 0;
-    unsigned int data = 0;
+    unsigned int data =0;
     pair<double, double> pOutput;
     string sX = "", sY = "";
     while (cInput[data] != '\0')
@@ -642,7 +642,7 @@ pair<double, double> abmReasoningFunction::coordFromString(string sInput)
                 sX += cTemp;
                 break;
             case 1:
-                sY += cTemp;
+                sY+=cTemp;
                 break;
             }
         }
@@ -664,8 +664,8 @@ tuple<int, int, int> abmReasoningFunction::tupleIntFromString(string sInput)
     char *cInput;
     cInput = (char*)sInput.c_str();
     int iLevel = 0;
-    unsigned int data = 0;
-    string sX = "", sY = "", sZ = "";
+    unsigned int data =0;
+    string sX = "", sY = "", sZ ="";
     while (cInput[data] != '\0')
     {
         char cTemp = cInput[data];
@@ -707,8 +707,8 @@ tuple<double, double, double> abmReasoningFunction::tupleDoubleFromString(string
     char *cInput;
     cInput = (char*)sInput.c_str();
     int iLevel = 0;
-    unsigned int data = 0;
-    string sX = "", sY = "", sZ = "";
+    unsigned int data =0;
+    string sX = "", sY = "", sZ ="";
     while (cInput[data] != '\0')
     {
         char cTemp = cInput[data];

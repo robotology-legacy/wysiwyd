@@ -2,9 +2,9 @@
 
 
 
-class abmReasoning : public yarp::os::RFModule
+class abmReasoning: public yarp::os::RFModule
 {
-private:
+private :
 
     // Internal member, module-related :
     abmReasoningFunction *iFunction;            //  class of generic functions
@@ -27,7 +27,7 @@ private:
     bool                bReady;         // is the system initialize
     bool                bPopulateOPC;   // send the knowledge to the OPC
 
-    yarp::os::Bottle getActionFromPostCondition(std::pair<std::string, int>);
+    yarp::os::Bottle getActionFromPostCondition(std::pair<std::string,int>) ;
 
     // List of knowledge : 
     std::vector<spatialKnowledge>        listSpatialKnowledge;
@@ -37,42 +37,42 @@ private:
     std::vector<behavior>                listBehaviors;
     std::vector<contextualKnowledge>     listContextualKnowledge;
     std::vector<knownInteraction>        listKnownInteraction;
-    std::map<std::string, std::pair<std::vector<double>, std::vector<double> > >    mapLocation;                    //  known durable locations
-    std::map<std::string, std::tuple<std::string, std::vector<double>, std::vector<double> > >   mapTemporalLocation;    // relative location
+    std::map<std::string, std::pair<std::vector<double> , std::vector<double> > >    mapLocation;                    //  known durable locations
+    std::map<std::string, std::tuple<std::string, std::vector<double> , std::vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
     wordKnowledge                    WordKnowledge;
 
     //PDDL planner variable
-    std::string      plannerPath;
-    std::string      plannerExec;
-    std::string      plannerOptDom;
-    std::string      plannerOptProb;
-    std::string      plannerOptOut;
-    std::string      plannerOptNb;  //option : number of plan/solution before stop
-    std::string      plannerOptCpu; //option : nb of second max taken by the planner
+    std::string      plannerPath ;
+    std::string      plannerExec ;
+    std::string      plannerOptDom ;
+    std::string      plannerOptProb ;
+    std::string      plannerOptOut ;
+    std::string      plannerOptNb ;  //option : number of plan/solution before stop
+    std::string      plannerOptCpu ; //option : nb of second max taken by the planner
 
     std::string      pddlDomain;    //name of the domain pddl file
-    std::string      pddlProblem; //name of the problem pddl file
-    std::string      pddlOut;      //name of the solution plan file
-    int         pddlNb;       //nb max of produced solution
-    int         pddlCpu;      //nb of second max taken by the planner to find solution
+    std::string      pddlProblem  ; //name of the problem pddl file
+    std::string      pddlOut ;      //name of the solution plan file
+    int         pddlNb ;       //nb max of produced solution
+    int         pddlCpu ;      //nb of second max taken by the planner to find solution
 
     void        initialisePlanner(yarp::os::ResourceFinder &rf);      // initialise all variables of the planner
-    int         pddlPlannerLauncher();
-    yarp::os::Bottle      pddlPlannerSolParser();
+    int         pddlPlannerLauncher() ;
+    yarp::os::Bottle      pddlPlannerSolParser() ;
 
-    std::vector<std::vector<int> >    testListSharedPlan;
-    std::vector<std::vector<int> >    testListSharedPlanPossible;
-    std::vector<int>             testListCurrentAction;
+    std::vector<std::vector<int> >    testListSharedPlan ;
+    std::vector<std::vector<int> >    testListSharedPlanPossible ;
+    std::vector<int>             testListCurrentAction ;
 
     std::vector <plan>               vBuiltSharedPlan;
-    std::vector <std::vector<plan> >      vAvailablePlans;
-    std::vector < std::pair <int, int> >   vCurrentActions;
+    std::vector <std::vector<plan> >      vAvailablePlans ;
+    std::vector < std::pair <int,int> >   vCurrentActions ;
 
     int saveEndLastAction;
 
 
-public:
+public : 
 
     abmReasoning(yarp::os::ResourceFinder &rf);
     ~abmReasoning();
@@ -133,7 +133,7 @@ public:
     //find possible plan into list action
     yarp::os::Bottle findPossibleSharedPlan(int, int);
     yarp::os::Bottle availableSharedPlan(int, int);
-    plan actionsToPlan(int, int);
+    plan actionsToPlan(int, int) ;
     std::vector<plan> checkPlan(plan, std::vector<plan>);
 
 
@@ -202,7 +202,7 @@ public:
     void pddlSolDelete(unsigned int begin, unsigned int end);
     static char fixed_tolower(char c) { return tolower((unsigned char)c); }        //Avoiding ptr_fun bug
 
-    int bestSol;
+    int bestSol ;
 
     // display functions
     void displayResult(yarp::os::Bottle bInput);

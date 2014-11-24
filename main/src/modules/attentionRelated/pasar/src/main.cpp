@@ -21,7 +21,7 @@
 #include <time.h>
 YARP_DECLARE_DEVICES(icubmod)
 
-using namespace yarp::os;
+    using namespace yarp::os;
 using namespace yarp::sig;
 
 

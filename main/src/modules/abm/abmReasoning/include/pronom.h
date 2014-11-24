@@ -5,7 +5,7 @@
 
 
 class pronom
-{
+{   
 public:
     std::string                              sSubject;       // or pronom
 
@@ -29,7 +29,7 @@ public:
     std::vector<std::pair<std::string, int> >          vAddresseeIs;   //  Vector with the name of addressee and interances
     std::vector<std::pair<std::string, int> >          vAgentIs;   //  Vector with the name of addressee and interances
     std::vector<std::pair<std::string, int> >          vSpeakerIs; //  Vector with the name of addressee and interances
-
+    
 
 };
 

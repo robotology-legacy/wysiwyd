@@ -6,7 +6,7 @@
 
 
 class grammarKnowledge
-{
+{ 
 public:
 
     grammarKnowledge();
@@ -33,9 +33,9 @@ public:
     std::pair<std::string, double> findSubject(std::string sSpeaker, std::string sAddressee, std::string sAgent);
     std::pair<std::string, double> findAgent(std::string sSpeaker, std::string sAddressee, std::string sSubject);
     std::pair<std::string, double> findAddressee(std::string sSpeaker, std::string sAgent, std::string sSubject);
-    std::pair<std::string, double> findSpeaker(std::string sAddressee, std::string sAgent, std::string sSubject);
+    std::pair<std::string, double> findSpeaker(std::string sAddressee, std::string sAgent, std::string sSubject); 
 
-    void simulateLearning(int Case, int iNbRep);
+    void simulateLearning(int Case,int iNbRep);
     void simulateInstance(std::string Sp, std::string Ad, std::string Ag, std::string Su, int iNbRep);
 
     void clear();

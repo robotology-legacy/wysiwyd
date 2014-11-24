@@ -29,7 +29,6 @@
 #include "subSystem_postures.h"
 #include "subSystem_reactable.h"
 #include "subSystem_speech.h"
-#include "subSystem_recog.h"
 #include "subSystem_slidingCtrl.h"
 #endif
 
