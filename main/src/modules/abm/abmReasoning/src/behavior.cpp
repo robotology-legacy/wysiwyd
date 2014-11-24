@@ -14,16 +14,16 @@ Bottle behavior::getConsequence()
     vector <pair <string, vector <double> > >   vDrive;
 
     // for each time the behavior has been seen
-    for (vector < vector< pair <string, double> > >::iterator it_occurence = vEffect.begin() ; it_occurence !=vEffect.end() ; it_occurence++ )
+    for (vector < vector< pair <string, double> > >::iterator it_occurence = vEffect.begin(); it_occurence != vEffect.end(); it_occurence++)
     {
         // for each drive changed
-        for (vector< pair <string, double> >::iterator it_drive = it_occurence->begin() ; it_drive != it_occurence->end() ; it_drive++)
+        for (vector< pair <string, double> >::iterator it_drive = it_occurence->begin(); it_drive != it_occurence->end(); it_drive++)
         {
 
             bool driveKnown = false;
 
             // for each known effect
-            for (vector <pair <string, vector <double> > >::iterator it_effect = vDrive.begin() ; it_effect != vDrive.end() ; it_effect ++)
+            for (vector <pair <string, vector <double> > >::iterator it_effect = vDrive.begin(); it_effect != vDrive.end(); it_effect++)
             {
 
                 // if the drive is already know
@@ -46,16 +46,16 @@ Bottle behavior::getConsequence()
 
     Bottle bDrive;
 
-    for (unsigned int i = 0 ; i < vDrive.size() ; i++)
+    for (unsigned int i = 0; i < vDrive.size(); i++)
     {
         bDrive.clear();
         bDrive.addString(vDrive[i].first.c_str());
         double sum = 0.;
-        for (unsigned int j = 0 ; j < vDrive[i].second.size() ; j++)
+        for (unsigned int j = 0; j < vDrive[i].second.size(); j++)
         {
             sum += vDrive[i].second[j];
         }
-        bDrive.addDouble(sum/(1.*vDrive[i].second.size()));
+        bDrive.addDouble(sum / (1.*vDrive[i].second.size()));
         bOutput.addList() = bDrive;
     }
 
@@ -77,18 +77,18 @@ Bottle behavior::getConsequence(int last)
     int loop = 0,
         legal = vEffect.size() - last;
     // for each time the behavior has been seen
-    for (vector < vector< pair <string, double> > >::iterator it_occurence = vEffect.begin() ; it_occurence !=vEffect.end() ; it_occurence++ )
+    for (vector < vector< pair <string, double> > >::iterator it_occurence = vEffect.begin(); it_occurence != vEffect.end(); it_occurence++)
     {
         if (loop >= legal)
         {
             // for each drive changed
-            for (vector< pair <string, double> >::iterator it_drive = it_occurence->begin() ; it_drive != it_occurence->end() ; it_drive++)
+            for (vector< pair <string, double> >::iterator it_drive = it_occurence->begin(); it_drive != it_occurence->end(); it_drive++)
             {
 
                 bool driveKnown = false;
 
                 // for each known effect
-                for (vector <pair <string, vector <double> > >::iterator it_effect = vDrive.begin() ; it_effect != vDrive.end() ; it_effect ++)
+                for (vector <pair <string, vector <double> > >::iterator it_effect = vDrive.begin(); it_effect != vDrive.end(); it_effect++)
                 {
 
                     // if the drive is already know
@@ -112,16 +112,16 @@ Bottle behavior::getConsequence(int last)
     }
 
     Bottle bDrive;
-    for (unsigned int i = 0 ; i < vDrive.size() ; i++)
+    for (unsigned int i = 0; i < vDrive.size(); i++)
     {
         bDrive.clear();
         bDrive.addString(vDrive[i].first.c_str());
         double sum = 0.;
-        for (unsigned int j = 0 ; j < vDrive[i].second.size() ; j++)
+        for (unsigned int j = 0; j < vDrive[i].second.size(); j++)
         {
             sum += vDrive[i].second[j];
         }
-        bDrive.addDouble(sum/(1.*vDrive[i].second.size()));
+        bDrive.addDouble(sum / (1.*vDrive[i].second.size()));
         bOutput.addList() = bDrive;
     }
     return bOutput;

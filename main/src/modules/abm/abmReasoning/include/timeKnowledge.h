@@ -5,7 +5,7 @@
 
 
 class timeKnowledge
-{   
+{
 public:
 
     std::string                      sTemporal;

@@ -4,7 +4,7 @@
 #include <abmReasoningFunction.h>
 
 class behavior
-{   
+{
 public:
     std::string                                          sName;
     std::string                                          sArgument;

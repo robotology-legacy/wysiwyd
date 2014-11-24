@@ -67,7 +67,7 @@ public:
     int     getNumberRelation(int instance);
 
     // Knowledge related function
-    yarp::os::Bottle              saveKnowledge(std::vector<spatialKnowledge> listSK , std::vector<timeKnowledge> listTK, std::vector<behavior> listBehavior , std::vector<plan> listPlan , std::vector<contextualKnowledge> listCK , std::vector<knownInteraction> listInc);
+    yarp::os::Bottle              saveKnowledge(std::vector<spatialKnowledge> listSK, std::vector<timeKnowledge> listTK, std::vector<behavior> listBehavior, std::vector<plan> listPlan, std::vector<contextualKnowledge> listCK, std::vector<knownInteraction> listInc);
     void                close();
 
 
