@@ -39,10 +39,7 @@
         }
     }
     const std::string SELFPATH = (get_selfpath()).substr(0, (get_selfpath()).find("\\Release\\cvzCore.exe")) + "/../share/wysiwyd/contexts/cvz/";
-    /*
-    WCHAR path[MAX_PATH];//always use MAX_PATH for filepaths
-    GetModuleFileNameW(NULL, path, MAX_PATH);
-    */
+   
 #else
     #include <unistd.h>
     //retrieves executable path for saving files
@@ -60,7 +57,7 @@
         }
     }
     const std::string SELFPATH = (get_selfpath()).substr(0, (get_selfpath()).find("/cvzCore")) + "/../share/wysiwyd/contexts/cvz/";
-    //std::string SELFPATH = get_selfpath()).substr(0, (get_selfpath()).find("/cvzCore")) + "/../share/wysiwyd/contexts/cvz/";
+
 #endif
 
 
@@ -80,17 +77,17 @@ namespace cvz {
             //yarp::os::BufferedPort<yarp::os::Bottle>    portFromCoclea;
             yarp::os::BufferedPort<yarp::os::Bottle>    portActivity;
 
-            yarp::os::BufferedPort<yarp::sig::ImageOf <yarp::sig::PixelRgb> >           imagePort;
+            //yarp::os::BufferedPort<yarp::sig::ImageOf <yarp::sig::PixelRgb> >           imagePort;
 
             yarp::os::Port toSoundGenerator; // port to sound generator, if testing
 
             yarp::os::Bottle cmd;  //bottle to contain the command for the soundGenerator
 
-            std::string              imagePortName;
+            std::string         imagePortName;
             std::string         portFromCocleaName;
             std::string         actPortName;
 
-            NeuralModel*         NN;
+            NeuralModel*        NN;
 
             std::string         topology;
             int                 size;
@@ -99,7 +96,7 @@ namespace cvz {
             int                 height;
             int                 width;
             int                 layers;
-            //double              emax;
+
             std::vector<double> SDev;
             std::vector<double> Mean;
 
@@ -111,6 +108,10 @@ namespace cvz {
             int                 maxCycles;
             int                 testing_frequency;
             bool                testing;
+            int                 experiment_number;
+            //std::string         activity_save_file;
+
+            yarp::os::Property  rf_save;
 
 
             int H() { return height;}
@@ -148,6 +149,13 @@ namespace cvz {
             double getAlpha() { return parametersRuntime.find("alpha").asDouble(); }
             double getActivity(const int &x) { return (NN->activity)->at(x); }
             double getActivity(const int &x, const int &y) { return (NN->activity)->at(y*width+x); }
+            void setMaxCycles(const int mc) { std::cout << "Max Cycles set to : " << mc << std::endl; parametersRuntime.put("maxCycles", mc); }
+            int getMaxCycles() { return parametersRuntime.find("maxCycles").asInt(); }
+            void setNumberExperiments(const int mc) { std::cout << "Max Cycles set to : " << mc << std::endl; parametersRuntime.put("nExp", mc); }
+            int getNumberExperiments() { return parametersRuntime.find("nExp").asInt(); }
+            void setExperimentCount(const int mc) { std::cout << "Max Cycles set to : " << mc << std::endl; parametersRuntime.put("expCount", mc); }
+            int getExperimentCount() { return parametersRuntime.find("expCount").asInt(); }
+
             bool saveWeightsToFile(const std::string &path)
             {
                 std::cout << "Trying to save weights to " << path << std::endl;
@@ -161,25 +169,6 @@ namespace cvz {
                 std::cout << "Trying to load weights from : " << fullPath << std::endl;
                 return loadWeights(fullPath);
             }
-            /*I should not need this:
-            bool saveRF(const std::string &path)
-            {
-                bool globalError = true;
-                std::cout << "Trying to save the receptive fields to " << path << std::endl;
-                for (std::map<cvz::core::IModality*, double>::iterator itMod = modalitiesInfluence.begin(); itMod != modalitiesInfluence.end(); itMod++)
-                {
-                    IplImage* imgRF = this->getReceptiveFieldRepresentation(itMod->first);
-                    std::stringstream fileName;
-                    fileName << path << itMod->first->Name() << ".jpg";
-                    int errorCode = cvSaveImage(fileName.str().c_str(), imgRF);
-                    std::cout << "Saving receptive fields of " << fileName.str() << " --> " << cvErrorStr(errorCode) << std::endl;
-                    if (errorCode != 1)
-                        globalError = false;
-                    cvReleaseImage(&imgRF);
-                }
-                std::cout << "Done. " << std::endl;
-                return globalError;
-            }*/
 
             virtual std::string getType() { return cvz::core::TYPE_NN; };
 
@@ -203,48 +192,10 @@ namespace cvz {
                 {
                     for (int y = 0; y < height; y++)
                     {
-                        /*
-                        double normalisedValue = activity[x][y][i];
-                        if (maxActivity - minActivity != 0)
-                            normalisedValue = (normalisedValue - minActivity) / (maxActivity - minActivity);*/
 						double normalisedValue = getActivity(x, y);
                         img.pixel(x, y) = helpers::double2RGB( normalisedValue);
-
-                        /*
-                        img.pixel(x, y).r = (int)(255*(NN->activity)->at(y));
-                        img.pixel(x, y).g = 0;
-                        img.pixel(x, y).b = (int)(255*(NN->activity)->at(y));
-    */
-                        /*
-                        //Paint the whole collection of neurons equally activated as the winner
-                        if (activity[x][y][i] == maxActivity)
-                        {
-                            img.pixel(x, y).r = (int)(255*(NN->activity)->at(y));
-                            img.pixel(x, y).g = 0;
-                            img.pixel(x, y).b = 255;
-                        }
-                        if (x == xWin && y == yWin && i == zWin)
-                        {
-                            img.pixel(x, y).r = 0;
-                            img.pixel(x, y).g = 0;
-                            img.pixel(x, y).b = 0;
-                        }*/
-                        //IplImage* iplimg = img.getIplImage();
                     }
                 }
-
-				//You want to send you image only when it is completed, not at every pixel
-				//yarp::sig::ImageOf<yarp::sig::PixelRgb> &temp = imagePort.prepare();
-				
-				//Here:
-						//temp.resize(640, 480);
-						//cvResize((IplImage*)img.getIplImage(), (IplImage*)temp.getIplImage());
-				//I suppose you wanted to do this
-						//temp.copy(img, 640, 480);
-				//But you should not. The original image size is W() x H(), then you can resize on display or within the yarpview
-
-				//temp.copy(img, 640, 480);
-				//imagePort.write();
 
                 mutex.post();
 
@@ -275,9 +226,10 @@ namespace cvz {
 
                 std::cout.precision(8);
 
+                std::cout << "saving normals..." << std::endl;
                 while (std::getline(infile, line))
                 {
-                    std::cout << 1 << std::endl;
+                    
                     //string aux;
                     //std::istringstream iss(line);
                     //cout << Mean[0]<<endl;
@@ -342,33 +294,93 @@ namespace cvz {
 
             virtual bool close()
             {
+                std::cout << "closing..." << std::endl;
                 saveNormals();
                 bool ok = this->IConvergenceZone::close();
-                actPath.close();
-                weiPath.close();
+                //actPath.close();
+                //weiPath.close();
                 portActivity.close();
+                toSoundGenerator.close();
                 //portFromCoclea.close();
                 return ok;
             }
 
+            
+            virtual bool reset()
+            {
+                saveNormals();
+                bool ok = this->IConvergenceZone::close();
+                //actPath.close();
+                //renameExperiment();
+                //weiPath.close();
+                portActivity.close();
+                toSoundGenerator.close();
+                //portFromCoclea.close();
+                if (getExperimentCount() < getNumberExperiments())
+                {
+                    int old_e_n = getExperimentCount();
+                    int oldmaxXycles = maxCycles;
+                    configure(rf_save);
+                    setExperimentCount(old_e_n + 1);
+                    setMaxCycles(oldmaxXycles);
+                }
+                else if (maxCycles < 10000)
+                {
+                    configure(rf_save);
+                    setExperimentCount(1);
+                    maxCycles = 10000;
+                    setMaxCycles(maxCycles);
+                }
+                else
+                {
+                    close();
+                }
+
+                return ok;
+            }
+            
+            bool renameExperiment()
+            {
+                /*std::string prev = activity_save_file;
+                activity_save_file += std::to_string((long double)getExperimentCount());
+                activity_save_file += "_" + std::to_string((long double)getMaxCycles());
+                activity_save_file += ".csv";
+                std::cout << "save file for activity is: " << activity_save_file << std::endl;
+                //actPath.open(prev);
+                rename(prev.c_str(), activity_save_file.c_str());
+                yarp::os::Time::delay(3);
+                remove(prev.c_str());
+                */
+                return true;
+            }
+
             virtual bool configure(yarp::os::Property &rf)
             {
-                std::cout << 121212 << std::endl;
 
-                testing_frequency = 0;
+                
 
                 //Call the base class configure
                 this->IConvergenceZone::configure(rf);
+
+                rf_save = rf;
+                experiment_number = 0;
+
+                testing_frequency = 0;
+
 
                 conf_file = rf.check("from", yarp::os::Value(DEFAULT_CONFIG_FILE)).asString().c_str();
 
                 testing = rf.check("test");
 
+                if (testing)
+                {
+                    std::cout << "True" << std::endl;
+                }
+                else{ std::cout << "false" << std::endl; }
+
                 //Get additional parameters
                 if (!parametersStartTime.check("size"))
                     parametersStartTime.put("size", yarp::os::Value(100));
-                //if (!parametersStartTime.check("emax"))
-                //    parametersStartTime.put("emax", yarp::os::Value(0.95));
                 if (!parametersStartTime.check("width"))
                     parametersStartTime.put("width", yarp::os::Value(10));
                 if (!parametersStartTime.check("height"))
@@ -380,19 +392,15 @@ namespace cvz {
                 if (!parametersStartTime.check("topology"))
                     parametersStartTime.put("topology", yarp::os::Value(MMCM_CONNECTIVITY_SHEET));
 
-                if (!parametersStartTime.check("maxCycles"))
-                    parametersStartTime.put("maxCycles", yarp::os::Value(0));
 
                 //Starttime parameters
                 size = parametersStartTime.find("size").asInt();
-                //emax = parametersStartTime.find("emax").asDouble();
                 height = parametersStartTime.find("height").asInt();
                 width = parametersStartTime.find("width").asInt();
                 input_size = parametersStartTime.find("inputSize").asInt();
                 output_size = parametersStartTime.find("outputSize").asInt(); //careful you do not have a default value for this
                 layers = parametersStartTime.find("layers").asInt();
                 topology = parametersStartTime.find("topology").asString();
-                maxCycles = parametersStartTime.find("maxCycles").asInt();
 
 
                 //Runtime parameters
@@ -402,6 +410,16 @@ namespace cvz {
                     parametersRuntime.put("alpha", yarp::os::Value(1 / 3600));
                 if (!parametersRuntime.check("emax"))
                     parametersRuntime.put("emax", yarp::os::Value(0.95));
+                
+                //Testing things
+                if (!parametersRuntime.check("maxCycles"))
+                    parametersRuntime.put("maxCycles", yarp::os::Value(0));
+                
+                if (!parametersRuntime.check("nExp"))
+                    parametersRuntime.put("nExp", yarp::os::Value(15));
+                if (!parametersRuntime.check("expCount"))
+                    parametersRuntime.put("expCount", yarp::os::Value(1));
+                maxCycles = getMaxCycles();
 
                 //I think you forgot to upload the configuration file you are using in app, the auditory group does not contains std or mean
                 //Load previous normalization parameters
@@ -423,30 +441,6 @@ namespace cvz {
 
                 bool    bEveryThingisGood = true;
 
-                //<<<<<<< HEAD
-                //Auditory input
-
-                //std::string moduleInput = rf.check("input", yarp::os::Value("/audioPreprocessing/freqSpectrum:o")).asString().c_str();
-
-                //You should try to use modalities for ports that are actually modalities
-                //THe inputs of your NN should be independent of the modalities used
-                //configure input port
-
-                //portFromCocleaName = "/";
-                //            portFromCocleaName += getName() + "/coclea:i";
-
-                //            if (!portFromCoclea.open(portFromCocleaName.c_str()))
-                //            {
-                //                std::cout << getName() << ": Unable to open port " << portFromCocleaName << std::endl;
-                //                bEveryThingisGood &= false;
-                //            }
-                //            while (!yarp::os::Network::connect(moduleInput, portFromCocleaName.c_str()))
-                //            {
-                //                std::cout << "Trying to get input from FFT..." << std::endl;
-                //                yarp::os::Time::delay(1.0);
-                //            }
-                //=======
-
 
                 //Open activity port
                 actPortName = "/";
@@ -455,29 +449,37 @@ namespace cvz {
                 portActivity.open(actPortName);
 
                 //Open imagePort
-                imagePortName = "/";
+                /*imagePortName = "/";
                 imagePortName += getName() + "/image:o";
                 if (!imagePort.open(imagePortName.c_str()))
                 {
                     std::cout << getName() << ": Unable to open port " << imagePortName << std::endl;
                     bEveryThingisGood &= false;
-                }
+                }*/
 
-                if (testing){
+                if (true){
                 std::string portName = "/";
                 portName += getName();
                 portName += "/frequency/rpc:o";
                 toSoundGenerator.open(portName.c_str());
                 connect();
                 }
+
+                //dataDumpers!
+                std::string targetPort = rf.check("dumps", yarp::os::Value("/dump/noname")).asString().c_str();
+                yarp::os::Network::connect(actPortName, targetPort);
                 
                 //Configure network
                 NN = new NeuralModel(size, &Mean, &SDev, getAlpha(), getEMax(), getLearningRate(),input_size,output_size);
 
+                /*
                 //Save files
-                actPath.open("activity.csv");
+                activity_save_file = "activity_";
+                std::cout << "save file for activity is: " << activity_save_file << std::endl;
+                
+                actPath.open(activity_save_file);
                 weiPath.open("weights.csv");
-
+                */
 
                 // Read exe path
                 selfpath = get_selfpath();
@@ -486,6 +488,7 @@ namespace cvz {
 
                 return true;
             }
+
 
             bool connect(const std::string &targetPort = "/tuneBabbler/rpc")
             {
@@ -497,13 +500,13 @@ namespace cvz {
                 this->IConvergenceZone::performPeriodicAction(cyclesElapsed);
                 if (cyclesElapsed % 10 == 0)
                 {
-                    //std::cout << "Do something on 500 step" << std::endl;
+                    
                     std::cout << cyclesElapsed << std::endl;
 
-                    printActivity(actPath,cyclesElapsed);
+                    //printActivity(actPath,cyclesElapsed);
                     //printWeights(weiPath,cyclesElapsed);
                 }
-                if (testing)
+                if (true)
                 {
                     if (cyclesElapsed % 50 == 0)
                     {
@@ -511,7 +514,7 @@ namespace cvz {
                     }
                     if ((cyclesElapsed % 50)-25 == 0)
                     {
-                        setFrequency();
+                        setFrequency(0);
                     }
                 }
 
@@ -520,9 +523,16 @@ namespace cvz {
 
                     if (cyclesElapsed % (maxCycles+1) == maxCycles)
                     {
-                        std::cout << "5000 cycles elapsed. Exiting..." << std::endl;
+                        std::cout << maxCycles << " cycles elapsed. Exiting..." << std::endl;
                         yarp::os::Time::delay(1.0);
-                        close();
+                        if (false)
+                        {
+                            reset();
+                        }
+                        else
+                        {
+                            close();
+                        }
                     }
                 }
             }
@@ -538,7 +548,8 @@ namespace cvz {
                 cmd.clear();
                 cmd.addString("F");
                 cmd.addInt(F);
-                testing_frequency = toSoundGenerator.write(cmd);
+                testing_frequency = F;
+                toSoundGenerator.write(cmd);
             }
 
             bool printActivity(std::ofstream &outfile, int cycles)
@@ -602,6 +613,9 @@ namespace cvz {
 
 				yarp::os::Bottle &botActivity = portActivity.prepare();
 				botActivity.clear();
+                botActivity.addInt(testing_frequency);
+                botActivity.addInt(0);
+
                 for (int i=0;i<size;i++)
 
                 {

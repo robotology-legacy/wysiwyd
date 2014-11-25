@@ -35,13 +35,30 @@ public:
     //Inicialization functions for Input:
 
     //Gaussian weight distribution
-    std::vector<double>* InputGaussian(std::vector<double>* x, double sigma, double mu)
-    {/*
-        for (unsigned int i = i_size; i < 2*i_size; i++)
+    void InputGaussian(double sigma = 5)
+    {
+        double mu = (activity->size()-input.size()) / input.size();
+        double t_weight = 0;
+        double min_weight = 9999;
+        for (unsigned int j = input.size(); j < activity->size(); j++)
         {
-            connections->at(i) = (double)(1 / (sigma*sqrt(2 * 3.141592)))*exp(-pow(i - mu, 2) / (2 * pow(sigma, 2)));
+            for (unsigned int i = 0; i < input.size(); i++)
+            {
+                (connections->at(j))->at(i) = (double)(1 / (sigma*sqrt(2 * 3.141592)))*exp(-pow(i - i*mu, 2) / (2 * pow(sigma, 2)));
+                t_weight += (connections->at(j))->at(i);
+                min_weight = std::min(min_weight, (connections->at(j))->at(i));
+            }
+            for (unsigned int i = 0; i < input.size(); i++)
+            {
+                (connections->at(j))->at(i) -= min_weight;
+                (connections->at(j))->at(i) /= t_weight; 
+            }
+            t_weight = 0;
+            min_weight = 9999;
         }
-        */return x;
+
+        std::cout << connections << std::endl;
+        //return x;
     }
 
     //All2all random weight distribution
@@ -72,7 +89,10 @@ public:
         {
             for(unsigned int j = i_size;j<s;j++)
             {
-                (connections->at(j))->at(i) = std::max(0, (rand() % 4) -2);
+                //(connections->at(j))->at(i) = std::max(0, (rand() % 4) -2);
+                if (std::abs((int)(i - j)) == 1)
+                    (connections->at(j))->at(i) = 0.25;
+
                 k++;
             }
         }
@@ -157,7 +177,7 @@ public:
         }
     }
 
-    void generateModel(std::string input_connections = "allRandom", std::string inner_topology = "none")
+    void generateModel(std::string input_connections = "gaussian", std::string inner_topology = "grid")
     {
 
         //Generate the neurons        
@@ -183,7 +203,7 @@ public:
         }
         else if (input_connections.compare("gaussian") == 0)
         {
-            InputGaussian(activity, 0, 5);
+            InputGaussian(5);
         }
 
         //initialize topology (inner connections)

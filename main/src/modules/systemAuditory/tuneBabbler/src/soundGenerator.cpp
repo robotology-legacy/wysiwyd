@@ -68,7 +68,7 @@ int babbler::newRandomFrequency(int base_frequency = 220)
 }
 
 //Defines new sound, having white noise + pure tone
-int babbler::getNoisySinus(int wave_intensity=75, int random_offset=25)
+int babbler::getNoisySinus(int wave_intensity=100, int random_offset=10)
 {/*
     if (elapsedCycles % 40 == 0)
     {
@@ -82,7 +82,7 @@ int babbler::getNoisySinus(int wave_intensity=75, int random_offset=25)
     std::cout << "frequency: " << f << std::endl;
     //Format: ([mat][mo16](2 2048 2 512 2) {nums})(8000)
     //Constants chosen at random
-    return ((unsigned int)(wave_intensity * (std::sin(f * 2 * M_PI*elapsedCycles)+1) + rand() % random_offset));
+    return ((unsigned int)(wave_intensity * (std::sin(f * 2 * M_PI*elapsedCycles)+1)+50 + rand() % random_offset));
 
 }
 
