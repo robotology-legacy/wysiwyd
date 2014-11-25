@@ -234,6 +234,14 @@ bool perspectiveTaking::interruptModule() {
 }
 
 bool perspectiveTaking::close() {
+    // remove handlers
+    mapBuilder->unregisterFromEventsManager();
+    rtabmapThread->unregisterFromEventsManager();
+    odomThread->unregisterFromEventsManager();
+
+    boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
+
+    // generate graph and save Long-Term Memory
     rtabmap->generateDOTGraph("Graph.dot");
     printf("Generated graph \"Graph.dot\", viewable with Graphiz using \"neato -Tpdf Graph.dot -o out.pdf\"\n");
 
@@ -241,11 +249,7 @@ bool perspectiveTaking::close() {
     printf("Saving Long-Term Memory to \"LTM.db\"...\n");
     rtabmap->close();
 
-    // remove handlers
-    mapBuilder->unregisterFromEventsManager();
-    rtabmapThread->unregisterFromEventsManager();
-    odomThread->unregisterFromEventsManager();
-
+    // Delete pointers
     delete mapBuilder;
     delete rtabmapThread;
     delete odomThread;
