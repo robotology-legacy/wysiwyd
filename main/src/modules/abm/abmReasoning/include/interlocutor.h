@@ -5,7 +5,7 @@
 #include <timeKnowledge.h>
 #include <sharedPlan.h>
 #include <contextualKnowledge.h>
-#include <advKnowledge.h>
+#include <adjKnowledge.h>
 #include <behavior.h>
 #include <knownInteraction.h>
 #include <grammarKnowledge.h>

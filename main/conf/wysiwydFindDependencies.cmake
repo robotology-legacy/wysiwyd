@@ -29,6 +29,8 @@ find_package(OpenNI)
 find_package(Boost)
 find_package(FFTW3)
 find_package(OTL)
+find_package(RTABMap)
+find_package(PCL)
 
 message(STATUS "I have found the following libraries:")
 checkandset_dependency(GSL)
@@ -42,5 +44,6 @@ checkandset_dependency(OpenNI)
 checkandset_dependency(Boost)
 checkandset_dependency(FFTW3)
 checkandset_dependency(OTL)
-
+checkandset_dependency(RTABMap)
+checkandset_dependency(PCL)
 

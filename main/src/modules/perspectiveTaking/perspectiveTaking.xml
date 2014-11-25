@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+   <name>perspectiveTaking</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Taking the visual perspective of an interacting human</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   A module to take the visual perspective of a human who is interacting with the robot. It requires the \ref kinectServer running.
+   </description-long>
+
+   <authors>
+       <author email="t.fischer@imperial.ac.uk"> Tobias Fischer </author>
+   </authors>
+
+  <arguments>
+    <param default="perspectiveTaking" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+    <param default="perspectiveTaking.ini" desc="To specify the configuration file">from</param>
+	<param default="perspectiveTaking" desc="To specify the default context where config files are loader">context</param>
+	<!--param default="OPC" desc="To specify the specifies the opc database name, where data are readed">opc</param-->
+  </arguments>
+
+  <data>
+	<input>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/perspectiveTaking/rpc</port>
+      <required>yes</required>
+      <priority>no</priority>
+      <description>
+        rpc port of the module, main input. Get the keyword from the broadcast port.
+      </description>
+    </input>
+    <input>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/perspectiveTaking/kinect:i</port>
+      <required>yes</required>
+      <priority>no</priority>
+      <description>
+        to retrieve data from kinectServer
+      </description>
+    </input>
+	<!--output>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/perspectiveTaking/world/opc:rpc</port>
+      <required>yes</required>
+      <priority>no</priority>
+      <description>
+        rpc port of the module in order to access opc (connect to /OPC:rpc)
+      </description>
+    </output-->
+  </data>
+</module>
+

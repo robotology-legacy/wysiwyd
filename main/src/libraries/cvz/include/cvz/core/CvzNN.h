@@ -91,7 +91,7 @@ namespace cvz {
 
             std::string         topology;
             int                 size;
-            int                 input_size;
+            unsigned int        input_size;
             int                 output_size;
             int                 height;
             int                 width;

@@ -3,11 +3,11 @@
 
 #include <abmReasoningFunction.h>
 
-class advKnowledge
+class adjKnowledge
 {
 public:
 
-    advKnowledge();
+    adjKnowledge();
 
     std::string      sLabel;
     std::string      sTag;

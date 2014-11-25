@@ -375,9 +375,7 @@ Bottle opcEars::insertOPC(string sName)
 
 
     // ---- Entities ---- //
-    list<Entity*>::iterator it_E = opcTemp.lEntities.begin() ;
-
-    for (; it_E != opcTemp.lEntities.end(); it_E++ )
+    for (list<Entity*>::iterator it_E = opcTemp.lEntities.begin(); it_E != opcTemp.lEntities.end(); it_E++ )
     {
         bTemp = insertEntity(*it_E);
     

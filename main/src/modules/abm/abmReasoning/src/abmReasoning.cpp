@@ -85,7 +85,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
 
 
-    advKnowledge test;
+    adjKnowledge test;
     test.determineTimingInfluence();
 
 
