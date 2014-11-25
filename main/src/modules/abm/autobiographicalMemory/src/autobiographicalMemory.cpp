@@ -898,7 +898,7 @@ bool autobiographicalMemory::readInsert()
         cout << endl << "readFile of requests from " << savefile.c_str() << endl << endl;
     }
     else    {
-        cout << "Error, can not open " << file << endl;    return false;
+        cout << "Error, can not open " << savefile.c_str() << endl;    return false;
     }
 
     string line;
