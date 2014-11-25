@@ -57,6 +57,25 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
 
+    //Retrieve the calibration matrix from RFH
+    string rfhLocal = "/"+moduleName+"/rfh:o";
+    rfh.open(rfhLocal.c_str());
+
+    string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
+    string rfhRemote = "/"+rfhName+"/rpc";
+
+    while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str()))
+    {
+        cout << "Waiting for connection to RFH..." << endl;
+        Time::delay(1.0);
+    }
+
+    while(!getKinect2iCub())
+    {
+        cout << "Kinect2iCub matrix not calibrated, please do so in agentDetector" << endl;
+        Time::delay(1.0);
+    }
+
     // Read parameters from rtabmap_config.ini
     ParametersMap parameters;
     Rtabmap::readParameters(rf.findFile("rtabmap_config.ini"), parameters);
@@ -134,6 +153,43 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
         reply.addString("nack");
     }
     return true;
+}
+
+bool perspectiveTaking::getKinect2iCub()
+{
+    if (rfh.getOutputCount()>0)
+    {
+        //Get the kinect2icub
+        Bottle bCmd;
+        bCmd.clear();
+        bCmd.addString("mat");
+        bCmd.addString("kinect");
+        bCmd.addString("icub");
+
+        Bottle reply;
+        reply.clear();
+        rfh.write(bCmd, reply);
+        if (reply.get(0) == "nack")
+        {
+            return false;
+        }
+        else
+        {
+            Bottle* bMat = reply.get(1).asList();
+            kinect2icub.resize(4,4);
+            for(int i=0; i<4; i++)
+            {
+                for(int j=0; j<4; j++)
+                {
+                    kinect2icub(i,j)=bMat->get(4*i+j).asDouble();
+                }
+            }
+            cout << "Transformation matrix retrieved" << endl;
+            cout << kinect2icub.toString(3,3).c_str() << endl;
+            return true;
+        }
+    }
+    return false;
 }
 
 double perspectiveTaking::getPeriod() {

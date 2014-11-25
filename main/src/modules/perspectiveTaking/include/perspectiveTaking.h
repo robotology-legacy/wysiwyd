@@ -36,16 +36,19 @@ protected:
 
     // OPC/RFH related
     //OPCClient* opc;
-    //Port   rfh;
+    Port   rfh;
     Port   handlerPort;
 
     unsigned int loopCounter;
+
+    Matrix kinect2icub;
 
 public:
     bool configure(ResourceFinder &rf);
     bool interruptModule();
     bool close();
     bool respond(const Bottle& cmd, Bottle& reply);
+    bool getKinect2iCub();
     double getPeriod();
     bool updateModule();
 };
