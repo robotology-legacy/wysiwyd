@@ -16,7 +16,7 @@ class cvzMmcm_IDL;
  */
 class cvzMmcm_IDL : public yarp::os::Wire {
 public:
-  cvzMmcm_IDL() { yarp().setOwner(*this); }
+  cvzMmcm_IDL();
   /**
    * Start the computation of predictions trying to cope with the period.
    */

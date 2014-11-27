@@ -16,7 +16,7 @@ class slidingController_IDL;
  */
 class slidingController_IDL : public yarp::os::Wire {
 public:
-  slidingController_IDL() { yarp().setOwner(*this); }
+  slidingController_IDL();
   /**
    * Yield an immediate stop of any ongoing movements
    * except exploration.

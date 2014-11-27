@@ -16,7 +16,7 @@ class interpersonalDistanceRegulator_IDL;
  */
 class interpersonalDistanceRegulator_IDL : public yarp::os::Wire {
 public:
-  interpersonalDistanceRegulator_IDL() { yarp().setOwner(*this); }
+  interpersonalDistanceRegulator_IDL();
   /**
    * Pause the automatic distance regulation.
    * @return true/false on success/failure.
