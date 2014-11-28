@@ -42,13 +42,16 @@ protected:
     unsigned int loopCounter;
 
     Matrix kinect2icub;
+    Matrix icub2kinect;
+
+    yarp::os::ResourceFinder resfind;
 
 public:
     bool configure(ResourceFinder &rf);
     bool interruptModule();
     bool close();
     bool respond(const Bottle& cmd, Bottle& reply);
-    bool getKinect2iCub();
+    bool getRFHMatrix(const string& from, const string& to, Matrix& m);
     double getPeriod();
     bool updateModule();
 };

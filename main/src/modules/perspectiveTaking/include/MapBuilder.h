@@ -38,6 +38,10 @@ public:
     void spinOnce(int time = 1, bool force_redraw = false);
     bool wasStopped();
 
+    pcl::visualization::PCLVisualizer& getVisualizer() {
+        return _vWrapper->getVisualizer();
+    }
+
 private:
     void processOdometry(const rtabmap::SensorData & data);
     void processStatistics(const rtabmap::Statistics & stats);
