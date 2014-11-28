@@ -119,7 +119,13 @@ public:
         else
             return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
     }
-
+    SubSystem_Recog* getRecogClient() 
+    {         
+        if (subSystems.find(SUBSYSTEM_RECOG) == subSystems.end())
+            return NULL;
+        else
+            return (SubSystem_Recog*) subSystems[SUBSYSTEM_RECOG];
+    }
     SubSystem_SlidingController* getSlidingController()
     {         
         if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
