@@ -36,8 +36,9 @@ public:
     yarp::os::Bottle requestFromStream(std::string sInput);
 
     // asking functions
-    yarp::os::Bottle askLastAction();
-    yarp::os::Bottle askActionFromId(int Id);
+	yarp::os::Bottle askLastAction();
+	yarp::os::Bottle askActionFromId(int Id);
+	yarp::os::Bottle askActionFromIdV2(int Id);
     yarp::os::Bottle askLastComplex();
     yarp::os::Bottle askComplexFromId(int Id);
     yarp::os::Bottle imagineOPC(int Id);

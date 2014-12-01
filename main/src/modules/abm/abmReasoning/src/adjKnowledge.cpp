@@ -32,7 +32,7 @@ void    adjKnowledge::addInteraction(Bottle bInput)
     pair<double, double>    pXY(bTemp.get(1).asDouble(), bTemp.get(2).asDouble());
     pair<double, double>    pDXY(bTemp.get(3).asDouble(), bTemp.get(4).asDouble());
 
-    mActionTiming[sAction].first.push_back(bInput.check("timing", Value(0.)).asDouble());
+//    mActionTiming[sAction].first.push_back(bInput.check("timing", Value(0.)).asDouble());
 
     vdGnlXY.push_back(pXY);
     vdGnlDelta.push_back(pDXY);
@@ -52,8 +52,8 @@ bInput format:
 void    adjKnowledge::addOtherInteraction(Bottle bInput)
 {
     string sAction = bInput.check("action", Value("none")).asString();
-    vdNoGnlTiming.push_back(bInput.check("timing", Value(0.)).asDouble());
-    mActionTiming[sAction].second.push_back(bInput.check("timing", Value(0.)).asDouble());
+//    vdNoGnlTiming.push_back(bInput.check("timing", Value(0.)).asDouble());
+ //   mActionTiming[sAction].second.push_back(bInput.check("timing", Value(0.)).asDouble());
 }
 
 
@@ -155,7 +155,7 @@ void adjKnowledge::determineTimingInfluence()
         lefttail,
         righttail;
 
-    abmReasoningFunction::studentttest2(vdGnlTiming, vdNoGnlTiming, &bothtails, &lefttail, &righttail);
+ //   abmReasoningFunction::studentttest2(vdGnlTiming, vdNoGnlTiming, &bothtails, &lefttail, &righttail);
 
     cout << "bothtails: " << bothtails << endl;
     //    cout << "lefttail : " << lefttail << endl;
@@ -171,15 +171,15 @@ void adjKnowledge::determineTimingInfluence()
     
 
     // else check for each association action/adjective:
-    for (map<string, pair< vector<double>, vector<double> > >::iterator itMap = mActionTiming.begin() ; itMap != mActionTiming.end() ; itMap++)
-    {
-        abmReasoningFunction::studentttest2(itMap->second.first, itMap->second.second, &bothtails, &lefttail, &righttail);
-        if (bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
-        {
-            cout << sLabel << " influences timing when correlated to the action : " << itMap->first << endl;
-            fTimingInfluence = true;
-        }
-    }
+    //for (map<string, pair< vector<double>, vector<double> > >::iterator itMap = mActionTiming.begin() ; itMap != mActionTiming.end() ; itMap++)
+    //{
+    //    abmReasoningFunction::studentttest2(itMap->second.first, itMap->second.second, &bothtails, &lefttail, &righttail);
+    //    if (bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
+    //    {
+    //        cout << sLabel << " influences timing when correlated to the action : " << itMap->first << endl;
+    //        fTimingInfluence = true;
+    //    }
+    //}
 }
 
 
