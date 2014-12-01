@@ -38,10 +38,14 @@ using namespace yarp::os;
  */
 
 bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
+    resfind = rf;
+
     int verbosity=rf.check("verbosity",Value(0)).asInt();
     string moduleName = rf.check("name", Value("perspectiveTaking"), "module name (string)").asString();
 
     setName(moduleName.c_str());
+
+    loopCounter = 0;
 
     // Connect to kinectServer
     string clientName = getName()+"/kinect:i";
@@ -70,15 +74,20 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
         Time::delay(1.0);
     }
 
-    while(!getKinect2iCub())
+    while(!getRFHMatrix("kinect", "icub", kinect2icub))
     {
         cout << "Kinect2iCub matrix not calibrated, please do so in agentDetector" << endl;
+        Time::delay(1.0);
+    }
+    while(!getRFHMatrix("icub", "kinect", icub2kinect))
+    {
+        cout << "iCub2Kinect matrix not calibrated, please do so in agentDetector" << endl;
         Time::delay(1.0);
     }
 
     // Read parameters from rtabmap_config.ini
     ParametersMap parameters;
-    Rtabmap::readParameters(rf.findFile("rtabmap_config.ini"), parameters);
+    Rtabmap::readParameters(rf.findFileByName("rtabmap_config.ini"), parameters);
 
     // GUI stuff, the handler will receive RtabmapEvent and construct the map
     mapBuilder = new MapBuilder(2, 2);
@@ -104,7 +113,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     // Create RTAB-Map to process OdometryEvent
     rtabmap = new Rtabmap();
-    rtabmap->init(parameters);
+    rtabmap->init(parameters, rf.findFileByName("rtabmap.db"));
     rtabmapThread = new RtabmapThread(rtabmap);
 
     boost::this_thread::sleep_for (boost::chrono::milliseconds (1000));
@@ -155,7 +164,7 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
     return true;
 }
 
-bool perspectiveTaking::getKinect2iCub()
+bool perspectiveTaking::getRFHMatrix(const string& from, const string& to, Matrix& m)
 {
     if (rfh.getOutputCount()>0)
     {
@@ -163,8 +172,8 @@ bool perspectiveTaking::getKinect2iCub()
         Bottle bCmd;
         bCmd.clear();
         bCmd.addString("mat");
-        bCmd.addString("kinect");
-        bCmd.addString("icub");
+        bCmd.addString(from);
+        bCmd.addString(to);
 
         Bottle reply;
         reply.clear();
@@ -176,16 +185,16 @@ bool perspectiveTaking::getKinect2iCub()
         else
         {
             Bottle* bMat = reply.get(1).asList();
-            kinect2icub.resize(4,4);
+            m.resize(4,4);
             for(int i=0; i<4; i++)
             {
                 for(int j=0; j<4; j++)
                 {
-                    kinect2icub(i,j)=bMat->get(4*i+j).asDouble();
+                    m(i,j)=bMat->get(4*i+j).asDouble();
                 }
             }
-            cout << "Transformation matrix retrieved" << endl;
-            cout << kinect2icub.toString(3,3).c_str() << endl;
+            cout << "Transformation matrix from " << from << " to " << to << " retrieved" << endl;
+            cout << m.toString(3,3).c_str() << endl;
             return true;
         }
     }
@@ -242,11 +251,11 @@ bool perspectiveTaking::close() {
     boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
 
     // generate graph and save Long-Term Memory
-    rtabmap->generateDOTGraph("Graph.dot");
+    rtabmap->generateDOTGraph(resfind.findFileByName("Graph.dot"));
     printf("Generated graph \"Graph.dot\", viewable with Graphiz using \"neato -Tpdf Graph.dot -o out.pdf\"\n");
 
     // Cleanup... save database and logs
-    printf("Saving Long-Term Memory to \"LTM.db\"...\n");
+    printf("Saving Long-Term Memory to \"rtabmap.db\"...\n");
     rtabmap->close();
 
     // Delete pointers

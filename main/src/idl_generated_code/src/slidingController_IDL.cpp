@@ -9,83 +9,34 @@
 class slidingController_IDL_stop : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("stop",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class slidingController_IDL_calibrate : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("calibrate",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class slidingController_IDL_impedance : public yarp::os::Portable {
 public:
   std::string sw;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("impedance",1,1)) return false;
-    if (!writer.writeString(sw)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& sw);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class slidingController_IDL_explore : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("explore",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class slidingController_IDL_hand : public yarp::os::Portable {
@@ -93,23 +44,9 @@ public:
   std::string key;
   bool wait;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(3)) return false;
-    if (!writer.writeTag("hand",1,1)) return false;
-    if (!writer.writeString(key)) return false;
-    if (!writer.writeBool(wait)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& key, const bool wait);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class slidingController_IDL_goTo : public yarp::os::Portable {
@@ -119,50 +56,187 @@ public:
   double z;
   bool interpolate;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(5)) return false;
-    if (!writer.writeTag("goTo",1,1)) return false;
-    if (!writer.writeDouble(x)) return false;
-    if (!writer.writeDouble(y)) return false;
-    if (!writer.writeDouble(z)) return false;
-    if (!writer.writeBool(interpolate)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const double x, const double y, const double z, const bool interpolate);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class slidingController_IDL_quit : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("quit",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+bool slidingController_IDL_stop::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("stop",1,1)) return false;
+  return true;
+}
+
+bool slidingController_IDL_stop::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void slidingController_IDL_stop::init() {
+  _return = false;
+}
+
+bool slidingController_IDL_calibrate::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("calibrate",1,1)) return false;
+  return true;
+}
+
+bool slidingController_IDL_calibrate::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void slidingController_IDL_calibrate::init() {
+  _return = false;
+}
+
+bool slidingController_IDL_impedance::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("impedance",1,1)) return false;
+  if (!writer.writeString(sw)) return false;
+  return true;
+}
+
+bool slidingController_IDL_impedance::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void slidingController_IDL_impedance::init(const std::string& sw) {
+  _return = false;
+  this->sw = sw;
+}
+
+bool slidingController_IDL_explore::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("explore",1,1)) return false;
+  return true;
+}
+
+bool slidingController_IDL_explore::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void slidingController_IDL_explore::init() {
+  _return = false;
+}
+
+bool slidingController_IDL_hand::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("hand",1,1)) return false;
+  if (!writer.writeString(key)) return false;
+  if (!writer.writeBool(wait)) return false;
+  return true;
+}
+
+bool slidingController_IDL_hand::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void slidingController_IDL_hand::init(const std::string& key, const bool wait) {
+  _return = false;
+  this->key = key;
+  this->wait = wait;
+}
+
+bool slidingController_IDL_goTo::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(5)) return false;
+  if (!writer.writeTag("goTo",1,1)) return false;
+  if (!writer.writeDouble(x)) return false;
+  if (!writer.writeDouble(y)) return false;
+  if (!writer.writeDouble(z)) return false;
+  if (!writer.writeBool(interpolate)) return false;
+  return true;
+}
+
+bool slidingController_IDL_goTo::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void slidingController_IDL_goTo::init(const double x, const double y, const double z, const bool interpolate) {
+  _return = false;
+  this->x = x;
+  this->y = y;
+  this->z = z;
+  this->interpolate = interpolate;
+}
+
+bool slidingController_IDL_quit::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("quit",1,1)) return false;
+  return true;
+}
+
+bool slidingController_IDL_quit::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void slidingController_IDL_quit::init() {
+  _return = false;
+}
+
+slidingController_IDL::slidingController_IDL() {
+  yarp().setOwner(*this);
+}
 bool slidingController_IDL::stop() {
   bool _return = false;
   slidingController_IDL_stop helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::stop()");
   }
@@ -172,6 +246,7 @@ bool slidingController_IDL::stop() {
 bool slidingController_IDL::calibrate() {
   bool _return = false;
   slidingController_IDL_calibrate helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::calibrate()");
   }
@@ -181,7 +256,7 @@ bool slidingController_IDL::calibrate() {
 bool slidingController_IDL::impedance(const std::string& sw) {
   bool _return = false;
   slidingController_IDL_impedance helper;
-  helper.sw = sw;
+  helper.init(sw);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::impedance(const std::string& sw)");
   }
@@ -191,6 +266,7 @@ bool slidingController_IDL::impedance(const std::string& sw) {
 bool slidingController_IDL::explore() {
   bool _return = false;
   slidingController_IDL_explore helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::explore()");
   }
@@ -200,8 +276,7 @@ bool slidingController_IDL::explore() {
 bool slidingController_IDL::hand(const std::string& key, const bool wait) {
   bool _return = false;
   slidingController_IDL_hand helper;
-  helper.key = key;
-  helper.wait = wait;
+  helper.init(key,wait);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::hand(const std::string& key, const bool wait)");
   }
@@ -211,10 +286,7 @@ bool slidingController_IDL::hand(const std::string& key, const bool wait) {
 bool slidingController_IDL::goTo(const double x, const double y, const double z, const bool interpolate) {
   bool _return = false;
   slidingController_IDL_goTo helper;
-  helper.x = x;
-  helper.y = y;
-  helper.z = z;
-  helper.interpolate = interpolate;
+  helper.init(x,y,z,interpolate);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::goTo(const double x, const double y, const double z, const bool interpolate)");
   }
@@ -224,6 +296,7 @@ bool slidingController_IDL::goTo(const double x, const double y, const double z,
 bool slidingController_IDL::quit() {
   bool _return = false;
   slidingController_IDL_quit helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::quit()");
   }
@@ -236,6 +309,8 @@ bool slidingController_IDL::read(yarp::os::ConnectionReader& connection) {
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
   yarp::os::ConstString tag = reader.readTag();
+  bool direct = (tag=="__direct__");
+  if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
     if (tag == "stop") {

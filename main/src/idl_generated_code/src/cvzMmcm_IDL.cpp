@@ -8,126 +8,56 @@
 
 class cvzMmcm_IDL_start : public yarp::os::Portable {
 public:
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("start",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_pause : public yarp::os::Portable {
 public:
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("pause",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_quit : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("quit",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_setLearningRate : public yarp::os::Portable {
 public:
   double l;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("setLearningRate",1,1)) return false;
-    if (!writer.writeDouble(l)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    return true;
-  }
+  void init(const double l);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_getLearningRate : public yarp::os::Portable {
 public:
   double _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("getLearningRate",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readDouble(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_setSigma : public yarp::os::Portable {
 public:
   double s;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("setSigma",1,1)) return false;
-    if (!writer.writeDouble(s)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    return true;
-  }
+  void init(const double s);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_getSigma : public yarp::os::Portable {
 public:
   double _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("getSigma",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readDouble(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_getActivity : public yarp::os::Portable {
@@ -136,94 +66,271 @@ public:
   int32_t y;
   int32_t z;
   double _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(4)) return false;
-    if (!writer.writeTag("getActivity",1,1)) return false;
-    if (!writer.writeI32(x)) return false;
-    if (!writer.writeI32(y)) return false;
-    if (!writer.writeI32(z)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readDouble(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const int32_t x, const int32_t y, const int32_t z);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_saveWeightsToFile : public yarp::os::Portable {
 public:
   std::string path;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("saveWeightsToFile",1,1)) return false;
-    if (!writer.writeString(path)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& path);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_loadWeightsFromFile : public yarp::os::Portable {
 public:
   std::string path;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("loadWeightsFromFile",1,1)) return false;
-    if (!writer.writeString(path)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& path);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class cvzMmcm_IDL_saveRF : public yarp::os::Portable {
 public:
   std::string path;
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(2)) return false;
-    if (!writer.writeTag("saveRF",1,1)) return false;
-    if (!writer.writeString(path)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init(const std::string& path);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+bool cvzMmcm_IDL_start::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("start",1,1)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_start::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  return true;
+}
+
+void cvzMmcm_IDL_start::init() {
+}
+
+bool cvzMmcm_IDL_pause::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("pause",1,1)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_pause::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  return true;
+}
+
+void cvzMmcm_IDL_pause::init() {
+}
+
+bool cvzMmcm_IDL_quit::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("quit",1,1)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_quit::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void cvzMmcm_IDL_quit::init() {
+  _return = false;
+}
+
+bool cvzMmcm_IDL_setLearningRate::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("setLearningRate",1,1)) return false;
+  if (!writer.writeDouble(l)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_setLearningRate::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  return true;
+}
+
+void cvzMmcm_IDL_setLearningRate::init(const double l) {
+  this->l = l;
+}
+
+bool cvzMmcm_IDL_getLearningRate::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("getLearningRate",1,1)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_getLearningRate::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readDouble(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void cvzMmcm_IDL_getLearningRate::init() {
+  _return = (double)0;
+}
+
+bool cvzMmcm_IDL_setSigma::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("setSigma",1,1)) return false;
+  if (!writer.writeDouble(s)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_setSigma::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  return true;
+}
+
+void cvzMmcm_IDL_setSigma::init(const double s) {
+  this->s = s;
+}
+
+bool cvzMmcm_IDL_getSigma::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("getSigma",1,1)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_getSigma::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readDouble(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void cvzMmcm_IDL_getSigma::init() {
+  _return = (double)0;
+}
+
+bool cvzMmcm_IDL_getActivity::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(4)) return false;
+  if (!writer.writeTag("getActivity",1,1)) return false;
+  if (!writer.writeI32(x)) return false;
+  if (!writer.writeI32(y)) return false;
+  if (!writer.writeI32(z)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_getActivity::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readDouble(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void cvzMmcm_IDL_getActivity::init(const int32_t x, const int32_t y, const int32_t z) {
+  _return = (double)0;
+  this->x = x;
+  this->y = y;
+  this->z = z;
+}
+
+bool cvzMmcm_IDL_saveWeightsToFile::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("saveWeightsToFile",1,1)) return false;
+  if (!writer.writeString(path)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_saveWeightsToFile::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void cvzMmcm_IDL_saveWeightsToFile::init(const std::string& path) {
+  _return = false;
+  this->path = path;
+}
+
+bool cvzMmcm_IDL_loadWeightsFromFile::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("loadWeightsFromFile",1,1)) return false;
+  if (!writer.writeString(path)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_loadWeightsFromFile::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void cvzMmcm_IDL_loadWeightsFromFile::init(const std::string& path) {
+  _return = false;
+  this->path = path;
+}
+
+bool cvzMmcm_IDL_saveRF::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("saveRF",1,1)) return false;
+  if (!writer.writeString(path)) return false;
+  return true;
+}
+
+bool cvzMmcm_IDL_saveRF::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void cvzMmcm_IDL_saveRF::init(const std::string& path) {
+  _return = false;
+  this->path = path;
+}
+
+cvzMmcm_IDL::cvzMmcm_IDL() {
+  yarp().setOwner(*this);
+}
 void cvzMmcm_IDL::start() {
   cvzMmcm_IDL_start helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::start()");
   }
@@ -231,6 +338,7 @@ void cvzMmcm_IDL::start() {
 }
 void cvzMmcm_IDL::pause() {
   cvzMmcm_IDL_pause helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::pause()");
   }
@@ -239,6 +347,7 @@ void cvzMmcm_IDL::pause() {
 bool cvzMmcm_IDL::quit() {
   bool _return = false;
   cvzMmcm_IDL_quit helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::quit()");
   }
@@ -247,7 +356,7 @@ bool cvzMmcm_IDL::quit() {
 }
 void cvzMmcm_IDL::setLearningRate(const double l) {
   cvzMmcm_IDL_setLearningRate helper;
-  helper.l = l;
+  helper.init(l);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::setLearningRate(const double l)");
   }
@@ -256,6 +365,7 @@ void cvzMmcm_IDL::setLearningRate(const double l) {
 double cvzMmcm_IDL::getLearningRate() {
   double _return = (double)0;
   cvzMmcm_IDL_getLearningRate helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","double cvzMmcm_IDL::getLearningRate()");
   }
@@ -264,7 +374,7 @@ double cvzMmcm_IDL::getLearningRate() {
 }
 void cvzMmcm_IDL::setSigma(const double s) {
   cvzMmcm_IDL_setSigma helper;
-  helper.s = s;
+  helper.init(s);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::setSigma(const double s)");
   }
@@ -273,6 +383,7 @@ void cvzMmcm_IDL::setSigma(const double s) {
 double cvzMmcm_IDL::getSigma() {
   double _return = (double)0;
   cvzMmcm_IDL_getSigma helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","double cvzMmcm_IDL::getSigma()");
   }
@@ -282,9 +393,7 @@ double cvzMmcm_IDL::getSigma() {
 double cvzMmcm_IDL::getActivity(const int32_t x, const int32_t y, const int32_t z) {
   double _return = (double)0;
   cvzMmcm_IDL_getActivity helper;
-  helper.x = x;
-  helper.y = y;
-  helper.z = z;
+  helper.init(x,y,z);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","double cvzMmcm_IDL::getActivity(const int32_t x, const int32_t y, const int32_t z)");
   }
@@ -294,7 +403,7 @@ double cvzMmcm_IDL::getActivity(const int32_t x, const int32_t y, const int32_t 
 bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path) {
   bool _return = false;
   cvzMmcm_IDL_saveWeightsToFile helper;
-  helper.path = path;
+  helper.init(path);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path)");
   }
@@ -304,7 +413,7 @@ bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path) {
 bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path) {
   bool _return = false;
   cvzMmcm_IDL_loadWeightsFromFile helper;
-  helper.path = path;
+  helper.init(path);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path)");
   }
@@ -314,7 +423,7 @@ bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path) {
 bool cvzMmcm_IDL::saveRF(const std::string& path) {
   bool _return = false;
   cvzMmcm_IDL_saveRF helper;
-  helper.path = path;
+  helper.init(path);
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::saveRF(const std::string& path)");
   }
@@ -327,6 +436,8 @@ bool cvzMmcm_IDL::read(yarp::os::ConnectionReader& connection) {
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
   yarp::os::ConstString tag = reader.readTag();
+  bool direct = (tag=="__direct__");
+  if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
     if (tag == "start") {

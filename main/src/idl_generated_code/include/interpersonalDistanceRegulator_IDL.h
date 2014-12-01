@@ -16,21 +16,21 @@ class interpersonalDistanceRegulator_IDL;
  */
 class interpersonalDistanceRegulator_IDL : public yarp::os::Wire {
 public:
-  interpersonalDistanceRegulator_IDL() { yarp().setOwner(*this); }
-/**
- * Pause the automatic distance regulation.
- * @return true/false on success/failure.
- */
+  interpersonalDistanceRegulator_IDL();
+  /**
+   * Pause the automatic distance regulation.
+   * @return true/false on success/failure.
+   */
   virtual bool pause();
-/**
- * Resume the automatic distance regulation.
- * @return true/false on success/failure.
- */
+  /**
+   * Resume the automatic distance regulation.
+   * @return true/false on success/failure.
+   */
   virtual bool resume();
-/**
- * Quit the module.
- * @return true/false on success/failure.
- */
+  /**
+   * Quit the module.
+   * @return true/false on success/failure.
+   */
   virtual bool quit();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");

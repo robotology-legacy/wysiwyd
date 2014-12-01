@@ -9,66 +9,97 @@
 class interpersonalDistanceRegulator_IDL_pause : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("pause",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class interpersonalDistanceRegulator_IDL_resume : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("resume",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
 class interpersonalDistanceRegulator_IDL_quit : public yarp::os::Portable {
 public:
   bool _return;
-  virtual bool write(yarp::os::ConnectionWriter& connection) {
-    yarp::os::idl::WireWriter writer(connection);
-    if (!writer.writeListHeader(1)) return false;
-    if (!writer.writeTag("quit",1,1)) return false;
-    return true;
-  }
-  virtual bool read(yarp::os::ConnectionReader& connection) {
-    yarp::os::idl::WireReader reader(connection);
-    if (!reader.readListReturn()) return false;
-    if (!reader.readBool(_return)) {
-      reader.fail();
-      return false;
-    }
-    return true;
-  }
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+bool interpersonalDistanceRegulator_IDL_pause::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("pause",1,1)) return false;
+  return true;
+}
+
+bool interpersonalDistanceRegulator_IDL_pause::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void interpersonalDistanceRegulator_IDL_pause::init() {
+  _return = false;
+}
+
+bool interpersonalDistanceRegulator_IDL_resume::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("resume",1,1)) return false;
+  return true;
+}
+
+bool interpersonalDistanceRegulator_IDL_resume::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void interpersonalDistanceRegulator_IDL_resume::init() {
+  _return = false;
+}
+
+bool interpersonalDistanceRegulator_IDL_quit::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("quit",1,1)) return false;
+  return true;
+}
+
+bool interpersonalDistanceRegulator_IDL_quit::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void interpersonalDistanceRegulator_IDL_quit::init() {
+  _return = false;
+}
+
+interpersonalDistanceRegulator_IDL::interpersonalDistanceRegulator_IDL() {
+  yarp().setOwner(*this);
+}
 bool interpersonalDistanceRegulator_IDL::pause() {
   bool _return = false;
   interpersonalDistanceRegulator_IDL_pause helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool interpersonalDistanceRegulator_IDL::pause()");
   }
@@ -78,6 +109,7 @@ bool interpersonalDistanceRegulator_IDL::pause() {
 bool interpersonalDistanceRegulator_IDL::resume() {
   bool _return = false;
   interpersonalDistanceRegulator_IDL_resume helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool interpersonalDistanceRegulator_IDL::resume()");
   }
@@ -87,6 +119,7 @@ bool interpersonalDistanceRegulator_IDL::resume() {
 bool interpersonalDistanceRegulator_IDL::quit() {
   bool _return = false;
   interpersonalDistanceRegulator_IDL_quit helper;
+  helper.init();
   if (!yarp().canWrite()) {
     fprintf(stderr,"Missing server method '%s'?\n","bool interpersonalDistanceRegulator_IDL::quit()");
   }
@@ -99,6 +132,8 @@ bool interpersonalDistanceRegulator_IDL::read(yarp::os::ConnectionReader& connec
   reader.expectAccept();
   if (!reader.readListHeader()) { reader.fail(); return false; }
   yarp::os::ConstString tag = reader.readTag();
+  bool direct = (tag=="__direct__");
+  if (direct) tag = reader.readTag();
   while (!reader.isError()) {
     // TODO: use quick lookup, this is just a test
     if (tag == "pause") {
