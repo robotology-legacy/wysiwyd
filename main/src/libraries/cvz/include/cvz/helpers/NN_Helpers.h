@@ -44,7 +44,7 @@ public:
         {
             for (unsigned int i = 0; i < input.size(); i++)
             {
-                (connections->at(j))->at(i) = (double)(1 / (sigma*sqrt(2 * 3.141592)))*exp(-pow(i - i*mu, 2) / (2 * pow(sigma, 2)));
+                (connections->at(j))->at(i) = (double)(1 / (sigma*sqrt(2 * 3.141592)))*exp(-pow(i - i*mu, 2) / (2 * pow(sigma, 2)))/4048;
                 t_weight += (connections->at(j))->at(i);
                 min_weight = std::min(min_weight, (connections->at(j))->at(i));
             }
@@ -91,7 +91,7 @@ public:
             {
                 //(connections->at(j))->at(i) = std::max(0, (rand() % 4) -2);
                 if (std::abs((int)(i - j)) == 1)
-                    (connections->at(j))->at(i) = 0.25;
+                    (connections->at(j))->at(i) = 0.001;
 
                 k++;
             }
@@ -177,7 +177,7 @@ public:
         }
     }
 
-    void generateModel(std::string input_connections = "gaussian", std::string inner_topology = "grid")
+    void generateModel(std::string input_connections = "gaussian", std::string inner_topology = "none")
     {
 
         //Generate the neurons        
@@ -266,8 +266,10 @@ public:
                 *(input.at(i)) = in[i];
 
             }
+            std::cout << &activity << std::endl;
             return true;
         }
+        //
     }
 
     //2: process Activity
@@ -288,6 +290,7 @@ public:
     //3: Update Activity
     void updateActivity()
     {
+        max_activity = 0;
 
         for (unsigned int n = i_size; n<size; n++)
         {
@@ -299,12 +302,13 @@ public:
             max_activity = std::max(activity->at(n), max_activity);
 
         }
+        std::cout << max_activity << std::endl;
     }
 
 
 
     //4: Normalize & select
-    void normalizeAndSelect(std::string normalization = "max")
+    void normalizeAndSelect(std::string normalization = "total")
     {
         //Compute current E%max
         double Emax = E_percent;
@@ -335,8 +339,8 @@ public:
             for (unsigned int n = i_size; n<size; n++)
             {
                 activity->at(n) *= aux_max;
-                activity->at(n) = std::max(0.0, activity->at(n) - Emax);
-                std::cout << Emax<<std::endl;
+                activity->at(n) = std::max(0.0, activity->at(n) - Emax)/(1-Emax);
+                //std::cout << Emax<<std::endl;
             }
             //Emax=0;
         }
