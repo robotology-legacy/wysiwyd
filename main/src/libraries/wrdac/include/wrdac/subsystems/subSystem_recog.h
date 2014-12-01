@@ -83,7 +83,7 @@ namespace wysiwyd{namespace wrdac{
 
             int loop = 0;
 
-            while (!fGetaReply || loop < iLoop)
+            while (!fGetaReply && loop < iLoop)
             {
                 portRPC.write(bMessenger,bReply);
 

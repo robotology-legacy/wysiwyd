@@ -318,7 +318,7 @@ bool AdaptiveLayer::handleSpeech()
         roles.push_back("semantic");
         arguments.push_back(bRelation.toString().c_str());
 
-        iCub->getABMClient()->sendActivity("action",sentenceType.c_str(),"mainLoop",arguments, roles);
+//        iCub->getABMClient()->sendActivity("action",sentenceType.c_str(),"mainLoop",arguments, roles);
 
         // Answer from the robot
         arguments.clear();
@@ -329,7 +329,7 @@ bool AdaptiveLayer::handleSpeech()
         roles.push_back("speaker");
         arguments.push_back("icub");
 
-        iCub->getABMClient()->sendActivity("action",sentenceType.c_str(),"mainLoop",arguments, roles);
+//        iCub->getABMClient()->sendActivity("action",sentenceType.c_str(),"mainLoop",arguments, roles);
 
     }
     return gotSignal;

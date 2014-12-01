@@ -34,7 +34,7 @@ namespace wysiwyd{namespace wrdac{
 class SubSystem_ABM: public SubSystem
 {
 protected:
-    virtual bool connect() { return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/request:i"); }
+    virtual bool connect() { return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/rpc"); }
 
 public:
     yarp::os::Port portRPC;
@@ -49,34 +49,29 @@ public:
         std::string activityType,
         std::string activyInformation,
         std::string activityContext,
-        std::list<std::string> arguments,
-        std::list<std::string> roles,
+        std::list<std::pair<std::string, std::string>> arguments,
         bool fBegin = true)
     {
         yarp::os::Bottle 
             bMain,          // main information about the activity
             bArgument,      // Argument of the activity
-            bRole,          // Role of the argument of the activity
             bBegin;         // information about begining or end of the activity
 
         bMain.addString(activityType.c_str());
         bMain.addString(activyInformation.c_str());
         bMain.addString(activityContext.c_str());
-        if (arguments.size() != roles.size())
-        {
-            std::cerr<<"Inconsistent number of roles and arguments. Cancelling call to ABM"<<std::endl;
-            return;
-        }
+        
+        bArgument.addString("arguments");
 
-        for(std::list<std::string>::iterator itArg = arguments.begin(); itArg != arguments.end() ; itArg++)
+        
+        for (std::list<std::pair<std::string, std::string>>::iterator itArg = arguments.begin(); itArg != arguments.end(); itArg++)
         {
-            bArgument.addString(itArg->c_str());
+            yarp::os::Bottle  bTemp;
+            bTemp.clear();
+            bTemp.addString(itArg->first);
+            bTemp.addString(itArg->second);
+            bArgument.addList() = bTemp;
         }
-            
-        for(std::list<std::string>::iterator itRole = roles.begin(); itRole != roles.end() ; itRole++)
-        {
-            bRole.addString(itRole->c_str());
-        }   
 
         bBegin.addString("begin");
         bBegin.addInt((int)fBegin);
@@ -86,7 +81,6 @@ public:
         bSnapshot.addString("snapshot");
         bSnapshot.addList() = bMain;
         bSnapshot.addList() = bArgument;
-        bSnapshot.addList() = bRole;
         bSnapshot.addList() = bBegin;
         portRPC.write(bSnapshot);
     }
