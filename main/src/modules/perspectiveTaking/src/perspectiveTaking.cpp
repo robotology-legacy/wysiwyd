@@ -20,6 +20,11 @@
 
 #include <boost/chrono/chrono.hpp>
 
+#include <yarp/math/Math.h>
+
+#include <vtkPerspectiveTransform.h>
+#include <vtkCamera.h>
+
 #include <rtabmap/core/Parameters.h>
 #include <rtabmap/utilite/UEventsManager.h>
 
@@ -48,7 +53,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     loopCounter = 0;
 
     // Connect to kinectServer
-    string clientName = getName()+"/kinect:i";
+    string clientName = getName()+"/kinect";
 
     Property options;
     options.put("carrier","tcp");
@@ -85,6 +90,9 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
         Time::delay(1.0);
     }
 
+    kinect2icub_vtk = vtkSmartPointer<vtkMatrix4x4>::New();
+    yarp2vtkKinectMatrix(kinect2icub, kinect2icub_vtk);
+
     // Read parameters from rtabmap_config.ini
     ParametersMap parameters;
     Rtabmap::readParameters(rf.findFileByName("rtabmap_config.ini"), parameters);
@@ -98,7 +106,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     // Create the OpenNI camera, it will send a CameraEvent at the rate specified.
     // Set transform to camera so z is up, y is left and x going forward
 
-    camera = new CameraKinectWrapper(client, 30, rtabmap::Transform(0,0,1,0, -1,0,0,0, 0,-1,0,0));
+    camera = new CameraKinectWrapper(client, 20, rtabmap::Transform(0,0,1,0, -1,0,0,0, 0,-1,0,0));
 
     cameraThread = new CameraThread(camera);
 
@@ -148,6 +156,22 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     cameraThread->start();
 
     return true;
+}
+
+void perspectiveTaking::yarp2vtkKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp, vtkSmartPointer<vtkMatrix4x4> kinect2icubVTK) {
+    for(int i=0; i<4; i++)
+    {
+        for(int j=0; j<4; j++)
+        {
+            if(j==0 || j==1) {
+                kinect2icubVTK->SetElement(i,j,-1.0*kinect2icubYarp(i,j));
+            } else {
+                kinect2icubVTK->SetElement(i,j,kinect2icubYarp(i,j));
+            }
+        }
+    }
+    kinect2icubVTK->SetElement(0,3,1.0-kinect2icubVTK->GetElement(0,3));
+    kinect2icubVTK->SetElement(1,3,-1.0*kinect2icubVTK->GetElement(1,3));
 }
 
 bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
@@ -205,10 +229,28 @@ double perspectiveTaking::getPeriod() {
     return 0.1;
 }
 
+void perspectiveTaking::doPerspectiveTransform(vtkSmartPointer<vtkMatrix4x4> m) {
+    vtkSmartPointer< vtkRendererCollection> renderer_collection=mapBuilder->getVisualizer().getRendererCollection();
+    renderer_collection->InitTraversal();
+    vtkRenderer *renderer =NULL;
+    renderer=renderer_collection->GetNextItem();
+    vtkSmartPointer<vtkCamera> camera=renderer->GetActiveCamera();
+
+    vtkSmartPointer<vtkPerspectiveTransform> perspectiveTransform =
+        vtkSmartPointer<vtkPerspectiveTransform>::New();
+    // TODO: Do not set to Identity ...
+    m->Identity();
+    perspectiveTransform->SetMatrix(m);
+
+    camera->SetUserTransform(perspectiveTransform);
+}
+
 /* Called periodically every getPeriod() seconds */
 bool perspectiveTaking::updateModule() {
     if(!mapBuilder->wasStopped()) {
+        doPerspectiveTransform(kinect2icub_vtk);
         mapBuilder->spinOnce(40);
+        cout << mapBuilder->getVisualizer().getViewerPose().matrix() << endl;
         ++loopCounter;
         if(rtabmap->getLoopClosureId())
         {
@@ -250,6 +292,13 @@ bool perspectiveTaking::close() {
 
     boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
 
+    // Kill all threads
+    cameraThread->kill();
+    delete cameraThread;
+
+    odomThread->join(true);
+    rtabmapThread->join(true);
+
     // generate graph and save Long-Term Memory
     rtabmap->generateDOTGraph(resfind.findFileByName("Graph.dot"));
     printf("Generated graph \"Graph.dot\", viewable with Graphiz using \"neato -Tpdf Graph.dot -o out.pdf\"\n");
@@ -262,13 +311,6 @@ bool perspectiveTaking::close() {
     delete mapBuilder;
     delete rtabmapThread;
     delete odomThread;
-
-    // Kill all threads
-    cameraThread->kill();
-    delete cameraThread;
-
-    odomThread->join(true);
-    rtabmapThread->join(true);
 
     // Close ports
     handlerPort.interrupt();

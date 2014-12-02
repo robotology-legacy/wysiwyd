@@ -93,9 +93,9 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data)
                 UERROR("Adding cloudOdom to viewer failed!");
             }
         }
-        if(!data.pose().isNull())
+        if(!pose.isNull())
         {
-            _vWrapper->updateCameraPosition(data.pose());
+            _vWrapper->updateCameraPosition(pose);
         }
     }
     _processingOdometry = false;

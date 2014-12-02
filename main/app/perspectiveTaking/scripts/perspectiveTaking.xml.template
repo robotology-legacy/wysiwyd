@@ -1,0 +1,38 @@
+<application>
+<name>perspectiveTaking</name>
+        <module>
+            <name>kinectServer</name>
+            <parameters></parameters>
+            <node>ikart</node>
+            <tag>kinectServerTag</tag>
+        </module>
+
+        <module>
+            <name>referenceFrameHandler</name>
+            <parameters></parameters>
+            <node>console</node>
+            <tag>referenceFrameHandlerTag</tag>
+        </module>
+
+		<module>
+            <name>objectsPropertiesCollector</name>
+            <parameters>--name OPC</parameters>
+            <node>console</node>
+            <tag>objectsPropertiesCollectorTag</tag>
+        </module>
+
+		<module>
+            <name>agentDetector</name>
+            <parameters></parameters>
+            <node>console</node>
+            <tag>agentDetectorTag</tag>
+        </module>
+
+        <module>
+            <name>perspectiveTaking</name>
+            <parameters></parameters>
+            <node>console</node>
+            <tag>perspectiveTakingTag</tag>
+        </module>
+</application>
+
