@@ -32,7 +32,7 @@ using namespace rtabmap;
 class MapBuilder : public UEventsHandler
 {
 public:
-    MapBuilder(unsigned int decOdo, unsigned int decVis);
+    MapBuilder(unsigned int decOdo=2, unsigned int decVis=2);
     virtual ~MapBuilder();
 
     void spinOnce(int time = 1, bool force_redraw = false);
