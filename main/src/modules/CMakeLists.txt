@@ -21,6 +21,7 @@ add_subdirectory(humanUnderstanding)
 
 if(WYSIWYD_USE_OpenCV)
         add_subdirectory(systemVisual)
+	add_subdirectory(visionRelated)
 endif()
 if(WYSIWYD_USE_TUIO)
         add_subdirectory(reactableRelated)

@@ -30,4 +30,5 @@ add_subdirectory(cvzBCBT2014)
 add_subdirectory(keyboardBabbling)
 add_subdirectory(reservoirHandler)
 add_subdirectory(perspectiveTaking)
+add_subdirectory(visionRelated)
 
