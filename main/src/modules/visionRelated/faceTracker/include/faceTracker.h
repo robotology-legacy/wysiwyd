@@ -85,7 +85,13 @@ The commands it is possible to send are:
 #include <stdio.h>
 #include <iostream>
 #include <ctime>
+
+#ifdef _WIN32
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <cmath>
 
 //#include <opencv/cv.h>
