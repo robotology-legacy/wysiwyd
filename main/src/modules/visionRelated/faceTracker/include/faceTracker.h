@@ -159,8 +159,8 @@ protected:
 
 
 	int counter;
-	int x_buf;
-	int y_buf;
+	double x_buf;
+	double y_buf;
 
 	int mode; // 0: going to a set position, 1: face searching, 2: face tracking, 3: face stuck,
 	int setpos_counter;

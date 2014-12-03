@@ -28,7 +28,6 @@
 #  OpenNI_DIR - Directory where OpenNI was found (can be set by user to force 
 #               CMake to look in a particular directory)
 
-
 #Set hints
 set(OpenNI_INCLUDE_HINTS
   "${OpenNI_DIR}/include"
