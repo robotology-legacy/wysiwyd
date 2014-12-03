@@ -1,8 +1,6 @@
 #ifndef CAMERAKINECTWRAPPER_H
 #define CAMERAKINECTWRAPPER_H
 
-#include <yarp/os/Network.h>
-
 #include <rtabmap/core/CameraRGBD.h>
 
 #include <kinectWrapper/kinectWrapper_client.h>

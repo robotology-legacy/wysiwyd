@@ -21,8 +21,10 @@
 using namespace rtabmap;
 
 // This class receives RtabmapEvent and construct/update a 3D Map
-MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
-    _vWrapper(new VisualizerWrapper),
+MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis,
+                       Eigen::Vector4f pos, Eigen::Vector4f view,
+                       Eigen::Vector4f up) :
+    _vWrapper(new VisualizerWrapper(pos, view, up)),
     decimationOdometry_(decOdo),
     decimationVisualization_(decVis),
     _processingStatistics(false),

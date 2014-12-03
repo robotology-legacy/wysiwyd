@@ -43,12 +43,9 @@ protected:
 
     Matrix kinect2icub;
     Matrix icub2kinect;
-    vtkSmartPointer<vtkMatrix4x4> kinect2icub_vtk;
+    Eigen::Matrix4f kinect2icub_pcl;
 
     yarp::os::ResourceFinder resfind;
-
-    void yarp2vtkKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp, vtkSmartPointer<vtkMatrix4x4> kinect2icubVTK);
-    void doPerspectiveTransform(vtkSmartPointer<vtkMatrix4x4> m);
 
 public:
     bool configure(ResourceFinder &rf);
