@@ -88,8 +88,10 @@ The commands it is possible to send are:
 
 #ifdef _WIN32
 #include <io.h>
+#include <windows.h>
 #else
 #include <unistd.h>
+#define Sleep(x) usleep(x)
 #endif
 
 #include <cmath>
