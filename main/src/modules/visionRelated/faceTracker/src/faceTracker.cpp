@@ -20,12 +20,6 @@
 
 #include "faceTracker.h"
 
-#include <stdio.h>
-#include <iostream>
-#include <ctime>
-#include <unistd.h>
-#include <cmath>
-
 #include <cv.h>
 #include <cvaux.h>
 #include <highgui.h>
