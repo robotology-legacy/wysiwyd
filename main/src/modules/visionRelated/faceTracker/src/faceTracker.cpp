@@ -355,7 +355,7 @@ bool faceTrackerModule::updateModule() {
         int biggest_face_left_size_buf = 0;
 
         // choosing the biggest face
-        for(int i=0; i<faces_left.size(); i++)
+        for(unsigned int i=0; i<faces_left.size(); i++)
         {
             cv::Point flb(faces_left[i].x + faces_left[i].width,
                           faces_left[i].y + faces_left[i].height);
