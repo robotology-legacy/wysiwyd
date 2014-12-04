@@ -2491,6 +2491,10 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		mentalOPC->commit();
 	}
 	std::cout << endl;
+
+	bool print_in_file = false;
+
+
 	if (iError != 0)
 	{
 		std::cout << iError << " errors while getting the actions:" << endl;
@@ -2501,12 +2505,84 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		std::cout << endl;
 	}
 
-
-	for (list<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+	if (print_in_file)
 	{
-		determineTimingInfluence(*it);
-	}
+		for (list<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+		{
+			determineTimingInfluence(*it);
+			if (it->bothtails > 0.1)
+			{
+				it->determineSpatialInfluence();
+			}
 
+			// writing data in a file
+			string filepath_time = (path + "/time_");
+			filepath_time += it->sLabel.c_str();
+			filepath_time += ".txt";
+			ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+
+			for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
+			{
+				file_time << *itD << endl;
+			}
+
+			cout << "file_time " << filepath_time << " written" << endl;
+
+			string filepath_space = (path + "/space_");
+			filepath_space += it->sLabel.c_str();
+			filepath_space += ".txt";
+			ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+
+			file_space << "X\tY\tDX\tDY" << endl;
+
+			if (it->vdGnlDelta.size() != it->vdGnlXY.size())
+			{
+				cout << "problem of size dude !" << endl;
+			}
+			else
+			{
+				for (int i = 0; i < it->vdGnlDelta.size(); i++)
+				{
+					file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
+				}
+			}
+			cout << "file " << filepath_space << " written" << endl;
+
+
+			if (it->mActionAbsolut.size() != it->mActionDelta.size())
+			{
+				cout << "problem of size and verb dude !" << endl;
+			}
+			else
+			{
+				string filepath_space_verb = (path + "/space_verb_");
+				filepath_space_verb += it->sLabel.c_str();
+				filepath_space_verb += ".txt";
+
+
+				ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+
+				file_space_verb << "X\tY\tVerb" << endl;
+
+				for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
+				{
+
+					for (int i = 0; i < itMap->second.size(); i++)
+					{
+						file_space_verb << itMap->second[i].first << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
+					}
+
+					for (int i = 0; i < itMap->second.size(); i++)
+					{
+						file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
+					}
+
+
+					std::cout << "file_space_verb " << filepath_space_verb << " written" << endl;
+				}
+			}
+		}
+	}
 	return bOutput;
 }
 
@@ -3616,7 +3692,7 @@ Bottle abmReasoning::discriminateUnknownActions()
 
 
 
-void abmReasoning::determineTimingInfluence(adjKnowledge adjInput)
+void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 {
 	// get timing data all in one
 

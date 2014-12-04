@@ -43,7 +43,7 @@ private:
 	grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
 	wordKnowledge                    WordKnowledge;
 
-	void			determineTimingInfluence(adjKnowledge adjInput);
+	void			determineTimingInfluence(adjKnowledge &adjInput);
 
 	//PDDL planner variable
 	std::string      plannerPath;

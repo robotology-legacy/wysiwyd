@@ -121,67 +121,6 @@ pair <double, double> adjKnowledge::coordRelative(double Xo, double Yo, double X
 }
 
 
-/**
-Will try to determine if the adjective is related to space, or time.
-First, tries time, if not, try if spatial.
-*/
-void adjKnowledge::determineInfluence()
-{
-    fTimingInfluence = false;
-    fAbsolutInfluence = false;
-    fDeltaInfluence = false;
-    fFromInfluence = false;
-
-    if (vdGnlTiming.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE)
-    {
-        determineTimingInfluence();
-        if (!fTimingInfluence)
-        {
-            determineSpatialInfluence();
-        }
-    }
-}
-
-
-/** Determine if the adjective influences the timing.
-First check the adjtive globaly
-then check for each action if there is a link.
-
-update the parameter: fTimingInfluence
-*/
-void adjKnowledge::determineTimingInfluence()
-{
-    double bothtails,
-        lefttail,
-        righttail;
-
- //   abmReasoningFunction::studentttest2(vdGnlTiming, vdNoGnlTiming, &bothtails, &lefttail, &righttail);
-
-    cout << "bothtails: " << bothtails << endl;
-    //    cout << "lefttail : " << lefttail << endl;
-    //    cout << "righttail: " << righttail << endl;
-
-
-    // if from a general point of view, the adjective influence the timing
-    if (bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
-    {
-        fTimingInfluence = true;
-        return ;
-    }
-    
-
-    // else check for each association action/adjective:
-    //for (map<string, pair< vector<double>, vector<double> > >::iterator itMap = mActionTiming.begin() ; itMap != mActionTiming.end() ; itMap++)
-    //{
-    //    abmReasoningFunction::studentttest2(itMap->second.first, itMap->second.second, &bothtails, &lefttail, &righttail);
-    //    if (bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
-    //    {
-    //        cout << sLabel << " influences timing when correlated to the action : " << itMap->first << endl;
-    //        fTimingInfluence = true;
-    //    }
-    //}
-}
-
 
 /**
 Determine if the adjective influence in term of spatial relations
