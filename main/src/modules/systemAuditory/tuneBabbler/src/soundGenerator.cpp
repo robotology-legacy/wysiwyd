@@ -92,7 +92,11 @@ int babbler::getValue(std::string soundType="noisySinus")
     {
         return getNoisySinus();
     }
-    else{ std::cout << 123 << std::endl; }
+    else
+    {
+        std::cout << 123 << std::endl;
+        return 123;     // [ugo]: we must return something...
+    }
 }
 
 void babbler::generateSound()

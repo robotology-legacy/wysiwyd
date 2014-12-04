@@ -157,7 +157,7 @@ void adjKnowledge::determineTimingInfluence()
 
  //   abmReasoningFunction::studentttest2(vdGnlTiming, vdNoGnlTiming, &bothtails, &lefttail, &righttail);
 
-    cout << "bothtails: " << bothtails << endl;
+    //    cout << "bothtails: " << bothtails << endl;   // [ugo]: bothtails is uninitialized
     //    cout << "lefttail : " << lefttail << endl;
     //    cout << "righttail: " << righttail << endl;
 
