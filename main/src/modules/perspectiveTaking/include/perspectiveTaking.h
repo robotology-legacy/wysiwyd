@@ -34,8 +34,11 @@ protected:
     OdometryThread* odomThread;
     RtabmapThread* rtabmapThread;
 
-    // OPC/RFH related
-    //OPCClient* opc;
+    // OPC related
+    OPCClient* opc;
+    Agent* partner;
+
+    // RFH related
     Port   rfh;
     Port   handlerPort;
 

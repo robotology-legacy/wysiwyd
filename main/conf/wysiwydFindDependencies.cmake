@@ -29,7 +29,7 @@ find_package(OpenNI)
 find_package(Boost)
 find_package(FFTW3)
 find_package(OTL)
-find_package(RTABMap QUIET)
+find_package(RTABMap 0.7.3 EXACT QUIET)
 find_package(PCL QUIET)
 
 message(STATUS "I have found the following libraries:")

@@ -53,6 +53,15 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     ParametersMap parameters;
     Rtabmap::readParameters(rf.findFileByName("rtabmap_config.ini"), parameters);
 
+    //Open the OPC Client
+    string opcName=rf.check("opc",Value("OPC")).asString().c_str();
+    opc = new OPCClient(moduleName);
+    while (!opc->connect(opcName))
+    {
+        cout<<"Waiting connection to OPC..."<<endl;
+        Time::delay(1.0);
+    }
+
     // Connect to kinectServer
     string clientName = getName()+"/kinect";
 
@@ -252,8 +261,28 @@ double perspectiveTaking::getPeriod() {
 /* Called periodically every getPeriod() seconds */
 bool perspectiveTaking::updateModule() {
     if(!mapBuilder->wasStopped()) {
-        mapBuilder->spinOnce(40);
         ++loopCounter;
+        partner = (Agent*)opc->getEntity("partner", true);
+        if(partner) {
+            Vector p_headPos = partner->m_ego_position;
+            Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
+            Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
+
+            Vector p_view = yarp::math::cross(headPos-shoulderLeft, headPos-shoulderRight);
+            Vector p_up = headPos; up[2]+=1;
+            Vector p_up_diff = up-headPos;
+
+            cout << "Pos : " << headPos.toString() << endl;
+            cout << "View: " << view.toString()    << endl;
+            cout << "Up  : " << up_diff.toString() << endl;
+        } else {
+            cout << "No partner found in OPC!" << endl;
+        }
+
+        // update GUI
+        mapBuilder->spinOnce(40);
+
+        // print some statistics
         if(rtabmap->getLoopClosureId())
         {
             printf(" #%d ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
@@ -276,12 +305,17 @@ bool perspectiveTaking::updateModule() {
                    rtabmap->getRetrievedId(), // highest loop closure hypothesis
                    rtabmap->getLcHypValue());
         }
+        return true;
     }
-    return true;
+    else {
+        return false;
+    }
+
 }
 
 bool perspectiveTaking::interruptModule() {
     handlerPort.interrupt();
+    opc->interrupt();
     return true;
 }
 
@@ -314,6 +348,8 @@ bool perspectiveTaking::close() {
     delete odomThread;
 
     // Close ports
+    opc->interrupt();
+    opc->close();
     handlerPort.interrupt();
     handlerPort.close();
     client.close();

@@ -20,7 +20,7 @@
     <param default="perspectiveTaking" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
     <param default="perspectiveTaking.ini" desc="To specify the configuration file">from</param>
 	<param default="perspectiveTaking" desc="To specify the default context where config files are loader">context</param>
-	<!--param default="OPC" desc="To specify the specifies the opc database name, where data are readed">opc</param-->
+    <param default="OPC" desc="To specify the specifies the opc database name, where data are readed">opc</param>
   </arguments>
 
   <data>
