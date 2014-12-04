@@ -21,7 +21,7 @@
 */
 
 #include <yarp/os/all.h>
-#include "perspectiveTaking.h"
+#include "PerspectiveTaking.h"
 
 using namespace std;
 using namespace yarp::os;

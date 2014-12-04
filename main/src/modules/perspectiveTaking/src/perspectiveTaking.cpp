@@ -20,12 +20,15 @@
 
 #include <boost/chrono/chrono.hpp>
 
+#include <yarp/math/Math.h>
+
 #include <rtabmap/core/Parameters.h>
 #include <rtabmap/utilite/UEventsManager.h>
 
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
-#include "perspectiveTaking.h"
+#include "PerspectiveTaking.h"
+#include "Helpers.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -42,13 +45,16 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     int verbosity=rf.check("verbosity",Value(0)).asInt();
     string moduleName = rf.check("name", Value("perspectiveTaking"), "module name (string)").asString();
-
     setName(moduleName.c_str());
 
     loopCounter = 0;
 
+    // Read parameters for rtabmap from rtabmap_config.ini
+    ParametersMap parameters;
+    Rtabmap::readParameters(rf.findFileByName("rtabmap_config.ini"), parameters);
+
     // Connect to kinectServer
-    string clientName = getName()+"/kinect:i";
+    string clientName = getName()+"/kinect";
 
     Property options;
     options.put("carrier","tcp");
@@ -62,6 +68,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     }
 
     //Retrieve the calibration matrix from RFH
+    //WARNING: THIS IS CURRENTLY NOT USED!
     string rfhLocal = "/"+moduleName+"/rfh:o";
     rfh.open(rfhLocal.c_str());
 
@@ -85,20 +92,55 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
         Time::delay(1.0);
     }
 
-    // Read parameters from rtabmap_config.ini
-    ParametersMap parameters;
-    Rtabmap::readParameters(rf.findFileByName("rtabmap_config.ini"), parameters);
+    kinect2icub_pcl = Eigen::Matrix4f::Zero();
+    //TODO: Get kinect2icub_pcl from referenceFrameHandler
+    //yarp2pclKinectMatrix(kinect2icub, kinect2icub_pcl);
+    //cout << kinect2icub_pcl << endl;
+
+    // Estimate rotation+translation from kinect to icub head
+    Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
+
+    // iCub head is ~60cm below kinect
+    rot_trans.translation() << 0.0, 0.0, -0.6;
+    // iCub head is tilted ~30 degrees down
+    float theta_degrees=-30;
+    float theta = theta_degrees/180*M_PI;
+    rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
+
+    kinect2icub_pcl = rot_trans.matrix();
+    cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
+
+    // we need to convert from icub reference frame to pcl reference frame
+    Eigen::Matrix4f icub2pcl = Eigen::Matrix4f::Identity();
+    icub2pcl(0, 0) = -1; // x is back on the icub, forward in pcl
+    icub2pcl(1, 1) = -1; // y is right on the icub, left in pcl
+
+    Eigen::Vector4f pos = kinect2icub_pcl * icub2pcl * Eigen::Vector4f(0,0,0,1);
+    pos /= pos[3];
+
+    Eigen::Vector4f view = kinect2icub_pcl * icub2pcl * Eigen::Vector4f(-1,0,0,1);
+    view /= view[3];
+
+    Eigen::Vector4f up = kinect2icub_pcl * icub2pcl * Eigen::Vector4f(0,0,1,1);
+    up /= up[3];
+
+    Eigen::Vector4f up_diff = up-pos;
 
     // GUI stuff, the handler will receive RtabmapEvent and construct the map
-    mapBuilder = new MapBuilder(2, 2);
+    int decimationOdometry = 2;     // decimation to show points clouds
+                                    // the higher, the lower the resolution
+                                    // odometry: most recent cloud
+    int decimationStatistics = 2;   // statistics: past point cloud decimation
+
+    mapBuilder = new MapBuilder(decimationOdometry, decimationStatistics,
+                                pos, view, up_diff);
 
     // Here is the pipeline that we will use:
     // CameraOpenni -> "CameraEvent" -> OdometryThread -> "OdometryEvent" -> RtabmapThread -> "RtabmapEvent"
 
     // Create the OpenNI camera, it will send a CameraEvent at the rate specified.
-    // Set transform to camera so z is up, y is left and x going forward
-
-    camera = new CameraKinectWrapper(client, 30, rtabmap::Transform(0,0,1,0, -1,0,0,0, 0,-1,0,0));
+    // Set transform to camera so z is up, y is left and x going forward (as in PCL)
+    camera = new CameraKinectWrapper(client, 20, rtabmap::Transform(0,0,1,0, -1,0,0,0, 0,-1,0,0));
 
     cameraThread = new CameraThread(camera);
 
@@ -108,7 +150,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
 
-    // Create an odometry thread to process camera events, it will send OdometryEvent.
+    // Create an odometry thread to process camera events, it will send OdometryEvent
     odomThread = new OdometryThread(new OdometryBOW(parameters));
 
     // Create RTAB-Map to process OdometryEvent
@@ -127,8 +169,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     // RTAB-Map to process OdometryEvent instead, ignoring the CameraEvent.
     // We can do that by creating a "pipe" between the camera and odometry, then
     // only the odometry will receive CameraEvent from that camera. RTAB-Map is
-    // also subscribed to OdometryEvent by default, so no need to create a pipe between
-    // odometry and RTAB-Map.
+    // also subscribed to OdometryEvent by default, so no need to create a pipe
+    // between odometry and RTAB-Map.
     UEventsManager::createPipe(cameraThread, odomThread, "CameraEvent");
 
     // Open handler port
@@ -151,6 +193,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 }
 
 bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
+    // TODO: Not yet implemented
     if (cmd.get(0).asString() == "learnEnvironment" )
     {
         //cout << getName() << ": Going to learn the environment" << endl;
@@ -193,7 +236,8 @@ bool perspectiveTaking::getRFHMatrix(const string& from, const string& to, Matri
                     m(i,j)=bMat->get(4*i+j).asDouble();
                 }
             }
-            cout << "Transformation matrix from " << from << " to " << to << " retrieved" << endl;
+            cout << "Transformation matrix from " << from
+                 << " to " << to << " retrieved:" << endl;
             cout << m.toString(3,3).c_str() << endl;
             return true;
         }
@@ -238,7 +282,6 @@ bool perspectiveTaking::updateModule() {
 
 bool perspectiveTaking::interruptModule() {
     handlerPort.interrupt();
-
     return true;
 }
 
@@ -249,6 +292,13 @@ bool perspectiveTaking::close() {
     odomThread->unregisterFromEventsManager();
 
     boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
+
+    // Kill all threads
+    cameraThread->kill();
+    delete cameraThread;
+
+    odomThread->join(true);
+    rtabmapThread->join(true);
 
     // generate graph and save Long-Term Memory
     rtabmap->generateDOTGraph(resfind.findFileByName("Graph.dot"));
@@ -262,13 +312,6 @@ bool perspectiveTaking::close() {
     delete mapBuilder;
     delete rtabmapThread;
     delete odomThread;
-
-    // Kill all threads
-    cameraThread->kill();
-    delete cameraThread;
-
-    odomThread->join(true);
-    rtabmapThread->join(true);
 
     // Close ports
     handlerPort.interrupt();

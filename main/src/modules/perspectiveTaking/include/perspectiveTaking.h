@@ -43,6 +43,7 @@ protected:
 
     Matrix kinect2icub;
     Matrix icub2kinect;
+    Eigen::Matrix4f kinect2icub_pcl;
 
     yarp::os::ResourceFinder resfind;
 

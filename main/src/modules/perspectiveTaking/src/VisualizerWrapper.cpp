@@ -21,16 +21,17 @@
 
 #include "VisualizerWrapper.h"
 
-VisualizerWrapper::VisualizerWrapper() :
+VisualizerWrapper::VisualizerWrapper(Eigen::Vector4f pos, Eigen::Vector4f view,
+                                     Eigen::Vector4f up) :
     _maxTrajectorySize(100),
     _trajectory(new pcl::PointCloud<pcl::PointXYZ>),
     _visualizer(new pcl::visualization::PCLVisualizer("PCLVisualizer", true))
 {
     std::cout << "Created visualizer in thread " << boost::this_thread::get_id() << std::endl;
     _visualizer->setCameraPosition(
-                -1, 0, 0,
-                0, 0, 0,
-                0, 0, 1);
+        pos [0], pos [1], pos [2],
+        view[0], view[1], view[2],
+        up  [0], up  [1], up  [2]);
 }
 
 VisualizerWrapper::~VisualizerWrapper()
