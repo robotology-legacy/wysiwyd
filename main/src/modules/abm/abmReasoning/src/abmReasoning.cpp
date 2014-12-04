@@ -2541,7 +2541,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
 			}
 			else
 			{
-				for (int i = 0; i < it->vdGnlDelta.size(); i++)
+				for (unsigned int i = 0; i < it->vdGnlDelta.size(); i++)
 				{
 					file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
 				}
@@ -2567,12 +2567,12 @@ Bottle abmReasoning::findAllActionsV2(int from)
 				for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
 				{
 
-					for (int i = 0; i < itMap->second.size(); i++)
+					for (unsigned int i = 0; i < itMap->second.size(); i++)
 					{
 						file_space_verb << itMap->second[i].first << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
 					}
 
-					for (int i = 0; i < itMap->second.size(); i++)
+					for (unsigned int i = 0; i < itMap->second.size(); i++)
 					{
 						file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
 					}

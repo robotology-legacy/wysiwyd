@@ -387,7 +387,7 @@ void    qRM::nodeSentenceTemporal()
 
 	Bottle bOutput;
 
-	bool fGetaReply = false;
+	//bool fGetaReply = false;
 	Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
 		bAnswer, //response from speech recog without transfer information, including raw sentence
 		bSemantic, // semantic information of the content of the recognition
@@ -479,7 +479,7 @@ void    qRM::nodeSentenceTemporal()
 
 bool qRM::nodeYesNo()
 {
-	bool fGetaReply = false;
+	//bool fGetaReply = false;
 	Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
 		bAnswer, //response from speech recog without transfer information, including raw sentence
 		bSemantic, // semantic information of the content of the recognition
