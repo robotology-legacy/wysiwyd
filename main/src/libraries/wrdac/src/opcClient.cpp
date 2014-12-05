@@ -76,11 +76,13 @@ bool OPCClient::write(Bottle &cmd, Bottle &reply, bool isVerbose)
 
 void OPCClient::interrupt()
 {
+    opcBroadcast.interrupt();
     opc.interrupt();
 }
     
 void OPCClient::close()
 {
+    opcBroadcast.close();
     opc.close();
     //Clear the content of dictionaries
     for(map<int,Entity*>::iterator it=entitiesByID.begin(); it!=entitiesByID.end(); it++)
