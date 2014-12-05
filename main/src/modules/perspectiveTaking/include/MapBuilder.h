@@ -39,9 +39,13 @@ public:
     void spinOnce(int time = 1, bool force_redraw = false);
     bool wasStopped();
 
-    pcl::visualization::PCLVisualizer& getVisualizer() {
-        return _vWrapper->getVisualizer();
-    }
+    int getViewPartner() { return _vWrapper->getViewPartner(); }
+    int getViewiCub() { return _vWrapper->getViewiCub(); }
+
+    void setCameraPosition( double pos_x, double pos_y, double pos_z,
+                            double view_x, double view_y, double view_z,
+                            double up_x, double up_y, double up_z,
+                            int viewport = 0 );
 
 private:
     void processOdometry(const rtabmap::SensorData & data);

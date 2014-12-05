@@ -101,6 +101,14 @@ public:
         return *_visualizer;
     }
 
+    int getViewiCub() {
+        return _viewiCub;
+    }
+
+    int getViewPartner() {
+        return _viewPartner;
+    }
+
 private:
     std::map<std::string, Transform> _addedClouds;
     unsigned int _maxTrajectorySize;
@@ -108,6 +116,7 @@ private:
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
     static const VColor _vgrey;
     pcl::visualization::PCLVisualizer* _visualizer;
+    int _viewiCub, _viewPartner;
 };
 
 #endif

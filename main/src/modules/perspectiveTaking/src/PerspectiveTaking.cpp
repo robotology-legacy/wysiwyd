@@ -71,9 +71,10 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     options.put("local",clientName.c_str());
     options.put("verbosity",verbosity);
 
-    if (!client.open(options)) {
-        cout << getName() << ": Unable to connect to kinectServer" << endl;
-        return false;
+    while (!client.open(options))
+    {
+        cout<<"Waiting connection to KinectServer..."<<endl;
+        Time::delay(1.0);
     }
 
     //Retrieve the calibration matrix from RFH
@@ -119,18 +120,18 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     kinect2icub_pcl = rot_trans.matrix();
     cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
 
-    // we need to convert from icub reference frame to pcl reference frame
-    Eigen::Matrix4f icub2pcl = Eigen::Matrix4f::Identity();
-    icub2pcl(0, 0) = -1; // x is back on the icub, forward in pcl
-    icub2pcl(1, 1) = -1; // y is right on the icub, left in pcl
+    // we need to convert from yarp reference frame to pcl reference frame
+    yarp2pcl = Eigen::Matrix4f::Identity();
+    yarp2pcl(0, 0) = -1; // x is back on the icub, forward in pcl
+    yarp2pcl(1, 1) = -1; // y is right on the icub, left in pcl
 
-    Eigen::Vector4f pos = kinect2icub_pcl * icub2pcl * Eigen::Vector4f(0,0,0,1);
+    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(0,0,0,1);
     pos /= pos[3];
 
-    Eigen::Vector4f view = kinect2icub_pcl * icub2pcl * Eigen::Vector4f(-1,0,0,1);
+    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(-1,0,0,1);
     view /= view[3];
 
-    Eigen::Vector4f up = kinect2icub_pcl * icub2pcl * Eigen::Vector4f(0,0,1,1);
+    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(0,0,1,1);
     up /= up[3];
 
     Eigen::Vector4f up_diff = up-pos;
@@ -264,17 +265,43 @@ bool perspectiveTaking::updateModule() {
         ++loopCounter;
         partner = (Agent*)opc->getEntity("partner", true);
         if(partner) {
-            Vector p_headPos = partner->m_ego_position;
-            Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
-            Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
+            if(loopCounter%5==0) {
+                //TODO: This transformation does not work yet!
+                Vector p_headPos = partner->m_ego_position;
+                Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
+                Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
 
-            Vector p_view = yarp::math::cross(headPos-shoulderLeft, headPos-shoulderRight);
-            Vector p_up = headPos; up[2]+=1;
-            Vector p_up_diff = up-headPos;
+                Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
+                Vector p_up = p_headPos; p_up[2]+=1;
+                Vector p_up_diff = p_up-p_headPos;
 
-            cout << "Pos : " << headPos.toString() << endl;
-            cout << "View: " << view.toString()    << endl;
-            cout << "Up  : " << up_diff.toString() << endl;
+                /*cout << "Pos : " << p_headPos.toString() << endl;
+                cout << "View: " << p_view.toString()    << endl;
+                cout << "Up  : " << p_up_diff.toString() << endl;*/
+
+                Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2],1);
+                pos /= pos[3];
+
+                Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_view[0],p_view[1],p_view[2],1);
+                view /= view[3];
+
+                Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(0,0,1,1);
+                up /= up[3];
+
+                Eigen::Vector4f up_diff = up-pos;
+
+                mapBuilder->setCameraPosition(
+                    p_headPos[0], p_headPos[1], p_headPos[2],
+                    p_view[0], p_view[1], p_view[2],
+                    p_up_diff[0], p_up_diff[1], p_up_diff[2],
+                    mapBuilder->getViewPartner());
+
+                /*mapBuilder->setCameraPosition(
+                    pos[0], pos[1], pos[2],
+                    view[0], view[1], view[2],
+                    up_diff[0], up_diff[1], up_diff[2],
+                    mapBuilder->getViewPartner());*/
+            }
         } else {
             cout << "No partner found in OPC!" << endl;
         }

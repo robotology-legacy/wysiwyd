@@ -39,6 +39,18 @@ MapBuilder::~MapBuilder()
     delete _vWrapper;
 }
 
+void MapBuilder::setCameraPosition( double pos_x, double pos_y, double pos_z,
+                                    double view_x, double view_y, double view_z,
+                                    double up_x, double up_y, double up_z,
+                                    int viewport) {
+    vis_mutex.lock();
+    _vWrapper->getVisualizer().setCameraPosition(pos_x, pos_y, pos_z,
+                                                 view_x, view_y, view_z,
+                                                 up_x, up_y, up_z,
+                                                 viewport);
+    vis_mutex.unlock();
+}
+
 void MapBuilder::spinOnce(int time, bool force_redraw) {
     vis_mutex.lock();
     _vWrapper->getVisualizer().spinOnce(time, force_redraw);
