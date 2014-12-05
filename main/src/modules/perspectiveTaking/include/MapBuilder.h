@@ -39,8 +39,9 @@ public:
     void spinOnce(int time = 1, bool force_redraw = false);
     bool wasStopped();
 
-    int getViewPartner() { return _vWrapper->getViewPartner(); }
-    int getViewiCub() { return _vWrapper->getViewiCub(); }
+    std::map<std::string, int> getViewports() {
+        return _vWrapper->getViewports();
+    }
 
     void setCameraPosition( double pos_x, double pos_y, double pos_z,
                             double view_x, double view_y, double view_z,

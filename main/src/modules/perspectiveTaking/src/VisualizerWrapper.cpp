@@ -29,22 +29,26 @@ VisualizerWrapper::VisualizerWrapper(Eigen::Vector4f pos, Eigen::Vector4f view,
 {
     std::cout << "Created visualizer in thread " << boost::this_thread::get_id() << std::endl;
     // Create the two view ports
-    _visualizer->createViewPort (0.0, 0.0, 0.5, 1.0, _viewiCub);
-    _visualizer->addText ("View from the iCub", 10, 10, "iCub text", _viewiCub);
+    int viewiCub(0), viewPartner(0);
 
-    _visualizer->createViewPort (0.5, 0.0, 1.0, 1.0, _viewPartner);
-    _visualizer->addText ("View from the partner", 10, 10, "partner text", _viewPartner);
-    _visualizer->createViewPortCamera(_viewPartner);
+    _visualizer->createViewPort (0.0, 0.0, 0.5, 1.0, viewiCub);
+    _visualizer->addText ("View from the iCub", 10, 10, "iCub text", viewiCub);
+    _viewports["icub"]=viewiCub;
+
+    _visualizer->createViewPort (0.5, 0.0, 1.0, 1.0, viewPartner);
+    _visualizer->addText ("View from the partner", 10, 10, "partner text", viewPartner);
+    _visualizer->createViewPortCamera(viewPartner);
+    _viewports["partner"]=viewPartner;
 
     _visualizer->setCameraPosition(
         pos [0], pos [1], pos [2],
         view[0], view[1], view[2],
-        up  [0], up  [1], up  [2], _viewiCub);
+        up  [0], up  [1], up  [2], _viewports["icub"]);
 
     _visualizer->setCameraPosition(
         -1, 0, 0,
         0, 0, 0,
-        0, 0, 1, _viewPartner);
+        0, 0, 1, _viewports["partner"]);
 }
 
 VisualizerWrapper::~VisualizerWrapper()
@@ -363,7 +367,7 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
             _visualizer->setCameraPosition(
                         cameras.front().pos[0], cameras.front().pos[1], cameras.front().pos[2],
                     cameras.front().focal[0], cameras.front().focal[1], cameras.front().focal[2],
-                    cameras.front().view[0], cameras.front().view[1], cameras.front().view[2], _viewiCub);
+                    cameras.front().view[0], cameras.front().view[1], cameras.front().view[2], _viewports["icub"]);
         }
     }
 

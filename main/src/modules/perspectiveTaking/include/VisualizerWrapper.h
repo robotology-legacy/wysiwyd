@@ -101,12 +101,8 @@ public:
         return *_visualizer;
     }
 
-    int getViewiCub() {
-        return _viewiCub;
-    }
-
-    int getViewPartner() {
-        return _viewPartner;
+    std::map<std::string, int> getViewports() {
+        return _viewports;
     }
 
 private:
@@ -116,7 +112,7 @@ private:
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
     static const VColor _vgrey;
     pcl::visualization::PCLVisualizer* _visualizer;
-    int _viewiCub, _viewPartner;
+    std::map<std::string, int> _viewports;
 };
 
 #endif

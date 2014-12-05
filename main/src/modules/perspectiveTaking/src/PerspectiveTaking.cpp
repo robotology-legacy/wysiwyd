@@ -294,13 +294,13 @@ bool perspectiveTaking::updateModule() {
                     p_headPos[0], p_headPos[1], p_headPos[2],
                     p_view[0], p_view[1], p_view[2],
                     p_up_diff[0], p_up_diff[1], p_up_diff[2],
-                    mapBuilder->getViewPartner());
+                    mapBuilder->getViewports()["partner"]);
 
                 /*mapBuilder->setCameraPosition(
                     pos[0], pos[1], pos[2],
                     view[0], view[1], view[2],
                     up_diff[0], up_diff[1], up_diff[2],
-                    mapBuilder->getViewPartner());*/
+                    mapBuilder->getViewPorts()["partner"]);*/
             }
         } else {
             cout << "No partner found in OPC!" << endl;
