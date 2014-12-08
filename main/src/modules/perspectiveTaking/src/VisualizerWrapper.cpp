@@ -21,8 +21,7 @@
 
 #include "VisualizerWrapper.h"
 
-VisualizerWrapper::VisualizerWrapper(Eigen::Vector4f pos, Eigen::Vector4f view,
-                                     Eigen::Vector4f up) :
+VisualizerWrapper::VisualizerWrapper() :
     _maxTrajectorySize(100),
     _trajectory(new pcl::PointCloud<pcl::PointXYZ>),
     _visualizer(new pcl::visualization::PCLVisualizer("PCLVisualizer", true))
@@ -41,14 +40,9 @@ VisualizerWrapper::VisualizerWrapper(Eigen::Vector4f pos, Eigen::Vector4f view,
     _viewports["partner"]=viewPartner;
 
     _visualizer->setCameraPosition(
-        pos [0], pos [1], pos [2],
-        view[0], view[1], view[2],
-        up  [0], up  [1], up  [2], _viewports["icub"]);
-
-    _visualizer->setCameraPosition(
         -1, 0, 0,
         0, 0, 0,
-        0, 0, 1, _viewports["partner"]);
+        0, 0, 1);
 }
 
 VisualizerWrapper::~VisualizerWrapper()
@@ -365,9 +359,9 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
             _visualizer->addCoordinateSystem(0.2, m, 0);
 #endif
             _visualizer->setCameraPosition(
-                        cameras.front().pos[0], cameras.front().pos[1], cameras.front().pos[2],
-                    cameras.front().focal[0], cameras.front().focal[1], cameras.front().focal[2],
-                    cameras.front().view[0], cameras.front().view[1], cameras.front().view[2], _viewports["icub"]);
+                cameras.front().pos[0], cameras.front().pos[1], cameras.front().pos[2],
+                cameras.front().focal[0], cameras.front().focal[1], cameras.front().focal[2],
+                cameras.front().view[0], cameras.front().view[1], cameras.front().view[2], _viewports["icub"]);
         }
     }
 

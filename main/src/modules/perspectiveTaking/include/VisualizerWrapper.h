@@ -34,7 +34,7 @@ public:
 class VisualizerWrapper
 {
 public:
-    VisualizerWrapper(Eigen::Vector4f pos, Eigen::Vector4f view, Eigen::Vector4f up);
+    VisualizerWrapper();
     virtual ~VisualizerWrapper();
 
     const std::map<std::string, Transform> & getAddedClouds() const {return _addedClouds;}

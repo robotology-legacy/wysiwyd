@@ -110,8 +110,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     // Estimate rotation+translation from kinect to icub head
     Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
 
-    // iCub head is ~60cm below kinect
-    rot_trans.translation() << 0.0, 0.0, -0.6;
+    // iCub head is ~40cm below kinect
+    rot_trans.translation() << 0.0, 0.0, -0.4;
     // iCub head is tilted ~30 degrees down
     float theta_degrees=-30;
     float theta = theta_degrees/180*M_PI;
@@ -125,25 +125,34 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     yarp2pcl(0, 0) = -1; // x is back on the icub, forward in pcl
     yarp2pcl(1, 1) = -1; // y is right on the icub, left in pcl
 
-    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(0,0,0,1);
-    pos /= pos[3];
+    // Define pos, view and up vector in iCub coordinates
+    Eigen::Vector4f icub_pos =  Eigen::Vector4f( 0,0,0,1);
+    Eigen::Vector4f icub_view = Eigen::Vector4f(-1,0,0,1);
+    Eigen::Vector4f icub_up =   Eigen::Vector4f( 0,0,1,1);
 
-    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(-1,0,0,1);
-    view /= view[3];
+    // Transform to kinect coordinates
+    Eigen::Vector4f kin_pos  = kinect2icub_pcl * yarp2pcl * icub_pos;
+    Eigen::Vector4f kin_view = kinect2icub_pcl * yarp2pcl * icub_view;
+    Eigen::Vector4f kin_up   = kinect2icub_pcl * yarp2pcl * icub_up;
 
-    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(0,0,1,1);
-    up /= up[3];
+    // Normalize vectors
+    kin_pos /= kin_pos[3]; kin_view /= kin_view[3]; kin_up /= kin_up[3];
 
-    Eigen::Vector4f up_diff = up-pos;
+    // We actually want to pass up-pos as up vector to setCamera
+    Eigen::Vector4f kin_up_diff = kin_up-kin_pos;
 
     // GUI stuff, the handler will receive RtabmapEvent and construct the map
-    int decimationOdometry = 2;     // decimation to show points clouds
+    int decimationOdometry = 4;     // decimation to show points clouds
                                     // the higher, the lower the resolution
                                     // odometry: most recent cloud
-    int decimationStatistics = 2;   // statistics: past point cloud decimation
+    int decimationStatistics = 4;   // statistics: past point cloud decimation
 
-    mapBuilder = new MapBuilder(decimationOdometry, decimationStatistics,
-                                pos, view, up_diff);
+    mapBuilder = new MapBuilder(decimationOdometry, decimationStatistics);
+
+    mapBuilder->setCameraPosition(
+        kin_pos    [0], kin_pos    [1], kin_pos    [2],
+        kin_view   [0], kin_view   [1], kin_view   [2],
+        kin_up_diff[0], kin_up_diff[1], kin_up_diff[2], mapBuilder->getViewports()["icub"]);
 
     // Here is the pipeline that we will use:
     // CameraOpenni -> "CameraEvent" -> OdometryThread -> "OdometryEvent" -> RtabmapThread -> "RtabmapEvent"
@@ -168,7 +177,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     rtabmap->init(parameters, rf.findFileByName("rtabmap.db"));
     rtabmapThread = new RtabmapThread(rtabmap);
 
-    boost::this_thread::sleep_for (boost::chrono::milliseconds (1000));
+    boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
 
     // Setup handlers
     odomThread->registerToEventsManager();
@@ -263,49 +272,40 @@ double perspectiveTaking::getPeriod() {
 bool perspectiveTaking::updateModule() {
     if(!mapBuilder->wasStopped()) {
         ++loopCounter;
-        partner = (Agent*)opc->getEntity("partner", true);
-        if(partner) {
-            if(loopCounter%5==0) {
-                //TODO: This transformation does not work yet!
-                Vector p_headPos = partner->m_ego_position;
-                Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
-                Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
+        if(loopCounter%5==0) { // only update camera every now and then
+            partner = (Agent*)opc->getEntity("partner", true);
+            if(partner) { // TODO:  && partner->m_present
+                    Vector p_headPos = partner->m_ego_position;
+                    Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
+                    Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
 
-                Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
-                Vector p_up = p_headPos; p_up[2]+=1;
-                Vector p_up_diff = p_up-p_headPos;
+                    // For now, the partner is thought to look towards the icub
+                    // This is achieved by laying a plane between left shoulder,
+                    // right shoulder and head and using the normal vector of
+                    // the plane as viewing vector
+                    Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
 
-                /*cout << "Pos : " << p_headPos.toString() << endl;
-                cout << "View: " << p_view.toString()    << endl;
-                cout << "Up  : " << p_up_diff.toString() << endl;*/
+                    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2],1);
+                    pos /= pos[3];
 
-                Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2],1);
-                pos /= pos[3];
+                    //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
+                    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_view[0],p_view[1],p_view[2],1);
+                    view /= view[3];
 
-                Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_view[0],p_view[1],p_view[2],1);
-                view /= view[3];
+                    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2]+1.0,1);
+                    up /= up[3];
 
-                Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(0,0,1,1);
-                up /= up[3];
+                    Eigen::Vector4f up_diff = up-pos;
 
-                Eigen::Vector4f up_diff = up-pos;
-
-                mapBuilder->setCameraPosition(
-                    p_headPos[0], p_headPos[1], p_headPos[2],
-                    p_view[0], p_view[1], p_view[2],
-                    p_up_diff[0], p_up_diff[1], p_up_diff[2],
-                    mapBuilder->getViewports()["partner"]);
-
-                /*mapBuilder->setCameraPosition(
-                    pos[0], pos[1], pos[2],
-                    view[0], view[1], view[2],
-                    up_diff[0], up_diff[1], up_diff[2],
-                    mapBuilder->getViewPorts()["partner"]);*/
+                    mapBuilder->setCameraPosition(
+                        pos[0], pos[1], pos[2],
+                        view[0], view[1], view[2],
+                        up_diff[0], up_diff[1], up_diff[2],
+                        mapBuilder->getViewports()["partner"]);
+            } else {
+                cout << "No partner found in OPC!" << endl;
             }
-        } else {
-            cout << "No partner found in OPC!" << endl;
         }
-
         // update GUI
         mapBuilder->spinOnce(40);
 
