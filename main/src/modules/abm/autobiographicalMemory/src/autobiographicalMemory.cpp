@@ -20,14 +20,14 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
 
     //conf group for image storing properties
     Bottle &bISProperties = rf.findGroup("image_storing");
-    storingPath = bISProperties.check("storingData", Value("C:/robot/ABMStoring")).asString();
+    storingPath = bISProperties.check("storingPath", Value("C:/robot/ABMStoring")).asString();
     storingTmpPath = bISProperties.check("storingTmpPath", Value("tmp")).asString();
     imgFormat = bISProperties.check("imgFormat", Value("tif")).asString();
     robotName = bISProperties.check("robotName", Value("icubSim")).asString();
     camName = bISProperties.check("camName", Value("cam")).asString();
     camSide = bISProperties.check("camSide", Value("left")).asString();
     camExtension = bISProperties.check("camExtension", Value("none")).asString();
-    kinServerName = bISProperties.check("kinect", Value("kinectServer")).asString();
+    kinServerName = bISProperties.check("kinServerName", Value("kinectServer")).asString();
     kinExtension = bISProperties.check("kinExtension", Value("image:o")).asString();
 
     imgProvider = bISProperties.check("imgProvider", Value("kinect")).asString();
