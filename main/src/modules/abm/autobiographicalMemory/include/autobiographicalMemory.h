@@ -25,12 +25,20 @@ private :
     std::string camSide ;
     std::string camExtension ;
     std::string imgFormat ;
+    std::string kinServerName ;
+    std::string kinExtension ;
+
+    std::string imgProvider ;
+
+    std::string imgProviderPort ;
 
     //for update camera stream
     std::string streamStatus ;
     std::string currentPathFolder ;
     std::string imgLabel ;
     std::string robotPortCam ;
+    std::string robotPortKin ;
+
     int imgNb; 
     int imgNbInStream ;
     int imgInstance ;
@@ -45,6 +53,7 @@ private :
     bool        inSharedPlan;
     bool        isconnected2reasoning;
     bool        isconnected2Cam ;
+    bool        isconnected2Kinect ;
     bool        bPutObjectsOPC;
 
     yarp::os::Bottle        detectFailed();

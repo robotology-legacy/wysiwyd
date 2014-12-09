@@ -20,14 +20,17 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
 
     //conf group for image storing properties
     Bottle &bISProperties = rf.findGroup("image_storing");
-    storingPath = bISProperties.check("storingPath", Value("C:/robot/ABMStoring")).asString();
+    storingPath = bISProperties.check("storingData", Value("C:/robot/ABMStoring")).asString();
     storingTmpPath = bISProperties.check("storingTmpPath", Value("tmp")).asString();
     imgFormat = bISProperties.check("imgFormat", Value("tif")).asString();
     robotName = bISProperties.check("robotName", Value("icubSim")).asString();
     camName = bISProperties.check("camName", Value("cam")).asString();
     camSide = bISProperties.check("camSide", Value("left")).asString();
     camExtension = bISProperties.check("camExtension", Value("none")).asString();
+    kinServerName = bISProperties.check("kinect", Value("kinectServer")).asString();
+    kinExtension = bISProperties.check("kinExtension", Value("image:o")).asString();
 
+    imgProvider = bISProperties.check("imgProvider", Value("kinect")).asString();
 
     inSharedPlan = false;
 
@@ -80,12 +83,14 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     name_imagePortIn += getName() + "/images/in";
     imagePortIn.open(name_imagePortIn.c_str());
 
+    //----------------------- port to camera
+
     robotPortCam = "/" + robotName + "/" + camName + "/" + camSide;
     if (camExtension != "none") {
         robotPortCam += "/" + camExtension;
     }
 
-    isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
+    /*isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
 
     if (isconnected2Cam)
     {
@@ -93,7 +98,21 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     }
     else {
         cout << "ABM failed to connect to Camera!" << endl;
+    }*/
+
+    //----------------------- port to kinect
+
+    robotPortKin = "/" + kinServerName + "/" + kinExtension;
+
+    /*isconnected2Kinect = Network::connect(robotPortKin, imagePortIn.getName().c_str());
+
+    if (isconnected2Kinect)
+    {
+        cout << endl << "ABM is now connected to Kinect!\n" << endl;
     }
+    else {
+        cout << "ABM failed to connect to Kinect!" << endl;
+    }*/
 
     //Temp to test data : wil be send without checking connection after
     bool isconnected2Yarpview = Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i");
@@ -493,7 +512,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     bError.addString("ERROR");
 
     //check connection with the image provider
-    isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
+    //isconnected2Cam = Network::isConnected(robotPortCam, imagePortIn.getName().c_str());
+    //check for kinect provider
+    //isconnected2Kinect = Network::isConnected(robotPortKin, imagePortIn.getName().c_str());
+
 
     if (bCommand.get(0).isString())
     {
@@ -599,12 +621,12 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             bReply = eraseInstance(bCommand);
         }
 
-        //not needed anymore, save stream in snapshot when "action"
+        //DEPRECATED = not needed anymore, save stream in snapshot when "action"
         else if (bCommand.get(0) == "testSaveStreamImage")
         {
-            if (!isconnected2Cam) {
-                cout << "ABM failed to connect to Camera!" << endl;
-                bError.addString("in testSaveStreamImage :  Error, connexion missing between" + robotPortCam + " and " + imagePortIn.getName().c_str());
+            if (!isconnected2Cam && !isconnected2Kinect) {
+                cout << "ABM failed to connect to Camera and Kinect!" << endl;
+                bError.addString("in testSaveStreamImage :  Error, connexion missing between" + robotPortCam + "or" + "/kinectServer/image:o " + "and " + imagePortIn.getName().c_str());
                 bReply = bError;
             }
             else if ((bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1))
@@ -620,7 +642,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
 
-        //testSendStreamImage (instance)
+        //sendStreamImage (instance)
         else if (bCommand.get(0) == "sendStreamImage")
         {
             if (!Network::isConnected(imagePortOut.getName(), "/yarpview/img:i")) {
@@ -645,13 +667,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         }
 
-        //in snapshot when "sentence"
+        //DEPRECATED = in snapshot when "sentence"
         else if (bCommand.get(0) == "testSaveImage")
         {
 
-            if (!isconnected2Cam) {
-                cout << "ABM failed to connect to Camera!" << endl;
-                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " and " + imagePortIn.getName().c_str());
+            if (!isconnected2Cam && !isconnected2Kinect) {
+                cout << "ABM failed to connect to Camera or Kinect!" << endl;
+                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " or /kinectServer/image:o " +  " and " + imagePortIn.getName().c_str());
                 bReply = bError;
             }
             else if ((bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1))
@@ -683,6 +705,28 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             else
             {
                 bError.addString("ERROR in askImage : wrong number of element -> askImage instanceNb");
+                bReply = bError;
+            }
+        }
+
+        else if (bCommand.get(0) == "setImgProvider")
+        {
+
+            if (bCommand.size() > 1)
+            {
+                string provider = bCommand.get(1).toString().c_str() ;
+
+                if(provider != "kinect" && provider != "cam" && provider != "none") {
+                    bError.addString("ERROR in setImgProvider : " + provider + " is not a valid imgProvider => kinect or cam or none");
+                    bReply = bError;
+                } else {
+                    bReply.addString("ack") ;
+                    imgProvider = provider ;
+                }
+            }
+            else
+            {
+                bError.addString("ERROR in setImgProvider : wrong number of element -> setImgProvider provider");
                 bReply = bError;
             }
         }
@@ -831,6 +875,7 @@ bool autobiographicalMemory::updateModule()
         cout << "============================= STREAM STOP =================================" << endl;
         //close folder and SQL entry
 
+        Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
 
         streamStatus = "none";
         imgLabel = "defaultLabel";
@@ -1094,8 +1139,20 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-    if (!Network::connect(robotPortCam, imagePortIn.getName().c_str())) {
-        cout << "ABM failed to connect to Camera!" << endl;
+    if(imgProvider == "kinect"){
+        imgProviderPort = robotPortKin ;
+    } else if (imgProvider == "cam") {
+        imgProviderPort = robotPortCam ;
+    } else if (imgProvider == "none") {
+        cout << "WARNING in snapshot : imgProvider is set to none : no image will be recorded" ;
+        return bSnapShot ;
+    } else {
+        cout << "ERROR in snapshot : "<< imgProvider << " is not a valid imgProvider (kinect, cam, none)" ;
+        return bSnapShot ;
+    }
+
+    if (!Network::connect(imgProviderPort, imagePortIn.getName().c_str())) {
+        cout << "ABM failed to connect to " << imgProviderPort << endl;
     }
     else if (isStreamActivity == true) //just launch stream images stores when relevant activity
     {
@@ -1107,7 +1164,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         }
 
     }
-    else {                              //just one image (sentence?)
+    else {  //just one image (sentence?)
 
         //concatenation of the path to store
         char imgName[512] = "";
@@ -1135,6 +1192,8 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
             //create SQL entry, register the cam image in specific folder
             storeImage(instance, imgLabel, fullPath, imgName);
         }
+
+        Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
     }
 
 
