@@ -496,6 +496,54 @@ Bottle autobiographicalMemory::addInteraction(Bottle bInteraction)
     return bReply;
 }
 
+Bottle autobiographicalMemory::addImgProvider(string labelImgProvider, string portImgProvider)
+{
+    //prepare the ResultSet of the query and the reply
+    Bottle bReply;
+
+    if(mapImgProvider.find(labelImgProvider) == mapImgProvider.end()) //key not found
+    {
+        //creating imgReceiverPort for the current provider
+        string portImgReceiver = "/" + getName() + "/images/"+ labelImgProvider + "/in" ;
+
+        //add the imgProvider to the map, imgReceiver to map
+        mapImgProvider[labelImgProvider] = portImgProvider ;
+        //mapImgReceiver[labelImgProvider] = portImgReceiver ;
+        mapImgReceiver[labelImgProvider]= new yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+        //mapImgReceiver[labelImgProvider]->open(portImgReceiver) ;
+
+        bReply.addString("[ack]") ;
+    } else {                                                          //key found
+        cout<<"ERROR : addImgProvider : " << labelImgProvider << " is already present! " <<endl ;
+        bReply.addString("ERROR : addImgProvider : " + labelImgProvider + " is already present! ") ;
+    }
+
+    //send the reply
+    return bReply;
+}
+
+Bottle autobiographicalMemory::removeImgProvider(string labelImgProvider)
+{
+    //prepare the ResultSet of the query and the reply
+    Bottle bReply;
+
+    if(mapImgProvider.find(labelImgProvider) == mapImgProvider.end()) //key not found
+    {
+        cout<<"ERROR : removeImgProvider : " << labelImgProvider << " is NOT present! " <<endl ;
+        bReply.addString("ERROR : removeImgProvider : " + labelImgProvider + " is NOT present! ") ;
+
+    } else {                                                          //key found
+        mapImgProvider.erase(labelImgProvider) ;
+        mapImgReceiver[labelImgProvider]->interrupt();
+        mapImgReceiver[labelImgProvider]->close();
+        mapImgReceiver.erase(labelImgProvider) ;
+        bReply.addString("[ack]") ;
+    }
+
+    //send the reply
+    return bReply;
+}
+
 
 double autobiographicalMemory::getPeriod()
 {
@@ -730,6 +778,50 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
+        // setCustomImgProvider (label /yarp/port/img/provider)
+        else if (bCommand.get(0) == "addImgProvider")
+        {
+
+            if (bCommand.size() > 1 && bCommand.get(1).isList())
+            {
+                if(bCommand.get(1).asList()->size() == 2){ ;
+
+                    //TODO : check that the label is not used
+                    
+
+                    //TODO : several custom at the same time (fill in dictionnary)                   
+                    bReply = addImgProvider(bCommand.get(1).asList()->get(0).toString().c_str(), bCommand.get(1).asList()->get(1).toString().c_str() ) ;
+
+
+                } else {
+                    bError.addString("[addImgProvider] : wrong number of element -> addImgProvider (label /yarp/port/img/provider)");
+                    bReply = bError;
+                }
+            }
+            else
+            {
+                bError.addString("[addImgProvider] : wrong number of element -> addImgProvider (label /yarp/port/img/provider)");
+                bReply = bError;
+            }
+        }
+
+        else if (bCommand.get(0) == "removeImgProvider")
+        {
+
+            if (bCommand.size() > 1)
+            {
+                string labelImgProvider = bCommand.get(1).toString().c_str() ;
+
+                //TODO : remove it from the list of imgProvider
+
+                bReply = removeImgProvider(labelImgProvider) ;
+            }
+            else
+            {
+                bError.addString("[removeImgProvider] : wrong number of element -> removeImgProvider label");
+                bReply = bError;
+            }
+        }
 
     }
     else
@@ -788,12 +880,23 @@ bool autobiographicalMemory::updateModule()
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
         //create the image file
-        if (!createImage(fullPath)){
+        /*if (!createImage(fullPath)){
             cout << "Error in Update : image not created" << endl;
         }
         else {
             //create SQL entry, register the cam image in specific folder
             storeImage(imgInstance, imgLabel, fullPath, imgName);
+        }*/
+
+        //go through the ImgReceiver ports
+        for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+        {
+            if(!createImage(fullPath, it->second)){
+                cout << "Error in Update : image not created from " << it->first << endl;
+            } else {
+                //create SQL entry, register the cam image in specific folder
+                storeImage(imgInstance, imgLabel, fullPath, imgName);
+            }
         }
 
         //init of the stream record done : go through the classic record phase
@@ -819,11 +922,22 @@ bool autobiographicalMemory::updateModule()
         strcpy(fullPath, ssPath.str().c_str());
 
         //create the image file
-        if (!createImage(fullPath)){
+        /*if (!createImage(fullPath)){
             cout << "Error in Update : image not created" << endl;
         }
         else {
             storeImage(imgInstance, imgLabel, fullPath, imgName);
+        }*/
+
+        //go through the ImgReceiver ports
+        for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+        {
+            if(!createImage(fullPath, it->second)){
+                cout << "Error in Update : image not created from " << it->first << endl;
+            } else {
+                //create SQL entry, register the cam image in specific folder
+                storeImage(imgInstance, imgLabel, fullPath, imgName);
+            }
         }
 
         //stream to send
@@ -1139,7 +1253,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-    if(imgProvider == "kinect"){
+    /*if(imgProvider == "kinect"){
         imgProviderPort = robotPortKin ;
     } else if (imgProvider == "cam") {
         imgProviderPort = robotPortCam ;
@@ -1153,7 +1267,15 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 
     if (!Network::connect(imgProviderPort, imagePortIn.getName().c_str())) {
         cout << "ABM failed to connect to " << imgProviderPort << endl;
+    }*/
+
+    string isConnected = connectImgProvider().toString().c_str()  ;
+
+    if(isConnected != "ack"){
+        cout << "ABM failed to connect to one imgProvider" << endl;
+        cout << "CAUSE : " << isConnected << endl ;
     }
+
     else if (isStreamActivity == true) //just launch stream images stores when relevant activity
     {
         if (bBegin) {
@@ -1185,15 +1307,30 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         strcpy(fullPath, ssPath.str().c_str());
 
         //create the image file
-        if (!createImage(fullPath)){
+        /*if (!createImage(fullPath)){
             cout << "Error in snapshot : image not created" << endl;
         }
         else {
             //create SQL entry, register the cam image in specific folder
             storeImage(instance, imgLabel, fullPath, imgName);
+        }*/
+
+        //go through the ImgReceiver ports
+        for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+        {
+            if(!createImage(fullPath, it->second)){
+                cout << "Error in snapshot : image not created from " << it->first << endl;
+            } else {
+                //create SQL entry, register the cam image in specific folder
+                storeImage(instance, imgLabel, fullPath, imgName);
+            }
         }
 
-        Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
+        //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
+        string reply = disconnectImgProvider().toString().c_str() ;
+        if(reply != "ack"){
+            cout << "ABM failed to disconnect to one imgProvider" << endl;
+        }
     }
 
 
@@ -1742,11 +1879,14 @@ Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
     ss << storingPath << "/" << bInput.get(1).asList()->get(1).asString();
 
     //create image
-    if (!createImage(ss.str())){
+
+    //DEPRECATED
+    /*if (!createImage(ss.str())){
         cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl;
         bOutput.addString("ERROR CANNOT SAVE : no image come from sim camera!");
         return bOutput;
-    }
+    }*/
+    cout << "DEPRECATEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEED" << endl ;
 
     //sql request with label and filename
     //export the desired image
@@ -1905,10 +2045,81 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
     return bOutput;
 }
 
-bool autobiographicalMemory::createImage(string fullPath){
+Bottle autobiographicalMemory::connectImgProvider(){
+
+    Bottle bOutput ;
+
+    if(mapImgProvider.size() == 0){
+        bOutput.addString("ERROR [connectImgProvider] the map is NULL");
+        return bOutput ;
+    }
+
+    for (std::map<string, string>::const_iterator it = mapImgProvider.begin(); it != mapImgProvider.end(); ++it)
+    {
+        string portImgReceiver = "/" + getName() + "/images/"+ it->first + "/in" ;
+        mapImgReceiver.find(it->first)->second->open(portImgReceiver);
+            //port name of img Provider                                  //portname of imgReceiver which correspond to the label of imgProvider
+        cout << "  [connectImgProvider] : trying to connect " << it->second << " with " <<  mapImgReceiver.find(it->first)->second->getName().c_str() << endl ;
+        if (!Network::isConnected(it->second, mapImgReceiver.find(it->first)->second->getName().c_str())) {
+
+            cout << "Port is NOT connected : we will connect" << endl ;
+
+            if (!Network::connect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str()),"",false) {
+                cout << "ERROR OF CONNECTION" << endl ;
+                bOutput.addString(it->second) ;
+            }
+        } else {
+            cout << "ALREADY CONNECTED" << endl ;
+        }
+    }
+
+    if(bOutput.size() == 0){
+        bOutput.addString("ack") ;
+    }
+
+    return bOutput;
+}
+
+Bottle autobiographicalMemory::disconnectImgProvider(){
+
+    Bottle bOutput ;
+    bool isAllDisconnected = true ;
+
+   if(mapImgProvider.size() == 0){
+        bOutput.addString("ERROR [disconnectImgProvider] the map is NULL");
+        return bOutput ;
+    }
+
+    for (std::map<string, string>::const_iterator it = mapImgProvider.begin(); it != mapImgProvider.end(); ++it)
+    {
+            //port name of img Provider                                  //portname of imgReceiver which correspond to the label of imgProvider
+        Network::disconnect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str()) ;
+        if (Network::isConnected(it->second, mapImgReceiver.find(it->first)->second->getName().c_str())) {
+            cout << "ERROR [disconnectImgProvider] " << it->second << " is NOT disconnected!" ;
+            bOutput.addString(it->second) ;
+            isAllDisconnected = false ;
+        } else {
+            cout << "[disconnectImgProvider] " << it->second << " successfully disconnected!"  << endl ;
+            
+            //Have to close/interrupt each time otherwise the port is not responsive anymore
+            mapImgReceiver.find(it->first)->second->interrupt();
+            mapImgReceiver.find(it->first)->second->close();
+        }
+    }
+
+    if(isAllDisconnected == true){
+        bOutput.addString("ack") ;
+    }
+
+    cout << "[disconnectImgProvider] bOutput = {" << bOutput.toString().c_str() << "}" << endl ;
+
+    return bOutput;
+}
+
+bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<PixelRgb>>* imgPort){
 
     //Extract the incoming images from yarp
-    ImageOf<PixelRgb> *yarpImage = imagePortIn.read();
+    ImageOf<PixelRgb> *yarpImage = imgPort->read();
 
     if (yarpImage != NULL) { // check we actually got something
 

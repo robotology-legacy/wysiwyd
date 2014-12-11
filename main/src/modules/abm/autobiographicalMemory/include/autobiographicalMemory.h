@@ -9,6 +9,7 @@ const double threshold_time_sequence = 3.    ;        //threshold of a same sequ
 
 const std::string s_real_OPC = "OPC";
 
+typedef yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > yarpImageBufferedPort;
 
 class autobiographicalMemory: public yarp::os::RFModule
 {
@@ -96,11 +97,20 @@ public :
     yarp::os::Bottle testSaveImage(yarp::os::Bottle bInput);
     yarp::os::Bottle askImage(int instance);
 
-    bool createImage(std::string fullPath);
+    bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(std::string fullPath);
     bool exportImage(int img_oid, std::string path);
     bool storeImage(int instance, std::string label, std::string fullPath, std::string imgName);
     int sendStreamImage(int instance); //return nb of images that will be sent
+
+    yarp::os::Bottle addImgProvider(std::string label, std::string portImgProvider) ;
+    yarp::os::Bottle removeImgProvider(std::string label) ;
+    std::map <std::string, std::string> mapImgProvider;
+    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
+
+
+    yarp::os::Bottle disconnectImgProvider();
+    yarp::os::Bottle connectImgProvider();
 
 
     yarp::os::Bottle    connect2reasoning();
