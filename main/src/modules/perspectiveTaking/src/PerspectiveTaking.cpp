@@ -62,6 +62,9 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
         Time::delay(1.0);
     }
 
+    //port for images
+    ABMimagePortOut.open("/"+getName()+"/images/out");
+
     // Connect to kinectServer
     string clientName = getName()+"/kinect";
 
@@ -85,7 +88,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
     string rfhRemote = "/"+rfhName+"/rpc";
 
-    while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str()))
+    /*while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str()))
     {
         cout << "Waiting for connection to RFH..." << endl;
         Time::delay(1.0);
@@ -100,7 +103,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     {
         cout << "iCub2Kinect matrix not calibrated, please do so in agentDetector" << endl;
         Time::delay(1.0);
-    }
+    }*/
 
     kinect2icub_pcl = Eigen::Matrix4f::Zero();
     //TODO: Get kinect2icub_pcl from referenceFrameHandler
@@ -142,10 +145,10 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     Eigen::Vector4f kin_up_diff = kin_up-kin_pos;
 
     // GUI stuff, the handler will receive RtabmapEvent and construct the map
-    int decimationOdometry = 4;     // decimation to show points clouds
+    int decimationOdometry = 1;     // decimation to show points clouds
                                     // the higher, the lower the resolution
                                     // odometry: most recent cloud
-    int decimationStatistics = 4;   // statistics: past point cloud decimation
+    int decimationStatistics = 1;   // statistics: past point cloud decimation
 
     mapBuilder = new MapBuilder(decimationOdometry, decimationStatistics);
 
@@ -272,36 +275,86 @@ double perspectiveTaking::getPeriod() {
 bool perspectiveTaking::updateModule() {
     if(!mapBuilder->wasStopped()) {
         ++loopCounter;
-        if(loopCounter%5==0) { // only update camera every now and then
+        if(loopCounter%25==0) { // only update camera every now and then
+
+            // Temporary solution to feed ABM
+            /*cv::Mat screen;
+            screen = cv::imread("test.png", CV_LOAD_IMAGE_COLOR);
+            if(!screen.data ) // Check for invalid input
+            {
+                cout <<  "Could not open or find the image" << std::endl;
+            }
+            cv::Mat selfPerspective, partnerPerspective;
+            selfPerspective=screen(cv::Rect(0,0,screen.cols/2,screen.rows));
+            partnerPerspective=screen(cv::Rect(screen.cols/2,0,screen.cols/2,screen.rows));
+            cv::imshow("Self Perspective", selfPerspective);
+            cv::imshow("Partner Perspective", partnerPerspective);
+
+            IplImage* img = new IplImage(selfPerspective);
+            ImageOf<PixelRgb> &temp = ABMimagePortOut.prepare();
+            temp.resize(img->width, img->height);
+            cvCopyImage(img, (IplImage *)temp.getIplImage());
+
+            //send the image
+            ABMimagePortOut.write();
+            // Temporary solution end*/
+
+
+
+
             partner = (Agent*)opc->getEntity("partner", true);
             if(partner) { // TODO:  && partner->m_present
-                    Vector p_headPos = partner->m_ego_position;
-                    Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
-                    Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
+                Vector p_headPos = partner->m_ego_position;
+                Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
+                Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
 
-                    // For now, the partner is thought to look towards the icub
-                    // This is achieved by laying a plane between left shoulder,
-                    // right shoulder and head and using the normal vector of
-                    // the plane as viewing vector
-                    Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
+                // For now, the partner is thought to look towards the icub
+                // This is achieved by laying a plane between left shoulder,
+                // right shoulder and head and using the normal vector of
+                // the plane as viewing vector
+                Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
 
-                    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2],1);
-                    pos /= pos[3];
+                Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2],1);
+                pos /= pos[3];
 
-                    //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
-                    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_view[0],p_view[1],p_view[2],1);
-                    view /= view[3];
+                //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
+                Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_view[0],p_view[1],p_view[2],1);
+                view /= view[3];
 
-                    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2]+1.0,1);
-                    up /= up[3];
+                Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2]+1.0,1);
+                up /= up[3];
 
-                    Eigen::Vector4f up_diff = up-pos;
+                Eigen::Vector4f up_diff = up-pos;
 
-                    mapBuilder->setCameraPosition(
-                        pos[0], pos[1], pos[2],
-                        view[0], view[1], view[2],
-                        up_diff[0], up_diff[1], up_diff[2],
-                        mapBuilder->getViewports()["partner"]);
+                mapBuilder->setCameraPosition(
+                    pos[0], pos[1], pos[2],
+                    view[0], view[1], view[2],
+                    up_diff[0], up_diff[1], up_diff[2],
+                    mapBuilder->getViewports()["partner"]);
+
+                // Temporary solution to feed ABM
+                mapBuilder->saveScreenshot("test.png");
+                /*cv::Mat screen;
+                screen = cv::imread("test.png", CV_LOAD_IMAGE_COLOR);
+                if(!screen.data ) // Check for invalid input
+                {
+                    cout <<  "Could not open or find the image" << std::endl;
+                }
+                cv::Mat selfPerspective, partnerPerspective;
+                selfPerspective=screen(cv::Rect(0,0,screen.cols/2,screen.rows));
+                partnerPerspective=screen(cv::Rect(screen.cols/2,0,screen.cols/2,screen.rows));
+                cv::imshow("Self Perspective", selfPerspective);
+                cv::imshow("Partner Perspective", partnerPerspective);
+
+                IplImage* img = new IplImage(selfPerspective);
+                ImageOf<PixelRgb> &temp = ABMimagePortOut.prepare();
+                temp.resize(img->width, img->height);
+                cvCopyImage(img, (IplImage *)temp.getIplImage());
+
+                //send the image
+                ABMimagePortOut.write();*/
+
+                cv::waitKey(50);
             } else {
                 cout << "No partner found in OPC!" << endl;
             }
@@ -343,6 +396,7 @@ bool perspectiveTaking::updateModule() {
 bool perspectiveTaking::interruptModule() {
     handlerPort.interrupt();
     opc->interrupt();
+    ABMimagePortOut.interrupt();
     return true;
 }
 
@@ -375,6 +429,8 @@ bool perspectiveTaking::close() {
     delete odomThread;
 
     // Close ports
+    ABMimagePortOut.interrupt();
+    ABMimagePortOut.close();
     opc->interrupt();
     opc->close();
     handlerPort.interrupt();

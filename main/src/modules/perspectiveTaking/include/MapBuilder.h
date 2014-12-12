@@ -38,6 +38,12 @@ public:
     void spinOnce(int time = 1, bool force_redraw = false);
     bool wasStopped();
 
+    void saveScreenshot(std::string filename) {
+        vis_mutex.lock();
+        _vWrapper->getVisualizer().saveScreenshot(filename);
+        vis_mutex.unlock();
+    }
+
     std::map<std::string, int> getViewports() {
         return _vWrapper->getViewports();
     }

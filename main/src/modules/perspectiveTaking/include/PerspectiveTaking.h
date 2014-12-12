@@ -38,6 +38,9 @@ protected:
     OPCClient* opc;
     Agent* partner;
 
+    // ABM related
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > ABMimagePortOut;
+
     // RFH related
     Port   rfh;
     Port   handlerPort;
