@@ -31,6 +31,7 @@
 #Set hints
 set(OpenNI_INCLUDE_HINTS
   "${OpenNI_DIR}/include"
+  "/usr/include"
   "/usr/local/include"
   "C:/Program Files/OpenNI/Include"
   "C:/Program Files (x86)/OpenNI/Include"
@@ -39,6 +40,7 @@ set(OpenNI_INCLUDE_HINTS
 set(OpenNI_LIB_HINTS
   "${OpenNI_DIR}/lib"
   "${OpenNI_DIR}/Lib64"
+  "/usr/lib"
   "/usr/local/lib"
   "/usr/local/lib64"
   "C:/Program Files/OpenNI/Lib64"
