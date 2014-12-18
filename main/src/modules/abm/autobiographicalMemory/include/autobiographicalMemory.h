@@ -20,44 +20,44 @@ private :
     std::string dataB;
     std::string savefile;
     std::string storingPath;        //context/conf path to store data by default
-    std::string storingTmpPath ;      //folder inside storingPath for temp image to transfer
-    std::string robotName ;
-    std::string camName ;
-    std::string camSide ;
-    std::string camExtension ;
-    std::string imgFormat ;
-    std::string kinServerName ;
-    std::string kinExtension ;
+    std::string storingTmpSuffix;   //folder inside storingPath for temp image to transfer
+    std::string robotName;
+    std::string camName;
+    std::string camSide;
+    std::string camExtension;
+    std::string imgFormat;
+    std::string kinServerName;
+    std::string kinExtension;
 
-    std::string imgProvider ;
+    std::string imgProvider;
 
-    std::string imgProviderPort ;
+    std::string imgProviderPort;
 
     //for update camera stream
-    std::string streamStatus ;
-    std::string currentPathFolder ;
-    std::string imgLabel ;
-    std::string robotPortCam ;
-    std::string robotPortKin ;
+    std::string streamStatus;
+    std::string currentPathFolder;
+    std::string imgLabel;
+    std::string robotPortCam;
+    std::string robotPortKin;
 
     int imgNb; 
-    int imgNbInStream ;
-    int imgInstance ;
-    int currentInstance ;
+    int imgNbInStream;
+    int imgInstance;
+    int currentInstance;
 
-    yarp::os::Bottle bListImages ;
+    yarp::os::Bottle bListImages;
 
     yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
     wysiwyd::wrdac::OPCClient *opcWorld;
-    std::string        getCurrentTime();
+    std::string getCurrentTime();
     bool        inSharedPlan;
     bool        isconnected2reasoning;
-    bool        isconnected2Cam ;
-    bool        isconnected2Kinect ;
+    bool        isconnected2Cam;
+    bool        isconnected2Kinect;
     bool        bPutObjectsOPC;
 
-    yarp::os::Bottle        detectFailed();
+    yarp::os::Bottle detectFailed();
 
     DataBase<PostgreSql>* ABMDataBase;
 
@@ -100,18 +100,16 @@ public :
     bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(std::string fullPath);
     bool exportImage(int img_oid, std::string path);
-    bool storeImage(int instance, std::string label, std::string fullPath, std::string imgName);
+    bool storeImage(int instance, std::string label, std::string fullPath, std::string imgName, std::string imgTime, std::string currentImgProviderPort);
     int sendStreamImage(int instance); //return nb of images that will be sent
 
-    yarp::os::Bottle addImgProvider(std::string label, std::string portImgProvider) ;
-    yarp::os::Bottle removeImgProvider(std::string label) ;
+    yarp::os::Bottle addImgProvider(std::string label, std::string portImgProvider);
+    yarp::os::Bottle removeImgProvider(std::string label);
     std::map <std::string, std::string> mapImgProvider;
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
 
-
     yarp::os::Bottle disconnectImgProvider();
     yarp::os::Bottle connectImgProvider();
-
 
     yarp::os::Bottle    connect2reasoning();
 
@@ -129,5 +127,4 @@ public :
     yarp::os::Bottle populateOPC();
 
     yarp::os::Bottle getInfoAbout(std::string sName);
-
 };

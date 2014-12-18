@@ -64,7 +64,7 @@ public:
 
 	void execute(const std::string& sql)
 	{
-		std::cout << sql << std::endl;
+		//std::cout << sql << std::endl;
 
 		if(_hasResult)
 			PQclear(_resultPtr);
@@ -97,6 +97,7 @@ public:
 
 	void populate(ResultSet& rs)
 	{
+
 		if(_status != PGRES_TUPLES_OK)
 			throw DataBaseError("This command don't support results");
 

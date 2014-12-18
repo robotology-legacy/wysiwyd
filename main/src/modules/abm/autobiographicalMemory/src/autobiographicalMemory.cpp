@@ -1,6 +1,12 @@
-#include <autobiographicalMemory.h>
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <sys/time.h>
+#endif
 
-using namespace yarp::sig; //ADD
+#include "autobiographicalMemory.h"
+
+using namespace yarp::sig;
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
 using namespace std;
@@ -21,19 +27,12 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     //conf group for image storing properties
     Bottle &bISProperties = rf.findGroup("image_storing");
     storingPath = bISProperties.check("storingPath", Value("C:/robot/ABMStoring")).asString();
-    storingTmpPath = bISProperties.check("storingTmpPath", Value("tmp")).asString();
+    storingTmpSuffix = bISProperties.check("storingTmpSuffix", Value("tmp")).asString();
     imgFormat = bISProperties.check("imgFormat", Value("tif")).asString();
-    robotName = bISProperties.check("robotName", Value("icubSim")).asString();
-    camName = bISProperties.check("camName", Value("cam")).asString();
-    camSide = bISProperties.check("camSide", Value("left")).asString();
-    camExtension = bISProperties.check("camExtension", Value("none")).asString();
-    kinServerName = bISProperties.check("kinServerName", Value("kinectServer")).asString();
-    kinExtension = bISProperties.check("kinExtension", Value("image:o")).asString();
-
-    imgProvider = bISProperties.check("imgProvider", Value("kinect")).asString();
 
     inSharedPlan = false;
 
+    // TODO: streamStatus should be changed to enum
     streamStatus = "none"; //none, record, stop, send
     imgLabel = "defaultLabel";
     imgInstance = -1;
@@ -41,40 +40,33 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     imgNbInStream = 0;
 }
 
-
 autobiographicalMemory::~autobiographicalMemory()
 {
     delete ABMDataBase;
 }
 
-
 /* configure the module */
 bool autobiographicalMemory::configure(ResourceFinder &rf)
 {
-    moduleName = rf.check("name",
-        Value("autobiographicalMemory"),
-        "module name (string)").asString();
+    moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
 
     setName(moduleName.c_str());
 
     bPutObjectsOPC = false;
 
-    portEventsName = "/";
-    portEventsName += getName() + "/request:i";
+    portEventsName = "/" + getName() + "/request:i";
     portEventsIn.open(portEventsName.c_str());
 
     string portHandlerName = "/";
     portHandlerName += getName() + "/rpc";
     handlerPort.open(portHandlerName.c_str());
 
-
     string name_abm2reasoning = "/";
     name_abm2reasoning += getName() + "/to_reasoning";
     abm2reasoning.open(name_abm2reasoning.c_str());
-    //    Network::connect(name_abm2reasoning.c_str(), "/efaa/abmReasoning/rpc");
+    //Network::connect(name_abm2reasoning.c_str(), "/efaa/abmReasoning/rpc");
 
-
-    //port for images :
+    //port for images:
     string name_imagePortOut = "/";
     name_imagePortOut += getName() + "/images/out";
     imagePortOut.open(name_imagePortOut.c_str());
@@ -83,59 +75,24 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     name_imagePortIn += getName() + "/images/in";
     imagePortIn.open(name_imagePortIn.c_str());
 
-    //----------------------- port to camera
-
-    robotPortCam = "/" + robotName + "/" + camName + "/" + camSide;
-    if (camExtension != "none") {
-        robotPortCam += "/" + camExtension;
-    }
-
-    /*isconnected2Cam = Network::connect(robotPortCam, imagePortIn.getName().c_str());
-
-    if (isconnected2Cam)
-    {
-        cout << endl << "ABM is now connected to Camera!\n" << endl;
-    }
-    else {
-        cout << "ABM failed to connect to Camera!" << endl;
-    }*/
-
-    //----------------------- port to kinect
-
-    robotPortKin = "/" + kinServerName + "/" + kinExtension;
-
-    /*isconnected2Kinect = Network::connect(robotPortKin, imagePortIn.getName().c_str());
-
-    if (isconnected2Kinect)
-    {
-        cout << endl << "ABM is now connected to Kinect!\n" << endl;
-    }
-    else {
-        cout << "ABM failed to connect to Kinect!" << endl;
-    }*/
-
-    //Temp to test data : wil be send without checking connection after
+    //Temp to test data : will be send without checking connection after
     bool isconnected2Yarpview = Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i");
 
-    if (isconnected2Yarpview)
-    {
-        cout << endl << "ABM is now connected to Yarpview!\n" << endl;
-    }
-    else {
-        cout << "ABM failed to connect to Yarpview!" << endl;
+    if (isconnected2Yarpview) {
+        cout << endl << "ABM is now connected to Yarpview!" << endl;
+    } else {
+        cout << endl << "ABM failed to connect to Yarpview!" << endl;
     }
 
     //create the storingPath and the tmp also
-    string fullTmpPath = storingPath + "/" + storingTmpPath;
+    string fullTmpPath = storingPath + "/" + storingTmpSuffix;
     yarp::os::mkdir(storingPath.c_str());
     yarp::os::mkdir(fullTmpPath.c_str());
-
 
     isconnected2reasoning = false;
 
     attach(handlerPort);
     //attachTerminal();
-
 
     Bottle bConnect;
     bConnect.addString("connect");
@@ -144,13 +101,11 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     //populateOPC();
 
-    cout << endl << endl << "----------------------------------------------" << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
+    cout << endl << endl << "----------------------------------------------";
+    cout << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
 
     return true;
 }
-
-
-
 
 /* transforms an result of query to a bottle */
 Bottle autobiographicalMemory::restoBottle(ResultSet bResult)
@@ -195,7 +150,6 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
     //cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
 
     //send the request to the database
-
     try
     {
         //verbose debug
@@ -210,9 +164,9 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
     }
     catch (DataBaseError& e)
     {
-        cerr << "Exception during request : " << e.what() << endl;
+        cerr << "Exception during request: " << e.what() << endl;
         string sExcept;
-        sExcept = "Exception during request : ";
+        sExcept = "Exception during request: ";
         sExcept += e.what();
         bReply.addString(sExcept.c_str());
     }
@@ -237,7 +191,7 @@ Bottle autobiographicalMemory::save(Bottle bInput)
     //TODO
     Bottle bOutput;
     bOutput = bInput;
-    //    output.addString("file saved");
+    //output.addString("file saved");
     return bOutput;
 }
 
@@ -263,12 +217,9 @@ Bottle autobiographicalMemory::newDB(Bottle bInput)
         else
         {
             //to start the Database from scratch
-
             *ABMDataBase << "DROP TABLE IF EXISTS main CASCADE;";
-
             *ABMDataBase << "DROP TABLE IF EXISTS contentarg CASCADE;";
             *ABMDataBase << "DROP TABLE IF EXISTS contentopc CASCADE;";
-
             *ABMDataBase << "DROP TABLE IF EXISTS entity CASCADE;";
             //herits from entity
             *ABMDataBase << "DROP TABLE IF EXISTS action CASCADE;";
@@ -277,8 +228,8 @@ Bottle autobiographicalMemory::newDB(Bottle bInput)
             //herits from object
             *ABMDataBase << "DROP TABLE IF EXISTS rtobject CASCADE;";
             *ABMDataBase << "DROP TABLE IF EXISTS agent CASCADE;";
-
             *ABMDataBase << "DROP TABLE IF EXISTS relation CASCADE;";
+
             bOutput.clear();
             bOutput.addString("new done");
             return bOutput;
@@ -353,60 +304,50 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "CREATE TABLE relation(  instance integer NOT NULL,  opcid integer NOT NULL,  subject text NOT NULL,  verb text NOT NULL, object text, time text,  place text,  manner text,  CONSTRAINT relation_pkey PRIMARY KEY (instance, opcid),  UNIQUE (instance,opcid),  FOREIGN KEY (instance, opcid) REFERENCES contentopc (instance, opcid) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE relation OWNER TO postgres;";
 
-
     /***************************** Drives table *****************************/
     *ABMDataBase << "DROP TABLE IF EXISTS drives CASCADE;";
     *ABMDataBase << "CREATE TABLE drives (     instance integer NOT NULL,  name     text NOT NULL, value double precision NOT NULL, homeomax double precision NOT NULL, homeomin double precision NOT NULL, UNIQUE (instance, name ) ,    CONSTRAINT drives_pkey     PRIMARY KEY (instance, name),     FOREIGN KEY (instance) REFERENCES main (instance),  UNIQUE (name, instance) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE drives OWNER TO postgres;";
-
 
     /***************************** Emotions table *****************************/
     *ABMDataBase << "DROP TABLE IF EXISTS emotions CASCADE;";
     *ABMDataBase << "CREATE TABLE emotions ( instance integer NOT NULL,  name text NOT NULL, value double precision NOT NULL, UNIQUE (name, instance ) ,    CONSTRAINT emotion_pkey     PRIMARY KEY (instance, name),     FOREIGN KEY (instance) REFERENCES main (instance),  UNIQUE (instance, name) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE drives OWNER TO postgres;";
 
-
     /****************************** spatialknowledge *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS spatialknowledge CASCADE;";
     *ABMDataBase << "CREATE TABLE spatialknowledge ( name text NOT NULL,  argument text NOT NULL, dependance text NOT NULL , instance integer NOT NULL,  CONSTRAINT spatialknowledge_pkey PRIMARY KEY (instance),  CONSTRAINT spatialknowledge_name_key UNIQUE (name, argument, dependance) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE spatialknowledge OWNER TO postgres;";
-
 
     /****************************** spatialdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS spatialdata CASCADE;";
     *ABMDataBase << "CREATE TABLE spatialdata ( vx double precision, vy double precision, vdx double precision, vdy double precision, instance integer NOT NULL, id serial NOT NULL, CONSTRAINT spatialdata_instance_fkey FOREIGN KEY (instance) REFERENCES spatialknowledge (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE spatialdata OWNER  TO postgres;";
 
-
     /****************************** contextknowledge *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS contextknowledge CASCADE;";
     *ABMDataBase << "CREATE TABLE contextknowledge ( name text NOT NULL,  argument text NOT NULL,  dependance text NOT NULL, instance integer NOT NULL,  CONSTRAINT contextknowledge_pkey PRIMARY KEY (instance),  CONSTRAINT contextknowledge_name_key UNIQUE (name, argument, dependance) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE contextknowledge OWNER TO postgres;";
-
 
     /****************************** contextdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS contextdata CASCADE;";
     *ABMDataBase << "CREATE TABLE contextdata (  presencebegin boolean,  presenceend boolean,  instance integer NOT NULL,  id serial NOT NULL,  CONSTRAINT contextdata_instance_fkey FOREIGN KEY (instance) REFERENCES contextknowledge (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE contextdata OWNER  TO postgres;";
 
-
     /****************************** contextagent *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS contextagent CASCADE;";
     *ABMDataBase << "CREATE TABLE contextagent ( instance integer NOT NULL, agent text NOT NULL, number integer, CONSTRAINT contextagent_pkey PRIMARY KEY (instance, agent), CONSTRAINT contextagent_instance_fkey FOREIGN KEY (instance) REFERENCES contextknowledge (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE contextagent OWNER  TO postgres;";
-
 
     /****************************** timeknowledge *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS timeknowledge CASCADE;";
     *ABMDataBase << "CREATE TABLE timeknowledge ( temporal text NOT NULL,   CONSTRAINT timeknowledge_pkey PRIMARY KEY (temporal) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE timeknowledge OWNER TO postgres;";
 
-
     /****************************** timedata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS timedata CASCADE;";
     *ABMDataBase << "CREATE TABLE timedata ( temporal text NOT NULL,   timearg1 timestamp without time zone NOT NULL,   timearg2 timestamp without time zone NOT NULL,   CONSTRAINT timedata_temporal_fkey FOREIGN KEY (temporal)        REFERENCES timeknowledge (temporal) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE timedata OWNER  TO postgres;";
-
 
     /****************************** interactionknowledge *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS interactionknowledge CASCADE;";
@@ -429,7 +370,6 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
         sFilename = bInput.get(1).asString();
         //filename format : each line is a SQL sequence of INSERT INTO
     }
-
     //else, load the default database (the last one)
     else
     {
@@ -491,7 +431,6 @@ Bottle autobiographicalMemory::addInteraction(Bottle bInteraction)
         bReply.addString(sExcept.c_str());
     }
 
-
     //send the request to the database
     return bReply;
 }
@@ -501,21 +440,22 @@ Bottle autobiographicalMemory::addImgProvider(string labelImgProvider, string po
     //prepare the ResultSet of the query and the reply
     Bottle bReply;
 
-    if(mapImgProvider.find(labelImgProvider) == mapImgProvider.end()) //key not found
+    if (mapImgProvider.find(labelImgProvider) == mapImgProvider.end()) //key not found
     {
         //creating imgReceiverPort for the current provider
-        string portImgReceiver = "/" + getName() + "/images/"+ labelImgProvider + "/in" ;
+        string portImgReceiver = "/" + getName() + "/images/" + labelImgProvider + "/in";
 
         //add the imgProvider to the map, imgReceiver to map
-        mapImgProvider[labelImgProvider] = portImgProvider ;
-        //mapImgReceiver[labelImgProvider] = portImgReceiver ;
-        mapImgReceiver[labelImgProvider]= new yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
-        //mapImgReceiver[labelImgProvider]->open(portImgReceiver) ;
+        mapImgProvider[labelImgProvider] = portImgProvider;
+        //mapImgReceiver[labelImgProvider] = portImgReceiver;
+        mapImgReceiver[labelImgProvider] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+        //mapImgReceiver[labelImgProvider]->open(portImgReceiver);
 
-        bReply.addString("[ack]") ;
-    } else {                                                          //key found
-        cout<<"ERROR : addImgProvider : " << labelImgProvider << " is already present! " <<endl ;
-        bReply.addString("ERROR : addImgProvider : " + labelImgProvider + " is already present! ") ;
+        bReply.addString("[ack]");
+    }
+    else { //key found
+        cout << "ERROR : addImgProvider : " << labelImgProvider << " is already present! " << endl;
+        bReply.addString("ERROR : addImgProvider : " + labelImgProvider + " is already present! ");
     }
 
     //send the reply
@@ -527,17 +467,16 @@ Bottle autobiographicalMemory::removeImgProvider(string labelImgProvider)
     //prepare the ResultSet of the query and the reply
     Bottle bReply;
 
-    if(mapImgProvider.find(labelImgProvider) == mapImgProvider.end()) //key not found
-    {
-        cout<<"ERROR : removeImgProvider : " << labelImgProvider << " is NOT present! " <<endl ;
-        bReply.addString("ERROR : removeImgProvider : " + labelImgProvider + " is NOT present! ") ;
-
-    } else {                                                          //key found
-        mapImgProvider.erase(labelImgProvider) ;
+    if (mapImgProvider.find(labelImgProvider) == mapImgProvider.end()) { //key not found
+        cout << "ERROR : removeImgProvider : " << labelImgProvider << " is NOT present! " << endl;
+        bReply.addString("ERROR : removeImgProvider : " + labelImgProvider + " is NOT present! ");
+    }
+    else { //key found
+        mapImgProvider.erase(labelImgProvider);
         mapImgReceiver[labelImgProvider]->interrupt();
         mapImgReceiver[labelImgProvider]->close();
-        mapImgReceiver.erase(labelImgProvider) ;
-        bReply.addString("[ack]") ;
+        mapImgReceiver.erase(labelImgProvider);
+        bReply.addString("[ack]");
     }
 
     //send the reply
@@ -547,7 +486,7 @@ Bottle autobiographicalMemory::removeImgProvider(string labelImgProvider)
 
 double autobiographicalMemory::getPeriod()
 {
-    return 0.2; //module periodicity (seconds)
+    return 0.03; //module periodicity (seconds)
 }
 
 /* rpc respond module */
@@ -564,7 +503,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     //check for kinect provider
     //isconnected2Kinect = Network::isConnected(robotPortKin, imagePortIn.getName().c_str());
 
-
     if (bCommand.get(0).isString())
     {
         if (bCommand.get(0) == "quit" || bCommand.get(0) == "close")
@@ -574,8 +512,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             interruptModule();
             return false;
         }
-
-
         // Read a file, and load the requests
         else if (bCommand.get(0) == "read")
         {
@@ -589,48 +525,37 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
-
         //database from sratch considering the history [but load the other tables from the OPC]
         else if (bCommand.get(0) == "new")
         {
             bReply = newDB(bCommand);
         }
-
         else if (bCommand.get(0) == "snapshot")
         {
             bReply = snapshot(bCommand);
         }
-
         else if (bCommand.get(0) == "snapshotSP")
         {
             bReply = snapshotSP(bCommand);
         }
-
         else if (bCommand.get(0) == "snapshotBE")
         {
             bReply = snapshotBehavior(bCommand);
         }
-
         else if (bCommand.get(0) == "save")
         {
             bReply = save(bCommand);
         }
-
-
         else if (bCommand.get(0) == "load")
         {
             bReply = load(bCommand);
         }
-
         else if (bCommand.get(0) == "connect")
         {
             bReply = connect2reasoning();
         }
-
         else if (bCommand.get(0) == "request")
         {
-
             if (bCommand.size() > 1)
             {
                 bReply = request(bCommand);
@@ -641,11 +566,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
-
         else if (bCommand.get(0) == "insert")
         {
-
             if (bCommand.size() > 1)
             {
                 bReply.addString("insert");
@@ -657,24 +579,20 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         else if (bCommand.get(0) == "resetKnowledge")
         {
             bReply = resetKnowledge();
         }
-
-
         else if (bCommand.get(0) == "eraseInstance")
         {
             bReply = eraseInstance(bCommand);
         }
-
         //DEPRECATED = not needed anymore, save stream in snapshot when "action"
         else if (bCommand.get(0) == "testSaveStreamImage")
         {
             if (!isconnected2Cam && !isconnected2Kinect) {
                 cout << "ABM failed to connect to Camera and Kinect!" << endl;
-                bError.addString("in testSaveStreamImage :  Error, connexion missing between" + robotPortCam + "or" + "/kinectServer/image:o " + "and " + imagePortIn.getName().c_str());
+                bError.addString("in testSaveStreamImage :  Error, connetion missing between" + robotPortCam + "or" + "/kinectServer/image:o " + "and " + imagePortIn.getName().c_str());
                 bReply = bError;
             }
             else if ((bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1))
@@ -689,13 +607,12 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         //sendStreamImage (instance)
         else if (bCommand.get(0) == "sendStreamImage")
         {
             if (!Network::isConnected(imagePortOut.getName(), "/yarpview/img:i")) {
                 cout << "ABM failed to connect to Yarpview!" << endl;
-                bError.addString("in sendStreamImage :  Error, connexion missing between " + imagePortOut.getName() + " and /yarpview/img:i ");
+                bError.addString("in sendStreamImage :  Error, connetion missing between " + imagePortOut.getName() + " and /yarpview/img:i ");
                 bReply = bError;
             }
             else if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
@@ -706,7 +623,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     bReply.addString(streamStatus);
                     bReply.addInt(nbSentImages);
                 }
-
             }
             else
             {
@@ -714,14 +630,12 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         //DEPRECATED = in snapshot when "sentence"
         else if (bCommand.get(0) == "testSaveImage")
         {
-
             if (!isconnected2Cam && !isconnected2Kinect) {
                 cout << "ABM failed to connect to Camera or Kinect!" << endl;
-                bError.addString("in testSaveImage :  Error, connexion missing between" + robotPortCam + " or /kinectServer/image:o " +  " and " + imagePortIn.getName().c_str());
+                bError.addString("in testSaveImage :  Error, connetion missing between" + robotPortCam + " or /kinectServer/image:o " + " and " + imagePortIn.getName().c_str());
                 bReply = bError;
             }
             else if ((bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1))
@@ -734,11 +648,9 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         //askImage
         else if (bCommand.get(0) == "askImage")
         {
-
             if (bCommand.size() > 1)
             {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
@@ -756,20 +668,19 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         else if (bCommand.get(0) == "setImgProvider")
         {
-
             if (bCommand.size() > 1)
             {
-                string provider = bCommand.get(1).toString().c_str() ;
+                string provider = bCommand.get(1).toString().c_str();
 
-                if(provider != "kinect" && provider != "cam" && provider != "none") {
+                if (provider != "kinect" && provider != "cam" && provider != "none") {
                     bError.addString("ERROR in setImgProvider : " + provider + " is not a valid imgProvider => kinect or cam or none");
                     bReply = bError;
-                } else {
-                    bReply.addString("ack") ;
-                    imgProvider = provider ;
+                }
+                else {
+                    bReply.addString("ack");
+                    imgProvider = provider;
                 }
             }
             else
@@ -781,19 +692,15 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         // setCustomImgProvider (label /yarp/port/img/provider)
         else if (bCommand.get(0) == "addImgProvider")
         {
-
             if (bCommand.size() > 1 && bCommand.get(1).isList())
             {
-                if(bCommand.get(1).asList()->size() == 2){ ;
-
+                if (bCommand.get(1).asList()->size() == 2){
                     //TODO : check that the label is not used
-                    
 
                     //TODO : several custom at the same time (fill in dictionnary)                   
-                    bReply = addImgProvider(bCommand.get(1).asList()->get(0).toString().c_str(), bCommand.get(1).asList()->get(1).toString().c_str() ) ;
-
-
-                } else {
+                    bReply = addImgProvider(bCommand.get(1).asList()->get(0).toString().c_str(), bCommand.get(1).asList()->get(1).toString().c_str());
+                }
+                else {
                     bError.addString("[addImgProvider] : wrong number of element -> addImgProvider (label /yarp/port/img/provider)");
                     bReply = bError;
                 }
@@ -804,17 +711,15 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         else if (bCommand.get(0) == "removeImgProvider")
         {
-
             if (bCommand.size() > 1)
             {
-                string labelImgProvider = bCommand.get(1).toString().c_str() ;
+                string labelImgProvider = bCommand.get(1).toString().c_str();
 
                 //TODO : remove it from the list of imgProvider
 
-                bReply = removeImgProvider(labelImgProvider) ;
+                bReply = removeImgProvider(labelImgProvider);
             }
             else
             {
@@ -822,7 +727,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
     }
     else
     {
@@ -838,11 +742,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 /* rpc update module */
 bool autobiographicalMemory::updateModule()
 {
-
-    if (streamStatus == "begin"){
-
+    if (streamStatus == "begin") {
         cout << "============================= STREAM BEGIN =================================" << endl;
-
         //create folder
         currentPathFolder = "";
         currentPathFolder += storingPath + "/" + imgLabel;
@@ -866,84 +767,63 @@ bool autobiographicalMemory::updateModule()
 
         cout << "Going to create folder : " << currentPathFolder << endl;
 
-        //concatenation of the path to store
-        char imgName[512] = "";
-        char fullPath[512] = "";
-
-        stringstream ssImgName;
-        ssImgName << imgLabel << imgNb << "." << imgFormat;
-        strcpy(imgName, ssImgName.str().c_str());
-
-        stringstream ssPath;
-        ssPath << currentPathFolder << "/" << imgName;
-        strcpy(fullPath, ssPath.str().c_str());
-
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
-        //create the image file
-        /*if (!createImage(fullPath)){
-            cout << "Error in Update : image not created" << endl;
-        }
-        else {
-            //create SQL entry, register the cam image in specific folder
-            storeImage(imgInstance, imgLabel, fullPath, imgName);
-        }*/
 
         //go through the ImgReceiver ports
         for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
-            if(!createImage(fullPath, it->second)){
+            //concatenation of the path to store
+            char imgName[512] = "";
+            char fullPath[512] = "";
+
+            stringstream ssImgName;
+            ssImgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
+            strcpy(imgName, ssImgName.str().c_str());
+
+            stringstream ssPath;
+            ssPath << currentPathFolder << "/" << imgName;
+            strcpy(fullPath, ssPath.str().c_str());
+
+            if (!createImage(fullPath, it->second)) {
                 cout << "Error in Update : image not created from " << it->first << endl;
-            } else {
+            }
+            else {
                 //create SQL entry, register the cam image in specific folder
-                storeImage(imgInstance, imgLabel, fullPath, imgName);
+                storeImage(imgInstance, imgLabel, fullPath, imgName, getCurrentTime(), mapImgProvider[it->first]);
             }
         }
 
         //init of the stream record done : go through the classic record phase
         streamStatus = "record";
-
-
     }
-    else if (streamStatus == "record"){
-
+    else if (streamStatus == "record") {
         imgNb += 1;
         //cout << "Image Nb " << imgNb << endl;
-
-        //concatenation of the path to store
-        char imgName[512] = "";
-        char fullPath[512] = "";
-
-        stringstream ssImgName;
-        ssImgName << imgLabel << imgNb << "." << imgFormat;
-        strcpy(imgName, ssImgName.str().c_str());
-
-        stringstream ssPath;
-        ssPath << currentPathFolder << "/" << imgName;
-        strcpy(fullPath, ssPath.str().c_str());
-
-        //create the image file
-        /*if (!createImage(fullPath)){
-            cout << "Error in Update : image not created" << endl;
-        }
-        else {
-            storeImage(imgInstance, imgLabel, fullPath, imgName);
-        }*/
 
         //go through the ImgReceiver ports
         for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
-            if(!createImage(fullPath, it->second)){
+            //concatenation of the path to store
+            char imgName[512] = "";
+            char fullPath[512] = "";
+
+            stringstream ssImgName;
+            ssImgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
+            strcpy(imgName, ssImgName.str().c_str());
+
+            stringstream ssPath;
+            ssPath << currentPathFolder << "/" << imgName;
+            strcpy(fullPath, ssPath.str().c_str());
+
+            if (!createImage(fullPath, it->second)) {
                 cout << "Error in Update : image not created from " << it->first << endl;
             } else {
                 //create SQL entry, register the cam image in specific folder
-                storeImage(imgInstance, imgLabel, fullPath, imgName);
+                storeImage(imgInstance, imgLabel, fullPath, imgName, getCurrentTime(), mapImgProvider[it->first]);
             }
         }
-
-        //stream to send
     }
-    else if (streamStatus == "send") {
-
+    else if (streamStatus == "send") { //stream to send
         //select all the images (through primary key oid) corresponding to a precise instance
         if (imgNb == 0) {
             cout << "============================= STREAM SEND =================================" << endl;
@@ -965,31 +845,25 @@ bool autobiographicalMemory::updateModule()
             char fullPath[512] = "";
 
             stringstream ss;
-            ss << storingPath << "/" << storingTmpPath << "/" << bListImages.get(imgNb).asString().c_str();
+            ss << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asString().c_str();
             strcpy(fullPath, ss.str().c_str());
 
             sendImage(fullPath);
-
-
-        }
-        else {
-
+        } else {
             streamStatus = "end";
             //cout << "============================= STREAM END =================================" << endl;
         }
 
         //next image
         imgNb += 1;
-
     }
 
     //go back to default global value
     if (streamStatus == "end") {
-
         cout << "============================= STREAM STOP =================================" << endl;
         //close folder and SQL entry
 
-        Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
+        Network::disconnect(imgProviderPort, imagePortIn.getName().c_str());
 
         streamStatus = "none";
         imgLabel = "defaultLabel";
@@ -998,7 +872,6 @@ bool autobiographicalMemory::updateModule()
         imgNbInStream = 0;
     }
 
-
     return true;
 }
 
@@ -1006,8 +879,20 @@ bool autobiographicalMemory::interruptModule()
 {
     cout << "Interrupting your module, for port cleanup" << endl;
 
-
     // TODO : save the database
+    opcWorld->interrupt();
+    handlerPort.interrupt();
+    portEventsIn.interrupt();
+    abm2reasoning.interrupt();
+    imagePortOut.interrupt();
+    imagePortIn.interrupt();
+
+    return true;
+}
+
+
+bool autobiographicalMemory::close()
+{
     opcWorld->interrupt();
     opcWorld->close();
 
@@ -1026,12 +911,6 @@ bool autobiographicalMemory::interruptModule()
     imagePortIn.interrupt();
     imagePortIn.close();
 
-    return true;
-}
-
-
-bool autobiographicalMemory::close()
-{
     cout << "Calling close function\n";
     delete opcWorld;
     return true;
@@ -1041,10 +920,10 @@ bool autobiographicalMemory::close()
 void autobiographicalMemory::writeInsert(string sRequest)
 {
     ofstream file(savefile.c_str(), ios::out | ios::trunc);
-    if (file)    {
+    if (file) {
         file << sRequest << endl;
     }
-    else    {
+    else {
         cout << "Error, can not save request in " << savefile << endl;    return;
     }
 }
@@ -1053,30 +932,29 @@ void autobiographicalMemory::writeInsert(string sRequest)
 bool autobiographicalMemory::readInsert()
 {
     ifstream file(savefile.c_str(), ios::in);
-    if (file)    {
+    if (file) {
         cout << endl << "readFile of requests from " << savefile.c_str() << endl << endl;
     }
-    else    {
+    else {
         cout << "Error, can not open " << savefile.c_str() << endl;    return false;
     }
 
     string line;
     Bottle bRequest;
-    // for each line of the file :
+    // for each line of the file:
     while (getline(file, line))
     {
         bRequest.clear();
         bRequest.addString("request");
         bRequest.addString(line.c_str());
         bRequest = request(bRequest);
-        //        *ABMDataBase << line ;
+        //*ABMDataBase << line;
     }
     return true;
 }
 
 Bottle autobiographicalMemory::snapshot(Bottle bInput)
 {
-
     /*
     format of input bottle :
     snapshot (action name_action type_action) (time t_time) (arguments (arg1) (arg2, role) ... argN) (begin 0/1)
@@ -1106,7 +984,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     OPCEARS.setInstance(instance);
     currentInstance = instance;
 
-    // Filling table main :
+    // Filling table main:
     Bottle bMain;
     bMain.addString("request");
     ostringstream osMain;
@@ -1114,7 +992,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     osMain << "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES ('";
     string sName;
 
-    //for stream image
+    //for streaming image
     string activityName;
     bool isStreamActivity = false;
     string fullSentence;
@@ -1139,8 +1017,9 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
             done = true;
         }
     }
-    if (!done)
+    if (!done) {
         osMain << "unknown' , '";
+    }
     // Time
     done = false;
     string sTime = getCurrentTime();
@@ -1149,7 +1028,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     //Begin
     done = false;
     bool bBegin = false;
-    cout << "bInput has a size of " << bInput.size() << " and is : " << bInput.toString().c_str() << endl;
+    //cout << "bInput has a size of " << bInput.size() << " and is : " << bInput.toString().c_str() << endl;
     for (int i = 1; i < bInput.size(); i++)
     {
         bTemp = *(bInput.get(i).asList());
@@ -1168,15 +1047,15 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
             done = true;
         }
     }
-    if (!done)
+    if (!done) {
         osMain << "FALSE);";
-
+    }
 
     bMain.addString(string(osMain.str()).c_str());
-    //    cout << "\n\n" << string(osMain.str()).c_str() << endl;
+    // cout << "\n\n" << string(osMain.str()).c_str() << endl;
     bMain = request(bMain);
 
-    //Connexion to the OPC
+    //Connection to the OPC
     Bottle bOutput, bOPC, bRelation, bEntities, bDrives, bEmotions;
 
     OPCEARS.snapshot(bInput, opcWorld);
@@ -1236,13 +1115,11 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 
     for (int i = 0; i < bSnapShot.size(); i++)
     {
-
         bTemp.clear();
         bTemp.addString("request");
         bTemp.addString(bSnapShot.get(i).toString().c_str());
         bTemp = request(bTemp);
     }
-
 
     if ((!bBegin) && isconnected2reasoning)
     {
@@ -1253,29 +1130,12 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-    /*if(imgProvider == "kinect"){
-        imgProviderPort = robotPortKin ;
-    } else if (imgProvider == "cam") {
-        imgProviderPort = robotPortCam ;
-    } else if (imgProvider == "none") {
-        cout << "WARNING in snapshot : imgProvider is set to none : no image will be recorded" ;
-        return bSnapShot ;
-    } else {
-        cout << "ERROR in snapshot : "<< imgProvider << " is not a valid imgProvider (kinect, cam, none)" ;
-        return bSnapShot ;
-    }
+    string isConnected = connectImgProvider().toString().c_str();
 
-    if (!Network::connect(imgProviderPort, imagePortIn.getName().c_str())) {
-        cout << "ABM failed to connect to " << imgProviderPort << endl;
-    }*/
-
-    string isConnected = connectImgProvider().toString().c_str()  ;
-
-    if(isConnected != "ack"){
+    if (isConnected != "ack"){
         cout << "ABM failed to connect to one imgProvider" << endl;
-        cout << "CAUSE : " << isConnected << endl ;
+        cout << "CAUSE : " << isConnected << endl;
     }
-
     else if (isStreamActivity == true) //just launch stream images stores when relevant activity
     {
         if (bBegin) {
@@ -1284,59 +1144,48 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         else {
             streamStatus = "end";
         }
-
     }
-    else {  //just one image (sentence?)
-
-        //concatenation of the path to store
-        char imgName[512] = "";
-        char fullPath[512] = "";
-
-        stringstream ssImgName;
-        if (fullSentence == ""){
-            fullSentence = imgLabel;
-        }
-
-        //take the full sentence, replace space by _ to have the img name
-        replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
-        ssImgName << fullSentence << "." << imgFormat;
-        strcpy(imgName, ssImgName.str().c_str());
-
-        stringstream ssPath;
-        ssPath << storingPath << "/" << imgName;
-        strcpy(fullPath, ssPath.str().c_str());
-
-        //create the image file
-        /*if (!createImage(fullPath)){
-            cout << "Error in snapshot : image not created" << endl;
-        }
-        else {
-            //create SQL entry, register the cam image in specific folder
-            storeImage(instance, imgLabel, fullPath, imgName);
-        }*/
-
+    else
+    {  //just one image (sentence?)
         //go through the ImgReceiver ports
         for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
-            if(!createImage(fullPath, it->second)){
+            //concatenation of the path to store
+            char imgName[512] = "";
+            char fullPath[512] = "";
+
+            stringstream ssImgName;
+            if (fullSentence == ""){
+                fullSentence = imgLabel;
+            }
+
+            //take the full sentence, replace space by _ to have the img name
+            replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
+            ssImgName << fullSentence << "_" << it->first << "." << imgFormat;
+            strcpy(imgName, ssImgName.str().c_str());
+
+            stringstream ssPath;
+            ssPath << storingPath << "/" << imgName;
+            strcpy(fullPath, ssPath.str().c_str());
+
+            if (!createImage(fullPath, it->second)){
                 cout << "Error in snapshot : image not created from " << it->first << endl;
-            } else {
+            }
+            else {
                 //create SQL entry, register the cam image in specific folder
-                storeImage(instance, imgLabel, fullPath, imgName);
+                storeImage(instance, imgLabel, fullPath, imgName, getCurrentTime(), mapImgProvider[it->first]);
             }
         }
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
-        string reply = disconnectImgProvider().toString().c_str() ;
-        if(reply != "ack"){
+        string reply = disconnectImgProvider().toString().c_str();
+        if (reply != "ack"){
             cout << "ABM failed to disconnect to one imgProvider" << endl;
         }
     }
 
-
     return bSnapShot;
 }
-
 
 Bottle autobiographicalMemory::snapshot2(Bottle bInput)
 {
@@ -1348,7 +1197,6 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     - something from the OPC : just argN is enough
     - something external : argN + role is mandatory
     */
-
 
     Bottle bOutput;
 
@@ -1369,7 +1217,6 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
         return bOutput;
     }
 
-
     // catch the arguments and the role associate
     int iNbArg = 0;
     if (bInput.get(2).asList()->size() != bInput.get(3).asList()->size())
@@ -1382,13 +1229,12 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     iNbArg = bInput.get(2).asList()->size();
 
     //get Instance of the next opc
-
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
     bRequest = requestFromString("SELECT instance FROM main ORDER BY instance DESC LIMIT 1;");
     int instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
     OPCEARS.setInstance(instance);
 
-    // Filling table main :
+    // Filling table main:
     Bottle bMain;
     ostringstream osMain;
     bool done = false;
@@ -1428,16 +1274,14 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
         }
         done = true;
     }
-    if (!done)
+    if (!done) {
         osMain << "FALSE);";
-
-
+    }
 
     // Fill contentArg
     vector<string> vArgument, vRole;
 
     // catch the arguments and the role associate
-
     bArguments = *bInput.get(2).asList();
     bRoles = *bInput.get(3).asList();
 
@@ -1447,7 +1291,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
         vRole.push_back(bRoles.get(i).toString().c_str());
     }
 
-    //Connexion to the OPC and snapshot
+    //Connetion to the OPC and snapshot
     if (isconnected2reasoning)
     {
         Bottle b2reasoning;
@@ -1466,7 +1310,7 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
     ostringstream osArg;
     osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ";
 
-    // Fill argument :
+    // Fill argument:
     for (unsigned int i = 0; i < vArgument.size(); i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vArgument[i]);
@@ -1479,7 +1323,6 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
             osArg << " ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', '" << vRole[i] << "') ";
         }
     }
-
 
     // Insert the main request.
     bMain = requestFromString(osMain.str().c_str());
@@ -1507,14 +1350,12 @@ Bottle autobiographicalMemory::snapshot2(Bottle bInput)
         imgLabel = sName;
     }
 
-
     return bSnapShot;
 }
 
 
 Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
 {
-
     /*
     format of input bottle :
     snapshot (action name_action type_action) (arg1 arg2 argn) (role1 role 2 rolen) (begin 0/1)
@@ -1523,7 +1364,6 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     - something from the OPC : just argN is enough
     - something external : argN + role is mandatory
     */
-
 
     Bottle bOutput;
 
@@ -1535,7 +1375,6 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         bOutput.addString(sError.c_str());
         return bOutput;
     }
-
     if (!bInput.get(0).isString() || !bInput.get(1).isList() || !bInput.get(2).isList() || !bInput.get(3).isList() || !bInput.get(4).isList())
     {
         string sError = "Error in autobiographicalMemory::snapshotSP | Wrong format of input";
@@ -1543,7 +1382,6 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         bOutput.addString(sError.c_str());
         return bOutput;
     }
-
 
     // catch the arguments and the role associate
     int iNbArg = 0;
@@ -1557,7 +1395,6 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     iNbArg = bInput.get(2).asList()->size();
 
     //get Instance of the next opc
-
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
     bRequest = requestFromString("SELECT instance FROM main ORDER BY instance DESC LIMIT 1;");
     int instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
@@ -1579,8 +1416,9 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         osMain << bTemp.get(2).asString() << "' , '";
         done = true;
     }
-    if (!done)
+    if (!done) {
         osMain << "unknown' , 'unknown', '";
+    }
 
     // Time
     osMain << getCurrentTime() << "' , " << instance << " , ";
@@ -1602,21 +1440,17 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         }
         done = true;
     }
-    if (!done)
+    if (!done) {
         osMain << "FALSE);";
-
-
+    }
 
     // Fill contentArg
-    vector<string> vAgent,
-        vObject,
-        vSpatial;
+    vector<string> vAgent, vObject, vSpatial;
 
     string sManner;
     bool fManner = false;
 
     // catch the arguments and the role associate
-
     bArguments = *bInput.get(2).asList();
     bRoles = *bInput.get(3).asList();
 
@@ -1641,7 +1475,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         sManner = "none";
     }
 
-    //Connexion to the OPC and snapshot
+    //Connection to the OPC and snapshot
     OPCEARS.snapshot(bInput, opcWorld);
     ostringstream osName;
     osName << sName << instance;
@@ -1652,7 +1486,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     ostringstream osArg;
     osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << " , '" << sManner << "' , 'manner' , 'manner' , 'manner' ) ";
 
-    // Fill agents :
+    // Fill agents:
     for (unsigned int i = 0; i < vAgent.size(); i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vAgent[i]);
@@ -1663,7 +1497,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
             osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'agent" << i + 1 << "') ";
     }
 
-    // Fill objects :
+    // Fill objects:
     for (unsigned int i = 0; i < vObject.size(); i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vObject[i]);
@@ -1674,8 +1508,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
             osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'object" << i + 1 << "') ";
     }
 
-
-    // Fill spatials :
+    // Fill spatials:
     for (unsigned int i = 0; i < vSpatial.size(); i++)
     {
         Entity* currentEntity = opcWorld->getEntity(vSpatial[i]);
@@ -1685,7 +1518,6 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         else
             osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'spatial" << i + 1 << "') ";
     }
-
 
     // Insert the main request.
     bMain = requestFromString(osMain.str().c_str());
@@ -1707,13 +1539,11 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-
     return bSnapShot;
 }
 
 Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
 {
-
     /*
     format of input bottle :
     snapshot (action name_action type_action) (arg1 arg2 argn) (role1 role 2 rolen) (begin 0/1)
@@ -1722,7 +1552,6 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     - something from the OPC : just argN is enough
     - something external : argN + role is mandatory
     */
-
 
     Bottle bOutput;
 
@@ -1743,7 +1572,6 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
         return bOutput;
     }
 
-
     // catch the arguments and the role associate
     int iNbArg = 0;
     if (bInput.get(2).asList()->size() != bInput.get(3).asList()->size())
@@ -1756,7 +1584,6 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     iNbArg = bInput.get(2).asList()->size();
 
     //get Instance of the next opc
-
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
     bRequest = requestFromString("SELECT instance FROM main ORDER BY instance DESC LIMIT 1;");
     int instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
@@ -1805,14 +1632,11 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     if (!done)
         osMain << "FALSE);";
 
-
     // catch the arguments and the role associate
-
     string    sArguments = (*bInput.get(2).asList()).get(0).toString();
     string sRole = (*bInput.get(3).asList()).get(0).toString();
 
-
-    //Connexion to the OPC and snapshot
+    //Connection to the OPC and snapshot
     OPCEARS.snapshot(bInput, opcWorld);
     ostringstream osName;
     osName << sName << instance;
@@ -1846,93 +1670,12 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     return bSnapShot;
 }
 
-//test to save a single image into the db
-//should send a label for the image + filename?
-//WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
-//bInput = (testSaveImage (label, filename))
-Bottle autobiographicalMemory::testSaveImage(Bottle bInput)
-{
-    //Previously created a tables images in ABM
-    /*-- Table: images
-
-    -- DROP TABLE images;
-
-    CREATE TABLE images
-    (
-    id serial NOT NULL,
-    label text,
-    img_oid oid,
-    filename text,
-    CONSTRAINT images_pkey PRIMARY KEY (id)
-    )
-    WITH (
-    OIDS=FALSE
-    );
-    ALTER TABLE images OWNER TO postgres;*/
-
-    Bottle bOutput, bRequest, bResult;
-    bOutput.clear();
-    ostringstream osArg;
-
-    //concatenation of the path to store
-    stringstream ss;
-    ss << storingPath << "/" << bInput.get(1).asList()->get(1).asString();
-
-    //create image
-
-    //DEPRECATED
-    /*if (!createImage(ss.str())){
-        cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl;
-        bOutput.addString("ERROR CANNOT SAVE : no image come from sim camera!");
-        return bOutput;
-    }*/
-    cout << "DEPRECATEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEED" << endl ;
-
-    //sql request with label and filename
-    //export the desired image
-
-    storeImage(43, bInput.get(1).asList()->get(0).asString(), ss.str(), bInput.get(1).asList()->get(1).asString());
-
-
-    /*bRequest.addString("request");
-    //    INSERT INTO images(label, img_oid, filename) VALUES ('test_ppm', lo_import('C:/robot/ABMStoring/00000000.ppm'), '00000000.ppm');
-    osArg << "INSERT INTO images(label, img_oid, filename) VALUES ('" << bInput.get(1).asList()->get(0).asString() << "', lo_import('" << storingPath << "/" << bInput.get(1).asList()->get(1).asString() << "'), '" << bInput.get(1).asList()->get(1).asString() << "');";
-    bRequest.addString(string(osArg.str()).c_str());
-    bRequest = request(bRequest);*/
-
-
-    //debug : remove the file to try again
-
-    //1. first unlink large object
-    //SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = 'blopfile') AS images_subquery ;
-    /*osArg.str("");
-    osArg.clear();
-    osArg << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "') AS images_subquery;";
-    bRequest.addString(string(osArg.str()).c_str());
-    bRequest = request(bRequest);*/
-
-    //2. remove the line from images
-    //    DELETE FROM images WHERE label = 'test' ;
-    /*osArg.str("");
-    osArg.clear();
-    osArg << "DELETE FROM images WHERE label = '" << bInput.get(1).asList()->get(0).asString() << "';";
-    bRequest.addString(string(osArg.str()).c_str());
-    bRequest = request(bRequest);*/
-
-
-
-    bOutput.addString("ack");
-
-    return bOutput;
-}
-
 //test to extract a temp copy of an image by giving the label
 //WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
 
 //with instance nb
 Bottle autobiographicalMemory::askImage(int instance)
 {
-
     Bottle bOutput, bRequest, bResult;
     bOutput.clear();
 
@@ -1973,7 +1716,7 @@ Bottle autobiographicalMemory::askImage(int instance)
     stringstream ss;
 
     //lo_export to make a tmp copy before sending
-    ss << storingPath << "/" << storingTmpPath << "/" << filename;
+    ss << storingPath << "/" << storingTmpSuffix << "/" << filename;
     strcpy(tmpPath, ss.str().c_str());
     bRequest.addString("request");
 
@@ -2004,8 +1747,6 @@ Bottle autobiographicalMemory::askImage(int instance)
     bOutput.addString("ack");
     return bOutput;
 }
-
-
 
 Bottle autobiographicalMemory::connectOPC(Bottle bInput)
 {
@@ -2039,90 +1780,96 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
             return bOutput;
         }
     }
-    //    opcWorld->checkout();
-    //    opcWorld->update();
+    // opcWorld->checkout();
+    // opcWorld->update();
     bOutput.addString("Connection done");
     return bOutput;
 }
 
-Bottle autobiographicalMemory::connectImgProvider(){
+Bottle autobiographicalMemory::connectImgProvider()
+{
+    Bottle bOutput;
 
-    Bottle bOutput ;
-
-    if(mapImgProvider.size() == 0){
+    if (mapImgProvider.size() == 0){
         bOutput.addString("ERROR [connectImgProvider] the map is NULL");
-        return bOutput ;
+        return bOutput;
     }
 
     for (std::map<string, string>::const_iterator it = mapImgProvider.begin(); it != mapImgProvider.end(); ++it)
     {
-        string portImgReceiver = "/" + getName() + "/images/"+ it->first + "/in" ;
+        string portImgReceiver = "/" + getName() + "/images/" + it->first + "/in";
         mapImgReceiver.find(it->first)->second->open(portImgReceiver);
-            //port name of img Provider                                  //portname of imgReceiver which correspond to the label of imgProvider
-        cout << "  [connectImgProvider] : trying to connect " << it->second << " with " <<  mapImgReceiver.find(it->first)->second->getName().c_str() << endl ;
+        //port name of img Provider                                  //portname of imgReceiver which correspond to the label of imgProvider
+        //cout << "  [connectImgProvider] : trying to connect " << it->second << " with " <<  mapImgReceiver.find(it->first)->second->getName().c_str() << endl ;
         if (!Network::isConnected(it->second, mapImgReceiver.find(it->first)->second->getName().c_str())) {
 
-            cout << "Port is NOT connected : we will connect" << endl ;
+            //cout << "Port is NOT connected : we will connect" << endl ;
 
-            if (!Network::connect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str()),"",false) {
-                cout << "ERROR OF CONNECTION" << endl ;
-                bOutput.addString(it->second) ;
+            if (!Network::connect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str()), "", false) {
+                cout << "ERROR OF CONNECTION" << endl;
+                bOutput.addString(it->second);
             }
-        } else {
-            cout << "ALREADY CONNECTED" << endl ;
+
+            //cout << "CONNECTION FROM : " << it->second << endl ;
+            //cout << "CONNECTION TO   : " << mapImgReceiver.find(it->first)->second->getName().c_str() << endl;
+        }
+        else {
+            //cout << "ALREADY CONNECTED" << endl ;
         }
     }
 
-    if(bOutput.size() == 0){
-        bOutput.addString("ack") ;
+    if (bOutput.size() == 0){
+        bOutput.addString("ack");
     }
 
     return bOutput;
 }
 
-Bottle autobiographicalMemory::disconnectImgProvider(){
+Bottle autobiographicalMemory::disconnectImgProvider()
+{
+    Bottle bOutput;
+    bool isAllDisconnected = true;
 
-    Bottle bOutput ;
-    bool isAllDisconnected = true ;
-
-   if(mapImgProvider.size() == 0){
+    if (mapImgProvider.size() == 0){
         bOutput.addString("ERROR [disconnectImgProvider] the map is NULL");
-        return bOutput ;
+        return bOutput;
     }
 
     for (std::map<string, string>::const_iterator it = mapImgProvider.begin(); it != mapImgProvider.end(); ++it)
     {
-            //port name of img Provider                                  //portname of imgReceiver which correspond to the label of imgProvider
-        Network::disconnect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str()) ;
+        //port name of img Provider
+        //port name of imgReceiver which correspond to the label of imgProvider
+        Network::disconnect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str());
         if (Network::isConnected(it->second, mapImgReceiver.find(it->first)->second->getName().c_str())) {
-            cout << "ERROR [disconnectImgProvider] " << it->second << " is NOT disconnected!" ;
-            bOutput.addString(it->second) ;
-            isAllDisconnected = false ;
-        } else {
-            cout << "[disconnectImgProvider] " << it->second << " successfully disconnected!"  << endl ;
-            
+            cout << "ERROR [disconnectImgProvider] " << it->second << " is NOT disconnected!";
+            bOutput.addString(it->second);
+            isAllDisconnected = false;
+        }
+        else {
+            //cout << "[disconnectImgProvider] " << it->second << " successfully disconnected!"  << endl ;
+
             //Have to close/interrupt each time otherwise the port is not responsive anymore
             mapImgReceiver.find(it->first)->second->interrupt();
             mapImgReceiver.find(it->first)->second->close();
         }
     }
 
-    if(isAllDisconnected == true){
-        bOutput.addString("ack") ;
+    if (isAllDisconnected == true){
+        bOutput.addString("ack");
     }
 
-    cout << "[disconnectImgProvider] bOutput = {" << bOutput.toString().c_str() << "}" << endl ;
-
+    //cout << "[disconnectImgProvider] bOutput = {" << bOutput.toString().c_str() << "}" << endl ;
     return bOutput;
 }
 
-bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<PixelRgb>>* imgPort){
-
+bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<PixelRgb>>* imgPort)
+{
     //Extract the incoming images from yarp
     ImageOf<PixelRgb> *yarpImage = imgPort->read();
 
-    if (yarpImage != NULL) { // check we actually got something
+    //cout << "imgPort name : " << imgPort->getName() << endl ; 
 
+    if (yarpImage != NULL) { // check we actually got something
         //user opencv to load the image
         IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
         cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
@@ -2132,8 +1879,9 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
         //create the image
         cvSaveImage(fullPath.c_str(), cvImage);
 
-        cvReleaseImage(&cvImage);
+        //cout << "img created : " << fullPath.c_str() << endl ;
 
+        cvReleaseImage(&cvImage);
     }
     else {
         cout << "ERROR CANNOT SAVE :no image come from sim camera!" << endl;
@@ -2143,11 +1891,11 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
     return true;
 }
 
-bool autobiographicalMemory::sendImage(string fullPath){
-
+bool autobiographicalMemory::sendImage(string fullPath)
+{
     IplImage* img = NULL;
 
-    cout << "Going to send : " << fullPath << endl;
+    //cout << "Going to send : " << fullPath << endl;
 
     //load image with opencv
     img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED);
@@ -2168,8 +1916,8 @@ bool autobiographicalMemory::sendImage(string fullPath){
     return true;
 }
 
-int autobiographicalMemory::sendStreamImage(int instance){
-
+int autobiographicalMemory::sendStreamImage(int instance)
+{
     Bottle bRequest;
     ostringstream osArg;
 
@@ -2196,7 +1944,7 @@ int autobiographicalMemory::sendStreamImage(int instance){
 
     //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
     for (int i = 0; i < bRequest.size(); i++){
-        exportImage(atoi(bRequest.get(i).asList()->get(0).toString().c_str()), storingTmpPath);
+        exportImage(atoi(bRequest.get(i).asList()->get(0).toString().c_str()), storingTmpSuffix);
     }
 
     //streamStatus changed (triggered in update()
@@ -2207,13 +1955,13 @@ int autobiographicalMemory::sendStreamImage(int instance){
 }
 
 //store an image into the SQL db
-bool autobiographicalMemory::storeImage(int instance, string label, string fullPath, string imgName){
-
+bool autobiographicalMemory::storeImage(int instance, string label, string fullPath, string imgName, string imgTime, string currentImgProviderPort)
+{
     Bottle bRequest;
     ostringstream osArg;
     //sql request with instance and label, images are stored from their location
     bRequest.addString("request");
-    osArg << "INSERT INTO images(instance, label, img_oid, filename) VALUES (" << instance << ", '" << label << "', lo_import('" << fullPath << "'), '" << imgName << "');";
+    osArg << "INSERT INTO images(instance, label, img_oid, filename, time, img_provider_port) VALUES (" << instance << ", '" << label << "', lo_import('" << fullPath << "'), '" << imgName << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -2223,8 +1971,8 @@ bool autobiographicalMemory::storeImage(int instance, string label, string fullP
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
-bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath){
-
+bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath)
+{
     Bottle bRequest;
     ostringstream osArg;
 
@@ -2253,7 +2001,6 @@ bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath){
     //retrieve the image from the db and print it to /storingPath/temp folder
     osArg << "SELECT lo_export(img_oid, '" << tmpPath << "') from images WHERE img_oid = '" << img_oid << "';";
 
-
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
 
@@ -2268,6 +2015,17 @@ string autobiographicalMemory::getCurrentTime()
     time_t myTime;
     time(&myTime);                    // get unix time
     tm *t = localtime(&myTime);        // conversion in local time
+
+#ifdef WIN32
+    SYSTEMTIME st;
+    GetSystemTime(&st);
+    int iUS = st.wMilliseconds * 1000;
+#else
+    struct timezone tz;
+    struct timeval tv;
+    gettimeofday(&tv, &tz);
+    int iUS = tv.tv_usec;
+#endif
 
     Time.tm_hour = (*t).tm_hour;
     Time.tm_min = (*t).tm_min;
@@ -2289,7 +2047,7 @@ string autobiographicalMemory::getCurrentTime()
     iMonth = Time.tm_mon + 1;
     iDay = Time.tm_mday;
     iYear = Time.tm_year + 1900;
-    osTime << iYear << "-" << iMonth << "-" << iDay << " " << iHH << ":" << iMM << ":" << iSS;
+    osTime << iYear << "-" << iMonth << "-" << iDay << " " << iHH << ":" << iMM << ":" << iSS << "." << iUS;
 
     return osTime.str();
 }
@@ -2306,30 +2064,25 @@ Bottle autobiographicalMemory::resetKnowledge()
     *ABMDataBase << "CREATE TABLE spatialknowledge ( name text NOT NULL,  argument text NOT NULL, dependance text NOT NULL, instance integer NOT NULL,  CONSTRAINT spatialknowledge_pkey PRIMARY KEY (instance),  CONSTRAINT spatialknowledge_name_key UNIQUE (name, argument, dependance) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE spatialknowledge OWNER TO postgres;";
 
-
     /****************************** spatialdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS spatialdata CASCADE;";
     *ABMDataBase << "CREATE TABLE spatialdata ( vx double precision, vy double precision, vdx double precision, vdy double precision, instance integer NOT NULL, id serial NOT NULL, CONSTRAINT spatialdata_instance_fkey FOREIGN KEY (instance) REFERENCES spatialknowledge (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE spatialdata OWNER  TO postgres;";
-
 
     /****************************** timeknowledge *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS timeknowledge CASCADE;";
     *ABMDataBase << "CREATE TABLE timeknowledge ( temporal text NOT NULL,   CONSTRAINT timeknowledge_pkey PRIMARY KEY (temporal) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE timeknowledge OWNER TO postgres;";
 
-
     /****************************** timedata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS timedata CASCADE;";
     *ABMDataBase << "CREATE TABLE timedata ( temporal text NOT NULL,   timearg1 timestamp without time zone NOT NULL,   timearg2 timestamp without time zone NOT NULL,   CONSTRAINT timedata_temporal_fkey FOREIGN KEY (temporal)        REFERENCES timeknowledge (temporal) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE timedata OWNER  TO postgres;";
 
-
     /****************************** contextknowledge *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS contextknowledge CASCADE;";
     *ABMDataBase << "CREATE TABLE contextknowledge ( name text NOT NULL,  argument text NOT NULL, dependance text NOT NULL,  instance integer NOT NULL,  CONSTRAINT contextknowledge_pkey PRIMARY KEY (instance),  CONSTRAINT contextknowledge_name_key UNIQUE (name, argument, dependance) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE contextknowledge OWNER TO postgres;";
-
 
     /****************************** contextdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS contextdata CASCADE;";
@@ -2346,31 +2099,25 @@ Bottle autobiographicalMemory::resetKnowledge()
     *ABMDataBase << "CREATE TABLE sharedplan ( name text NOT NULL,  manner text NOT NULL,  instance integer NOT NULL,  CONSTRAINT sharedplan_pkey PRIMARY KEY (instance),  CONSTRAINT haredplan_name_key UNIQUE (name, manner) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE sharedplan OWNER TO postgres;";
 
-
     /**************************** sharedplandata **************************/
     *ABMDataBase << "DROP TABLE IF EXISTS sharedplandata CASCADE;";
     *ABMDataBase << "CREATE TABLE sharedplandata ( activitytype text NOT NULL, activityname text NOT NULL,   instance integer NOT NULL,   id integer NOT NULL,  CONSTRAINT sharedplandata_pkey PRIMARY KEY (instance, id ) , CONSTRAINT  sharedplandata_instance_fkey FOREIGN KEY (instance) REFERENCES sharedplan (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE sharedplandata OWNER TO postgres;";
-
 
     /**************************** sharedplanarg ***************************/
     *ABMDataBase << "DROP TABLE IF EXISTS sharedplanarg CASCADE";
     *ABMDataBase << "CREATE TABLE sharedplanarg ( instance integer NOT NULL, argument text NOT NULL, role text NOT NULL, CONSTRAINT sharedplanarg_pkey PRIMARY KEY (instance, role, argument),  CONSTRAINT sharedplanarg_instance_fkey FOREIGN KEY (instance) REFERENCES sharedplan (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE sharedplandata OWNER TO postgres";
 
-
     /************************** spadataarg ********************************/
     *ABMDataBase << "DROP TABLE IF EXISTS spdataarg CASCADE";
     *ABMDataBase << "CREATE TABLE spdataarg ( id integer NOT NULL, instance integer NOT NULL, argument text NOT NULL, role text NOT NULL, CONSTRAINT spdataarg_pkey PRIMARY KEY (id, instance, role, argument) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE spdataarg OWNER TO postgres,  ADD FOREIGN KEY (instance, id) REFERENCES sharedplandata (instance, id);";
 
-
-
     /************************  BEHAVIOR ***********************************/
     *ABMDataBase << " DROP TABLE IF EXISTS behavior CASCADE";
     *ABMDataBase << "CREATE TABLE behavior ( name text NOT NULL, argument text NOT NULL, instance integer NOT NULL, CONSTRAINT behavior_pkey PRIMARY KEY (instance), CONSTRAINT behavior_name_key UNIQUE (name, argument) ) WITH (OIDS=FALSE)";
     *ABMDataBase << "ALTER TABLE spatialknowledge OWNER TO postgres";
-
 
     /*********************** BEHAVIORDATA **********************************/
     *ABMDataBase << " DROP TABLE IF EXISTS behaviordata CASCADE";
@@ -2385,7 +2132,6 @@ Bottle autobiographicalMemory::resetKnowledge()
     bOutput.addString("knowledge database reset");
     return bOutput;
 }
-
 
 /*
 * Erase of all the tables the data with instance given
@@ -2533,7 +2279,6 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
     return bOutput;
 }
 
-
 Bottle autobiographicalMemory::connect2reasoning()
 {
     string name_abm2reasoning = "/";
@@ -2556,12 +2301,10 @@ Bottle autobiographicalMemory::connect2reasoning()
 Bottle autobiographicalMemory::detectFailed()
 {
     Bottle bOutput;
-    Bottle    bMessenger = requestFromString("SELECT instance FROM main WHERE activitytype = 'actionfailed' AND begin = true");
-
+    Bottle bMessenger = requestFromString("SELECT instance FROM main WHERE activitytype = 'actionfailed' AND begin = true");
 
     return bOutput;
 }
-
 
 /*
 * Put in the OPC all the words known in the ABM.
@@ -2595,7 +2338,6 @@ Bottle autobiographicalMemory::populateOPC()
         ostringstream osAgent;
         if (opcWorld->getEntity(sName.c_str()) == NULL)
         {
-
             osAgent << "SELECT instance FROM agent WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
             bReply = requestFromString(osAgent.str());
             cout << bReply.get(0).toString() << endl;
@@ -2623,7 +2365,6 @@ Bottle autobiographicalMemory::populateOPC()
         }
     }
 
-
     // 2. RTObjects : 
     Bottle bDistincRto = requestFromString("SELECT DISTINCT name FROM rtobject");
 
@@ -2633,7 +2374,6 @@ Bottle autobiographicalMemory::populateOPC()
         ostringstream osRto;
         if (opcWorld->getEntity(sName.c_str()) == NULL)
         {
-
             osRto << "SELECT instance FROM rtobject WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
             bReply = requestFromString(osRto.str());
             int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
@@ -2673,7 +2413,6 @@ Bottle autobiographicalMemory::populateOPC()
             ostringstream osObject;
             if (opcWorld->getEntity(sName.c_str()) == NULL)
             {
-
                 osObject << "SELECT instance FROM object WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
                 bReply = requestFromString(osObject.str());
                 int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
@@ -2708,7 +2447,6 @@ Bottle autobiographicalMemory::populateOPC()
                     TempObj->m_color.push_back(*it);
                 }
 
-
                 osObject.str("");
                 osObject << "SELECT orientation FROM object WHERE (instance = " << instance << " and name = '" << sName << "')";
 
@@ -2724,7 +2462,6 @@ Bottle autobiographicalMemory::populateOPC()
                 }
 
                 TempObj->m_present = false;
-
 
                 opcWorld->commit(TempObj);
                 incrObject++;
@@ -2792,10 +2529,10 @@ vector<int> autobiographicalMemory::tupleIntFromString(string sInput)
 */
 vector<double> autobiographicalMemory::tupleDoubleFromString(string sInput)
 {
-    vector<double>    tOutput;
+    vector<double> tOutput;
     char *cInput;
     cInput = (char*)sInput.c_str();
-    int    iLevel = 0;
+    int iLevel = 0;
     unsigned int data = 0;
     string sX = "", sY = "", sZ = "";
     while (cInput[data] != '\0')
@@ -2832,7 +2569,6 @@ vector<double> autobiographicalMemory::tupleDoubleFromString(string sInput)
     return tOutput;
 }
 
-
 Bottle autobiographicalMemory::getInfoAbout(string sName)
 {
     Bottle bMessenger, bOutput;
@@ -2861,12 +2597,7 @@ Bottle autobiographicalMemory::getInfoAbout(string sName)
 
         int iNbInteraction = atoi(bMessenger.get(0).asList()->get(0).toString().c_str());
         cout << "I have interacted with this " << sSubType << " " << iNbInteraction / 2 << " times ! " << endl;
-
-
     }
 
-
-
     return bOutput;
-
 }
