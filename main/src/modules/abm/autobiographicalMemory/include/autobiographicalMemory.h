@@ -53,8 +53,6 @@ private :
     std::string getCurrentTime();
     bool        inSharedPlan;
     bool        isconnected2reasoning;
-    bool        isconnected2Cam;
-    bool        isconnected2Kinect;
     bool        bPutObjectsOPC;
 
     yarp::os::Bottle detectFailed();
@@ -94,7 +92,6 @@ public :
 
     yarp::os::Bottle eraseInstance(yarp::os::Bottle bInput);
 
-    yarp::os::Bottle testSaveImage(yarp::os::Bottle bInput);
     yarp::os::Bottle askImage(int instance);
 
     bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);

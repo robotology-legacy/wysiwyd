@@ -587,26 +587,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             bReply = eraseInstance(bCommand);
         }
-        //DEPRECATED = not needed anymore, save stream in snapshot when "action"
-        else if (bCommand.get(0) == "testSaveStreamImage")
-        {
-            if (!isconnected2Cam && !isconnected2Kinect) {
-                cout << "ABM failed to connect to Camera and Kinect!" << endl;
-                bError.addString("in testSaveStreamImage :  Error, connetion missing between" + robotPortCam + "or" + "/kinectServer/image:o " + "and " + imagePortIn.getName().c_str());
-                bReply = bError;
-            }
-            else if ((bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1))
-            {
-                streamStatus = bCommand.get(1).asList()->get(0).asString();
-                imgLabel = bCommand.get(1).asList()->get(1).asString();
-                bReply.addString(streamStatus);
-            }
-            else
-            {
-                bError.addString("in testSaveStreamImage : number of element incorrect : (testSaveStreamImage (begin/end, imgLabel))");
-                bReply = bError;
-            }
-        }
         //sendStreamImage (instance)
         else if (bCommand.get(0) == "sendStreamImage")
         {
@@ -627,24 +607,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             else
             {
                 bError.addString("in sendStreamImage : number of element incorrect : testSendStreamImage (instance)");
-                bReply = bError;
-            }
-        }
-        //DEPRECATED = in snapshot when "sentence"
-        else if (bCommand.get(0) == "testSaveImage")
-        {
-            if (!isconnected2Cam && !isconnected2Kinect) {
-                cout << "ABM failed to connect to Camera or Kinect!" << endl;
-                bError.addString("in testSaveImage :  Error, connetion missing between" + robotPortCam + " or /kinectServer/image:o " + " and " + imagePortIn.getName().c_str());
-                bReply = bError;
-            }
-            else if ((bCommand.size() > 1) && (bCommand.get(1).asList()->size() > 1))
-            {
-                bReply = testSaveImage(bCommand);
-            }
-            else
-            {
-                bError.addString("in testSaveImage : number of element insufficient : (testSaveImage (label, filename))");
                 bReply = bError;
             }
         }
