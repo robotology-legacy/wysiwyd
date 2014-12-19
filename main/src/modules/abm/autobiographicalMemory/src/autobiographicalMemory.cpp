@@ -356,7 +356,8 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /****************************** images *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS images CASCADE;";
-    *ABMDataBase << "CREATE TABLE images (instance integer NOT NULL, label text, img_oid oid NOT NULL, filename text, CONSTRAINT img_id PRIMARY KEY (img_oid), CONSTRAINT images_instancee_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
+    *ABMDataBase << "CREATE TABLE images(\"time\" timestamp without time zone, img_provider_port text, instance integer NOT NULL, label text, relative_path text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT images_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE); ALTER TABLE images OWNER TO postgres;";
+    // DEPRECATED *ABMDataBase << "CREATE TABLE images (instance integer NOT NULL, label text, img_oid oid NOT NULL, filename text, CONSTRAINT img_id PRIMARY KEY (img_oid), CONSTRAINT images_instancee_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE images OWNER  TO postgres;";
 
     string sFilename;
@@ -486,7 +487,7 @@ Bottle autobiographicalMemory::removeImgProvider(string labelImgProvider)
 
 double autobiographicalMemory::getPeriod()
 {
-    return 0.03; //module periodicity (seconds)
+    return 0.005; //module periodicity (seconds)
 }
 
 /* rpc respond module */
@@ -710,10 +711,11 @@ bool autobiographicalMemory::updateModule()
         currentPathFolder = "";
         currentPathFolder += storingPath + "/" + imgLabel;
 
+        folderWithTime = imgLabel;
+
         //if -1 : repo already there
         if (yarp::os::mkdir(currentPathFolder.c_str()) == -1){
             cout << "WARNING :  folder already exist, add getTime to it!" << endl;
-            string folderWithTime = imgLabel;
             string currentTime = getCurrentTime();
 
             //need to change ':' and ' ' by _ for folder name
@@ -732,6 +734,8 @@ bool autobiographicalMemory::updateModule()
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
 
         //go through the ImgReceiver ports
+        string synchroTime = getCurrentTime();
+
         for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
             //concatenation of the path to store
@@ -751,7 +755,7 @@ bool autobiographicalMemory::updateModule()
             }
             else {
                 //create SQL entry, register the cam image in specific folder
-                storeImage(imgInstance, imgLabel, fullPath, imgName, getCurrentTime(), mapImgProvider[it->first]);
+                storeImage(imgInstance, imgLabel, folderWithTime +"/"+ imgName, synchroTime, mapImgProvider[it->first]);
             }
         }
 
@@ -761,6 +765,8 @@ bool autobiographicalMemory::updateModule()
     else if (streamStatus == "record") {
         imgNb += 1;
         //cout << "Image Nb " << imgNb << endl;
+
+        string synchroTime = getCurrentTime();
 
         //go through the ImgReceiver ports
         for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
@@ -781,7 +787,7 @@ bool autobiographicalMemory::updateModule()
                 cout << "Error in Update : image not created from " << it->first << endl;
             } else {
                 //create SQL entry, register the cam image in specific folder
-                storeImage(imgInstance, imgLabel, fullPath, imgName, getCurrentTime(), mapImgProvider[it->first]);
+                storeImage(imgInstance, imgLabel, folderWithTime + "/" + imgName, synchroTime, mapImgProvider[it->first]);
             }
         }
     }
@@ -1110,6 +1116,10 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     else
     {  //just one image (sentence?)
         //go through the ImgReceiver ports
+        string synchroTime = getCurrentTime();
+
+        folderWithTime = imgLabel;
+
         for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
             //concatenation of the path to store
@@ -1127,7 +1137,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
             strcpy(imgName, ssImgName.str().c_str());
 
             stringstream ssPath;
-            ssPath << storingPath << "/" << imgName;
+            ssPath << storingPath << "/" << folderWithTime << "/" << imgName;
             strcpy(fullPath, ssPath.str().c_str());
 
             if (!createImage(fullPath, it->second)){
@@ -1135,7 +1145,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
             }
             else {
                 //create SQL entry, register the cam image in specific folder
-                storeImage(instance, imgLabel, fullPath, imgName, getCurrentTime(), mapImgProvider[it->first]);
+                storeImage(instance, imgLabel, folderWithTime+"/"+imgName, synchroTime, mapImgProvider[it->first]);
             }
         }
 
@@ -1835,8 +1845,6 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
         //user opencv to load the image
         IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
         cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
-        ImageOf<PixelBgr> yarpReturnImage;
-        yarpReturnImage.wrapIplImage(cvImage);
 
         //create the image
         cvSaveImage(fullPath.c_str(), cvImage);
@@ -1917,13 +1925,14 @@ int autobiographicalMemory::sendStreamImage(int instance)
 }
 
 //store an image into the SQL db
-bool autobiographicalMemory::storeImage(int instance, string label, string fullPath, string imgName, string imgTime, string currentImgProviderPort)
+bool autobiographicalMemory::storeImage(int instance, string label, string relativePath, string imgTime, string currentImgProviderPort)
 {
     Bottle bRequest;
     ostringstream osArg;
+
     //sql request with instance and label, images are stored from their location
     bRequest.addString("request");
-    osArg << "INSERT INTO images(instance, label, img_oid, filename, time, img_provider_port) VALUES (" << instance << ", '" << label << "', lo_import('" << fullPath << "'), '" << imgName << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
+    osArg << "INSERT INTO images(instance, label, relative_path, time, img_provider_port) VALUES (" << instance << ", '" << label << "', '" << relativePath << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
