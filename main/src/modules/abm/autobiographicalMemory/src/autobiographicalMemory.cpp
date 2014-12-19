@@ -1924,7 +1924,7 @@ int autobiographicalMemory::sendStreamImage(int instance)
     return bRequest.size();
 }
 
-//store an image into the SQL db
+//store an image into the SQL db /!\ no lo_import/oid!! (high frequency streaming needed)
 bool autobiographicalMemory::storeImage(int instance, string label, string relativePath, string imgTime, string currentImgProviderPort)
 {
     Bottle bRequest;
@@ -1940,6 +1940,27 @@ bool autobiographicalMemory::storeImage(int instance, string label, string relat
 
     return true;
 }
+
+bool autobiographicalMemory::storeOID(){
+    Bottle bRequest;
+    ostringstream osStoreOID;
+
+    osStoreOID << "SELECT \"time\", img_provider_port, relative_path FROM images WHERE img_oid IS NULL";
+    bRequest = requestFromString(osStoreOID.str());
+
+    cout << "bRequest : " << bRequest.toString() << endl;
+
+    // TODO: Loop over all images; do something like this
+    // for image in images {
+    //     UPDATE TABLE images SET img_oid=lo_import(storingPath+relativePath) WHERE time=time and img_provider_port = imgProviderPort
+    // }
+    // string time = bRequest.get(0).asList()->get(0).toString().c_str();
+    // string img_provider_port = bRequest.get(0).asList()->get(1).toString().c_str();
+    // string relative_path = bRequest.get(0).asList()->get(2).toString().c_str();
+
+    return true;
+}
+
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
 bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath)
