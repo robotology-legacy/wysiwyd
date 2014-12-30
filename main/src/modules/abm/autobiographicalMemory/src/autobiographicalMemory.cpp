@@ -736,7 +736,7 @@ bool autobiographicalMemory::updateModule()
         //go through the ImgReceiver ports
         string synchroTime = getCurrentTime();
 
-        for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+        for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
             //concatenation of the path to store
             char imgName[512] = "";
@@ -769,7 +769,7 @@ bool autobiographicalMemory::updateModule()
         string synchroTime = getCurrentTime();
 
         //go through the ImgReceiver ports
-        for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+        for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
             //concatenation of the path to store
             char imgName[512] = "";
@@ -1120,7 +1120,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 
         folderWithTime = imgLabel;
 
-        for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+        for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
         {
             //concatenation of the path to store
             char imgName[512] = "";
@@ -1777,7 +1777,7 @@ Bottle autobiographicalMemory::connectImgProvider()
 
             //cout << "Port is NOT connected : we will connect" << endl ;
 
-            if (!Network::connect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str()), "", false) {
+            if (!Network::connect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str())) {
                 cout << "ERROR OF CONNECTION" << endl;
                 bOutput.addString(it->second);
             }
@@ -1834,7 +1834,7 @@ Bottle autobiographicalMemory::disconnectImgProvider()
     return bOutput;
 }
 
-bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<PixelRgb>>* imgPort)
+bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
 {
     //Extract the incoming images from yarp
     ImageOf<PixelRgb> *yarpImage = imgPort->read();
