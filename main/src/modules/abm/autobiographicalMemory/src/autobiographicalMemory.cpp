@@ -12,8 +12,13 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 using namespace cv;
 
-autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
+/* configure the module */
+bool autobiographicalMemory::configure(ResourceFinder &rf)
 {
+    moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
+
+    setName(moduleName.c_str());
+
     //conf group for database properties
     Bottle &bDBProperties = rf.findGroup("database_properties");
     server = bDBProperties.check("server", Value("127.0.0.1")).asString();
@@ -30,29 +35,14 @@ autobiographicalMemory::autobiographicalMemory(ResourceFinder &rf)
     storingTmpSuffix = bISProperties.check("storingTmpSuffix", Value("tmp")).asString();
     imgFormat = bISProperties.check("imgFormat", Value("tif")).asString();
 
-    inSharedPlan = false;
-
     // TODO: streamStatus should be changed to enum
     streamStatus = "none"; //none, record, stop, send
     imgLabel = "defaultLabel";
     imgInstance = -1;
     imgNb = 0;
-    imgNbInStream = 0;
-}
-
-autobiographicalMemory::~autobiographicalMemory()
-{
-    delete ABMDataBase;
-}
-
-/* configure the module */
-bool autobiographicalMemory::configure(ResourceFinder &rf)
-{
-    moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
-
-    setName(moduleName.c_str());
 
     bPutObjectsOPC = false;
+    inSharedPlan = false;
 
     portEventsName = "/" + getName() + "/request:i";
     portEventsIn.open(portEventsName.c_str());
@@ -861,6 +851,8 @@ bool autobiographicalMemory::interruptModule()
 
 bool autobiographicalMemory::close()
 {
+    cout << "Calling close function" << endl;
+
     opcWorld->interrupt();
     opcWorld->close();
 
@@ -879,8 +871,9 @@ bool autobiographicalMemory::close()
     imagePortIn.interrupt();
     imagePortIn.close();
 
-    cout << "Calling close function\n";
     delete opcWorld;
+    delete ABMDataBase;
+
     return true;
 }
 

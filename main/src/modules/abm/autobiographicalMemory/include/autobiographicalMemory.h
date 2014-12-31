@@ -62,8 +62,6 @@ private :
 
 public : 
 
-    autobiographicalMemory(yarp::os::ResourceFinder &rf);
-    ~autobiographicalMemory();
 
     std::string moduleName;
     std::string portEventsName;
