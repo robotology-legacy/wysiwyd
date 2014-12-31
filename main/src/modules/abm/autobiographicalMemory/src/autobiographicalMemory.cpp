@@ -613,27 +613,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "setImgProvider")
-        {
-            if (bCommand.size() > 1)
-            {
-                string provider = bCommand.get(1).toString().c_str();
-
-                if (provider != "kinect" && provider != "cam" && provider != "none") {
-                    bError.addString("ERROR in setImgProvider : " + provider + " is not a valid imgProvider => kinect or cam or none");
-                    bReply = bError;
-                }
-                else {
-                    bReply.addString("ack");
-                    imgProvider = provider;
-                }
-            }
-            else
-            {
-                bError.addString("ERROR in setImgProvider : wrong number of element -> setImgProvider provider");
-                bReply = bError;
-            }
-        }
         // setCustomImgProvider (label /yarp/port/img/provider)
         else if (bCommand.get(0) == "addImgProvider")
         {
