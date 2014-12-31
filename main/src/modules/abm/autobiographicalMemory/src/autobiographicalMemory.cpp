@@ -1696,20 +1696,24 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance) {
 
 bool autobiographicalMemory::storeOID(){
     Bottle bRequest;
-    ostringstream osStoreOID;
+    ostringstream osStoreOIDReq;
 
-    osStoreOID << "SELECT \"time\", img_provider_port, relative_path FROM images WHERE img_oid IS NULL";
-    bRequest = requestFromString(osStoreOID.str());
+    osStoreOIDReq << "SELECT \"time\", img_provider_port, relative_path FROM images WHERE img_oid IS NULL";
+    bRequest = requestFromString(osStoreOIDReq.str());
+    //cout << "bRequest : " << bRequest.toString() << endl;
 
-    cout << "bRequest : " << bRequest.toString() << endl;
+    // TODO: Needs to be tested!!!
+    for(int i = 0; i<bRequest.size(); i++) {
+        string imgTime = bRequest.get(i).asList()->get(0).toString().c_str();
+        string imgProviderPort = bRequest.get(i).asList()->get(1).toString().c_str();
+        string imgRelativePath = bRequest.get(i).asList()->get(2).toString().c_str();
 
-    // TODO: Loop over all images; do something like this
-    // for image in images {
-    //     UPDATE TABLE images SET img_oid=lo_import(storingPath+relativePath) WHERE time=time and img_provider_port = imgProviderPort
-    // }
-    // string time = bRequest.get(0).asList()->get(0).toString().c_str();
-    // string img_provider_port = bRequest.get(0).asList()->get(1).toString().c_str();
-    // string relative_path = bRequest.get(0).asList()->get(2).toString().c_str();
+        ostringstream osStoreOID;
+        osStoreOID << "UPDATE TABLE images SET img_oid=lo_import(storingPath+" << imgRelativePath << ")";
+        osStoreOID << "WHERE \"time\"=" << imgTime << " and img_provider_port = " << imgProviderPort;
+
+        requestFromString(osStoreOID.str());
+    }
 
     return true;
 }
