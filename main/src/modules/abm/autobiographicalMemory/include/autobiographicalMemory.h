@@ -21,16 +21,8 @@ private :
     std::string savefile;
     std::string storingPath;        //context/conf path to store data by default
     std::string storingTmpSuffix;   //folder inside storingPath for temp image to transfer
-    std::string robotName;
-    std::string camName;
-    std::string camSide;
-    std::string camExtension;
+
     std::string imgFormat;
-    std::string kinServerName;
-    std::string kinExtension;
-
-    std::string imgProvider;
-
     std::string imgProviderPort;
 
     //for update camera stream
@@ -38,31 +30,27 @@ private :
     std::string currentPathFolder;
     std::string folderWithTime;
     std::string imgLabel;
-    std::string robotPortCam;
-    std::string robotPortKin;
 
-    int imgNb; 
-    int imgNbInStream;
+    int imgNb;
     int imgInstance;
     int currentInstance;
 
     yarp::os::Bottle bListImages;
 
-    yarp::os::Bottle bSaveRequest;
     wysiwyd::wrdac::opcEars OPCEARS;
     wysiwyd::wrdac::OPCClient *opcWorld;
-    std::string getCurrentTime();
-    bool        inSharedPlan;
-    bool        isconnected2reasoning;
-    bool        bPutObjectsOPC;
+
+    bool inSharedPlan;
+    bool isconnected2reasoning;
+    bool bPutObjectsOPC;
 
     yarp::os::Bottle detectFailed();
 
+    std::string getCurrentTime();
+
     DataBase<PostgreSql>* ABMDataBase;
 
-public : 
-
-
+public:
     std::string moduleName;
     std::string portEventsName;
     yarp::os::Port portEventsIn;
@@ -83,7 +71,6 @@ public :
     yarp::os::Bottle load(yarp::os::Bottle bInput);
     yarp::os::Bottle restoBottle(ResultSet result);
     yarp::os::Bottle snapshot(yarp::os::Bottle bInput);
-    yarp::os::Bottle snapshot2(yarp::os::Bottle bInput);
     yarp::os::Bottle snapshotSP(yarp::os::Bottle bInput);
     yarp::os::Bottle snapshotBehavior(yarp::os::Bottle bInput);
     yarp::os::Bottle connectOPC(yarp::os::Bottle bInput);
@@ -108,7 +95,7 @@ public :
     yarp::os::Bottle disconnectImgProvider();
     yarp::os::Bottle connectImgProvider();
 
-    yarp::os::Bottle    connect2reasoning();
+    yarp::os::Bottle connect2reasoning();
 
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     bool interruptModule();
