@@ -692,63 +692,15 @@ bool autobiographicalMemory::updateModule()
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
 
-        //go through the ImgReceiver ports
-        string synchroTime = getCurrentTime();
+        storeImageAllProviders();
 
-        for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
-        {
-            //concatenation of the path to store
-            char imgName[512] = "";
-            char fullPath[512] = "";
-
-            stringstream ssImgName;
-            ssImgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
-            strcpy(imgName, ssImgName.str().c_str());
-
-            stringstream ssPath;
-            ssPath << currentPathFolder << "/" << imgName;
-            strcpy(fullPath, ssPath.str().c_str());
-
-            if (!createImage(fullPath, it->second)) {
-                cout << "Error in Update : image not created from " << it->first << endl;
-            }
-            else {
-                //create SQL entry, register the cam image in specific folder
-                storeImage(imgInstance, imgLabel, folderWithTime +"/"+ imgName, synchroTime, mapImgProvider[it->first]);
-            }
-        }
-
-        //init of the stream record done : go through the classic record phase
+        //init of the stream record done: go through the classic record phase
         streamStatus = "record";
     }
     else if (streamStatus == "record") {
         imgNb += 1;
         //cout << "Image Nb " << imgNb << endl;
-
-        string synchroTime = getCurrentTime();
-
-        //go through the ImgReceiver ports
-        for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
-        {
-            //concatenation of the path to store
-            char imgName[512] = "";
-            char fullPath[512] = "";
-
-            stringstream ssImgName;
-            ssImgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
-            strcpy(imgName, ssImgName.str().c_str());
-
-            stringstream ssPath;
-            ssPath << currentPathFolder << "/" << imgName;
-            strcpy(fullPath, ssPath.str().c_str());
-
-            if (!createImage(fullPath, it->second)) {
-                cout << "Error in Update : image not created from " << it->first << endl;
-            } else {
-                //create SQL entry, register the cam image in specific folder
-                storeImage(imgInstance, imgLabel, folderWithTime + "/" + imgName, synchroTime, mapImgProvider[it->first]);
-            }
-        }
+        storeImageAllProviders();
     }
     else if (streamStatus == "send") { //stream to send
         //select all the images (through primary key oid) corresponding to a precise instance
@@ -1074,40 +1026,9 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         }
     }
     else
-    {  //just one image (sentence?)
-        //go through the ImgReceiver ports
-        string synchroTime = getCurrentTime();
-
-        folderWithTime = imgLabel;
-
-        for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
-        {
-            //concatenation of the path to store
-            char imgName[512] = "";
-            char fullPath[512] = "";
-
-            stringstream ssImgName;
-            if (fullSentence == ""){
-                fullSentence = imgLabel;
-            }
-
-            //take the full sentence, replace space by _ to have the img name
-            replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
-            ssImgName << fullSentence << "_" << it->first << "." << imgFormat;
-            strcpy(imgName, ssImgName.str().c_str());
-
-            stringstream ssPath;
-            ssPath << storingPath << "/" << folderWithTime << "/" << imgName;
-            strcpy(fullPath, ssPath.str().c_str());
-
-            if (!createImage(fullPath, it->second)){
-                cout << "Error in snapshot : image not created from " << it->first << endl;
-            }
-            else {
-                //create SQL entry, register the cam image in specific folder
-                storeImage(instance, imgLabel, folderWithTime+"/"+imgName, synchroTime, mapImgProvider[it->first]);
-            }
-        }
+    {   //just one image (sentence?)
+        folderWithTime = imgLabel; // TODO: Can we really assume this?!? What if folder is already existing?
+        storeImageAllProviders(true);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
         string reply = disconnectImgProvider().toString().c_str();
@@ -1728,6 +1649,49 @@ bool autobiographicalMemory::storeImage(int instance, string label, string relat
     //bOutput.addString("ack");
 
     return true;
+}
+
+bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance) {
+    bool allGood = true;
+    //go through the ImgReceiver ports
+    string synchroTime = getCurrentTime();
+
+    for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+    {
+        //concatenation of the path to store
+        char imgName[512] = "";
+        char fullPath[512] = "";
+
+        stringstream ssImgName;
+        if(forSingleInstance) {
+            if (fullSentence == ""){
+                fullSentence = imgLabel;
+            }
+            //take the full sentence, replace space by _ to have the img name
+            replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
+            ssImgName << fullSentence << "_" << it->first << "." << imgFormat;
+        } else {
+            ssImgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
+        }
+        strcpy(imgName, ssImgName.str().c_str());
+
+        stringstream ssPath;
+        ssPath << currentPathFolder << "/" << imgName;
+        strcpy(fullPath, ssPath.str().c_str());
+
+        if (!createImage(fullPath, it->second)) {
+            cout << "Error in Update : image not created from " << it->first << endl;
+            allGood = false;
+        }
+        else {
+            //create SQL entry, register the cam image in specific folder
+            if(!storeImage(imgInstance, imgLabel, folderWithTime +"/"+ imgName, synchroTime, mapImgProvider[it->first])) {
+                allGood = false;
+            }
+        }
+    }
+
+    return allGood;
 }
 
 bool autobiographicalMemory::storeOID(){
