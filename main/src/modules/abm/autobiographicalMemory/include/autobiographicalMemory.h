@@ -84,7 +84,7 @@ public:
     bool sendImage(std::string fullPath);
     bool exportImage(int img_oid, std::string path);
     bool storeImage(int instance, std::string label, std::string relativePath, std::string imgTime, std::string currentImgProviderPort);
-    bool storeImageAllProviders(bool forSingleInstance=false);
+    bool storeImageAllProviders(bool forSingleInstance=false, std::string fullSentence="");
     bool storeOID();
     int sendStreamImage(int instance); //return nb of images that will be sent
 

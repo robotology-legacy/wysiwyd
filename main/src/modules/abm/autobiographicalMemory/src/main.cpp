@@ -118,7 +118,7 @@ int main(int argc, char * argv[]) {
     rf.setDefaultContext("autobiographicalMemory");   //overridden by --context parameter
     rf.configure( argc, argv);
     /* create your module */
-    autobiographicalMemory module(rf); 
+    autobiographicalMemory module;
     /* run the module: runModule() calls configure first and, if successful, it then runs */
     module.runModule(rf);
 

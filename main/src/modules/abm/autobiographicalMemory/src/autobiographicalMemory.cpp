@@ -1021,7 +1021,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     else
     {   //just one image (sentence?)
         folderWithTime = imgLabel; // TODO: Can we really assume this?!? What if folder is already existing?
-        storeImageAllProviders(true);
+        storeImageAllProviders(true, fullSentence);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
         string reply = disconnectImgProvider().toString().c_str();
@@ -1484,7 +1484,7 @@ Bottle autobiographicalMemory::connectImgProvider()
         //cout << "  [connectImgProvider] : trying to connect " << it->second << " with " <<  mapImgReceiver.find(it->first)->second->getName().c_str() << endl ;
         if (!Network::isConnected(it->second, mapImgReceiver.find(it->first)->second->getName().c_str())) {
             //cout << "Port is NOT connected : we will connect" << endl ;
-            if (!Network::connect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str()), "", false) {
+            if (!Network::connect(it->second, mapImgReceiver.find(it->first)->second->getName().c_str())) {
                 cout << "Error: Connection could not be setup" << endl;
                 bOutput.addString(it->second);
             }
@@ -1644,12 +1644,13 @@ bool autobiographicalMemory::storeImage(int instance, string label, string relat
     return true;
 }
 
-bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance) {
+//fullSentence is only used in case forSingleInstance=true!
+bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, string fullSentence) {
     bool allGood = true;
     //go through the ImgReceiver ports
     string synchroTime = getCurrentTime();
 
-    for (std::map<string, BufferedPort<ImageOf<PixelRgb>>*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
+    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
     {
         //concatenation of the path to store
         char imgName[512] = "";
