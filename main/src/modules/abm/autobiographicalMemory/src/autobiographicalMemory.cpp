@@ -359,8 +359,8 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
         sFilename = "autobiographicalMemory.db";
     }
 
-    /********************************************** build the database startup **********************************************/
-    bool bInsert = true; // TODO: What is this for?
+    // build the database startup
+    bool bInsert = true;
     if (bInsert)
     {
         //main table : 2 actions (begin : true then false) => 4 OPC
@@ -707,13 +707,10 @@ bool autobiographicalMemory::updateModule()
             //cout << "image number " << imgNb << endl ;
 
             //concatenation of the storing path
-            char fullPath[512] = "";
+            stringstream fullPath;
+            fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asString().c_str();
 
-            stringstream ss;
-            ss << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asString().c_str();
-            strcpy(fullPath, ss.str().c_str());
-
-            sendImage(fullPath);
+            sendImage(fullPath.str());
         } else {
             streamStatus = "end";
             //cout << "============================= STREAM END =================================" << endl;
@@ -859,7 +856,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     Bottle bMain;
     bMain.addString("request");
     ostringstream osMain;
-    bool done = false;
+
     osMain << "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES ('";
     string sName;
 
@@ -869,6 +866,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     string fullSentence;
 
     //Action
+    bool done = false;
     for (int i = 1; i < bInput.size(); i++)
     {
         bTemp = *(bInput.get(i).asList());
@@ -892,7 +890,6 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         osMain << "unknown' , '";
     }
     // Time
-    done = false;
     string sTime = getCurrentTime();
     osMain << sTime << "' , " << instance << " , ";
 
@@ -1057,7 +1054,6 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     }
 
     // catch the arguments and the role associate
-    int iNbArg = 0;
     if (bInput.get(2).asList()->size() != bInput.get(3).asList()->size())
     {
         string sError = "Error in autobiographicalMemory::snapshotSP | number of argument different of number of role";
@@ -1065,7 +1061,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         bOutput.addString(sError.c_str());
         return bOutput;
     }
-    iNbArg = bInput.get(2).asList()->size();
+    int iNbArg = bInput.get(2).asList()->size();
 
     //get Instance of the next opc
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
@@ -1076,20 +1072,17 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     // Filling table main :
     Bottle bMain;
     ostringstream osMain;
-    bool done = false;
+
     osMain << "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES('";
     string sName;
 
     //Action
     bTemp = *(bInput.get(1).asList());
-    if (bTemp.get(0) == "action")
-    {
+    if (bTemp.get(0) == "action") {
         sName = bTemp.get(1).asString();
         osMain << sName << "' , '";
         osMain << bTemp.get(2).asString() << "' , '";
-        done = true;
-    }
-    if (!done) {
+    } else {
         osMain << "unknown' , 'unknown', '";
     }
 
@@ -1097,10 +1090,8 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     osMain << getCurrentTime() << "' , " << instance << " , ";
 
     //Begin
-    done = false;
     bTemp = *(bInput.get(4).asList());
-    if (bTemp.get(0) == "begin")
-    {
+    if (bTemp.get(0) == "begin") {
         if (bTemp.get(1).asInt() == 1)
         {
             osMain << "TRUE ); ";
@@ -1111,17 +1102,14 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
             osMain << "FALSE ); ";
             inSharedPlan = false;
         }
-        done = true;
-    }
-    if (!done) {
+    } else {
         osMain << "FALSE);";
     }
 
     // Fill contentArg
     vector<string> vAgent, vObject, vSpatial;
 
-    string sManner;
-    bool fManner = false;
+    string sManner = "none";
 
     // catch the arguments and the role associate
     bArguments = *bInput.get(2).asList();
@@ -1138,14 +1126,12 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
         if (bRoles.get(i).toString() == "manner")
         {
             sManner = bArguments.get(i).toString().c_str();
-            fManner = true;
         }
     }
 
-    if (!fManner)
+    if (sManner == "none")
     {
         cout << "manner not found. Auto set to : none" << endl;
-        sManner = "none";
     }
 
     //Connection to the OPC and snapshot
@@ -1246,7 +1232,6 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     }
 
     // catch the arguments and the role associate
-    int iNbArg = 0;
     if (bInput.get(2).asList()->size() != bInput.get(3).asList()->size())
     {
         string sError = "Error in autobiographicalMemory::snapshotBE | number of argument different of number of role";
@@ -1254,7 +1239,6 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
         bOutput.addString(sError.c_str());
         return bOutput;
     }
-    iNbArg = bInput.get(2).asList()->size();
 
     //get Instance of the next opc
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
@@ -1265,31 +1249,27 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     // Filling table main :
     Bottle bMain;
     ostringstream osMain;
-    bool done = false;
+
     bool bBegin = false;
     osMain << "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES('";
     string sName;
 
     //Action
     bTemp = *(bInput.get(1).asList());
-    if (bTemp.get(0) == "action")
-    {
+    if (bTemp.get(0) == "action") {
         sName = bTemp.get(1).asString();
         osMain << sName << "' , '";
         osMain << bTemp.get(2).asString() << "' , '";
-        done = true;
-    }
-    if (!done)
+    } else {
         osMain << "unknown' , 'unknown', '";
+    }
 
     // Time
     osMain << getCurrentTime() << "' , " << instance << " , ";
 
     //Begin
-    done = false;
     bTemp = *(bInput.get(4).asList());
-    if (bTemp.get(0) == "begin")
-    {
+    if (bTemp.get(0) == "begin") {
         if (bTemp.get(1).asInt() == 1)
         {
             osMain << "TRUE ); ";
@@ -1300,10 +1280,10 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
             osMain << "FALSE ); ";
             bBegin = false;
         }
-        done = true;
     }
-    if (!done)
+    else {
         osMain << "FALSE);";
+    }
 
     // catch the arguments and the role associate
     string sArguments = (*bInput.get(2).asList()).get(0).toString();
@@ -1385,16 +1365,14 @@ Bottle autobiographicalMemory::askImage(int instance)
     osArg.str("");
 
     //path of the temp image
-    char tmpPath[512] = "";
-    stringstream ss;
+    stringstream tmpPath;
 
     //lo_export to make a tmp copy before sending
-    ss << storingPath << "/" << storingTmpSuffix << "/" << filename;
-    strcpy(tmpPath, ss.str().c_str());
+    tmpPath << storingPath << "/" << storingTmpSuffix << "/" << filename;
     bRequest.addString("request");
 
     //retrieve the image from the db and print it to /storingPath/temp folder
-    osArg << "SELECT lo_export(img_oid, '" << tmpPath << "') from images WHERE instance = '" << instance << "';";
+    osArg << "SELECT lo_export(img_oid, '" << tmpPath.str() << "') from images WHERE instance = '" << instance << "';";
 
     bRequest.addString(osArg.str());
     bResult = request(bRequest);
@@ -1410,8 +1388,8 @@ Bottle autobiographicalMemory::askImage(int instance)
     }
     else
     {
-        if (!sendImage(tmpPath)){
-            fprintf(stderr, "Cannot load file %s !\n", tmpPath);
+        if (!sendImage(tmpPath.str())){
+            fprintf(stderr, "Cannot load file %s !\n", tmpPath.str().c_str());
             bOutput.addString("Cannot load image");
             return bOutput;
         }
@@ -1642,33 +1620,28 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, stri
     for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
     {
         //concatenation of the path to store
-        char imgName[512] = "";
-        char fullPath[512] = "";
-
-        stringstream ssImgName;
+        stringstream imgName;
         if(forSingleInstance) {
             if (fullSentence == ""){
                 fullSentence = imgLabel;
             }
             //take the full sentence, replace space by _ to have the img name
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
-            ssImgName << fullSentence << "_" << it->first << "." << imgFormat;
+            imgName << fullSentence << "_" << it->first << "." << imgFormat;
         } else {
-            ssImgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
+            imgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
         }
-        strcpy(imgName, ssImgName.str().c_str());
 
-        stringstream ssPath;
-        ssPath << currentPathFolder << "/" << imgName;
-        strcpy(fullPath, ssPath.str().c_str());
+        stringstream fullPath;
+        fullPath << currentPathFolder << "/" << imgName.str();
 
-        if (!createImage(fullPath, it->second)) {
+        if (!createImage(fullPath.str(), it->second)) {
             cout << "Error in Update : image not created from " << it->first << endl;
             allGood = false;
         }
         else {
             //create SQL entry, register the cam image in specific folder
-            if(!storeImage(imgInstance, imgLabel, folderWithTime +"/"+ imgName, synchroTime, mapImgProvider[it->first])) {
+            if(!storeImage(imgInstance, imgLabel, folderWithTime +"/"+ imgName.str(), synchroTime, mapImgProvider[it->first])) {
                 allGood = false;
             }
         }
@@ -1692,8 +1665,8 @@ bool autobiographicalMemory::storeOID() {
         string imgRelativePath = bRequest.get(i).asList()->get(2).toString().c_str();
 
         ostringstream osStoreOID;
-        osStoreOID << "UPDATE TABLE images SET img_oid=lo_import(storingPath+" << imgRelativePath << ")";
-        osStoreOID << "WHERE \"time\"=" << imgTime << " and img_provider_port = " << imgProviderPort;
+        osStoreOID << "UPDATE TABLE images SET img_oid=lo_import('" << storingPath << "/" << imgRelativePath << "')";
+        osStoreOID << "WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "'";
 
         requestFromString(osStoreOID.str());
     }
@@ -1721,16 +1694,14 @@ bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath)
     osArg.str("");
 
     //path of the temp image
-    char tmpPath[512] = "";
-    stringstream ss;
+    stringstream tmpPath;
 
     //lo_export to make a tmp copy before sending
-    ss << storingPath << "/" << myTmpPath << "/" << filename;
-    strcpy(tmpPath, ss.str().c_str());
+    tmpPath << storingPath << "/" << myTmpPath << "/" << filename;
 
     bRequest.addString("request");
     //retrieve the image from the db and print it to /storingPath/temp folder
-    osArg << "SELECT lo_export(img_oid, '" << tmpPath << "') from images WHERE img_oid = '" << img_oid << "';";
+    osArg << "SELECT lo_export(img_oid, '" << tmpPath.str() << "') from images WHERE img_oid = '" << img_oid << "';";
 
     bRequest.addString(string(osArg.str()).c_str());
     bRequest = request(bRequest);
@@ -2032,6 +2003,7 @@ Bottle autobiographicalMemory::detectFailed()
 /*
 * Put in the OPC all the words known in the ABM.
 */
+// Not used, but can be seen as example how to use the OPC Client
 Bottle autobiographicalMemory::populateOPC()
 {
     // 0. check if connected to the OPC.
@@ -2291,7 +2263,7 @@ vector<double> autobiographicalMemory::tupleDoubleFromString(string sInput)
     return tOutput;
 }
 
-Bottle autobiographicalMemory::getInfoAbout(string sName)
+/*Bottle autobiographicalMemory::getInfoAbout(string sName)
 {
     Bottle bMessenger, bOutput;
 
@@ -2322,4 +2294,4 @@ Bottle autobiographicalMemory::getInfoAbout(string sName)
     }
 
     return bOutput;
-}
+}*/

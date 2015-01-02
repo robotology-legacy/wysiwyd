@@ -107,5 +107,5 @@ public:
 
     yarp::os::Bottle populateOPC();
 
-    yarp::os::Bottle getInfoAbout(std::string sName);
+    //yarp::os::Bottle getInfoAbout(std::string sName);
 };
