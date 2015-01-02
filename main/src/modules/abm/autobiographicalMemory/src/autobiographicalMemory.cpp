@@ -54,15 +54,12 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     string name_abm2reasoning = "/";
     name_abm2reasoning += getName() + "/to_reasoning";
     abm2reasoning.open(name_abm2reasoning.c_str());
-    //Network::connect(name_abm2reasoning.c_str(), "/efaa/abmReasoning/rpc");
 
     //port for images:
-    string name_imagePortOut = "/";
-    name_imagePortOut += getName() + "/images/out";
+    string name_imagePortOut = "/" + getName() + "/images/out";
     imagePortOut.open(name_imagePortOut.c_str());
 
-    string name_imagePortIn = "/";
-    name_imagePortIn += getName() + "/images/in";
+    string name_imagePortIn = "/" + getName() + "/images/in";
     imagePortIn.open(name_imagePortIn.c_str());
 
     //Temp to test data : will be send without checking connection after
@@ -368,7 +365,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     }
 
     /********************************************** build the database startup **********************************************/
-    bool bInsert = true;
+    bool bInsert = true; // TODO: What is this for?
     if (bInsert)
     {
         //main table : 2 actions (begin : true then false) => 4 OPC
@@ -431,20 +428,18 @@ Bottle autobiographicalMemory::addImgProvider(string labelImgProvider, string po
 
     if (mapImgProvider.find(labelImgProvider) == mapImgProvider.end()) //key not found
     {
-        //creating imgReceiverPort for the current provider
+        //creating imgReceiverPort for the current provider (DEPRECATED)
         //string portImgReceiver = "/" + getName() + "/images/" + labelImgProvider + "/in";
 
-        //add the imgProvider to the map, imgReceiver to map
+        //add the imgProvider and imgReceiver to the map
         mapImgProvider[labelImgProvider] = portImgProvider;
-        //mapImgReceiver[labelImgProvider] = portImgReceiver;
         mapImgReceiver[labelImgProvider] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
-        //mapImgReceiver[labelImgProvider]->open(portImgReceiver);
 
         bReply.addString("[ack]");
     }
     else { //key found
-        cout << "ERROR : addImgProvider : " << labelImgProvider << " is already present! " << endl;
-        bReply.addString("ERROR : addImgProvider : " + labelImgProvider + " is already present! ");
+        cout << "ERROR : addImgProvider : " << labelImgProvider << " is already present!" << endl;
+        bReply.addString("ERROR : addImgProvider : " + labelImgProvider + " is already present!");
     }
 
     //send the reply
@@ -570,12 +565,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             bReply = eraseInstance(bCommand);
         }
-        //sendStreamImage (instance)
         else if (bCommand.get(0) == "sendStreamImage")
         {
             if (!Network::isConnected(imagePortOut.getName(), "/yarpview/img:i")) {
                 cout << "ABM failed to connect to Yarpview!" << endl;
-                bError.addString("in sendStreamImage :  Error, connetion missing between " + imagePortOut.getName() + " and /yarpview/img:i ");
+                bError.addString("in sendStreamImage:  Error, connetion missing between " + imagePortOut.getName() + " and /yarpview/img:i");
                 bReply = bError;
             }
             else if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
@@ -593,7 +587,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        //askImage
         else if (bCommand.get(0) == "askImage")
         {
             if (bCommand.size() > 1)
