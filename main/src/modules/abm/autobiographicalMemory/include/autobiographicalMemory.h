@@ -5,15 +5,11 @@
 #include <highgui.h>
 #include <stdio.h>
 
-const double threshold_time_sequence = 3.    ;        //threshold of a same sequence
-
 const std::string s_real_OPC = "OPC";
-
-typedef yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > yarpImageBufferedPort;
 
 class autobiographicalMemory: public yarp::os::RFModule
 {
-private :
+private:
     std::string server;
     std::string user;
     std::string password;
@@ -103,9 +99,9 @@ public:
 
     double getPeriod();
 
-    bool updateModule();    //    This is our main function. Will be called periodically every getPeriod() seconds.
+    bool updateModule(); // This is our main function. Will be called periodically every getPeriod() seconds.
     bool configure(yarp::os::ResourceFinder &rf);
-    bool close();    //  Close function, to perform cleanup.
+    bool close(); // Close function, to perform cleanup.
     static std::vector<int> tupleIntFromString(std::string sInput);
     static std::vector<double> tupleDoubleFromString(std::string sInput);
 

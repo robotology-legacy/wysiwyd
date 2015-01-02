@@ -47,12 +47,10 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     portEventsName = "/" + getName() + "/request:i";
     portEventsIn.open(portEventsName.c_str());
 
-    string portHandlerName = "/";
-    portHandlerName += getName() + "/rpc";
+    string portHandlerName = "/" + getName() + "/rpc";
     handlerPort.open(portHandlerName.c_str());
 
-    string name_abm2reasoning = "/";
-    name_abm2reasoning += getName() + "/to_reasoning";
+    string name_abm2reasoning = "/" + getName() + "/to_reasoning";
     abm2reasoning.open(name_abm2reasoning.c_str());
 
     //port for images:
@@ -79,7 +77,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     isconnected2reasoning = false;
 
     attach(handlerPort);
-    //attachTerminal();
 
     Bottle bConnect;
     bConnect.addString("connect");
@@ -152,9 +149,7 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
     catch (DataBaseError& e)
     {
         cerr << "Exception during request: " << e.what() << endl;
-        string sExcept;
-        sExcept = "Exception during request: ";
-        sExcept += e.what();
+        string sExcept = "Exception during request: "; sExcept += e.what();
         bReply.addString(sExcept.c_str());
     }
 
@@ -411,9 +406,7 @@ Bottle autobiographicalMemory::addInteraction(Bottle bInteraction)
     catch (DataBaseError& e)
     {
         cerr << "Exception during request : " << e.what() << endl;
-        string sExcept;
-        sExcept = "Exception during request : ";
-        sExcept += e.what();
+        string sExcept = "Exception during request : "; sExcept += e.what();
         bReply.addString(sExcept.c_str());
     }
 
@@ -499,7 +492,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else
             {
-                bError.addString("Canot open the file");
+                bError.addString("Cannot open the file");
                 bReply = bError;
             }
         }
@@ -569,7 +562,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             if (!Network::isConnected(imagePortOut.getName(), "/yarpview/img:i")) {
                 cout << "ABM failed to connect to Yarpview!" << endl;
-                bError.addString("in sendStreamImage:  Error, connetion missing between " + imagePortOut.getName() + " and /yarpview/img:i");
+                bError.addString("in sendStreamImage:  Error, connection missing between " + imagePortOut.getName() + " and /yarpview/img:i");
                 bReply = bError;
             }
             else if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
@@ -801,6 +794,7 @@ void autobiographicalMemory::writeInsert(string sRequest)
         cout << "Error, can not save request in " << savefile << endl;
         return;
     }
+    file.close();
 }
 
 /* read interactions from a file text */
@@ -825,6 +819,8 @@ bool autobiographicalMemory::readInsert()
         bRequest.addString(line.c_str());
         bRequest = request(bRequest);
     }
+    file.close();
+
     return true;
 }
 
@@ -948,9 +944,6 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
                 ostringstream osArg;
                 string cArgArgument, cArgType, cArgSubtype, cArgRole;
 
-                bRequest.clear();
-                bRequest.addString("request");
-
                 //check if the argument is an entity in OPC
                 Entity* currentEntity = opcWorld->getEntity(bTemp.get(j).asList()->get(0).toString().c_str());
 
@@ -978,6 +971,9 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
                 }
 
                 osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "');";
+
+                bRequest.clear();
+                bRequest.addString("request");
                 bRequest.addString(string(osArg.str()).c_str());
                 request(bRequest);
             }
@@ -1564,13 +1560,8 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
 
 bool autobiographicalMemory::sendImage(string fullPath)
 {
-    IplImage* img = NULL;
-
     //cout << "Going to send : " << fullPath << endl;
-
-    //load image with opencv
-    img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED);
-
+    IplImage* img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED);
     if (img == 0)
         return false;
 
@@ -1686,7 +1677,7 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, stri
     return allGood;
 }
 
-bool autobiographicalMemory::storeOID(){
+bool autobiographicalMemory::storeOID() {
     Bottle bRequest;
     ostringstream osStoreOIDReq;
 
@@ -1709,7 +1700,6 @@ bool autobiographicalMemory::storeOID(){
 
     return true;
 }
-
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
 bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath)
@@ -1891,13 +1881,12 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
     if (bInput.get(1).isList())
     {
         bInstances = *bInput.get(1).asList();
-        int begin, end;
-        begin = 0;
-        end = -1;
+        int begin = 0, end = -1;
+
         if (bInstances.size() == 2)
         {
             begin = atoi(bInstances.get(0).toString().c_str());
-            end = atoi(bInstances.get(1).toString().c_str());
+            end   = atoi(bInstances.get(1).toString().c_str());
         }
         for (int inst = begin; inst < end + 1; inst++)
         {
@@ -1993,7 +1982,6 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
         request(bRequest);
 
         //images : remove from pg_largeobjects = unlink
-        //SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE instance = 42) AS images_subquery ;
         osRequest.str("");
         osRequest << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE instance = " << *it << ") AS images_subquery ;";
         bRequest.clear();
@@ -2022,15 +2010,12 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
 
 Bottle autobiographicalMemory::connect2reasoning()
 {
-    string name_abm2reasoning = "/";
-    name_abm2reasoning += getName() + "/to_reasoning";
+    string name_abm2reasoning = "/" + getName() + "/to_reasoning";
 
     Network::connect(name_abm2reasoning.c_str(), "/abmReasoning/rpc");
 
     string state;
-
     isconnected2reasoning = Network::isConnected(name_abm2reasoning.c_str(), "/abmReasoning/rpc");
-
     (isconnected2reasoning ? state = "ABM is now connected to abmReasoning" : state = "ABM failed to connect to abmReasoning");
 
     Bottle bOutput;
@@ -2041,10 +2026,7 @@ Bottle autobiographicalMemory::connect2reasoning()
 
 Bottle autobiographicalMemory::detectFailed()
 {
-    Bottle bOutput;
-    Bottle bMessenger = requestFromString("SELECT instance FROM main WHERE activitytype = 'actionfailed' AND begin = true");
-
-    return bOutput;
+    return requestFromString("SELECT instance FROM main WHERE activitytype = 'actionfailed' AND begin = true");
 }
 
 /*
@@ -2143,7 +2125,6 @@ Bottle autobiographicalMemory::populateOPC()
     }
 
     // 3. Objects : 
-
     if (bPutObjectsOPC)
     {
         Bottle bDistinctObject = requestFromString("SELECT DISTINCT name FROM object");
@@ -2224,10 +2205,10 @@ Bottle autobiographicalMemory::populateOPC()
 */
 vector<int> autobiographicalMemory::tupleIntFromString(string sInput)
 {
-    vector<int>    tOutput;
+    vector<int> tOutput;
     char *cInput;
     cInput = (char*)sInput.c_str();
-    int    iLevel = 0;
+    int iLevel = 0;
     unsigned int data = 0;
     string sX = "", sY = "", sZ = "";
     while (cInput[data] != '\0')
