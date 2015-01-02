@@ -943,43 +943,41 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         bTemp = *(bInput.get(i).asList());
         if (bTemp.get(0) == "arguments" && bTemp.size() > 1)
         {
-
             for (int j = 1; j < bTemp.size(); j++)
             {
-                //check if the argument is an entity in OPC
-                Entity* currentEntity = opcWorld->getEntity(bTemp.get(j).asList()->get(0).toString().c_str());
+                ostringstream osArg;
+                string cArgArgument, cArgType, cArgSubtype, cArgRole;
 
                 bRequest.clear();
                 bRequest.addString("request");
-                ostringstream osArg;
-                if (currentEntity == NULL){
-                    if (bTemp.get(j).asList()->size() > 1) {
-                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << bTemp.get(j).asList()->get(0).asString() << "', " << "'external', 'default', '" << bTemp.get(j).asList()->get(1).asString() << "');";
 
-                        //add sentence for single img label
-                        if (bTemp.get(j).asList()->get(1).asString() == "sentence"){
-                            fullSentence = bTemp.get(j).asList()->get(0).asString();
-                        }
+                //check if the argument is an entity in OPC
+                Entity* currentEntity = opcWorld->getEntity(bTemp.get(j).asList()->get(0).toString().c_str());
 
-                    }
-                    else {
-                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << bTemp.get(j).asList()->get(0).asString() << "', " << "'external', 'default', 'unknown');";
+                if (currentEntity == NULL) {
+                    cArgArgument = bTemp.get(j).asList()->get(0).asString();
+                    cArgType = "external";
+                    cArgSubtype = "default";
+                }
+                else {
+                    cArgArgument = currentEntity->name();
+                    cArgType = "entity";
+                    cArgSubtype = currentEntity->entity_type();
+                }
+
+                if (bTemp.get(j).asList()->size() > 1) {
+                    cArgRole = bTemp.get(j).asList()->get(1).asString();
+
+                    //add sentence for single img label
+                    if (cArgRole == "sentence"){
+                        fullSentence = cArgArgument;
                     }
                 }
                 else {
-                    if (bTemp.get(j).asList()->size() > 1) {
-                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', '" << bTemp.get(j).asList()->get(1).asString() << "');";
-
-                        //add sentence for single img label
-                        if (bTemp.get(j).asList()->get(1).asString() == "sentence"){
-                            fullSentence = bTemp.get(j).asList()->get(0).asString();
-                        }
-
-                    }
-                    else {
-                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'unknown');";
-                    }
+                    cArgRole = "unknown";
                 }
+
+                osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "');";
                 bRequest.addString(string(osArg.str()).c_str());
                 request(bRequest);
             }
