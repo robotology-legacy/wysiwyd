@@ -84,6 +84,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     connectOPC(bConnect);
 
     //populateOPC();
+    storeOID();
 
     cout << endl << endl << "----------------------------------------------";
     cout << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
@@ -144,11 +145,11 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
 
         //verbose print reply
         //cout << "bReply = " << bReply.toString().c_str() << endl ;
-
     }
     catch (DataBaseError& e)
     {
-        cerr << "Exception during request: " << e.what() << endl;
+        if(strcmp(e.what(),"This command don't support results")!=0)
+            cerr << "Exception during request: " << e.what() << endl;
         string sExcept = "Exception during request: "; sExcept += e.what();
         bReply.addString(sExcept.c_str());
     }
@@ -637,6 +638,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
+        else if (bCommand.get(0) == "storeOID")
+        {
+            storeOID();
+        }
     }
     else
     {
@@ -773,6 +778,8 @@ bool autobiographicalMemory::close()
 
     imagePortIn.interrupt();
     imagePortIn.close();
+
+    storeOID();
 
     delete opcWorld;
     delete ABMDataBase;
@@ -1656,19 +1663,27 @@ bool autobiographicalMemory::storeOID() {
 
     osStoreOIDReq << "SELECT \"time\", img_provider_port, relative_path FROM images WHERE img_oid IS NULL";
     bRequest = requestFromString(osStoreOIDReq.str());
-    //cout << "bRequest : " << bRequest.toString() << endl;
 
-    // TODO: Needs to be tested!!!
+    if(bRequest.size()>0 && bRequest.get(0).toString() != "NULL") {
+        cout << "Storing image OID, this may take a while!" << endl;
+    } else {
+        return true;
+    }
+
     for(int i = 0; i<bRequest.size(); i++) {
         string imgTime = bRequest.get(i).asList()->get(0).toString().c_str();
         string imgProviderPort = bRequest.get(i).asList()->get(1).toString().c_str();
         string imgRelativePath = bRequest.get(i).asList()->get(2).toString().c_str();
 
         ostringstream osStoreOID;
-        osStoreOID << "UPDATE TABLE images SET img_oid=lo_import('" << storingPath << "/" << imgRelativePath << "')";
+        osStoreOID << "UPDATE images SET img_oid=lo_import('" << storingPath << "/" << imgRelativePath << "')";
         osStoreOID << "WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "'";
 
         requestFromString(osStoreOID.str());
+
+        if(i%100==0) {
+            cout << "Saved " << i << " images out of " << bRequest.size() << endl;
+        }
     }
 
     return true;

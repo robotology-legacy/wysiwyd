@@ -6,7 +6,7 @@ set(PROJECTNAME autobiographicalMemory)
 project(${PROJECTNAME})
 
 file(GLOB sources src/*.cpp)
-file(GLOB headers include/*.h)
+file(GLOB headers include/*.h include/db/*.h)
 set(docs ${PROJECTNAME}.xml)
 
 source_group("Source Files" FILES ${sources})
