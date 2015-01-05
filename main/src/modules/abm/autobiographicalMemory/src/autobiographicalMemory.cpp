@@ -15,7 +15,7 @@ using namespace cv;
 /* configure the module */
 bool autobiographicalMemory::configure(ResourceFinder &rf)
 {
-    moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
+    string moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
 
     setName(moduleName.c_str());
 
@@ -42,7 +42,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imgNb = 0;
 
     bPutObjectsOPC = false;
-    inSharedPlan = false;
 
     portEventsName = "/" + getName() + "/request:i";
     portEventsIn.open(portEventsName.c_str());
@@ -56,9 +55,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     //port for images:
     string name_imagePortOut = "/" + getName() + "/images/out";
     imagePortOut.open(name_imagePortOut.c_str());
-
-    string name_imagePortIn = "/" + getName() + "/images/in";
-    imagePortIn.open(name_imagePortIn.c_str());
 
     //Temp to test data : will be send without checking connection after
     bool isconnected2Yarpview = Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i");
@@ -561,12 +557,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "sendStreamImage")
         {
-            if (!Network::isConnected(imagePortOut.getName(), "/yarpview/img:i")) {
-                cout << "ABM failed to connect to Yarpview!" << endl;
-                bError.addString("in sendStreamImage:  Error, connection missing between " + imagePortOut.getName() + " and /yarpview/img:i");
-                bReply = bError;
-            }
-            else if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
+            if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
             {
                 imgInstance = bCommand.get(1).asList()->get(0).asInt();
                 int nbSentImages = sendStreamImage(imgInstance);
@@ -577,7 +568,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else
             {
-                bError.addString("in sendStreamImage : number of element incorrect : testSendStreamImage (instance)");
+                bError.addString("in sendStreamImage : number of element incorrect : sendStreamImage (instance)");
                 bReply = bError;
             }
         }
@@ -660,7 +651,7 @@ bool autobiographicalMemory::updateModule()
     if (streamStatus == "begin") {
         cout << "============================= STREAM BEGIN =================================" << endl;
         //create folder
-        currentPathFolder = storingPath + "/" + imgLabel;
+        string currentPathFolder = storingPath + "/" + imgLabel;
 
         folderWithTime = imgLabel;
 
@@ -697,9 +688,10 @@ bool autobiographicalMemory::updateModule()
         //select all the images (through primary key oid) corresponding to a precise instance
         if (imgNb == 0) {
             cout << "============================= STREAM SEND =================================" << endl;
+            bListImages.clear();
             bListImages.addString("request");
             ostringstream osArg;
-            osArg << "SELECT filename FROM images WHERE label = '" << imgLabel << "';";
+            osArg << "SELECT relative_path, img_provider_port FROM images WHERE instance = '" << imgInstance << "';";
             bListImages.addString(osArg.str());
             bListImages = request(bListImages);
 
@@ -709,29 +701,38 @@ bool autobiographicalMemory::updateModule()
 
         //If we currently have images left to be send
         if (imgNb < bListImages.size()) {
-            //cout << "image number " << imgNb << endl ;
+            //cout << "Send image number " << imgNb << endl ;
 
             //concatenation of the storing path
-            stringstream fullPath;
-            fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asString().c_str();
+            for(unsigned int i=0; i<mapStreamImgPortOut.size(); i++) {
+                stringstream fullPath;
+                fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asList()->get(0).asString().c_str();
+                BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(imgNb).asList()->get(1).asString().c_str());
+                sendImage(fullPath.str(), port);
 
-            sendImage(fullPath.str());
+                //next image
+                imgNb += 1;
+            }
         } else {
-            streamStatus = "end";
-            //cout << "============================= STREAM END =================================" << endl;
-        }
+            //Close ports which were opened in sendStreamImage
+            for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapStreamImgPortOut.begin(); it != mapStreamImgPortOut.end(); ++it)
+            {
+                it->second->interrupt();
+                it->second->close();
+                if(!it->second->isClosed()) {
+                    cout << "Error, port " << it->first << " could not be closed" << endl;
+                }
+            }
 
-        //next image
-        imgNb += 1;
+            streamStatus = "end";
+        }
     }
 
     //go back to default global value
     if (streamStatus == "end") {
         cout << "============================= STREAM STOP =================================" << endl;
+
         //close folder and SQL entry
-
-        Network::disconnect(imgProviderPort, imagePortIn.getName().c_str());
-
         streamStatus = "none";
         imgLabel = "defaultLabel";
         imgInstance = -1;
@@ -751,7 +752,6 @@ bool autobiographicalMemory::interruptModule()
     portEventsIn.interrupt();
     abm2reasoning.interrupt();
     imagePortOut.interrupt();
-    imagePortIn.interrupt();
 
     return true;
 }
@@ -760,6 +760,8 @@ bool autobiographicalMemory::interruptModule()
 bool autobiographicalMemory::close()
 {
     cout << "Calling close function" << endl;
+
+    disconnectImgProviders();
 
     opcWorld->interrupt();
     opcWorld->close();
@@ -775,9 +777,6 @@ bool autobiographicalMemory::close()
 
     imagePortOut.interrupt();
     imagePortOut.close();
-
-    imagePortIn.interrupt();
-    imagePortIn.close();
 
     storeOID();
 
@@ -1022,7 +1021,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         storeImageAllProviders(true, fullSentence);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
-        string reply = disconnectImgProvider().toString().c_str();
+        string reply = disconnectImgProviders().toString().c_str();
         if (reply != "ack"){
             cout << "ABM failed to disconnect to one imgProvider" << endl;
         }
@@ -1097,6 +1096,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     osMain << getCurrentTime() << "' , " << instance << " , ";
 
     //Begin
+    bool inSharedPlan;
     bTemp = *(bInput.get(4).asList());
     if (bTemp.get(0) == "begin") {
         if (bTemp.get(1).asInt() == 1)
@@ -1426,7 +1426,7 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
         OPC_name = bInput.get(1).toString();
     }
 
-    opcWorld = new OPCClient(moduleName.c_str());
+    opcWorld = new OPCClient(getName().c_str());
     int iTry = 0;
     while (!opcWorld->isConnected())
     {
@@ -1482,7 +1482,7 @@ Bottle autobiographicalMemory::connectImgProvider()
     return bOutput;
 }
 
-Bottle autobiographicalMemory::disconnectImgProvider()
+Bottle autobiographicalMemory::disconnectImgProviders()
 {
     Bottle bOutput;
     bool isAllDisconnected = true;
@@ -1545,6 +1545,11 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
 
 bool autobiographicalMemory::sendImage(string fullPath)
 {
+    return sendImage(fullPath, &imagePortOut);
+}
+
+bool autobiographicalMemory::sendImage(string fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
+{
     //cout << "Going to send : " << fullPath << endl;
     IplImage* img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED);
     if (img == 0)
@@ -1552,12 +1557,12 @@ bool autobiographicalMemory::sendImage(string fullPath)
 
     //create a yarp image
     cvCvtColor(img, img, CV_BGR2RGB);
-    ImageOf<PixelRgb> &temp = imagePortOut.prepare();
+    ImageOf<PixelRgb> &temp = imgPort->prepare();
     temp.resize(img->width, img->height);
     cvCopyImage(img, (IplImage *)temp.getIplImage());
 
     //send the image
-    imagePortOut.write();
+    imgPort->write();
 
     cvReleaseImage(&img);
 
@@ -1569,32 +1574,47 @@ int autobiographicalMemory::sendStreamImage(int instance)
     Bottle bRequest;
     ostringstream osArg;
 
-    //extract label of the instance
+    //get distinct img_provider_port
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT label FROM images WHERE instance = " << instance << endl;
+    osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    //put global imgLabel (for full path completion after in update)
-    imgLabel = bRequest.get(0).asList()->get(0).asString();
+    mapStreamImgPortOut.clear();
+    for (int i = 0; i < bRequest.size(); i++) {
+        string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
+        mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
+        mapStreamImgPortOut[imgProviderPort]->open(("/abm"+imgProviderPort).c_str());
 
+        Network::connect(("/abm"+imgProviderPort).c_str(), "/yarpview/abm"+imgProviderPort);
+    }
+
+    cout << "Just created " << mapStreamImgPortOut.size() << " ports." << endl;
+
+    //extract oid of all the images
     bRequest.clear();
     osArg.str("");
 
-    //extract oid of all the images (primary key)
     bRequest.addString("request");
-    osArg << "SELECT img_oid FROM images WHERE instance = " << instance << endl;
+    osArg << "SELECT img_oid, relative_path FROM images WHERE instance = " << instance << " ORDER BY time" << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    //cout << "bRequest has " << bRequest.size() << "images : " << bRequest.toString() << endl ;;
-
     //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
-    for (int i = 0; i < bRequest.size(); i++){
-        exportImage(atoi(bRequest.get(i).asList()->get(0).toString().c_str()), storingTmpSuffix);
+    for (int i = 0; i < bRequest.size(); i++) {
+        int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
+        string relative_path = bRequest.get(i).asList()->get(1).toString();
+        if(i==0) { // only create folder to store images once
+            string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
+            yarp::os::mkdir(folderName.c_str());
+        }
+        cout << "Call exportImage with " << imageOID << " : " << storingPath + "/" + storingTmpSuffix + "/" + relative_path << endl;
+        exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
     }
 
-    //streamStatus changed (triggered in update()
+    cout << "Going to send " << bRequest.size() << " images." << endl;
+
+    //streamStatus changed (triggered in update())
     streamStatus = "send";
     //bOutput.addString("ack");
 
@@ -1639,10 +1659,7 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, stri
             imgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
         }
 
-        stringstream fullPath;
-        fullPath << currentPathFolder << "/" << imgName.str();
-
-        if (!createImage(fullPath.str(), it->second)) {
+        if (!createImage(storingPath + "/" + folderWithTime + "/" + imgName.str(), it->second)) {
             cout << "Error in Update : image not created from " << it->first << endl;
             allGood = false;
         }
@@ -1690,35 +1707,16 @@ bool autobiographicalMemory::storeOID() {
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
-bool autobiographicalMemory::exportImage(int img_oid, string myTmpPath)
+bool autobiographicalMemory::exportImage(int img_oid, string imgPath)
 {
     Bottle bRequest;
     ostringstream osArg;
 
-    //extract filename of the image to export fromn primary key oid
-    bRequest.addString("request");
-    //SELECT filename from images WHERE img_oid = 33275 ;
-    osArg << "SELECT filename from images WHERE img_oid = " << img_oid << " ;";
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
-
-    //cout << "filename = " << bRequest.toString() << endl ;
-    string filename = bRequest.get(0).asList()->get(0).asString();
-
-    bRequest.clear();
-    osArg.str("");
-
-    //path of the temp image
-    stringstream tmpPath;
-
-    //lo_export to make a tmp copy before sending
-    tmpPath << storingPath << "/" << myTmpPath << "/" << filename;
-
     bRequest.addString("request");
     //retrieve the image from the db and print it to /storingPath/temp folder
-    osArg << "SELECT lo_export(img_oid, '" << tmpPath.str() << "') from images WHERE img_oid = '" << img_oid << "';";
+    osArg << "SELECT lo_export(img_oid, '" << imgPath << "') from images WHERE img_oid = '" << img_oid << "';";
 
-    bRequest.addString(string(osArg.str()).c_str());
+    bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
     //bOutput.addString("ack");
@@ -1744,6 +1742,18 @@ string autobiographicalMemory::getCurrentTime()
     int iUS = tv.tv_usec;
 #endif
 
+    // Sorry, this is a terrible hack to obtain a six digit microsecond string
+    stringstream iUSTemp, iUSZero;
+    iUSTemp << iUS;
+    int zerosNeeded = 6 - iUSTemp.str().length();
+
+    while (zerosNeeded) {
+        iUSZero << '0';
+        zerosNeeded--;
+    }
+
+    iUSZero << iUS;
+
     Time.tm_hour = (*t).tm_hour;
     Time.tm_min = (*t).tm_min;
     Time.tm_sec = (*t).tm_sec;
@@ -1764,7 +1774,7 @@ string autobiographicalMemory::getCurrentTime()
     iMonth = Time.tm_mon + 1;
     iDay = Time.tm_mday;
     iYear = Time.tm_year + 1900;
-    osTime << iYear << "-" << iMonth << "-" << iDay << " " << iHH << ":" << iMM << ":" << iSS << "." << iUS;
+    osTime << iYear << "-" << iMonth << "-" << iDay << " " << iHH << ":" << iMM << ":" << iSS << "." << iUSZero.str();
 
     return osTime.str();
 }

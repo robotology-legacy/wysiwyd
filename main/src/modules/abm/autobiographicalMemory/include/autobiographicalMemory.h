@@ -19,11 +19,9 @@ private:
     std::string storingTmpSuffix;   //folder inside storingPath for temp image to transfer
 
     std::string imgFormat;
-    std::string imgProviderPort;
 
     //for update camera stream
     std::string streamStatus;
-    std::string currentPathFolder;
     std::string folderWithTime;
     std::string imgLabel;
 
@@ -36,9 +34,8 @@ private:
     wysiwyd::wrdac::opcEars OPCEARS;
     wysiwyd::wrdac::OPCClient *opcWorld;
 
-    bool inSharedPlan;
     bool isconnected2reasoning;
-    bool bPutObjectsOPC;
+    bool bPutObjectsOPC; // not used!
 
     yarp::os::Bottle detectFailed();
 
@@ -47,14 +44,13 @@ private:
     DataBase<PostgreSql>* ABMDataBase;
 
 public:
-    std::string moduleName;
     std::string portEventsName;
     yarp::os::Port portEventsIn;
     yarp::os::Port handlerPort;      //a port to handle messages
     yarp::os::Port abm2reasoning;
 
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
+    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapStreamImgPortOut;
 
     void writeInsert(std::string request);
     bool readInsert();
@@ -77,6 +73,7 @@ public:
     yarp::os::Bottle askImage(int instance);
 
     bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
+    bool sendImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(std::string fullPath);
     bool exportImage(int img_oid, std::string path);
     bool storeImage(int instance, std::string label, std::string relativePath, std::string imgTime, std::string currentImgProviderPort);
@@ -89,7 +86,7 @@ public:
     std::map <std::string, std::string> mapImgProvider;
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
 
-    yarp::os::Bottle disconnectImgProvider();
+    yarp::os::Bottle disconnectImgProviders();
     yarp::os::Bottle connectImgProvider();
 
     yarp::os::Bottle connect2reasoning();
