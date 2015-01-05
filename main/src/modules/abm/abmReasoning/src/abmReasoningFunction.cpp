@@ -70,7 +70,7 @@ unsigned int abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE = 3;         //
 double abmReasoningFunction::FACTOR_LOCATION = 2 ;                  // factor of the size of a location : center +/- FACTOR_LOCATION * std dev
 double abmReasoningFunction::THRESHOLD_IS_AT_LOCATION = 4;
 double abmReasoningFunction::THRESHOLD_IS_AT_TEMPORAL_LOCATION = 12;
-double abmReasoningFunction::THRESHOLD_IS_DISPERSION = 0.0001;
+double abmReasoningFunction::THRESHOLD_IS_DISPERSION = 0.00001;
 
 double abmReasoningFunction::LIFETIME_RELATION = 2. ;               // life time of a relation about the objects in the OPC
 
@@ -159,7 +159,7 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     FACTOR_LOCATION = bSpatialisation.check("FACTOR_LOCATION", Value(2)).asDouble();
     THRESHOLD_IS_AT_LOCATION = bSpatialisation.check("THRESHOLD_IS_AT_LOCATION", Value(4)).asDouble();
     THRESHOLD_IS_AT_TEMPORAL_LOCATION = bSpatialisation.check("THRESHOLD_IS_AT_TEMPORAL_LOCATION", Value(12)).asDouble();
-    THRESHOLD_IS_DISPERSION = bSpatialisation.check("THRESHOLD_IS_DISPERSION", Value(0.0001)).asDouble();
+    THRESHOLD_IS_DISPERSION = bSpatialisation.check("THRESHOLD_IS_DISPERSION", Value(0.00001)).asDouble();
 
 
     Bottle &bPDDL = rf.findGroup("PDDL");

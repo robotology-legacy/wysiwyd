@@ -2401,6 +2401,12 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		BEGIN2,
 		END2;
 
+
+	string filepath_sentence = (path + "/sentences.txt");
+	ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+
+	file_sentences << "agent\tverb\tobject\tajd1\tadj2" << endl;
+
 	for (int j = 0; j < numberAction; j++)
 	{
 		std::cout << j + 1 << "..";
@@ -2455,7 +2461,11 @@ Bottle abmReasoning::findAllActionsV2(int from)
 			MOVE.first = END.first - BEGIN.first;
 			MOVE.second = END.second - BEGIN.second;
 
-
+			file_sentences << bArgument.check("agent", Value("none")).asString() << "\t";
+			file_sentences << bArgument.check("action", Value("none")).asString() << "\t";
+			file_sentences << bArgument.check("object", Value("none")).asString() << "\t";
+			file_sentences << bArgument.check("adv1", Value("none")).asString() << "\t";
+			file_sentences << bArgument.check("adv2", Value("none")).asString() << endl;
 
 			if (ObjectPresentAfter == ObjectPresentBefore)
 			{
@@ -2463,7 +2473,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
 				{
 					if (*it != "none")
 					{
-						addAdverbKnowledge(*it, sName, dTiming, BEGIN, MOVE);
+						addAdverbKnowledge(*it, sName, dTiming, END, MOVE);
 					}
 				}
 			}
@@ -2505,15 +2515,17 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		std::cout << endl;
 	}
 
-	if (print_in_file)
+
+	for (list<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
 	{
-		for (list<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+		determineTimingInfluence(*it);
+		if (it->bothtails > 0.1)
 		{
-			determineTimingInfluence(*it);
-			if (it->bothtails > 0.1)
-			{
-				it->determineSpatialInfluence();
-			}
+			it->determineSpatialInfluence();
+		}
+
+		if (print_in_file)
+		{
 
 			// writing data in a file
 			string filepath_time = (path + "/time_");
@@ -2566,17 +2578,15 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
 				for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
 				{
-
 					for (unsigned int i = 0; i < itMap->second.size(); i++)
 					{
-						file_space_verb << itMap->second[i].first << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
+						file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
 					}
 
 					for (unsigned int i = 0; i < itMap->second.size(); i++)
 					{
 						file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
 					}
-
 
 					std::cout << "file_space_verb " << filepath_space_verb << " written" << endl;
 				}
@@ -3712,7 +3722,7 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 
 	abmReasoningFunction::studentttest2(adjInput.vdGnlTiming, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
 
-	cout << adjInput.sLabel << " bothtails: " << adjInput.bothtails << endl;
+	//cout << adjInput.sLabel << " bothtails: " << adjInput.bothtails << endl;
 	//    cout << "lefttail : " << lefttail << endl;
 	//    cout << "righttail: " << righttail << endl;
 
