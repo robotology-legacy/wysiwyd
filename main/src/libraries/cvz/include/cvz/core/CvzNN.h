@@ -439,9 +439,6 @@ namespace cvz {
                         Mean.push_back(mMask->get(i).asDouble());
                 }
 
-                bool    bEveryThingisGood = true;
-
-
                 //Open activity port
                 actPortName = "/";
                 actPortName += getName();
