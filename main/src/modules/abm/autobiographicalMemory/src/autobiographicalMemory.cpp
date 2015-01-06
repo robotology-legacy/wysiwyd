@@ -57,9 +57,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imagePortOut.open(name_imagePortOut.c_str());
 
     //Temp to test data : will be send without checking connection after
-    bool isconnected2Yarpview = Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i");
-
-    if (isconnected2Yarpview) {
+    if (Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i")) {
         cout << endl << "ABM is now connected to Yarpview!" << endl;
     } else {
         cout << endl << "ABM failed to connect to Yarpview!" << endl;
@@ -723,6 +721,7 @@ bool autobiographicalMemory::updateModule()
                     cout << "Error, port " << it->first << " could not be closed" << endl;
                 }
             }
+            mapStreamImgPortOut.clear();
 
             streamStatus = "end";
         }
@@ -1580,7 +1579,6 @@ int autobiographicalMemory::sendStreamImage(int instance)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    mapStreamImgPortOut.clear();
     for (int i = 0; i < bRequest.size(); i++) {
         string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
         mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
@@ -1607,6 +1605,9 @@ int autobiographicalMemory::sendStreamImage(int instance)
         if(i==0) { // only create folder to store images once
             string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
             yarp::os::mkdir(folderName.c_str());
+#ifdef __linux__
+            chmod(folderName.c_str(), 0777);
+#endif
         }
         cout << "Call exportImage with " << imageOID << " : " << storingPath + "/" + storingTmpSuffix + "/" + relative_path << endl;
         exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
