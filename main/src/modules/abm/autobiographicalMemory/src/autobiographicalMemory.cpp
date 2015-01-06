@@ -731,6 +731,9 @@ bool autobiographicalMemory::updateModule()
     if (streamStatus == "end") {
         cout << "============================= STREAM STOP =================================" << endl;
 
+        //TODO:
+        //startThread with storeOID()
+
         //close folder and SQL entry
         streamStatus = "none";
         imgLabel = "defaultLabel";
@@ -1017,6 +1020,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     else
     {   //just one image (sentence?)
         folderWithTime = imgLabel; // TODO: Can we really assume this?!? What if folder is already existing?
+        imgInstance = currentInstance;
         storeImageAllProviders(true, fullSentence);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
@@ -1335,74 +1339,91 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
 //with instance nb
 Bottle autobiographicalMemory::askImage(int instance)
 {
-    Bottle bOutput, bRequest, bResult;
-    bOutput.clear();
-
-    //export the desired image, doing a temp copy
-    bRequest.addString("request");
+    Bottle bSubOutput, bOutput, bRequest;
     ostringstream osArg;
-    //osArg << "SELECT filename FROM images WHERE label = '" << bInput.get(1).asString() << "';" ;
 
-    osArg << "SELECT filename FROM images WHERE instance = '" << instance << "';";
-
+    //get distinct img_provider_port
+    bRequest.addString("request");
+    osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
     bRequest.addString(osArg.str());
-    bResult = request(bRequest);
+    bRequest = request(bRequest);
 
-    //verbose debug
-    cout << "Reply : " << bResult.toString() << endl;
-
-    //if nothing is found : go out with ERROR message
-    if (bResult.toString() == "NULL"){
-        cout << "ERROR : no result is found, no image match the label!" << endl;
-        bOutput.addString("ERROR : no result is found, no image match the label!");
+    int imageCount = exportImages(instance);
+    if(imageCount != bRequest.size()) {
+        cout << "More images than images providers when asked for a single image, abort!" << endl;
+        bOutput.addString("More images than images providers when asked for a single image, abort!");
         return bOutput;
     }
 
-    //if streaming : ERROR (switch to send the 1st image by default?)
-    if (bResult.size() > 1) {
-        cout << "ERROR : You ask for a single image for a stream instance!" << endl;
-        bOutput.addString("ERROR : You ask for a single image for a stream instance!");
-        return bOutput;
-    }
-
-    //just one result
-    string filename = bResult.get(0).asList()->get(0).asString();
+    // get relative_path and img_provider_port for requested instance
     bRequest.clear();
     osArg.str("");
 
-    //path of the temp image
-    stringstream tmpPath;
-
-    //lo_export to make a tmp copy before sending
-    tmpPath << storingPath << "/" << storingTmpSuffix << "/" << filename;
     bRequest.addString("request");
-
-    //retrieve the image from the db and print it to /storingPath/temp folder
-    osArg << "SELECT lo_export(img_oid, '" << tmpPath.str() << "') from images WHERE instance = '" << instance << "';";
-
+    osArg << "SELECT relative_path, img_provider_port FROM images WHERE instance = " << instance << " ORDER BY time" << endl;
     bRequest.addString(osArg.str());
-    bResult = request(bRequest);
+    bRequest = request(bRequest);
 
-    //clear
-    bResult.clear();
-    osArg.str("");
+    for (int i = 0; i < bRequest.size(); i++) {
+        string relative_path = bRequest.get(i).asList()->get(0).toString();
+        string imgProviderPort = bRequest.get(i).asList()->get(1).asString();
+        //cout << "Create image " << i << " " << relative_path << endl;
 
-    // hack just to check with a default yarpview
-    if (!Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i"))
-    {
-        cout << "Error in aubotiographicalMemory::testSendImage : cannot connect to camera." << endl;
-    }
-    else
-    {
-        if (!sendImage(tmpPath.str())){
-            fprintf(stderr, "Cannot load file %s !\n", tmpPath.str().c_str());
-            bOutput.addString("Cannot load image");
+        // create image
+        IplImage* img = cvLoadImage((storingPath + "/" + storingTmpSuffix + "/" + relative_path).c_str(), CV_LOAD_IMAGE_UNCHANGED);
+        if (img == 0) {
+            cout << "Image " << storingPath << "/" << storingTmpSuffix << "/" + relative_path << " could not be loaded.";
+            bOutput.addString((storingPath + "/" + storingTmpSuffix + "/" + relative_path).c_str());
             return bOutput;
         }
 
+        //cout << "Image created" << endl;
+
+        //create a yarp image
+        cvCvtColor(img, img, CV_BGR2RGB);
+        ImageOf<PixelRgb> temp;
+        temp.resize(img->width, img->height);
+        cvCopyImage(img, (IplImage *)temp.getIplImage());
+
+        //cout << "Image copied to yarp image" << endl;
+
+        Bottle bCurrentImageProvider;
+        bCurrentImageProvider.addString(imgProviderPort);
+        yarp::os::Portable::copyPortable(temp, bCurrentImageProvider.addList());
+        bSubOutput.addList() = bCurrentImageProvider;
+        //cout << "Image copied to bottle" << endl;
+
+        cvReleaseImage(&img);
+        //cout << "Image released" << endl;
     }
 
     bOutput.addString("ack");
+    bOutput.addList() = bSubOutput;
+
+    // Testing to get an image from the bottle
+    // This is just for testing purposes, and your own module should implement this!
+
+    // Bottle: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
+    string desiredLabel = "/icubSim/cam/right";
+
+    Bottle bResponse = bOutput;
+    Bottle* bImages = bResponse.get(1).asList(); // (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3))
+
+    for(int imageProvider = 0; imageProvider<bImages->size(); imageProvider++) {
+        Bottle* bImage = bImages->get(imageProvider).asList(); // (labelProvider1 (image1.1))
+        //cout << bImage1->toString() << endl;
+        string bImageLabel = bImage->get(0).toString(); // labelProvider1
+        cout << bImageLabel << endl;
+
+        if(bImageLabel==desiredLabel) {
+            ImageOf<PixelRgb> &temp = imagePortOut.prepare();
+            Bottle* bRawImage = bImage->get(1).asList(); //image1.1
+            yarp::os::Portable::copyPortable(*bRawImage, temp);
+        }
+
+        imagePortOut.write();
+   }
+
     return bOutput;
 }
 
@@ -1522,7 +1543,6 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
 {
     //Extract the incoming images from yarp
     ImageOf<PixelRgb> *yarpImage = imgPort->read();
-
     //cout << "imgPort name : " << imgPort->getName() << endl ; 
 
     if (yarpImage != NULL) { // check we actually got something
@@ -1531,7 +1551,7 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
         cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
         cvSaveImage(fullPath.c_str(), cvImage);
 
-        //cout << "img created : " << fullPath.c_str() << endl ;
+        //cout << "img created : " << fullPath << endl ;
         cvReleaseImage(&cvImage);
     }
     else {
@@ -1570,6 +1590,15 @@ bool autobiographicalMemory::sendImage(string fullPath, BufferedPort<ImageOf<Pix
 
 int autobiographicalMemory::sendStreamImage(int instance)
 {
+    openStreamImgPorts(instance);
+    int imageCount = exportImages(instance);
+    streamStatus = "send"; //streamStatus changed (triggered in update())
+
+    return imageCount;
+}
+
+int autobiographicalMemory::openStreamImgPorts(int instance)
+{
     Bottle bRequest;
     ostringstream osArg;
 
@@ -1589,37 +1618,7 @@ int autobiographicalMemory::sendStreamImage(int instance)
 
     cout << "Just created " << mapStreamImgPortOut.size() << " ports." << endl;
 
-    //extract oid of all the images
-    bRequest.clear();
-    osArg.str("");
-
-    bRequest.addString("request");
-    osArg << "SELECT img_oid, relative_path FROM images WHERE instance = " << instance << " ORDER BY time" << endl;
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
-
-    //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
-    for (int i = 0; i < bRequest.size(); i++) {
-        int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
-        string relative_path = bRequest.get(i).asList()->get(1).toString();
-        if(i==0) { // only create folder to store images once
-            string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
-            yarp::os::mkdir(folderName.c_str());
-#ifdef __linux__
-            chmod(folderName.c_str(), 0777);
-#endif
-        }
-        cout << "Call exportImage with " << imageOID << " : " << storingPath + "/" + storingTmpSuffix + "/" + relative_path << endl;
-        exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
-    }
-
-    cout << "Going to send " << bRequest.size() << " images." << endl;
-
-    //streamStatus changed (triggered in update())
-    streamStatus = "send";
-    //bOutput.addString("ack");
-
-    return bRequest.size();
+    return mapStreamImgPortOut.size();
 }
 
 //store an image into the SQL db /!\ no lo_import/oid!! (high frequency streaming needed)
@@ -1633,8 +1632,6 @@ bool autobiographicalMemory::storeImage(int instance, string label, string relat
     osArg << "INSERT INTO images(instance, label, relative_path, time, img_provider_port) VALUES (" << instance << ", '" << label << "', '" << relativePath << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
-
-    //bOutput.addString("ack");
 
     return true;
 }
@@ -1656,6 +1653,11 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, stri
             //take the full sentence, replace space by _ to have the img name
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
             imgName << fullSentence << "_" << it->first << "." << imgFormat;
+
+            yarp::os::mkdir((storingPath + "/" + folderWithTime).c_str());
+#ifdef __linux__
+            chmod((storingPath + "/" + folderWithTime).c_str(), 0777);
+#endif
         } else {
             imgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
         }
@@ -1670,6 +1672,12 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, stri
                 allGood = false;
             }
         }
+    }
+
+    // only save storeOID if its a single image instance
+    // for streaming, we take care of this in updateModule at the stream "end"
+    if(forSingleInstance) {
+        storeOID();
     }
 
     return allGood;
@@ -1705,6 +1713,36 @@ bool autobiographicalMemory::storeOID() {
     }
 
     return true;
+}
+
+// exports all images given an instance
+int autobiographicalMemory::exportImages(int instance)
+{
+    Bottle bRequest;
+    ostringstream osArg;
+
+    //extract oid of all the images
+    bRequest.addString("request");
+    osArg << "SELECT img_oid, relative_path FROM images WHERE instance = " << instance << " ORDER BY time" << endl;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+
+    //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
+    for (int i = 0; i < bRequest.size(); i++) {
+        int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
+        string relative_path = bRequest.get(i).asList()->get(1).toString();
+        if(i==0) { // only create folder to store images once
+            string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
+            yarp::os::mkdir(folderName.c_str());
+#ifdef __linux__
+            chmod(folderName.c_str(), 0777);
+#endif
+        }
+        cout << "Call exportImage with " << imageOID << " : " << storingPath + "/" + storingTmpSuffix + "/" + relative_path << endl;
+        exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
+    }
+
+    return bRequest.size();
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted

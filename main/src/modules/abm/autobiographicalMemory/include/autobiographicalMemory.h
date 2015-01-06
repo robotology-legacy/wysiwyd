@@ -4,6 +4,9 @@
 #include <cv.h>
 #include <highgui.h>
 #include <stdio.h>
+#ifdef __linux__
+#include <sys/stat.h>
+#endif
 
 const std::string s_real_OPC = "OPC";
 
@@ -75,6 +78,8 @@ public:
     bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(std::string fullPath);
+    int openStreamImgPorts(int instance);
+    int exportImages(int instance);
     bool exportImage(int img_oid, std::string path);
     bool storeImage(int instance, std::string label, std::string relativePath, std::string imgTime, std::string currentImgProviderPort);
     bool storeImageAllProviders(bool forSingleInstance=false, std::string fullSentence="");
