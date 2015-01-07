@@ -266,8 +266,9 @@ bool autobiographicalMemory::sendImage(string fullPath, BufferedPort<ImageOf<Pix
     return true;
 }
 
-int autobiographicalMemory::sendStreamImage(int instance)
+int autobiographicalMemory::sendStreamImage(int instance, bool timingE)
 {
+    timingEnabled = timingE;
     openStreamImgPorts(instance);
     int imageCount = exportImages(instance);
     streamStatus = "send"; //streamStatus changed (triggered in update())
@@ -393,7 +394,7 @@ bool autobiographicalMemory::storeOID() {
 
         requestFromString(osStoreOID.str());
 
-        if(i%100==0) {
+        if(i%100==0 || i==bRequest.size() - 1) {
             cout << "Saved " << i << " images out of " << bRequest.size() << endl;
         }
     }

@@ -1,3 +1,9 @@
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <sys/time.h>
+#endif
+
 #include "autobiographicalMemory.h"
 
 using namespace yarp::sig;
@@ -414,7 +420,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
 
         // ask for streaming data : they will be sent through ports opened by autobiographicalMemory based on the original image provider port (/autobiographicalMemory/imgProviderPortName)
-        else if (bCommand.get(0) == "sendStreamImage")
+        else if (bCommand.get(0) == "sendStreamImage") // TODO: Check for timingEnabled
         {
             if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
             {
@@ -489,7 +495,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "storeOID")
         {
-            storeOID();
+            if(storeOID())
+                bReply.addString("ack");
+            else
+                bReply.addString("storeOID failed");
         }
     }
     else
@@ -536,12 +545,16 @@ bool autobiographicalMemory::updateModule() {
             bListImages.clear();
             bListImages.addString("request");
             ostringstream osArg;
-            osArg << "SELECT relative_path, img_provider_port, time FROM images WHERE instance = '" << imgInstance << "' ORDER BY time;";
+            osArg << "SELECT relative_path, img_provider_port, time, ";
+            osArg << "EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = '" << imgInstance << "'  ORDER BY time LIMIT 1)) * 1000000 as time_difference ";
+            osArg << "FROM images WHERE instance = '" << imgInstance << "' ORDER BY time;";
             bListImages.addString(osArg.str());
             bListImages = request(bListImages);
 
             //cout << "bListImages : " << bListImages.toString() << endl ;
             //cout << "bListImages size : " << bListImages.size() << endl ;
+
+            timeStreamStart = getCurrentTimeInMS();
         }
 
         //If we currently have images left to be send
@@ -569,17 +582,28 @@ bool autobiographicalMemory::updateModule() {
             }
             // hack end
 
-            for(unsigned int i=0; i<mapStreamImgPortOut.size(); i++) {
-                //concatenation of the storing path
-                stringstream fullPath;
-                fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asList()->get(0).asString().c_str();
-                BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(imgNb).asList()->get(1).asString().c_str());
 
-                //cout << "Send image " << imgNb << ": " << fullPath.str() << endl;
-                sendImage(fullPath.str(), port);
+            long timeStreamCurrent = getCurrentTimeInMS();
 
-                //next image
-                imgNb += 1;
+            long updateTimeDifference = timeStreamCurrent - timeStreamStart;
+            long streamTimeDifference = atol(bListImages.get(imgNb).asList()->get(3).toString().c_str());
+
+            if(updateTimeDifference >= streamTimeDifference || !timingEnabled) {
+                cout << "Send out image " << imgNb << endl;
+                for(unsigned int i=0; i<mapStreamImgPortOut.size(); i++) {
+                    //concatenation of the storing path
+                    stringstream fullPath;
+                    fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asList()->get(0).asString().c_str();
+                    BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(imgNb).asList()->get(1).asString().c_str());
+
+                    //cout << "Send image " << imgNb << ": " << fullPath.str() << endl;
+                    sendImage(fullPath.str(), port);
+
+                    //next image
+                    imgNb += 1;
+                }
+            } else {
+                cout << "Image not send yet, due to time control" << endl;
             }
         } else {
             //Close ports which were opened in sendStreamImage

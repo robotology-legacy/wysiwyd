@@ -165,6 +165,20 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
     return bOutput;
 }
 
+long autobiographicalMemory::getCurrentTimeInMS()
+{
+#ifdef WIN32
+// TODO: Needs to be done, check GetSystemTimeAsFileTime
+#else
+    struct timezone tz;
+    struct timeval tv;
+    gettimeofday(&tv, &tz);
+    long iS = tv.tv_sec * 1000000;
+    long iUS = tv.tv_usec;
+    return iS + iUS;
+#endif
+}
+
 string autobiographicalMemory::getCurrentTime()
 {
     struct tm Time;

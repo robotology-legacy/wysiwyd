@@ -49,7 +49,6 @@ private:
 
     // helpers
     yarp::os::Bottle detectFailed();
-    std::string getCurrentTime();
 
 public:
     std::string portEventsName;
@@ -77,7 +76,10 @@ public:
     yarp::os::Bottle snapshotBehavior(yarp::os::Bottle bInput);
 
     // visualABM
-    int sendStreamImage(int instance); //return nb of images that will be sent
+    bool timingEnabled;
+    long timeStreamStart;
+
+    int sendStreamImage(int instance, bool timingEnabled=false); //return nb of images that will be sent
     yarp::os::Bottle askImage(int instance);
 
     bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
@@ -104,6 +106,9 @@ public:
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
 
     // helpers
+    std::string getCurrentTime();
+    long getCurrentTimeInMS();
+
     void writeInsert(std::string request);
     bool readInsert();
 
