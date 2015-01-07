@@ -555,6 +555,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             bReply = eraseInstance(bCommand);
         }
+
+        // ask for streaming data : they will be sent through ports opened by autobiographicalMemory based on the original image provider port (/autobiographicalMemory/imgProviderPortName)
         else if (bCommand.get(0) == "sendStreamImage")
         {
             if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
@@ -572,6 +574,9 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
+
+        //ask for a single image : a single image for EACH image provider so you may end up by several of them
+        // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
         else if (bCommand.get(0) == "askImage")
         {
             if (bCommand.size() > 1)
@@ -591,15 +596,12 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        // setCustomImgProvider (label /yarp/port/img/provider)
+        // add an image provider for the following stream recording : addImgProvider (label /yarp/port/img/provider)
         else if (bCommand.get(0) == "addImgProvider")
         {
             if (bCommand.size() > 1 && bCommand.get(1).isList())
             {
                 if (bCommand.get(1).asList()->size() == 2){
-                    //TODO : check that the label is not used
-
-                    //TODO : several custom at the same time (fill in dictionnary)                   
                     bReply = addImgProvider(bCommand.get(1).asList()->get(0).toString().c_str(), bCommand.get(1).asList()->get(1).toString().c_str());
                 }
                 else {
@@ -613,14 +615,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
+
+        //remove an image provider from the list of available stream images provider
         else if (bCommand.get(0) == "removeImgProvider")
         {
             if (bCommand.size() > 1)
             {
                 string labelImgProvider = bCommand.get(1).toString().c_str();
-
-                //TODO : remove it from the list of imgProvider
-
                 bReply = removeImgProvider(labelImgProvider);
             }
             else
@@ -646,8 +647,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 }
 
 /* rpc update module */
-bool autobiographicalMemory::updateModule()
-{
+bool autobiographicalMemory::updateModule(){
+
+    //we have received a snapshot command indicating an activity that take time so streaming is needed
+    //currently it is everything BUT a sentence
     if (streamStatus == "begin") {
         cout << "============================= STREAM BEGIN =================================" << endl;
 
@@ -669,8 +672,9 @@ bool autobiographicalMemory::updateModule()
         //cout << "Image Nb " << imgNb << endl;
         storeImageAllProviders();
     }
-    else if (streamStatus == "send") { //stream to send
-        //select all the images (through primary key oid) corresponding to a precise instance
+    else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
+
+        //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (imgNb == 0) {
             cout << "============================= STREAM SEND =================================" << endl;
             bListImages.clear();
@@ -731,6 +735,7 @@ bool autobiographicalMemory::updateModule()
                     cout << "Error, port " << it->first << " could not be closed" << endl;
                 }
             }
+
             mapStreamImgPortOut.clear();
 
             streamStatus = "end";
@@ -1346,22 +1351,29 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     return bSnapShot;
 }
 
-//test to extract a temp copy of an image by giving the label
-//WARNING : label is not primary key, as we could store several picture of the same label (different angle/time)
+//Ask for a single image of a precise instance. It can be because it is a sentence instance or a stream : in that case the first image of the stream will be sent.
+//If several provider were used, a single image from each image provider will be sent
+// Return : ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
 
-//with instance nb
 Bottle autobiographicalMemory::askImage(int instance)
 {
     Bottle bSubOutput, bOutput, bRequest;
     ostringstream osArg;
 
     //get distinct img_provider_port
+
+    //TODO : we can used the second request that is done just after right?
     bRequest.addString("request");
     osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
+    //export all the images from the instance into the temp folder
+    //TODO : not doing that if it is a stream as it will copy the steam in the harddrive just to send 1 images from it?
     int imageCount = exportImages(instance);
+    //TODO : not doing that if it is a stream as it will copy the steam in the harddrive just to send 1 images from it?
+    //use forSingleInstance like in storeImageAllProvider?
+
     if(imageCount != bRequest.size()) {
         cout << "More images than images providers when asked for a single image, abort!" << endl;
         bOutput.addString("More images than images providers when asked for a single image, abort!");
@@ -1377,12 +1389,13 @@ Bottle autobiographicalMemory::askImage(int instance)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
+    //go through all the image provider for the instance.
     for (int i = 0; i < bRequest.size(); i++) {
         string relative_path = bRequest.get(i).asList()->get(0).toString();
         string imgProviderPort = bRequest.get(i).asList()->get(1).asString();
         //cout << "Create image " << i << " " << relative_path << endl;
 
-        // create image
+        // create image in the /storePath/tmp/relative_path
         IplImage* img = cvLoadImage((storingPath + "/" + storingTmpSuffix + "/" + relative_path).c_str(), CV_LOAD_IMAGE_UNCHANGED);
         if (img == 0) {
             cout << "Image " << storingPath << "/" << storingTmpSuffix << "/" + relative_path << " could not be loaded.";
@@ -1400,9 +1413,12 @@ Bottle autobiographicalMemory::askImage(int instance)
 
         //cout << "Image copied to yarp image" << endl;
 
+        //for the current image of the actual image provider, we had the label of the provider to the image
         Bottle bCurrentImageProvider;
         bCurrentImageProvider.addString(imgProviderPort);
+        //use this copyPortable in order to be able to send the image as a bottle in the rpc port of the responde method
         yarp::os::Portable::copyPortable(temp, bCurrentImageProvider.addList());
+        //add the pair imgProviderPort (image) to the subottle
         bSubOutput.addList() = bCurrentImageProvider;
         //cout << "Image copied to bottle" << endl;
 
@@ -1422,7 +1438,8 @@ Bottle autobiographicalMemory::askImage(int instance)
     Bottle bResponse = bOutput;
     Bottle* bImages = bResponse.get(1).asList(); // (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3))
 
-    for(int imageProvider = 0; imageProvider<bImages->size(); imageProvider++) {
+    //go through each of the subottles, one for each imageProvider
+    for(int imageProvider = 0; imageProvider < bImages->size(); imageProvider++) {
         Bottle* bImage = bImages->get(imageProvider).asList(); // (labelProvider1 (image1.1))
         //cout << bImage1->toString() << endl;
         string bImageLabel = bImage->get(0).toString(); // labelProvider1
