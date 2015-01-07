@@ -1362,30 +1362,20 @@ Bottle autobiographicalMemory::askImage(int instance)
 
     //get distinct img_provider_port
 
-    //TODO : we can used the second request that is done just after right?
     bRequest.addString("request");
     osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
     //export all the images from the instance into the temp folder
-    //TODO : not doing that if it is a stream as it will copy the steam in the harddrive just to send 1 images from it?
-    int imageCount = exportImages(instance);
-    //TODO : not doing that if it is a stream as it will copy the steam in the harddrive just to send 1 images from it?
-    //use forSingleInstance like in storeImageAllProvider?
-
-    if(imageCount != bRequest.size()) {
-        cout << "More images than images providers when asked for a single image, abort!" << endl;
-        bOutput.addString("More images than images providers when asked for a single image, abort!");
-        return bOutput;
-    }
+    int savedImages = exportImages(instance, 0, bRequest.size());
 
     // get relative_path and img_provider_port for requested instance
     bRequest.clear();
     osArg.str("");
 
     bRequest.addString("request");
-    osArg << "SELECT relative_path, img_provider_port FROM images WHERE instance = " << instance << " ORDER BY time" << endl;
+    osArg << "SELECT relative_path, img_provider_port FROM images WHERE instance = " << instance << " ORDER BY time LIMIT " << savedImages << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -1404,7 +1394,6 @@ Bottle autobiographicalMemory::askImage(int instance)
         }
 
         //cout << "Image created" << endl;
-
         //create a yarp image
         cvCvtColor(img, img, CV_BGR2RGB);
         ImageOf<PixelRgb> temp;
@@ -1443,7 +1432,6 @@ Bottle autobiographicalMemory::askImage(int instance)
         Bottle* bImage = bImages->get(imageProvider).asList(); // (labelProvider1 (image1.1))
         //cout << bImage1->toString() << endl;
         string bImageLabel = bImage->get(0).toString(); // labelProvider1
-        cout << bImageLabel << endl;
 
         if(bImageLabel==desiredLabel) {
             ImageOf<PixelRgb> &temp = imagePortOut.prepare();
@@ -1754,7 +1742,7 @@ bool autobiographicalMemory::storeOID() {
 }
 
 // exports all images given an instance
-int autobiographicalMemory::exportImages(int instance)
+int autobiographicalMemory::exportImages(int instance, int fromImage, int toImage)
 {
     Bottle bRequest;
     ostringstream osArg;
@@ -1765,8 +1753,18 @@ int autobiographicalMemory::exportImages(int instance)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
+    if(fromImage<0)
+        fromImage = 0;
+    if(toImage==-1)
+        toImage = bRequest.size();
+    if(toImage > bRequest.size()) {
+        cout << "Requested to save up to image " << toImage << ", but only " << bRequest.size() << " available." << endl;
+        toImage = bRequest.size();
+        cout << "Will only send up to image " << toImage << endl;
+    }
+
     //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
-    for (int i = 0; i < bRequest.size(); i++) {
+    for (int i = fromImage; i < toImage; i++) {
         int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
         string relative_path = bRequest.get(i).asList()->get(1).toString();
         if(i==0) { // only create folder to store images once
@@ -1780,7 +1778,8 @@ int autobiographicalMemory::exportImages(int instance)
         exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
     }
 
-    return bRequest.size();
+    // return how many images were saved
+    return toImage-fromImage;
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted

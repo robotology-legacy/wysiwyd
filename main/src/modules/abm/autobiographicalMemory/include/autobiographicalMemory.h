@@ -79,7 +79,7 @@ public:
     bool sendImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(std::string fullPath);
     int openStreamImgPorts(int instance);
-    int exportImages(int instance);
+    int exportImages(int instance, int fromImage=-1, int toImage=-1);
     bool exportImage(int img_oid, std::string path);
     bool storeImage(int instance, std::string label, std::string relativePath, std::string imgTime, std::string currentImgProviderPort);
     bool storeImageAllProviders(bool forSingleInstance=false, std::string fullSentence="");
