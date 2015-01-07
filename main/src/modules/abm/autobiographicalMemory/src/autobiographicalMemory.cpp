@@ -122,6 +122,7 @@ Bottle autobiographicalMemory::restoBottle(ResultSet bResult)
 /* Send a query to the DB. bRequest must be the complete request */
 Bottle autobiographicalMemory::request(Bottle bRequest)
 {
+    database_mutex.lock();
     //prepare the ResultSet of the query and the reply
     ResultSet rs1;
     Bottle bReply;
@@ -147,6 +148,7 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
         string sExcept = "Exception during request: "; sExcept += e.what();
         bReply.addString(sExcept.c_str());
     }
+    database_mutex.unlock();
 
     return bReply;
 }
@@ -648,29 +650,14 @@ bool autobiographicalMemory::updateModule()
 {
     if (streamStatus == "begin") {
         cout << "============================= STREAM BEGIN =================================" << endl;
-        //create folder
-        string currentPathFolder = storingPath + "/" + imgLabel;
-
-        folderWithTime = imgLabel;
-
-        //if -1 : repo already there
-        if (yarp::os::mkdir(currentPathFolder.c_str()) == -1){
-            cout << "WARNING: folder already exist, add getTime to it!" << endl;
-            string currentTime = getCurrentTime();
-
-            //need to change ':' and ' ' by _ for folder name
-            replace(currentTime.begin(), currentTime.end(), ':', '_');
-            replace(currentTime.begin(), currentTime.end(), ' ', '_');
-            folderWithTime += currentTime;
-
-            currentPathFolder = storingPath + "/" + folderWithTime;
-
-            yarp::os::mkdir(currentPathFolder.c_str());
-        }
-
-        cout << "Going to create folder : " << currentPathFolder << endl;
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
+
+        stringstream imgInstanceString; imgInstanceString << imgInstance;
+        string currentPathFolder = storingPath + "/" + imgInstanceString.str();
+        if (yarp::os::mkdir(currentPathFolder.c_str()) == -1) {
+            cout << "WARNING: folder " << currentPathFolder << " already exists or could not be created!" << endl;
+        }
 
         storeImageAllProviders();
 
@@ -689,7 +676,7 @@ bool autobiographicalMemory::updateModule()
             bListImages.clear();
             bListImages.addString("request");
             ostringstream osArg;
-            osArg << "SELECT relative_path, img_provider_port FROM images WHERE instance = '" << imgInstance << "';";
+            osArg << "SELECT relative_path, img_provider_port, time FROM images WHERE instance = '" << imgInstance << "' ORDER BY time;";
             bListImages.addString(osArg.str());
             bListImages = request(bListImages);
 
@@ -699,13 +686,36 @@ bool autobiographicalMemory::updateModule()
 
         //If we currently have images left to be send
         if (imgNb < bListImages.size()) {
-            //cout << "Send image number " << imgNb << endl ;
+            // hack to make sure we don't send images where
+            // not all providers have an image stored
+            bool timesMatch = false;
+            // loop until we have a match found
+            while(!timesMatch && imgNb < bListImages.size()) {
+                timesMatch = true;
+                // store time of the imgNb-th image
+                string imgNbTimeFirstImage = bListImages.get(imgNb).asList()->get(2).asString();
+                // compare the time of the imgNb-th image with the imgNb+i-th image
+                // if they are different, there is something wrong. in this case,
+                // just increase imgNb by one and we go back to the start of the loop
+                for(unsigned int i=1; i<mapStreamImgPortOut.size(); i++) {
+                    string imgNbTime = bListImages.get(imgNb+i).asList()->get(2).asString();
+                    if(imgNbTime != imgNbTimeFirstImage) {
+                        cout << "Skip image " << imgNb << " because matching image is not present" << endl;
+                        timesMatch = false;
+                        imgNb++;
+                        continue;
+                    }
+                }
+            }
+            // hack end
 
-            //concatenation of the storing path
             for(unsigned int i=0; i<mapStreamImgPortOut.size(); i++) {
+                //concatenation of the storing path
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asList()->get(0).asString().c_str();
                 BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(imgNb).asList()->get(1).asString().c_str());
+
+                //cout << "Send image " << imgNb << ": " << fullPath.str() << endl;
                 sendImage(fullPath.str(), port);
 
                 //next image
@@ -929,6 +939,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 
     bMain.addString(string(osMain.str()).c_str());
     // cout << "\n\n" << string(osMain.str()).c_str() << endl;
+    //cout << "Snapshot: Update main table" << endl;
     bMain = request(bMain);
 
     //Connection to the OPC
@@ -936,6 +947,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     ostringstream osName;
     osName << sName << instance;
     sName += osName.str();                         //I dont understand this Gregoire : you concatenate the name with nameInstance with itself, producing namenameinstance
+    //cout << "OPCEARS: " << sName << endl;
     Bottle bSnapShot = OPCEARS.insertOPC(sName);
 
     // Filling contentArg
@@ -980,6 +992,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
                 bRequest.clear();
                 bRequest.addString("request");
                 bRequest.addString(string(osArg.str()).c_str());
+                //cout << "Snapshot: Update contentarg table" << endl;
                 request(bRequest);
             }
         }
@@ -990,6 +1003,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         bTemp.clear();
         bTemp.addString("request");
         bTemp.addString(bSnapShot.get(i).toString().c_str());
+        //cout << "Snapshot: Update OPCEARS snapshot" << endl;
         bTemp = request(bTemp);
     }
 
@@ -1019,7 +1033,6 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     }
     else
     {   //just one image (sentence?)
-        folderWithTime = imgLabel; // TODO: Can we really assume this?!? What if folder is already existing?
         imgInstance = currentInstance;
         storeImageAllProviders(true, fullSentence);
 
@@ -1645,6 +1658,8 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, stri
     for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
     {
         //concatenation of the path to store
+        stringstream imgInstanceString; imgInstanceString << imgInstance;
+
         stringstream imgName;
         if(forSingleInstance) {
             if (fullSentence == ""){
@@ -1654,22 +1669,28 @@ bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, stri
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
             imgName << fullSentence << "_" << it->first << "." << imgFormat;
 
-            yarp::os::mkdir((storingPath + "/" + folderWithTime).c_str());
+            string currentPathFolder = storingPath + "/"; currentPathFolder+=imgInstanceString.str();
+            yarp::os::mkdir(currentPathFolder.c_str());
 #ifdef __linux__
-            chmod((storingPath + "/" + folderWithTime).c_str(), 0777);
+            chmod(currentPathFolder.c_str(), 0777);
 #endif
         } else {
             imgName << imgLabel << imgNb << "_" << it->first << "." << imgFormat;
         }
 
-        if (!createImage(storingPath + "/" + folderWithTime + "/" + imgName.str(), it->second)) {
+        string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
+
+        string imagePath = storingPath + "/" + relativeImagePath;
+        if (!createImage(imagePath, it->second)) {
             cout << "Error in Update : image not created from " << it->first << endl;
             allGood = false;
         }
         else {
+            //cout << "Store image " << imagePath << " in database." << endl;
             //create SQL entry, register the cam image in specific folder
-            if(!storeImage(imgInstance, imgLabel, folderWithTime +"/"+ imgName.str(), synchroTime, mapImgProvider[it->first])) {
+            if(!storeImage(imgInstance, imgLabel, relativeImagePath, synchroTime, mapImgProvider[it->first])) {
                 allGood = false;
+                cout << "Something went wrong storing image " << relativeImagePath << endl;
             }
         }
     }

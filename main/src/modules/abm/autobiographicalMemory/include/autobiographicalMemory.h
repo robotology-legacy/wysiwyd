@@ -25,7 +25,6 @@ private:
 
     //for update camera stream
     std::string streamStatus;
-    std::string folderWithTime;
     std::string imgLabel;
 
     int imgNb;
@@ -45,6 +44,7 @@ private:
     std::string getCurrentTime();
 
     DataBase<PostgreSql>* ABMDataBase;
+    yarp::os::Mutex database_mutex;
 
 public:
     std::string portEventsName;
