@@ -1,3 +1,6 @@
+#ifndef _AUTOBIOGRAPHICALMEMORY_
+#define _AUTOBIOGRAPHICALMEMORY_
+
 #include <db/PostgreSQL.h>
 #include "wrdac/clients/opcEars.h"
 #include <yarp/os/all.h>
@@ -60,7 +63,6 @@ public:
 
     yarp::os::Bottle request(yarp::os::Bottle request);
     yarp::os::Bottle requestFromString(std::string sInput);
-    yarp::os::Bottle save(yarp::os::Bottle bInput);
     yarp::os::Bottle addInteraction(yarp::os::Bottle interaction);
     yarp::os::Bottle newDB(yarp::os::Bottle bInput);
     yarp::os::Bottle load(yarp::os::Bottle bInput);
@@ -111,3 +113,5 @@ public:
 
     //yarp::os::Bottle getInfoAbout(std::string sName);
 };
+
+#endif
