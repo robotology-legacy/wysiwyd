@@ -1,5 +1,5 @@
 /* 
-* Copyright (C) 2014 WYSIWYD 
+* Copyright (C) 2015 WYSIWYD
 * Authors: Tobias Fischer
 * email:   t.fischer@imperial.ac.uk
 * Permission is granted to copy, distribute, and/or modify this program
@@ -23,11 +23,9 @@
 #include <yarp/os/all.h>
 #include "PerspectiveTaking.h"
 
-using namespace std;
 using namespace yarp::os;
 
-int main(int argc, char * argv[])
-{
+int main(int argc, char * argv[]) {
     srand(time(NULL));
     Network yarp;
     ResourceFinder rf;

@@ -70,8 +70,7 @@ bool CameraKinectWrapper::init() {
     return true;
 }
 
-void CameraKinectWrapper::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy)
-{
+void CameraKinectWrapper::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy) {
     client.getDepth(_depth);
     client.getDepthImage(_depth,_depthToDisplay);
     client.getRgb(_rgb);

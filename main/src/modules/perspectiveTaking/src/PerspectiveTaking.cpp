@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+ * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Tobias Fischer
  * email:   t.fischer@imperial.ac.uk
  * Permission is granted to copy, distribute, and/or modify this program
@@ -23,7 +23,6 @@
 #include <yarp/math/Math.h>
 
 #include <rtabmap/core/Parameters.h>
-#include <rtabmap/utilite/UEventsManager.h>
 
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
@@ -32,184 +31,43 @@
 
 using namespace std;
 using namespace yarp::os;
-
-/* 
- * Configure method. Receive a previously initialized
- * resource finder object. Use it to configure your module.
- * If you are migrating from the old Module, this is the
- * equivalent of the "open" method.
- */
+using namespace yarp::sig;
+using namespace yarp::math;
+using namespace kinectWrapper;
+using namespace wysiwyd::wrdac;
 
 bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     resfind = rf;
-
-    int verbosity=rf.check("verbosity",Value(0)).asInt();
-    string moduleName = rf.check("name", Value("perspectiveTaking"), "module name (string)").asString();
-    setName(moduleName.c_str());
-
+    setName(rf.check("name", Value("perspectiveTaking"), "module name (string)").asString().c_str());
     loopCounter = 0;
 
-    // Read parameters for rtabmap from rtabmap_config.ini
-    ParametersMap parameters;
-    Rtabmap::readParameters(rf.findFileByName("rtabmap_config.ini"), parameters);
+    connectToOPC(rf.check("opc",Value("OPC")).asString().c_str());
+    connectToKinectServer(rf.check("kinClientverbosity",Value(0)).asInt());
+    openHandlerPort();
 
-    //Open the OPC Client
-    string opcName=rf.check("opc",Value("OPC")).asString().c_str();
-    opc = new OPCClient(moduleName);
-    while (!opc->connect(opcName))
-    {
-        cout<<"Waiting connection to OPC..."<<endl;
-        Time::delay(1.0);
-    }
+    //getRFHTransMat(resfind.check("rfh",Value("referenceFrameHandler")).asString().c_str());
+    getManualTransMat();
+    cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
 
     //port for images
-    ABMimagePortOut.open("/"+getName()+"/images/out");
+    selfPerspImgPort.open("/"+getName()+"/images/self:o");
+    partnerPerspImgPort.open("/"+getName()+"/images/partner:o");
 
-    // Connect to kinectServer
-    string clientName = getName()+"/kinect";
+    mapBuilder = new MapBuilder(rf.check("decimationOdometry",Value(2)).asInt(),
+                                rf.check("decimationStatistics",Value(2)).asInt());
 
-    Property options;
-    options.put("carrier","tcp");
-    options.put("remote","kinectServer");
-    options.put("local",clientName.c_str());
-    options.put("verbosity",verbosity);
-
-    while (!client.open(options))
-    {
-        cout<<"Waiting connection to KinectServer..."<<endl;
-        Time::delay(1.0);
-    }
-
-    //Retrieve the calibration matrix from RFH
-    //WARNING: THIS IS CURRENTLY NOT USED!
-    string rfhLocal = "/"+moduleName+"/rfh:o";
-    rfh.open(rfhLocal.c_str());
-
-    string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
-    string rfhRemote = "/"+rfhName+"/rpc";
-
-    /*while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str()))
-    {
-        cout << "Waiting for connection to RFH..." << endl;
-        Time::delay(1.0);
-    }
-
-    while(!getRFHMatrix("kinect", "icub", kinect2icub))
-    {
-        cout << "Kinect2iCub matrix not calibrated, please do so in agentDetector" << endl;
-        Time::delay(1.0);
-    }
-    while(!getRFHMatrix("icub", "kinect", icub2kinect))
-    {
-        cout << "iCub2Kinect matrix not calibrated, please do so in agentDetector" << endl;
-        Time::delay(1.0);
-    }*/
-
-    kinect2icub_pcl = Eigen::Matrix4f::Zero();
-    //TODO: Get kinect2icub_pcl from referenceFrameHandler
-    //yarp2pclKinectMatrix(kinect2icub, kinect2icub_pcl);
-    //cout << kinect2icub_pcl << endl;
-
-    // Estimate rotation+translation from kinect to icub head
-    Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
-
-    // iCub head is ~40cm below kinect
-    rot_trans.translation() << 0.0, 0.0, -0.4;
-    // iCub head is tilted ~30 degrees down
-    float theta_degrees=-30;
-    float theta = theta_degrees/180*M_PI;
-    rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
-
-    kinect2icub_pcl = rot_trans.matrix();
-    cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
+    setupThreads();
 
     // we need to convert from yarp reference frame to pcl reference frame
     yarp2pcl = Eigen::Matrix4f::Identity();
     yarp2pcl(0, 0) = -1; // x is back on the icub, forward in pcl
     yarp2pcl(1, 1) = -1; // y is right on the icub, left in pcl
 
-    // Define pos, view and up vector in iCub coordinates
+    // Set camera position for iCub viewpoint
     Eigen::Vector4f icub_pos =  Eigen::Vector4f( 0,0,0,1);
     Eigen::Vector4f icub_view = Eigen::Vector4f(-1,0,0,1);
     Eigen::Vector4f icub_up =   Eigen::Vector4f( 0,0,1,1);
-
-    // Transform to kinect coordinates
-    Eigen::Vector4f kin_pos  = kinect2icub_pcl * yarp2pcl * icub_pos;
-    Eigen::Vector4f kin_view = kinect2icub_pcl * yarp2pcl * icub_view;
-    Eigen::Vector4f kin_up   = kinect2icub_pcl * yarp2pcl * icub_up;
-
-    // Normalize vectors
-    kin_pos /= kin_pos[3]; kin_view /= kin_view[3]; kin_up /= kin_up[3];
-
-    // We actually want to pass up-pos as up vector to setCamera
-    Eigen::Vector4f kin_up_diff = kin_up-kin_pos;
-
-    // GUI stuff, the handler will receive RtabmapEvent and construct the map
-    int decimationOdometry = 1;     // decimation to show points clouds
-                                    // the higher, the lower the resolution
-                                    // odometry: most recent cloud
-    int decimationStatistics = 1;   // statistics: past point cloud decimation
-
-    mapBuilder = new MapBuilder(decimationOdometry, decimationStatistics);
-
-    mapBuilder->setCameraPosition(
-        kin_pos    [0], kin_pos    [1], kin_pos    [2],
-        kin_view   [0], kin_view   [1], kin_view   [2],
-        kin_up_diff[0], kin_up_diff[1], kin_up_diff[2], mapBuilder->getViewports()["icub"]);
-
-    // Here is the pipeline that we will use:
-    // CameraOpenni -> "CameraEvent" -> OdometryThread -> "OdometryEvent" -> RtabmapThread -> "RtabmapEvent"
-
-    // Create the OpenNI camera, it will send a CameraEvent at the rate specified.
-    // Set transform to camera so z is up, y is left and x going forward (as in PCL)
-    camera = new CameraKinectWrapper(client, 20, rtabmap::Transform(0,0,1,0, -1,0,0,0, 0,-1,0,0));
-
-    cameraThread = new CameraThread(camera);
-
-    if(!cameraThread->init())
-    {
-        cout << getName() << ":Camera init failed!";
-        return false;
-    }
-
-    // Create an odometry thread to process camera events, it will send OdometryEvent
-    odomThread = new OdometryThread(new OdometryBOW(parameters));
-
-    // Create RTAB-Map to process OdometryEvent
-    rtabmap = new Rtabmap();
-    rtabmap->init(parameters, rf.findFileByName("rtabmap.db"));
-    rtabmapThread = new RtabmapThread(rtabmap);
-
-    boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
-
-    // Setup handlers
-    odomThread->registerToEventsManager();
-    rtabmapThread->registerToEventsManager();
-    mapBuilder->registerToEventsManager();
-
-    // The RTAB-Map is subscribed by default to CameraEvent, but we want
-    // RTAB-Map to process OdometryEvent instead, ignoring the CameraEvent.
-    // We can do that by creating a "pipe" between the camera and odometry, then
-    // only the odometry will receive CameraEvent from that camera. RTAB-Map is
-    // also subscribed to OdometryEvent by default, so no need to create a pipe
-    // between odometry and RTAB-Map.
-    UEventsManager::createPipe(cameraThread, odomThread, "CameraEvent");
-
-    // Open handler port
-    string handlerPortName = "/" + getName() + "/rpc";
-
-    if (!handlerPort.open(handlerPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << handlerPortName << endl;
-        return false;
-    }
-
-    // attach to rpc port
-    attach(handlerPort);
-
-    // Let's start the threads
-    rtabmapThread->start();
-    odomThread->start();
-    cameraThread->start();
+    setCamera(icub_pos, icub_view, icub_up, "icub");
 
     return true;
 }
@@ -229,46 +87,65 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
     return true;
 }
 
-bool perspectiveTaking::getRFHMatrix(const string& from, const string& to, Matrix& m)
-{
-    if (rfh.getOutputCount()>0)
-    {
-        //Get the kinect2icub
-        Bottle bCmd;
-        bCmd.clear();
-        bCmd.addString("mat");
-        bCmd.addString(from);
-        bCmd.addString(to);
-
-        Bottle reply;
-        reply.clear();
-        rfh.write(bCmd, reply);
-        if (reply.get(0) == "nack")
-        {
-            return false;
-        }
-        else
-        {
-            Bottle* bMat = reply.get(1).asList();
-            m.resize(4,4);
-            for(int i=0; i<4; i++)
-            {
-                for(int j=0; j<4; j++)
-                {
-                    m(i,j)=bMat->get(4*i+j).asDouble();
-                }
-            }
-            cout << "Transformation matrix from " << from
-                 << " to " << to << " retrieved:" << endl;
-            cout << m.toString(3,3).c_str() << endl;
-            return true;
-        }
-    }
-    return false;
-}
-
 double perspectiveTaking::getPeriod() {
     return 0.1;
+}
+
+bool perspectiveTaking::sendImages() {
+    mapBuilder->saveScreenshot("temp.png");
+    cv::Mat screen;
+    screen = cv::imread("temp.png", CV_LOAD_IMAGE_COLOR);
+    if(!screen.data ) // Check for invalid input
+    {
+        cout <<  "Could not open or find the image" << std::endl;
+        return false;
+    }
+
+    cv::Mat selfPersp, partnerPersp;
+    // self perspective = left side of screenshot
+    // partner perspective = right side of screenshot
+    selfPersp=screen(cv::Rect(0,0,screen.cols/2,screen.rows));
+    partnerPersp=screen(cv::Rect(screen.cols/2,0,screen.cols/2,screen.rows));
+    cv::imshow("Self Perspective", selfPersp);
+    cv::imshow("Partner Perspective", partnerPersp);
+    cv::waitKey(50);
+
+    IplImage* partnerPersp_ipl = new IplImage(partnerPersp);
+    ImageOf<PixelRgb> &partnerPers_yarp = partnerPerspImgPort.prepare();
+    partnerPers_yarp.resize(partnerPersp_ipl->width, partnerPersp_ipl->height);
+    cvCopyImage(partnerPersp_ipl, (IplImage *)partnerPers_yarp.getIplImage());
+
+    IplImage* selfPersp_ipl = new IplImage(selfPersp);
+    ImageOf<PixelRgb> &selfPers_yarp = selfPerspImgPort.prepare();
+    selfPers_yarp.resize(selfPersp_ipl->width, selfPersp_ipl->height);
+    cvCopyImage(selfPersp_ipl, (IplImage *)selfPers_yarp.getIplImage());
+
+    //send the images
+    selfPerspImgPort.write();
+    partnerPerspImgPort.write();
+
+    return true;
+}
+
+void perspectiveTaking::setCamera(Vector p_pos, Vector p_view, Vector p_up, string cameraName) {
+    setCamera(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), cameraName);
+}
+
+void perspectiveTaking::setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, string cameraName) {
+    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * p_pos;
+    //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
+    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * p_view;
+    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * p_up;
+
+    pos/=pos[3]; view/=view[3], up/=up[3];
+
+    Eigen::Vector4f up_diff = up-pos;
+
+    mapBuilder->setCameraPosition(
+        pos[0], pos[1], pos[2],
+        view[0], view[1], view[2],
+        up_diff[0], up_diff[1], up_diff[2],
+        mapBuilder->getViewports()[cameraName]);
 }
 
 /* Called periodically every getPeriod() seconds */
@@ -276,35 +153,13 @@ bool perspectiveTaking::updateModule() {
     if(!mapBuilder->wasStopped()) {
         ++loopCounter;
         if(loopCounter%25==0) { // only update camera every now and then
-
-            // Temporary solution to feed ABM
-            /*cv::Mat screen;
-            screen = cv::imread("test.png", CV_LOAD_IMAGE_COLOR);
-            if(!screen.data ) // Check for invalid input
-            {
-                cout <<  "Could not open or find the image" << std::endl;
-            }
-            cv::Mat selfPerspective, partnerPerspective;
-            selfPerspective=screen(cv::Rect(0,0,screen.cols/2,screen.rows));
-            partnerPerspective=screen(cv::Rect(screen.cols/2,0,screen.cols/2,screen.rows));
-            cv::imshow("Self Perspective", selfPerspective);
-            cv::imshow("Partner Perspective", partnerPerspective);
-
-            IplImage* img = new IplImage(selfPerspective);
-            ImageOf<PixelRgb> &temp = ABMimagePortOut.prepare();
-            temp.resize(img->width, img->height);
-            cvCopyImage(img, (IplImage *)temp.getIplImage());
-
-            //send the image
-            ABMimagePortOut.write();
-            // Temporary solution end*/
-
-
-
+            sendImages();
 
             partner = (Agent*)opc->getEntity("partner", true);
             if(partner) { // TODO:  && partner->m_present
                 Vector p_headPos = partner->m_ego_position;
+                double p_up_double[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
+                Vector p_up = Vector(3, p_up_double);
                 Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
                 Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
 
@@ -314,47 +169,7 @@ bool perspectiveTaking::updateModule() {
                 // the plane as viewing vector
                 Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
 
-                Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2],1);
-                pos /= pos[3];
-
-                //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
-                Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_view[0],p_view[1],p_view[2],1);
-                view /= view[3];
-
-                Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0],p_headPos[1],p_headPos[2]+1.0,1);
-                up /= up[3];
-
-                Eigen::Vector4f up_diff = up-pos;
-
-                mapBuilder->setCameraPosition(
-                    pos[0], pos[1], pos[2],
-                    view[0], view[1], view[2],
-                    up_diff[0], up_diff[1], up_diff[2],
-                    mapBuilder->getViewports()["partner"]);
-
-                // Temporary solution to feed ABM
-                mapBuilder->saveScreenshot("test.png");
-                /*cv::Mat screen;
-                screen = cv::imread("test.png", CV_LOAD_IMAGE_COLOR);
-                if(!screen.data ) // Check for invalid input
-                {
-                    cout <<  "Could not open or find the image" << std::endl;
-                }
-                cv::Mat selfPerspective, partnerPerspective;
-                selfPerspective=screen(cv::Rect(0,0,screen.cols/2,screen.rows));
-                partnerPerspective=screen(cv::Rect(screen.cols/2,0,screen.cols/2,screen.rows));
-                cv::imshow("Self Perspective", selfPerspective);
-                cv::imshow("Partner Perspective", partnerPerspective);
-
-                IplImage* img = new IplImage(selfPerspective);
-                ImageOf<PixelRgb> &temp = ABMimagePortOut.prepare();
-                temp.resize(img->width, img->height);
-                cvCopyImage(img, (IplImage *)temp.getIplImage());
-
-                //send the image
-                ABMimagePortOut.write();*/
-
-                cv::waitKey(50);
+                setCamera(p_headPos, p_view, p_up, "partner");
             } else {
                 cout << "No partner found in OPC!" << endl;
             }
@@ -363,9 +178,8 @@ bool perspectiveTaking::updateModule() {
         mapBuilder->spinOnce(40);
 
         // print some statistics
-        if(rtabmap->getLoopClosureId())
-        {
-            printf(" #%d ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
+        if(rtabmap->getLoopClosureId()) {
+            printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
                    loopCounter,
                    rtabmap->getLastProcessTime(),
                    rtabmap->getSTM().size(), // short-term memory
@@ -375,9 +189,8 @@ bool perspectiveTaking::updateModule() {
                    rtabmap->getLastLocationId(),
                    rtabmap->getLoopClosureId());
         }
-        else
-        {
-            printf(" #%d ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f)\n",
+        else {
+            printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f)\n",
                    loopCounter,
                    rtabmap->getLastProcessTime(),
                    rtabmap->getSTM().size(), // short-term memory
@@ -390,13 +203,13 @@ bool perspectiveTaking::updateModule() {
     else {
         return false;
     }
-
 }
 
 bool perspectiveTaking::interruptModule() {
     handlerPort.interrupt();
     opc->interrupt();
-    ABMimagePortOut.interrupt();
+    selfPerspImgPort.interrupt();
+    partnerPerspImgPort.interrupt();
     return true;
 }
 
@@ -429,8 +242,10 @@ bool perspectiveTaking::close() {
     delete odomThread;
 
     // Close ports
-    ABMimagePortOut.interrupt();
-    ABMimagePortOut.close();
+    selfPerspImgPort.interrupt();
+    selfPerspImgPort.close();
+    partnerPerspImgPort.interrupt();
+    partnerPerspImgPort.close();
     opc->interrupt();
     opc->close();
     handlerPort.interrupt();

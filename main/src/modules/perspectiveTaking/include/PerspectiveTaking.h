@@ -1,3 +1,24 @@
+/*
+ *
+ * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+ * Authors: Tobias Fischer
+ * email:   t.fischer@imperial.ac.uk
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * wysiwyd/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+
+#ifndef VPT_PERSPECTIVETAKING
+#define VPT_PERSPECTIVETAKING
+
 #include <yarp/os/RFModule.h>
 #include <yarp/math/Math.h>
 
@@ -13,17 +34,10 @@
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-using namespace kinectWrapper;
-using namespace wysiwyd::wrdac;
-
-class perspectiveTaking: public RFModule
-{
+class perspectiveTaking: public yarp::os::RFModule {
 protected:
     // Kinect related
+    void connectToKinectServer(int verbosity);
     KinectWrapperClient client;
 
     // RTabmap related
@@ -35,31 +49,41 @@ protected:
     RtabmapThread* rtabmapThread;
 
     // OPC related
-    OPCClient* opc;
-    Agent* partner;
+    void connectToOPC(std::string);
+    wysiwyd::wrdac::OPCClient* opc;
+    wysiwyd::wrdac::Agent* partner;
 
     // ABM related
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > ABMimagePortOut;
+    bool sendImages();
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > selfPerspImgPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > partnerPerspImgPort;
 
     // RFH related
-    Port   rfh;
-    Port   handlerPort;
+    void getManualTransMat();
+    void getRFHTransMat(std::string);
+    yarp::os::Port rfh;
+    yarp::os::Port handlerPort;
 
-    unsigned int loopCounter;
-
-    Matrix kinect2icub;
-    Matrix icub2kinect;
+    // actual perspective Taking
+    void setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, std::string cameraName);
+    void setCamera(yarp::sig::Vector pos, yarp::sig::Vector view, yarp::sig::Vector up, std::string cameraName);
     Eigen::Matrix4f kinect2icub_pcl;
     Eigen::Matrix4f yarp2pcl;
 
+    // misc
+    unsigned long loopCounter;
     yarp::os::ResourceFinder resfind;
+    bool openHandlerPort();
+    bool setupThreads();
 
 public:
-    bool configure(ResourceFinder &rf);
+    bool configure(yarp::os::ResourceFinder &rf);
     bool interruptModule();
     bool close();
-    bool respond(const Bottle& cmd, Bottle& reply);
-    bool getRFHMatrix(const string& from, const string& to, Matrix& m);
+    bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
+    bool queryRFHTransMat(const std::string& from, const std::string& to, yarp::sig::Matrix& m);
     double getPeriod();
     bool updateModule();
 };
+
+#endif
