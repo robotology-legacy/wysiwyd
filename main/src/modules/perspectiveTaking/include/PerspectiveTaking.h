@@ -54,9 +54,12 @@ protected:
     wysiwyd::wrdac::Agent* partner;
 
     // ABM related
+    void connectToABM(std::string abmName);
+    bool addABMImgProvider(std::string label, std::string portName);
     bool sendImages();
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > selfPerspImgPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > partnerPerspImgPort;
+    yarp::os::Port abm;
 
     // RFH related
     void getManualTransMat();

@@ -42,7 +42,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     loopCounter = 0;
 
     connectToOPC(rf.check("opc",Value("OPC")).asString().c_str());
-    connectToKinectServer(rf.check("kinClientverbosity",Value(0)).asInt());
+    connectToKinectServer(rf.check("kinClientVerbosity",Value(0)).asInt());
+    connectToABM(rf.check("abm",Value("autobiographicalMemory")).asString().c_str());
     openHandlerPort();
 
     //getRFHTransMat(resfind.check("rfh",Value("referenceFrameHandler")).asString().c_str());
@@ -52,6 +53,9 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     //port for images
     selfPerspImgPort.open("/"+getName()+"/images/self:o");
     partnerPerspImgPort.open("/"+getName()+"/images/partner:o");
+
+    addABMImgProvider("VPTSelf", selfPerspImgPort.getName());
+    addABMImgProvider("VPTPartner", partnerPerspImgPort.getName());
 
     mapBuilder = new MapBuilder(rf.check("decimationOdometry",Value(2)).asInt(),
                                 rf.check("decimationStatistics",Value(2)).asInt());
@@ -89,6 +93,24 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
 
 double perspectiveTaking::getPeriod() {
     return 0.1;
+}
+
+bool perspectiveTaking::addABMImgProvider(string label, string portName) {
+    Bottle bCmd, bReply;
+    bCmd.addString("addImgProvider");
+    Bottle imgProvider;
+    imgProvider.addString(label);
+    imgProvider.addString(portName);
+    bCmd.addList() = imgProvider;
+    cout << bCmd.toString() << endl;
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.toString()=="ack") {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool perspectiveTaking::sendImages() {

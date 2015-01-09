@@ -96,13 +96,13 @@ void perspectiveTaking::getRFHTransMat(string rfhName) {
     rfh.open(rfhLocal.c_str());
     string rfhRemote = "/"+rfhName+"/rpc";
 
-    yarp::sig::Matrix kinect2icub;
-    yarp::sig::Matrix icub2kinect;
-
     while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str())) {
         cout << "Waiting for connection to RFH..." << endl;
         Time::delay(1.0);
     }
+
+    yarp::sig::Matrix kinect2icub;
+    yarp::sig::Matrix icub2kinect;
 
     while(!queryRFHTransMat("kinect", "icub", kinect2icub)) {
         cout << "Kinect2iCub matrix not calibrated, please do so in agentDetector" << endl;
@@ -149,6 +149,17 @@ bool perspectiveTaking::queryRFHTransMat(const string& from, const string& to, M
     return false;
 }
 
+void perspectiveTaking::connectToABM(string abmName) {
+    string abmLocal = "/"+getName()+"/abm:o";
+    abm.open(abmLocal.c_str());
+    string abmRemote = "/"+abmName+"/rpc";
+
+    while (!Network::connect(abmLocal.c_str(),abmRemote.c_str())) {
+        cout << "Waiting for connection to ABM..." << endl;
+        Time::delay(1.0);
+    }
+}
+
 void perspectiveTaking::connectToKinectServer(int verbosity) {
     string clientName = getName()+"/kinect";
 
@@ -159,22 +170,20 @@ void perspectiveTaking::connectToKinectServer(int verbosity) {
     options.put("verbosity",verbosity);
 
     while (!client.open(options)) {
-        cout<<"Waiting connection to KinectServer..."<<endl;
+        cout<<"Waiting for connection to KinectServer..."<<endl;
         Time::delay(1.0);
     }
 }
 
 void perspectiveTaking::connectToOPC(string opcName) {
-    //Open the OPC Client
     opc = new OPCClient(getName());
     while (!opc->connect(opcName)) {
-        cout<<"Waiting connection to OPC..."<<endl;
+        cout<<"Waiting for connection to OPC..."<<endl;
         Time::delay(1.0);
     }
 }
 
 bool perspectiveTaking::openHandlerPort() {
-    // Open handler port
     string handlerPortName = "/" + getName() + "/rpc";
 
     if (!handlerPort.open(handlerPortName.c_str())) {
