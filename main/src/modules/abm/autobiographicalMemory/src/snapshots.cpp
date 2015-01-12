@@ -277,7 +277,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     osMain << getCurrentTime() << "' , " << instance << " , ";
 
     //Begin
-    bool inSharedPlan;
+    bool inSharedPlan = false;
     bTemp = *(bInput.get(4).asList());
     if (bTemp.get(0) == "begin") {
         if (bTemp.get(1).asInt() == 1)

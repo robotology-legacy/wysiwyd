@@ -51,7 +51,6 @@ private:
     yarp::os::Bottle detectFailed();
 
 public:
-    std::string portEventsName;
     yarp::os::Port portEventsIn;
     yarp::os::Port handlerPort;      //a port to handle messages
     yarp::os::Port abm2reasoning;

@@ -42,8 +42,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     bPutObjectsOPC = false;
 
-    portEventsName = "/" + getName() + "/request:i";
-    portEventsIn.open(portEventsName.c_str());
+    portEventsIn.open(("/" + getName() + "/request:i").c_str());
 
     string portHandlerName = "/" + getName() + "/rpc";
     handlerPort.open(portHandlerName.c_str());
@@ -573,7 +572,7 @@ bool autobiographicalMemory::updateModule() {
                 for(unsigned int i=1; i<mapStreamImgPortOut.size(); i++) {
                     string imgNbTime = bListImages.get(imgNb+i).asList()->get(2).asString();
                     if(imgNbTime != imgNbTimeFirstImage) {
-                        cout << "Skip image " << imgNb << " because matching image is not present" << endl;
+                        //cout << "Skip image " << imgNb << " because matching image is not present" << endl;
                         timesMatch = false;
                         imgNb++;
                         continue;
@@ -626,8 +625,7 @@ bool autobiographicalMemory::updateModule() {
     if (streamStatus == "end") {
         cout << "============================= STREAM STOP =================================" << endl;
 
-        //TODO:
-        //startThread with storeOID()
+        //TODO: startThread with storeOID()
 
         //close folder and SQL entry
         streamStatus = "none";
