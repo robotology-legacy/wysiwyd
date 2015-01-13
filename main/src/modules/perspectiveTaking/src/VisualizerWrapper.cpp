@@ -20,6 +20,8 @@
 
 #include "VisualizerWrapper.h"
 
+using namespace rtabmap;
+
 VisualizerWrapper::VisualizerWrapper() :
     _maxTrajectorySize(100),
     _trajectory(new pcl::PointCloud<pcl::PointXYZ>),
@@ -48,6 +50,14 @@ VisualizerWrapper::~VisualizerWrapper() {
     delete _visualizer;
 }
 
+
+Transform VisualizerWrapper::transformFromCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
+    Eigen::Vector4f origin = cloud->sensor_origin_;
+    Eigen::Translation<float,3> translation_A(Eigen::Vector3f(origin[0], origin[1], origin[2]));
+    Eigen::Affine3f m = translation_A * cloud->sensor_orientation_;
+    return util3d::transformFromEigen3f(m);
+}
+
 bool VisualizerWrapper::getPose(const std::string & id, Transform & pose) {
     if(_addedClouds.count(id)) {
         pose = _addedClouds.at(id);
@@ -61,7 +71,7 @@ bool VisualizerWrapper::updateCloudPose(
         const std::string & id,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        cout << "Updating pose " << id.c_str() << " to " << pose.prettyPrint().c_str();
+        cout << "Updating pose " << id << " to " << pose.prettyPrint() << endl;
         if(_addedClouds.at(id) == pose ||
                 _visualizer->updatePointCloudPose(id, util3d::transformToEigen3f(pose))) {
             _addedClouds.at(id) = pose;
@@ -77,7 +87,7 @@ void VisualizerWrapper::setCloudVisibility(const std::string & id, bool isVisibl
     if(iter != cloudActorMap->end()) {
         iter->second.actor->SetVisibility(isVisible);
     } else {
-        cout << "Cannot find cloud actor named \"" << id.c_str() << "\".";
+        cout << "Cannot find cloud actor named \"" << id << "\"." << endl;
     }
 }
 
@@ -113,7 +123,7 @@ bool VisualizerWrapper::updateCloud(
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        cout << "Updating " << id.c_str() << " with " << cloud->size() << " points";
+        cout << "Updating " << id << " with " << cloud->size() << " points" << endl;
         removeCloud(id);
         return addCloud(id, cloud, pose);
     } else {

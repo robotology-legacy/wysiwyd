@@ -19,37 +19,33 @@
 #ifndef VPT_VISUALIZER_WRAPPER
 #define VPT_VISUALIZER_WRAPPER
 
-#include <string>
-#include <memory>
 #include <map>
 
 #include <pcl/pcl_base.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <pcl/PolygonMesh.h>
-#include <pcl/PCLPointCloud2.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
 #include <rtabmap/core/Transform.h>
-
-using namespace rtabmap;
 
 class VisualizerWrapper {
 public:
     VisualizerWrapper();
     virtual ~VisualizerWrapper();
 
-    const std::map<std::string, Transform> & getAddedClouds() const {return _addedClouds;}
+    const std::map<std::string, rtabmap::Transform> & getAddedClouds() const {return _addedClouds;}
 
     void setBackgroundColor(const int r, const int g, const int b) {
         _visualizer->setBackgroundColor(r, g, b);
     }
 
-    bool getPose(const std::string & id, Transform & pose); //including meshes
+    static rtabmap::Transform transformFromCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+
+    bool getPose(const std::string & id, rtabmap::Transform & pose); //including meshes
 
     bool updateCloudPose(
             const std::string & id,
-            const Transform & pose); //including mesh
+            const rtabmap::Transform & pose); //including mesh
 
     void setCloudVisibility(const std::string & id, bool isVisible);
 
@@ -63,20 +59,20 @@ public:
     bool updateCloud(
             const std::string & id,
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity());
+            const rtabmap::Transform & pose = rtabmap::Transform::getIdentity());
 
     bool addOrUpdateCloud(
             const std::string & id,
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity());
+            const rtabmap::Transform & pose = rtabmap::Transform::getIdentity());
 
     bool addCloud(
             const std::string & id,
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity());
+            const rtabmap::Transform & pose = rtabmap::Transform::getIdentity());
 
     void updateCameraPosition(
-            const Transform & pose);
+            const rtabmap::Transform & pose);
 
     pcl::visualization::PCLVisualizer& getVisualizer() {
         return *_visualizer;
@@ -87,9 +83,9 @@ public:
     }
 
 private:
-    std::map<std::string, Transform> _addedClouds;
+    std::map<std::string, rtabmap::Transform> _addedClouds;
     unsigned int _maxTrajectorySize;
-    Transform _lastPose;
+    rtabmap::Transform _lastPose;
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
     pcl::visualization::PCLVisualizer* _visualizer;
     std::map<std::string, int> _viewports;

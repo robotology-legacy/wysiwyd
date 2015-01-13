@@ -24,7 +24,6 @@
 
 #include <rtabmap/core/Parameters.h>
 
-#include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
 #include "PerspectiveTaking.h"
 #include "Helpers.h"

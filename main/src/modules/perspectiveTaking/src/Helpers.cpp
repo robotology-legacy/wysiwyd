@@ -18,6 +18,7 @@
 
 #include <rtabmap/utilite/UEventsManager.h>
 #include "PerspectiveTaking.h"
+#include "CameraKinectWrapper.h"
 #include "Helpers.h"
 
 using namespace std;

@@ -19,7 +19,7 @@
 #ifndef VPT_HELPERS
 #define VPT_HELPERS
 
-#include "yarp/math/Math.h"
+#include <yarp/math/Math.h>
 #include <pcl/pcl_base.h>
 
 void yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,

@@ -23,21 +23,17 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
-#include <vtkExtractVOI.h>
-#include <vtkRenderWindow.h>
-#include <vtkWindowToImageFilter.h>
-#include <vtkImageExport.h>
+//#include <vtkExtractVOI.h>
+//#include <vtkRenderWindow.h>
+//#include <vtkWindowToImageFilter.h>
+//#include <vtkImageExport.h>
 
 #include <pcl/pcl_base.h>
 #include <pcl/point_cloud.h>
-#include <pcl/PCLPointCloud2.h>
 
 #include <rtabmap/core/util3d.h>
-#include <rtabmap/core/OdometryEvent.h>
-#include <rtabmap/core/RtabmapEvent.h>
 
 #include <rtabmap/utilite/UConversion.h>
-#include <rtabmap/utilite/UEventsHandler.h>
 
 #include "VisualizerWrapper.h"
 #include "MapBuilder.h"
