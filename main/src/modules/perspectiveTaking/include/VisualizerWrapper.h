@@ -34,21 +34,6 @@
 
 using namespace rtabmap;
 
-class VColor {
-public:
-    VColor();
-    VColor(unsigned char red, unsigned char green, unsigned char blue) :
-        r(red),
-        g(green),
-        b(blue)
-    {
-    }
-    virtual ~VColor() {}
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-};
-
 class VisualizerWrapper {
 public:
     VisualizerWrapper();
@@ -56,7 +41,9 @@ public:
 
     const std::map<std::string, Transform> & getAddedClouds() const {return _addedClouds;}
 
-    void setBackgroundColor(const VColor &color);
+    void setBackgroundColor(const int r, const int g, const int b) {
+        _visualizer->setBackgroundColor(r, g, b);
+    }
 
     bool getPose(const std::string & id, Transform & pose); //including meshes
 
@@ -66,7 +53,10 @@ public:
 
     void setCloudVisibility(const std::string & id, bool isVisible);
 
-    void removeAllClouds(); //including meshes
+    void removeAllClouds() { //including meshes
+        _addedClouds.clear();
+        _visualizer->removeAllPointClouds();
+    }
 
     bool removeCloud(const std::string & id); //including mesh
 
@@ -78,21 +68,12 @@ public:
     bool addOrUpdateCloud(
             const std::string & id,
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity(),
-            const VColor & color = _vgrey);
-
-    bool addCloud(
-            const std::string & id,
-            const pcl::PCLPointCloud2Ptr & binaryCloud,
-            const Transform & pose,
-            bool rgb,
-            const VColor & color = _vgrey);
+            const Transform & pose = Transform::getIdentity());
 
     bool addCloud(
             const std::string & id,
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity(),
-            const VColor & color = _vgrey);
+            const Transform & pose = Transform::getIdentity());
 
     void updateCameraPosition(
             const Transform & pose);
@@ -110,7 +91,6 @@ private:
     unsigned int _maxTrajectorySize;
     Transform _lastPose;
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
-    static const VColor _vgrey;
     pcl::visualization::PCLVisualizer* _visualizer;
     std::map<std::string, int> _viewports;
 };

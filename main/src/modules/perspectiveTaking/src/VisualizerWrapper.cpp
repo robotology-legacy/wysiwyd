@@ -16,7 +16,6 @@
  * Public License for more details
 */
 
-#include <rtabmap/utilite/ULogger.h>
 #include <rtabmap/core/util3d.h>
 
 #include "VisualizerWrapper.h"
@@ -25,7 +24,7 @@ VisualizerWrapper::VisualizerWrapper() :
     _maxTrajectorySize(100),
     _trajectory(new pcl::PointCloud<pcl::PointXYZ>),
     _visualizer(new pcl::visualization::PCLVisualizer("PCLVisualizer", true)) {
-    std::cout << "Created visualizer in thread " << boost::this_thread::get_id() << std::endl;
+
     // Create the two view ports
     int viewiCub(0), viewPartner(0);
 
@@ -49,15 +48,6 @@ VisualizerWrapper::~VisualizerWrapper() {
     delete _visualizer;
 }
 
-void VisualizerWrapper::removeAllClouds() {
-    _addedClouds.clear();
-    _visualizer->removeAllPointClouds();
-}
-
-void VisualizerWrapper::setBackgroundColor(const VColor &color) {
-    _visualizer->setBackgroundColor(color.r, color.g, color.b);
-}
-
 bool VisualizerWrapper::getPose(const std::string & id, Transform & pose) {
     if(_addedClouds.count(id)) {
         pose = _addedClouds.at(id);
@@ -71,7 +61,7 @@ bool VisualizerWrapper::updateCloudPose(
         const std::string & id,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        UDEBUG("Updating pose %s to %s", id.c_str(), pose.prettyPrint().c_str());
+        cout << "Updating pose " << id.c_str() << " to " << pose.prettyPrint().c_str();
         if(_addedClouds.at(id) == pose ||
                 _visualizer->updatePointCloudPose(id, util3d::transformToEigen3f(pose))) {
             _addedClouds.at(id) = pose;
@@ -85,16 +75,37 @@ void VisualizerWrapper::setCloudVisibility(const std::string & id, bool isVisibl
     pcl::visualization::CloudActorMapPtr cloudActorMap = _visualizer->getCloudActorMap();
     pcl::visualization::CloudActorMap::iterator iter = cloudActorMap->find(id);
     if(iter != cloudActorMap->end()) {
-        iter->second.actor->SetVisibility(isVisible?1:0);
+        iter->second.actor->SetVisibility(isVisible);
     } else {
-        UERROR("Cannot find actor named \"%s\".", id.c_str());
+        cout << "Cannot find cloud actor named \"" << id.c_str() << "\".";
     }
 }
 
-bool VisualizerWrapper::removeCloud(const std::string & id) {
-    _addedClouds.erase(id);
-    bool success = _visualizer->removePointCloud(id);
-    return success;
+bool VisualizerWrapper::addOrUpdateCloud(
+        const std::string & id,
+        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
+        const Transform & pose) {
+    if(updateCloud(id, cloud, pose)) {
+        return true;
+    } else {
+        return addCloud(id, cloud, pose);
+    }
+}
+
+bool VisualizerWrapper::addCloud(
+        const std::string & id,
+        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
+        const Transform & pose) {
+    cloud->sensor_orientation_ = Eigen::Quaternionf(util3d::transformToEigen3f(pose).rotation());
+    cloud->sensor_origin_ = Eigen::Vector4f(pose.x(), pose.y(), pose.z(), 0.0f);
+
+    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
+    if(_visualizer->addPointCloud(cloud, rgb, id)) {
+        _addedClouds[id]=pose;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool VisualizerWrapper::updateCloud(
@@ -102,86 +113,18 @@ bool VisualizerWrapper::updateCloud(
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        UDEBUG("Updating %s with %d points", id.c_str(), (int)cloud->size());
-        int index = _visualizer->getColorHandlerIndex(id);
+        cout << "Updating " << id.c_str() << " with " << cloud->size() << " points";
         removeCloud(id);
-        if(addCloud(id, cloud, pose)) {
-            _visualizer->updateColorHandlerIndex(id, index);
-            return true;
-        }
+        return addCloud(id, cloud, pose);
+    } else {
+        return false;
     }
-    return false;
 }
 
-bool VisualizerWrapper::addOrUpdateCloud(
-        const std::string & id,
-        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-        const Transform & pose,
-        const VColor & color) {
-    if(!updateCloud(id, cloud, pose)) {
-        return addCloud(id, cloud, pose, color);
-    }
-    return true;
+bool VisualizerWrapper::removeCloud(const std::string & id) {
+    _addedClouds.erase(id);
+    return _visualizer->removePointCloud(id);
 }
-
-bool VisualizerWrapper::addCloud(
-        const std::string & id,
-        const pcl::PCLPointCloud2Ptr & binaryCloud,
-        const Transform & pose,
-        bool rgb,
-        const VColor & color) {
-    if(!_addedClouds.count(id)) {
-        Eigen::Vector4f origin(pose.x(), pose.y(), pose.z(), 0.0f);
-        Eigen::Quaternionf orientation = Eigen::Quaternionf(util3d::transformToEigen3f(pose).rotation());
-
-        // add random color channel
-        pcl::visualization::PointCloudColorHandler<pcl::PCLPointCloud2>::Ptr colorHandler;
-        colorHandler.reset (new pcl::visualization::PointCloudColorHandlerRandom<pcl::PCLPointCloud2> (binaryCloud));
-        if(_visualizer->addPointCloud (binaryCloud, colorHandler, origin, orientation, id))
-        {
-            // white
-            colorHandler.reset (new pcl::visualization::PointCloudColorHandlerCustom<pcl::PCLPointCloud2> (binaryCloud, color.r, color.g, color.b));
-            _visualizer->addPointCloud (binaryCloud, colorHandler, origin, orientation, id);
-
-            // x,y,z
-            colorHandler.reset (new pcl::visualization::PointCloudColorHandlerGenericField<pcl::PCLPointCloud2> (binaryCloud, "x"));
-            _visualizer->addPointCloud (binaryCloud, colorHandler, origin, orientation, id);
-            colorHandler.reset (new pcl::visualization::PointCloudColorHandlerGenericField<pcl::PCLPointCloud2> (binaryCloud, "y"));
-            _visualizer->addPointCloud (binaryCloud, colorHandler, origin, orientation, id);
-            colorHandler.reset (new pcl::visualization::PointCloudColorHandlerGenericField<pcl::PCLPointCloud2> (binaryCloud, "z"));
-            _visualizer->addPointCloud (binaryCloud, colorHandler, origin, orientation, id);
-
-            if(rgb)
-            {
-                //rgb
-                colorHandler.reset(new pcl::visualization::PointCloudColorHandlerRGBField<pcl::PCLPointCloud2>(binaryCloud));
-                _visualizer->addPointCloud (binaryCloud, colorHandler, origin, orientation, id);
-
-                _visualizer->updateColorHandlerIndex(id, 5);
-            }
-
-            _addedClouds[id]=pose;
-            return true;
-        }
-    }
-    return false;
-}
-
-bool VisualizerWrapper::addCloud(
-        const std::string & id,
-        const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-        const Transform & pose,
-        const VColor & color) {
-    if(!_addedClouds.count(id)) {
-        UDEBUG("Adding %s with %d points", id.c_str(), (int)cloud->size());
-
-        pcl::PCLPointCloud2Ptr binaryCloud(new pcl::PCLPointCloud2);
-        pcl::toPCLPointCloud2(*cloud, *binaryCloud);
-        return addCloud(id, binaryCloud, pose, true, color);
-    }
-    return false;
-}
-
 
 void VisualizerWrapper::updateCameraPosition(const Transform & pose)
 {
@@ -272,13 +215,8 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
             cameras.front().view[2] = Fp[10];
             //}*/
 
-#if PCL_VERSION_COMPARE(>=, 1, 7, 2)
             _visualizer->removeCoordinateSystem("reference", 0);
             _visualizer->addCoordinateSystem(0.2, m, "reference", 0);
-#else
-            _visualizer->removeCoordinateSystem(0);
-            _visualizer->addCoordinateSystem(0.2, m, 0);
-#endif
             _visualizer->setCameraPosition(
                 cameras.front().pos[0], cameras.front().pos[1], cameras.front().pos[2],
                 cameras.front().focal[0], cameras.front().focal[1], cameras.front().focal[2],
@@ -288,5 +226,3 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
 
     _lastPose = pose;
 }
-
-const VColor VisualizerWrapper::_vgrey = VColor(50, 50, 50);

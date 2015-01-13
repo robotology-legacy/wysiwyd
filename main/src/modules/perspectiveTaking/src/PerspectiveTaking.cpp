@@ -258,6 +258,11 @@ bool perspectiveTaking::close() {
     printf("Saving Long-Term Memory to \"rtabmap.db\"...\n");
     rtabmap->close();
 
+    // Cleanup... delete temp image
+    if (!std::remove("temp.png") == 0) {
+        cerr << "Could not delete temp.png" << endl;
+    }
+
     // Delete pointers
     delete mapBuilder;
     delete rtabmapThread;

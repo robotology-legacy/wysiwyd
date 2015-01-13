@@ -87,10 +87,10 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
     Transform pose = data.pose();
     if(pose.isNull()) {
         //Odometry lost
-        _vWrapper->setBackgroundColor(VColor(255, 0, 0));
+        _vWrapper->setBackgroundColor(255, 0, 0);
         pose = lastOdomPose_;
     } else {
-        _vWrapper->setBackgroundColor(VColor(0, 0, 0));
+        _vWrapper->setBackgroundColor(0, 0, 0);
     }
     if(!pose.isNull()) {
         lastOdomPose_ = pose;
