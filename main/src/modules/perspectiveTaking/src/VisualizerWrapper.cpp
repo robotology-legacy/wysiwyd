@@ -60,7 +60,7 @@ Transform VisualizerWrapper::transformFromCloud(pcl::PointCloud<pcl::PointXYZRGB
 
 bool VisualizerWrapper::getPose(const std::string & id, Transform & pose) {
     if(_addedClouds.count(id)) {
-        pose = _addedClouds.at(id);
+        pose = _addedClouds.at(id)->pose;
         return true;
     } else {
         return false;
@@ -72,9 +72,9 @@ bool VisualizerWrapper::updateCloudPose(
         const Transform & pose) {
     if(_addedClouds.count(id)) {
         cout << "Updating pose " << id << " to " << pose.prettyPrint() << endl;
-        if(_addedClouds.at(id) == pose ||
+        if(_addedClouds.at(id)->pose == pose ||
                 _visualizer->updatePointCloudPose(id, util3d::transformToEigen3f(pose))) {
-            _addedClouds.at(id) = pose;
+            _addedClouds.at(id)->pose = pose;
             return true;
         }
     }
@@ -111,7 +111,9 @@ bool VisualizerWrapper::addCloud(
 
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
     if(_visualizer->addPointCloud(cloud, rgb, id)) {
-        _addedClouds[id]=pose;
+        // do not do inline (shared_ptr best practise)
+        boost::shared_ptr<cloudWithPose> p1( new cloudWithPose(cloud, pose) );
+        _addedClouds[id]=p1;
         return true;
     } else {
         return false;

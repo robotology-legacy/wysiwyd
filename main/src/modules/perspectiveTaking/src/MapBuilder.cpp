@@ -113,7 +113,7 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
                 }
             }
             if(!_vWrapper->addOrUpdateCloud("cloudOdom", cloud, pose)) {
-                UERROR("Adding cloudOdom to viewer failed!");
+                cerr << "Adding cloudOdom to viewer failed!" << endl;
             }
         }
         if(!pose.isNull()) {
@@ -127,13 +127,12 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
 void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
     _processingStatistics = true;
     const std::map<int, Transform> & poses = stats.poses();
-    std::map<std::string, Transform> clouds = _vWrapper->getAddedClouds();
     for(std::map<int, Transform>::const_iterator iter = poses.begin(); iter!=poses.end(); ++iter) {
         if(!iter->second.isNull()) {
             std::string cloudName = uFormat("cloud%d", iter->first);
 
             // 3d point cloud
-            if(clouds.count(cloudName)) {
+            if(_vWrapper->getAddedClouds().count(cloudName)) {
                 // Update only if the pose has changed
                 Transform tCloud;
                 _vWrapper->getPose(cloudName, tCloud);
@@ -141,7 +140,7 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                 {
                     if(!_vWrapper->updateCloudPose(cloudName, iter->second))
                     {
-                        UERROR("Updating pose cloud %d failed!", iter->first);
+                        cerr << "Updating pose cloud " << iter->first << " failed!" << endl;
                     }
                 }
                 _vWrapper->setCloudVisibility(cloudName, true);
@@ -165,7 +164,7 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                     }
                 }
                 if(!_vWrapper->addOrUpdateCloud(cloudName, cloud, iter->second)) {
-                    UERROR("Adding cloud %d to viewer failed!", iter->first);
+                    cerr << "Adding cloud " << iter->first << " to viewer failed!" << endl;
                 }
             }
         }
@@ -256,14 +255,14 @@ void MapBuilder::handleEvent(UEvent * event) {
         RtabmapEvent * rtabmapEvent = (RtabmapEvent *)event;
         const Statistics & stats = rtabmapEvent->getStats();
         // Statistics must be processed in the Qt thread
-        std::cout << "Process statistics\n";
+        cout << "Process statistics" << endl;
         vis_mutex.lock();
         processStatistics(stats);
         vis_mutex.unlock();
     }
     else if(event->getClassName().compare("OdometryEvent") == 0) {
         OdometryEvent * odomEvent = (OdometryEvent *)event;
-        std::cout << "Quality: " << odomEvent->quality() << std::endl;
+        cout << "Quality: " << odomEvent->quality() << endl;
         if(!_processingOdometry && !_processingStatistics) {
             vis_mutex.lock();
             processOdometry(odomEvent->data());

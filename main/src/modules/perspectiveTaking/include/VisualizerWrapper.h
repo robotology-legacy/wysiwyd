@@ -20,6 +20,7 @@
 #define VPT_VISUALIZER_WRAPPER
 
 #include <map>
+#include <boost/shared_ptr.hpp>
 
 #include <pcl/pcl_base.h>
 #include <pcl/point_types.h>
@@ -28,12 +29,24 @@
 
 #include <rtabmap/core/Transform.h>
 
+class cloudWithPose {
+public:
+    cloudWithPose(pcl::PointCloud<pcl::PointXYZRGB>::Ptr c, rtabmap::Transform p) :
+        cloud(c),
+        pose(p) {}
+
+    virtual ~cloudWithPose() {}
+
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+    rtabmap::Transform pose;
+};
+
 class VisualizerWrapper {
 public:
     VisualizerWrapper();
     virtual ~VisualizerWrapper();
 
-    const std::map<std::string, rtabmap::Transform> & getAddedClouds() const {return _addedClouds;}
+    const std::map<std::string, boost::shared_ptr<cloudWithPose> > & getAddedClouds() const {return _addedClouds;}
 
     void setBackgroundColor(const int r, const int g, const int b) {
         _visualizer->setBackgroundColor(r, g, b);
@@ -83,7 +96,7 @@ public:
     }
 
 private:
-    std::map<std::string, rtabmap::Transform> _addedClouds;
+    std::map<std::string, boost::shared_ptr<cloudWithPose> > _addedClouds;
     unsigned int _maxTrajectorySize;
     rtabmap::Transform _lastPose;
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
