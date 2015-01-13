@@ -75,20 +75,9 @@ public:
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
             const Transform & pose = Transform::getIdentity());
 
-    bool updateCloud(
-            const std::string & id,
-            const pcl::PointCloud<pcl::PointXYZ>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity());
-
     bool addOrUpdateCloud(
             const std::string & id,
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity(),
-            const VColor & color = _vgrey);
-
-    bool addOrUpdateCloud(
-            const std::string & id,
-            const pcl::PointCloud<pcl::PointXYZ>::Ptr & cloud,
             const Transform & pose = Transform::getIdentity(),
             const VColor & color = _vgrey);
 
@@ -102,12 +91,6 @@ public:
     bool addCloud(
             const std::string & id,
             const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-            const Transform & pose = Transform::getIdentity(),
-            const VColor & color = _vgrey);
-
-    bool addCloud(
-            const std::string & id,
-            const pcl::PointCloud<pcl::PointXYZ>::Ptr & cloud,
             const Transform & pose = Transform::getIdentity(),
             const VColor & color = _vgrey);
 

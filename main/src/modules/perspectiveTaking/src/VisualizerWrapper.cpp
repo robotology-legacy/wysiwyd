@@ -113,36 +113,9 @@ bool VisualizerWrapper::updateCloud(
     return false;
 }
 
-bool VisualizerWrapper::updateCloud(
-        const std::string & id,
-        const pcl::PointCloud<pcl::PointXYZ>::Ptr & cloud,
-        const Transform & pose) {
-    if(_addedClouds.count(id)) {
-        UDEBUG("Updating %s with %d points", id.c_str(), (int)cloud->size());
-        int index = _visualizer->getColorHandlerIndex(id);
-        removeCloud(id);
-        if(addCloud(id, cloud, pose)) {
-            _visualizer->updateColorHandlerIndex(id, index);
-            return true;
-        }
-    }
-    return false;
-}
-
 bool VisualizerWrapper::addOrUpdateCloud(
         const std::string & id,
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
-        const Transform & pose,
-        const VColor & color) {
-    if(!updateCloud(id, cloud, pose)) {
-        return addCloud(id, cloud, pose, color);
-    }
-    return true;
-}
-
-bool VisualizerWrapper::addOrUpdateCloud(
-        const std::string & id,
-        const pcl::PointCloud<pcl::PointXYZ>::Ptr & cloud,
         const Transform & pose,
         const VColor & color) {
     if(!updateCloud(id, cloud, pose)) {
@@ -209,20 +182,6 @@ bool VisualizerWrapper::addCloud(
     return false;
 }
 
-bool VisualizerWrapper::addCloud(
-        const std::string & id,
-        const pcl::PointCloud<pcl::PointXYZ>::Ptr & cloud,
-        const Transform & pose,
-        const VColor & color) {
-    if(!_addedClouds.count(id)) {
-        UDEBUG("Adding %s with %d points", id.c_str(), (int)cloud->size());
-
-        pcl::PCLPointCloud2Ptr binaryCloud(new pcl::PCLPointCloud2);
-        pcl::toPCLPointCloud2(*cloud, *binaryCloud);
-        return addCloud(id, binaryCloud, pose, false, color);
-    }
-    return false;
-}
 
 void VisualizerWrapper::updateCameraPosition(const Transform & pose)
 {
