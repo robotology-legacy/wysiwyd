@@ -51,6 +51,8 @@ private:
 
     IplImage* depthTmp;
     IplImage* rgbTmp;
+
+    boost::mutex data_mutex;
 };
 
 #endif

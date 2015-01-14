@@ -48,7 +48,7 @@ public:
 
     const std::map<std::string, boost::shared_ptr<cloudWithPose> > & getAddedClouds() const {return _addedClouds;}
 
-    void setBackgroundColor(const int r, const int g, const int b) {
+    void setBackgroundColor(const double r, const double g, const double b) {
         _visualizer->setBackgroundColor(r, g, b);
     }
 

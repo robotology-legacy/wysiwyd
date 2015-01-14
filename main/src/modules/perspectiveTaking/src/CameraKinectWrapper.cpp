@@ -71,6 +71,8 @@ bool CameraKinectWrapper::init() {
 }
 
 void CameraKinectWrapper::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy) {
+    data_mutex.lock();
+
     client.getDepth(_depth);
     client.getDepthImage(_depth,_depthToDisplay);
     client.getRgb(_rgb);
@@ -86,4 +88,6 @@ void CameraKinectWrapper::captureImage(cv::Mat & rgb, cv::Mat & depth, float & f
 
     cx = float(depth.cols/2) - 0.5f;
     cy = float(depth.rows/2) - 0.5f;
+
+    data_mutex.unlock();
 }

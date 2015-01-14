@@ -64,11 +64,9 @@ private:
     Transform lastOdomPose_;
     // decimation to show points clouds; the higher, the lower the resolution
     unsigned int decimationOdometry_; // odometry: current point cloud decimation
-    unsigned int decimationVisualization_; // statistics: past point cloud decimation
-    bool _processingStatistics;
-    bool _processingOdometry;
-    bool _lastPoseNull;
-    boost::mutex vis_mutex;
+    unsigned int decimationStatistics_; // statistics: past point cloud decimation
+    boost::recursive_try_mutex vis_mutex;
+    rtabmap::Transform last_pose;
 };
 
 #endif

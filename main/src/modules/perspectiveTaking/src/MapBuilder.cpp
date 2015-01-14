@@ -44,10 +44,7 @@ using namespace rtabmap;
 MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
     _vWrapper(new VisualizerWrapper),
     decimationOdometry_(decOdo),
-    decimationVisualization_(decVis),
-    _processingStatistics(false),
-    _processingOdometry(false),
-    _lastPoseNull(false)
+    decimationStatistics_(decVis)
 {
 }
 
@@ -69,9 +66,12 @@ void MapBuilder::setCameraPosition( double pos_x, double pos_y, double pos_z,
 }
 
 void MapBuilder::spinOnce(int time, bool force_redraw) {
-    vis_mutex.lock();
-    _vWrapper->getVisualizer().spinOnce(time, force_redraw);
-    vis_mutex.unlock();
+    if (vis_mutex.try_lock()) {
+        _vWrapper->updateCameraPosition(last_pose);
+        _vWrapper->getVisualizer().spinOnce(time, force_redraw);
+
+        vis_mutex.unlock();
+    }
 }
 
 bool MapBuilder::wasStopped() {
@@ -79,14 +79,14 @@ bool MapBuilder::wasStopped() {
 }
 
 void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
-    _processingOdometry = true;
     Transform pose = data.pose();
+
     if(pose.isNull()) {
         //Odometry lost
-        _vWrapper->setBackgroundColor(255, 0, 0);
+        _vWrapper->setBackgroundColor(1.0, 0, 0);
         pose = lastOdomPose_;
     } else {
-        _vWrapper->setBackgroundColor(0, 0, 0);
+        _vWrapper->setBackgroundColor(0.1, 0.1, 0.1);
     }
     if(!pose.isNull()) {
         lastOdomPose_ = pose;
@@ -107,25 +107,23 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
                         decimationOdometry_); // decimation // high definition
             if(cloud->size()) {
                 cloud = util3d::passThrough<pcl::PointXYZRGB>(cloud, "z", 0, 4.0f);
-                if(cloud->size())
-                {
+                if(cloud->size()) {
                     cloud = util3d::transformPointCloud<pcl::PointXYZRGB>(cloud, data.localTransform());
                 }
             }
+
             if(!_vWrapper->addOrUpdateCloud("cloudOdom", cloud, pose)) {
                 cerr << "Adding cloudOdom to viewer failed!" << endl;
             }
         }
         if(!pose.isNull()) {
-            _vWrapper->updateCameraPosition(pose);
+            last_pose = pose;
         }
     }
-    _processingOdometry = false;
 }
 
 
 void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
-    _processingStatistics = true;
     const std::map<int, Transform> & poses = stats.poses();
     for(std::map<int, Transform>::const_iterator iter = poses.begin(); iter!=poses.end(); ++iter) {
         if(!iter->second.isNull()) {
@@ -155,7 +153,7 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                             stats.getSignature().getDepthCy(),
                             stats.getSignature().getDepthFx(),
                             stats.getSignature().getDepthFy(),
-                            decimationVisualization_); // decimation
+                            decimationStatistics_); // decimation
 
                 if(cloud->size()) {
                     cloud = util3d::passThrough<pcl::PointXYZRGB>(cloud, "z", 0, 4.0f);
@@ -246,25 +244,24 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
     cv::flip(oClone,oClone, 0);
     cv::imwrite( "Test.jpg", oClone );*/
 
-    _processingStatistics = false;
 }
 
 void MapBuilder::handleEvent(UEvent * event) {
     std::cout << "Event: " << event->getClassName() << std::endl;
     if(event->getClassName().compare("RtabmapEvent") == 0) {
-        RtabmapEvent * rtabmapEvent = (RtabmapEvent *)event;
+        RtabmapEvent * rtabmapEvent = dynamic_cast<RtabmapEvent *>(event);
         const Statistics & stats = rtabmapEvent->getStats();
         // Statistics must be processed in the Qt thread
         cout << "Process statistics" << endl;
-        vis_mutex.lock();
-        processStatistics(stats);
-        vis_mutex.unlock();
+        if( vis_mutex.try_lock() ) {
+            processStatistics(stats);
+            vis_mutex.unlock();
+        }
     }
     else if(event->getClassName().compare("OdometryEvent") == 0) {
-        OdometryEvent * odomEvent = (OdometryEvent *)event;
+        OdometryEvent * odomEvent = dynamic_cast<OdometryEvent *>(event);
         cout << "Quality: " << odomEvent->quality() << endl;
-        if(!_processingOdometry && !_processingStatistics) {
-            vis_mutex.lock();
+        if( vis_mutex.try_lock() ) {
             processOdometry(odomEvent->data());
             vis_mutex.unlock();
         }

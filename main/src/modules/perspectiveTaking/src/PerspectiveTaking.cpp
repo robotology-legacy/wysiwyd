@@ -101,7 +101,20 @@ bool perspectiveTaking::addABMImgProvider(string label, string portName) {
     imgProvider.addString(label);
     imgProvider.addString(portName);
     bCmd.addList() = imgProvider;
-    cout << bCmd.toString() << endl;
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.toString()=="ack") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool perspectiveTaking::removeABMImgProvider(string label) {
+    Bottle bCmd, bReply;
+    bCmd.addString("removeImgProvider");
+    bCmd.addString(label);
 
     abm.write(bCmd, bReply);
 
@@ -176,7 +189,7 @@ bool perspectiveTaking::updateModule() {
         if(loopCounter%25==0) { // only update camera every now and then
             sendImages();
 
-            partner = (Agent*)opc->getEntity("partner", true);
+            partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
             if(partner) { // TODO:  && partner->m_present
                 Vector p_headPos = partner->m_ego_position;
                 double p_up_double[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
@@ -196,7 +209,7 @@ bool perspectiveTaking::updateModule() {
             }
         }
         // update GUI
-        mapBuilder->spinOnce(40);
+        mapBuilder->spinOnce(50);
 
         // print some statistics
         if(rtabmap->getLoopClosureId()) {
@@ -235,6 +248,10 @@ bool perspectiveTaking::interruptModule() {
 }
 
 bool perspectiveTaking::close() {
+    // remove ABM image providers
+    removeABMImgProvider("VPTSelf");
+    removeABMImgProvider("VPTPartner");
+
     // remove handlers
     mapBuilder->unregisterFromEventsManager();
     rtabmapThread->unregisterFromEventsManager();

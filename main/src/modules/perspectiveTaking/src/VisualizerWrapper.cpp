@@ -39,6 +39,8 @@ VisualizerWrapper::VisualizerWrapper() :
     _visualizer->createViewPortCamera(viewPartner);
     _viewports["partner"]=viewPartner;
 
+    _visualizer->setBackgroundColor(1.0, 1.0, 1.0);
+
     _visualizer->setCameraPosition(
         -1, 0, 0,
         0, 0, 0,
@@ -126,7 +128,10 @@ bool VisualizerWrapper::updateCloud(
         const Transform & pose) {
     if(_addedClouds.count(id)) {
         cout << "Updating " << id << " with " << cloud->size() << " points" << endl;
-        removeCloud(id);
+        if(!removeCloud(id)) {
+            cerr << "Point cloud " << id << " could not be removed!" << endl;
+        }
+
         return addCloud(id, cloud, pose);
     } else {
         return false;
@@ -144,7 +149,7 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
         Eigen::Affine3f m = util3d::transformToEigen3f(pose);
         Eigen::Vector3f pos = m.translation();
         Eigen::Vector3f lastPos(0,0,0);
-        if(_trajectory->size())
+        /*if(_trajectory->size())
         {
             lastPos[0]=_trajectory->back().x;
             lastPos[1]=_trajectory->back().y;
@@ -156,7 +161,7 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
                 _trajectory->erase(_trajectory->begin());
             }
         }
-        /*if(_aShowTrajectory->isChecked())
+        if(_aShowTrajectory->isChecked())
         {
             _visualizer->removeShape("trajectory");
             pcl::PolygonMesh mesh;
@@ -215,24 +220,13 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
             Transform P2F = P.inverse()*F;
             Transform Pp = P * P2F * T * P2F.inverse();
 
-            cameras.front().pos[0] = Pp.x();
-            cameras.front().pos[1] = Pp.y();
-            cameras.front().pos[2] = Pp.z();
-            cameras.front().focal[0] = Fp.x();
-            cameras.front().focal[1] = Fp.y();
-            cameras.front().focal[2] = Fp.z();
-            //FIXME: the view up is not set properly...
-            cameras.front().view[0] = Fp[8];
-            cameras.front().view[1] = Fp[9];
-            cameras.front().view[2] = Fp[10];
-            //}*/
-
             _visualizer->removeCoordinateSystem("reference", 0);
             _visualizer->addCoordinateSystem(0.2, m, "reference", 0);
+
             _visualizer->setCameraPosition(
-                cameras.front().pos[0], cameras.front().pos[1], cameras.front().pos[2],
-                cameras.front().focal[0], cameras.front().focal[1], cameras.front().focal[2],
-                cameras.front().view[0], cameras.front().view[1], cameras.front().view[2], _viewports["icub"]);
+                Pp.x(), Pp.y(), Pp.z(),
+                Fp.x(), Fp.y(), Fp.z(),
+                Fp[8], Fp[9], Fp[10], _viewports["icub"]);
         }
     }
 
