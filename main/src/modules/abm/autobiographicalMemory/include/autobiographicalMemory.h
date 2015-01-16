@@ -34,7 +34,7 @@ private:
     std::string streamStatus;
     std::string imgLabel;
 
-    int imgNb;
+    unsigned int imgNb;
     int imgInstance;
     int currentInstance;
 

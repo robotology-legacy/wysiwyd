@@ -556,46 +556,63 @@ bool autobiographicalMemory::updateModule() {
             timeStreamStart = getCurrentTimeInMS();
         }
 
-        //If we currently have images left to be send
-        if (imgNb < bListImages.size()) {
-            // hack to make sure we don't send images where
-            // not all providers have an image stored
-            bool timesMatch = false;
-            // loop until we have a match found
-            while(!timesMatch && imgNb < bListImages.size()) {
-                timesMatch = true;
-                // store time of the imgNb-th image
-                string imgNbTimeFirstImage = bListImages.get(imgNb).asList()->get(2).asString();
-                // compare the time of the imgNb-th image with the imgNb+i-th image
-                // if they are different, there is something wrong. in this case,
-                // just increase imgNb by one and we go back to the start of the loop
-                for(unsigned int i=1; i<mapStreamImgPortOut.size(); i++) {
-                    string imgNbTime = bListImages.get(imgNb+i).asList()->get(2).asString();
-                    if(imgNbTime != imgNbTimeFirstImage) {
-                        //cout << "Skip image " << imgNb << " because matching image is not present" << endl;
-                        timesMatch = false;
-                        imgNb++;
-                        continue;
+        // make sure we skip images in case the saved stream is faster
+        // than our update method
+        long timeStreamCurrent = getCurrentTimeInMS();
+        long updateTimeDifference = timeStreamCurrent - timeStreamStart;
+
+        if(timingEnabled) {
+            for(unsigned int i=imgNb+mapStreamImgPortOut.size(); i<bListImages.size()-mapStreamImgPortOut.size()+1; i+=mapStreamImgPortOut.size()) {
+                if(atol(bListImages.get(i).asList()->get(3).toString().c_str())>updateTimeDifference) {
+                    if(imgNb!=i-mapStreamImgPortOut.size()) {
+                        cout << "Skip from image " << imgNb << " to image " << i-mapStreamImgPortOut.size() << " because update method is too slow!" << endl;
+                        imgNb = i-mapStreamImgPortOut.size();
                     }
+                    break;
+                }
+                if(i>=bListImages.size()-mapStreamImgPortOut.size()-1) {
+                    cout << "Skip from image " << imgNb << " to (last) image " << i << " because update method is too slow!" << endl;
+                    imgNb = i;
                 }
             }
-            // hack end
+        }
 
+        long streamTimeDifference = atol(bListImages.get(imgNb).asList()->get(3).toString().c_str());
 
-            long timeStreamCurrent = getCurrentTimeInMS();
+        // hack to make sure we don't send images where
+        // not all providers have an image stored
+        bool timesMatch = false;
+        // loop until we have a match found
+        while(!timesMatch && imgNb < bListImages.size()-mapStreamImgPortOut.size()+1) {
+            timesMatch = true;
+            // store time of the imgNb-th image
+            string imgNbTimeFirstImage = bListImages.get(imgNb).asList()->get(2).asString();
+            // compare the time of the imgNb-th image with the imgNb+i-th image
+            // if they are different, there is something wrong. in this case,
+            // just increase imgNb by one and we go back to the start of the loop
+            for(unsigned int i=1; i<mapStreamImgPortOut.size(); i++) {
+                string imgNbTime = bListImages.get(imgNb+i).asList()->get(2).asString();
+                if(imgNbTime != imgNbTimeFirstImage) {
+                    cout << "Skip image " << imgNb << " because matching image is not present" << endl;
+                    timesMatch = false;
+                    imgNb++;
+                    continue;
+                }
+            }
+        }
+        // hack end
 
-            long updateTimeDifference = timeStreamCurrent - timeStreamStart;
-            long streamTimeDifference = atol(bListImages.get(imgNb).asList()->get(3).toString().c_str());
-
+        // warning: this condition is necessary as imgNb might have changed
+        // between the last check and here!
+        if (imgNb < bListImages.size()-mapStreamImgPortOut.size()+1) {
             if(updateTimeDifference >= streamTimeDifference || !timingEnabled) {
-                cout << "Send out image " << imgNb << endl;
                 for(unsigned int i=0; i<mapStreamImgPortOut.size(); i++) {
                     //concatenation of the storing path
                     stringstream fullPath;
                     fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asList()->get(0).asString().c_str();
                     BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(imgNb).asList()->get(1).asString().c_str());
 
-                    //cout << "Send image " << imgNb << ": " << fullPath.str() << endl;
+                    cout << "Send image " << imgNb << ": " << fullPath.str() << endl;
                     sendImage(fullPath.str(), port);
 
                     //next image
@@ -604,8 +621,10 @@ bool autobiographicalMemory::updateModule() {
             } else {
                 cout << "Image not send yet, due to time control" << endl;
             }
-        } else {
+        }
+        if(imgNb >= bListImages.size()-mapStreamImgPortOut.size()+1) {
             //Close ports which were opened in sendStreamImage
+            cout << "streamStatus = end, closing ports" << endl;
             for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapStreamImgPortOut.begin(); it != mapStreamImgPortOut.end(); ++it)
             {
                 it->second->interrupt();
