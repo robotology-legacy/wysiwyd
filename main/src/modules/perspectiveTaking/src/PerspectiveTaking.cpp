@@ -97,10 +97,8 @@ double perspectiveTaking::getPeriod() {
 bool perspectiveTaking::addABMImgProvider(string label, string portName) {
     Bottle bCmd, bReply;
     bCmd.addString("addImgProvider");
-    Bottle imgProvider;
-    imgProvider.addString(label);
-    imgProvider.addString(portName);
-    bCmd.addList() = imgProvider;
+    bCmd.addString(label);
+    bCmd.addString(portName);
 
     abm.write(bCmd, bReply);
 

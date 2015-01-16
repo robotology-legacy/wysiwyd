@@ -33,6 +33,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     storingPath = bISProperties.check("storingPath", Value("C:/robot/ABMStoring")).asString();
     storingTmpSuffix = bISProperties.check("storingTmpSuffix", Value("tmp")).asString();
     imgFormat = bISProperties.check("imgFormat", Value("tif")).asString();
+    portPrefix = bISProperties.check("portPrefix", Value("/" + getName())).asString();
 
     // TODO: streamStatus should be changed to enum
     streamStatus = "none"; //none, record, stop, send
@@ -419,20 +420,20 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
 
         // ask for streaming data : they will be sent through ports opened by autobiographicalMemory based on the original image provider port (/autobiographicalMemory/imgProviderPortName)
-        else if (bCommand.get(0) == "sendStreamImage") // TODO: Check for timingEnabled
+        else if (bCommand.get(0) == "sendStreamImage")
         {
-            if ((bCommand.size() > 1) && (bCommand.get(1).isList()))
+            if (bCommand.size() > 1 && bCommand.get(1).isInt())
             {
-                imgInstance = bCommand.get(1).asList()->get(0).asInt();
-                int nbSentImages = sendStreamImage(imgInstance);
-                if (nbSentImages > 0){
-                    bReply.addString(streamStatus);
-                    bReply.addInt(nbSentImages);
+                imgInstance = (atoi((bCommand.get(1)).toString().c_str()));
+                bool timingEnabled = false;
+                if(bCommand.size() > 2 && bCommand.get(2).isBool()) {
+                    timingEnabled = bCommand.get(2).asBool();
                 }
+                bReply = sendStreamImage(imgInstance, timingEnabled);
             }
             else
             {
-                bError.addString("in sendStreamImage : number of element incorrect : sendStreamImage (instance)");
+                bError.addString("in sendStreamImage: number of element incorrect: sendStreamImage instanceNb timingEnabled(optional)");
                 bReply = bError;
             }
         }
@@ -441,10 +442,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
         else if (bCommand.get(0) == "askImage")
         {
-            if (bCommand.size() > 1)
+            if (bCommand.size() > 1 && bCommand.get(1).isInt())
             {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
-                if (instance > 0){
+                if (instance > 0) {
                     bReply = askImage(instance);
                 }
                 else {
@@ -461,19 +462,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         // add an image provider for the following stream recording : addImgProvider (label /yarp/port/img/provider)
         else if (bCommand.get(0) == "addImgProvider")
         {
-            if (bCommand.size() > 1 && bCommand.get(1).isList())
+            if (bCommand.size() == 3 && bCommand.get(1).isString() && bCommand.get(2).isString())
             {
-                if (bCommand.get(1).asList()->size() == 2){
-                    bReply = addImgProvider(bCommand.get(1).asList()->get(0).toString().c_str(), bCommand.get(1).asList()->get(1).toString().c_str());
-                }
-                else {
-                    bError.addString("[addImgProvider] : wrong number of element -> addImgProvider (label /yarp/port/img/provider)");
-                    bReply = bError;
-                }
+                    bReply = addImgProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
             }
             else
             {
-                bError.addString("[addImgProvider] : wrong number of element -> addImgProvider (label /yarp/port/img/provider)");
+                bError.addString("[addImgProvider] : wrong number of element -> addImgProvider label /yarp/port/img/provider");
                 bReply = bError;
             }
         }
@@ -481,7 +476,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         //remove an image provider from the list of available stream images provider
         else if (bCommand.get(0) == "removeImgProvider")
         {
-            if (bCommand.size() > 1)
+            if (bCommand.size() > 1 && bCommand.get(1).isString())
             {
                 string labelImgProvider = bCommand.get(1).toString().c_str();
                 bReply = removeImgProvider(labelImgProvider);
@@ -498,6 +493,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply.addString("ack");
             else
                 bReply.addString("storeOID failed");
+        }
+        else
+        {
+            bError.addString("Command not understood!");
+            bReply = bError;
         }
     }
     else

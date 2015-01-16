@@ -266,14 +266,32 @@ bool autobiographicalMemory::sendImage(string fullPath, BufferedPort<ImageOf<Pix
     return true;
 }
 
-int autobiographicalMemory::sendStreamImage(int instance, bool timingE)
+Bottle autobiographicalMemory::sendStreamImage(int instance, bool timingE)
 {
+    Bottle bReply;
     timingEnabled = timingE;
     openStreamImgPorts(instance);
     int imageCount = exportImages(instance);
     streamStatus = "send"; //streamStatus changed (triggered in update())
 
-    return imageCount;
+    bReply.addString(streamStatus);
+    bReply.addInt(imageCount);
+
+    Bottle bRequest;
+    ostringstream osArg;
+
+    bRequest.addString("request");
+    osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    Bottle bImgProviders;
+    for(int i = 0; i < bRequest.size(); i++) {
+        bImgProviders.addString(portPrefix + bRequest.get(i).asList()->get(0).asString().c_str());
+    }
+
+    bReply.addList() = bImgProviders;
+
+    return bReply;
 }
 
 int autobiographicalMemory::openStreamImgPorts(int instance)
@@ -281,7 +299,6 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
     Bottle bRequest;
     ostringstream osArg;
 
-    //get distinct img_provider_port
     bRequest.addString("request");
     osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
     bRequest.addString(osArg.str());
@@ -290,9 +307,9 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
     for (int i = 0; i < bRequest.size(); i++) {
         string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
         mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
-        mapStreamImgPortOut[imgProviderPort]->open(("/abm"+imgProviderPort).c_str());
+        mapStreamImgPortOut[imgProviderPort]->open((portPrefix+imgProviderPort).c_str());
 
-        Network::connect(("/abm"+imgProviderPort).c_str(), "/yarpview/abm"+imgProviderPort);
+        Network::connect(portPrefix+imgProviderPort, "/yarpview"+portPrefix+imgProviderPort);
     }
 
     cout << "Just created " << mapStreamImgPortOut.size() << " ports." << endl;

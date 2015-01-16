@@ -75,10 +75,11 @@ public:
     yarp::os::Bottle snapshotBehavior(yarp::os::Bottle bInput);
 
     // visualABM
+    std::string portPrefix;
     bool timingEnabled;
     long timeStreamStart;
 
-    int sendStreamImage(int instance, bool timingEnabled=false); //return nb of images that will be sent
+    yarp::os::Bottle sendStreamImage(int instance, bool timingEnabled=false);
     yarp::os::Bottle askImage(int instance);
 
     bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
