@@ -7,6 +7,7 @@
 #include <cv.h>
 #include <highgui.h>
 #include <stdio.h>
+#include <map>
 #ifdef __linux__
 #include <sys/stat.h>
 #endif
@@ -82,23 +83,23 @@ public:
     yarp::os::Bottle sendStreamImage(int instance, bool timingEnabled=false);
     yarp::os::Bottle askImage(int instance);
 
-    bool createImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
-    bool sendImage(std::string fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
-    bool sendImage(std::string fullPath);
+    bool createImage(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
+    bool sendImage(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
+    bool sendImage(const std::string &fullPath);
 
     int exportImages(int instance, int fromImage=-1, int toImage=-1);
-    bool exportImage(int img_oid, std::string path);
+    bool exportImage(int img_oid, const std::string &path);
 
-    bool storeImage(int instance, std::string label, std::string relativePath, std::string imgTime, std::string currentImgProviderPort);
-    bool storeImageAllProviders(bool forSingleInstance=false, std::string fullSentence="");
+    bool storeImage(int instance, const std::string &label, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
+    bool storeImageAllProviders(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
     bool storeOID();
 
-    yarp::os::Bottle addImgProvider(std::string label, std::string portImgProvider);
-    yarp::os::Bottle removeImgProvider(std::string label);
+    yarp::os::Bottle addImgProvider(const std::string &label, const std::string &portImgProvider);
+    yarp::os::Bottle removeImgProvider(const std::string &label);
 
     int openStreamImgPorts(int instance);
     yarp::os::Bottle disconnectImgProviders();
-    yarp::os::Bottle connectImgProvider();
+    yarp::os::Bottle connectImgProviders();
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapStreamImgPortOut;

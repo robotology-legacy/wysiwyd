@@ -5,7 +5,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace cv;
 
-Bottle autobiographicalMemory::addImgProvider(string labelImgProvider, string portImgProvider)
+Bottle autobiographicalMemory::addImgProvider(const string &labelImgProvider, const string &portImgProvider)
 {
     //prepare the ResultSet of the query and the reply
     Bottle bReply;
@@ -30,7 +30,7 @@ Bottle autobiographicalMemory::addImgProvider(string labelImgProvider, string po
     return bReply;
 }
 
-Bottle autobiographicalMemory::removeImgProvider(string labelImgProvider)
+Bottle autobiographicalMemory::removeImgProvider(const string &labelImgProvider)
 {
     //prepare the ResultSet of the query and the reply
     Bottle bReply;
@@ -143,12 +143,12 @@ Bottle autobiographicalMemory::askImage(int instance)
     return bOutput;
 }
 
-Bottle autobiographicalMemory::connectImgProvider()
+Bottle autobiographicalMemory::connectImgProviders()
 {
     Bottle bOutput;
 
     if (mapImgProvider.size() == 0){
-        bOutput.addString("ERROR [connectImgProvider] the map is NULL");
+        bOutput.addString("ERROR [connectImgProviders] the map is NULL");
         return bOutput;
     }
 
@@ -186,7 +186,7 @@ Bottle autobiographicalMemory::disconnectImgProviders()
     bool isAllDisconnected = true;
 
     if (mapImgProvider.size() == 0){
-        bOutput.addString("ERROR [disconnectImgProvider] the map is NULL");
+        bOutput.addString("ERROR [disconnectImgProviders] the map is NULL");
         return bOutput;
     }
 
@@ -199,8 +199,7 @@ Bottle autobiographicalMemory::disconnectImgProviders()
             cout << "ERROR [disconnectImgProvider] " << it->second << " is NOT disconnected!";
             bOutput.addString(it->second);
             isAllDisconnected = false;
-        }
-        else {
+        } else {
             //cout << "[disconnectImgProvider] " << it->second << " successfully disconnected!"  << endl ;
 
             //Have to close/interrupt each time otherwise the port is not responsive anymore
@@ -217,7 +216,7 @@ Bottle autobiographicalMemory::disconnectImgProviders()
     return bOutput;
 }
 
-bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
+bool autobiographicalMemory::createImage(const string &fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
 {
     //Extract the incoming images from yarp
     ImageOf<PixelRgb> *yarpImage = imgPort->read();
@@ -240,12 +239,12 @@ bool autobiographicalMemory::createImage(string fullPath, BufferedPort<ImageOf<P
     return true;
 }
 
-bool autobiographicalMemory::sendImage(string fullPath)
+bool autobiographicalMemory::sendImage(const string &fullPath)
 {
     return sendImage(fullPath, &imagePortOut);
 }
 
-bool autobiographicalMemory::sendImage(string fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
+bool autobiographicalMemory::sendImage(const string &fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
 {
     //cout << "Going to send : " << fullPath << endl;
     IplImage* img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED);
@@ -318,7 +317,7 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
 }
 
 //store an image into the SQL db /!\ no lo_import/oid!! (high frequency streaming needed)
-bool autobiographicalMemory::storeImage(int instance, string label, string relativePath, string imgTime, string currentImgProviderPort)
+bool autobiographicalMemory::storeImage(int instance, const string &label, const string &relativePath, const string &imgTime, const string &currentImgProviderPort)
 {
     Bottle bRequest;
     ostringstream osArg;
@@ -412,7 +411,7 @@ bool autobiographicalMemory::storeOID() {
         requestFromString(osStoreOID.str());
 
         if(i%100==0 || i==bRequest.size() - 1) {
-            cout << "Saved " << i << " images out of " << bRequest.size() << endl;
+            cout << "Saved " << i+1 << " images out of " << bRequest.size() << endl;
         }
     }
 
@@ -461,7 +460,7 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
-bool autobiographicalMemory::exportImage(int img_oid, string imgPath)
+bool autobiographicalMemory::exportImage(int img_oid, const string &imgPath)
 {
     Bottle bRequest;
     ostringstream osArg;
