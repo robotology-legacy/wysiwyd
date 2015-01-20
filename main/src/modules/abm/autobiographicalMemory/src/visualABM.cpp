@@ -332,10 +332,9 @@ bool autobiographicalMemory::storeImage(int instance, const string &label, const
 }
 
 //fullSentence is only used in case forSingleInstance=true!
-bool autobiographicalMemory::storeImageAllProviders(bool forSingleInstance, string fullSentence) {
+bool autobiographicalMemory::storeImageAllProviders(const string &synchroTime, bool forSingleInstance, string fullSentence) {
     bool allGood = true;
     //go through the ImgReceiver ports
-    string synchroTime = getCurrentTime();
 
     for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgReceiver.begin(); it != mapImgReceiver.end(); ++it)
     {

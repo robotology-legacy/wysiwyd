@@ -464,7 +464,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             if (bCommand.size() == 3 && bCommand.get(1).isString() && bCommand.get(2).isString())
             {
-                    bReply = addImgProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
+                bReply = addImgProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
             }
             else
             {
@@ -476,15 +476,35 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         //remove an image provider from the list of available stream images provider
         else if (bCommand.get(0) == "removeImgProvider")
         {
-            if (bCommand.size() > 1 && bCommand.get(1).isString())
+            if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                string labelImgProvider = bCommand.get(1).toString().c_str();
-                bReply = removeImgProvider(labelImgProvider);
+                bReply = removeImgProvider(bCommand.get(1).toString().c_str());
             }
             else
             {
                 bError.addString("[removeImgProvider] : wrong number of element -> removeImgProvider label");
                 bReply = bError;
+            }
+        }
+        else if (bCommand.get(0) == "addContDataProvider")
+        {
+            if (bCommand.size() == 3 && bCommand.get(1).isString() && bCommand.get(2).isString())
+            {
+                bReply = addContDataProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
+            }
+            else {
+                bError.addString("[addContDataProvider]: wrong number of elements -> addContDataProvider type /yarp/port/contdata/provider");
+            }
+        }
+        else if (bCommand.get(0) == "removeContDataProvider")
+        {
+            if (bCommand.size() == 2 && bCommand.get(1).isString())
+            {
+                bReply = removeContDataProvider(bCommand.get(1).toString().c_str());
+            }
+            else
+            {
+                bError.addString("[removeContDataProvider]: wrong number of elements -> removeContDataProvider type");
             }
         }
         else if (bCommand.get(0) == "storeOID")
@@ -526,7 +546,9 @@ bool autobiographicalMemory::updateModule() {
             cout << "WARNING: folder " << currentPathFolder << " already exists or could not be created!" << endl;
         }
 
-        storeImageAllProviders();
+        string synchroTime = getCurrentTime();
+        storeImageAllProviders(synchroTime);
+        storeContDataAllProviders(synchroTime);
 
         //init of the stream record done: go through the classic record phase
         streamStatus = "record";
@@ -534,7 +556,10 @@ bool autobiographicalMemory::updateModule() {
     else if (streamStatus == "record") {
         imgNb += 1;
         //cout << "Image Nb " << imgNb << endl;
-        storeImageAllProviders();
+
+        string synchroTime = getCurrentTime();
+        storeImageAllProviders(synchroTime);
+        storeContDataAllProviders(synchroTime);
     }
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
 
@@ -675,6 +700,7 @@ bool autobiographicalMemory::close()
 {
     cout << "Calling close function" << endl;
 
+    disconnectContDataProviders();
     disconnectImgProviders();
 
     opcWorld->interrupt();
@@ -696,6 +722,8 @@ bool autobiographicalMemory::close()
 
     delete opcWorld;
     delete ABMDataBase;
+
+    cout << "ABM Successfully finished!" << endl;
 
     return true;
 }

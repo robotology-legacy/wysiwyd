@@ -181,11 +181,13 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-    string isConnected = connectImgProvider().toString().c_str();
+    string isConnectedToImgProviders = connectImgProviders().toString().c_str();
+    string isConnectedToContDataProviders = connectContDataProviders().toString().c_str();
 
-    if (isConnected != "ack"){
-        cout << "ABM failed to connect to one imgProvider" << endl;
-        cout << "CAUSE : " << isConnected << endl;
+    if (isConnectedToImgProviders != "ack" && isConnectedToContDataProviders != "ack"){
+        cout << "ABM failed to connect to imgProviders / contDataProviders" << endl;
+        cout << "Reason image providers: " << isConnectedToImgProviders << endl;
+        cout << "Reason cont data providers: " << isConnectedToContDataProviders << endl;
     }
     else if (isStreamActivity == true) //just launch stream images stores when relevant activity
     {
@@ -199,7 +201,9 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     else
     {   //just one image (sentence?)
         imgInstance = currentInstance;
-        storeImageAllProviders(true, fullSentence);
+        string synchroTime = getCurrentTime();
+        storeImageAllProviders(synchroTime, true, fullSentence);
+        storeContDataAllProviders(synchroTime);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
         string reply = disconnectImgProviders().toString().c_str();
