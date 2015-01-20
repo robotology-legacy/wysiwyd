@@ -81,6 +81,9 @@ public:
     std::string portPrefix;
     bool timingEnabled;
     long timeStreamStart;
+    long timeLastImageSent;
+    long timeVeryLastImage;
+    unsigned int imgProviderCount;
 
     yarp::os::Bottle sendStreamImage(int instance, bool timingEnabled=false);
     yarp::os::Bottle askImage(int instance);
