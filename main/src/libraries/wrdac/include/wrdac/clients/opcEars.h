@@ -43,10 +43,15 @@ namespace wysiwyd{namespace wrdac{
     private:
 
         OPCClient *opcWorld;    // relation to the OPC
-        opcSave opcNew;         // Current save of the OPC
         int instance;
 
     public:
+        opcEars() {}
+        ~opcEars() {
+            for(std::map<std::string, opcSave*>::iterator it = mSave.begin(); it != mSave.end(); ++it) {
+                delete it->second;
+            }
+        }
 
         /**
         * Set the instance of OPC
@@ -57,7 +62,7 @@ namespace wysiwyd{namespace wrdac{
         /**
         * Map of the different OPC saved during the run.
         */
-        std::map<std::string, opcSave >   mSave;  // saves of the differents OPC
+        std::map<std::string, opcSave*>   mSave;  // saves of the differents OPC
 
         /**
         * Take a snapshot of the OPC and save it in mSave
@@ -71,7 +76,7 @@ namespace wysiwyd{namespace wrdac{
         * @param bName is a Yarp Bottle with the informations needed
         * @param *OPCReal is a pointer to the OPC checked
         */
-		yarp::os::Bottle snapshot_string(std::string sName, OPCClient *OPCReal);
+        yarp::os::Bottle snapshot_string(std::string sName, OPCClient *OPCReal);
 
         /**
         * Get the list of SQL request for a full OPC. Result is a Bottle with all the SQL request needed for the insertion in the DataBase.

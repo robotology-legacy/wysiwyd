@@ -1064,7 +1064,7 @@ list<Entity*> OPCClient::Entities(const Bottle &condition)
     cmd.addList() = condition;
 
     write(cmd,reply,isVerbose);
-        
+
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {        
         if(this->isVerbose)   
@@ -1115,35 +1115,35 @@ list<Entity*> OPCClient::EntitiesCacheCopy()
     {
         if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_AGENT)
         {
-            Agent *A = new Agent;
+            Agent *A = new Agent();
             A->Agent::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
         if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_OBJECT)
         {
-            Object *A = new Object;
+            Object *A = new Object();
             A->Object::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
         if ((it->second)->m_entity_type == "action")
         {
-            Action *A = new Action;
+            Action *A = new Action();
             A->Action::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
         if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ADJECTIVE)
         {
-            Adjective *A = new Adjective;
+            Adjective *A = new Adjective();
             A->Adjective::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
         if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_RTOBJECT)
         {
-            RTObject *A = new RTObject;
+            RTObject *A = new RTObject();
             A->RTObject::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);

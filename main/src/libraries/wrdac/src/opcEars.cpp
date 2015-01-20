@@ -24,27 +24,27 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
         bOutput.addString("Error wrong format of input");
     }
     ostringstream osName;
-    map<string, opcSave>::iterator it_Map;
     string sName = bName.get(1).asString().c_str();
     osName << sName << instance;
     sName += osName.str();
 
     OPCReal->checkout();
     OPCReal->update();
-    opcNew.lEntities = OPCReal->EntitiesCacheCopy();
-    opcNew.lRelations = OPCReal->getRelations();
+    opcSave *opcNew = new opcSave();         // Current save of the OPC
+    opcNew->lEntities = OPCReal->EntitiesCacheCopy();
+    opcNew->lRelations = OPCReal->getRelations();
 
-    for (list<Entity*>::iterator it_E = opcNew.lEntities.begin(); it_E != opcNew.lEntities.end(); it_E++)
+    for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
         if ( ( (*it_E)->name() == "icub" || (*it_E)->name() == "iCub" ) && ( (*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT) )
         {
             Agent AgA;
             AgA.fromBottle((*it_E)->asBottle()); // Converstion Entity -> Agent
-            opcNew.lDrives.clear();
-            opcNew.lEmotions.clear();
+            opcNew->lDrives.clear();
+            opcNew->lEmotions.clear();
             for (map<string, Drive>::iterator it_D = AgA.m_drives.begin(); it_D != AgA.m_drives.end(); it_D++)
             {
-                opcNew.lDrives.push_back(it_D->second); // Copy the Drives in opcSave
+                opcNew->lDrives.push_back(it_D->second); // Copy the Drives in opcSave
             }
 
             for (map<string, double>::iterator it_Em = AgA.m_emotions_intrinsic.begin(); it_Em != AgA.m_emotions_intrinsic.end(); it_Em++)
@@ -52,7 +52,7 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
                 pair<string, double> pTemp;
                 pTemp.first = it_Em->first;
                 pTemp.second = it_Em->second;
-                opcNew.lEmotions.push_back(pTemp); // Copy the Emotions in opcSave
+                opcNew->lEmotions.push_back(pTemp); // Copy the Emotions in opcSave
             }
 
         }
@@ -69,20 +69,21 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
 Bottle opcEars::snapshot_string(string sName, OPCClient *OPCReal)
 {
     Bottle bOutput;
-    opcNew.lEntities = OPCReal->EntitiesCacheCopy();
-    opcNew.lRelations = OPCReal->getRelations();
+    opcSave *opcNew = new opcSave();         // Current save of the OPC
+    opcNew->lEntities = OPCReal->EntitiesCacheCopy();
+    opcNew->lRelations = OPCReal->getRelations();
 
-    for (list<Entity*>::iterator it_E = opcNew.lEntities.begin(); it_E != opcNew.lEntities.end(); it_E++)
+    for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
         if ( ( (*it_E)->name() == "icub" || (*it_E)->name() == "iCub" ) && ( (*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT) )
         {
             Agent AgA;
             AgA.fromBottle((*it_E)->asBottle()); // Converstion Entity -> Agent
-            opcNew.lDrives.clear();
-            opcNew.lEmotions.clear();
+            opcNew->lDrives.clear();
+            opcNew->lEmotions.clear();
             for (map<string, Drive>::iterator it_D = AgA.m_drives.begin(); it_D != AgA.m_drives.end(); it_D++)
             {
-                opcNew.lDrives.push_back(it_D->second); // Copy the Drives in opcSave
+                opcNew->lDrives.push_back(it_D->second); // Copy the Drives in opcSave
             }
 
             for (map<string, double>::iterator it_Em = AgA.m_emotions_intrinsic.begin(); it_Em != AgA.m_emotions_intrinsic.end(); it_Em++)
@@ -90,7 +91,7 @@ Bottle opcEars::snapshot_string(string sName, OPCClient *OPCReal)
                 pair<string, double> pTemp;
                 pTemp.first = it_Em->first;
                 pTemp.second = it_Em->second;
-                opcNew.lEmotions.push_back(pTemp); // Copy the Emotions in opcSave
+                opcNew->lEmotions.push_back(pTemp); // Copy the Emotions in opcSave
             }
 
         }
@@ -371,11 +372,11 @@ Bottle opcEars::insertOPC(string sName)
     osDrives << "INSERT INTO drives (instance, name, value, homeomax, homeomin) VALUES ";
 
 
-    opcSave opcTemp = mSave[sName];
+    opcSave *opcTemp = mSave[sName];
 
 
     // ---- Entities ---- //
-    for (list<Entity*>::iterator it_E = opcTemp.lEntities.begin(); it_E != opcTemp.lEntities.end(); it_E++ )
+    for (list<Entity*>::iterator it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++ )
     {
         bTemp = insertEntity(*it_E);
     
@@ -445,7 +446,7 @@ Bottle opcEars::insertOPC(string sName)
 
     // ---- RELATIONS ---- //
 
-    for (list<Relation>::iterator it_R = opcTemp.lRelations.begin(); it_R != opcTemp.lRelations.end(); it_R++ )
+    for (list<Relation>::iterator it_R = opcTemp->lRelations.begin(); it_R != opcTemp->lRelations.end(); it_R++ )
     {
         if (!fContent)
             osContent << " ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) " ;
@@ -463,7 +464,7 @@ bTemp  = insertRelation(*it_R);
 
     // ---- DRIVES ---- //
 
-    for (list<Drive>::iterator it_D = opcTemp.lDrives.begin(); it_D != opcTemp.lDrives.end(); it_D++)
+    for (list<Drive>::iterator it_D = opcTemp->lDrives.begin(); it_D != opcTemp->lDrives.end(); it_D++)
     {
         bTemp = insertDrives(*it_D);
         if (!fDrives)
@@ -476,7 +477,7 @@ bTemp  = insertRelation(*it_R);
 
     // ---- EMOTIONS ---- //
 
-    for (list<pair < string, double> >::iterator it_Emo = opcTemp.lEmotions.begin(); it_Emo != opcTemp.lEmotions.end(); it_Emo++)
+    for (list<pair < string, double> >::iterator it_Emo = opcTemp->lEmotions.begin(); it_Emo != opcTemp->lEmotions.end(); it_Emo++)
     {
         bTemp = insertEmotion(*it_Emo);
         if (!fEmotion)

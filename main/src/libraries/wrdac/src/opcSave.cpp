@@ -19,6 +19,7 @@ opcSave::~opcSave()
     {
         delete *it;
     }
+    lEntities.clear();
 }
 
 Bottle opcSave::toBottle()
