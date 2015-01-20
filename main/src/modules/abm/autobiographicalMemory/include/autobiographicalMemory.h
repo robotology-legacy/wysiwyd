@@ -52,6 +52,8 @@ private:
     yarp::os::Bottle detectFailed();
 
 public:
+    bool shouldClose;
+
     yarp::os::Port portEventsIn;
     yarp::os::Port handlerPort;      //a port to handle messages
     yarp::os::Port abm2reasoning;

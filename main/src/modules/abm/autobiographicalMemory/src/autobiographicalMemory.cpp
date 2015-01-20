@@ -41,6 +41,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imgInstance = -1;
     imgNb = 0;
 
+    shouldClose = false;
     bPutObjectsOPC = false;
 
     portEventsIn.open(("/" + getName() + "/request:i").c_str());
@@ -343,9 +344,12 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         if (bCommand.get(0) == "quit" || bCommand.get(0) == "close")
         {
             bReply.addString("close module");
-            portEventsIn.reply(bReply);
+            shouldClose = true;
+        }
+        else if (bCommand.get(0) == "interrupt")
+        {
+            bReply.addString("interrupt module");
             interruptModule();
-            return false;
         }
         // Read a file, and load the requests
         else if (bCommand.get(0) == "read")
@@ -678,7 +682,7 @@ bool autobiographicalMemory::updateModule() {
         imgNb = 0;
     }
 
-    return true;
+    return !shouldClose;
 }
 
 bool autobiographicalMemory::interruptModule()
