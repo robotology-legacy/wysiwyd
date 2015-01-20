@@ -157,13 +157,15 @@ int autobiographicalMemory::openSendContDataPorts(int instance)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    for (int i = 0; i < bRequest.size(); i++) {
-        string contDataPort = bRequest.get(i).asList()->get(0).asString();
-        mapContDataPortOut[contDataPort] = new yarp::os::BufferedPort < Bottle >;
-        mapContDataPortOut[contDataPort]->open((portPrefix+contDataPort).c_str());
+    if(bRequest.toString()!="NULL") {
+        for (int i = 0; i < bRequest.size(); i++) {
+            string contDataPort = bRequest.get(i).asList()->get(0).asString();
+            mapContDataPortOut[contDataPort] = new yarp::os::BufferedPort < Bottle >;
+            mapContDataPortOut[contDataPort]->open((portPrefix+contDataPort).c_str());
+        }
     }
 
-    cout << "Just created " << mapContDataPortOut.size() << " ports." << endl;
+    cout << "openSendContDataPorts just created " << mapContDataPortOut.size() << " ports." << endl;
 
     return mapContDataPortOut.size();
 }

@@ -304,15 +304,17 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    for (int i = 0; i < bRequest.size(); i++) {
-        string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
-        mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
-        mapStreamImgPortOut[imgProviderPort]->open((portPrefix+imgProviderPort).c_str());
+    if(bRequest.toString()!="NULL") {
+        for (int i = 0; i < bRequest.size(); i++) {
+            string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
+            mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
+            mapStreamImgPortOut[imgProviderPort]->open((portPrefix+imgProviderPort).c_str());
 
-        Network::connect(portPrefix+imgProviderPort, "/yarpview"+portPrefix+imgProviderPort);
+            Network::connect(portPrefix+imgProviderPort, "/yarpview"+portPrefix+imgProviderPort);
+        }
     }
 
-    cout << "Just created " << mapStreamImgPortOut.size() << " ports." << endl;
+    cout << "openStreamImgPorts just created " << mapStreamImgPortOut.size() << " ports." << endl;
 
     return mapStreamImgPortOut.size();
 }
