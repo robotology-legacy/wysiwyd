@@ -251,6 +251,10 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     // DEPRECATED *ABMDataBase << "CREATE TABLE images (instance integer NOT NULL, label text, img_oid oid NOT NULL, filename text, CONSTRAINT img_id PRIMARY KEY (img_oid), CONSTRAINT images_instancee_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE images OWNER  TO postgres;";
 
+    /****************************** continuousdata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS continuousdata CASCADE;";
+    *ABMDataBase << "CREATE TABLE continuousdata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text, type text NOT NULL, subtype text NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT cont_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE continuousdata OWNER TO postgres;";
+
     string sFilename;
 
     //if filename after, load the database through this
@@ -941,6 +945,14 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
         //remove from images table
         osRequest.str("");
         osRequest << "DELETE FROM images WHERE instance = " << *it;
+        bRequest.clear();
+        bRequest.addString("request");
+        bRequest.addString(osRequest.str().c_str());
+        request(bRequest);
+
+        //remove from continuousdata table
+        osRequest.str("");
+        osRequest << "DELETE FROM continuousdata WHERE instance = " << *it;
         bRequest.clear();
         bRequest.addString("request");
         bRequest.addString(osRequest.str().c_str());
