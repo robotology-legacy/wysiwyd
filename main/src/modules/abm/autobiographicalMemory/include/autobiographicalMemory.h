@@ -100,8 +100,8 @@ public:
     yarp::os::Bottle removeImgProvider(const std::string &label);
 
     int openStreamImgPorts(int instance);
-    yarp::os::Bottle disconnectImgProviders();
     yarp::os::Bottle connectImgProviders();
+    yarp::os::Bottle disconnectImgProviders();
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapStreamImgPortOut;
@@ -111,12 +111,14 @@ public:
     // continuousABM
     yarp::os::Bottle addContDataProvider(const std::string &type, const std::string &portContDataProvider);
     yarp::os::Bottle removeContDataProvider(const std::string &type);
+    std::map <std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataPortOut;
     std::map< std::string, std::string > mapContDataProvider;
     std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataReceiver;
 
     bool storeContDataAllProviders(const std::string &synchroTime);
     bool storeContData(int instance, const std::string &type, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
 
+    int openSendContDataPorts(int instance);
     yarp::os::Bottle connectContDataProviders();
     yarp::os::Bottle disconnectContDataProviders();
 

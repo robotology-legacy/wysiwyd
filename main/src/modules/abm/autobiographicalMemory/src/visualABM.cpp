@@ -270,6 +270,7 @@ Bottle autobiographicalMemory::sendStreamImage(int instance, bool timingE)
     Bottle bReply;
     timingEnabled = timingE;
     openStreamImgPorts(instance);
+    openSendContDataPorts(instance);
     int imageCount = exportImages(instance);
     streamStatus = "send"; //streamStatus changed (triggered in update())
 

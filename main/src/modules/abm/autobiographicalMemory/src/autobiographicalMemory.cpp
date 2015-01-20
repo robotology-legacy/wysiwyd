@@ -570,7 +570,6 @@ bool autobiographicalMemory::updateModule() {
         storeContDataAllProviders(synchroTime);
     }
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
-
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (imgNb == 0) {
             cout << "============================= STREAM SEND =================================" << endl;
@@ -666,8 +665,17 @@ bool autobiographicalMemory::updateModule() {
                     cout << "Error, port " << it->first << " could not be closed" << endl;
                 }
             }
+            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it)
+            {
+                it->second->interrupt();
+                it->second->close();
+                if(!it->second->isClosed()) {
+                    cout << "Error, port " << it->first << " could not be closed" << endl;
+                }
+            }
 
             mapStreamImgPortOut.clear();
+            mapContDataPortOut.clear();
 
             streamStatus = "end";
         }

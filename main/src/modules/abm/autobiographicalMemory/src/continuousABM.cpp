@@ -43,7 +43,6 @@ Bottle autobiographicalMemory::removeContDataProvider(const string &type)
     return bReply;
 }
 
-
 Bottle autobiographicalMemory::connectContDataProviders()
 {
     Bottle bOutput;
@@ -80,7 +79,6 @@ Bottle autobiographicalMemory::connectContDataProviders()
 
     return bOutput;
 }
-
 
 Bottle autobiographicalMemory::disconnectContDataProviders()
 {
@@ -132,7 +130,6 @@ bool autobiographicalMemory::storeContData(int instance, const string &type, int
     return true;
 }
 
-
 bool autobiographicalMemory::storeContDataAllProviders(const string &synchroTime) {
     for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataReceiver.begin(); it != mapContDataReceiver.end(); ++it)
     {
@@ -147,4 +144,26 @@ bool autobiographicalMemory::storeContDataAllProviders(const string &synchroTime
     }
 
     return true;
+}
+
+// From here on all send stream related
+int autobiographicalMemory::openSendContDataPorts(int instance)
+{
+    Bottle bRequest;
+    ostringstream osArg;
+
+    bRequest.addString("request");
+    osArg << "SELECT DISTINCT label_port FROM continuousdata WHERE instance = " << instance << endl;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+
+    for (int i = 0; i < bRequest.size(); i++) {
+        string contDataPort = bRequest.get(i).asList()->get(0).asString();
+        mapContDataPortOut[contDataPort] = new yarp::os::BufferedPort < Bottle >;
+        mapContDataPortOut[contDataPort]->open((portPrefix+contDataPort).c_str());
+    }
+
+    cout << "Just created " << mapContDataPortOut.size() << " ports." << endl;
+
+    return mapContDataPortOut.size();
 }
