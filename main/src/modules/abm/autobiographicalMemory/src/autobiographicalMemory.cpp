@@ -1066,7 +1066,7 @@ Bottle autobiographicalMemory::populateOPC()
     Bottle bReply, bDistinctAgent;
     bDistinctAgent = requestFromString("SELECT DISTINCT name FROM agent");
 
-    for (int iDA = 0; iDA < bDistinctAgent.size(); iDA++)
+    for (int iDA = 0; iDA < bDistinctAgent.size() && bDistinctAgent.toString()!="NULL"; iDA++)
     {
         string sName = bDistinctAgent.get(iDA).toString();
         ostringstream osAgent;
@@ -1102,7 +1102,7 @@ Bottle autobiographicalMemory::populateOPC()
     // 2. RTObjects : 
     Bottle bDistincRto = requestFromString("SELECT DISTINCT name FROM rtobject");
 
-    for (int iDTRO = 0; iDTRO < bDistincRto.size(); iDTRO++)
+    for (int iDTRO = 0; iDTRO < bDistincRto.size() && bDistincRto.toString()!="NULL"; iDTRO++)
     {
         string sName = bDistincRto.get(iDTRO).toString();
         ostringstream osRto;
@@ -1140,7 +1140,7 @@ Bottle autobiographicalMemory::populateOPC()
     {
         Bottle bDistinctObject = requestFromString("SELECT DISTINCT name FROM object");
 
-        for (int iDO = 0; iDO < bDistinctObject.size(); iDO++)
+        for (int iDO = 0; iDO < bDistinctObject.size() && bDistinctObject.toString()!="NULL"; iDO++)
         {
             string sName = bDistinctObject.get(iDO).toString();
             ostringstream osObject;

@@ -285,7 +285,7 @@ Bottle autobiographicalMemory::sendStreamImage(int instance, bool timingE)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
     Bottle bImgProviders;
-    for(int i = 0; i < bRequest.size(); i++) {
+    for(int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
         bImgProviders.addString(portPrefix + bRequest.get(i).asList()->get(0).asString().c_str());
     }
 
@@ -318,14 +318,12 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    if(bRequest.toString()!="NULL") {
-        for (int i = 0; i < bRequest.size(); i++) {
-            string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
-            mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
-            mapStreamImgPortOut[imgProviderPort]->open((portPrefix+imgProviderPort).c_str());
+    for (int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
+        string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
+        mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
+        mapStreamImgPortOut[imgProviderPort]->open((portPrefix+imgProviderPort).c_str());
 
-            Network::connect(portPrefix+imgProviderPort, "/yarpview"+portPrefix+imgProviderPort);
-        }
+        Network::connect(portPrefix+imgProviderPort, "/yarpview"+portPrefix+imgProviderPort);
     }
 
     cout << "openStreamImgPorts just created " << mapStreamImgPortOut.size() << " ports." << endl;
@@ -448,9 +446,9 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
 
     if(fromImage<0)
         fromImage = 0;
-    if(toImage==-1)
+    if(toImage==-1 && bRequest.toString()!="NULL")
         toImage = bRequest.size();
-    if(toImage > bRequest.size()) {
+    if(toImage > bRequest.size() && bRequest.toString()!="NULL") {
         cout << "Requested to save up to image " << toImage << ", but only " << bRequest.size() << " available." << endl;
         toImage = bRequest.size();
         cout << "Will only send up to image " << toImage << endl;

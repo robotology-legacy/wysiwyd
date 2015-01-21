@@ -149,20 +149,18 @@ bool autobiographicalMemory::storeContDataAllProviders(const string &synchroTime
 // From here on all send stream related
 int autobiographicalMemory::openSendContDataPorts(int instance)
 {
-    Bottle bRequest;
+    Bottle bDistLabelPort;
     ostringstream osArg;
 
-    bRequest.addString("request");
+    bDistLabelPort.addString("request");
     osArg << "SELECT DISTINCT label_port FROM continuousdata WHERE instance = " << instance << endl;
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
+    bDistLabelPort.addString(osArg.str());
+    bDistLabelPort = request(bDistLabelPort);
 
-    if(bRequest.toString()!="NULL") {
-        for (int i = 0; i < bRequest.size(); i++) {
-            string contDataPort = bRequest.get(i).asList()->get(0).asString();
-            mapContDataPortOut[contDataPort] = new yarp::os::BufferedPort < Bottle >;
-            mapContDataPortOut[contDataPort]->open((portPrefix+contDataPort).c_str());
-        }
+    for (int i = 0; i < bDistLabelPort.size() && bDistLabelPort.toString()!="NULL"; i++) {
+        string contDataPort = bDistLabelPort.get(i).asList()->get(0).asString();
+        mapContDataPortOut[contDataPort] = new yarp::os::BufferedPort < Bottle >;
+        mapContDataPortOut[contDataPort]->open((portPrefix+contDataPort).c_str());
     }
 
     cout << "openSendContDataPorts just created " << mapContDataPortOut.size() << " ports." << endl;

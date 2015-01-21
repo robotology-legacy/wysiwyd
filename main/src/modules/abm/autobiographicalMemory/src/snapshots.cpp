@@ -30,8 +30,13 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     bRequest.addString("request");
     bRequest.addString(sRequest_instance.c_str());
     bRequest = request(bRequest);
-    bResult = *((bRequest.get(0)).asList());
-    int instance = (atoi((bResult.get(0)).toString().c_str())) + 1;
+    int instance;
+    if(bRequest.toString()!="NULL") {
+        bResult = *((bRequest.get(0)).asList());
+        instance = (atoi((bResult.get(0)).toString().c_str())) + 1;
+    } else {
+        instance = 0;
+    }
     OPCEARS.setInstance(instance);
     currentInstance = instance;
 
@@ -257,7 +262,12 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     //get Instance of the next opc
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
     bRequest = requestFromString("SELECT instance FROM main ORDER BY instance DESC LIMIT 1;");
-    int instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
+    int instance;
+    if(bRequest.toString()!="NULL") {
+        instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
+    } else {
+        instance = 0;
+    }
     OPCEARS.setInstance(instance);
 
     // Filling table main :
@@ -435,7 +445,12 @@ Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
     //get Instance of the next opc
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
     bRequest = requestFromString("SELECT instance FROM main ORDER BY instance DESC LIMIT 1;");
-    int instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
+    int instance;
+    if(bRequest.toString()!="NULL") {
+        instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
+    } else {
+        instance = 0;
+    }
     OPCEARS.setInstance(instance);
 
     // Filling table main :
