@@ -39,8 +39,6 @@ private:
     int imgInstance;
     int currentInstance;
 
-    yarp::os::Bottle bListImages;
-
     // connection to OPC / reasoning
     wysiwyd::wrdac::opcEars OPCEARS;
     wysiwyd::wrdac::OPCClient *opcWorld;
@@ -112,6 +110,9 @@ public:
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
 
     // continuousABM
+    bool sendStreamIsInitialized;
+    unsigned int contDataProviderCount;
+
     yarp::os::Bottle addContDataProvider(const std::string &type, const std::string &portContDataProvider);
     yarp::os::Bottle removeContDataProvider(const std::string &type);
     std::map <std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataPortOut;

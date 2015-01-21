@@ -40,6 +40,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imgLabel = "defaultLabel";
     imgInstance = -1;
     imgNb = 0;
+    sendStreamIsInitialized = false;
 
     shouldClose = false;
     bPutObjectsOPC = false;
@@ -571,74 +572,151 @@ bool autobiographicalMemory::updateModule() {
     }
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
-        if (imgNb == 0) {
+        if (sendStreamIsInitialized == false) {
             cout << "============================= STREAM SEND =================================" << endl;
             timeStreamStart = getCurrentTimeInMS();
             timeLastImageSent = -1;
 
+            // Find out how many ports we need for images
             Bottle bRequest;
             ostringstream osArg;
             bRequest.addString("request");
             osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << imgInstance;
             bRequest.addString(osArg.str());
             bRequest = request(bRequest);
-            imgProviderCount = bRequest.size();
+            if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+                imgProviderCount = bRequest.size();
+            } else {
+                imgProviderCount = 0;
+            }
 
+            // Find out how many ports we need for continuousdata
             osArg.str("");
-            osArg << "SELECT EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = " << imgInstance << " ORDER BY time LIMIT 1)) * 1000000 as time_difference FROM images WHERE instance = " << imgInstance << " ORDER BY time DESC LIMIT 1;";
             bRequest.clear();
+            bRequest.addString("request");
+            osArg << "SELECT DISTINCT label_port, type, subtype FROM continuousdata WHERE instance = " << imgInstance;
+            bRequest.addString(osArg.str());
+            bRequest = request(bRequest);
+            if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+                contDataProviderCount = bRequest.size();
+            } else {
+                contDataProviderCount = 0;
+            }
+
+            // Find time of last image to be sent
+            osArg.str("");
+            bRequest.clear();
+            osArg << "SELECT CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = " << imgInstance << " ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference FROM images WHERE instance = " << imgInstance << " ORDER BY time DESC LIMIT 1;";
             bRequest.addString("request");
             bRequest.addString(osArg.str());
             bRequest = request(bRequest);
-            if(bRequest.size()>0) {
+            if(bRequest.size()>0 && bRequest.toString()!="NULL") {
                 timeVeryLastImage = atol(bRequest.get(0).asList()->get(0).asString().c_str());
             } else {
                 timeVeryLastImage = 0;
             }
 
-            cout << "timeVeryLastImage: " << timeVeryLastImage << endl;
+            // Find time of last continuous data to be sent
+            osArg.str("");
+            bRequest.clear();
+            osArg << "SELECT CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM continuousdata WHERE instance = " << imgInstance << " ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference FROM continuousdata WHERE instance = " << imgInstance << " ORDER BY time DESC LIMIT 1;";
+            bRequest.addString("request");
+            bRequest.addString(osArg.str());
+            bRequest = request(bRequest);
+            if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+                if(atol(bRequest.get(0).asList()->get(0).asString().c_str()) > timeVeryLastImage) {
+                    timeVeryLastImage = atol(bRequest.get(0).asList()->get(0).asString().c_str());
+                }
+            }
+
+            sendStreamIsInitialized = true;
         }
 
+        // Calculate time in update method since first image/contdata was sent
         long timeStreamCurrent = getCurrentTimeInMS();
         long updateTimeDifference = timeStreamCurrent - timeStreamStart;
 
-        bListImages.clear();
+        // Find which images to send
+        Bottle bListImages;
         bListImages.addString("request");
-        ostringstream osArg;
+        ostringstream osArgImages;
 
-        osArg << "SELECT * FROM (";
-        osArg << "SELECT relative_path, img_provider_port, time, ";
-        osArg << "EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as time_difference ";
-        osArg << "FROM images WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
+        osArgImages << "SELECT * FROM (";
+        osArgImages << "SELECT relative_path, img_provider_port, time, ";
+        osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
+        osArgImages << "FROM images WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
         if(timingEnabled) {
-            osArg << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC LIMIT " << imgProviderCount << ";";
+            osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC LIMIT " << imgProviderCount << ";";
         } else {
-            osArg << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time ASC LIMIT " << imgProviderCount << ";";
+            osArgImages << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time ASC LIMIT " << imgProviderCount << ";";
         }
 
-        bListImages.addString(osArg.str());
+        bListImages.addString(osArgImages.str());
         bListImages = request(bListImages);
 
+        // Save images in temp folder and send them to ports
         if(bListImages.toString()!="NULL") {
             for(int i=0; i<bListImages.size(); i++) {
                 //concatenation of the storing path
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
                 BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
-                if(bListImages.get(i).asList()->get(2).asInt64() > timeLastImageSent) {
-                    timeLastImageSent = bListImages.get(i).asList()->get(2).asInt64();
+                if(atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSent) {
+                    timeLastImageSent = atol(bListImages.get(i).asList()->get(3).asString().c_str());
                 }
 
-                cout << "Send image " << imgNb << ": " << fullPath.str() << endl;
+                cout << "Send image: " << fullPath.str() << endl;
                 sendImage(fullPath.str(), port);
-
-                //next image
-                imgNb += 1;
             }
         }
 
+        // Make sure bottles for contdata are cleared from last time
+        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it)
+        {
+            it->second->prepare().clear();
+        }
+
+        // Find which continuous data to send
+        Bottle bListContData;
+        bListContData.addString("request");
+        ostringstream osArgContData;
+
+        osArgContData << "SELECT * FROM (";
+        osArgContData << "SELECT subtype, label_port, time, value, ";
+        osArgContData << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM continuousdata WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
+        osArgContData << "FROM continuousdata WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
+        if(timingEnabled) {
+            osArgContData << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time, label_port, subtype DESC LIMIT " << contDataProviderCount << ";";
+        } else {
+            osArgContData << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time, label_port, subtype ASC LIMIT " << contDataProviderCount << ";";
+        }
+
+        bListContData.addString(osArgContData.str());
+        bListContData = request(bListContData);
+
+        // Append bottle of ports for all the subtypes
+        if(bListContData.toString()!="NULL") {
+            for(int i=0; i<bListContData.size(); i++) {
+                BufferedPort<Bottle>* port = mapContDataPortOut.at(bListContData.get(i).asList()->get(1).asString().c_str());
+                if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSent) {
+                    timeLastImageSent = atol(bListContData.get(i).asList()->get(4).asString().c_str());
+                }
+
+                Bottle &temp = port->prepare();
+                temp.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
+            }
+        }
+
+        // Send bottles to ports
+        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it)
+        {
+            cout << "Write port " << it->second->getName() << endl;
+            it->second->write();
+        }
+
+        // Are we done?
         if(updateTimeDifference > timeVeryLastImage) {
-            //Close ports which were opened in sendStreamImage
+            //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             cout << "streamStatus = end, closing ports" << endl;
             for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapStreamImgPortOut.begin(); it != mapStreamImgPortOut.end(); ++it)
             {
@@ -675,6 +753,7 @@ bool autobiographicalMemory::updateModule() {
         imgLabel = "defaultLabel";
         imgInstance = -1;
         imgNb = 0;
+        sendStreamIsInitialized = false;
     }
 
     return !shouldClose;

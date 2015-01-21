@@ -291,6 +291,20 @@ Bottle autobiographicalMemory::sendStreamImage(int instance, bool timingE)
 
     bReply.addList() = bImgProviders;
 
+    bRequest.clear();
+    osArg.str("");
+
+    bRequest.addString("request");
+    osArg << "SELECT DISTINCT label_port FROM continuousdata WHERE instance = " << instance << endl;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    Bottle bContDataProviders;
+    for(int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
+        bContDataProviders.addString(portPrefix + bRequest.get(i).asList()->get(0).asString().c_str());
+    }
+
+    bReply.addList() = bContDataProviders;
+
     return bReply;
 }
 
