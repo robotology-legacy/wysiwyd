@@ -26,7 +26,12 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     dataB = bDBProperties.check("dataB", Value("ABM")).asString();
     savefile = (rf.getContextPath() + "/saveRequest.txt").c_str();
 
-    ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+    try {
+        ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+    } catch (DataBaseError e) {
+        cout << "Could not connect to database. Reason: " << e.what() << endl;
+        return false;
+    }
 
     //conf group for image storing properties
     Bottle &bISProperties = rf.findGroup("image_storing");
