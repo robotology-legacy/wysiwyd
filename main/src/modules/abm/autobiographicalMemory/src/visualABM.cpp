@@ -446,12 +446,17 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
 
     if(fromImage<0)
         fromImage = 0;
-    if(toImage==-1 && bRequest.toString()!="NULL")
+    if(toImage==-1)
         toImage = bRequest.size();
-    if(toImage > bRequest.size() && bRequest.toString()!="NULL") {
+    if(toImage > bRequest.size()) {
         cout << "Requested to save up to image " << toImage << ", but only " << bRequest.size() << " available." << endl;
         toImage = bRequest.size();
         cout << "Will only send up to image " << toImage << endl;
+    }
+
+    if(bRequest.toString()=="NULL") {
+        fromImage=-1;
+        toImage=-1;
     }
 
     //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())

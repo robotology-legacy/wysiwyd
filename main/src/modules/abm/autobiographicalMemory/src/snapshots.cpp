@@ -26,14 +26,13 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     }
 
     sRequest_instance = "SELECT instance FROM main ORDER BY instance DESC LIMIT 1;";
-    Bottle bRequest, bResult, bTemp;
+    Bottle bRequest, bTemp;
     bRequest.addString("request");
     bRequest.addString(sRequest_instance.c_str());
     bRequest = request(bRequest);
     int instance;
     if(bRequest.toString()!="NULL") {
-        bResult = *((bRequest.get(0)).asList());
-        instance = (atoi((bResult.get(0)).toString().c_str())) + 1;
+        instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
     } else {
         instance = 0;
     }
