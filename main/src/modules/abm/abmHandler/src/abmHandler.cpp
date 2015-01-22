@@ -52,14 +52,9 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
     sKeyWord = rf.check("keyword", Value("history")).toString().c_str();
 
-    nameGrammarNode1 = rf.getContextPath().c_str();
-    nameGrammarNode1 += rf.check("nameGrammarNode1", Value("/nameGrammarNode1.xml")).toString().c_str();
-    nameGrammarNode2 = rf.getContextPath().c_str();
-    nameGrammarNode2 += rf.check("nameGrammarNode2", Value("/nameGrammarNode2.xml")).toString().c_str();
-    nameGrammarNode3 = rf.getContextPath().c_str();
-    nameGrammarNode3 += rf.check("nameGrammarNode3", Value("/nameGrammarNode3.xml")).toString().c_str();
-
-
+    nameGrammarNode1 = rf.findFileByName(rf.check("nameGrammarNode1", Value("nameGrammarNode1.xml")).toString().c_str());
+    nameGrammarNode2 = rf.findFileByName(rf.check("nameGrammarNode2", Value("nameGrammarNode2.xml")).toString().c_str());
+    nameGrammarNode3 = rf.findFileByName(rf.check("nameGrammarNode3", Value("nameGrammarNode3.xml")).toString().c_str());
 
     /*
     * before continuing, set the module name before getting any other parameters,
@@ -282,7 +277,7 @@ Bottle abmHandler::node1()
 
         cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -459,6 +454,12 @@ Bottle abmHandler::node1()
         cout << "iCurrentInstance = " << iCurrentInstance << endl;
 
         return node2();
+    }
+
+    // Can you remember the first/last time when you ...
+    else if (sQuestionKind == "REMEMBERING")
+    {
+        cout << "============= REMEMBERING ===================" << endl ;
     }
 
     else
