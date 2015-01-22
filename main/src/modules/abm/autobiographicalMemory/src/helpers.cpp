@@ -2,6 +2,11 @@
 
 #ifdef WIN32
 #include <windows.h>
+    #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+        #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+    #else
+        #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+    #endif
 #else
 #include <sys/time.h>
 #endif
@@ -168,7 +173,23 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
 long autobiographicalMemory::getCurrentTimeInMS()
 {
 #ifdef WIN32
-// TODO: Needs to be done, check GetSystemTimeAsFileTime
+    FILETIME ft;
+    unsigned __int64 tmpres = 0;
+
+    GetSystemTimeAsFileTime(&ft);
+
+    tmpres |= ft.dwHighDateTime;
+    tmpres <<= 32;
+    tmpres |= ft.dwLowDateTime;
+
+    /*converting file time to unix epoch*/
+    tmpres -= DELTA_EPOCH_IN_MICROSECS;
+    tmpres /= 10;  /*convert into microseconds*/
+    long iS = (long)(tmpres / 1000000UL);
+    iS = iS * 1000000;
+    long iUS = (long)(tmpres % 1000000UL);
+
+    return iS + iUS;
 #else
     struct timezone tz;
     struct timeval tv;
