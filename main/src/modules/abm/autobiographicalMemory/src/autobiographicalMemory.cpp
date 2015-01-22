@@ -24,7 +24,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     user = bDBProperties.check("user", Value("postgres")).asString();
     password = bDBProperties.check("password", Value("postgres")).asString();
     dataB = bDBProperties.check("dataB", Value("ABM")).asString();
-    savefile = (rf.getContextPath() + "/saveRequest.txt").c_str();
+    savefile = rf.findFileByName("saveRequest.txt");
 
     try {
         ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
@@ -769,8 +769,8 @@ bool autobiographicalMemory::interruptModule()
     cout << "Interrupting your module, for port cleanup" << endl;
 
     storeOID();
-
     opcWorld->interrupt();
+
     handlerPort.interrupt();
     portEventsIn.interrupt();
     abm2reasoning.interrupt();

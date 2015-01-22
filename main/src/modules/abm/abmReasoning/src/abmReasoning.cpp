@@ -14,8 +14,7 @@ using namespace std;
 abmReasoning::abmReasoning(ResourceFinder &rf)
 {
 	iFunction = new abmReasoningFunction(rf);
-	path = rf.getContextPath();
-	savefile = (path + "/saveRequest.txt").c_str();
+    savefile = rf.findFileByName("saveRequest.txt");
 	opcNameTable.push_back(EFAA_OPC_ENTITY_TAG);
 	opcNameTable.push_back(EFAA_OPC_ENTITY_RELATION);
 	opcNameTable.push_back(EFAA_OPC_ENTITY_OBJECT);
@@ -40,9 +39,8 @@ bool abmReasoning::updateModule()
 /* configure the module */
 bool abmReasoning::configure(ResourceFinder &rf)
 {
-	moduleName = rf.check("name",
-		Value("abmReasoning"),
-		"module name (string)").asString();
+    resfind = rf;
+    moduleName = rf.check("name", Value("abmReasoning"), "module name (string)").asString();
 
 	setName(moduleName.c_str());
 
@@ -78,12 +76,10 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
 	bestSol = -1;
 
-	std::cout << endl << endl << "----------------------------------------------" << endl << endl << "abmReasoning ready !" << endl << endl;
+    cout << endl << endl << "----------------------------------------------";
+    cout << endl << endl << "abmReasoning ready !" << endl << endl;
 
 	bReady = true;
-
-
-
 
 	//    adjKnowledge test;
 	//    test.determineTimingInfluence();
@@ -2402,8 +2398,8 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		END2;
 
 
-	string filepath_sentence = (path + "/sentences.txt");
-	ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+    string filepath_sentence = resfind.findFileByName("sentences.txt");
+    ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 	file_sentences << "agent\tverb\tobject\tajd1\tadj2" << endl;
 
@@ -2528,10 +2524,11 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		{
 
 			// writing data in a file
-			string filepath_time = (path + "/time_");
-			filepath_time += it->sLabel.c_str();
-			filepath_time += ".txt";
-			ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+            string filepath_time_relative = "time_";
+            filepath_time_relative+=it->sLabel.c_str();
+            filepath_time_relative+=".txt";
+            string filepath_time = resfind.findFileByName(filepath_time_relative);
+            ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 			for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
 			{
@@ -2540,10 +2537,11 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
 			cout << "file_time " << filepath_time << " written" << endl;
 
-			string filepath_space = (path + "/space_");
-			filepath_space += it->sLabel.c_str();
-			filepath_space += ".txt";
-			ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+            string filepath_space_relative = "space_";
+            filepath_space_relative+=it->sLabel.c_str();
+            filepath_space_relative+=".txt";
+            string filepath_space = resfind.findFileByName(filepath_space_relative);
+            ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 			file_space << "X\tY\tDX\tDY" << endl;
 
@@ -2567,12 +2565,12 @@ Bottle abmReasoning::findAllActionsV2(int from)
 			}
 			else
 			{
-				string filepath_space_verb = (path + "/space_verb_");
-				filepath_space_verb += it->sLabel.c_str();
-				filepath_space_verb += ".txt";
+                string filepath_space_verb_relative = "space_verb_";
+                filepath_space_verb_relative+=it->sLabel.c_str();
+                filepath_space_verb_relative+=".txt";
+                string filepath_space_verb = resfind.findFileByName(filepath_space_verb_relative);
 
-
-				ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+                ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 				file_space_verb << "X\tY\tVerb" << endl;
 
@@ -4555,8 +4553,8 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
 */
 void abmReasoning::printSpatialKnowledge()
 {
-	string filepath = (path + "/spatial_knowledge.txt").c_str();
-	ofstream file(filepath.c_str(), ios::out | ios::trunc);  // ouverture en écriture avec effacement du fichier ouvert
+    string spatial_knowledge_path = resfind.findFileByName("spatial_knowledge.txt");
+    ofstream file(spatial_knowledge_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 	file << "X\tY\ttype\tname" << endl;
 
 	for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
@@ -4576,7 +4574,7 @@ void abmReasoning::printSpatialKnowledge()
 			}
 		}
 	}
-	std::cout << "file " << filepath << " written" << endl;
+    std::cout << "file " << spatial_knowledge_path << " written" << endl;
 }
 
 /*
