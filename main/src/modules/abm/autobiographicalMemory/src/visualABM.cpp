@@ -418,9 +418,12 @@ bool autobiographicalMemory::storeOID() {
         string imgProviderPort = bRequest.get(i).asList()->get(1).toString().c_str();
         string imgRelativePath = bRequest.get(i).asList()->get(2).toString().c_str();
 
+        string fullPath = storingPath + "/" + imgRelativePath;
+        unsigned int new_img_oid = ABMDataBase->lo_import(fullPath.c_str());
+
         ostringstream osStoreOID;
-        osStoreOID << "UPDATE images SET img_oid=lo_import('" << storingPath << "/" << imgRelativePath << "')";
-        osStoreOID << "WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "'";
+        osStoreOID << "UPDATE images SET img_oid=" << new_img_oid;
+        osStoreOID << " WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "'";
 
         requestFromString(osStoreOID.str());
 
@@ -479,20 +482,8 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
-bool autobiographicalMemory::exportImage(int img_oid, const string &imgPath) {
-    Bottle bRequest;
-    ostringstream osArg;
-
-    bRequest.addString("request");
-    //retrieve the image from the db and print it to /storingPath/temp folder
-    osArg << "SELECT lo_export(img_oid, '" << imgPath << "') from images WHERE img_oid = '" << img_oid << "';";
-
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
-
-    //bOutput.addString("ack");
-
-    return true;
+int autobiographicalMemory::exportImage(int img_oid, const string &imgPath) {
+    return ABMDataBase->lo_export(img_oid, imgPath.c_str());
 }
 
 unsigned int autobiographicalMemory::getImagesProviderCount(int instance) {

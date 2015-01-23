@@ -124,6 +124,40 @@ public:
 		_hasResult = false;
 	}
 
+    unsigned int lo_import_pgsql(const char *filename) {
+        _resultPtr = PQexec(_connectionHandlerPtr, "BEGIN");
+        if (PQresultStatus(_resultPtr) != PGRES_COMMAND_OK) {
+            throw DataBaseError("BEGIN command failed: " + std::string(PQerrorMessage(_connectionHandlerPtr)));
+        }
+
+        int res = lo_import(_connectionHandlerPtr, filename);
+        if (res == -1) {
+            throw DataBaseError("lo_import failed: " + std::string(PQerrorMessage(_connectionHandlerPtr)));
+        }
+
+        PQexec(_connectionHandlerPtr, "END");
+        PQclear(_resultPtr);
+
+        return res;
+    }
+
+    int	lo_export_pgsql(unsigned int lobjId, const char *filename) {
+        _resultPtr = PQexec(_connectionHandlerPtr, "BEGIN");
+        if (PQresultStatus(_resultPtr) != PGRES_COMMAND_OK) {
+            throw DataBaseError("BEGIN command failed: " + std::string(PQerrorMessage(_connectionHandlerPtr)));
+        }
+        int res = lo_export(_connectionHandlerPtr, lobjId, filename);
+
+        if (res == -1) {
+            throw DataBaseError("lo_export failed: " + std::string(PQerrorMessage(_connectionHandlerPtr)));
+        }
+
+        PQexec(_connectionHandlerPtr, "END");
+        PQclear(_resultPtr);
+
+        return res;
+    }
+
 protected:
 
 	void close(void)

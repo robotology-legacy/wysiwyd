@@ -91,7 +91,7 @@ public:
     bool sendImage(const std::string &fullPath);
 
     int exportImages(int instance, int fromImage=-1, int toImage=-1);
-    bool exportImage(int img_oid, const std::string &path);
+    int exportImage(int img_oid, const std::string &path);
 
     bool storeImage(int instance, const std::string &label, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
     bool storeImageAllProviders(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
