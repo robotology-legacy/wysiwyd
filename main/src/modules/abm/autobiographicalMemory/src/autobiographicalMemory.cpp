@@ -850,14 +850,23 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
         bInstances = *bInput.get(1).asList();
         int begin = 0, end = -1;
 
-        if (bInstances.size() == 2)
+        if (bInstances.size() == 1)
+        {
+            vecToErase.push_back(atoi(bInstances.get(0).toString().c_str()));
+        }
+        else if (bInstances.size() == 2)
         {
             begin = atoi(bInstances.get(0).toString().c_str());
             end   = atoi(bInstances.get(1).toString().c_str());
+            for (int inst = begin; inst < end + 1; inst++)
+            {
+                vecToErase.push_back(inst);
+            }
         }
-        for (int inst = begin; inst < end + 1; inst++)
+        else
         {
-            vecToErase.push_back(inst);
+            bOutput.addString("in autobiographicalMemory::eraseInstance | wrong number of input");
+            return bOutput;
         }
     }
     else
