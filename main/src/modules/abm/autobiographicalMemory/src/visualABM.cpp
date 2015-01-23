@@ -479,8 +479,7 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
-bool autobiographicalMemory::exportImage(int img_oid, const string &imgPath)
-{
+bool autobiographicalMemory::exportImage(int img_oid, const string &imgPath) {
     Bottle bRequest;
     ostringstream osArg;
 
@@ -494,4 +493,54 @@ bool autobiographicalMemory::exportImage(int img_oid, const string &imgPath)
     //bOutput.addString("ack");
 
     return true;
+}
+
+unsigned int autobiographicalMemory::getImagesProviderCount(int instance) {
+    Bottle bRequest;
+    ostringstream osArg;
+
+    bRequest.addString("request");
+    osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+        return bRequest.size();
+    } else {
+        return 0;
+    }
+}
+
+long autobiographicalMemory::getTimeLastImage(int instance) {
+    Bottle bRequest;
+    ostringstream osArg;
+
+    osArg << "SELECT CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = " << instance << " ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference FROM images WHERE instance = " << instance << " ORDER BY time DESC LIMIT 1;";
+    bRequest.addString("request");
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+        return atol(bRequest.get(0).asList()->get(0).asString().c_str());
+    } else {
+        return 0;
+    }
+}
+
+Bottle autobiographicalMemory::getListImages(long updateTimeDifference) {
+    // Find which images to send
+    Bottle bListImages;
+    bListImages.addString("request");
+    ostringstream osArgImages;
+
+    osArgImages << "SELECT * FROM (";
+    osArgImages << "SELECT relative_path, img_provider_port, time, ";
+    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
+    osArgImages << "FROM images WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
+    if(timingEnabled) {
+        osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC LIMIT " << imgProviderCount << ";";
+    } else {
+        osArgImages << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time ASC LIMIT " << imgProviderCount << ";";
+    }
+
+    bListImages.addString(osArgImages.str());
+    return request(bListImages);
 }

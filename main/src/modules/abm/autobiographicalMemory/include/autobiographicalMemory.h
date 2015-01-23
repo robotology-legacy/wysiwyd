@@ -80,7 +80,7 @@ public:
     bool timingEnabled;
     long timeStreamStart;
     long timeLastImageSent;
-    long timeVeryLastImage;
+    long timeVeryLastStream;
     unsigned int imgProviderCount;
 
     yarp::os::Bottle sendStreamImage(int instance, bool timingEnabled=false);
@@ -109,6 +109,10 @@ public:
     std::map <std::string, std::string> mapImgProvider;
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
 
+    unsigned int getImagesProviderCount(int instance);
+    long getTimeLastImage(int instance);
+    yarp::os::Bottle getListImages(long updateTimeDifference);
+
     // continuousABM
     bool sendStreamIsInitialized;
     unsigned int contDataProviderCount;
@@ -125,6 +129,10 @@ public:
     int openSendContDataPorts(int instance);
     yarp::os::Bottle connectContDataProviders();
     yarp::os::Bottle disconnectContDataProviders();
+
+    unsigned int getContDataProviderCount(int instance);
+    long getTimeLastContData(int instance);
+    yarp::os::Bottle getListContData(long updateTimeDifference);
 
     // helpers
     std::string getCurrentTime();

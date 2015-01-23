@@ -147,8 +147,7 @@ bool autobiographicalMemory::storeContDataAllProviders(const string &synchroTime
 }
 
 // From here on all send stream related
-int autobiographicalMemory::openSendContDataPorts(int instance)
-{
+int autobiographicalMemory::openSendContDataPorts(int instance) {
     Bottle bDistLabelPort;
     ostringstream osArg;
 
@@ -166,4 +165,53 @@ int autobiographicalMemory::openSendContDataPorts(int instance)
     cout << "openSendContDataPorts just created " << mapContDataPortOut.size() << " ports." << endl;
 
     return mapContDataPortOut.size();
+}
+
+unsigned int autobiographicalMemory::getContDataProviderCount(int instance) {
+    Bottle bRequest;
+    ostringstream osArg;
+
+    bRequest.addString("request");
+    osArg << "SELECT DISTINCT label_port, type, subtype FROM continuousdata WHERE instance = " << instance;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+        return bRequest.size();
+    } else {
+        return 0;
+    }
+}
+
+long autobiographicalMemory::getTimeLastContData(int instance) {
+    Bottle bRequest;
+    ostringstream osArg;
+
+    osArg << "SELECT CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM continuousdata WHERE instance = " << instance << " ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference FROM continuousdata WHERE instance = " << instance << " ORDER BY time DESC LIMIT 1;";
+    bRequest.addString("request");
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+        return atol(bRequest.get(0).asList()->get(0).asString().c_str());
+    } else {
+        return 0;
+    }
+}
+
+Bottle autobiographicalMemory::getListContData(long updateTimeDifference) {
+    Bottle bListContData;
+    bListContData.addString("request");
+    ostringstream osArgContData;
+
+    osArgContData << "SELECT * FROM (";
+    osArgContData << "SELECT subtype, label_port, time, value, ";
+    osArgContData << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM continuousdata WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
+    osArgContData << "FROM continuousdata WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
+    if(timingEnabled) {
+        osArgContData << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time, label_port, subtype DESC LIMIT " << contDataProviderCount << ";";
+    } else {
+        osArgContData << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time, label_port, subtype ASC LIMIT " << contDataProviderCount << ";";
+    }
+
+    bListContData.addString(osArgContData.str());
+    return request(bListContData);
 }
