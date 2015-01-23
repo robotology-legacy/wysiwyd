@@ -640,6 +640,7 @@ bool autobiographicalMemory::updateModule() {
         // Calculate time in update method since first image/contdata was sent
         long timeStreamCurrent = getCurrentTimeInMS();
         long updateTimeDifference = timeStreamCurrent - timeStreamStart;
+        long timeLastImageSentCurrentIteration = 0;
 
         // Find which images to send
         Bottle bListImages;
@@ -666,8 +667,8 @@ bool autobiographicalMemory::updateModule() {
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
                 BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
-                if(atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSent) {
-                    timeLastImageSent = atol(bListImages.get(i).asList()->get(3).asString().c_str());
+                if(atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                    timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
                 }
 
                 cout << "Send image: " << fullPath.str() << endl;
@@ -703,24 +704,37 @@ bool autobiographicalMemory::updateModule() {
         if(bListContData.toString()!="NULL") {
             for(int i=0; i<bListContData.size(); i++) {
                 BufferedPort<Bottle>* port = mapContDataPortOut.at(bListContData.get(i).asList()->get(1).asString().c_str());
-                if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSent) {
-                    timeLastImageSent = atol(bListContData.get(i).asList()->get(4).asString().c_str());
+                if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                    timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                 }
 
                 Bottle &temp = port->prepare();
                 temp.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
             }
+
+            // Send bottles to ports
+            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it)
+            {
+                cout << "Write port: " << it->second->getName() << endl;
+                it->second->write();
+            }
         }
 
-        // Send bottles to ports
-        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it)
-        {
-            cout << "Write port " << it->second->getName() << endl;
-            it->second->write();
+        if(timeLastImageSentCurrentIteration > timeLastImageSent) {
+            timeLastImageSent = timeLastImageSentCurrentIteration;
         }
 
         // Are we done?
-        if(updateTimeDifference > timeVeryLastImage) {
+        bool done;
+        if(timingEnabled && updateTimeDifference >= timeVeryLastImage) {
+            done = true;
+        } else if(!timingEnabled && timeLastImageSent >= timeVeryLastImage) {
+            done = true;
+        } else {
+            done = false;
+        }
+
+        if(done) {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             cout << "streamStatus = end, closing ports" << endl;
             for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapStreamImgPortOut.begin(); it != mapStreamImgPortOut.end(); ++it)
