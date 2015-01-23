@@ -460,6 +460,9 @@ Bottle abmHandler::node1()
     else if (sQuestionKind == "REMEMBERING")
     {
         cout << "============= REMEMBERING ===================" << endl ;
+
+        bOutput.addString("ack");
+        return bOutput ;
     }
 
     else
