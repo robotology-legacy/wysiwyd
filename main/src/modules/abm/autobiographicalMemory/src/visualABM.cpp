@@ -270,6 +270,7 @@ Bottle autobiographicalMemory::sendStreamImage(int instance, bool timingE)
     Bottle bReply;
     timingEnabled = timingE;
     openStreamImgPorts(instance);
+    openSendContDataPorts(instance);
     int imageCount = exportImages(instance);
     streamStatus = "send"; //streamStatus changed (triggered in update())
 
@@ -284,11 +285,25 @@ Bottle autobiographicalMemory::sendStreamImage(int instance, bool timingE)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
     Bottle bImgProviders;
-    for(int i = 0; i < bRequest.size(); i++) {
+    for(int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
         bImgProviders.addString(portPrefix + bRequest.get(i).asList()->get(0).asString().c_str());
     }
 
     bReply.addList() = bImgProviders;
+
+    bRequest.clear();
+    osArg.str("");
+
+    bRequest.addString("request");
+    osArg << "SELECT DISTINCT label_port FROM continuousdata WHERE instance = " << instance << endl;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    Bottle bContDataProviders;
+    for(int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
+        bContDataProviders.addString(portPrefix + bRequest.get(i).asList()->get(0).asString().c_str());
+    }
+
+    bReply.addList() = bContDataProviders;
 
     return bReply;
 }
@@ -303,7 +318,7 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    for (int i = 0; i < bRequest.size(); i++) {
+    for (int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
         string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
         mapStreamImgPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
         mapStreamImgPortOut[imgProviderPort]->open((portPrefix+imgProviderPort).c_str());
@@ -311,7 +326,7 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
         Network::connect(portPrefix+imgProviderPort, "/yarpview"+portPrefix+imgProviderPort);
     }
 
-    cout << "Just created " << mapStreamImgPortOut.size() << " ports." << endl;
+    cout << "openStreamImgPorts just created " << mapStreamImgPortOut.size() << " ports." << endl;
 
     return mapStreamImgPortOut.size();
 }
@@ -403,9 +418,12 @@ bool autobiographicalMemory::storeOID() {
         string imgProviderPort = bRequest.get(i).asList()->get(1).toString().c_str();
         string imgRelativePath = bRequest.get(i).asList()->get(2).toString().c_str();
 
+        string fullPath = storingPath + "/" + imgRelativePath;
+        unsigned int new_img_oid = ABMDataBase->lo_import(fullPath.c_str());
+
         ostringstream osStoreOID;
-        osStoreOID << "UPDATE images SET img_oid=lo_import('" << storingPath << "/" << imgRelativePath << "')";
-        osStoreOID << "WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "'";
+        osStoreOID << "UPDATE images SET img_oid=" << new_img_oid;
+        osStoreOID << " WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "'";
 
         requestFromString(osStoreOID.str());
 
@@ -439,6 +457,11 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
         cout << "Will only send up to image " << toImage << endl;
     }
 
+    if(bRequest.toString()=="NULL") {
+        fromImage=-1;
+        toImage=-1;
+    }
+
     //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
     for (int i = fromImage; i < toImage; i++) {
         int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
@@ -459,19 +482,56 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
-bool autobiographicalMemory::exportImage(int img_oid, const string &imgPath)
-{
+int autobiographicalMemory::exportImage(int img_oid, const string &imgPath) {
+    return ABMDataBase->lo_export(img_oid, imgPath.c_str());
+}
+
+unsigned int autobiographicalMemory::getImagesProviderCount(int instance) {
     Bottle bRequest;
     ostringstream osArg;
 
     bRequest.addString("request");
-    //retrieve the image from the db and print it to /storingPath/temp folder
-    osArg << "SELECT lo_export(img_oid, '" << imgPath << "') from images WHERE img_oid = '" << img_oid << "';";
-
+    osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
+    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+        return bRequest.size();
+    } else {
+        return 0;
+    }
+}
 
-    //bOutput.addString("ack");
+long autobiographicalMemory::getTimeLastImage(int instance) {
+    Bottle bRequest;
+    ostringstream osArg;
 
-    return true;
+    osArg << "SELECT CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = " << instance << " ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference FROM images WHERE instance = " << instance << " ORDER BY time DESC LIMIT 1;";
+    bRequest.addString("request");
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+        return atol(bRequest.get(0).asList()->get(0).asString().c_str());
+    } else {
+        return 0;
+    }
+}
+
+Bottle autobiographicalMemory::getListImages(long updateTimeDifference) {
+    // Find which images to send
+    Bottle bListImages;
+    bListImages.addString("request");
+    ostringstream osArgImages;
+
+    osArgImages << "SELECT * FROM (";
+    osArgImages << "SELECT relative_path, img_provider_port, time, ";
+    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
+    osArgImages << "FROM images WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
+    if(timingEnabled) {
+        osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC LIMIT " << imgProviderCount << ";";
+    } else {
+        osArgImages << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time ASC LIMIT " << imgProviderCount << ";";
+    }
+
+    bListImages.addString(osArgImages.str());
+    return request(bListImages);
 }

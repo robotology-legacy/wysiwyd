@@ -39,8 +39,6 @@ private:
     int imgInstance;
     int currentInstance;
 
-    yarp::os::Bottle bListImages;
-
     // connection to OPC / reasoning
     wysiwyd::wrdac::opcEars OPCEARS;
     wysiwyd::wrdac::OPCClient *opcWorld;
@@ -81,6 +79,9 @@ public:
     std::string portPrefix;
     bool timingEnabled;
     long timeStreamStart;
+    long timeLastImageSent;
+    long timeVeryLastStream;
+    unsigned int imgProviderCount;
 
     yarp::os::Bottle sendStreamImage(int instance, bool timingEnabled=false);
     yarp::os::Bottle askImage(int instance);
@@ -90,7 +91,7 @@ public:
     bool sendImage(const std::string &fullPath);
 
     int exportImages(int instance, int fromImage=-1, int toImage=-1);
-    bool exportImage(int img_oid, const std::string &path);
+    int exportImage(int img_oid, const std::string &path);
 
     bool storeImage(int instance, const std::string &label, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
     bool storeImageAllProviders(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
@@ -100,25 +101,38 @@ public:
     yarp::os::Bottle removeImgProvider(const std::string &label);
 
     int openStreamImgPorts(int instance);
-    yarp::os::Bottle disconnectImgProviders();
     yarp::os::Bottle connectImgProviders();
+    yarp::os::Bottle disconnectImgProviders();
 
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapStreamImgPortOut;
     std::map <std::string, std::string> mapImgProvider;
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
 
+    unsigned int getImagesProviderCount(int instance);
+    long getTimeLastImage(int instance);
+    yarp::os::Bottle getListImages(long updateTimeDifference);
+
     // continuousABM
+    bool sendStreamIsInitialized;
+    unsigned int contDataProviderCount;
+
     yarp::os::Bottle addContDataProvider(const std::string &type, const std::string &portContDataProvider);
     yarp::os::Bottle removeContDataProvider(const std::string &type);
+    std::map <std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataPortOut;
     std::map< std::string, std::string > mapContDataProvider;
     std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataReceiver;
 
     bool storeContDataAllProviders(const std::string &synchroTime);
     bool storeContData(int instance, const std::string &type, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
 
+    int openSendContDataPorts(int instance);
     yarp::os::Bottle connectContDataProviders();
     yarp::os::Bottle disconnectContDataProviders();
+
+    unsigned int getContDataProviderCount(int instance);
+    long getTimeLastContData(int instance);
+    yarp::os::Bottle getListContData(long updateTimeDifference);
 
     // helpers
     std::string getCurrentTime();

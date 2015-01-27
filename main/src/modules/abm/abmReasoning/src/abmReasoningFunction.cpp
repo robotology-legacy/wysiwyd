@@ -2,7 +2,7 @@
 
 /* 
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
-* Authors: Grégoire Pointeau
+* Authors: GrÃ©goire Pointeau
 * email:   gregoire.pointeau@inserm.fr
 * Permission is granted to copy, distribute, and/or modify this program
 * under the terms of the GNU General Public License, version 2 or any
@@ -33,7 +33,7 @@ Function used by abmReasoning to reason about ABM data
 \section tested_os_sec Tested OS
 Windows
 
-\author Grégoire Pointeau, Maxime Petit
+\author GrÃ©goire Pointeau, Maxime Petit
 */ 
 
 #include <abmReasoningFunction.h>

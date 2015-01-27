@@ -32,6 +32,16 @@
     <RULEREF	NAME="activity"/>
     <RULEREF	NAME="complement"/>
   </RULE>
+  
+    <RULE	NAME="REMEMBERING"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>Can you remember the</P>
+    <RULEREF NAME="time_value"/>
+    <P>time</P>
+	<P>when</P>
+    <RULEREF	NAME="pronon"/>
+    <RULEREF	NAME="activity"/>
+    <RULEREF	NAME="complement"/>
+  </RULE>
 
   <!--	Vocabularies	-->
   <RULE NAME="action" DYNAMIC="TRUE">

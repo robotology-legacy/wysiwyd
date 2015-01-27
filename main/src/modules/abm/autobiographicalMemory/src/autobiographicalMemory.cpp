@@ -24,9 +24,14 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     user = bDBProperties.check("user", Value("postgres")).asString();
     password = bDBProperties.check("password", Value("postgres")).asString();
     dataB = bDBProperties.check("dataB", Value("ABM")).asString();
-    savefile = (rf.getContextPath() + "/saveRequest.txt").c_str();
+    savefile = rf.findFileByName("saveRequest.txt");
 
-    ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+    try {
+        ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+    } catch (DataBaseError e) {
+        cout << "Could not connect to database. Reason: " << e.what() << endl;
+        return false;
+    }
 
     //conf group for image storing properties
     Bottle &bISProperties = rf.findGroup("image_storing");
@@ -40,6 +45,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imgLabel = "defaultLabel";
     imgInstance = -1;
     imgNb = 0;
+    sendStreamIsInitialized = false;
 
     shouldClose = false;
     bPutObjectsOPC = false;
@@ -570,96 +576,102 @@ bool autobiographicalMemory::updateModule() {
         storeContDataAllProviders(synchroTime);
     }
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
-
         //select all the images (through relative_path and image provider) corresponding to a precise instance
-        if (imgNb == 0) {
+        if (sendStreamIsInitialized == false) {
             cout << "============================= STREAM SEND =================================" << endl;
-            bListImages.clear();
-            bListImages.addString("request");
-            ostringstream osArg;
-            osArg << "SELECT relative_path, img_provider_port, time, ";
-            osArg << "EXTRACT(EPOCH FROM time-(SELECT time FROM images WHERE instance = '" << imgInstance << "'  ORDER BY time LIMIT 1)) * 1000000 as time_difference ";
-            osArg << "FROM images WHERE instance = '" << imgInstance << "' ORDER BY time;";
-            bListImages.addString(osArg.str());
-            bListImages = request(bListImages);
-
-            //cout << "bListImages : " << bListImages.toString() << endl ;
-            //cout << "bListImages size : " << bListImages.size() << endl ;
-
             timeStreamStart = getCurrentTimeInMS();
+            timeLastImageSent = -1;
+
+            imgProviderCount = getImagesProviderCount(imgInstance);
+            contDataProviderCount = getContDataProviderCount(imgInstance);
+
+            long timeVeryLastImage = getTimeLastImage(imgInstance);
+            long timeVeryLastContData = getTimeLastContData(imgInstance);
+
+            if(timeVeryLastImage >= timeVeryLastContData) {
+                timeVeryLastStream = timeVeryLastImage;
+            } else {
+                timeVeryLastStream = timeVeryLastContData;
+            }
+
+            sendStreamIsInitialized = true;
         }
 
-        // make sure we skip images in case the saved stream is faster
-        // than our update method
+        // Calculate time in update method since first image/contdata was sent
         long timeStreamCurrent = getCurrentTimeInMS();
         long updateTimeDifference = timeStreamCurrent - timeStreamStart;
+        long timeLastImageSentCurrentIteration = 0;
 
-        if(timingEnabled) {
-            for(unsigned int i=imgNb+mapStreamImgPortOut.size(); i<bListImages.size()-mapStreamImgPortOut.size()+1; i+=mapStreamImgPortOut.size()) {
-                if(atol(bListImages.get(i).asList()->get(3).toString().c_str())>updateTimeDifference) {
-                    if(imgNb!=i-mapStreamImgPortOut.size()) {
-                        cout << "Skip from image " << imgNb << " to image " << i-mapStreamImgPortOut.size() << " because update method is too slow!" << endl;
-                        imgNb = i-mapStreamImgPortOut.size();
-                    }
-                    break;
+        // Find which images to send
+        Bottle bListImages = getListImages(updateTimeDifference);
+
+        // Save images in temp folder and send them to ports
+        if(bListImages.toString()!="NULL") {
+            for(int i=0; i<bListImages.size(); i++) {
+                //concatenation of the storing path
+                stringstream fullPath;
+                fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
+                BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
+                if(atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                    timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
                 }
-                if(i>=bListImages.size()-mapStreamImgPortOut.size()-1) {
-                    cout << "Skip from image " << imgNb << " to (last) image " << i << " because update method is too slow!" << endl;
-                    imgNb = i;
-                }
+
+                cout << "Send image: " << fullPath.str() << endl;
+                sendImage(fullPath.str(), port);
             }
         }
 
-        long streamTimeDifference = atol(bListImages.get(imgNb).asList()->get(3).toString().c_str());
-
-        // hack to make sure we don't send images where
-        // not all providers have an image stored
-        bool timesMatch = false;
-        // loop until we have a match found
-        while(!timesMatch && imgNb < bListImages.size()-mapStreamImgPortOut.size()+1) {
-            timesMatch = true;
-            // store time of the imgNb-th image
-            string imgNbTimeFirstImage = bListImages.get(imgNb).asList()->get(2).asString();
-            // compare the time of the imgNb-th image with the imgNb+i-th image
-            // if they are different, there is something wrong. in this case,
-            // just increase imgNb by one and we go back to the start of the loop
-            for(unsigned int i=1; i<mapStreamImgPortOut.size(); i++) {
-                string imgNbTime = bListImages.get(imgNb+i).asList()->get(2).asString();
-                if(imgNbTime != imgNbTimeFirstImage) {
-                    cout << "Skip image " << imgNb << " because matching image is not present" << endl;
-                    timesMatch = false;
-                    imgNb++;
-                    continue;
-                }
-            }
+        // Make sure bottles for contdata are cleared from last time
+        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it) {
+            it->second->prepare().clear();
         }
-        // hack end
 
-        // warning: this condition is necessary as imgNb might have changed
-        // between the last check and here!
-        if (imgNb < bListImages.size()-mapStreamImgPortOut.size()+1) {
-            if(updateTimeDifference >= streamTimeDifference || !timingEnabled) {
-                for(unsigned int i=0; i<mapStreamImgPortOut.size(); i++) {
-                    //concatenation of the storing path
-                    stringstream fullPath;
-                    fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(imgNb).asList()->get(0).asString().c_str();
-                    BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(imgNb).asList()->get(1).asString().c_str());
+        // Find which continuous data to send
+        Bottle bListContData = getListContData(updateTimeDifference);
 
-                    cout << "Send image " << imgNb << ": " << fullPath.str() << endl;
-                    sendImage(fullPath.str(), port);
-
-                    //next image
-                    imgNb += 1;
+        if(bListContData.toString()!="NULL") {
+            // Append bottle of ports for all the subtypes
+            for(int i=0; i<bListContData.size(); i++) {
+                BufferedPort<Bottle>* port = mapContDataPortOut.at(bListContData.get(i).asList()->get(1).asString().c_str());
+                if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                    timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                 }
-            } else {
-                cout << "Image not send yet, due to time control" << endl;
+
+                Bottle &temp = port->prepare();
+                temp.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
             }
-        }
-        if(imgNb >= bListImages.size()-mapStreamImgPortOut.size()+1) {
-            //Close ports which were opened in sendStreamImage
-            cout << "streamStatus = end, closing ports" << endl;
-            for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapStreamImgPortOut.begin(); it != mapStreamImgPortOut.end(); ++it)
+
+            // Send concatenated bottles to ports
+            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it)
             {
+                cout << "Write port: " << it->second->getName() << endl;
+                it->second->write();
+            }
+        }
+
+        if(timeLastImageSentCurrentIteration > timeLastImageSent) {
+            timeLastImageSent = timeLastImageSentCurrentIteration;
+        }
+
+        // Are we done?
+        bool done = false;
+        if(timingEnabled && updateTimeDifference >= timeVeryLastStream) {
+            done = true;
+        } else if(!timingEnabled && timeLastImageSent >= timeVeryLastStream) {
+            done = true;
+        }
+
+        if(done) {
+            //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
+            cout << "streamStatus = end, closing ports" << endl;
+            for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapStreamImgPortOut.begin(); it != mapStreamImgPortOut.end(); ++it) {
+                it->second->interrupt();
+                it->second->close();
+                if(!it->second->isClosed()) {
+                    cout << "Error, port " << it->first << " could not be closed" << endl;
+                }
+            }
+            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it) {
                 it->second->interrupt();
                 it->second->close();
                 if(!it->second->isClosed()) {
@@ -668,6 +680,7 @@ bool autobiographicalMemory::updateModule() {
             }
 
             mapStreamImgPortOut.clear();
+            mapContDataPortOut.clear();
 
             streamStatus = "end";
         }
@@ -684,6 +697,7 @@ bool autobiographicalMemory::updateModule() {
         imgLabel = "defaultLabel";
         imgInstance = -1;
         imgNb = 0;
+        sendStreamIsInitialized = false;
     }
 
     return !shouldClose;
@@ -694,8 +708,8 @@ bool autobiographicalMemory::interruptModule()
     cout << "Interrupting your module, for port cleanup" << endl;
 
     storeOID();
-
     opcWorld->interrupt();
+
     handlerPort.interrupt();
     portEventsIn.interrupt();
     abm2reasoning.interrupt();
@@ -836,14 +850,23 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
         bInstances = *bInput.get(1).asList();
         int begin = 0, end = -1;
 
-        if (bInstances.size() == 2)
+        if (bInstances.size() == 1)
+        {
+            vecToErase.push_back(atoi(bInstances.get(0).toString().c_str()));
+        }
+        else if (bInstances.size() == 2)
         {
             begin = atoi(bInstances.get(0).toString().c_str());
             end   = atoi(bInstances.get(1).toString().c_str());
+            for (int inst = begin; inst < end + 1; inst++)
+            {
+                vecToErase.push_back(inst);
+            }
         }
-        for (int inst = begin; inst < end + 1; inst++)
+        else
         {
-            vecToErase.push_back(inst);
+            bOutput.addString("in autobiographicalMemory::eraseInstance | wrong number of input");
+            return bOutput;
         }
     }
     else
@@ -996,7 +1019,7 @@ Bottle autobiographicalMemory::populateOPC()
     Bottle bReply, bDistinctAgent;
     bDistinctAgent = requestFromString("SELECT DISTINCT name FROM agent");
 
-    for (int iDA = 0; iDA < bDistinctAgent.size(); iDA++)
+    for (int iDA = 0; iDA < bDistinctAgent.size() && bDistinctAgent.toString()!="NULL"; iDA++)
     {
         string sName = bDistinctAgent.get(iDA).toString();
         ostringstream osAgent;
@@ -1032,7 +1055,7 @@ Bottle autobiographicalMemory::populateOPC()
     // 2. RTObjects : 
     Bottle bDistincRto = requestFromString("SELECT DISTINCT name FROM rtobject");
 
-    for (int iDTRO = 0; iDTRO < bDistincRto.size(); iDTRO++)
+    for (int iDTRO = 0; iDTRO < bDistincRto.size() && bDistincRto.toString()!="NULL"; iDTRO++)
     {
         string sName = bDistincRto.get(iDTRO).toString();
         ostringstream osRto;
@@ -1070,7 +1093,7 @@ Bottle autobiographicalMemory::populateOPC()
     {
         Bottle bDistinctObject = requestFromString("SELECT DISTINCT name FROM object");
 
-        for (int iDO = 0; iDO < bDistinctObject.size(); iDO++)
+        for (int iDO = 0; iDO < bDistinctObject.size() && bDistinctObject.toString()!="NULL"; iDO++)
         {
             string sName = bDistinctObject.get(iDO).toString();
             ostringstream osObject;

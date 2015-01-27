@@ -45,6 +45,16 @@ public:
 		_connected = true;
 	}
 
+    unsigned int lo_import(const char *filename)
+    {
+        return _dataBaseEngine.lo_import_pgsql(filename);
+    }
+
+    int	lo_export(unsigned int lobjId, const char *filename)
+    {
+        return _dataBaseEngine.lo_export_pgsql(lobjId, filename);
+    }
+
 	DataBase& operator<< (const std::string& sql)
 	{
 		_dataBaseEngine.execute(sql);

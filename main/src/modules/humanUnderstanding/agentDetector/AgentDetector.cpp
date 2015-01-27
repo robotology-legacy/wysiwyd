@@ -112,6 +112,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
         faceRecognResName+="/faceRecognizer/results:i";
         faceRecognizerModuleResults.open(faceRecognResName.c_str());
 
+        // WARNING: Do not use getContextPath if that ever should be used again!
         //recognizer->loadTrainingSet(rf.getContextPath().c_str());
         //recognizer->Train();
         //cout<<"Loading recognizer: "
