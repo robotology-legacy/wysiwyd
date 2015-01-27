@@ -28,6 +28,23 @@ string qRM::grammarToString(string sPath)
 
 bool qRM::configure(yarp::os::ResourceFinder &rf)
 {
+	//int Dim = 500;
+	//
+	//ofstream fichier("testMatrice.txt", ios::out | ios::trunc); 
+	//if (fichier)
+	//{
+	//	for (int ii = 0; ii < Dim; ii++)
+	//	{
+	//		for (int jj = 0; jj < Dim; jj++)
+	//		{
+	//			fichier << (1. + rand() % 99) / 100. - 0.5  << " ";
+	//		}
+	//		fichier << endl;
+	//	}
+	//}
+
+	//return false;
+
 	string moduleName = rf.check("name", Value("qRM")).asString().c_str();
 	setName(moduleName.c_str());
 
