@@ -253,13 +253,13 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /****************************** images *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS images CASCADE;";
-    *ABMDataBase << "CREATE TABLE images(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, data_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT images_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE); ALTER TABLE images OWNER TO postgres;";
+    *ABMDataBase << "CREATE TABLE images(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT images_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE); ALTER TABLE images OWNER TO postgres;";
     // DEPRECATED *ABMDataBase << "CREATE TABLE images (instance integer NOT NULL, label text, img_oid oid NOT NULL, filename text, CONSTRAINT img_id PRIMARY KEY (img_oid), CONSTRAINT images_instancee_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE images OWNER  TO postgres;";
 
     /****************************** continuousdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS continuousdata CASCADE;";
-    *ABMDataBase << "CREATE TABLE continuousdata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, type text NOT NULL, subtype text NOT NULL, data_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT cont_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE continuousdata OWNER TO postgres;";
+    *ABMDataBase << "CREATE TABLE continuousdata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, type text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT cont_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE continuousdata OWNER TO postgres;";
 
     string sFilename;
 
@@ -456,20 +456,25 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
         else if (bCommand.get(0) == "askImage")
         {
-            if (bCommand.size() > 1 && bCommand.get(1).isInt())
+            if (bCommand.size() > 2 && bCommand.get(1).isInt() && bCommand.get(2).isInt())
             {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
-                if (instance > 0) {
-                    bReply = askImage(instance);
+                int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
+                if (instance > 0 && frame_number >= 0) {
+                    if(bCommand.get(3).isString()) {
+                        bReply = askImage(instance, frame_number, (bCommand.get(3)).toString());
+                    } else {
+                        bReply = askImage(instance, frame_number);
+                    }
                 }
                 else {
-                    bError.addString("in askImage : not valid int number for the instance");
+                    bError.addString("in askImage : not valid int number for the instance or frame_number");
                     bReply = bError;
                 }
             }
             else
             {
-                bError.addString("ERROR in askImage : wrong number of element -> askImage instanceNb");
+                bError.addString("ERROR in askImage : wrong number of element -> askImage instanceNb frameNb provider_port (optional)");
                 bReply = bError;
             }
         }
@@ -529,20 +534,39 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply.addString("storeOID failed");
         }
         else if (bCommand.get(0) == "testAugmentedImage") {
-            bReply = testAugmentedImage();
+            if (bCommand.size() == 3 && bCommand.get(1).isInt() && bCommand.get(2).isInt())
+            {
+                int instance = (atoi((bCommand.get(1)).toString().c_str()));
+                int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
+                bReply = testAugmentedImage(askImage(instance, frame_number));
+            }
+            else
+            {
+                bError.addString("[testAugmentedImage] : wrong number of element -> testAugmentedImage instance frame_number");
+                bReply = bError;
+            }
         }
-        else if (bCommand.get(0) == "addAugmentedImage")
+        else if (bCommand.get(0) == "addAugmentedImages")
         {
             if(bCommand.size() == 7 && bCommand.get(1).isInt()
             && bCommand.get(2).isInt() && bCommand.get(3).isString()
             && bCommand.get(4).isString() && bCommand.get(5).isString()
             && bCommand.get(6).isList())
             {
-                bReply = addAugmentedImage(bCommand);
+                bReply = addAugmentedImages(bCommand);
             }
             else
             {
-                bError.addString("[addAugmentedImage]: wrong function signature: addAugmentedImage instance time provider_port augmented_label image");
+                bError.addString("[addAugmentedImages]: wrong function signature: addAugmentedImage instance time provider_port augmented_label image");
+            }
+        }
+        else if (bCommand.get(0) == "getImagesInfo")
+        {
+            if(bCommand.size() == 2 && bCommand.get(1).isInt()) {
+                int instance = (atoi((bCommand.get(1)).toString().c_str()));
+                bReply = getImagesInfo(instance);
+            } else {
+                bReply.addString("[getImagesInfo]: wrong function signature: getImagesInfo instance");
             }
         }
         else

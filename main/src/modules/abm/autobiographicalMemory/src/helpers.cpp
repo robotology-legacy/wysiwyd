@@ -55,7 +55,6 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
     //prepare the ResultSet of the query and the reply
     ResultSet rs1;
     Bottle bReply;
-    bReply.clear();
     //cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
 
     //send the request to the database

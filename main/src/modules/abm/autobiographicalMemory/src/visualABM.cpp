@@ -51,37 +51,59 @@ Bottle autobiographicalMemory::removeImgProvider(const string &labelImgProvider)
     return bReply;
 }
 
-//Ask for a single image of a precise instance. It can be because it is a sentence instance or a stream : in that case the first image of the stream will be sent.
+Bottle autobiographicalMemory::getImagesInfo(int instance) {
+    Bottle bRequest, bOutput;
+    ostringstream osArg;
+
+    bRequest.addString("request");
+    osArg << "SELECT MAX(frame_number) FROM images WHERE instance = " << instance << endl;
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+    if(bRequest.get(0).toString() != "NULL") {
+        bOutput.addInt(atoi(bRequest.get(0).asList()->get(0).toString().c_str()));
+
+        bRequest.clear();
+        osArg.str("");
+        bRequest.addString("request");
+        osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
+        bRequest.addString(osArg.str());
+        bRequest = request(bRequest);
+
+        bOutput.addList() = bRequest;
+    } else { // no images for given instance
+        bOutput.addString("0");
+    }
+
+    return bOutput;
+}
+
+//Ask for a single image of a precise instance and frame_number
 //If several provider were used, a single image from each image provider will be sent
-// Return : ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
-Bottle autobiographicalMemory::askImage(int instance)
+// Return : ack ( ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3)) )
+Bottle autobiographicalMemory::askImage(int instance, int frame_number, string provider_port)
 {
     Bottle bSubOutput, bOutput, bRequest;
     ostringstream osArg;
 
-    //get distinct img_provider_port
-
-    bRequest.addString("request");
-    osArg << "SELECT DISTINCT img_provider_port FROM images WHERE instance = " << instance << endl;
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
-
     //export all the images from the instance into the temp folder
-    int savedImages = exportImages(instance, 0, bRequest.size());
-
-    // get relative_path and img_provider_port for requested instance
-    bRequest.clear();
-    osArg.str("");
+    exportImages(instance, frame_number, frame_number, provider_port);
 
     bRequest.addString("request");
-    osArg << "SELECT relative_path, img_provider_port FROM images WHERE instance = " << instance << " ORDER BY time LIMIT " << savedImages << endl;
+    osArg << "SELECT relative_path, img_provider_port, time FROM images";
+    osArg << " WHERE instance = " << instance;
+    osArg << " AND frame_number = " << frame_number;
+    if(provider_port!="") {
+        osArg << " AND img_provider_port = '" << provider_port << "'";
+    }
+    osArg << " ORDER BY time" << endl;
+
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    //go through all the image provider for the instance.
     for (int i = 0; i < bRequest.size(); i++) {
         string relative_path = bRequest.get(i).asList()->get(0).toString();
         string imgProviderPort = bRequest.get(i).asList()->get(1).asString();
+        string imgTime = bRequest.get(i).asList()->get(2).asString();
         //cout << "Create image " << i << " " << relative_path << endl;
 
         // create image in the /storePath/tmp/relative_path
@@ -92,54 +114,30 @@ Bottle autobiographicalMemory::askImage(int instance)
             return bOutput;
         }
 
-        //cout << "Image created" << endl;
         //create a yarp image
         cvCvtColor(img, img, CV_BGR2RGB);
         ImageOf<PixelRgb> temp;
         temp.resize(img->width, img->height);
         cvCopyImage(img, (IplImage *)temp.getIplImage());
 
-        //cout << "Image copied to yarp image" << endl;
+        //for the current image of the actual image provider, we add meta information to the image
+        Bottle bCurrentImageMeta;
+        bCurrentImageMeta.addInt(instance);
+        bCurrentImageMeta.addInt(frame_number);
+        bCurrentImageMeta.addString(imgProviderPort);
+        bCurrentImageMeta.addString(imgTime);
 
-        //for the current image of the actual image provider, we had the label of the provider to the image
-        Bottle bCurrentImageProvider;
-        bCurrentImageProvider.addString(imgProviderPort);
-        //use this copyPortable in order to be able to send the image as a bottle in the rpc port of the responde method
-        yarp::os::Portable::copyPortable(temp, bCurrentImageProvider.addList());
-        //add the pair imgProviderPort (image) to the subottle
-        bSubOutput.addList() = bCurrentImageProvider;
-        //cout << "Image copied to bottle" << endl;
+        Bottle bCurrentImage;
+        bCurrentImage.addList() = bCurrentImageMeta;
+        //use this copyPortable in order to be able to send the image as a bottle in the rpc port of the respond method
+        yarp::os::Portable::copyPortable(temp, bCurrentImage.addList());
+        bSubOutput.addList() = bCurrentImage;
 
         cvReleaseImage(&img);
-        //cout << "Image released" << endl;
     }
 
     bOutput.addString("ack");
     bOutput.addList() = bSubOutput;
-
-    // Testing to get an image from the bottle
-    // This is just for testing purposes, and your own module should implement this!
-
-    // Bottle: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
-    string desiredLabel = "/icubSim/cam/right";
-
-    Bottle bResponse = bOutput;
-    Bottle* bImages = bResponse.get(1).asList(); // (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3))
-
-    //go through each of the subottles, one for each imageProvider
-    for(int imageProvider = 0; imageProvider < bImages->size(); imageProvider++) {
-        Bottle* bImage = bImages->get(imageProvider).asList(); // (labelProvider1 (image1.1))
-        //cout << bImage1->toString() << endl;
-        string bImageLabel = bImage->get(0).toString(); // labelProvider1
-
-        if(bImageLabel==desiredLabel) {
-            ImageOf<PixelRgb> &temp = imagePortOut.prepare();
-            Bottle* bRawImage = bImage->get(1).asList(); //image1.1
-            yarp::os::Portable::copyPortable(*bRawImage, temp);
-        }
-
-        imagePortOut.write();
-   }
 
     return bOutput;
 }
@@ -333,14 +331,14 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
 }
 
 //store an image into the SQL db /!\ no lo_import/oid!! (high frequency streaming needed)
-bool autobiographicalMemory::storeImage(int instance, int data_number, const string &relativePath, const string &imgTime, const string &currentImgProviderPort)
+bool autobiographicalMemory::storeImage(int instance, int frame_number, const string &relativePath, const string &imgTime, const string &currentImgProviderPort)
 {
     Bottle bRequest;
     ostringstream osArg;
 
     //sql request with instance and label, images are stored from their location
     bRequest.addString("request");
-    osArg << "INSERT INTO images(instance, data_number, relative_path, time, img_provider_port) VALUES (" << instance << ", '" << data_number << "', '" << relativePath << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
+    osArg << "INSERT INTO images(instance, frame_number, relative_path, time, img_provider_port) VALUES (" << instance << ", '" << frame_number << "', '" << relativePath << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -437,49 +435,48 @@ bool autobiographicalMemory::storeOID() {
 }
 
 // exports all images given an instance
-int autobiographicalMemory::exportImages(int instance, int fromImage, int toImage)
+int autobiographicalMemory::exportImages(int instance, int fromFrame, int toFrame, string provider_port)
 {
     Bottle bRequest;
     ostringstream osArg;
 
     //extract oid of all the images
     bRequest.addString("request");
-    osArg << "SELECT img_oid, relative_path FROM images WHERE instance = " << instance << " ORDER BY time" << endl;
+    osArg << "SELECT img_oid, relative_path FROM images WHERE";
+    osArg << " instance = " << instance;
+    if(fromFrame!=-1) {
+        osArg << " AND frame_number >= " << fromFrame;
+    }
+    if(toFrame!=-1) {
+        osArg << " AND frame_number <= " << toFrame;
+    }
+    if(provider_port!="") {
+        osArg << " AND img_provider_port = '" << provider_port << "'";
+    }
+    osArg << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
-    if(fromImage<0)
-        fromImage = 0;
-    if(toImage==-1)
-        toImage = bRequest.size();
-    if(toImage > bRequest.size()) {
-        cout << "Requested to save up to image " << toImage << ", but only " << bRequest.size() << " available." << endl;
-        toImage = bRequest.size();
-        cout << "Will only send up to image " << toImage << endl;
-    }
-
-    if(bRequest.toString()=="NULL") {
-        fromImage=-1;
-        toImage=-1;
-    }
-
-    //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
-    for (int i = fromImage; i < toImage; i++) {
-        int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
-        string relative_path = bRequest.get(i).asList()->get(1).toString();
-        if(i==0) { // only create folder to store images once
-            string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
-            yarp::os::mkdir(folderName.c_str());
-#ifdef __linux__
-            chmod(folderName.c_str(), 0777);
-#endif
+    if(bRequest.toString()!="NULL") {
+        //export all the images corresponding to the instance to a tmp folder in order to be sent after (update())
+        for (int i = 0; i < bRequest.size(); i++) {
+            int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
+            string relative_path = bRequest.get(i).asList()->get(1).toString();
+            if(i==0) { // only create folder to store images once
+                string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
+                yarp::os::mkdir(folderName.c_str());
+        #ifdef __linux__
+                chmod(folderName.c_str(), 0777);
+        #endif
+            }
+            cout << "Call exportImage with OID " << imageOID << " : " << storingPath << "/" << storingTmpSuffix << "/" << relative_path << endl;
+            exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
         }
-        cout << "Call exportImage with " << imageOID << " : " << storingPath << "/" << storingTmpSuffix << "/" << relative_path << endl;
-        exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
-    }
 
-    // return how many images were saved
-    return toImage-fromImage;
+        return bRequest.size(); // return how many images were saved
+    } else {
+        return 0;
+    }
 }
 
 //export (i.e. save) a stored image to hardrive, using oid to identify and the path wanted
@@ -537,74 +534,102 @@ Bottle autobiographicalMemory::getListImages(long updateTimeDifference) {
     return request(bListImages);
 }
 
-Bottle autobiographicalMemory::testAugmentedImage() {
-    ImageOf<PixelRgb> yarpImage;
-    yarpImage.resize(30,20);
-    yarp::sig::draw::addCircle(yarpImage,PixelRgb(255,0,0),
-    yarpImage.width()/2,yarpImage.height()/2,
-    yarpImage.height()/4);
-    yarp::sig::draw::addCircle(yarpImage,PixelRgb(255,50,50),
-    yarpImage.width()/2,yarpImage.height()/2,
-    yarpImage.height()/5);
-
+Bottle autobiographicalMemory::testAugmentedImage(Bottle bInput) {
     Bottle toSend;
-    toSend.addString("addAugmentedImage");
-    toSend.addString("1234");
-    toSend.addString("1");
-    toSend.addString("2015-01-19 19:32:33.120639");
-    toSend.addString("/icubSim/cam/right");
-    toSend.addString("circleExample");
-    Bottle bImage;
-    yarp::os::Portable::copyPortable(yarpImage, bImage);
-    toSend.addList() = bImage;
+    // Testing to put a circle on an image
+    // This is just for testing purposes, and your own module should implement this!
 
-    addAugmentedImage(toSend);
+    // Bottle: ack ( ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3)) )
+    if(bInput.get(0).asString()!="ack") {
+        Bottle bError;
+        bError.addString("no ack in input bottle");
+        return bError;
+    }
+
+    Bottle* bImagesWithMeta = bInput.get(1).asList(); // ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3))
+
+    //go through each of the subottles, one for each imageProvider
+    for(int i = 0; i < bImagesWithMeta->size(); i++) {
+        Bottle* bSingleImageWithMeta = bImagesWithMeta->get(i).asList(); // ((imageMeta1.1) (image1.1))
+
+        Bottle* bImageMeta = bSingleImageWithMeta->get(0).asList(); // (imageMeta1.1)
+        Bottle* bRawImage = bSingleImageWithMeta->get(1).asList(); //image1.1
+
+        ImageOf<PixelRgb> yarpImage;
+        yarp::os::Portable::copyPortable(*bRawImage, yarpImage);
+
+        yarp::sig::draw::addCircle(yarpImage,PixelRgb(255,0,0),
+        yarpImage.width()/2,yarpImage.height()/2,
+        yarpImage.height()/4);
+
+        Bottle bAugmentedImage;
+        yarp::os::Portable::copyPortable(yarpImage, bAugmentedImage);
+
+        Bottle bAugmentedImageWithMeta;
+        bAugmentedImageWithMeta.addList() = *bImageMeta;
+        bAugmentedImageWithMeta.addList() = bAugmentedImage;
+        bAugmentedImageWithMeta.addString("circle");
+
+        toSend.addList() = bAugmentedImageWithMeta;
+   }
+
+    addAugmentedImages(toSend);
 
     return toSend;
 }
 
-Bottle autobiographicalMemory::addAugmentedImage(Bottle bInput) {
+Bottle autobiographicalMemory::addAugmentedImages(Bottle bInput) {
     Bottle bReply;
 
-    // extract variables from bottle
-    string instanceString = (bInput.get(1)).toString();
-    int instance = atoi(instanceString.c_str());
-    string dataNumberString = (bInput.get(2)).toString();
-    int data_number = atoi(dataNumberString.c_str());
-    string time = (bInput.get(3)).asString().c_str();
-    string providerPort = (bInput.get(4)).asString().c_str();
-    string augmentedLabel = (bInput.get(5)).asString().c_str();
+    for(int i=0; i<bInput.size(); i++) {
+        Bottle* bImageWithMeta = bInput.get(i).asList();
 
-    // save image from bottle to file
-    ImageOf<PixelRgb> yarpImage;
-    Bottle* bImage = bInput.get(5).asList();
-    yarp::os::Portable::copyPortable(*bImage, yarpImage);
-    IplImage *cvImage = cvCreateImage(cvSize(yarpImage.width(), yarpImage.height()), IPL_DEPTH_8U, 3);
-    cvCvtColor((IplImage*)yarpImage.getIplImage(), cvImage, CV_RGB2BGR);
+        // extract variables from bottle
+        Bottle bMetaInformation = *bImageWithMeta->get(0).asList();
 
-    string folderName = storingPath + "/" + storingTmpSuffix + "/" + (bInput.get(1)).toString().c_str();
-    yarp::os::mkdir(folderName.c_str());
-#ifdef __linux__
-    chmod(folderName.c_str(), 0777);
-#endif
-    string fullPath = folderName + augmentedLabel + "." + imgFormat;
-    cvSaveImage(fullPath.c_str(), cvImage);
-    cvReleaseImage(&cvImage);
+        cout << bMetaInformation.toString() << endl;
 
-    // insert image to database
-    unsigned int img_oid = ABMDataBase->lo_import(fullPath.c_str());
+        string instanceString = (bMetaInformation.get(0)).toString();
+        int instance = atoi(instanceString.c_str());
+        string frameNumberString = (bMetaInformation.get(1)).toString();
+        int frame_number = atoi(frameNumberString.c_str());
+        string providerPort = (bMetaInformation.get(2)).asString().c_str();
+        string time = (bMetaInformation.get(3)).asString().c_str();
+        string augmentedLabel = bImageWithMeta->get(2).asString();
 
-    // insert new row in database
-    string relativePath = instanceString + "/" + augmentedLabel + "/" + dataNumberString + "." + imgFormat;
-    string fullProviderPort = providerPort + "/" + augmentedLabel;
+        string providerPortSpecifier = providerPort.substr(providerPort.find_last_of("/")+1);
 
-    Bottle bRequest;
-    ostringstream osArg;
+        // save image from bottle to file
+        ImageOf<PixelRgb> yarpImage;
+        Bottle* bImage = bImageWithMeta->get(1).asList();
+        yarp::os::Portable::copyPortable(*bImage, yarpImage);
+        IplImage *cvImage = cvCreateImage(cvSize(yarpImage.width(), yarpImage.height()), IPL_DEPTH_8U, 3);
+        cvCvtColor((IplImage*)yarpImage.getIplImage(), cvImage, CV_RGB2BGR);
 
-    bRequest.addString("request");
-    osArg << "INSERT INTO images(instance, data_number, relative_path, time, img_provider_port, img_oid, augmented) VALUES (" << instance << ", '" << data_number << "', '" << relativePath << "', '" << time << "', '" << fullProviderPort << "', '" << img_oid << "', '" << augmentedLabel << "');";
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
+        string folderName = storingPath + "/" + storingTmpSuffix + "/" + augmentedLabel;
+        yarp::os::mkdir(folderName.c_str());
+    #ifdef __linux__
+        chmod(folderName.c_str(), 0777);
+    #endif
+        string fullPath = folderName + "/" + frameNumberString + "_" + providerPortSpecifier + "." + imgFormat;
+        cvSaveImage(fullPath.c_str(), cvImage);
+        cvReleaseImage(&cvImage);
+
+        // insert image to database
+        unsigned int img_oid = ABMDataBase->lo_import(fullPath.c_str());
+
+        // insert new row in database
+        string relativePath = instanceString + "/" + augmentedLabel + "_" + frameNumberString + "_" + providerPortSpecifier + "." + imgFormat;
+        string fullProviderPort = providerPort + "/" + augmentedLabel;
+
+        Bottle bRequest;
+        ostringstream osArg;
+
+        bRequest.addString("request");
+        osArg << "INSERT INTO images(instance, frame_number, relative_path, time, img_provider_port, img_oid, augmented) VALUES (" << instance << ", '" << frame_number << "', '" << relativePath << "', '" << time << "', '" << fullProviderPort << "', '" << img_oid << "', '" << augmentedLabel << "');";
+        bRequest.addString(osArg.str());
+        bRequest = request(bRequest);
+    }
 
     return bReply;
 }

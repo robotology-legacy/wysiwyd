@@ -84,16 +84,16 @@ public:
     unsigned int imgProviderCount;
 
     yarp::os::Bottle sendStreamImage(int instance, bool timingEnabled=false);
-    yarp::os::Bottle askImage(int instance);
+    yarp::os::Bottle askImage(int instance, int frame_number, std::string provider_port="");
 
     bool createImage(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool sendImage(const std::string &fullPath);
 
-    int exportImages(int instance, int fromImage=-1, int toImage=-1);
+    int exportImages(int instance, int fromFrame=-1, int toFrame=-1, std::string provider_port="");
     int exportImage(int img_oid, const std::string &path);
 
-    bool storeImage(int instance, int data_number, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
+    bool storeImage(int instance, int frame_number, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
     bool storeImageAllProviders(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
     bool storeOID();
 
@@ -113,8 +113,10 @@ public:
     long getTimeLastImage(int instance);
     yarp::os::Bottle getListImages(long updateTimeDifference);
 
-    yarp::os::Bottle addAugmentedImage(yarp::os::Bottle bInput);
-    yarp::os::Bottle testAugmentedImage();
+    yarp::os::Bottle addAugmentedImages(yarp::os::Bottle bInput);
+    yarp::os::Bottle testAugmentedImage(yarp::os::Bottle bInput);
+
+    yarp::os::Bottle getImagesInfo(int instance);
 
     // continuousABM
     bool sendStreamIsInitialized;
@@ -127,7 +129,7 @@ public:
     std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataReceiver;
 
     bool storeContDataAllProviders(const std::string &synchroTime);
-    bool storeContData(int instance, int data_number, const std::string &type, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
+    bool storeContData(int instance, int frame_number, const std::string &type, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
 
     int openSendContDataPorts(int instance);
     yarp::os::Bottle connectContDataProviders();
