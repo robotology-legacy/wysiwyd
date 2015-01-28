@@ -39,7 +39,7 @@ abmHandler::~abmHandler()
 bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
     iCurrentInstance = -1;
-    sCurrentPronom = "none";
+    sCurrentPronoun = "none";
     sCurrentActivity = "none";
     psCurrentComplement.first = "none";
     psCurrentComplement.second = "none";
@@ -386,7 +386,7 @@ Bottle abmHandler::node1()
     {
         bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
         sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
-        sCurrentPronom = bSemantic.check("pronon", Value("none")).asString();
+        sCurrentPronoun = bSemantic.check("pronon", Value("none")).asString();
         bTemp = *bSemantic.get(3).asList()->get(1).asList();
 
         psCurrentComplement.first = bTemp.get(0).asString();
@@ -394,10 +394,10 @@ Bottle abmHandler::node1()
 
         if (psCurrentComplement.first == "spatial")  (psCurrentComplement.first = "spatial1");
 
-        if (sCurrentPronom == "none" || sCurrentActivity == "none")
+        if (sCurrentPronoun == "none" || sCurrentActivity == "none")
         {
             iCurrentInstance = -1;
-            osError << "no pronon or activity";
+            osError << "no pronoun or activity";
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
             return bOutput;
@@ -413,9 +413,9 @@ Bottle abmHandler::node1()
         {
             osRequest << " AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
 
-            if ((sCurrentPronom == "I" && sCurrentActivity != "learned") || (sCurrentPronom == "you" && sCurrentActivity == "learned"))
+            if ((sCurrentPronoun == "I" && sCurrentActivity != "learned") || (sCurrentPronoun == "you" && sCurrentActivity == "learned"))
                 osRequest << " argument != 'icub' ) ";
-            if ((sCurrentPronom == "you" && sCurrentActivity != "learned") || (sCurrentPronom == "I" && sCurrentActivity == "learned"))
+            if ((sCurrentPronoun == "you" && sCurrentActivity != "learned") || (sCurrentPronoun == "I" && sCurrentActivity == "learned"))
                 osRequest << " argument = 'icub' ) ";
         }
 
@@ -460,6 +460,35 @@ Bottle abmHandler::node1()
     else if (sQuestionKind == "REMEMBERING")
     {
         cout << "============= REMEMBERING ===================" << endl ;
+        cout << bSemantic.toString().c_str() << endl ;
+
+        bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
+        sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
+        sCurrentPronoun = bSemantic.check("pronoun", Value("none")).asString();
+
+        cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
+
+        if (sCurrentPronoun == "none" || sCurrentActivity == "none")
+        {
+            iCurrentInstance = -1;
+            osError << "no pronoun or activity";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        ostringstream osRequest;
+        osRequest << "SELECT main.instance, main.time FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+        if (sCurrentPronoun == "you") {
+            osRequest << " argument = 'icub' ) ";
+        } else { //IMPORTANT : don't have recognition then so I is everything but the iCub
+            osRequest << " argument != 'icub' ) ";
+        }
+
+        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
+
+        cout << "REQUEST : " << osRequest << endl ;
+
 
         bOutput.addString("ack");
         return bOutput ;
@@ -794,7 +823,7 @@ Bottle abmHandler::node2()
                 osRequest << "SELECT COUNT (DISTINCT main.instance) as nb_instance FROM main,contentarg WHERE contentarg.instance = main.instance AND contentarg.instance IN (SELECT main.instance FROM main,contentarg WHERE (contentarg.role = '" << psCurrentComplement.first << "' AND contentarg.argument = '" << psCurrentComplement.second << "') OR main.activityname = '" << psCurrentComplement.second << "') AND contentarg.instance IN (SELECT instance FROM contentarg WHERE argument ";
 
 
-                if (sCurrentPronom == "you")
+                if (sCurrentPronoun == "you")
                 {
                     osRequest << " = 'icub')  AND contentarg.instance IN (SELECT instance FROM main WHERE begin = true)";
                 }

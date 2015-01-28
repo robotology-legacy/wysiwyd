@@ -51,7 +51,7 @@ private:
 
     int iCurrentInstance;                   // instance of the current request
     std::string sCurrentActivity;
-    std::string sCurrentPronom;
+    std::string sCurrentPronoun;
     std::string sCurrentNode;
     std::string sCurrentGrammarFile;
     std::string sLastSentence;                   // last sentence said (in case of a repeat)

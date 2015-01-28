@@ -8,7 +8,7 @@
     <ID	NAME="keyword"	VAL="5"/>
     <ID	NAME="game"	VAL="6"/>
     <ID NAME="time_value" VAL="7"/>
-    <ID NAME="pronon" VAL="8"/>
+    <ID NAME="pronoun" VAL="8"/>
     <ID NAME="activity" VAL="9"/>
     <ID NAME="spatial" VAL="10"/>
     <ID NAME="knowledge" VAL="11"/>
@@ -28,7 +28,7 @@
     <P>When was the</P>
     <RULEREF NAME="time_value"/>
     <P>time</P>
-    <RULEREF	NAME="pronon"/>
+    <RULEREF	NAME="pronoun"/>
     <RULEREF	NAME="activity"/>
     <RULEREF	NAME="complement"/>
   </RULE>
@@ -40,7 +40,6 @@
 	<P>when</P>
     <RULEREF	NAME="pronon"/>
     <RULEREF	NAME="activity"/>
-    <RULEREF	NAME="complement"/>
   </RULE>
 
   <!--	Vocabularies	-->
@@ -101,7 +100,7 @@
     </L>
   </RULE>
 
-  <RULE NAME="pronon" DYNAMIC="TRUE">
+  <RULE NAME="pronoun" DYNAMIC="TRUE">
     <L>
       <P>I</P>
       <P>you</P>
@@ -115,6 +114,7 @@
       <P>used</P>
       <P>met</P>
       <P>play</P>
+	  <P>testStream</>
     </L>
   </RULE>
 
