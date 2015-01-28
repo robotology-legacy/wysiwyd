@@ -117,13 +117,13 @@ Bottle autobiographicalMemory::disconnectContDataProviders()
     return bOutput;
 }
 
-bool autobiographicalMemory::storeContData(int instance, const string &type, int subtype, const string &contDataTime, const string &contDataPort, double value)
+bool autobiographicalMemory::storeContData(int instance, int data_number, const string &type, int subtype, const string &contDataTime, const string &contDataPort, double value)
 {
     Bottle bRequest;
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "INSERT INTO continuousdata(instance, type, subtype, time, label_port, value) VALUES (" << instance << ", '" << type << "', '" << subtype << "', '" << contDataTime << "', '" << contDataPort << "', '" << value << "' );";
+    osArg << "INSERT INTO continuousdata(instance, type, subtype, data_number, time, label_port, value) VALUES (" << instance << ", '" << type << "', '" << subtype << "', '" << data_number << "', '" << contDataTime << "', '" << contDataPort << "', '" << value << "' );";
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -138,7 +138,7 @@ bool autobiographicalMemory::storeContDataAllProviders(const string &synchroTime
 
         if(lastReading != NULL) {
             for(int subtype = 0; subtype < lastReading->size(); subtype++) {
-                storeContData(imgInstance, type, subtype, synchroTime, mapContDataProvider[it->first], lastReading->get(subtype).asDouble());
+                storeContData(imgInstance, imgNb, type, subtype, synchroTime, mapContDataProvider[it->first], lastReading->get(subtype).asDouble());
             }
         }
     }

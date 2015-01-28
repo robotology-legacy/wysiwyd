@@ -253,13 +253,13 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /****************************** images *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS images CASCADE;";
-    *ABMDataBase << "CREATE TABLE images(\"time\" timestamp without time zone, img_provider_port text, instance integer NOT NULL, label text, relative_path text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT images_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE); ALTER TABLE images OWNER TO postgres;";
+    *ABMDataBase << "CREATE TABLE images(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, data_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT images_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE); ALTER TABLE images OWNER TO postgres;";
     // DEPRECATED *ABMDataBase << "CREATE TABLE images (instance integer NOT NULL, label text, img_oid oid NOT NULL, filename text, CONSTRAINT img_id PRIMARY KEY (img_oid), CONSTRAINT images_instancee_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE images OWNER  TO postgres;";
 
     /****************************** continuousdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS continuousdata CASCADE;";
-    *ABMDataBase << "CREATE TABLE continuousdata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text, type text NOT NULL, subtype text NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT cont_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE continuousdata OWNER TO postgres;";
+    *ABMDataBase << "CREATE TABLE continuousdata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, type text NOT NULL, subtype text NOT NULL, data_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT cont_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE continuousdata OWNER TO postgres;";
 
     string sFilename;
 
@@ -527,6 +527,23 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply.addString("ack");
             else
                 bReply.addString("storeOID failed");
+        }
+        else if (bCommand.get(0) == "testAugmentedImage") {
+            bReply = testAugmentedImage();
+        }
+        else if (bCommand.get(0) == "addAugmentedImage")
+        {
+            if(bCommand.size() == 7 && bCommand.get(1).isInt()
+            && bCommand.get(2).isInt() && bCommand.get(3).isString()
+            && bCommand.get(4).isString() && bCommand.get(5).isString()
+            && bCommand.get(6).isList())
+            {
+                bReply = addAugmentedImage(bCommand);
+            }
+            else
+            {
+                bError.addString("[addAugmentedImage]: wrong function signature: addAugmentedImage instance time provider_port augmented_label image");
+            }
         }
         else
         {

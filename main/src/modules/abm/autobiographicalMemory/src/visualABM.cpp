@@ -1,3 +1,4 @@
+#include <yarp/sig/all.h>
 #include "autobiographicalMemory.h"
 
 using namespace std;
@@ -332,14 +333,14 @@ int autobiographicalMemory::openStreamImgPorts(int instance)
 }
 
 //store an image into the SQL db /!\ no lo_import/oid!! (high frequency streaming needed)
-bool autobiographicalMemory::storeImage(int instance, const string &label, const string &relativePath, const string &imgTime, const string &currentImgProviderPort)
+bool autobiographicalMemory::storeImage(int instance, int data_number, const string &relativePath, const string &imgTime, const string &currentImgProviderPort)
 {
     Bottle bRequest;
     ostringstream osArg;
 
     //sql request with instance and label, images are stored from their location
     bRequest.addString("request");
-    osArg << "INSERT INTO images(instance, label, relative_path, time, img_provider_port) VALUES (" << instance << ", '" << label << "', '" << relativePath << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
+    osArg << "INSERT INTO images(instance, data_number, relative_path, time, img_provider_port) VALUES (" << instance << ", '" << data_number << "', '" << relativePath << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -384,7 +385,7 @@ bool autobiographicalMemory::storeImageAllProviders(const string &synchroTime, b
         else {
             //cout << "Store image " << imagePath << " in database." << endl;
             //create SQL entry, register the cam image in specific folder
-            if(!storeImage(imgInstance, imgLabel, relativeImagePath, synchroTime, mapImgProvider[it->first])) {
+            if(!storeImage(imgInstance, imgNb, relativeImagePath, synchroTime, mapImgProvider[it->first])) {
                 allGood = false;
                 cout << "Something went wrong storing image " << relativeImagePath << endl;
             }
@@ -473,7 +474,7 @@ int autobiographicalMemory::exportImages(int instance, int fromImage, int toImag
             chmod(folderName.c_str(), 0777);
 #endif
         }
-        cout << "Call exportImage with " << imageOID << " : " << storingPath + "/" + storingTmpSuffix + "/" + relative_path << endl;
+        cout << "Call exportImage with " << imageOID << " : " << storingPath << "/" << storingTmpSuffix << "/" << relative_path << endl;
         exportImage(imageOID, storingPath + "/" + storingTmpSuffix + "/" + relative_path);
     }
 
@@ -534,4 +535,76 @@ Bottle autobiographicalMemory::getListImages(long updateTimeDifference) {
 
     bListImages.addString(osArgImages.str());
     return request(bListImages);
+}
+
+Bottle autobiographicalMemory::testAugmentedImage() {
+    ImageOf<PixelRgb> yarpImage;
+    yarpImage.resize(30,20);
+    yarp::sig::draw::addCircle(yarpImage,PixelRgb(255,0,0),
+    yarpImage.width()/2,yarpImage.height()/2,
+    yarpImage.height()/4);
+    yarp::sig::draw::addCircle(yarpImage,PixelRgb(255,50,50),
+    yarpImage.width()/2,yarpImage.height()/2,
+    yarpImage.height()/5);
+
+    Bottle toSend;
+    toSend.addString("addAugmentedImage");
+    toSend.addString("1234");
+    toSend.addString("1");
+    toSend.addString("2015-01-19 19:32:33.120639");
+    toSend.addString("/icubSim/cam/right");
+    toSend.addString("circleExample");
+    Bottle bImage;
+    yarp::os::Portable::copyPortable(yarpImage, bImage);
+    toSend.addList() = bImage;
+
+    addAugmentedImage(toSend);
+
+    return toSend;
+}
+
+Bottle autobiographicalMemory::addAugmentedImage(Bottle bInput) {
+    Bottle bReply;
+
+    // extract variables from bottle
+    string instanceString = (bInput.get(1)).toString();
+    int instance = atoi(instanceString.c_str());
+    string dataNumberString = (bInput.get(2)).toString();
+    int data_number = atoi(dataNumberString.c_str());
+    string time = (bInput.get(3)).asString().c_str();
+    string providerPort = (bInput.get(4)).asString().c_str();
+    string augmentedLabel = (bInput.get(5)).asString().c_str();
+
+    // save image from bottle to file
+    ImageOf<PixelRgb> yarpImage;
+    Bottle* bImage = bInput.get(5).asList();
+    yarp::os::Portable::copyPortable(*bImage, yarpImage);
+    IplImage *cvImage = cvCreateImage(cvSize(yarpImage.width(), yarpImage.height()), IPL_DEPTH_8U, 3);
+    cvCvtColor((IplImage*)yarpImage.getIplImage(), cvImage, CV_RGB2BGR);
+
+    string folderName = storingPath + "/" + storingTmpSuffix + "/" + (bInput.get(1)).toString().c_str();
+    yarp::os::mkdir(folderName.c_str());
+#ifdef __linux__
+    chmod(folderName.c_str(), 0777);
+#endif
+    string fullPath = folderName + augmentedLabel + "." + imgFormat;
+    cvSaveImage(fullPath.c_str(), cvImage);
+    cvReleaseImage(&cvImage);
+
+    // insert image to database
+    unsigned int img_oid = ABMDataBase->lo_import(fullPath.c_str());
+
+    // insert new row in database
+    string relativePath = instanceString + "/" + augmentedLabel + "/" + dataNumberString + "." + imgFormat;
+    string fullProviderPort = providerPort + "/" + augmentedLabel;
+
+    Bottle bRequest;
+    ostringstream osArg;
+
+    bRequest.addString("request");
+    osArg << "INSERT INTO images(instance, data_number, relative_path, time, img_provider_port, img_oid, augmented) VALUES (" << instance << ", '" << data_number << "', '" << relativePath << "', '" << time << "', '" << fullProviderPort << "', '" << img_oid << "', '" << augmentedLabel << "');";
+    bRequest.addString(osArg.str());
+    bRequest = request(bRequest);
+
+    return bReply;
 }
