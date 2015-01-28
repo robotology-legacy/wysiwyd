@@ -38,7 +38,7 @@
     <RULEREF NAME="time_value"/>
     <P>time</P>
 	<P>when</P>
-    <RULEREF	NAME="pronon"/>
+    <RULEREF	NAME="pronoun"/>
     <RULEREF	NAME="activity"/>
   </RULE>
 
@@ -114,7 +114,7 @@
       <P>used</P>
       <P>met</P>
       <P>play</P>
-	  <P>testStream</>
+	  <P>testStream</P>
     </L>
   </RULE>
 
@@ -126,6 +126,6 @@
     </L>
   </RULE>
 
-
+  
   <!--	End	of	Grammar	definition	-->
 </GRAMMAR>
