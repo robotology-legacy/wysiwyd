@@ -132,7 +132,9 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
     // Connect iCub Client, and ports
     //      bEveryThingisGood &= !iCub->connect()  
-    bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
+    //bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
+
+    bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/rpc");
     bOptionnalModule &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
     bOptionnalModule &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
     bOptionnalModule &= Network::connect(port2OPCmanagerName, "/opcManager/rpc");
@@ -478,19 +480,42 @@ Bottle abmHandler::node1()
         }
 
         ostringstream osRequest;
-        osRequest << "SELECT main.instance, main.time FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+        osRequest << "SELECT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
         if (sCurrentPronoun == "you") {
             osRequest << " argument = 'icub' ) ";
         } else { //IMPORTANT : don't have recognition then so I is everything but the iCub
             osRequest << " argument != 'icub' ) ";
         }
 
-        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
+        //Ask for 2 results : WARNING -> first bottle is begin = FALSE then second begin = TRUE (because of DESC)
+        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 2";
 
-        cout << "REQUEST : " << osRequest << endl ;
+        cout << "REQUEST : " << osRequest.str() << endl ;
 
+        bMessenger.clear();
+        bMessenger.addString("request");
+        bMessenger.addString(osRequest.str().c_str());
 
-        bOutput.addString("ack");
+        Port2ABM.write(bMessenger, bAnswer);
+
+        cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+
+        if (bAnswer.toString() == "NULL" || bAnswer.isNull())
+        {
+            iCurrentInstance = -1;
+            osError.str("");
+            osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
+        ostringstream osAnswer;
+        osAnswer << "It was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
+        sLastSentence = osAnswer.str();
+        bSpeak.addString(osAnswer.str());
+
         return bOutput ;
     }
 
