@@ -185,8 +185,8 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-    string isConnectedToImgProviders = connectImgProviders().toString().c_str();
-    string isConnectedToContDataProviders = connectContDataProviders().toString().c_str();
+    string isConnectedToImgProviders = connectToImgStreamProviders().toString().c_str();
+    string isConnectedToContDataProviders = connectDataStreamProviders().toString().c_str();
 
     if (isConnectedToImgProviders != "ack" && isConnectedToContDataProviders != "ack"){
         cout << "ABM failed to connect to imgProviders / contDataProviders" << endl;
@@ -206,11 +206,11 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     {   //just one image (sentence?)
         imgInstance = currentInstance;
         string synchroTime = getCurrentTime();
-        storeImageAllProviders(synchroTime, true, fullSentence);
-        storeContDataAllProviders(synchroTime);
+        storeInfoAllImages(synchroTime, true, fullSentence);
+        storeDataStreamAllProviders(synchroTime);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
-        string reply = disconnectImgProviders().toString().c_str();
+        string reply = disconnectFromImgStreamProviders().toString().c_str();
         if (reply != "ack"){
             cout << "ABM failed to disconnect to one imgProvider" << endl;
         }

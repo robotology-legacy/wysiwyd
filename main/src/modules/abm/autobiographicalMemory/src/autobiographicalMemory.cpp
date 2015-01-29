@@ -38,13 +38,13 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     storingPath = bISProperties.check("storingPath", Value("C:/robot/ABMStoring")).asString();
     storingTmpSuffix = bISProperties.check("storingTmpSuffix", Value("tmp")).asString();
     imgFormat = bISProperties.check("imgFormat", Value("tif")).asString();
-    portPrefix = bISProperties.check("portPrefix", Value("/" + getName())).asString();
+    portPrefixForStreaming = bISProperties.check("portPrefix", Value("/" + getName())).asString();
 
     // TODO: streamStatus should be changed to enum
     streamStatus = "none"; //none, record, stop, send
     imgLabel = "defaultLabel";
     imgInstance = -1;
-    imgNb = 0;
+    frameNb = 0;
     sendStreamIsInitialized = false;
 
     shouldClose = false;
@@ -57,17 +57,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     string name_abm2reasoning = "/" + getName() + "/to_reasoning";
     abm2reasoning.open(name_abm2reasoning.c_str());
-
-    //port for images:
-    string name_imagePortOut = "/" + getName() + "/images/out";
-    imagePortOut.open(name_imagePortOut.c_str());
-
-    //Temp to test data : will be send without checking connection after
-    if (Network::connect(imagePortOut.getName().c_str(), "/yarpview/img:i")) {
-        cout << endl << "ABM is now connected to Yarpview!" << endl;
-    } else {
-        cout << endl << "ABM failed to connect to Yarpview!" << endl;
-    }
 
     //create the storingPath and the tmp also
     string fullTmpPath = storingPath + "/" + storingTmpSuffix;
@@ -84,7 +73,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     connectOPC(bConnect);
 
     //populateOPC();
-    storeOID();
+    storeImageOIDs();
 
     cout << endl << endl << "----------------------------------------------";
     cout << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
@@ -251,15 +240,14 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "CREATE TABLE interactionknowledge (subject text NOT NULL, argument text NOT NULL, number integer NOT NULL, type text NOT NULL DEFAULT 'none'::text, role text NOT NULL DEFAULT 'none'::text, CONSTRAINT interactionknowledge_pkey PRIMARY KEY (subject, argument, type, role) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE interactionknowledge OWNER  TO postgres;";
 
-    /****************************** images *************************/
-    *ABMDataBase << "DROP TABLE IF EXISTS images CASCADE;";
-    *ABMDataBase << "CREATE TABLE images(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT images_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE); ALTER TABLE images OWNER TO postgres;";
-    // DEPRECATED *ABMDataBase << "CREATE TABLE images (instance integer NOT NULL, label text, img_oid oid NOT NULL, filename text, CONSTRAINT img_id PRIMARY KEY (img_oid), CONSTRAINT images_instancee_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
-    *ABMDataBase << "ALTER TABLE images OWNER  TO postgres;";
+    /****************************** visualdata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS visualdata CASCADE;";
+    *ABMDataBase << "CREATE TABLE visualdata(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT visualdata_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE); ALTER TABLE visualdata OWNER TO postgres;";
+    *ABMDataBase << "ALTER TABLE visualdata OWNER TO postgres;";
 
-    /****************************** continuousdata *************************/
-    *ABMDataBase << "DROP TABLE IF EXISTS continuousdata CASCADE;";
-    *ABMDataBase << "CREATE TABLE continuousdata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, type text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT cont_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE continuousdata OWNER TO postgres;";
+    /****************************** proprioceptivedata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
+    *ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, type text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE proprioceptivedata OWNER TO postgres;";
 
     string sFilename;
 
@@ -434,7 +422,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
 
         // ask for streaming data : they will be sent through ports opened by autobiographicalMemory based on the original image provider port (/autobiographicalMemory/imgProviderPortName)
-        else if (bCommand.get(0) == "sendStreamImage")
+        else if (bCommand.get(0) == "triggerStreaming")
         {
             if (bCommand.size() > 1 && bCommand.get(1).isInt())
             {
@@ -443,18 +431,18 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 if(bCommand.size() > 2 && bCommand.get(2).isBool()) {
                     timingEnabled = bCommand.get(2).asBool();
                 }
-                bReply = sendStreamImage(imgInstance, timingEnabled);
+                bReply = triggerStreaming(imgInstance, timingEnabled);
             }
             else
             {
-                bError.addString("in sendStreamImage: number of element incorrect: sendStreamImage instanceNb timingEnabled(optional)");
+                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instanceNb timingEnabled(optional)");
                 bReply = bError;
             }
         }
 
         //ask for a single image : a single image for EACH image provider so you may end up by several of them
         // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
-        else if (bCommand.get(0) == "askImage")
+        else if (bCommand.get(0) == "provideImagesForFrame")
         {
             if (bCommand.size() > 2 && bCommand.get(1).isInt() && bCommand.get(2).isInt())
             {
@@ -462,102 +450,102 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
                 if (instance > 0 && frame_number >= 0) {
                     if(bCommand.get(3).isString()) {
-                        bReply = askImage(instance, frame_number, (bCommand.get(3)).toString());
+                        bReply = provideImagesByFrame(instance, frame_number, (bCommand.get(3)).toString());
                     } else {
-                        bReply = askImage(instance, frame_number);
+                        bReply = provideImagesByFrame(instance, frame_number);
                     }
                 }
                 else {
-                    bError.addString("in askImage : not valid int number for the instance or frame_number");
+                    bError.addString("[provideImagesByFrame]: not valid int number for the instance or frame_number");
                     bReply = bError;
                 }
             }
             else
             {
-                bError.addString("ERROR in askImage : wrong number of element -> askImage instanceNb frameNb provider_port (optional)");
+                bError.addString("[provideImagesByFrame]: wrong number of element -> provideImagesByFrame instanceNb frameNb provider_port (optional)");
                 bReply = bError;
             }
         }
         // add an image provider for the following stream recording : addImgProvider (label /yarp/port/img/provider)
-        else if (bCommand.get(0) == "addImgProvider")
+        else if (bCommand.get(0) == "addImgStreamProvider")
         {
             if (bCommand.size() == 3 && bCommand.get(1).isString() && bCommand.get(2).isString())
             {
-                bReply = addImgProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
+                bReply = addImgStreamProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
             }
             else
             {
-                bError.addString("[addImgProvider] : wrong number of element -> addImgProvider label /yarp/port/img/provider");
+                bError.addString("[addImgStreamProvider]: wrong number of element -> addImgStreamProvider label /yarp/port/img/provider");
                 bReply = bError;
             }
         }
 
         //remove an image provider from the list of available stream images provider
-        else if (bCommand.get(0) == "removeImgProvider")
+        else if (bCommand.get(0) == "removeImgStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = removeImgProvider(bCommand.get(1).toString().c_str());
+                bReply = removeImgStreamProvider(bCommand.get(1).toString().c_str());
             }
             else
             {
-                bError.addString("[removeImgProvider] : wrong number of element -> removeImgProvider label");
+                bError.addString("[removeImgStreamProvider]: wrong number of element -> removeImgStreamProvider label");
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "addContDataProvider")
+        else if (bCommand.get(0) == "addDataStreamProvider")
         {
             if (bCommand.size() == 3 && bCommand.get(1).isString() && bCommand.get(2).isString())
             {
-                bReply = addContDataProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
+                bReply = addDataStreamProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
             }
             else {
-                bError.addString("[addContDataProvider]: wrong number of elements -> addContDataProvider type /yarp/port/contdata/provider");
+                bError.addString("[addDataStreamProvider]: wrong number of elements -> addDataStreamProvider type /yarp/port/contdata/provider");
             }
         }
-        else if (bCommand.get(0) == "removeContDataProvider")
+        else if (bCommand.get(0) == "removeDataStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = removeContDataProvider(bCommand.get(1).toString().c_str());
+                bReply = removeDataStreamProvider(bCommand.get(1).toString().c_str());
             }
             else
             {
-                bError.addString("[removeContDataProvider]: wrong number of elements -> removeContDataProvider type");
+                bError.addString("[removeDataStreamProvider]: wrong number of elements -> removeDataStreamProvider type");
             }
         }
-        else if (bCommand.get(0) == "storeOID")
+        else if (bCommand.get(0) == "storeImageOIDs")
         {
-            if(storeOID())
+            if(storeImageOIDs())
                 bReply.addString("ack");
             else
-                bReply.addString("storeOID failed");
+                bReply.addString("[storeImageOIDs] failed");
         }
         else if (bCommand.get(0) == "testAugmentedImage") {
             if (bCommand.size() == 3 && bCommand.get(1).isInt() && bCommand.get(2).isInt())
             {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
                 int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
-                bReply = testAugmentedImage(askImage(instance, frame_number));
+                bReply = testAugmentedImage(provideImagesByFrame(instance, frame_number));
             }
             else
             {
-                bError.addString("[testAugmentedImage] : wrong number of element -> testAugmentedImage instance frame_number");
+                bError.addString("[testAugmentedImage]: wrong number of element -> testAugmentedImage instance frame_number");
                 bReply = bError;
             }
         }
-        else if (bCommand.get(0) == "addAugmentedImages")
+        else if (bCommand.get(0) == "saveAugmentedImages")
         {
             if(bCommand.size() == 7 && bCommand.get(1).isInt()
             && bCommand.get(2).isInt() && bCommand.get(3).isString()
             && bCommand.get(4).isString() && bCommand.get(5).isString()
             && bCommand.get(6).isList())
             {
-                bReply = addAugmentedImages(bCommand);
+                bReply = saveAugmentedImages(bCommand);
             }
             else
             {
-                bError.addString("[addAugmentedImages]: wrong function signature: addAugmentedImage instance time provider_port augmented_label image");
+                bError.addString("[saveAugmentedImages]: wrong function signature: saveAugmentedImages instance time provider_port augmented_label image");
             }
         }
         else if (bCommand.get(0) == "getImagesInfo")
@@ -602,19 +590,19 @@ bool autobiographicalMemory::updateModule() {
         }
 
         string synchroTime = getCurrentTime();
-        storeImageAllProviders(synchroTime);
-        storeContDataAllProviders(synchroTime);
+        storeInfoAllImages(synchroTime);
+        storeDataStreamAllProviders(synchroTime);
 
         //init of the stream record done: go through the classic record phase
         streamStatus = "record";
     }
     else if (streamStatus == "record") {
-        imgNb += 1;
+        frameNb += 1;
         //cout << "Image Nb " << imgNb << endl;
 
         string synchroTime = getCurrentTime();
-        storeImageAllProviders(synchroTime);
-        storeContDataAllProviders(synchroTime);
+        storeInfoAllImages(synchroTime);
+        storeDataStreamAllProviders(synchroTime);
     }
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
@@ -624,10 +612,10 @@ bool autobiographicalMemory::updateModule() {
             timeLastImageSent = -1;
 
             imgProviderCount = getImagesProviderCount(imgInstance);
-            contDataProviderCount = getContDataProviderCount(imgInstance);
+            contDataProviderCount = getStreamDataProviderCount(imgInstance);
 
-            long timeVeryLastImage = getTimeLastImage(imgInstance);
-            long timeVeryLastContData = getTimeLastContData(imgInstance);
+            long timeVeryLastImage = getTimeLastImgStream(imgInstance);
+            long timeVeryLastContData = getTimeLastDataStream(imgInstance);
 
             if(timeVeryLastImage >= timeVeryLastContData) {
                 timeVeryLastStream = timeVeryLastImage;
@@ -644,7 +632,7 @@ bool autobiographicalMemory::updateModule() {
         long timeLastImageSentCurrentIteration = 0;
 
         // Find which images to send
-        Bottle bListImages = getListImages(updateTimeDifference);
+        Bottle bListImages = getStreamImgWithinEpoch(updateTimeDifference);
 
         // Save images in temp folder and send them to ports
         if(bListImages.toString()!="NULL") {
@@ -652,28 +640,28 @@ bool autobiographicalMemory::updateModule() {
                 //concatenation of the storing path
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
-                BufferedPort<ImageOf<PixelRgb> >* port = mapStreamImgPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
+                BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
                 if(atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
                     timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
                 }
 
                 cout << "Send image: " << fullPath.str() << endl;
-                sendImage(fullPath.str(), port);
+                writeImageToPort(fullPath.str(), port);
             }
         }
 
-        // Make sure bottles for contdata are cleared from last time
-        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it) {
+        // Make sure bottles for data stream are cleared from last time
+        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it) {
             it->second->prepare().clear();
         }
 
-        // Find which continuous data to send
-        Bottle bListContData = getListContData(updateTimeDifference);
+        // Find which data stream to send
+        Bottle bListContData = getStreamDataWithinEpoch(updateTimeDifference);
 
         if(bListContData.toString()!="NULL") {
             // Append bottle of ports for all the subtypes
             for(int i=0; i<bListContData.size(); i++) {
-                BufferedPort<Bottle>* port = mapContDataPortOut.at(bListContData.get(i).asList()->get(1).asString().c_str());
+                BufferedPort<Bottle>* port = mapDataStreamPortOut.at(bListContData.get(i).asList()->get(1).asString().c_str());
                 if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
                     timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                 }
@@ -683,7 +671,7 @@ bool autobiographicalMemory::updateModule() {
             }
 
             // Send concatenated bottles to ports
-            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it)
+            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it)
             {
                 cout << "Write port: " << it->second->getName() << endl;
                 it->second->write();
@@ -696,23 +684,23 @@ bool autobiographicalMemory::updateModule() {
 
         // Are we done?
         bool done = false;
-        if(timingEnabled && updateTimeDifference >= timeVeryLastStream) {
+        if(realtimePlayback && updateTimeDifference >= timeVeryLastStream) {
             done = true;
-        } else if(!timingEnabled && timeLastImageSent >= timeVeryLastStream) {
+        } else if(!realtimePlayback && timeLastImageSent >= timeVeryLastStream) {
             done = true;
         }
 
         if(done) {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             cout << "streamStatus = end, closing ports" << endl;
-            for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapStreamImgPortOut.begin(); it != mapStreamImgPortOut.end(); ++it) {
+            for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamPortOut.begin(); it != mapImgStreamPortOut.end(); ++it) {
                 it->second->interrupt();
                 it->second->close();
                 if(!it->second->isClosed()) {
                     cout << "Error, port " << it->first << " could not be closed" << endl;
                 }
             }
-            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapContDataPortOut.begin(); it != mapContDataPortOut.end(); ++it) {
+            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it) {
                 it->second->interrupt();
                 it->second->close();
                 if(!it->second->isClosed()) {
@@ -720,8 +708,8 @@ bool autobiographicalMemory::updateModule() {
                 }
             }
 
-            mapStreamImgPortOut.clear();
-            mapContDataPortOut.clear();
+            mapImgStreamPortOut.clear();
+            mapDataStreamPortOut.clear();
 
             streamStatus = "end";
         }
@@ -737,7 +725,7 @@ bool autobiographicalMemory::updateModule() {
         streamStatus = "none";
         imgLabel = "defaultLabel";
         imgInstance = -1;
-        imgNb = 0;
+        frameNb = 0;
         sendStreamIsInitialized = false;
     }
 
@@ -748,13 +736,12 @@ bool autobiographicalMemory::interruptModule()
 {
     cout << "Interrupting your module, for port cleanup" << endl;
 
-    storeOID();
+    storeImageOIDs();
     opcWorld->interrupt();
 
     handlerPort.interrupt();
     portEventsIn.interrupt();
     abm2reasoning.interrupt();
-    imagePortOut.interrupt();
 
     return true;
 }
@@ -763,8 +750,8 @@ bool autobiographicalMemory::close()
 {
     cout << "Calling close function" << endl;
 
-    disconnectContDataProviders();
-    disconnectImgProviders();
+    disconnectDataStreamProviders();
+    disconnectFromImgStreamProviders();
 
     opcWorld->interrupt();
     opcWorld->close();
@@ -778,10 +765,7 @@ bool autobiographicalMemory::close()
     abm2reasoning.interrupt();
     abm2reasoning.close();
 
-    imagePortOut.interrupt();
-    imagePortOut.close();
-
-    storeOID();
+    storeImageOIDs();
 
     delete opcWorld;
     delete ABMDataBase;
@@ -998,9 +982,9 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
         bRequest.addString(osRequest.str().c_str());
         request(bRequest);
 
-        //images : remove from pg_largeobjects = unlink
+        //visualdata : remove from pg_largeobjects = unlink
         osRequest.str("");
-        osRequest << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM images WHERE instance = " << *it << ") AS images_subquery ;";
+        osRequest << "SELECT lo_unlink (img_oid) FROM (SELECT DISTINCT img_oid FROM visualdata WHERE instance = " << *it << ") AS visualdata_subquery ;";
         bRequest.clear();
         bRequest.addString("request");
         bRequest.addString(osRequest.str().c_str());
@@ -1008,15 +992,15 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
 
         //remove from images table
         osRequest.str("");
-        osRequest << "DELETE FROM images WHERE instance = " << *it;
+        osRequest << "DELETE FROM visualdata WHERE instance = " << *it;
         bRequest.clear();
         bRequest.addString("request");
         bRequest.addString(osRequest.str().c_str());
         request(bRequest);
 
-        //remove from continuousdata table
+        //remove from proprioceptivedata table
         osRequest.str("");
-        osRequest << "DELETE FROM continuousdata WHERE instance = " << *it;
+        osRequest << "DELETE FROM proprioceptivedata WHERE instance = " << *it;
         bRequest.clear();
         bRequest.addString("request");
         bRequest.addString(osRequest.str().c_str());

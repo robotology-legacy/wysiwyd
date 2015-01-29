@@ -35,7 +35,7 @@ private:
     std::string streamStatus;
     std::string imgLabel;
 
-    unsigned int imgNb;
+    unsigned int frameNb;
     int imgInstance;
     int currentInstance;
 
@@ -75,69 +75,76 @@ public:
     yarp::os::Bottle snapshotSP(yarp::os::Bottle bInput);
     yarp::os::Bottle snapshotBehavior(yarp::os::Bottle bInput);
 
-    // visualABM
-    std::string portPrefix;
-    bool timingEnabled;
+    //////////////////////////////////////////////////////////////////////////
+    // visual + data streaming
+    //////////////////////////////////////////////////////////////////////////
+    std::string portPrefixForStreaming;
+    bool realtimePlayback;
     long timeStreamStart;
-    long timeLastImageSent;
-    long timeVeryLastStream;
-    unsigned int imgProviderCount;
 
-    yarp::os::Bottle sendStreamImage(int instance, bool timingEnabled=false);
-    yarp::os::Bottle askImage(int instance, int frame_number, std::string provider_port="");
+    long timeLastImageSent; // will be obsolete
+    long timeVeryLastStream; // will be obsolete
+    unsigned int imgProviderCount; // will be obsolete
+    unsigned int contDataProviderCount; // will be obsolete
 
-    bool createImage(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
-    bool sendImage(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
-    bool sendImage(const std::string &fullPath);
+    bool sendStreamIsInitialized;
 
-    int exportImages(int instance, int fromFrame=-1, int toFrame=-1, std::string provider_port="");
-    int exportImage(int img_oid, const std::string &path);
+    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback=false);
 
-    bool storeImage(int instance, int frame_number, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
-    bool storeImageAllProviders(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
-    bool storeOID();
+    // maps to receive / send images
+    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamPortOut;
+    std::map <std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamPortOut;
+    // these two maps should be combined :)
+    std::map <std::string, std::string> mapImgStreamProvider;
+    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamReceiver;
+    // these two maps should be combined :)
+    std::map< std::string, std::string > mapDataStreamProvider;
+    std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamReceiver;
 
-    yarp::os::Bottle addImgProvider(const std::string &label, const std::string &portImgProvider);
-    yarp::os::Bottle removeImgProvider(const std::string &label);
+    yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, std::string provider_port="");
 
-    int openStreamImgPorts(int instance);
-    yarp::os::Bottle connectImgProviders();
-    yarp::os::Bottle disconnectImgProviders();
+    bool saveImageFromPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
+    bool writeImageToPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
 
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePortOut;
-    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapStreamImgPortOut;
-    std::map <std::string, std::string> mapImgProvider;
-    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgReceiver;
+    int saveImagesFromABM(int instance, int fromFrame=-1, int toFrame=-1, std::string provider_port="");
 
-    unsigned int getImagesProviderCount(int instance);
-    long getTimeLastImage(int instance);
-    yarp::os::Bottle getListImages(long updateTimeDifference);
+    // store image / data stream to ABM
+    bool storeInfoSingleImage(int instance, int frame_number, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
+    bool storeInfoAllImages(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
+    bool storeImageOIDs();
 
-    yarp::os::Bottle addAugmentedImages(yarp::os::Bottle bInput);
-    yarp::os::Bottle testAugmentedImage(yarp::os::Bottle bInput);
+    bool storeDataStreamAllProviders(const std::string &synchroTime);
+    bool storeDataStream(int instance, int frame_number, const std::string &type, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
 
+    // add / remove stream providers
+    yarp::os::Bottle addImgStreamProvider(const std::string &label, const std::string &portImgStreamProvider);
+    yarp::os::Bottle removeImgStreamProvider(const std::string &label);
+    yarp::os::Bottle addDataStreamProvider(const std::string &type, const std::string &portDataStreamProvider);
+    yarp::os::Bottle removeDataStreamProvider(const std::string &label);
+
+    int openImgStreamPorts(int instance);
+    yarp::os::Bottle connectToImgStreamProviders();
+    yarp::os::Bottle disconnectFromImgStreamProviders();
+    int openDataStreamPorts(int instance);
+    yarp::os::Bottle connectDataStreamProviders();
+    yarp::os::Bottle disconnectDataStreamProviders();
+
+    unsigned int getImagesProviderCount(int instance); // will be obsolete
+    unsigned int getStreamDataProviderCount(int instance);
+
+    long getTimeLastImgStream(int instance); // will be obsolete
+    long getTimeLastDataStream(int instance); // will be obsolete
+    yarp::os::Bottle getStreamImgWithinEpoch(long updateTimeDifference);
+    yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference);
+
+    // augmented images stuff
+    yarp::os::Bottle saveAugmentedImages(yarp::os::Bottle bInput);
+    yarp::os::Bottle testAugmentedImage(yarp::os::Bottle bInput); // will be obsolete
     yarp::os::Bottle getImagesInfo(int instance);
 
-    // continuousABM
-    bool sendStreamIsInitialized;
-    unsigned int contDataProviderCount;
-
-    yarp::os::Bottle addContDataProvider(const std::string &type, const std::string &portContDataProvider);
-    yarp::os::Bottle removeContDataProvider(const std::string &type);
-    std::map <std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataPortOut;
-    std::map< std::string, std::string > mapContDataProvider;
-    std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapContDataReceiver;
-
-    bool storeContDataAllProviders(const std::string &synchroTime);
-    bool storeContData(int instance, int frame_number, const std::string &type, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
-
-    int openSendContDataPorts(int instance);
-    yarp::os::Bottle connectContDataProviders();
-    yarp::os::Bottle disconnectContDataProviders();
-
-    unsigned int getContDataProviderCount(int instance);
-    long getTimeLastContData(int instance);
-    yarp::os::Bottle getListContData(long updateTimeDifference);
+    //////////////////////////////////////////////////////////////////////////
+    // visual + data streaming end
+    //////////////////////////////////////////////////////////////////////////
 
     // helpers
     std::string getCurrentTime();
