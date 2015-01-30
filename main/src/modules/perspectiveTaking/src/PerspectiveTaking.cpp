@@ -238,6 +238,7 @@ bool perspectiveTaking::updateModule() {
 }
 
 bool perspectiveTaking::interruptModule() {
+    abm.interrupt();
     handlerPort.interrupt();
     opc->interrupt();
     selfPerspImgPort.interrupt();
@@ -283,6 +284,8 @@ bool perspectiveTaking::close() {
     delete odomThread;
 
     // Close ports
+    abm.interrupt();
+    abm.close();
     selfPerspImgPort.interrupt();
     selfPerspImgPort.close();
     partnerPerspImgPort.interrupt();
