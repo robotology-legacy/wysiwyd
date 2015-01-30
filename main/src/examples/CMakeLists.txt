@@ -5,5 +5,6 @@
 add_subdirectory(AREiCubClientExample)
 add_subdirectory(wrdacExample)
 add_subdirectory(cvzStackExample)
-add_subdirectory(ABMAugmentionExample)
-
+if(YARP_VERSION_STRING VERSION_GREATER "2.3.63.1")
+    add_subdirectory(ABMAugmentionExample)
+endif()
