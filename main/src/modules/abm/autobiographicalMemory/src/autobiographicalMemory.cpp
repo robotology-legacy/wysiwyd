@@ -334,7 +334,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     Bottle bError;
     bReply.clear();
     cout << endl << "Got something, echo is on" << endl;
-    cout << bCommand.toString() << endl << endl;
+    //cout << bCommand.toString() << endl << endl;
     bError.addString("ERROR");
 
     if (bCommand.get(0).isString())
@@ -442,15 +442,20 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
         //ask for a single image : a single image for EACH image provider so you may end up by several of them
         // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
-        else if (bCommand.get(0) == "provideImagesForFrame")
+        else if (bCommand.get(0) == "provideImagesByFrame")
         {
             if (bCommand.size() > 2 && bCommand.get(1).isInt() && bCommand.get(2).isInt())
             {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
                 int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
                 if (instance > 0 && frame_number >= 0) {
-                    if(bCommand.get(3).isString()) {
-                        bReply = provideImagesByFrame(instance, frame_number, (bCommand.get(3)).toString());
+                    if(bCommand.get(3).isInt()) {
+                        bool include_augmented = (atoi((bCommand.get(3)).toString().c_str()));
+                        if(bCommand.get(4).isString()) {
+                            bReply = provideImagesByFrame(instance, frame_number, include_augmented, (bCommand.get(4)).toString());
+                        } else {
+                            bReply = provideImagesByFrame(instance, frame_number, include_augmented);
+                        }
                     } else {
                         bReply = provideImagesByFrame(instance, frame_number);
                     }
@@ -501,6 +506,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else {
                 bError.addString("[addDataStreamProvider]: wrong number of elements -> addDataStreamProvider type /yarp/port/contdata/provider");
+                bReply = bError;
             }
         }
         else if (bCommand.get(0) == "removeDataStreamProvider")
@@ -512,6 +518,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             else
             {
                 bError.addString("[removeDataStreamProvider]: wrong number of elements -> removeDataStreamProvider type");
+                bReply = bError;
             }
         }
         else if (bCommand.get(0) == "storeImageOIDs")
@@ -521,38 +528,20 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             else
                 bReply.addString("[storeImageOIDs] failed");
         }
-        else if (bCommand.get(0) == "testAugmentedImage") {
-            if (bCommand.size() == 3 && bCommand.get(1).isInt() && bCommand.get(2).isInt())
-            {
-                int instance = (atoi((bCommand.get(1)).toString().c_str()));
-                int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
-                bReply = testAugmentedImage(provideImagesByFrame(instance, frame_number));
-            }
-            else
-            {
-                bError.addString("[testAugmentedImage]: wrong number of element -> testAugmentedImage instance frame_number");
-                bReply = bError;
-            }
-        }
         else if (bCommand.get(0) == "saveAugmentedImages")
         {
-            if(bCommand.size() == 7 && bCommand.get(1).isInt()
-            && bCommand.get(2).isInt() && bCommand.get(3).isString()
-            && bCommand.get(4).isString() && bCommand.get(5).isString()
-            && bCommand.get(6).isList())
-            {
-                bReply = saveAugmentedImages(bCommand);
-            }
-            else
-            {
-                bError.addString("[saveAugmentedImages]: wrong function signature: saveAugmentedImages instance time provider_port augmented_label image");
-            }
+            bReply = saveAugmentedImages(bCommand);
         }
         else if (bCommand.get(0) == "getImagesInfo")
         {
-            if(bCommand.size() == 2 && bCommand.get(1).isInt()) {
+            if(bCommand.size() > 2 && bCommand.get(1).isInt()) {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
-                bReply = getImagesInfo(instance);
+                if(bCommand.size()==3) {
+                    bool includeAugmentedImages = (atoi((bCommand.get(2)).toString().c_str()));
+                    bReply = getImagesInfo(instance, includeAugmentedImages);
+                } else {
+                    bReply = getImagesInfo(instance);
+                }
             } else {
                 bReply.addString("[getImagesInfo]: wrong function signature: getImagesInfo instance");
             }
@@ -612,7 +601,7 @@ bool autobiographicalMemory::updateModule() {
             timeLastImageSent = -1;
 
             imgProviderCount = getImagesProviderCount(imgInstance);
-            contDataProviderCount = getStreamDataProviderCount(imgInstance);
+            streamDataProviderCount = getStreamDataProviderCount(imgInstance);
 
             long timeVeryLastImage = getTimeLastImgStream(imgInstance);
             long timeVeryLastContData = getTimeLastDataStream(imgInstance);

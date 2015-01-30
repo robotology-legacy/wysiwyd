@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+   <name>ABMAugmentionExample</name>
+   <doxygen-group>wysiwyd_examples</doxygen-group>
+   <description>Example of using the ABM rpc methods to augment images</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+    This example shows how to interact with the autobiographical memory to retrieve images, 
+    convert them to OpenCV images, augment them, convert them back to yarp images and send
+    them back to the ABM.
+   </description-long>
+
+   <authors>
+       <author email="t.fischer@imperial.ac.uk"> Tobias Fischer </author>
+   </authors>
+
+  <arguments>
+  </arguments>
+
+  <data>
+  </data>
+</module>
+

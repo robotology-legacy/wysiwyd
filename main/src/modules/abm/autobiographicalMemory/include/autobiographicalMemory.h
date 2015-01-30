@@ -85,7 +85,7 @@ public:
     long timeLastImageSent; // will be obsolete
     long timeVeryLastStream; // will be obsolete
     unsigned int imgProviderCount; // will be obsolete
-    unsigned int contDataProviderCount; // will be obsolete
+    unsigned int streamDataProviderCount; // will be obsolete
 
     bool sendStreamIsInitialized;
 
@@ -101,7 +101,7 @@ public:
     std::map< std::string, std::string > mapDataStreamProvider;
     std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamReceiver;
 
-    yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, std::string provider_port="");
+    yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented=false, std::string provider_port="");
 
     bool saveImageFromPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool writeImageToPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
@@ -139,8 +139,7 @@ public:
 
     // augmented images stuff
     yarp::os::Bottle saveAugmentedImages(yarp::os::Bottle bInput);
-    yarp::os::Bottle testAugmentedImage(yarp::os::Bottle bInput); // will be obsolete
-    yarp::os::Bottle getImagesInfo(int instance);
+    yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages=true);
 
     //////////////////////////////////////////////////////////////////////////
     // visual + data streaming end

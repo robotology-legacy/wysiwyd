@@ -5,4 +5,5 @@
 add_subdirectory(AREiCubClientExample)
 add_subdirectory(wrdacExample)
 add_subdirectory(cvzStackExample)
+add_subdirectory(ABMAugmentionExample)
 

@@ -51,7 +51,7 @@ Bottle autobiographicalMemory::removeImgStreamProvider(const string &labelImgPro
     return bReply;
 }
 
-Bottle autobiographicalMemory::getImagesInfo(int instance) {
+Bottle autobiographicalMemory::getImagesInfo(int instance, bool includeAugmentedImages) {
     Bottle bRequest, bOutput;
     ostringstream osArg;
 
@@ -65,7 +65,11 @@ Bottle autobiographicalMemory::getImagesInfo(int instance) {
         bRequest.clear();
         osArg.str("");
         bRequest.addString("request");
-        osArg << "SELECT DISTINCT img_provider_port FROM visualdata WHERE instance = " << instance << endl;
+        osArg << "SELECT DISTINCT img_provider_port FROM visualdata WHERE instance = " << instance;
+        if(!includeAugmentedImages) {
+            osArg << " AND augmented IS NULL";
+        }
+        osArg << endl;
         bRequest.addString(osArg.str());
         bRequest = request(bRequest);
 
@@ -80,7 +84,7 @@ Bottle autobiographicalMemory::getImagesInfo(int instance) {
 //Ask for images of a precise instance and frame_number
 //If several provider were used, a single image from each image provider will be sent
 // Return : ack ( ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3)) )
-Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_number, string provider_port)
+Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_number, bool include_augmented, string provider_port)
 {
     Bottle bSubOutput, bOutput, bRequest;
     ostringstream osArg;
@@ -94,6 +98,9 @@ Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_numb
     osArg << " AND frame_number = " << frame_number;
     if(provider_port!="") {
         osArg << " AND img_provider_port = '" << provider_port << "'";
+    }
+    if(!include_augmented) {
+        osArg << " AND augmented IS NULL";
     }
     osArg << " ORDER BY time" << endl;
 
@@ -529,74 +536,30 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
     return request(bListImages);
 }
 
-Bottle autobiographicalMemory::testAugmentedImage(Bottle bInput) {
-    Bottle toSend;
-    // Testing to put a circle on an image
-    // This is just for testing purposes, and your own module should implement this!
-
-    // Bottle: ack ( ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3)) )
-    if(bInput.get(0).asString()!="ack") {
-        Bottle bError;
-        bError.addString("no ack in input bottle");
-        return bError;
-    }
-
-    Bottle* bImagesWithMeta = bInput.get(1).asList(); // ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3))
-
-    //go through each of the subottles, one for each imageProvider
-    for(int i = 0; i < bImagesWithMeta->size(); i++) {
-        Bottle* bSingleImageWithMeta = bImagesWithMeta->get(i).asList(); // ((imageMeta1.1) (image1.1))
-
-        Bottle* bImageMeta = bSingleImageWithMeta->get(0).asList(); // (imageMeta1.1)
-        Bottle* bRawImage = bSingleImageWithMeta->get(1).asList(); //image1.1
-
-        ImageOf<PixelRgb> yarpImage;
-        yarp::os::Portable::copyPortable(*bRawImage, yarpImage);
-
-        yarp::sig::draw::addCircle(yarpImage,PixelRgb(255,0,0),
-        yarpImage.width()/2,yarpImage.height()/2,
-        yarpImage.height()/4);
-
-        Bottle bAugmentedImage;
-        yarp::os::Portable::copyPortable(yarpImage, bAugmentedImage);
-
-        Bottle bAugmentedImageWithMeta;
-        bAugmentedImageWithMeta.addList() = *bImageMeta;
-        bAugmentedImageWithMeta.addList() = bAugmentedImage;
-        bAugmentedImageWithMeta.addString("circle");
-
-        toSend.addList() = bAugmentedImageWithMeta;
-   }
-
-    saveAugmentedImages(toSend);
-
-    return toSend;
-}
-
 Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
     Bottle bReply;
 
-    for(int i=0; i<bInput.size(); i++) {
+    for(int i=1; i<bInput.size(); i++) {
         Bottle* bImageWithMeta = bInput.get(i).asList();
 
-        // extract variables from bottle
-        Bottle bMetaInformation = *bImageWithMeta->get(0).asList();
+        //cout << "extract variables from bottle" << endl;
+        Bottle *bMetaInformation = bImageWithMeta->get(0).asList();
 
-        cout << bMetaInformation.toString() << endl;
-
-        string instanceString = (bMetaInformation.get(0)).toString();
+        string instanceString = (bMetaInformation->get(0)).toString();
         int instance = atoi(instanceString.c_str());
-        string frameNumberString = (bMetaInformation.get(1)).toString();
+        string frameNumberString = (bMetaInformation->get(1)).toString();
         int frame_number = atoi(frameNumberString.c_str());
-        string providerPort = (bMetaInformation.get(2)).asString().c_str();
-        string time = (bMetaInformation.get(3)).asString().c_str();
-        string augmentedLabel = bImageWithMeta->get(2).asString();
+        string providerPort = (bMetaInformation->get(2)).asString().c_str();
+        string time = (bMetaInformation->get(3)).asString().c_str();
+        string augmentedLabel = bImageWithMeta->get(1).asString();
+
+        //cout << "augmentedLabel: " << augmentedLabel << endl;
 
         string providerPortSpecifier = providerPort.substr(providerPort.find_last_of("/")+1);
 
-        // save image from bottle to file
+        //cout << "save image from bottle to file" << endl;
         ImageOf<PixelRgb> yarpImage;
-        Bottle* bImage = bImageWithMeta->get(1).asList();
+        Bottle* bImage = bImageWithMeta->get(2).asList();
         yarp::os::Portable::copyPortable(*bImage, yarpImage);
         IplImage *cvImage = cvCreateImage(cvSize(yarpImage.width(), yarpImage.height()), IPL_DEPTH_8U, 3);
         cvCvtColor((IplImage*)yarpImage.getIplImage(), cvImage, CV_RGB2BGR);
@@ -627,6 +590,7 @@ Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
         bRequest.addString(osArg.str());
         bRequest = request(bRequest);
     }
+    bReply.addString("[saveAugmentedImages] Success");
 
     return bReply;
 }
