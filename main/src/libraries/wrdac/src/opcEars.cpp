@@ -200,15 +200,22 @@ Bottle opcEars::insertEntity(Entity *A)
         // Get the beliefs:
         // output format : (instance, idagent, subject, verb, object, time, place, manner )
         // for each beliefs
-        for (list<Relation>::iterator it_Beli = AgA.beliefs().begin() ; it_Beli != AgA.beliefs().end() ; it_Beli++)
-        {
-            if (!fBelief)
+
+        // TODO: Quick fix, but someone from UPF / WP5? needs to take care that
+        // the comparison works properly!
+        if(AgA.beliefs().size()>0) {
+            for (list<Relation>::iterator it_Beli = AgA.beliefs().begin() ; it_Beli != AgA.beliefs().end() ; it_Beli++)
             {
-                osBeliefs << " ( " << instance << " , " << AgA.opc_id() << " , '" << it_Beli->subject() << "' , '" << it_Beli->verb() << "' , '" << it_Beli->object() << "' , '" << it_Beli->complement_time() << "' , '" << it_Beli->complement_place() << "' , '" << it_Beli->complement_manner() << "' ) "  ;
-                fBelief = true;
+                if (!fBelief)
+                {
+                    osBeliefs << " ( ";
+                    fBelief = true;
+                }
+                else {
+                    osBeliefs << ", ( ";
+                }
+                osBeliefs << instance << " , " << AgA.opc_id() << " , '" << it_Beli->subject() << "' , '" << it_Beli->verb() << "' , '" << it_Beli->object() << "' , '" << it_Beli->complement_time() << "' , '" << it_Beli->complement_place() << "' , '" << it_Beli->complement_manner() << "' ) "  ;
             }
-            else
-                osBeliefs << ", ( " << instance << " , " << AgA.opc_id() << " , '" << it_Beli->subject() << "' , '" << it_Beli->verb() << "' , '" << it_Beli->object() << "' , '" << it_Beli->complement_time() << "' , '" << it_Beli->complement_place() << "' , '" << it_Beli->complement_manner() << "' ) "  ;
         }
 
 
