@@ -265,7 +265,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /****************************** proprioceptivedata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
-    *ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, type text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", type, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE proprioceptivedata OWNER TO postgres;";
+    *ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE); ALTER TABLE proprioceptivedata OWNER TO postgres;";
 
     string sFilename;
 
@@ -492,13 +492,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         // add an image provider for the following stream recording : addImgProvider (label /yarp/port/img/provider)
         else if (bCommand.get(0) == "addImgStreamProvider")
         {
-            if (bCommand.size() == 3 && bCommand.get(1).isString() && bCommand.get(2).isString())
+            if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = addImgStreamProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
+                bReply = addImgStreamProvider(bCommand.get(1).toString().c_str());
             }
             else
             {
-                bError.addString("[addImgStreamProvider]: wrong number of element -> addImgStreamProvider label /yarp/port/img/provider");
+                bError.addString("[addImgStreamProvider]: wrong number of element -> addImgStreamProvider /yarp/port/img/provider");
                 bReply = bError;
             }
         }
@@ -512,18 +512,18 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else
             {
-                bError.addString("[removeImgStreamProvider]: wrong number of element -> removeImgStreamProvider label");
+                bError.addString("[removeImgStreamProvider]: wrong number of element -> removeImgStreamProvider /yarp/port/img/provider");
                 bReply = bError;
             }
         }
         else if (bCommand.get(0) == "addDataStreamProvider")
         {
-            if (bCommand.size() == 3 && bCommand.get(1).isString() && bCommand.get(2).isString())
+            if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = addDataStreamProvider(bCommand.get(1).toString().c_str(), bCommand.get(2).toString().c_str());
+                bReply = addDataStreamProvider(bCommand.get(1).toString().c_str());
             }
             else {
-                bError.addString("[addDataStreamProvider]: wrong number of elements -> addDataStreamProvider type /yarp/port/contdata/provider");
+                bError.addString("[addDataStreamProvider]: wrong number of elements -> addDataStreamProvider /yarp/port/contdata/provider");
                 bReply = bError;
             }
         }

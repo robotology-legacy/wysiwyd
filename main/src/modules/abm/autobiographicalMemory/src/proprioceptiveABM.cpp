@@ -21,19 +21,18 @@
 using namespace std;
 using namespace yarp::os;
 
-Bottle autobiographicalMemory::addDataStreamProvider(const string &type, const string &portDataStreamProvider)
+Bottle autobiographicalMemory::addDataStreamProvider(const string &portDataStreamProvider)
 {
     Bottle bReply;
 
-    if (mapDataStreamProvider.find(type) == mapDataStreamProvider.end()) //key not found
+    if (mapDataStreamInput.find(portDataStreamProvider) == mapDataStreamInput.end()) //key not found
     {
-        mapDataStreamProvider[type] = portDataStreamProvider;
-        mapDataStreamReceiver[type] = new yarp::os::BufferedPort < yarp::os::Bottle > ;
+        mapDataStreamInput[portDataStreamProvider] = new yarp::os::BufferedPort < yarp::os::Bottle > ;
 
         bReply.addString("[ack]");
     }
     else { //key found
-        string error = "[addDataStreamProvider] " + type + " is already present!";
+        string error = "[addDataStreamProvider] " + portDataStreamProvider + " is already present!";
         cout << error << endl;
         bReply.addString(error);
     }
@@ -41,20 +40,19 @@ Bottle autobiographicalMemory::addDataStreamProvider(const string &type, const s
     return bReply;
 }
 
-Bottle autobiographicalMemory::removeDataStreamProvider(const string &label)
+Bottle autobiographicalMemory::removeDataStreamProvider(const string &portDataStreamProvider)
 {
     Bottle bReply;
 
-    if (mapDataStreamProvider.find(label) == mapDataStreamProvider.end()) { //key not found
-        string error = "[removeDataStreamProvider]: " + label + ") is NOT present!";
+    if (mapDataStreamInput.find(portDataStreamProvider) == mapDataStreamInput.end()) { //key not found
+        string error = "[removeDataStreamProvider]: " + portDataStreamProvider + ") is NOT present!";
         cout << error << endl;
         bReply.addString(error);
     }
     else { //key found
-        mapDataStreamProvider.erase(label);
-        mapDataStreamReceiver[label]->interrupt();
-        mapDataStreamReceiver[label]->close();
-        mapDataStreamReceiver.erase(label);
+        mapDataStreamInput[portDataStreamProvider]->interrupt();
+        mapDataStreamInput[portDataStreamProvider]->close();
+        mapDataStreamInput.erase(portDataStreamProvider);
         bReply.addString("[ack]");
     }
 
@@ -65,26 +63,26 @@ Bottle autobiographicalMemory::connectDataStreamProviders()
 {
     Bottle bOutput;
 
-    if (mapDataStreamProvider.size() == 0){
+    if (mapDataStreamInput.size() == 0){
         bOutput.addString("[connectDataStreamProviders] ERROR: the map is NULL");
         return bOutput;
     }
 
-    for (std::map<string, string>::const_iterator it = mapDataStreamProvider.begin(); it != mapDataStreamProvider.end(); ++it)
+    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
-        string portDataStreamReceiver = "/" + getName() + "/proprioception/" + it->first + "/in";
-        mapDataStreamReceiver.find(it->first)->second->open(portDataStreamReceiver);
-        //it->second: port name of proprioceptive data Provider
-        //mapDataStreamReceiver.find(it->first)->second: portname of mapDataStreamReceiver which correspond to the label of dataStreamProvider
-        //cout << "  [connectDataStreamProviders] : trying to connect " << it->second << " with " <<  mapDataStreamReceiver.find(it->first)->second->getName().c_str() << endl ;
-        if (!Network::isConnected(it->second, mapDataStreamReceiver.find(it->first)->second->getName().c_str())) {
+        string portDataStreamReceiver = "/" + getName() + "/proprioception" + it->first + "/in";
+        it->second->open(portDataStreamReceiver);
+        //it->first: port name of proprioceptive data Provider
+        //it->second: portname of mapDataStreamReceiver which correspond to the label of dataStreamProvider
+        //cout << "  [connectDataStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName() << endl ;
+        if (!Network::isConnected(it->first, it->second->getName().c_str())) {
             //cout << "Port is NOT connected : we will connect" << endl ;
-            if (!Network::connect(it->second, mapDataStreamReceiver.find(it->first)->second->getName().c_str())) {
+            if (!Network::connect(it->first, it->second->getName().c_str())) {
                 cout << "Error: Connection could not be setup" << endl;
-                bOutput.addString(it->second);
+                bOutput.addString(it->first);
             }
-            //cout << "[connectDataStreamProviders] Connection from : " << it->second << endl ;
-            //cout << "[connectDataStreamProviders] Connection to   : " << mapDataStreamReceiver.find(it->first)->second->getName().c_str() << endl;
+            //cout << "[connectDataStreamProviders] Connection from : " << it->first << endl ;
+            //cout << "[connectDataStreamProviders] Connection to   : " << it->second->getName() << endl;
         }
         else {
             //cout << "[connectDataStreamProviders] Error: Connection already present!" << endl ;
@@ -103,27 +101,27 @@ Bottle autobiographicalMemory::disconnectDataStreamProviders()
     Bottle bOutput;
     bool isAllDisconnected = true;
 
-    if (mapDataStreamProvider.size() == 0){
+    if (mapDataStreamInput.size() == 0){
         bOutput.addString("[disconnectDataStreamProviders] ERROR the map is NULL");
         return bOutput;
     }
 
-    for (std::map<string, string>::const_iterator it = mapDataStreamProvider.begin(); it != mapDataStreamProvider.end(); ++it)
+    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
-        //it->second: port name of stream data Provider
-        //mapDataStreamReceiver.find(it->first)->second: port name of streamDataReceiver which correspond to the label of streamDataProvider
-        Network::disconnect(it->second, mapDataStreamReceiver.find(it->first)->second->getName().c_str());
-        if (Network::isConnected(it->second, mapDataStreamReceiver.find(it->first)->second->getName().c_str())) {
-            cout << "[disconnectDataStreamProviders] ERROR " << it->second << " is NOT disconnected!";
-            bOutput.addString(it->second);
+        //it->first: port name of stream data Provider
+        //it->second: port name of streamDataReceiver which correspond to the label of streamDataProvider
+        Network::disconnect(it->first, it->second->getName().c_str());
+        if (Network::isConnected(it->first, it->second->getName().c_str())) {
+            cout << "[disconnectDataStreamProviders] ERROR " << it->first << " is NOT disconnected!";
+            bOutput.addString(it->first);
             isAllDisconnected = false;
         }
         else {
-            //cout << "[disconnectDataStreamProviders] " << it->second << " successfully disconnected!"  << endl ;
+            //cout << "[disconnectDataStreamProviders] " << it->first << " successfully disconnected!"  << endl ;
 
             //Have to close/interrupt each time otherwise the port is not responsive anymore
-            mapDataStreamReceiver.find(it->first)->second->interrupt();
-            mapDataStreamReceiver.find(it->first)->second->close();
+            it->second->interrupt();
+            it->second->close();
         }
     }
 
@@ -135,13 +133,13 @@ Bottle autobiographicalMemory::disconnectDataStreamProviders()
     return bOutput;
 }
 
-bool autobiographicalMemory::storeDataStream(int instance, int frame_number, const string &type, int subtype, const string &dataStreamTime, const string &dataStreamPort, double value)
+bool autobiographicalMemory::storeDataStream(int instance, int frame_number, int subtype, const string &dataStreamTime, const string &dataStreamPort, double value)
 {
     Bottle bRequest;
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "INSERT INTO proprioceptivedata(instance, type, subtype, frame_number, time, label_port, value) VALUES (" << instance << ", '" << type << "', '" << subtype << "', '" << frame_number << "', '" << dataStreamTime << "', '" << dataStreamPort << "', '" << value << "' );";
+    osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << instance << ", '" << subtype << "', '" << frame_number << "', '" << dataStreamTime << "', '" << dataStreamPort << "', '" << value << "' );";
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -149,14 +147,13 @@ bool autobiographicalMemory::storeDataStream(int instance, int frame_number, con
 }
 
 bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
-    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamReceiver.begin(); it != mapDataStreamReceiver.end(); ++it)
+    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
-        string type = it->first;
         Bottle* lastReading = it->second->read();
 
         if(lastReading != NULL) {
             for(int subtype = 0; subtype < lastReading->size(); subtype++) {
-                storeDataStream(imgInstance, frameNb, type, subtype, synchroTime, mapDataStreamProvider[it->first], lastReading->get(subtype).asDouble());
+                storeDataStream(imgInstance, frameNb, subtype, synchroTime, it->first, lastReading->get(subtype).asDouble());
             }
         }
     }
@@ -190,7 +187,7 @@ unsigned int autobiographicalMemory::getStreamDataProviderCount(int instance) {
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT label_port, type, subtype FROM proprioceptivedata WHERE instance = " << instance;
+    osArg << "SELECT DISTINCT label_port, subtype FROM proprioceptivedata WHERE instance = " << instance;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
     if(bRequest.size()>0 && bRequest.toString()!="NULL") {

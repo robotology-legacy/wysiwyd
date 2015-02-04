@@ -24,45 +24,40 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace cv;
 
-Bottle autobiographicalMemory::addImgStreamProvider(const string &labelImgProvider, const string &portImgStreamProvider)
+Bottle autobiographicalMemory::addImgStreamProvider(const string &portImgStreamProvider)
 {
     //prepare the ResultSet of the query and the reply
     Bottle bReply;
 
-    if (mapImgStreamProvider.find(labelImgProvider) == mapImgStreamProvider.end()) //key not found
+    if (mapImgStreamInput.find(portImgStreamProvider) == mapImgStreamInput.end()) //key not found
     {
-        //creating imgReceiverPort for the current provider (DEPRECATED)
-        //string portImgReceiver = "/" + getName() + "/images/" + labelImgProvider + "/in";
-
         //add the imgProvider and imgReceiver to the map
-        mapImgStreamProvider[labelImgProvider] = portImgStreamProvider;
-        mapImgStreamReceiver[labelImgProvider] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+        mapImgStreamInput[portImgStreamProvider] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
 
         bReply.addString("[ack]");
     }
     else { //key found
-        cout << "ERROR : addImgStreamProvider : " << labelImgProvider << " is already present!" << endl;
-        bReply.addString("ERROR : addImgStreamProvider : " + labelImgProvider + " is already present!");
+        cout << "ERROR : addImgStreamProvider : " << portImgStreamProvider << " is already present!" << endl;
+        bReply.addString("ERROR : addImgStreamProvider : " + portImgStreamProvider + " is already present!");
     }
 
     //send the reply
     return bReply;
 }
 
-Bottle autobiographicalMemory::removeImgStreamProvider(const string &labelImgProvider)
+Bottle autobiographicalMemory::removeImgStreamProvider(const string &portImgStreamProvider)
 {
     //prepare the ResultSet of the query and the reply
     Bottle bReply;
 
-    if (mapImgStreamProvider.find(labelImgProvider) == mapImgStreamProvider.end()) { //key not found
-        cout << "ERROR : removeImgStreamProvider : " << labelImgProvider << " is NOT present! " << endl;
-        bReply.addString("ERROR : removeImgStreamProvider : " + labelImgProvider + " is NOT present! ");
+    if (mapImgStreamInput.find(portImgStreamProvider) == mapImgStreamInput.end()) { //key not found
+        cout << "ERROR : removeImgStreamProvider : " << portImgStreamProvider << " is NOT present! " << endl;
+        bReply.addString("ERROR : removeImgStreamProvider : " + portImgStreamProvider + " is NOT present! ");
     }
     else { //key found
-        mapImgStreamProvider.erase(labelImgProvider);
-        mapImgStreamReceiver[labelImgProvider]->interrupt();
-        mapImgStreamReceiver[labelImgProvider]->close();
-        mapImgStreamReceiver.erase(labelImgProvider);
+        mapImgStreamInput[portImgStreamProvider]->interrupt();
+        mapImgStreamInput[portImgStreamProvider]->close();
+        mapImgStreamInput.erase(portImgStreamProvider);
         bReply.addString("[ack]");
     }
 
@@ -171,26 +166,26 @@ Bottle autobiographicalMemory::connectToImgStreamProviders()
 {
     Bottle bOutput;
 
-    if (mapImgStreamProvider.size() == 0){
+    if (mapImgStreamInput.size() == 0){
         bOutput.addString("ERROR [connectToImgStreamProviders] the map is NULL");
         return bOutput;
     }
 
-    for (std::map<string, string>::const_iterator it = mapImgStreamProvider.begin(); it != mapImgStreamProvider.end(); ++it)
+    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it)
     {
-        string portImgStreamReceiver = "/" + getName() + "/images/" + it->first + "/in";
-        mapImgStreamReceiver.find(it->first)->second->open(portImgStreamReceiver);
-        //it->second: port name of img Provider
-        //mapImgReceiver.find(it->first)->second: portname of imgReceiver which correspond to the label of imgProvider
-        //cout << "  [connectToImgStreamProviders] : trying to connect " << it->second << " with " <<  mapImgStreamReceiver.find(it->first)->second->getName().c_str() << endl ;
-        if (!Network::isConnected(it->second, mapImgStreamReceiver.find(it->first)->second->getName().c_str())) {
-            //cout << "Port is NOT connected : we will connect" << endl ;
-            if (!Network::connect(it->second, mapImgStreamReceiver.find(it->first)->second->getName().c_str())) {
+        string portImgStreamReceiver = "/" + getName() + "/images" + it->first + "/in";
+        it->second->open(portImgStreamReceiver);
+        //it->first: port name of img Provider
+        //it->second->getName(): portname of imgReceiver which correspond to the label of imgProvider
+        //cout << "  [connectToImgStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName() << endl;
+        if (!Network::isConnected(it->first, it->second->getName().c_str())) {
+            //cout << "Port is NOT connected : we will connect" << endl;
+            if (!Network::connect(it->first, it->second->getName().c_str())) {
                 cout << "Error: Connection could not be setup" << endl;
-                bOutput.addString(it->second);
+                bOutput.addString(it->first);
             }
-            //cout << "Connection from : " << it->second << endl ;
-            //cout << "Connection to   : " << mapImgReceiver.find(it->first)->second->getName().c_str() << endl;
+            //cout << "Connection from : " << it->first << endl;
+            //cout << "Connection to   : " << it->second->getName() << endl;
         }
         else {
             //cout << "Error: Connection already present!" << endl ;
@@ -209,26 +204,26 @@ Bottle autobiographicalMemory::disconnectFromImgStreamProviders()
     Bottle bOutput;
     bool isAllDisconnected = true;
 
-    if (mapImgStreamProvider.size() == 0){
+    if (mapImgStreamInput.size() == 0){
         bOutput.addString("ERROR [disconnectFromImgStreamProviders] the map is NULL");
         return bOutput;
     }
 
-    for (std::map<string, string>::const_iterator it = mapImgStreamProvider.begin(); it != mapImgStreamProvider.end(); ++it)
+    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it)
     {
         //it->second: port name of img Provider
         //mapImgReceiver.find(it->first)->second: port name of imgReceiver which correspond to the label of imgProvider
-        Network::disconnect(it->second, mapImgStreamReceiver.find(it->first)->second->getName().c_str());
-        if (Network::isConnected(it->second, mapImgStreamReceiver.find(it->first)->second->getName().c_str())) {
-            cout << "ERROR [disconnectFromImgStreamProviders] " << it->second << " is NOT disconnected!";
-            bOutput.addString(it->second);
+        Network::disconnect(it->first, it->second->getName().c_str());
+        if (Network::isConnected(it->first, it->second->getName().c_str())) {
+            cout << "ERROR [disconnectFromImgStreamProviders] " << it->first << " is NOT disconnected!";
+            bOutput.addString(it->first);
             isAllDisconnected = false;
         } else {
-            //cout << "[disconnectFromImgStreamProviders] " << it->second << " successfully disconnected!"  << endl ;
+            //cout << "[disconnectFromImgStreamProviders] " << it->first << " successfully disconnected!"  << endl ;
 
             //Have to close/interrupt each time otherwise the port is not responsive anymore
-            mapImgStreamReceiver.find(it->first)->second->interrupt();
-            mapImgStreamReceiver.find(it->first)->second->close();
+            it->second->interrupt();
+            it->second->close();
         }
     }
 
@@ -370,19 +365,21 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
     bool allGood = true;
     //go through the ImgReceiver ports
 
-    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamReceiver.begin(); it != mapImgStreamReceiver.end(); ++it)
+    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it)
     {
         //concatenation of the path to store
         stringstream imgInstanceString; imgInstanceString << imgInstance;
 
         stringstream imgName;
+        string port = it->first;
+        replace(port.begin(), port.end(), '/', '_');
         if(forSingleInstance) {
             if (fullSentence == ""){
                 fullSentence = imgLabel;
             }
             //take the full sentence, replace space by _ to have the img name
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
-            imgName << fullSentence << "_" << it->first << "." << imgFormat;
+            imgName << fullSentence << port << "." << imgFormat;
 
             string currentPathFolder = storingPath + "/"; currentPathFolder+=imgInstanceString.str();
             yarp::os::mkdir(currentPathFolder.c_str());
@@ -392,7 +389,7 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
             chmod(currentPathFolder.c_str(), 0777);
 #endif
         } else {
-            imgName << imgLabel << frameNb << "_" << it->first << "." << imgFormat;
+            imgName << imgLabel << frameNb << port << "." << imgFormat;
         }
 
         string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
@@ -405,7 +402,7 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         else {
             //cout << "Store image " << imagePath << " in database." << endl;
             //create SQL entry, register the cam image in specific folder
-            if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, mapImgStreamProvider[it->first])) {
+            if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, it->first)) {
                 allGood = false;
                 cout << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath << endl;
             }

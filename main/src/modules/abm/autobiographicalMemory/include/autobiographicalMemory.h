@@ -112,12 +112,9 @@ public:
     // maps to receive / send images
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamPortOut;
     std::map <std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamPortOut;
-    // these two maps should be combined :)
-    std::map <std::string, std::string> mapImgStreamProvider;
-    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamReceiver;
-    // these two maps should be combined :)
-    std::map< std::string, std::string > mapDataStreamProvider;
-    std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamReceiver;
+
+    std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamInput;
+    std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamInput;
 
     yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented=false, std::string provider_port="");
 
@@ -132,13 +129,13 @@ public:
     bool storeImageOIDs();
 
     bool storeDataStreamAllProviders(const std::string &synchroTime);
-    bool storeDataStream(int instance, int frame_number, const std::string &type, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
+    bool storeDataStream(int instance, int frame_number, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
 
     // add / remove stream providers
-    yarp::os::Bottle addImgStreamProvider(const std::string &label, const std::string &portImgStreamProvider);
-    yarp::os::Bottle removeImgStreamProvider(const std::string &label);
-    yarp::os::Bottle addDataStreamProvider(const std::string &type, const std::string &portDataStreamProvider);
-    yarp::os::Bottle removeDataStreamProvider(const std::string &label);
+    yarp::os::Bottle addImgStreamProvider(const std::string &portImgStreamProvider);
+    yarp::os::Bottle removeImgStreamProvider(const std::string &portImgStreamProvider);
+    yarp::os::Bottle addDataStreamProvider(const std::string &portDataStreamProvider);
+    yarp::os::Bottle removeDataStreamProvider(const std::string &portDataStreamProvider);
 
     int openImgStreamPorts(int instance);
     yarp::os::Bottle connectToImgStreamProviders();
