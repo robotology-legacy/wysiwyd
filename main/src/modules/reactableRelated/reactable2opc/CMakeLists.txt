@@ -19,7 +19,12 @@ include_directories(${YARP_INCLUDE_DIRS} ${TUIO_INCLUDE_DIRS} ${wrdac_INCLUDE_DI
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header} ${OSC_SYSTEM_SPECIFIC_SRC} ${doc_files})
 #add_executable(${PROJECTNAME} ${folder_source} ${folder_header} )
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER reactableRelated)
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${TUIO_LIBRARIES} wrdac pthread)
+IF (WIN32)
+    target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${TUIO_LIBRARIES} wrdac)
+ELSE (WIN32)
+    target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${TUIO_LIBRARIES} wrdac pthread)
+ENDIF (WIN32)
+
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 
