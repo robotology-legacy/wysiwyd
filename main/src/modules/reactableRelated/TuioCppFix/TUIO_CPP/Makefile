@@ -48,7 +48,7 @@ static:	$(COMMON_OBJECTS)
 	ar rcs $(TUIO_STATIC) $(COMMON_OBJECTS)
 
 shared:	$(COMMON_OBJECTS)
-	$(CXX) -lpthread $+ $(SHARED_OPTIONS) -o $(TUIO_SHARED)
+	$(CXX) $+ $(SHARED_OPTIONS) -o $(TUIO_SHARED) -lpthread
 	
 dump:	$(COMMON_OBJECTS) $(DUMP_OBJECTS)
 	$(CXX) -o $(TUIO_DUMP) $+ -lpthread
