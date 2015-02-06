@@ -489,7 +489,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        // add an image provider for the following stream recording : addImgProvider (label /yarp/port/img/provider)
+        // add an image provider for the following stream recording : addImgStreamProvider (label /yarp/port/img/provider)
         else if (bCommand.get(0) == "addImgStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
@@ -552,7 +552,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "getImagesInfo")
         {
-            if(bCommand.size() > 2 && bCommand.get(1).isInt()) {
+            if(bCommand.size() >= 2 && bCommand.get(1).isInt()) {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
                 if(bCommand.size()==3) {
                     bool includeAugmentedImages = (atoi((bCommand.get(2)).toString().c_str()));

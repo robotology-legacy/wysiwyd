@@ -133,29 +133,27 @@ Bottle autobiographicalMemory::disconnectDataStreamProviders()
     return bOutput;
 }
 
-bool autobiographicalMemory::storeDataStream(int instance, int frame_number, int subtype, const string &dataStreamTime, const string &dataStreamPort, double value)
-{
-    Bottle bRequest;
+bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
+    bool doInsert=false;
     ostringstream osArg;
 
-    bRequest.addString("request");
-    osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << instance << ", '" << subtype << "', '" << frame_number << "', '" << dataStreamTime << "', '" << dataStreamPort << "', '" << value << "' );";
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
-
-    return true;
-}
-
-bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
     for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
-        Bottle* lastReading = it->second->read();
+        Bottle* lastReading = it->second->read(false);
 
         if(lastReading != NULL) {
             for(int subtype = 0; subtype < lastReading->size(); subtype++) {
-                storeDataStream(imgInstance, frameNb, subtype, synchroTime, it->first, lastReading->get(subtype).asDouble());
+                osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' );";
             }
+            doInsert=true;
         }
+    }
+
+    if(doInsert) {
+        Bottle bRequest;
+        bRequest.addString("request");
+        bRequest.addString(osArg.str());
+        bRequest = request(bRequest);
     }
 
     return true;

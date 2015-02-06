@@ -129,7 +129,6 @@ public:
     bool storeImageOIDs();
 
     bool storeDataStreamAllProviders(const std::string &synchroTime);
-    bool storeDataStream(int instance, int frame_number, int subtype, const std::string &contDataTime, const std::string &contDataPort, double value);
 
     // add / remove stream providers
     yarp::os::Bottle addImgStreamProvider(const std::string &portImgStreamProvider);

@@ -238,7 +238,7 @@ Bottle autobiographicalMemory::disconnectFromImgStreamProviders()
 bool autobiographicalMemory::saveImageFromPort(const string &fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
 {
     //Extract the incoming images from yarp
-    ImageOf<PixelRgb> *yarpImage = imgPort->read();
+    ImageOf<PixelRgb> *yarpImage = imgPort->read(false);
     //cout << "imgPort name : " << imgPort->getName() << endl ;
 
     if (yarpImage != NULL) { // check we actually got something
@@ -395,17 +395,17 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
 
         string imagePath = storingPath + "/" + relativeImagePath;
-        if (!saveImageFromPort(imagePath, it->second)) {
-            cout << "[storeInfoAllImages]: image not created from " << it->first << endl;
-            allGood = false;
-        }
-        else {
+        if(saveImageFromPort(imagePath, it->second)) {
             //cout << "Store image " << imagePath << " in database." << endl;
             //create SQL entry, register the cam image in specific folder
             if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, it->first)) {
                 allGood = false;
                 cout << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath << endl;
             }
+        }
+        else {
+            cout << "[storeInfoAllImages]: image not created from " << it->first << endl;
+            allGood = false;
         }
     }
 
