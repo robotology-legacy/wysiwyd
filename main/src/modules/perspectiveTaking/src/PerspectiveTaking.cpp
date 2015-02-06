@@ -53,8 +53,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     selfPerspImgPort.open("/"+getName()+"/images/self:o");
     partnerPerspImgPort.open("/"+getName()+"/images/partner:o");
 
-    addABMImgProvider("VPTSelf", selfPerspImgPort.getName());
-    addABMImgProvider("VPTPartner", partnerPerspImgPort.getName());
+    addABMImgProvider(selfPerspImgPort.getName());
+    addABMImgProvider(partnerPerspImgPort.getName());
 
     mapBuilder = new MapBuilder(rf.check("decimationOdometry",Value(2)).asInt(),
                                 rf.check("decimationStatistics",Value(2)).asInt());
@@ -72,19 +72,51 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     Eigen::Vector4f icub_up =   Eigen::Vector4f( 0,0,1,1);
     setCamera(icub_pos, icub_view, icub_up, "icub");
 
+    distanceMultiplier = rf.check("distanceMultiplier",Value(1.0)).asDouble();
+    updateTimer = rf.check("updateTimer",Value(1.0)).asDouble();
+
     return true;
 }
 
 bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
     // TODO: Not yet implemented
-    if (cmd.get(0).asString() == "learnEnvironment" )
-    {
+    if (cmd.get(0).asString() == "learnEnvironment") {
         //cout << getName() << ": Going to learn the environment" << endl;
         //parameter = cmd.get(1).asString();
         reply.addString("ack");
-    }
-    else
-    {
+    } else if (cmd.get(0).asString() == "setDistanceMultiplier") {
+        if(cmd.get(1).isDouble()) {
+            distanceMultiplier = cmd.get(1).asDouble();
+            reply.addString("ack");
+        }
+        else {
+            reply.addString("Wrong function call: setDistanceMultiplier 2.0");
+        }
+    } else if (cmd.get(0).asString() == "setUpdateTimer") {
+        if(cmd.get(1).isInt()) {
+            updateTimer = cmd.get(1).asInt();
+            reply.addString("ack");
+        }
+        else {
+            reply.addString("Wrong function call: setUpdateTimer 20");
+        }
+    } else if (cmd.get(0).asString() == "setDecimationOdometry") {
+        if(cmd.get(1).isInt()) {
+            mapBuilder->setDecimationOdometry(cmd.get(1).asInt());
+            reply.addString("ack");
+        }
+        else {
+            reply.addString("Wrong function call: setDecimationOdometry 2");
+        }
+    } else if (cmd.get(0).asString() == "setDecimationStatistics") {
+        if(cmd.get(1).isInt()) {
+            mapBuilder->setDecimationStatistics(cmd.get(1).asInt());
+            reply.addString("ack");
+        }
+        else {
+            reply.addString("Wrong function call: setDecimationOdometry 2");
+        }
+    } else {
         reply.addString("nack");
     }
     return true;
@@ -94,41 +126,10 @@ double perspectiveTaking::getPeriod() {
     return 0.1;
 }
 
-bool perspectiveTaking::addABMImgProvider(string label, string portName) {
-    Bottle bCmd, bReply;
-    bCmd.addString("addImgProvider");
-    bCmd.addString(label);
-    bCmd.addString(portName);
-
-    abm.write(bCmd, bReply);
-
-    if(bReply.toString()=="ack") {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool perspectiveTaking::removeABMImgProvider(string label) {
-    Bottle bCmd, bReply;
-    bCmd.addString("removeImgProvider");
-    bCmd.addString(label);
-
-    abm.write(bCmd, bReply);
-
-    if(bReply.toString()=="ack") {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 bool perspectiveTaking::sendImages() {
     mapBuilder->saveScreenshot("temp.png");
-    cv::Mat screen;
-    screen = cv::imread("temp.png", CV_LOAD_IMAGE_COLOR);
-    if(!screen.data ) // Check for invalid input
-    {
+    cv::Mat screen = cv::imread("temp.png", CV_LOAD_IMAGE_COLOR);
+    if(!screen.data) {// Check for invalid input
         cout <<  "Could not open or find the image" << std::endl;
         return false;
     }
@@ -159,32 +160,11 @@ bool perspectiveTaking::sendImages() {
     return true;
 }
 
-void perspectiveTaking::setCamera(Vector p_pos, Vector p_view, Vector p_up, string cameraName) {
-    setCamera(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), cameraName);
-}
-
-void perspectiveTaking::setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, string cameraName) {
-    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * p_pos;
-    //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
-    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * p_view;
-    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * p_up;
-
-    pos/=pos[3]; view/=view[3], up/=up[3];
-
-    Eigen::Vector4f up_diff = up-pos;
-
-    mapBuilder->setCameraPosition(
-        pos[0], pos[1], pos[2],
-        view[0], view[1], view[2],
-        up_diff[0], up_diff[1], up_diff[2],
-        mapBuilder->getViewports()[cameraName]);
-}
-
 /* Called periodically every getPeriod() seconds */
 bool perspectiveTaking::updateModule() {
     if(!mapBuilder->wasStopped()) {
         ++loopCounter;
-        if(loopCounter%25==0) { // only update camera every now and then
+        if(loopCounter%updateTimer==0) { // only update camera every now and then
             sendImages();
 
             partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
@@ -199,7 +179,7 @@ bool perspectiveTaking::updateModule() {
                 // This is achieved by laying a plane between left shoulder,
                 // right shoulder and head and using the normal vector of
                 // the plane as viewing vector
-                Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
+                Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
 
                 setCamera(p_headPos, p_view, p_up, "partner");
             } else {
@@ -248,8 +228,8 @@ bool perspectiveTaking::interruptModule() {
 
 bool perspectiveTaking::close() {
     // remove ABM image providers
-    removeABMImgProvider("VPTSelf");
-    removeABMImgProvider("VPTPartner");
+    removeABMImgProvider(selfPerspImgPort.getName());
+    removeABMImgProvider(partnerPerspImgPort.getName());
 
     // remove handlers
     mapBuilder->unregisterFromEventsManager();

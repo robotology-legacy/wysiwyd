@@ -52,6 +52,14 @@ public:
                             double up_x, double up_y, double up_z,
                             int viewport = 0 );
 
+    void setDecimationOdometry(int decimation) {
+        decimationOdometry_ = decimation;
+    }
+
+    void setDecimationStatistics(int decimation) {
+        decimationStatistics_ = decimation;
+    }
+
 private:
     void processOdometry(const rtabmap::SensorData & data);
     void processStatistics(const rtabmap::Statistics & stats);

@@ -55,7 +55,7 @@ protected:
 
     // ABM related
     void connectToABM(std::string abmName);
-    bool addABMImgProvider(std::string label, std::string portName);
+    bool addABMImgProvider(std::string portName);
     bool removeABMImgProvider(std::string label);
     bool sendImages();
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > selfPerspImgPort;
@@ -73,9 +73,11 @@ protected:
     void setCamera(yarp::sig::Vector pos, yarp::sig::Vector view, yarp::sig::Vector up, std::string cameraName);
     Eigen::Matrix4f kinect2icub_pcl;
     Eigen::Matrix4f yarp2pcl;
+    double distanceMultiplier;
 
     // misc
     unsigned long loopCounter;
+    int updateTimer;
     yarp::os::ResourceFinder resfind;
     bool openHandlerPort();
     bool setupThreads();

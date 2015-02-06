@@ -198,6 +198,55 @@ bool perspectiveTaking::openHandlerPort() {
     return true;
 }
 
+bool perspectiveTaking::addABMImgProvider(string portName) {
+    Bottle bCmd, bReply;
+    bCmd.addString("addImgStreamProvider");
+    bCmd.addString(portName);
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.toString()=="ack") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool perspectiveTaking::removeABMImgProvider(string portName) {
+    Bottle bCmd, bReply;
+    bCmd.addString("removeImgStreamProvider");
+    bCmd.addString(portName);
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.toString()=="ack") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void perspectiveTaking::setCamera(Vector p_pos, Vector p_view, Vector p_up, string cameraName) {
+    setCamera(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), cameraName);
+}
+
+void perspectiveTaking::setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, string cameraName) {
+    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * p_pos;
+    //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
+    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * p_view;
+    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * p_up;
+
+    pos/=pos[3]; view/=view[3], up/=up[3];
+
+    Eigen::Vector4f up_diff = up-pos;
+
+    mapBuilder->setCameraPosition(
+        pos[0], pos[1], pos[2],
+        view[0], view[1], view[2],
+        up_diff[0], up_diff[1], up_diff[2],
+        mapBuilder->getViewports()[cameraName]);
+}
+
 void yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,
                           Eigen::Matrix4f& kinect2icubPCL) {
     for(int i=0; i<4; i++) {
