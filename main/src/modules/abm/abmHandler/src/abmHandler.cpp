@@ -111,7 +111,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
 
     // Open port2ispeak
     port2iSpeakName = "/";
-    port2iSpeakName = getName() + "/toiSpeak";
+    port2iSpeakName += getName() + "/toiSpeak";
 
     if (!Port2iSpeak.open(port2iSpeakName.c_str())) {
         cout << getName() << ": Unable to open port " << port2iSpeakName << endl;
@@ -119,7 +119,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2ispeak
-    port2BodySchemaName = getName() + "/toBodySchema";
+    port2BodySchemaName = "/" + getName() + "/toBodySchema";
 
     if (!Port2BodySchema.open(port2BodySchemaName.c_str())) {
         cout << getName() << ": Unable to open port " << port2BodySchemaName << endl;
@@ -560,7 +560,12 @@ Bottle abmHandler::node1()
         osAnswer << "Of course! Let me show you with my left arm";
         bSpeak.addString(osAnswer.str());
 
-        //Port2BodySchema.write(bBodySchema, bAnswer);
+
+        //Port2BodySchema (testing no reply)
+        //Port2BodySchema.write(bBodySchema);
+
+        //waiting for reply
+        Port2BodySchema.write(bBodySchema, bAnswer);
 
         return node1() ;
     }
