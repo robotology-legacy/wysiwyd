@@ -110,10 +110,19 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     }
 
     // Open port2ispeak
-    port2OPCmanagerName = getName() + "/toiSpeak";
+    port2iSpeakName = "/";
+    port2iSpeakName = getName() + "/toiSpeak";
 
     if (!Port2iSpeak.open(port2iSpeakName.c_str())) {
         cout << getName() << ": Unable to open port " << port2iSpeakName << endl;
+        bEveryThingisGood = false;
+    }
+
+    // Open port2ispeak
+    port2BodySchemaName = getName() + "/toBodySchema";
+
+    if (!Port2BodySchema.open(port2BodySchemaName.c_str())) {
+        cout << getName() << ": Unable to open port " << port2BodySchemaName << endl;
         bEveryThingisGood = false;
     }
 
@@ -139,6 +148,8 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     bOptionnalModule &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
     bOptionnalModule &= Network::connect(port2OPCmanagerName, "/opcManager/rpc");
     bOptionnalModule &= Network::connect(port2iSpeakName, "/iSpeak");
+    bOptionnalModule &= Network::connect(port2BodySchemaName, "/bodySchema/rpc");
+
     bOptionnalModule &= Network::connect("/mainLoop/speechGrammar/keyword:o", handlerPortName.c_str());
 
     if (!bOptionnalModule)
@@ -265,6 +276,7 @@ Bottle abmHandler::node1()
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic, // semantic information of the content of the recognition
         bSendReasoning, // send the information of recall to the abmReasoning
+        bBodySchema, //send rpc command to BodySchema
         bSpeak, // bottle for tts
         bTemp;
 
@@ -290,6 +302,14 @@ Bottle abmHandler::node1()
         if (bSpeechRecognized.get(0).toString() == "0")
         {
             osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        if (!bSpeechRecognized.get(1).isList())
+        {
+            osError << "Grammar not recognized or speechRecognizer is in Legacy mode!";
             bOutput.addString(osError.str());
             cout << osError.str() << endl;
             return bOutput;
@@ -465,7 +485,7 @@ Bottle abmHandler::node1()
         cout << bSemantic.toString().c_str() << endl ;
 
         bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
-        sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
+        sCurrentActivity = bSemantic.check("activity_past", Value("none")).asString();
         sCurrentPronoun = bSemantic.check("pronoun", Value("none")).asString();
 
         cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
@@ -516,7 +536,33 @@ Bottle abmHandler::node1()
         sLastSentence = osAnswer.str();
         bSpeak.addString(osAnswer.str());
 
-        return bOutput ;
+        //return bOutput ;
+        return node1() ;
+    }
+
+    // Can you remember the first/last time when you ...
+    else if (sQuestionKind == "ACTING")
+    {
+        cout << "============= ACTING ===================" << endl ;
+        cout << bSemantic.toString().c_str() << endl ;
+
+        sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
+
+        bBodySchema.clear();
+        if(sCurrentActivity == "babbling"){
+            bBodySchema.addString("babblingLearning");
+        }
+
+        cout << "To BodySchema : " << bBodySchema.toString() << endl ;
+
+        //Response from iCub through iSpeak
+        ostringstream osAnswer;
+        osAnswer << "Of course! Let me show you with my left arm";
+        bSpeak.addString(osAnswer.str());
+
+        //Port2BodySchema.write(bBodySchema, bAnswer);
+
+        return node1() ;
     }
 
     else
