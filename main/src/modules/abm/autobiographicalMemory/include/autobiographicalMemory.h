@@ -119,7 +119,7 @@ public:
 
     yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented=false, std::string provider_port="");
 
-    bool saveImageFromPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
+    bool saveImageFromPort(const std::string &fullPath, const std::string &portFrom, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool writeImageToPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
 
     int saveImagesFromABM(int instance, int fromFrame=-1, int toFrame=-1, std::string provider_port="");

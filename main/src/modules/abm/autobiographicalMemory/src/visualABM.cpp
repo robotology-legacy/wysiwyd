@@ -246,27 +246,30 @@ Bottle autobiographicalMemory::disconnectFromImgStreamProviders()
     return bOutput;
 }
 
-bool autobiographicalMemory::saveImageFromPort(const string &fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
+bool autobiographicalMemory::saveImageFromPort(const string &fullPath, const string &fromPort, BufferedPort<ImageOf<PixelRgb> >* imgPort)
 {
-    //Extract the incoming images from yarp
-    ImageOf<PixelRgb> *yarpImage = imgPort->read(false);
-    //cout << "imgPort name : " << imgPort->getName() << endl ;
+    if (Network::isConnected(fromPort, imgPort->getName().c_str())) {
+        //Extract the incoming images from yarp
+        ImageOf<PixelRgb> *yarpImage = imgPort->read();
+        //cout << "imgPort name : " << imgPort->getName() << endl ;
 
-    if (yarpImage != NULL) { // check we actually got something
-        //use opencv to convert the image and save it
-        IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
-        cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
-        cvSaveImage(fullPath.c_str(), cvImage);
+        if (yarpImage != NULL) { // check we actually got something
+            //use opencv to convert the image and save it
+            IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
+            cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
+            cvSaveImage(fullPath.c_str(), cvImage);
 
-        //cout << "img created : " << fullPath << endl ;
-        cvReleaseImage(&cvImage);
-    }
-    else {
-        cout << "[saveImageFromPort] No image received from: " << imgPort->getName() << endl;
+            //cout << "img created : " << fullPath << endl ;
+            cvReleaseImage(&cvImage);
+            return true;
+        }
+        else {
+            cout << "[saveImageFromPort] No image received from: " << imgPort->getName() << endl;
+            return false;
+        }
+    } else {
         return false;
     }
-
-    return true;
 }
 
 bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
@@ -408,7 +411,7 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
 
         string imagePath = storingPath + "/" + relativeImagePath;
-        if(saveImageFromPort(imagePath, it->second)) {
+        if(saveImageFromPort(imagePath, it->first, it->second)) {
             //cout << "Store image " << imagePath << " in database." << endl;
             //create SQL entry, register the cam image in specific folder
             if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, it->first)) {

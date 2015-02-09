@@ -151,12 +151,13 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
 
     for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
-        Bottle* lastReading = it->second->read(false);
+        if (Network::isConnected(it->first, it->second->getName().c_str())) {
+            Bottle* lastReading = it->second->read();
 
-        if(lastReading != NULL) {
             for(int subtype = 0; subtype < lastReading->size(); subtype++) {
                 osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' );";
             }
+
             doInsert=true;
         }
     }
