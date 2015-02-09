@@ -24,6 +24,17 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace cv;
 
+Bottle autobiographicalMemory::listImgStreamProviders()
+{
+    Bottle bReply;
+
+    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it) {
+        bReply.addString(it->first);
+    }
+
+    return bReply;
+}
+
 Bottle autobiographicalMemory::addImgStreamProvider(const string &portImgStreamProvider)
 {
     //prepare the ResultSet of the query and the reply

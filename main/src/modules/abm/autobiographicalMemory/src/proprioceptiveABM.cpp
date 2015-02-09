@@ -21,6 +21,18 @@
 using namespace std;
 using namespace yarp::os;
 
+Bottle autobiographicalMemory::listDataStreamProviders()
+{
+    Bottle bReply;
+
+    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
+    {
+        bReply.addString(it->first);
+    }
+
+    return bReply;
+}
+
 Bottle autobiographicalMemory::addDataStreamProvider(const string &portDataStreamProvider)
 {
     Bottle bReply;

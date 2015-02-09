@@ -58,6 +58,11 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imgFormat = bISProperties.check("imgFormat", Value("tif")).asString();
     portPrefixForStreaming = bISProperties.check("portPrefix", Value("/" + getName())).asString();
 
+    // conf group for data providers
+    Bottle &bDataProviders = rf.findGroup("data_providers");
+    Bottle *defaultImgStreamProviders = bDataProviders.find("defaultImgStreamProviders").asList();
+    Bottle *defaultDataStreamProviders = bDataProviders.find("defaultDataStreamProviders").asList();
+
     // TODO: streamStatus should be changed to enum
     streamStatus = "none"; //none, record, stop, send
     imgLabel = "defaultLabel";
@@ -92,6 +97,17 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     //populateOPC();
     storeImageOIDs();
+
+    if(defaultImgStreamProviders) {
+        for(int i=0; i<defaultImgStreamProviders->size(); i++) {
+            addImgStreamProvider(defaultImgStreamProviders->get(i).toString());
+        }
+    }
+    if(defaultDataStreamProviders) {
+        for(int i=0; i<defaultDataStreamProviders->size(); i++) {
+            addDataStreamProvider(defaultDataStreamProviders->get(i).toString());
+        }
+    }
 
     cout << endl << endl << "----------------------------------------------";
     cout << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
@@ -516,6 +532,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
+        else if (bCommand.get(0) == "listImgStreamProviders")
+        {
+            bReply = listImgStreamProviders();
+        }
         else if (bCommand.get(0) == "addDataStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
@@ -538,6 +558,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bError.addString("[removeDataStreamProvider]: wrong number of elements -> removeDataStreamProvider type");
                 bReply = bError;
             }
+        }
+        else if (bCommand.get(0) == "listDataStreamProviders")
+        {
+            bReply = listDataStreamProviders();
         }
         else if (bCommand.get(0) == "storeImageOIDs")
         {

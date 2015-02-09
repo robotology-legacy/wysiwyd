@@ -135,6 +135,8 @@ public:
     yarp::os::Bottle removeImgStreamProvider(const std::string &portImgStreamProvider);
     yarp::os::Bottle addDataStreamProvider(const std::string &portDataStreamProvider);
     yarp::os::Bottle removeDataStreamProvider(const std::string &portDataStreamProvider);
+    yarp::os::Bottle listImgStreamProviders();
+    yarp::os::Bottle listDataStreamProviders();
 
     int openImgStreamPorts(int instance);
     yarp::os::Bottle connectToImgStreamProviders();
