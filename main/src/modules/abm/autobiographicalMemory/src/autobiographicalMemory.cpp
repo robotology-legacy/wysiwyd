@@ -565,10 +565,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "storeImageOIDs")
         {
-            if(storeImageOIDs())
-                bReply.addString("ack");
-            else
-                bReply.addString("[storeImageOIDs] failed");
+            if (bCommand.size() == 2 && bCommand.get(1).isInt()) {
+                int instance = (atoi((bCommand.get(1)).toString().c_str()));
+                storeImageOIDs(instance);
+            } else {
+                storeImageOIDs();
+            }
+            bReply.addString("ack");
         }
         else if (bCommand.get(0) == "saveAugmentedImages")
         {

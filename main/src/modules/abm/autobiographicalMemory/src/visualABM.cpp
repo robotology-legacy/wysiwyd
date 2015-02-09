@@ -296,6 +296,8 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE)
     realtimePlayback = timingE;
     openImgStreamPorts(instance);
     openDataStreamPorts(instance);
+    // make sure images are stored in ABM before saving them
+    storeImageOIDs(instance);
     int imageCount = saveImagesFromABM(instance);
     streamStatus = "send"; //streamStatus changed (triggered in update())
 
@@ -429,11 +431,14 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
     return allGood;
 }
 
-bool autobiographicalMemory::storeImageOIDs() {
+bool autobiographicalMemory::storeImageOIDs(int instance) {
     Bottle bRequest;
     ostringstream osStoreOIDReq;
 
     osStoreOIDReq << "SELECT \"time\", img_provider_port, relative_path FROM visualdata WHERE img_oid IS NULL";
+    if(instance >= 0) {
+        osStoreOIDReq << " AND instance = " << instance;
+    }
     bRequest = requestFromString(osStoreOIDReq.str());
 
     if(bRequest.size()>0 && bRequest.get(0).toString() != "NULL") {
@@ -441,6 +446,8 @@ bool autobiographicalMemory::storeImageOIDs() {
     } else {
         return true;
     }
+
+    ostringstream osStoreOID;
 
     for(int i = 0; i<bRequest.size(); i++) {
         string imgTime = bRequest.get(i).asList()->get(0).toString().c_str();
@@ -450,14 +457,13 @@ bool autobiographicalMemory::storeImageOIDs() {
         string fullPath = storingPath + "/" + imgRelativePath;
         unsigned int new_img_oid = ABMDataBase->lo_import(fullPath.c_str());
 
-        ostringstream osStoreOID;
         osStoreOID << "UPDATE visualdata SET img_oid=" << new_img_oid;
-        osStoreOID << " WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "'";
+        osStoreOID << " WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "';";
 
-        requestFromString(osStoreOID.str());
-
-        if(i%100==0 || i==bRequest.size() - 1) {
+        if((i%100==0 && i!=0) || i==bRequest.size() - 1) {
+            requestFromString(osStoreOID.str());
             cout << "[storeImageOIDs] Saved " << i+1 << " images out of " << bRequest.size() << endl;
+            osStoreOID.str("");
         }
     }
 

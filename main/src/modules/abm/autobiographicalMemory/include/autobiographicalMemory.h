@@ -127,7 +127,7 @@ public:
     // store image / data stream to ABM
     bool storeInfoSingleImage(int instance, int frame_number, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
     bool storeInfoAllImages(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
-    bool storeImageOIDs();
+    bool storeImageOIDs(int instance=-1);
 
     bool storeDataStreamAllProviders(const std::string &synchroTime);
 

@@ -193,7 +193,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         cout << "Reason image providers: " << isConnectedToImgProviders << endl;
         cout << "Reason cont data providers: " << isConnectedToContDataProviders << endl;
     }
-    else if (isStreamActivity == true) //just launch stream images stores when relevant activity
+    if (isStreamActivity == true) //just launch stream images stores when relevant activity
     {
         if (bBegin) {
             streamStatus = "begin";
