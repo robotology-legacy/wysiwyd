@@ -65,6 +65,7 @@ private:
     bool bPutObjectsOPC; // not used!
 
     // helpers
+    bool delete_directory(const std::string &dir_to_delete);
     yarp::os::Bottle detectFailed();
 
 public:

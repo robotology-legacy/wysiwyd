@@ -16,6 +16,7 @@
  * Public License for more details
 */
 
+#include <ace/Dirent.h>
 #include "autobiographicalMemory.h"
 
 #ifdef WIN32
@@ -270,6 +271,19 @@ string autobiographicalMemory::getCurrentTime()
     osTime << iYear << "-" << iMonth << "-" << iDay << " " << iHH << ":" << iMM << ":" << iSS << "." << iUSZero.str();
 
     return osTime.str();
+}
+
+bool autobiographicalMemory::delete_directory(const string& dir_to_delete) {
+    ACE_Dirent dir(dir_to_delete.c_str());
+
+    for(dirent *directory; (directory = dir.read()) != 0; ) {
+        if(strcmp(directory->d_name, ".")!=0 && strcmp(directory->d_name, "..")!=0) {
+            string file_to_delete = dir_to_delete + directory->d_name;
+            std::remove(file_to_delete.c_str());
+        }
+    }
+
+    return yarp::os::rmdir(dir_to_delete.c_str());
 }
 
 Bottle autobiographicalMemory::connect2reasoning()

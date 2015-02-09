@@ -1029,6 +1029,11 @@ Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
         bRequest.addString(osRequest.str().c_str());
         request(bRequest);
 
+        //delete folders where images were stored in
+        ostringstream instanceString; instanceString << *it;
+        delete_directory(storingPath + "/" + instanceString.str() + "/");
+        delete_directory(storingPath + "/" + storingTmpSuffix + "/" + instanceString.str() + "/");
+
         //remove from proprioceptivedata table
         osRequest.str("");
         osRequest << "DELETE FROM proprioceptivedata WHERE instance = " << *it;
