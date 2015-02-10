@@ -571,15 +571,21 @@ Bottle abmHandler::node1()
         osAnswer << "Of course! Let me show you with my left arm";
 
         bSpeak.clear();
+        bAnswer.clear();
         bSpeak.addString(osAnswer.str());
         Port2iSpeak.write(bSpeak);
 
+        yarp::os::Time::delay(3);
+        //cout << "bAnswer from iSpeak : " << bAnswer.toString() << endl ;
 
         //Port2BodySchema (testing no reply)
         //Port2BodySchema.write(bBodySchema);
 
         //waiting for reply
-        //Port2BodySchema.write(bBodySchema, bAnswer);
+        bAnswer.clear();
+        Port2BodySchema.write(bBodySchema, bAnswer);
+
+        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl ;
 
         return node1() ;
     }
