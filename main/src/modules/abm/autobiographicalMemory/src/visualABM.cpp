@@ -126,10 +126,14 @@ Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_numb
     if(!include_augmented) {
         osArg << " AND augmented IS NULL";
     }
-    osArg << " ORDER BY time" << endl;
 
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
+
+    if(bRequest.toString()=="NULL") {
+        bOutput.addString("nack");
+        return bOutput;
+    }
 
     for (int i = 0; i < bRequest.size(); i++) {
         string relative_path = bRequest.get(i).asList()->get(0).toString();
