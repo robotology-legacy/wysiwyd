@@ -488,6 +488,11 @@ Bottle abmHandler::node1()
         sCurrentActivity = bSemantic.check("activity_past", Value("none")).asString();
         sCurrentPronoun = bSemantic.check("pronoun", Value("none")).asString();
 
+        bBodySchema.clear();
+        if(sCurrentActivity == "babbled"){
+            sCurrentActivity = "babbling";
+        }
+
         cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
 
         if (sCurrentPronoun == "none" || sCurrentActivity == "none")
@@ -500,15 +505,14 @@ Bottle abmHandler::node1()
         }
 
         ostringstream osRequest;
-        osRequest << "SELECT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
         if (sCurrentPronoun == "you") {
-            osRequest << " argument = 'icub' ) ";
+            osRequest << " argument = 'icub' AND role = 'agent1') ";
         } else { //IMPORTANT : don't have recognition then so I is everything but the iCub
-            osRequest << " argument != 'icub' ) ";
+            osRequest << " argument != 'icub' AND role = 'agent1') ";
         }
 
-        //Ask for 2 results : WARNING -> first bottle is begin = FALSE then second begin = TRUE (because of DESC)
-        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 2";
+        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
 
         cout << "REQUEST : " << osRequest.str() << endl ;
 
@@ -516,11 +520,12 @@ Bottle abmHandler::node1()
         bMessenger.addString("request");
         bMessenger.addString(osRequest.str().c_str());
 
+        bAnswer.clear();
         Port2ABM.write(bMessenger, bAnswer);
 
-        cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+        cout << "Response of ABM: \n ==>" << bAnswer.toString() << "<==" << endl;
 
-        if (bAnswer.toString() == "NULL" || bAnswer.isNull())
+        if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
         {
             iCurrentInstance = -1;
             osError.str("");
@@ -534,7 +539,13 @@ Bottle abmHandler::node1()
         ostringstream osAnswer;
         osAnswer << "It was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
         sLastSentence = osAnswer.str();
+
+        bSpeak.clear();
         bSpeak.addString(osAnswer.str());
+        Port2iSpeak.write(bSpeak);
+
+        //give the instance to hyung jin : iCurrentInstance
+
 
         //return bOutput ;
         return node1() ;
@@ -558,14 +569,17 @@ Bottle abmHandler::node1()
         //Response from iCub through iSpeak
         ostringstream osAnswer;
         osAnswer << "Of course! Let me show you with my left arm";
+
+        bSpeak.clear();
         bSpeak.addString(osAnswer.str());
+        Port2iSpeak.write(bSpeak);
 
 
         //Port2BodySchema (testing no reply)
         //Port2BodySchema.write(bBodySchema);
 
         //waiting for reply
-        Port2BodySchema.write(bBodySchema, bAnswer);
+        //Port2BodySchema.write(bBodySchema, bAnswer);
 
         return node1() ;
     }
