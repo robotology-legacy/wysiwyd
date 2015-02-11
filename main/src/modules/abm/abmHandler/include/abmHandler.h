@@ -53,6 +53,7 @@ private:
 
     int iCurrentInstance;                   // instance of the current request
     std::string sCurrentActivity;
+    std::string sCurrentAugmented;          //for augmented image
     std::string sCurrentPronoun;
     std::string sCurrentNode;
     std::string sCurrentGrammarFile;
@@ -63,6 +64,9 @@ private:
     yarp::os::Bottle node1();
     yarp::os::Bottle node2();
     yarp::os::Bottle node3();
+
+    yarp::os::Bottle appleNode2();
+    yarp::os::Bottle appleNode3();
 
     std::string dateToSpeech(std::string sDate);
 

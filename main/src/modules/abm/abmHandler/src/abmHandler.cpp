@@ -479,7 +479,7 @@ Bottle abmHandler::node1()
     }
 
     // Can you remember the first/last time when you ...
-    else if (sQuestionKind == "REMEMBERING")
+    /*else if (sQuestionKind == "REMEMBERING")
     {
         cout << "============= REMEMBERING ===================" << endl ;
         cout << bSemantic.toString().c_str() << endl ;
@@ -549,7 +549,7 @@ Bottle abmHandler::node1()
 
         //return bOutput ;
         return node1() ;
-    }
+    }*/
 
     // Can you remember the first/last time when you ...
     else if (sQuestionKind == "ACTING")
@@ -590,6 +590,104 @@ Bottle abmHandler::node1()
         return node1() ;
     }
 
+    //For Apple demo
+    else if (sQuestionKind == "REMEMBERING")
+    {
+        cout << "============= REMEMBERING ===================" << endl ;
+        cout << bSemantic.toString().c_str() << endl ;
+
+        bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
+        sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
+        sCurrentPronoun = bSemantic.check("name", Value("HyungJin")).asString();
+
+        bBodySchema.clear();
+        if(sCurrentActivity == "motor babbling"){
+            sCurrentActivity = "babbling";
+        }
+
+        cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
+
+        if (sCurrentPronoun == "none" || sCurrentActivity == "none")
+        {
+            iCurrentInstance = -1;
+            osError << "no pronoun or activity";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        ostringstream osRequest;
+        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+        if (sCurrentPronoun == "you") {
+            osRequest << " argument = 'icub' AND role = 'agent1') ";
+        } else { 
+            osRequest << " argument = '" << sCurrentPronoun << "' AND role = 'agent1') ";
+        }
+
+        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
+
+        cout << "REQUEST : " << osRequest.str() << endl ;
+
+        bMessenger.clear();
+        bMessenger.addString("request");
+        bMessenger.addString(osRequest.str().c_str());
+
+        bAnswer.clear();
+        Port2ABM.write(bMessenger, bAnswer);
+
+        cout << "Response of ABM: ==>" << bAnswer.toString() << "<==" << endl;
+
+        if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
+        {
+            iCurrentInstance = -1;
+            osError.str("");
+            osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
+        ostringstream osAnswer;
+        osAnswer << "Yes, it was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
+        sLastSentence = osAnswer.str();
+
+        bSpeak.clear();
+        bSpeak.addString(osAnswer.str());
+        Port2iSpeak.write(bSpeak);
+
+        yarp::os::Time::delay(2);
+
+        osAnswer.str(std::string());
+        osAnswer << "Actually, I remember, I am visualizing it right now ";
+        sLastSentence = osAnswer.str();
+
+        bSpeak.clear();
+        bSpeak.addString(osAnswer.str());
+        Port2iSpeak.write(bSpeak);
+
+        //yarp::os::Time::delay(3);
+
+        //TODO : triggerStreaming for raw images
+        bMessenger.clear();
+        bAnswer.clear();
+        bMessenger.addString("triggerStreaming");
+        bMessenger.addInt(iCurrentInstance); //string iCurrentInstance cast in int
+        bMessenger.addInt(1); //for syncro real time : Yes
+        bMessenger.addInt(0); //for include augmented images? No
+
+        cout << "Bottle sent to ABM: ==>" << bMessenger.toString() << "<==" << endl;
+        Port2ABM.write(bMessenger, bAnswer);
+        cout << "Response of ABM: ==>" << bAnswer.toString() << "<==" << endl;
+
+        //Connect port to yarpview for future visualization : HACK
+        //Network::connect("/autobiographicalMemory/icub/camcalib/right/out", "/yarpview/abm/icub/camcalib/right");
+        //Network::connect("/autobiographicalMemory/icub/camcalib/left/out", "/yarpview/abm/icub/camcalib/left");
+
+        //return bOutput ;
+        return appleNode2() ;
+    }
+
     else
     {
         string sError = "What da hell are you talking about Bro ?";
@@ -600,6 +698,247 @@ Bottle abmHandler::node1()
         Port2iSpeak.write(bOutput);
         return bOutput;
     }
+}
+
+Bottle abmHandler::appleNode2()
+{
+    sCurrentNode = "Apple Node 2";
+    sCurrentGrammarFile = nameGrammarNode2;
+    ostringstream osError;          // Error message
+    osError << "Error in abmHandler | " << sCurrentNode << " :: ";
+    cout << endl << "In " << sCurrentNode << endl << endl;
+
+    Bottle bOutput;
+
+    bool fGetaReply = false;
+    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
+        bMessenger, //to be send TO speech recog
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bSendReasoning, // send the information of recall to the abmReasoning
+        bBodySchema, //send rpc command to BodySchema
+        bSpeak, // bottle for tts
+        bTemp;
+
+    bMessenger.addString("recog");
+    bMessenger.addString("grammarXML");
+    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
+
+    while (!fGetaReply)
+    {
+        Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
+
+        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
+        {
+            osError << "Check " << sCurrentGrammarFile;
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        if (bSpeechRecognized.get(0).toString() == "0")
+        {
+            osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        if (!bSpeechRecognized.get(1).isList())
+        {
+            osError << "Grammar not recognized or speechRecognizer is in Legacy mode!";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        bAnswer = *bSpeechRecognized.get(1).asList();
+
+        if (bAnswer.toString() != "" && !bAnswer.isNull())
+        {
+            fGetaReply = true;
+        }
+
+    }
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
+
+    // semantic is the list of the semantic elements of the sentence except the type ef sentence
+    bSemantic = *bAnswer.get(1).asList()->get(1).asList();
+
+    if (sQuestionKind == "AUGMENTING")
+    {
+        cout << "============= AUGMENTING ===================" << endl ;
+        cout << bSemantic.toString().c_str() << endl ;
+
+        sCurrentAugmented = bSemantic.check("augmented", Value("kinematic structure")).asString();
+
+        bBodySchema.clear();
+        if(sCurrentAugmented == "kinematic structure"){
+            sCurrentAugmented = "kinematic_structure";
+        }
+        
+        //iCurrentInstance from node1()
+        cout << "iCurrentInstance = " << iCurrentInstance << " and want augmented for " << sCurrentAugmented << endl ;
+
+        ostringstream osAnswer;
+        //TODO LATER : check if there is such augmented or not
+        osAnswer << "Yes, let me show you "<< endl ;
+        sLastSentence = osAnswer.str();
+
+        bSpeak.clear();
+        bSpeak.addString(osAnswer.str());
+        Port2iSpeak.write(bSpeak);
+
+        
+        yarp::os::Time::delay(2);
+        
+        osAnswer.str(std::string());
+        osAnswer << "You can look at my reasoning about your kinematic structure of your left hand";
+        sLastSentence = osAnswer.str();
+
+        bSpeak.clear();
+        bSpeak.addString(osAnswer.str());
+        Port2iSpeak.write(bSpeak);
+
+        //yarp::os::Time::delay(3);
+
+        //TODO : triggerStreaming for raw images
+        bMessenger.clear();
+        bMessenger.addString("triggerStreaming");
+        bMessenger.addInt(iCurrentInstance);
+        bMessenger.addInt(1); //for syncro real time : yes
+        bMessenger.addInt(1); //for include augmented images?: yes
+
+        Port2ABM.write(bMessenger, bAnswer);
+
+        //TODO : streaming RAW + augmented image from sCurrentAugmented
+        /*string augmentedFromPortName = "/autobiographicalMemory/icub/camcalib/left/out/" + sCurrentAugmented;
+        string augmentedToPortName = "/yarpview/abm/icub/camcalib/left/" + sCurrentAugmented;
+        Network::connect(augmentedFromPortName.c_str(), augmentedToPortName.c_str());*/
+
+        //Network::disconnect(augmentedFromPortName.c_str(), augmentedToPortName.c_str());
+
+        return appleNode3();
+    }
+
+    return appleNode2();
+}
+
+Bottle abmHandler::appleNode3()
+{
+    sCurrentNode = "Apple Node 3";
+    sCurrentGrammarFile = nameGrammarNode3;
+    ostringstream osError;          // Error message
+    osError << "Error in abmHandler | " << sCurrentNode << " :: ";
+    cout << endl << "In " << sCurrentNode << endl << endl;
+
+    Bottle bOutput;
+
+    bool fGetaReply = false;
+    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
+        bMessenger, //to be send TO speech recog
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bSendReasoning, // send the information of recall to the abmReasoning
+        bBodySchema, //send rpc command to BodySchema
+        bSpeak, // bottle for tts
+        bTemp;
+
+    bMessenger.addString("recog");
+    bMessenger.addString("grammarXML");
+    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
+
+    while (!fGetaReply)
+    {
+        Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
+
+        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
+        {
+            osError << "Check " << sCurrentGrammarFile;
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        if (bSpeechRecognized.get(0).toString() == "0")
+        {
+            osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        if (!bSpeechRecognized.get(1).isList())
+        {
+            osError << "Grammar not recognized or speechRecognizer is in Legacy mode!";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            return bOutput;
+        }
+
+        bAnswer = *bSpeechRecognized.get(1).asList();
+
+        if (bAnswer.toString() != "" && !bAnswer.isNull())
+        {
+            fGetaReply = true;
+        }
+
+    }
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
+
+    // semantic is the list of the semantic elements of the sentence except the type ef sentence
+    bSemantic = *bAnswer.get(1).asList()->get(1).asList();
+
+    if (sQuestionKind == "ACTING")
+    {
+        cout << "============= ACTING ===================" << endl ;
+        cout << bSemantic.toString().c_str() << endl ;
+
+        sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
+
+        bBodySchema.clear();
+        if(sCurrentActivity == "motor babbling"){
+            bBodySchema.addString("babblingLearning");
+        }
+
+        cout << "To BodySchema : " << bBodySchema.toString() << endl ;
+
+        //Response from iCub through iSpeak
+        ostringstream osAnswer;
+        osAnswer << "Of course! Let me show you with my left arm";
+
+        bSpeak.clear();
+        bAnswer.clear();
+        bSpeak.addString(osAnswer.str());
+        Port2iSpeak.write(bSpeak);
+
+        yarp::os::Time::delay(3);
+        //cout << "bAnswer from iSpeak : " << bAnswer.toString() << endl ;
+
+        //Port2BodySchema (testing no reply)
+        //Port2BodySchema.write(bBodySchema);
+
+        //waiting for reply
+        bAnswer.clear();
+        Port2BodySchema.write(bBodySchema, bAnswer);
+
+        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl ;
+
+        bOutput.addList() = bAnswer;
+        
+        //recursive loop go back initial : need to to a stop
+        return node1() ;
+    }
+
+    return appleNode3() ;    
 }
 
 /*  Node 2 : details about number and agent
