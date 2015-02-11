@@ -40,12 +40,13 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("perspectiveTaking"), "module name (string)").asString().c_str());
     loopCounter = 0;
 
-    connectToOPC(rf.check("opc",Value("OPC")).asString().c_str());
+    connectToOPC(rf.check("opcName",Value("OPC")).asString().c_str());
     connectToKinectServer(rf.check("kinClientVerbosity",Value(0)).asInt());
-    connectToABM(rf.check("abm",Value("autobiographicalMemory")).asString().c_str());
+    connectToABM(rf.check("abmName",Value("autobiographicalMemory")).asString().c_str());
+    connectToAgentDetector(rf.check("agentDetectorName",Value("agentDetector")).asString().c_str());
     openHandlerPort();
 
-    //getRFHTransMat(resfind.check("rfh",Value("referenceFrameHandler")).asString().c_str());
+    //getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
     getManualTransMat();
     cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
 

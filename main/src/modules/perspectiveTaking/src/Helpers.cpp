@@ -161,6 +161,17 @@ void perspectiveTaking::connectToABM(string abmName) {
     }
 }
 
+void perspectiveTaking::connectToAgentDetector(string agentDetectorName) {
+    string agentDetectorLocal = "/"+getName()+"/agentdetector:o";
+    agentdetector.open(agentDetectorLocal.c_str());
+    string agentDetectorRemote = "/"+agentDetectorName+"/rpc";
+
+    while (!Network::connect(agentDetectorLocal.c_str(),agentDetectorRemote.c_str())) {
+        cout << "Waiting for connection to Agent Detector..." << endl;
+        Time::delay(1.0);
+    }
+}
+
 void perspectiveTaking::connectToKinectServer(int verbosity) {
     string clientName = getName()+"/kinect";
 

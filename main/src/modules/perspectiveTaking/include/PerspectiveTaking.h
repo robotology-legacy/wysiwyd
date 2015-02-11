@@ -66,7 +66,10 @@ protected:
     void getManualTransMat();
     void getRFHTransMat(std::string);
     yarp::os::Port rfh;
-    yarp::os::Port handlerPort;
+
+    // agentDetector related
+    void connectToAgentDetector(std::string agentDetectorName);
+    yarp::os::Port agentdetector;
 
     // actual perspective Taking
     void setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, std::string cameraName);
@@ -81,6 +84,7 @@ protected:
     yarp::os::ResourceFinder resfind;
     bool openHandlerPort();
     bool setupThreads();
+    yarp::os::Port handlerPort;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
