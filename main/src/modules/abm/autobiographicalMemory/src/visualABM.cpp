@@ -113,7 +113,7 @@ Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_numb
     Bottle bSubOutput, bOutput, bRequest;
     ostringstream osArg;
 
-    //export all the images from the instance into the temp folder
+    //export all the images for the specific frame of the instance into the temp folder
     saveImagesFromABM(instance, frame_number, frame_number, provider_port);
 
     bRequest.addString("request");
@@ -429,10 +429,10 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         }
     }
 
-    // only save storeOID if its a single image instance
-    // for streaming, we take care of this in updateModule at the stream "end"
+    // only save storeOID if its a single image instance (otherwise it takes too long)
+    // for streaming, we take care of this in the triggerStreaming method
     if(forSingleInstance) {
-        storeImageOIDs();
+        storeImageOIDs(imgInstance);
     }
 
     return allGood;
@@ -594,7 +594,8 @@ Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
 
         //cout << "augmentedLabel: " << augmentedLabel << endl;
 
-        string providerPortSpecifier = providerPort.substr(providerPort.find_last_of("/")+1);
+        string providerPortSpecifier = providerPort;
+        replace(providerPortSpecifier.begin(), providerPortSpecifier.end(), '/', '_');
 
         //cout << "save image from bottle to file" << endl;
         ImageOf<PixelRgb> yarpImage;
@@ -618,7 +619,7 @@ Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
         unsigned int img_oid = ABMDataBase->lo_import(fullPath.c_str());
 
         // insert new row in database
-        string relativePath = instanceString + "/" + augmentedLabel + "_" + frameNumberString + "_" + providerPortSpecifier + "." + imgFormat;
+        string relativePath = instanceString + "/augmented_" + augmentedLabel + "_" + frameNumberString + "_" + providerPortSpecifier + "." + imgFormat;
         string fullProviderPort = providerPort + "/" + augmentedLabel;
 
         Bottle bRequest;
