@@ -462,10 +462,14 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             {
                 imgInstance = (atoi((bCommand.get(1)).toString().c_str()));
                 bool timingEnabled = false;
-                if(bCommand.size() > 2 && bCommand.get(2).isBool()) {
-                    timingEnabled = bCommand.get(2).asBool();
+                bool includeAugmented = true;
+                if(bCommand.size() > 2 && bCommand.get(2).isInt()) {
+                    timingEnabled = (atoi((bCommand.get(2)).toString().c_str())) > 0;
+                    if(bCommand.size() > 3 && bCommand.get(3).isInt()) {
+                        includeAugmented = (atoi((bCommand.get(3)).toString().c_str())) > 0;
+                    }
                 }
-                bReply = triggerStreaming(imgInstance, timingEnabled);
+                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented);
             }
             else
             {
@@ -473,7 +477,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         //ask for a single image : a single image for EACH image provider so you may end up by several of them
         // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
         else if (bCommand.get(0) == "provideImagesByFrame")

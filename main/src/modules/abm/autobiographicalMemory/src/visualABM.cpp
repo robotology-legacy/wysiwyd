@@ -297,11 +297,11 @@ bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPo
     return true;
 }
 
-Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE)
+Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented)
 {
     Bottle bReply;
     realtimePlayback = timingE;
-    openImgStreamPorts(instance);
+    openImgStreamPorts(instance, includeAugmented);
     openDataStreamPorts(instance);
     // make sure images are stored in ABM before saving them
     storeImageOIDs(instance);
@@ -315,7 +315,10 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE)
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT img_provider_port FROM visualdata WHERE instance = " << instance << endl;
+    osArg << "SELECT DISTINCT img_provider_port FROM visualdata WHERE instance = " << instance;
+    if(!includeAugmented) {
+        osArg << " AND augmented IS NULL";
+    }
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
     Bottle bImgProviders;
@@ -342,13 +345,13 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE)
     return bReply;
 }
 
-int autobiographicalMemory::openImgStreamPorts(int instance)
+int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugmented)
 {
     Bottle bRequest;
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT img_provider_port FROM visualdata WHERE instance = " << instance << endl;
+    osArg << "SELECT DISTINCT img_provider_port, augmented FROM visualdata WHERE instance = " << instance << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
@@ -357,7 +360,9 @@ int autobiographicalMemory::openImgStreamPorts(int instance)
         mapImgStreamPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> >;
         mapImgStreamPortOut[imgProviderPort]->open((portPrefixForStreaming+imgProviderPort).c_str());
 
-        Network::connect(portPrefixForStreaming+imgProviderPort, "/yarpview"+portPrefixForStreaming+imgProviderPort);
+        if(includeAugmented || (!includeAugmented && bRequest.get(i).asList()->get(1).asString()=="")) {
+            Network::connect(portPrefixForStreaming+imgProviderPort, "/yarpview"+portPrefixForStreaming+imgProviderPort);
+        }
     }
 
     cout << "[openImgStreamPorts] just created " << mapImgStreamPortOut.size() << " ports." << endl;
@@ -611,7 +616,7 @@ Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
         // have sufficient permissions to write
         chmod(folderName.c_str(), 0777);
 #endif
-        string fullPath = folderName + "/" + frameNumberString + "_" + providerPortSpecifier + "." + imgFormat;
+        string fullPath = folderName + "/" + frameNumberString + providerPortSpecifier + "." + imgFormat;
         cvSaveImage(fullPath.c_str(), cvImage);
         cvReleaseImage(&cvImage);
 
@@ -619,7 +624,7 @@ Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
         unsigned int img_oid = ABMDataBase->lo_import(fullPath.c_str());
 
         // insert new row in database
-        string relativePath = instanceString + "/augmented_" + augmentedLabel + "_" + frameNumberString + "_" + providerPortSpecifier + "." + imgFormat;
+        string relativePath = instanceString + "/augmented_" + augmentedLabel + "_" + frameNumberString + providerPortSpecifier + "." + imgFormat;
         string fullProviderPort = providerPort + "/" + augmentedLabel;
 
         Bottle bRequest;
