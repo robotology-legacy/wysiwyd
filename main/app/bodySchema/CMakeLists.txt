@@ -1,5 +1,5 @@
 # Copyright: (C) 2014 WYSIWYD Consortium
-# Authors: Anne-Laure MEALIER
+# Authors: Martina Zambelli
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(appname bodySchema)

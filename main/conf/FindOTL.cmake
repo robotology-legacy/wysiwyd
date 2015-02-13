@@ -10,7 +10,7 @@
 
 
 SET (OTL_DIR $ENV{OTL_DIR})
-message(STATUS "OTLD_DIR in folder :" ${OTL_DIR})
+message(STATUS "OTL_DIR in folder :" ${OTL_DIR})
 SET (OTL_INCLUDE_DIRS $ENV{OTL_DIR}/src/libOTL)
 
 FIND_PATH(OTL_INCLUDE_DIRS ${OTL_DIR}/src/libOTL)
