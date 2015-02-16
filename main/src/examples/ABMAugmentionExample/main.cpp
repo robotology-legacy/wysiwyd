@@ -22,6 +22,7 @@
 
 #include <yarp/os/all.h>
 #include "ABMAugmentionExample.h"
+#include <time.h>
 
 using namespace yarp::os;
 
