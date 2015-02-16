@@ -589,20 +589,22 @@ bool bodySchema::findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size 
             points[1][k++] = points[1][i];
 
             circle( copy, points[1][i], 2, Scalar(0,255,0), -1, 8);
-            imshow( source_window, copy );
-
-            // convert Mat to YARP image
-            IplImage imageIpl = copy;
-            cvCvtColor(&imageIpl, &imageIpl, CV_BGR2RGB);
-            ImageOf<PixelRgb> &imageYarp = imgPortOut.prepare();
-            imageYarp.resize(imageIpl.width, imageIpl.height);
-            cvCopyImage(&imageIpl, (IplImage *)imageYarp.getIplImage());
-
-            // send YARP image to port
-            imgPortOut.write();
         }
         points[1].resize(k);
         points_idx.resize(k);
+
+        imshow( source_window, copy );
+
+        // convert Mat to YARP image
+        Mat toYarp(copy);
+        cvtColor(toYarp, toYarp, CV_BGR2RGB);
+        IplImage* imageIpl = new IplImage(toYarp);
+        ImageOf<PixelRgb> &imageYarp = imgPortOut.prepare();
+        imageYarp.resize(imageIpl->width, imageIpl->height);
+        cvCopyImage(imageIpl, (IplImage *)imageYarp.getIplImage());
+
+        // send YARP image to port
+        imgPortOut.write();
     }
 
     return true;

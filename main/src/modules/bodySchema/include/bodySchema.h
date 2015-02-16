@@ -23,7 +23,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/video/tracking.hpp>
 
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -107,15 +106,13 @@ private:
     double initTime;
 
     int capseq;
-    
-    
+
     string foldername;
     string foldernamepoints;
     string foldernamevideo;
     string foldernameframes;
     string fileEncData;
     string fileCmdData;
-
     
     double freq1, freq2, freq3, amp, ampcos2;
     double amp0,amp1,amp2,amp3,amp4;
@@ -125,14 +122,12 @@ private:
     double start_commandHead[5];
     double start_command[7];
     
-    
     int frame_idx;
     int num_init_points;
     vector<int> points_idx;
     Mat gray, prevGray, image;
     vector<Point2f> points[2];
     string source_window;
-    
 
     OESGP oesgp;
     OESGP oesgp2;
@@ -152,10 +147,6 @@ private:
     double p_epsilon;
     int p_capacity;
     int p_random_seed;
-
-
-
-
 
     State state;
     bool endTrain;
@@ -195,6 +186,4 @@ private:
     void find_image();
 };
 
-
 #endif // __BODYSCHEMA_H__
-
