@@ -297,10 +297,11 @@ bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPo
     return true;
 }
 
-Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented)
+Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM)
 {
     Bottle bReply;
     realtimePlayback = timingE;
+    speedMultiplier = speedM;
     openImgStreamPorts(instance, includeAugmented);
     openDataStreamPorts(instance);
     // make sure images are stored in ABM before saving them
@@ -361,6 +362,7 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
         mapImgStreamPortOut[imgProviderPort]->open((portPrefixForStreaming+imgProviderPort).c_str());
 
         if(includeAugmented || (!includeAugmented && bRequest.get(i).asList()->get(1).asString()=="")) {
+            //cout << "Connect " << portPrefixForStreaming+imgProviderPort << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort << endl;
             Network::connect(portPrefixForStreaming+imgProviderPort, "/yarpview"+portPrefixForStreaming+imgProviderPort);
         }
     }

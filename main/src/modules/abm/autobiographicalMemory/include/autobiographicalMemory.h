@@ -100,6 +100,7 @@ public:
     std::string portPrefixForStreaming;
     bool realtimePlayback;
     long timeStreamStart;
+    double speedMultiplier;
 
     long timeLastImageSent; // will be obsolete
     long timeVeryLastStream; // will be obsolete
@@ -108,7 +109,7 @@ public:
 
     bool sendStreamIsInitialized;
 
-    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback=true, bool includeAugmented=true);
+    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback=true, bool includeAugmented=true, double speedM=1.0);
 
     // maps to receive / send images
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamPortOut;

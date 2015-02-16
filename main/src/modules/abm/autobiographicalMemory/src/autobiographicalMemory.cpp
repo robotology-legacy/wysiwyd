@@ -463,17 +463,21 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 imgInstance = (atoi((bCommand.get(1)).toString().c_str()));
                 bool timingEnabled = false;
                 bool includeAugmented = true;
+                double speedM = 1.0;
                 if(bCommand.size() > 2 && bCommand.get(2).isInt()) {
                     timingEnabled = (atoi((bCommand.get(2)).toString().c_str())) > 0;
                     if(bCommand.size() > 3 && bCommand.get(3).isInt()) {
                         includeAugmented = (atoi((bCommand.get(3)).toString().c_str())) > 0;
+                        if(bCommand.size() > 4 && bCommand.get(4).isDouble()) {
+                            speedM = atof(bCommand.get(4).toString().c_str());
+                        }
                     }
                 }
-                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented);
+                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented, speedM);
             }
             else
             {
-                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instanceNb timingEnabled(optional)");
+                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instanceNb timingEnabled(optional) includeAugmented(optional) speedMultiplier (optional)");
                 bReply = bError;
             }
         }
@@ -665,7 +669,7 @@ bool autobiographicalMemory::updateModule() {
 
         // Calculate time in update method since first image/contdata was sent
         long timeStreamCurrent = getCurrentTimeInMS();
-        long updateTimeDifference = timeStreamCurrent - timeStreamStart;
+        long updateTimeDifference = (timeStreamCurrent - timeStreamStart) * speedMultiplier;
         long timeLastImageSentCurrentIteration = 0;
 
         // Find which images to send
