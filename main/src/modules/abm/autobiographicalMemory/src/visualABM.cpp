@@ -637,6 +637,7 @@ Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
         bRequest.addString(osArg.str());
         bRequest = request(bRequest);
     }
+    bReply.addString("ack");
     bReply.addString("[saveAugmentedImages] Success");
 
     return bReply;

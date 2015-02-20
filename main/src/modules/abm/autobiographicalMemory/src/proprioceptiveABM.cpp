@@ -186,6 +186,24 @@ int autobiographicalMemory::openDataStreamPorts(int instance) {
         string dataStreamPort = bDistLabelPort.get(i).asList()->get(0).asString();
         mapDataStreamPortOut[dataStreamPort] = new yarp::os::BufferedPort < Bottle >;
         mapDataStreamPortOut[dataStreamPort]->open((portPrefixForStreaming+dataStreamPort).c_str());
+
+        string toReplace="state:o";
+        string portCommandIn = dataStreamPort;
+        if(dataStreamPort.find(toReplace)!=string::npos) {
+            portCommandIn.replace(dataStreamPort.find(toReplace), toReplace.length(), "rpc:i");
+
+            toReplace="/icub/";
+            if(dataStreamPort.find(toReplace)!=string::npos) {
+                portCommandIn.replace(portCommandIn.find(toReplace), toReplace.length(), "/icubSim/");
+
+                Network::connect(portPrefixForStreaming+dataStreamPort, portCommandIn);
+                if(Network::isConnected(portPrefixForStreaming+dataStreamPort, portCommandIn)) {
+                    cout << "Successfully connected " << portPrefixForStreaming+dataStreamPort << " and " << portCommandIn << endl;
+                } else {
+                    cout << "NOT connected " << portPrefixForStreaming+dataStreamPort << " and " << portCommandIn << endl;
+                }
+            }
+        }
     }
 
     cout << "[openDataStreamPorts] Just created " << mapDataStreamPortOut.size() << " ports." << endl;
@@ -223,7 +241,7 @@ long autobiographicalMemory::getTimeLastDataStream(int instance) {
     }
 }
 
-Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifference) {
+Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifference, string port) {
     Bottle bListDataStream;
     bListDataStream.addString("request");
     ostringstream osArgDataStream;
@@ -231,11 +249,22 @@ Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifferenc
     osArgDataStream << "SELECT * FROM (";
     osArgDataStream << "SELECT subtype, label_port, time, value, ";
     osArgDataStream << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM proprioceptivedata WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
-    osArgDataStream << "FROM proprioceptivedata WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
+    osArgDataStream << "FROM proprioceptivedata WHERE instance = '" << imgInstance << "' ORDER BY time) s WHERE ";
+
+    if(port!="") {
+        osArgDataStream << "label_port = '" << port << "' AND ";
+    }
+
     if(realtimePlayback) {
-        osArgDataStream << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time, label_port, subtype DESC LIMIT " << streamDataProviderCount << ";";
+        osArgDataStream << "time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
     } else {
-        osArgDataStream << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time, label_port, subtype ASC LIMIT " << streamDataProviderCount << ";";
+        osArgDataStream << "time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
+    }
+
+    if(port!="") {
+        osArgDataStream << "LIMIT (SELECT COUNT(DISTINCT subtype) FROM proprioceptivedata WHERE instance = '" << imgInstance << "' AND label_port='" << port << "')";
+    } else {
+        osArgDataStream << "LIMIT " << streamDataProviderCount << ";";
     }
 
     bListDataStream.addString(osArgDataStream.str());

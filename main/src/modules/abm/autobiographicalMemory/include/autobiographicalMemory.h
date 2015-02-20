@@ -153,7 +153,7 @@ public:
     long getTimeLastImgStream(int instance); // will be obsolete
     long getTimeLastDataStream(int instance); // will be obsolete
     yarp::os::Bottle getStreamImgWithinEpoch(long updateTimeDifference);
-    yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference);
+    yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference, std::string port="");
 
     // augmented images stuff
     yarp::os::Bottle saveAugmentedImages(yarp::os::Bottle bInput);

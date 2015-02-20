@@ -691,30 +691,32 @@ bool autobiographicalMemory::updateModule() {
             }
         }
 
-        // Make sure bottles for data stream are cleared from last time
-        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it) {
-            it->second->prepare().clear();
-        }
+        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it)
+        {
+            // Find which data stream to send
+            Bottle bListContData = getStreamDataWithinEpoch(updateTimeDifference, it->first);
 
-        // Find which data stream to send
-        Bottle bListContData = getStreamDataWithinEpoch(updateTimeDifference);
+            if(bListContData.toString()!="NULL") {
+                Bottle &bCmd = it->second->prepare();
+                bCmd.clear();
+                bCmd.fromString("[set] [poss]");
 
-        if(bListContData.toString()!="NULL") {
-            // Append bottle of ports for all the subtypes
-            for(int i=0; i<bListContData.size(); i++) {
-                BufferedPort<Bottle>* port = mapDataStreamPortOut.at(bListContData.get(i).asList()->get(1).asString().c_str());
-                if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
-                    timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
+                Bottle bJoints;
+
+                // Append bottle of ports for all the subtypes
+                for(int i=0; i<bListContData.size(); i++) {
+                    if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                        timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
+                    }
+                    bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
                 }
 
-                Bottle &temp = port->prepare();
-                temp.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
-            }
+                bCmd.addList() = bJoints;
 
-            // Send concatenated bottles to ports
-            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it)
-            {
+                // Send concatenated bottles to ports
+
                 cout << "Write port: " << it->second->getName() << endl;
+                cout << it->second->prepare().toString() << endl;
                 it->second->write();
             }
         }
