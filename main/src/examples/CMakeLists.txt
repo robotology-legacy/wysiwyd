@@ -8,3 +8,5 @@ add_subdirectory(cvzStackExample)
 if(YARP_VERSION_STRING VERSION_GREATER "2.3.63.1")
     add_subdirectory(ABMAugmentionExample)
 endif()
+add_subdirectory(proprioRosYarpExample)
+
