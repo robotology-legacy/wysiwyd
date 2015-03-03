@@ -1,1 +1,0 @@
-Sequence derived from <a href="../cars3/summary.html">cars3</a> but with groups 1,2 only.

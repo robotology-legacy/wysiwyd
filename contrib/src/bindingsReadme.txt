@@ -7,6 +7,3 @@ http://wiki.icub.org/wiki/YARP_and_Python
 
 C#:
 http://wiki.icub.org/wiki/YARP_and_CSHARP
-
-Matlab:
-http://wiki.icub.org/wiki/Calling_yarp_from_Matlab

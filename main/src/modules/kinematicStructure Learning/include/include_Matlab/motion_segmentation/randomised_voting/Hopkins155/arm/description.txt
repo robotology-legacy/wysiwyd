@@ -1,1 +1,0 @@
-An arm moving (two articulated objects).

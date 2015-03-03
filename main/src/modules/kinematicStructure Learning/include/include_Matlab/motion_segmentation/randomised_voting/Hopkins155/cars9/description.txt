@@ -1,1 +1,0 @@
-A car and a van starting from a traffic light.
