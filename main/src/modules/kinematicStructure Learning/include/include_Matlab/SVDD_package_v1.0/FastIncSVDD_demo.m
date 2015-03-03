@@ -1,0 +1,115 @@
+%**************************** Demo Main *****************************
+%   Fast Incremental Support Vector Data Description(SVDD) usage demo
+%   - This code is for demonstrating how to use the fast inc SVDD
+%
+%   Hyung jin Chang
+%   hjchang@neuro.snu.ac.kr
+%********************************************************************
+
+clc;
+clear all;
+close all;
+
+global C
+global kernel_param
+global kernel_type
+global eps
+global learning_type;
+global num_class;
+global SET
+
+%------------------ Data loading --------------------
+x_org = load('./data/x_t.dat');
+
+% x_org = randn(50,3)/4;
+
+x_org = unique(x_org,'rows');   % data duplication check
+ndata = size(x_org,1);
+y_org = ones(ndata,1);  % setting class label
+%----------------------------------------------------
+%---------------- Variable Setting ------------------
+C = 1;                             % C value of SVDD
+kernel_param = 1;                  % kernel parameter
+kernel_type = 'erbf';            % kernel types
+                                     %  - 'gaussian'
+                                     %  - 'linear'
+                                     %  - 'polynomian'
+                                     %  - 'sigmoid'
+                                     %  - 'erbf'
+prec = 1e-4;
+eps = 1e-16;
+
+% learning_type = 'batch';    % do training with whole data like batch type
+learning_type = 'incremental';    % do traing data one by one
+
+time_delay = 0.01;  % time delay for result drawing
+
+data_reduction_period = 200;    % data removing period 
+epsilon = 0.45;
+%----------------------------------------------------
+SET = struct('S',[],'E',[],'O',[]);
+SET.S = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.S.x = [];
+SET.S.y = [];
+SET.S.alpha = [];
+SET.S.g = [];
+SET.S.ndata = 0;
+SET.E = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.E.x = [];
+SET.E.y = [];
+SET.E.alpha = [];
+SET.E.g = [];
+SET.E.ndata = 0;
+SET.O = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.O.x = [];
+SET.O.y = [];
+SET.O.alpha = [];
+SET.O.g = [];
+SET.O.ndata = 0;
+%----------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%% Start Learning %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+num_class = size(unique(y_org),1);
+x = [];
+y = [];
+
+tic
+switch learning_type
+    case 'batch'
+        x = x_org;
+        y = y_org;
+        SET = incSVDD(x,y,C,kernel_type,kernel_param,0);
+
+    case 'incremental'
+        for incdata_idx=1:ndata
+            disp(['incdata_idx = ',num2str(incdata_idx)]);
+            
+            num_initializing_data = 20;
+
+            if incdata_idx < num_initializing_data
+                x = [x;x_org(incdata_idx,:)];
+                y = [y;y_org(incdata_idx)];
+            elseif incdata_idx == num_initializing_data
+                SET = incSVDD(x,y,C,kernel_type,kernel_param,0);
+            else
+                SET = incSVDD(x_org(incdata_idx,:),y_org(incdata_idx,:),C,kernel_type,kernel_param,1,SET);
+                
+                %------------------ Removing of the candidate non support vectors ----------------
+                if mod(incdata_idx,data_reduction_period) == 0
+                    sample_margin = CalSampleMargin(SET.O.x,SET.O.y,SET,kernel_param,kernel_type);  % calculate the sample margin
+                    sm_max = max(sample_margin);
+                    sm_min = min(sample_margin);                    
+                    sm_normalize = (sample_margin - sm_min)/(sm_max-sm_min);  % normalizing the sample margin
+                    remove_idx = find(sm_normalize > epsilon);
+                    SET.O.x(remove_idx,:) = [];
+                    SET.O.y(remove_idx) = [];
+                    SET.O.alpha(remove_idx) = [];
+                    SET.O.g(remove_idx) = [];
+                    SET.O.ndata = SET.O.ndata - size(remove_idx,1);
+                end
+                %---------------------------------------------------------------------------------
+            end
+        end
+end
+time = toc
+incSVDD_drawing(x,y,SET,kernel_param,kernel_type,time_delay);   % drawing the result 2D or 3D

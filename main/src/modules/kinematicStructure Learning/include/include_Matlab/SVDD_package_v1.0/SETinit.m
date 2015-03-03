@@ -1,0 +1,21 @@
+function SET = SETinit
+
+SET = struct('S',[],'E',[],'O',[]);
+SET.S = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.S.x = [];
+SET.S.y = [];
+SET.S.alpha = [];
+SET.S.g = [];
+SET.S.ndata = 0;
+SET.E = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.E.x = [];
+SET.E.y = [];
+SET.E.alpha = [];
+SET.E.g = [];
+SET.E.ndata = 0;
+SET.O = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.O.x = [];
+SET.O.y = [];
+SET.O.alpha = [];
+SET.O.g = [];
+SET.O.ndata = 0;
