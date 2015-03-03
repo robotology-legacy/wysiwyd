@@ -1,0 +1,117 @@
+%**************************** SVDD Main *****************************
+%   Incremental Support Vector Data Description(SVDD) Main
+%
+%   Hyung jin Chang
+%   hjchang@neuro.snu.ac.kr
+%********************************************************************
+
+clc;
+clear all;
+close all;
+
+global C
+global kernel_param
+global kernel_type
+global eps
+global alpha
+global beta
+global gamma
+global SV
+global SV_class_idx
+global a
+global R2
+global mu
+global learning_type;
+global num_class;
+global SET
+global g
+
+global Qxx
+global Q
+global Sidx
+global Eidx
+global Oidx
+global cidx
+
+%------------------ Data loading --------------------
+% input_data = load('./data/doughnut_set.mat');
+% x_org = input_data.banana_set;
+
+% x_org = load('./data/x_t.dat');
+
+x_org = randn(500,2)/4;
+
+x_org = unique(x_org,'rows');
+ndata = size(x_org,1);
+y_org = ones(ndata,1);
+%----------------------------------------------------
+%---------------- Variable Setting ------------------
+C = 0.5;                             % C value of SVDD
+kernel_param = 0.5;                  % kernel parameter
+kernel_type = 'gaussian';          % kernel types
+%  - 'gaussian'
+%  - 'linear'
+%  - 'polynomian'
+%  - 'sigmoid'
+%  - 'erbf'
+prec = 1e-4;
+eps = 1e-16;
+
+learning_type = 'batch';
+% learning_type = 'incremental';
+
+time_delay = 0.01;
+num_class = 1;
+
+SET = struct('S',[],'E',[],'O',[]);
+SET.S = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.S.x = [];
+SET.S.y = [];
+SET.S.alpha = [];
+SET.S.g = [];
+SET.S.ndata = 0;
+SET.E = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.E.x = [];
+SET.E.y = [];
+SET.E.alpha = [];
+SET.E.g = [];
+SET.E.ndata = 0;
+SET.O = struct('x',[],'y',[],'alpha',[],'g',[],'ndata',[]);
+SET.O.x = [];
+SET.O.y = [];
+SET.O.alpha = [];
+SET.O.g = [];
+SET.O.ndata = 0;
+%----------------------------------------------------
+%%%%%%%%%%%%%%%%%%%%%%%% Learning Ω√¿€ %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+num_class = size(unique(y_org),1);
+x = [];
+y = [];
+
+tic
+switch learning_type
+    case 'batch'
+        x = x_org;
+        y = y_org;
+        SET = incSVDD(x,y,C,kernel_type,kernel_param,0);
+
+    case 'incremental'
+        for incdata_idx=1:ndata
+            disp(['incdata_idx = ',num2str(incdata_idx)]);
+            
+            num_data = 20;
+
+            if incdata_idx < num_data
+                x = [x;x_org(incdata_idx,:)];
+                y = [y;y_org(incdata_idx)];
+            elseif incdata_idx == num_data
+                SET = incSVDD(x,y,C,kernel_type,kernel_param,0);
+                incSVDD_drawing(x,y,SET,kernel_param,kernel_type,time_delay);       
+            else
+                SET = incSVDD(x_org(incdata_idx,:),y_org(incdata_idx,:),C,kernel_type,kernel_param,1,SET);
+                incSVDD_drawing(x,y,SET,kernel_param,kernel_type,time_delay);
+            end
+        end
+end
+time = toc
+incSVDD_drawing(x,y,SET,kernel_param,kernel_type,time_delay);

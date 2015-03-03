@@ -1,0 +1,27 @@
+function SETup(x,alpha,g,Sidx,Eidx,Oidx)
+
+global SET
+global C
+
+index_S_alpha = find(alpha > 0 & alpha < C);
+index_E_alpha = find(alpha == C);
+index_O_alpha = find(alpha == 0);
+
+index_S_g = find(g == 0);
+index_E_g = find(g < 0);
+index_O_g = find(g > 0);
+
+if index_S_alpha ~= index_S_g
+    disp('_____________________________S');
+end
+if index_E_alpha ~= index_E_g
+    disp('_____________________________E');
+end
+if index_O_alpha ~= index_O_g
+    disp('_____________________________O');    
+end
+
+SET.S.x = x(index_S_alpha,:);
+SET.S.y = y(index_S_alpha,:);
+SET.S.alpha = alpha(index_S_alpha,:);
+SET.S.x = x(index_S_alpha,:);
