@@ -60,3 +60,5 @@ build_script:
 notifications:
   email:
   - ugo.pattacini@iit.it
+  - t.fischer@imperial.ac.uk
+  - m.petit@imperial.ac.uk
