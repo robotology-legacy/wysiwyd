@@ -22,6 +22,7 @@
 
 #include <yarp/os/all.h>
 #include "proprioRosYarpExample.h"
+#include <time.h>
 
 using namespace yarp::os;
 
