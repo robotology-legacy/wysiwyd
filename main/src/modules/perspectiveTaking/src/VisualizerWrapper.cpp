@@ -52,7 +52,6 @@ VisualizerWrapper::~VisualizerWrapper() {
     delete _visualizer;
 }
 
-
 Transform VisualizerWrapper::transformFromCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
     Eigen::Vector4f origin = cloud->sensor_origin_;
     Eigen::Translation<float,3> translation_A(Eigen::Vector3f(origin[0], origin[1], origin[2]));
@@ -116,6 +115,7 @@ bool VisualizerWrapper::addCloud(
         // do not do inline (shared_ptr best practise)
         boost::shared_ptr<cloudWithPose> p1( new cloudWithPose(cloud, pose) );
         _addedClouds[id]=p1;
+        _visualizer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, id);
         return true;
     } else {
         return false;
@@ -131,7 +131,6 @@ bool VisualizerWrapper::updateCloud(
         if(!removeCloud(id)) {
             cerr << "Point cloud " << id << " could not be removed!" << endl;
         }
-
         return addCloud(id, cloud, pose);
     } else {
         return false;

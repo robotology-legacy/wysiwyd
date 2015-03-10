@@ -49,31 +49,31 @@ protected:
     RtabmapThread* rtabmapThread;
 
     // OPC related
-    void connectToOPC(std::string);
+    void connectToOPC(const std::string& opcName);
     wysiwyd::wrdac::OPCClient* opc;
     wysiwyd::wrdac::Agent* partner;
 
     // ABM related
-    void connectToABM(std::string abmName);
-    bool addABMImgProvider(std::string portName);
-    bool removeABMImgProvider(std::string label);
+    void connectToABM(const std::string& abmName);
+    bool addABMImgProvider(const std::string& portName);
+    bool removeABMImgProvider(const std::string& portName);
     bool sendImages();
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > selfPerspImgPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > partnerPerspImgPort;
     yarp::os::Port abm;
 
     // RFH related
-    void getManualTransMat();
-    void getRFHTransMat(std::string);
+    void getManualTransMat(float camOffsetZ, float camAngle);
+    void getRFHTransMat(const std::string& rfhName);
     yarp::os::Port rfh;
 
     // agentDetector related
-    void connectToAgentDetector(std::string agentDetectorName);
+    void connectToAgentDetector(const std::string& agentDetectorName);
     yarp::os::Port agentdetector;
 
     // actual perspective Taking
-    void setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, std::string cameraName);
-    void setCamera(yarp::sig::Vector pos, yarp::sig::Vector view, yarp::sig::Vector up, std::string cameraName);
+    void setCamera(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& cameraName);
+    void setCamera(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& cameraName);
     Eigen::Matrix4f kinect2icub_pcl;
     Eigen::Matrix4f yarp2pcl;
     double distanceMultiplier;

@@ -44,10 +44,11 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     connectToKinectServer(rf.check("kinClientVerbosity",Value(0)).asInt());
     connectToABM(rf.check("abmName",Value("autobiographicalMemory")).asString().c_str());
     connectToAgentDetector(rf.check("agentDetectorName",Value("agentDetector")).asString().c_str());
+
     openHandlerPort();
 
     //getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
-    getManualTransMat();
+    getManualTransMat(rf.check("cameraOffset",Value(-0.4)).asDouble(), rf.check("cameraAngle",Value(-10.0)).asDouble());
     cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
 
     //port for images
@@ -68,9 +69,9 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     yarp2pcl(1, 1) = -1; // y is right on the icub, left in pcl
 
     // Set camera position for iCub viewpoint
-    Eigen::Vector4f icub_pos =  Eigen::Vector4f( 0,0,0,1);
+    Eigen::Vector4f icub_pos  = Eigen::Vector4f( 0,0,0,1);
     Eigen::Vector4f icub_view = Eigen::Vector4f(-1,0,0,1);
-    Eigen::Vector4f icub_up =   Eigen::Vector4f( 0,0,1,1);
+    Eigen::Vector4f icub_up   = Eigen::Vector4f( 0,0,1,1);
     setCamera(icub_pos, icub_view, icub_up, "icub");
 
     distanceMultiplier = rf.check("distanceMultiplier",Value(1.0)).asDouble();
@@ -115,7 +116,7 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
             reply.addString("ack");
         }
         else {
-            reply.addString("Wrong function call: setDecimationOdometry 2");
+            reply.addString("Wrong function call: setDecimationStatistics 2");
         }
     } else {
         reply.addString("nack");
@@ -170,11 +171,20 @@ bool perspectiveTaking::updateModule() {
 
             partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
             if(partner) { // TODO:  && partner->m_present
-                Vector p_headPos = partner->m_ego_position;
-                double p_up_double[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
-                Vector p_up = Vector(3, p_up_double);
-                Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
-                Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
+                //Vector p_headPos = partner->m_ego_position;
+                double d_headPos[3] = {-1.624107, -0.741913, 0.590235};
+                Vector p_headPos = Vector(3, d_headPos);
+
+                double d_up[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
+                Vector p_up = Vector(3, d_up);
+
+                double d_shoulderLeft[3] = {-1.757043, -0.620365, 0.356680};
+                //Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
+                Vector p_shoulderLeft  = Vector(3, d_shoulderLeft);
+
+                double d_shoulderRight[3] = {-1.601168, -0.888877, 0.352823};
+                //Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
+                Vector p_shoulderRight = Vector(3, d_shoulderRight);
 
                 // For now, the partner is thought to look towards the icub
                 // This is achieved by laying a plane between left shoulder,

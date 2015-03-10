@@ -75,24 +75,23 @@ bool perspectiveTaking::setupThreads() {
     return true;
 }
 
-void perspectiveTaking::getManualTransMat() {
+void perspectiveTaking::getManualTransMat(float camOffsetZ, float camAngle) {
     kinect2icub_pcl = Eigen::Matrix4f::Zero();
 
     // Estimate rotation+translation from kinect to icub head
     Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
 
     // iCub head is ~40cm below kinect
-    rot_trans.translation() << 0.0, 0.0, -0.4;
+    rot_trans.translation() << 0.0, 0.0, camOffsetZ;
     // iCub head is tilted ~30 degrees down
-    float theta_degrees=-30;
-    float theta = theta_degrees/180*M_PI;
+    float theta = camAngle/180*M_PI;
     rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
 
     kinect2icub_pcl = rot_trans.matrix();
 }
 
 // TODO: Not working, needs to be fixed
-void perspectiveTaking::getRFHTransMat(string rfhName) {
+void perspectiveTaking::getRFHTransMat(const string &rfhName) {
     string rfhLocal = "/"+getName()+"/rfh:o";
     rfh.open(rfhLocal.c_str());
     string rfhRemote = "/"+rfhName+"/rpc";
@@ -150,7 +149,7 @@ bool perspectiveTaking::queryRFHTransMat(const string& from, const string& to, M
     return false;
 }
 
-void perspectiveTaking::connectToABM(string abmName) {
+void perspectiveTaking::connectToABM(const string &abmName) {
     string abmLocal = "/"+getName()+"/abm:o";
     abm.open(abmLocal.c_str());
     string abmRemote = "/"+abmName+"/rpc";
@@ -161,7 +160,7 @@ void perspectiveTaking::connectToABM(string abmName) {
     }
 }
 
-void perspectiveTaking::connectToAgentDetector(string agentDetectorName) {
+void perspectiveTaking::connectToAgentDetector(const string &agentDetectorName) {
     string agentDetectorLocal = "/"+getName()+"/agentdetector:o";
     agentdetector.open(agentDetectorLocal.c_str());
     string agentDetectorRemote = "/"+agentDetectorName+"/rpc";
@@ -187,7 +186,7 @@ void perspectiveTaking::connectToKinectServer(int verbosity) {
     }
 }
 
-void perspectiveTaking::connectToOPC(string opcName) {
+void perspectiveTaking::connectToOPC(const string &opcName) {
     opc = new OPCClient(getName());
     while (!opc->connect(opcName)) {
         cout<<"Waiting for connection to OPC..."<<endl;
@@ -209,7 +208,7 @@ bool perspectiveTaking::openHandlerPort() {
     return true;
 }
 
-bool perspectiveTaking::addABMImgProvider(string portName) {
+bool perspectiveTaking::addABMImgProvider(const string &portName) {
     Bottle bCmd, bReply;
     bCmd.addString("addImgStreamProvider");
     bCmd.addString(portName);
@@ -223,7 +222,7 @@ bool perspectiveTaking::addABMImgProvider(string portName) {
     }
 }
 
-bool perspectiveTaking::removeABMImgProvider(string portName) {
+bool perspectiveTaking::removeABMImgProvider(const string &portName) {
     Bottle bCmd, bReply;
     bCmd.addString("removeImgStreamProvider");
     bCmd.addString(portName);
@@ -237,11 +236,11 @@ bool perspectiveTaking::removeABMImgProvider(string portName) {
     }
 }
 
-void perspectiveTaking::setCamera(Vector p_pos, Vector p_view, Vector p_up, string cameraName) {
+void perspectiveTaking::setCamera(const Vector &p_pos, const Vector &p_view, const Vector &p_up, const string &cameraName) {
     setCamera(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), cameraName);
 }
 
-void perspectiveTaking::setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, string cameraName) {
+void perspectiveTaking::setCamera(const Eigen::Vector4f &p_pos, const Eigen::Vector4f &p_view, const Eigen::Vector4f &p_up, const string &cameraName) {
     Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * p_pos;
     //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
     Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * p_view;
@@ -252,8 +251,8 @@ void perspectiveTaking::setCamera(Eigen::Vector4f p_pos, Eigen::Vector4f p_view,
     Eigen::Vector4f up_diff = up-pos;
 
     mapBuilder->setCameraPosition(
-        pos[0], pos[1], pos[2],
-        view[0], view[1], view[2],
+        pos[0],     pos[1],     pos[2],
+        view[0],    view[1],    view[2],
         up_diff[0], up_diff[1], up_diff[2],
         mapBuilder->getViewports()[cameraName]);
 }

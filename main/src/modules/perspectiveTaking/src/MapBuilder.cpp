@@ -134,10 +134,8 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                 // Update only if the pose has changed
                 Transform tCloud;
                 _vWrapper->getPose(cloudName, tCloud);
-                if(tCloud.isNull() || iter->second != tCloud)
-                {
-                    if(!_vWrapper->updateCloudPose(cloudName, iter->second))
-                    {
+                if(tCloud.isNull() || iter->second != tCloud) {
+                    if(!_vWrapper->updateCloudPose(cloudName, iter->second)) {
                         cerr << "Updating pose cloud " << iter->first << " failed!" << endl;
                     }
                 }
