@@ -5,5 +5,6 @@
 if (WYSIWYD_USE_OpenCV)
 	add_subdirectory(faceTracker)
 #	add_subdirectory(kinematicStructure)
+	add_subdirectory(rekognition)
 endif()
 
