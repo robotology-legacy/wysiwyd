@@ -19,6 +19,9 @@
 #ifndef VPT_MAPBUILDER
 #define VPT_MAPBUILDER
 
+#include <QtGui/QVBoxLayout>
+#include <QtCore/QMetaType>
+
 #include <rtabmap/core/OdometryEvent.h>
 #include <rtabmap/core/RtabmapEvent.h>
 
@@ -29,12 +32,12 @@
 using namespace rtabmap;
 
 // This class receives RtabmapEvent and construct/update a 3D Map
-class MapBuilder : public UEventsHandler {
+class MapBuilder : public QWidget, public UEventsHandler {
+    Q_OBJECT
 public:
     MapBuilder(unsigned int decOdo, unsigned int decVis);
     virtual ~MapBuilder();
 
-    void spinOnce(int time = 1, bool force_redraw = false);
     bool wasStopped();
 
     void saveScreenshot(std::string filename) {
@@ -60,7 +63,7 @@ public:
         decimationStatistics_ = decimation;
     }
 
-private:
+private slots:
     void processOdometry(const rtabmap::SensorData & data);
     void processStatistics(const rtabmap::Statistics & stats);
 
@@ -74,7 +77,6 @@ private:
     unsigned int decimationOdometry_; // odometry: current point cloud decimation
     unsigned int decimationStatistics_; // statistics: past point cloud decimation
     boost::recursive_try_mutex vis_mutex;
-    rtabmap::Transform last_pose;
 };
 
 #endif

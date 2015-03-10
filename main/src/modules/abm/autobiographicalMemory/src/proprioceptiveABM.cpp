@@ -194,7 +194,7 @@ int autobiographicalMemory::openDataStreamPorts(int instance) {
 
             toReplace="/icub/";
             if(dataStreamPort.find(toReplace)!=string::npos) {
-                portCommandIn.replace(portCommandIn.find(toReplace), toReplace.length(), "/icubSim/");
+                //portCommandIn.replace(portCommandIn.find(toReplace), toReplace.length(), "/icubSim/");
 
                 Network::connect(portPrefixForStreaming+dataStreamPort, portCommandIn);
                 if(Network::isConnected(portPrefixForStreaming+dataStreamPort, portCommandIn)) {

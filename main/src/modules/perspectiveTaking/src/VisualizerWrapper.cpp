@@ -16,16 +16,23 @@
  * Public License for more details
 */
 
+#include <vtkRenderWindow.h>
+
 #include <rtabmap/core/util3d.h>
 
 #include "VisualizerWrapper.h"
 
 using namespace rtabmap;
 
-VisualizerWrapper::VisualizerWrapper() :
+VisualizerWrapper::VisualizerWrapper(QWidget *parent) :
+    QVTKWidget(parent),
     _maxTrajectorySize(100),
     _trajectory(new pcl::PointCloud<pcl::PointXYZ>),
-    _visualizer(new pcl::visualization::PCLVisualizer("PCLVisualizer", true)) {
+    _visualizer(new pcl::visualization::PCLVisualizer("PCLVisualizer", false)) {
+
+    this->setMinimumSize(200, 200);
+    this->SetRenderWindow(_visualizer->getRenderWindow());
+    _visualizer->setupInteractor(this->GetInteractor(), this->GetRenderWindow());
 
     // Create the two view ports
     int viewiCub(0), viewPartner(0);
@@ -50,6 +57,11 @@ VisualizerWrapper::VisualizerWrapper() :
 VisualizerWrapper::~VisualizerWrapper() {
     this->removeAllClouds();
     delete _visualizer;
+}
+
+void VisualizerWrapper::render()
+{
+    this->GetRenderWindow()->Render();
 }
 
 Transform VisualizerWrapper::transformFromCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {

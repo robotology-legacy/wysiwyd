@@ -19,6 +19,8 @@
 #ifndef VPT_VISUALIZER_WRAPPER
 #define VPT_VISUALIZER_WRAPPER
 
+#include <QVTKWidget.h>
+#include <QtCore/qnamespace.h>
 #include <map>
 #include <boost/shared_ptr.hpp>
 
@@ -41,9 +43,11 @@ public:
     rtabmap::Transform pose;
 };
 
-class VisualizerWrapper {
+class VisualizerWrapper : public QVTKWidget {
+    Q_OBJECT
+
 public:
-    VisualizerWrapper();
+    VisualizerWrapper(QWidget *parent = 0);
     virtual ~VisualizerWrapper();
 
     const std::map<std::string, boost::shared_ptr<cloudWithPose> > & getAddedClouds() const {return _addedClouds;}
@@ -94,6 +98,9 @@ public:
     std::map<std::string, int> getViewports() {
         return _viewports;
     }
+
+public slots:
+    void render();
 
 private:
     std::map<std::string, boost::shared_ptr<cloudWithPose> > _addedClouds;

@@ -42,10 +42,21 @@ using namespace rtabmap;
 
 // This class receives RtabmapEvent and construct/update a 3D Map
 MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
-    _vWrapper(new VisualizerWrapper),
+    _vWrapper(new VisualizerWrapper(this)),
     decimationOdometry_(decOdo),
     decimationStatistics_(decVis)
 {
+    this->setWindowFlags(Qt::Dialog);
+    this->setWindowTitle(tr("3D Map"));
+    this->setMinimumWidth(800);
+    this->setMinimumHeight(600);
+
+    QVBoxLayout *layout = new QVBoxLayout();
+    layout->addWidget(_vWrapper);
+    this->setLayout(layout);
+
+    qRegisterMetaType<rtabmap::Statistics>("rtabmap::Statistics");
+    qRegisterMetaType<rtabmap::SensorData>("rtabmap::SensorData");
 }
 
 MapBuilder::~MapBuilder() {
@@ -65,20 +76,12 @@ void MapBuilder::setCameraPosition( double pos_x, double pos_y, double pos_z,
     vis_mutex.unlock();
 }
 
-void MapBuilder::spinOnce(int time, bool force_redraw) {
-    if (vis_mutex.try_lock()) {
-        _vWrapper->updateCameraPosition(last_pose);
-        _vWrapper->getVisualizer().spinOnce(time, force_redraw);
-
-        vis_mutex.unlock();
-    }
-}
-
-bool MapBuilder::wasStopped() {
-    return _vWrapper->getVisualizer().wasStopped();
-}
-
 void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
+    if(!this->isVisible())
+    {
+        return;
+    }
+
     Transform pose = data.pose();
 
     if(pose.isNull()) {
@@ -117,11 +120,12 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
             }
         }
         if(!pose.isNull()) {
-            last_pose = pose;
+            _vWrapper->updateCameraPosition(data.pose());
         }
     }
-}
 
+    _vWrapper->update();
+}
 
 void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
     const std::map<int, Transform> & poses = stats.poses();
@@ -165,6 +169,8 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
             }
         }
     }
+
+    _vWrapper->update();
 
     /*vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New ();
     windowToImageFilter->SetInput(_vWrapper->getVisualizer().getRenderWindow());
@@ -251,16 +257,16 @@ void MapBuilder::handleEvent(UEvent * event) {
         const Statistics & stats = rtabmapEvent->getStats();
         // Statistics must be processed in the Qt thread
         cout << "Process statistics" << endl;
-        if( vis_mutex.try_lock() ) {
-            processStatistics(stats);
+        if(this->isVisible() && vis_mutex.try_lock()) {
+            QMetaObject::invokeMethod(this, "processStatistics", Q_ARG(rtabmap::Statistics, stats));
             vis_mutex.unlock();
         }
     }
     else if(event->getClassName().compare("OdometryEvent") == 0) {
         OdometryEvent * odomEvent = dynamic_cast<OdometryEvent *>(event);
         cout << "Quality: " << odomEvent->quality() << endl;
-        if( vis_mutex.try_lock() ) {
-            processOdometry(odomEvent->data());
+        if(this->isVisible() && vis_mutex.try_lock()) {
+            QMetaObject::invokeMethod(this, "processOdometry", Q_ARG(rtabmap::SensorData, odomEvent->data()));
             vis_mutex.unlock();
         }
     }

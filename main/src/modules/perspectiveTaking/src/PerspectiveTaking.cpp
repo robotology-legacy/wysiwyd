@@ -18,6 +18,11 @@
 
 #include <stdio.h>
 
+#include <QApplication>
+#include <QTimer>
+#include <QThread>
+#include <QtCore/QMetaType>
+
 #include <boost/chrono/chrono.hpp>
 
 #include <yarp/math/Math.h>
@@ -48,7 +53,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     openHandlerPort();
 
     //getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
-    getManualTransMat(rf.check("cameraOffset",Value(-0.4)).asDouble(), rf.check("cameraAngle",Value(-10.0)).asDouble());
+    getManualTransMat(rf.check("cameraOffset",Value(-0.4)).asDouble(), rf.check("cameraAngle",Value(-20.0)).asDouble());
     cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
 
     //port for images
@@ -57,6 +62,10 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     addABMImgProvider(selfPerspImgPort.getName());
     addABMImgProvider(partnerPerspImgPort.getName());
+
+    int argc_qt = 1;
+    char *argv_qt[] = {(char*)getName().c_str()};
+    QApplication app(argc_qt, argv_qt);
 
     mapBuilder = new MapBuilder(rf.check("decimationOdometry",Value(2)).asInt(),
                                 rf.check("decimationStatistics",Value(2)).asInt());
@@ -76,6 +85,67 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     distanceMultiplier = rf.check("distanceMultiplier",Value(1.0)).asDouble();
     updateTimer = rf.check("updateTimer",Value(1.0)).asDouble();
+
+    QThread* m_thread = new QThread(this);
+    QTimer *m_timer = new QTimer(0);
+    m_timer->setInterval(1000);
+    m_timer->moveToThread(m_thread);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(setPartnerCamera()));
+    QObject::connect(m_thread, SIGNAL(started()), m_timer, SLOT(start()));
+    m_thread->start();
+
+    mapBuilder->show();
+    app.exec(); // main loop
+
+    // remove handlers
+    mapBuilder->unregisterFromEventsManager();
+    rtabmapThread->unregisterFromEventsManager();
+    odomThread->unregisterFromEventsManager();
+
+    // close methods
+    // remove ABM image providers
+    removeABMImgProvider(selfPerspImgPort.getName());
+    removeABMImgProvider(partnerPerspImgPort.getName());
+
+    boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
+
+    // Kill all threads
+    cameraThread->kill();
+    delete cameraThread;
+
+    odomThread->join(true);
+    rtabmapThread->join(true);
+
+    // generate graph and save Long-Term Memory
+    rtabmap->generateDOTGraph(resfind.findFileByName("Graph.dot"));
+    printf("Generated graph \"Graph.dot\", viewable with Graphiz using \"neato -Tpdf Graph.dot -o out.pdf\"\n");
+
+    // Cleanup... save database and logs
+    printf("Saving Long-Term Memory to \"rtabmap.db\"...\n");
+    rtabmap->close();
+
+    // Cleanup... delete temp image
+    if (!std::remove("temp.png") == 0) {
+        cerr << "Could not delete temp.png" << endl;
+    }
+
+    // Delete pointers
+    delete mapBuilder;
+    delete rtabmapThread;
+    delete odomThread;
+
+    // Close ports
+    abm.interrupt();
+    abm.close();
+    selfPerspImgPort.interrupt();
+    selfPerspImgPort.close();
+    partnerPerspImgPort.interrupt();
+    partnerPerspImgPort.close();
+    opc->interrupt();
+    opc->close();
+    handlerPort.interrupt();
+    handlerPort.close();
+    client.close();
 
     return true;
 }
@@ -124,10 +194,6 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
     return true;
 }
 
-double perspectiveTaking::getPeriod() {
-    return 0.1;
-}
-
 bool perspectiveTaking::sendImages() {
     mapBuilder->saveScreenshot("temp.png");
     cv::Mat screen = cv::imread("temp.png", CV_LOAD_IMAGE_COLOR);
@@ -162,130 +228,58 @@ bool perspectiveTaking::sendImages() {
     return true;
 }
 
-/* Called periodically every getPeriod() seconds */
-bool perspectiveTaking::updateModule() {
-    if(!mapBuilder->wasStopped()) {
-        ++loopCounter;
-        if(loopCounter%updateTimer==0) { // only update camera every now and then
-            sendImages();
+void perspectiveTaking::setPartnerCamera() {
+    cout << "Call setPartnerCamera" << endl;
+    loopCounter++;
+    //sendImages();
 
-            partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
-            if(partner) { // TODO:  && partner->m_present
-                //Vector p_headPos = partner->m_ego_position;
-                double d_headPos[3] = {-1.624107, -0.741913, 0.590235};
-                Vector p_headPos = Vector(3, d_headPos);
+    //partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
+    //if(partner) { // TODO:  && partner->m_present
+        //Vector p_headPos = partner->m_ego_position;
+        double d_headPos[3] = {-1.624107, -0.741913, 0.590235};
+        Vector p_headPos = Vector(3, d_headPos);
 
-                double d_up[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
-                Vector p_up = Vector(3, d_up);
+        double d_up[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
+        Vector p_up = Vector(3, d_up);
 
-                double d_shoulderLeft[3] = {-1.757043, -0.620365, 0.356680};
-                //Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
-                Vector p_shoulderLeft  = Vector(3, d_shoulderLeft);
+        double d_shoulderLeft[3] = {-1.757043, -0.620365, 0.356680};
+        //Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
+        Vector p_shoulderLeft  = Vector(3, d_shoulderLeft);
 
-                double d_shoulderRight[3] = {-1.601168, -0.888877, 0.352823};
-                //Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
-                Vector p_shoulderRight = Vector(3, d_shoulderRight);
+        double d_shoulderRight[3] = {-1.601168, -0.888877, 0.352823};
+        //Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
+        Vector p_shoulderRight = Vector(3, d_shoulderRight);
 
-                // For now, the partner is thought to look towards the icub
-                // This is achieved by laying a plane between left shoulder,
-                // right shoulder and head and using the normal vector of
-                // the plane as viewing vector
-                Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
+        // For now, the partner is thought to look towards the icub
+        // This is achieved by laying a plane between left shoulder,
+        // right shoulder and head and using the normal vector of
+        // the plane as viewing vector
+        Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
 
-                setCamera(p_headPos, p_view, p_up, "partner");
-            } else {
-                cout << "No partner found in OPC!" << endl;
-            }
-        }
-        // update GUI
-        mapBuilder->spinOnce(50);
+        setCamera(p_headPos, p_view, p_up, "partner");
+    //} else {
+    //    cout << "No partner found in OPC!" << endl;
+    //}
 
-        // print some statistics
-        if(rtabmap->getLoopClosureId()) {
-            printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
-                   loopCounter,
-                   rtabmap->getLastProcessTime(),
-                   rtabmap->getSTM().size(), // short-term memory
-                   rtabmap->getWM().size(), // working memory
-                   rtabmap->getLoopClosureId(),
-                   rtabmap->getLcHypValue(),
-                   rtabmap->getLastLocationId(),
-                   rtabmap->getLoopClosureId());
-        }
-        else {
-            printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f)\n",
-                   loopCounter,
-                   rtabmap->getLastProcessTime(),
-                   rtabmap->getSTM().size(), // short-term memory
-                   rtabmap->getWM().size(), // working memory
-                   rtabmap->getRetrievedId(), // highest loop closure hypothesis
-                   rtabmap->getLcHypValue());
-        }
-        return true;
+    // print some statistics
+    if(rtabmap->getLoopClosureId()) {
+        printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
+               loopCounter,
+               rtabmap->getLastProcessTime(),
+               rtabmap->getSTM().size(), // short-term memory
+               rtabmap->getWM().size(), // working memory
+               rtabmap->getLoopClosureId(),
+               rtabmap->getLcHypValue(),
+               rtabmap->getLastLocationId(),
+               rtabmap->getLoopClosureId());
     }
     else {
-        return false;
+        printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f)\n",
+               loopCounter,
+               rtabmap->getLastProcessTime(),
+               rtabmap->getSTM().size(), // short-term memory
+               rtabmap->getWM().size(), // working memory
+               rtabmap->getRetrievedId(), // highest loop closure hypothesis
+               rtabmap->getLcHypValue());
     }
-}
-
-bool perspectiveTaking::interruptModule() {
-    abm.interrupt();
-    handlerPort.interrupt();
-    opc->interrupt();
-    selfPerspImgPort.interrupt();
-    partnerPerspImgPort.interrupt();
-    return true;
-}
-
-bool perspectiveTaking::close() {
-    // remove ABM image providers
-    removeABMImgProvider(selfPerspImgPort.getName());
-    removeABMImgProvider(partnerPerspImgPort.getName());
-
-    // remove handlers
-    mapBuilder->unregisterFromEventsManager();
-    rtabmapThread->unregisterFromEventsManager();
-    odomThread->unregisterFromEventsManager();
-
-    boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
-
-    // Kill all threads
-    cameraThread->kill();
-    delete cameraThread;
-
-    odomThread->join(true);
-    rtabmapThread->join(true);
-
-    // generate graph and save Long-Term Memory
-    rtabmap->generateDOTGraph(resfind.findFileByName("Graph.dot"));
-    printf("Generated graph \"Graph.dot\", viewable with Graphiz using \"neato -Tpdf Graph.dot -o out.pdf\"\n");
-
-    // Cleanup... save database and logs
-    printf("Saving Long-Term Memory to \"rtabmap.db\"...\n");
-    rtabmap->close();
-
-    // Cleanup... delete temp image
-    if (!std::remove("temp.png") == 0) {
-        cerr << "Could not delete temp.png" << endl;
-    }
-
-    // Delete pointers
-    delete mapBuilder;
-    delete rtabmapThread;
-    delete odomThread;
-
-    // Close ports
-    abm.interrupt();
-    abm.close();
-    selfPerspImgPort.interrupt();
-    selfPerspImgPort.close();
-    partnerPerspImgPort.interrupt();
-    partnerPerspImgPort.close();
-    opc->interrupt();
-    opc->close();
-    handlerPort.interrupt();
-    handlerPort.close();
-    client.close();
-
-    return true;
 }

@@ -34,7 +34,8 @@
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
 
-class perspectiveTaking: public yarp::os::RFModule {
+class perspectiveTaking: public QObject, public yarp::os::RFModule {
+    Q_OBJECT
 protected:
     // Kinect related
     void connectToKinectServer(int verbosity);
@@ -86,14 +87,14 @@ protected:
     bool setupThreads();
     yarp::os::Port handlerPort;
 
+private slots:
+    void setPartnerCamera();
+
 public:
     bool configure(yarp::os::ResourceFinder &rf);
-    bool interruptModule();
-    bool close();
     bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     bool queryRFHTransMat(const std::string& from, const std::string& to, yarp::sig::Matrix& m);
-    double getPeriod();
-    bool updateModule();
+    bool updateModule() { return false; }
 };
 
 #endif
