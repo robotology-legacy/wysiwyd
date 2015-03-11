@@ -19,6 +19,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${YARP_INCLUDE_DIRS} ${C
 
 add_executable(${PROJECTNAME} ${folder_header} ${folder_source} ${doc_files})
 target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${CURL_LIBRARIES})
+set_target_properties(${PROJECTNAME} PROPERTIES FOLDER visionRelated)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
-
