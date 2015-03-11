@@ -58,7 +58,7 @@ protected:
     void connectToABM(const std::string& abmName);
     bool addABMImgProvider(const std::string& portName);
     bool removeABMImgProvider(const std::string& portName);
-    bool sendImages();
+    bool sendImagesToPorts();
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > selfPerspImgPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > partnerPerspImgPort;
     yarp::os::Port abm;

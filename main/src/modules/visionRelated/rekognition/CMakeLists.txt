@@ -13,8 +13,6 @@ source_group("Header Files" FILES ${folder_header})
 source_group("Source Files" FILES ${folder_source})
 source_group("DOC Files"    FILES ${doc_files})
 
-find_package(CURL)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${YARP_INCLUDE_DIRS} ${CURL_INCLUDE_DIRS})
 
 add_executable(${PROJECTNAME} ${folder_header} ${folder_source} ${doc_files})
