@@ -22,8 +22,8 @@ install:
   # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul"
 
   - ps:  $dwntool=New-Object System.Net.WebClient
-  - ps:  $dwntool.DownloadFile(http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe,c:\dev\yarp.exe)
-  - ps:  $dwntool.DownloadFile(http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe,c:\dev\icub.exe)
+  - ps:  $dwntool.DownloadFile('http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe','c:\dev\yarp.exe')
+  - ps:  $dwntool.DownloadFile('http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe','c:\dev\icub.exe')
 
   - cmd: c:\dev\yarp.exe /S
   - cmd: c:\dev\icub.exe /S
