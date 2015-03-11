@@ -48,7 +48,7 @@ MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
 {
     this->setWindowFlags(Qt::Dialog);
     this->setWindowTitle(tr("3D Map"));
-    this->setMinimumWidth(800);
+    this->setMinimumWidth(1600);
     this->setMinimumHeight(600);
 
     QVBoxLayout *layout = new QVBoxLayout();
@@ -73,6 +73,12 @@ void MapBuilder::setCameraPosition( double pos_x, double pos_y, double pos_z,
                                                  view_x, view_y, view_z,
                                                  up_x, up_y, up_z,
                                                  viewport);
+    vis_mutex.unlock();
+}
+
+void MapBuilder::setCameraFieldOfView(double fovy, int viewport ) {
+    vis_mutex.lock();
+    _vWrapper->getVisualizer().setCameraFieldOfView(fovy, viewport);
     vis_mutex.unlock();
 }
 

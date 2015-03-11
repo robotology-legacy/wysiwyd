@@ -78,10 +78,14 @@ protected:
     Eigen::Matrix4f kinect2icub_pcl;
     Eigen::Matrix4f yarp2pcl;
     double distanceMultiplier;
+    bool useStaticPose;
+
+    // QT related
+    QTimer *setCamPosTimer;
+    QThread* setCamPosThread;
 
     // misc
     unsigned long loopCounter;
-    int updateTimer;
     yarp::os::ResourceFinder resfind;
     bool openHandlerPort();
     bool setupThreads();
@@ -95,6 +99,7 @@ public:
     bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     bool queryRFHTransMat(const std::string& from, const std::string& to, yarp::sig::Matrix& m);
     bool updateModule() { return false; }
+    bool close();
 };
 
 #endif

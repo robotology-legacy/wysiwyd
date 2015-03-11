@@ -55,6 +55,8 @@ public:
                             double up_x, double up_y, double up_z,
                             int viewport = 0 );
 
+    void setCameraFieldOfView( double fovy, int viewport = 0 );
+
     void setDecimationOdometry(int decimation) {
         decimationOdometry_ = decimation;
     }
