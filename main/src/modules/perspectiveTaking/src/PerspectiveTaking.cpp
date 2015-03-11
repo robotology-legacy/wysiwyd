@@ -23,6 +23,7 @@
 #include <QThread>
 #include <QtCore/QMetaType>
 
+#include <opencv2/core/core.hpp>
 #include <boost/chrono/chrono.hpp>
 
 #include <yarp/math/Math.h>
@@ -156,22 +157,17 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
     return true;
 }
 
-bool perspectiveTaking::sendImages() {
-    mapBuilder->saveScreenshot("temp.png");
-    cv::Mat screen = cv::imread("temp.png", CV_LOAD_IMAGE_COLOR);
-    if(!screen.data) {// Check for invalid input
-        cout <<  "Could not open or find the image" << std::endl;
-        return false;
-    }
+bool perspectiveTaking::sendImagesToPorts() {
+    cv::Mat screen = mapBuilder->getScreen();
 
     cv::Mat selfPersp, partnerPersp;
     // self perspective = left side of screenshot
     // partner perspective = right side of screenshot
     selfPersp=screen(cv::Rect(0,0,screen.cols/2,screen.rows));
     partnerPersp=screen(cv::Rect(screen.cols/2,0,screen.cols/2,screen.rows));
-    cv::imshow("Self Perspective", selfPersp);
-    cv::imshow("Partner Perspective", partnerPersp);
-    cv::waitKey(50);
+    //cv::imshow("Self Perspective", selfPersp);
+    //cv::imshow("Partner Perspective", partnerPersp);
+    //cv::waitKey(50);
 
     IplImage* partnerPersp_ipl = new IplImage(partnerPersp);
     ImageOf<PixelRgb> &partnerPers_yarp = partnerPerspImgPort.prepare();
@@ -193,7 +189,6 @@ bool perspectiveTaking::sendImages() {
 void perspectiveTaking::setPartnerCamera() {
     cout << "Call setPartnerCamera" << endl;
     loopCounter++;
-    //sendImages();
 
     if(useStaticPose) {
         double d_headPos[3] = {-1.624107, -0.741913, 0.590235};
@@ -212,17 +207,17 @@ void perspectiveTaking::setPartnerCamera() {
         p_view[2] = p_view[2] - 0.8;
 
         setCamera(p_headPos, p_view, p_up, "partner");
+
+        sendImagesToPorts();
     } else {
         partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
         if(partner && partner->m_present) {
             Vector p_headPos = partner->m_ego_position;
+            Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
+            Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
 
             double d_up[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
             Vector p_up = Vector(3, d_up);
-
-            Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
-
-            Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
 
             // For now, the partner is thought to look towards the icub
             // This is achieved by laying a plane between left shoulder,
@@ -232,6 +227,8 @@ void perspectiveTaking::setPartnerCamera() {
             p_view[2] = p_view[2] - 0.8;
 
             setCamera(p_headPos, p_view, p_up, "partner");
+
+            sendImagesToPorts();
         } else {
             cout << "No partner present!" << endl;
         }
@@ -290,11 +287,6 @@ bool perspectiveTaking::close() {
     // Cleanup... save database and logs
     printf("Saving Long-Term Memory to \"rtabmap.db\"...\n");
     rtabmap->close();
-
-    // Cleanup... delete temp image
-    if (!std::remove("temp.png") == 0) {
-        cerr << "Could not delete temp.png" << endl;
-    }
 
     // Delete pointers
     //delete mapBuilder; //is deleted by QVTKWidget destructor!
