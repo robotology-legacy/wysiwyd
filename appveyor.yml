@@ -16,24 +16,19 @@ environment:
   ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.15
   ICUBcontrib_DIR:   c:/iCubContrib
   CMAKE_PREFIX_PATH: c:/iCubContrib
-  
+
 install:
-  # to install downloader do: "cinst wget -x86"
-  # the format is: "wget -q URL -O c:\path-to-file\file_name"
-  # special format is: "wget -q --no-check-certificate URL -O c:\path-to-file\file_name"
-  # that accounts for downloading from e.g. https://googledrive.com/host/$HASH
-  # -
   # to install unzipper do: "cinst 7zip.commandline -x86"
-  # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul" 
-  - cmd: cinst wget -x86
-  
-  - cmd: wget -q http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe             -O c:\dev\yarp.exe
-  - cmd: wget -q http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe -O c:\dev\icub.exe
-  
+  # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul"
+
+  - ps:  $dwntool=New-Object System.Net.WebClient
+  - ps:  $dwntool.DownloadFile(http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe,c:\dev\yarp.exe)
+  - ps:  $dwntool.DownloadFile(http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe,c:\dev\icub.exe)
+
   - cmd: c:\dev\yarp.exe /S
   - cmd: c:\dev\icub.exe /S
   - cmd: dir "c:\Program Files (x86)\robotology"
-  
+
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
   - cmd: md build
