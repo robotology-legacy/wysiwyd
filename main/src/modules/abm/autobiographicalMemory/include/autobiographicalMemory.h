@@ -74,6 +74,9 @@ public:
     yarp::os::Port portEventsIn;
     yarp::os::Port handlerPort;      //a port to handle messages
     yarp::os::Port abm2reasoning;
+    yarp::os::Port abm2rekognition;
+
+    bool isconnected2rekognition;
 
     // autobiographicalMemory
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);

@@ -36,6 +36,8 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     setName(moduleName.c_str());
 
+    string rekognitionName = rf.check("rekognitionName", Value("rekognition")).asString();
+
     //conf group for database properties
     Bottle &bDBProperties = rf.findGroup("database_properties");
     server = bDBProperties.check("server", Value("127.0.0.1")).asString();
@@ -80,6 +82,23 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     string name_abm2reasoning = "/" + getName() + "/to_reasoning";
     abm2reasoning.open(name_abm2reasoning.c_str());
+
+    string abm2rekognition_local = "/" + getName() + "/to_rekognition";
+    abm2rekognition.open(abm2rekognition_local.c_str());
+
+    string abm2rekognition_remote = "/"+rekognitionName+"/rpc";
+
+    int abm2rekognition_try = 0;
+    isconnected2rekognition = false;
+
+    while (!isconnected2rekognition && abm2rekognition_try <= 3) {
+        cout << "Waiting for connection to Rekognition..." << endl;
+
+        isconnected2rekognition = Network::connect(abm2rekognition_local.c_str(), abm2rekognition_remote.c_str());
+        Time::delay(0.5);
+
+        abm2rekognition_try++;
+    }
 
     //create the storingPath and the tmp also
     string fullTmpPath = storingPath + "/" + storingTmpSuffix;
@@ -785,6 +804,7 @@ bool autobiographicalMemory::interruptModule()
     handlerPort.interrupt();
     portEventsIn.interrupt();
     abm2reasoning.interrupt();
+    abm2rekognition.interrupt();
 
     return true;
 }
@@ -807,6 +827,9 @@ bool autobiographicalMemory::close()
 
     abm2reasoning.interrupt();
     abm2reasoning.close();
+
+    abm2rekognition.interrupt();
+    abm2rekognition.close();
 
     storeImageOIDs();
 
