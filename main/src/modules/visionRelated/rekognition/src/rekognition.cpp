@@ -26,6 +26,7 @@
 #include <fstream>
 #include <sstream>
 #include <streambuf>
+#include <stdlib.h>
 
 using namespace std;
 using namespace yarp::os;
