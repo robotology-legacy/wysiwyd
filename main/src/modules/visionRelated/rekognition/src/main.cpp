@@ -19,6 +19,9 @@
 
 */
 
+#include <stdlib.h>
+#include <time.h>
+
 #include <yarp/os/all.h>
 #include "rekognition.h"
 
