@@ -64,7 +64,7 @@ protected:
     yarp::os::Port abm;
 
     // RFH related
-    void getManualTransMat(float camOffsetZ, float camAngle);
+    void getManualTransMat(float camOffsetX, float camOffsetZ, float camAngle);
     void getRFHTransMat(const std::string& rfhName);
     yarp::os::Port rfh;
 
@@ -80,6 +80,10 @@ protected:
     double distanceMultiplier;
     bool useStaticPose;
 
+    void yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,
+                              Eigen::Matrix4f& kinect2icubPCL);
+    Eigen::Vector4f yarp2EigenV(yarp::sig::Vector);
+
     // QT related
     QTimer *setCamPosTimer;
     QThread* setCamPosThread;
@@ -90,6 +94,9 @@ protected:
     bool openHandlerPort();
     bool setupThreads();
     yarp::os::Port handlerPort;
+
+    cv::Mat MatFromDepth(const cv::Mat & imageDepth,
+                         float cx, float cy, float fx, float fy);
 
 private slots:
     void setPartnerCamera();

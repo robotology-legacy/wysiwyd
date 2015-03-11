@@ -16,10 +16,10 @@
  * Public License for more details
 */
 
+#include <rtabmap/core/util3d.h>
 #include <rtabmap/utilite/UEventsManager.h>
 #include "PerspectiveTaking.h"
 #include "CameraKinectWrapper.h"
-#include "Helpers.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -75,15 +75,16 @@ bool perspectiveTaking::setupThreads() {
     return true;
 }
 
-void perspectiveTaking::getManualTransMat(float camOffsetZ, float camAngle) {
+void perspectiveTaking::getManualTransMat(float camOffsetX,float camOffsetZ,
+                                          float camAngle) {
     kinect2icub_pcl = Eigen::Matrix4f::Zero();
 
     // Estimate rotation+translation from kinect to icub head
     Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
 
-    // iCub head is ~40cm below kinect
-    rot_trans.translation() << 0.0, 0.0, camOffsetZ;
-    // iCub head is tilted ~30 degrees down
+    // iCub head is camOffsetZ below kinect, can camOffsetX behind kinect
+    rot_trans.translation() << camOffsetX, 0.0, camOffsetZ;
+    // iCub head is tilted by camAngle degrees down
     float theta = camAngle/180*M_PI;
     rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
 
@@ -96,6 +97,7 @@ void perspectiveTaking::getRFHTransMat(const string &rfhName) {
     rfh.open(rfhLocal.c_str());
     string rfhRemote = "/"+rfhName+"/rpc";
 
+    cout << "Connect " << rfhLocal << " with " << rfhRemote << endl;
     while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str())) {
         cout << "Waiting for connection to RFH..." << endl;
         Time::delay(1.0);
@@ -257,7 +259,7 @@ void perspectiveTaking::setCamera(const Eigen::Vector4f &p_pos, const Eigen::Vec
         mapBuilder->getViewports()[cameraName]);
 }
 
-void yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,
+void perspectiveTaking::yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,
                           Eigen::Matrix4f& kinect2icubPCL) {
     for(int i=0; i<4; i++) {
         for(int j=0; j<4; j++) {
@@ -266,6 +268,26 @@ void yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,
     }
 }
 
-Eigen::Vector4f yarp2EigenV(Vector yVec) {
+Eigen::Vector4f perspectiveTaking::yarp2EigenV(Vector yVec) {
     return Eigen::Vector4f(yVec[0], yVec[1], yVec[2], 1);
+}
+
+cv::Mat perspectiveTaking::MatFromDepth(const cv::Mat &imageDepth,
+                                        float cx, float cy, float fx, float fy) {
+    cv::Mat g_im3D;
+    g_im3D.create(imageDepth.rows,imageDepth.cols,CV_32FC3);
+
+    for(int h = 0; h < imageDepth.rows; h++)
+    {
+        cv::Vec3f* Mi = g_im3D.ptr<cv::Vec3f>(h);
+        for(int w = 0; w < imageDepth.cols; w++)
+        {
+            pcl::PointXYZ ptXYZ = util3d::projectDepthTo3D(imageDepth, w, h, cx, cy, fx, fy, false);
+            Mi[w][0] = ptXYZ.y;
+            Mi[w][1] = ptXYZ.y;
+            Mi[w][2] = ptXYZ.z;
+        }
+    }
+
+    return g_im3D;
 }

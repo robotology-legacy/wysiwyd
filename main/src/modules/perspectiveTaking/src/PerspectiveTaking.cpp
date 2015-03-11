@@ -32,7 +32,6 @@
 
 #include "MapBuilder.h"
 #include "PerspectiveTaking.h"
-#include "Helpers.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -57,8 +56,10 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     openHandlerPort();
 
     //getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
-    getManualTransMat(rf.check("cameraOffset",Value(-0.4)).asDouble(), rf.check("cameraAngle",Value(-20.0)).asDouble());
-    cout << "Kinect 2 iCub PCL: " << kinect2icub_pcl << endl;
+    getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
+                      rf.check("cameraOffsetZ",Value(-0.4)).asDouble(),
+                      rf.check("cameraAngle",Value(-20.0)).asDouble());
+    cout << "Kinect 2 iCub PCL: " << endl << kinect2icub_pcl << endl;
 
     // connect to ABM
     selfPerspImgPort.open("/"+getName()+"/images/self:o");
