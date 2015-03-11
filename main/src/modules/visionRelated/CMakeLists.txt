@@ -7,7 +7,6 @@ if (WYSIWYD_USE_OpenCV)
 #   add_subdirectory(kinematicStructure)
 endif()
 
-find_package(CURL)
-if (CURL_FOUND)
+if(WYSIWYD_USE_CURL)
     add_subdirectory(rekognition)
 endif()
