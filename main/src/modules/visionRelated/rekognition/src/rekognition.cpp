@@ -47,6 +47,22 @@ bool rekognition::configure(yarp::os::ResourceFinder &rf) {
 
     cout << "Using key " << api_key << " with secret " << api_secret << endl;
 
+    string abmName = "autobiographicalMemory"; // todo: should be in config file
+    string abmLocal = "/"+getName()+"/abm:o";
+    abmPort.open(abmLocal.c_str());
+    string abmRemote = "/"+abmName+"/rpc";
+
+    while (!Network::connect(abmLocal.c_str(),abmRemote.c_str())) {
+        cout << "Waiting for connection to ABM..." << endl;
+        Time::delay(1.0);
+    }
+
+    Bottle bCmd, bReply;
+    bCmd.addString("getStoringPath");
+
+    abmPort.write(bCmd, bReply);
+    storing_path = bReply.get(0).asString();
+
     attach(handlerPort);
 
     return true;
@@ -65,7 +81,9 @@ bool rekognition::close() {
 
 bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
     if (cmd.get(0).asString() == "recognizeFace") {
-        string filepath = cmd.get(1).asString();
+        string relative_path = cmd.get(1).asString();
+        string full_path = storing_path + "/" + relative_path;
+        cout << "Going to recognize Face in " << full_path << endl;
 
         Json::Value response;
         map<string, string> query_config;
@@ -77,7 +95,7 @@ bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
         query_config["name_space"] = "wysiwyd";
         query_config["user_id"] = "demo_user";
 
-        std::ifstream t(filepath.c_str());
+        std::ifstream t(full_path.c_str());
         std::string buff_str((std::istreambuf_iterator<char>(t)),
                              std::istreambuf_iterator<char>());
 
@@ -87,30 +105,48 @@ bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
         query_config["base64"] = encoded;
 
         if (!rekognition_api::APICall(api_addr_base, query_config, &response)) {
+            cerr << "Something went wrong when calling the API!" << endl;
             reply.addString("nack");
         } else {
             const Json::Value face_recognition = response["face_detection"];
             cout << "Detected " << face_recognition.size() << " faces." << endl;
             cout << response.toStyledString() << endl;
+
+            double max_confidence=0;
+            string max_name;
+
+            reply.addString("ack");
+
             for (unsigned int i = 0; i < face_recognition.size(); ++i) {
                 double x, y, w, h, confidence;
                 string name;
+
                 x = face_recognition[i]["boundingbox"]["tl"]["x"].asDouble();
                 y = face_recognition[i]["boundingbox"]["tl"]["y"].asDouble();
                 w = face_recognition[i]["boundingbox"]["size"]["width"].asDouble();
                 h = face_recognition[i]["boundingbox"]["size"]["height"].asDouble();
 
                 int match_number = 0;
-                name = face_recognition[i]["matches"][match_number]["tag"].asString();
+
                 confidence = atof(face_recognition[i]["matches"][match_number]["score"].asString().c_str());
+                name = face_recognition[i]["matches"][match_number]["tag"].asString();
+                if(confidence>max_confidence) {
+                    max_name = name;
+                    max_confidence=confidence;
+                }
 
                 cout << "Face " << i << ": [" << x << " " << y << " " << w << " " << h
                      << "]" << " ( " << name << " ) Confidence: " << confidence << endl;
             }
-            reply.addString("ack");
+
+            if(max_confidence>0) {
+                reply.addString(max_name);
+                reply.addDouble(max_confidence);
+            }
         }
     } else if (cmd.get(0).asString() == "detectFaces") {
-        string filepath = cmd.get(1).asString();
+        string relative_path = cmd.get(1).asString();
+        string full_path = storing_path + "/" + relative_path;
 
         Json::Value response;
         map<string, string> query_config;
@@ -120,7 +156,7 @@ bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
         query_config["api_secret"] = api_secret;
         query_config["jobs"] = "face";
 
-        std::ifstream t(filepath.c_str());
+        std::ifstream t(full_path.c_str());
         std::string buff_str((std::istreambuf_iterator<char>(t)),
                              std::istreambuf_iterator<char>());
 
@@ -130,10 +166,14 @@ bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
         query_config["base64"] = encoded;
 
         if (!rekognition_api::APICall(api_addr_base, query_config, &response)) {
+            cerr << "Something went wrong when calling the API!" << endl;
             reply.addString("nack");
         } else {
             const Json::Value face_detection = response["face_detection"];
             cout << "Detected " << face_detection.size() << " faces." << endl;
+
+            reply.addString("ack");
+
             for (unsigned int i = 0; i < face_detection.size(); ++i) {
                 double x, y, w, h;
                 x = face_detection[i]["boundingbox"]["tl"]["x"].asDouble();
@@ -144,10 +184,10 @@ bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
                 cout << "Face " << i << ": [" << x << " " << y << " " << w << " " << h
                      << "]" << endl;
             }
-            reply.addString("ack");
         }
     } else if (cmd.get(0).asString() == "tagObject") {
-        string filepath = cmd.get(1).asString();
+        string relative_path = cmd.get(1).asString();
+        string full_path = storing_path + "/" + relative_path;
 
         Json::Value response;
         map<string, string> query_config;
@@ -157,7 +197,7 @@ bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
         query_config["api_secret"] = api_secret;
         query_config["jobs"] = "scene_understanding_3";
 
-        std::ifstream t(filepath.c_str());
+        std::ifstream t(full_path.c_str());
         std::string buff_str((std::istreambuf_iterator<char>(t)),
                              std::istreambuf_iterator<char>());
 
@@ -167,6 +207,7 @@ bool rekognition::respond(const Bottle& cmd, Bottle& reply) {
         query_config["base64"] = encoded;
 
         if (!rekognition_api::APICall(api_addr_base, query_config, &response)) {
+            cerr << "Something went wrong when calling the API!" << endl;
             reply.addString("nack");
         } else {
             const Json::Value scene_tags = response["scene_understanding"]["matches"];

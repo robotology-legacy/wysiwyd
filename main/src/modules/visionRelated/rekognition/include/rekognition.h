@@ -6,11 +6,14 @@
 class rekognition: public yarp::os::RFModule {
 protected:
     yarp::os::Port handlerPort;
+    yarp::os::Port abmPort;
 
 public:
     std::string api_addr_base;
     std::string api_key;
     std::string api_secret;
+
+    std::string storing_path;
 
     bool close();
     bool interrupt();
