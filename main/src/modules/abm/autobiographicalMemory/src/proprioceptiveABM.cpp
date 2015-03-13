@@ -153,6 +153,9 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
     {
         if (Network::isConnected(it->first, it->second->getName().c_str())) {
             Bottle* lastReading = it->second->read();
+            if(lastReading==NULL) {
+                continue;
+            }
 
             for(int subtype = 0; subtype < lastReading->size(); subtype++) {
                 osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' );";

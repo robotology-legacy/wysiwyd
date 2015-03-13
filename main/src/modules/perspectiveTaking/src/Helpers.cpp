@@ -217,7 +217,7 @@ bool perspectiveTaking::addABMImgProvider(const string &portName) {
 
     abm.write(bCmd, bReply);
 
-    if(bReply.toString()=="ack") {
+    if(bReply.get(0).toString()=="[ack]") {
         return true;
     } else {
         return false;
@@ -231,7 +231,7 @@ bool perspectiveTaking::removeABMImgProvider(const string &portName) {
 
     abm.write(bCmd, bReply);
 
-    if(bReply.toString()=="ack") {
+    if(bReply.get(0).toString()=="[ack]") {
         return true;
     } else {
         return false;

@@ -565,7 +565,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
             else
             {
-                bError.addString("[removeDataStreamProvider]: wrong number of elements -> removeDataStreamProvider type");
+                bError.addString("[removeDataStreamProvider]: wrong number of elements -> removeDataStreamProvider /yarp/port/contdata/provider");
                 bReply = bError;
             }
         }
