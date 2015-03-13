@@ -6,5 +6,7 @@ if(WYSIWYD_USE_PGSQL)
     add_subdirectory(autobiographicalMemory)
 endif(WYSIWYD_USE_PGSQL)
 
+add_subdirectory(proprioRosYarpExample)
 add_subdirectory(abmHandler)
 add_subdirectory(abmReasoning)
+

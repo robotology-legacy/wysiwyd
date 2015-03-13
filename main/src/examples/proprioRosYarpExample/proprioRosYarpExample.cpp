@@ -17,6 +17,8 @@
 */
 
 #include <stdio.h>
+#include <algorithm>
+#include <string>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
@@ -27,6 +29,10 @@ using namespace yarp::os;
 
 bool proprioRosYarpExample::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("proprioRosYarpExample"), "module name (string)").asString().c_str());
+
+    string robot = rf.check("robot",Value("NAO")).asString().c_str();
+    // change robot name to all lower case
+    std::transform(robot.begin(), robot.end(), robot.begin(), ::tolower);
 
     // connect to ABM
     string abmName = rf.check("abm",Value("autobiographicalMemory")).asString().c_str();
@@ -49,23 +55,81 @@ bool proprioRosYarpExample::configure(yarp::os::ResourceFinder &rf) {
 
     attach(handlerPort);
 
-    Port baxter_in;
-    baxter_in.setReadOnly();
-    if (!baxter_in.open("/robot/joint_states@/baxter_states")) {
+    state_in.setReadOnly();
+
+    string state_in_portname;
+    if(robot=="nao") {
+        state_in_portname = "/joint_states";
+    } else if(robot=="baxter") {
+        state_in_portname = "/robot/joint_states";
+    } else {
+        cerr << "Unknown robot name, abort" << endl;
+        return false;
+    }
+    if (!state_in.open(state_in_portname+"@/"+robot+"_states")) {
         cerr << "Failed to open port" << endl;
         return 1;
     }
 
-    Port pos_out, vel_out;
-    pos_out.open("/baxter/state:o");
-    vel_out.open("/baxter/velocities:o");
+    pos_out.open("/" + robot + "/state:o");
+    vel_out.open("/" + robot + "/velocities:o");
 
-    while (true) {
-        Bottle bMsgIn;
-        if (!baxter_in.read(bMsgIn)) {
-            cerr << "Failed to read msg" << endl;
-            continue;
-        }
+    // make providers known to ABM
+    Bottle bCmd, bReply;
+    bCmd.addString("addDataStreamProvider");
+    bCmd.addString(pos_out.getName());
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.get(0).toString()=="[ack]") {
+        cout << "Added " << pos_out.getName() << " as DataStreamProvider to ABM" << endl;
+    } else {
+        cerr << "Could not add " << pos_out.getName() << " as DataStreamProvider to ABM" << endl;
+        cerr << "Reason: " << bReply.toString() << endl;
+    }
+
+    yarp::os::Time::delay(0.2);
+
+    bCmd.clear();
+    bReply.clear();
+    bCmd.addString("addDataStreamProvider");
+    bCmd.addString(vel_out.getName());
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.get(0).toString()=="[ack]") {
+        cout << "Added " << vel_out.getName() << " as DataStreamProvider to ABM" << endl;
+    } else {
+        cerr << "Could not add " << vel_out.getName() << " as DataStreamProvider to ABM" << endl;
+        cerr << "Reason: " << bReply.toString() << endl;
+    }
+
+    return true;
+}
+
+bool proprioRosYarpExample::respond(const Bottle& bCommand, Bottle& bReply) {
+    if (bCommand.get(0).asString() == "test" )
+    {
+        bReply.addString("[ack]");
+    }
+    else
+    {
+        bReply.addString("[nack]");
+    }
+    return true;
+}
+
+double proprioRosYarpExample::getPeriod() {
+    return 0.05;
+}
+
+
+bool proprioRosYarpExample::updateModule() {
+    Bottle bMsgIn;
+    if (!state_in.read(bMsgIn)) {
+        cerr << "Failed to read msg" << endl;
+    }
+    else {
         Bottle *bPosIn, bPosOut, *bVelIn, bVelOut;
         bPosIn = bMsgIn.get(2).asList();
         bVelIn = bMsgIn.get(3).asList();
@@ -82,28 +146,38 @@ bool proprioRosYarpExample::configure(yarp::os::ResourceFinder &rf) {
     return true;
 }
 
-bool proprioRosYarpExample::respond(const Bottle& bCommand, Bottle& bReply) {
-    if (bCommand.get(0).asString() == "test" )
-    {
-        bReply.addString("ack");
-    }
-    else
-    {
-        bReply.addString("nack");
-    }
-    return true;
-}
-
-double proprioRosYarpExample::getPeriod() {
-    return 0.1;
-}
-
-
-bool proprioRosYarpExample::updateModule() {
-    return true;
-}
-
 bool proprioRosYarpExample::interruptModule() {
+    Bottle bCmd, bReply;
+    bCmd.addString("removeDataStreamProvider");
+    bCmd.addString(pos_out.getName());
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.get(0).toString()=="[ack]") {
+        cout << "Removed " << pos_out.getName() << " as DataStreamProvider from ABM" << endl;
+    } else {
+        cerr << "Could not remove " << pos_out.getName() << " as DataStreamProvider from ABM" << endl;
+        cerr << "Reason: " << bReply.toString() << endl;
+    }
+
+    yarp::os::Time::delay(0.2);
+
+    bCmd.clear();
+    bReply.clear();
+    bCmd.addString("removeDataStreamProvider");
+    bCmd.addString(vel_out.getName());
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.get(0).toString()=="[ack]") {
+        cout << "Removed " << vel_out.getName() << " as DataStreamProvider from ABM" << endl;
+    } else {
+        cerr << "Could not remove " << vel_out.getName() << " as DataStreamProvider from ABM" << endl;
+        cerr << "Reason: " << bReply.toString() << endl;
+    }
+
+    pos_out.interrupt();
+    vel_out.interrupt();
     abm.interrupt();
     handlerPort.interrupt();
 
@@ -111,6 +185,10 @@ bool proprioRosYarpExample::interruptModule() {
 }
 
 bool proprioRosYarpExample::close() {
+    pos_out.interrupt();
+    pos_out.close();
+    vel_out.interrupt();
+    vel_out.close();
     abm.interrupt();
     abm.close();
     handlerPort.interrupt();

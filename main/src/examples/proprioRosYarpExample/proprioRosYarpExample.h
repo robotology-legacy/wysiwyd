@@ -26,6 +26,8 @@ class proprioRosYarpExample: public yarp::os::RFModule {
 protected:
     yarp::os::Port abm;
     yarp::os::Port handlerPort;
+    yarp::os::Port state_in;
+    yarp::os::Port pos_out, vel_out;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
