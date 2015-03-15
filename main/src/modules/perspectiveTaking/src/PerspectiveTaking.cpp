@@ -243,7 +243,7 @@ void perspectiveTaking::setPartnerCamera() {
                rtabmap->getSTM().size(), // short-term memory
                rtabmap->getWM().size(), // working memory
                rtabmap->getLoopClosureId(),
-               rtabmap->getLcHypValue(),
+               rtabmap->getLoopClosureValue(),
                rtabmap->getLastLocationId(),
                rtabmap->getLoopClosureId());
     }
@@ -253,8 +253,8 @@ void perspectiveTaking::setPartnerCamera() {
                rtabmap->getLastProcessTime(),
                rtabmap->getSTM().size(), // short-term memory
                rtabmap->getWM().size(), // working memory
-               rtabmap->getRetrievedId(), // highest loop closure hypothesis
-               rtabmap->getLcHypValue());
+               rtabmap->getHighestHypothesisId(), // highest loop closure hypothesis
+               rtabmap->getLoopClosureValue());
     }
 }
 

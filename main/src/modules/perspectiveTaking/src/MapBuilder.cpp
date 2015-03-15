@@ -23,11 +23,6 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
-//#include <vtkExtractVOI.h>
-//#include <vtkRenderWindow.h>
-//#include <vtkWindowToImageFilter.h>
-//#include <vtkImageExport.h>
-
 #include <pcl/pcl_base.h>
 #include <pcl/point_cloud.h>
 
@@ -125,7 +120,7 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
                 cerr << "Adding cloudOdom to viewer failed!" << endl;
             }
         }
-        if(!pose.isNull()) {
+        if(!data.pose().isNull()) { // NOT: pose.isNull()!!!
             _vWrapper->updateCameraPosition(data.pose());
         }
     }
@@ -154,19 +149,21 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
             else if(iter->first == stats.refImageId() &&
                     stats.getSignature().id() == iter->first) {
                 // Add the new cloud
+                Signature s = stats.getSignature();
+                s.uncompressData();
                 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud = util3d::cloudFromDepthRGB(
-                            stats.getSignature().getImageRaw(),
-                            stats.getSignature().getDepthRaw(),
-                            stats.getSignature().getDepthCx(),
-                            stats.getSignature().getDepthCy(),
-                            stats.getSignature().getDepthFx(),
-                            stats.getSignature().getDepthFy(),
+                            s.getImageRaw(),
+                            s.getDepthRaw(),
+                            s.getDepthCx(),
+                            s.getDepthCy(),
+                            s.getDepthFx(),
+                            s.getDepthFy(),
                             decimationStatistics_); // decimation
 
                 if(cloud->size()) {
                     cloud = util3d::passThrough<pcl::PointXYZRGB>(cloud, "z", 0, 4.0f);
                     if(cloud->size()) {
-                        cloud = util3d::transformPointCloud<pcl::PointXYZRGB>(cloud, stats.getSignature().getLocalTransform());
+                        cloud = util3d::transformPointCloud<pcl::PointXYZRGB>(cloud, s.getLocalTransform());
                     }
                 }
                 if(!_vWrapper->addOrUpdateCloud(cloudName, cloud, iter->second)) {
@@ -193,7 +190,7 @@ void MapBuilder::handleEvent(UEvent * event) {
     }
     else if(event->getClassName().compare("OdometryEvent") == 0) {
         OdometryEvent * odomEvent = dynamic_cast<OdometryEvent *>(event);
-        cout << "Quality: " << odomEvent->quality() << endl;
+        cout << "Quality (#inliers): " << odomEvent->info().inliers << endl;
         if(this->isVisible() && vis_mutex.try_lock()) {
             QMetaObject::invokeMethod(this, "processOdometry", Q_ARG(rtabmap::SensorData, odomEvent->data()));
             vis_mutex.unlock();

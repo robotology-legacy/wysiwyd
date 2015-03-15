@@ -99,9 +99,6 @@ public:
         return _viewports;
     }
 
-public slots:
-    void render();
-
 private:
     std::map<std::string, boost::shared_ptr<cloudWithPose> > _addedClouds;
     unsigned int _maxTrajectorySize;

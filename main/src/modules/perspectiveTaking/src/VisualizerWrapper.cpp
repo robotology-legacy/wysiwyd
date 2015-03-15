@@ -59,16 +59,11 @@ VisualizerWrapper::~VisualizerWrapper() {
     delete _visualizer;
 }
 
-void VisualizerWrapper::render()
-{
-    this->GetRenderWindow()->Render();
-}
-
 Transform VisualizerWrapper::transformFromCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
     Eigen::Vector4f origin = cloud->sensor_origin_;
     Eigen::Translation<float,3> translation_A(Eigen::Vector3f(origin[0], origin[1], origin[2]));
     Eigen::Affine3f m = translation_A * cloud->sensor_orientation_;
-    return util3d::transformFromEigen3f(m);
+    return Transform::fromEigen3f(m);
 }
 
 bool VisualizerWrapper::getPose(const std::string & id, Transform & pose) {
@@ -86,7 +81,7 @@ bool VisualizerWrapper::updateCloudPose(
     if(_addedClouds.count(id)) {
         cout << "Updating pose " << id << " to " << pose.prettyPrint() << endl;
         if(_addedClouds.at(id)->pose == pose ||
-                _visualizer->updatePointCloudPose(id, util3d::transformToEigen3f(pose))) {
+                _visualizer->updatePointCloudPose(id, pose.toEigen3f())) {
             _addedClouds.at(id)->pose = pose;
             return true;
         }
@@ -119,7 +114,7 @@ bool VisualizerWrapper::addCloud(
         const std::string & id,
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
         const Transform & pose) {
-    cloud->sensor_orientation_ = Eigen::Quaternionf(util3d::transformToEigen3f(pose).rotation());
+    cloud->sensor_orientation_ = Eigen::Quaternionf(pose.toEigen3f().rotation());
     cloud->sensor_origin_ = Eigen::Vector4f(pose.x(), pose.y(), pose.z(), 0.0f);
 
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
@@ -157,7 +152,7 @@ bool VisualizerWrapper::removeCloud(const std::string & id) {
 void VisualizerWrapper::updateCameraPosition(const Transform & pose)
 {
     if(!pose.isNull()) {
-        Eigen::Affine3f m = util3d::transformToEigen3f(pose);
+        Eigen::Affine3f m = pose.toEigen3f();
         Eigen::Vector3f pos = m.translation();
         Eigen::Vector3f lastPos(0,0,0);
         /*if(_trajectory->size())

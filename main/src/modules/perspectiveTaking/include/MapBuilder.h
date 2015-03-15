@@ -19,7 +19,7 @@
 #ifndef VPT_MAPBUILDER
 #define VPT_MAPBUILDER
 
-#include <QtGui/QVBoxLayout>
+#include <QVBoxLayout>
 #include <QtCore/QMetaType>
 
 #include <opencv2/core/core.hpp>
