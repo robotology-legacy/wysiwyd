@@ -25,23 +25,6 @@
 
 #include "faceTracker.h"
 
-//#include <cv.h>
-//#include <cvaux.h>
-//#include <highgui.h>
-//#include <highgui/highgui.hpp>
-//#include <stitching/stitcher.hpp>
-
-#include <opencv/cv.h>
-#include <opencv/cvaux.h>
-#include <opencv/highgui.h>
-//#include <opencv2/highgui/highgui.hpp>
-//#include <opencv2/stitching/stitcher.hpp>
-
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <yarp/dev/all.h>
-#include <yarp/dev/Drivers.h>
-
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::sig::draw;
@@ -64,10 +47,10 @@ int main(int argc, char * argv[]) {
 
     /* prepare and configure the resource finder */
     ResourceFinder rf;
+    rf.setVerbose(true);
     rf.setDefaultConfigFile("faceTracker.ini"); //overridden by --from parameter
     rf.setDefaultContext("faceTracker");   //overridden by --context parameter
     rf.configure(argc, argv);
-    rf.setVerbose(true);
 
     /* create your module */
     faceTrackerModule module;
@@ -76,7 +59,7 @@ int main(int argc, char * argv[]) {
     cout << "Start face tracking..." << endl;
     module.runModule(rf);
 
-    cout << "Main  returning..." << endl;
+    cout << "Main returning..." << endl;
 
     return 0;
 }

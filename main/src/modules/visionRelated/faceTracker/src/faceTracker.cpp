@@ -20,17 +20,6 @@
 
 #include "faceTracker.h"
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
-//#include <highgui/highgui.hpp>
-//#include <opencv2/stitching/stitcher.hpp>
-
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
-#include <yarp/dev/all.h>
-#include <yarp/dev/Drivers.h>
-
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::sig::draw;
@@ -51,6 +40,7 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
                         Value("OPC"),
                         "Opc name (string)").asString();
 
+    string xmlPath = rf.findFileByName("haarcascade_frontalface_default.xml");
 
     // Create an iCub Client and check that all dependencies are here befor starting
     opc = new OPCClient(moduleName.c_str());
@@ -71,10 +61,17 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
 
 	// ==================================================================
     // robot
+    // ==================================================================
+    while(!Network::connect("/icub/camcalib/left/out", "/facetracking/image/left/in"))
+    {
+        Time::delay(3);
+        cout << "try to connect left camera, please wait ..." << endl;
+    }
+
     Property options;
     options.put("device", "remote_controlboard");
     options.put("local", "/tutorial/motor/client");
-    options.put("remote", "/icubSim/head");
+    options.put("remote", "/icub/head");
 
     robotHead = new PolyDriver(options);
 
@@ -113,7 +110,7 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
 
 	// ==================================================================
 	// face detection configuration
-	face_classifier_left.load("/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml");
+    face_classifier_left.load(xmlPath);
 
     attach(handlerPort);                  // attach to port
 
@@ -129,7 +126,7 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
 	stuck_counter = 0;
 	tracking_counter = 0;
 
-	// ------------------------------
+    // ==================================================================
 	// random motion
 	tilt_target = 0;
 	pan_target = 0;
@@ -140,6 +137,8 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
 	tilt_max = 20;
 
 	cvIplImageLeft = NULL;
+
+
 
     return true ;
 }
@@ -186,74 +185,7 @@ bool faceTrackerModule::respond(const Bottle& command, Bottle& reply) {
         cout << helpMessage;
         reply.addString("ok");
     }
-    //else if (command.get(0).asString()=="track") {
-        //autoSwitch = false;
-        //if (command.get(1).isInt()) {
-            //trackedObject = (Object*)opc->getEntity(command.get(1).asInt());
-            //trackedCoordinates = false ;
-        //}
-        //else if (command.get(1).isString()) {
-            //trackedObject = (Object*)opc->getEntity(command.get(1).asString().c_str());
-            //trackedCoordinates = false ;
-        //}
-        //else {
-            //trackedCoordinates = true ;
 
-            //x_coord = command.get(1).asDouble() ;
-            //y_coord = command.get(2).asDouble() ;
-            //z_coord = command.get(3).asDouble() ;
-
-            //cout << "after coordinates" << endl ;
-        //}
-        //aState = s_tracking;
-        //reply.addString("ack");
-    //}
-    //else if (command.get(0).asString()=="auto") {
-        //autoSwitch = true;
-        //reply.addString("ack");
-    //}
-    //else if (command.get(0).asString()=="sleep") {
-        //autoSwitch = false;
-        //trackedObject = NULL;
-        //reply.addString("ack");
-    //}
-    //else if (command.get(0).asString()=="look") {
-        //autoSwitch = false;
-        //trackedObject = NULL;
-        //trackedCoordinates = false ;
-
-        //Vector xyz(3);
-        //xyz[0] = command.get(1).asDouble() ;
-        //xyz[1] = command.get(2).asDouble() ;
-        //xyz[2] = command.get(3).asDouble() ;
-
-        //igaze->lookAtFixationPoint(xyz);
-        //reply.addString("ack");
-    //}
-    //else if (command.get(0).asString()=="waitMotionDone") {
-        //igaze->waitMotionDone();
-        //reply.addString("ack");
-    //}
-    //else if (command.get(0).asString()=="getFixationPoint") {
-        //Vector v;
-        //igaze->getFixationPoint(v);
-        //reply.addString("ack");
-        //reply.addDouble(v[0]);
-        //reply.addDouble(v[1]);
-        //reply.addDouble(v[2]);
-    //}
-    //else if (command.get(0).asString()=="getHeadPose") {
-        //Vector x,o;
-        //igaze->getHeadPose(x,o);
-        //reply.addString("ack");
-        //reply.addDouble(x[0]);
-        //reply.addDouble(x[1]);
-        //reply.addDouble(x[2]);
-        //reply.addDouble(o[0]);
-        //reply.addDouble(o[1]);
-        //reply.addDouble(o[2]);
-        //reply.addDouble(o[3]);
-    //}
     return true;
 }
 
@@ -264,53 +196,6 @@ double faceTrackerModule::getPeriod() {
 
 /***************************************************************************/
 bool faceTrackerModule::updateModule() {
-
-    //if (!opc->isConnected())
-        //if (!opc->connect("OPC"))
-            //return true;
-
-    //opc->checkout();
-    //list<Entity*> entities = opc->EntitiesCache();
-    //presentObjects.clear();
-    //for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
-    //{
-        //if ((*it)->name() == "icub")
-            //icub = (Agent*)(*it);
-        //else
-        //{
-            ////!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            //if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && ((Object*)(*it))->m_present )
-            //{
-                //presentObjects.push_back((Object*)(*it));
-            //}
-        //}
-    //}
-
-    //if (icub == NULL)
-        //icub = opc->addAgent("icub");
-
-    //if (presentObjects.size() <= 0)
-    //{
-        //cout<<"Unable to get any lookable entity from OPC"<<endl;
-    //}
-    //else if (autoSwitch)
-    //{
-        //exploring();
-    //}
-
-    //if(trackedCoordinates)
-    //{
-        //cout<<"Tracking tracking coordinates: "<<x_coord<<" "<<y_coord<<" "<<z_coord<<"."<<endl;
-        //Vector newTarget(3); newTarget[0]=x_coord;newTarget[1]=y_coord;newTarget[2]=z_coord;
-    //}
-    //else if (trackedObject != NULL)
-    //{
-        //cout<<"Tracking locked on object "<<trackedObject->name()<<"."<<endl;
-        //Vector newTarget = icub->getSelfRelativePosition(trackedObject->m_ego_position);
-        //if (isFixationPointSafe(newTarget))
-            //igaze->lookAtFixationPoint(newTarget);
-    //}
-
 
     unsigned long AAtime=0, BBtime=0; //check processing time
     AAtime = cv::getTickCount(); //check processing time
@@ -372,7 +257,6 @@ bool faceTrackerModule::updateModule() {
 
         //======================================================================================
         // Mode
-
         prev_encoders = cur_encoders;
         enc->getEncoders(cur_encoders.data());
 //			cout << "Encoder: " << cur_encoders[0] << " " << cur_encoders[1] << " "<< cur_encoders[2] << '\n';
@@ -390,6 +274,8 @@ bool faceTrackerModule::updateModule() {
                 setpoints[0] = (0-cur_encoders[0])*0.3;	// common tilt of head
                 setpoints[1] = (0-cur_encoders[1])*0.3;	// common roll of head
                 setpoints[2] = (0-cur_encoders[2])*0.3;	// common pan of head
+                setpoints[3] = (0-cur_encoders[3])*0.3;	// common tilt of eyes
+                setpoints[4] = (0-cur_encoders[4])*0.3;	// common pan of eyes
 
                 setpos_counter++;
             }
@@ -399,6 +285,8 @@ bool faceTrackerModule::updateModule() {
 
                 setpoints[0] = 0;
                 setpoints[2] = 0;
+                setpoints[3] = 0;
+                setpoints[4] = 0;
 
                 mode = 1;
                 printf("Face searching mode!\n");
@@ -413,7 +301,7 @@ bool faceTrackerModule::updateModule() {
             if(faces_left.size() > 0)
             {
                 mode = 2;
-                printf("I found a face!\n");
+                printf("I find a face!\n");
                 panning_counter++;
             }
             else
@@ -426,8 +314,10 @@ bool faceTrackerModule::updateModule() {
                 setpoints[0] = (tilt_target-cur_encoders[0])*0.3;	// common tilt of head
                 setpoints[1] = (0-cur_encoders[1])*0.3;	// common roll of head
                 setpoints[2] = (pan_target-cur_encoders[2])*0.3;	// common pan of head
+                setpoints[3] = (0-cur_encoders[3])*0.3;	// common tilt of eyes
+                setpoints[4] = (0-cur_encoders[4])*0.3;	// common pan of eyes
 
-                if ((abs(tilt_target - cur_encoders[0]) < 1) & (abs(pan_target - cur_encoders[2]) < 1))
+                if ((abs(tilt_target - cur_encoders[0]) < 1) && (abs(pan_target - cur_encoders[2]) < 1))
                 {
                     pan_r = ((double)rand() / ((double)(RAND_MAX)+(double)(1)));
                     tilt_r = ((double)rand() / ((double)(RAND_MAX)+(double)(1)));
@@ -455,7 +345,7 @@ bool faceTrackerModule::updateModule() {
                 x -= 320/2;
                 y -= 240/2;
 
-                double vx = x*0.3;	// don't move too fast
+                double vx = x*0.3;	// Not to move too fast
                 double vy = y*0.3;
 
                 /* prepare command */
@@ -466,6 +356,8 @@ bool faceTrackerModule::updateModule() {
 
                 setpoints[0] = vy;	// common tilt of head
                 setpoints[2] = vx;	// common pan of head
+                setpoints[3] = vy;	// common tilt of eyes
+                setpoints[4] = -vx;	// common pan of eyes
 
                 x_buf = x;
                 y_buf = y;
@@ -476,7 +368,7 @@ bool faceTrackerModule::updateModule() {
             else if (faces_left.size() == 0 && counter < 10)
             {
                 //cout << counter << endl;
-                double vx = x_buf*0.3;	// don't move too fast
+                double vx = x_buf*0.3;	// Not to move too fast
                 double vy = y_buf*0.3;
 
                 /* prepare command */
@@ -487,15 +379,19 @@ bool faceTrackerModule::updateModule() {
 
                 setpoints[0] = vy;	// common tilt of head
                 setpoints[2] = vx;	// common pan of head
+                setpoints[3] = vy;	// common tilt of eyes
+                setpoints[4] = -vx;	// common pan of eyes
 
                 counter++;
             }
             else
             {
-                printf("No face for long time\n");
+                printf("Hey! I don't see any face.\n");
 
                 setpoints[0] = 0;
                 setpoints[2] = 0;
+                setpoints[3] = 0;
+                setpoints[4] = 0;
 
                 Sleep(1000);
                 stuck_counter++;
@@ -524,6 +420,7 @@ bool faceTrackerModule::updateModule() {
 
         cv::imshow("cvImage_Left", cvMatImageLeft);
     }
+
     BBtime = cv::getTickCount(); //check processing time
 
     return true;

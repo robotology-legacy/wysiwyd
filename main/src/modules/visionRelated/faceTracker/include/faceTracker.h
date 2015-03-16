@@ -21,59 +21,18 @@
 #ifndef _FACETRACKER_MODULE_H_
 #define _FACETRACKER_MODULE_H_
 
-/**
+/*
 * @ingroup icub_module
 *
 * \defgroup modules faceTracker
 *
 * Allow to control the gaze using objects names. Provide a random autonomous switch of attention between the present objects.
 
-The commands it is possible to send are:
+* Face tracking module for iCub head and gaze using OpenCV2.X functions
 
-@b track "objectname" track an object based on its name
-@b track id track an object based on its opc ID
-@b track (x y z) : look at a position directly expressed in the robot reference frame
-@b auto : turn on the autonomous switch of attention
-@b sleep : turn off the autonomous switch of attention
-@b look (x y z) : sleep + gaze at xyz
-@b waitMotionDone : blocking call until the motion is done (map to iKinGazeCtrl waitMotionDone() )
-@b getFixationPoint : return a bottle filled with the current fixation point (map to iKinGazeCtrl getFixationPoint() )
-@b getHeadPose : return a bottle filled with the current head pose (map to iKinGazeCtrl getHeadPose() )
-
-* \section lib_sec Libraries
-*
-* YARP, iCub.
-*
-* \section parameters_sec Parameters
-*
-* <b>Command-line Parameters</b>
-*
-* The following key-value pairs can be specified as command-line parameters by prefixing \c -- to the key
-* (e.g. \c --from file.ini. The value part can be changed to suit your needs; the default values are shown below.
-*
-* - \c from \c faceTracker.ini \n
-*   specifies the configuration file
-*
-* - \c name \c faceTracker \n
-*   specifies the name of the module (used to form the stem of module port names)
-*
-* <b>Configuration File Parameters </b>
-*
-* The following key-value pairs can be specified as parameters in the configuration file
-* (they can also be specified as command-line parameters if you so wish).
-* The value part can be changed to suit your needs; the default values are shown below.
-*
-* - \c opcName \c OPC \n
-*   specifies the opc database name
-*
-* \section tested_os_sec Tested OS
-*
-* Linux, windows
-*
-* \section example_sec Example Instantiation of the Module
-*
-* <tt>faceTracker --name faceTracker --context
-* faceTracker --from faceTracker.ini</tt>
+* Using the face detection functions of OpenCV, the iCub is detecting faces every frame. Then, it tries to located the biggest face in the middle of the view by moving head and eye simultaneously.
+	- Image sequences from left eye are used for tracking (not both eyes).
+	- There are five modes for the tracking internally: 'set position mode', 'panning mode', 'face tracking mode, 'smooth stopping mode' and 'face searching mode'.
 *
 * \author Hyung Jin Chang
 *
@@ -156,7 +115,6 @@ class faceTrackerModule : public yarp::os::RFModule {
 
 protected:
     //void exploring();
-
 
 	int counter;
 	double x_buf;
