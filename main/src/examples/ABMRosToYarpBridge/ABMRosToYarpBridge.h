@@ -16,18 +16,20 @@
  * Public License for more details
 */
 
-#ifndef ABMAUGMENTIONEXAMPLE
-#define ABMAUGMENTIONEXAMPLE
+#ifndef _ABMROSTOYARP_
+#define _ABMROSTOYARP_
 
 #include <yarp/os/RFModule.h>
 #include <yarp/math/Math.h>
+#include <yarp/sig/Image.h>
 
-class proprioRosYarpExample: public yarp::os::RFModule {
+class ABMRosToYarpBridge: public yarp::os::RFModule {
 protected:
     yarp::os::Port abm;
     yarp::os::Port handlerPort;
     yarp::os::Port state_in;
     yarp::os::Port pos_out, vel_out;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > p_img_in, p_img_out;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

@@ -2,9 +2,9 @@
 <?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
  
 <module>
-   <name>proprioRosYarpExample</name>
+   <name>ABMRosToYarpBridge</name>
    <doxygen-group>wysiwyd_examples</doxygen-group>
-   <description>Example converting ROS joint states from the Baxter to be used with the ABM</description>
+   <description>Example converting ROS joint states and camera images from ROS to be used with the ABM. Works currently with Baxter and NAO.</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    

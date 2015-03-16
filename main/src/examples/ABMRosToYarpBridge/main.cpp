@@ -21,7 +21,7 @@
 */
 
 #include <yarp/os/all.h>
-#include "proprioRosYarpExample.h"
+#include "ABMRosToYarpBridge.h"
 #include <time.h>
 
 using namespace yarp::os;
@@ -31,11 +31,11 @@ int main(int argc, char * argv[]) {
     Network yarp;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("proprioRosYarpExample");
-    rf.setDefaultConfigFile("proprioRosYarpExample.ini");
+    rf.setDefaultContext("ABMRosToYarpBridge");
+    rf.setDefaultConfigFile("ABMRosToYarpBridge.ini");
     rf.configure(argc, argv);
 
-    proprioRosYarpExample mod;
+    ABMRosToYarpBridge mod;
     mod.runModule(rf);
     return 0;
 }

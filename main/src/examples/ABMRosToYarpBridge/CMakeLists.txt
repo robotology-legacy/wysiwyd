@@ -2,12 +2,12 @@
 # Authors: Tobias Fischer
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME proprioRosYarpExample)
+set(PROJECTNAME ABMRosToYarpBridge)
 project(${PROJECTNAME})
 
 set(docs ${PROJECTNAME}.xml)
-set(sources main.cpp proprioRosYarpExample.cpp)
-set(headers proprioRosYarpExample.h)
+set(sources main.cpp ABMRosToYarpBridge.cpp)
+set(headers ABMRosToYarpBridge.h)
 set(doc_files ${PROJECTNAME}.xml)
 
 source_group("Source Files" FILES ${sources})

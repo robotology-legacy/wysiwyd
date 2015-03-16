@@ -22,12 +22,13 @@
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
-#include "proprioRosYarpExample.h"
+#include "ABMRosToYarpBridge.h"
 
 using namespace std;
 using namespace yarp::os;
+using namespace yarp::sig;
 
-bool proprioRosYarpExample::configure(yarp::os::ResourceFinder &rf) {
+bool ABMRosToYarpBridge::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("proprioRosYarpExample"), "module name (string)").asString().c_str());
 
     string robot = rf.check("robot",Value("NAO")).asString().c_str();
@@ -56,12 +57,16 @@ bool proprioRosYarpExample::configure(yarp::os::ResourceFinder &rf) {
     attach(handlerPort);
 
     state_in.setReadOnly();
+    p_img_in.setReadOnly();
 
     string state_in_portname;
+    string image_in_portname;
     if(robot=="nao") {
         state_in_portname = "/joint_states";
+        image_in_portname = "/nao_robot/camera/top/camera/image_raw";
     } else if(robot=="baxter") {
         state_in_portname = "/robot/joint_states";
+        image_in_portname = "/cameras/head_camera/image";
     } else {
         cerr << "Unknown robot name, abort" << endl;
         return false;
@@ -70,9 +75,14 @@ bool proprioRosYarpExample::configure(yarp::os::ResourceFinder &rf) {
         cerr << "Failed to open port" << endl;
         return 1;
     }
+    if (!p_img_in.open(image_in_portname+"@/"+robot+"_camera")) {
+        cerr << "Failed to open port" << endl;
+        return 1;
+    }
 
     pos_out.open("/" + robot + "/state:o");
     vel_out.open("/" + robot + "/velocities:o");
+    p_img_out.open("/" + robot + "/image:o");
 
     // make providers known to ABM
     Bottle bCmd, bReply;
@@ -104,10 +114,26 @@ bool proprioRosYarpExample::configure(yarp::os::ResourceFinder &rf) {
         cerr << "Reason: " << bReply.toString() << endl;
     }
 
+    yarp::os::Time::delay(0.2);
+
+    bCmd.clear();
+    bReply.clear();
+    bCmd.addString("addImgStreamProvider");
+    bCmd.addString(p_img_out.getName());
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.get(0).toString()=="[ack]") {
+        cout << "Added " << p_img_out.getName() << " as ImgStreamProvider to ABM" << endl;
+    } else {
+        cerr << "Could not add " << p_img_out.getName() << " as ImgStreamProvider to ABM" << endl;
+        cerr << "Reason: " << bReply.toString() << endl;
+    }
+
     return true;
 }
 
-bool proprioRosYarpExample::respond(const Bottle& bCommand, Bottle& bReply) {
+bool ABMRosToYarpBridge::respond(const Bottle& bCommand, Bottle& bReply) {
     if (bCommand.get(0).asString() == "test" )
     {
         bReply.addString("[ack]");
@@ -119,20 +145,19 @@ bool proprioRosYarpExample::respond(const Bottle& bCommand, Bottle& bReply) {
     return true;
 }
 
-double proprioRosYarpExample::getPeriod() {
+double ABMRosToYarpBridge::getPeriod() {
     return 0.05;
 }
 
-
-bool proprioRosYarpExample::updateModule() {
-    Bottle bMsgIn;
-    if (!state_in.read(bMsgIn)) {
-        cerr << "Failed to read msg" << endl;
+bool ABMRosToYarpBridge::updateModule() {
+    Bottle bStateIn;
+    if (!state_in.read(bStateIn)) {
+        cerr << "Failed to read state" << endl;
     }
     else {
         Bottle *bPosIn, bPosOut, *bVelIn, bVelOut;
-        bPosIn = bMsgIn.get(2).asList();
-        bVelIn = bMsgIn.get(3).asList();
+        bPosIn = bStateIn.get(2).asList();
+        bVelIn = bStateIn.get(3).asList();
 
         for(int i=0; i<bPosIn->size(); i++) {
             bPosOut.addDouble(bPosIn->get(i).asDouble());
@@ -143,10 +168,20 @@ bool proprioRosYarpExample::updateModule() {
         vel_out.write(bVelOut);
     }
 
+    ImageOf<PixelRgb> *img_in = p_img_in.read();
+    if (img_in==NULL) {
+        cerr << "Failed to read image" << endl;
+    }
+    else {
+        ImageOf<PixelRgb> &img_out = p_img_out.prepare();
+        img_out = *img_in;
+        p_img_out.write();
+    }
+
     return true;
 }
 
-bool proprioRosYarpExample::interruptModule() {
+bool ABMRosToYarpBridge::interruptModule() {
     Bottle bCmd, bReply;
     bCmd.addString("removeDataStreamProvider");
     bCmd.addString(pos_out.getName());
@@ -176,19 +211,44 @@ bool proprioRosYarpExample::interruptModule() {
         cerr << "Reason: " << bReply.toString() << endl;
     }
 
+    yarp::os::Time::delay(0.2);
+
+    bCmd.clear();
+    bReply.clear();
+    bCmd.addString("removeImgStreamProvider");
+    bCmd.addString(p_img_out.getName());
+
+    abm.write(bCmd, bReply);
+
+    if(bReply.get(0).toString()=="[ack]") {
+        cout << "Removed " << p_img_out.getName() << " as ImageStreamProvider from ABM" << endl;
+    } else {
+        cerr << "Could not remove " << p_img_out.getName() << " as ImageStreamProvider from ABM" << endl;
+        cerr << "Reason: " << bReply.toString() << endl;
+    }
+
     pos_out.interrupt();
     vel_out.interrupt();
+    p_img_out.interrupt();
+    p_img_in.interrupt();
+    state_in.interrupt();
     abm.interrupt();
     handlerPort.interrupt();
 
     return true;
 }
 
-bool proprioRosYarpExample::close() {
+bool ABMRosToYarpBridge::close() {
     pos_out.interrupt();
     pos_out.close();
     vel_out.interrupt();
     vel_out.close();
+    p_img_out.interrupt();
+    p_img_out.close();
+    p_img_in.interrupt();
+    p_img_in.close();
+    state_in.interrupt();
+    state_in.close();
     abm.interrupt();
     abm.close();
     handlerPort.interrupt();
@@ -196,3 +256,4 @@ bool proprioRosYarpExample::close() {
 
     return true;
 }
+
