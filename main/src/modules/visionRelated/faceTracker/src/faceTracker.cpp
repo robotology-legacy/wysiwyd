@@ -106,7 +106,7 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
 
 	// ==================================================================
 	//// create a opencv window
-	cv::namedWindow("cvImage_Left",1);
+	cv::namedWindow("cvImage_Left",CV_WINDOW_NORMAL);
 
 	// ==================================================================
 	// face detection configuration
@@ -422,9 +422,12 @@ bool faceTrackerModule::updateModule() {
         }
 
         cv::imshow("cvImage_Left", cvMatImageLeft);
+
     }
 
     BBtime = cv::getTickCount(); //check processing time
+
+    cv::waitKey(1);
 
     return true;
 }
