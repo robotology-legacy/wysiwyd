@@ -218,6 +218,9 @@ bool faceTrackerModule::updateModule() {
 
     if(yarpImageLeft!=NULL)	// check we actually got something
     {
+        // resize images
+        cv::resize(cvMatImageLeft, cvMatImageLeft, cv::Size(320, 240), 0,0,CV_INTER_NN);	//downsample 1/2x
+
         // convert captured frame to gray scale & equalize
         cv::Mat cvMatGrayImageLeft;
         cv::cvtColor(cvMatImageLeft, cvMatGrayImageLeft, CV_BGR2GRAY);
@@ -393,7 +396,7 @@ bool faceTrackerModule::updateModule() {
                 setpoints[3] = 0;
                 setpoints[4] = 0;
 
-                Sleep(1000);
+                sleep(1);
                 stuck_counter++;
 
                 mode = 2;
