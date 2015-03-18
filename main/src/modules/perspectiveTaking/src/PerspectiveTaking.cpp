@@ -55,6 +55,9 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     openHandlerPort();
 
+    // start head pose estimation
+    head_estimator = new CRMainEstimation(rf, client);
+
     //getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
     getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
                       rf.check("cameraOffsetZ",Value(-0.4)).asDouble(),
@@ -97,7 +100,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     distanceMultiplier = rf.check("distanceMultiplier",Value(1.0)).asDouble();
 
-    // start new thread with timer in it, to update position of the partner camera
+    // start new thread to update position of the partner camera
     setCamPosThread = new QThread(this);
     setCamPosTimer = new QTimer(0);
 
@@ -106,6 +109,17 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     connect(setCamPosTimer, SIGNAL(timeout()), this, SLOT(setPartnerCamera()));
     QObject::connect(setCamPosThread, SIGNAL(started()), setCamPosTimer, SLOT(start()));
     setCamPosThread->start();
+
+    // start new thread to estimate head pose
+    headPoseThread = new QThread(this);
+    headPoseTimer = new QTimer(0);
+
+    headPoseTimer->setInterval(rf.check("updateTimer",Value(1000)).asInt());
+    headPoseTimer->moveToThread(headPoseThread);
+    //connect(setCamPosTimer, SIGNAL(timeout()), this, SLOT(setPartnerCamera()));
+    connect(headPoseTimer, SIGNAL(timeout()), head_estimator, SLOT(estimate()));
+    QObject::connect(headPoseThread, SIGNAL(started()), headPoseTimer, SLOT(start()));
+    headPoseThread->start();
 
     // start the QApplication and go in a loop
     mapBuilder->show();
@@ -259,6 +273,9 @@ void perspectiveTaking::setPartnerCamera() {
 }
 
 bool perspectiveTaking::close() {
+    // kill head pose estimation
+    delete head_estimator;
+
     // remove handlers
     mapBuilder->unregisterFromEventsManager();
     rtabmapThread->unregisterFromEventsManager();

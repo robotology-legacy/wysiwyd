@@ -31,6 +31,7 @@
 #include <rtabmap/core/CameraThread.h>
 #include <rtabmap/core/Odometry.h>
 
+#include "head_pose_estimation/CRMainEstimation.h"
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
 
@@ -87,8 +88,11 @@ protected:
     // QT related
     QTimer *setCamPosTimer;
     QThread* setCamPosThread;
+    QTimer *headPoseTimer;
+    QThread* headPoseThread;
 
     // misc
+    CRMainEstimation* head_estimator;
     unsigned long loopCounter;
     yarp::os::ResourceFinder resfind;
     bool openHandlerPort();

@@ -10,8 +10,8 @@ include(wysiwydUseQt5)
 set(PROJECTNAME perspectiveTaking)
 project(${PROJECTNAME})
 
-file(GLOB sources src/*.cpp)
-file(GLOB headers include/*.h)
+file(GLOB sources src/*.cpp src/head_pose_estimation/*.cpp)
+file(GLOB headers include/*.h include/head_pose_estimation/*.h)
 set(docs ${PROJECTNAME}.xml)
 
 source_group("Source Files" FILES ${sources})
