@@ -110,6 +110,10 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         osMain << "FALSE);";
     }
 
+    if (isStreamActivity == true && !bBegin) { //just stop stream images stores when relevant activity
+        streamStatus = "end"; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
+    }
+
     bMain.addString(string(osMain.str()).c_str());
     // cout << "\n\n" << string(osMain.str()).c_str() << endl;
     //cout << "Snapshot: Update main table" << endl;
@@ -197,13 +201,9 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         cout << "Reason image providers: " << isConnectedToImgProviders << endl;
         cout << "Reason cont data providers: " << isConnectedToContDataProviders << endl;
     }
-    if (isStreamActivity == true) //just launch stream images stores when relevant activity
-    {
-        if (bBegin) {
-            streamStatus = "begin";
-        }
-        else {
-            streamStatus = "end";
+    if (isStreamActivity == true) { //just launch stream images stores when relevant activity
+        if(bBegin) {
+            streamStatus = "begin"; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
         }
     }
     else
