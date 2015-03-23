@@ -41,20 +41,9 @@ public:
 
     bool wasStopped();
 
-    cv::Mat getScreen() {
-        vis_mutex.lock();
+    bool doProcessStats;
 
-        // create a pixmap which contains this (a QWidget)
-        QPixmap pixmap(this->size());
-        this->render(&pixmap);
-
-        vis_mutex.unlock();
-
-        // convert pixmap to a QImage, which can then be converted to a Mat
-        QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888).rgbSwapped();
-
-        return cv::Mat( image.height(), image.width(), CV_8UC3, const_cast<uchar*>(image.bits()), image.bytesPerLine() ).clone();
-    }
+    cv::Mat getScreen();
 
     std::map<std::string, int> getViewports() {
         return _vWrapper->getViewports();

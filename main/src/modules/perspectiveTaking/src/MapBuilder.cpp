@@ -37,6 +37,7 @@ using namespace rtabmap;
 
 // This class receives RtabmapEvent and construct/update a 3D Map
 MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
+    doProcessStats(true),
     _vWrapper(new VisualizerWrapper(this)),
     decimationOdometry_(decOdo),
     decimationStatistics_(decVis)
@@ -69,6 +70,21 @@ void MapBuilder::setCameraPosition( double pos_x, double pos_y, double pos_z,
                                                  up_x, up_y, up_z,
                                                  viewport);
     vis_mutex.unlock();
+}
+
+cv::Mat MapBuilder::getScreen() {
+    vis_mutex.lock();
+
+    // create a pixmap which contains this (a QWidget)
+    QPixmap pixmap(this->size());
+    this->render(&pixmap);
+
+    vis_mutex.unlock();
+
+    // convert pixmap to a QImage, which can then be converted to a Mat
+    QImage image = pixmap.toImage().convertToFormat(QImage::Format_RGB888).rgbSwapped();
+
+    return cv::Mat( image.height(), image.width(), CV_8UC3, const_cast<uchar*>(image.bits()), image.bytesPerLine() ).clone();
 }
 
 void MapBuilder::setCameraFieldOfView(double fovy, int viewport ) {
@@ -178,7 +194,7 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
 
 void MapBuilder::handleEvent(UEvent * event) {
     std::cout << "Event: " << event->getClassName() << std::endl;
-    if(event->getClassName().compare("RtabmapEvent") == 0) {
+    if(event->getClassName().compare("RtabmapEvent") == 0 && doProcessStats) {
         RtabmapEvent * rtabmapEvent = dynamic_cast<RtabmapEvent *>(event);
         const Statistics & stats = rtabmapEvent->getStats();
         // Statistics must be processed in the Qt thread

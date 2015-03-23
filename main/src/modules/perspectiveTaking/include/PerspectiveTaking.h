@@ -85,6 +85,8 @@ protected:
                               Eigen::Matrix4f& kinect2icubPCL);
     Eigen::Vector4f yarp2EigenV(yarp::sig::Vector);
 
+    double lookDown;
+
     // QT related
     QTimer *setCamPosTimer;
     QThread* setCamPosThread;

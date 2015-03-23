@@ -45,6 +45,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("perspectiveTaking"), "module name (string)").asString().c_str());
     loopCounter = 0;
 
+    lookDown = 0.5;
+
     useStaticPose = rf.check("useStaticPose",Value(0)).asInt();
 
     // connect to the various other modules
@@ -166,6 +168,22 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
         else {
             reply.addString("Wrong function call: setDecimationStatistics 2");
         }
+    } else if (cmd.get(0).asString() == "setLookDown") {
+        if(cmd.get(1).isDouble()) {
+            lookDown = cmd.get(1).asDouble();
+            reply.addString("ack");
+        }
+        else {
+            reply.addString("Wrong function call: setLookDown 0.5");
+        }
+    } else if (cmd.get(0).asString() == "processStats") {
+        if(cmd.get(1).isInt()) {
+            mapBuilder->doProcessStats = cmd.get(1).asInt() > 0;
+            reply.addString("ack");
+        }
+        else {
+            reply.addString("Wrong function call: processStats 0/1");
+        }
     } else {
         reply.addString("nack");
     }
@@ -202,7 +220,6 @@ bool perspectiveTaking::sendImagesToPorts() {
 }
 
 void perspectiveTaking::setPartnerCamera() {
-    cout << "Call setPartnerCamera" << endl;
     loopCounter++;
 
     if(useStaticPose) {
@@ -221,12 +238,13 @@ void perspectiveTaking::setPartnerCamera() {
         Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
         p_view[2] = p_view[2] - 0.8;
 
+        cout << "Call setPartnerCamera" << endl;
         setCamera(p_headPos, p_view, p_up, "partner");
 
         sendImagesToPorts();
     } else {
         partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
-        if(partner && partner->m_present) {
+        if(partner) { // && partner->m_present
             Vector p_headPos = partner->m_ego_position;
             Vector p_shoulderLeft = partner->m_body.m_parts["shoulderLeft"];
             Vector p_shoulderRight = partner->m_body.m_parts["shoulderRight"];
@@ -239,8 +257,9 @@ void perspectiveTaking::setPartnerCamera() {
             // right shoulder and head and using the normal vector of
             // the plane as viewing vector
             Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
-            p_view[2] = p_view[2] - 0.8;
+            p_view[2] = p_view[2] - lookDown;
 
+            cout << "Call setPartnerCamera" << endl;
             setCamera(p_headPos, p_view, p_up, "partner");
 
             sendImagesToPorts();
@@ -290,7 +309,9 @@ bool perspectiveTaking::close() {
 
     // Kill all threads
     setCamPosThread->quit();
+    headPoseThread->quit();
     setCamPosThread->wait();
+    headPoseThread->wait();
 
     cameraThread->kill();
     delete cameraThread;
