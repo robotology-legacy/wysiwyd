@@ -1,3 +1,7 @@
+#ifdef BOOST_AVAILABLE
+#include <boost/thread.hpp>
+#endif
+
 #include "autobiographicalMemory.h"
 
 using namespace std;
@@ -206,8 +210,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
     {   //just one image (sentence?)
         imgInstance = currentInstance;
         string synchroTime = getCurrentTime();
-        storeInfoAllImages(synchroTime, true, fullSentence);
-        storeDataStreamAllProviders(synchroTime);
+        storeImagesAndData(synchroTime, true, fullSentence);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
         string reply = disconnectFromImgStreamProviders().toString().c_str();
