@@ -146,29 +146,32 @@ Bottle autobiographicalMemory::disconnectDataStreamProviders()
 }
 
 bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
-    bool doInsert=false;
+    bool doInsert = false;
     ostringstream osArg;
+
+    osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES ";
 
     for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
         if (Network::isConnected(it->first, it->second->getName().c_str())) {
-            Bottle* lastReading = it->second->read();
-            if(lastReading==NULL) {
-                continue;
-            }
+            Bottle* lastReading = it->second->read(false);
+            if(lastReading!=NULL) {
+                for(int subtype = 0; subtype < lastReading->size(); subtype++) {
+                    if(it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
+                        doInsert = true;
 
-            for(int subtype = 0; subtype < lastReading->size(); subtype++) {
-                osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' );";
+                        osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' ),";
+                    }
+                }
             }
-
-            doInsert=true;
         }
     }
 
     if(doInsert) {
         Bottle bRequest;
+        string strRequest = osArg.str();
         bRequest.addString("request");
-        bRequest.addString(osArg.str());
+        bRequest.addString(strRequest.substr(0, strRequest.size() -1));
         bRequest = request(bRequest);
     }
 
