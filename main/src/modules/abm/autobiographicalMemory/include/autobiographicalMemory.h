@@ -19,6 +19,10 @@
 #ifndef _AUTOBIOGRAPHICALMEMORY_
 #define _AUTOBIOGRAPHICALMEMORY_
 
+#ifdef BOOST_AVAILABLE
+#include <boost/thread.hpp>
+#endif
+
 #include <db/PostgreSQL.h>
 #include "wrdac/clients/opcEars.h"
 #include <yarp/os/all.h>
@@ -129,6 +133,10 @@ public:
     int saveImagesFromABM(int instance, int fromFrame=-1, int toFrame=-1, std::string provider_port="");
 
     // store image / data stream to ABM
+#ifdef BOOST_AVAILABLE
+    boost::thread *imageThread, *dataStreamThread;
+#endif
+
     void storeImagesAndData(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
 
     bool storeInfoSingleImage(int instance, int frame_number, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);

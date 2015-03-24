@@ -17,6 +17,7 @@
 */
 
 #ifdef BOOST_AVAILABLE
+#include <boost/chrono.hpp>
 #include <boost/thread.hpp>
 #endif
 
@@ -114,6 +115,8 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     }
 
 #ifdef BOOST_AVAILABLE
+    imageThread = NULL;
+    dataStreamThread = NULL;
     cout << "Running ABM with Boost :-)" << endl;
 #else
     cout << "Running ABM without Boost. Recording data will be slow!" << endl;
@@ -630,16 +633,38 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
 void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool forSingleInstance, string fullSentence) {
 #ifdef BOOST_AVAILABLE
-    boost::thread *imageThread, *dataStreamThread;
-    imageThread = new boost::thread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
-    dataStreamThread = new boost::thread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
-    imageThread->join();
-    dataStreamThread->join();
-    delete imageThread;
-    delete dataStreamThread;
+    bool newThreadLaunched = false; // if a new thread was launched, we need to increase the frame number
+    if(!imageThread) { // if thread is not currently running
+        imageThread = new boost::thread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
+        newThreadLaunched = true;
+    } else {
+        // thread is running, but did it finish?
+        if(imageThread->try_join_for(boost::chrono::microseconds(5))) {
+            // thread finished, delete the pointer; in the next loop, another thread will be created
+            delete imageThread;
+            imageThread = NULL;
+        }
+    }
+
+    // same as for imageThread above
+    if(!dataStreamThread) {
+        dataStreamThread = new boost::thread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
+        newThreadLaunched = true;
+    } else {
+        if(dataStreamThread->try_join_for(boost::chrono::microseconds(5))) {
+            delete dataStreamThread;
+            dataStreamThread = NULL;
+        }
+    }
+
+    if(newThreadLaunched) {
+        frameNb++;
+    }
 #else
+    // first, store all images; then store data from the other ports
     storeInfoAllImages(synchroTime, forSingleInstance, fullSentence);
     storeDataStreamAllProviders(synchroTime);
+    frameNb++;
 #endif
 }
 
@@ -665,9 +690,6 @@ bool autobiographicalMemory::updateModule() {
         streamStatus = "record";
     }
     else if (streamStatus == "record") {
-        frameNb += 1;
-        //cout << "Image Nb " << imgNb << endl;
-
         string synchroTime = getCurrentTime();
         storeImagesAndData(synchroTime);
     }
@@ -790,6 +812,19 @@ bool autobiographicalMemory::updateModule() {
     //go back to default global value
     if (streamStatus == "end") {
         cout << "============================= STREAM STOP =================================" << endl;
+
+#ifdef BOOST_AVAILABLE
+        if(dataStreamThread) {
+            dataStreamThread->join();
+            delete dataStreamThread;
+            dataStreamThread = NULL;
+        }
+        if(imageThread) {
+            imageThread->join();
+            delete imageThread;
+            imageThread = NULL;
+        }
+#endif
 
         //TODO: startThread with storeOID()
 

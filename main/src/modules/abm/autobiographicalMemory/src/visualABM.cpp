@@ -409,6 +409,7 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
     bool allGood = true;
     //go through the ImgReceiver ports
 #ifdef BOOST_AVAILABLE
+    // this thread_group contains one thread per image provider
     boost::thread_group group;
 #endif
 
@@ -444,14 +445,16 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         string imagePath = storingPath + "/" + relativeImagePath;
 
 #ifdef BOOST_AVAILABLE
-        // spawn thread
+        // add thread to group
         group.add_thread(new boost::thread(&autobiographicalMemory::processOneImagePort, this, imagePath, relativeImagePath, it->first, it->second, synchroTime));
 #else
+        // if boost is unavailable, do one image port after the other
         processOneImagePort(imagePath, relativeImagePath, it->first, it->second, synchroTime);
 #endif
     }
 
 #ifdef BOOST_AVAILABLE
+    // wait until all threads are finished
     group.join_all();
 #endif
 

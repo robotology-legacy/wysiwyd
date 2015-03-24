@@ -35,7 +35,7 @@ find_package(PCL QUIET)
 find_package(CURL QUIET)
 find_package(Qt5 COMPONENTS Core Widgets Gui Quick Qml Multimedia Xml PrintSupport QUIET)
 find_package(kinectWrapper QUIET)
-find_package(Boost COMPONENTS thread QUIET)
+find_package(Boost COMPONENTS chrono thread QUIET)
 
 message(STATUS "I have found the following libraries:")
 checkandset_dependency(GSL)
