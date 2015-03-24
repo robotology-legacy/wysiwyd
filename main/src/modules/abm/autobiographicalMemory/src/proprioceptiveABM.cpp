@@ -154,9 +154,10 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
     for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
         if (Network::isConnected(it->first, it->second->getName().c_str())) {
-            Bottle* lastReading = it->second->read(false);
-            if(lastReading!=NULL) {
+            Bottle* lastReading = it->second->read(false); // (false) such that we do not wait until data arrives at port
+            if(lastReading!=NULL) { // only proceed if we got something
                 for(int subtype = 0; subtype < lastReading->size(); subtype++) {
+                    // go ahead if it is NOT a port related to skin OR it is a skin port and the value is bigger than 5.0
                     if(it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
                         doInsert = true;
 
@@ -169,7 +170,7 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
 
     if(doInsert) {
         Bottle bRequest;
-        string strRequest = osArg.str();
+        string strRequest = osArg.str(); // needed so we can cut off last character below, which is a ','
         bRequest.addString("request");
         bRequest.addString(strRequest.substr(0, strRequest.size() -1));
         bRequest = request(bRequest);
@@ -189,26 +190,30 @@ int autobiographicalMemory::openDataStreamPorts(int instance) {
     bDistLabelPort = request(bDistLabelPort);
 
     for (int i = 0; i < bDistLabelPort.size() && bDistLabelPort.toString()!="NULL"; i++) {
-        string dataStreamPort = bDistLabelPort.get(i).asList()->get(0).asString();
-        mapDataStreamPortOut[dataStreamPort] = new yarp::os::BufferedPort < Bottle >;
-        mapDataStreamPortOut[dataStreamPort]->open((portPrefixForStreaming+dataStreamPort).c_str());
+        string dataStreamPortFrom = bDistLabelPort.get(i).asList()->get(0).asString();
+        mapDataStreamPortOut[dataStreamPortFrom] = new yarp::os::BufferedPort < Bottle >;
+        mapDataStreamPortOut[dataStreamPortFrom]->open((portPrefixForStreaming+dataStreamPortFrom).c_str());
 
+        // in case of position commands, replace state:o with rpc:i; otherwise do nothing
         string toReplace="state:o";
-        string portCommandIn = dataStreamPort;
-        if(dataStreamPort.find(toReplace)!=string::npos) {
-            portCommandIn.replace(dataStreamPort.find(toReplace), toReplace.length(), "rpc:i");
+        string dataStreamPortTo = dataStreamPortFrom;
+        if(dataStreamPortTo.find(toReplace)!=string::npos) {
+            dataStreamPortTo.replace(dataStreamPortFrom.find(toReplace), toReplace.length(), "rpc:i");
+        }
 
-            toReplace="/icub/";
-            if(dataStreamPort.find(toReplace)!=string::npos) {
-                //portCommandIn.replace(portCommandIn.find(toReplace), toReplace.length(), "/icubSim/");
+        // if we want to replay positions recorded from the icub on icubSim
+        // TODO: Set variable which robot to use
+        // Also, it might be the other way around. Data recorded on icubSim, but replay on icub
+        //toReplace="/icub/";
+        //if(dataStreamPort.find(toReplace)!=string::npos) {
+            //dataStreamPortTo.replace(dataStreamPortTo.find(toReplace), toReplace.length(), "/icubSim/");
+        //}
 
-                Network::connect(portPrefixForStreaming+dataStreamPort, portCommandIn);
-                if(Network::isConnected(portPrefixForStreaming+dataStreamPort, portCommandIn)) {
-                    cout << "Successfully connected " << portPrefixForStreaming+dataStreamPort << " and " << portCommandIn << endl;
-                } else {
-                    cout << "NOT connected " << portPrefixForStreaming+dataStreamPort << " and " << portCommandIn << endl;
-                }
-            }
+        Network::connect(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo);
+        if(Network::isConnected(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo)) {
+            cout << "Successfully connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo << endl;
+        } else {
+            cout << "NOT connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo << endl;
         }
     }
 

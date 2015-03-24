@@ -725,7 +725,10 @@ bool autobiographicalMemory::updateModule() {
             if(bListContData.toString()!="NULL") {
                 Bottle &bCmd = it->second->prepare();
                 bCmd.clear();
-                bCmd.fromString("[set] [poss]");
+                // for joints, begin with the command to set the position
+                if(it->first.find("state:o") != std::string::npos) {
+                    bCmd.fromString("[set] [poss]");
+                }
 
                 Bottle bJoints;
 
