@@ -378,14 +378,18 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
 //store an image into the SQL db /!\ no lo_import/oid!! (high frequency streaming needed)
 bool autobiographicalMemory::storeInfoSingleImage(int instance, int frame_number, const string &relativePath, const string &imgTime, const string &currentImgProviderPort)
 {
-    Bottle bRequest;
     ostringstream osArg;
-
     //sql request with instance and label, images are stored from their location
-    bRequest.addString("request");
     osArg << "INSERT INTO visualdata(instance, frame_number, relative_path, time, img_provider_port) VALUES (" << instance << ", '" << frame_number << "', '" << relativePath << "', '" << imgTime << "', '" << currentImgProviderPort << "' );";
-    bRequest.addString(osArg.str());
-    bRequest = request(bRequest);
+
+    if(processInsertDelayed) {
+        requestInsertPushToQueue(osArg.str());
+    } else {
+        Bottle bRequest;
+        bRequest.addString("request");
+        bRequest.addString(osArg.str());
+        request(bRequest);
+    }
 
     return true;
 }
@@ -604,7 +608,7 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
     return request(bListImages);
 }
 
-Bottle autobiographicalMemory::saveAugmentedImages(Bottle bInput) {
+Bottle autobiographicalMemory::saveAugmentedImages(const Bottle &bInput) {
     Bottle bReply;
 
     for(int i=1; i<bInput.size(); i++) {

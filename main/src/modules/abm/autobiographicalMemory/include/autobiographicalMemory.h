@@ -133,9 +133,10 @@ public:
     int saveImagesFromABM(int instance, int fromFrame=-1, int toFrame=-1, std::string provider_port="");
 
     // store image / data stream to ABM
-#ifdef BOOST_AVAILABLE
-    boost::thread *imageThread, *dataStreamThread;
-#endif
+    bool processInsertDelayed;
+    void requestInsertPushToQueue(const std::string &sRequest);
+    void requestInsertProcessQueue();
+    std::vector<std::string> requests;
 
     void storeImagesAndData(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
 

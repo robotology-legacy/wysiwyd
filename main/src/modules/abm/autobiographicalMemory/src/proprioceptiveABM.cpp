@@ -169,11 +169,15 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
     }
 
     if(doInsert) {
-        Bottle bRequest;
         string strRequest = osArg.str(); // needed so we can cut off last character below, which is a ','
-        bRequest.addString("request");
-        bRequest.addString(strRequest.substr(0, strRequest.size() -1));
-        bRequest = request(bRequest);
+        if(processInsertDelayed) {
+            requestInsertPushToQueue(strRequest.substr(0, strRequest.size() -1));
+        } else {
+            Bottle bRequest;
+            bRequest.addString("request");
+            bRequest.addString(strRequest.substr(0, strRequest.size() -1));
+            request(bRequest);
+        }
     }
 
     return true;

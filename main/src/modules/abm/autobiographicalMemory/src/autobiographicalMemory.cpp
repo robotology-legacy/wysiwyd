@@ -38,6 +38,7 @@ using namespace std;
 bool autobiographicalMemory::configure(ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("autobiographicalMemory"), "module name (string)").asString();
+    processInsertDelayed = rf.check("processInsertDelayed", Value(1)).asInt() > 0;
 
     setName(moduleName.c_str());
 
@@ -872,6 +873,7 @@ bool autobiographicalMemory::close()
     abm2reasoning.interrupt();
     abm2reasoning.close();
 
+    requestInsertProcessQueue();
     storeImageOIDs();
 
     delete opcWorld;
