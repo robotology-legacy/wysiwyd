@@ -153,16 +153,15 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
 
     for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
     {
-        if (Network::isConnected(it->first, it->second->getName().c_str())) {
-            Bottle* lastReading = it->second->read(false); // (false) such that we do not wait until data arrives at port
-            if(lastReading!=NULL) { // only proceed if we got something
-                for(int subtype = 0; subtype < lastReading->size(); subtype++) {
-                    // go ahead if it is NOT a port related to skin OR it is a skin port and the value is bigger than 5.0
-                    if(it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
-                        doInsert = true;
+        Bottle* lastReading = it->second->read(false); // (false) such that we do not wait until data arrives at port
 
-                        osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' ),";
-                    }
+        if(lastReading!=NULL) { // only proceed if we got something
+            for(int subtype = 0; subtype < lastReading->size(); subtype++) {
+                // go ahead if it is NOT a port related to skin OR it is a skin port and the value is bigger than 5.0
+                if(it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
+                    doInsert = true;
+
+                    osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' ),";
                 }
             }
         }

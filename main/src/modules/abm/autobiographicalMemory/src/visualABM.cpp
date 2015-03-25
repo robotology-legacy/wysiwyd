@@ -256,25 +256,21 @@ Bottle autobiographicalMemory::disconnectFromImgStreamProviders()
 
 bool autobiographicalMemory::saveImageFromPort(const string &fullPath, const string &fromPort, BufferedPort<ImageOf<PixelRgb> >* imgPort)
 {
-    if (Network::isConnected(fromPort, imgPort->getName().c_str())) {
-        //Extract the incoming images from yarp
-        ImageOf<PixelRgb> *yarpImage = imgPort->read(false);
-        //cout << "imgPort name : " << imgPort->getName() << endl ;
+    //Extract the incoming images from yarp
+    ImageOf<PixelRgb> *yarpImage = imgPort->read(false);
+    //cout << "imgPort name : " << imgPort->getName() << endl ;
 
-        if (yarpImage != NULL) { // check we actually got something
-            //use opencv to convert the image and save it
-            IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
-            cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
-            cvSaveImage(fullPath.c_str(), cvImage);
+    if (yarpImage != NULL) { // check we actually got something
+        //use opencv to convert the image and save it
+        IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
+        cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
+        cvSaveImage(fullPath.c_str(), cvImage);
 
-            //cout << "img created : " << fullPath << endl ;
-            cvReleaseImage(&cvImage);
-            return true;
-        } else {
-            cout << "[saveImageFromPort] No image received from: " << imgPort->getName() << endl;
-            return false;
-        }
+        //cout << "img created : " << fullPath << endl ;
+        cvReleaseImage(&cvImage);
+        return true;
     } else {
+        //cout << "[saveImageFromPort] No image received from: " << imgPort->getName() << endl;
         return false;
     }
 }
@@ -403,8 +399,6 @@ void autobiographicalMemory::processOneImagePort(const string &imagePath, const 
         if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, portFrom)) {
             cout << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath << endl;
         }
-    } else {
-        cout << "[storeInfoAllImages] Could not save image from port " << portFrom << endl;
     }
 }
 
