@@ -68,7 +68,7 @@ Bottle autobiographicalMemory::restoBottle(ResultSet bResult)
 }
 
 /* Send a query to the DB. bRequest must be the complete request */
-Bottle autobiographicalMemory::request(Bottle bRequest)
+Bottle autobiographicalMemory::request(const Bottle& bRequest)
 {
     database_mutex.lock();
     //prepare the ResultSet of the query and the reply
@@ -100,7 +100,21 @@ Bottle autobiographicalMemory::request(Bottle bRequest)
     return bReply;
 }
 
-Bottle autobiographicalMemory::requestFromString(string sInput)
+void autobiographicalMemory::requestInsertPushToQueue(const string &sRequest) {
+    requests.push_back(sRequest);
+}
+
+void autobiographicalMemory::requestInsertProcessQueue() {
+    for(std::vector<std::string>::size_type i = 0; i != requests.size(); i++) {
+        requestFromString(requests[i]);
+        if(i%100==0) {
+            cout << "Process insert queue: " << i << " of " << requests.size() << endl;
+        }
+    }
+    requests.clear();
+}
+
+Bottle autobiographicalMemory::requestFromString(const string& sInput)
 {
     //send the SQL query within a bottle to autobiographicalMemory
     Bottle bQuery;
@@ -310,7 +324,7 @@ Bottle autobiographicalMemory::detectFailed()
 /*
 * return a tuple of 3 int from a string input
 */
-vector<int> autobiographicalMemory::tupleIntFromString(string sInput)
+vector<int> autobiographicalMemory::tupleIntFromString(const string& sInput)
 {
     vector<int> tOutput;
     char *cInput;
@@ -356,7 +370,7 @@ vector<int> autobiographicalMemory::tupleIntFromString(string sInput)
 /*
 * return a tuple of 3 double from a string input
 */
-vector<double> autobiographicalMemory::tupleDoubleFromString(string sInput)
+vector<double> autobiographicalMemory::tupleDoubleFromString(const string &sInput)
 {
     vector<double> tOutput;
     char *cInput;

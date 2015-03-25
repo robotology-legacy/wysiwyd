@@ -1,14 +1,10 @@
-#ifdef BOOST_AVAILABLE
-#include <boost/thread.hpp>
-#endif
-
 #include "autobiographicalMemory.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
 
-Bottle autobiographicalMemory::snapshot(Bottle bInput)
+Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 {
     /*
     format of input bottle :
@@ -225,7 +221,7 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
 }
 
 
-Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
+Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
 {
     /*
     format of input bottle :
@@ -407,7 +403,7 @@ Bottle autobiographicalMemory::snapshotSP(Bottle bInput)
     return bSnapShot;
 }
 
-Bottle autobiographicalMemory::snapshotBehavior(Bottle bInput)
+Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
 {
     /*
     format of input bottle :

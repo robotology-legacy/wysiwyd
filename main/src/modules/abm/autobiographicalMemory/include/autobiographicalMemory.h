@@ -91,12 +91,12 @@ public:
     yarp::os::Bottle newDB(yarp::os::Bottle bInput);
     yarp::os::Bottle load(yarp::os::Bottle bInput);
     yarp::os::Bottle resetKnowledge();
-    yarp::os::Bottle eraseInstance(yarp::os::Bottle bInput);
+    yarp::os::Bottle eraseInstance(const yarp::os::Bottle &bInput);
 
     // snapshot
-    yarp::os::Bottle snapshot(yarp::os::Bottle bInput);
-    yarp::os::Bottle snapshotSP(yarp::os::Bottle bInput);
-    yarp::os::Bottle snapshotBehavior(yarp::os::Bottle bInput);
+    yarp::os::Bottle snapshot(const yarp::os::Bottle &bInput);
+    yarp::os::Bottle snapshotSP(const yarp::os::Bottle &bInput);
+    yarp::os::Bottle snapshotBehavior(const yarp::os::Bottle &bInput);
 
     //////////////////////////////////////////////////////////////////////////
     // visual + data streaming
@@ -169,7 +169,7 @@ public:
     yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference, std::string port="");
 
     // augmented images stuff
-    yarp::os::Bottle saveAugmentedImages(yarp::os::Bottle bInput);
+    yarp::os::Bottle saveAugmentedImages(const yarp::os::Bottle &bInput);
     yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages=true);
 
     //////////////////////////////////////////////////////////////////////////
@@ -183,12 +183,12 @@ public:
     void writeInsert(std::string request);
     bool readInsert();
 
-    yarp::os::Bottle request(yarp::os::Bottle request);
-    yarp::os::Bottle requestFromString(std::string sInput);
+    yarp::os::Bottle request(const yarp::os::Bottle &request);
+    yarp::os::Bottle requestFromString(const std::string &sInput);
     yarp::os::Bottle restoBottle(ResultSet result);
 
-    static std::vector<int> tupleIntFromString(std::string sInput);
-    static std::vector<double> tupleDoubleFromString(std::string sInput);
+    static std::vector<int> tupleIntFromString(const std::string &sInput);
+    static std::vector<double> tupleDoubleFromString(const std::string &sInput);
 
     yarp::os::Bottle connect2reasoning();
     yarp::os::Bottle connectOPC(yarp::os::Bottle bInput);

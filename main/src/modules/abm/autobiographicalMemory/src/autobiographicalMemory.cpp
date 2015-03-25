@@ -967,7 +967,7 @@ Bottle autobiographicalMemory::resetKnowledge()
 * Erase of all the tables the data with instance given
 * format input : eraseInstce n m ...
 */
-Bottle autobiographicalMemory::eraseInstance(Bottle bInput)
+Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
 {
     vector<int> vecToErase;
     Bottle bOutput, bInstances;
