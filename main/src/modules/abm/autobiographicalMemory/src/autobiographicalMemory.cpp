@@ -16,6 +16,10 @@
  * Public License for more details
 */
 
+#ifdef BOOST_AVAILABLE
+#include <boost/thread.hpp>
+#endif
+
 #ifdef WIN32
 #include <windows.h>
 #else
@@ -108,6 +112,12 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
             addDataStreamProvider(defaultDataStreamProviders->get(i).toString());
         }
     }
+
+#ifdef BOOST_AVAILABLE
+    cout << "Running ABM with Boost :-)" << endl;
+#else
+    cout << "Running ABM without Boost. Recording data will be slow!" << endl;
+#endif
 
     cout << endl << endl << "----------------------------------------------";
     cout << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
@@ -618,6 +628,21 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     return true;
 }
 
+void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool forSingleInstance, string fullSentence) {
+#ifdef BOOST_AVAILABLE
+    boost::thread *imageThread, *dataStreamThread;
+    imageThread = new boost::thread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
+    dataStreamThread = new boost::thread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
+    imageThread->join();
+    dataStreamThread->join();
+    delete imageThread;
+    delete dataStreamThread;
+#else
+    storeInfoAllImages(synchroTime, forSingleInstance, fullSentence);
+    storeDataStreamAllProviders(synchroTime);
+#endif
+}
+
 /* rpc update module */
 bool autobiographicalMemory::updateModule() {
     //we have received a snapshot command indicating an activity that take time so streaming is needed
@@ -634,8 +659,7 @@ bool autobiographicalMemory::updateModule() {
         }
 
         string synchroTime = getCurrentTime();
-        storeInfoAllImages(synchroTime);
-        storeDataStreamAllProviders(synchroTime);
+        storeImagesAndData(synchroTime);
 
         //init of the stream record done: go through the classic record phase
         streamStatus = "record";
@@ -645,8 +669,7 @@ bool autobiographicalMemory::updateModule() {
         //cout << "Image Nb " << imgNb << endl;
 
         string synchroTime = getCurrentTime();
-        storeInfoAllImages(synchroTime);
-        storeDataStreamAllProviders(synchroTime);
+        storeImagesAndData(synchroTime);
     }
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance

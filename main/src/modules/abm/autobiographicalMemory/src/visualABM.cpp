@@ -16,6 +16,10 @@
  * Public License for more details
 */
 
+#ifdef BOOST_AVAILABLE
+#include <boost/thread.hpp>
+#endif
+
 #include <yarp/sig/all.h>
 #include "autobiographicalMemory.h"
 
@@ -254,7 +258,7 @@ bool autobiographicalMemory::saveImageFromPort(const string &fullPath, const str
 {
     if (Network::isConnected(fromPort, imgPort->getName().c_str())) {
         //Extract the incoming images from yarp
-        ImageOf<PixelRgb> *yarpImage = imgPort->read();
+        ImageOf<PixelRgb> *yarpImage = imgPort->read(false);
         //cout << "imgPort name : " << imgPort->getName() << endl ;
 
         if (yarpImage != NULL) { // check we actually got something
@@ -266,8 +270,7 @@ bool autobiographicalMemory::saveImageFromPort(const string &fullPath, const str
             //cout << "img created : " << fullPath << endl ;
             cvReleaseImage(&cvImage);
             return true;
-        }
-        else {
+        } else {
             cout << "[saveImageFromPort] No image received from: " << imgPort->getName() << endl;
             return false;
         }
@@ -387,10 +390,27 @@ bool autobiographicalMemory::storeInfoSingleImage(int instance, int frame_number
     return true;
 }
 
+void autobiographicalMemory::processOneImagePort(const string &imagePath, const string &relativeImagePath, const string &portFrom,
+                                            yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >* port,
+                                            const string &synchroTime) {
+    if(saveImageFromPort(imagePath, portFrom, port)) {
+        //cout << "Store image " << imagePath << " in database." << endl;
+        //create SQL entry, register the cam image in specific folder
+        if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, portFrom)) {
+            cout << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath << endl;
+        }
+    } else {
+        cout << "[storeInfoAllImages] Could not save image from port " << portFrom << endl;
+    }
+}
+
 //fullSentence is only used in case forSingleInstance=true!
 bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool forSingleInstance, string fullSentence) {
     bool allGood = true;
     //go through the ImgReceiver ports
+#ifdef BOOST_AVAILABLE
+    boost::thread_group group;
+#endif
 
     for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it)
     {
@@ -422,19 +442,18 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
 
         string imagePath = storingPath + "/" + relativeImagePath;
-        if(saveImageFromPort(imagePath, it->first, it->second)) {
-            //cout << "Store image " << imagePath << " in database." << endl;
-            //create SQL entry, register the cam image in specific folder
-            if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, it->first)) {
-                allGood = false;
-                cout << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath << endl;
-            }
-        }
-        else {
-            cout << "[storeInfoAllImages]: image not created from " << it->first << endl;
-            allGood = false;
-        }
+
+#ifdef BOOST_AVAILABLE
+        // spawn thread
+        group.add_thread(new boost::thread(&autobiographicalMemory::processOneImagePort, this, imagePath, relativeImagePath, it->first, it->second, synchroTime));
+#else
+        processOneImagePort(imagePath, relativeImagePath, it->first, it->second, synchroTime);
+#endif
     }
+
+#ifdef BOOST_AVAILABLE
+    group.join_all();
+#endif
 
     // only save storeOID if its a single image instance (otherwise it takes too long)
     // for streaming, we take care of this in the triggerStreaming method
