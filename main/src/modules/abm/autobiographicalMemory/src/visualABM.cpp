@@ -411,12 +411,8 @@ void autobiographicalMemory::processOneImagePort(const string &imagePath, const 
 //fullSentence is only used in case forSingleInstance=true!
 bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool forSingleInstance, string fullSentence) {
     bool allGood = true;
-    //go through the ImgReceiver ports
-#ifdef BOOST_AVAILABLE
-    // this thread_group contains one thread per image provider
-    boost::thread_group group;
-#endif
 
+    //go through the ImgReceiver ports
     for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it)
     {
         //concatenation of the path to store
@@ -445,22 +441,10 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         }
 
         string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
-
         string imagePath = storingPath + "/" + relativeImagePath;
 
-#ifdef BOOST_AVAILABLE
-        // add thread to group
-        group.add_thread(new boost::thread(&autobiographicalMemory::processOneImagePort, this, imagePath, relativeImagePath, it->first, it->second, synchroTime));
-#else
-        // if boost is unavailable, do one image port after the other
         processOneImagePort(imagePath, relativeImagePath, it->first, it->second, synchroTime);
-#endif
     }
-
-#ifdef BOOST_AVAILABLE
-    // wait until all threads are finished
-    group.join_all();
-#endif
 
     // only save storeOID if its a single image instance (otherwise it takes too long)
     // for streaming, we take care of this in the triggerStreaming method
