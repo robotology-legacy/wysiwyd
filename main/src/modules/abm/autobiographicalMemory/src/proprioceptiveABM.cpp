@@ -145,7 +145,7 @@ Bottle autobiographicalMemory::disconnectDataStreamProviders()
     return bOutput;
 }
 
-bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
+/*bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
     bool doInsert=false;
     ostringstream osArg;
 
@@ -158,8 +158,15 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
             }
 
             for(int subtype = 0; subtype < lastReading->size(); subtype++) {
-                osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' );";
-            }
+
+				//TODO : not writing if the joint is the same position (+/- delta) than the frame before
+
+				//for skin : do not write if value < 5.0 (some treshold, mqybe to put in conf file, work in both binarization or not)
+				//Need to change to triggerStream to fill in empty data by 0
+				if(!( (it->first.find("skin") != std::string::npos) && (lastReading->get(subtype).asDouble() < 5.0) )){
+					osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES (" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' );";
+				}
+          }
 
             doInsert=true;
         }
@@ -169,6 +176,41 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
         Bottle bRequest;
         bRequest.addString("request");
         bRequest.addString(osArg.str());
+        bRequest = request(bRequest);
+    }
+
+    return true;
+}*/
+
+bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
+    bool doInsert=false;
+    ostringstream osArg;
+
+    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
+    {
+        if (Network::isConnected(it->first, it->second->getName().c_str())) {
+            Bottle* lastReading = it->second->read();
+            if(lastReading!=NULL) {
+                doInsert=true;
+                osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES ";
+                for(int subtype = 0; subtype < lastReading->size(); subtype++) {
+                    osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' )";
+
+                    if(subtype == lastReading->size() - 1) {
+                        osArg << "; ";
+                    } else {
+                        osArg << ", ";
+                    }
+                }
+            }
+        }
+    }
+
+    if(doInsert) {
+        Bottle bRequest;
+        bRequest.addString("request");
+        bRequest.addString(osArg.str());
+
         bRequest = request(bRequest);
     }
 
