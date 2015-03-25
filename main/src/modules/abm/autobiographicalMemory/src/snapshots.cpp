@@ -219,6 +219,8 @@ Bottle autobiographicalMemory::snapshot(Bottle bInput)
         }
     }
 
+    bSnapShot.addInt(instance);
+
     return bSnapShot;
 }
 

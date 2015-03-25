@@ -459,6 +459,8 @@ Bottle opcEars::insertOPC(string sName)
             osContent << " ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) " ;
         else
             osContent << " , ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) " ;
+
+        fContent = true;
         
 bTemp  = insertRelation(*it_R); 
         if (!fRelation)
@@ -499,7 +501,8 @@ bTemp  = insertRelation(*it_R);
 
     // ---- filing bOutput ---- //
 
-    bOutput.addString(osContent.str().c_str());
+    if(fContent)
+        bOutput.addString(osContent.str().c_str());
 
     if (fEntity)
         bOutput.addString(osEntity.str().c_str());
