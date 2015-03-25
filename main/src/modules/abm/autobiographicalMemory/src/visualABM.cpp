@@ -473,7 +473,9 @@ bool autobiographicalMemory::storeImageOIDs(int instance) {
         string imgRelativePath = bRequest.get(i).asList()->get(2).toString().c_str();
 
         string fullPath = storingPath + "/" + imgRelativePath;
+        database_mutex.lock();
         unsigned int new_img_oid = ABMDataBase->lo_import(fullPath.c_str());
+        database_mutex.unlock();
 
         osStoreOID << "UPDATE visualdata SET img_oid=" << new_img_oid;
         osStoreOID << " WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "';";
@@ -527,7 +529,9 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
             }
             cout << "[saveImagesFromABM] Export OID " << imageOID << " to: " << storingPath << "/" << storingTmpSuffix << "/" << relative_path << endl;
             string imgPath = storingPath + "/" + storingTmpSuffix + "/" + relative_path;
+             database_mutex.lock();
             ABMDataBase->lo_export(imageOID, imgPath.c_str());
+             database_mutex.unlock();
         }
 
         return bRequest.size(); // return how many images were saved
@@ -627,7 +631,9 @@ Bottle autobiographicalMemory::saveAugmentedImages(const Bottle &bInput) {
         cvReleaseImage(&cvImage);
 
         // insert image to database
+        database_mutex.lock();
         unsigned int img_oid = ABMDataBase->lo_import(fullPath.c_str());
+        database_mutex.unlock();
 
         // insert new row in database
         string relativePath = instanceString + "/augmented_" + augmentedLabel + "_" + frameNumberString + providerPortSpecifier + "." + imgFormat;
@@ -639,7 +645,7 @@ Bottle autobiographicalMemory::saveAugmentedImages(const Bottle &bInput) {
         bRequest.addString("request");
         osArg << "INSERT INTO visualdata(instance, frame_number, relative_path, time, img_provider_port, img_oid, augmented) VALUES (" << instance << ", '" << frame_number << "', '" << relativePath << "', '" << time << "', '" << fullProviderPort << "', '" << img_oid << "', '" << augmentedLabel << "');";
         bRequest.addString(osArg.str());
-        bRequest = request(bRequest);
+        request(bRequest);
     }
     bReply.addString("ack");
     bReply.addString("[saveAugmentedImages] Success");
