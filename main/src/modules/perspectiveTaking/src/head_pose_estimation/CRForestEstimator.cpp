@@ -14,98 +14,98 @@ using namespace cv;
 
 bool CRForestEstimator::loadForest(const char* treespath, int ntrees){
 
-	// Init forest with number of trees
-	crForest = new CRForest( ntrees );
-	// Load forest
-	if( !crForest->loadForest( treespath ) )
-		return false;
+    // Init forest with number of trees
+    crForest = new CRForest( ntrees );
+    // Load forest
+    if( !crForest->loadForest( treespath ) )
+        return false;
 
-	return true;
+    return true;
 }
 
 Rect CRForestEstimator::getBoundingBox(const Mat& im3D){
 
-	Rect bbox;
-	int min_x = im3D.cols;
-	int min_y = im3D.rows;
-	int max_x = 0;
-	int max_y = 0;
-	int p_width = crForest->getPatchWidth();
-	int p_height = crForest->getPatchHeight();
+    Rect bbox;
+    int min_x = im3D.cols;
+    int min_y = im3D.rows;
+    int max_x = 0;
+    int max_y = 0;
+    int p_width = crForest->getPatchWidth();
+    int p_height = crForest->getPatchHeight();
 
-	for(int y = 0; y < im3D.rows; y++)
-	{
-	    const Vec3f* Mi = im3D.ptr<Vec3f>(y);
-	    for(int x = 0; x < im3D.cols; x++){
+    for(int y = 0; y < im3D.rows; y++)
+    {
+        const Vec3f* Mi = im3D.ptr<Vec3f>(y);
+        for(int x = 0; x < im3D.cols; x++){
 
-	    	if( Mi[x][2] > 0) {
+            if( Mi[x][2] > 0) {
 
-				min_x = MIN(min_x,x); min_y = MIN(min_y,y);
-				max_x = MAX(max_x,x); max_y = MAX(max_y,y);
-			}
+                min_x = MIN(min_x,x); min_y = MIN(min_y,y);
+                max_x = MAX(max_x,x); max_y = MAX(max_y,y);
+            }
 
-	    }
-	}
+        }
+    }
 
-	int new_w = max_x - min_x + p_width;
-	int new_h = max_y - min_y + p_height;
+    int new_w = max_x - min_x + p_width;
+    int new_h = max_y - min_y + p_height;
 
-	bbox.x = MIN( im3D.cols-1, MAX( 0 , min_x - p_width/2 ) );
-	bbox.y = MIN( im3D.rows-1, MAX( 0 , min_y - p_height/2) );
+    bbox.x = MIN( im3D.cols-1, MAX( 0 , min_x - p_width/2 ) );
+    bbox.y = MIN( im3D.rows-1, MAX( 0 , min_y - p_height/2) );
 
-	bbox.width  = MAX(0, MIN( new_w, im3D.cols-bbox.x));
-	bbox.height = MAX(0, MIN( new_h, im3D.rows-bbox.y));
+    bbox.width  = MAX(0, MIN( new_w, im3D.cols-bbox.x));
+    bbox.height = MAX(0, MIN( new_h, im3D.rows-bbox.y));
 
-	return bbox;
+    return bbox;
 
 }
 
 void CRForestEstimator::estimate( const Mat & im3D,
-								   std::vector< cv::Vec<float,6> >& means, //output
-                                   std::vector< std::vector< Vote > >& clusters, //all clusters
-                                   std::vector< Vote >& votes, //all votes
-                                   int stride,
-                                   float max_variance,
-                                   float prob_th,
-                                   float larger_radius_ratio,
-                                   float smaller_radius_ratio,
-                                   bool verbose , int threshold ){
+                                  std::vector< cv::Vec<float,6> >& means, //output
+                                  std::vector< std::vector< Vote > >& clusters, //all clusters
+                                  std::vector< Vote >& votes, //all votes
+                                  int stride,
+                                  float max_variance,
+                                  float prob_th,
+                                  float larger_radius_ratio,
+                                  float smaller_radius_ratio,
+                                  bool verbose , int threshold ){
 
     unsigned int max_clusters = 20;
     int max_ms_iterations = 10;
 
-	int p_width = crForest->getPatchWidth();
-	int p_height = crForest->getPatchHeight();
+    int p_width = crForest->getPatchWidth();
+    int p_height = crForest->getPatchHeight();
 
-	//get bounding box around the data in the image
-	Rect bbox = getBoundingBox(im3D);
+    //get bounding box around the data in the image
+    Rect bbox = getBoundingBox(im3D);
 
-	Mat* channels = new Mat[3];
-	split(im3D, channels);
-	
-	//vector<Mat> channels;
-	//split(im3D, channels);
+    Mat* channels = new Mat[3];
+    split(im3D, channels);
 
-	int rows = im3D.rows;
-	int cols = im3D.cols;
+    //vector<Mat> channels;
+    //split(im3D, channels);
 
-	//integral image of the depth channel
-	Mat depthInt( rows+1, cols+1, CV_64FC1);
-	integral( channels[2], depthInt );
+    int rows = im3D.rows;
+    int cols = im3D.cols;
 
-	//feature channels vector, in our case it contains only the depth integral image, but it could have other channels (e.g., greyscale)
-	std::vector< cv::Mat > featureChans;
-	featureChans.push_back(depthInt);
+    //integral image of the depth channel
+    Mat depthInt( rows+1, cols+1, CV_64FC1);
+    integral( channels[2], depthInt );
 
-	//mask
+    //feature channels vector, in our case it contains only the depth integral image, but it could have other channels (e.g., greyscale)
+    std::vector< cv::Mat > featureChans;
+    featureChans.push_back(depthInt);
+
+    //mask
     Mat mask( rows, cols, CV_32FC1); mask.setTo(0);
-	cv::threshold( channels[2], mask, 10, 1, THRESH_BINARY);
+    cv::threshold( channels[2], mask, 10, 1, THRESH_BINARY);
 
-	//integral image of the mask
-	Mat maskIntegral( rows+1, cols+1, CV_64FC1); maskIntegral.setTo(0);
-	integral( mask, maskIntegral );
+    //integral image of the mask
+    Mat maskIntegral( rows+1, cols+1, CV_64FC1); maskIntegral.setTo(0);
+    integral( mask, maskIntegral );
 
-	//defines the test patch
+    //defines the test patch
     Rect roi = Rect(0,0,p_width,p_height);
 
     int min_no_pixels = p_width*p_height/10;
@@ -115,22 +115,22 @@ void CRForestEstimator::estimate( const Mat & im3D,
     //process each patch
     for(roi.y=bbox.y; roi.y<bbox.y+bbox.height-p_height; roi.y+=stride) {
 
-    	float* rowX = channels[0].ptr<float>(roi.y + half_h);
-    	float* rowY = channels[1].ptr<float>(roi.y + half_h);
-    	float* rowZ = channels[2].ptr<float>(roi.y + half_h);
+        float* rowX = channels[0].ptr<float>(roi.y + half_h);
+        float* rowY = channels[1].ptr<float>(roi.y + half_h);
+        float* rowZ = channels[2].ptr<float>(roi.y + half_h);
 
-    	double* maskIntY1 = maskIntegral.ptr<double>(roi.y);
-    	double* maskIntY2 = maskIntegral.ptr<double>(roi.y + roi.height);
+        double* maskIntY1 = maskIntegral.ptr<double>(roi.y);
+        double* maskIntY2 = maskIntegral.ptr<double>(roi.y + roi.height);
 
         for(roi.x=bbox.x; roi.x<bbox.x+bbox.width-p_width; roi.x+=stride) {
 
-        	//discard if the middle of the patch does not have depth data
-			if( rowZ[roi.x + half_w] <= 0.f )
-				continue;
+            //discard if the middle of the patch does not have depth data
+            if( rowZ[roi.x + half_w] <= 0.f )
+                continue;
 
-			//discard if the patch is filled with data for less than 10%
+            //discard if the patch is filled with data for less than 10%
             if( (maskIntY1[roi.x] + maskIntY2[roi.x + roi.width] - maskIntY1[roi.x + roi.width] - maskIntY2[roi.x]) <= min_no_pixels )
-               continue;
+                continue;
 
             //send the patch down the trees and retrieve leaves
             std::vector< const LeafNode* > leaves = crForest->regressionIntegral( featureChans, maskIntegral, roi );
@@ -138,7 +138,7 @@ void CRForestEstimator::estimate( const Mat & im3D,
             //go through the results
             for(unsigned int t=0;t<leaves.size();++t){
 
-            	//discard bad votes
+                //discard bad votes
                 if ( leaves[t]->pfg < prob_th || leaves[t]->trace > max_variance )
                     continue;
 
@@ -167,7 +167,7 @@ void CRForestEstimator::estimate( const Mat & im3D,
     if(verbose)
         cout << endl << "votes : " << votes.size() << endl;
 
-	delete [] channels;
+    delete [] channels;
 
 
     Vec<float,POSE_SIZE> temp_mean;
@@ -184,40 +184,40 @@ void CRForestEstimator::estimate( const Mat & im3D,
         float best_dist = FLT_MAX;
         unsigned int best_cluster = 0;
 
-		//for each cluster
-		for(unsigned int c=0; ( c<cluster_means.size() && found==false ); ++c){
+        //for each cluster
+        for(unsigned int c=0; ( c<cluster_means.size() && found==false ); ++c){
 
-			float norm = 0;
-			for(int n=0;n<3;++n)
-			    norm += (votes[l].vote[n]-cluster_means[c][n])*(votes[l].vote[n]-cluster_means[c][n]);
+            float norm = 0;
+            for(int n=0;n<3;++n)
+                norm += (votes[l].vote[n]-cluster_means[c][n])*(votes[l].vote[n]-cluster_means[c][n]);
 
-			//is the offset smaller than the radius?
-			if( norm < large_radius ){
+            //is the offset smaller than the radius?
+            if( norm < large_radius ){
 
-				best_cluster = c;
+                best_cluster = c;
                 best_dist=norm;
-				found = true;
+                found = true;
 
-				 //add (pointer to) vote to the closest cluster (well, actually, the first cluster found within the distance)
-				temp_clusters[best_cluster].push_back( &(votes[l]) );
+                //add (pointer to) vote to the closest cluster (well, actually, the first cluster found within the distance)
+                temp_clusters[best_cluster].push_back( &(votes[l]) );
 
-				//update cluster's mean
-				((cluster_means[best_cluster])) = 0;
-				if ( temp_clusters[best_cluster].size() > 0 ){
+                //update cluster's mean
+                ((cluster_means[best_cluster])) = 0;
+                if ( temp_clusters[best_cluster].size() > 0 ){
 
-					for(unsigned int i=0;i < temp_clusters[best_cluster].size(); ++i)
-						((cluster_means[best_cluster])) = ((cluster_means[best_cluster])) + temp_clusters[best_cluster][i]->vote;
+                    for(unsigned int i=0;i < temp_clusters[best_cluster].size(); ++i)
+                        ((cluster_means[best_cluster])) = ((cluster_means[best_cluster])) + temp_clusters[best_cluster][i]->vote;
 
-					float div = float(MAX(1,temp_clusters[best_cluster].size()));
-					for(int n=0;n<POSE_SIZE;++n)
-						cluster_means[best_cluster][n] /= div;
-				}
+                    float div = float(MAX(1,temp_clusters[best_cluster].size()));
+                    for(int n=0;n<POSE_SIZE;++n)
+                        cluster_means[best_cluster][n] /= div;
+                }
 
-			}
+            }
 
-		}
+        }
 
-		//create a new cluster
+        //create a new cluster
         if( !found && temp_clusters.size() < max_clusters ){
 
             vector< Vote* > new_cluster;
@@ -254,7 +254,7 @@ void CRForestEstimator::estimate( const Mat & im3D,
         if(verbose){
             cout << endl << "MS cluster " << c << " : ";
             for(int n=0;n<3;++n)
-            	cout << cluster_means[c][n] << " ";
+                cout << cluster_means[c][n] << " ";
             cout << endl;
         }
 
@@ -276,14 +276,14 @@ void CRForestEstimator::estimate( const Mat & im3D,
             //for each vote in the cluster
             for(unsigned int idx=0; idx < temp_clusters[c].size() ;++idx){
 
-            	float norm = 0;
-            	for(int n=0;n<3;++n)
-            		norm += (temp_clusters[c][idx]->vote[n]-cluster_means[c][n])*(temp_clusters[c][idx]->vote[n]-cluster_means[c][n]);
+                float norm = 0;
+                for(int n=0;n<3;++n)
+                    norm += (temp_clusters[c][idx]->vote[n]-cluster_means[c][n])*(temp_clusters[c][idx]->vote[n]-cluster_means[c][n]);
 
                 if( norm < ms_radius2 ){
 
-                	temp_mean = temp_mean + temp_clusters[c][idx]->vote;
-                	new_cluster.push_back( temp_clusters[c][idx] );
+                    temp_mean = temp_mean + temp_clusters[c][idx]->vote;
+                    new_cluster.push_back( temp_clusters[c][idx] );
                     count++;
 
                 }
@@ -291,25 +291,25 @@ void CRForestEstimator::estimate( const Mat & im3D,
             }
 
             for(int n=0;n<POSE_SIZE;++n)
-            	temp_mean[n] /= (float)MAX(1,count);
+                temp_mean[n] /= (float)MAX(1,count);
 
             float distance_to_previous_mean2 = 0;
             for(int n=0;n<3;++n){
-            	distance_to_previous_mean2 += (temp_mean[n]-cluster_means[c][n])*(temp_mean[n]-cluster_means[c][n]);
+                distance_to_previous_mean2 += (temp_mean[n]-cluster_means[c][n])*(temp_mean[n]-cluster_means[c][n]);
             }
 
             //cout << it << " " << distance_to_previous_mean2 << endl;
 
             //update the mean of the cluster
-			cluster_means[c] = temp_mean;
+            cluster_means[c] = temp_mean;
 
             if( distance_to_previous_mean2 < 1 )
-            	break;
+                break;
 
         }
 
-		new_clusters.push_back( new_cluster );
-		new_means.push_back( cluster_means[c] );
+        new_clusters.push_back( new_cluster );
+        new_means.push_back( cluster_means[c] );
 
     }
 
@@ -324,14 +324,14 @@ void CRForestEstimator::estimate( const Mat & im3D,
         //for each vote in the cluster
         for(unsigned int k=0; k < new_clusters[c].size(); k++ ){
 
-        	cluster_means[c] = cluster_means[c] + new_clusters[c][k]->vote;
-        	cluster.push_back( *(new_clusters[c][k]) );
+            cluster_means[c] = cluster_means[c] + new_clusters[c][k]->vote;
+            cluster.push_back( *(new_clusters[c][k]) );
 
         }
 
         float div = (float)MAX(1,new_clusters[c].size());
         for(int n=0;n<POSE_SIZE;++n)
-        	cluster_means[c][n] /= div;
+            cluster_means[c][n] /= div;
 
         means.push_back( cluster_means[c] );
         clusters.push_back( cluster );

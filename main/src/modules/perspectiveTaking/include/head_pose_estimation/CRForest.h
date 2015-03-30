@@ -8,17 +8,17 @@
 #include <vector>
 
 class CRForest {
-  public:
+public:
     // Constructor
     CRForest(int trees = 0) {
-      vTrees.resize(trees);
+        vTrees.resize(trees);
     }
 
     // Destructor
     ~CRForest() {
-      for(std::vector<CRTree*>::iterator it = vTrees.begin(); it != vTrees.end(); ++it)
-    	  delete *it; // delete pointers
-      vTrees.clear(); // specialized routine for clearing trees
+        for(std::vector<CRTree*>::iterator it = vTrees.begin(); it != vTrees.end(); ++it)
+            delete *it; // delete pointers
+        vTrees.clear(); // specialized routine for clearing trees
     }
 
     // Set/Get functions
@@ -30,7 +30,7 @@ class CRForest {
 
     std::vector< const LeafNode* > regressionIntegral( const std::vector< cv::Mat >& patch, const cv::Mat& nonZeros, const cv::Rect& roi ) const;
 
-	bool loadForest(const char* filename);
+    bool loadForest(const char* filename);
 
     // Trees
     std::vector<CRTree*> vTrees;
@@ -41,23 +41,23 @@ class CRForest {
 // Regression
 inline std::vector<const LeafNode*> CRForest::regressionIntegral( const std::vector< cv::Mat >& patch, const cv::Mat& nonZeros, const cv::Rect& roi ) const {
 
-	std::vector<const LeafNode*> res;
-	for(int i=0; i<(int)vTrees.size(); ++i)
-		res.push_back( vTrees[i]->regressionIntegral(patch,nonZeros,roi) );
-	return res;
+    std::vector<const LeafNode*> res;
+    for(int i=0; i<(int)vTrees.size(); ++i)
+        res.push_back( vTrees[i]->regressionIntegral(patch,nonZeros,roi) );
+    return res;
 }
 
 
 inline bool CRForest::loadForest(const char* filename) {
 
-	char buffer[200];
-	bool success = true;
-	for(unsigned int i=0; i<vTrees.size(); ++i) {
-		sprintf(buffer,"%s%03d.bin",filename,i);
-		vTrees[i] = new CRTree();
-		success &= vTrees[i]->loadTree(buffer);
-	}
-	return success;
+    char buffer[200];
+    bool success = true;
+    for(unsigned int i=0; i<vTrees.size(); ++i) {
+        sprintf(buffer,"%s%03d.bin",filename,i);
+        vTrees[i] = new CRTree();
+        success &= vTrees[i]->loadTree(buffer);
+    }
+    return success;
 }
 
 
