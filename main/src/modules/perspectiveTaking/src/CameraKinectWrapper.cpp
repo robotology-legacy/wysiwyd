@@ -59,10 +59,9 @@ bool CameraKinectWrapper::init() {
 
     //TODO: Change to receive focal length from kinect client
     //client.getFocalLength(_depthFocal);
-    if(depth_width == 640)
-        _depthFocal=525.0;
-    else
-        _depthFocal=525.0/2.0;
+    _depthFocal=525.0;
+    if(depth_width == 320)
+        _depthFocal=_depthFocal/2.0;
     _rgb.resize(img_width, img_height);
     _depth.resize(depth_width,depth_height);
     _depthToDisplay.resize(depth_width,depth_height);

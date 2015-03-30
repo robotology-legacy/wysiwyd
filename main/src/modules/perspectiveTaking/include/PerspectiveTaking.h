@@ -57,16 +57,14 @@ protected:
 
     // ABM related
     void connectToABM(const std::string& abmName);
-    bool addABMImgProvider(const std::string& portName);
-    bool removeABMImgProvider(const std::string& portName);
+    bool addABMImgProvider(const std::string& portName, bool addProvider);
     bool sendImagesToPorts();
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > selfPerspImgPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > partnerPerspImgPort;
     yarp::os::Port abm;
 
     // RFH related
-    void getManualTransMat(float camOffsetX, float camOffsetZ, float camAngle);
-    void getRFHTransMat(const std::string& rfhName);
+    Eigen::Matrix4f getRFHTransMat(const std::string& rfhName);
     yarp::os::Port rfh;
 
     // agentDetector related
@@ -74,15 +72,16 @@ protected:
     yarp::os::Port agentdetector;
 
     // actual perspective Taking
-    void setCamera(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& cameraName);
-    void setCamera(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& cameraName);
-    Eigen::Matrix4f kinect2icub_pcl;
+    void setViewRobotReference(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& viewport);
+    void setViewRobotReference(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& viewport);
+    void setViewCameraReference(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, const std::string& viewport);
+    void setViewCameraReference(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& viewport);
+    Eigen::Matrix4f kinect2robot_pcl;
     Eigen::Matrix4f yarp2pcl;
     double distanceMultiplier;
     bool useStaticPose;
 
-    void yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,
-                              Eigen::Matrix4f& kinect2icubPCL);
+    Eigen::Matrix4f yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2robotYarp);
     Eigen::Vector4f yarp2EigenV(yarp::sig::Vector);
 
     double lookDown;
@@ -113,6 +112,8 @@ public:
     bool queryRFHTransMat(const std::string& from, const std::string& to, yarp::sig::Matrix& m);
     bool updateModule() { return false; }
     bool close();
+
+    static Eigen::Matrix4f getManualTransMat(float camOffsetX, float camOffsetZ, float camAngle);
 };
 
 #endif

@@ -14,6 +14,8 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
+ *
+ * Massively inspired by https://github.com/introlab/rtabmap/blob/master/examples/RGBDMapping/MapBuilder.h!
 */
 
 #include <string>
@@ -39,6 +41,7 @@ using namespace rtabmap;
 MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
     doProcessStats(true),
     _vWrapper(new VisualizerWrapper(this)),
+    odometryCorrection_(Transform::getIdentity()),
     decimationOdometry_(decOdo),
     decimationStatistics_(decVis)
 {
@@ -132,12 +135,12 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
                 }
             }
 
-            if(!_vWrapper->addOrUpdateCloud("cloudOdom", cloud, pose)) {
+            if(!_vWrapper->addOrUpdateCloud("cloudOdom", cloud, odometryCorrection_*pose)) {
                 cerr << "Adding cloudOdom to viewer failed!" << endl;
             }
         }
         if(!data.pose().isNull()) { // NOT: pose.isNull()!!!
-            _vWrapper->updateCameraPosition(data.pose());
+            _vWrapper->updateCameraPosition(odometryCorrection_*data.pose());
         }
     }
 
@@ -179,7 +182,7 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                 if(cloud->size()) {
                     cloud = util3d::passThrough<pcl::PointXYZRGB>(cloud, "z", 0, 4.0f);
                     if(cloud->size()) {
-                        cloud = util3d::transformPointCloud<pcl::PointXYZRGB>(cloud, s.getLocalTransform());
+                        cloud = util3d::transformPointCloud<pcl::PointXYZRGB>(cloud, stats.getSignature().getLocalTransform());
                     }
                 }
                 if(!_vWrapper->addOrUpdateCloud(cloudName, cloud, iter->second)) {
@@ -188,6 +191,8 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
             }
         }
     }
+
+    odometryCorrection_ = stats.mapCorrection();
 
     _vWrapper->update();
 }

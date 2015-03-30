@@ -75,24 +75,22 @@ bool perspectiveTaking::setupThreads() {
     return true;
 }
 
-void perspectiveTaking::getManualTransMat(float camOffsetX,float camOffsetZ,
+Eigen::Matrix4f perspectiveTaking::getManualTransMat(float camOffsetX, float camOffsetZ,
                                           float camAngle) {
-    kinect2icub_pcl = Eigen::Matrix4f::Zero();
-
-    // Estimate rotation+translation from kinect to icub head
+    // Estimate rotation+translation from kinect to robot head
     Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
 
-    // iCub head is camOffsetZ below kinect, can camOffsetX behind kinect
+    // robot head is camOffsetZ below kinect, can camOffsetX behind kinect
     rot_trans.translation() << camOffsetX, 0.0, camOffsetZ;
-    // iCub head is tilted by camAngle degrees down
+    // robot head is tilted by camAngle degrees down
     float theta = camAngle/180*M_PI;
     rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
 
-    kinect2icub_pcl = rot_trans.matrix();
+    return rot_trans.matrix();
 }
 
 // TODO: Not working, needs to be fixed
-void perspectiveTaking::getRFHTransMat(const string &rfhName) {
+Eigen::Matrix4f perspectiveTaking::getRFHTransMat(const string &rfhName) {
     string rfhLocal = "/"+getName()+"/rfh:o";
     rfh.open(rfhLocal.c_str());
     string rfhRemote = "/"+rfhName+"/rpc";
@@ -103,26 +101,24 @@ void perspectiveTaking::getRFHTransMat(const string &rfhName) {
         Time::delay(1.0);
     }
 
-    yarp::sig::Matrix kinect2icub;
-    yarp::sig::Matrix icub2kinect;
+    yarp::sig::Matrix kinect2robot;
+    yarp::sig::Matrix robot2kinect;
 
-    while(!queryRFHTransMat("kinect", "icub", kinect2icub)) {
+    while(!queryRFHTransMat("kinect", "icub", kinect2robot)) {
         cout << "Kinect2iCub matrix not calibrated, please do so in agentDetector" << endl;
         Time::delay(1.0);
     }
-    while(!queryRFHTransMat("icub", "kinect", icub2kinect)) {
+    while(!queryRFHTransMat("icub", "kinect", robot2kinect)) {
         cout << "iCub2Kinect matrix not calibrated, please do so in agentDetector" << endl;
         Time::delay(1.0);
     }
 
-    kinect2icub_pcl = Eigen::Matrix4f::Zero();
-    yarp2pclKinectMatrix(kinect2icub, kinect2icub_pcl);
+    return yarp2pclKinectMatrix(kinect2robot);
 }
 
 bool perspectiveTaking::queryRFHTransMat(const string& from, const string& to, Matrix& m)
 {
     if (rfh.getOutputCount() > 0) {
-        //Get the kinect2icub
         Bottle bCmd;
         bCmd.clear();
         bCmd.addString("mat");
@@ -210,9 +206,13 @@ bool perspectiveTaking::openHandlerPort() {
     return true;
 }
 
-bool perspectiveTaking::addABMImgProvider(const string &portName) {
+bool perspectiveTaking::addABMImgProvider(const string &portName, bool addProvider) {
     Bottle bCmd, bReply;
-    bCmd.addString("addImgStreamProvider");
+    if(addProvider) {
+        bCmd.addString("addImgStreamProvider");
+    } else {
+        bCmd.addString("removeImgStreamProvider");
+    }
     bCmd.addString(portName);
 
     abm.write(bCmd, bReply);
@@ -224,29 +224,31 @@ bool perspectiveTaking::addABMImgProvider(const string &portName) {
     }
 }
 
-bool perspectiveTaking::removeABMImgProvider(const string &portName) {
-    Bottle bCmd, bReply;
-    bCmd.addString("removeImgStreamProvider");
-    bCmd.addString(portName);
-
-    abm.write(bCmd, bReply);
-
-    if(bReply.get(0).toString()=="[ack]") {
-        return true;
-    } else {
-        return false;
-    }
+void perspectiveTaking::setViewCameraReference(const Vector &p_pos, const Vector &p_view, const Vector &p_up, const string &viewport) {
+    setViewCameraReference(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), viewport);
 }
 
-void perspectiveTaking::setCamera(const Vector &p_pos, const Vector &p_view, const Vector &p_up, const string &cameraName) {
-    setCamera(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), cameraName);
+void perspectiveTaking::setViewCameraReference(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, const string &viewport) {
+    p_pos/=p_pos[3]; p_view/=p_view[3], p_up/=p_up[3];
+
+    Eigen::Vector4f up_diff = p_up-p_pos;
+
+    mapBuilder->setCameraPosition(
+        p_pos[0],     p_pos[1],     p_pos[2],
+        p_view[0],    p_view[1],    p_view[2],
+        up_diff[0],   up_diff[1],   up_diff[2],
+        mapBuilder->getViewportID(viewport));
 }
 
-void perspectiveTaking::setCamera(const Eigen::Vector4f &p_pos, const Eigen::Vector4f &p_view, const Eigen::Vector4f &p_up, const string &cameraName) {
-    Eigen::Vector4f pos = kinect2icub_pcl * yarp2pcl * p_pos;
-    //Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
-    Eigen::Vector4f view = kinect2icub_pcl * yarp2pcl * p_view;
-    Eigen::Vector4f up = kinect2icub_pcl * yarp2pcl * p_up;
+void perspectiveTaking::setViewRobotReference(const Vector &p_pos, const Vector &p_view, const Vector &p_up, const string &viewport) {
+    setViewRobotReference(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), viewport);
+}
+
+void perspectiveTaking::setViewRobotReference(const Eigen::Vector4f &p_pos, const Eigen::Vector4f &p_view, const Eigen::Vector4f &p_up, const string &viewport) {
+    Eigen::Vector4f pos = kinect2robot_pcl * yarp2pcl * p_pos;
+    //Eigen::Vector4f view = kinect2robotpcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
+    Eigen::Vector4f view = kinect2robot_pcl * yarp2pcl * p_view;
+    Eigen::Vector4f up = kinect2robot_pcl * yarp2pcl * p_up;
 
     pos/=pos[3]; view/=view[3], up/=up[3];
 
@@ -256,16 +258,18 @@ void perspectiveTaking::setCamera(const Eigen::Vector4f &p_pos, const Eigen::Vec
         pos[0],     pos[1],     pos[2],
         view[0],    view[1],    view[2],
         up_diff[0], up_diff[1], up_diff[2],
-        mapBuilder->getViewports()[cameraName]);
+        mapBuilder->getViewportID(viewport));
 }
 
-void perspectiveTaking::yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2icubYarp,
-                          Eigen::Matrix4f& kinect2icubPCL) {
+Eigen::Matrix4f perspectiveTaking::yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2robotYarp) {
+    Eigen::Matrix4f pclmatrix = Eigen::Matrix4f::Zero();
     for(int i=0; i<4; i++) {
         for(int j=0; j<4; j++) {
-            kinect2icubPCL(i,j)=kinect2icubYarp(i,j);
+            pclmatrix(i,j)=kinect2robotYarp(i,j);
         }
     }
+
+    return pclmatrix;
 }
 
 Eigen::Vector4f perspectiveTaking::yarp2EigenV(Vector yVec) {

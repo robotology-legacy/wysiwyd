@@ -21,6 +21,7 @@
 #include <rtabmap/core/util3d.h>
 
 #include "VisualizerWrapper.h"
+#include "PerspectiveTaking.h"
 
 using namespace rtabmap;
 
@@ -35,11 +36,12 @@ VisualizerWrapper::VisualizerWrapper(QWidget *parent) :
     _visualizer->setupInteractor(this->GetInteractor(), this->GetRenderWindow());
 
     // Create the two view ports
-    int viewiCub(0), viewPartner(0);
+    int viewRobot(0), viewPartner(0);
 
-    _visualizer->createViewPort (0.0, 0.0, 0.5, 1.0, viewiCub);
-    _visualizer->addText ("View from the iCub", 10, 10, "iCub text", viewiCub);
-    _viewports["icub"]=viewiCub;
+    _visualizer->createViewPort (0.0, 0.0, 0.5, 1.0, viewRobot);
+    _visualizer->addText ("View from the robot", 10, 10, "robot text", viewRobot);
+    _viewports["robot"]=viewRobot;
+    _viewportTransforms["robot"]=perspectiveTaking::getManualTransMat(0.0,-0.4,-20.0);
 
     _visualizer->createViewPort (0.5, 0.0, 1.0, 1.0, viewPartner);
     _visualizer->addText ("View from the partner", 10, 10, "partner text", viewPartner);
@@ -117,16 +119,25 @@ bool VisualizerWrapper::addCloud(
     cloud->sensor_orientation_ = Eigen::Quaternionf(pose.toEigen3f().rotation());
     cloud->sensor_origin_ = Eigen::Vector4f(pose.x(), pose.y(), pose.z(), 0.0f);
 
+    bool allGood=true;
+
+    // add robot view
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
     if(_visualizer->addPointCloud(cloud, rgb, id)) {
+        _visualizer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, id);
+    } else {
+        allGood=false;
+    }
+
+    // add partner view
+
+    if(allGood) {
         // do not do inline (shared_ptr best practise)
         boost::shared_ptr<cloudWithPose> p1( new cloudWithPose(cloud, pose) );
         _addedClouds[id]=p1;
-        _visualizer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, id);
-        return true;
-    } else {
-        return false;
     }
+
+    return allGood;
 }
 
 bool VisualizerWrapper::updateCloud(
@@ -232,7 +243,7 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
             _visualizer->setCameraPosition(
                 Pp.x(), Pp.y(), Pp.z(),
                 Fp.x(), Fp.y(), Fp.z(),
-                Fp[8], Fp[9], Fp[10], _viewports["icub"]);
+                Fp[8], Fp[9], Fp[10], getViewportID("robot"));
         }
     }
 

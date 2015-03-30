@@ -45,8 +45,8 @@ public:
 
     cv::Mat getScreen();
 
-    std::map<std::string, int> getViewports() {
-        return _vWrapper->getViewports();
+    int getViewportID(const std::string& viewportName) {
+        return _vWrapper->getViewportID(viewportName);
     }
 
     void setCameraPosition( double pos_x, double pos_y, double pos_z,
@@ -74,6 +74,7 @@ protected:
 private:
     VisualizerWrapper* _vWrapper;
     Transform lastOdomPose_;
+    Transform odometryCorrection_;
     // decimation to show points clouds; the higher, the lower the resolution
     unsigned int decimationOdometry_; // odometry: current point cloud decimation
     unsigned int decimationStatistics_; // statistics: past point cloud decimation

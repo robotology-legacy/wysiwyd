@@ -60,17 +60,17 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     // start head pose estimation
     head_estimator = new CRMainEstimation(rf, client);
 
-    //getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
-    getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
+    //kinect2robot_pcl = getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
+    kinect2robot_pcl = getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
                       rf.check("cameraOffsetZ",Value(-0.4)).asDouble(),
                       rf.check("cameraAngle",Value(-20.0)).asDouble());
-    cout << "Kinect 2 iCub PCL: " << endl << kinect2icub_pcl << endl;
+    cout << "Kinect 2 Robot PCL: " << endl << kinect2robot_pcl << endl;
 
     // connect to ABM
     selfPerspImgPort.open("/"+getName()+"/images/self:o");
     partnerPerspImgPort.open("/"+getName()+"/images/partner:o");
-    addABMImgProvider(selfPerspImgPort.getName());
-    addABMImgProvider(partnerPerspImgPort.getName());
+    addABMImgProvider(selfPerspImgPort.getName(), true);
+    addABMImgProvider(partnerPerspImgPort.getName(), true);
 
     // create QApplication and threads
     int argc_qt = 1;
@@ -84,21 +84,21 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     // we need to convert from yarp reference frame to pcl reference frame
     yarp2pcl = Eigen::Matrix4f::Identity();
-    yarp2pcl(0, 0) = -1; // x is back on the icub, forward in pcl
-    yarp2pcl(1, 1) = -1; // y is right on the icub, left in pcl
+    yarp2pcl(0, 0) = -1; // x is back in yarp, forward in pcl
+    yarp2pcl(1, 1) = -1; // y is right in yarp, left in pcl
 
-    // Set camera position for iCub viewpoint
-    Eigen::Vector4f icub_pos  = Eigen::Vector4f( 0,0,0,1);
-    Eigen::Vector4f icub_view = Eigen::Vector4f(-1,0,0,1);
-    Eigen::Vector4f icub_up   = Eigen::Vector4f( 0,0,1,1);
-    setCamera(icub_pos, icub_view, icub_up, "icub");
+    // Set camera position for robot viewpoint
+    Eigen::Vector4f robot_pos  = Eigen::Vector4f( 0,0,0,1);
+    Eigen::Vector4f robot_view = Eigen::Vector4f(-1,0,0,1);
+    Eigen::Vector4f robot_up   = Eigen::Vector4f( 0,0,1,1);
+    setViewRobotReference(robot_pos, robot_view, robot_up, "robot");
 
     // set field of view for cameras
     float fovy_human = rf.check("fovyHuman",Value(135)).asInt();
-    float fovy_icub = rf.check("fovyCamera",Value(58)).asInt();
+    float fovy_robot = rf.check("fovyCamera",Value(58)).asInt();
 
-    mapBuilder->setCameraFieldOfView(fovy_icub/180.0*3.14, mapBuilder->getViewports()["icub"]);
-    mapBuilder->setCameraFieldOfView(fovy_human/180.0*3.14, mapBuilder->getViewports()["partner"]);
+    mapBuilder->setCameraFieldOfView(fovy_robot/180.0*3.14, mapBuilder->getViewportID("robot"));
+    mapBuilder->setCameraFieldOfView(fovy_human/180.0*3.14, mapBuilder->getViewportID("partner"));
 
     distanceMultiplier = rf.check("distanceMultiplier",Value(1.0)).asDouble();
 
@@ -202,6 +202,7 @@ bool perspectiveTaking::sendImagesToPorts() {
     //cv::imshow("Partner Perspective", partnerPersp);
     //cv::waitKey(50);
 
+    // convert cv::Mat to IplImage, and copy IplImage to ImageOf<PixelRGB>
     IplImage* partnerPersp_ipl = new IplImage(partnerPersp);
     ImageOf<PixelRgb> &partnerPers_yarp = partnerPerspImgPort.prepare();
     partnerPers_yarp.resize(partnerPersp_ipl->width, partnerPersp_ipl->height);
@@ -239,7 +240,7 @@ void perspectiveTaking::setPartnerCamera() {
         p_view[2] = p_view[2] - 0.8;
 
         cout << "Call setPartnerCamera" << endl;
-        setCamera(p_headPos, p_view, p_up, "partner");
+        setViewRobotReference(p_headPos, p_view, p_up, "partner");
 
         sendImagesToPorts();
     } else {
@@ -252,7 +253,7 @@ void perspectiveTaking::setPartnerCamera() {
             double d_up[3] = {p_headPos[0], p_headPos[1], p_headPos[2]+1.0};
             Vector p_up = Vector(3, d_up);
 
-            // For now, the partner is thought to look towards the icub
+            // For now, the partner is thought to look towards the robot
             // This is achieved by laying a plane between left shoulder,
             // right shoulder and head and using the normal vector of
             // the plane as viewing vector
@@ -260,7 +261,7 @@ void perspectiveTaking::setPartnerCamera() {
             p_view[2] = p_view[2] - lookDown;
 
             cout << "Call setPartnerCamera" << endl;
-            setCamera(p_headPos, p_view, p_up, "partner");
+            setViewRobotReference(p_headPos, p_view, p_up, "partner");
 
             sendImagesToPorts();
         } else {
@@ -292,9 +293,6 @@ void perspectiveTaking::setPartnerCamera() {
 }
 
 bool perspectiveTaking::close() {
-    // kill head pose estimation
-    delete head_estimator;
-
     // remove handlers
     mapBuilder->unregisterFromEventsManager();
     rtabmapThread->unregisterFromEventsManager();
@@ -302,8 +300,8 @@ bool perspectiveTaking::close() {
 
     // close methods
     // remove ABM image providers
-    removeABMImgProvider(selfPerspImgPort.getName());
-    removeABMImgProvider(partnerPerspImgPort.getName());
+    addABMImgProvider(selfPerspImgPort.getName(), false);
+    addABMImgProvider(partnerPerspImgPort.getName(), false);
 
     boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
 
@@ -331,6 +329,7 @@ bool perspectiveTaking::close() {
     //delete mapBuilder; //is deleted by QVTKWidget destructor!
     delete rtabmapThread;
     delete odomThread;
+    delete head_estimator;
 
     // Close ports
     abm.interrupt();

@@ -95,8 +95,8 @@ public:
         return *_visualizer;
     }
 
-    std::map<std::string, int> getViewports() {
-        return _viewports;
+    int getViewportID(const std::string& viewportName) {
+        return _viewports[viewportName];
     }
 
 private:
@@ -106,6 +106,7 @@ private:
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
     pcl::visualization::PCLVisualizer* _visualizer;
     std::map<std::string, int> _viewports;
+    std::map<std::string, Eigen::Matrix4f> _viewportTransforms;
 };
 
 #endif
