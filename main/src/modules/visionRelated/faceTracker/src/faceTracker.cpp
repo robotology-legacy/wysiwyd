@@ -396,7 +396,7 @@ bool faceTrackerModule::updateModule() {
                 setpoints[3] = 0;
                 setpoints[4] = 0;
 
-                sleep(0.3);
+		        Time::delay(0.3);
 
                 stuck_counter++;
 
