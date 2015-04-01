@@ -64,14 +64,16 @@ protected:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > selfPerspImgPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > partnerPerspImgPort;
     yarp::os::Port abm;
+    bool isConnectedToABM;
 
     // RFH related
     Eigen::Matrix4f getRFHTransMat(const std::string& rfhName);
     yarp::os::Port rfh;
 
-    // agentDetector related
+    // agentDetector related; deprecated
     void connectToAgentDetector(const std::string& agentDetectorName);
     yarp::os::Port agentdetector;
+    bool isConnectedToAgentDetector;
 
     // actual perspective Taking
     void setViewRobotReference(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& viewport);

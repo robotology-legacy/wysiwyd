@@ -152,9 +152,17 @@ void perspectiveTaking::connectToABM(const string &abmName) {
     abm.open(abmLocal.c_str());
     string abmRemote = "/"+abmName+"/rpc";
 
-    while (!Network::connect(abmLocal.c_str(),abmRemote.c_str())) {
+    int trial=0;
+    while (!Network::connect(abmLocal.c_str(),abmRemote.c_str()) && trial<3) {
         cout << "Waiting for connection to ABM..." << endl;
+        trial++;
         Time::delay(1.0);
+    }
+
+    if(Network::isConnected(abmLocal.c_str(),abmRemote.c_str())) {
+        isConnectedToABM = true;
+    } else {
+        isConnectedToABM = false;
     }
 }
 
@@ -163,9 +171,18 @@ void perspectiveTaking::connectToAgentDetector(const string &agentDetectorName) 
     agentdetector.open(agentDetectorLocal.c_str());
     string agentDetectorRemote = "/"+agentDetectorName+"/rpc";
 
-    while (!Network::connect(agentDetectorLocal.c_str(),agentDetectorRemote.c_str())) {
+    int trial=0;
+    while (!Network::connect(agentDetectorLocal.c_str(),agentDetectorRemote.c_str()) && trial<3) {
         cout << "Waiting for connection to Agent Detector..." << endl;
+        trial++;
         Time::delay(1.0);
+    }
+
+    if(Network::isConnected(agentDetectorLocal.c_str(),agentDetectorRemote.c_str())) {
+        lookDown = 0.5;
+        isConnectedToAgentDetector = true;
+    } else {
+        isConnectedToAgentDetector = false;
     }
 }
 

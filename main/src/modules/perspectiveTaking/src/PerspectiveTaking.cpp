@@ -46,10 +46,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     resfind = rf;
     setName(rf.check("name", Value("perspectiveTaking"), "module name (string)").asString().c_str());
     loopCounter = 0;
-
-    lookDown = 0.5;
-
-    useStaticPose = rf.check("useStaticPose",Value(0)).asInt();
+    isConnectedToAgentDetector = false;
+    isConnectedToABM = false;
 
     // connect to the various other modules
     connectToOPC(rf.check("opcName",Value("OPC")).asString().c_str());
@@ -190,6 +188,9 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
 }
 
 bool perspectiveTaking::sendImagesToPorts() {
+    if(!isConnectedToABM) {
+        return false;
+    }
     cv::Mat screen = mapBuilder->getScreen();
 
     cv::Mat selfPersp, partnerPersp;
