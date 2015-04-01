@@ -76,7 +76,7 @@ protected:
     // actual perspective Taking
     void setViewRobotReference(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& viewport);
     void setViewRobotReference(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& viewport);
-    void setViewCameraReference(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, const std::string& viewport);
+    void setViewCameraReference(const Eigen::Vector4f &p_pos, const Eigen::Vector4f &p_view, const Eigen::Vector4f &p_up, const std::string& viewport);
     void setViewCameraReference(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& viewport);
     Eigen::Matrix4f kinect2robot_pcl;
     Eigen::Matrix4f yarp2pcl;

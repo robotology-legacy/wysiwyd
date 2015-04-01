@@ -25,28 +25,18 @@
 
 using namespace rtabmap;
 
-VisualizerWrapper::VisualizerWrapper(QWidget *parent) :
+VisualizerWrapper::VisualizerWrapper(QWidget *parent, Eigen::Matrix4f cloudTransform) :
     QVTKWidget(parent),
     _maxTrajectorySize(100),
     _trajectory(new pcl::PointCloud<pcl::PointXYZ>),
-    _visualizer(new pcl::visualization::PCLVisualizer("PCLVisualizer", false)) {
+    _visualizer(new pcl::visualization::PCLVisualizer("PCLVisualizer", false)),
+    _viewportTransform(cloudTransform) {
 
     this->setMinimumSize(200, 200);
     this->SetRenderWindow(_visualizer->getRenderWindow());
     _visualizer->setupInteractor(this->GetInteractor(), this->GetRenderWindow());
 
-    // Create the two view ports
-    int viewRobot(0), viewPartner(0);
-
-    _visualizer->createViewPort (0.0, 0.0, 0.5, 1.0, viewRobot);
-    _visualizer->addText ("View from the robot", 10, 10, "robot text", viewRobot);
-    _viewports["robot"]=viewRobot;
-    _viewportTransforms["robot"]=perspectiveTaking::getManualTransMat(0.0,-0.4,-20.0);
-
-    _visualizer->createViewPort (0.5, 0.0, 1.0, 1.0, viewPartner);
-    _visualizer->addText ("View from the partner", 10, 10, "partner text", viewPartner);
-    _visualizer->createViewPortCamera(viewPartner);
-    _viewports["partner"]=viewPartner;
+    _visualizer->addText ("View", 10, 10, "view text");
 
     _visualizer->setBackgroundColor(1.0, 1.0, 1.0);
 
@@ -81,7 +71,7 @@ bool VisualizerWrapper::updateCloudPose(
         const std::string & id,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        cout << "Updating pose " << id << " to " << pose.prettyPrint() << endl;
+        //cout << "Updating pose " << id << " to " << pose.prettyPrint() << endl;
         if(_addedClouds.at(id)->pose == pose ||
                 _visualizer->updatePointCloudPose(id, pose.toEigen3f())) {
             _addedClouds.at(id)->pose = pose;
@@ -119,25 +109,18 @@ bool VisualizerWrapper::addCloud(
     cloud->sensor_orientation_ = Eigen::Quaternionf(pose.toEigen3f().rotation());
     cloud->sensor_origin_ = Eigen::Vector4f(pose.x(), pose.y(), pose.z(), 0.0f);
 
-    bool allGood=true;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_transformed (new pcl::PointCloud<pcl::PointXYZRGB> ());
+    pcl::transformPointCloud (*cloud, *cloud_transformed, _viewportTransform);
 
-    // add robot view
-    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud);
-    if(_visualizer->addPointCloud(cloud, rgb, id)) {
+    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(cloud_transformed);
+    if(_visualizer->addPointCloud(cloud_transformed, rgb, id)) {
         _visualizer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, id);
-    } else {
-        allGood=false;
-    }
-
-    // add partner view
-
-    if(allGood) {
-        // do not do inline (shared_ptr best practise)
         boost::shared_ptr<cloudWithPose> p1( new cloudWithPose(cloud, pose) );
         _addedClouds[id]=p1;
+        return true;
+    } else {
+        return false;
     }
-
-    return allGood;
 }
 
 bool VisualizerWrapper::updateCloud(
@@ -145,7 +128,7 @@ bool VisualizerWrapper::updateCloud(
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        cout << "Updating " << id << " with " << cloud->size() << " points" << endl;
+        //cout << "Updating " << id << " with " << cloud->size() << " points" << endl;
         if(!removeCloud(id)) {
             cerr << "Point cloud " << id << " could not be removed!" << endl;
         }
@@ -237,13 +220,13 @@ void VisualizerWrapper::updateCameraPosition(const Transform & pose)
             Transform P2F = P.inverse()*F;
             Transform Pp = P * P2F * T * P2F.inverse();
 
-            _visualizer->removeCoordinateSystem("reference", 0);
-            _visualizer->addCoordinateSystem(0.2, m, "reference", 0);
+            //_visualizer->removeCoordinateSystem("reference", 0);
+            //_visualizer->addCoordinateSystem(0.2, m, "reference", 0);
 
             _visualizer->setCameraPosition(
                 Pp.x(), Pp.y(), Pp.z(),
                 Fp.x(), Fp.y(), Fp.z(),
-                Fp[8], Fp[9], Fp[10], getViewportID("robot"));
+                Fp[8], Fp[9], Fp[10]);
         }
     }
 

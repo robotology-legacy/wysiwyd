@@ -45,16 +45,12 @@ public:
 
     cv::Mat getScreen();
 
-    int getViewportID(const std::string& viewportName) {
-        return _vWrapper->getViewportID(viewportName);
-    }
-
     void setCameraPosition( double pos_x, double pos_y, double pos_z,
                             double view_x, double view_y, double view_z,
                             double up_x, double up_y, double up_z,
-                            int viewport = 0 );
+                            const std::string &visualizerName );
 
-    void setCameraFieldOfView( double fovy, int viewport = 0 );
+    void setCameraFieldOfView(double fovy, const std::string &visualizerName );
 
     void setDecimationOdometry(int decimation) {
         decimationOdometry_ = decimation;
@@ -62,6 +58,18 @@ public:
 
     void setDecimationStatistics(int decimation) {
         decimationStatistics_ = decimation;
+    }
+
+    VisualizerWrapper* getVisualizerByName(const std::string &name) {
+        VisualizerWrapper* vis = NULL;
+        if(name == "robot") {
+            vis = _vWrapper_robot;
+        } else if(name == "partner") {
+            vis = _vWrapper_partner;
+        } else {
+            cerr << "No visualizer with name " << name << endl;
+        }
+        return vis;
     }
 
 private slots:
@@ -72,13 +80,15 @@ protected:
     virtual void handleEvent(UEvent * event);
 
 private:
-    VisualizerWrapper* _vWrapper;
-    Transform lastOdomPose_;
-    Transform odometryCorrection_;
+    VisualizerWrapper* _vWrapper_robot;
+    VisualizerWrapper* _vWrapper_partner;
     // decimation to show points clouds; the higher, the lower the resolution
     unsigned int decimationOdometry_; // odometry: current point cloud decimation
     unsigned int decimationStatistics_; // statistics: past point cloud decimation
     boost::recursive_try_mutex vis_mutex;
+
+    Transform lastOdomPose_;
+    Transform odometryCorrection_;
 };
 
 #endif

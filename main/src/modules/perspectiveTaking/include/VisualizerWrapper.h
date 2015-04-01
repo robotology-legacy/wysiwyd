@@ -47,7 +47,7 @@ class VisualizerWrapper : public QVTKWidget {
     Q_OBJECT
 
 public:
-    VisualizerWrapper(QWidget *parent = 0);
+    VisualizerWrapper(QWidget *parent = 0, Eigen::Matrix4f cloudTransform = Eigen::Matrix4f::Identity());
     virtual ~VisualizerWrapper();
 
     const std::map<std::string, boost::shared_ptr<cloudWithPose> > & getAddedClouds() const {return _addedClouds;}
@@ -95,18 +95,13 @@ public:
         return *_visualizer;
     }
 
-    int getViewportID(const std::string& viewportName) {
-        return _viewports[viewportName];
-    }
-
 private:
     std::map<std::string, boost::shared_ptr<cloudWithPose> > _addedClouds;
     unsigned int _maxTrajectorySize;
     rtabmap::Transform _lastPose;
     pcl::PointCloud<pcl::PointXYZ>::Ptr _trajectory;
     pcl::visualization::PCLVisualizer* _visualizer;
-    std::map<std::string, int> _viewports;
-    std::map<std::string, Eigen::Matrix4f> _viewportTransforms;
+    Eigen::Matrix4f _viewportTransform;
 };
 
 #endif

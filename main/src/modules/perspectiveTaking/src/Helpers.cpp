@@ -228,16 +228,19 @@ void perspectiveTaking::setViewCameraReference(const Vector &p_pos, const Vector
     setViewCameraReference(yarp2EigenV(p_pos), yarp2EigenV(p_view), yarp2EigenV(p_up), viewport);
 }
 
-void perspectiveTaking::setViewCameraReference(Eigen::Vector4f p_pos, Eigen::Vector4f p_view, Eigen::Vector4f p_up, const string &viewport) {
-    p_pos/=p_pos[3]; p_view/=p_view[3], p_up/=p_up[3];
+void perspectiveTaking::setViewCameraReference(const Eigen::Vector4f &p_pos, const Eigen::Vector4f &p_view, const Eigen::Vector4f &p_up, const string &viewport) {
+    Eigen::Vector4f pos = yarp2pcl * p_pos;
+    Eigen::Vector4f view = yarp2pcl * p_view;
+    Eigen::Vector4f up = yarp2pcl * p_up;
+    pos/=pos[3]; view/=view[3], up/=up[3];
 
-    Eigen::Vector4f up_diff = p_up-p_pos;
+    Eigen::Vector4f up_diff = up-pos;
 
     mapBuilder->setCameraPosition(
-        p_pos[0],     p_pos[1],     p_pos[2],
-        p_view[0],    p_view[1],    p_view[2],
-        up_diff[0],   up_diff[1],   up_diff[2],
-        mapBuilder->getViewportID(viewport));
+        pos[0],     pos[1],     pos[2],
+        view[0],    view[1],    view[2],
+        up_diff[0], up_diff[1], up_diff[2],
+        viewport);
 }
 
 void perspectiveTaking::setViewRobotReference(const Vector &p_pos, const Vector &p_view, const Vector &p_up, const string &viewport) {
@@ -258,7 +261,7 @@ void perspectiveTaking::setViewRobotReference(const Eigen::Vector4f &p_pos, cons
         pos[0],     pos[1],     pos[2],
         view[0],    view[1],    view[2],
         up_diff[0], up_diff[1], up_diff[2],
-        mapBuilder->getViewportID(viewport));
+        viewport);
 }
 
 Eigen::Matrix4f perspectiveTaking::yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2robotYarp) {

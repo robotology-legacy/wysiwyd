@@ -32,6 +32,7 @@
 
 #include <rtabmap/utilite/UConversion.h>
 
+#include "PerspectiveTaking.h"
 #include "VisualizerWrapper.h"
 #include "MapBuilder.h"
 
@@ -40,18 +41,20 @@ using namespace rtabmap;
 // This class receives RtabmapEvent and construct/update a 3D Map
 MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
     doProcessStats(true),
-    _vWrapper(new VisualizerWrapper(this)),
-    odometryCorrection_(Transform::getIdentity()),
+    _vWrapper_robot(new VisualizerWrapper(this, perspectiveTaking::getManualTransMat(0.0,-0.4,-20.0).inverse())),
+    _vWrapper_partner(new VisualizerWrapper(this, Eigen::Matrix4f::Identity())),
     decimationOdometry_(decOdo),
-    decimationStatistics_(decVis)
+    decimationStatistics_(decVis),
+    odometryCorrection_(Transform::getIdentity())
 {
     this->setWindowFlags(Qt::Dialog);
     this->setWindowTitle(tr("3D Map"));
     this->setMinimumWidth(1600);
     this->setMinimumHeight(600);
 
-    QVBoxLayout *layout = new QVBoxLayout();
-    layout->addWidget(_vWrapper);
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(_vWrapper_robot);
+    layout->addWidget(_vWrapper_partner);
     this->setLayout(layout);
 
     qRegisterMetaType<rtabmap::Statistics>("rtabmap::Statistics");
@@ -60,19 +63,22 @@ MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
 
 MapBuilder::~MapBuilder() {
     this->unregisterFromEventsManager();
-    delete _vWrapper;
+    delete _vWrapper_robot;
+    delete _vWrapper_partner;
 }
 
-void MapBuilder::setCameraPosition( double pos_x, double pos_y, double pos_z,
-                                    double view_x, double view_y, double view_z,
-                                    double up_x, double up_y, double up_z,
-                                    int viewport) {
-    vis_mutex.lock();
-    _vWrapper->getVisualizer().setCameraPosition(pos_x, pos_y, pos_z,
-                                                 view_x, view_y, view_z,
-                                                 up_x, up_y, up_z,
-                                                 viewport);
-    vis_mutex.unlock();
+void MapBuilder::setCameraPosition(double pos_x, double pos_y, double pos_z,
+                                   double view_x, double view_y, double view_z,
+                                   double up_x, double up_y, double up_z,
+                                   const std::string &visualizerName) {
+    //vis_mutex.lock();
+    VisualizerWrapper* vis = getVisualizerByName(visualizerName);
+    if(vis) {
+        vis->getVisualizer().setCameraPosition(pos_x, pos_y, pos_z,
+                                               view_x, view_y, view_z,
+                                               up_x, up_y, up_z);
+    }
+    //vis_mutex.unlock();
 }
 
 cv::Mat MapBuilder::getScreen() {
@@ -90,13 +96,20 @@ cv::Mat MapBuilder::getScreen() {
     return cv::Mat( image.height(), image.width(), CV_8UC3, const_cast<uchar*>(image.bits()), image.bytesPerLine() ).clone();
 }
 
-void MapBuilder::setCameraFieldOfView(double fovy, int viewport ) {
+void MapBuilder::setCameraFieldOfView(double fovy, const std::string &visualizerName) {
     vis_mutex.lock();
-    _vWrapper->getVisualizer().setCameraFieldOfView(fovy, viewport);
+    VisualizerWrapper* vis = getVisualizerByName(visualizerName);
+    if(vis) {
+        vis->getVisualizer().setCameraFieldOfView(fovy);
+    }
     vis_mutex.unlock();
 }
 
 void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
+    if(!data.depth().empty()) {
+        perspectiveTaking::lastDepth = data.depth();
+    }
+
     if(!this->isVisible())
     {
         return;
@@ -106,10 +119,12 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
 
     if(pose.isNull()) {
         //Odometry lost
-        _vWrapper->setBackgroundColor(1.0, 0, 0);
+        _vWrapper_robot->setBackgroundColor(1.0, 0, 0);
+        _vWrapper_partner->setBackgroundColor(1.0, 0, 0);
         pose = lastOdomPose_;
     } else {
-        _vWrapper->setBackgroundColor(0.1, 0.1, 0.1);
+        _vWrapper_robot->setBackgroundColor(0.1, 0.1, 0.1);
+        _vWrapper_partner->setBackgroundColor(0.1, 0.1, 0.1);
     }
     if(!pose.isNull()) {
         lastOdomPose_ = pose;
@@ -135,16 +150,21 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
                 }
             }
 
-            if(!_vWrapper->addOrUpdateCloud("cloudOdom", cloud, odometryCorrection_*pose)) {
+            if(!_vWrapper_robot->addOrUpdateCloud("cloudOdom", cloud, odometryCorrection_*pose)) {
+                cerr << "Adding cloudOdom to viewer failed!" << endl;
+            }
+            if(!_vWrapper_partner->addOrUpdateCloud("cloudOdom", cloud, odometryCorrection_*pose)) {
                 cerr << "Adding cloudOdom to viewer failed!" << endl;
             }
         }
         if(!data.pose().isNull()) { // NOT: pose.isNull()!!!
-            _vWrapper->updateCameraPosition(odometryCorrection_*data.pose());
+            _vWrapper_robot->updateCameraPosition(odometryCorrection_*data.pose());
+            _vWrapper_partner->updateCameraPosition(odometryCorrection_*data.pose());
         }
     }
 
-    _vWrapper->update();
+    _vWrapper_robot->update();
+    _vWrapper_partner->update();
 }
 
 void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
@@ -154,16 +174,23 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
             std::string cloudName = uFormat("cloud%d", iter->first);
 
             // 3d point cloud
-            if(_vWrapper->getAddedClouds().count(cloudName)) {
+            if(_vWrapper_robot->getAddedClouds().count(cloudName) && _vWrapper_partner->getAddedClouds().count(cloudName)) {
                 // Update only if the pose has changed
-                Transform tCloud;
-                _vWrapper->getPose(cloudName, tCloud);
-                if(tCloud.isNull() || iter->second != tCloud) {
-                    if(!_vWrapper->updateCloudPose(cloudName, iter->second)) {
+                Transform tCloud_robot, tCloud_partner;
+                _vWrapper_robot -> getPose(cloudName, tCloud_robot);
+                _vWrapper_partner->getPose(cloudName, tCloud_partner);
+                if(tCloud_robot.isNull() || iter->second != tCloud_robot) {
+                    if(!_vWrapper_robot->updateCloudPose(cloudName, iter->second)) {
                         cerr << "Updating pose cloud " << iter->first << " failed!" << endl;
                     }
                 }
-                _vWrapper->setCloudVisibility(cloudName, true);
+                if(tCloud_robot.isNull() || iter->second != tCloud_partner) {
+                    if(!_vWrapper_partner->updateCloudPose(cloudName, iter->second)) {
+                        cerr << "Updating pose cloud " << iter->first << " failed!" << endl;
+                    }
+                }
+                _vWrapper_robot->setCloudVisibility(cloudName, true);
+                _vWrapper_partner->setCloudVisibility(cloudName, true);
             }
             else if(iter->first == stats.refImageId() &&
                     stats.getSignature().id() == iter->first) {
@@ -185,7 +212,10 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                         cloud = util3d::transformPointCloud<pcl::PointXYZRGB>(cloud, stats.getSignature().getLocalTransform());
                     }
                 }
-                if(!_vWrapper->addOrUpdateCloud(cloudName, cloud, iter->second)) {
+                if(!_vWrapper_robot->addOrUpdateCloud(cloudName, cloud, iter->second)) {
+                    cerr << "Adding cloud " << iter->first << " to viewer failed!" << endl;
+                }
+                if(!_vWrapper_partner->addOrUpdateCloud(cloudName, cloud, iter->second)) {
                     cerr << "Adding cloud " << iter->first << " to viewer failed!" << endl;
                 }
             }
@@ -194,16 +224,17 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
 
     odometryCorrection_ = stats.mapCorrection();
 
-    _vWrapper->update();
+    _vWrapper_robot->update();
+    _vWrapper_partner->update();
 }
 
 void MapBuilder::handleEvent(UEvent * event) {
-    std::cout << "Event: " << event->getClassName() << std::endl;
+    //std::cout << "Event: " << event->getClassName() << std::endl;
     if(event->getClassName().compare("RtabmapEvent") == 0 && doProcessStats) {
         RtabmapEvent * rtabmapEvent = dynamic_cast<RtabmapEvent *>(event);
         const Statistics & stats = rtabmapEvent->getStats();
         // Statistics must be processed in the Qt thread
-        cout << "Process statistics" << endl;
+        //cout << "Process statistics" << endl;
         if(this->isVisible() && vis_mutex.try_lock()) {
             QMetaObject::invokeMethod(this, "processStatistics", Q_ARG(rtabmap::Statistics, stats));
             vis_mutex.unlock();
@@ -211,7 +242,7 @@ void MapBuilder::handleEvent(UEvent * event) {
     }
     else if(event->getClassName().compare("OdometryEvent") == 0) {
         OdometryEvent * odomEvent = dynamic_cast<OdometryEvent *>(event);
-        cout << "Quality (#inliers): " << odomEvent->info().inliers << endl;
+        //cout << "Quality (#inliers): " << odomEvent->info().inliers << endl;
         if(this->isVisible() && vis_mutex.try_lock()) {
             QMetaObject::invokeMethod(this, "processOdometry", Q_ARG(rtabmap::SensorData, odomEvent->data()));
             vis_mutex.unlock();
