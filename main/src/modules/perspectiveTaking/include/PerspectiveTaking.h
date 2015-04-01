@@ -56,6 +56,7 @@ protected:
     void connectToOPC(const std::string& opcName);
     wysiwyd::wrdac::OPCClient* opc;
     wysiwyd::wrdac::Agent* partner;
+    bool isConnectedToOPC;
 
     // ABM related
     void connectToABM(const std::string& abmName);

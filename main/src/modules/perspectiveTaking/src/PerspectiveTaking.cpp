@@ -49,6 +49,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("perspectiveTaking"), "module name (string)").asString().c_str());
     loopCounter = 0;
     isConnectedToAgentDetector = false;
+    isConnectedToOPC = false;
     isConnectedToABM = false;
 
     // connect to the various other modules
@@ -61,10 +62,10 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     if(partnerCameraMode_temp==0) {
         partnerCameraMode = staticPos;
     } else if(partnerCameraMode_temp==1) {
-        if(isConnectedToAgentDetector) {
+        if(isConnectedToAgentDetector && isConnectedToOPC) {
             partnerCameraMode = agentDetector;
         } else {
-            cerr << "Asked to use agentDetector to set camera view, but it is not running " << endl;
+            cerr << "Asked to use agentDetector to set camera view, but agentDetector/OPC is not running " << endl;
             cerr << "Using static position instead!" << endl;
             partnerCameraMode = staticPos;
         }

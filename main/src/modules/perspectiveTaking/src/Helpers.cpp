@@ -203,9 +203,16 @@ void perspectiveTaking::connectToKinectServer(int verbosity) {
 
 void perspectiveTaking::connectToOPC(const string &opcName) {
     opc = new OPCClient(getName());
-    while (!opc->connect(opcName)) {
+    int trial=0;
+    while (!opc->connect(opcName) && trial < 3) {
         cout<<"Waiting for connection to OPC..."<<endl;
+        trial++;
         Time::delay(1.0);
+    }
+    if(opc->isConnected()) {
+        isConnectedToOPC = true;
+    } else {
+        isConnectedToOPC = false;
     }
 }
 
