@@ -40,6 +40,8 @@ using namespace yarp::math;
 using namespace kinectWrapper;
 using namespace wysiwyd::wrdac;
 
+cv::Mat perspectiveTaking::lastDepth;
+
 bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     resfind = rf;
     setName(rf.check("name", Value("perspectiveTaking"), "module name (string)").asString().c_str());
@@ -76,7 +78,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     openHandlerPort();
 
     // start head pose estimation
-    head_estimator = new CRMainEstimation(rf, client);
+    head_estimator = new CRMainEstimation(rf);
 
     //kinect2robot_pcl = getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
     kinect2robot_pcl = getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),

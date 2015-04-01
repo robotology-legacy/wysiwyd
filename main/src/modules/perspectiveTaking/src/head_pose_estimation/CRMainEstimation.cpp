@@ -18,6 +18,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <yarp/os/all.h>
+#include "PerspectiveTaking.h"
 #include "head_pose_estimation/CRMainEstimation.h"
 
 using namespace std;
@@ -25,7 +26,7 @@ using namespace cv;
 using namespace yarp::os;
 using namespace yarp::sig;
 
-CRMainEstimation::CRMainEstimation(yarp::os::ResourceFinder &rf, KinectWrapperClient & c):
+CRMainEstimation::CRMainEstimation(yarp::os::ResourceFinder &rf):
     g_max_z(0),
     g_th(400),
     g_prob_th(1.0f),
@@ -33,8 +34,7 @@ CRMainEstimation::CRMainEstimation(yarp::os::ResourceFinder &rf, KinectWrapperCl
     g_stride(5),
     g_larger_radius_ratio(1.0f),
     g_smaller_radius_ratio(6.0f),
-    g_Estimate(new CRForestEstimator()),
-    client(c)
+    g_Estimate(new CRForestEstimator())
 {
     Bottle &bHeadPoseProperties = rf.findGroup("head_pose_estimator");
     g_ntrees = bHeadPoseProperties.check("g_ntrees",Value(10)).asInt();
@@ -71,10 +71,8 @@ CRMainEstimation::~CRMainEstimation() {
 void CRMainEstimation::estimate() {
     if(head_pose_mutex.try_lock()) {
         // get depth image
-        Mat depth;
-        ImageOf<PixelMono16> _depth;
-        client.getDepth(_depth);
-        depth = cvarrToMat((IplImage*)_depth.getIplImage(), true);
+        Mat depth = perspectiveTaking::lastDepth;
+
         bool isInMM = depth.type() == CV_16UC1;
 
         float f = 575.0;
@@ -129,6 +127,7 @@ void CRMainEstimation::estimate() {
                                 );
 
         cout << "Heads found : " << g_means.size() << endl;
+        cout << "Valid pixels: " << valid_pixels << endl;
 
         //assuming there's only one head in the image!
         if(g_means.size()>0) {
@@ -137,5 +136,4 @@ void CRMainEstimation::estimate() {
 
         head_pose_mutex.unlock();
     }
-    return;
 }

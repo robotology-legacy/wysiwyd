@@ -117,6 +117,7 @@ public:
     bool close();
 
     static Eigen::Matrix4f getManualTransMat(float camOffsetX, float camOffsetZ, float camAngle);
+    static cv::Mat lastDepth;
 };
 
 #endif

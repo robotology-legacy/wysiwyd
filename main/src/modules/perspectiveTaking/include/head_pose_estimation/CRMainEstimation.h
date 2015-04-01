@@ -29,7 +29,7 @@ using namespace kinectWrapper;
 class CRMainEstimation : public QObject {
     Q_OBJECT
 public:
-    CRMainEstimation(yarp::os::ResourceFinder &rf, KinectWrapperClient &c);
+    CRMainEstimation(yarp::os::ResourceFinder &rf);
     virtual ~CRMainEstimation();
 
     //outputs
@@ -65,7 +65,6 @@ public slots:
 protected:
     //pointer to the actual estimator
     CRForestEstimator* g_Estimate;
-    KinectWrapperClient &client;
     boost::mutex head_pose_mutex;
 };
 
