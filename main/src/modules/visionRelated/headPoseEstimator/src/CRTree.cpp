@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "head_pose_estimation/CRTree.h"
+#include "CRTree.h"
 
 using namespace std;
 

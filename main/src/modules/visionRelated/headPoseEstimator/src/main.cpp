@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2015 WYSIWYD
 * Authors: Tobias Fischer
 * email:   t.fischer@imperial.ac.uk
@@ -13,8 +13,15 @@
 * Public License for more details
 */
 
+/**
+
+\section intro_sec Description
+
+
+*/
+
 #include <yarp/os/all.h>
-#include "PerspectiveTaking.h"
+#include "CRMainEstimation.h"
 
 using namespace yarp::os;
 
@@ -23,11 +30,12 @@ int main(int argc, char * argv[]) {
     Network yarp;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("perspectiveTaking");
-    rf.setDefaultConfigFile("perspectiveTaking.ini");
+    rf.setDefaultContext("headPoseEstimator");
+    rf.setDefaultConfigFile("headPoseEstimator.ini");
     rf.configure(argc, argv);
 
-    perspectiveTaking mod;
+    CRMainEstimation mod;
     mod.runModule(rf);
     return 0;
 }
+

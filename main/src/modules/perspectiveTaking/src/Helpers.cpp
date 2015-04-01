@@ -156,7 +156,7 @@ void perspectiveTaking::connectToABM(const string &abmName) {
     while (!Network::connect(abmLocal.c_str(),abmRemote.c_str()) && trial<3) {
         cout << "Waiting for connection to ABM..." << endl;
         trial++;
-        Time::delay(1.0);
+        Time::delay(0.2);
     }
 
     if(Network::isConnected(abmLocal.c_str(),abmRemote.c_str())) {
@@ -175,7 +175,7 @@ void perspectiveTaking::connectToAgentDetector(const string &agentDetectorName) 
     while (!Network::connect(agentDetectorLocal.c_str(),agentDetectorRemote.c_str()) && trial<3) {
         cout << "Waiting for connection to Agent Detector..." << endl;
         trial++;
-        Time::delay(1.0);
+        Time::delay(0.2);
     }
 
     if(Network::isConnected(agentDetectorLocal.c_str(),agentDetectorRemote.c_str())) {
@@ -183,6 +183,25 @@ void perspectiveTaking::connectToAgentDetector(const string &agentDetectorName) 
         isConnectedToAgentDetector = true;
     } else {
         isConnectedToAgentDetector = false;
+    }
+}
+
+void perspectiveTaking::connectToHeadPoseEstimator(const string &headPoseEstimatorName) {
+    string headPoseEstimatorLocal = "/"+getName()+"/headpose:o";
+    headPoseEstimator.open(headPoseEstimatorLocal.c_str());
+    string headPoseEstimatorRemote = "/"+headPoseEstimatorName+"/rpc";
+
+    int trial=0;
+    while (!Network::connect(headPoseEstimatorLocal.c_str(),headPoseEstimatorRemote.c_str()) && trial<3) {
+        cout << "Waiting for connection to Head Pose Estimator..." << endl;
+        trial++;
+        Time::delay(0.5);
+    }
+
+    if(Network::isConnected(headPoseEstimatorLocal.c_str(),headPoseEstimatorRemote.c_str())) {
+        isConnectedToHeadPoseEstimator = true;
+    } else {
+        isConnectedToHeadPoseEstimator = false;
     }
 }
 
@@ -207,7 +226,7 @@ void perspectiveTaking::connectToOPC(const string &opcName) {
     while (!opc->connect(opcName) && trial < 3) {
         cout<<"Waiting for connection to OPC..."<<endl;
         trial++;
-        Time::delay(1.0);
+        Time::delay(0.2);
     }
     if(opc->isConnected()) {
         isConnectedToOPC = true;
@@ -301,24 +320,4 @@ Eigen::Matrix4f perspectiveTaking::yarp2pclKinectMatrix(const yarp::sig::Matrix&
 
 Eigen::Vector4f perspectiveTaking::yarp2EigenV(Vector yVec) {
     return Eigen::Vector4f(yVec[0], yVec[1], yVec[2], 1);
-}
-
-cv::Mat perspectiveTaking::MatFromDepth(const cv::Mat &imageDepth,
-                                        float cx, float cy, float fx, float fy) {
-    cv::Mat g_im3D;
-    g_im3D.create(imageDepth.rows,imageDepth.cols,CV_32FC3);
-
-    for(int h = 0; h < imageDepth.rows; h++)
-    {
-        cv::Vec3f* Mi = g_im3D.ptr<cv::Vec3f>(h);
-        for(int w = 0; w < imageDepth.cols; w++)
-        {
-            pcl::PointXYZ ptXYZ = util3d::projectDepthTo3D(imageDepth, w, h, cx, cy, fx, fy, false);
-            Mi[w][0] = ptXYZ.y;
-            Mi[w][1] = ptXYZ.y;
-            Mi[w][2] = ptXYZ.z;
-        }
-    }
-
-    return g_im3D;
 }

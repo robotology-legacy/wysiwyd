@@ -3,7 +3,7 @@
 #include <windows.h>
 #endif
 
-#include "head_pose_estimation/CRForestEstimator.h"
+#include "CRForestEstimator.h"
 #include <vector>
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>

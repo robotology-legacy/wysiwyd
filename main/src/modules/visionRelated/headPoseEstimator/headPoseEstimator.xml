@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+   <name>headPoseEstimator</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Estimating the head pose based on the depth image of the kinect</description>
+   <copypolicy>Microsoft Research Shared Source license agreement</copypolicy>
+   <version>1.0</version>
+
+   <authors>
+       <author email="fanelli@vision.ee.ethz.ch"> Gabriele Fanelli, Thibaut Weise, Juergen Gall, BIWI, ETH Zurich </author>
+       <author email="t.fischer@imperial.ac.uk"> Tobias Fischer </author>
+   </authors>
+
+  <data>
+	<!--output>
+      <type>yarp::sig::Bottle</type>
+      <port carrier="tcp">/perspectiveTaking/world/opc:rpc</port>
+      <required>yes</required>
+      <priority>no</priority>
+      <description>
+        rpc port of the module in order to access opc (connect to /OPC:rpc)
+      </description>
+    </output-->
+  </data>
+</module>
+

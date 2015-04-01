@@ -19,21 +19,27 @@
 #ifndef VPT_CRMAINESTIMATION
 #define VPT_CRMAINESTIMATION
 
-#include <QObject>
-#include <boost/thread/mutex.hpp>
-#include <kinectWrapper/kinectWrapper_client.h>
-#include "head_pose_estimation/CRForestEstimator.h"
+#include <yarp/os/all.h>
+#include <yarp/sig/all.h>
+#include "CRForestEstimator.h"
 
-using namespace kinectWrapper;
-
-class CRMainEstimation : public QObject {
-    Q_OBJECT
+class CRMainEstimation : public yarp::os::RFModule {
 public:
-    CRMainEstimation(yarp::os::ResourceFinder &rf);
-    virtual ~CRMainEstimation();
-
     //outputs
     std::vector< cv::Vec<float,POSE_SIZE> > g_means;
+
+    bool configure(yarp::os::ResourceFinder &rf);
+    bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
+    bool interruptModule();
+    bool updateModule();
+    bool close();
+    double getPeriod();
+
+private:
+    yarp::os::Port handlerPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono16> > depthPort;
+    unsigned short* buf;
+
     //full clusters of votes
     std::vector< std::vector< Vote > > g_clusters;
     //all votes returned by the forest
@@ -60,12 +66,11 @@ public:
     //radius used for mean shift
     float g_smaller_radius_ratio;
 
-public slots:
     void estimate();
+
 protected:
     //pointer to the actual estimator
     CRForestEstimator* g_Estimate;
-    boost::mutex head_pose_mutex;
 };
 
 #endif

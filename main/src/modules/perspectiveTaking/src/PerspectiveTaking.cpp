@@ -57,6 +57,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     connectToKinectServer(rf.check("kinClientVerbosity",Value(0)).asInt());
     connectToABM(rf.check("abmName",Value("autobiographicalMemory")).asString().c_str());
     connectToAgentDetector(rf.check("agentDetectorName",Value("agentDetector")).asString().c_str());
+    connectToHeadPoseEstimator(rf.check("headPoseEstimatorName",Value("headPoseEstimator")).asString().c_str());
 
     int partnerCameraMode_temp = rf.check("partnerCameraMode",Value(0)).asInt();
     if(partnerCameraMode_temp==0) {
@@ -70,16 +71,19 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
             partnerCameraMode = staticPos;
         }
     } else if(partnerCameraMode_temp==2) {
-        partnerCameraMode = headPose;
+        if(isConnectedToHeadPoseEstimator) {
+            partnerCameraMode = headPose;
+        } else {
+            cerr << "Asked to use headPoseEstimator to set camera view, but it is not running " << endl;
+            cerr << "Using static position instead!" << endl;
+            partnerCameraMode = staticPos;
+        }
     } else {
         cerr << "Camera mode not supported, abort!" << endl;
         return false;
     }
 
     openHandlerPort();
-
-    // start head pose estimation
-    head_estimator = new CRMainEstimation(rf);
 
     //kinect2robot_pcl = getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
     kinect2robot_pcl = getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
@@ -133,16 +137,6 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     connect(setCamPosTimer, SIGNAL(timeout()), this, SLOT(setPartnerCamera()));
     QObject::connect(setCamPosThread, SIGNAL(started()), setCamPosTimer, SLOT(start()));
     setCamPosThread->start();
-
-    // start new thread to estimate head pose
-    headPoseThread = new QThread(this);
-    headPoseTimer = new QTimer(0);
-
-    headPoseTimer->setInterval(rf.check("updateTimer",Value(1000)).asInt());
-    headPoseTimer->moveToThread(headPoseThread);
-    connect(headPoseTimer, SIGNAL(timeout()), head_estimator, SLOT(estimate()));
-    QObject::connect(headPoseThread, SIGNAL(started()), headPoseTimer, SLOT(start()));
-    headPoseThread->start();
 
     // start the QApplication and go in a loop
     mapBuilder->show();
@@ -248,6 +242,9 @@ void perspectiveTaking::setPartnerCamera() {
 
         sendImagesToPorts();
     } else if(partnerCameraMode==agentDetector) {
+        if(!isConnectedToOPC) {
+            return;
+        }
         partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
         if(partner) { // && partner->m_present
             Vector p_headPos = partner->m_ego_position;
@@ -272,17 +269,45 @@ void perspectiveTaking::setPartnerCamera() {
             cout << "No partner present!" << endl;
         }
     } else if(partnerCameraMode==headPose) {
+        if(!isConnectedToHeadPoseEstimator) {
+            return;
+        }
+
+        // TODO: move to separate method!
+        Bottle bCmd, bReply;
+        bCmd.addString("getPoses");
+        headPoseEstimator.write(bCmd, bReply);
+
+        vector< cv::Vec<float,6> > g_means;
+
+        if(bReply.get(0).toString()!="[ack]") {
+            cout << "Did not get [ack]" << endl;
+            return;
+        } else {
+            int size = bReply.get(1).asInt();
+            for(int i=0;i<size;i++) {
+                cv::Vec<float,6> mean;
+                for(int j=0; j<6; j++) {
+                    cout << i << " " << j << bReply.get(i*6+j+2).asDouble() << endl;
+                    mean[j] = bReply.get(i*6+j+2).asDouble();
+                }
+                g_means.push_back(mean);
+            }
+        }
+
         mapBuilder->getVisualizerByName("robot")->getVisualizer().removeAllShapes();
-        if(head_estimator->g_means.size()) {
-            Eigen::Matrix3f m_rotation (Eigen::AngleAxisf(pcl::deg2rad(head_estimator->g_means[0][3]), Eigen::Vector3f::UnitX())
-                                       * Eigen::AngleAxisf(pcl::deg2rad(head_estimator->g_means[0][4]), Eigen::Vector3f::UnitY())
-                                       * Eigen::AngleAxisf(pcl::deg2rad(head_estimator->g_means[0][5]), Eigen::Vector3f::UnitZ()));
+
+        if(g_means.size()) {
+            cout << "Received pose, set camera" << endl;
+            Eigen::Matrix3f m_rotation (Eigen::AngleAxisf(pcl::deg2rad(g_means[0][3]), Eigen::Vector3f::UnitX())
+                                       * Eigen::AngleAxisf(pcl::deg2rad(g_means[0][4]), Eigen::Vector3f::UnitY())
+                                       * Eigen::AngleAxisf(pcl::deg2rad(g_means[0][5]), Eigen::Vector3f::UnitZ()));
 
             Eigen::Vector3f g_face_curr_dir = m_rotation*Eigen::Vector3f(0,0,-1); // (0,0,1) = g_face_dir
 
-            Eigen::Vector3f head_center = Eigen::Vector3f(head_estimator->g_means[0][0],
-                                                          head_estimator->g_means[0][1],
-                                                          head_estimator->g_means[0][2]);
+            Eigen::Vector3f head_center = Eigen::Vector3f(g_means[0][0],
+                                                          g_means[0][1],
+                                                          g_means[0][2]);
             Eigen::Vector3f head_front = head_center + 550.d*g_face_curr_dir;
 
             Eigen::Vector4f pos = Eigen::Vector4f(head_center[2]/1000.0, -head_center[0]/1000.0, -head_center[1]/1000.0, 1);
@@ -353,9 +378,7 @@ bool perspectiveTaking::close() {
 
     // Kill all threads
     setCamPosThread->quit();
-    headPoseThread->quit();
     setCamPosThread->wait();
-    headPoseThread->wait();
 
     cameraThread->kill();
     delete cameraThread;
@@ -375,7 +398,6 @@ bool perspectiveTaking::close() {
     //delete mapBuilder; //is deleted by QVTKWidget destructor!
     delete rtabmapThread;
     delete odomThread;
-    delete head_estimator;
 
     // Close ports
     abm.interrupt();

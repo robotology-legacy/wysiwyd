@@ -31,7 +31,6 @@
 #include <rtabmap/core/CameraThread.h>
 #include <rtabmap/core/Odometry.h>
 
-#include "head_pose_estimation/CRMainEstimation.h"
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
 
@@ -67,7 +66,7 @@ protected:
     yarp::os::Port abm;
     bool isConnectedToABM;
 
-    // RFH related
+    // RFH related; deprecated
     Eigen::Matrix4f getRFHTransMat(const std::string& rfhName);
     yarp::os::Port rfh;
 
@@ -75,6 +74,11 @@ protected:
     void connectToAgentDetector(const std::string& agentDetectorName);
     yarp::os::Port agentdetector;
     bool isConnectedToAgentDetector;
+
+    // headPoseEstimator related
+    void connectToHeadPoseEstimator(const std::string& headPoseEstimatorName);
+    yarp::os::Port headPoseEstimator;
+    bool isConnectedToHeadPoseEstimator;
 
     // actual perspective Taking
     void setViewRobotReference(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& viewport);
@@ -95,19 +99,13 @@ protected:
     // QT related
     QTimer *setCamPosTimer;
     QThread* setCamPosThread;
-    QTimer *headPoseTimer;
-    QThread* headPoseThread;
 
     // misc
-    CRMainEstimation* head_estimator;
     unsigned long loopCounter;
     yarp::os::ResourceFinder resfind;
     bool openHandlerPort();
     bool setupThreads();
     yarp::os::Port handlerPort;
-
-    cv::Mat MatFromDepth(const cv::Mat & imageDepth,
-                         float cx, float cy, float fx, float fy);
 
 private slots:
     void setPartnerCamera();
