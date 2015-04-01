@@ -35,6 +35,8 @@
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
 
+enum partnerCameraMode_t {staticPos, agentDetector, headPose};
+
 class perspectiveTaking: public QObject, public yarp::os::RFModule {
     Q_OBJECT
 protected:
@@ -78,12 +80,13 @@ protected:
     void setViewCameraReference(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& viewport);
     Eigen::Matrix4f kinect2robot_pcl;
     Eigen::Matrix4f yarp2pcl;
-    double distanceMultiplier;
-    bool useStaticPose;
+    partnerCameraMode_t partnerCameraMode;
 
     Eigen::Matrix4f yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2robotYarp);
     Eigen::Vector4f yarp2EigenV(yarp::sig::Vector);
 
+    // actual perspective taking, deprecated
+    double distanceMultiplier;
     double lookDown;
 
     // QT related

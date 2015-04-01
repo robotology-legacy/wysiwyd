@@ -55,6 +55,24 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     connectToABM(rf.check("abmName",Value("autobiographicalMemory")).asString().c_str());
     connectToAgentDetector(rf.check("agentDetectorName",Value("agentDetector")).asString().c_str());
 
+    int partnerCameraMode_temp = rf.check("partnerCameraMode",Value(0)).asInt();
+    if(partnerCameraMode_temp==0) {
+        partnerCameraMode = staticPos;
+    } else if(partnerCameraMode_temp==1) {
+        if(isConnectedToAgentDetector) {
+            partnerCameraMode = agentDetector;
+        } else {
+            cerr << "Asked to use agentDetector to set camera view, but it is not running " << endl;
+            cerr << "Using static position instead!" << endl;
+            partnerCameraMode = staticPos;
+        }
+    } else if(partnerCameraMode_temp==2) {
+        partnerCameraMode = headPose;
+    } else {
+        cerr << "Camera mode not supported, abort!" << endl;
+        return false;
+    }
+
     openHandlerPort();
 
     // start head pose estimation
@@ -118,7 +136,6 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     headPoseTimer->setInterval(rf.check("updateTimer",Value(1000)).asInt());
     headPoseTimer->moveToThread(headPoseThread);
-    //connect(setCamPosTimer, SIGNAL(timeout()), this, SLOT(setPartnerCamera()));
     connect(headPoseTimer, SIGNAL(timeout()), head_estimator, SLOT(estimate()));
     QObject::connect(headPoseThread, SIGNAL(started()), headPoseTimer, SLOT(start()));
     headPoseThread->start();
@@ -131,57 +148,37 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 }
 
 bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
-    // TODO: Not yet implemented
     if (cmd.get(0).asString() == "learnEnvironment") {
+        // TODO: Not yet implemented
         //cout << getName() << ": Going to learn the environment" << endl;
-        //parameter = cmd.get(1).asString();
-        reply.addString("ack");
-    } else if (cmd.get(0).asString() == "setDistanceMultiplier") {
-        if(cmd.get(1).isDouble()) {
-            distanceMultiplier = cmd.get(1).asDouble();
-            reply.addString("ack");
-        }
-        else {
-            reply.addString("Wrong function call: setDistanceMultiplier 2.0");
-        }
+        reply.addString("nack");
     } else if (cmd.get(0).asString() == "setUpdateTimer") {
         if(cmd.get(1).isInt()) {
             setCamPosTimer->setInterval(cmd.get(1).asInt());
+            //headPoseTimer->setInterval(cmd.get(1).asInt());
             reply.addString("ack");
-        }
-        else {
-            reply.addString("Wrong function call: setUpdateTimer 20");
+        } else {
+            reply.addString("Wrong function call: setUpdateTimer 1000");
         }
     } else if (cmd.get(0).asString() == "setDecimationOdometry") {
         if(cmd.get(1).isInt()) {
             mapBuilder->setDecimationOdometry(cmd.get(1).asInt());
             reply.addString("ack");
-        }
-        else {
+        } else {
             reply.addString("Wrong function call: setDecimationOdometry 2");
         }
     } else if (cmd.get(0).asString() == "setDecimationStatistics") {
         if(cmd.get(1).isInt()) {
             mapBuilder->setDecimationStatistics(cmd.get(1).asInt());
             reply.addString("ack");
-        }
-        else {
+        } else {
             reply.addString("Wrong function call: setDecimationStatistics 2");
-        }
-    } else if (cmd.get(0).asString() == "setLookDown") {
-        if(cmd.get(1).isDouble()) {
-            lookDown = cmd.get(1).asDouble();
-            reply.addString("ack");
-        }
-        else {
-            reply.addString("Wrong function call: setLookDown 0.5");
         }
     } else if (cmd.get(0).asString() == "processStats") {
         if(cmd.get(1).isInt()) {
             mapBuilder->doProcessStats = cmd.get(1).asInt() > 0;
             reply.addString("ack");
-        }
-        else {
+        } else {
             reply.addString("Wrong function call: processStats 0/1");
         }
     } else {
@@ -223,7 +220,7 @@ bool perspectiveTaking::sendImagesToPorts() {
 void perspectiveTaking::setPartnerCamera() {
     loopCounter++;
 
-    if(useStaticPose) {
+    if(partnerCameraMode==staticPos) {
         double d_headPos[3] = {-1.624107, -0.741913, 0.590235};
         Vector p_headPos = Vector(3, d_headPos);
 
@@ -243,7 +240,7 @@ void perspectiveTaking::setPartnerCamera() {
         setViewRobotReference(p_headPos, p_view, p_up, "partner");
 
         sendImagesToPorts();
-    } else {
+    } else if(partnerCameraMode==agentDetector) {
         partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
         if(partner) { // && partner->m_present
             Vector p_headPos = partner->m_ego_position;
@@ -267,6 +264,47 @@ void perspectiveTaking::setPartnerCamera() {
         } else {
             cout << "No partner present!" << endl;
         }
+    } else if(partnerCameraMode==headPose) {
+        mapBuilder->getVisualizerByName("robot")->getVisualizer().removeAllShapes();
+        if(head_estimator->g_means.size()) {
+            Eigen::Matrix3f m_rotation (Eigen::AngleAxisf(pcl::deg2rad(head_estimator->g_means[0][3]), Eigen::Vector3f::UnitX())
+                                       * Eigen::AngleAxisf(pcl::deg2rad(head_estimator->g_means[0][4]), Eigen::Vector3f::UnitY())
+                                       * Eigen::AngleAxisf(pcl::deg2rad(head_estimator->g_means[0][5]), Eigen::Vector3f::UnitZ()));
+
+            Eigen::Vector3f g_face_curr_dir = m_rotation*Eigen::Vector3f(0,0,-1); // (0,0,1) = g_face_dir
+
+            Eigen::Vector3f head_center = Eigen::Vector3f(head_estimator->g_means[0][0],
+                                                          head_estimator->g_means[0][1],
+                                                          head_estimator->g_means[0][2]);
+            Eigen::Vector3f head_front = head_center + 550.d*g_face_curr_dir;
+
+            Eigen::Vector4f pos = Eigen::Vector4f(head_center[2]/1000.0, -head_center[0]/1000.0, -head_center[1]/1000.0, 1);
+            Eigen::Vector4f up = pos; up(2) += 1.0;
+            Eigen::Vector4f view = Eigen::Vector4f(head_front[2]/1000.0, -head_front[0]/1000.0, -head_front[1]/1000.0, 1);
+
+            pcl::PointXYZ begin, end;
+            begin.x = pos[0];
+            begin.y = pos[1];
+            begin.z = pos[2];
+
+            end.x = view[0];
+            end.y = view[1];
+            end.z = view[2];
+
+            // to undo the yarp->pcl stuff, which is applied in setViewCameraReference
+            pos[0]  = -pos[0]+0.2; pos[1] = -pos[1];
+            up[0]   = -up[0];       up[1] = -up[1];
+            view[0] = -view[0];   view[1] = -view[1];
+
+            mapBuilder->getVisualizerByName("robot")->getVisualizer().addArrow(end, begin, 0.0, 1.0, 0.0, "faceArrow");
+
+            cout << "Call setPartnerCamera" << endl;
+            setViewCameraReference(pos, view, up, "partner");
+
+            sendImagesToPorts();
+        }
+    } else {
+        cerr << "This partner camera mode is not supported!" << endl;
     }
 
     // print some statistics
