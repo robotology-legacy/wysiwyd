@@ -27,6 +27,8 @@
 #include <boost/chrono/chrono.hpp>
 
 #include <yarp/math/Math.h>
+#include <Eigen/Dense>
+#include <pcl/common/common_headers.h>
 
 #include <rtabmap/core/Parameters.h>
 
@@ -109,14 +111,15 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     Eigen::Vector4f robot_pos  = Eigen::Vector4f( 0,0,0,1);
     Eigen::Vector4f robot_view = Eigen::Vector4f(-1,0,0,1);
     Eigen::Vector4f robot_up   = Eigen::Vector4f( 0,0,1,1);
-    setViewRobotReference(robot_pos, robot_view, robot_up, "robot");
+    setViewCameraReference(robot_pos, robot_view, robot_up, "robot");
+    //setViewRobotReference(robot_pos, robot_view, robot_up, "robot");
 
     // set field of view for cameras
     float fovy_human = rf.check("fovyHuman",Value(135)).asInt();
     float fovy_robot = rf.check("fovyCamera",Value(58)).asInt();
 
-    mapBuilder->setCameraFieldOfView(fovy_robot/180.0*3.14, mapBuilder->getViewportID("robot"));
-    mapBuilder->setCameraFieldOfView(fovy_human/180.0*3.14, mapBuilder->getViewportID("partner"));
+    mapBuilder->setCameraFieldOfView(fovy_robot/180.0*3.14, "robot");
+    mapBuilder->setCameraFieldOfView(fovy_human/180.0*3.14, "partner");
 
     distanceMultiplier = rf.check("distanceMultiplier",Value(1.0)).asDouble();
 
@@ -311,6 +314,7 @@ void perspectiveTaking::setPartnerCamera() {
     }
 
     // print some statistics
+    /*
     if(rtabmap->getLoopClosureId()) {
         printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
                loopCounter,
@@ -330,7 +334,7 @@ void perspectiveTaking::setPartnerCamera() {
                rtabmap->getWM().size(), // working memory
                rtabmap->getHighestHypothesisId(), // highest loop closure hypothesis
                rtabmap->getLoopClosureValue());
-    }
+    }*/
 }
 
 bool perspectiveTaking::close() {

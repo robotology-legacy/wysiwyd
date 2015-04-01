@@ -76,10 +76,10 @@ void CameraKinectWrapper::captureImage(cv::Mat & rgb, cv::Mat & depth, float & f
     data_mutex.lock();
 
     client.getDepth(_depth);
-    client.getDepthImage(_depth,_depthToDisplay);
+    //client.getDepthImage(_depth,_depthToDisplay);
     client.getRgb(_rgb);
 
-    cvConvertScale((IplImage*)_depthToDisplay.getIplImage(),depthTmp,1.0/255);
+    //cvConvertScale((IplImage*)_depthToDisplay.getIplImage(),depthTmp,1.0/255);
     cvCvtColor((IplImage*)_rgb.getIplImage(),rgbTmp,CV_BGR2RGB);
 
     rgb = cvarrToMat(rgbTmp, true);
