@@ -13,6 +13,7 @@
 * Public License for more details
 */
 
+#include <time.h>
 #include <yarp/os/all.h>
 #include "PerspectiveTaking.h"
 

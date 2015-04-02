@@ -13,13 +13,7 @@
 * Public License for more details
 */
 
-/**
-
-\section intro_sec Description
-
-
-*/
-
+#include <time.h>
 #include <yarp/os/all.h>
 #include "CRMainEstimation.h"
 
@@ -38,4 +32,3 @@ int main(int argc, char * argv[]) {
     mod.runModule(rf);
     return 0;
 }
-
