@@ -72,6 +72,8 @@ public:
         return vis;
     }
 
+    Transform getLastOdomPose() { return lastOdomPose_; }
+
 private slots:
     void processOdometry(const rtabmap::SensorData & data);
     void processStatistics(const rtabmap::Statistics & stats);

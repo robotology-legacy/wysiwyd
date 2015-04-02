@@ -302,6 +302,7 @@ void perspectiveTaking::setPartnerCamera() {
 
         if(g_means.size()) {
             cout << "Received pose, set camera" << endl;
+
             Eigen::Matrix3f m_rotation (Eigen::AngleAxisf(pcl::deg2rad(g_means[0][3]), Eigen::Vector3f::UnitX())
                                        * Eigen::AngleAxisf(pcl::deg2rad(g_means[0][4]), Eigen::Vector3f::UnitY())
                                        * Eigen::AngleAxisf(pcl::deg2rad(g_means[0][5]), Eigen::Vector3f::UnitZ()));
@@ -313,9 +314,11 @@ void perspectiveTaking::setPartnerCamera() {
                                                           g_means[0][2]);
             Eigen::Vector3f head_front = head_center + 550.d*g_face_curr_dir;
 
-            Eigen::Vector4f pos = Eigen::Vector4f(head_center[2]/1000.0, -head_center[0]/1000.0, -head_center[1]/1000.0, 1);
+            Eigen::Matrix4f odometryPos = mapBuilder->getLastOdomPose().toEigen4f();
+
+            Eigen::Vector4f pos = odometryPos*Eigen::Vector4f(head_center[2]/1000.0, -head_center[0]/1000.0, -head_center[1]/1000.0, 1);
             Eigen::Vector4f up = pos; up(2) += 1.0;
-            Eigen::Vector4f view = Eigen::Vector4f(head_front[2]/1000.0, -head_front[0]/1000.0, -head_front[1]/1000.0, 1);
+            Eigen::Vector4f view = odometryPos*Eigen::Vector4f(head_front[2]/1000.0, -head_front[0]/1000.0, -head_front[1]/1000.0, 1);
 
             pcl::PointXYZ begin, end;
             begin.x = pos[0];
