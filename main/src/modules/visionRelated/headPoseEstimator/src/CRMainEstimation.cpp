@@ -16,6 +16,7 @@
  * Public License for more details
 */
 
+#include <stdint.h>
 #include <opencv2/opencv.hpp>
 #include "CRMainEstimation.h"
 
@@ -82,7 +83,7 @@ bool CRMainEstimation::respond(const Bottle& command, Bottle& reply) {
         reply.addString("[ack]");
         reply.addInt(g_means.size());
         for(unsigned int i=0; i<g_means.size(); i++) {
-            for(unsigned int j=0; j<6; j++) { // 6DOF
+            for(unsigned int j=0; j<POSE_SIZE; j++) { // 6DOF
                 reply.addDouble(g_means[i][j]);
             }
         }

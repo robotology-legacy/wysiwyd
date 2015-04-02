@@ -278,7 +278,9 @@ void perspectiveTaking::setPartnerCamera() {
         bCmd.addString("getPoses");
         headPoseEstimator.write(bCmd, bReply);
 
-        vector< cv::Vec<float,6> > g_means;
+        const int pose_size = 6;
+
+        vector< cv::Vec<float,pose_size> > g_means;
 
         if(bReply.get(0).toString()!="[ack]") {
             cout << "Did not get [ack]" << endl;
@@ -286,10 +288,11 @@ void perspectiveTaking::setPartnerCamera() {
         } else {
             int size = bReply.get(1).asInt();
             for(int i=0;i<size;i++) {
-                cv::Vec<float,6> mean;
-                for(int j=0; j<6; j++) {
-                    cout << i << " " << j << bReply.get(i*6+j+2).asDouble() << endl;
-                    mean[j] = bReply.get(i*6+j+2).asDouble();
+                cv::Vec<float,pose_size> mean;
+                for(int j=0; j<pose_size; j++) {
+                    // + 2 as 0->[ack], 1->size() of vector, 2-> actual begin of message
+                    cout << i << " " << j << bReply.get(i*pose_size+j+2).asDouble() << endl;
+                    mean[j] = bReply.get(i*pose_size+j+2).asDouble();
                 }
                 g_means.push_back(mean);
             }

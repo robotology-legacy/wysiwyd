@@ -1,7 +1,7 @@
 #pragma once
 
-#include "opencv2/core/core.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #define TEST_DIM 11
 #define POSE_SIZE 6

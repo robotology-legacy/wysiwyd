@@ -61,7 +61,7 @@ Rect CRForestEstimator::getBoundingBox(const Mat& im3D){
 }
 
 void CRForestEstimator::estimate( const Mat & im3D,
-                                  std::vector< cv::Vec<float,6> >& means, //output
+                                  std::vector< cv::Vec<float,POSE_SIZE> >& means, //output
                                   std::vector< std::vector< Vote > >& clusters, //all clusters
                                   std::vector< Vote >& votes, //all votes
                                   int stride,

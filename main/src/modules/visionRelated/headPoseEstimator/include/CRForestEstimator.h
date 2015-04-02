@@ -2,7 +2,7 @@
 
 #include "CRForest.h"
 #include <fstream>
-#include "opencv2/core/core.hpp"
+#include <opencv2/core/core.hpp>
 
 struct Vote {
 
