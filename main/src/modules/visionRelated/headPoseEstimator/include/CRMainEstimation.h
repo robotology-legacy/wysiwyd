@@ -27,6 +27,7 @@ class CRMainEstimation : public yarp::os::RFModule {
 public:
     //outputs
     std::vector< cv::Vec<float,POSE_SIZE> > g_means;
+    std::vector< cv::Vec<float,POSE_SIZE> > g_means_last;
 
     bool configure(yarp::os::ResourceFinder &rf);
     bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);

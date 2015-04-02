@@ -48,7 +48,7 @@ MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
     odometryCorrection_(Transform::getIdentity())
 {
     this->setWindowFlags(Qt::Dialog);
-    this->setWindowTitle(tr("3D Map"));
+    this->setWindowTitle(tr("Perspective Taking"));
     this->setMinimumWidth(1600);
     this->setMinimumHeight(600);
 
@@ -71,14 +71,14 @@ void MapBuilder::setCameraPosition(double pos_x, double pos_y, double pos_z,
                                    double view_x, double view_y, double view_z,
                                    double up_x, double up_y, double up_z,
                                    const std::string &visualizerName) {
-    //vis_mutex.lock();
+    vis_mutex.lock();
     VisualizerWrapper* vis = getVisualizerByName(visualizerName);
     if(vis) {
         vis->getVisualizer().setCameraPosition(pos_x, pos_y, pos_z,
                                                view_x, view_y, view_z,
                                                up_x, up_y, up_z);
     }
-    //vis_mutex.unlock();
+    vis_mutex.unlock();
 }
 
 cv::Mat MapBuilder::getScreen() {

@@ -269,6 +269,7 @@ void perspectiveTaking::setPartnerCamera() {
             cout << "No partner present!" << endl;
         }
     } else if(partnerCameraMode==headPose) {
+        cout << "Partner camera mode = headPose" << endl;
         if(!isConnectedToHeadPoseEstimator) {
             return;
         }
@@ -309,9 +310,10 @@ void perspectiveTaking::setPartnerCamera() {
 
             Eigen::Vector3f g_face_curr_dir = m_rotation*Eigen::Vector3f(0,0,-1); // (0,0,1) = g_face_dir
 
+            // -75.0 because g_means in the center of the head -> we want to have the nose tip instead
             Eigen::Vector3f head_center = Eigen::Vector3f(g_means[0][0],
                                                           g_means[0][1],
-                                                          g_means[0][2]);
+                                                          g_means[0][2] - 75.0);
             Eigen::Vector3f head_front = head_center + 550.d*g_face_curr_dir;
 
             Eigen::Matrix4f odometryPos = mapBuilder->getLastOdomPose().toEigen4f();
@@ -320,17 +322,15 @@ void perspectiveTaking::setPartnerCamera() {
             Eigen::Vector4f up = pos; up(2) += 1.0;
             Eigen::Vector4f view = odometryPos*Eigen::Vector4f(head_front[2]/1000.0, -head_front[0]/1000.0, -head_front[1]/1000.0, 1);
 
-            pcl::PointXYZ begin, end;
-            begin.x = pos[0];
-            begin.y = pos[1];
-            begin.z = pos[2];
+            //cout << "Odom: " << endl << odometryPos << endl << endl;
+            //cout << "Pos: "  << endl << pos  << endl << endl;
+            //cout << "View: " << endl << view << endl << endl;
 
-            end.x = view[0];
-            end.y = view[1];
-            end.z = view[2];
+            pcl::PointXYZ begin(pos[0],  pos[1],  pos[2]);
+            pcl::PointXYZ end(view[0], view[1], view[2]);
 
             // to undo the yarp->pcl stuff, which is applied in setViewCameraReference
-            pos[0]  = -pos[0]+0.2; pos[1] = -pos[1];
+            pos[0]  = -pos[0];     pos[1] = -pos[1];
             up[0]   = -up[0];       up[1] = -up[1];
             view[0] = -view[0];   view[1] = -view[1];
 

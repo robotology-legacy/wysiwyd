@@ -81,10 +81,10 @@ bool CRMainEstimation::respond(const Bottle& command, Bottle& reply) {
 
     if (command.get(0).asString()=="getPoses") {
         reply.addString("[ack]");
-        reply.addInt(g_means.size());
-        for(unsigned int i=0; i<g_means.size(); i++) {
+        reply.addInt(g_means_last.size());
+        for(unsigned int i=0; i<g_means_last.size(); i++) {
             for(unsigned int j=0; j<POSE_SIZE; j++) { // 6DOF
-                reply.addDouble(g_means[i][j]);
+                reply.addDouble(g_means_last[i][j]);
             }
         }
     }
@@ -182,6 +182,8 @@ void CRMainEstimation::estimate() {
                             false,
                             g_th
                             );
+
+    g_means_last = g_means;
 
     cout << "Heads found : " << g_means.size() << endl;
     cout << "Valid pixels: " << valid_pixels << endl;
