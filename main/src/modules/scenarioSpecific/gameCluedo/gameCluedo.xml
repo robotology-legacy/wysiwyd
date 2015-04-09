@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>gameCluedo</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>A simple dialog module allowing to play a sort of Cluedo game.</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Kleenex module developed for a single shot experiment of QA between a user and the system.
+   The robot and the user have the goal to complete a set of statement with missing parts that are known by the other player.
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="stephane.lallee@gmail.com"> Stephane Lallee </author>
+   </authors>
+
+   <data>
+      <input>
+      </input>
+   </data>
+
+</module>
+
