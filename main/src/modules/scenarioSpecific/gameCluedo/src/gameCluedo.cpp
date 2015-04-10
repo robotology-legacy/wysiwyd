@@ -8,7 +8,7 @@ using namespace wysiwyd::wrdac;
 
 bool GameCluedo::configure(yarp::os::ResourceFinder &rf)
 {
-    string moduleName = rf.check("name",Value("GameCluedo")).asString().c_str();
+    string moduleName = rf.check("name",Value("gameCluedo")).asString().c_str();
     setName(moduleName.c_str());
 
     cout<<moduleName<<": finding configuration files..."<<endl;
@@ -36,54 +36,54 @@ bool GameCluedo::configure(yarp::os::ResourceFinder &rf)
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
 
-	gameStarted = false;
-	isMyTurn = false;
+	isMyTurn = true;
 
+	//iCub->say("Hello! Nice to meet you. Let's play a clue game. I will start to ask a question.", true);
+	//iCub->opc->isVerbose = true;
+	iCub->say("Started.", true);
     return true;
 }
 
 bool GameCluedo::updateModule()
 {
-	if (gameStarted)
-	{
 		if (isMyTurn)
 		{
 			//We ask a question
-			Relation* relationToComplete;
-			Role missingRole;
+			Relation* relationToComplete = NULL;
+			Role missingRole = Role::Undefined;
 			findPartialRelation(relationToComplete, missingRole);
 
 			if (relationToComplete == NULL)
 			{
 				cout << "I already know everything." << endl;
+				iCub->say("I am done. Do you have another question?");
 			}
 			else
 			{
 				//Formulate the question and wait for a statement
 				string question = formQuestionFromRelation(relationToComplete, missingRole);
 				iCub->say(question, true);
-				while (!handleSpeech(true))
+				cout << "Waiting for an answer to : " << question << endl;
+				while (!handleSpeech(true, relationToComplete, missingRole))
 				{
-					cout << "Waiting for an answer to : " << question << endl;
+					yarp::os::Time::delay(0.1);
 				}
 			}
 			isMyTurn = !isMyTurn;
+			iCub->say("Your turn. What do you want to know?");
 		}
 		else
 		{
+			cout << "Waiting for a question from user." << endl;
 			//We just wait for other's question				
-			while (!handleSpeech(false))
+			while (!handleSpeech(false, NULL, Role::Undefined))
 			{
-				cout << "Waiting for a question from user." <<endl;
+				yarp::os::Time::delay(0.1);
 			}
 			isMyTurn = !isMyTurn;
+			iCub->say("My turn to ask.");
 		}
 		return true;
-	}
-	else
-	{
-		cout << "Waiting to start..." << endl;
-	}
 }
 
 void GameCluedo::populateSpeechRecognizerVocabulary()
@@ -103,7 +103,7 @@ void GameCluedo::populateSpeechRecognizerVocabulary()
     }
 }
 
-bool GameCluedo::handleSpeech(bool expectAffirmation)
+bool GameCluedo::handleSpeech(bool expectAffirmation, Relation* queriedRelation, Role queriedRole)
 {
     bool gotSignal = false;
     Bottle* speechCmd = iCub->getSpeechClient()->STT(false);
@@ -150,7 +150,9 @@ bool GameCluedo::handleSpeech(bool expectAffirmation)
 		//Discard the affirmation in place of question & vice versa
 		if (expectAffirmation && !(sentenceType == "AFFIRMATIVE"))
 		{
-			iCub->say("I am sorry, but could you answer my question, please?");
+			iCub->say("I am sorry, but could you answer my question, please?"); 
+			string question = formQuestionFromRelation(queriedRelation, queriedRole);
+			iCub->say(question);
 			return false;
 		}
 		else if (!expectAffirmation && (sentenceType == "AFFIRMATIVE"))
@@ -167,19 +169,22 @@ bool GameCluedo::handleSpeech(bool expectAffirmation)
         //else 
 		if (sentenceType == "AFFIRMATIVE")
         {
-            if (!iCub->opc->containsRelation(relationForm))
-            {
-                iCub->opc->addRelation(relationForm);
-                answerFromRobot = "Ok, I will know that " + relationForm.toString();
-            }
-            else
-            {
-                answerFromRobot = "I already knew that.";
-            }
+			Relation completedRelation = completePartialRelation(queriedRelation, relationForm);
+
+			//if (!iCub->opc->containsRelation(completedRelation))
+   //         {
+				iCub->opc->addRelation(completedRelation);
+				answerFromRobot = "Ok, I will know that " + formAffirmationFromRelation(&completedRelation);
+				myIncompleteBeliefs.remove(*queriedRelation);
+            //}
+            //else
+            //{
+            //    answerFromRobot = "I already knew that.";
+            //}
             //Update the other model to reflect his knowledge
-            Agent* partner = iCub->opc->addAgent("partner");
-            partner->addBelief(relationForm);
-            iCub->opc->commit(partner);
+            //Agent* partner = iCub->opc->addAgent("partner");
+            //partner->addBelief(relationForm);
+            //iCub->opc->commit(partner);
         }
         else //interrogative
         {
@@ -255,34 +260,8 @@ bool GameCluedo::handleSpeech(bool expectAffirmation)
                 iCub->opc->commit(partner);
 
                 //Create good answer from relation
-                answerFromRobot = "I know that ";
-                answerFromRobot += relationToBeStated.subject();
-                answerFromRobot += " " ;
-                answerFromRobot += relationToBeStated.verb();
-                answerFromRobot += " " ;
-                if (relationToBeStated.object() != "none")
-                {
-                    answerFromRobot += " the " ;
-                    answerFromRobot += relationToBeStated.object();
-                    answerFromRobot += " " ;
-                }
-                if (relationToBeStated.complement_place() != "none")
-                {
-                    answerFromRobot += "in the " ;
-                    answerFromRobot += relationToBeStated.complement_place();
-                    answerFromRobot += " " ;
-                }
-                if (relationToBeStated.complement_time() != "none")
-                {
-                    answerFromRobot += relationToBeStated.complement_time();
-                    answerFromRobot += " " ;
-                }
-                if (relationToBeStated.complement_manner() != "none")
-                {
-                    answerFromRobot += relationToBeStated.complement_manner();
-                    answerFromRobot += " " ;
-                }
-                answerFromRobot +=".";
+                answerFromRobot = "I can tell you that ";
+				formAffirmationFromRelation(&relationToBeStated);
 
                 if( partnerShouldHaveKnown)
                 {
@@ -350,8 +329,8 @@ void GameCluedo::configureSpeech(yarp::os::ResourceFinder &rf)
     iCub->getSpeechClient()->SetOptions(ttsOptions);
 
     //Populate the speech reco if needed
-    bool shouldPopulateGrammar = rf.find("shouldPopulateGrammar").asInt() == 1;
-    if (shouldPopulateGrammar)
+    //bool shouldPopulateGrammar = rf.find("shouldPopulateGrammar").asInt() == 1;
+    //if (shouldPopulateGrammar)
         populateSpeechRecognizerVocabulary();
 }
 
@@ -418,22 +397,55 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
                 iCub->opc->addAction(name);
             }
         }
+
+		//Populate the list of beliefs
+		int relationCount = 0;
+		while (1)
+		{
+			stringstream relationNumber;
+			relationNumber << "relation" << relationCount;
+			if (grpOPC.check(relationNumber.str()))
+			{
+				Bottle *currentRelation = grpOPC.find(relationNumber.str()).asList();
+				wysiwyd::wrdac::Relation r(
+					currentRelation->get(0).asString(),
+					currentRelation->get(1).asString(),
+					currentRelation->get(2).asString(),
+					currentRelation->get(3).asString(),
+					currentRelation->get(4).asString());
+
+				bool isComplete =
+					r.subject() != "?" &&
+					r.verb() != "?" &&
+					r.object() != "?" &&
+					r.complement_place() != "?" &&
+					r.complement_time() != "?" &&
+					r.complement_manner() != "?";
+
+				if (!isComplete)
+				{
+					myIncompleteBeliefs.push_back(r);
+					cout << "Relation to complete :" << r.toString() << endl;
+				}
+				else
+				{
+					cout << "Relation known : " << r.toString() << endl;
+					iCub->opc->addRelation(r);
+				}
+
+				relationCount++;
+			}
+			else
+			{
+				break;
+			}
+		}
     }
     cout<<"done"<<endl;
 }
 
-
 bool GameCluedo::respond(const Bottle& cmd, Bottle& reply)
 {
-	if (cmd.get(0).toString() == "start")
-	{
-		iCub->say("Hello! Nice to meet you. Let's play a clue game.", true);
-		gameStarted = true;
-		reply.addString("ACK");
-	}
-	else
-	{
-		reply.addString("NACK");
-	}
+	reply.addString("NACK");
     return true;
 }

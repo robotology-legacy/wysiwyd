@@ -1,0 +1,36 @@
+
+<application>
+<name>Game Cluedo</name>
+
+        <dependencies>
+        </dependencies>
+
+        <module>
+          <name>objectsPropertiesCollector</name>
+          <parameters>--name OPC --empty --nosave</parameters>
+          <node>localhost</node>
+        </module>
+           
+        <module>
+          <name>iSpeak</name>
+          <parameters>--package windowsTTS</parameters>
+          <node>localhost</node>
+        </module>
+           
+        <module>
+          <name>speechRecognizer</name>
+          <parameters></parameters>
+          <node>localhost</node>
+        </module>
+
+        <module>
+          <name>gameCluedo</name>
+          <parameters></parameters>
+          <node>localhost</node>
+        </module>
+
+</application>
+
+
+
+

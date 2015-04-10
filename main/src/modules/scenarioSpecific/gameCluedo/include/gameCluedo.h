@@ -27,11 +27,9 @@ private:
     void configureOPC(yarp::os::ResourceFinder &rf);
     void configureSpeech(yarp::os::ResourceFinder &rf);
 
-	bool gameStarted;
 	bool isMyTurn;
 
-	std::list< wysiwyd::wrdac::Relation > myGrid;
-	std::list< wysiwyd::wrdac::Relation > hisGrid;
+	std::list< wysiwyd::wrdac::Relation > myIncompleteBeliefs;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -55,12 +53,12 @@ public:
 
     bool updateModule();
 
-	bool findPartialRelation(wysiwyd::wrdac::Relation* incompleteRelation, Role &missingRole)
+	bool findPartialRelation(wysiwyd::wrdac::Relation* &incompleteRelation, Role &missingRole)
 	{
 		incompleteRelation = NULL;
 		missingRole = Role::Undefined;
 
-		for (std::list<wysiwyd::wrdac::Relation>::iterator it = myGrid.begin(); it != myGrid.end(); it++)
+		for (std::list<wysiwyd::wrdac::Relation>::iterator it = myIncompleteBeliefs.begin(); it != myIncompleteBeliefs.end(); it++)
 		{
 			if (it->subject() == "?")
 			{
@@ -100,6 +98,21 @@ public:
 			}
 		}
 		return false;
+	}
+	std::string formAffirmationFromRelation(wysiwyd::wrdac::Relation* r)
+	{
+		std::string s;
+		s += r->subject();
+		s += " did ";
+		s += r->verb();
+		s += " the ";
+		s += r->object();
+		s += " in the ";
+		s += r->complement_place();
+		s += " during the ";
+		s += r->complement_time();
+		s += ".";
+		return s;
 	}
 
 	std::string formQuestionFromRelation(wysiwyd::wrdac::Relation* r, Role roleToQuestion)
@@ -180,9 +193,20 @@ public:
 		}
 		return question;
 	}
+	wysiwyd::wrdac::Relation completePartialRelation(wysiwyd::wrdac::Relation* partialRelation, wysiwyd::wrdac::Relation answer)
+	{
+		std::string s,v,o,p,t,m;
+		s = (partialRelation->subject() == "?") ? answer.subject() : partialRelation->subject();
+		v = (partialRelation->verb() == "?") ? answer.verb() : partialRelation->verb();
+		o = (partialRelation->object() == "?") ? answer.object() : partialRelation->object();
+		p = (partialRelation->complement_place() == "?") ? answer.complement_place() : partialRelation->complement_place();
+		t = (partialRelation->complement_time() == "?") ? answer.complement_time() : partialRelation->complement_time();
+		m = (partialRelation->complement_manner() == "?") ? answer.complement_manner() : partialRelation->complement_manner();
+		return(wysiwyd::wrdac::Relation(s, v, o, p, t, m));
+	}
 
     //Retrieve and treat the speech input
-    bool handleSpeech(bool expectAffirmation);
+	bool handleSpeech(bool expectAffirmation, wysiwyd::wrdac::Relation* queriedRelation, Role queriedRole);
     wysiwyd::wrdac::Relation getRelationFromSemantic(yarp::os::Bottle b);
     std::string getEntityFromWordGroup(yarp::os::Bottle *b);
 
