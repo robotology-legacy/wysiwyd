@@ -197,8 +197,16 @@ public:
 
     /**
     * Returns a list of all existing relations between entities.
+	* All the roles with something else than "any" will act as filters for the relation.
     */ 
     std::list<Relation>  getRelationsMatching(std::string subject = "any",std::string verb = "any", std::string object = "any", std::string c_place = "any", std::string c_time = "any", std::string c_manner = "any" );
+
+	/**
+	* Returns a list of all existing relations between entities.
+	* All the roles with something else than "any" will act as filters for the relation.
+	* All relations with at least one role matching will be returned.
+	*/
+	std::list<Relation>  getRelationsMatchingLoosly(std::string subject = "any", std::string verb = "any", std::string object = "any", std::string c_place = "any", std::string c_time = "any", std::string c_manner = "any");
 
     /**
     * Set the lifetimer property of a relation in the OPC

@@ -753,6 +753,24 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
     }
     return relations;
 }
+std::list<Relation>  OPCClient::getRelationsMatchingLoosly(std::string subject, std::string verb, std::string object, std::string c_place, std::string c_time, std::string c_manner)
+{
+	list<Relation> relations = getRelations();
+	list<Relation> filteredRelations;
+	for (list<Relation>::iterator it = relations.begin(); it != relations.end(); it++)
+	{
+		if (it->subject() == subject ||
+			it->verb() == verb ||
+			it->object() == object ||
+			it->complement_time() == c_time ||
+			it->complement_place() == c_place ||
+			it->complement_manner() == c_manner)
+		{
+			filteredRelations.push_back(*it);
+		}
+	}	
+	return filteredRelations;
+}
 
 std::list<Relation>  OPCClient::getRelations(std::string entity)
 {
