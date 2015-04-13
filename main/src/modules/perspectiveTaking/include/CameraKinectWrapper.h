@@ -32,16 +32,16 @@ class CameraKinectWrapper : public CameraRGBD {
 public:
     CameraKinectWrapper(KinectWrapperClient &c,
                         float imageRate = 0,
-                        const Transform & localTransform = Transform::getIdentity(),
-                        float fx = 0.0f,
-                        float fy = 0.0f,
-                        float cx = 0.0f,
-                        float cy = 0.0f);
+                        const Transform & localTransform = Transform::getIdentity());
     virtual ~CameraKinectWrapper();
-    static bool available() {return true;}
-    bool init();
+    static bool available() { return true; }
+    virtual bool init(const std::string & calibrationFolder = ".");
+    virtual bool isCalibrated() const;
+    virtual std::string getSerial() const {return "";} // unknown
+
 protected:
     virtual void captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy);
+
 private:
     double _depthFocal;
     KinectWrapperClient &client;

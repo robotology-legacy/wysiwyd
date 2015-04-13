@@ -139,8 +139,9 @@ bool VisualizerWrapper::updateCloud(
 }
 
 bool VisualizerWrapper::removeCloud(const std::string & id) {
-    _addedClouds.erase(id);
-    return _visualizer->removePointCloud(id);
+    bool success = _visualizer->removePointCloud(id);
+    _addedClouds.erase(id); // remove after visualizer
+    return success;
 }
 
 void VisualizerWrapper::updateCameraPosition(const Transform & pose)
