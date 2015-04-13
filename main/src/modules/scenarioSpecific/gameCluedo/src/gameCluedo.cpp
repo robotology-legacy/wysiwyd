@@ -73,11 +73,15 @@ bool GameCluedo::updateModule()
             log("iCub: " + question);
             iCub->say(question, true);
             cout << "Waiting for an answer to : " << question << endl;
+            iCub->getSpeechClient()->STTflush();
+
             while (!handleSpeech(true, relationToComplete, missingRole))
             {
                 yarp::os::Time::delay(0.1);
             }
+
             iCub->say("Your turn. What do you want to know?");
+            iCub->getSpeechClient()->STTflush();
         }
         isMyTurn = !isMyTurn;
         log("your turn");
@@ -85,6 +89,7 @@ bool GameCluedo::updateModule()
     else
     {
         cout << "Waiting for a question from user." << endl;
+        iCub->getSpeechClient()->STTflush();
         //We just wait for other's question				
         while (!handleSpeech(false, NULL, Undefined))
         {
@@ -203,6 +208,7 @@ bool GameCluedo::handleSpeech(bool expectAffirmation, Relation* queriedRelation,
             {
                 iCub->say("I am sorry, I did not understand.");
                 string question = formQuestionFromRelation(queriedRelation, queriedRole);
+                return false;
             }
 
             //if (!iCub->opc->containsRelation(completedRelation))
