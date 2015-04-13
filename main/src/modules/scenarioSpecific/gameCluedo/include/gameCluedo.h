@@ -3,14 +3,15 @@
 
 enum Role
 {
-	Subject = 0,
-	Verb = 1,
-	Object = 2,
-	Place = 3,
-	Time = 4,
-	Manner = 5,
-	Undefined = 6
+    Subject = 0,
+    Verb = 1,
+    Object = 2,
+    Place = 3,
+    Time = 4,
+    Manner = 5,
+    Undefined = 6
 };
+const double PERIOD_REENGAGE = 2.0;
 
 class GameCluedo : public yarp::os::RFModule
 {
@@ -27,9 +28,14 @@ private:
     void configureOPC(yarp::os::ResourceFinder &rf);
     void configureSpeech(yarp::os::ResourceFinder &rf);
 
-	bool isMyTurn;
+    double timeReengagment;
 
-	std::list< wysiwyd::wrdac::Relation > myIncompleteBeliefs;
+
+    bool isMyTurn;
+
+    std::list< wysiwyd::wrdac::Relation > myIncompleteBeliefs;
+    std::ofstream logFile;
+    double startTime;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -53,160 +59,173 @@ public:
 
     bool updateModule();
 
-	bool findPartialRelation(wysiwyd::wrdac::Relation* &incompleteRelation, Role &missingRole)
-	{
-		incompleteRelation = NULL;
-		missingRole = Role::Undefined;
+    void log(std::string msg)
+    {
+        std::stringstream fMsg;
+        fMsg << yarp::os::Time::now() - startTime << '\t' << msg << std::endl;
+        std::cout << fMsg.str();
+        logFile << fMsg.str();
+        logFile.flush();
+    }
 
-		for (std::list<wysiwyd::wrdac::Relation>::iterator it = myIncompleteBeliefs.begin(); it != myIncompleteBeliefs.end(); it++)
-		{
-			if (it->subject() == "?")
-			{
-				incompleteRelation = &(*it);
-				missingRole = Role::Subject;
-				return true;
-			}
-			if (it->verb() == "?")
-			{
-				incompleteRelation = &(*it);
-				missingRole = Role::Verb;
-				return true;
-			}
-			if (it->object() == "?")
-			{
-				incompleteRelation = &(*it);
-				missingRole = Role::Object;
-				return true;
-			}
-			if (it->complement_place() == "?")
-			{
-				incompleteRelation = &(*it);
-				missingRole = Role::Place;
-				return true;
-			}
-			if (it->complement_time() == "?")
-			{
-				incompleteRelation = &(*it);
-				missingRole = Role::Time;
-				return true;
-			}
-			if (it->complement_manner() == "?")
-			{
-				incompleteRelation = &(*it);
-				missingRole = Role::Manner;
-				return true;
-			}
-		}
-		return false;
-	}
-	std::string formAffirmationFromRelation(wysiwyd::wrdac::Relation* r)
-	{
-		std::string s;
-		s += r->subject();
-		s += " did ";
-		s += r->verb();
-		s += " the ";
-		s += r->object();
-		s += " in the ";
-		s += r->complement_place();
-		s += " during the ";
-		s += r->complement_time();
-		s += ".";
-		return s;
-	}
+    bool findPartialRelation(wysiwyd::wrdac::Relation* &incompleteRelation, Role &missingRole)
+    {
+        incompleteRelation = NULL;
+        missingRole = Role::Undefined;
 
-	std::string formQuestionFromRelation(wysiwyd::wrdac::Relation* r, Role roleToQuestion)
-	{
-		std::string question = "";
-		switch (roleToQuestion)
-		{
-		case Role::Subject:
-			question += "Who did ";
-			question += r->verb();
-			question += " the ";
-			question += r->object();
-			question += " in the ";
-			question += r->complement_place();
-			question += " during the ";
-			question += r->complement_time();
-			question += "?";
-			break;
-		case Role::Verb:
-			question += "What did ";		
-			question += r->subject();
-			question += " do with the ";
-			question += r->object();
-			question += " in the ";
-			question += r->complement_place();
-			question += " during the ";
-			question += r->complement_time();
-			question += "?";
-			break;
-		case Role::Object:			
-			question += "What did ";
-			question += r->subject();
-			question += r->verb();
-			question += " in the ";
-			question += r->complement_place();
-			question += " during the ";
-			question += r->complement_time();
-			question += "?";
-			break;
-		case Role::Place:			
-			question += "Where did ";
-			question += r->subject();
-			question += r->verb();
-			question += " the ";
-			question += r->object();
-			question += " during the ";
-			question += r->complement_time();
-			question += "?";
-			break;
-		case Role::Time:
-			question += "When did ";
-			question += r->subject();
-			question += r->verb();
-			question += " the ";
-			question += r->object();
-			question += " in the ";
-			question += r->complement_place();
-			question += "?";
-			break;
-		case Role::Manner:
-			question += "How did ";
-			question += r->subject();
-			question += r->verb();
-			question += " the ";
-			question += r->object();
-			question += " in the ";
-			question += r->complement_place();
-			question += " during the ";
-			question += r->complement_time();
-			question += "?";
-			break;
-		case Role::Undefined:
-			question += "What the hell?!";
-			break;
-		default:
-			question += "What the fuck?!";
-			break;
-		}
-		return question;
-	}
-	wysiwyd::wrdac::Relation completePartialRelation(wysiwyd::wrdac::Relation* partialRelation, wysiwyd::wrdac::Relation answer)
-	{
-		std::string s,v,o,p,t,m;
-		s = (partialRelation->subject() == "?") ? answer.subject() : partialRelation->subject();
-		v = (partialRelation->verb() == "?") ? answer.verb() : partialRelation->verb();
-		o = (partialRelation->object() == "?") ? answer.object() : partialRelation->object();
-		p = (partialRelation->complement_place() == "?") ? answer.complement_place() : partialRelation->complement_place();
-		t = (partialRelation->complement_time() == "?") ? answer.complement_time() : partialRelation->complement_time();
-		m = (partialRelation->complement_manner() == "?") ? answer.complement_manner() : partialRelation->complement_manner();
-		return(wysiwyd::wrdac::Relation(s, v, o, p, t, m));
-	}
+        for (std::list<wysiwyd::wrdac::Relation>::iterator it = myIncompleteBeliefs.begin(); it != myIncompleteBeliefs.end(); it++)
+        {
+            if (it->subject() == "?")
+            {
+                incompleteRelation = &(*it);
+                missingRole = Role::Subject;
+                return true;
+            }
+            if (it->verb() == "?")
+            {
+                incompleteRelation = &(*it);
+                missingRole = Role::Verb;
+                return true;
+            }
+            if (it->object() == "?")
+            {
+                incompleteRelation = &(*it);
+                missingRole = Role::Object;
+                return true;
+            }
+            if (it->complement_place() == "?")
+            {
+                incompleteRelation = &(*it);
+                missingRole = Role::Place;
+                return true;
+            }
+            if (it->complement_time() == "?")
+            {
+                incompleteRelation = &(*it);
+                missingRole = Role::Time;
+                return true;
+            }
+            if (it->complement_manner() == "?")
+            {
+                incompleteRelation = &(*it);
+                missingRole = Role::Manner;
+                return true;
+            }
+        }
+        return false;
+    }
+    std::string formAffirmationFromRelation(wysiwyd::wrdac::Relation* r)
+    {
+        std::string s;
+        s += r->subject();
+        s += " did ";
+        s += r->verb();
+        s += " the ";
+        s += r->object();
+        s += " in the ";
+        s += r->complement_place();
+        s += " during the ";
+        s += r->complement_time();
+        s += ".";
+        return s;
+    }
+
+    std::string formQuestionFromRelation(wysiwyd::wrdac::Relation* r, Role roleToQuestion)
+    {
+        std::string question = "";
+        switch (roleToQuestion)
+        {
+        case Role::Subject:
+            question += "Who did ";
+            question += r->verb();
+            question += " the ";
+            question += r->object();
+            //question += " in the ";
+            //question += r->complement_place();
+            //question += " during the ";
+            //question += r->complement_time();
+            question += "?";
+            break;
+        case Role::Verb:
+            question += "What did ";
+            question += r->subject();
+            question += " do with the ";
+            question += r->object();
+            //question += " in the ";
+            //question += r->complement_place();
+            //question += " during the ";
+            //question += r->complement_time();
+            question += "?";
+            break;
+        case Role::Object:
+            question += "What did ";
+            question += r->subject();
+            question += " ";
+            question += r->verb();
+            question += " in the ";
+            question += r->complement_place();
+            //question += " during the ";
+            //question += r->complement_time();
+            question += "?";
+            break;
+        case Role::Place:
+            question += "Where did ";
+            question += r->subject();
+            question += " ";
+            question += r->verb();
+            question += " the ";
+            question += r->object();
+            question += " during the ";
+            question += r->complement_time();
+            question += "?";
+            break;
+        case Role::Time:
+            question += "When did ";
+            question += r->subject();
+            question += " ";
+            question += r->verb();
+            question += " the ";
+            question += r->object();
+            question += " in the ";
+            question += r->complement_place();
+            question += "?";
+            break;
+        case Role::Manner:
+            question += "How did ";
+            question += r->subject();
+            question += " ";
+            question += r->verb();
+            question += " the ";
+            question += r->object();
+            question += " in the ";
+            question += r->complement_place();
+            question += " during the ";
+            question += r->complement_time();
+            question += "?";
+            break;
+        case Role::Undefined:
+            question += "What the hell?!";
+            break;
+        default:
+            question += "What the fuck?!";
+            break;
+        }
+        return question;
+    }
+    wysiwyd::wrdac::Relation completePartialRelation(wysiwyd::wrdac::Relation* partialRelation, wysiwyd::wrdac::Relation answer)
+    {
+        std::string s, v, o, p, t, m;
+        s = (partialRelation->subject() == "?") ? answer.subject() : partialRelation->subject();
+        v = (partialRelation->verb() == "?") ? answer.verb() : partialRelation->verb();
+        o = (partialRelation->object() == "?") ? answer.object() : partialRelation->object();
+        p = (partialRelation->complement_place() == "?") ? answer.complement_place() : partialRelation->complement_place();
+        t = (partialRelation->complement_time() == "?") ? answer.complement_time() : partialRelation->complement_time();
+        m = (partialRelation->complement_manner() == "?") ? answer.complement_manner() : partialRelation->complement_manner();
+        return(wysiwyd::wrdac::Relation(s, v, o, p, t, m));
+    }
 
     //Retrieve and treat the speech input
-	bool handleSpeech(bool expectAffirmation, wysiwyd::wrdac::Relation* queriedRelation, Role queriedRole);
+    bool handleSpeech(bool expectAffirmation, wysiwyd::wrdac::Relation* queriedRelation, Role queriedRole);
     wysiwyd::wrdac::Relation getRelationFromSemantic(yarp::os::Bottle b);
     std::string getEntityFromWordGroup(yarp::os::Bottle *b);
 
