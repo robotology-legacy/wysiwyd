@@ -39,7 +39,8 @@ bool GameCluedo::configure(yarp::os::ResourceFinder &rf)
     attach(rpc);
 
     std::string subjectName = rf.check("subject", yarp::os::Value("JohnDo")).asString();
-    logFile.open(subjectName + "_" + rf.check("set", yarp::os::Value("train")).asString() + ".txt");
+    std::string setName = rf.check("set", yarp::os::Value("train")).asString();
+    logFile.open((subjectName + "_" + setName + ".txt").c_str());
     startTime = Time::now();
     log("start");
 
