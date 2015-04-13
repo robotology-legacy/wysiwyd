@@ -35,9 +35,8 @@ using namespace yarp::sig;
  */
 
 CameraKinectWrapper::CameraKinectWrapper(KinectWrapperClient & c, float imageRate,
-                                         const rtabmap::Transform & localTransform,
-                                         float fx, float fy, float cx, float cy) :
-    CameraRGBD(imageRate, localTransform, fx, fy, cx, cy),
+                                         const rtabmap::Transform & localTransform) :
+    CameraRGBD(imageRate, localTransform),
     _depthFocal(0),
     client(c)
 {
@@ -48,7 +47,7 @@ CameraKinectWrapper::~CameraKinectWrapper() {
     cvReleaseImage(&rgbTmp);
 }
 
-bool CameraKinectWrapper::init() {
+bool CameraKinectWrapper::init(const std::string & calibrationFolder) {
     Property opt;
     client.getInfo(opt);
 
@@ -70,6 +69,10 @@ bool CameraKinectWrapper::init() {
     rgbTmp=cvCreateImage(cvSize(img_width,img_height),IPL_DEPTH_8U,3);
 
     return true;
+}
+
+bool CameraKinectWrapper::isCalibrated() const {
+    return _depthFocal > 0.0f;
 }
 
 void CameraKinectWrapper::captureImage(cv::Mat & rgb, cv::Mat & depth, float & fx, float & fy, float & cx, float & cy) {

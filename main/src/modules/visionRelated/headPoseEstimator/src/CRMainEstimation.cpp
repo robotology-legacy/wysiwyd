@@ -185,8 +185,7 @@ void CRMainEstimation::estimate() {
 
     g_means_last = g_means;
 
-    cout << "Heads found : " << g_means.size() << endl;
-    cout << "Valid pixels: " << valid_pixels << endl;
+    cout << "Heads found: " << g_means.size() << " (Valid pixels:) " << valid_pixels << endl;
 
     //assuming there's only one head in the image!
     if(g_means.size()>0) {

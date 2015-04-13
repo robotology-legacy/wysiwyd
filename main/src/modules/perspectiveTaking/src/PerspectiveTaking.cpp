@@ -186,9 +186,6 @@ bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
 }
 
 bool perspectiveTaking::sendImagesToPorts() {
-    if(!isConnectedToABM) {
-        return false;
-    }
     cv::Mat screen = mapBuilder->getScreen();
 
     cv::Mat selfPersp, partnerPersp;
@@ -380,15 +377,13 @@ bool perspectiveTaking::close() {
     addABMImgProvider(selfPerspImgPort.getName(), false);
     addABMImgProvider(partnerPerspImgPort.getName(), false);
 
-    boost::this_thread::sleep_for (boost::chrono::milliseconds (100));
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
 
     // Kill all threads
     setCamPosThread->quit();
     setCamPosThread->wait();
 
-    cameraThread->kill();
-    delete cameraThread;
-
+    cameraThread->join(true);
     odomThread->join(true);
     rtabmapThread->join(true);
 
@@ -402,6 +397,7 @@ bool perspectiveTaking::close() {
 
     // Delete pointers
     //delete mapBuilder; //is deleted by QVTKWidget destructor!
+    delete cameraThread;
     delete rtabmapThread;
     delete odomThread;
 
