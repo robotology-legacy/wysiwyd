@@ -71,44 +71,44 @@ public:
     bool findPartialRelation(wysiwyd::wrdac::Relation* &incompleteRelation, Role &missingRole)
     {
         incompleteRelation = NULL;
-        missingRole = Role::Undefined;
+        missingRole = Undefined;
 
         for (std::list<wysiwyd::wrdac::Relation>::iterator it = myIncompleteBeliefs.begin(); it != myIncompleteBeliefs.end(); it++)
         {
             if (it->subject() == "?")
             {
                 incompleteRelation = &(*it);
-                missingRole = Role::Subject;
+                missingRole = Subject;
                 return true;
             }
             if (it->verb() == "?")
             {
                 incompleteRelation = &(*it);
-                missingRole = Role::Verb;
+                missingRole = Verb;
                 return true;
             }
             if (it->object() == "?")
             {
                 incompleteRelation = &(*it);
-                missingRole = Role::Object;
+                missingRole = Object;
                 return true;
             }
             if (it->complement_place() == "?")
             {
                 incompleteRelation = &(*it);
-                missingRole = Role::Place;
+                missingRole = Place;
                 return true;
             }
             if (it->complement_time() == "?")
             {
                 incompleteRelation = &(*it);
-                missingRole = Role::Time;
+                missingRole = Time;
                 return true;
             }
             if (it->complement_manner() == "?")
             {
                 incompleteRelation = &(*it);
-                missingRole = Role::Manner;
+                missingRole = Manner;
                 return true;
             }
         }
@@ -135,7 +135,7 @@ public:
         std::string question = "";
         switch (roleToQuestion)
         {
-        case Role::Subject:
+        case Subject:
             question += "Who did ";
             question += r->verb();
             question += " the ";
@@ -146,7 +146,7 @@ public:
             //question += r->complement_time();
             question += "?";
             break;
-        case Role::Verb:
+        case Verb:
             question += "What did ";
             question += r->subject();
             question += " do with the ";
@@ -157,7 +157,7 @@ public:
             //question += r->complement_time();
             question += "?";
             break;
-        case Role::Object:
+        case Object:
             question += "What did ";
             question += r->subject();
             question += " ";
@@ -168,7 +168,7 @@ public:
             //question += r->complement_time();
             question += "?";
             break;
-        case Role::Place:
+        case Place:
             question += "Where did ";
             question += r->subject();
             question += " ";
@@ -179,7 +179,7 @@ public:
             question += r->complement_time();
             question += "?";
             break;
-        case Role::Time:
+        case Time:
             question += "When did ";
             question += r->subject();
             question += " ";
@@ -190,7 +190,7 @@ public:
             question += r->complement_place();
             question += "?";
             break;
-        case Role::Manner:
+        case Manner:
             question += "How did ";
             question += r->subject();
             question += " ";
@@ -203,7 +203,7 @@ public:
             question += r->complement_time();
             question += "?";
             break;
-        case Role::Undefined:
+        case Undefined:
             question += "What the hell?!";
             break;
         default:

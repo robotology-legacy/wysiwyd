@@ -57,7 +57,7 @@ bool GameCluedo::updateModule()
     {
         //We ask a question
         Relation* relationToComplete = NULL;
-        Role missingRole = Role::Undefined;
+        Role missingRole = Undefined;
         findPartialRelation(relationToComplete, missingRole);
 
         if (relationToComplete == NULL)
@@ -85,7 +85,7 @@ bool GameCluedo::updateModule()
     {
         cout << "Waiting for a question from user." << endl;
         //We just wait for other's question				
-        while (!handleSpeech(false, NULL, Role::Undefined))
+        while (!handleSpeech(false, NULL, Undefined))
         {
             yarp::os::Time::delay(0.1);
         }
