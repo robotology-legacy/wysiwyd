@@ -123,6 +123,19 @@ public:
     }
 
     /**
+    * Flush the pending reads by consuming all of them.
+    */
+    void STTflush()
+    {
+        int pendingReads = stt.getPendingReads();
+        if (pendingReads > 0)
+            std::cout << "[subsystem.speech] Flushing " << pendingReads << " pending read" << std::endl;
+        
+        for (int i = 0; i < pendingReads; i++)
+            stt.read(false);
+    }
+
+    /**
     * Add a word to a given vocabulory
     * @param vocabuloryName The name of the vocabulory to expand
     * @param word The word to be added to this vocabulory
