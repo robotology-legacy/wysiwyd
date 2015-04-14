@@ -218,6 +218,8 @@ bool perspectiveTaking::sendImagesToPorts() {
 void perspectiveTaking::setPartnerCamera() {
     loopCounter++;
 
+    Eigen::Matrix4f odometryPos = mapBuilder->getLastOdomPose().toEigen4f();
+
     if(partnerCameraMode==staticPos) {
         double d_headPos[3] = {-1.624107, -0.741913, 0.590235};
         Vector p_headPos = Vector(3, d_headPos);
@@ -234,8 +236,13 @@ void perspectiveTaking::setPartnerCamera() {
         Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
         p_view[2] = p_view[2] - 0.8;
 
+        // take odometry pose into account
+        Eigen::Vector4f pos = odometryPos * yarp2EigenV(p_headPos);
+        Eigen::Vector4f view = odometryPos * yarp2EigenV(p_view);
+        Eigen::Vector4f up = odometryPos * yarp2EigenV(p_up);
+
         cout << "Call setPartnerCamera" << endl;
-        setViewRobotReference(p_headPos, p_view, p_up, "partner");
+        setViewRobotReference(pos, view, up, "partner");
 
         sendImagesToPorts();
     } else if(partnerCameraMode==agentDetector) {
@@ -258,8 +265,13 @@ void perspectiveTaking::setPartnerCamera() {
             Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
             p_view[2] = p_view[2] - lookDown;
 
+            // take odometry pose into account
+            Eigen::Vector4f pos = odometryPos * yarp2EigenV(p_headPos);
+            Eigen::Vector4f view = odometryPos * yarp2EigenV(p_view);
+            Eigen::Vector4f up = odometryPos * yarp2EigenV(p_up);
+
             cout << "Call setPartnerCamera" << endl;
-            setViewRobotReference(p_headPos, p_view, p_up, "partner");
+            setViewRobotReference(pos, view, up, "partner");
 
             sendImagesToPorts();
         } else {
@@ -312,8 +324,6 @@ void perspectiveTaking::setPartnerCamera() {
                                                           g_means[0][1],
                                                           g_means[0][2] - 75.0);
             Eigen::Vector3f head_front = head_center + 550.d*g_face_curr_dir;
-
-            Eigen::Matrix4f odometryPos = mapBuilder->getLastOdomPose().toEigen4f();
 
             Eigen::Vector4f pos = odometryPos*Eigen::Vector4f(head_center[2]/1000.0, -head_center[0]/1000.0, -head_center[1]/1000.0, 1);
             Eigen::Vector4f up = pos; up(2) += 1.0;
