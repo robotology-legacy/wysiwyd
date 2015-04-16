@@ -21,7 +21,8 @@ clc
 close all
 clear all
 
-addpath(genpath('../../../cvpr2015'));
+%%
+addpath(genpath('../../include/include_Matlab'));
 %%
 % help
 
