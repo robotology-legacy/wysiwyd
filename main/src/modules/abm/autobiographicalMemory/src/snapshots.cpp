@@ -175,6 +175,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     {
         bTemp.clear();
         bTemp.addString("request");
+
+    ///////   TODO CONCATENATE BOTTLES !!
+
         bTemp.addString(bSnapShot.get(i).toString().c_str());
         //cout << "Snapshot: Update OPCEARS snapshot" << endl;
         bTemp = request(bTemp);
