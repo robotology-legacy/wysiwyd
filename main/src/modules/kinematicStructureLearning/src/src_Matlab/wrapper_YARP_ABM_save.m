@@ -89,6 +89,7 @@ for frm_idx = 1:num_images
         bImageMeta_string = bImageMeta_buf{frm_idx}.toString();
         
         image_name = [sprintf('%04d',frm_idx_buf) '.png'];
+        fprintf(['Saving ', image_name]);
         img_mat_org = imread(['result/images/',image_name]);
         [h,w,pixSize] = size(img_mat_org);
         

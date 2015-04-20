@@ -22,7 +22,7 @@ close all
 clear all
 
 %%
-addpath(genpath('../../../cvpr2015'));
+addpath(genpath('../../include/include_Matlab'));
 
 %%
 % YARP port
@@ -85,7 +85,7 @@ while(~shouldClose)
                 last_frame_idx = 'last';
             end                       
             
-            disp(['Start structure learning from ABM #',instance_num, ' uring ', ...
+            disp(['Start structure learning from ABM #',instance_num, ' using ', ...
                 camera_selection,' camera, ',...
                 'from frame #',num2str(start_frame_idx), ' to #', num2str(last_frame_idx)]);
             disp(sprintf('\n'))
