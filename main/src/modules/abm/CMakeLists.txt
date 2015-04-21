@@ -3,7 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 if(WYSIWYD_USE_PGSQL AND WYSIWYD_USE_OpenCV AND WYSIWYD_USE_ACE)
-    if(Boost_FOUND)
+    if(WYSIWYD_USE_Boost)
       add_definitions(-DBOOST_AVAILABLE)
     else()
       message("Boost is not available. Streaming data in autobiographicalMemory will be slower.")
