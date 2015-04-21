@@ -111,8 +111,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     }
 
     bMain.addString(string(osMain.str()).c_str());
-    // cout << "\n\n" << string(osMain.str()).c_str() << endl;
-    //cout << "Snapshot: Update main table" << endl;
     bMain = request(bMain);
 
     //Connection to the OPC
@@ -122,6 +120,8 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     sName += osName.str();                         //I dont understand this Gregoire : you concatenate the name with nameInstance with itself, producing namenameinstance
     //cout << "OPCEARS: " << sName << endl;
     Bottle bSnapShot = OPCEARS.insertOPC(sName);
+
+    ostringstream osAllArg;
 
     // Filling contentArg
     for (int i = 1; i < bInput.size(); i++)
@@ -160,25 +160,24 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                     cArgRole = "unknown";
                 }
 
-                osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "');";
+                osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
 
-                bRequest.clear();
-                bRequest.addString("request");
-                bRequest.addString(string(osArg.str()).c_str());
-                //cout << "Snapshot: Update contentarg table" << endl;
-                request(bRequest);
+                // one stringstream with all argments
+                osAllArg << osArg.str().c_str() ;
             }
         }
     }
 
-    for (int i = 0; i < bSnapShot.size(); i++)
-    {
-        bTemp.clear();
-        bTemp.addString("request");
-        bTemp.addString(bSnapShot.get(i).toString().c_str());
-        //cout << "Snapshot: Update OPCEARS snapshot" << endl;
-        bTemp = request(bTemp);
-    }
+
+    // add the snapshot of the OPC
+    osAllArg << bSnapShot.get(0).asString() ;
+
+
+    bRequest.clear();
+    bRequest.addString("request");
+    bRequest.addString(osAllArg.str().c_str());
+    request(bRequest);
+
 
     if ((!bBegin) && isconnected2reasoning)
     {
