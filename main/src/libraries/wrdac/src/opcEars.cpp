@@ -121,7 +121,7 @@ Bottle opcEars::insertEntity(Entity *A)
 
     int opcID;
     opcID = A->opc_id();
-    
+
     ostringstream osEntity,
         osBeliefs, // if the entity is an agent
         osContent;
@@ -132,8 +132,8 @@ Bottle opcEars::insertEntity(Entity *A)
     bOutput.addString(osContent.str().c_str());
 
     osEntity << " (" << opcID << " , '" << A->name().c_str() << "' , " << instance ;
-  
-    
+
+
     if (A->entity_type() == "entity")
     {
         osEntity << ") ";
@@ -145,9 +145,9 @@ Bottle opcEars::insertEntity(Entity *A)
     {
         Object OA;
         OA.fromBottle(bA);
- 
-         if (OA.m_present)
-             osEntity << " , TRUE , '{ ";
+
+        if (OA.m_present)
+            osEntity << " , TRUE , '{ ";
         else
             osEntity << " , FALSE , '{ ";
 
@@ -159,7 +159,7 @@ Bottle opcEars::insertEntity(Entity *A)
 
         // Insert dimension
         osEntity << OA.m_dimensions[0] << " , " << OA.m_dimensions[1] << " , " << OA.m_dimensions[2] << " }' , '{ " ;
-     
+
         //Insert color
         osEntity << OA.m_color[0] << " , " << OA.m_color[1] << " , " << OA.m_color[2] << " }' ,  " ;
 
@@ -175,9 +175,9 @@ Bottle opcEars::insertEntity(Entity *A)
         Agent AgA;
         AgA.fromBottle(bA);
         bool fBelief = false;
- 
+
         if (AgA.m_present)
-             osEntity << " , TRUE , '{ ";
+            osEntity << " , TRUE , '{ ";
         else
             osEntity << " , FALSE , '{ ";
 
@@ -189,7 +189,7 @@ Bottle opcEars::insertEntity(Entity *A)
 
         // Insert dimension
         osEntity << AgA.m_dimensions[0] << " , " << AgA.m_dimensions[1] << " , " << AgA.m_dimensions[2] << " }' , '{ " ;
-     
+
         //Insert color
         osEntity << AgA.m_color[0] << " , " << AgA.m_color[1] << " , " << AgA.m_color[2] << " }' ,  " ;
 
@@ -224,7 +224,7 @@ Bottle opcEars::insertEntity(Entity *A)
         bOutput.addString(osBeliefs.str().c_str());
         fBelief ? bOutput.addString("true") : bOutput.addString("false");
 
-    
+
     }
 
 
@@ -247,7 +247,7 @@ Bottle opcEars::insertEntity(Entity *A)
 
         // Insert dimension
         osEntity << RTA.m_dimensions[0] << " , " << RTA.m_dimensions[1] << " , " << RTA.m_dimensions[2] << " }' , '{ " ;
-     
+
         //Insert color
         osEntity << RTA.m_color[0] << " , " << RTA.m_color[1] << " , " << RTA.m_color[2] << " }' , '{ " ;
 
@@ -265,7 +265,7 @@ Bottle opcEars::insertEntity(Entity *A)
     {
         Adjective AdjA;
         AdjA.fromBottle(bA);
- 
+
         osEntity << " , '" << AdjA.m_quality.c_str() << "') ";
 
         bOutput.addString(osEntity.str().c_str());
@@ -276,7 +276,7 @@ Bottle opcEars::insertEntity(Entity *A)
     {
         Action ActA, ActB;
         ActA.fromBottle(bA);
- 
+
         Relation desc = ActA.description();
 
         osEntity << " , '" << EFAA_OPC_ENTITY_ACTION << "' ) ";
@@ -295,12 +295,12 @@ Bottle opcEars::insertRelation(Relation R)
     ostringstream osContent,
         osRelation;
     opcID = R.ID();
-     
+
     osContent << " ('Relation' , " << instance << " , " << opcID << " , 'Relation' ) " ;
 
     osRelation << " ( " << opcID << " , " << instance << " , '" << R.subject().c_str() << "' , '" << R.verb().c_str() << "' , '" << R.object().c_str() << "' , '" << R.complement_time().c_str() << "' , '" << R.complement_manner().c_str() << "' , '" << R.complement_place().c_str() << "' ) ";
 
-//  bOutput.addString(osContent.str().c_str());
+    //  bOutput.addString(osContent.str().c_str());
     bOutput.addString(osRelation.str().c_str());
 
     return bOutput;
@@ -311,7 +311,7 @@ Bottle opcEars::insertDrives(Drive D)
 {
     Bottle bOutput;
     ostringstream osDrives;
-    
+
     osDrives << " ( " << instance << " , '" << D.name.c_str() << "' , " << D.value << " , " << D.homeoStasisMax << " , " << D.homeoStasisMin << " ) ";
     bOutput.addString(osDrives.str().c_str());
 
@@ -334,15 +334,12 @@ Bottle opcEars::insertEmotion(pair<string, double> Emo)
 
 Bottle opcEars::insertOPC(string sName)
 {
-    Bottle bOutput,         // Output of the function
-        bEntities,          // Bottle with the 2 string for insertion of the entities
-        bRelations,         // Bottle with the insertion of the relations
-        bDrives,            // Bottle with the insertion of the drives
-        bEmotions,          // Bottle with the insertion of the emotions
-        bBeliefs,           // Bottle with the insertion of the beliefs
-        bTemp;              // Temporary bottle with an entity (entitytype, content, entity)
+    Bottle bOutput,
+        bTemp,
+        bEntities;         // Output of the function
 
-    ostringstream osContent,
+    ostringstream osSnapshot,
+        osContent,
         osEntity,
         osAction,
         osAgent,
@@ -386,7 +383,7 @@ Bottle opcEars::insertOPC(string sName)
     for (list<Entity*>::iterator it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++ )
     {
         bTemp = insertEntity(*it_E);
-    
+
         cout << "bTemp = " << bTemp.toString() << endl ;
 
         if (!fContent)
@@ -461,8 +458,8 @@ Bottle opcEars::insertOPC(string sName)
             osContent << " , ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) " ;
 
         fContent = true;
-        
-bTemp  = insertRelation(*it_R); 
+
+        bTemp  = insertRelation(*it_R); 
         if (!fRelation)
             osRelation << bTemp.get(0).toString().c_str() ;
         else
@@ -500,37 +497,38 @@ bTemp  = insertRelation(*it_R);
 
 
     // ---- filing bOutput ---- //
-
     if(fContent)
-        bOutput.addString(osContent.str().c_str());
+        osSnapshot << osContent << " ; " ;
 
     if (fEntity)
-        bOutput.addString(osEntity.str().c_str());
+        osSnapshot << osEntity << " ; " ;
 
     if (fAction)
-        bOutput.addString(osAction.str().c_str());
+        osSnapshot << osAction << " ; " ;
 
     if (fAgent)
-        bOutput.addString(osAgent.str().c_str());
+        osSnapshot << osAgent << " ; " ;
 
     if (fObject)
-        bOutput.addString(osObject.str().c_str());
+        osSnapshot << osObject << " ; " ;
 
     if (fRTObject)
-        bOutput.addString(osRTObject.str().c_str());
+        osSnapshot << osRTObject << " ; " ;
 
     if (fAdjct)
-        bOutput.addString(osAdjective.str().c_str());
-    
+        osSnapshot << osAdjective << " ; " ;
+
     if (fEmotion)
-        bOutput.addString(osEmotion.str().c_str());
+        osSnapshot << osEmotion << " ; " ;
 
     if (fRelation)
-        bOutput.addString(osRelation.str().c_str());
+        osSnapshot << osRelation << " ; " ;
 
     if (fDrives)
-        bOutput.addString(osDrives.str().c_str());
+        osSnapshot << osDrives << " ; " ;
 
+
+    bOutput.addString(osSnapshot.str().c_str());
 
     return bOutput;
 }
@@ -570,7 +568,7 @@ Bottle opcEars::getDifferencies(Entity *A, Entity *B)
     }
 
     // If entities are rt_object :
-     else if (A->entity_type() == EFAA_OPC_ENTITY_RTOBJECT && B->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
+    else if (A->entity_type() == EFAA_OPC_ENTITY_RTOBJECT && B->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
     {
         RTObject RTA, RTB;
         RTA.fromBottle(bA);
