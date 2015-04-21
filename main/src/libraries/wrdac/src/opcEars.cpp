@@ -384,7 +384,7 @@ Bottle opcEars::insertOPC(string sName)
     {
         bTemp = insertEntity(*it_E);
 
-        cout << "bTemp = " << bTemp.toString() << endl ;
+//        cout << "bTemp = " << bTemp.toString() << endl ;
 
         if (!fContent)
             osContent << bTemp.get(1).toString().c_str() ;
@@ -498,34 +498,34 @@ Bottle opcEars::insertOPC(string sName)
 
     // ---- filing bOutput ---- //
     if(fContent)
-        osSnapshot << osContent << " ; " ;
+        osSnapshot << osContent.str().c_str() << " ; " ;
 
     if (fEntity)
-        osSnapshot << osEntity << " ; " ;
+        osSnapshot << osEntity.str().c_str() << " ; " ;
 
     if (fAction)
-        osSnapshot << osAction << " ; " ;
+        osSnapshot << osAction.str().c_str() << " ; " ;
 
     if (fAgent)
-        osSnapshot << osAgent << " ; " ;
+        osSnapshot << osAgent.str().c_str() << " ; " ;
 
     if (fObject)
-        osSnapshot << osObject << " ; " ;
+        osSnapshot << osObject.str().c_str() << " ; " ;
 
     if (fRTObject)
-        osSnapshot << osRTObject << " ; " ;
+        osSnapshot << osRTObject.str().c_str() << " ; " ;
 
     if (fAdjct)
-        osSnapshot << osAdjective << " ; " ;
+        osSnapshot << osAdjective.str().c_str() << " ; " ;
 
     if (fEmotion)
-        osSnapshot << osEmotion << " ; " ;
+        osSnapshot << osEmotion.str().c_str() << " ; " ;
 
     if (fRelation)
-        osSnapshot << osRelation << " ; " ;
+        osSnapshot << osRelation.str().c_str() << " ; " ;
 
     if (fDrives)
-        osSnapshot << osDrives << " ; " ;
+        osSnapshot << osDrives.str().c_str() << " ; " ;
 
 
     bOutput.addString(osSnapshot.str().c_str());
