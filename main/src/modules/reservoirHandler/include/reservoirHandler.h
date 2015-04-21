@@ -114,13 +114,15 @@ private:
     string sobjectFocusChanged;
     map<string, string> mAssociation;
 
-    bool nodeYesNo();
-    bool nodeYesNoInteraction();
+
     bool nodeType();
     bool nodeModality();
     bool nodeTrainAP();
     bool nodeTestAP();
     bool nodeTestSD();
+    bool nodeYesNo();
+    bool nodeYesNoInteraction();
+
     int languageNodeInteraction();
     bool languageNodeInteractionSD();
     bool grammarNodeInteraction();

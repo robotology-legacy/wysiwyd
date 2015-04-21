@@ -165,7 +165,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     else
         cout << endl << endl << "----------------------------------------------" << endl << endl << "reservoirHandler ready !" << endl << endl;
 
-    //populateOPC();
+    populateOPC();
     nodeType();
     //testARE();
     return bEveryThingisGood ;
@@ -186,7 +186,7 @@ bool reservoirHandler::testARE(){
 bool reservoirHandler::populateOPC(){
     iCub->opc->update();
     iCub->opc->commit();
-    RTObject* obj1 = iCub->opc->addRTObject("eraser");
+    RTObject* obj1 = iCub->opc->addRTObject("cube");
 
     Vector dimensionObject(3);
     dimensionObject[0]=0.065;
@@ -212,7 +212,7 @@ bool reservoirHandler::populateOPC(){
     color[0]=0;
     color[1]=100;
     color[2]=200;
-    RTObject* obj2 = iCub->opc->addRTObject("circle");
+    RTObject* obj2 = iCub->opc->addRTObject("mouse");
     x[0]=-0.45;  //y position
     x[1]=0.0;    //x position
     x[2]=0.0016; //z position
@@ -225,7 +225,7 @@ bool reservoirHandler::populateOPC(){
     color[0]=70;
     color[1]=200;
     color[2]=80;
-    RTObject* obj3 = iCub->opc->addRTObject("cross");
+    RTObject* obj3 = iCub->opc->addRTObject("croco");
     x[0]=-0.35;
     x[1]=-0.2;
     x[2]=0.0016;
@@ -253,10 +253,8 @@ bool reservoirHandler::interruptModule(){
 }
 
 bool reservoirHandler::close() {
-
+    iCub->opc->close();
     iCub->close();
-    //delete iCub;
-
     return true;
 }
 
@@ -320,15 +318,6 @@ string reservoirHandler::grammarToString(string sPath)
     return sOutput;
 }
 
-bool reservoirHandler::callReservoir(string fPython)
-{
-    //launch Xavier reservoir
-    string command = "cd " + pythonPath + " && python " + fPython;
-    bool bsys = system(command.c_str());
-    cout << "cd " << pythonPath << " && python " << fPython << endl;
-    return bsys;
-}
-
 /* Node 1: general question
 *	produce or understand
 */
@@ -358,13 +347,14 @@ bool reservoirHandler::nodeType()
 
     while (!fGetaReply)
     {
+
         bSpeechRecognized.clear();
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
 
         //e.g. : Reply from Speech Recog : 1 ("I want you to produce language" (INFORMATION (type produce))) ACK
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -372,7 +362,7 @@ bool reservoirHandler::nodeType()
             return false;
         }
 
-        if (bSpeechRecognized.get(0).toString() == "0")
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
         {
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
@@ -422,7 +412,7 @@ bool reservoirHandler::nodeType()
 
             cout << "iCub says : 'Set the objects'" << endl ;
             iCub->say("I'm ready...");
-            iCub->say("Say a sentence");
+            iCub->say("Tell me a sentence");
             sCurrentType = "test";
             return nodeTestAP();
         }
@@ -453,11 +443,6 @@ bool reservoirHandler::nodeType()
     return true;
 }
 
-/*	Node 2 : details about number and agent
-*		possibility to go back to node 1
-*		repeat and stop allowed
-*/
-
 bool reservoirHandler::nodeModality()
 {
     sCurrentNode = "nodeModality";
@@ -483,9 +468,9 @@ bool reservoirHandler::nodeModality()
     {
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
 
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -493,7 +478,7 @@ bool reservoirHandler::nodeModality()
             return false;
         }
 
-        if (bSpeechRecognized.get(0).toString() == "0")
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
         {
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
@@ -597,7 +582,7 @@ bool reservoirHandler::nodeModality()
                  * 2. Robot performs corresponding actions [meaning]
                 */
                 iCub->say("I'm ready...");
-                iCub->say("Say a sentence");
+                iCub->say("Tell me a sentence");
                 return nodeTestAP();
             }
         }
@@ -686,9 +671,9 @@ bool reservoirHandler::nodeTrainAP()
     {
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
 
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -696,7 +681,7 @@ bool reservoirHandler::nodeTrainAP()
             return false;
         }
 
-        if (bSpeechRecognized.get(0).toString() == "0")
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
         {
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
@@ -791,9 +776,9 @@ bool reservoirHandler::nodeTestAP()
     {
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
 
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -801,7 +786,7 @@ bool reservoirHandler::nodeTestAP()
             return false;
         }
 
-        if (bSpeechRecognized.get(0).toString() == "0")
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
         {
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
@@ -885,8 +870,8 @@ bool reservoirHandler::nodeTestAP()
 
             if (result.find(",")!= string::npos)
             {
-                cout << result.substr(0, id) << endl;
-                cout << result.substr(id +1,idf) << endl;
+                cout << "resut 1 : " << result.substr(0, id) << endl;
+                cout << "resut 2 : " << result.substr(id +1,idf) << endl;
                 string firstCommand = result.substr(0, id);
                 string secondCommand = result.substr(id +1,idf);
 
@@ -942,8 +927,6 @@ bool reservoirHandler::nodeTestAP()
     return true;
 }
 
-
-
 bool reservoirHandler::nodeTestSD()
 {
     sCurrentNode = "nodeTestSD";
@@ -970,9 +953,9 @@ bool reservoirHandler::nodeTestSD()
     {
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
 
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -980,7 +963,7 @@ bool reservoirHandler::nodeTestSD()
             return false;
         }
 
-        if (bSpeechRecognized.get(0).toString() == "0")
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
         {
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
@@ -1053,6 +1036,898 @@ bool reservoirHandler::nodeTestSD()
     return true;
 }
 
+bool reservoirHandler::callReservoir(string fPython)
+{
+    //launch Xavier reservoir
+    string command = "cd " + pythonPath + " && python " + fPython;
+    bool bsys = system(command.c_str());
+    cout << "cd " << pythonPath << " && python " << fPython << endl;
+    return bsys;
+}
+
+
+//
+string reservoirHandler::openResult(const char* fileNameIn)
+{
+    ifstream in;
+    in.open(fileNameIn);
+    string str;
+    getline(in,str);
+    cout << str << endl;
+    in.close();
+
+    return str;
+}
+
+vector<string> reservoirHandler::extractVocabulary(string sequence)
+{
+
+    string object, recipient, location, adverbs;
+
+    //////////////////////////
+    if (sequence.find("grasp") != string::npos || sequence.find("take") != string::npos || sequence.find("put") != string::npos)
+    {
+        recipient = "grasp";
+    }
+    else if (sequence.find("point") != string::npos)
+    {
+        recipient = "point";
+    }
+
+    else if (sequence.find("push") != string::npos)
+    {
+        recipient = "push";
+    }
+
+    ///////////////////////////
+    if (sequence.find("circle") != string::npos)
+    {
+        object = "circle";
+    }
+    else if(sequence.find("cross") != string::npos)
+    {
+        object = "cross";
+    }
+    else if(sequence.find("triangle") != string::npos)
+    {
+        object = "triangle";
+    }
+    else if(sequence.find("square") != string::npos)
+    {
+        object = "square";
+    }
+    else if(sequence.find("eraser") != string::npos)
+    {
+        object = "eraser";
+    }
+    else if(sequence.find("croco") != string::npos)
+    {
+        object = "croco";
+    }
+    else if(sequence.find("cube") != string::npos)
+    {
+        object = "cube";
+    }
+    else if(sequence.find("mug") != string::npos)
+    {
+        object = "mug";
+    }
+    else if(sequence.find("mouse") != string::npos)
+    {
+        object = "mouse";
+    }
+    else if(sequence.find("rabbit") != string::npos)
+    {
+        object = "rabbit";
+    }
+    else if(sequence.find("wysiwyd sponge") != string::npos)
+    {
+        object = "wysiwyd sponge";
+    }
+    else if(sequence.find("white-trophy") != string::npos)
+    {
+        object = "white-trophy";
+    }
+
+    /////////////////////////////
+    if (sequence.find("left") != string::npos)
+    {
+        location="left";
+    }
+    else if (sequence.find("right") != string::npos)
+    {
+        location="right";
+    }
+    else if (sequence.find("middle") != string::npos)
+    {
+        location="middle";
+    }
+    else
+        location=" ";
+
+    /////////////////////////////
+    if (sequence.find("quickly") != string::npos)
+    {
+        adverbs="quickly";
+    }
+    else if (sequence.find("slowly") != string::npos)
+    {
+        adverbs="slowly";
+    }
+    else
+        adverbs=" ";
+
+    vector<string> seq;
+    seq.push_back(recipient);
+    seq.push_back(object);
+    if (location.size()!=0)
+        seq.push_back(location);
+    if (adverbs.size()!=0)
+        seq.push_back(adverbs);
+
+    cout << seq[0] << " " << seq[1] << " " << seq[2] << seq[3] << endl;
+
+    return seq;
+}
+
+bool reservoirHandler::AREactions(vector<string> seq)
+{
+    string sPredicat,sObject,sLocation, sadverbs;
+    float ftime;
+    sPredicat = seq[0];
+    sObject   = seq[1];
+    sLocation = seq[2];
+    sadverbs  = seq[3];
+
+    if (sadverbs == "slowly"){
+        ftime=4.0;
+    }
+    else if (sadverbs == "quickly"){
+        ftime=0.0;
+    }
+    else{
+        ftime=2.0;
+    }
+
+    if (sPredicat == "none")
+    {
+        cout << "Error in reservoirHandler::AREactions | sPredicat == none" << endl;
+        return false;
+    }
+
+    // GET LOCATION OF THE OBJECT IN THE OPC + OFFSET IN Z
+    iCub->opc->update();
+    RTObject *rtObject = iCub->opc->addRTObject(sObject);
+    Vector value(4);
+    value = rtObject->m_ego_position;
+    value[2] += offsetGrasp;
+    cout << sObject << " is at: " << value.toString() << endl;
+
+    bool success = true;
+
+    if (rtObject->m_present)
+    {
+
+        // GRASP BEGIN
+        if (sPredicat == "put" ||  sPredicat == "take" || sPredicat == "grasp")
+        {
+            Bottle bHand(sHand);
+            bHand.addString("still");
+            cout << "sHand : " << sHand << endl;
+
+            Object* Location = iCub->opc->addObject(sLocation);
+            Vector vGoal = Location->m_ego_position;
+            vGoal[2] += ZRTObjects;
+
+            cout << "vGoal is : " << vGoal.toString() << endl;
+
+            // DROP ON LOCATION
+            if(sLocation != " ")
+            {
+                Time::delay(ftime);
+                bool grasped=iCub->getARE()->take(value, bHand, false);
+                cout<<(grasped?"grasped!":"missed!")<<endl;
+
+                success &= grasped;
+                Time::delay(ftime);
+
+                if(grasped){
+                    Bottle opts("over still " + sHand);
+                    bool dropped = iCub->getARE()->dropOn(vGoal,opts, false);
+                    cout<<(dropped?"dropped!":"missed!")<<endl;
+                    Time::delay(ftime);
+                    iCub->getARE()->home();
+                    success &= dropped;
+                }
+
+            }
+            // DROP WITHOUT LOCATION
+            else
+            {
+                bool grasped=iCub->getARE()->take(value, bHand, false);
+                cout<<(grasped?"grasped!":"missed!")<<endl;
+                Time::delay(ftime);
+                success &= grasped;
+
+                if(grasped)
+                {
+                    iCub->release(value,bHand);
+                }
+                Time::delay(ftime);
+                iCub->home(bHand.toString());
+            }
+            // END GRASP
+        }
+
+        // PUSH
+        else if(sPredicat == "push")
+        {
+            sLocation=="right"? sHand = "left": sHand = "right";
+
+            Bottle bHand(sHand);
+            cout << "sHand : " << sHand << endl;
+            Time::delay(ftime);
+            bool pushed = iCub->getARE()->push(value, bHand, false);
+            cout<<(pushed?"pushed!":"missed!")<<endl;
+            Time::delay(ftime);
+            success &= pushed;
+            iCub->getARE()->home();
+        }
+
+        // POINT
+        else if(sPredicat == "point")
+        {
+            Time::delay(ftime);
+            Bottle bHand(sHand);
+            bHand.addString("still");
+            cout << "sHand : " << sHand << endl;
+
+            bool pointed = iCub->getARE()->point(value, bHand);
+            cout<<(pointed?"pointed!":"missed!")<<endl;
+
+            success &= pointed;
+            Time::delay(ftime);
+            iCub->getARE()->home(sHand);
+        }
+
+        if(sLocation != " "){
+            if (sadverbs == " "){
+                sVectorFileAP = "force<" + sPredicat + "(I," + sObject + "," + sLocation + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + "," + sLocation + ")>";
+            }
+            else{
+                sVectorFileAP = "force<" + sPredicat + "(I," + sObject + "," + sLocation + "," + sadverbs + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + "," + sLocation + ")>";
+            }
+        }
+
+        else if(sLocation == " "){
+            if (sadverbs == " "){
+                sVectorFileAP = "force<" + sPredicat + "(I," + sObject + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + ")>";
+            }
+            else
+            {
+                sVectorFileAP = "force<" + sPredicat + "(I," + sObject + "," + sadverbs + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + ")>";
+            }
+        }
+        createVectorFile(sVectorFileAP);
+
+    }
+    else
+    {
+        iCub->say(sObject + " is not present");
+        cout << sObject << " is not present ! " << endl;
+        success = false;
+    }
+
+    cout << "Result of the action: " << (success?"success!":"missed!") << endl;
+
+    return success;
+}
+
+//
+/*
+ * test mode : copy the train data in test file, add the end of the train data (if first test) and add the test sentence
+ */
+int reservoirHandler::copyTrainData(const char* fileNameIn, const char* fileNameOut)
+{
+    // Module Save
+    ofstream file;
+    if(inbsentence==1){
+        file.open(fileNameOut, ios::out | ios::trunc); // open the file in writing and erase the file if it is not empty
+        file << "<train data>"<< endl;
+        inbsentence+=1;
+        file.close();
+    }
+    if (sCurrentType == "train"){
+        cout << "iCub says : 'Ok'" << endl;
+        trainSaveMeaningSentence(fileNameOut);
+    }
+    else if (sCurrentType == "test"){
+        cout << "iCub says : 'I will describe the situation'" << endl ;
+        inbsentence=1;
+        copyPastFile(fileNameIn,fileNameOut);
+        createTestwithTrainData(fileNameOut, sdataTestSD);
+    }
+    file.close();
+
+    return true;
+}
+
+int reservoirHandler::trainSaveMeaningSentence(const char* filename)
+{
+    ofstream file;
+    file.open(filename, ios::out | ios::trunc);
+    std::list<string>::iterator it;
+
+    file << "<train data>" <<endl;
+    for(it=lMeaningsSentences.begin(); it!=lMeaningsSentences.end(); ++it)
+    {
+        string meaning;
+        if(sCurrentActivity == "produce")
+        {
+            meaning = "put trumpet left;put guitar right";
+            file << meaning << ";" << *it <<endl;
+        }
+        else
+        {
+            meaning = "left violin trumpet";
+            file << *it << ";" << meaning <<endl;
+        }
+    }
+    file.close();
+
+    return true;
+}
+
+int reservoirHandler::createTestwithTrainData(const char* filename, string sMeaningSentence)
+{
+    cout << "createTestwithTrainData(const char* filename, string sMeaningSentence " << endl;
+    cout << filename << "    " << "sMeaningSentence" << endl;
+    ofstream file;
+    file.open (filename, ios::app);
+    file << "</train data>" <<endl;
+    file << "<test data>" <<endl;
+    file << sMeaningSentence <<endl;
+    file << "</test data>" <<endl;
+    file.close();
+
+    return true;
+}
+
+int reservoirHandler::copyPastFile(const char* fileNameIn, const char* fileNameOut)
+{
+    ifstream in;
+    ofstream out;
+    in.open(fileNameIn);
+    out.open(fileNameOut, ios::out | ios::trunc);
+    string str;
+    while(getline(in,str))
+    {
+        out<<str<<endl;
+    }
+    in.close();
+    out.close();
+
+    return true;
+}
+
+
+//
+std::list<int> reservoirHandler::nbCaracters(string ssequence)
+{
+    unsigned int pos = 0;
+    std::list<int> lposElements;
+    for(pos = 0; pos < ssequence.size(); ++pos)
+    {
+        if (ssequence[pos]==','){
+            lposElements.push_back(pos);
+        }
+
+    }
+    return lposElements;
+}
+
+
+//
+bool reservoirHandler::mainNodeInteraction()
+{
+    if(getline(fileVectorAPRead,svector))
+    {
+        iquestion = languageNodeInteraction();
+    }
+    else{
+        iCub->say("I have no more information");
+        fileVectorAPRead.close();
+        iCub->say("Tell me an other sentence");
+        return nodeTestAP();
+    }
+    return 0;
+}
+
+bool reservoirHandler::grammarNodeInteraction()
+{
+    cout << "################################################################" << endl;
+    int id = svector.find(";");
+    int idf = svector.size();
+    string sforce = svector.substr(6, id -7); //  => sforce=   "push(Ag1,object)"
+    string sresult = svector.substr(id +8,idf-1-(id +8)); // =>   sresult=   "move(object)"
+
+    string sverb, sagent1, sagent2, sobject, slocation, sadverb;
+
+    if(iquestion == 1)  // => Case "What happened"  => Result part !!
+    {
+        int i = sresult.find("(");
+        int iend = sresult.size();
+        sverb = sresult.substr(0,i); // => "move"
+        cout << "sverb : " << sverb << endl;
+
+        sresult = sresult.substr(i+1,iend-(i+1)-1); // =>  "object"
+        cout << "sresult : " << sresult << endl;
+
+        std::list<int> lposElements = nbCaracters(sresult);
+        int nb = lposElements.size();
+
+
+        if (nb == 0){            //  "object"
+            cout << "nb elements " << nb << endl;
+            sobject=sresult;
+            sanswer = "The " + sobject + " " + sverb;
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+
+        else if(nb == 1)   //  "object,location"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                sobject=sresult.substr(0,*it);
+                cout << "sagent1 : " << sobject << endl;
+                slocation=sresult.substr(*it+1,lposElements.size()-(*it+1));
+                cout << "sobject : " << slocation << endl;
+            }
+            sanswer = "The " + sobject + " " + sverb + " to the " + slocation;
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+    }
+    else if(iquestion == 2)  // "what did Anne do ?" => active form
+    {
+        int i = sforce.find("(");
+        int iend = sforce.size();
+        sverb = sforce.substr(0,i); // => "result"
+        cout << "sverb : " << sverb << endl;
+
+        sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
+        cout << "sforce : " << sforce << endl;
+
+        std::list<int> lposElements = nbCaracters(sforce);
+        int nb = lposElements.size();
+
+        if (nb == 0){            //  "object"
+            cout << "nb elements " << nb  << endl;
+            sobject=sforce;
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+
+        else if(nb == 1)   //  "Ag2,object"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+                cout << tab << endl;
+            }
+
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
+            cout << "sobject : " << sobject << endl;
+            cout << "tab : " << tab[0] << endl;
+            sanswer = sagent1 + " " + sverb + "ed the " + sobject;
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+        else if(nb == 2)   //  "Ag1,object,location"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+                cout << tab << endl;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
+            cout << "slocation : " << slocation << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
+
+            if (slocation == "left" || slocation == "right"){
+                sanswer = sagent1 + " " + sverb + "ed the " + sobject + " to the " + slocation;
+            }
+            else
+                sanswer = sagent1 + " " + sverb + "ed the " + sobject + " " + slocation;
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+        else if(nb == 3)   //  "Ag1,object,location,adverb"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+                cout << tab << endl;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,tab[2]-tab[1]+1);
+            cout << "slocation : " << slocation << endl;
+
+            sadverb==sforce.substr(tab[2]+1,sforce.size()-tab[2]+1);
+            cout << "sadverb : " << sadverb << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << " " << tab[2] << endl;
+
+            sanswer = sagent1 + " " + sverb + "ed the " + sobject + " to the " + slocation + " " + sadverb;
+
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+
+    }
+    else if(iquestion == 3)  // "how did that happen" => passive form
+    {
+        int i = sforce.find("(");
+        int iend = sforce.size();
+        string sverb = sforce.substr(0,i); // => "result"
+        cout << "sverb : " << sverb << endl;
+
+        sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
+        cout << "sforce : " << sforce << endl;
+
+        std::list<int> lposElements = nbCaracters(sforce);
+        int nb = lposElements.size();
+
+        if (nb == 0){            //  "object"
+            cout << "nb elements " << nb << endl;
+            string object=sforce;
+            sanswer = "The " + sobject + " has been " + sverb;
+            iCub->say(sanswer);
+        }
+
+        else if(nb == 1)   //  "Ag2,object"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
+            cout << "sobject : " << sobject << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
+
+            sanswer = "The " + sobject + " has been " + sverb + " by me";
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+        else if(nb == 2)   //  "Ag2,object,location"
+        {
+            cout << "nb elements " << nb;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
+            cout << "sobject : " << slocation << endl;
+
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
+
+            if (slocation == "left" || slocation == "right"){
+                sanswer = "The " + sobject + " has been " + sverb + "ed by me to the " + slocation;
+            }
+            else
+                sanswer = "The " + sobject + " has been " + sverb + "ed by me";
+
+            cout << "sanswer : " << endl;
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+        else if(nb == 3)   //  "Ag2,object,location,adverb"
+        {
+            cout << "nb elements " << nb;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,tab[2]-tab[1]+1);
+            cout << "sobject : " << slocation << endl;
+
+            sadverb==sforce.substr(tab[2]+1,sforce.size()-tab[2]+1);
+            cout << "sadverb : " << sadverb << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << " " << tab[2] << endl;
+
+            sanswer = "The " + sobject + " has been " + sverb + "ed by me to the " + slocation + " " + sadverb;
+
+            cout << "sanswer : " << endl;
+            iCub->say(sanswer);
+            cout << sanswer << endl;
+        }
+    }
+
+    cout << "##############################################################" << endl;
+    return languageNodeInteraction();
+}
+
+int reservoirHandler::languageNodeInteraction()
+{
+    sCurrentNode = "languageNodeInteraction";
+    sCurrentGrammarFile = nameGrammarNodeInteraction;
+    ostringstream osError;			// Error message
+    osError << "Error in  LanguageActionAnalysis | "<< sCurrentNode << " :: ";
+    cout << endl << "In " << sCurrentNode << endl << endl;
+
+    Bottle bOutput;
+
+    bool fGetaReply = false;
+    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
+            bMessenger, //to be send TO speech recog
+            bAnswer, //response from speech recog without transfer information, including raw sentence
+            bSemantic; // semantic information of the content of the recognition
+
+    bMessenger.addString("recog");
+    bMessenger.addString("grammarXML");
+    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
+
+
+    while (!fGetaReply)
+    {
+        bSpeechRecognized.clear();
+        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
+
+        //e.g. : Reply from Speech Recog : 1 ("I want you to produce language" (INFORMATION (type produce))) ACK
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
+        {
+            osError << "Check " << sCurrentGrammarFile;
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            //return bOutput;
+        }
+
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
+        {
+            osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            //return bOutput;
+        }
+
+        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+        bAnswer = *bSpeechRecognized.get(1).asList();
+
+        if (bAnswer.toString() != "" && !bAnswer.isNull())
+        {
+            fGetaReply = true;
+        }
+    }
+
+    if (bAnswer.get(0).asString() == "stop the interaction")
+    {
+        iCurrentInstance = -1;
+        osError.str("");
+        osError << " | STOP called";
+        bOutput.addString(osError.str());
+        cout << osError.str() << endl;
+        //return bOutput;
+    }
+
+    bAnswer = *bSpeechRecognized.get(1).asList();
+
+    if (bAnswer.get(1).asList()->get(0).asString() == "answer")
+    {
+        if (bAnswer.get(1).asList()->get(1).asString() == "positive"){
+            return languageNodeInteraction();
+        }
+        else if (bAnswer.get(1).asList()->get(1).asString() == "negative"){
+            return nodeTestAP();
+        }
+    }
+
+    if (bAnswer.get(1).asList()->get(0).toString() == "continue")
+    {
+        return mainNodeInteraction();
+    }
+
+    if (bAnswer.get(0).asString() == "what happened")
+    {
+        iquestion = 1;
+        return grammarNodeInteraction();
+    }
+    else if (bAnswer.get(1).asList()->get(0).asString() == "whoagent")
+    {
+        cout << "bAnswer.get(0).asString() : " << bAnswer.get(1).asList()->get(0).asString() << endl;
+        cout << "here    " << bAnswer.get(1).asString() << endl;
+        iquestion = 2;
+        bSemantic = *bAnswer.get(1).asList()->get(1).asList();
+        sagent = bSemantic.check("agent", Value("none")).asString();
+        return grammarNodeInteraction();
+    }
+    else if (bAnswer.get(0).asString() == "how did that happen")
+    {
+        iquestion = 3;
+        return grammarNodeInteraction();
+    }
+
+
+    //else if (bAnswer.get(0).asString() == "no")
+    //{
+    //    iCub->say("go ahead");
+    //}
+    return languageNodeInteraction();
+}
+
+bool reservoirHandler::languageNodeInteractionSD()
+{
+    sCurrentNode = "languageNodeInteractionSD";
+    sCurrentGrammarFile = nameGrammarNodeInteraction;
+    ostringstream osError;			// Error message
+    osError << "Error in  LanguageActionAnalysis | "<< sCurrentNode << " :: ";
+    cout << endl << "In " << sCurrentNode << endl << endl;
+
+
+    Bottle bOutput;
+
+    bool fGetaReply = false;
+    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
+            bMessenger, //to be send TO speech recog
+            bAnswer, //response from speech recog without transfer information, including raw sentence
+            bSemantic; // semantic information of the content of the recognition
+
+    bMessenger.addString("recog");
+    bMessenger.addString("grammarXML");
+    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
+
+    cout << endl << "In " << sCurrentNode  << " 2 " << endl << endl;
+
+
+    while (!fGetaReply)
+    {
+        bSpeechRecognized.clear();
+        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
+
+
+
+        for (int kk=0; kk < bSpeechRecognized.size(); kk++)
+        {
+            cout << "element " << kk << " " << bSpeechRecognized.get(kk).toString() << endl;
+        }
+
+
+
+        //e.g. : Reply from Speech Recog : 1 ("I want you to produce language" (INFORMATION (type produce))) ACK
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
+        {
+            osError << "Check " << sCurrentGrammarFile;
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            //return bOutput;
+        }
+
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
+        {
+            osError << "Grammar not recognized";
+            bOutput.addString(osError.str());
+            cout << osError.str() << endl;
+            //return bOutput;
+        }
+
+        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+        bAnswer = *bSpeechRecognized.get(1).asList();
+
+        if (bAnswer.toString() != "" && !bAnswer.isNull())
+        {
+            fGetaReply = true;
+        }
+    }
+
+    if (bAnswer.get(0).asString() == "stop the interaction")
+    {
+        iCurrentInstance = -1;
+        osError.str("");
+        osError << " | STOP called";
+        bOutput.addString(osError.str());
+        cout << osError.str() << endl;
+        return false;
+    }
+
+    bAnswer = *bSpeechRecognized.get(1).asList();
+
+
+    if (bAnswer.get(1).asList()->get(0).asString() == "answer")
+    {
+        //(yes (answer (positive yes)))
+        cout << bAnswer.get(1).asList()->get(0).asString() << endl;
+        cout << bAnswer.get(1).asList()->get(1).asString() << endl;
+
+        Bottle bans = *bAnswer.get(1).asList()->get(1).asList();
+        string pos = bans.check("positive", Value("none")).asString();
+
+        if (pos == "yes"){
+            return languageNodeInteractionSD();
+        }
+        else {
+            cout << bAnswer.get(1).asList()->get(1).asString();
+            cout << "I'm here in negative way" << endl;
+            sobjectFocusChanged="";
+            iCub->say("Do you want me to focus the description about object or location ?");
+            return nodeModality();
+        }
+    }
+
+
+    if (bAnswer.get(1).asList()->get(0).toString() == "happenedTo")
+    {
+        bSemantic = *bAnswer.get(1).asList()->get(1).asList();
+        sobjectFocusChanged = bSemantic.check("object", Value("none")).asString();
+
+        return spatialRelation();
+    }
+
+    return languageNodeInteractionSD();
+}
 
 bool reservoirHandler::launchSpatialRelation(){
     iCub->say("Do you have any Questions");
@@ -1083,12 +1958,12 @@ bool reservoirHandler::spatialRelation()
     }
 
     //get the focus object
-    //string sObjectFocus = "circle";
-    double maxSalience = 0.4;
-    string sObjectFocus = "none";
+    string sObjectFocus = "circle";
+    //double maxSalience = 0.0;
+    //string sObjectFocus = "none";
     if (sobjectFocusChanged.empty())
     {
-
+        double maxSalience = 0.4;
         for (std::vector<RTObject>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
         {
             if (itRTO->m_saliency > maxSalience)
@@ -1202,107 +2077,6 @@ bool reservoirHandler::spatialRelation()
     return launchSpatialRelation();
 }
 
-bool reservoirHandler::languageNodeInteractionSD()
-{
-    sCurrentNode = "nodelanguageNodeInteraction";
-    sCurrentGrammarFile = nameGrammarNodeInteraction;
-    ostringstream osError;			// Error message
-    osError << "Error in  LanguageActionAnalysis | "<< sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
-
-    Bottle bOutput;
-
-    bool fGetaReply = false;
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-            bMessenger, //to be send TO speech recog
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic; // semantic information of the content of the recognition
-
-    bMessenger.addString("recogBottle");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
-
-
-    while (!fGetaReply)
-    {
-        bSpeechRecognized.clear();
-        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
-
-        //e.g. : Reply from Speech Recog : 1 ("I want you to produce language" (INFORMATION (type produce))) ACK
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
-        {
-            osError << "Check " << sCurrentGrammarFile;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            //return bOutput;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            //return bOutput;
-        }
-
-        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-    }
-
-    if (bAnswer.get(0).asString() == "stop the interaction")
-    {
-        iCurrentInstance = -1;
-        osError.str("");
-        osError << " | STOP called";
-        bOutput.addString(osError.str());
-        cout << osError.str() << endl;
-        return false;
-    }
-
-    bAnswer = *bSpeechRecognized.get(1).asList();
-
-
-    if (bAnswer.get(1).asList()->get(0).asString() == "answer")
-    {
-        //(yes (answer (positive yes)))
-        cout << bAnswer.get(1).asList()->get(0).asString() << endl;
-        cout << bAnswer.get(1).asList()->get(1).asString() << endl;
-
-        Bottle bans = *bAnswer.get(1).asList()->get(1).asList();
-        string pos = bans.check("positive", Value("none")).asString();
-
-        if (pos == "yes"){
-            return languageNodeInteractionSD();
-        }
-        else {
-            cout << bAnswer.get(1).asList()->get(1).asString();
-            cout << "I'm here in negative way" << endl;
-            sobjectFocusChanged="";
-            iCub->say("Do you want me to focus the description about object or location ?");
-            return nodeModality();
-        }
-    }
-
-
-    if (bAnswer.get(1).asList()->get(0).toString() == "happenedTo")
-    {
-        bSemantic = *bAnswer.get(1).asList()->get(1).asList();
-        sobjectFocusChanged = bSemantic.check("object", Value("none")).asString();
-
-        return spatialRelation();
-    }
-
-    return languageNodeInteractionSD();
-}
-
-
 bool reservoirHandler::nodeYesNoInteraction()
 {
     sCurrentNode = "nodeYesNoInteraction";
@@ -1328,9 +2102,9 @@ bool reservoirHandler::nodeYesNoInteraction()
     {
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
 
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -1338,7 +2112,7 @@ bool reservoirHandler::nodeYesNoInteraction()
             return false;
         }
 
-        if (bSpeechRecognized.get(0).toString() == "0")
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
         {
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
@@ -1366,8 +2140,6 @@ bool reservoirHandler::nodeYesNoInteraction()
     return nodeYesNoInteraction();
 }
 
-
-
 bool reservoirHandler::nodeYesNo()
 {
     sCurrentNode = "nodeYesNo";
@@ -1393,9 +2165,9 @@ bool reservoirHandler::nodeYesNo()
     {
         Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
 
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        cout << "In " << sCurrentNode <<  " Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
 
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
+        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
             osError << "Check " << sCurrentGrammarFile;
             bOutput.addString(osError.str());
@@ -1403,7 +2175,7 @@ bool reservoirHandler::nodeYesNo()
             return false;
         }
 
-        if (bSpeechRecognized.get(0).toString() == "0")
+        if (bSpeechRecognized.get(1).toString() == "UNKNOWN")
         {
             osError << "Grammar not recognized";
             bOutput.addString(osError.str());
@@ -1430,664 +2202,4 @@ bool reservoirHandler::createVectorFile(string sVectorFile)
     fileVectorAP << sVectorFile <<endl;
 
     return true;
-}
-
-/*
- * test mode : copy the train data in test file, add the end of the train data (if first test) and add the test sentence
- */
-int reservoirHandler::copyTrainData(const char* fileNameIn, const char* fileNameOut)
-{
-    // Module Save
-    ofstream file;
-    if(inbsentence==1){
-        file.open(fileNameOut, ios::out | ios::trunc); // open the file in writing and erase the file if it is not empty
-        file << "<train data>"<< endl;
-        inbsentence+=1;
-        file.close();
-    }
-    if (sCurrentType == "train"){
-        cout << "iCub says : 'Ok'" << endl;
-        trainSaveMeaningSentence(fileNameOut);
-    }
-    else if (sCurrentType == "test"){
-        cout << "iCub says : 'I will describe the situation'" << endl ;
-        inbsentence=1;
-        copyPastFile(fileNameIn,fileNameOut);
-        createTestwithTrainData(fileNameOut, sdataTestSD);
-    }
-    file.close();
-
-    return true;
-}
-
-int reservoirHandler::trainSaveMeaningSentence(const char* filename)
-{
-    ofstream file;
-    file.open(filename, ios::out | ios::trunc);
-    std::list<string>::iterator it;
-
-    file << "<train data>" <<endl;
-    for(it=lMeaningsSentences.begin(); it!=lMeaningsSentences.end(); ++it)
-    {
-        string meaning;
-        if(sCurrentActivity == "produce")
-        {
-            meaning = "put trumpet left;put guitar right";
-            file << meaning << ";" << *it <<endl;
-        }
-        else
-        {
-            meaning = "left violin trumpet";
-            file << *it << ";" << meaning <<endl;
-        }
-    }
-    file.close();
-
-    return true;
-}
-
-int reservoirHandler::createTestwithTrainData(const char* filename, string sMeaningSentence)
-{
-    cout << "createTestwithTrainData(const char* filename, string sMeaningSentence " << endl;
-    cout << filename << "    " << "sMeaningSentence" << endl;
-    ofstream file;
-    file.open (filename, ios::app);
-    file << "</train data>" <<endl;
-    file << "<test data>" <<endl;
-    file << sMeaningSentence <<endl;
-    file << "</test data>" <<endl;
-    file.close();
-
-    return true;
-}
-
-int reservoirHandler::copyPastFile(const char* fileNameIn, const char* fileNameOut)
-{
-    ifstream in;
-    ofstream out;
-    in.open(fileNameIn);
-    out.open(fileNameOut, ios::out | ios::trunc);
-    string str;
-    while(getline(in,str))
-    {
-        out<<str<<endl;
-    }
-    in.close();
-    out.close();
-
-    return true;
-}
-
-string reservoirHandler::openResult(const char* fileNameIn)
-{
-    ifstream in;
-    in.open(fileNameIn);
-    string str;
-    getline(in,str);
-    cout << str << endl;
-    in.close();
-
-    return str;
-}
-
-vector<string> reservoirHandler::extractVocabulary(string sequence)
-{
-
-    string object, recipient, location;
-
-    //////////////////////////
-    if (sequence.find("grasp") != string::npos || sequence.find("take") != string::npos || sequence.find("put") != string::npos)
-    {
-        recipient = "grasp";
-    }
-    else if (sequence.find("point") != string::npos)
-    {
-        recipient = "point";
-    }
-
-    else if (sequence.find("push") != string::npos)
-    {
-        recipient = "push";
-    }
-
-    ///////////////////////////
-    if (sequence.find("circle") != string::npos)
-    {
-        object = "circle";
-    }
-    else if(sequence.find("cross") != string::npos)
-    {
-        object = "cross";
-    }
-    else if(sequence.find("triangle") != string::npos)
-    {
-        object = "triangle";
-    }
-    else if(sequence.find("square") != string::npos)
-    {
-        object = "square";
-    }
-    else if(sequence.find("eraser") != string::npos)
-    {
-        object = "eraser";
-    }
-    else if(sequence.find("croco") != string::npos)
-    {
-        object = "croco";
-    }
-    else if(sequence.find("cube") != string::npos)
-    {
-        object = "cube";
-    }
-    else if(sequence.find("mug") != string::npos)
-    {
-        object = "mug";
-    }
-    else if(sequence.find("mouse") != string::npos)
-    {
-        object = "mouse";
-    }
-    else if(sequence.find("rabbit") != string::npos)
-    {
-        object = "rabbit";
-    }
-    else if(sequence.find("wysiwyd sponge") != string::npos)
-    {
-        object = "wysiwyd sponge";
-    }
-    else if(sequence.find("white-trophy") != string::npos)
-    {
-        object = "white-trophy";
-    }
-
-    /////////////////////////////
-    if (sequence.find("left") != string::npos)
-    {
-        location="left";
-    }
-    else if (sequence.find("right") != string::npos)
-    {
-        location="right";
-    }
-    else if (sequence.find("middle") != string::npos)
-    {
-        location="middle";
-    }
-    else
-        location="";
-
-    vector<string> seq;
-    seq.push_back(recipient);
-    seq.push_back(object);
-    if (location.size()!=0)
-        seq.push_back(location);
-
-    if (seq.size()==2){
-        cout << seq[0] << " " << seq[1] << endl;
-    }
-    else if (seq.size()==3){
-        cout << seq[0] << " " << seq[1] << " " << seq[2] << endl;
-    }
-    return seq;
-}
-
-bool reservoirHandler::AREactions(vector<string> seq)
-{
-    string sPredicat,sObject,sLocation;
-    if (seq.size()== 3){
-        sPredicat = seq[0];
-        sObject   = seq[1];
-        sLocation = seq[2];
-    }
-    else if(seq.size()== 2){
-        sPredicat = seq[0];
-        sObject   = seq[1];
-        sLocation = "";
-    }
-
-    if (sPredicat == "none")
-    {
-        cout << "Error in reservoirHandler::AREactions | sPredicat == none" << endl;
-        return false;
-    }
-
-    // GET LOCATION OF THE OBJECT IN THE OPC + OFFSET IN Z
-    iCub->opc->update();
-    RTObject *rtObject = iCub->opc->addRTObject(sObject);
-    Vector value(4);
-    value = rtObject->m_ego_position;
-    value[2] += offsetGrasp;
-    cout << sObject << " is at: " << value.toString() << endl;
-
-    bool success = true;
-
-    if (rtObject->m_present)
-    {
-
-        // GRASP BEGIN
-        if (sPredicat == "put" ||  sPredicat == "take" || sPredicat == "grasp")
-        {
-            Bottle bHand(sHand);
-            bHand.addString("still");
-            cout << "sHand : " << sHand << endl;
-
-            Object* Location = iCub->opc->addObject(sLocation);
-            Vector vGoal = Location->m_ego_position;
-            vGoal[2] += ZRTObjects;
-
-            cout << "vGoal is : " << vGoal.toString() << endl;
-
-            // DROP ON LOCATION
-            if(sLocation != "none")
-            {
-
-                bool grasped=iCub->getARE()->take(value, bHand, false);
-                cout<<(grasped?"grasped!":"missed!")<<endl;
-
-                success &= grasped;
-
-                if(grasped){
-                    Bottle opts("over still " + sHand);
-                    bool dropped = iCub->getARE()->dropOn(vGoal,opts, false);
-                    cout<<(dropped?"dropped!":"missed!")<<endl;
-                    iCub->getARE()->home();
-                    success &= dropped;
-                }
-
-            }
-            // DROP WITHOUT LOCATION
-            else
-            {
-                bool grasped=iCub->getARE()->take(value, bHand, false);
-                cout<<(grasped?"grasped!":"missed!")<<endl;
-
-                success &= grasped;
-
-                if(grasped)
-                {
-                    iCub->release(value,bHand);
-                }
-                iCub->home(bHand.toString());
-            }
-            // END GRASP
-        }
-
-        // PUSH
-        else if(sPredicat == "push")
-        {
-            sLocation=="right"? sHand = "left": sHand = "right";
-
-            Bottle bHand(sHand);
-            cout << "sHand : " << sHand << endl;
-
-            bool pushed = iCub->getARE()->push(value, bHand, false);
-            cout<<(pushed?"pushed!":"missed!")<<endl;
-
-            success &= pushed;
-            iCub->getARE()->home();
-        }
-
-        // POINT
-        else if(sPredicat == "point")
-        {
-
-            Bottle bHand(sHand);
-            bHand.addString("still");
-            cout << "sHand : " << sHand << endl;
-
-            bool pointed = iCub->getARE()->point(value, bHand);
-            cout<<(pointed?"pointed!":"missed!")<<endl;
-
-            success &= pointed;
-
-            iCub->getARE()->home(sHand);
-        }
-
-        if(!sLocation.empty()){
-            sVectorFileAP = "force<" + sPredicat + "(I," + sObject + "," + sLocation + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + "," + sLocation + ")>";
-        }
-        else if(sLocation.empty()){
-            sVectorFileAP = "force<" + sPredicat + "(I," + sObject + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + ")>";
-        }
-        createVectorFile(sVectorFileAP);
-
-    }
-    else
-    {
-        cout << sObject << " is not present moron ! " << endl;
-        success = false;
-    }
-
-    cout << "Result of the action: " << (success?"success!":"missed!") << endl;
-
-    return success;
-}
-
-std::list<int> reservoirHandler::nbCaracters(string ssequence)
-{
-    int pos = 0;
-    std::list<int> lposElements;
-    for(pos = 0; pos < ssequence.size(); ++pos)
-    {
-        if (ssequence[pos]==','){
-            lposElements.push_back(pos);
-        }
-
-    }
-    return lposElements;
-}
-
-bool reservoirHandler::mainNodeInteraction()
-{
-    if(getline(fileVectorAPRead,svector))
-    {
-        iquestion = languageNodeInteraction();
-    }
-    else{
-        iCub->say("I have no more information");
-        return nodeTestAP();
-    }
-    return 0;
-}
-
-bool reservoirHandler::grammarNodeInteraction()
-{
-    cout << "################################################################" << endl;
-    int id = svector.find(";");
-    int idf = svector.size();
-    string sforce = svector.substr(6, id -7); //  => sforce=   "push(Ag1,object)"
-    string sresult = svector.substr(id +8,idf-1-(id +8)); // =>   sresult=   "move(object)"
-
-    string sverb, sagent1, sagent2, sobject, slocation;
-
-    if(iquestion == 1)  // => Case "What happened"  => Result part !!
-    {
-        int i = sresult.find("(");
-        int iend = sresult.size();
-        sverb = sresult.substr(0,i); // => "move"
-        cout << "sverb : " << sverb << endl;
-
-        sresult = sresult.substr(i+1,iend-(i+1)-1); // =>  "object"
-        cout << "sresult : " << sresult << endl;
-
-        std::list<int> lposElements = nbCaracters(sresult);
-        int nb = lposElements.size();
-
-
-        if (nb == 0){            //  "object"
-            cout << "nb elements " << nb << endl;
-            sobject=sresult;
-            sanswer = "The " + sobject + " " + sverb;
-            iCub->say(sanswer);
-            cout << sanswer << endl;
-        }
-
-        else if(nb == 1)   //  "object,location"
-        {
-            cout << "nb elements " << nb << endl;
-            std::list<int>::iterator it;
-
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
-            {
-                sobject=sresult.substr(0,*it);
-                cout << "sagent1 : " << sobject << endl;
-                slocation=sresult.substr(*it+1,lposElements.size()-(*it+1));
-                cout << "sobject : " << slocation << endl;
-            }
-            sanswer = "The " + sobject + " " + sverb + " on the " + slocation;
-            iCub->say(sanswer);
-            cout << sanswer << endl;
-        }
-    }
-    else if(iquestion == 2)  // "what did Anne do ?" => active form
-    {
-        int i = sforce.find("(");
-        int iend = sforce.size();
-        sverb = sforce.substr(0,i); // => "result"
-        cout << "sverb : " << sverb << endl;
-
-        sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
-        cout << "sforce : " << sforce << endl;
-
-        std::list<int> lposElements = nbCaracters(sforce);
-        int nb = lposElements.size();
-
-        if (nb == 0){            //  "object"
-            cout << "nb elements " << nb  << endl;
-            sobject=sforce;
-            iCub->say(sanswer);
-            cout << sanswer << endl;
-        }
-
-        else if(nb == 1)   //  "Ag2,object"
-        {
-            cout << "nb elements " << nb << endl;
-            std::list<int>::iterator it;
-            int cpt=0;
-
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
-            {
-                tab[cpt]=*it;
-                cpt++;
-                cout << tab << endl;
-            }
-
-            sagent1=sforce.substr(0,tab[0]);
-            cout << "sagent1 : " << sagent1 << endl;
-            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
-            cout << "sobject : " << sobject << endl;
-            cout << "tab : " << tab[0] << endl;
-            sanswer = sagent1 + " " + sverb + "ed the " + sobject;
-            iCub->say(sanswer);
-            cout << sanswer << endl;
-        }
-        else if(nb == 2)   //  "Ag1,object,location"
-        {
-            cout << "nb elements " << nb << endl;
-            std::list<int>::iterator it;
-            int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
-            {
-                tab[cpt]=*it;
-                cpt++;
-                cout << tab << endl;
-            }
-            sagent1=sforce.substr(0,tab[0]);
-            cout << "sagent1 : " << sagent1 << endl;
-
-            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
-            cout << "sobject : " << sobject << endl;
-
-            slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
-            cout << "slocation : " << slocation << endl;
-            cout << "tab : " << tab[0] << " " << tab[1] << endl;
-            sanswer = sagent1 + " " + sverb + "ed the " + sobject + " on the " + slocation;
-            iCub->say(sanswer);
-            cout << sanswer << endl;
-        }
-    }
-    else if(iquestion == 3)  // "how did that happen" => passive form
-    {
-        int i = sforce.find("(");
-        int iend = sforce.size();
-        string sverb = sforce.substr(0,i); // => "result"
-        cout << "sverb : " << sverb << endl;
-
-        sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
-        cout << "sforce : " << sforce << endl;
-
-        std::list<int> lposElements = nbCaracters(sforce);
-        int nb = lposElements.size();
-
-        if (nb == 0){            //  "object"
-            cout << "nb elements " << nb << endl;
-            string object=sforce;
-            sanswer = "The " + sobject + " has been " + sverb;
-            iCub->say(sanswer);
-        }
-
-        else if(nb == 1)   //  "Ag2,object"
-        {
-            cout << "nb elements " << nb << endl;
-            std::list<int>::iterator it;
-            int cpt=0;
-
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
-            {
-                tab[cpt]=*it;
-                cpt++;
-            }
-            sagent1=sforce.substr(0,tab[0]);
-            cout << "sagent1 : " << sagent1 << endl;
-
-            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
-            cout << "sobject : " << sobject << endl;
-            cout << "tab : " << tab[0] << " " << tab[1] << endl;
-
-            sanswer = "The " + sobject + " has been " + sverb + " by me";
-            iCub->say(sanswer);
-            cout << sanswer << endl;
-        }
-        else if(nb == 2)   //  "Ag2,object,location"
-        {
-            cout << "nb elements " << nb;
-            std::list<int>::iterator it;
-            int cpt=0;
-            int tab[lposElements.size()];
-            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
-            {
-                tab[cpt]=*it;
-                cpt++;
-            }
-            sagent1=sforce.substr(0,tab[0]);
-            cout << "sagent1 : " << sagent1 << endl;
-
-            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
-            cout << "sobject : " << sobject << endl;
-
-            slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
-            cout << "sobject : " << slocation << endl;
-
-            cout << "tab : " << tab[0] << " " << tab[1] << endl;
-            sanswer = "The " + sobject + " has been " + sverb + "ed by me on the " +slocation;
-            cout << "sanswer : " << endl;
-            iCub->say(sanswer);
-            cout << sanswer << endl;
-        }
-    }
-
-    cout << "##############################################################" << endl;
-    return languageNodeInteraction();
-}
-
-int reservoirHandler::languageNodeInteraction()
-{
-    sCurrentNode = "nodelanguageNodeInteraction";
-    sCurrentGrammarFile = nameGrammarNodeInteraction;
-    ostringstream osError;			// Error message
-    osError << "Error in  LanguageActionAnalysis | "<< sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
-
-    Bottle bOutput;
-
-    bool fGetaReply = false;
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-            bMessenger, //to be send TO speech recog
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic; // semantic information of the content of the recognition
-
-    bMessenger.addString("recogBottle");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
-
-
-    while (!fGetaReply)
-    {
-        bSpeechRecognized.clear();
-        Port2SpeechRecog.write(bMessenger,bSpeechRecognized);
-
-        //e.g. : Reply from Speech Recog : 1 ("I want you to produce language" (INFORMATION (type produce))) ACK
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
-        {
-            osError << "Check " << sCurrentGrammarFile;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            //return bOutput;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            //return bOutput;
-        }
-
-        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-    }
-
-    if (bAnswer.get(0).asString() == "stop the interaction")
-    {
-        iCurrentInstance = -1;
-        osError.str("");
-        osError << " | STOP called";
-        bOutput.addString(osError.str());
-        cout << osError.str() << endl;
-        //return bOutput;
-    }
-
-    bAnswer = *bSpeechRecognized.get(1).asList();
-
-    if (bAnswer.get(1).asList()->get(0).asString() == "answer")
-    {
-        if (bAnswer.get(1).asList()->get(1).asString() == "positive"){
-            return languageNodeInteraction();
-        }
-        else if (bAnswer.get(1).asList()->get(1).asString() == "negative"){
-            return nodeTestAP();
-        }
-    }
-
-    if (bAnswer.get(1).asList()->get(0).toString() == "continue")
-    {
-        return mainNodeInteraction();
-    }
-
-    if (bAnswer.get(0).asString() == "what happened")
-    {
-        iquestion = 1;
-        return grammarNodeInteraction();
-    }
-    else if (bAnswer.get(1).asList()->get(0).asString() == "whoagent")
-    {
-        cout << "bAnswer.get(0).asString() : " << bAnswer.get(1).asList()->get(0).asString() << endl;
-        cout << "here    " << bAnswer.get(1).asString() << endl;
-        iquestion = 2;
-        bSemantic = *bAnswer.get(1).asList()->get(1).asList();
-        sagent = bSemantic.check("agent", Value("none")).asString();
-        return grammarNodeInteraction();
-    }
-    else if (bAnswer.get(0).asString() == "how did that happen")
-    {
-        iquestion = 3;
-        return grammarNodeInteraction();
-    }
-
-
-    //else if (bAnswer.get(0).asString() == "no")
-    //{
-    //    iCub->say("go ahead");
-    //}
-    return languageNodeInteraction();
 }
