@@ -128,7 +128,7 @@ def main(path_file_in, path_file_out, sentence_to_meaning=True, plot=False, fast
     d['offset'] = True#False#True
     
     # Parameters for reservoir
-    N = 250#500#500#1000 #100
+    N = 500#500#500#1000 #100
     sr = 1#3#3#2#1
     iss = 0.25#0.01#1
     leak = 0.25/float(d['act_time'])#0.75/float(d['act_time'])#0.75/2.#0.5#0.05
