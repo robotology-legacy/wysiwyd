@@ -10,7 +10,7 @@
   </RULE>
 
   <RULE	NAME="INFORMATION"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>start</P>
+    <P>Go on</P>
     <RULEREF NAME="modality"/>
     <P>mode</P>
   </RULE>
