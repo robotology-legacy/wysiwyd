@@ -510,16 +510,20 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bool timingEnabled = false;
                 bool includeAugmented = true;
                 double speedM = 1.0;
+                bool useRealiCub = false;
                 if(bCommand.size() > 2 && bCommand.get(2).isInt()) {
                     timingEnabled = (atoi((bCommand.get(2)).toString().c_str())) > 0;
                     if(bCommand.size() > 3 && bCommand.get(3).isInt()) {
                         includeAugmented = (atoi((bCommand.get(3)).toString().c_str())) > 0;
                         if(bCommand.size() > 4 && bCommand.get(4).isDouble()) {
                             speedM = atof(bCommand.get(4).toString().c_str());
+                            if(bCommand.size() > 5 && bCommand.get(5).isInt()) {
+                                useRealiCub = (atoi((bCommand.get(5)).toString().c_str())) > 0;
+                            }
                         }
                     }
                 }
-                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented, speedM);
+                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented, speedM, useRealiCub);
             }
             else
             {
