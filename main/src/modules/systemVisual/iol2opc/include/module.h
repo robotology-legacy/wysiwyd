@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Ugo Pattacini, Tobias Fischer
  * email:   ugo.pattacini@iit.it, t.fischer@imperial.ac.uk
@@ -65,7 +65,7 @@ protected:
     ImageOf<PixelBgr> imgRtLoc;
     Mutex mutexResources;
     Mutex mutexResourcesOpc;
-    
+
     string name;
 
     map<string,Filter*> histFiltersPool;
@@ -75,7 +75,7 @@ protected:
     Bottle lastBlobs;
     Bottle opcBlobs;
     Bottle opcScores;
-    
+
     Vector skim_blobs_x_bounds;
     Vector skim_blobs_y_bounds;
     Vector histObjLocation;
@@ -102,14 +102,14 @@ protected:
 
     bool    configure(ResourceFinder &rf);
     bool    interruptModule();
-    bool    close();    
+    bool    close();
     bool    attach(RpcServer &source);
     double  getPeriod();
     bool    updateModule();
 
 public:
-    bool    add_name(const string &name);
-    bool    remove_name(const string &name);
+    bool    add_object(const string &name);
+    bool    remove_object(const string &name);
 };
 
 #endif
