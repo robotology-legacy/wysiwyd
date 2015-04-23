@@ -29,10 +29,10 @@
 #include <cv.h>
 
 #include "utils.h"
-#include "classifierHandling.h"
 #include "iol2opc_IDL.h"
 
 #define RET_INVALID     -1
+#define OBJECT_UNKNOWN  "?"
 
 using namespace std;
 using namespace yarp::os;
@@ -60,7 +60,6 @@ protected:
 
     RtLocalization rtLocalization;
     MemoryUpdater memoryUpdater;
-    ClassifiersDataBase db;
     map<string,int> memoryIds;
 
     ImageOf<PixelBgr> img;
@@ -96,6 +95,7 @@ protected:
     friend class RtLocalization;
     friend class MemoryUpdater;
 
+    string  findName(const Bottle &scores, const string &tag);
     Bottle  skimBlobs(const Bottle &blobs);
     Bottle  getBlobs();
     CvPoint getBlobCOG(const Bottle &blobs, const int i);
@@ -104,7 +104,6 @@ protected:
     void    drawBlobs(const Bottle &blobs, const int i, Bottle *scores=NULL);
     void    rotate(cv::Mat &src, const double angle, cv::Mat &dst);
     void    drawScoresHistogram(const Bottle &blobs, const Bottle &scores, const int i);
-    void    updateClassifierInMemory(Classifier *pClassifier);
     void    updateObjCartPosInMemory(const string &object, const Bottle &blobs, const int i);
     int     findClosestBlob(const Bottle &blobs, const CvPoint &loc);
     int     findClosestBlob(const Bottle &blobs, const Vector &loc);

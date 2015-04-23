@@ -25,7 +25,64 @@
 
 #include "module.h"
 
+using namespace std;
 using namespace yarp::math;
+
+
+/**********************************************************/
+string IOL2OPCBridge::findName(const Bottle &scores,
+                               const string &tag)
+{
+    string retName=OBJECT_UNKNOWN;
+//  double maxScore=0.0;
+//
+//  Bottle *blobScores=scores.find(tag.c_str()).asList();
+//  if (blobScores==NULL)
+//      return retName;
+//
+//  // first find the most likely object for the given blob
+//  for (int i=0; i<blobScores->size(); i++)
+//  {
+//      Bottle *item=blobScores->get(i).asList();
+//      if (item==NULL)
+//          continue;
+//
+//      string name=item->get(0).asString().c_str();
+//      double score=item->get(1).asDouble();
+//
+//      map<string,Classifier*>::iterator it=find(name);
+//      if (it!=end())
+//      {
+//          if (it->second->isThis(score) && (score>maxScore))
+//          {
+//              maxScore=score;
+//              retName=name;
+//          }
+//      }
+//  }
+//
+//  // then double-check that the found object remains the best
+//  // prediction over the remaining blobs
+//  if (retName!=OBJECT_UNKNOWN)
+//  {
+//      for (int i=0; i<scores.size(); i++)
+//      {
+//          if (Bottle *blob=scores.get(i).asList())
+//          {
+//              // skip the blob under examination
+//              string name=blob->get(0).asString().c_str();
+//              Bottle *blobScores=blob->get(1).asList();
+//              if ((name==tag) || (blobScores==NULL))
+//                  continue;
+//
+//              if (blobScores->find(retName.c_str()).asDouble()>=maxScore)
+//                  return OBJECT_UNKNOWN;
+//          }
+//      }
+//  }
+
+    return retName;
+}
 
 
 /**********************************************************/
@@ -186,7 +243,7 @@ void IOL2OPCBridge::drawBlobs(const Bottle &blobs, const int i,
             if (scores!=NULL)
             {
                 // find the blob name (or unknown)
-                string object=db.findName(*scores,tag.str());
+                string object=findName(*scores,tag.str());
                 tag.str("");
                 tag.clear();
                 tag<<object;
@@ -523,54 +580,20 @@ void IOL2OPCBridge::execForget(const string &object)
             mutexResourcesMemory.post();
         }
 
-        db.clear();
         replyHuman.addString("ack");
     }
     else    // forget specific object
     {
         ostringstream reply;
-        map<string,Classifier*>::iterator it=db.find(object);
-        if (it!=db.end())
+        //map<string,Classifier*>::iterator it=db.find(object);
+        //if (it!=db.end())
         {
             cmdClassifier.addVocab(Vocab::encode("forget"));
             cmdClassifier.addString(object.c_str());
             printf("Sending clearing request: %s\n",cmdClassifier.toString().c_str());
             rpcClassifier.write(cmdClassifier,replyClassifier);
             printf("Received reply: %s\n",replyClassifier.toString().c_str());
-
-            // remove the item from the memory too
-            if (rpcMemory.getOutputCount()>0)
-            {
-                mutexResourcesMemory.wait();
-                map<string,int>::iterator id=memoryIds.find(object);
-                map<string,int>::iterator memoryIdsEnd=memoryIds.end();
-                mutexResourcesMemory.post();
-
-                if (id!=memoryIdsEnd)
-                {
-                    Bottle cmdMemory,replyMemory;
-                    cmdMemory.addVocab(Vocab::encode("del"));
-                    Bottle &bid=cmdMemory.addList().addList();
-                    bid.addString("id");
-                    bid.addInt(id->second);
-                    rpcMemory.write(cmdMemory,replyMemory);
-
-                    mutexResourcesMemory.wait();
-                    memoryIds.erase(id);
-                    mutexResourcesMemory.post();
-                }
-            }
-
-            db.erase(it);
-            reply<<object<<" forgotten";
-            replyHuman.addString("ack");
         }
-        else
-        {
-            printf("%s object is unknown\n",object.c_str());
-            reply<<"I do not know any "<<object;
-            replyHuman.addString("nack");
-        }        
     }
 
     // release resources
@@ -695,7 +718,7 @@ void IOL2OPCBridge::updateMemory()
 
             // find the blob name (or unknown)
             mutexResources.wait();
-            string object=db.findName(scores,tag.str());
+            string object=findName(scores,tag.str());
             mutexResources.post();
 
             if (object!=OBJECT_UNKNOWN)
@@ -816,70 +839,6 @@ void IOL2OPCBridge::updateMemory()
 
         // release resources
         mutexMemoryUpdate.post();
-    }
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::updateClassifierInMemory(Classifier *pClassifier)
-{
-    if ((rpcMemory.getOutputCount()>0) && (pClassifier!=NULL))
-    {
-        string objectName=pClassifier->getName();
-
-        // prepare classifier_thresholds property
-        Bottle classifier_property;
-        Bottle &list_classifier=classifier_property.addList();
-        list_classifier.addString("classifier_thresholds");
-        list_classifier.addList().append(pClassifier->toBottle());
-
-        mutexResourcesMemory.wait();
-        map<string,int>::iterator id=memoryIds.find(objectName);
-        map<string,int>::iterator memoryIdsEnd=memoryIds.end();
-        mutexResourcesMemory.post();
-
-        Bottle cmdMemory,replyMemory;
-        if (id==memoryIdsEnd)      // the object is not available => [add]
-        {
-            cmdMemory.addVocab(Vocab::encode("add"));
-            Bottle &content=cmdMemory.addList();
-            Bottle &list_entity=content.addList();
-            list_entity.addString("entity");
-            list_entity.addString("object");
-            Bottle &list_name=content.addList();
-            list_name.addString("name");
-            list_name.addString(objectName.c_str());
-            content.append(classifier_property);
-            rpcMemory.write(cmdMemory,replyMemory);
-
-            if (replyMemory.size()>1)
-            {
-                // store the id for later usage
-                if (replyMemory.get(0).asVocab()==Vocab::encode("ack"))
-                {
-                    if (Bottle *idField=replyMemory.get(1).asList())
-                    {
-                        mutexResourcesMemory.wait();
-                        memoryIds[objectName]=idField->get(1).asInt();
-                        mutexResourcesMemory.post();
-                    }
-                }
-            }
-        }
-        else    // the object is already available => [set]
-        {
-            // prepare id property
-            Bottle bid;
-            Bottle &list_bid=bid.addList();
-            list_bid.addString("id");
-            list_bid.addInt(id->second);
-
-            cmdMemory.addVocab(Vocab::encode("set"));
-            Bottle &content=cmdMemory.addList();
-            content.append(bid);
-            content.append(classifier_property);
-            rpcMemory.write(cmdMemory,replyMemory);
-        }
     }
 }
 

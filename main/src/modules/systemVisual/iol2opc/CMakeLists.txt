@@ -8,12 +8,10 @@ project(${PROJECTNAME})
 include(YarpIDL)
 
 set(folder_header include/utils.h
-                  include/classifierHandling.h
                   include/module.h
                   ${IDL_GENERATED_CODE_DIR}/include/${PROJECTNAME}_IDL.h)
 
 set(folder_source src/utils.cpp
-                  src/classifierHandling.cpp
                   src/module.cpp
                   src/main.cpp
                   ${IDL_GENERATED_CODE_DIR}/src/${PROJECTNAME}_IDL.cpp)
