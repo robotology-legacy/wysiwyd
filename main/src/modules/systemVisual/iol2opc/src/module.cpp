@@ -29,34 +29,6 @@ using namespace yarp::math;
 
 
 /**********************************************************/
-class BusyGate
-{
-    bool &gate;
-    bool  owner;
-public:
-    /**********************************************************/
-    BusyGate(bool &g) : gate(g)
-    {
-        gate=true;
-        owner=true;
-    }
-
-    /**********************************************************/
-    void release()
-    {
-        owner=false;
-    }
-
-    /**********************************************************/
-    ~BusyGate()
-    {
-        if (owner)
-            gate=false; 
-    }
-};
-
-
-/**********************************************************/
 Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
 {
     Bottle skimmedBlobs;
@@ -184,7 +156,7 @@ void IOL2OPCBridge::acquireImage(const bool rtlocalization)
 
 /**********************************************************/
 void IOL2OPCBridge::drawBlobs(const Bottle &blobs, const int i,
-                        Bottle *scores)
+                              Bottle *scores)
 {
     // grab resources
     mutexResources.wait();
@@ -426,7 +398,8 @@ int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const Vector &loc)
 
 
 /**********************************************************/
-Bottle IOL2OPCBridge::classify(const Bottle &blobs, const bool rtlocalization)
+Bottle IOL2OPCBridge::classify(const Bottle &blobs,
+                               const bool rtlocalization)
 {
     // grab resources
     mutexResources.wait();
@@ -460,7 +433,7 @@ Bottle IOL2OPCBridge::classify(const Bottle &blobs, const bool rtlocalization)
 
 /**********************************************************/
 void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
-                    const int i)
+                          const int i)
 {
     // grab resources
     mutexResources.wait();
@@ -513,90 +486,6 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
 
     // release resources
     mutexResources.post();
-}
-
-
-/**********************************************************/
-int IOL2OPCBridge::recognize(const string &object, Bottle &blobs,
-                       Classifier **ppClassifier)
-{
-    map<string,Classifier*>::iterator it=db.find(object);
-    if (it==db.end())
-    {
-        // if not, create a brand new one
-        db[object]=new Classifier(object,classification_threshold);
-        it=db.find(object);
-        printf("created classifier for %s\n",object.c_str());
-    }
-
-    // acquire image for classification/training
-    acquireImage();
-
-    // grab the blobs
-    blobs=getBlobs();
-
-    // failure handling
-    if (blobs.size()==0)
-        return RET_INVALID;
-
-    // get the scores from the learning machine
-    Bottle scores=classify(blobs);
-
-    // failure handling
-    if (scores.size()==1)
-        if (scores.get(0).asString()=="failed")
-            return RET_INVALID;
-
-    // find the best blob
-    int recogBlob=db.processScores(it->second,scores);
-
-    // draw the blobs highlighting the recognized one (if any)
-    drawBlobs(blobs,recogBlob);
-
-    // prepare output
-    if (ppClassifier!=NULL)
-        *ppClassifier=it->second;
-
-    return recogBlob;
-}
-
-
-/**********************************************************/
-int IOL2OPCBridge::recognize(Bottle &blobs, Bottle &scores, string &object)
-{
-    object=OBJECT_UNKNOWN;
-
-    // acquire image for classification/training
-    acquireImage();
-
-    // grab the blobs
-    blobs=getBlobs();
-
-    // failure handling
-    if (blobs.size()==0)
-        return RET_INVALID;
-
-    // get the scores from the learning machine
-    scores=classify(blobs);
-
-    // failure handling
-    if (scores.size()==1)
-        if (scores.get(0).asString()=="failed")
-            return RET_INVALID;
-
-    // handle the human-pointed object
-    if (whatGood)
-    {
-        int closestBlob=findClosestBlob(blobs,whatLocation);
-        drawBlobs(blobs,closestBlob);
-
-        ostringstream tag;
-        tag<<"blob_"<<closestBlob;
-        object=db.findName(scores,tag.str());
-        return closestBlob;
-    }
-    else
-        return RET_INVALID;
 }
 
 
@@ -690,97 +579,6 @@ void IOL2OPCBridge::execForget(const string &object)
 
 
 /**********************************************************/
-void IOL2OPCBridge::execWhere(const string &object, const Bottle &blobs,
-                        const int recogBlob, Classifier *pClassifier,
-                        const string &recogType)
-{
-    Bottle cmdHuman,valHuman,replyHuman;
-
-    // some known object has been recognized
-    if (recogBlob>=0)
-    {
-        ostringstream reply;
-        reply<<"I think this is the "<<object;
-        printf("I think the %s is blob %d\n",object.c_str(),recogBlob);
-
-        replyHuman.addString("ack");
-        replyHuman.addInt(recogBlob);
-    }
-    // no known object has been recognized in the scene
-    else
-    {
-        ostringstream reply;
-        reply<<"I have not found any "<<object;
-        reply<<", is it so?";
-        printf("No object recognized\n");
-
-        replyHuman.addString("nack");
-    }
-
-    // enter the human interaction mode to refine the knowledge
-    bool ok=false;
-    while (!ok)
-    {
-        replyHuman.clear();
-        //rpcHuman.read(cmdHuman,true);
-
-        if (isStopping())
-            return;
-
-        int type=0;//processHumanCmd(cmdHuman,valHuman);
-        // do nothing
-
-        if (type==Vocab::encode("skip"))
-        {
-            replyHuman.addString("ack");
-            ok=true;
-        }
-        // good job is done
-        else if (type==Vocab::encode("ack"))
-        {
-            // reinforce if an object is available
-            if ((recogBlob>=0) && (pClassifier!=NULL))
-            {
-                train(object,blobs,recogBlob);
-                pClassifier->positive();
-                triggerRecogInfo(object,blobs,recogBlob,"recognition");
-                updateClassifierInMemory(pClassifier);
-            }
-
-            replyHuman.addString("ack");
-            ok=true;
-        }
-        // misrecognition
-        else if (type==Vocab::encode("nack"))
-        {
-            // update the threshold if an object is available
-            if ((recogBlob>=0) && (pClassifier!=NULL))
-            {
-                pClassifier->negative();
-                updateClassifierInMemory(pClassifier);
-            }
-
-            // handle the human-pointed object
-            CvPoint loc;
-            //if (pointedLoc.getLoc(loc))
-            {
-                int closestBlob=findClosestBlob(blobs,loc);
-                train(object,blobs,closestBlob);
-                triggerRecogInfo(object,blobs,closestBlob,recogType);
-            }
-
-            replyHuman.addString("ack");
-            ok=true;
-        }
-        else
-            replyHuman.addString("nack");
-
-        //rpcHuman.reply(replyHuman);
-    }
-}
-
-
-/**********************************************************/
 void IOL2OPCBridge::doLocalization()
 {
     // acquire image for classification/training
@@ -816,7 +614,7 @@ void IOL2OPCBridge::doLocalization()
 
 /**********************************************************/
 bool IOL2OPCBridge::get3DPositionFromMemory(const string &object,
-                                      Vector &position)
+                                            Vector &position)
 {
     bool ret=false;
     if (rpcMemory.getOutputCount()>0)
@@ -1148,33 +946,6 @@ void IOL2OPCBridge::updateObjCartPosInMemory(const string &object,
 
 
 /**********************************************************/
-void IOL2OPCBridge::triggerRecogInfo(const string &object, const Bottle &blobs,
-                               const int i, const string &recogType)
-{
-    if ((recogTriggerPort.getOutputCount()>0) && (i!=RET_INVALID) && (i<blobs.size()))
-    {
-        CvPoint cog=getBlobCOG(blobs,i);
-        if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
-            return;
-
-        Vector x;
-        if (get3DPosition(cog,x))
-        {
-            Property &msg=recogTriggerPort.prepare();
-            msg.clear();
-
-            Bottle pos; pos.addList().read(x);
-            msg.put("label",object.c_str());
-            msg.put("position_3d",pos.get(0));
-            msg.put("type",recogType.c_str());
-
-            recogTriggerPort.write();
-        }
-    }
-}
-
-
-/**********************************************************/
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     name=rf.check("name",Value("iol2opc")).asString().c_str();
@@ -1314,26 +1085,12 @@ bool IOL2OPCBridge::close()
 /**********************************************************/
 bool IOL2OPCBridge::updateModule()
 {
-    BusyGate busyGate(busy);
-
     string activeObject="";
 
     //if ((rxCmd==Vocab::encode("forget")) && (valHuman.size()>0))
     {        
         mutexMemoryUpdate.wait();
         execForget(activeObject);
-        mutexMemoryUpdate.post();
-    }
-    //else if ((rxCmd==Vocab::encode("where")) && (valHuman.size()>0))
-    {        
-        Bottle blobs;
-        Classifier *pClassifier;        
-
-        mutexMemoryUpdate.wait();
-        string recogType=(db.find(activeObject)==db.end())?"creation":"recognition";
-        int recogBlob=recognize(activeObject,blobs,&pClassifier);
-        updateObjCartPosInMemory(activeObject,blobs,recogBlob);
-        execWhere(activeObject,blobs,recogBlob,pClassifier,recogType);
         mutexMemoryUpdate.post();
     }
 
@@ -1349,6 +1106,13 @@ bool IOL2OPCBridge::attach(RpcServer &source)
 
 
 /**********************************************************/
+double IOL2OPCBridge::getPeriod()
+{
+    return 1.0;
+}
+
+
+/**********************************************************/
 bool IOL2OPCBridge::add_name(const string &name)
 {
     return false;
@@ -1360,13 +1124,5 @@ bool IOL2OPCBridge::remove_name(const string &name)
 {
     return false;
 }
-
-
-/**********************************************************/
-double IOL2OPCBridge::getPeriod()
-{
-    return 1.0;
-}
-
 
 

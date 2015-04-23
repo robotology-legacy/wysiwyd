@@ -71,7 +71,6 @@ protected:
     Semaphore mutexMemoryUpdate;
     
     string name;
-    bool busy;
     bool scheduleLoadMemory;
     bool enableInterrupt;
     bool actionInterrupted;
@@ -81,16 +80,10 @@ protected:
     bool trainBurst;    
     double improve_train_period;
     double classification_threshold;
-    double blockEyes;
 
     map<string,Filter*> histFiltersPool;
     int histFilterLength;
     deque<CvScalar> histColorsCode;
-
-    bool    trackStopGood;
-    bool    whatGood;    
-    CvPoint trackStopLocation;
-    CvPoint whatLocation;
 
     Bottle lastBlobs;
     Bottle memoryBlobs;
@@ -113,27 +106,24 @@ protected:
     void    drawScoresHistogram(const Bottle &blobs, const Bottle &scores, const int i);
     void    updateClassifierInMemory(Classifier *pClassifier);
     void    updateObjCartPosInMemory(const string &object, const Bottle &blobs, const int i);
-    void    triggerRecogInfo(const string &object, const Bottle &blobs, const int i, const string &recogType);
     int     findClosestBlob(const Bottle &blobs, const CvPoint &loc);
     int     findClosestBlob(const Bottle &blobs, const Vector &loc);
     Bottle  classify(const Bottle &blobs, const bool rtlocalization=false);
     void    train(const string &object, const Bottle &blobs, const int i);
-    int     recognize(const string &object, Bottle &blobs, Classifier **ppClassifier=NULL);
-    int     recognize(Bottle &blobs, Bottle &scores, string &object);
     void    execForget(const string &object);
-    void    execWhere(const string &object, const Bottle &blobs, const int recogBlob, Classifier *pClassifier, const string &recogType);
     void    doLocalization();
     bool    get3DPositionFromMemory(const string &object, Vector &position);
     bool    doExploration(const string &object, const Vector &position);
     void    updateMemory();
-    bool    attach(RpcServer &source);
 
-public:
     bool    configure(ResourceFinder &rf);
     bool    interruptModule();
     bool    close();
     bool    updateModule();
+    bool    attach(RpcServer &source);
     double  getPeriod();
+
+public:
     bool    add_name(const string &name);
     bool    remove_name(const string &name);
 };

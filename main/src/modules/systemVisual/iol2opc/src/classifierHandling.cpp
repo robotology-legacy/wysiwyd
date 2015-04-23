@@ -259,55 +259,8 @@ void ClassifiersDataBase::erase(iterator it)
 
 
 /**********************************************************/
-int ClassifiersDataBase::processScores(Classifier *pClassifier,
-                                       const Bottle &scores)
-{
-    int ret=-1;
-    double maxScoreObj=0.0;
-
-    for (int i=0; i<scores.size(); i++)
-    {
-        ostringstream tag;
-        tag<<"blob_"<<i;
-
-        double maxScoreNoObj=0.0;
-        double scoreObj=0.0;
-
-        Bottle *blobScores=scores.find(tag.str().c_str()).asList();
-        if (blobScores==NULL)
-            continue;
-
-        for (int j=0; j<blobScores->size(); j++)
-        {
-            Bottle *item=blobScores->get(j).asList();
-            if (item==NULL)
-                continue;
-
-            string name=item->get(0).asString().c_str();
-            double score=item->get(1).asDouble();
-
-            if (name==pClassifier->getName())
-            {
-                if (pClassifier->isThis(score))
-                    scoreObj=score;
-            }
-            else if (score>=maxScoreNoObj)
-                maxScoreNoObj=score;
-        }
-
-        if ((scoreObj>maxScoreNoObj) && (scoreObj>maxScoreObj))
-        {
-            pClassifier->prepare(maxScoreObj=scoreObj);
-            ret=i;
-        }
-    }
-
-    return ret;
-}
-
-
-/**********************************************************/
-string ClassifiersDataBase::findName(const Bottle &scores, const string &tag)
+string ClassifiersDataBase::findName(const Bottle &scores,
+                                     const string &tag)
 {
     string retName=OBJECT_UNKNOWN;
     double maxScore=0.0;
