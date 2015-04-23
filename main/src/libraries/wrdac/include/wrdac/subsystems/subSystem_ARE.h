@@ -471,7 +471,6 @@ namespace wysiwyd {
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     SubABM->sendActivity("action", "waving", "action", lArgument,true);
                 }
-
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("waveing"));
                 bCmd.addString(sw?"on":"off");
