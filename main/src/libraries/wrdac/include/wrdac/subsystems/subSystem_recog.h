@@ -49,7 +49,7 @@ namespace wysiwyd{
 			yarp::os::Port portRPC;
 			SubSystem_Recog(const std::string &masterName) :SubSystem(masterName){
 				portRPC.open(("/" + m_masterName + "/recog:rpc").c_str());
-				m_type = SUBSYSTEM_ABM;
+                m_type = SUBSYSTEM_RECOG;
 			}
 
 
