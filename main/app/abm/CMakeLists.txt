@@ -6,7 +6,7 @@ if(WYSIWYD_USE_PGSQL)
     add_subdirectory(autobiographicalMemory)
 endif(WYSIWYD_USE_PGSQL)
 
-#add_subdirectory(ABMRosToYarpBridge)
+add_subdirectory(ABMRosToYarpBridge)
 add_subdirectory(abmHandler)
 add_subdirectory(abmReasoning)
 
