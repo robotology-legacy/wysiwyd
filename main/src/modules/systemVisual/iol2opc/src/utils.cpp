@@ -50,30 +50,30 @@ void RtLocalization::run()
 
 
 /**********************************************************/
-MemoryUpdater::MemoryUpdater() : RateThread(100)
+OpcUpdater::OpcUpdater() : RateThread(100)
 {
     bridge=NULL;
 }
 
 
 /**********************************************************/
-void MemoryUpdater::setBridge(IOL2OPCBridge *bridge)
+void OpcUpdater::setBridge(IOL2OPCBridge *bridge)
 {
     this->bridge=bridge;
 }
 
 
 /**********************************************************/
-bool MemoryUpdater::threadInit()
+bool OpcUpdater::threadInit()
 {
     return ((bridge!=NULL) && (getRate()!=0.0));
 }
 
 
 /**********************************************************/
-void MemoryUpdater::run()
+void OpcUpdater::run()
 {
-    bridge->updateMemory();
+    bridge->updateOPC();
 }
 
 

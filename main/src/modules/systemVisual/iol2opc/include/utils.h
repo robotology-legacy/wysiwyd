@@ -49,7 +49,7 @@ public:
 
 
 /**********************************************************/
-class MemoryUpdater : public RateThread
+class OpcUpdater : public RateThread
 {
 protected:
     IOL2OPCBridge *bridge;
@@ -58,7 +58,7 @@ protected:
     void run();
 
 public:
-    MemoryUpdater();
+    OpcUpdater();
     void setBridge(IOL2OPCBridge *bridge);
 };
 

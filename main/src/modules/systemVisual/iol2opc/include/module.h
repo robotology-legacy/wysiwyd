@@ -22,11 +22,12 @@
 #include <deque>
 #include <map>
 
+#include <cv.h>
+
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <iCub/ctrl/filters.h>
-
-#include <cv.h>
+#include <wrdac/clients/opcClient.h>
 
 #include "utils.h"
 #include "iol2opc_IDL.h"
@@ -38,16 +39,17 @@ using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace iCub::ctrl;
+using namespace wysiwyd::wrdac;
 
 
 /**********************************************************/
 class IOL2OPCBridge : public RFModule, public iol2opc_IDL
 {
 protected:
-    RpcServer rpcPort;
-    RpcClient rpcClassifier;
-    RpcClient rpcGet3D;
-    RpcClient rpcMemory;
+    RpcServer  rpcPort;
+    RpcClient  rpcClassifier;
+    RpcClient  rpcGet3D;
+    OPCClient *opc;
 
     BufferedPort<Bottle>             blobExtractor;
     BufferedPort<Bottle>             histObjLocPort;
@@ -60,8 +62,7 @@ protected:
     Port imgClassifier;
 
     RtLocalization rtLocalization;
-    MemoryUpdater memoryUpdater;
-    map<string,int> memoryIds;
+    OpcUpdater opcUpdater;
 
     ImageOf<PixelBgr> img;
     ImageOf<PixelBgr> imgRtLoc;
@@ -84,7 +85,7 @@ protected:
     Vector histObjLocation;
 
     friend class RtLocalization;
-    friend class MemoryUpdater;
+    friend class OpcUpdater;
 
     string  findName(const Bottle &scores, const string &tag);
     Bottle  skimBlobs(const Bottle &blobs);
@@ -96,22 +97,20 @@ protected:
     void    drawBlobs(const Bottle &blobs, const int i, Bottle *scores=NULL);
     void    rotate(cv::Mat &src, const double angle, cv::Mat &dst);
     void    drawScoresHistogram(const Bottle &blobs, const Bottle &scores, const int i);
-    void    updateObjCartPosInMemory(const string &object, const Bottle &blobs, const int i);
     int     findClosestBlob(const Bottle &blobs, const CvPoint &loc);
     int     findClosestBlob(const Bottle &blobs, const Vector &loc);
     Bottle  classify(const Bottle &blobs, const bool rtlocalization=false);
     void    train(const string &object, const Bottle &blobs, const int i);
     void    execForget(const string &object);
     void    doLocalization();
-    bool    get3DPositionFromMemory(const string &object, Vector &position);
-    void    updateMemory();
+    void    updateOPC();
 
     bool    configure(ResourceFinder &rf);
     bool    interruptModule();
-    bool    close();
-    bool    updateModule();
+    bool    close();    
     bool    attach(RpcServer &source);
     double  getPeriod();
+    bool    updateModule();
 
 public:
     bool    add_name(const string &name);

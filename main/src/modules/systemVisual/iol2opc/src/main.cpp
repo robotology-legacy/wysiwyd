@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     Network yarp;
     if (!yarp.checkNetwork())
     {
-        yError("Yarp network does seem to be available!");
+        yError("Yarp network doesn't seem to be available!");
         return -1;
     }
 

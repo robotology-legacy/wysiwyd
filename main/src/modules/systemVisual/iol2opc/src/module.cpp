@@ -34,52 +34,27 @@ string IOL2OPCBridge::findName(const Bottle &scores,
                                const string &tag)
 {
     string retName=OBJECT_UNKNOWN;
-//  double maxScore=0.0;
-//
-//  Bottle *blobScores=scores.find(tag.c_str()).asList();
-//  if (blobScores==NULL)
-//      return retName;
-//
-//  // first find the most likely object for the given blob
-//  for (int i=0; i<blobScores->size(); i++)
-//  {
-//      Bottle *item=blobScores->get(i).asList();
-//      if (item==NULL)
-//          continue;
-//
-//      string name=item->get(0).asString().c_str();
-//      double score=item->get(1).asDouble();
-//
-//      map<string,Classifier*>::iterator it=find(name);
-//      if (it!=end())
-//      {
-//          if (it->second->isThis(score) && (score>maxScore))
-//          {
-//              maxScore=score;
-//              retName=name;
-//          }
-//      }
-//  }
-//
-//  // then double-check that the found object remains the best
-//  // prediction over the remaining blobs
-//  if (retName!=OBJECT_UNKNOWN)
-//  {
-//      for (int i=0; i<scores.size(); i++)
-//      {
-//          if (Bottle *blob=scores.get(i).asList())
-//          {
-//              // skip the blob under examination
-//              string name=blob->get(0).asString().c_str();
-//              Bottle *blobScores=blob->get(1).asList();
-//              if ((name==tag) || (blobScores==NULL))
-//                  continue;
-//
-//              if (blobScores->find(retName.c_str()).asDouble()>=maxScore)
-//                  return OBJECT_UNKNOWN;
-//          }
-//      }
-//  }
+    double maxScore=0.0;
+
+    Bottle *blobScores=scores.find(tag.c_str()).asList();
+    if (blobScores==NULL)
+        return retName;
+
+    // first find the most likely object for the given blob
+    for (int i=0; i<blobScores->size(); i++)
+    {
+        Bottle *item=blobScores->get(i).asList();
+        if (item==NULL)
+            continue;
+
+        string name=item->get(0).asString().c_str();
+        double score=item->get(1).asDouble();
+        if (score>maxScore)
+        {
+            maxScore=score;
+            retName=name;
+        }
+    }
 
     return retName;
 }
@@ -278,7 +253,8 @@ void IOL2OPCBridge::drawBlobs(const Bottle &blobs, const int i,
 
 
 /**********************************************************/
-void IOL2OPCBridge::rotate(cv::Mat &src, const double angle, cv::Mat &dst)
+void IOL2OPCBridge::rotate(cv::Mat &src, const double angle, 
+                           cv::Mat &dst)
 {
     int len=std::max(src.cols,src.rows);
     cv::Point2f pt(len/2.0f,len/2.0f);
@@ -289,7 +265,8 @@ void IOL2OPCBridge::rotate(cv::Mat &src, const double angle, cv::Mat &dst)
 
 /**********************************************************/
 void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
-                                  const Bottle &scores, const int i)
+                                        const Bottle &scores,
+                                        const int i)
 {
     if (imgHistogram.getOutputCount()>0)
     {
@@ -551,25 +528,6 @@ void IOL2OPCBridge::execForget(const string &object)
         printf("Sending clearing request: %s\n",cmdClassifier.toString().c_str());
         rpcClassifier.write(cmdClassifier,replyClassifier);
         printf("Received reply: %s\n",replyClassifier.toString().c_str());
-
-        // clear the memory too
-        if (rpcMemory.getOutputCount()>0)
-        {
-            mutexResourcesMemory.wait();
-            for (map<string,int>::iterator id=memoryIds.begin(); id!=memoryIds.end(); id++)
-            {
-                Bottle cmdMemory,replyMemory;
-                cmdMemory.addVocab(Vocab::encode("del"));
-                Bottle &bid=cmdMemory.addList().addList();
-                bid.addString("id");
-                bid.addInt(id->second);
-                rpcMemory.write(cmdMemory,replyMemory);
-            }
-            memoryIds.clear();
-            mutexResourcesMemory.post();
-        }
-
-        replyHuman.addString("ack");
     }
     else    // forget specific object
     {
@@ -625,71 +583,9 @@ void IOL2OPCBridge::doLocalization()
 
 
 /**********************************************************/
-bool IOL2OPCBridge::get3DPositionFromMemory(const string &object,
-                                            Vector &position)
+void IOL2OPCBridge::updateOPC()
 {
-    bool ret=false;
-    if (rpcMemory.getOutputCount()>0)
-    {
-        // grab resources
-        mutexMemoryUpdate.wait();
-
-        mutexResourcesMemory.wait();
-        map<string,int>::iterator id=memoryIds.find(object);
-        map<string,int>::iterator memoryIdsEnd=memoryIds.end();
-        mutexResourcesMemory.post();
-
-        if (id!=memoryIdsEnd)
-        {
-            // get the relevant properties
-            // [get] (("id" <num>) ("propSet" ("position_3d")))
-            Bottle cmdMemory,replyMemory;
-            cmdMemory.addVocab(Vocab::encode("get"));
-            Bottle &content=cmdMemory.addList();
-            Bottle &list_bid=content.addList();
-            list_bid.addString("id");
-            list_bid.addInt(id->second);
-            Bottle &list_propSet=content.addList();
-            list_propSet.addString("propSet");
-            Bottle &list_items=list_propSet.addList();
-            list_items.addString("position_3d");
-            rpcMemory.write(cmdMemory,replyMemory);
-
-            // retrieve 3D position
-            if (replyMemory.get(0).asVocab()==Vocab::encode("ack"))
-            {
-                if (Bottle *propField=replyMemory.get(1).asList())
-                {
-                    if (propField->check("position_3d"))
-                    {
-                        if (Bottle *pPos=propField->find("position_3d").asList())
-                        {
-                            if (pPos->size()>=3)
-                            {
-                                position.resize(3);
-                                position[0]=pPos->get(0).asDouble();
-                                position[1]=pPos->get(1).asDouble();
-                                position[2]=pPos->get(2).asDouble();
-                                ret=true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // release resources
-        mutexMemoryUpdate.post();
-    }
-
-    return ret;
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::updateMemory()
-{
-    if (rpcMemory.getOutputCount()>0)
+    if (opc->isConnected())
     {
         // grab resources
         mutexMemoryUpdate.wait();
@@ -699,7 +595,6 @@ void IOL2OPCBridge::updateMemory()
         Bottle scores=memoryScores;
         mutexResourcesMemory.post();
 
-        set<int> avalObjIds;
         for (int j=0; j<blobs.size(); j++)
         {
             ostringstream tag;
@@ -744,8 +639,8 @@ void IOL2OPCBridge::updateMemory()
                     list_3d_c.addDouble(x[2]);
 
                     mutexResourcesMemory.wait();
-                    map<string,int>::iterator id=memoryIds.find(object);
-                    map<string,int>::iterator memoryIdsEnd=memoryIds.end();
+                    map<string,int>::iterator id;//=memoryIds.find(object);
+                    map<string,int>::iterator memoryIdsEnd;//=memoryIds.end();
                     mutexResourcesMemory.post();
 
                     Bottle cmdMemory,replyMemory;
@@ -761,7 +656,7 @@ void IOL2OPCBridge::updateMemory()
                         list_name.addString(object.c_str());
                         content.append(position_2d);
                         content.append(position_3d);
-                        rpcMemory.write(cmdMemory,replyMemory);
+                        //rpcOpc.write(cmdMemory,replyMemory);
 
                         if (replyMemory.size()>1)
                         {
@@ -772,10 +667,8 @@ void IOL2OPCBridge::updateMemory()
                                 {
                                     int id=idField->get(1).asInt();
                                     mutexResourcesMemory.wait();
-                                    memoryIds[object]=id;
+                                    //memoryIds[object]=id;
                                     mutexResourcesMemory.post();
-
-                                    avalObjIds.insert(id);
                                 }
                                 else
                                     continue;
@@ -795,36 +688,11 @@ void IOL2OPCBridge::updateMemory()
                         content.append(bid);
                         content.append(position_2d);
                         content.append(position_3d);
-                        rpcMemory.write(cmdMemory,replyMemory);
-
-                        avalObjIds.insert(id->second);
+                        //rpcOpc.write(cmdMemory,replyMemory);
                     }
                 }
             }
         }
-
-        // remove position properties of objects not in scene
-        mutexResourcesMemory.wait();
-        for (map<string,int>::iterator it=memoryIds.begin(); it!=memoryIds.end(); it++)
-        {
-            int id=it->second;
-            if (avalObjIds.find(id)==avalObjIds.end())
-            {
-                Bottle cmdMemory,replyMemory;
-                cmdMemory.addVocab(Vocab::encode("del"));
-                Bottle &content=cmdMemory.addList();
-                Bottle &list_bid=content.addList();
-                list_bid.addString("id");
-                list_bid.addInt(id);
-                Bottle &list_propSet=content.addList();
-                list_propSet.addString("propSet");
-                Bottle &list_items=list_propSet.addList();
-                list_items.addString("position_2d");
-                list_items.addString("position_3d");
-                rpcMemory.write(cmdMemory,replyMemory);
-            }
-        }
-        mutexResourcesMemory.post();
 
         // release resources
         mutexMemoryUpdate.post();
@@ -833,70 +701,15 @@ void IOL2OPCBridge::updateMemory()
 
 
 /**********************************************************/
-void IOL2OPCBridge::updateObjCartPosInMemory(const string &object,
-                                       const Bottle &blobs,
-                                       const int i)
-{
-    if ((rpcMemory.getOutputCount()>0) && (i!=RET_INVALID) && (i<blobs.size()))
-    {
-        mutexResourcesMemory.wait();
-        map<string,int>::iterator id=memoryIds.find(object);
-        map<string,int>::iterator memoryIdsEnd=memoryIds.end();
-        mutexResourcesMemory.post();
-
-        Bottle *item=blobs.get(i).asList();
-        if ((id!=memoryIdsEnd) && (item!=NULL))
-        {
-            CvPoint cog=getBlobCOG(blobs,i);
-            if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
-                return;
-
-            Vector x;
-            if (get3DPosition(cog,x))
-            {
-                Bottle cmdMemory,replyMemory;
-
-                // prepare id property
-                Bottle bid;
-                Bottle &list_bid=bid.addList();
-                list_bid.addString("id");
-                list_bid.addInt(id->second);
-
-                // prepare position_2d property
-                Bottle position_2d;
-                Bottle &list_2d=position_2d.addList();
-                list_2d.addString("position_2d");
-                Bottle &list_2d_c=list_2d.addList();
-                list_2d_c.addDouble(item->get(0).asDouble());
-                list_2d_c.addDouble(item->get(1).asDouble());
-                list_2d_c.addDouble(item->get(2).asDouble());
-                list_2d_c.addDouble(item->get(3).asDouble());
-
-                // prepare position_3d property
-                Bottle position_3d;
-                Bottle &list_3d=position_3d.addList();
-                list_3d.addString("position_3d");
-                Bottle &list_3d_c=list_3d.addList();
-                list_3d_c.addDouble(x[0]);
-                list_3d_c.addDouble(x[1]);
-                list_3d_c.addDouble(x[2]);
-
-                cmdMemory.addVocab(Vocab::encode("set"));
-                Bottle &content=cmdMemory.addList();
-                content.append(bid);
-                content.append(position_2d);
-                content.append(position_3d);
-                rpcMemory.write(cmdMemory,replyMemory);
-            }
-        }
-    }
-}
-
-
-/**********************************************************/
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     name=rf.check("name",Value("iol2opc")).asString().c_str();
+    opc=new OPCClient(name);
+    if (opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
+    {
+        yError("OPC doesn't seem to be running!");
+        return false;
+    }
 
     imgIn.open(("/"+name+"/img:i").c_str());
     blobExtractor.open(("/"+name+"/blobs:i").c_str());
@@ -911,8 +724,6 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
-
-    rpcMemory.open(("/"+name+"/memory:rpc").c_str());
 
     skim_blobs_x_bounds.resize(2);
     skim_blobs_x_bounds[0]=-0.50;
@@ -953,11 +764,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     rtLocalization.setBridge(this);
     rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
-    rtLocalization.start();
 
-    memoryUpdater.setBridge(this);
-    memoryUpdater.setRate(rf.check("opc_update_period",Value(60)).asInt());
-    memoryUpdater.start();
+    opcUpdater.setBridge(this);
+    opcUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
     
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
 
@@ -974,6 +783,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histColorsCode.push_back(cvScalar( 22,118,238));
 
     attach(rpcPort);
+
+    rtLocalization.start();
+    opcUpdater.start();
 
     return true;
 }
@@ -994,10 +806,10 @@ bool IOL2OPCBridge::interruptModule()
     rpcClassifier.interrupt();
     getClickPort.interrupt();
     rpcGet3D.interrupt();
-    rpcMemory.interrupt();
+    opc->interrupt();
 
     rtLocalization.stop();
-    memoryUpdater.stop();
+    opcUpdater.stop();
 
     return true;
 }
@@ -1018,7 +830,7 @@ bool IOL2OPCBridge::close()
     rpcClassifier.close();
     getClickPort.close();
     rpcGet3D.close();
-    rpcMemory.close();
+    opc->close();
 
     // dispose filters used for scores histogram
     for (map<string,Filter*>::iterator it=histFiltersPool.begin();
@@ -1030,17 +842,15 @@ bool IOL2OPCBridge::close()
 
 
 /**********************************************************/
+double IOL2OPCBridge::getPeriod()
+{
+    return 1.0;
+}
+
+
+/**********************************************************/
 bool IOL2OPCBridge::updateModule()
 {
-    string activeObject="";
-
-    //if ((rxCmd==Vocab::encode("forget")) && (valHuman.size()>0))
-    //{
-    //    mutexMemoryUpdate.wait();
-    //    execForget(activeObject);
-    //    mutexMemoryUpdate.post();
-    //}
-
     return true;
 }
 
@@ -1049,13 +859,6 @@ bool IOL2OPCBridge::updateModule()
 bool IOL2OPCBridge::attach(RpcServer &source)
 {
     return this->yarp().attachAsServer(source);
-}
-
-
-/**********************************************************/
-double IOL2OPCBridge::getPeriod()
-{
-    return 1.0;
 }
 
 
