@@ -64,8 +64,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             activityName = bTemp.get(1).asString(); //sName is concatenated after...need to save label
             imgLabel = activityName;
 
-            //if it is not a sentence -> stream
-            if (activityName == "action") {
+            string activityType = bTemp.get(2).asString() ;
+            //if activity is an action -> stream
+            if (activityType == "action") {
                 isStreamActivity = true;
             }
 
