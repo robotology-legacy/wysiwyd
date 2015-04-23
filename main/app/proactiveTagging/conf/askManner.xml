@@ -1,0 +1,11 @@
+<GRAMMAR  LANGID="409">
+
+  <RULE NAME="manner"  TOPLEVEL="ACTIVE" EXPORT="1">
+    <L>
+      <P>softly</P>
+      <P>quickly</P>
+      <P>slowly</P>
+    </L>
+  </RULE>
+	
+</GRAMMAR>
