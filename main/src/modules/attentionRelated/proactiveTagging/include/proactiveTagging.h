@@ -20,7 +20,7 @@ private:
     string      nameGrammarYesNo;
     string      nameGrammarAskManner;
     string      GrammarSentenceTemporal	;
-    string      nameGrammarNodeModality	;
+    string      nameGrammarNodeTestAP	;
     string      nameGrammarNodeTrainAP	;
     string      nameGrammarNodeTrainSD	;
 

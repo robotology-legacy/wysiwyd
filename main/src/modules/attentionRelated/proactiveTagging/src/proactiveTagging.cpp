@@ -43,7 +43,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     nameGrammarAskManner = rf.findFileByName(rf.check("nameGrammarAskManner", Value("askManner.xml")).toString());
 
     GrammarSentenceTemporal = rf.findFileByName(rf.check("GrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
-    nameGrammarNodeModality = rf.findFileByName(rf.check("nameGrammarNodeModality", Value("nameGrammarNodeModality.xml")).toString());
+    nameGrammarNodeTestAP = rf.findFileByName(rf.check("nameGrammarNodeTestAP", Value("nameGrammarNodeTestAP.xml")).toString());
     nameGrammarNodeTrainAP = rf.findFileByName(rf.check("nameGrammarNodeTrainAP", Value("nameGrammarNodeTrainAP.xml")).toString());
     nameGrammarNodeTrainSD = rf.findFileByName(rf.check("nameGrammarNodeTrainSD", Value("nameGrammarNodeTrainSD.xml")).toString());
 
@@ -75,10 +75,10 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         cout << "WARNING ABM NOT CONNECTED" << endl;
     }
 
-    Bottle bAnswer,
+ /*   Bottle bAnswer,
         bRecognized;
 
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameMainGrammar), 20);
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameMainGrammar), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -89,43 +89,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     bAnswer = *bRecognized.get(1).asList();
     cout << "bAnswer is : " << bAnswer.toString() << endl;
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarSentenceTemporal), 20);
-
-    if (bRecognized.get(0).asInt() == 0)
-    {
-        cout << bRecognized.get(1).toString() << endl;
-        return "none";
-    }
-
-    bAnswer = *bRecognized.get(1).asList();
-    cout << "bAnswer is : " << bAnswer.toString() << endl;
-
-    
-bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarSentenceTemporal), 20);
-
-    if (bRecognized.get(0).asInt() == 0)
-    {
-        cout << bRecognized.get(1).toString() << endl;
-        return "none";
-    }
-
-    bAnswer = *bRecognized.get(1).asList();
-    cout << "bAnswer is : " << bAnswer.toString() << endl;
-
-    
-bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarNodeModality), 20);
-
-    if (bRecognized.get(0).asInt() == 0)
-    {
-        cout << bRecognized.get(1).toString() << endl;
-        return "none";
-    }
-
-    bAnswer = *bRecognized.get(1).asList();
-    cout << "bAnswer is : " << bAnswer.toString() << endl;
-
-    
-bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarNodeTrainAP), 20);
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarNodeTestAP), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -137,6 +101,42 @@ bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameG
     cout << "bAnswer is : " << bAnswer.toString() << endl;
 
 
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarSentenceTemporal), 20);
+
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        cout << bRecognized.get(1).toString() << endl;
+        return "none";
+    }
+
+    bAnswer = *bRecognized.get(1).asList();
+    cout << "bAnswer is : " << bAnswer.toString() << endl;
+
+
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarNodeTestAP), 20);
+
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        cout << bRecognized.get(1).toString() << endl;
+        return "none";
+    }
+
+    bAnswer = *bRecognized.get(1).asList();
+    cout << "bAnswer is : " << bAnswer.toString() << endl;
+
+
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarNodeTrainAP), 20);
+
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        cout << bRecognized.get(1).toString() << endl;
+        return "none";
+    }
+
+    bAnswer = *bRecognized.get(1).asList();
+    cout << "bAnswer is : " << bAnswer.toString() << endl;
+
+*/
 
 
 
@@ -392,10 +392,10 @@ string proactiveTagging::askManner(string agent, string verb, string object)
 
     //bool fGetaReply = false;
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic, // semantic information of the content of the recognition
-            bSendReasoning, // send the information of recall to the abmReasoning
-            bMessenger; //to be send TO speech recog
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bSendReasoning, // send the information of recall to the abmReasoning
+        bMessenger; //to be send TO speech recog
 
     bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskManner), 20);
 
