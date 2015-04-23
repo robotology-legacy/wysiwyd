@@ -126,12 +126,22 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("home", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(part, "argument"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "home", "action", lArgument,true);
+                }
+                bool bReturn = sendCmd(bCmd,shouldWait);
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(part, "argument"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "home", "action", lArgument,false);
                 }
 
-                return sendCmd(bCmd,shouldWait);
+                return bReturn;
             }
 
             /**
@@ -152,17 +162,30 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("take", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "take", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("take"));
                 appendCartesianTarget(bCmd,target);
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "take", "action", lArgument,false);
+                }
+
+                return bReturn;
             }
 
             /**
@@ -183,16 +206,30 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("push", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "push", "action", lArgument,true);
                 }
+
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("push"));
                 appendCartesianTarget(bCmd,target);
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "push", "action", lArgument,false);
+                }
+                return bReturn;
+
             }
 
             /**
@@ -208,19 +245,31 @@ namespace wysiwyd {
                 const bool shouldWait=true)
             {
                 if (ABMconnected)
-                {
+                {                  
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("point", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "point", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("point"));
                 appendCartesianTarget(bCmd,target);
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+
+                if (ABMconnected)
+                {                  
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "point", "action", lArgument,false);
+                }
+                return bReturn;
             }
 
             /**
@@ -237,15 +286,27 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("drop", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "drop", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("drop"));
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "drop", "action", lArgument,true);
+                }
+                return bReturn;
+
             }
 
             /**
@@ -263,10 +324,11 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("dropOn", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "dropOn", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
@@ -274,7 +336,17 @@ namespace wysiwyd {
                 bCmd.addString("over");
                 appendCartesianTarget(bCmd,target);
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "dropOn", "action", lArgument,false);
+                }
+                return bReturn;
             }
 
             /**
@@ -291,15 +363,26 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("observe", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "observe", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("observe"));
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "observe", "action", lArgument,false);
+                }
+
+                return bReturn;
             }
 
             /**
@@ -316,15 +399,26 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("expect", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "expect", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("expect"));
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "expect", "action", lArgument,false);
+                }
+
+                return bReturn;
             }
 
             /**
@@ -342,15 +436,25 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("give", "command"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "give", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("give"));
                 bCmd.append(options);
-                return sendCmd(bCmd,shouldWait);
+                bool bReturn = sendCmd(bCmd,shouldWait);
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "give", "action", lArgument,false);
+                }
+                return bReturn;
             }
 
             /**
@@ -363,14 +467,24 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>("waving", "command"));
-                    SubABM->sendActivity("action", m_masterName, "ARE", lArgument,true);
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "waving", "action", lArgument,true);
                 }
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("waveing"));
                 bCmd.addString(sw?"on":"off");
-                return rpcPort.asPort().write(bCmd);
+                bool bReturn = rpcPort.asPort().write(bCmd);
+
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "waving", "action", lArgument,false);
+                }
+                return bReturn;
             }
 
             /**

@@ -130,8 +130,9 @@ namespace wysiwyd{
 							std::list<std::pair<std::string, std::string> > lArgument;
 							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
 							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
+							lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
 							SubABM->sendActivity("action",
-								m_masterName,
+								"sentence",
 								"recog",
 								lArgument,
 								true);

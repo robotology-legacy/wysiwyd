@@ -101,7 +101,8 @@ namespace wysiwyd{namespace wrdac{
             {
                 std::list<std::pair<std::string, std::string> > lArgument;
                 lArgument.push_back(std::pair<std::string, std::string>(text, "sentence"));
-                SubABM->sendActivity("action", m_masterName, "speech", lArgument,true);
+                lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                SubABM->sendActivity("action", "sentence", "say", lArgument,true);
             }
 
             while(shouldWait&&(!speechStarted ||status=="speaking"))
