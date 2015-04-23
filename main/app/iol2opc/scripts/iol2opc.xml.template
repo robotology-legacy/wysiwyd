@@ -35,12 +35,8 @@
         </module>
         <module>
                 <name>iol2opc</name>
-                <parameters>--from config_CAFFE.ini</parameters>
+                <parameters>--from config.ini</parameters>
                 <node>pwrNode4</node>
-        </module>
-        <module>
-                <name>iolHelper</name>
-                <node>console</node>
         </module>
         <module>
                 <name>yarpview</name>
@@ -188,4 +184,3 @@
                 <input>/himrepClassifier/SIFTimg:i</input>
                 <protocol>tcp</protocol>
         </connection>
-

@@ -53,10 +53,8 @@ protected:
 
     BufferedPort<Bottle>             blobExtractor;
     BufferedPort<Bottle>             histObjLocPort;
-    BufferedPort<Property>           recogTriggerPort;
     BufferedPort<Bottle>             getClickPort;
     BufferedPort<ImageOf<PixelBgr> > imgIn;
-    BufferedPort<ImageOf<PixelBgr> > imgOut;
     BufferedPort<ImageOf<PixelBgr> > imgRtLocOut;
     BufferedPort<ImageOf<PixelBgr> > imgHistogram;
     Port imgClassifier;
@@ -64,11 +62,9 @@ protected:
     RtLocalization rtLocalization;
     OpcUpdater opcUpdater;
 
-    ImageOf<PixelBgr> img;
     ImageOf<PixelBgr> imgRtLoc;
-    Semaphore mutexResources;
-    Semaphore mutexResourcesMemory;
-    Semaphore mutexMemoryUpdate;
+    Mutex mutexResources;
+    Mutex mutexResourcesOpc;
     
     string name;
 
@@ -77,8 +73,8 @@ protected:
     deque<CvScalar> histColorsCode;
 
     Bottle lastBlobs;
-    Bottle memoryBlobs;
-    Bottle memoryScores;
+    Bottle opcBlobs;
+    Bottle opcScores;
     
     Vector skim_blobs_x_bounds;
     Vector skim_blobs_y_bounds;
@@ -92,16 +88,15 @@ protected:
     Bottle  getBlobs();
     CvPoint getBlobCOG(const Bottle &blobs, const int i);
     bool    get3DPosition(const CvPoint &point, Vector &x);
-    bool    getClickPosition(Vector &pos);
-    void    acquireImage(const bool rtlocalization=false);
-    void    drawBlobs(const Bottle &blobs, const int i, Bottle *scores=NULL);
+    bool    getClickPosition(CvPoint &pos);
+    void    acquireImage();
+    void    drawBlobs(const Bottle &blobs, const int i, const Bottle &scores);
     void    rotate(cv::Mat &src, const double angle, cv::Mat &dst);
     void    drawScoresHistogram(const Bottle &blobs, const Bottle &scores, const int i);
     int     findClosestBlob(const Bottle &blobs, const CvPoint &loc);
     int     findClosestBlob(const Bottle &blobs, const Vector &loc);
-    Bottle  classify(const Bottle &blobs, const bool rtlocalization=false);
+    Bottle  classify(const Bottle &blobs);
     void    train(const string &object, const Bottle &blobs, const int i);
-    void    execForget(const string &object);
     void    doLocalization();
     void    updateOPC();
 
