@@ -75,8 +75,9 @@ Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
         if (get3DPosition(cog,x))
         {
             if ((x[0]>skim_blobs_x_bounds[0])&&(x[0]<skim_blobs_x_bounds[1])&&
-                (x[1]>skim_blobs_y_bounds[0])&&(x[1]<skim_blobs_y_bounds[1]))
+                (x[1]>skim_blobs_y_bounds[0])&&(x[1]<skim_blobs_y_bounds[1])) {
                 skimmedBlobs.add(blobs.get(i));
+            }
         }
     }
 
@@ -166,19 +167,13 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
         rpcGet3D.write(cmd,reply);
         printf("Received blob cartesian coordinates: %s\n",reply.toString().c_str());
 
-        if (reply.size()>0)
+        if (reply.size()>=3)
         {
-            if (Bottle *pInfo=reply.get(0).asList())
-            {
-                if (pInfo->size()>=3)
-                {
-                    x.resize(3);
-                    x[0]=pInfo->get(0).asDouble();
-                    x[1]=pInfo->get(1).asDouble();
-                    x[2]=pInfo->get(2).asDouble();
-                    return true;
-                }
-            }
+            x.resize(3);
+            x[0]=reply.get(0).asDouble();
+            x[1]=reply.get(1).asDouble();
+            x[2]=reply.get(2).asDouble();
+            return true;
         }
     }
 
@@ -752,6 +747,10 @@ bool IOL2OPCBridge::add_object(const string &name)
         mutexResourcesOpc.unlock();
 
         int i=findClosestBlob(blobs,clickLocation);
+        if(i==RET_INVALID) {
+            return false;
+        }
+        yInfo("Closest blob: %d", i);
         train(name,blobs,i);
 
         return true;

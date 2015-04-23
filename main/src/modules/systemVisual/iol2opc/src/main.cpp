@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     }
 
     ResourceFinder rf;
-    rf.setDefaultContext("iol");
+    rf.setDefaultContext("iol2opc");
     rf.setDefaultConfigFile("config.ini");
     rf.configure(argc,argv);
 
