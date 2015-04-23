@@ -100,7 +100,7 @@ namespace wysiwyd{namespace wrdac{
             if (ABMconnected)
             {
                 std::list<std::pair<std::string, std::string> > lArgument;
-                lArgument.push_back(std::pair<std::string, std::string>("text", "sentence"));
+                lArgument.push_back(std::pair<std::string, std::string>(text, "sentence"));
                 SubABM->sendActivity("action", m_masterName, "speech", lArgument,true);
             }
 
