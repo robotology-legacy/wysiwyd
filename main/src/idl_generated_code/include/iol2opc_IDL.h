@@ -18,11 +18,19 @@ class iol2opc_IDL : public yarp::os::Wire {
 public:
   iol2opc_IDL();
   /**
-   * Provide the object name of the previously selected blob.
+   * Add a new object to the object-recognition database
+   * based on the selected blob.
    * @param name is the object name
    * @return true/false on success/failure.
    */
-  virtual bool assignName(const std::string& name);
+  virtual bool add_object(const std::string& name);
+  /**
+   * Remove object with a given name from the object-recognition
+   * database.
+   * @param name is the object name
+   * @return true/false on success/failure.
+   */
+  virtual bool remove_object(const std::string& name);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
