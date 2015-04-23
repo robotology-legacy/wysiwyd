@@ -211,6 +211,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     {   //just one image (sentence?)
         imgInstance = currentInstance;
         string synchroTime = getCurrentTime();
+        frameNb = 0 ;
         storeImagesAndData(synchroTime, true, fullSentence);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;

@@ -682,7 +682,7 @@ void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool 
 /* rpc update module */
 bool autobiographicalMemory::updateModule() {
     //we have received a snapshot command indicating an activity that take time so streaming is needed
-    //currently it is everything BUT a sentence
+    //currently it is when activityType == action
     if (streamStatus == "begin") {
         cout << "============================= STREAM BEGIN =================================" << endl;
 
