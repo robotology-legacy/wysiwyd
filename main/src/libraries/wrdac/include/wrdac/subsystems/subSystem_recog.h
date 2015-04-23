@@ -128,10 +128,11 @@ namespace wysiwyd{
 						if (ABMconnected)
 						{
 							std::list<std::pair<std::string, std::string> > lArgument;
-							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.toString(), "recognition"));
-							SubABM->sendActivity("recog",
-								"recog",
+							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
+							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
+							SubABM->sendActivity("action",
 								m_masterName,
+								"recog",
 								lArgument,
 								true);
 						}
