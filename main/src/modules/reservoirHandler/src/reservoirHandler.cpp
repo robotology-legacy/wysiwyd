@@ -165,7 +165,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     else
         cout << endl << endl << "----------------------------------------------" << endl << endl << "reservoirHandler ready !" << endl << endl;
 
-    populateOPC();
+    //populateOPC();
     nodeType();
     //testARE();
     return bEveryThingisGood ;
@@ -1278,8 +1278,8 @@ bool reservoirHandler::AREactions(vector<string> seq)
         else if(sPredicat == "point")
         {
             Time::delay(ftime);
+            value[1]<0.0?sHand = "left": sHand  = "right";
             Bottle bHand(sHand);
-            bHand.addString("still");
             cout << "sHand : " << sHand << endl;
 
             bool pointed = iCub->getARE()->point(value, bHand);

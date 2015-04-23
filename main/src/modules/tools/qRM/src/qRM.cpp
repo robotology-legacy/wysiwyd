@@ -31,9 +31,12 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("qRM")).asString().c_str();
     setName(moduleName.c_str());
 
-    nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
-    nameGrammarSentenceTemporal = rf.findFileByName(rf.check("nameGrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
-    nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
+
+    cout << "0" << endl;
+
+//    nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
+//    nameGrammarSentenceTemporal = rf.findFileByName(rf.check("nameGrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
+//    nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
@@ -60,9 +63,12 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    //   calibrationThread = new AutomaticCalibrationThread(100,"ical");
-    //   calibrationThread->start();
-    //   calibrationThread->suspend();
+    calibrationThread = new AutomaticCalibrationThread(100,"ical");
+    string test;
+    cout << "1" << endl;
+    cin >> test;
+    calibrationThread->start();
+    calibrationThread->suspend();
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
@@ -76,9 +82,13 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
         cout << "WARNING ABM NOT CONNECTED" << endl;
     }
 
-    populateOpc();
+    cout << "2" << endl;
+    cin >> test;
+    calibrationRT("right");
 
-    nodeSentenceTemporal();
+//    populateOpc();
+
+//    nodeSentenceTemporal();
 
     return true;
 }
@@ -114,7 +124,7 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         if (command.size() == 2)
         {
             cout << "default : left hand" << endl;
-            reply = calibrationRT();
+            reply = calibrationRT("left");
         }
         else
         {
@@ -129,21 +139,16 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool qRM::updateModule() {
-    mainLoop();
+  //  mainLoop();
     return true;
 }
 
 
-Bottle qRM::calibrationRT()
-{
-    return calibrationRT("left");
-}
-
-
-Bottle qRM::calibrationRT(string side)
+Bottle qRM::calibrationRT(std::string side)
 {
     Bottle bOutput;
     string sOutput;
+    string test;
 
     if (iCub->getABMClient())
     {
@@ -155,15 +160,21 @@ Bottle qRM::calibrationRT(string side)
 
     //Calibrate
     iCub->say("Now I will self calibrate.");
-    iCub->look("cursor_0");
+  //  iCub->look("cursor_0");
     //Start the thread that will get the points pairs
     calibrationThread->clear();
 
+    cout << "A" << endl;
     calibrationThread->resume();
+
+    cout << "B" << endl;
     //this is blocking until the calibration is done
     slidingController_IDL* slidingClient = new slidingController_IDL;
+
+    cout << "C" << endl;
     if (side == "right")
     {
+        cout << "D" << endl;
         slidingClient = iCub->getSlidingController()->clientIDL_slidingController_right;
     }
     else
@@ -171,6 +182,8 @@ Bottle qRM::calibrationRT(string side)
         slidingClient = iCub->getSlidingController()->clientIDL_slidingController_left;
     }
 
+    cout << "3" << endl;
+    cin >> test;
     calibrationThread->resume();
     slidingClient->explore();
     calibrationThread->suspend();
@@ -190,6 +203,9 @@ Bottle qRM::calibrationRT(string side)
     }
 
     bOutput.addString("calibration to the reactable endded using the hand " + side);
+    cout << "4" << endl;
+
+    cin >> test;
     return bOutput;
 }
 

@@ -57,6 +57,12 @@
             <tag>blinkTag</tag>
         </module>
 
+        <module>
+          <name>speechRecognizer</name>
+          <parameters>--noLegacy</parameters>
+          <node>icubwin1</node>
+          <tag>speechRecognizerTqg</tag>
+        </module>
 
         <module>
           <name>iSpeak</name>
@@ -72,17 +78,22 @@
           <tag>pasar</tag>
         </module>
 
+        <module>
+          <name>actionsRenderingEngine</name>
+          <node>localhost</node>
+          <tag>actionsRenderingEngineTag</tag>
+        </module>
 	<!-- ********************* CONNECTIONS ********************* -->
    
    	<connection>
             <from>/guiUpdater/gui:o</from>
-            <to>/guiOPC/objects</to>
+            <to>/iCubGui/objects</to>
             <protocol>tcp</protocol>
         </connection>
   
         <connection>
           <from>/guiUpdater/guiBase:o</from>
-          <to>/guiOPC/base:i</to>
+          <to>/iCubGui/base:i</to>
           <protocol>tcp</protocol>
         </connection>
 
@@ -103,52 +114,58 @@
    <!-- GUI OPC ICUB BODY-->
         <connection>
           <from>/wholeBodyDynamics/contacts:o</from>
-          <to>/guiOPC/forces</to>
+          <to>/iCubGui/forces</to>
           <protocol>udp</protocol>
         </connection>
 
    <connection>
    <from>/icub/head/state:o</from>
-   <to>/guiOPC/head:i</to>
+   <to>/iCubGui/head:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
    <from>/icub/inertial</from>
-   <to>/guiOPC/inertial:i</to>
+   <to>/iCubGui/inertial:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
    <from>/icub/left_arm/state:o</from>
-   <to>/guiOPC/left_arm:i</to>
+   <to>/iCubGui/left_arm:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
    <from>/icub/right_arm/state:o</from>
-   <to>/guiOPC/right_arm:i</to>
+   <to>/iCubGui/right_arm:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
    <from>/icub/left_leg/state:o</from>
-   <to>/guiOPC/left_leg:i</to>
+   <to>/iCubGui/left_leg:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
    <from>/icub/right_leg/state:o</from>
-   <to>/guiOPC/right_leg:i</to>
+   <to>/iCubGui/right_leg:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
    <from>/icub/torso/state:o</from>
-   <to>/guiOPC/torso:i</to>
+   <to>/iCubGui/torso:i</to>
    <protocol>udp</protocol>
    </connection>
-     
+
+   <connection>
+      <from>/actionsRenderingEngine/wbd:rpc</from>
+      <to>/wholeBodyDynamics/rpc:i</to>
+      <protocol>tcp</protocol>
+   </connection>
+
 </application>
 
 
