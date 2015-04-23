@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Ugo Pattacini, Tobias Fischer
  * email:   ugo.pattacini@iit.it, t.fischer@imperial.ac.uk
@@ -94,7 +94,7 @@ Bottle IOL2OPCBridge::getBlobs()
     {
         lastBlobs=skimBlobs(*pBlobs);
         printf("Received blobs list: %s\n",lastBlobs.toString().c_str());
-        
+
         if (lastBlobs.size()==1)
         {
             if (lastBlobs.get(0).asVocab()==Vocab::encode("empty"))
@@ -104,7 +104,7 @@ Bottle IOL2OPCBridge::getBlobs()
 
     // release resources
     mutexResources.unlock();
-    
+
     return lastBlobs;
 }
 
@@ -144,7 +144,12 @@ bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
             pos.y = bPos->get(1).asInt();
             return true;
         }
+        else
+        {
+            cout << "Bottle does not have correct size" << endl;
+        }
     }
+    cout << "Did not receive click" << endl;
     return false;
 }
 
@@ -190,7 +195,7 @@ void IOL2OPCBridge::acquireImage()
     // wait for incoming image
     if (ImageOf<PixelBgr> *tmp=imgIn.read())
         imgRtLoc=*tmp;
-    
+
     // release resources
     mutexResources.unlock();
 }
@@ -246,7 +251,7 @@ void IOL2OPCBridge::drawBlobs(const Bottle &blobs, const int i,
 
 
 /**********************************************************/
-void IOL2OPCBridge::rotate(cv::Mat &src, const double angle, 
+void IOL2OPCBridge::rotate(cv::Mat &src, const double angle,
                            cv::Mat &dst)
 {
     int len=std::max(src.cols,src.rows);
@@ -326,9 +331,9 @@ void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
 
                 cv::Mat orig=(IplImage*)imgConf.getIplImage();
                 orig=orig+textImg;
-                orig.copyTo(cv::Mat((IplImage*)imgConf.getIplImage()));                
+                orig.copyTo(cv::Mat((IplImage*)imgConf.getIplImage()));
             }
-            
+
             // draw the blob snapshot
             CvPoint tl,br,sz;
             Bottle *item=blobs.get(i).asList();
@@ -371,7 +376,7 @@ void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
                     }
                 }
             }
-            
+
         }
 
         imgHistogram.prepare()=imgConf;
@@ -513,7 +518,7 @@ void IOL2OPCBridge::doLocalization()
     Bottle scores=classify(blobs);
     // update location of histogram display
     if (Bottle *loc=histObjLocPort.read(false))
-    {        
+    {
         if (loc->size()>=2)
         {
             Vector x;
@@ -586,7 +591,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     name=rf.check("name",Value("iol2opc")).asString().c_str();
     opc=new OPCClient(name);
-    if (opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
+    if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
     {
         yError("OPC doesn't seem to be running!");
         return false;
@@ -646,12 +651,12 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     opcUpdater.setBridge(this);
     opcUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
-    
+
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
 
     imgRtLoc.resize(320,240);
     imgRtLoc.zero();
-        
+
     histColorsCode.push_back(cvScalar( 65, 47,213));
     histColorsCode.push_back(cvScalar(122, 79, 58));
     histColorsCode.push_back(cvScalar(154,208, 72));
@@ -736,7 +741,7 @@ bool IOL2OPCBridge::attach(RpcServer &source)
 
 
 /**********************************************************/
-bool IOL2OPCBridge::add_name(const string &name)
+bool IOL2OPCBridge::add_object(const string &name)
 {
     CvPoint clickLocation;
     if(getClickPosition(clickLocation)) {
@@ -751,13 +756,14 @@ bool IOL2OPCBridge::add_name(const string &name)
 
         return true;
     } else {
+        yError("Could not retrieve click location");
         return false;
     }
 }
 
 
 /**********************************************************/
-bool IOL2OPCBridge::remove_name(const string &name)
+bool IOL2OPCBridge::remove_object(const string &name)
 {
     // grab resources
     LockGuard lg(mutexResources);
@@ -781,5 +787,3 @@ bool IOL2OPCBridge::remove_name(const string &name)
 
     return false;
 }
-
-
