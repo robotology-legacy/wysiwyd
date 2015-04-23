@@ -49,7 +49,7 @@ namespace wysiwyd{
 			yarp::os::Port portRPC;
 			SubSystem_Recog(const std::string &masterName) :SubSystem(masterName){
 				portRPC.open(("/" + m_masterName + "/recog:rpc").c_str());
-				m_type = SUBSYSTEM_ABM;
+                m_type = SUBSYSTEM_RECOG;
 			}
 
 
@@ -128,10 +128,12 @@ namespace wysiwyd{
 						if (ABMconnected)
 						{
 							std::list<std::pair<std::string, std::string> > lArgument;
-							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.toString(), "recognition"));
-							SubABM->sendActivity("recog",
+							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
+							lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
+							lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+							SubABM->sendActivity("action",
+								"sentence",
 								"recog",
-								m_masterName,
 								lArgument,
 								true);
 						}

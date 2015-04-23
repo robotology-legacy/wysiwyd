@@ -1,0 +1,112 @@
+<application>
+    <name>PPS with Allostatic control</name>
+
+    <dependencies>
+    </dependencies>
+     
+    <module>
+        <name>visuoTactileWrapper</name>
+        <parameters>--noDoubleTouch</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+    <module>
+        <name>visuoTactileRF</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+    <module>
+        <name>objectGeneratorSim</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module> 
+    <module>
+        <name>allostasis</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+    <module>
+        <name>cartControlReachAvoid</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+      
+   
+   
+    <!--connection>
+        <from></from>
+        <to></to>
+        <protocol>udp</protocol>
+    </connection-->
+       
+    <connection>
+        <from>/objectGeneratorSim/obstacles:o</from>
+        <to>/visuoTactileWrapper/objectGeneratorSim:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/visuoTactileWrapper/events:o</from>
+        <to>/visuoTactileRF/events:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/visuoTactileRF/skin_events:o</from>
+        <to>/allostasis/avoidanceVectors:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/objectGeneratorSim/reachingTarget:o</from>
+        <to>/allostasis/reachingTarget:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/cartesianController/right_arm/state:o</from>
+        <to>/allostasis/rightArmState:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/objectGeneratorSim/reachingTarget:o</from>
+        <to>/cartControlReachAvoid/reachingTarget:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/visuoTactileRF/skin_events:o</from>
+        <to>/cartControlReachAvoid/avoidanceVectors:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>allostasis/reachingGain:o</from>
+        <to>/cartControlReachAvoid/reachingGain:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>allostasis/avoidanceGain:o</from>
+        <to>/cartControlReachAvoid/avoidanceGain:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <!--connection>
+    <from>/visuoTactileRF/skinGuiForearmL:o</from>
+        <to>/skinGui/left_forearm_virtual:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+    <from>/visuoTactileRF/skinGuiForearmR:o</from>
+        <to>/skinGui/right_forearm_virtual:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+    <from>/visuoTactileRF/skinGuiHandL:o</from>
+        <to>/skinGui/left_hand_virtual:i</to>
+        <protocol>tcp</protocol>
+    </connection>
+    <connection>
+    <from>/visuoTactileRF/skinGuiHandR:o</from>
+        <to>/skinGui/right_hand_virtual:i</to>
+        <protocol>tcp</protocol>
+    </connection-->
+   
+</application>

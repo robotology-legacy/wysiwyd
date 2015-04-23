@@ -24,9 +24,8 @@
 #include <string>
 #include <list>
 
-#include "boost/python.hpp"
+#include <boost/python.hpp>
 using namespace boost::python;
-//#include <python2.7/Python.h>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>

@@ -10,7 +10,7 @@
   </DEFINE>
 
   <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>stop</P>
+    <P>stop the interaction</P>
   </RULE>
 
   <RULE	NAME="follow"	TOPLEVEL="ACTIVE"	EXPORT="1">
@@ -19,8 +19,8 @@
 
   <RULE NAME="mode" DYNAMIC="TRUE">
     <L>
-      <P>continue</P>
-      <P>exit</P>
+      <P>continue the interaction</P>
+      <P>exit the interaction</P>
     </L>
   </RULE>
 
@@ -29,9 +29,22 @@
       <P>the</P>
     </O>
     <L>
+      <P>square</P>
+      <P>triangle</P>
       <P>cross</P>
       <P>circle</P>
       <P>eraser</P>
+      <P>glass</P>
+      <P>girafe</P>
+      <P>lion</P>
+      <P>wysiwyd sponge</P>
+      <P>white-trophy</P>
+      <P>sponge-trophy</P>
+      <P>croco</P>
+      <P>cube</P>
+      <P>mug</P>
+      <P>mouse</P>
+      <P>rabbit</P>
     </L>
   </RULE>
 

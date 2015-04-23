@@ -28,7 +28,6 @@ source_group("DOC Files"    FILES ${doc_files})
 source_group("IDL Files"    FILES ${idl_files_mmcm})
 yarp_idl_to_dir(${idl_files_mmcm} ${IDL_GENERATED_CODE_DIR})
 
-find_package(GTK2)
 add_definitions(${GTK2_DEFINITIONS})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${IDL_GENERATED_CODE_DIR}/include ${YARP_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
@@ -57,4 +56,3 @@ FILES
 	${folder_header})
 
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
-

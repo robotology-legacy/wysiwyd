@@ -2,7 +2,6 @@
 /main/build*/
 *kdev*
 *.orig
-/main/src/idl_generated_code/*.cmake
 
 WYSIWYD.config
 WYSIWYD.creator

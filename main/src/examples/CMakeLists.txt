@@ -4,8 +4,12 @@
 
 add_subdirectory(AREiCubClientExample)
 add_subdirectory(wrdacExample)
-add_subdirectory(cvzStackExample)
+add_subdirectory(ABMRosToYarpBridge)
+
 if(YARP_VERSION_STRING VERSION_GREATER "2.3.63.1") #because of copyPortable
     add_subdirectory(ABMAugmentionExample)
 endif()
-add_subdirectory(ABMRosToYarpBridge)
+
+if(WYSIWYD_USE_GTK2)
+    add_subdirectory(cvzStackExample)
+endif()

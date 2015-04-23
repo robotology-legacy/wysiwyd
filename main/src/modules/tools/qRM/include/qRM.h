@@ -37,9 +37,7 @@ public:
     bool updateModule();
     bool    populateOpc();
 
-    Bottle calibrationRT();
-    Bottle calibrationRT(string side);
-
+    Bottle calibrationRT(std::string side);
     void    nodeSentenceTemporal();
     bool nodeYesNo();
 

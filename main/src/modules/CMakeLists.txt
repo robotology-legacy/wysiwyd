@@ -5,7 +5,6 @@
 #Add here modules without specific dependency
 add_subdirectory(attentionRelated)
 add_subdirectory(opcRelated)
-add_subdirectory(cvz)
 add_subdirectory(abm)
 add_subdirectory(tools)
 add_subdirectory(navigationRelated)
@@ -17,6 +16,11 @@ add_subdirectory(systemAuditory)
 add_subdirectory(scenarioSpecific)
 add_subdirectory(ppsSim)
 add_subdirectory(allostasis)
+
+#Add modules with dependencies here
+if(WYSIWYD_USE_GTK2)
+    add_subdirectory(cvz)
+endif()
 
 if(WYSIWYD_USE_Boost)
     add_subdirectory(reservoirHandler)

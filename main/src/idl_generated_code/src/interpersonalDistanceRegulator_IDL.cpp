@@ -101,7 +101,7 @@ bool interpersonalDistanceRegulator_IDL::pause() {
   interpersonalDistanceRegulator_IDL_pause helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool interpersonalDistanceRegulator_IDL::pause()");
+    yError("Missing server method '%s'?","bool interpersonalDistanceRegulator_IDL::pause()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -111,7 +111,7 @@ bool interpersonalDistanceRegulator_IDL::resume() {
   interpersonalDistanceRegulator_IDL_resume helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool interpersonalDistanceRegulator_IDL::resume()");
+    yError("Missing server method '%s'?","bool interpersonalDistanceRegulator_IDL::resume()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -121,7 +121,7 @@ bool interpersonalDistanceRegulator_IDL::quit() {
   interpersonalDistanceRegulator_IDL_quit helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool interpersonalDistanceRegulator_IDL::quit()");
+    yError("Missing server method '%s'?","bool interpersonalDistanceRegulator_IDL::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;

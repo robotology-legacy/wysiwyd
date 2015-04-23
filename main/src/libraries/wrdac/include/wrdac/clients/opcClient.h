@@ -251,7 +251,7 @@ public:
     void commit();
 
     /**
-    * Commit a single local entity, erasing the server copie.
+    * Commit a single local entity, erasing the server copies.
     */ 
     void commit(Entity *e);
         

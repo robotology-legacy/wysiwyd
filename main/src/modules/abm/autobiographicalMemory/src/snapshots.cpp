@@ -50,7 +50,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     //for streaming image
     string activityName;
     bool isStreamActivity = false;
-    string fullSentence;
+    string fullSentence = "defaultLabel";
 
     //Action
     bool done = false;
@@ -64,8 +64,14 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             activityName = bTemp.get(1).asString(); //sName is concatenated after...need to save label
             imgLabel = activityName;
 
-            //if it is not a sentence -> stream
-            if (activityName != "sentence") {
+            //used to name the single image
+            ostringstream labelImg ;
+            labelImg << activityName << "_" << instance;
+            fullSentence = labelImg.str() ;
+
+            string activityType = bTemp.get(2).asString() ;
+            //if activity is an action -> stream
+            if (activityType == "action") {
                 isStreamActivity = true;
             }
 
@@ -205,6 +211,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     {   //just one image (sentence?)
         imgInstance = currentInstance;
         string synchroTime = getCurrentTime();
+        frameNb = 0 ;
         storeImagesAndData(synchroTime, true, fullSentence);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;

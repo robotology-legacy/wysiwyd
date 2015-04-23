@@ -5,7 +5,6 @@
 set(PROJECTNAME cvzFiber)
 project(${PROJECTNAME})
 #set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ConVergenceZone)
-find_package(GTK2)
 add_definitions(${GTK2_DEFINITIONS})
 include(YarpIDL)
 

@@ -332,7 +332,7 @@ void cvzMmcm_IDL::start() {
   cvzMmcm_IDL_start helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::start()");
+    yError("Missing server method '%s'?","void cvzMmcm_IDL::start()");
   }
   yarp().write(helper,helper);
 }
@@ -340,7 +340,7 @@ void cvzMmcm_IDL::pause() {
   cvzMmcm_IDL_pause helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::pause()");
+    yError("Missing server method '%s'?","void cvzMmcm_IDL::pause()");
   }
   yarp().write(helper,helper);
 }
@@ -349,7 +349,7 @@ bool cvzMmcm_IDL::quit() {
   cvzMmcm_IDL_quit helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::quit()");
+    yError("Missing server method '%s'?","bool cvzMmcm_IDL::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -358,7 +358,7 @@ void cvzMmcm_IDL::setLearningRate(const double l) {
   cvzMmcm_IDL_setLearningRate helper;
   helper.init(l);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::setLearningRate(const double l)");
+    yError("Missing server method '%s'?","void cvzMmcm_IDL::setLearningRate(const double l)");
   }
   yarp().write(helper,helper);
 }
@@ -367,7 +367,7 @@ double cvzMmcm_IDL::getLearningRate() {
   cvzMmcm_IDL_getLearningRate helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","double cvzMmcm_IDL::getLearningRate()");
+    yError("Missing server method '%s'?","double cvzMmcm_IDL::getLearningRate()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -376,7 +376,7 @@ void cvzMmcm_IDL::setSigma(const double s) {
   cvzMmcm_IDL_setSigma helper;
   helper.init(s);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","void cvzMmcm_IDL::setSigma(const double s)");
+    yError("Missing server method '%s'?","void cvzMmcm_IDL::setSigma(const double s)");
   }
   yarp().write(helper,helper);
 }
@@ -385,7 +385,7 @@ double cvzMmcm_IDL::getSigma() {
   cvzMmcm_IDL_getSigma helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","double cvzMmcm_IDL::getSigma()");
+    yError("Missing server method '%s'?","double cvzMmcm_IDL::getSigma()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -395,7 +395,7 @@ double cvzMmcm_IDL::getActivity(const int32_t x, const int32_t y, const int32_t 
   cvzMmcm_IDL_getActivity helper;
   helper.init(x,y,z);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","double cvzMmcm_IDL::getActivity(const int32_t x, const int32_t y, const int32_t z)");
+    yError("Missing server method '%s'?","double cvzMmcm_IDL::getActivity(const int32_t x, const int32_t y, const int32_t z)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -405,7 +405,7 @@ bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path) {
   cvzMmcm_IDL_saveWeightsToFile helper;
   helper.init(path);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path)");
+    yError("Missing server method '%s'?","bool cvzMmcm_IDL::saveWeightsToFile(const std::string& path)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -415,7 +415,7 @@ bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path) {
   cvzMmcm_IDL_loadWeightsFromFile helper;
   helper.init(path);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path)");
+    yError("Missing server method '%s'?","bool cvzMmcm_IDL::loadWeightsFromFile(const std::string& path)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -425,7 +425,7 @@ bool cvzMmcm_IDL::saveRF(const std::string& path) {
   cvzMmcm_IDL_saveRF helper;
   helper.init(path);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool cvzMmcm_IDL::saveRF(const std::string& path)");
+    yError("Missing server method '%s'?","bool cvzMmcm_IDL::saveRF(const std::string& path)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
