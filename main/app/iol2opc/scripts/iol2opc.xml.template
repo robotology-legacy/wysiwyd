@@ -54,22 +54,22 @@
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/manager/view --x 320 --y 740 --p 50 --compact</parameters>
+                <parameters>--name /iolViewer/iol2opc/view --x 320 --y 740 --p 50 --compact</parameters>
                 <node>console</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/pointedBlobs/view --x 0 --y 740 --p 50 --compact</parameters>
+                <parameters>--name /iolViewer/pointedBlobs/view --x 0 --y 740 --p 50 --compact --out /iolViewer/iol2opc/pointedBlobs:o</parameters>
                 <node>console</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/manager/view/localizer --x 320 --y 370 --out /iolViewer/manager/view/localizer:o --p 50 --compact</parameters>
+                <parameters>--name /iolViewer/iol2opc/view/localizer --x 320 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
                 <node>console</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/manager/view/histogram --x 640 --y 220 --w 600 --h 600 --p 50 --compact</parameters>
+                <parameters>--name /iolViewer/iol2opc/view/histogram --x 640 --y 220 --w 600 --h 600 --p 50 --compact</parameters>
                 <node>console</node>
         </module>
 
@@ -125,22 +125,27 @@
         </connection>
         <connection>
                 <from>/iol2opc/img:o</from>
-                <to>/iolViewer/manager/view</to>
+                <to>/iolViewer/iol2opc/view</to>
                 <protocol>tcp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgLoc:o</from>
-                <to>/iolViewer/manager/view/localizer</to>
+                <to>/iolViewer/iol2opc/view/localizer</to>
                 <protocol>tcp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgHistogram:o</from>
-                <to>/iolViewer/manager/view/histogram</to>
+                <to>/iolViewer/iol2opc/view/histogram</to>
                 <protocol>tcp</protocol>
         </connection>
         <connection>
-                <from>/iolViewer/manager/view/localizer:o</from>
+                <from>/iolViewer/iol2opc/view/localizer:o</from>
                 <to>/iol2opc/histObjLocation:i</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iolViewer/iol2opc/pointedBlobs:o</from>
+                <to>/iol2opc/getClick:i</to>
                 <protocol>tcp</protocol>
         </connection>
         <connection>

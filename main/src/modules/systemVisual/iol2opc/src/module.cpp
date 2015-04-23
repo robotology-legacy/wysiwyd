@@ -157,6 +157,19 @@ CvPoint IOL2OPCBridge::getBlobCOG(const Bottle &blobs, const int i)
     return cog;
 }
 
+bool IOL2OPCBridge::getClickPosition(Vector &pos)
+{
+    if (Bottle *bPos=getClickPort.read(false))
+    {
+        if (bPos->size()>=2)
+        {
+            pos[0] = bPos->get(0).asInt();
+            pos[1] = bPos->get(1).asInt();
+            return true;
+        }
+    }
+    return false;
+}
 
 /**********************************************************/
 bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
@@ -516,30 +529,6 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
     printf("Sending training request: %s\n",cmd.toString().c_str());
     rpcClassifier.write(cmd,reply);
     printf("Received reply: %s\n",reply.toString().c_str());
-
-    if (trainOnFlipped && (i>=0))
-    {
-        ImageOf<PixelBgr> imgFlipped=img;
-
-        if (Bottle *item=blobs.get(i).asList())
-        {
-            CvPoint tl,br;
-            tl.x=(int)item->get(0).asDouble();
-            tl.y=(int)item->get(1).asDouble();
-            br.x=(int)item->get(2).asDouble();
-            br.y=(int)item->get(3).asDouble();
-
-            cvSetImageROI((IplImage*)imgFlipped.getIplImage(),cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
-            cvFlip(imgFlipped.getIplImage(),imgFlipped.getIplImage(),1);
-            cvResetImageROI((IplImage*)imgFlipped.getIplImage());
-
-            imgClassifier.write(imgFlipped);
-
-            printf("Sending training request (for flipped image): %s\n",cmd.toString().c_str());
-            rpcClassifier.write(cmd,reply);
-            printf("Received reply (for flipped image): %s\n",reply.toString().c_str());
-        }
-    }
 
     // release resources
     mutexResources.post();
@@ -921,6 +910,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcPort.open(("/"+name+"/rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
+    getClickPort.open(("/"+name+"/getClick:i").c_str());
 
     rpcMemory.open(("/"+name+"/memory:rpc").c_str());
 
@@ -966,13 +956,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rtLocalization.start();
 
     memoryUpdater.setBridge(this);
-    memoryUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
+    memoryUpdater.setRate(rf.check("opc_update_period",Value(60)).asInt());
     memoryUpdater.start();
     
-    improve_train_period=rf.check("improve_train_period",Value(0.0)).asDouble();
-    trainOnFlipped=rf.check("train_flipped_images",Value("off")).asString()=="on";
-    trainBurst=rf.check("train_burst_images",Value("off")).asString()=="on";
-    classification_threshold=rf.check("classification_threshold",Value(0.5)).asDouble();
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
 
     img.resize(320,240);
@@ -1006,6 +992,7 @@ bool IOL2OPCBridge::interruptModule()
     rpcPort.interrupt();
     blobExtractor.interrupt();
     rpcClassifier.interrupt();
+    getClickPort.interrupt();
     rpcGet3D.interrupt();
     rpcMemory.interrupt();
 
@@ -1029,6 +1016,7 @@ bool IOL2OPCBridge::close()
     rpcPort.close();
     blobExtractor.close();
     rpcClassifier.close();
+    getClickPort.close();
     rpcGet3D.close();
     rpcMemory.close();
 
@@ -1047,11 +1035,11 @@ bool IOL2OPCBridge::updateModule()
     string activeObject="";
 
     //if ((rxCmd==Vocab::encode("forget")) && (valHuman.size()>0))
-    {        
-        mutexMemoryUpdate.wait();
-        execForget(activeObject);
-        mutexMemoryUpdate.post();
-    }
+    //{
+    //    mutexMemoryUpdate.wait();
+    //    execForget(activeObject);
+    //    mutexMemoryUpdate.post();
+    //}
 
     return true;
 }
@@ -1074,6 +1062,15 @@ double IOL2OPCBridge::getPeriod()
 /**********************************************************/
 bool IOL2OPCBridge::add_name(const string &name)
 {
+    Vector clickLocation;
+    clickLocation.resize(2);
+
+    if(getClickPosition(clickLocation)) {
+        cout << clickLocation[0] << " " << clickLocation[1] << endl;
+    } else {
+        return false;
+    }
+
     return false;
 }
 

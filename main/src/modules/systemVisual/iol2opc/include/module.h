@@ -52,6 +52,7 @@ protected:
     BufferedPort<Bottle>             blobExtractor;
     BufferedPort<Bottle>             histObjLocPort;
     BufferedPort<Property>           recogTriggerPort;
+    BufferedPort<Bottle>             getClickPort;
     BufferedPort<ImageOf<PixelBgr> > imgIn;
     BufferedPort<ImageOf<PixelBgr> > imgOut;
     BufferedPort<ImageOf<PixelBgr> > imgRtLocOut;
@@ -66,19 +67,9 @@ protected:
     ImageOf<PixelBgr> imgRtLoc;
     Semaphore mutexResources;
     Semaphore mutexResourcesMemory;
-    Semaphore mutexAttention;
     Semaphore mutexMemoryUpdate;
     
     string name;
-    bool scheduleLoadMemory;
-    bool enableInterrupt;
-    bool actionInterrupted;
-    bool skipGazeHoming;
-    bool doAttention;
-    bool trainOnFlipped;
-    bool trainBurst;    
-    double improve_train_period;
-    double classification_threshold;
 
     map<string,Filter*> histFiltersPool;
     int histFilterLength;
@@ -100,6 +91,7 @@ protected:
     Bottle  getBlobs();
     CvPoint getBlobCOG(const Bottle &blobs, const int i);
     bool    get3DPosition(const CvPoint &point, Vector &x);
+    bool    getClickPosition(Vector &pos);
     void    acquireImage(const bool rtlocalization=false);
     void    drawBlobs(const Bottle &blobs, const int i, Bottle *scores=NULL);
     void    rotate(cv::Mat &src, const double angle, cv::Mat &dst);
@@ -112,7 +104,6 @@ protected:
     void    execForget(const string &object);
     void    doLocalization();
     bool    get3DPositionFromMemory(const string &object, Vector &position);
-    bool    doExploration(const string &object, const Vector &position);
     void    updateMemory();
 
     bool    configure(ResourceFinder &rf);
