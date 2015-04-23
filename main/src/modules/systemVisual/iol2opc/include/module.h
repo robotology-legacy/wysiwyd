@@ -71,7 +71,6 @@ protected:
     Semaphore mutexMemoryUpdate;
     
     string name;
-    string camera;
     bool busy;
     bool scheduleLoadMemory;
     bool enableInterrupt;

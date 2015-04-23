@@ -135,12 +135,9 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
     if (rpcGet3D.getOutputCount()>0)
     {
         Bottle cmd,reply;
-        cmd.addVocab(Vocab::encode("get"));
-        cmd.addVocab(Vocab::encode("s2c"));
-        Bottle &options=cmd.addList();
-        options.addString(camera.c_str());
-        options.addInt(point.x);
-        options.addInt(point.y);
+        cmd.addString("Root");
+        cmd.addInt(point.x);
+        cmd.addInt(point.y);
         printf("Sending get3D query: %s\n",cmd.toString().c_str());
         rpcGet3D.write(cmd,reply);
         printf("Received blob cartesian coordinates: %s\n",reply.toString().c_str());
@@ -920,7 +917,7 @@ void IOL2OPCBridge::updateMemory()
                     // prepare position_2d property
                     Bottle position_2d;
                     Bottle &list_2d=position_2d.addList();
-                    list_2d.addString(("position_2d_"+camera).c_str());
+                    list_2d.addString("position_2d");
                     Bottle &list_2d_c=list_2d.addList();
                     list_2d_c.addDouble(item->get(0).asDouble());
                     list_2d_c.addDouble(item->get(1).asDouble());
@@ -1012,7 +1009,7 @@ void IOL2OPCBridge::updateMemory()
                 Bottle &list_propSet=content.addList();
                 list_propSet.addString("propSet");
                 Bottle &list_items=list_propSet.addList();
-                list_items.addString(("position_2d_"+camera).c_str());
+                list_items.addString("position_2d");
                 list_items.addString("position_3d");
                 rpcMemory.write(cmdMemory,replyMemory);
             }
@@ -1122,7 +1119,7 @@ void IOL2OPCBridge::updateObjCartPosInMemory(const string &object,
                 // prepare position_2d property
                 Bottle position_2d;
                 Bottle &list_2d=position_2d.addList();
-                list_2d.addString(("position_2d_"+camera).c_str());
+                list_2d.addString("position_2d");
                 Bottle &list_2d_c=list_2d.addList();
                 list_2d_c.addDouble(item->get(0).asDouble());
                 list_2d_c.addDouble(item->get(1).asDouble());
@@ -1181,9 +1178,6 @@ void IOL2OPCBridge::triggerRecogInfo(const string &object, const Bottle &blobs,
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     name=rf.check("name",Value("iol2opc")).asString().c_str();
-    camera=rf.check("camera",Value("left")).asString().c_str();
-    if ((camera!="left") && (camera!="right"))
-        camera="left";
 
     imgIn.open(("/"+name+"/img:i").c_str());
     blobExtractor.open(("/"+name+"/blobs:i").c_str());
