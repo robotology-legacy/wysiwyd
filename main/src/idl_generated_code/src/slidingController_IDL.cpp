@@ -238,7 +238,7 @@ bool slidingController_IDL::stop() {
   slidingController_IDL_stop helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::stop()");
+    yError("Missing server method '%s'?","bool slidingController_IDL::stop()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -248,7 +248,7 @@ bool slidingController_IDL::calibrate() {
   slidingController_IDL_calibrate helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::calibrate()");
+    yError("Missing server method '%s'?","bool slidingController_IDL::calibrate()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -258,7 +258,7 @@ bool slidingController_IDL::impedance(const std::string& sw) {
   slidingController_IDL_impedance helper;
   helper.init(sw);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::impedance(const std::string& sw)");
+    yError("Missing server method '%s'?","bool slidingController_IDL::impedance(const std::string& sw)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -268,7 +268,7 @@ bool slidingController_IDL::explore() {
   slidingController_IDL_explore helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::explore()");
+    yError("Missing server method '%s'?","bool slidingController_IDL::explore()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -278,7 +278,7 @@ bool slidingController_IDL::hand(const std::string& key, const bool wait) {
   slidingController_IDL_hand helper;
   helper.init(key,wait);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::hand(const std::string& key, const bool wait)");
+    yError("Missing server method '%s'?","bool slidingController_IDL::hand(const std::string& key, const bool wait)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -288,7 +288,7 @@ bool slidingController_IDL::goTo(const double x, const double y, const double z,
   slidingController_IDL_goTo helper;
   helper.init(x,y,z,interpolate);
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::goTo(const double x, const double y, const double z, const bool interpolate)");
+    yError("Missing server method '%s'?","bool slidingController_IDL::goTo(const double x, const double y, const double z, const bool interpolate)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -298,7 +298,7 @@ bool slidingController_IDL::quit() {
   slidingController_IDL_quit helper;
   helper.init();
   if (!yarp().canWrite()) {
-    fprintf(stderr,"Missing server method '%s'?\n","bool slidingController_IDL::quit()");
+    yError("Missing server method '%s'?","bool slidingController_IDL::quit()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;

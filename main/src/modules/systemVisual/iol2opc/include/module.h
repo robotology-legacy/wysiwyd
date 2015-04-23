@@ -30,6 +30,7 @@
 
 #include "utils.h"
 #include "classifierHandling.h"
+#include "iol2opc_IDL.h"
 
 #define RET_INVALID     -1
 
@@ -40,20 +41,13 @@ using namespace iCub::ctrl;
 
 
 /**********************************************************/
-class IOL2OPCBridge : public RFModule
+class IOL2OPCBridge : public RFModule, public iol2opc_IDL
 {
 protected:
-    RpcServer           rpcPort;
-    RpcServer           rpcHuman;
-    RpcClient           rpcClassifier;
-    RpcClient           rpcMotor;
-    RpcClient           rpcMotorGrasp;
-    RpcClient           rpcGet3D;
-    RpcClient           rpcMotorStop;
-    RpcClient           rpcMemory;
-    StopCmdPort         rxMotorStop;
-    PointedLocationPort pointedLoc;
-    MemoryReporter      memoryReporter;
+    RpcServer rpcPort;
+    RpcClient rpcClassifier;
+    RpcClient rpcGet3D;
+    RpcClient rpcMemory;
 
     BufferedPort<Bottle>             blobExtractor;
     BufferedPort<Bottle>             histObjLocPort;
@@ -64,10 +58,7 @@ protected:
     BufferedPort<ImageOf<PixelBgr> > imgHistogram;
     Port imgClassifier;
 
-    Speaker speaker;
-    Attention attention;
     RtLocalization rtLocalization;
-    Exploration exploration;
     MemoryUpdater memoryUpdater;
     ClassifiersDataBase db;
     map<string,int> memoryIds;
@@ -81,7 +72,6 @@ protected:
     
     string name;
     string camera;
-    string objectToBeKinCalibrated;
     bool busy;
     bool scheduleLoadMemory;
     bool enableInterrupt;
@@ -111,13 +101,9 @@ protected:
     Vector skim_blobs_y_bounds;
     Vector histObjLocation;
 
-    friend class Attention;
     friend class RtLocalization;
-    friend class Exploration;
     friend class MemoryUpdater;
-    friend class MemoryReporter;
 
-    int     processHumanCmd(const Bottle &cmd, Bottle &b);
     Bottle  skimBlobs(const Bottle &blobs);
     Bottle  getBlobs();
     CvPoint getBlobCOG(const Bottle &blobs, const int i);
@@ -126,50 +112,31 @@ protected:
     void    drawBlobs(const Bottle &blobs, const int i, Bottle *scores=NULL);
     void    rotate(cv::Mat &src, const double angle, cv::Mat &dst);
     void    drawScoresHistogram(const Bottle &blobs, const Bottle &scores, const int i);
-    void    loadMemory();
     void    updateClassifierInMemory(Classifier *pClassifier);
     void    updateObjCartPosInMemory(const string &object, const Bottle &blobs, const int i);
     void    triggerRecogInfo(const string &object, const Bottle &blobs, const int i, const string &recogType);
     int     findClosestBlob(const Bottle &blobs, const CvPoint &loc);
     int     findClosestBlob(const Bottle &blobs, const Vector &loc);
     Bottle  classify(const Bottle &blobs, const bool rtlocalization=false);
-    void    burst(const string &tag="");
     void    train(const string &object, const Bottle &blobs, const int i);
-    void    improve_train(const string &object, const Bottle &blobs, const int i);
-    void    home(const string &part="all");
-    void    stopGaze();
-    void    calibTable();
-    bool    calibKinStart(const string &object, const string &hand, const int recogBlob);
-    void    calibKinStop();
-    void    motorHelper(const string &cmd, const string &object);
-    void    motorHelper(const string &cmd, const Bottle &blobs, const int i, const Bottle &options=Bottle());
-    bool    interruptableAction(const string &action, deque<string> *param, const string &object, const Bottle &blobs=Bottle(), const int iBlob=RET_INVALID);
-    void    point(const string &object);
-    void    point(const Bottle &blobs, const int i);
-    void    look(const string &object);
-    void    look(const Bottle &blobs, const int i, const Bottle &options=Bottle());
     int     recognize(const string &object, Bottle &blobs, Classifier **ppClassifier=NULL);
     int     recognize(Bottle &blobs, Bottle &scores, string &object);
-    void    execName(const string &object);
     void    execForget(const string &object);
     void    execWhere(const string &object, const Bottle &blobs, const int recogBlob, Classifier *pClassifier, const string &recogType);
-    void    execWhat(const Bottle &blobs, const int pointedBlob, const Bottle &scores, const string &object);
-    void    execExplore(const string &object);
-    void    execReinforce(const string &object, const Vector &position);
-    void    execInterruptableAction(const string &action, const string &object, const Bottle &blobs, const int recogBlob);
-    void    switchAttention();
     void    doLocalization();
     bool    get3DPositionFromMemory(const string &object, Vector &position);
     bool    doExploration(const string &object, const Vector &position);
-    void    updateMemory();    
+    void    updateMemory();
+    bool    attach(RpcServer &source);
 
 public:
     bool    configure(ResourceFinder &rf);
     bool    interruptModule();
     bool    close();
     bool    updateModule();
-    bool    respond(const Bottle &command, Bottle &reply);
-    double  getPeriod();    
+    double  getPeriod();
+    bool    add_name(const string &name);
+    bool    remove_name(const string &name);
 };
 
 #endif

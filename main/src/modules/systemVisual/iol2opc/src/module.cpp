@@ -57,24 +57,6 @@ public:
 
 
 /**********************************************************/
-int IOL2OPCBridge::processHumanCmd(const Bottle &cmd, Bottle &b)
-{
-    int ret=Vocab::encode(cmd.get(0).asString().c_str());
-    b.clear();
-
-    if (cmd.size()>1)
-    {
-        if (cmd.get(1).isList())
-            b=*cmd.get(1).asList();
-        else
-            b=cmd.tail();
-    }
-
-    return ret;
-}
-
-
-/**********************************************************/
 Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
 {
     Bottle skimmedBlobs;
@@ -480,22 +462,6 @@ Bottle IOL2OPCBridge::classify(const Bottle &blobs, const bool rtlocalization)
 
 
 /**********************************************************/
-void IOL2OPCBridge::burst(const string &tag)
-{
-    if (trainBurst && (tag!=""))
-    {
-        Bottle cmd,reply;
-        cmd.addVocab(Vocab::encode("burst"));
-        cmd.addVocab(Vocab::encode(tag.c_str()));
-
-        printf("Sending burst training request: %s\n",cmd.toString().c_str());
-        rpcClassifier.write(cmd,reply);
-        printf("Received reply: %s\n",reply.toString().c_str());
-    }
-}
-
-
-/**********************************************************/
 void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
                     const int i)
 {
@@ -554,183 +520,6 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
 
 
 /**********************************************************/
-void IOL2OPCBridge::improve_train(const string &object, const Bottle &blobs,
-                            const int i)
-{
-    CvPoint ref_cog=getBlobCOG(blobs,i);
-    if ((ref_cog.x==RET_INVALID) || (ref_cog.y==RET_INVALID))
-        return;
-
-    double t0=Time::now();
-    while (Time::now()-t0<improve_train_period)
-    {
-        // acquire image for training
-        acquireImage();
-
-        // grab the blobs
-        Bottle blobs=getBlobs();
-
-        // failure handling
-        if (blobs.size()==0)
-            continue;
-
-        // enforce 2D consistency
-        int exploredBlob=-1;
-        double curMinDist=10.0;
-        double curMinDist2=curMinDist*curMinDist;
-        for (int i=0; i<blobs.size(); i++)
-        {
-            CvPoint cog=getBlobCOG(blobs,i);
-            if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
-                continue;
-
-            double dx=ref_cog.x-cog.x;
-            double dy=ref_cog.y-cog.y;
-            double dist2=dx*dx+dy*dy;
-            if (dist2<curMinDist2)
-            {
-                exploredBlob=i;
-                curMinDist2=dist2;
-            }
-        }
-
-        // no candidate found => skip
-        if (exploredBlob<0)
-            continue;
-
-        // train the classifier
-        train(object,blobs,exploredBlob);
-
-        // draw the blobs highlighting the explored one
-        drawBlobs(blobs,exploredBlob);
-    }
-}
-
-
-/**********************************************************/
-bool IOL2OPCBridge::interruptableAction(const string &action,
-                                  deque<string> *param,
-                                  const string &object,
-                                  const Bottle &blobs,
-                                  const int iBlob)
-{
-    // remap "hold" into "take" without final "drop"
-    string actionRemapped=action;
-    if (actionRemapped=="hold")
-        actionRemapped="take";
-
-    Bottle cmdMotor,replyMotor;
-
-    RpcClient *port;
-    if (action=="grasp")
-    {
-        port=&rpcMotorGrasp;
-
-        CvPoint cog=getBlobCOG(blobs,iBlob);
-        cmdMotor.addString("grasp");
-        Bottle &point=cmdMotor.addList();
-        point.addInt(cog.x);
-        point.addInt(cog.y);
-    }
-    else
-    {
-        port=&rpcMotor;
-
-        cmdMotor.addVocab(Vocab::encode(actionRemapped.c_str()));
-        if (action=="drop")
-            cmdMotor.addString("over");
-        cmdMotor.addString(object.c_str());
-        if (action=="drop")
-            cmdMotor.addString("gently");
-
-        if (param!=NULL)
-            for (size_t i=0; i<param->size(); i++)
-                cmdMotor.addString((*param)[i].c_str());
-    }
-
-    actionInterrupted=false;
-    enableInterrupt=true;   
-    port->write(cmdMotor,replyMotor);
-    bool ack=(replyMotor.get(0).asVocab()==Vocab::encode("ack"));
-
-    if ((action=="grasp") && !ack)
-    {
-        string why=replyMotor.get(1).asString().c_str();
-        string sentence="Hmmm. The ";
-        sentence+=object;
-        if (why=="too_far")
-            sentence+=" seems too far. Could you push it closer?";
-        else
-            sentence+=" seems in bad position for me. Could you help moving it a little bit?";
-
-        speaker.speak(sentence);
-    }
-
-    // this switch might be turned on asynchronously
-    // by a request received on a dedicated port
-    if (actionInterrupted)
-    {
-        reinstateMotor();
-        home();
-    }
-    // drop the object in the hand
-    else if (ack && ((action=="take") || (action=="grasp")))
-    {
-        cmdMotor.clear();
-        cmdMotor.addVocab(Vocab::encode("drop"));
-        rpcMotor.write(cmdMotor,replyMotor);
-    }
-
-    enableInterrupt=false;
-    return !actionInterrupted;
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::interruptMotor()
-{
-    if (enableInterrupt)
-    {
-        actionInterrupted=true;  // keep this line before the call to write
-        enableInterrupt=false;
-        Bottle cmdMotorStop,replyMotorStop;
-        cmdMotorStop.addVocab(Vocab::encode("interrupt"));
-        rpcMotorStop.write(cmdMotorStop,replyMotorStop);
-
-        speaker.speak("Ouch!");
-    }
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::point(const string &object)
-{
-    motorHelper("point",object);
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::look(const string &object)
-{
-    motorHelper("look",object);
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::point(const Bottle &blobs, const int i)
-{
-    motorHelper("point",blobs,i);
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::look(const Bottle &blobs, const int i, const Bottle &options)
-{
-    motorHelper("look",blobs,i,options);
-}
-
-
-/**********************************************************/
 int IOL2OPCBridge::recognize(const string &object, Bottle &blobs,
                        Classifier **ppClassifier)
 {
@@ -758,13 +547,8 @@ int IOL2OPCBridge::recognize(const string &object, Bottle &blobs,
 
     // failure handling
     if (scores.size()==1)
-    {
         if (scores.get(0).asString()=="failed")
-        {
-            speaker.speak("Ooops! Sorry, something went wrong in my brain");
             return RET_INVALID;
-        }
-    }
 
     // find the best blob
     int recogBlob=db.processScores(it->second,scores);
@@ -800,20 +584,14 @@ int IOL2OPCBridge::recognize(Bottle &blobs, Bottle &scores, string &object)
 
     // failure handling
     if (scores.size()==1)
-    {
         if (scores.get(0).asString()=="failed")
-        {
-            speaker.speak("Ooops! Sorry, something went wrong in my brain");
             return RET_INVALID;
-        }
-    }
 
     // handle the human-pointed object
     if (whatGood)
     {
         int closestBlob=findClosestBlob(blobs,whatLocation);
         drawBlobs(blobs,closestBlob);
-        look(blobs,closestBlob);
 
         ostringstream tag;
         tag<<"blob_"<<closestBlob;
@@ -821,86 +599,7 @@ int IOL2OPCBridge::recognize(Bottle &blobs, Bottle &scores, string &object)
         return closestBlob;
     }
     else
-    {
-        speaker.speak("Ooops! Sorry, I missed where you pointed at");
         return RET_INVALID;
-    }
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::execName(const string &object)
-{
-    Bottle replyHuman;
-    if (!trackStopGood)
-    {
-        speaker.speak("Ooops! Sorry, I missed where you pointed at");
-        replyHuman.addString("nack");
-        rpcHuman.reply(replyHuman);
-        return;
-    }
-
-    map<string,Classifier*>::iterator it=db.find(object);
-    if (it==db.end())
-    {
-        // if not, create a brand new one
-        db[object]=new Classifier(object,classification_threshold);
-        it=db.find(object);
-        printf("created classifier for %s\n",object.c_str());
-    }
-
-    // acquire image for training
-    acquireImage();
-
-    // grab the blobs
-    Bottle blobs=getBlobs();
-
-    // failure handling
-    if (blobs.size()==0)
-    {
-        speaker.speak("Ooops! Sorry, I cannot see any object");
-        replyHuman.addString("nack");
-        rpcHuman.reply(replyHuman);
-        return;
-    }
-
-    // run the normal procedure straightaway
-    Bottle scores=classify(blobs);
-
-    // failure handling
-    if (scores.size()==1)
-    {
-        if (scores.get(0).asString()=="failed")
-        {
-            speaker.speak("Ooops! Sorry, something went wrong in my brain");
-            replyHuman.addString("nack");
-            rpcHuman.reply(replyHuman);
-            return;
-        }
-    }
-
-    db.processScores(it->second,scores);
-
-    // find the closest blob
-    int closestBlob=findClosestBlob(blobs,trackStopLocation);
-
-    // draw the blobs highlighting the detected one (if any)
-    drawBlobs(blobs,closestBlob);
-
-    // train
-    burst("start");
-    train(object,blobs,closestBlob);
-    improve_train(object,blobs,closestBlob);
-    burst("stop");
-    triggerRecogInfo(object,blobs,closestBlob,"creation");
-    ostringstream reply;
-    reply<<"All right! Now I know what a "<<object;
-    reply<<" is";
-    speaker.speak(reply.str());
-    look(blobs,closestBlob);
-
-    replyHuman.addString("ack");
-    rpcHuman.reply(replyHuman);
 }
 
 
@@ -939,7 +638,6 @@ void IOL2OPCBridge::execForget(const string &object)
         }
 
         db.clear();
-        speaker.speak("I have forgotten everything");
         replyHuman.addString("ack");
     }
     else    // forget specific object
@@ -979,19 +677,15 @@ void IOL2OPCBridge::execForget(const string &object)
 
             db.erase(it);
             reply<<object<<" forgotten";
-            speaker.speak(reply.str());
             replyHuman.addString("ack");
         }
         else
         {
             printf("%s object is unknown\n",object.c_str());
             reply<<"I do not know any "<<object;
-            speaker.speak(reply.str());
             replyHuman.addString("nack");
         }        
     }
-
-    rpcHuman.reply(replyHuman);
 
     // release resources
     mutexResources.post();
@@ -1010,13 +704,7 @@ void IOL2OPCBridge::execWhere(const string &object, const Bottle &blobs,
     {
         ostringstream reply;
         reply<<"I think this is the "<<object;
-        speaker.speak(reply.str());
         printf("I think the %s is blob %d\n",object.c_str(),recogBlob);
-
-        // issue a [point] and wait for action completion
-        point(object);
-
-        speaker.speak("Am I right?");
 
         replyHuman.addString("ack");
         replyHuman.addInt(recogBlob);
@@ -1027,29 +715,26 @@ void IOL2OPCBridge::execWhere(const string &object, const Bottle &blobs,
         ostringstream reply;
         reply<<"I have not found any "<<object;
         reply<<", is it so?";
-        speaker.speak(reply.str());
         printf("No object recognized\n");
 
         replyHuman.addString("nack");
     }
-
-    rpcHuman.reply(replyHuman);
 
     // enter the human interaction mode to refine the knowledge
     bool ok=false;
     while (!ok)
     {
         replyHuman.clear();
-        rpcHuman.read(cmdHuman,true);
+        //rpcHuman.read(cmdHuman,true);
 
         if (isStopping())
             return;
 
-        int type=processHumanCmd(cmdHuman,valHuman);
+        int type=0;//processHumanCmd(cmdHuman,valHuman);
         // do nothing
+
         if (type==Vocab::encode("skip"))
         {
-            speaker.speak("Skipped");
             replyHuman.addString("ack");
             ok=true;
         }
@@ -1059,16 +744,12 @@ void IOL2OPCBridge::execWhere(const string &object, const Bottle &blobs,
             // reinforce if an object is available
             if ((recogBlob>=0) && (pClassifier!=NULL))
             {
-                burst("start");
                 train(object,blobs,recogBlob);
-                improve_train(object,blobs,recogBlob);
-                burst("stop");
                 pClassifier->positive();
                 triggerRecogInfo(object,blobs,recogBlob,"recognition");
                 updateClassifierInMemory(pClassifier);
             }
 
-            speaker.speak("Cool!");
             replyHuman.addString("ack");
             ok=true;
         }
@@ -1084,193 +765,21 @@ void IOL2OPCBridge::execWhere(const string &object, const Bottle &blobs,
 
             // handle the human-pointed object
             CvPoint loc;
-            if (pointedLoc.getLoc(loc))
+            //if (pointedLoc.getLoc(loc))
             {
                 int closestBlob=findClosestBlob(blobs,loc);
-                burst("start");
                 train(object,blobs,closestBlob);
-                improve_train(object,blobs,closestBlob);
-                burst("stop");
                 triggerRecogInfo(object,blobs,closestBlob,recogType);
-                speaker.speak("Oooh, I see");                
-                look(blobs,closestBlob);
             }
-            else
-                speaker.speak("Ooops! Sorry, I missed where you pointed at");
 
             replyHuman.addString("ack");
             ok=true;
         }
         else
-        {
-            speaker.speak("Hmmm hmmm hmmm! Try again");
             replyHuman.addString("nack");
-        }
 
-        rpcHuman.reply(replyHuman);
+        //rpcHuman.reply(replyHuman);
     }
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::execWhat(const Bottle &blobs, const int pointedBlob,
-                       const Bottle &scores, const string &object)
-{
-    Bottle cmdHuman,valHuman,replyHuman;
-    Classifier *pClassifier=NULL;
-
-    // some known object has been recognized
-    if (object!=OBJECT_UNKNOWN)
-    {
-        ostringstream reply;
-        reply<<"I think it is the "<<object;
-        speaker.speak(reply.str());
-        speaker.speak("Am I right?");
-        printf("I think the blob %d is the %s\n",pointedBlob,object.c_str());
-
-        // retrieve the corresponding classifier
-        map<string,Classifier*>::iterator it=db.find(object);
-        if (it!=db.end())
-            pClassifier=it->second;
-
-        replyHuman.addString("ack");
-        replyHuman.addString(object.c_str());
-    }
-    // no known object has been recognized in the scene
-    else
-    {
-        speaker.speak("I do not know this object");
-        speaker.speak("What is it?");
-        printf("No object recognized\n");
-        replyHuman.addString("nack");
-    }
-
-    rpcHuman.reply(replyHuman);
-
-    // enter the human interaction mode to refine the knowledge
-    bool ok=false;
-    while (!ok)
-    {
-        replyHuman.clear();
-        rpcHuman.read(cmdHuman,true);
-
-        if (isStopping())
-            return;
-
-        int type=processHumanCmd(cmdHuman,valHuman);
-        // do nothing
-        if (type==Vocab::encode("skip"))
-        {
-            speaker.speak("Skipped");
-            replyHuman.addString("ack");
-            ok=true;
-        }
-        // good job is done
-        else if ((object!=OBJECT_UNKNOWN) && (type==Vocab::encode("ack")))
-        {
-            // reinforce if an object is available
-            if ((pointedBlob>=0) && (pClassifier!=NULL))
-            {
-                burst("start");
-                train(object,blobs,pointedBlob);
-                improve_train(object,blobs,pointedBlob);
-                burst("stop");
-                db.processScores(pClassifier,scores);
-                pClassifier->positive();
-                triggerRecogInfo(object,blobs,pointedBlob,"recognition");
-                updateClassifierInMemory(pClassifier);
-            }
-
-            speaker.speak("Cool!");
-            replyHuman.addString("ack");
-            ok=true;
-        }
-        // misrecognition
-        else if (type==Vocab::encode("nack"))
-        {
-            // update the threshold
-            if ((pointedBlob>=0) && (pClassifier!=NULL))
-            {
-                db.processScores(pClassifier,scores);
-                pClassifier->negative();
-                updateClassifierInMemory(pClassifier);
-            }
-
-            speaker.speak("Sorry");
-            replyHuman.addString("ack");
-            ok=true;
-        }
-        // handle new/unrecognized/misrecognized object
-        else if ((type==Vocab::encode("name")) && (valHuman.size()>0))
-        {
-            string objectName=valHuman.get(0).asString().c_str();
-
-            // check whether the object is already known
-            // and, if not, allocate space for it
-            map<string,Classifier*>::iterator it=db.find(objectName);
-            if (it==db.end())
-            {
-                db[objectName]=new Classifier(objectName,classification_threshold);
-                it=db.find(objectName);
-                speaker.speak("Oooh, I see");
-                printf("created classifier for %s\n",objectName.c_str());
-            }
-            else
-            {
-                // update the threshold for the case of misrecognition
-                if ((pClassifier!=NULL) && (object!=objectName) && (object!=OBJECT_UNKNOWN))
-                {
-                    db.processScores(pClassifier,scores);
-                    pClassifier->negative();
-                    updateClassifierInMemory(pClassifier);
-                }
-
-                ostringstream reply;
-                reply<<"Sorry, I should have recognized the "<<objectName;
-                speaker.speak(reply.str());
-            }
-
-            // trigger the classifier
-            if (pointedBlob>=0)
-            {
-                burst("start");
-                train(objectName,blobs,pointedBlob);
-                improve_train(objectName,blobs,pointedBlob);
-                burst("stop");
-                triggerRecogInfo(objectName,blobs,pointedBlob,
-                                 (object==OBJECT_UNKNOWN)?"creation":"recognition");
-            }
-
-            db.processScores(it->second,scores);
-
-            replyHuman.addString("ack");
-            ok=true;
-        }
-        else
-        {
-            speaker.speak("Hmmm hmmm hmmm! Try again");
-            replyHuman.addString("nack");
-        }
-
-        rpcHuman.reply(replyHuman);
-    }
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::execReinforce(const string &object,
-                            const Vector &position)
-{
-    bool ret=false;
-    if (db.find(object)!=db.end())
-    {
-        burst("start");
-        ret=doExploration(object,position);
-        burst("stop");
-    }
-
-    Bottle replyHuman(ret?"ack":"nack");
-    rpcHuman.reply(replyHuman);
 }
 
 
@@ -1377,13 +886,6 @@ void IOL2OPCBridge::updateMemory()
     {
         // grab resources
         mutexMemoryUpdate.wait();
-
-        // load memory on connection event
-        if (scheduleLoadMemory)
-        {
-            loadMemory();
-            scheduleLoadMemory=false;
-        }
 
         mutexResourcesMemory.wait();
         Bottle blobs=memoryBlobs;
@@ -1676,92 +1178,6 @@ void IOL2OPCBridge::triggerRecogInfo(const string &object, const Bottle &blobs,
 
 
 /**********************************************************/
-void IOL2OPCBridge::loadMemory()
-{
-    printf("Loading memory ...\n");
-    // grab resources
-    mutexResourcesMemory.wait();
-
-    // purge internal databases
-    memoryIds.clear();
-    db.clear();
-
-    // ask for all the items stored in memory
-    Bottle cmdMemory,replyMemory,replyMemoryProp;
-    cmdMemory.addVocab(Vocab::encode("ask"));
-    Bottle &content=cmdMemory.addList().addList();
-    content.addString("entity");
-    content.addString("==");
-    content.addString("object");
-    rpcMemory.write(cmdMemory,replyMemory);
-    
-    if (replyMemory.size()>1)
-    {
-        if (replyMemory.get(0).asVocab()==Vocab::encode("ack"))
-        {
-            if (Bottle *idField=replyMemory.get(1).asList())
-            {
-                if (Bottle *idValues=idField->get(1).asList())
-                {
-                    // cycle over items
-                    for (int i=0; i<idValues->size(); i++)
-                    {
-                        int id=idValues->get(i).asInt();
-
-                        // get the relevant properties
-                        // [get] (("id" <num>) ("propSet" ("name" "classifier_thresholds")))
-                        cmdMemory.clear();
-                        cmdMemory.addVocab(Vocab::encode("get"));
-                        Bottle &content=cmdMemory.addList();
-                        Bottle &list_bid=content.addList();
-                        list_bid.addString("id");
-                        list_bid.addInt(id);
-                        Bottle &list_propSet=content.addList();
-                        list_propSet.addString("propSet");
-                        Bottle &list_items=list_propSet.addList();
-                        list_items.addString("name");
-                        list_items.addString("classifier_thresholds");
-                        rpcMemory.write(cmdMemory,replyMemoryProp);
-
-                        // update internal databases
-                        if (replyMemoryProp.get(0).asVocab()==Vocab::encode("ack"))
-                        {
-                            if (Bottle *propField=replyMemoryProp.get(1).asList())
-                            {
-                                if (propField->check("name"))
-                                {
-                                    string object=propField->find("name").asString().c_str();
-                                    memoryIds[object]=id;
-
-                                    if (propField->check("classifier_thresholds"))
-                                        db[object]=new Classifier(*propField->find("classifier_thresholds").asList());
-                                    else
-                                        db[object]=new Classifier(object,classification_threshold);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    printf("Objects in memory: %d\n",(int)db.size());
-    for (map<string,Classifier*>::iterator it=db.begin(); it!=db.end(); it++)
-    {
-        string object=it->first;
-        string properties=it->second->toBottle().toString().c_str();
-        printf("classifier for %s: memory_id=%d; properties=%s\n",
-               object.c_str(),memoryIds[object],properties.c_str());
-    }
-
-    // release resources
-    mutexResourcesMemory.post();
-    printf("Memory loaded\n");
-}
-
-
-/**********************************************************/
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     name=rf.check("name",Value("iol2opc")).asString().c_str();
@@ -1779,17 +1195,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     recogTriggerPort.open(("/"+name+"/recog:o").c_str());
 
     rpcPort.open(("/"+name+"/rpc").c_str());
-    rpcHuman.open(("/"+name+"/human:rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
-    rpcMotor.open(("/"+name+"/motor:rpc").c_str());
-    rpcMotorGrasp.open(("/"+name+"/motor_grasp:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
-    rpcMotorStop.open(("/"+name+"/motor_stop:rpc").c_str());
-    rxMotorStop.open(("/"+name+"/motor_stop:i").c_str());
-    rxMotorStop.setManager(this);
 
-    memoryReporter.setManager(this);
-    rpcMemory.setReporter(memoryReporter);
     rpcMemory.open(("/"+name+"/memory:rpc").c_str());
 
     skim_blobs_x_bounds.resize(2);
@@ -1829,17 +1237,11 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histObjLocation[1]=0.0;
     histObjLocation[2]=-0.1;
 
-    attention.setManager(this);
-    attention.start();
-
-    rtLocalization.setManager(this);
+    rtLocalization.setBridge(this);
     rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
     rtLocalization.start();
 
-    exploration.setRate(rf.check("exploration_period",Value(30)).asInt());
-    exploration.setManager(this);
-
-    memoryUpdater.setManager(this);
+    memoryUpdater.setBridge(this);
     memoryUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
     memoryUpdater.start();
     
@@ -1853,8 +1255,6 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     imgRtLoc.resize(320,240);
     img.zero();
     imgRtLoc.zero();
-
-    attach(rpcPort);
         
     histColorsCode.push_back(cvScalar( 65, 47,213));
     histColorsCode.push_back(cvScalar(122, 79, 58));
@@ -1862,6 +1262,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histColorsCode.push_back(cvScalar( 71,196,249));
     histColorsCode.push_back(cvScalar(224,176, 96));
     histColorsCode.push_back(cvScalar( 22,118,238));
+
+    attach(rpcPort);
 
     return true;
 }
@@ -1878,21 +1280,13 @@ bool IOL2OPCBridge::interruptModule()
     histObjLocPort.interrupt();
     recogTriggerPort.interrupt();
     rpcPort.interrupt();
-    rpcHuman.interrupt();
     blobExtractor.interrupt();
     rpcClassifier.interrupt();
-    rpcMotor.interrupt();
-    rpcMotorGrasp.interrupt();
     rpcGet3D.interrupt();
-    rpcMotorStop.interrupt();
-    rxMotorStop.interrupt();
-    pointedLoc.interrupt();
-    speaker.interrupt();
     rpcMemory.interrupt();
 
     rtLocalization.stop();
     memoryUpdater.stop();
-    attention.stop();
 
     return true;
 }
@@ -1909,16 +1303,9 @@ bool IOL2OPCBridge::close()
     histObjLocPort.close();
     recogTriggerPort.close();
     rpcPort.close();
-    rpcHuman.close();
     blobExtractor.close();
     rpcClassifier.close();
-    rpcMotor.close();
-    rpcMotorGrasp.close();
     rpcGet3D.close();
-    rpcMotorStop.close();
-    rxMotorStop.close();
-    pointedLoc.close();
-    speaker.close();
     rpcMemory.close();
 
     // dispose filters used for scores histogram
@@ -1933,51 +1320,20 @@ bool IOL2OPCBridge::close()
 /**********************************************************/
 bool IOL2OPCBridge::updateModule()
 {
-    Bottle cmdHuman,valHuman,replyHuman;
-    rpcHuman.read(cmdHuman,true);
-
     BusyGate busyGate(busy);
 
-    if (isStopping())
-        return false;
+    string activeObject="";
 
-    attention.suspend();
-
-    int rxCmd=processHumanCmd(cmdHuman,valHuman);
-    if ((rxCmd==Vocab::encode("attention")) && (valHuman.size()>0))
-        if (valHuman.get(0).asString()=="stop")
-            skipGazeHoming=true;
-
-    if (!skipGazeHoming)
-    {
-        home("gaze");
-
-        // this wait-state gives the memory
-        // time to be updated with the 3D
-        // location of the objects
-        Time::delay(0.1);
-    }
-
-    skipGazeHoming=false;
-
-    else if ((rxCmd==Vocab::encode("name")) && (valHuman.size()>0))
+    //if ((rxCmd==Vocab::encode("forget")) && (valHuman.size()>0))
     {        
-        string activeObject=valHuman.get(0).asString().c_str();
-        execName(activeObject);
-    }
-    else if ((rxCmd==Vocab::encode("forget")) && (valHuman.size()>0))
-    {        
-        string activeObject=valHuman.get(0).asString().c_str();
-
         mutexMemoryUpdate.wait();
         execForget(activeObject);
         mutexMemoryUpdate.post();
     }
-    else if ((rxCmd==Vocab::encode("where")) && (valHuman.size()>0))
+    //else if ((rxCmd==Vocab::encode("where")) && (valHuman.size()>0))
     {        
         Bottle blobs;
-        Classifier *pClassifier;
-        string activeObject=valHuman.get(0).asString().c_str();
+        Classifier *pClassifier;        
 
         mutexMemoryUpdate.wait();
         string recogType=(db.find(activeObject)==db.end())?"creation":"recognition";
@@ -1986,21 +1342,29 @@ bool IOL2OPCBridge::updateModule()
         execWhere(activeObject,blobs,recogBlob,pClassifier,recogType);
         mutexMemoryUpdate.post();
     }
-    else if (rxCmd==Vocab::encode("what"))
-    {
-        // avoid being distracted by the human hand
-        // while it is being removed: save the last
-        // pointed object
-        whatGood=pointedLoc.getLoc(whatLocation);
-        Time::delay(1.0);
-
-        Bottle blobs,scores;
-        string activeObject;
-        int pointedBlob=recognize(blobs,scores,activeObject);
-        execWhat(blobs,pointedBlob,scores,activeObject);
-    }
 
     return true;
+}
+
+
+/**********************************************************/
+bool IOL2OPCBridge::attach(RpcServer &source)
+{
+    return this->yarp().attachAsServer(source);
+}
+
+
+/**********************************************************/
+bool IOL2OPCBridge::add_name(const string &name)
+{
+    return false;
+}
+
+
+/**********************************************************/
+bool IOL2OPCBridge::remove_name(const string &name)
+{
+    return false;
 }
 
 

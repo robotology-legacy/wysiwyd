@@ -30,98 +30,21 @@ using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 
-class Manager;  // forward declaration
-
-/**********************************************************/
-class Speaker : public Port
-{
-protected:
-    bool speaking;
-
-public:
-    Speaker() : speaking(true) { }
-    void setSpeaker(const bool speaking) { this->speaking=speaking; }
-    bool getSpeaker() const              { return speaking;         }
-    void speak(const string &phrase, const bool force=false);
-};
-
-
-/**********************************************************/
-class PointedLocationPort : public BufferedPort<Bottle>
-{
-protected:
-    CvPoint loc;
-    double rxTime;
-    double timeout;
-
-    void onRead(Bottle &b);
-
-public:
-    PointedLocationPort();
-    bool getLoc(CvPoint &loc);
-};
-
-
-/**********************************************************/
-class StopCmdPort : public BufferedPort<Bottle>
-{
-protected:
-    Manager *manager;
-
-    void onRead(Bottle &b);
-
-public:
-    StopCmdPort();
-    void setManager(Manager *manager);
-};
-
-
-/**********************************************************/
-class Attention : public RateThread
-{
-protected:
-    Manager *manager;
-    
-    bool threadInit();
-    void run();
-
-public:
-    Attention();
-    void suspend();
-    void setManager(Manager *manager);
-};
+class IOL2OPCBridge;  // forward declaration
 
 
 /**********************************************************/
 class RtLocalization : public RateThread
 {
 protected:
-    Manager *manager;
+    IOL2OPCBridge *bridge;
     
     bool threadInit();
     void run();
 
 public:
     RtLocalization();
-    void setManager(Manager *manager);
-};
-
-
-/**********************************************************/
-class Exploration : public RateThread
-{
-protected:
-    Manager *manager;
-    string   object;
-    Vector   position;
-    
-    bool threadInit();
-    void run();
-
-public:
-    Exploration();    
-    void setManager(Manager *manager);
-    void setInfo(const string &object, const Vector &position);
+    void setBridge(IOL2OPCBridge *bridge);
 };
 
 
@@ -129,26 +52,14 @@ public:
 class MemoryUpdater : public RateThread
 {
 protected:
-    Manager *manager;
+    IOL2OPCBridge *bridge;
     
     bool threadInit();
     void run();
 
 public:
     MemoryUpdater();
-    void setManager(Manager *manager);
-};
-
-
-/**********************************************************/
-class MemoryReporter : public PortReport
-{
-    Manager *manager;
-
-public:
-    MemoryReporter();
-    void setManager(Manager *manager);
-    void report(const PortInfo &info);
+    void setBridge(IOL2OPCBridge *bridge);
 };
 
 
