@@ -26,7 +26,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include
 add_executable(${PROJECTNAME} ${folder_header} ${folder_source})
 target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} ctrlLib ${YARP_LIBRARIES} wrdac)
 
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER iol2opc)
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER systemVisual)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 
