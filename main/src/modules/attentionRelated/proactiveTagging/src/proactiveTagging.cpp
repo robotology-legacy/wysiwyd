@@ -220,6 +220,7 @@ void    proactiveTagging::nodeSentenceTemporal()
         cout << osError.str() << endl;
     }
 
+
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
     // semantic is the list of the semantic elements of the sentence except the type ef sentence

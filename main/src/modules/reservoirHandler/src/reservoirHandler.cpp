@@ -1281,7 +1281,7 @@ bool reservoirHandler::AREactions(vector<string> seq)
             value[1]<0.0?sHand = "left": sHand  = "right";
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
-            
+
             bool pointed = iCub->getARE()->point(value, bHand);
             cout<<(pointed?"pointed!":"missed!")<<endl;
 
