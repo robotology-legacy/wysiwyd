@@ -1,13 +1,13 @@
 /* 
- * Copyright (C) 2011 Department of Robotics Brain and Cognitive Sciences - Istituto Italiano di Tecnologia
- * Author: Ugo Pattacini
- * email:  ugo.pattacini@iit.it
+ * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+ * Authors: Ugo Pattacini, Tobias Fischer
+ * email:   ugo.pattacini@iit.it, t.fischer@imperial.ac.uk
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
  *
  * A copy of the license can be found at
- * http://www.robotcub.org/icub/license/gpl.txt
+ * wysiwyd/license/gpl.txt
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -57,7 +57,7 @@ public:
 
 
 /**********************************************************/
-int Manager::processHumanCmd(const Bottle &cmd, Bottle &b)
+int IOL2OPCBridge::processHumanCmd(const Bottle &cmd, Bottle &b)
 {
     int ret=Vocab::encode(cmd.get(0).asString().c_str());
     b.clear();
@@ -75,7 +75,7 @@ int Manager::processHumanCmd(const Bottle &cmd, Bottle &b)
 
 
 /**********************************************************/
-Bottle Manager::skimBlobs(const Bottle &blobs)
+Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
 {
     Bottle skimmedBlobs;
     for (int i=0; i<blobs.size(); i++)
@@ -99,7 +99,7 @@ Bottle Manager::skimBlobs(const Bottle &blobs)
 
 
 /**********************************************************/
-Bottle Manager::getBlobs()
+Bottle IOL2OPCBridge::getBlobs()
 {
     // grab resources
     mutexResources.wait();
@@ -124,7 +124,7 @@ Bottle Manager::getBlobs()
 
 
 /**********************************************************/
-CvPoint Manager::getBlobCOG(const Bottle &blobs, const int i)
+CvPoint IOL2OPCBridge::getBlobCOG(const Bottle &blobs, const int i)
 {
     CvPoint cog=cvPoint(RET_INVALID,RET_INVALID);
     if ((i>=0) && (i<blobs.size()))
@@ -148,7 +148,7 @@ CvPoint Manager::getBlobCOG(const Bottle &blobs, const int i)
 
 
 /**********************************************************/
-bool Manager::get3DPosition(const CvPoint &point, Vector &x)
+bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
 {
     if (rpcGet3D.getOutputCount()>0)
     {
@@ -184,7 +184,7 @@ bool Manager::get3DPosition(const CvPoint &point, Vector &x)
 
 
 /**********************************************************/
-void Manager::acquireImage(const bool rtlocalization)
+void IOL2OPCBridge::acquireImage(const bool rtlocalization)
 {
     // grab resources
     mutexResources.wait();
@@ -204,7 +204,7 @@ void Manager::acquireImage(const bool rtlocalization)
 
 
 /**********************************************************/
-void Manager::drawBlobs(const Bottle &blobs, const int i,
+void IOL2OPCBridge::drawBlobs(const Bottle &blobs, const int i,
                         Bottle *scores)
 {
     // grab resources
@@ -257,7 +257,7 @@ void Manager::drawBlobs(const Bottle &blobs, const int i,
 
 
 /**********************************************************/
-void Manager::rotate(cv::Mat &src, const double angle, cv::Mat &dst)
+void IOL2OPCBridge::rotate(cv::Mat &src, const double angle, cv::Mat &dst)
 {
     int len=std::max(src.cols,src.rows);
     cv::Point2f pt(len/2.0f,len/2.0f);
@@ -267,7 +267,7 @@ void Manager::rotate(cv::Mat &src, const double angle, cv::Mat &dst)
 
 
 /**********************************************************/
-void Manager::drawScoresHistogram(const Bottle &blobs,
+void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
                                   const Bottle &scores, const int i)
 {
     if (imgHistogram.getOutputCount()>0)
@@ -393,7 +393,7 @@ void Manager::drawScoresHistogram(const Bottle &blobs,
 
 
 /**********************************************************/
-int Manager::findClosestBlob(const Bottle &blobs, const CvPoint &loc)
+int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const CvPoint &loc)
 {
     int ret=RET_INVALID;
     double min_d2=1e9;
@@ -420,7 +420,7 @@ int Manager::findClosestBlob(const Bottle &blobs, const CvPoint &loc)
 
 
 /**********************************************************/
-int Manager::findClosestBlob(const Bottle &blobs, const Vector &loc)
+int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const Vector &loc)
 {
     int ret=RET_INVALID;
     double curMinDist=1e9;
@@ -447,7 +447,7 @@ int Manager::findClosestBlob(const Bottle &blobs, const Vector &loc)
 
 
 /**********************************************************/
-Bottle Manager::classify(const Bottle &blobs, const bool rtlocalization)
+Bottle IOL2OPCBridge::classify(const Bottle &blobs, const bool rtlocalization)
 {
     // grab resources
     mutexResources.wait();
@@ -480,7 +480,7 @@ Bottle Manager::classify(const Bottle &blobs, const bool rtlocalization)
 
 
 /**********************************************************/
-void Manager::burst(const string &tag)
+void IOL2OPCBridge::burst(const string &tag)
 {
     if (trainBurst && (tag!=""))
     {
@@ -496,7 +496,7 @@ void Manager::burst(const string &tag)
 
 
 /**********************************************************/
-void Manager::train(const string &object, const Bottle &blobs,
+void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
                     const int i)
 {
     // grab resources
@@ -554,7 +554,7 @@ void Manager::train(const string &object, const Bottle &blobs,
 
 
 /**********************************************************/
-void Manager::improve_train(const string &object, const Bottle &blobs,
+void IOL2OPCBridge::improve_train(const string &object, const Bottle &blobs,
                             const int i)
 {
     CvPoint ref_cog=getBlobCOG(blobs,i);
@@ -608,7 +608,7 @@ void Manager::improve_train(const string &object, const Bottle &blobs,
 
 
 /**********************************************************/
-void Manager::home(const string &part)
+void IOL2OPCBridge::home(const string &part)
 {
     Bottle cmdMotor,replyMotor;
     cmdMotor.addVocab(Vocab::encode("home"));
@@ -618,7 +618,7 @@ void Manager::home(const string &part)
 
 
 /**********************************************************/
-void Manager::stopGaze()
+void IOL2OPCBridge::stopGaze()
 {
     Bottle cmdMotor,replyMotor;
     cmdMotor.addVocab(Vocab::encode("idle"));
@@ -627,7 +627,7 @@ void Manager::stopGaze()
 
 
 /**********************************************************/
-void Manager::calibTable()
+void IOL2OPCBridge::calibTable()
 {
     Bottle cmdMotor,replyMotor;
     cmdMotor.addVocab(Vocab::encode("calib"));
@@ -637,7 +637,7 @@ void Manager::calibTable()
 
 
 /**********************************************************/
-bool Manager::calibKinStart(const string &object, const string &hand,
+bool IOL2OPCBridge::calibKinStart(const string &object, const string &hand,
                             const int recogBlob)
 {
     Bottle replyHuman;
@@ -686,7 +686,7 @@ bool Manager::calibKinStart(const string &object, const string &hand,
 
 
 /**********************************************************/
-void Manager::calibKinStop()
+void IOL2OPCBridge::calibKinStop()
 {
     Bottle cmdMotor,replyMotor;
     cmdMotor.addVocab(Vocab::encode("calib"));
@@ -701,7 +701,7 @@ void Manager::calibKinStop()
 
 
 /**********************************************************/
-void Manager::motorHelper(const string &cmd, const string &object)
+void IOL2OPCBridge::motorHelper(const string &cmd, const string &object)
 {
     Bottle cmdMotor,replyMotor;
     cmdMotor.addVocab(Vocab::encode(cmd.c_str()));
@@ -719,7 +719,7 @@ void Manager::motorHelper(const string &cmd, const string &object)
 
 
 /**********************************************************/
-void Manager::motorHelper(const string &cmd, const Bottle &blobs,
+void IOL2OPCBridge::motorHelper(const string &cmd, const Bottle &blobs,
                           const int i, const Bottle &options)
 {
     CvPoint cog=getBlobCOG(blobs,i);
@@ -746,7 +746,7 @@ void Manager::motorHelper(const string &cmd, const Bottle &blobs,
 
 
 /**********************************************************/
-bool Manager::interruptableAction(const string &action,
+bool IOL2OPCBridge::interruptableAction(const string &action,
                                   deque<string> *param,
                                   const string &object,
                                   const Bottle &blobs,
@@ -825,7 +825,7 @@ bool Manager::interruptableAction(const string &action,
 
 
 /**********************************************************/
-void Manager::interruptMotor()
+void IOL2OPCBridge::interruptMotor()
 {
     if (enableInterrupt)
     {
@@ -841,7 +841,7 @@ void Manager::interruptMotor()
 
 
 /**********************************************************/
-void Manager::reinstateMotor(const bool saySorry)
+void IOL2OPCBridge::reinstateMotor(const bool saySorry)
 {        
     Bottle cmdMotorStop,replyMotorStop;
     cmdMotorStop.addVocab(Vocab::encode("reinstate"));
@@ -853,35 +853,35 @@ void Manager::reinstateMotor(const bool saySorry)
 
 
 /**********************************************************/
-void Manager::point(const string &object)
+void IOL2OPCBridge::point(const string &object)
 {
     motorHelper("point",object);
 }
 
 
 /**********************************************************/
-void Manager::look(const string &object)
+void IOL2OPCBridge::look(const string &object)
 {
     motorHelper("look",object);
 }
 
 
 /**********************************************************/
-void Manager::point(const Bottle &blobs, const int i)
+void IOL2OPCBridge::point(const Bottle &blobs, const int i)
 {
     motorHelper("point",blobs,i);
 }
 
 
 /**********************************************************/
-void Manager::look(const Bottle &blobs, const int i, const Bottle &options)
+void IOL2OPCBridge::look(const Bottle &blobs, const int i, const Bottle &options)
 {
     motorHelper("look",blobs,i,options);
 }
 
 
 /**********************************************************/
-int Manager::recognize(const string &object, Bottle &blobs,
+int IOL2OPCBridge::recognize(const string &object, Bottle &blobs,
                        Classifier **ppClassifier)
 {
     map<string,Classifier*>::iterator it=db.find(object);
@@ -931,7 +931,7 @@ int Manager::recognize(const string &object, Bottle &blobs,
 
 
 /**********************************************************/
-int Manager::recognize(Bottle &blobs, Bottle &scores, string &object)
+int IOL2OPCBridge::recognize(Bottle &blobs, Bottle &scores, string &object)
 {
     object=OBJECT_UNKNOWN;
 
@@ -979,7 +979,7 @@ int Manager::recognize(Bottle &blobs, Bottle &scores, string &object)
 
 
 /**********************************************************/
-void Manager::execName(const string &object)
+void IOL2OPCBridge::execName(const string &object)
 {
     Bottle replyHuman;
     if (!trackStopGood)
@@ -1055,7 +1055,7 @@ void Manager::execName(const string &object)
 
 
 /**********************************************************/
-void Manager::execForget(const string &object)
+void IOL2OPCBridge::execForget(const string &object)
 {
     Bottle cmdClassifier,replyClassifier,replyHuman;
 
@@ -1149,7 +1149,7 @@ void Manager::execForget(const string &object)
 
 
 /**********************************************************/
-void Manager::execWhere(const string &object, const Bottle &blobs,
+void IOL2OPCBridge::execWhere(const string &object, const Bottle &blobs,
                         const int recogBlob, Classifier *pClassifier,
                         const string &recogType)
 {
@@ -1263,7 +1263,7 @@ void Manager::execWhere(const string &object, const Bottle &blobs,
 
 
 /**********************************************************/
-void Manager::execWhat(const Bottle &blobs, const int pointedBlob,
+void IOL2OPCBridge::execWhat(const Bottle &blobs, const int pointedBlob,
                        const Bottle &scores, const string &object)
 {
     Bottle cmdHuman,valHuman,replyHuman;
@@ -1408,7 +1408,7 @@ void Manager::execWhat(const Bottle &blobs, const int pointedBlob,
 
 
 /**********************************************************/
-void Manager::execExplore(const string &object)
+void IOL2OPCBridge::execExplore(const string &object)
 {
     Bottle cmdMotor,replyMotor,replyHuman;
     Vector position;
@@ -1467,7 +1467,7 @@ void Manager::execExplore(const string &object)
 
 
 /**********************************************************/
-void Manager::execReinforce(const string &object,
+void IOL2OPCBridge::execReinforce(const string &object,
                             const Vector &position)
 {
     bool ret=false;
@@ -1484,7 +1484,7 @@ void Manager::execReinforce(const string &object,
 
 
 /**********************************************************/
-void Manager::execInterruptableAction(const string &action,
+void IOL2OPCBridge::execInterruptableAction(const string &action,
                                       const string &object,
                                       const Bottle &blobs,
                                       const int recogBlob)
@@ -1554,7 +1554,7 @@ void Manager::execInterruptableAction(const string &action,
 
 
 /**********************************************************/
-void Manager::switchAttention()
+void IOL2OPCBridge::switchAttention()
 {
     // skip if connection with motor interface is not in place
     if (rpcMotor.getOutputCount()>0)
@@ -1587,7 +1587,7 @@ void Manager::switchAttention()
 
 
 /**********************************************************/
-void Manager::doLocalization()
+void IOL2OPCBridge::doLocalization()
 {
     // acquire image for classification/training
     acquireImage(true);
@@ -1621,7 +1621,7 @@ void Manager::doLocalization()
 
 
 /**********************************************************/
-bool Manager::get3DPositionFromMemory(const string &object,
+bool IOL2OPCBridge::get3DPositionFromMemory(const string &object,
                                       Vector &position)
 {
     bool ret=false;
@@ -1683,7 +1683,7 @@ bool Manager::get3DPositionFromMemory(const string &object,
 
 
 /**********************************************************/
-bool Manager::doExploration(const string &object,
+bool IOL2OPCBridge::doExploration(const string &object,
                             const Vector &position)
 {
     // acquire image for training
@@ -1731,7 +1731,7 @@ bool Manager::doExploration(const string &object,
 
 
 /**********************************************************/
-void Manager::updateMemory()
+void IOL2OPCBridge::updateMemory()
 {
     if (rpcMemory.getOutputCount()>0)
     {
@@ -1884,7 +1884,7 @@ void Manager::updateMemory()
 
 
 /**********************************************************/
-void Manager::updateClassifierInMemory(Classifier *pClassifier)
+void IOL2OPCBridge::updateClassifierInMemory(Classifier *pClassifier)
 {
     if ((rpcMemory.getOutputCount()>0) && (pClassifier!=NULL))
     {
@@ -1948,7 +1948,7 @@ void Manager::updateClassifierInMemory(Classifier *pClassifier)
 
 
 /**********************************************************/
-void Manager::updateObjCartPosInMemory(const string &object,
+void IOL2OPCBridge::updateObjCartPosInMemory(const string &object,
                                        const Bottle &blobs,
                                        const int i)
 {
@@ -2009,7 +2009,7 @@ void Manager::updateObjCartPosInMemory(const string &object,
 
 
 /**********************************************************/
-void Manager::triggerRecogInfo(const string &object, const Bottle &blobs,
+void IOL2OPCBridge::triggerRecogInfo(const string &object, const Bottle &blobs,
                                const int i, const string &recogType)
 {
     if ((recogTriggerPort.getOutputCount()>0) && (i!=RET_INVALID) && (i<blobs.size()))
@@ -2036,7 +2036,7 @@ void Manager::triggerRecogInfo(const string &object, const Bottle &blobs,
 
 
 /**********************************************************/
-void Manager::loadMemory()
+void IOL2OPCBridge::loadMemory()
 {
     printf("Loading memory ...\n");
     // grab resources
@@ -2122,9 +2122,9 @@ void Manager::loadMemory()
 
 
 /**********************************************************/
-bool Manager::configure(ResourceFinder &rf)
+bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
-    name=rf.check("name",Value("iolStateMachineHandler")).asString().c_str();
+    name=rf.check("name",Value("iol2opc")).asString().c_str();
     camera=rf.check("camera",Value("left")).asString().c_str();
     if ((camera!="left") && (camera!="right"))
         camera="left";
@@ -2210,9 +2210,7 @@ bool Manager::configure(ResourceFinder &rf)
     trainOnFlipped=rf.check("train_flipped_images",Value("off")).asString()=="on";
     trainBurst=rf.check("train_burst_images",Value("off")).asString()=="on";
     classification_threshold=rf.check("classification_threshold",Value(0.5)).asDouble();
-
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
-    blockEyes=rf.check("block_eyes",Value(-1.0)).asDouble();
 
     img.resize(320,240);
     imgRtLoc.resize(320,240);
@@ -2220,18 +2218,7 @@ bool Manager::configure(ResourceFinder &rf)
     imgRtLoc.zero();
 
     attach(rpcPort);
-    Rand::init();
-
-    busy=false;
-    scheduleLoadMemory=false;
-    enableInterrupt=false;
-    trackStopGood=false;
-    whatGood=false;
-    skipGazeHoming=false;
-    doAttention=true;
-
-    objectToBeKinCalibrated="";
-
+        
     histColorsCode.push_back(cvScalar( 65, 47,213));
     histColorsCode.push_back(cvScalar(122, 79, 58));
     histColorsCode.push_back(cvScalar(154,208, 72));
@@ -2244,7 +2231,7 @@ bool Manager::configure(ResourceFinder &rf)
 
 
 /**********************************************************/
-bool Manager::interruptModule()
+bool IOL2OPCBridge::interruptModule()
 {
     imgIn.interrupt();
     imgOut.interrupt();
@@ -2275,7 +2262,7 @@ bool Manager::interruptModule()
 
 
 /**********************************************************/
-bool Manager::close()
+bool IOL2OPCBridge::close()
 {
     imgIn.close();
     imgOut.close();
@@ -2307,7 +2294,7 @@ bool Manager::close()
 
 
 /**********************************************************/
-bool Manager::updateModule()
+bool IOL2OPCBridge::updateModule()
 {
     Bottle cmdHuman,valHuman,replyHuman;
     rpcHuman.read(cmdHuman,true);
@@ -2554,7 +2541,7 @@ bool Manager::updateModule()
 
 
 /**********************************************************/
-bool Manager::respond(const Bottle &command, Bottle &reply)
+bool IOL2OPCBridge::respond(const Bottle &command, Bottle &reply)
 {
     string ack="ack";
     string nack="nack";
@@ -2586,7 +2573,7 @@ bool Manager::respond(const Bottle &command, Bottle &reply)
 
 
 /**********************************************************/
-double Manager::getPeriod()
+double IOL2OPCBridge::getPeriod()
 {
     // the updateModule goes through a
     // blocking read => no need for periodicity
