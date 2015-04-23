@@ -65,7 +65,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             imgLabel = activityName;
 
             //if it is not a sentence -> stream
-            if (activityName != "sentence") {
+            if (activityName == "action") {
                 isStreamActivity = true;
             }
 
