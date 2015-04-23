@@ -10,6 +10,7 @@ if (WYSIWYD_USE_OpenCV)
 	add_subdirectory(imageFuser)
 	add_subdirectory(caltechDatasetPlayer)
 	add_subdirectory(brightnessSensor)
+	add_subdirectory(iol2opc)
 endif()
 
 
