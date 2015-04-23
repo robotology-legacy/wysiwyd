@@ -619,77 +619,9 @@ void IOL2OPCBridge::updateOPC()
                     if (item==NULL)
                         continue;
 
-                    // prepare position_2d property
-                    Bottle position_2d;
-                    Bottle &list_2d=position_2d.addList();
-                    list_2d.addString("position_2d");
-                    Bottle &list_2d_c=list_2d.addList();
-                    list_2d_c.addDouble(item->get(0).asDouble());
-                    list_2d_c.addDouble(item->get(1).asDouble());
-                    list_2d_c.addDouble(item->get(2).asDouble());
-                    list_2d_c.addDouble(item->get(3).asDouble());
-
-                    // prepare position_3d property
-                    Bottle position_3d;
-                    Bottle &list_3d=position_3d.addList();
-                    list_3d.addString("position_3d");
-                    Bottle &list_3d_c=list_3d.addList();
-                    list_3d_c.addDouble(x[0]);
-                    list_3d_c.addDouble(x[1]);
-                    list_3d_c.addDouble(x[2]);
-
-                    mutexResourcesMemory.wait();
-                    map<string,int>::iterator id;//=memoryIds.find(object);
-                    map<string,int>::iterator memoryIdsEnd;//=memoryIds.end();
-                    mutexResourcesMemory.post();
-
-                    Bottle cmdMemory,replyMemory;
-                    if (id==memoryIdsEnd)      // the object is not available => [add]
-                    {
-                        cmdMemory.addVocab(Vocab::encode("add"));
-                        Bottle &content=cmdMemory.addList();
-                        Bottle &list_entity=content.addList();
-                        list_entity.addString("entity");
-                        list_entity.addString("object");
-                        Bottle &list_name=content.addList();
-                        list_name.addString("name");
-                        list_name.addString(object.c_str());
-                        content.append(position_2d);
-                        content.append(position_3d);
-                        //rpcOpc.write(cmdMemory,replyMemory);
-
-                        if (replyMemory.size()>1)
-                        {
-                            // store the id for later usage
-                            if (replyMemory.get(0).asVocab()==Vocab::encode("ack"))
-                            {
-                                if (Bottle *idField=replyMemory.get(1).asList())
-                                {
-                                    int id=idField->get(1).asInt();
-                                    mutexResourcesMemory.wait();
-                                    //memoryIds[object]=id;
-                                    mutexResourcesMemory.post();
-                                }
-                                else
-                                    continue;
-                            }
-                        }
-                    }
-                    else    // the object is already available => [set]
-                    {
-                        // prepare id property
-                        Bottle bid;
-                        Bottle &list_bid=bid.addList();
-                        list_bid.addString("id");
-                        list_bid.addInt(id->second);
-
-                        cmdMemory.addVocab(Vocab::encode("set"));
-                        Bottle &content=cmdMemory.addList();
-                        content.append(bid);
-                        content.append(position_2d);
-                        content.append(position_3d);
-                        //rpcOpc.write(cmdMemory,replyMemory);
-                    }
+                    Object *obj=opc->addObject(object);
+                    obj->m_ego_position=x;
+                    opc->commit(obj);
                 }
             }
         }
