@@ -15,6 +15,8 @@ add_subdirectory(systemMotor)
 add_subdirectory(systemHaptic)
 add_subdirectory(systemAuditory)
 add_subdirectory(scenarioSpecific)
+add_subdirectory(ppsSim)
+add_subdirectory(allostasis)
 
 if(WYSIWYD_USE_Boost)
     add_subdirectory(reservoirHandler)

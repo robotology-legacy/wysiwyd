@@ -32,4 +32,4 @@ add_subdirectory(reservoirHandler)
 add_subdirectory(perspectiveTaking)
 add_subdirectory(visionRelated)
 add_subdirectory(gameCluedo)
-
+add_subdirectory(allostasis)

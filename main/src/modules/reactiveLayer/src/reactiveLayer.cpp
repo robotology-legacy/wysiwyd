@@ -1,5 +1,13 @@
 #include "reactiveLayer.h"
 
+bool ReactiveLayer::close()
+{
+	//iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong stop"));
+	iCub->close();
+    delete iCub;
+    return true;
+}
+
 bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name",Value("ReactiveLayer")).asString().c_str();
@@ -32,7 +40,7 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
 	configureAllostatic(rf);
 	configureTactile(rf);
 	configureSalutation(rf);
-
+	
     cout<<"Configuration done."<<endl;
 
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
@@ -42,6 +50,8 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
     lastFaceUpdate = Time::now();
 	physicalInteraction = false;
 	someonePresent = false;
+
+	//iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong start"));
 
     return true;
 }
@@ -203,6 +213,7 @@ bool ReactiveLayer::updateModule()
 	physicalInteraction = handleTactile();
 	updateAllostatic();
 	updateEmotions();
+	
     return true;
 }
 

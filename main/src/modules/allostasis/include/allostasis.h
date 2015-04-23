@@ -23,7 +23,7 @@ struct StimulusEmotionalResponse
     string getRandomChoregraphy() { if(m_choregraphies.size()==0) return "default"; return m_choregraphies[yarp::os::Random::uniform(0,m_choregraphies.size()-1)];}
 };
 
-class ReactiveLayer: public RFModule
+class AlostaticModule: public RFModule
 {
 private:
     ICubClient *iCub;
@@ -44,13 +44,26 @@ private:
 	map<string, StimulusEmotionalResponse> homeostaticOverEffects;
 	map<string, StimulusEmotionalResponse> homeostaticUnderEffects;
 
+    BufferedPort<Bottle> avoidPort_i;
+    BufferedPort<Bottle> targetPort;
+    BufferedPort<Bottle> endEffectorPort;
+    
+    BufferedPort<Bottle> reachPort;
+    BufferedPort<Bottle> avoidPort_o;
+    BufferedPort<Bottle> explorePort;
+
+    Bottle distanceList;
+    int windowSize;
+    double meanx, meany, cov, varx, derivative;
+    double obstacle_distance;
+
     Port    rpc;
 
     //Configuration
 	void configureOPC(yarp::os::ResourceFinder &rf);
 	void configureAllostatic(yarp::os::ResourceFinder &rf);
-	void configureTactile(yarp::os::ResourceFinder &rf);
-	void configureSalutation(yarp::os::ResourceFinder &rf);
+	//void configureTactile(yarp::os::ResourceFinder &rf);
+	//void configureSalutation(yarp::os::ResourceFinder &rf);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -60,12 +73,12 @@ public:
         return true;
     }
 
-    bool close();
-    /*{
+    bool close()
+    {
         iCub->close();
         delete iCub;
         return true;
-    }*/
+    }
 
     double getPeriod()
     {
@@ -75,13 +88,13 @@ public:
     bool updateModule();
 
 	//Check for newcomers and salute them if required
-	bool handleSalutation(bool& someoneIsPresent);
+	//bool handleSalutation(bool& someoneIsPresent);
 
     //Retrieve and treat the tactile information input
-    bool handleTactile();
+    //bool handleTactile();
 
     //Retrieve and treat the gesture information input
-    bool handleGesture();
+    //bool handleGesture();
 
 	//Update the drives accordingly to the stimuli
 	bool updateAllostatic();
