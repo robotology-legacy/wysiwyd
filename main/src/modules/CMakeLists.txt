@@ -16,6 +16,10 @@ add_subdirectory(systemHaptic)
 add_subdirectory(systemAuditory)
 add_subdirectory(scenarioSpecific)
 
+if(WYSIWYD_USE_Boost)
+    add_subdirectory(reservoirHandler)
+endif()
+
 if(WYSIWYD_USE_kinectWrapper)
     add_subdirectory(humanUnderstanding)
 endif()

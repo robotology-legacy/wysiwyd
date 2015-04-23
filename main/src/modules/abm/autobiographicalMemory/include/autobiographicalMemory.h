@@ -113,7 +113,7 @@ public:
 
     bool sendStreamIsInitialized;
 
-    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback=true, bool includeAugmented=true, double speedM=1.0);
+    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback=true, bool includeAugmented=true, double speedM=1.0, bool useRealiCub=false);
 
     // maps to receive / send images
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamPortOut;
@@ -157,7 +157,7 @@ public:
     int openImgStreamPorts(int instance, bool includeAugmented=true);
     yarp::os::Bottle connectToImgStreamProviders();
     yarp::os::Bottle disconnectFromImgStreamProviders();
-    int openDataStreamPorts(int instance);
+    int openDataStreamPorts(int instance, bool useRealiCub=false);
     yarp::os::Bottle connectDataStreamProviders();
     yarp::os::Bottle disconnectDataStreamProviders();
 

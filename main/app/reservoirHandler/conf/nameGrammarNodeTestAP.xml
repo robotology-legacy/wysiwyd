@@ -6,23 +6,12 @@
     <ID NAME="verb1" VAL="3"/>
     <ID NAME="verb2" VAL="4"/>
     <ID NAME="temporal" VAL="5"/>
-    <ID NAME="follow" VAL="6"/>
+    <ID NAME="adverb" VAL="6"/>
     <ID NAME="yesno" VAL="7"/>
   </DEFINE>
 
   <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
     <P>stop the interaction</P>
-  </RULE>
-
-  <RULE	NAME="follow"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <RULEREF NAME="mode"/>
-  </RULE>
-
-  <RULE NAME="mode" DYNAMIC="TRUE">
-    <L>
-      <P>continue the interaction</P>
-      <P>exit</P>
-    </L>
   </RULE>
 
   <RULE	NAME="yesno"	TOPLEVEL="ACTIVE"	EXPORT="1">
@@ -31,30 +20,43 @@
 
   <RULE NAME="agree" DYNAMIC="TRUE">
     <L>
-      <P>yes</P>
-      <P>no</P>
+      <P>it's right</P>
+      <P>not the good sentence</P>
     </L>
   </RULE>
 
   <RULE NAME="object" DYNAMIC="TRUE">
     <L>
+<!--
       <P>the square</P>
       <P>the triangle</P>
       <P>the cross</P>
       <P>the circle</P>
       <P>the eraser</P>
-      <P>glass</P>
-      <P>girafe</P>
-      <P>lion</P>
-      <P>wysiwyd sponge</P>
+      <P>the glass</P>
+      <P>the girafe</P>
+      <P>the lion</P>
+      <P>the wysiwyd sponge</P>
+      <P>the white-trophy</P>
+      <P>the sponge-trophy</P>
+-->
+      <P>the croco</P>
+      <P>the cube</P>
+      <P>the mug</P>
+      <P>the mouse</P>
+      <P>the rabbit</P>
     </L>
   </RULE>
 
   <RULE NAME="location" DYNAMIC="TRUE">
     <L>
-      <P>on the left</P>
-      <P>on the middle</P>
-      <P>on the right</P>
+      <P>to</P>
+      <P>on</P>
+    </L>
+    <L>
+      <P>the left</P>
+      <P>the middle</P>
+      <P>the right</P>
     </L>
   </RULE>
 
@@ -64,7 +66,11 @@
       <P>point</P>
       <P>put</P>
       <P>take</P>
+      <P>push</P>
     </L>
+    <O>
+      <P>to</P>
+    </O>
   </RULE>
 
   <RULE NAME="verb2" DYNAMIC="TRUE">
@@ -73,38 +79,83 @@
       <P>take</P>
       <P>grasp</P>
       <P>point</P>
+      <P>push</P>
     </L>
+    <O>
+      <P>to</P>
+    </O>
   </RULE>
 
   <RULE NAME="temporal" DYNAMIC="TRUE">
     <L>
       <P>after you</P>
       <P>before you</P>
+      <P>and then</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="adverb" DYNAMIC="TRUE">
+    <L>
+      <P>slowly</P>
+      <P>quickly</P>
     </L>
   </RULE>
 
   <RULE	NAME="action1"	DYNAMIC="TRUE">
-    <RULEREF NAME="verb1"/>
-    <RULEREF NAME="object"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
+     <RULEREF NAME="verb1"/>
+     <RULEREF NAME="object"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
   </RULE>
 
   
-  <RULE	NAME="action21"	DYNAMIC="TRUE"> 
+  <RULE	NAME="action21"	DYNAMIC="TRUE">
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
      <RULEREF NAME="verb2"/>
      <RULEREF NAME="object"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
      <RULEREF NAME="location"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
   </RULE>
 
   <RULE	NAME="action22"	DYNAMIC="TRUE">
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
      <RULEREF NAME="location"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
      <RULEREF NAME="verb2"/>
      <RULEREF NAME="object"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
   </RULE>
 
   <RULE	NAME="action23"	DYNAMIC="TRUE">
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
      <RULEREF NAME="verb2"/>
      <RULEREF NAME="location"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
      <RULEREF NAME="object"/>
+     <O> 
+	<RULEREF NAME="adverb"/>
+     </O> 
   </RULE>
 
   <RULE	NAME="action2"	DYNAMIC="TRUE">
@@ -127,9 +178,16 @@
 	<RULEREF NAME="temporal"/>
     </O>
     <RULEREF NAME="actionX"/>
+    <O> 
+	<RULEREF NAME="temporal"/>
+    </O>
     <O>
 	 <RULEREF NAME="actionX"/>
     </O>
+  </RULE>
+
+  <RULE	NAME="return"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <P>change the interaction</P>
   </RULE>
 
   <!--	End	of	Grammar	definition	-->

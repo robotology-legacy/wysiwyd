@@ -102,7 +102,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     connectOPC(bConnect);
 
     //populateOPC();
-    storeImageOIDs();
+    //storeImageOIDs();
 
     if(defaultImgStreamProviders) {
         for(int i=0; i<defaultImgStreamProviders->size(); i++) {
@@ -285,6 +285,36 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "DROP TABLE IF EXISTS interactionknowledge CASCADE;";
     *ABMDataBase << "CREATE TABLE interactionknowledge (subject text NOT NULL, argument text NOT NULL, number integer NOT NULL, type text NOT NULL DEFAULT 'none'::text, role text NOT NULL DEFAULT 'none'::text, CONSTRAINT interactionknowledge_pkey PRIMARY KEY (subject, argument, type, role) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE interactionknowledge OWNER  TO postgres;";
+
+    /****************************** behavior *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS behavior CASCADE;";
+    *ABMDataBase << "    CREATE TABLE behavior(  \"name\" text NOT NULL,  argument text NOT NULL,  instance integer NOT NULL,  CONSTRAINT behavior_pkey PRIMARY KEY (instance),  CONSTRAINT behavior_name_key UNIQUE (name, argument)) WITH (OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE behavior OWNER  TO postgres;";
+
+    /****************************** behaviordata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS behaviordata CASCADE;";
+    *ABMDataBase << "    CREATE TABLE behaviordata(  drive text NOT NULL,  effect double precision,  instance integer NOT NULL,  occurence integer NOT NULL,  CONSTRAINT behaviordata_pkey PRIMARY KEY (occurence, instance, drive),  CONSTRAINT behaviordata_instance_fkey FOREIGN KEY (instance)      REFERENCES behavior (instance) MATCH SIMPLE      ON UPDATE NO ACTION ON DELETE NO ACTION)WITH (OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE behaviordata OWNER  TO postgres;";
+
+    /****************************** sharedplan *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS sharedplan CASCADE;";
+    *ABMDataBase << "       CREATE TABLE sharedplan(  \"name\" text NOT NULL,  manner text NOT NULL,  instance integer NOT NULL,  CONSTRAINT sharedplan_pkey PRIMARY KEY (instance),  CONSTRAINT sharedplan_name_key UNIQUE (name, manner))WITH (OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE sharedplan OWNER  TO postgres;";
+
+    /****************************** sharedplanarg *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS sharedplanarg CASCADE;";
+    *ABMDataBase << "     CREATE TABLE sharedplanarg(  instance integer NOT NULL,  argument text NOT NULL,  \"role\" text NOT NULL,  CONSTRAINT sharedplanarg_pkey PRIMARY KEY (instance, role, argument),  CONSTRAINT sharedplanarg_instance_fkey FOREIGN KEY (instance)      REFERENCES sharedplan (instance) MATCH SIMPLE      ON UPDATE NO ACTION ON DELETE NO ACTION)WITH (OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE sharedplanarg OWNER  TO postgres;";
+
+    /****************************** sharedplandata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS sharedplandata CASCADE;";
+    *ABMDataBase << "     CREATE TABLE sharedplandata (  activitytype text NOT NULL,  activityname text NOT NULL,  instance integer NOT NULL,  id integer NOT NULL,  CONSTRAINT sharedplandata_pkey PRIMARY KEY (instance, id),  CONSTRAINT sharedplandata_instance_fkey FOREIGN KEY (instance)      REFERENCES sharedplan (instance) MATCH SIMPLE      ON UPDATE NO ACTION ON DELETE NO ACTION)WITH (OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE sharedplandata OWNER  TO postgres;";
+
+    /****************************** spdataarg *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS spdataarg CASCADE;";
+    *ABMDataBase << "CREATE TABLE spdataarg (id integer NOT NULL, instance integer NOT NULL, argument text NOT NULL, \"role\" text NOT NULL, CONSTRAINT spdataarg_pkey PRIMARY KEY (id, instance, role, argument), CONSTRAINT spdataarg_instance_fkey FOREIGN KEY (instance, id) REFERENCES sharedplandata (instance, id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH (OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE spdataarg OWNER  TO postgres;";
 
     /****************************** visualdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS visualdata CASCADE;";
@@ -480,16 +510,20 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bool timingEnabled = false;
                 bool includeAugmented = true;
                 double speedM = 1.0;
+                bool useRealiCub = false;
                 if(bCommand.size() > 2 && bCommand.get(2).isInt()) {
                     timingEnabled = (atoi((bCommand.get(2)).toString().c_str())) > 0;
                     if(bCommand.size() > 3 && bCommand.get(3).isInt()) {
                         includeAugmented = (atoi((bCommand.get(3)).toString().c_str())) > 0;
                         if(bCommand.size() > 4 && bCommand.get(4).isDouble()) {
                             speedM = atof(bCommand.get(4).toString().c_str());
+                            if(bCommand.size() > 5 && bCommand.get(5).isInt()) {
+                                useRealiCub = (atoi((bCommand.get(5)).toString().c_str())) > 0;
+                            }
                         }
                     }
                 }
-                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented, speedM);
+                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented, speedM, useRealiCub);
             }
             else
             {

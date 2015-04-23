@@ -183,7 +183,9 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
 }
 
 // From here on all send stream related
-int autobiographicalMemory::openDataStreamPorts(int instance) {
+// if useRealiCub == true, the streams are sent to /icub/...
+// if useRealiCub == false, the streams are sent to /icubSim/...
+int autobiographicalMemory::openDataStreamPorts(int instance, bool useRealiCub) {
     Bottle bDistLabelPort;
     ostringstream osArg;
 
@@ -201,16 +203,22 @@ int autobiographicalMemory::openDataStreamPorts(int instance) {
         string toReplace="state:o";
         string dataStreamPortTo = dataStreamPortFrom;
         if(dataStreamPortTo.find(toReplace)!=string::npos) {
-            dataStreamPortTo.replace(dataStreamPortFrom.find(toReplace), toReplace.length(), "rpc:i");
+            dataStreamPortTo.replace(dataStreamPortTo.find(toReplace), toReplace.length(), "rpc:i");
         }
 
-        // if we want to replay positions recorded from the icub on icubSim
-        // TODO: Set variable which robot to use
-        // Also, it might be the other way around. Data recorded on icubSim, but replay on icub
-        //toReplace="/icub/";
-        //if(dataStreamPort.find(toReplace)!=string::npos) {
-            //dataStreamPortTo.replace(dataStreamPortTo.find(toReplace), toReplace.length(), "/icubSim/");
-        //}
+        // if memory was made not on same robot as replay should be made
+        string robotToReplace;
+        string robotReplacement;
+        if(useRealiCub) {
+            robotToReplace="/icubSim/";
+            robotReplacement="/icub/";
+        } else {
+            robotToReplace="/icub/";
+            robotReplacement="/icubSim/";
+        }
+        if(dataStreamPortTo.find(robotToReplace)!=string::npos) {
+            dataStreamPortTo.replace(dataStreamPortTo.find(robotToReplace), robotToReplace.length(), robotReplacement);
+        }
 
         Network::connect(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo);
         if(Network::isConnected(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo)) {

@@ -1,0 +1,154 @@
+<application>
+<name>reservoirHandler</name>
+
+        <dependencies>
+            <port>/icub/cartesianController/right_arm/state:o</port>
+            <port>/icub/cartesianController/left_arm/state:o</port>
+            <port>/iKinGazeCtrl/rpc</port>
+            <port>/iCubGui/objects</port>
+        </dependencies>
+
+   <!--OPC-->
+        <module>
+          <name>slidingController</name>
+	  <!--for xavier rad : reactable, object name, Partner...-->
+          <parameters>--arm right</parameters>
+          <node>localhost</node>
+          <tag>slidingControllerTag</tag>
+        </module>
+
+        <module>
+          <name>objectsPropertiesCollector</name>
+	  <!--for xavier rad : reactable, object name, Partner...-->
+          <parameters>--name OPC --db xavier.ini --nosave</parameters>
+	  <!--<parameters>--name OPC --empty --nosave</parameters>...-->
+          <node>localhost</node>
+          <tag>opcTag</tag>
+        </module>
+		
+        <module>
+          <name>referenceFrameHandler</name>
+          <node>localhost</node>
+          <tag>referenceFrameHandlerTag</tag>
+        </module>	
+		
+        <module>
+            <name>reactable2opc</name>
+            <node>localhost</node>
+            <tag>reactable2opcTag</tag>
+        </module>
+
+       <module>
+            <name>iCubGui</name>
+            <parameters>--from guiOPC.ini</parameters>
+          <node>localhost</node>
+            <tag>iCubGui_tagOPC</tag>
+        </module>
+		          
+        <module>
+          <name>guiUpdater</name>
+          <node>localhost</node>
+          <tag>guiUpdaterTag</tag>
+        </module>
+
+        <module>
+            <name>blink</name>
+            <node>localhost</node>
+            <tag>blinkTag</tag>
+        </module>
+
+
+        <module>
+          <name>iSpeak</name>
+          <parameters></parameters>
+          <node>localhost</node>
+          <tag>iSpeakModule</tag>
+        </module>
+
+        <module>
+          <name>pasar</name>
+          <parameters></parameters>
+          <node>localhost</node>
+          <tag>pasar</tag>
+        </module>
+
+	<!-- ********************* CONNECTIONS ********************* -->
+   
+   	<connection>
+            <from>/guiUpdater/gui:o</from>
+            <to>/guiOPC/objects</to>
+            <protocol>tcp</protocol>
+        </connection>
+  
+        <connection>
+          <from>/guiUpdater/guiBase:o</from>
+          <to>/guiOPC/base:i</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/reactable2opc/calibration:rpc</from>
+            <to>/referenceFrameHandler/rpc</to>
+            <protocol>tcp</protocol>
+        </connection>
+
+
+   <!-- emotion iSpeak to ICUB-->
+        <connection>
+          <from>/iSpeak/emotions:o</from>
+          <to>/icub/face/emotions/in</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+   <!-- GUI OPC ICUB BODY-->
+        <connection>
+          <from>/wholeBodyDynamics/contacts:o</from>
+          <to>/guiOPC/forces</to>
+          <protocol>udp</protocol>
+        </connection>
+
+   <connection>
+   <from>/icub/head/state:o</from>
+   <to>/guiOPC/head:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/inertial</from>
+   <to>/guiOPC/inertial:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/left_arm/state:o</from>
+   <to>/guiOPC/left_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/right_arm/state:o</from>
+   <to>/guiOPC/right_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/left_leg/state:o</from>
+   <to>/guiOPC/left_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/right_leg/state:o</from>
+   <to>/guiOPC/right_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/torso/state:o</from>
+   <to>/guiOPC/torso:i</to>
+   <protocol>udp</protocol>
+   </connection>
+     
+</application>
+
+
