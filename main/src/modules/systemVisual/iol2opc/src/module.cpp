@@ -88,7 +88,7 @@ Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
 Bottle IOL2OPCBridge::getBlobs()
 {
     // grab resources
-    mutexResources.wait();
+    mutexResources.lock();
 
     if (Bottle *pBlobs=blobExtractor.read(false))
     {
@@ -103,7 +103,7 @@ Bottle IOL2OPCBridge::getBlobs()
     }
 
     // release resources
-    mutexResources.post();
+    mutexResources.unlock();
     
     return lastBlobs;
 }
@@ -132,14 +132,16 @@ CvPoint IOL2OPCBridge::getBlobCOG(const Bottle &blobs, const int i)
     return cog;
 }
 
-bool IOL2OPCBridge::getClickPosition(Vector &pos)
+
+/**********************************************************/
+bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
 {
     if (Bottle *bPos=getClickPort.read(false))
     {
         if (bPos->size()>=2)
         {
-            pos[0] = bPos->get(0).asInt();
-            pos[1] = bPos->get(1).asInt();
+            pos.x = bPos->get(0).asInt();
+            pos.y = bPos->get(1).asInt();
             return true;
         }
     }
@@ -180,40 +182,34 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
 
 
 /**********************************************************/
-void IOL2OPCBridge::acquireImage(const bool rtlocalization)
+void IOL2OPCBridge::acquireImage()
 {
     // grab resources
-    mutexResources.wait();
+    mutexResources.lock();
 
     // wait for incoming image
     if (ImageOf<PixelBgr> *tmp=imgIn.read())
-    {
-        if (rtlocalization)
-            imgRtLoc=*tmp;
-        else
-            img=*tmp;
-    }
+        imgRtLoc=*tmp;
     
     // release resources
-    mutexResources.post();
+    mutexResources.unlock();
 }
 
 
 /**********************************************************/
 void IOL2OPCBridge::drawBlobs(const Bottle &blobs, const int i,
-                              Bottle *scores)
+                              const Bottle &scores)
 {
     // grab resources
-    mutexResources.wait();
+    mutexResources.lock();
 
-    BufferedPort<ImageOf<PixelBgr> > *port=(scores==NULL)?&imgOut:&imgRtLocOut;
-    if (port->getOutputCount()>0)
+    if (imgRtLocOut.getOutputCount()>0)
     {
         CvFont font;
         cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX,0.5,0.5,0,1);
 
         // latch image
-        ImageOf<PixelBgr> img=(scores==NULL)?this->img:this->imgRtLoc;
+        ImageOf<PixelBgr> imgLatch=this->imgRtLoc;
         for (int j=0; j<blobs.size(); j++)
         {
             CvPoint tl,br,txtLoc;
@@ -228,27 +224,24 @@ void IOL2OPCBridge::drawBlobs(const Bottle &blobs, const int i,
             ostringstream tag;
             tag<<"blob_"<<j;
 
-            if (scores!=NULL)
-            {
-                // find the blob name (or unknown)
-                string object=findName(*scores,tag.str());
-                tag.str("");
-                tag.clear();
-                tag<<object;
-            }
+            // find the blob name (or unknown)
+            string object=findName(scores,tag.str());
+            tag.str("");
+            tag.clear();
+            tag<<object;
 
             CvScalar highlight=cvScalar(0,255,0);
             CvScalar lowlight=cvScalar(150,125,125);
-            cvRectangle(img.getIplImage(),tl,br,(j==i)?highlight:lowlight,2);
-            cvPutText(img.getIplImage(),tag.str().c_str(),txtLoc,&font,(j==i)?highlight:lowlight);
+            cvRectangle(imgLatch.getIplImage(),tl,br,(j==i)?highlight:lowlight,2);
+            cvPutText(imgLatch.getIplImage(),tag.str().c_str(),txtLoc,&font,(j==i)?highlight:lowlight);
         }
 
-        port->prepare()=img;
-        port->write();
+        imgRtLocOut.prepare()=imgLatch;
+        imgRtLocOut.write();
     }
 
     // release resources
-    mutexResources.post();
+    mutexResources.unlock();
 }
 
 
@@ -271,7 +264,7 @@ void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
     if (imgHistogram.getOutputCount()>0)
     {
         // grab resources
-        mutexResources.wait();
+        mutexResources.lock();
 
         // create image containing histogram
         ImageOf<PixelBgr> imgConf;
@@ -385,13 +378,14 @@ void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
         imgHistogram.write();
 
         // release resources
-        mutexResources.post();
+        mutexResources.unlock();
     }
 }
 
 
 /**********************************************************/
-int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const CvPoint &loc)
+int IOL2OPCBridge::findClosestBlob(const Bottle &blobs,
+                                   const CvPoint &loc)
 {
     int ret=RET_INVALID;
     double min_d2=1e9;
@@ -445,16 +439,12 @@ int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const Vector &loc)
 
 
 /**********************************************************/
-Bottle IOL2OPCBridge::classify(const Bottle &blobs,
-                               const bool rtlocalization)
+Bottle IOL2OPCBridge::classify(const Bottle &blobs)
 {
     // grab resources
-    mutexResources.wait();
+    mutexResources.lock();
 
-    if (rtlocalization)
-        imgClassifier.write(imgRtLoc);
-    else
-        imgClassifier.write(img);
+    imgClassifier.write(imgRtLoc);
 
     Bottle cmd,reply;
     cmd.addVocab(Vocab::encode("classify"));
@@ -472,7 +462,7 @@ Bottle IOL2OPCBridge::classify(const Bottle &blobs,
     printf("Received reply: %s\n",reply.toString().c_str());
 
     // release resources
-    mutexResources.post();
+    mutexResources.unlock();
 
     return reply;
 }
@@ -483,9 +473,9 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
                           const int i)
 {
     // grab resources
-    mutexResources.wait();
+    mutexResources.lock();
 
-    imgClassifier.write(img);
+    imgClassifier.write(imgRtLoc);
 
     Bottle cmd,reply;
     cmd.addVocab(Vocab::encode("train"));
@@ -508,43 +498,7 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
     printf("Received reply: %s\n",reply.toString().c_str());
 
     // release resources
-    mutexResources.post();
-}
-
-
-/**********************************************************/
-void IOL2OPCBridge::execForget(const string &object)
-{
-    Bottle cmdClassifier,replyClassifier,replyHuman;
-
-    // grab resources
-    mutexResources.wait();
-
-    // forget the whole memory
-    if (object=="all")
-    {
-        cmdClassifier.addVocab(Vocab::encode("forget"));
-        cmdClassifier.addString("all");
-        printf("Sending clearing request: %s\n",cmdClassifier.toString().c_str());
-        rpcClassifier.write(cmdClassifier,replyClassifier);
-        printf("Received reply: %s\n",replyClassifier.toString().c_str());
-    }
-    else    // forget specific object
-    {
-        ostringstream reply;
-        //map<string,Classifier*>::iterator it=db.find(object);
-        //if (it!=db.end())
-        {
-            cmdClassifier.addVocab(Vocab::encode("forget"));
-            cmdClassifier.addString(object.c_str());
-            printf("Sending clearing request: %s\n",cmdClassifier.toString().c_str());
-            rpcClassifier.write(cmdClassifier,replyClassifier);
-            printf("Received reply: %s\n",replyClassifier.toString().c_str());
-        }
-    }
-
-    // release resources
-    mutexResources.post();
+    mutexResources.unlock();
 }
 
 
@@ -552,11 +506,11 @@ void IOL2OPCBridge::execForget(const string &object)
 void IOL2OPCBridge::doLocalization()
 {
     // acquire image for classification/training
-    acquireImage(true);
+    acquireImage();
     // grab the blobs
     Bottle blobs=getBlobs();
     // get the scores from the learning machine
-    Bottle scores=classify(blobs,true);
+    Bottle scores=classify(blobs);
     // update location of histogram display
     if (Bottle *loc=histObjLocPort.read(false))
     {        
@@ -570,15 +524,15 @@ void IOL2OPCBridge::doLocalization()
     // find the closest blob to the location of histogram display
     int closestBlob=findClosestBlob(blobs,histObjLocation);
     // draw the blobs
-    drawBlobs(blobs,closestBlob,&scores);
+    drawBlobs(blobs,closestBlob,scores);
     // draw scores histogram
     drawScoresHistogram(blobs,scores,closestBlob);
 
-    // data for memory update
-    mutexResourcesMemory.wait();
-    memoryBlobs=blobs;
-    memoryScores=scores;
-    mutexResourcesMemory.post();
+    // data for opc update
+    mutexResourcesOpc.lock();
+    opcBlobs=blobs;
+    opcScores=scores;
+    mutexResourcesOpc.unlock();
 }
 
 
@@ -587,13 +541,10 @@ void IOL2OPCBridge::updateOPC()
 {
     if (opc->isConnected())
     {
-        // grab resources
-        mutexMemoryUpdate.wait();
-
-        mutexResourcesMemory.wait();
-        Bottle blobs=memoryBlobs;
-        Bottle scores=memoryScores;
-        mutexResourcesMemory.post();
+        mutexResourcesOpc.lock();
+        Bottle blobs=opcBlobs;
+        Bottle scores=opcScores;
+        mutexResourcesOpc.unlock();
 
         for (int j=0; j<blobs.size(); j++)
         {
@@ -601,9 +552,9 @@ void IOL2OPCBridge::updateOPC()
             tag<<"blob_"<<j;
 
             // find the blob name (or unknown)
-            mutexResources.wait();
+            mutexResources.lock();
             string object=findName(scores,tag.str());
-            mutexResources.post();
+            mutexResources.unlock();
 
             if (object!=OBJECT_UNKNOWN)
             {
@@ -621,13 +572,11 @@ void IOL2OPCBridge::updateOPC()
 
                     Object *obj=opc->addObject(object);
                     obj->m_ego_position=x;
+                    obj->m_present=true;
                     opc->commit(obj);
                 }
             }
         }
-
-        // release resources
-        mutexMemoryUpdate.post();
     }
 }
 
@@ -645,12 +594,10 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     imgIn.open(("/"+name+"/img:i").c_str());
     blobExtractor.open(("/"+name+"/blobs:i").c_str());
-    imgOut.open(("/"+name+"/img:o").c_str());
     imgRtLocOut.open(("/"+name+"/imgLoc:o").c_str());
     imgClassifier.open(("/"+name+"/imgClassifier:o").c_str());
     imgHistogram.open(("/"+name+"/imgHistogram:o").c_str());
     histObjLocPort.open(("/"+name+"/histObjLocation:i").c_str());
-    recogTriggerPort.open(("/"+name+"/recog:o").c_str());
 
     rpcPort.open(("/"+name+"/rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
@@ -702,9 +649,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
 
-    img.resize(320,240);
     imgRtLoc.resize(320,240);
-    img.zero();
     imgRtLoc.zero();
         
     histColorsCode.push_back(cvScalar( 65, 47,213));
@@ -727,12 +672,10 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 bool IOL2OPCBridge::interruptModule()
 {
     imgIn.interrupt();
-    imgOut.interrupt();
     imgRtLocOut.interrupt();
     imgClassifier.interrupt();
     imgHistogram.interrupt();
     histObjLocPort.interrupt();
-    recogTriggerPort.interrupt();
     rpcPort.interrupt();
     blobExtractor.interrupt();
     rpcClassifier.interrupt();
@@ -751,12 +694,10 @@ bool IOL2OPCBridge::interruptModule()
 bool IOL2OPCBridge::close()
 {
     imgIn.close();
-    imgOut.close();
     imgRtLocOut.close();
     imgClassifier.close();
     imgHistogram.close();
     histObjLocPort.close();
-    recogTriggerPort.close();
     rpcPort.close();
     blobExtractor.close();
     rpcClassifier.close();
@@ -797,22 +738,47 @@ bool IOL2OPCBridge::attach(RpcServer &source)
 /**********************************************************/
 bool IOL2OPCBridge::add_name(const string &name)
 {
-    Vector clickLocation;
-    clickLocation.resize(2);
-
+    CvPoint clickLocation;
     if(getClickPosition(clickLocation)) {
-        cout << clickLocation[0] << " " << clickLocation[1] << endl;
+        yInfo("%d %d",clickLocation.x,clickLocation.y);
+
+        mutexResourcesOpc.lock();
+        Bottle blobs=opcBlobs;
+        mutexResourcesOpc.unlock();
+
+        int i=findClosestBlob(blobs,clickLocation);
+        train(name,blobs,i);
+
+        return true;
     } else {
         return false;
     }
-
-    return false;
 }
 
 
 /**********************************************************/
 bool IOL2OPCBridge::remove_name(const string &name)
 {
+    // grab resources
+    LockGuard lg(mutexResources);
+
+    Bottle cmdClassifier,replyClassifier;
+    cmdClassifier.addVocab(Vocab::encode("forget"));
+    cmdClassifier.addString(name.c_str());
+    printf("Sending clearing request: %s\n",cmdClassifier.toString().c_str());
+    rpcClassifier.write(cmdClassifier,replyClassifier);
+    printf("Received reply: %s\n",replyClassifier.toString().c_str());
+
+    if (Entity *en=opc->getEntity(name))
+    {
+        if (Object *obj=dynamic_cast<Object*>(en))
+        {
+            obj->m_present=false;
+            opc->commit(obj);
+            return true;
+        }
+    }
+
     return false;
 }
 
