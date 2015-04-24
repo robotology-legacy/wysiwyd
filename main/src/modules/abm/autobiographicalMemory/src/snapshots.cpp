@@ -36,6 +36,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     } else {
         instance = 0;
     }
+
     OPCEARS.setInstance(instance);
     currentInstance = instance;
 
@@ -121,6 +122,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
     //Connection to the OPC
     OPCEARS.snapshot(bInput, opcWorld);
+
     ostringstream osName;
     osName << sName << instance;
     sName += osName.str();                         //I dont understand this Gregoire : you concatenate the name with nameInstance with itself, producing namenameinstance
@@ -130,59 +132,61 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     ostringstream osAllArg;
 
     // Filling contentArg
-    for (int i = 1; i < bInput.size(); i++)
-    {
-        bTemp = *(bInput.get(i).asList());
-        if (bTemp.get(0) == "arguments" && bTemp.size() > 1)
+    if(opcWorld->isConnected()) {
+        for (int i = 1; i < bInput.size(); i++)
         {
-            for (int j = 1; j < bTemp.size(); j++)
+            bTemp = *(bInput.get(i).asList());
+            if (bTemp.get(0) == "arguments" && bTemp.size() > 1)
             {
-                ostringstream osArg;
-                string cArgArgument, cArgType, cArgSubtype, cArgRole;
+                for (int j = 1; j < bTemp.size(); j++)
+                {
+                    ostringstream osArg;
+                    string cArgArgument, cArgType, cArgSubtype, cArgRole;
 
-                //check if the argument is an entity in OPC
-                Entity* currentEntity = opcWorld->getEntity(bTemp.get(j).asList()->get(0).toString().c_str());
+                    //check if the argument is an entity in OPC
+                    Entity* currentEntity = opcWorld->getEntity(bTemp.get(j).asList()->get(0).toString().c_str());
 
-                if (currentEntity == NULL) {
-                    cArgArgument = bTemp.get(j).asList()->get(0).asString();
-                    cArgType = "external";
-                    cArgSubtype = "default";
-                }
-                else {
-                    cArgArgument = currentEntity->name();
-                    cArgType = "entity";
-                    cArgSubtype = currentEntity->entity_type();
-                }
-
-                if (bTemp.get(j).asList()->size() > 1) {
-                    cArgRole = bTemp.get(j).asList()->get(1).asString();
-
-                    //add sentence for single img label
-                    if (cArgRole == "sentence"){
-                        fullSentence = cArgArgument;
+                    if (currentEntity == NULL) {
+                        cArgArgument = bTemp.get(j).asList()->get(0).asString();
+                        cArgType = "external";
+                        cArgSubtype = "default";
                     }
-                }
-                else {
-                    cArgRole = "unknown";
-                }
+                    else {
+                        cArgArgument = currentEntity->name();
+                        cArgType = "entity";
+                        cArgSubtype = currentEntity->entity_type();
+                    }
 
-                osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
+                    if (bTemp.get(j).asList()->size() > 1) {
+                        cArgRole = bTemp.get(j).asList()->get(1).asString();
 
-                // one stringstream with all argments
-                osAllArg << osArg.str().c_str() ;
+                        //add sentence for single img label
+                        if (cArgRole == "sentence"){
+                            fullSentence = cArgArgument;
+                        }
+                    }
+                    else {
+                        cArgRole = "unknown";
+                    }
+
+                    osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
+
+                    // one stringstream with all argments
+                    osAllArg << osArg.str().c_str() ;
+                }
             }
         }
+
+
+        // add the snapshot of the OPC
+        osAllArg << bSnapShot.get(0).asString() ;
+
+
+        bRequest.clear();
+        bRequest.addString("request");
+        bRequest.addString(osAllArg.str().c_str());
+        request(bRequest);
     }
-
-
-    // add the snapshot of the OPC
-    osAllArg << bSnapShot.get(0).asString() ;
-
-
-    bRequest.clear();
-    bRequest.addString("request");
-    bRequest.addString(osAllArg.str().c_str());
-    request(bRequest);
 
 
     if ((!bBegin) && isconnected2reasoning)
@@ -353,37 +357,39 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     ostringstream osArg;
     osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << " , '" << sManner << "' , 'manner' , 'manner' , 'manner' ) ";
 
-    // Fill agents:
-    for (unsigned int i = 0; i < vAgent.size(); i++)
-    {
-        Entity* currentEntity = opcWorld->getEntity(vAgent[i]);
+    if(opcWorld->isConnected()) {
+        // Fill agents:
+        for (unsigned int i = 0; i < vAgent.size(); i++)
+        {
+            Entity* currentEntity = opcWorld->getEntity(vAgent[i]);
 
-        if (currentEntity == NULL)
-            osArg << ", ( " << instance << ", '" << vAgent[i] << "', " << "'external', 'default', 'agent" << i + 1 << "') ";
-        else
-            osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'agent" << i + 1 << "') ";
-    }
+            if (currentEntity == NULL)
+                osArg << ", ( " << instance << ", '" << vAgent[i] << "', " << "'external', 'default', 'agent" << i + 1 << "') ";
+            else
+                osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'agent" << i + 1 << "') ";
+        }
 
-    // Fill objects:
-    for (unsigned int i = 0; i < vObject.size(); i++)
-    {
-        Entity* currentEntity = opcWorld->getEntity(vObject[i]);
+        // Fill objects:
+        for (unsigned int i = 0; i < vObject.size(); i++)
+        {
+            Entity* currentEntity = opcWorld->getEntity(vObject[i]);
 
-        if (currentEntity == NULL)
-            osArg << ", ( " << instance << ", '" << vObject[i] << "', " << "'external', 'default', 'object" << i + 1 << "') ";
-        else
-            osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'object" << i + 1 << "') ";
-    }
+            if (currentEntity == NULL)
+                osArg << ", ( " << instance << ", '" << vObject[i] << "', " << "'external', 'default', 'object" << i + 1 << "') ";
+            else
+                osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'object" << i + 1 << "') ";
+        }
 
-    // Fill spatials:
-    for (unsigned int i = 0; i < vSpatial.size(); i++)
-    {
-        Entity* currentEntity = opcWorld->getEntity(vSpatial[i]);
+        // Fill spatials:
+        for (unsigned int i = 0; i < vSpatial.size(); i++)
+        {
+            Entity* currentEntity = opcWorld->getEntity(vSpatial[i]);
 
-        if (currentEntity == NULL)
-            osArg << ", ( " << instance << ", '" << vSpatial[i] << "', " << "'external', 'default', 'spatial" << i + 1 << "') ";
-        else
-            osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'spatial" << i + 1 << "') ";
+            if (currentEntity == NULL)
+                osArg << ", ( " << instance << ", '" << vSpatial[i] << "', " << "'external', 'default', 'spatial" << i + 1 << "') ";
+            else
+                osArg << ", ( " << instance << ", '" << currentEntity->name() << "', 'entity', '" << currentEntity->entity_type() << "', 'spatial" << i + 1 << "') ";
+        }
     }
 
     // Insert the main request.
@@ -519,9 +525,11 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     // send filling contentarg
     bArg = requestFromString(osArg.str().c_str());
 
-    for (int i = 0; i < bSnapShot.size(); i++)
-    {
-        bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
+    if(opcWorld->isConnected()) {
+        for (int i = 0; i < bSnapShot.size(); i++)
+        {
+            bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
+        }
     }
 
     if (!bBegin && isconnected2reasoning)

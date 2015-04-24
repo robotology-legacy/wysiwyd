@@ -378,6 +378,11 @@ Bottle opcEars::insertOPC(string sName)
 
     opcSave *opcTemp = mSave[sName];
 
+    if (opcTemp == NULL)
+    {
+        bOutput.addString("Error, OPC not connected");
+        return bOutput;
+    }
 
     // ---- Entities ---- //
     for (list<Entity*>::iterator it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++ )
