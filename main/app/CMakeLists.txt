@@ -34,5 +34,3 @@ add_subdirectory(perspectiveTaking)
 add_subdirectory(visionRelated)
 add_subdirectory(gameCluedo)
 add_subdirectory(proactiveTagging)
-add_subdirectory(iol2opc)
-

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>allostasis</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Module integrating an interface for dealing with allostatic control</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+     - contains the core drive/emotion engine.
+     - interpret input from tactile stimulation and responds accordingly
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="jordiysard@gmail.com"> Jordi-Ysard Puigbo </author>
+   </authors>
+
+   <data>
+      <input>
+      </input>
+   </data>
+
+</module>
+
