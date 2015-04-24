@@ -114,14 +114,17 @@ namespace wysiwyd {
                 getPort.close();
             }
 
+            /********************************************************************************/
             double getTableHeight()
             {
                 yarp::os::Bottle bCmd, bReply;
+                bCmd.addVocab(yarp::os::Vocab::encode("get"));
                 bCmd.addVocab(yarp::os::Vocab::encode("table"));
                 getPort.write(bCmd,bReply);
-                return bReply.get(0).asDouble();
+                return bReply.find("table_height").asDouble();
             }
 
+            /********************************************************************************/
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in)
             {
                 double height = getTableHeight();
