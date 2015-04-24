@@ -126,7 +126,7 @@ namespace wysiwyd {
             {
                 double height = getTableHeight();
                 yarp::sig::Vector out = in;
-                if(out[2] < getTableHeight()) {
+                if(out[2] < height) {
                     out[2] = height+0.03; // TODO: Add offset
                 }
 
