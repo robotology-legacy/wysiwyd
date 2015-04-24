@@ -44,6 +44,7 @@ namespace wysiwyd {
         protected:
             yarp::os::RpcClient cmdPort;
             yarp::os::RpcClient rpcPort;
+            yarp::os::RpcClient getPort;
 
             /********************************************************************************/
             void appendCartesianTarget(yarp::os::Bottle& b, const yarp::sig::Vector &t)
@@ -79,6 +80,7 @@ namespace wysiwyd {
                 bool ret=true;
                 ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
                 ret&=yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
+                ret&=yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
                 return ret;
             }
 
@@ -94,6 +96,7 @@ namespace wysiwyd {
             {
                 cmdPort.open(("/"+masterName+"/"+SUBSYSTEM_ARE+"/cmd:io").c_str());
                 rpcPort.open(("/"+masterName+"/"+SUBSYSTEM_ARE+"/rpc").c_str());
+                getPort.open(("/"+masterName+"/"+SUBSYSTEM_ARE+"/get:io").c_str());
                 m_type=SUBSYSTEM_ARE;
             }
 
@@ -104,9 +107,34 @@ namespace wysiwyd {
             { 
                 cmdPort.interrupt();
                 rpcPort.interrupt();
+                getPort.interrupt();
 
                 cmdPort.close();
                 rpcPort.close();
+                getPort.close();
+            }
+
+            double getTableHeight()
+            {
+                yarp::os::Bottle bCmd, bReply;
+                bCmd.addVocab(yarp::os::Vocab::encode("table"));
+                getPort.write(bCmd,bReply);
+                return bReply.get(0).asDouble();
+            }
+
+            yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in)
+            {
+                double height = getTableHeight();
+                yarp::sig::Vector out = in;
+                if(out[2] < getTableHeight()) {
+                    out[2] = height+0.03; // TODO: Add offset
+                }
+
+                if(out[0] > -0.1) {
+                    out[0] = -0.1;
+                }
+
+                return out;
             }
 
             /**
@@ -156,9 +184,10 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false 
             *         otherwise.
             */
-            bool take(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
+            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options=yarp::os::Bottle(),
                 const bool shouldWait=true)
             {
+                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
@@ -200,9 +229,10 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false 
             *         otherwise.
             */
-            bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
+            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options=yarp::os::Bottle(),
                 const bool shouldWait=true)
             {
+                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
@@ -241,9 +271,10 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false 
             *         otherwise.
             */
-            bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
+            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options=yarp::os::Bottle(),
                 const bool shouldWait=true)
             {
+                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {                  
                     std::list<std::pair<std::string, std::string> > lArgument;
@@ -318,9 +349,10 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false 
             *         otherwise.
             */
-            bool dropOn(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(),
+            bool dropOn(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options=yarp::os::Bottle(),
                 const bool shouldWait=true)
             {
+                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
