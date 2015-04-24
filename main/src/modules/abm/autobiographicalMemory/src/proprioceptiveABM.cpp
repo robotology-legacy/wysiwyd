@@ -273,9 +273,7 @@ Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifferenc
     osArgDataStream << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM proprioceptivedata WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
     osArgDataStream << "FROM proprioceptivedata WHERE instance = '" << imgInstance << "' ORDER BY time) s WHERE ";
 
-    if(port!="") {
-        osArgDataStream << "label_port = '" << port << "' AND ";
-    }
+    osArgDataStream << "label_port = '" << port << "' AND ";
 
     if(realtimePlayback) {
         osArgDataStream << "time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
@@ -283,12 +281,9 @@ Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifferenc
         osArgDataStream << "time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
     }
 
-    if(port!="") {
-        osArgDataStream << "LIMIT (SELECT COUNT(DISTINCT subtype) FROM proprioceptivedata WHERE instance = '" << imgInstance << "' AND label_port='" << port << "')";
-    } else {
-        osArgDataStream << "LIMIT " << streamDataProviderCount << ";";
-    }
+    osArgDataStream << "LIMIT (SELECT COUNT(DISTINCT subtype) FROM proprioceptivedata WHERE instance = '" << imgInstance << "' AND label_port='" << port << "')";
 
     bListDataStream.addString(osArgDataStream.str());
+
     return request(bListDataStream);
 }
