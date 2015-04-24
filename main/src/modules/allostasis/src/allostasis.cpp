@@ -1,5 +1,7 @@
 #include "allostasis.h"
 #include <cmath>
+
+
 bool AlostaticModule::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name",Value("allostasis")).asString().c_str();
@@ -33,7 +35,7 @@ bool AlostaticModule::configure(yarp::os::ResourceFinder &rf)
     varx=0;
     for (int n = 0; n<meanx;n++)
     {	
-    	varx += pow((2*n +1),2);
+    	varx += pow((2*n +1),2.0);
     }
     varx /=2;
     derivative = cov/varx;
@@ -135,7 +137,7 @@ bool AlostaticModule::updateModule()
     //Read End-effector position
     Bottle endEffector = *endEffectorPort.read();
     //Compute distance to target
-    double squared_distance = pow(target.get(0).asDouble() - endEffector.get(0).asDouble(),2) + pow(target.get(1).asDouble() - endEffector.get(1).asDouble(),2) + pow(target.get(2).asDouble() - endEffector.get(2).asDouble(),2);
+    double squared_distance = pow(target.get(0).asDouble() - endEffector.get(0).asDouble(),2.0) + pow(target.get(1).asDouble() - endEffector.get(1).asDouble(),2.0) + pow(target.get(2).asDouble() - endEffector.get(2).asDouble(),2.0);
     
     distanceList.addDouble(sqrt(squared_distance));
     if (distanceList.size() >= windowSize)
@@ -145,7 +147,7 @@ bool AlostaticModule::updateModule()
     //for (int i = 0;i)
     int i = 0;
     Bottle *obstacle = obstacleList.get(i).asList();
-    obstacle_distance = sqrt(pow(obstacle->get(0).asDouble(),2) + pow(obstacle->get(1).asDouble(),2) + pow(obstacle->get(2).asDouble(),2));
+    obstacle_distance = sqrt(pow(obstacle->get(0).asDouble(),2.0) + pow(obstacle->get(1).asDouble(),2.0) + pow(obstacle->get(2).asDouble(),2.0));
     if (obstacle_distance>0)
     {
     	obstacle_distance = 1/obstacle_distance;
