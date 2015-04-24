@@ -92,7 +92,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     bMode=rf.check("Mode",  Value("test")).toString().c_str();
 
     testAction =rf.check("action",  Value("point")).toString().c_str();
-    testObject =rf.check("object",  Value("cross")).toString().c_str();
+    testObject =rf.check("object",  Value("Cross")).toString().c_str();
     testLocation =rf.check("location",  Value("right")).toString().c_str();
 
 
@@ -166,9 +166,10 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
         cout << endl << endl << "----------------------------------------------" << endl << endl << "reservoirHandler ready !" << endl << endl;
 
     //populateOPC();
-    nodeType();
-    //testARE();
-    return bEveryThingisGood ;
+    //nodeType();
+    testARE();
+    return false;
+//    return bEveryThingisGood ;
 }
 
 bool reservoirHandler::testARE(){
@@ -177,7 +178,9 @@ bool reservoirHandler::testARE(){
     testseq.push_back(testAction);
     testseq.push_back(testObject);
     testseq.push_back(testLocation);
+    testseq.push_back("quickly");
 
+    cout << "initialisation done" << endl;
     AREactions(testseq);
 
     return true;
@@ -1197,7 +1200,8 @@ bool reservoirHandler::AREactions(vector<string> seq)
 
     // GET LOCATION OF THE OBJECT IN THE OPC + OFFSET IN Z
     iCub->opc->update();
-    RTObject *rtObject = iCub->opc->addRTObject(sObject);
+ //   RTObject *rtObject = iCub->opc->addRTObject(sObject);
+    Object *rtObject = iCub->opc->addObject(sObject);
     Vector value(4);
     value = rtObject->m_ego_position;
     value[2] += offsetGrasp;
