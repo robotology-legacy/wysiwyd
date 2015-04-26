@@ -35,10 +35,10 @@ Object::Object():Entity()
     m_color.resize(3,255.0);
     m_saliency = 0.0;
     m_present = false;
-	
-	// by default, place object 25cm in front of the robot
-	// to avoid collisions when pointing to an object
-	m_position[0] = -0.25;
+    
+    // by default, place object 25cm in front of the robot
+    // to avoid collisions when pointing to an object
+    m_ego_position[0] = -0.25;
 }
 
 Object::Object(const Object &b):Entity(b)
