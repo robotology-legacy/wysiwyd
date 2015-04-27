@@ -9,7 +9,7 @@ bool opcManager::configure(yarp::os::ResourceFinder &rf)
         "module name (string)").asString().c_str();
 
     s_realOPC = rf.check("realOpc", Value("OPC")).asString().c_str();
-    s_mentalOPC = rf.check("realOpc", Value("OPC")).asString().c_str();
+    s_mentalOPC = rf.check("mentalOpc", Value("mentalOPC")).asString().c_str();
 
     setName(moduleName.c_str());
     string namePortReal = moduleName+ "/" + s_realOPC,
