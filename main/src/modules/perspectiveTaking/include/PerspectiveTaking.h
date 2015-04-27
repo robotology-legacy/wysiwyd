@@ -30,6 +30,7 @@
 #include <rtabmap/core/RtabmapThread.h>
 #include <rtabmap/core/CameraThread.h>
 #include <rtabmap/core/Odometry.h>
+#include <rtabmap/core/OdometryThread.h>
 
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
