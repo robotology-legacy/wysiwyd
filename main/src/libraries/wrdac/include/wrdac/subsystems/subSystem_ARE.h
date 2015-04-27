@@ -1,6 +1,6 @@
 /* 
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
-* Authors: Stéphane Lallée
+* Authors: StÃ©phane LallÃ©e
 * email:   stephane.lallee@gmail.com
 * website: http://efaa.upf.edu/ 
 * Permission is granted to copy, distribute, and/or modify this program
@@ -115,22 +115,33 @@ namespace wysiwyd {
             }
 
             /********************************************************************************/
-            double getTableHeight()
+            bool getTableHeight(double &height)
             {
                 yarp::os::Bottle bCmd, bReply;
                 bCmd.addVocab(yarp::os::Vocab::encode("get"));
                 bCmd.addVocab(yarp::os::Vocab::encode("table"));
                 getPort.write(bCmd,bReply);
-                return bReply.find("table_height").asDouble();
+                
+                yarp::os::Value vHeight = bReply.find("table_height");
+                if(vHeight.isNull()) {
+                    yError("No table height specified in ARE!");
+                    return false;
+                } else {
+                    height = vHeight.asDouble();
+                    return true;
+                }
             }
 
             /********************************************************************************/
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in)
             {
-                double height = getTableHeight();
                 yarp::sig::Vector out = in;
-                if(out[2] < height) {
-                    out[2] = height+0.03; // TODO: Add offset
+
+                double height;
+                if(getTableHeight(height)) {
+                    if(out[2] < height) {
+                        out[2] = height+0.03; // TODO: Add offset in config file
+                    }
                 }
 
                 if(out[0] > -0.1) {
