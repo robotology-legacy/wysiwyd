@@ -16,7 +16,6 @@
 */
 
 #include <sstream>
-#include <cstdio>
 #include <algorithm>
 #include <set>
 
@@ -94,7 +93,7 @@ Bottle IOL2OPCBridge::getBlobs()
     if (Bottle *pBlobs=blobExtractor.read(false))
     {
         lastBlobs=skimBlobs(*pBlobs);
-        printf("Received blobs list: %s\n",lastBlobs.toString().c_str());
+        yInfo("Received blobs list: %s",lastBlobs.toString().c_str());
 
         if (lastBlobs.size()==1)
         {
@@ -136,22 +135,23 @@ CvPoint IOL2OPCBridge::getBlobCOG(const Bottle &blobs, const int i)
 
 /**********************************************************/
 bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
-{
+{    
     if (Bottle *bPos=getClickPort.read(false))
     {
         if (bPos->size()>=2)
         {
-            pos.x = bPos->get(0).asInt();
-            pos.y = bPos->get(1).asInt();
-            return true;
+            clickLocation.x=bPos->get(0).asInt();
+            clickLocation.y=bPos->get(1).asInt();
+            yInfo("Received new click location: (%d,%d)",
+                  clickLocation.x,clickLocation.y);
         }
         else
-        {
-            cout << "Bottle does not have correct size" << endl;
-        }
+            yWarning("Bottle does not have correct size");
     }
-    cout << "Did not receive click" << endl;
-    return false;
+
+    pos=clickLocation;
+    return ((clickLocation.x!=RET_INVALID) &&
+            (clickLocation.y!=RET_INVALID));
 }
 
 /**********************************************************/
@@ -163,9 +163,9 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
         cmd.addString("Root");
         cmd.addInt(point.x);
         cmd.addInt(point.y);
-        printf("Sending get3D query: %s\n",cmd.toString().c_str());
+        yInfo("Sending get3D query: %s",cmd.toString().c_str());
         rpcGet3D.write(cmd,reply);
-        printf("Received blob cartesian coordinates: %s\n",reply.toString().c_str());
+        yInfo("Received blob cartesian coordinates: %s",reply.toString().c_str());
 
         if (reply.size()>=3)
         {
@@ -457,9 +457,9 @@ Bottle IOL2OPCBridge::classify(const Bottle &blobs)
         item.addString(tag.str().c_str());
         item.addList()=*blobs.get(i).asList();
     }
-    printf("Sending classification request: %s\n",cmd.toString().c_str());
+    yInfo("Sending classification request: %s",cmd.toString().c_str());
     rpcClassifier.write(cmd,reply);
-    printf("Received reply: %s\n",reply.toString().c_str());
+    yInfo("Received reply: %s",reply.toString().c_str());
 
     // release resources
     mutexResources.unlock();
@@ -493,9 +493,9 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
     else
         options.add(blobs.get(i));
 
-    printf("Sending training request: %s\n",cmd.toString().c_str());
+    yInfo("Sending training request: %s",cmd.toString().c_str());
     rpcClassifier.write(cmd,reply);
-    printf("Received reply: %s\n",reply.toString().c_str());
+    yInfo("Received reply: %s",reply.toString().c_str());
 
     // release resources
     mutexResources.unlock();
@@ -584,7 +584,7 @@ void IOL2OPCBridge::updateOPC()
 /**********************************************************/
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
-    name=rf.check("name",Value("iol2opc")).asString().c_str();
+    string name=rf.check("name",Value("iol2opc")).asString().c_str();
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
     {
@@ -595,6 +595,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     imgIn.open(("/"+name+"/img:i").c_str());
     blobExtractor.open(("/"+name+"/blobs:i").c_str());
     imgRtLocOut.open(("/"+name+"/imgLoc:o").c_str());
+    imgSelBlobOut.open(("/"+name+"/imgSel:o").c_str());
     imgClassifier.open(("/"+name+"/imgClassifier:o").c_str());
     imgHistogram.open(("/"+name+"/imgHistogram:o").c_str());
     histObjLocPort.open(("/"+name+"/histObjLocation:i").c_str());
@@ -659,6 +660,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histColorsCode.push_back(cvScalar(224,176, 96));
     histColorsCode.push_back(cvScalar( 22,118,238));
 
+    clickLocation=cvPoint(RET_INVALID,RET_INVALID);
+
     attach(rpcPort);
 
     rtLocalization.start();
@@ -673,6 +676,7 @@ bool IOL2OPCBridge::interruptModule()
 {
     imgIn.interrupt();
     imgRtLocOut.interrupt();
+    imgSelBlobOut.interrupt();
     imgClassifier.interrupt();
     imgHistogram.interrupt();
     histObjLocPort.interrupt();
@@ -695,6 +699,7 @@ bool IOL2OPCBridge::close()
 {
     imgIn.close();
     imgRtLocOut.close();
+    imgSelBlobOut.close();
     imgClassifier.close();
     imgHistogram.close();
     histObjLocPort.close();
@@ -717,13 +722,43 @@ bool IOL2OPCBridge::close()
 /**********************************************************/
 double IOL2OPCBridge::getPeriod()
 {
-    return 1.0;
+    return 0.1;
 }
 
 
 /**********************************************************/
 bool IOL2OPCBridge::updateModule()
 {
+    // highlight selected blob
+    CvPoint loc;
+    if ((imgSelBlobOut.getOutputCount()>0) && getClickPosition(loc))
+    {
+        mutexResourcesOpc.lock();
+        Bottle blobs=opcBlobs;
+        mutexResourcesOpc.unlock();
+
+        int i=findClosestBlob(blobs,loc);
+        if (i!=RET_INVALID)
+        {
+            // latch image
+            mutexResources.lock();
+            ImageOf<PixelBgr> imgLatch=this->imgRtLoc;
+            mutexResources.unlock();
+
+            CvPoint tl,br;
+            Bottle *item=blobs.get(i).asList();
+            tl.x=(int)item->get(0).asDouble();
+            tl.y=(int)item->get(1).asDouble();
+            br.x=(int)item->get(2).asDouble();
+            br.y=(int)item->get(3).asDouble();
+
+            cvRectangle(imgLatch.getIplImage(),tl,br,cvScalar(0,255,0),2);
+
+            imgSelBlobOut.prepare()=imgLatch;
+            imgSelBlobOut.write();            
+        }
+    }
+
     return true;
 }
 
@@ -738,23 +773,24 @@ bool IOL2OPCBridge::attach(RpcServer &source)
 /**********************************************************/
 bool IOL2OPCBridge::add_object(const string &name)
 {
-    CvPoint clickLocation;
-    if(getClickPosition(clickLocation)) {
-        yInfo("%d %d",clickLocation.x,clickLocation.y);
+    CvPoint loc;
+    if (getClickPosition(loc))
+    {
+        yInfo("%d %d",loc.x,loc.y);
 
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
         mutexResourcesOpc.unlock();
 
-        int i=findClosestBlob(blobs,clickLocation);
-        if(i==RET_INVALID) {
+        int i=findClosestBlob(blobs,loc);
+        if (i==RET_INVALID)
             return false;
-        }
-        yInfo("Closest blob: %d", i);
-        train(name,blobs,i);
 
+        train(name,blobs,i);
         return true;
-    } else {
+    }
+    else
+    {
         yError("Could not retrieve click location");
         return false;
     }
@@ -770,9 +806,9 @@ bool IOL2OPCBridge::remove_object(const string &name)
     Bottle cmdClassifier,replyClassifier;
     cmdClassifier.addVocab(Vocab::encode("forget"));
     cmdClassifier.addString(name.c_str());
-    printf("Sending clearing request: %s\n",cmdClassifier.toString().c_str());
+    yInfo("Sending clearing request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
-    printf("Received reply: %s\n",replyClassifier.toString().c_str());
+    yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
     if (Entity *en=opc->getEntity(name))
     {
@@ -786,3 +822,4 @@ bool IOL2OPCBridge::remove_object(const string &name)
 
     return false;
 }
+

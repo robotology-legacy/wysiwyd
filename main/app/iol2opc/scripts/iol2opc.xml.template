@@ -116,7 +116,7 @@
                 <protocol>tcp</protocol>
         </connection>
         <connection>
-                <from>/icub/camcalib/left/out</from>
+                <from>/iol2opc/imgSel:o</from>
                 <to>/iolViewer/objectSelector/view</to>
                 <protocol>udp</protocol>
         </connection>
