@@ -731,32 +731,34 @@ bool IOL2OPCBridge::updateModule()
 {
     // highlight selected blob
     CvPoint loc;
-    if ((imgSelBlobOut.getOutputCount()>0) && getClickPosition(loc))
+    if (imgSelBlobOut.getOutputCount()>0)
     {
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
         mutexResourcesOpc.unlock();
 
-        int i=findClosestBlob(blobs,loc);
-        if (i!=RET_INVALID)
-        {
-            // latch image
-            mutexResources.lock();
-            ImageOf<PixelBgr> imgLatch=this->imgRtLoc;
-            mutexResources.unlock();
+        mutexResources.lock();
+        ImageOf<PixelBgr> imgLatch=this->imgRtLoc;
+        mutexResources.unlock();
 
-            CvPoint tl,br;
-            Bottle *item=blobs.get(i).asList();
-            tl.x=(int)item->get(0).asDouble();
-            tl.y=(int)item->get(1).asDouble();
-            br.x=(int)item->get(2).asDouble();
-            br.y=(int)item->get(3).asDouble();
+        if(getClickPosition(loc)) {
+            int i=findClosestBlob(blobs,loc);
+            if (i!=RET_INVALID)
+            {
+                // latch image
+                CvPoint tl,br;
+                Bottle *item=blobs.get(i).asList();
+                tl.x=(int)item->get(0).asDouble();
+                tl.y=(int)item->get(1).asDouble();
+                br.x=(int)item->get(2).asDouble();
+                br.y=(int)item->get(3).asDouble();
 
-            cvRectangle(imgLatch.getIplImage(),tl,br,cvScalar(0,255,0),2);
-
-            imgSelBlobOut.prepare()=imgLatch;
-            imgSelBlobOut.write();            
+                cvRectangle(imgLatch.getIplImage(),tl,br,cvScalar(0,255,0),2);
+            }
         }
+
+        imgSelBlobOut.prepare()=imgLatch;
+        imgSelBlobOut.write();
     }
 
     return true;
