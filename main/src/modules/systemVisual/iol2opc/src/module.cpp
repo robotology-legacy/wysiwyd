@@ -825,3 +825,19 @@ bool IOL2OPCBridge::remove_object(const string &name)
     return false;
 }
 
+
+/**********************************************************/
+bool IOL2OPCBridge::remove_all()
+{
+    // grab resources
+    LockGuard lg(mutexResources);
+
+    Bottle cmdClassifier,replyClassifier;
+    cmdClassifier.addVocab(Vocab::encode("forget"));
+    cmdClassifier.addString("all");
+    yInfo("Sending clearing request: %s",cmdClassifier.toString().c_str());
+    rpcClassifier.write(cmdClassifier,replyClassifier);
+    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+
+    return true;
+}

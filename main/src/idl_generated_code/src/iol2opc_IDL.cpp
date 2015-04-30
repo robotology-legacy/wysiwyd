@@ -24,6 +24,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class iol2opc_IDL_remove_all : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool iol2opc_IDL_add_object::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
@@ -70,6 +78,27 @@ void iol2opc_IDL_remove_object::init(const std::string& name) {
   this->name = name;
 }
 
+bool iol2opc_IDL_remove_all::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(2)) return false;
+  if (!writer.writeTag("remove_all",1,2)) return false;
+  return true;
+}
+
+bool iol2opc_IDL_remove_all::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void iol2opc_IDL_remove_all::init() {
+  _return = false;
+}
+
 iol2opc_IDL::iol2opc_IDL() {
   yarp().setOwner(*this);
 }
@@ -89,6 +118,16 @@ bool iol2opc_IDL::remove_object(const std::string& name) {
   helper.init(name);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool iol2opc_IDL::remove_object(const std::string& name)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool iol2opc_IDL::remove_all() {
+  bool _return = false;
+  iol2opc_IDL_remove_all helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool iol2opc_IDL::remove_all()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -135,6 +174,17 @@ bool iol2opc_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "remove_all") {
+      bool _return;
+      _return = remove_all();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -171,6 +221,7 @@ std::vector<std::string> iol2opc_IDL::help(const std::string& functionName) {
     helpString.push_back("*** Available commands:");
     helpString.push_back("add_object");
     helpString.push_back("remove_object");
+    helpString.push_back("remove_all");
     helpString.push_back("help");
   }
   else {
@@ -186,6 +237,13 @@ std::vector<std::string> iol2opc_IDL::help(const std::string& functionName) {
       helpString.push_back("Remove object with a given name from the object-recognition ");
       helpString.push_back("database. ");
       helpString.push_back("@param name is the object name ");
+      helpString.push_back("@return true/false on success/failure. ");
+    }
+    if (functionName=="remove_all") {
+      helpString.push_back("bool remove_all() ");
+      helpString.push_back("Remove all objects from the object-recognition ");
+      helpString.push_back("database. Please keep in mind that the object ");
+      helpString.push_back("is not removed from the OPC (yet). ");
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="help") {

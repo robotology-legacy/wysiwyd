@@ -31,6 +31,13 @@ public:
    * @return true/false on success/failure.
    */
   virtual bool remove_object(const std::string& name);
+  /**
+   * Remove all objects from the object-recognition
+   * database. Please keep in mind that the object
+   * is not removed from the OPC (yet).
+   * @return true/false on success/failure.
+   */
+  virtual bool remove_all();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

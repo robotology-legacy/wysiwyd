@@ -111,6 +111,7 @@ protected:
 public:
     bool    add_object(const string &name);
     bool    remove_object(const string &name);
+    bool    remove_all();
 };
 
 #endif
