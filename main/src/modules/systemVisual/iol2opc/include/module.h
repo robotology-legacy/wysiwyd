@@ -56,6 +56,7 @@ protected:
     BufferedPort<Bottle>             getClickPort;
     BufferedPort<ImageOf<PixelBgr> > imgIn;
     BufferedPort<ImageOf<PixelBgr> > imgRtLocOut;
+    BufferedPort<ImageOf<PixelBgr> > imgSelBlobOut;
     BufferedPort<ImageOf<PixelBgr> > imgHistogram;
     Port imgClassifier;
 
@@ -65,8 +66,6 @@ protected:
     ImageOf<PixelBgr> imgRtLoc;
     Mutex mutexResources;
     Mutex mutexResourcesOpc;
-
-    string name;
 
     map<string,Filter*> histFiltersPool;
     int histFilterLength;
@@ -79,6 +78,8 @@ protected:
     Vector skim_blobs_x_bounds;
     Vector skim_blobs_y_bounds;
     Vector histObjLocation;
+
+    CvPoint clickLocation;
 
     friend class RtLocalization;
     friend class OpcUpdater;
@@ -110,6 +111,7 @@ protected:
 public:
     bool    add_object(const string &name);
     bool    remove_object(const string &name);
+    bool    remove_all();
 };
 
 #endif

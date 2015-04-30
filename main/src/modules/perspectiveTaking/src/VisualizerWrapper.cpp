@@ -71,7 +71,7 @@ bool VisualizerWrapper::updateCloudPose(
         const std::string & id,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        //cout << "Updating pose " << id << " to " << pose.prettyPrint() << endl;
+        //yDebug() << "Updating pose " << id << " to " << pose.prettyPrint();
         if(_addedClouds.at(id)->pose == pose ||
                 _visualizer->updatePointCloudPose(id, pose.toEigen3f())) {
             _addedClouds.at(id)->pose = pose;
@@ -87,7 +87,7 @@ void VisualizerWrapper::setCloudVisibility(const std::string & id, bool isVisibl
     if(iter != cloudActorMap->end()) {
         iter->second.actor->SetVisibility(isVisible);
     } else {
-        cout << "Cannot find cloud actor named \"" << id << "\"." << endl;
+        yWarning() << "Cannot find cloud actor named \"" << id << "\".";
     }
 }
 
@@ -128,9 +128,9 @@ bool VisualizerWrapper::updateCloud(
         const pcl::PointCloud<pcl::PointXYZRGB>::Ptr & cloud,
         const Transform & pose) {
     if(_addedClouds.count(id)) {
-        //cout << "Updating " << id << " with " << cloud->size() << " points" << endl;
+        //yDebug << "Updating " << id << " with " << cloud->size() << " points";
         if(!removeCloud(id)) {
-            cerr << "Point cloud " << id << " could not be removed!" << endl;
+            yError() << "Point cloud " << id << " could not be removed!";
         }
         return addCloud(id, cloud, pose);
     } else {

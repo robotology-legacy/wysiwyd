@@ -10,18 +10,33 @@ include(wysiwydUseQt5)
 set(PROJECTNAME perspectiveTaking)
 project(${PROJECTNAME})
 
-file(GLOB sources src/*.cpp)
-file(GLOB headers include/*.h)
+include(YarpIDL)
+
+file(GLOB sources src/*.cpp ${IDL_GENERATED_CODE_DIR}/src/${PROJECTNAME}_IDL.cpp)
+file(GLOB headers include/*.h ${IDL_GENERATED_CODE_DIR}/include/${PROJECTNAME}_IDL.h)
 set(docs ${PROJECTNAME}.xml)
+
+set(idl_files ${PROJECTNAME}.thrift)
+
+yarp_idl_to_dir(${idl_files} ${IDL_GENERATED_CODE_DIR})
 
 source_group("Source Files" FILES ${sources})
 source_group("Header Files" FILES ${headers})
 source_group("DOC Files"    FILES ${docs})
+source_group("IDL Files"    FILES ${idl_files})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${kinectWrapper_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${RTABMap_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
+                    ${IDL_GENERATED_CODE_DIR}/include
+                    ${wrdac_INCLUDE_DIRS}
+                    ${YARP_INCLUDE_DIRS}
+                    ${ICUB_INCLUDE_DIRS}
+                    ${OpenCV_INCLUDE_DIRS}
+                    ${kinectWrapper_INCLUDE_DIRS}
+                    ${PCL_INCLUDE_DIRS}
+                    ${RTABMap_INCLUDE_DIRS})
 
-add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
-target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${OpenCV_LIBRARIES} ${kinectWrapper_LIBRARIES} ${PCL_LIBRARIES} ${RTABMap_LIBRARIES})
+add_executable(${PROJECTNAME} ${headers} ${idl_files} ${sources} ${docs})
+target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${OpenCV_LIBRARIES} ${kinectWrapper_LIBRARIES} ${PCL_LIBRARIES} rtabmap_core rtabmap_utilite)
 qt5_use_modules(${PROJECTNAME} Widgets)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER perspectiveTaking)

@@ -151,10 +151,10 @@ void MapBuilder::processOdometry(const rtabmap::SensorData & data) {
             }
 
             if(!_vWrapper_robot->addOrUpdateCloud("cloudOdom", cloud, odometryCorrection_*pose)) {
-                cerr << "Adding cloudOdom to viewer failed!" << endl;
+                yError() << "Adding cloudOdom to viewer failed!";
             }
             if(!_vWrapper_partner->addOrUpdateCloud("cloudOdom", cloud, odometryCorrection_*pose)) {
-                cerr << "Adding cloudOdom to viewer failed!" << endl;
+                yError() << "Adding cloudOdom to viewer failed!";
             }
         }
         if(!data.pose().isNull()) { // NOT: pose.isNull()!!!
@@ -181,12 +181,12 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                 _vWrapper_partner->getPose(cloudName, tCloud_partner);
                 if(tCloud_robot.isNull() || iter->second != tCloud_robot) {
                     if(!_vWrapper_robot->updateCloudPose(cloudName, iter->second)) {
-                        cerr << "Updating pose cloud " << iter->first << " failed!" << endl;
+                        yError() << "Updating pose cloud " << iter->first << " failed!";
                     }
                 }
                 if(tCloud_robot.isNull() || iter->second != tCloud_partner) {
                     if(!_vWrapper_partner->updateCloudPose(cloudName, iter->second)) {
-                        cerr << "Updating pose cloud " << iter->first << " failed!" << endl;
+                        yError() << "Updating pose cloud " << iter->first << " failed!";
                     }
                 }
                 _vWrapper_robot->setCloudVisibility(cloudName, true);
@@ -200,10 +200,10 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                 pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud = util3d::cloudFromDepthRGB(
                             s.getImageRaw(),
                             s.getDepthRaw(),
-                            s.getDepthCx(),
-                            s.getDepthCy(),
-                            s.getDepthFx(),
-                            s.getDepthFy(),
+                            s.getCx(),
+                            s.getCy(),
+                            s.getFx(),
+                            s.getFy(),
                             decimationStatistics_); // decimation
 
                 if(cloud->size()) {
@@ -213,10 +213,10 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
                     }
                 }
                 if(!_vWrapper_robot->addOrUpdateCloud(cloudName, cloud, iter->second)) {
-                    cerr << "Adding cloud " << iter->first << " to viewer failed!" << endl;
+                    yError() << "Adding cloud " << iter->first << " to viewer failed!";
                 }
                 if(!_vWrapper_partner->addOrUpdateCloud(cloudName, cloud, iter->second)) {
-                    cerr << "Adding cloud " << iter->first << " to viewer failed!" << endl;
+                    yError() << "Adding cloud " << iter->first << " to viewer failed!";
                 }
             }
         }
@@ -229,12 +229,12 @@ void MapBuilder::processStatistics(const rtabmap::Statistics & stats) {
 }
 
 void MapBuilder::handleEvent(UEvent * event) {
-    //std::cout << "Event: " << event->getClassName() << std::endl;
+    //yInfo() << "Event: " << event->getClassName();
     if(event->getClassName().compare("RtabmapEvent") == 0 && doProcessStats) {
         RtabmapEvent * rtabmapEvent = dynamic_cast<RtabmapEvent *>(event);
         const Statistics & stats = rtabmapEvent->getStats();
         // Statistics must be processed in the Qt thread
-        //cout << "Process statistics" << endl;
+        //yDebug() << "Process statistics";
         if(this->isVisible() && vis_mutex.try_lock()) {
             QMetaObject::invokeMethod(this, "processStatistics", Q_ARG(rtabmap::Statistics, stats));
             vis_mutex.unlock();
@@ -242,7 +242,7 @@ void MapBuilder::handleEvent(UEvent * event) {
     }
     else if(event->getClassName().compare("OdometryEvent") == 0) {
         OdometryEvent * odomEvent = dynamic_cast<OdometryEvent *>(event);
-        //cout << "Quality (#inliers): " << odomEvent->info().inliers << endl;
+        //yDebug() << "Quality (#inliers): " << odomEvent->info().inliers;
         if(this->isVisible() && vis_mutex.try_lock()) {
             QMetaObject::invokeMethod(this, "processOdometry", Q_ARG(rtabmap::SensorData, odomEvent->data()));
             vis_mutex.unlock();
