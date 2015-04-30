@@ -66,20 +66,20 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
         if(isConnectedToAgentDetector && isConnectedToOPC) {
             partnerCameraMode = agentDetector;
         } else {
-            cerr << "Asked to use agentDetector to set camera view, but agentDetector/OPC is not running " << endl;
-            cerr << "Using static position instead!" << endl;
+            yError() << "Asked to use agentDetector to set camera view, but agentDetector/OPC is not running ";
+            yError() << "Using static position instead!";
             partnerCameraMode = staticPos;
         }
     } else if(partnerCameraMode_temp==2) {
         if(isConnectedToHeadPoseEstimator) {
             partnerCameraMode = headPose;
         } else {
-            cerr << "Asked to use headPoseEstimator to set camera view, but it is not running " << endl;
-            cerr << "Using static position instead!" << endl;
+            yError() << "Asked to use headPoseEstimator to set camera view, but it is not running ";
+            yError() << "Using static position instead!";
             partnerCameraMode = staticPos;
         }
     } else {
-        cerr << "Camera mode not supported, abort!" << endl;
+        yError() << "Camera mode not supported, abort!";
         return false;
     }
 
@@ -89,7 +89,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     kinect2robot_pcl = getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
                       rf.check("cameraOffsetZ",Value(-0.4)).asDouble(),
                       rf.check("cameraAngle",Value(-20.0)).asDouble());
-    cout << "Kinect 2 Robot PCL: " << endl << kinect2robot_pcl << endl;
+    cout << "Kinect 2 Robot PCL: " << kinect2robot_pcl;
 
     // connect to ABM
     selfPerspImgPort.open("/"+getName()+"/images/self:o");
@@ -145,43 +145,23 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     return true;
 }
 
-bool perspectiveTaking::respond(const Bottle& cmd, Bottle& reply) {
-    if (cmd.get(0).asString() == "learnEnvironment") {
-        // TODO: Not yet implemented
-        //cout << getName() << ": Going to learn the environment" << endl;
-        reply.addString("nack");
-    } else if (cmd.get(0).asString() == "setUpdateTimer") {
-        if(cmd.get(1).isInt()) {
-            setCamPosTimer->setInterval(cmd.get(1).asInt());
-            //headPoseTimer->setInterval(cmd.get(1).asInt());
-            reply.addString("ack");
-        } else {
-            reply.addString("Wrong function call: setUpdateTimer 1000");
-        }
-    } else if (cmd.get(0).asString() == "setDecimationOdometry") {
-        if(cmd.get(1).isInt()) {
-            mapBuilder->setDecimationOdometry(cmd.get(1).asInt());
-            reply.addString("ack");
-        } else {
-            reply.addString("Wrong function call: setDecimationOdometry 2");
-        }
-    } else if (cmd.get(0).asString() == "setDecimationStatistics") {
-        if(cmd.get(1).isInt()) {
-            mapBuilder->setDecimationStatistics(cmd.get(1).asInt());
-            reply.addString("ack");
-        } else {
-            reply.addString("Wrong function call: setDecimationStatistics 2");
-        }
-    } else if (cmd.get(0).asString() == "processStats") {
-        if(cmd.get(1).isInt()) {
-            mapBuilder->doProcessStats = cmd.get(1).asInt() > 0;
-            reply.addString("ack");
-        } else {
-            reply.addString("Wrong function call: processStats 0/1");
-        }
-    } else {
-        reply.addString("nack");
-    }
+bool perspectiveTaking::setUpdateTimer(const int32_t interval) {
+    setCamPosTimer->setInterval(interval);
+    return true;
+}
+
+bool perspectiveTaking::setDecimationOdometry(const int32_t decimation) {
+    mapBuilder->setDecimationOdometry(decimation);
+    return true;
+}
+
+bool perspectiveTaking::setDecimationStatistics(const int32_t decimation) {
+    mapBuilder->setDecimationStatistics(decimation);
+    return true;
+}
+
+bool perspectiveTaking::processStats(const bool enable) {
+    mapBuilder->doProcessStats = enable;
     return true;
 }
 
@@ -241,7 +221,7 @@ void perspectiveTaking::setPartnerCamera() {
         Eigen::Vector4f view = odometryPos * yarp2EigenV(p_view);
         Eigen::Vector4f up = odometryPos * yarp2EigenV(p_up);
 
-        cout << "Call setPartnerCamera" << endl;
+        yDebug() << "Call setPartnerCamera";
         setViewRobotReference(pos, view, up, "partner");
 
         sendImagesToPorts();
@@ -270,15 +250,15 @@ void perspectiveTaking::setPartnerCamera() {
             Eigen::Vector4f view = odometryPos * yarp2EigenV(p_view);
             Eigen::Vector4f up = odometryPos * yarp2EigenV(p_up);
 
-            cout << "Call setPartnerCamera" << endl;
+            yDebug() << "Call setPartnerCamera";
             setViewRobotReference(pos, view, up, "partner");
 
             sendImagesToPorts();
         } else {
-            cout << "No partner present!" << endl;
+            yDebug() << "No partner present!";
         }
     } else if(partnerCameraMode==headPose) {
-        cout << "Partner camera mode = headPose" << endl;
+        yDebug() << "Partner camera mode = headPose";
         if(!isConnectedToHeadPoseEstimator) {
             return;
         }
@@ -293,7 +273,7 @@ void perspectiveTaking::setPartnerCamera() {
         vector< cv::Vec<float,pose_size> > g_means;
 
         if(bReply.get(0).toString()!="[ack]") {
-            cout << "Did not get [ack]" << endl;
+            yWarning() << "Did not get [ack] from headPoseEstimator";
             return;
         } else {
             int size = bReply.get(1).asInt();
@@ -301,7 +281,7 @@ void perspectiveTaking::setPartnerCamera() {
                 cv::Vec<float,pose_size> mean;
                 for(int j=0; j<pose_size; j++) {
                     // + 2 as 0->[ack], 1->size() of vector, 2-> actual begin of message
-                    cout << i << " " << j << bReply.get(i*pose_size+j+2).asDouble() << endl;
+                    yDebug() << i << " " << j << bReply.get(i*pose_size+j+2).asDouble();
                     mean[j] = bReply.get(i*pose_size+j+2).asDouble();
                 }
                 g_means.push_back(mean);
@@ -311,7 +291,7 @@ void perspectiveTaking::setPartnerCamera() {
         mapBuilder->getVisualizerByName("robot")->getVisualizer().removeAllShapes();
 
         if(g_means.size()) {
-            cout << "Received pose, set camera" << endl;
+            yInfo() << "Received pose, set camera";
 
             Eigen::Matrix3f m_rotation (Eigen::AngleAxisf(pcl::deg2rad(g_means[0][3]), Eigen::Vector3f::UnitX())
                                        * Eigen::AngleAxisf(pcl::deg2rad(g_means[0][4]), Eigen::Vector3f::UnitY())
@@ -329,9 +309,9 @@ void perspectiveTaking::setPartnerCamera() {
             Eigen::Vector4f up = pos; up(2) += 1.0;
             Eigen::Vector4f view = odometryPos*Eigen::Vector4f(head_front[2]/1000.0, -head_front[0]/1000.0, -head_front[1]/1000.0, 1);
 
-            //cout << "Odom: " << endl << odometryPos << endl << endl;
-            //cout << "Pos: "  << endl << pos  << endl << endl;
-            //cout << "View: " << endl << view << endl << endl;
+            //yDebug() << "Odom: " << odometryPos;
+            //yDebug() << "Pos: "  << pos ;
+            //yDebug() << "View: " << view;
 
             pcl::PointXYZ begin(pos[0],  pos[1],  pos[2]);
             pcl::PointXYZ end(view[0], view[1], view[2]);
@@ -343,19 +323,19 @@ void perspectiveTaking::setPartnerCamera() {
 
             mapBuilder->getVisualizerByName("robot")->getVisualizer().addArrow(end, begin, 0.0, 1.0, 0.0, "faceArrow");
 
-            cout << "Call setPartnerCamera" << endl;
+            yDebug() << "Call setPartnerCamera";
             setViewCameraReference(pos, view, up, "partner");
 
             sendImagesToPorts();
         }
     } else {
-        cerr << "This partner camera mode is not supported!" << endl;
+        yError() << "This partner camera mode is not supported!";
     }
 
     // print some statistics
     /*
     if(rtabmap->getLoopClosureId()) {
-        printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
+        yDebug(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f) *LOOP %d->%d*\n",
                loopCounter,
                rtabmap->getLastProcessTime(),
                rtabmap->getSTM().size(), // short-term memory
@@ -366,7 +346,7 @@ void perspectiveTaking::setPartnerCamera() {
                rtabmap->getLoopClosureId());
     }
     else {
-        printf(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f)\n",
+        yDebug(" #%ld ptime(%fs) STM(%ld) WM(%ld) hyp(%d) value(%.2f)\n",
                loopCounter,
                rtabmap->getLastProcessTime(),
                rtabmap->getSTM().size(), // short-term memory
@@ -399,10 +379,10 @@ bool perspectiveTaking::close() {
 
     // generate graph and save Long-Term Memory
     rtabmap->generateDOTGraph(resfind.findFileByName("Graph.dot"));
-    printf("Generated graph \"Graph.dot\", viewable with Graphiz using \"neato -Tpdf Graph.dot -o out.pdf\"\n");
+    yInfo("Generated graph \"Graph.dot\", viewable with Graphiz using \"neato -Tpdf Graph.dot -o out.pdf\"\n");
 
     // Cleanup... save database and logs
-    printf("Saving Long-Term Memory to \"rtabmap.db\"...\n");
+    yInfo("Saving Long-Term Memory to \"rtabmap.db\"...\n");
     rtabmap->close();
 
     // Delete pointers

@@ -25,6 +25,11 @@ using namespace std;
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
 
+bool perspectiveTaking::attach(RpcServer &source)
+{
+    return this->yarp().attachAsServer(source);
+}
+
 bool perspectiveTaking::setupThreads() {
     // Read parameters for rtabmap from rtabmap_config.ini
     ParametersMap parameters;
@@ -40,7 +45,7 @@ bool perspectiveTaking::setupThreads() {
     cameraThread = new CameraThread(camera);
 
     if(!cameraThread->init()) {
-        cout << getName() << ":Camera init failed!";
+        yError() << getName() << ":Camera init failed!";
         return false;
     }
 
@@ -95,9 +100,9 @@ Eigen::Matrix4f perspectiveTaking::getRFHTransMat(const string &rfhName) {
     rfh.open(rfhLocal.c_str());
     string rfhRemote = "/"+rfhName+"/rpc";
 
-    cout << "Connect " << rfhLocal << " with " << rfhRemote << endl;
+    yInfo() << "Connect " << rfhLocal << " with " << rfhRemote;
     while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str())) {
-        cout << "Waiting for connection to RFH..." << endl;
+        yInfo() << "Waiting for connection to RFH...";
         Time::delay(1.0);
     }
 
@@ -105,11 +110,11 @@ Eigen::Matrix4f perspectiveTaking::getRFHTransMat(const string &rfhName) {
     yarp::sig::Matrix robot2kinect;
 
     while(!queryRFHTransMat("kinect", "icub", kinect2robot)) {
-        cout << "Kinect2iCub matrix not calibrated, please do so in agentDetector" << endl;
+        yWarning() << "Kinect2iCub matrix not calibrated, please do so in agentDetector";
         Time::delay(1.0);
     }
     while(!queryRFHTransMat("icub", "kinect", robot2kinect)) {
-        cout << "iCub2Kinect matrix not calibrated, please do so in agentDetector" << endl;
+        yWarning() << "iCub2Kinect matrix not calibrated, please do so in agentDetector";
         Time::delay(1.0);
     }
 
@@ -138,9 +143,9 @@ bool perspectiveTaking::queryRFHTransMat(const string& from, const string& to, M
                     m(i,j)=bMat->get(4*i+j).asDouble();
                 }
             }
-            cout << "Transformation matrix from " << from
-                 << " to " << to << " retrieved:" << endl;
-            cout << m.toString(3,3).c_str() << endl;
+            yDebug() << "Transformation matrix from " << from
+                 << " to " << to << " retrieved:";
+            yDebug() << m.toString(3,3).c_str();
             return true;
         }
     }
@@ -154,7 +159,7 @@ void perspectiveTaking::connectToABM(const string &abmName) {
 
     int trial=0;
     while (!Network::connect(abmLocal.c_str(),abmRemote.c_str()) && trial<3) {
-        cout << "Waiting for connection to ABM..." << endl;
+        yInfo() << "Waiting for connection to ABM...";
         trial++;
         Time::delay(0.2);
     }
@@ -173,7 +178,7 @@ void perspectiveTaking::connectToAgentDetector(const string &agentDetectorName) 
 
     int trial=0;
     while (!Network::connect(agentDetectorLocal.c_str(),agentDetectorRemote.c_str()) && trial<3) {
-        cout << "Waiting for connection to Agent Detector..." << endl;
+        yInfo() << "Waiting for connection to Agent Detector...";
         trial++;
         Time::delay(0.2);
     }
@@ -193,7 +198,7 @@ void perspectiveTaking::connectToHeadPoseEstimator(const string &headPoseEstimat
 
     int trial=0;
     while (!Network::connect(headPoseEstimatorLocal.c_str(),headPoseEstimatorRemote.c_str()) && trial<3) {
-        cout << "Waiting for connection to Head Pose Estimator..." << endl;
+        yInfo() << "Waiting for connection to Head Pose Estimator...";
         trial++;
         Time::delay(0.5);
     }
@@ -215,7 +220,7 @@ void perspectiveTaking::connectToKinectServer(int verbosity) {
     options.put("verbosity",verbosity);
 
     while (!client.open(options)) {
-        cout<<"Waiting for connection to KinectServer..."<<endl;
+        yInfo() << "Waiting for connection to KinectServer...";
         Time::delay(1.0);
     }
 }
@@ -224,7 +229,7 @@ void perspectiveTaking::connectToOPC(const string &opcName) {
     opc = new OPCClient(getName());
     int trial=0;
     while (!opc->connect(opcName) && trial < 3) {
-        cout<<"Waiting for connection to OPC..."<<endl;
+        yInfo() << "Waiting for connection to OPC...";
         trial++;
         Time::delay(0.2);
     }
@@ -239,7 +244,7 @@ bool perspectiveTaking::openHandlerPort() {
     string handlerPortName = "/" + getName() + "/rpc";
 
     if (!handlerPort.open(handlerPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << handlerPortName << endl;
+        yError() << getName() << ": Unable to open port " << handlerPortName;
         return false;
     }
 

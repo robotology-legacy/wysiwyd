@@ -34,10 +34,11 @@
 
 #include "CameraKinectWrapper.h"
 #include "MapBuilder.h"
+#include "perspectiveTaking_IDL.h"
 
 enum partnerCameraMode_t {staticPos, agentDetector, headPose};
 
-class perspectiveTaking: public QObject, public yarp::os::RFModule {
+class perspectiveTaking: public QObject, public yarp::os::RFModule, public perspectiveTaking_IDL {
     Q_OBJECT
 protected:
     // Kinect related
@@ -106,20 +107,25 @@ protected:
     yarp::os::ResourceFinder resfind;
     bool openHandlerPort();
     bool setupThreads();
-    yarp::os::Port handlerPort;
+    bool attach(yarp::os::RpcServer &source);
+    yarp::os::RpcServer handlerPort;
 
 private slots:
     void setPartnerCamera();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
-    bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     bool queryRFHTransMat(const std::string& from, const std::string& to, yarp::sig::Matrix& m);
     bool updateModule() { return false; }
     bool close();
 
     static Eigen::Matrix4f getManualTransMat(float camOffsetX, float camOffsetZ, float camAngle);
     static cv::Mat lastDepth;
+
+    bool setUpdateTimer(const int32_t interval);
+    bool setDecimationOdometry(const int32_t decimation);
+    bool setDecimationStatistics(const int32_t decimation);
+    bool processStats(const bool enable);
 };
 
 #endif
