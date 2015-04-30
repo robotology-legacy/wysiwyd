@@ -51,7 +51,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
 
-    bool    bEveryThingisGood = true;
+    //bool    bEveryThingisGood = true;
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
@@ -418,7 +418,7 @@ string proactiveTagging::askManner(string agent, string verb, string object)
         osError << " | STOP called";
         bOutput.addString(osError.str());
         cout << osError.str() << endl;
-        return false;
+        return ""; // TODO: This should be checked properly when the function is called!
     }
 
 
