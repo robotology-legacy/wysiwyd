@@ -418,7 +418,7 @@ string proactiveTagging::askManner(string agent, string verb, string object)
         osError << " | STOP called";
         bOutput.addString(osError.str());
         cout << osError.str() << endl;
-        return false;
+        return "stop";
     }
 
 
