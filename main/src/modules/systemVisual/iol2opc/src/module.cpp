@@ -751,6 +751,8 @@ bool IOL2OPCBridge::close()
     rpcGet3D.close();
     opc->close();
 
+    delete opc;
+
     // dispose filters used for scores histogram
     for (map<string,Filter*>::iterator it=histFiltersPool.begin();
          it!=histFiltersPool.end(); it++)
@@ -778,16 +780,18 @@ bool IOL2OPCBridge::updateModule()
         rpcClassifier.write(cmd,reply);
         yInfo("Received reply: %s",reply.toString().c_str());
 
-        if (cmd.get(0).asString()=="ack")
+        if (reply.get(0).asString()=="ack")
         {
-            if (Bottle *names=cmd.get(1).asList())
+            if (Bottle *names=reply.get(1).asList())
             {
-                for (int i=0; i<names->size(); i++)
-                    db[names->get(i).asString().c_str()]=IOLObject(presence_timeout);
-                
-                yInfo("Turning localization on");
-                state=Bridge::localization;
+                for (int i=0; i<names->size(); i++) {
+                    if(names->get(i).asString()!="ack") {
+                        db[names->get(i).asString().c_str()]=IOLObject(presence_timeout);
+                    }
+                }
             }
+            yInfo("Turning localization on");
+            state=Bridge::localization;
         }        
     }
     // highlight selected blob
