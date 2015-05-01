@@ -784,11 +784,8 @@ bool IOL2OPCBridge::updateModule()
         {
             if (Bottle *names=reply.get(1).asList())
             {
-                for (int i=0; i<names->size(); i++) {
-                    if(names->get(i).asString()!="ack") {
-                        db[names->get(i).asString().c_str()]=IOLObject(presence_timeout);
-                    }
-                }
+                for (int i=0; i<names->size(); i++)
+                    db[names->get(i).asString().c_str()]=IOLObject(presence_timeout);
             }
             yInfo("Turning localization on");
             state=Bridge::localization;
