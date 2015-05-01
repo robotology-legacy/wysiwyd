@@ -678,10 +678,10 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histObjLocation[2]=-0.1;
 
     rtLocalization.setBridge(this);
-    rtLocalization.setRate(rf.check("rt_localization_rate",Value(30)).asInt());
+    rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
 
     opcUpdater.setBridge(this);
-    opcUpdater.setRate(rf.check("memory_update_rate",Value(60)).asInt());
+    opcUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
 
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
