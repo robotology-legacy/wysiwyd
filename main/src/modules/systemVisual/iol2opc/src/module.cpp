@@ -683,6 +683,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     opcUpdater.setBridge(this);
     opcUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
 
+    classifierReporter.setBridge(this);
+
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
 
