@@ -55,6 +55,26 @@ string IOL2OPCBridge::findName(const Bottle &scores,
         }
     }
 
+    // then double-check that the found object remains the best
+    // prediction over the remaining blobs
+    if (retName!=OBJECT_UNKNOWN)
+    {
+        for (int i=0; i<scores.size(); i++)
+        {
+            if (Bottle *blob=scores.get(i).asList())
+            {
+                // skip the blob under examination
+                string name=blob->get(0).asString().c_str();
+                Bottle *blobScores=blob->get(1).asList();
+                if ((name==tag) || (blobScores==NULL))
+                    continue;
+
+                if (blobScores->find(retName.c_str()).asDouble()>=maxScore)
+                    return OBJECT_UNKNOWN;
+            }
+        }
+    }
+
     return retName;
 }
 
@@ -505,41 +525,44 @@ void IOL2OPCBridge::train(const string &object, const Bottle &blobs,
 /**********************************************************/
 void IOL2OPCBridge::doLocalization()
 {
-    // acquire image for classification/training
-    acquireImage();
-    // grab the blobs
-    Bottle blobs=getBlobs();
-    // get the scores from the learning machine
-    Bottle scores=classify(blobs);
-    // update location of histogram display
-    if (Bottle *loc=histObjLocPort.read(false))
+    if (state==Bridge::localization)
     {
-        if (loc->size()>=2)
+        // acquire image for classification/training
+        acquireImage();
+        // grab the blobs
+        Bottle blobs=getBlobs();
+        // get the scores from the learning machine
+        Bottle scores=classify(blobs);
+        // update location of histogram display
+        if (Bottle *loc=histObjLocPort.read(false))
         {
-            Vector x;
-            if (get3DPosition(cvPoint(loc->get(0).asInt(),loc->get(1).asInt()),x))
-                histObjLocation=x;
+            if (loc->size()>=2)
+            {
+                Vector x;
+                if (get3DPosition(cvPoint(loc->get(0).asInt(),loc->get(1).asInt()),x))
+                    histObjLocation=x;
+            }
         }
-    }
-    // find the closest blob to the location of histogram display
-    int closestBlob=findClosestBlob(blobs,histObjLocation);
-    // draw the blobs
-    drawBlobs(blobs,closestBlob,scores);
-    // draw scores histogram
-    drawScoresHistogram(blobs,scores,closestBlob);
+        // find the closest blob to the location of histogram display
+        int closestBlob=findClosestBlob(blobs,histObjLocation);
+        // draw the blobs
+        drawBlobs(blobs,closestBlob,scores);
+        // draw scores histogram
+        drawScoresHistogram(blobs,scores,closestBlob);
 
-    // data for opc update
-    mutexResourcesOpc.lock();
-    opcBlobs=blobs;
-    opcScores=scores;
-    mutexResourcesOpc.unlock();
+        // data for opc update
+        mutexResourcesOpc.lock();
+        opcBlobs=blobs;
+        opcScores=scores;
+        mutexResourcesOpc.unlock();
+    }
 }
 
 
 /**********************************************************/
 void IOL2OPCBridge::updateOPC()
 {
-    if (opc->isConnected())
+    if ((state==Bridge::localization) && opc->isConnected())
     {
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
@@ -573,10 +596,20 @@ void IOL2OPCBridge::updateOPC()
                     Object *obj=opc->addObject(object);
                     obj->m_ego_position=x;
                     obj->m_present=true;
-                    opc->commit(obj);
                 }
+
+                map<string,IOLObject>::iterator it=db.find(object);
+                if (it!=db.end())
+                    it->second.heartBeat();
             }
         }
+
+        // garbage collection
+        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+            if (it->second.isDead())
+                opc->addObject(it->first)->m_present=false;                
+
+        opc->commit();
     }
 }
 
@@ -585,6 +618,8 @@ void IOL2OPCBridge::updateOPC()
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("iol2opc")).asString().c_str();
+    period=rf.check("period",Value(0.1)).asDouble();
+
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
     {
@@ -643,12 +678,13 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histObjLocation[2]=-0.1;
 
     rtLocalization.setBridge(this);
-    rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
+    rtLocalization.setRate(rf.check("rt_localization_rate",Value(30)).asInt());
 
     opcUpdater.setBridge(this);
-    opcUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
+    opcUpdater.setRate(rf.check("memory_update_rate",Value(60)).asInt());
 
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
+    presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
 
     imgRtLoc.resize(320,240);
     imgRtLoc.zero();
@@ -666,6 +702,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     rtLocalization.start();
     opcUpdater.start();
+
+    state=Bridge::idle;
+    rpcClassifier.setReporter(classifierReporter);
 
     return true;
 }
@@ -722,43 +761,67 @@ bool IOL2OPCBridge::close()
 /**********************************************************/
 double IOL2OPCBridge::getPeriod()
 {
-    return 0.1;
+    return period;
 }
 
 
 /**********************************************************/
 bool IOL2OPCBridge::updateModule()
 {
-    // highlight selected blob
-    CvPoint loc;
-    if (imgSelBlobOut.getOutputCount()>0)
+    if (state==Bridge::load_database)
     {
-        mutexResourcesOpc.lock();
-        Bottle blobs=opcBlobs;
-        mutexResourcesOpc.unlock();
+        Bottle cmd,reply;
+        cmd.addVocab(Vocab::encode("list"));
+        yInfo("Sending list request: %s",cmd.toString().c_str());
+        rpcClassifier.write(cmd,reply);
+        yInfo("Received reply: %s",reply.toString().c_str());
 
-        mutexResources.lock();
-        ImageOf<PixelBgr> imgLatch=this->imgRtLoc;
-        mutexResources.unlock();
-
-        if(getClickPosition(loc)) {
-            int i=findClosestBlob(blobs,loc);
-            if (i!=RET_INVALID)
+        if (cmd.get(0).asString()=="ack")
+        {
+            if (Bottle *names=cmd.get(1).asList())
             {
-                // latch image
-                CvPoint tl,br;
-                Bottle *item=blobs.get(i).asList();
-                tl.x=(int)item->get(0).asDouble();
-                tl.y=(int)item->get(1).asDouble();
-                br.x=(int)item->get(2).asDouble();
-                br.y=(int)item->get(3).asDouble();
-
-                cvRectangle(imgLatch.getIplImage(),tl,br,cvScalar(0,255,0),2);
+                for (int i=0; i<names->size(); i++)
+                    db[names->get(i).asString().c_str()]=IOLObject(presence_timeout);
+                
+                yInfo("Turning localization on");
+                state=Bridge::localization;
             }
-        }
+        }        
+    }
+    // highlight selected blob
+    else if (state==Bridge::localization)
+    {        
+        CvPoint loc;
+        if (imgSelBlobOut.getOutputCount()>0)
+        {
+            mutexResourcesOpc.lock();
+            Bottle blobs=opcBlobs;
+            mutexResourcesOpc.unlock();
 
-        imgSelBlobOut.prepare()=imgLatch;
-        imgSelBlobOut.write();
+            mutexResources.lock();
+            ImageOf<PixelBgr> imgLatch=this->imgRtLoc;
+            mutexResources.unlock();
+
+            if (getClickPosition(loc))
+            {
+                int i=findClosestBlob(blobs,loc);
+                if (i!=RET_INVALID)
+                {
+                    // latch image
+                    CvPoint tl,br;
+                    Bottle *item=blobs.get(i).asList();
+                    tl.x=(int)item->get(0).asDouble();
+                    tl.y=(int)item->get(1).asDouble();
+                    br.x=(int)item->get(2).asDouble();
+                    br.y=(int)item->get(3).asDouble();
+
+                    cvRectangle(imgLatch.getIplImage(),tl,br,cvScalar(0,255,0),2);
+                }
+            }
+
+            imgSelBlobOut.prepare()=imgLatch;
+            imgSelBlobOut.write();
+        }
     }
 
     return true;
@@ -775,6 +838,12 @@ bool IOL2OPCBridge::attach(RpcServer &source)
 /**********************************************************/
 bool IOL2OPCBridge::add_object(const string &name)
 {
+    if (!opc->isConnected())
+    {
+        yError("No connection to OPC");
+        return false;
+    }
+
     CvPoint loc;
     if (getClickPosition(loc))
     {
@@ -789,6 +858,7 @@ bool IOL2OPCBridge::add_object(const string &name)
             return false;
 
         train(name,blobs,i);
+        db[name]=IOLObject(presence_timeout);
         return true;
     }
     else
@@ -802,6 +872,12 @@ bool IOL2OPCBridge::add_object(const string &name)
 /**********************************************************/
 bool IOL2OPCBridge::remove_object(const string &name)
 {
+    if (!opc->isConnected())
+    {
+        yError("No connection to OPC");
+        return false;
+    }
+
     // grab resources
     LockGuard lg(mutexResources);
 
@@ -811,6 +887,10 @@ bool IOL2OPCBridge::remove_object(const string &name)
     yInfo("Sending clearing request: %s",cmdClassifier.toString().c_str());
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
+
+    map<string,IOLObject>::iterator it=db.find(name);
+    if (it!=db.end())
+        db.erase(it);
 
     if (Entity *en=opc->getEntity(name))
     {
@@ -829,6 +909,12 @@ bool IOL2OPCBridge::remove_object(const string &name)
 /**********************************************************/
 bool IOL2OPCBridge::remove_all()
 {
+    if (!opc->isConnected())
+    {
+        yError("No connection to OPC");
+        return false;
+    }
+
     // grab resources
     LockGuard lg(mutexResources);
 
@@ -839,5 +925,12 @@ bool IOL2OPCBridge::remove_all()
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
+    for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+        opc->addObject(it->first)->m_present=false;                
+
+    opc->commit();
+    db.clear();
+
     return true;
 }
+
