@@ -29,8 +29,7 @@ service iol2opc_IDL
 
    /**
    * Remove all objects from the object-recognition
-   * database. Please keep in mind that the object
-   * is not removed from the OPC (yet).
+   * database.
    * @return true/false on success/failure.
    */
    bool remove_all();

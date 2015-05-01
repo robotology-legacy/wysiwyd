@@ -569,16 +569,16 @@ void IOL2OPCBridge::updateOPC()
         Bottle scores=opcScores;
         mutexResourcesOpc.unlock();
 
+        // grab resources
+        LockGuard lg(mutexResources);
+
         for (int j=0; j<blobs.size(); j++)
         {
             ostringstream tag;
             tag<<"blob_"<<j;
 
             // find the blob name (or unknown)
-            mutexResources.lock();
             string object=findName(scores,tag.str());
-            mutexResources.unlock();
-
             if (object!=OBJECT_UNKNOWN)
             {
                 CvPoint cog=getBlobCOG(blobs,j);
@@ -783,10 +783,9 @@ bool IOL2OPCBridge::updateModule()
         if (reply.get(0).asString()=="ack")
         {
             if (Bottle *names=reply.get(1).asList())
-            {
                 for (int i=0; i<names->size(); i++)
                     db[names->get(i).asString().c_str()]=IOLObject(presence_timeout);
-            }
+
             yInfo("Turning localization on");
             state=Bridge::localization;
         }        
@@ -850,8 +849,6 @@ bool IOL2OPCBridge::add_object(const string &name)
     CvPoint loc;
     if (getClickPosition(loc))
     {
-        yInfo("%d %d",loc.x,loc.y);
-
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
         mutexResourcesOpc.unlock();
@@ -861,6 +858,10 @@ bool IOL2OPCBridge::add_object(const string &name)
             return false;
 
         train(name,blobs,i);
+
+        // grab resources
+        LockGuard lg(mutexResources);
+
         db[name]=IOLObject(presence_timeout);
         return true;
     }
