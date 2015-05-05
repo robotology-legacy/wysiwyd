@@ -43,6 +43,35 @@ using namespace wysiwyd::wrdac;
 
 
 /**********************************************************/
+namespace Bridge {
+    typedef enum { idle, load_database, localization } State;
+}
+
+
+/**********************************************************/
+class IOLObject
+{
+protected:
+    double presenceTmo;
+    double timer;
+
+public:
+    /**********************************************************/
+    IOLObject(const double _presenceTmo=0.0) :
+              presenceTmo(_presenceTmo)
+    {
+        heartBeat();
+    }
+
+    /**********************************************************/
+    void heartBeat() { timer=Time::now(); }
+
+    /**********************************************************/
+    bool isDead() const { return (Time::now()-timer>=presenceTmo); }
+};
+
+
+/**********************************************************/
 class IOL2OPCBridge : public RFModule, public iol2opc_IDL
 {
 protected:
@@ -62,10 +91,16 @@ protected:
 
     RtLocalization rtLocalization;
     OpcUpdater opcUpdater;
+    ClassifierReporter classifierReporter;
 
     ImageOf<PixelBgr> imgRtLoc;
     Mutex mutexResources;
     Mutex mutexResourcesOpc;
+
+    double period;
+    double presence_timeout;
+    map<string,IOLObject> db;
+    Bridge::State state;
 
     map<string,Filter*> histFiltersPool;
     int histFilterLength;
@@ -83,6 +118,7 @@ protected:
 
     friend class RtLocalization;
     friend class OpcUpdater;
+    friend class ClassifierReporter;
 
     string  findName(const Bottle &scores, const string &tag);
     Bottle  skimBlobs(const Bottle &blobs);

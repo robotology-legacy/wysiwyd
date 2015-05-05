@@ -33,8 +33,7 @@ public:
   virtual bool remove_object(const std::string& name);
   /**
    * Remove all objects from the object-recognition
-   * database. Please keep in mind that the object
-   * is not removed from the OPC (yet).
+   * database.
    * @return true/false on success/failure.
    */
   virtual bool remove_all();

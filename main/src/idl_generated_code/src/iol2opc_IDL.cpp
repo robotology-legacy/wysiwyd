@@ -242,8 +242,7 @@ std::vector<std::string> iol2opc_IDL::help(const std::string& functionName) {
     if (functionName=="remove_all") {
       helpString.push_back("bool remove_all() ");
       helpString.push_back("Remove all objects from the object-recognition ");
-      helpString.push_back("database. Please keep in mind that the object ");
-      helpString.push_back("is not removed from the OPC (yet). ");
+      helpString.push_back("database. ");
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="help") {

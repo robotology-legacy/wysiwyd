@@ -63,5 +63,18 @@ public:
 };
 
 
+/**********************************************************/
+class ClassifierReporter : public PortReport
+{
+protected:
+    IOL2OPCBridge *bridge;
+
+public:
+    ClassifierReporter();
+    void setBridge(IOL2OPCBridge *bridge);
+    void report(const PortInfo &info);
+};
+
+
 #endif
 
