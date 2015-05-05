@@ -564,13 +564,13 @@ void IOL2OPCBridge::updateOPC()
 {
     if ((state==Bridge::localization) && opc->isConnected())
     {
+        // grab resources
+        LockGuard lg(mutexResources);
+
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
         Bottle scores=opcScores;
         mutexResourcesOpc.unlock();
-
-        // grab resources
-        LockGuard lg(mutexResources);
 
         for (int j=0; j<blobs.size(); j++)
         {
@@ -593,9 +593,12 @@ void IOL2OPCBridge::updateOPC()
                     if (item==NULL)
                         continue;
 
-                    Object *obj=opc->addObject(object);
-                    obj->m_ego_position=x;
-                    obj->m_present=true;
+                    map<string,IOLObject>::iterator it=db.find(object);
+                    if (it!=db.end()) {
+                        Object *obj=opc->addObject(object);
+                        obj->m_ego_position=x;
+                        obj->m_present=true;
+                    }
                 }
 
                 map<string,IOLObject>::iterator it=db.find(object);
