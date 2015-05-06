@@ -62,33 +62,13 @@
 
         <connection>
                 <from>/icub/camcalib/left/out</from>
-                <to>/iol2opc/img:i</to>
-                <protocol>udp</protocol>
-        </connection>
-        <connection>
-                <from>/icub/camcalib/left/out</from>
                 <to>/lumaChroma/image:i</to>
                 <protocol>udp</protocol>
-        </connection>
-        <connection>
-                <from>/iol2opc/imgClassifier:o</from>
-                <to>/himrepClassifier/img:i</to>
-                <protocol>tcp</protocol>
         </connection>
         <connection>
                 <from>/lumaChroma/image:o</from>
                 <to>/blobExtractor/img:i</to>
                 <protocol>udp</protocol>
-        </connection>
-        <connection>
-                <from>/blobExtractor/blobs:o</from>
-                <to>/iol2opc/blobs:i</to>
-                <protocol>udp</protocol>
-        </connection>
-        <connection>
-                <from>/iol2opc/classify:rpc</from>
-                <to>/himrepClassifier/rpc</to>
-                <protocol>tcp</protocol>
         </connection>
         <connection>
                 <from>/lumaChroma/image:o</from>
@@ -99,6 +79,36 @@
                 <from>/blobExtractor/binary:o</from>
                 <to>/iolViewer/blobs/view</to>
                 <protocol>udp</protocol>
+        </connection>
+        <connection>
+                <output>/himrepClassifier/classify:rpc</output>
+                <input>/linearClassifier/rpc</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/himrepClassifier/img:o</output>
+                <input>/caffeCoder/img:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/caffeCoder/code:o</output>
+                <input>/himrepClassifier/features:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/himrepClassifier/features:o</output>
+                <input>/linearClassifier/features:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/linearClassifier/scores:o</output>
+                <input>/himrepClassifier/scores:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/caffeCoder/img:o</output>
+                <input>/himrepClassifier/SIFTimg:i</input>
+                <protocol>tcp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgLoc:o</from>
@@ -131,33 +141,23 @@
                 <protocol>tcp</protocol>
         </connection>
         <connection>
-                <output>/himrepClassifier/img:o</output>
-                <input>/caffeCoder/img:i</input>
+                <from>/iol2opc/imgClassifier:o</from>
+                <to>/himrepClassifier/img:i</to>
                 <protocol>tcp</protocol>
         </connection>
         <connection>
-                <output>/caffeCoder/code:o</output>
-                <input>/himrepClassifier/features:i</input>
+                <from>/blobExtractor/blobs:o</from>
+                <to>/iol2opc/blobs:i</to>
+                <protocol>udp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/classify:rpc</from>
+                <to>/himrepClassifier/rpc</to>
                 <protocol>tcp</protocol>
         </connection>
         <connection>
-                <output>/himrepClassifier/features:o</output>
-                <input>/linearClassifier/features:i</input>
-                <protocol>tcp</protocol>
-        </connection>
-        <connection>
-                <output>/linearClassifier/scores:o</output>
-                <input>/himrepClassifier/scores:i</input>
-                <protocol>tcp</protocol>
-        </connection>
-        <connection>
-                <output>/himrepClassifier/classify:rpc</output>
-                <input>/linearClassifier/rpc</input>
-                <protocol>tcp</protocol>
-        </connection>
-        <connection>
-                <output>/caffeCoder/img:o</output>
-                <input>/himrepClassifier/SIFTimg:i</input>
-                <protocol>tcp</protocol>
+                <from>/icub/camcalib/left/out</from>
+                <to>/iol2opc/img:i</to>
+                <protocol>udp</protocol>
         </connection>
 </application>
