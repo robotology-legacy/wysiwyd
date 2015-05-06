@@ -27,6 +27,7 @@
 #include <boost/chrono/chrono.hpp>
 
 #include <yarp/math/Math.h>
+
 #include <Eigen/Dense>
 #include <pcl/common/common_headers.h>
 
@@ -53,6 +54,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     isConnectedToABM = false;
 
     // connect to the various other modules
+    //connectToRFH(rf.check("rfhName",Value("RFH")).asString().c_str());
+    connectToSFM(rf.check("sfmName",Value("SFM")).asString().c_str());
     connectToOPC(rf.check("opcName",Value("OPC")).asString().c_str());
     connectToKinectServer(rf.check("kinClientVerbosity",Value(0)).asInt());
     connectToABM(rf.check("abmName",Value("autobiographicalMemory")).asString().c_str());
@@ -84,8 +87,11 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     }
 
     openHandlerPort();
+    getClickPortStereo.open("/"+getName()+"/clickStereo:i");
+    getClickPortKinect.open("/"+getName()+"/clickKinect:i");
 
     //kinect2robot_pcl = getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
+
     kinect2robot_pcl = getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
                       rf.check("cameraOffsetZ",Value(-0.4)).asDouble(),
                       rf.check("cameraAngle",Value(-20.0)).asDouble());
@@ -103,7 +109,8 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     QApplication app(argc_qt, argv_qt);
 
     mapBuilder = new MapBuilder(rf.check("decimationOdometry",Value(2)).asInt(),
-                                rf.check("decimationStatistics",Value(2)).asInt());
+                                rf.check("decimationStatistics",Value(2)).asInt(),
+                                kinect2robot_pcl.inverse());
 
     setupThreads();
 
@@ -141,56 +148,6 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     // start the QApplication and go in a loop
     mapBuilder->show();
     app.exec();
-
-    return true;
-}
-
-bool perspectiveTaking::setUpdateTimer(const int32_t interval) {
-    setCamPosTimer->setInterval(interval);
-    return true;
-}
-
-bool perspectiveTaking::setDecimationOdometry(const int32_t decimation) {
-    mapBuilder->setDecimationOdometry(decimation);
-    return true;
-}
-
-bool perspectiveTaking::setDecimationStatistics(const int32_t decimation) {
-    mapBuilder->setDecimationStatistics(decimation);
-    return true;
-}
-
-bool perspectiveTaking::processStats(const bool enable) {
-    mapBuilder->doProcessStats = enable;
-    return true;
-}
-
-bool perspectiveTaking::sendImagesToPorts() {
-    cv::Mat screen = mapBuilder->getScreen();
-
-    cv::Mat selfPersp, partnerPersp;
-    // self perspective = left side of screenshot
-    // partner perspective = right side of screenshot
-    selfPersp=screen(cv::Rect(0,0,screen.cols/2,screen.rows));
-    partnerPersp=screen(cv::Rect(screen.cols/2,0,screen.cols/2,screen.rows));
-    //cv::imshow("Self Perspective", selfPersp);
-    //cv::imshow("Partner Perspective", partnerPersp);
-    //cv::waitKey(50);
-
-    // convert cv::Mat to IplImage, and copy IplImage to ImageOf<PixelRGB>
-    IplImage* partnerPersp_ipl = new IplImage(partnerPersp);
-    ImageOf<PixelRgb> &partnerPers_yarp = partnerPerspImgPort.prepare();
-    partnerPers_yarp.resize(partnerPersp_ipl->width, partnerPersp_ipl->height);
-    cvCopyImage(partnerPersp_ipl, (IplImage *)partnerPers_yarp.getIplImage());
-
-    IplImage* selfPersp_ipl = new IplImage(selfPersp);
-    ImageOf<PixelRgb> &selfPers_yarp = selfPerspImgPort.prepare();
-    selfPers_yarp.resize(selfPersp_ipl->width, selfPersp_ipl->height);
-    cvCopyImage(selfPersp_ipl, (IplImage *)selfPers_yarp.getIplImage());
-
-    //send the images
-    selfPerspImgPort.write();
-    partnerPerspImgPort.write();
 
     return true;
 }
@@ -392,6 +349,12 @@ bool perspectiveTaking::close() {
     delete odomThread;
 
     // Close ports
+    sfm.interrupt();
+    sfm.close();
+    getClickPortStereo.interrupt();
+    getClickPortStereo.close();
+    getClickPortKinect.interrupt();
+    getClickPortKinect.close();
     abm.interrupt();
     abm.close();
     selfPerspImgPort.interrupt();

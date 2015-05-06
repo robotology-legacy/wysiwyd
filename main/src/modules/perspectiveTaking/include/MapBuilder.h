@@ -36,7 +36,10 @@ using namespace rtabmap;
 class MapBuilder : public QWidget, public UEventsHandler {
     Q_OBJECT
 public:
-    MapBuilder(unsigned int decOdo, unsigned int decVis);
+    MapBuilder(unsigned int decOdo,
+               unsigned int decVis,
+               Eigen::Matrix4f robotTransform = Eigen::Matrix4f::Identity(),
+               Eigen::Matrix4f partnerTransform = Eigen::Matrix4f::Identity());
     virtual ~MapBuilder();
 
     bool wasStopped();

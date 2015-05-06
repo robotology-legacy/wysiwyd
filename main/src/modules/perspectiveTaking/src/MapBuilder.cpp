@@ -39,10 +39,13 @@
 using namespace rtabmap;
 
 // This class receives RtabmapEvent and construct/update a 3D Map
-MapBuilder::MapBuilder(unsigned int decOdo, unsigned int decVis) :
+MapBuilder::MapBuilder(unsigned int decOdo,
+                       unsigned int decVis,
+                       Eigen::Matrix4f robotTransform,
+                       Eigen::Matrix4f partnerTransform) :
     doProcessStats(true),
-    _vWrapper_robot(new VisualizerWrapper(this, perspectiveTaking::getManualTransMat(0.0,-0.4,-20.0).inverse())),
-    _vWrapper_partner(new VisualizerWrapper(this, Eigen::Matrix4f::Identity())),
+    _vWrapper_robot(new VisualizerWrapper(this, robotTransform)),
+    _vWrapper_partner(new VisualizerWrapper(this, partnerTransform)),
     decimationOdometry_(decOdo),
     decimationStatistics_(decVis),
     odometryCorrection_(Transform::getIdentity())

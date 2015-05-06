@@ -42,6 +42,14 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class perspectiveTaking_IDL_kinectStereoCalibrate : public yarp::os::Portable {
+public:
+  bool _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool perspectiveTaking_IDL_setUpdateTimer::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(2)) return false;
@@ -134,6 +142,27 @@ void perspectiveTaking_IDL_processStats::init(const bool enable) {
   this->enable = enable;
 }
 
+bool perspectiveTaking_IDL_kinectStereoCalibrate::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("kinectStereoCalibrate",1,1)) return false;
+  return true;
+}
+
+bool perspectiveTaking_IDL_kinectStereoCalibrate::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void perspectiveTaking_IDL_kinectStereoCalibrate::init() {
+  _return = false;
+}
+
 perspectiveTaking_IDL::perspectiveTaking_IDL() {
   yarp().setOwner(*this);
 }
@@ -173,6 +202,16 @@ bool perspectiveTaking_IDL::processStats(const bool enable) {
   helper.init(enable);
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool perspectiveTaking_IDL::processStats(const bool enable)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool perspectiveTaking_IDL::kinectStereoCalibrate() {
+  bool _return = false;
+  perspectiveTaking_IDL_kinectStereoCalibrate helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool perspectiveTaking_IDL::kinectStereoCalibrate()");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -251,6 +290,17 @@ bool perspectiveTaking_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "kinectStereoCalibrate") {
+      bool _return;
+      _return = kinectStereoCalibrate();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -289,6 +339,7 @@ std::vector<std::string> perspectiveTaking_IDL::help(const std::string& function
     helpString.push_back("setDecimationOdometry");
     helpString.push_back("setDecimationStatistics");
     helpString.push_back("processStats");
+    helpString.push_back("kinectStereoCalibrate");
     helpString.push_back("help");
   }
   else {
@@ -321,6 +372,9 @@ std::vector<std::string> perspectiveTaking_IDL::help(const std::string& function
       helpString.push_back("@param enable sets whether the current frame ");
       helpString.push_back("is added to the memory or not ");
       helpString.push_back("@return true/false on success/failure. ");
+    }
+    if (functionName=="kinectStereoCalibrate") {
+      helpString.push_back("bool kinectStereoCalibrate() ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

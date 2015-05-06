@@ -44,4 +44,6 @@ service perspectiveTaking_IDL
    * @return true/false on success/failure.
    */
    bool processStats(1:bool enable);
+
+   bool kinectStereoCalibrate();
 }

@@ -18,17 +18,13 @@
 
 #include <rtabmap/core/util3d.h>
 #include <rtabmap/utilite/UEventsManager.h>
+
 #include "PerspectiveTaking.h"
 #include "CameraKinectWrapper.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
-
-bool perspectiveTaking::attach(RpcServer &source)
-{
-    return this->yarp().attachAsServer(source);
-}
 
 bool perspectiveTaking::setupThreads() {
     // Read parameters for rtabmap from rtabmap_config.ini
@@ -88,24 +84,14 @@ Eigen::Matrix4f perspectiveTaking::getManualTransMat(float camOffsetX, float cam
     // robot head is camOffsetZ below kinect, can camOffsetX behind kinect
     rot_trans.translation() << camOffsetX, 0.0, camOffsetZ;
     // robot head is tilted by camAngle degrees down
-    float theta = camAngle/180*M_PI;
+    float theta = camAngle/180.0*M_PI;
     rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
 
     return rot_trans.matrix();
 }
 
-// TODO: Not working, needs to be fixed
-Eigen::Matrix4f perspectiveTaking::getRFHTransMat(const string &rfhName) {
-    string rfhLocal = "/"+getName()+"/rfh:o";
-    rfh.open(rfhLocal.c_str());
-    string rfhRemote = "/"+rfhName+"/rpc";
-
-    yInfo() << "Connect " << rfhLocal << " with " << rfhRemote;
-    while (!Network::connect(rfhLocal.c_str(),rfhRemote.c_str())) {
-        yInfo() << "Waiting for connection to RFH...";
-        Time::delay(1.0);
-    }
-
+// TODO: Wrong matrix returned, needs to be fixed
+Eigen::Matrix4f perspectiveTaking::getRFHTransMat() {
     yarp::sig::Matrix kinect2robot;
     yarp::sig::Matrix robot2kinect;
 
@@ -118,7 +104,7 @@ Eigen::Matrix4f perspectiveTaking::getRFHTransMat(const string &rfhName) {
         Time::delay(1.0);
     }
 
-    return yarp2pclKinectMatrix(kinect2robot);
+    return yarp2EigenM(kinect2robot);
 }
 
 bool perspectiveTaking::queryRFHTransMat(const string& from, const string& to, Matrix& m)
@@ -150,126 +136,6 @@ bool perspectiveTaking::queryRFHTransMat(const string& from, const string& to, M
         }
     }
     return false;
-}
-
-void perspectiveTaking::connectToABM(const string &abmName) {
-    string abmLocal = "/"+getName()+"/abm:o";
-    abm.open(abmLocal.c_str());
-    string abmRemote = "/"+abmName+"/rpc";
-
-    int trial=0;
-    while (!Network::connect(abmLocal.c_str(),abmRemote.c_str()) && trial<3) {
-        yInfo() << "Waiting for connection to ABM...";
-        trial++;
-        Time::delay(0.2);
-    }
-
-    if(Network::isConnected(abmLocal.c_str(),abmRemote.c_str())) {
-        isConnectedToABM = true;
-    } else {
-        isConnectedToABM = false;
-    }
-}
-
-void perspectiveTaking::connectToAgentDetector(const string &agentDetectorName) {
-    string agentDetectorLocal = "/"+getName()+"/agentdetector:o";
-    agentdetector.open(agentDetectorLocal.c_str());
-    string agentDetectorRemote = "/"+agentDetectorName+"/rpc";
-
-    int trial=0;
-    while (!Network::connect(agentDetectorLocal.c_str(),agentDetectorRemote.c_str()) && trial<3) {
-        yInfo() << "Waiting for connection to Agent Detector...";
-        trial++;
-        Time::delay(0.2);
-    }
-
-    if(Network::isConnected(agentDetectorLocal.c_str(),agentDetectorRemote.c_str())) {
-        lookDown = 0.5;
-        isConnectedToAgentDetector = true;
-    } else {
-        isConnectedToAgentDetector = false;
-    }
-}
-
-void perspectiveTaking::connectToHeadPoseEstimator(const string &headPoseEstimatorName) {
-    string headPoseEstimatorLocal = "/"+getName()+"/headpose:o";
-    headPoseEstimator.open(headPoseEstimatorLocal.c_str());
-    string headPoseEstimatorRemote = "/"+headPoseEstimatorName+"/rpc";
-
-    int trial=0;
-    while (!Network::connect(headPoseEstimatorLocal.c_str(),headPoseEstimatorRemote.c_str()) && trial<3) {
-        yInfo() << "Waiting for connection to Head Pose Estimator...";
-        trial++;
-        Time::delay(0.5);
-    }
-
-    if(Network::isConnected(headPoseEstimatorLocal.c_str(),headPoseEstimatorRemote.c_str())) {
-        isConnectedToHeadPoseEstimator = true;
-    } else {
-        isConnectedToHeadPoseEstimator = false;
-    }
-}
-
-void perspectiveTaking::connectToKinectServer(int verbosity) {
-    string clientName = getName()+"/kinect";
-
-    Property options;
-    options.put("carrier","tcp");
-    options.put("remote","kinectServer");
-    options.put("local",clientName.c_str());
-    options.put("verbosity",verbosity);
-
-    while (!client.open(options)) {
-        yInfo() << "Waiting for connection to KinectServer...";
-        Time::delay(1.0);
-    }
-}
-
-void perspectiveTaking::connectToOPC(const string &opcName) {
-    opc = new OPCClient(getName());
-    int trial=0;
-    while (!opc->connect(opcName) && trial < 3) {
-        yInfo() << "Waiting for connection to OPC...";
-        trial++;
-        Time::delay(0.2);
-    }
-    if(opc->isConnected()) {
-        isConnectedToOPC = true;
-    } else {
-        isConnectedToOPC = false;
-    }
-}
-
-bool perspectiveTaking::openHandlerPort() {
-    string handlerPortName = "/" + getName() + "/rpc";
-
-    if (!handlerPort.open(handlerPortName.c_str())) {
-        yError() << getName() << ": Unable to open port " << handlerPortName;
-        return false;
-    }
-
-    // attach to rpc port
-    attach(handlerPort);
-
-    return true;
-}
-
-bool perspectiveTaking::addABMImgProvider(const string &portName, bool addProvider) {
-    Bottle bCmd, bReply;
-    if(addProvider) {
-        bCmd.addString("addImgStreamProvider");
-    } else {
-        bCmd.addString("removeImgStreamProvider");
-    }
-    bCmd.addString(portName);
-
-    abm.write(bCmd, bReply);
-
-    if(bReply.get(0).toString()=="[ack]") {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 void perspectiveTaking::setViewCameraReference(const Vector &p_pos, const Vector &p_view, const Vector &p_up, const string &viewport) {
@@ -312,17 +178,139 @@ void perspectiveTaking::setViewRobotReference(const Eigen::Vector4f &p_pos, cons
         viewport);
 }
 
-Eigen::Matrix4f perspectiveTaking::yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2robotYarp) {
+Eigen::Matrix4f perspectiveTaking::yarp2EigenM(const yarp::sig::Matrix& yarpMatrix) {
     Eigen::Matrix4f pclmatrix = Eigen::Matrix4f::Zero();
     for(int i=0; i<4; i++) {
         for(int j=0; j<4; j++) {
-            pclmatrix(i,j)=kinect2robotYarp(i,j);
+            pclmatrix(i,j)=yarpMatrix(i,j);
         }
     }
 
     return pclmatrix;
 }
 
-Eigen::Vector4f perspectiveTaking::yarp2EigenV(Vector yVec) {
-    return Eigen::Vector4f(yVec[0], yVec[1], yVec[2], 1);
+Eigen::Vector4f perspectiveTaking::yarp2EigenV(const Vector& yarpVector) {
+    return Eigen::Vector4f(yarpVector[0], yarpVector[1], yarpVector[2], 1);
+}
+
+pcl::PointXYZ perspectiveTaking::eigen2pclV(const Eigen::Vector4f& eigenVector) {
+    return pcl::PointXYZ(eigenVector[0], eigenVector[1], eigenVector[2]);
+}
+
+bool perspectiveTaking::setUpdateTimer(const int32_t interval) {
+    setCamPosTimer->setInterval(interval);
+    return true;
+}
+
+bool perspectiveTaking::setDecimationOdometry(const int32_t decimation) {
+    mapBuilder->setDecimationOdometry(decimation);
+    return true;
+}
+
+bool perspectiveTaking::setDecimationStatistics(const int32_t decimation) {
+    mapBuilder->setDecimationStatistics(decimation);
+    return true;
+}
+
+bool perspectiveTaking::processStats(const bool enable) {
+    mapBuilder->doProcessStats = enable;
+    return true;
+}
+
+bool perspectiveTaking::kinectStereoCalibrate() {
+    static int pointsCount=0;
+
+    CvPoint clickKinect;
+    CvPoint clickStereo;
+
+    if (Bottle *bPos=getClickPortKinect.read(false)) {
+        if (bPos->size()>=2) {
+            clickKinect.x=bPos->get(0).asInt();
+            clickKinect.y=bPos->get(1).asInt();
+            yInfo("Received new click location for Kinect: (%d,%d)",
+                  clickKinect.x,clickKinect.y);
+        } else {
+            yError("Click from Kinect has wrong format");
+            return false;
+        }
+    } else {
+        yError("Did not get click from Kinect");
+        return false;
+    }
+
+    if (Bottle *bPos=getClickPortStereo.read(false)) {
+        if (bPos->size()>=2) {
+            clickStereo.x=bPos->get(0).asInt();
+            clickStereo.y=bPos->get(1).asInt();
+            yInfo("Received new click location for Stereo: (%d,%d)",
+                  clickStereo.x,clickStereo.y);
+        } else {
+            yError("Click from Stereo has wrong format");
+            return false;
+        }
+    } else {
+        yError("Did not get click from Stereo");
+        return false;
+    }
+
+    Vector pKinect(3); pKinect.resize(3,0.0);
+    Vector pStereo(3); pStereo.resize(3,0.0);
+
+    client.get3DPoint(clickKinect.x,clickKinect.y,pKinect);
+
+    yInfo("3D Point for Kinect: (%lf,%lf,%lf)",
+          pKinect[0],pKinect[1],pKinect[2]);
+
+    Bottle bSFM, bSFMResp;
+    bSFM.addString("Root");
+    bSFM.addInt(clickStereo.x);
+    bSFM.addInt(clickStereo.y);
+    sfm.write(bSFM, bSFMResp);
+    pStereo[0] = bSFMResp.get(0).asDouble();
+    pStereo[1] = bSFMResp.get(1).asDouble();
+    pStereo[2] = bSFMResp.get(2).asDouble();
+
+    yInfo("3D Point for Stereo: (%lf,%lf,%lf)",
+          pStereo[0],pStereo[1],pStereo[2]);
+
+    //Prepare the bottle to be sent to RFH
+    Bottle bFRH, bRFHResp;
+    bFRH.addString("add");
+    bFRH.addString("kinect");
+    Bottle &cooKinect = bFRH.addList();
+    cooKinect.addDouble(pKinect[0]);
+    cooKinect.addDouble(pKinect[1]);
+    cooKinect.addDouble(pKinect[2]);
+
+    Bottle &cooiCub = bFRH.addList();
+    cooiCub.addDouble(pStereo[0]);
+    cooiCub.addDouble(pStereo[1]);
+    cooiCub.addDouble(pStereo[2]);
+
+    rfh.write(bFRH,bRFHResp);
+    yInfo() << "Sent to RFH: "  <<bFRH.toString();
+    yInfo() << "Got from RFH: " <<bRFHResp.toString();
+
+    pointsCount++;
+    if(pointsCount >= 3 )
+    {
+        Bottle calibBottle, calibReply;
+        calibBottle.addString("cal");
+        calibBottle.addString("kinect");
+        rfh.write(calibBottle,calibReply);
+        yInfo() << "Calibrated!" << calibReply.toString();
+
+        /*
+         * calibBottle.clear();
+        calibBottle.addString("save");
+        rfh.write(calibBottle,calibReply);
+        yInfo() << "Saved to file ! " << calibReply.toString() << endl;
+        */
+
+        yarp::sig::Matrix kinect2robot;
+        queryRFHTransMat("kinect", "icub", kinect2robot);
+        cout << endl << yarp2EigenM(kinect2robot) << endl;
+    }
+
+    return true;
 }

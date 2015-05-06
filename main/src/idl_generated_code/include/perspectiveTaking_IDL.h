@@ -47,6 +47,7 @@ public:
    * @return true/false on success/failure.
    */
   virtual bool processStats(const bool enable);
+  virtual bool kinectStereoCalibrate();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

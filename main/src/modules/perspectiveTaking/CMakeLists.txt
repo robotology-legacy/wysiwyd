@@ -36,7 +36,17 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
                     ${RTABMap_INCLUDE_DIRS})
 
 add_executable(${PROJECTNAME} ${headers} ${idl_files} ${sources} ${docs})
-target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${OpenCV_LIBRARIES} ${kinectWrapper_LIBRARIES} ${PCL_LIBRARIES} rtabmap_core rtabmap_utilite)
+target_link_libraries(  ${PROJECTNAME}
+                        wrdac
+                        ${YARP_LIBRARIES}
+                        icubmod
+                        ${OpenCV_LIBRARIES}
+                        ${kinectWrapper_LIBRARIES}
+                        ${PCL_COMMON_LIBRARIES}
+                        ${PCL_IO_LIBRARIES}
+                        ${PCL_FILTERS_LIBRARIES}
+                        ${PCL_VISUALIZATION_LIBRARIES}
+                        rtabmap_core rtabmap_utilite)
 qt5_use_modules(${PROJECTNAME} Widgets)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER perspectiveTaking)

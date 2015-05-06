@@ -15,13 +15,22 @@
 
 #include <time.h>
 #include <yarp/os/all.h>
+#include <yarp/dev/all.h>
 #include "PerspectiveTaking.h"
 
 using namespace yarp::os;
 
+YARP_DECLARE_DEVICES(icubmod)
+
 int main(int argc, char * argv[]) {
     srand(time(NULL));
     Network yarp;
+    if (!yarp.checkNetwork()) {
+        return -1;
+    }
+
+    YARP_REGISTER_DEVICES(icubmod)
+
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("perspectiveTaking");

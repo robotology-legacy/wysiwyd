@@ -19,6 +19,8 @@
 #ifndef VPT_PERSPECTIVETAKING
 #define VPT_PERSPECTIVETAKING
 
+#include <QTimer>
+
 #include <yarp/os/RFModule.h>
 #include <yarp/math/Math.h>
 
@@ -42,6 +44,7 @@ class perspectiveTaking: public QObject, public yarp::os::RFModule, public persp
     Q_OBJECT
 protected:
     // Kinect related
+    yarp::os::BufferedPort<yarp::os::Bottle> getClickPortKinect;
     void connectToKinectServer(int verbosity);
     KinectWrapperClient client;
 
@@ -69,17 +72,23 @@ protected:
     bool isConnectedToABM;
 
     // RFH related; deprecated
-    Eigen::Matrix4f getRFHTransMat(const std::string& rfhName);
-    yarp::os::Port rfh;
+    void connectToRFH(const std::string& rfhName);
+    Eigen::Matrix4f getRFHTransMat();
+    yarp::os::RpcClient rfh;
 
     // agentDetector related; deprecated
     void connectToAgentDetector(const std::string& agentDetectorName);
-    yarp::os::Port agentdetector;
+    yarp::os::RpcClient agentdetector;
     bool isConnectedToAgentDetector;
+
+    // SFM related
+    void connectToSFM(const std::string& SFMName);
+    yarp::os::BufferedPort<yarp::os::Bottle> getClickPortStereo;
+    yarp::os::RpcClient sfm;
 
     // headPoseEstimator related
     void connectToHeadPoseEstimator(const std::string& headPoseEstimatorName);
-    yarp::os::Port headPoseEstimator;
+    yarp::os::RpcClient headPoseEstimator;
     bool isConnectedToHeadPoseEstimator;
 
     // actual perspective Taking
@@ -91,8 +100,9 @@ protected:
     Eigen::Matrix4f yarp2pcl;
     partnerCameraMode_t partnerCameraMode;
 
-    Eigen::Matrix4f yarp2pclKinectMatrix(const yarp::sig::Matrix& kinect2robotYarp);
-    Eigen::Vector4f yarp2EigenV(yarp::sig::Vector);
+    Eigen::Matrix4f yarp2EigenM(const yarp::sig::Matrix& yarpMatrix);
+    Eigen::Vector4f yarp2EigenV(const Vector& yarpVector);
+    pcl::PointXYZ eigen2pclV(const Eigen::Vector4f& eigenVector);
 
     // actual perspective taking, deprecated
     double distanceMultiplier;
@@ -122,6 +132,7 @@ public:
     static Eigen::Matrix4f getManualTransMat(float camOffsetX, float camOffsetZ, float camAngle);
     static cv::Mat lastDepth;
 
+    bool kinectStereoCalibrate();
     bool setUpdateTimer(const int32_t interval);
     bool setDecimationOdometry(const int32_t decimation);
     bool setDecimationStatistics(const int32_t decimation);
