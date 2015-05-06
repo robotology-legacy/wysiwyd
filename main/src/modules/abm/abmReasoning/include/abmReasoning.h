@@ -157,8 +157,9 @@ public:
 
 
     // execution functions
-    yarp::os::Bottle executeAction(yarp::os::Bottle bInput);
-    yarp::os::Bottle executeComplex(yarp::os::Bottle bInput);
+	yarp::os::Bottle executeAction(yarp::os::Bottle bInput);
+	yarp::os::Bottle executeActionFromAdv(yarp::os::Bottle bInput);
+	yarp::os::Bottle executeComplex(yarp::os::Bottle bInput);
     yarp::os::Bottle executeActivity(yarp::os::Bottle bInput);
     yarp::os::Bottle executeSharedPlan(yarp::os::Bottle bInput);
     yarp::os::Bottle executeReasoning(yarp::os::Bottle bInput);

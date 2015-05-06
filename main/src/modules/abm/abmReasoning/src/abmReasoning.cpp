@@ -14,7 +14,7 @@ using namespace std;
 abmReasoning::abmReasoning(ResourceFinder &rf)
 {
 	iFunction = new abmReasoningFunction(rf);
-    savefile = rf.findFileByName("saveRequest.txt");
+	savefile = rf.findFileByName("saveRequest.txt");
 	opcNameTable.push_back(EFAA_OPC_ENTITY_TAG);
 	opcNameTable.push_back(EFAA_OPC_ENTITY_RELATION);
 	opcNameTable.push_back(EFAA_OPC_ENTITY_OBJECT);
@@ -39,8 +39,8 @@ bool abmReasoning::updateModule()
 /* configure the module */
 bool abmReasoning::configure(ResourceFinder &rf)
 {
-    resfind = rf;
-    moduleName = rf.check("name", Value("abmReasoning"), "module name (string)").asString();
+	resfind = rf;
+	moduleName = rf.check("name", Value("abmReasoning"), "module name (string)").asString();
 
 	setName(moduleName.c_str());
 
@@ -76,8 +76,8 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
 	bestSol = -1;
 
-    cout << endl << endl << "----------------------------------------------";
-    cout << endl << endl << "abmReasoning ready !" << endl << endl;
+	cout << endl << endl << "----------------------------------------------";
+	cout << endl << endl << "abmReasoning ready !" << endl << endl;
 
 	bReady = true;
 
@@ -462,6 +462,11 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 	else if (bCommand.get(0).asString() == "executeAction") {
 		bReply.addString("ack");
 		bReply.addList() = executeAction(bCommand);
+	}
+
+	else if (bCommand.get(0).asString() == "executeActionFromAdv") {
+		bReply.addString("ack");
+		bReply.addList() = executeActionFromAdv(bCommand);
 	}
 
 
@@ -2398,8 +2403,8 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		END2;
 
 
-    string filepath_sentence = resfind.findFileByName("sentences.txt");
-    ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+	string filepath_sentence = resfind.findFileByName("sentences.txt");
+	ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 	file_sentences << "agent\tverb\tobject\tajd1\tadj2" << endl;
 
@@ -2524,11 +2529,11 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		{
 
 			// writing data in a file
-            string filepath_time_relative = "time_";
-            filepath_time_relative+=it->sLabel.c_str();
-            filepath_time_relative+=".txt";
-            string filepath_time = resfind.findFileByName(filepath_time_relative);
-            ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+			string filepath_time_relative = "time_";
+			filepath_time_relative += it->sLabel.c_str();
+			filepath_time_relative += ".txt";
+			string filepath_time = resfind.findFileByName(filepath_time_relative);
+			ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 			for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
 			{
@@ -2537,11 +2542,11 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
 			cout << "file_time " << filepath_time << " written" << endl;
 
-            string filepath_space_relative = "space_";
-            filepath_space_relative+=it->sLabel.c_str();
-            filepath_space_relative+=".txt";
-            string filepath_space = resfind.findFileByName(filepath_space_relative);
-            ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+			string filepath_space_relative = "space_";
+			filepath_space_relative += it->sLabel.c_str();
+			filepath_space_relative += ".txt";
+			string filepath_space = resfind.findFileByName(filepath_space_relative);
+			ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 			file_space << "X\tY\tDX\tDY" << endl;
 
@@ -2565,12 +2570,12 @@ Bottle abmReasoning::findAllActionsV2(int from)
 			}
 			else
 			{
-                string filepath_space_verb_relative = "space_verb_";
-                filepath_space_verb_relative+=it->sLabel.c_str();
-                filepath_space_verb_relative+=".txt";
-                string filepath_space_verb = resfind.findFileByName(filepath_space_verb_relative);
+				string filepath_space_verb_relative = "space_verb_";
+				filepath_space_verb_relative += it->sLabel.c_str();
+				filepath_space_verb_relative += ".txt";
+				string filepath_space_verb = resfind.findFileByName(filepath_space_verb_relative);
 
-                ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+				ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
 				file_space_verb << "X\tY\tVerb" << endl;
 
@@ -3720,29 +3725,29 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 
 	abmReasoningFunction::studentttest2(adjInput.vdGnlTiming, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
 
-	//cout << adjInput.sLabel << " bothtails: " << adjInput.bothtails << endl;
-	//    cout << "lefttail : " << lefttail << endl;
-	//    cout << "righttail: " << righttail << endl;
+	cout << adjInput.sLabel << " bothtails: " << adjInput.bothtails << endl;
+	cout << "lefttail : " << adjInput.lefttail << endl;
+	cout << "righttail: " << adjInput.righttail << endl;
 
 
 	// if from a general point of view, the adjective influence the timing
-	//if (bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
-	//{
-	//	fTimingInfluence = true;
-	//	return;
-	//}
+	if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
+	{
+		adjInput.fTimingInfluence = true;
+		return;
+	}
 
 
-	//// else check for each association action/adjective:
-	//for (map<string, pair< vector<double>, vector<double> > >::iterator itMap = mActionTiming.begin() ; itMap != mActionTiming.end() ; itMap++)
-	//{
-	//    abmReasoningFunction::studentttest2(itMap->second.first, itMap->second.second, &bothtails, &lefttail, &righttail);
-	//    if (bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
-	//    {
-	//        cout << sLabel << " influences timing when correlated to the action : " << itMap->first << endl;
-	//        fTimingInfluence = true;
-	//    }
-	//}
+	// else check for each association action/adjective:
+	for (map<string,  vector<double>  >::iterator itMap = adjInput.mActionTiming.begin(); itMap != adjInput.mActionTiming.end(); itMap++)
+	{
+		abmReasoningFunction::studentttest2(itMap->second, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
+		if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
+	    {
+			cout << adjInput.sLabel << " influences timing when correlated to the action : " << itMap->first << endl;
+			adjInput.fTimingInfluence = true;
+	    }
+	}
 }
 
 
@@ -3874,6 +3879,64 @@ Bottle abmReasoning::executeAction(Bottle bInput)
 
 	return bOutput;
 }
+
+
+/**
+* Search for the given action, and return the properties
+* @param bInput : Bottle ("executeAction"       ("action" actionName)  ("object" object) ("agent" agent) ("argument" arg1) ("argument" arg2))
+* return: Bottle (arg1 effect) (arg2 effect)
+*/
+Bottle abmReasoning::executeActionFromAdv(Bottle bInput)
+{
+	Bottle  bOutput, // main output
+		bCoord;  // Bottle of coordonates
+
+	string sAction = "none";
+	string sAgent = "none";
+	string sObject = "none";
+	string sArg1   = "none";
+	string sArg2   = "none";
+
+	sAction = bInput.find("action").toString();
+	sAgent  = bInput.find("agent").toString();
+	sObject = bInput.find("object").toString();
+	sArg1   = bInput.find("arg1").toString();
+	sArg2   = bInput.find("arg2").toString();
+
+	list<string> listArgument;
+	if (sArg1 != "none") listArgument.push_back(sArg1);
+	if (sArg2 != "none") listArgument.push_back(sArg2);
+
+	// get the effect of each adverb with the action
+
+	for (list<string>::iterator itArg = listArgument.begin(); itArg != listArgument.end() ; itArg++)
+	{
+		bool	 bFound = false;
+
+		// search for correpondant adverb
+		for (list<adjKnowledge>::iterator itAdvFromList = listKnownAdverb.begin(); itAdvFromList != listKnownAdverb.end(); itAdvFromList++)
+		{
+			if (itAdvFromList->sLabel == *itArg)
+			{
+				bFound = true;
+				bOutput.addList() = itAdvFromList->getEffect(sAction);
+			}
+		}
+
+		if (!bFound)
+		{
+			Bottle bError;
+			bError.addString("error");
+			bError.addString("argument unknown");
+			bOutput.addList() = bError;
+		}
+	}
+
+
+
+	return bOutput;
+}
+
 
 /**
 *  Return the command to make, according to the input : complex or action
@@ -4553,8 +4616,8 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
 */
 void abmReasoning::printSpatialKnowledge()
 {
-    string spatial_knowledge_path = resfind.findFileByName("spatial_knowledge.txt");
-    ofstream file(spatial_knowledge_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+	string spatial_knowledge_path = resfind.findFileByName("spatial_knowledge.txt");
+	ofstream file(spatial_knowledge_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 	file << "X\tY\ttype\tname" << endl;
 
 	for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
@@ -4574,7 +4637,7 @@ void abmReasoning::printSpatialKnowledge()
 			}
 		}
 	}
-    std::cout << "file " << spatial_knowledge_path << " written" << endl;
+	std::cout << "file " << spatial_knowledge_path << " written" << endl;
 }
 
 /*

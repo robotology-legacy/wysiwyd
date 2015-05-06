@@ -192,4 +192,111 @@ void adjKnowledge::determineSpatialInfluence()
 
 
 
+// Check the effect of each adjverb.
+// if spatial:
+//	//	if absolute: return (absolute X Y)
+//	//	if relative: return (relative DX DY)
+// if temporal: return (delay Delay)
+Bottle adjKnowledge::getEffect(string sAction)
+{
+	Bottle bOutput;
+	determineSpatialInfluence();
+
+	// if the adverb is temporal:
+	if (fTimingInfluence)
+	{
+		if (sAction == "none")
+		{
+			
+			double dDelay = accumulate(vdGnlTiming.begin(), vdGnlTiming.end(), 0.0) / vdGnlTiming.size();
+			bOutput.addString("delay");
+			bOutput.addDouble(dDelay);
+			return bOutput;
+		}
+
+		double dDelay = accumulate(mActionTiming[sAction].begin(), mActionTiming[sAction].end(), 0.0) / mActionTiming[sAction].size();
+		bOutput.addString("delay");
+		bOutput.addDouble(dDelay);
+		return bOutput;
+	}
+
+	// if the adverb is spatial
+	if (fAbsolutInfluence)
+	{
+		if (sAction == "none")
+		{
+			double X = 0, Y = 0;
+			for (vector<pair<double, double> >::iterator it = vdGnlXY.begin(); it != vdGnlXY.end(); it++)
+			{
+				X += it->first;
+				Y += it->second;
+			}
+			X /= vdGnlXY.size();
+			Y /= vdGnlXY.size();
+
+			bOutput.addString("absolute");
+			bOutput.addDouble(X);
+			bOutput.addDouble(Y);
+			return bOutput;
+		}
+		else
+		{
+			double X = 0, Y = 0;
+			for (vector<pair<double, double> >::iterator it = mActionAbsolut[sAction].begin(); it != mActionAbsolut[sAction].end(); it++)
+			{
+				X += it->first;
+				Y += it->second;
+			}
+			X /= mActionAbsolut[sAction].size();
+			Y /= mActionAbsolut[sAction].size();
+
+			bOutput.addString("absolute");
+			bOutput.addDouble(X);
+			bOutput.addDouble(Y);
+			return bOutput;
+		}
+	}
+
+	// if relative
+	if (fDeltaInfluence)
+	{
+		if (sAction == "none")
+		{
+			double X = 0, Y = 0;
+			for (vector<pair<double, double> >::iterator it = vdGnlDelta.begin(); it != vdGnlDelta.end(); it++)
+			{
+				X += it->first;
+				Y += it->second;
+			}
+			X /= vdGnlDelta.size();
+			Y /= vdGnlDelta.size();
+
+			bOutput.addString("absolute");
+			bOutput.addDouble(X);
+			bOutput.addDouble(Y);
+			return bOutput;
+		}
+		else
+		{
+			double X = 0, Y = 0;
+			for (vector<pair<double, double> >::iterator it = mActionDelta[sAction].begin(); it != mActionDelta[sAction].end(); it++)
+			{
+				X += it->first;
+				Y += it->second;
+			}
+			X /= mActionDelta[sAction].size();
+			Y /= mActionDelta[sAction].size();
+
+			bOutput.addString("absolute");
+			bOutput.addDouble(X);
+			bOutput.addDouble(Y);
+			return bOutput;
+		}
+	}
+
+	bOutput.addString("error");
+	bOutput.addString("cannot determine influence");
+
+	return bOutput;
+}
 

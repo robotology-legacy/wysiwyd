@@ -4,6 +4,7 @@
 #include "wrdac/clients/icubClient.h"
 #include <tuple>
 #include <time.h>
+#include <numeric>
 
 #define ae_machineepsilon 5E-16
 #define ae_maxrealnumber  1E300
