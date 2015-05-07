@@ -22,7 +22,7 @@
         </module>
          <module>
                 <name>linearClassifierModule</name>
-                <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOLDatabase --WeightedSVM 1</parameters>
+                <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase --WeightedSVM 1</parameters>
                 <node>icubDesktop</node>
         </module>
          <module>
