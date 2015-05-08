@@ -60,7 +60,6 @@ protected:
     void connectToOPC(const std::string& opcName);
     wysiwyd::wrdac::OPCClient* opc;
     wysiwyd::wrdac::Agent* partner;
-    bool isConnectedToOPC;
 
     // ABM related
     void connectToABM(const std::string& abmName);
@@ -92,11 +91,15 @@ protected:
     bool isConnectedToHeadPoseEstimator;
 
     // actual perspective Taking
+    void updateObjects();
+
     void setViewRobotReference(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& viewport);
     void setViewRobotReference(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& viewport);
     void setViewCameraReference(const Eigen::Vector4f &p_pos, const Eigen::Vector4f &p_view, const Eigen::Vector4f &p_up, const std::string& viewport);
     void setViewCameraReference(const yarp::sig::Vector& pos, const yarp::sig::Vector& view, const yarp::sig::Vector& up, const std::string& viewport);
-    Eigen::Matrix4f kinect2robot_pcl;
+
+    Eigen::Matrix4f kin2head;
+    Eigen::Affine3f kin2root;
     Eigen::Matrix4f yarp2pcl;
     partnerCameraMode_t partnerCameraMode;
 
@@ -105,7 +108,6 @@ protected:
     pcl::PointXYZ eigen2pclV(const Eigen::Vector4f& eigenVector);
 
     // actual perspective taking, deprecated
-    double distanceMultiplier;
     double lookDown;
 
     // QT related
@@ -129,7 +131,7 @@ public:
     bool updateModule() { return false; }
     bool close();
 
-    static Eigen::Matrix4f getManualTransMat(float camOffsetX, float camOffsetZ, float camAngle);
+    static Eigen::Matrix4f getManualTransMat(float camOffsetX, float camOffsetY, float camOffsetZ, float camAngle);
     static cv::Mat lastDepth;
 
     bool kinectStereoCalibrate();

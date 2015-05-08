@@ -76,8 +76,10 @@ bool perspectiveTaking::setupThreads() {
     return true;
 }
 
-Eigen::Matrix4f perspectiveTaking::getManualTransMat(float camOffsetX, float camOffsetZ,
-                                          float camAngle) {
+Eigen::Matrix4f perspectiveTaking::getManualTransMat(float camOffsetX,
+                                                     float camOffsetY,
+                                                     float camOffsetZ,
+                                                     float camAngle) {
     // Estimate rotation+translation from kinect to robot head
     Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
 
@@ -162,10 +164,10 @@ void perspectiveTaking::setViewRobotReference(const Vector &p_pos, const Vector 
 }
 
 void perspectiveTaking::setViewRobotReference(const Eigen::Vector4f &p_pos, const Eigen::Vector4f &p_view, const Eigen::Vector4f &p_up, const string &viewport) {
-    Eigen::Vector4f pos = kinect2robot_pcl * yarp2pcl * p_pos;
+    Eigen::Vector4f pos = kin2head * yarp2pcl * p_pos;
     //Eigen::Vector4f view = kinect2robotpcl * yarp2pcl * Eigen::Vector4f(p_headPos[0]+1.0,p_headPos[1],p_headPos[2],1);
-    Eigen::Vector4f view = kinect2robot_pcl * yarp2pcl * p_view;
-    Eigen::Vector4f up = kinect2robot_pcl * yarp2pcl * p_up;
+    Eigen::Vector4f view = kin2head * yarp2pcl * p_view;
+    Eigen::Vector4f up = kin2head * yarp2pcl * p_up;
 
     pos/=pos[3]; view/=view[3], up/=up[3];
 

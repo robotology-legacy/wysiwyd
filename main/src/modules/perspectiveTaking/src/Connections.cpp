@@ -94,7 +94,7 @@ void perspectiveTaking::connectToHeadPoseEstimator(const string &headPoseEstimat
     while (!Network::connect(headPoseEstimatorLocal.c_str(),headPoseEstimatorRemote.c_str()) && trial<3) {
         yInfo() << "Waiting for connection to Head Pose Estimator...";
         trial++;
-        Time::delay(0.5);
+        Time::delay(0.2);
     }
 
     if(Network::isConnected(headPoseEstimatorLocal.c_str(),headPoseEstimatorRemote.c_str())) {
@@ -126,10 +126,5 @@ void perspectiveTaking::connectToOPC(const string &opcName) {
         yInfo() << "Waiting for connection to OPC...";
         trial++;
         Time::delay(0.2);
-    }
-    if(opc->isConnected()) {
-        isConnectedToOPC = true;
-    } else {
-        isConnectedToOPC = false;
     }
 }

@@ -24,6 +24,8 @@
 #include <QtCore/QMetaType>
 
 #include <opencv2/core/core.hpp>
+
+#include <boost/functional/hash.hpp>
 #include <boost/chrono/chrono.hpp>
 
 #include <yarp/math/Math.h>
@@ -50,7 +52,6 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("perspectiveTaking"), "module name (string)").asString().c_str());
     loopCounter = 0;
     isConnectedToAgentDetector = false;
-    isConnectedToOPC = false;
     isConnectedToABM = false;
 
     // connect to the various other modules
@@ -66,7 +67,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     if(partnerCameraMode_temp==0) {
         partnerCameraMode = staticPos;
     } else if(partnerCameraMode_temp==1) {
-        if(isConnectedToAgentDetector && isConnectedToOPC) {
+        if(isConnectedToAgentDetector && opc->isConnected()) {
             partnerCameraMode = agentDetector;
         } else {
             yError() << "Asked to use agentDetector to set camera view, but agentDetector/OPC is not running ";
@@ -92,10 +93,23 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     //kinect2robot_pcl = getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
 
-    kinect2robot_pcl = getManualTransMat(rf.check("cameraOffsetX",Value(0.0)).asDouble(),
-                      rf.check("cameraOffsetZ",Value(-0.4)).asDouble(),
-                      rf.check("cameraAngle",Value(-20.0)).asDouble());
-    cout << "Kinect 2 Robot PCL: " << kinect2robot_pcl;
+    float cameraAngle = rf.check("cameraAngle",Value(-20.0)).asDouble()/180.0*M_PI;
+
+    Bottle* cameraOffset = rf.find("cameraOffset").asList();
+    if(cameraOffset==NULL || cameraOffset->size()<3) {
+        yWarning("Setting cameraOffset to default values");
+        cameraOffset = new Bottle("0.4 0.0 -0.3");
+    }
+
+    Eigen::Matrix4f kin2head_manual;
+    kin2head_manual = getManualTransMat(cameraOffset->get(0).asDouble(),
+                                        cameraOffset->get(1).asDouble(),
+                                        cameraOffset->get(2).asDouble(),
+                                        cameraAngle);
+
+    kin2head = kin2head_manual;
+
+    cout << "Kinect 2 Robot PCL: " << endl << kin2head << endl;
 
     // connect to ABM
     selfPerspImgPort.open("/"+getName()+"/images/self:o");
@@ -110,7 +124,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
 
     mapBuilder = new MapBuilder(rf.check("decimationOdometry",Value(2)).asInt(),
                                 rf.check("decimationStatistics",Value(2)).asInt(),
-                                kinect2robot_pcl.inverse());
+                                kin2head.inverse());
 
     setupThreads();
 
@@ -133,7 +147,19 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     mapBuilder->setCameraFieldOfView(fovy_robot/180.0*3.14, "robot");
     mapBuilder->setCameraFieldOfView(fovy_human/180.0*3.14, "partner");
 
-    distanceMultiplier = rf.check("distanceMultiplier",Value(1.0)).asDouble();
+    Bottle* rootOffset = rf.find("rootOffset").asList();
+    if(rootOffset==NULL || rootOffset->size()<3) {
+        yWarning("Setting rootOffset to default values");
+        rootOffset = new Bottle("0.65 0.05 -0.6");
+    }
+
+    kin2root = Eigen::Affine3f::Identity();
+    kin2root.rotate (Eigen::AngleAxisf (cameraAngle, Eigen::Vector3f::UnitY()));
+    kin2root.translation() << rootOffset->get(0).asDouble(),
+                              rootOffset->get(1).asDouble(),
+                              rootOffset->get(2).asDouble();
+
+    cout << "kin2root: " << endl << kin2root.matrix() << endl;
 
     // start new thread to update position of the partner camera
     setCamPosThread = new QThread(this);
@@ -152,8 +178,50 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     return true;
 }
 
+void perspectiveTaking::updateObjects() {
+    if(!opc->isConnected()) {
+        return;
+    }
+    opc->checkout();
+
+    mapBuilder->getVisualizerByName("robot")->getVisualizer().removeAllShapes();
+    mapBuilder->getVisualizerByName("partner")->getVisualizer().removeAllShapes();
+
+    list<Entity*> entities = opc->EntitiesCache();
+    for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++) {
+        if( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ) {
+            if (Object *obj=dynamic_cast<Object*>(*it)) {
+                if(obj->m_present) {
+                    string obj_name = obj->name();
+
+                    boost::hash<std::string> string_hash;
+                    srand(string_hash(obj_name));
+
+                    double obj_r = double(rand()) / double(RAND_MAX);
+                    double obj_g = double(rand()) / double(RAND_MAX);
+                    double obj_b = double(rand()) / double(RAND_MAX);
+                    double obj_size = 0.05;
+
+                    Vector obj_pos_yarp = obj->m_ego_position;
+
+                    Eigen::Vector4f obj_pos = Eigen::Vector4f(-1.0*obj_pos_yarp[0], obj_pos_yarp[1], obj_pos_yarp[2], 1.0);
+                    Eigen::Vector4f obj_pos_root = kin2root.matrix() * obj_pos;
+                    Eigen::Vector4f obj_pos_head = kin2head.inverse() * obj_pos_root;
+
+                    pcl::PointXYZ obj_pos_root_pcl = eigen2pclV(obj_pos_root);
+                    pcl::PointXYZ obj_pos_head_pcl = eigen2pclV(obj_pos_head);
+
+                    mapBuilder->getVisualizerByName("robot")  ->getVisualizer().addSphere(obj_pos_head_pcl, obj_size, obj_r, obj_g, obj_b, obj_name);
+                    mapBuilder->getVisualizerByName("partner")->getVisualizer().addSphere(obj_pos_root_pcl, obj_size, obj_r, obj_g, obj_b, obj_name);
+                }
+            }
+        }
+    }
+}
+
 void perspectiveTaking::setPartnerCamera() {
     loopCounter++;
+    updateObjects();
 
     Eigen::Matrix4f odometryPos = mapBuilder->getLastOdomPose().toEigen4f();
 
@@ -170,7 +238,7 @@ void perspectiveTaking::setPartnerCamera() {
         double d_shoulderRight[3] = {-1.601168, -0.888877, 0.352823};
         Vector p_shoulderRight = Vector(3, d_shoulderRight);
 
-        Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
+        Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
         p_view[2] = p_view[2] - 0.8;
 
         // take odometry pose into account
@@ -183,7 +251,7 @@ void perspectiveTaking::setPartnerCamera() {
 
         sendImagesToPorts();
     } else if(partnerCameraMode==agentDetector) {
-        if(!isConnectedToOPC) {
+        if(!opc->isConnected()) {
             return;
         }
         partner = dynamic_cast<Agent*>( opc->getEntity("partner", true) );
@@ -199,7 +267,7 @@ void perspectiveTaking::setPartnerCamera() {
             // This is achieved by laying a plane between left shoulder,
             // right shoulder and head and using the normal vector of
             // the plane as viewing vector
-            Vector p_view = distanceMultiplier * yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
+            Vector p_view = yarp::math::cross(p_shoulderRight-p_headPos, p_shoulderLeft-p_headPos);
             p_view[2] = p_view[2] - lookDown;
 
             // take odometry pose into account
