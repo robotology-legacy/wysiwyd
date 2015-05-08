@@ -1,63 +1,73 @@
 
 <application>
-<name>Interactive Objects Learning Behavior 2 OPC with CAFFE</name>
+<name>WYSIWYD IOL2OPC with CAFFE</name>
 
         <dependencies>
                 <port>/icub/camcalib/left/out</port>
+                <port>/SFM/rpc</port>
         </dependencies>
 
         <module>
                 <name>lumaChroma</name>
                 <parameters>--image yuv --out</parameters>
-                <node>icubsrv</node>
+                <node>node-vision</node>
         </module>
         <module>
                 <name>blobExtractor</name>
-                <node>icubsrv</node>
+                <node>node-vision</node>
         </module>
          <module>
                 <name>caffeCoder</name>
                 <parameters></parameters>
-                <node>icubDesktop</node>
+                <node>node-cuda1</node>
         </module>
          <module>
                 <name>linearClassifierModule</name>
                 <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase --WeightedSVM 1</parameters>
-                <node>icubDesktop</node>
+                <node>node-classification</node>
         </module>
          <module>
                 <name>himrepClassifier</name>
-                <node>icubsrv</node>
+                <node>node-classification</node>
         </module>
         <module>
                 <name>iol2opc</name>
                 <parameters>--from config.ini</parameters>
-                <node>icubsrv</node>
+                <node>node-console</node>
+                <dependencies>
+                    <port>/OPC/rpc</port>
+                </dependencies>
         </module>
         <module>
                 <name>yarpview</name>
                 <parameters>--name /iolViewer/luma/view --x 0 --y 0 --p 50 --compact</parameters>
-                <node>icubsrv</node>
+                <node>node-console</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/blobs/view  --x 320 --y 0 --p 50 --compact</parameters>
-                <node>icubsrv</node>
+                <parameters>--name /iolViewer/blobs/view --x 320 --y 0 --p 50 --compact</parameters>
+                <node>node-console</node>
         </module>
         <module>
                 <name>yarpview</name>
                 <parameters>--name /iolViewer/objectSelector/view --x 0 --y 740 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
-                <node>icubsrv</node>
+                <node>node-console</node>
         </module>
         <module>
                 <name>yarpview</name>
                 <parameters>--name /iolViewer/iol2opc/view/localizer --x 320 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
-                <node>icubsrv</node>
+                <node>node-console</node>
         </module>
         <module>
                 <name>yarpview</name>
                 <parameters>--name /iolViewer/iol2opc/view/histogram --x 640 --y 220 --w 600 --h 600 --p 50 --compact</parameters>
-                <node>icubsrv</node>
+                <node>node-console</node>
+        </module>
+
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/disparity --x 0 --y 220 --p 50 --compact</parameters>
+                <node>node-console</node>
         </module>
 
         <connection>
@@ -159,5 +169,10 @@
                 <from>/icub/camcalib/left/out</from>
                 <to>/iol2opc/img:i</to>
                 <protocol>udp</protocol>
+        </connection>
+        <connection>
+            <from>/SFM/disp:o</from>
+            <to>/iolViewer/disparity</to>
+            <protocol>udp</protocol>
         </connection>
 </application>
