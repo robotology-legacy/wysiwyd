@@ -585,25 +585,20 @@ void IOL2OPCBridge::updateOPC()
                 if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
                     continue;
 
-                // find 3d position
-                Vector x;
-                if (get3DPosition(cog,x))
-                {
-                    Bottle *item=blobs.get(j).asList();
-                    if (item==NULL)
-                        continue;
-
-                    map<string,IOLObject>::iterator it=db.find(object);
-                    if (it!=db.end()) {
+                map<string,IOLObject>::iterator it=db.find(object);
+                if (it!=db.end())
+                {                    
+                    // find 3d position
+                    Vector x;
+                    if (get3DPosition(cog,x))
+                    {
                         Object *obj=opc->addObject(object);
                         obj->m_ego_position=x;
                         obj->m_present=true;
                     }
-                }
 
-                map<string,IOLObject>::iterator it=db.find(object);
-                if (it!=db.end())
                     it->second.heartBeat();
+                }
             }
         }
 
