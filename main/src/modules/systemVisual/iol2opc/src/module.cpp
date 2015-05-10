@@ -862,14 +862,13 @@ bool IOL2OPCBridge::train_object(const string &name)
 
         train(name,blobs,i);
 
+        // grab resources
+        LockGuard lg(mutexResources);
+
         // add a new object in the database
         // if not already existing
         if (db.find(name)==db.end())
-        {
-            // grab resources
-            LockGuard lg(mutexResources);
             db[name]=IOLObject(presence_timeout);
-        }
 
         return true;
     }
