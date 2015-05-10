@@ -19,11 +19,12 @@ public:
   iol2opc_IDL();
   /**
    * Add a new object to the object-recognition database
-   * based on the selected blob.
+   * based on the selected blob. If the object is already
+   * existing, its recognition is improved.
    * @param name is the object name
    * @return true/false on success/failure.
    */
-  virtual bool add_object(const std::string& name);
+  virtual bool train_object(const std::string& name);
   /**
    * Remove object with a given name from the object-recognition
    * database.

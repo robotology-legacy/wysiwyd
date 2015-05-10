@@ -145,7 +145,7 @@ protected:
     bool    updateModule();
 
 public:
-    bool    add_object(const string &name);
+    bool    train_object(const string &name);
     bool    remove_object(const string &name);
     bool    remove_all();
 };

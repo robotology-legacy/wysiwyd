@@ -13,11 +13,12 @@ service iol2opc_IDL
 {
    /**
    * Add a new object to the object-recognition database
-   * based on the selected blob.
+   * based on the selected blob. If the object is already
+   * existing, its recognition is improved.
    * @param name is the object name
    * @return true/false on success/failure.
    */
-   bool add_object(1:string name);
+   bool train_object(1:string name);
 
    /**
    * Remove object with a given name from the object-recognition
