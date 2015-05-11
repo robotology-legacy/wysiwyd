@@ -115,6 +115,29 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
         }
     }
 
+    //sound
+    portSoundStreamInput.open(("/" + getName() + "/sound:i").c_str()) ;
+
+    int trials = 0;
+    Network::connect("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str());
+    yarp::os::Time::delay(2);
+    if (Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())){
+            cout <<  "ABM is connected to /speechRecognizer/recog/sound:o !!!" << endl ;
+    }
+
+    while((!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())) && (trials < 5)) {
+        trials += 1 ;
+        cout << "trying to connect to /speechRecognizer/recog/sound:o ..." << endl ;
+
+
+        if(trials == 5 && (!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str()))){
+            cout << "Seems to be no sound, quit trying!" << endl;
+        } else if (Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())){
+            cout <<  "ABM is connected to /speechRecognizer/recog/sound:o !!!" << endl ;
+        }
+    }
+
+
 #ifdef BOOST_AVAILABLE
     cout << "Running ABM with Boost :-)" << endl;
 #else
@@ -681,6 +704,22 @@ void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool 
 
 /* rpc update module */
 bool autobiographicalMemory::updateModule() {
+
+    //cout << "Update loop" << endl ;
+    yarp::sig::Sound *s;
+    s=portSoundStreamInput.read(false);
+    if(s!=NULL)
+    {
+        cout << "I have received a sound!!!!!" << endl;
+        stringstream fullPath;
+        fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
+        yarp::sig::file::write(*s,(storingPath + "/" + storingTmpSuffix+ "/" + "test.wav").c_str());
+        //yarp::sig::file::write(*s,"c:\\robot\\ABMStoring\\tmp\\test.wav");
+        cout << "blop" << endl ;
+    } else {
+        //cout << "no sound?" << endl ;
+    }
+
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
     if (streamStatus == "begin") {

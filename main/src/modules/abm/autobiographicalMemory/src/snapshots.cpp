@@ -216,6 +216,14 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         imgInstance = currentInstance;
         string synchroTime = getCurrentTime();
         frameNb = 0 ;
+
+        yarp::sig::Sound *s;
+        s=portSoundStreamInput.read(true);
+        if(s!=NULL)
+        {
+            cout << "I have received a sound!!!!!" << endl;
+        }
+
         storeImagesAndData(synchroTime, true, fullSentence);
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;

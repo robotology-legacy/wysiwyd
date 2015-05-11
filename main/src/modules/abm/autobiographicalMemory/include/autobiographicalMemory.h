@@ -122,6 +122,9 @@ public:
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamInput;
     std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamInput;
 
+    //sound
+    yarp::os::BufferedPort<yarp::sig::Sound> portSoundStreamInput ;
+
     yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented=false, std::string provider_port="");
 
     bool saveImageFromPort(const std::string &fullPath, const std::string &portFrom, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
