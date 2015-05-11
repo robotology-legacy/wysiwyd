@@ -529,28 +529,44 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             if (bCommand.size() > 1 && bCommand.get(1).isInt())
             {
-                imgInstance = (atoi((bCommand.get(1)).toString().c_str()));
-                bool timingEnabled = false;
+                yDebug() << "Command: " << bCommand.toString();
+                imgInstance = bCommand.get(1).asInt();
+                bool realtime = false;
                 bool includeAugmented = true;
-                double speedM = 1.0;
-                bool useRealiCub = false;
-                if(bCommand.size() > 2 && bCommand.get(2).isInt()) {
-                    timingEnabled = (atoi((bCommand.get(2)).toString().c_str())) > 0;
-                    if(bCommand.size() > 3 && bCommand.get(3).isInt()) {
-                        includeAugmented = (atoi((bCommand.get(3)).toString().c_str())) > 0;
-                        if(bCommand.size() > 4 && bCommand.get(4).isDouble()) {
-                            speedM = atof(bCommand.get(4).toString().c_str());
-                            if(bCommand.size() > 5 && bCommand.get(5).isInt()) {
-                                useRealiCub = (atoi((bCommand.get(5)).toString().c_str())) > 0;
-                            }
-                        }
-                    }
+                double speedMultiplier = 1.0;
+                string robot = "icubSim";
+
+                Value vRealtime = bCommand.find("realtime");
+                if(!vRealtime.isNull() && vRealtime.isBool()) {
+                    realtime = vRealtime.asBool();
                 }
-                bReply = triggerStreaming(imgInstance, timingEnabled, includeAugmented, speedM, useRealiCub);
+
+                Value vIncludeAugmented = bCommand.find("includeAugmented");
+                if(!vIncludeAugmented.isNull() && vIncludeAugmented.isBool()) {
+                    includeAugmented = vIncludeAugmented.asBool();
+                }
+
+                Value vSpeedMultiplier = bCommand.find("speedMultiplier");
+                if(!vSpeedMultiplier.isNull() && vSpeedMultiplier.isDouble()) {
+                    speedMultiplier = vSpeedMultiplier.asDouble();
+                }
+
+                Value vRobot = bCommand.find("robot");
+                if(!vRobot.isNull() && vRobot.isString()) {
+                    robot = vRobot.asString();
+                }
+
+                yDebug() << "Instance: " << imgInstance;
+                yDebug() << "timingEnabled: " << realtime;
+                yDebug() << "includeAugmented: " << includeAugmented;
+                yDebug() << "speedM: " << speedMultiplier;
+                yDebug() << "robot: " << robot;
+
+                bReply = triggerStreaming(imgInstance, realtime, includeAugmented, speedMultiplier, robot);
             }
             else
             {
-                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instanceNb timingEnabled(optional) includeAugmented(optional) speedMultiplier (optional)");
+                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instance (realtime true/false) (includeAugmented true/false) (speedMultiplier true/false) (robot icubSim)");
                 bReply = bError;
             }
         }
@@ -566,7 +582,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     if(bCommand.get(3).isInt()) {
                         bool include_augmented = (atoi((bCommand.get(3)).toString().c_str()));
                         if(bCommand.get(4).isString()) {
-                            bReply = provideImagesByFrame(instance, frame_number, include_augmented, (bCommand.get(4)).toString());
+                            string provider_port = bCommand.get(4).toString();
+                            bReply = provideImagesByFrame(instance, frame_number, include_augmented, provider_port);
                         } else {
                             bReply = provideImagesByFrame(instance, frame_number, include_augmented);
                         }
@@ -668,7 +685,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     bReply = getImagesInfo(instance);
                 }
             } else {
-                bReply.addString("[getImagesInfo]: wrong function signature: getImagesInfo instance");
+                bReply.addString("[getImagesInfo]: wrong function signature: getImagesInfo instance [includeAugmentedImages->1/0]");
             }
         }
         else
@@ -886,6 +903,7 @@ bool autobiographicalMemory::interruptModule()
     storeImageOIDs();
     opcWorld->interrupt();
 
+    portSoundStreamInput.interrupt();
     handlerPort.interrupt();
     portEventsIn.interrupt();
     abm2reasoning.interrupt();
@@ -902,6 +920,9 @@ bool autobiographicalMemory::close()
 
     opcWorld->interrupt();
     opcWorld->close();
+
+    portSoundStreamInput.interrupt();
+    portSoundStreamInput.close();
 
     handlerPort.interrupt();
     handlerPort.close();

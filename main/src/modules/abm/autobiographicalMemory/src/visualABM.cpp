@@ -296,13 +296,13 @@ bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPo
     return true;
 }
 
-Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, bool useRealiCub)
+Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, string robotName)
 {
     Bottle bReply;
     realtimePlayback = timingE;
     speedMultiplier = speedM;
     openImgStreamPorts(instance, includeAugmented);
-    openDataStreamPorts(instance, useRealiCub);
+    openDataStreamPorts(instance, robotName);
     // make sure images are stored in ABM before saving them
     storeImageOIDs(instance);
     int imageCount = saveImagesFromABM(instance);

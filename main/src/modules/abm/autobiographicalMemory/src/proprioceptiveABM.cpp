@@ -183,9 +183,7 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
 }
 
 // From here on all send stream related
-// if useRealiCub == true, the streams are sent to /icub/...
-// if useRealiCub == false, the streams are sent to /icubSim/...
-int autobiographicalMemory::openDataStreamPorts(int instance, bool useRealiCub) {
+int autobiographicalMemory::openDataStreamPorts(int instance, string robotName) {
     Bottle bDistLabelPort;
     ostringstream osArg;
 
@@ -207,18 +205,9 @@ int autobiographicalMemory::openDataStreamPorts(int instance, bool useRealiCub) 
         }
 
         // if memory was made not on same robot as replay should be made
-        string robotToReplace;
-        string robotReplacement;
-        if(useRealiCub) {
-            robotToReplace="/icubSim/";
-            robotReplacement="/icub/";
-        } else {
-            robotToReplace="/icub/";
-            robotReplacement="/icubSim/";
-        }
-        if(dataStreamPortTo.find(robotToReplace)!=string::npos) {
-            dataStreamPortTo.replace(dataStreamPortTo.find(robotToReplace), robotToReplace.length(), robotReplacement);
-        }
+        string robotReplacement="/"+robotName+"/";
+        size_t second_slash = dataStreamPortTo.find("/", 1);
+        dataStreamPortTo.replace(0, second_slash+1, robotReplacement);
 
         Network::connect(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo);
         if(Network::isConnected(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo)) {
