@@ -29,6 +29,7 @@ using namespace wysiwyd::wrdac;
 Agent::Agent():Object()
 {    
     m_entity_type = EFAA_OPC_ENTITY_AGENT;
+    m_ego_position[0] = 0.0;
 }
 
 Agent::Agent(const Agent &b):Object(b)

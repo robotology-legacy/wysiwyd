@@ -1170,7 +1170,7 @@ list<Entity*> OPCClient::EntitiesCacheCopy()
     return lR;
 }
 
-//Commit a single entity to the OPC (erase it)
+//Return a (printable) string with the contents of the OPC
 string OPCClient::print()
 {
     string s="WORLD STATE \n";
