@@ -45,7 +45,7 @@ Bottle autobiographicalMemory::addDataStreamProvider(const string &portDataStrea
     }
     else { //key found
         string error = "[addDataStreamProvider] " + portDataStreamProvider + " is already present!";
-        cout << error << endl;
+        yWarning() << error;
         bReply.addString(error);
     }
 
@@ -58,7 +58,7 @@ Bottle autobiographicalMemory::removeDataStreamProvider(const string &portDataSt
 
     if (mapDataStreamInput.find(portDataStreamProvider) == mapDataStreamInput.end()) { //key not found
         string error = "[removeDataStreamProvider]: " + portDataStreamProvider + ") is NOT present!";
-        cout << error << endl;
+        yWarning() << error;
         bReply.addString(error);
     }
     else { //key found
@@ -86,18 +86,18 @@ Bottle autobiographicalMemory::connectDataStreamProviders()
         it->second->open(portDataStreamReceiver);
         //it->first: port name of proprioceptive data Provider
         //it->second: portname of mapDataStreamReceiver which correspond to the label of dataStreamProvider
-        //cout << "  [connectDataStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName() << endl ;
+        //yDebug() << "  [connectDataStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName();
         if (!Network::isConnected(it->first, it->second->getName().c_str())) {
-            //cout << "Port is NOT connected : we will connect" << endl ;
+            //yDebug() << "Port is NOT connected : we will connect";
             if (!Network::connect(it->first, it->second->getName().c_str())) {
-                cout << "Error: Connection could not be setup" << endl;
+                yWarning() << "Error: Connection could not be setup";
                 bOutput.addString(it->first);
             }
-            //cout << "[connectDataStreamProviders] Connection from : " << it->first << endl ;
-            //cout << "[connectDataStreamProviders] Connection to   : " << it->second->getName() << endl;
+            //yDebug() << "[connectDataStreamProviders] Connection from : " << it->first;
+            //yDebug() << "[connectDataStreamProviders] Connection to   : " << it->second->getName();
         }
         else {
-            //cout << "[connectDataStreamProviders] Error: Connection already present!" << endl ;
+            //yWarning() << "[connectDataStreamProviders] Error: Connection already present!";
         }
     }
 
@@ -124,12 +124,12 @@ Bottle autobiographicalMemory::disconnectDataStreamProviders()
         //it->second: port name of streamDataReceiver which correspond to the label of streamDataProvider
         Network::disconnect(it->first, it->second->getName().c_str());
         if (Network::isConnected(it->first, it->second->getName().c_str())) {
-            cout << "[disconnectDataStreamProviders] ERROR " << it->first << " is NOT disconnected!";
+            yWarning() << "[disconnectDataStreamProviders] ERROR " << it->first << " is NOT disconnected!";
             bOutput.addString(it->first);
             isAllDisconnected = false;
         }
         else {
-            //cout << "[disconnectDataStreamProviders] " << it->first << " successfully disconnected!"  << endl ;
+            //yInfo() << "[disconnectDataStreamProviders] " << it->first << " successfully disconnected!";
 
             //Have to close/interrupt each time otherwise the port is not responsive anymore
             it->second->interrupt();
@@ -141,7 +141,7 @@ Bottle autobiographicalMemory::disconnectDataStreamProviders()
         bOutput.addString("ack");
     }
 
-    //cout << "[disconnectDataStreamProviders] bOutput = {" << bOutput.toString().c_str() << "}" << endl ;
+    //yDebug() << "[disconnectDataStreamProviders] bOutput = {" << bOutput.toString().c_str() << "}";
     return bOutput;
 }
 
@@ -211,13 +211,13 @@ int autobiographicalMemory::openDataStreamPorts(int instance, string robotName) 
 
         Network::connect(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo);
         if(Network::isConnected(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo)) {
-            cout << "Successfully connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo << endl;
+            yInfo() << "Successfully connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo;
         } else {
-            cout << "NOT connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo << endl;
+            yWarning() << "NOT connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo;
         }
     }
 
-    cout << "[openDataStreamPorts] Just created " << mapDataStreamPortOut.size() << " ports." << endl;
+    yInfo() << "[openDataStreamPorts] Just created " << mapDataStreamPortOut.size() << " ports.";
 
     return mapDataStreamPortOut.size();
 }

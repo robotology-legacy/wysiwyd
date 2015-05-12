@@ -53,7 +53,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     try {
         ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
     } catch (DataBaseError e) {
-        cout << "Could not connect to database. Reason: " << e.what() << endl;
+        yError() << "Could not connect to database. Reason: " << e.what();
         return false;
     }
 
@@ -120,32 +120,28 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     int trials = 0;
     Network::connect("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str());
-    yarp::os::Time::delay(2);
-    if (Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())){
-            cout <<  "ABM is connected to /speechRecognizer/recog/sound:o !!!" << endl ;
-    }
 
     while((!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())) && (trials < 5)) {
-        trials += 1 ;
-        cout << "trying to connect to /speechRecognizer/recog/sound:o ..." << endl ;
+        trials += 1;
+        yInfo() << "trying to connect to /speechRecognizer/recog/sound:o ...";
 
-
+        Network::connect("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str());
         if(trials == 5 && (!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str()))){
-            cout << "Seems to be no sound, quit trying!" << endl;
+            yInfo() << "Seems to be no sound, quit trying!";
         } else if (Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())){
-            cout <<  "ABM is connected to /speechRecognizer/recog/sound:o !!!" << endl ;
+            yInfo() <<  "ABM is connected to /speechRecognizer/recog/sound:o !!!";
         }
+        yarp::os::Time::delay(0.3);
     }
 
-
 #ifdef BOOST_AVAILABLE
-    cout << "Running ABM with Boost :-)" << endl;
+    yInfo() << "Running ABM with Boost :-)";
 #else
-    cout << "Running ABM without Boost. Recording data will be slower." << endl;
+    yWarning() << "Running ABM without Boost. Recording data will be slower.";
 #endif
 
-    cout << endl << endl << "----------------------------------------------";
-    cout << endl << endl << "autobiographicalMemory ready ! " << endl << endl;
+    yInfo() << "----------------------------------------------";
+    yInfo() << "autobiographicalMemory ready ! ";
 
     return true;
 }
@@ -156,7 +152,7 @@ Bottle autobiographicalMemory::newDB(Bottle bInput)
     Bottle bOutput;
     if (bInput.size() != 2)
     {
-        cout << "password required" << endl;
+        yWarning() << "password required";
         bOutput.addString("Error");
         bOutput.addString("password required");
         return bOutput;
@@ -165,6 +161,7 @@ Bottle autobiographicalMemory::newDB(Bottle bInput)
     {
         if (bInput.get(1).asString().c_str() != password)
         {
+            yError() << "Wrong database password!";
             bOutput.addString("Error");
             bOutput.addString("wrong password");
             return bOutput;
@@ -414,7 +411,7 @@ Bottle autobiographicalMemory::addInteraction(Bottle bInteraction)
     }
     catch (DataBaseError& e)
     {
-        cerr << "Exception during request : " << e.what() << endl;
+        yError() << "Exception during request : " << e.what();
         string sExcept = "Exception during request : "; sExcept += e.what();
         bReply.addString(sExcept.c_str());
     }
@@ -433,8 +430,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 {
     Bottle bError;
     bReply.clear();
-    cout << endl << "Got something, echo is on" << endl;
-    //cout << bCommand.toString() << endl << endl;
+    //yDebug() << "Got something, echo is on";
+    //yDebug() << bCommand.toString();
     bError.addString("ERROR");
 
     if (bCommand.get(0).isString())
@@ -722,32 +719,32 @@ void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool 
 /* rpc update module */
 bool autobiographicalMemory::updateModule() {
 
-    //cout << "Update loop" << endl ;
+    //yDebug() << "Update loop";
     yarp::sig::Sound *s;
     s=portSoundStreamInput.read(false);
     if(s!=NULL)
     {
-        cout << "I have received a sound!!!!!" << endl;
+        yDebug() << "I have received a sound!!!!!";
         stringstream fullPath;
         fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
         yarp::sig::file::write(*s,(storingPath + "/" + storingTmpSuffix+ "/" + "test.wav").c_str());
         //yarp::sig::file::write(*s,"c:\\robot\\ABMStoring\\tmp\\test.wav");
-        cout << "blop" << endl ;
+        yDebug() << "blop";
     } else {
-        //cout << "no sound?" << endl ;
+        //yDebug() << "no sound?";
     }
 
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
     if (streamStatus == "begin") {
-        cout << "============================= STREAM BEGIN =================================" << endl;
+        yInfo() << "============================= STREAM BEGIN =================================";
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
 
         stringstream imgInstanceString; imgInstanceString << imgInstance;
         string currentPathFolder = storingPath + "/" + imgInstanceString.str();
         if (yarp::os::mkdir(currentPathFolder.c_str()) == -1) {
-            cout << "WARNING: folder " << currentPathFolder << " already exists or could not be created!" << endl;
+            yWarning() << "Folder " << currentPathFolder << " already exists or could not be created!";
         }
 
         string synchroTime = getCurrentTime();
@@ -763,7 +760,7 @@ bool autobiographicalMemory::updateModule() {
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
-            cout << "============================= STREAM SEND =================================" << endl;
+            yInfo() << "============================= STREAM SEND =================================";
             timeStreamStart = getCurrentTimeInMS();
             timeLastImageSent = -1;
 
@@ -801,7 +798,7 @@ bool autobiographicalMemory::updateModule() {
                     timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
                 }
 
-                cout << "Send image: " << fullPath.str() << endl;
+                yInfo() << "Send image: " << fullPath.str();
                 writeImageToPort(fullPath.str(), port);
             }
         }
@@ -833,8 +830,8 @@ bool autobiographicalMemory::updateModule() {
 
                 // Send concatenated bottles to ports
 
-                cout << "Write port: " << it->second->getName() << endl;
-                cout << it->second->prepare().toString() << endl;
+                yInfo() << "Write port: " << it->second->getName();
+                yInfo() << it->second->prepare().toString();
                 it->second->write();
             }
         }
@@ -853,19 +850,19 @@ bool autobiographicalMemory::updateModule() {
 
         if(done) {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
-            cout << "streamStatus = end, closing ports" << endl;
+            yInfo() << "streamStatus = end, closing ports";
             for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamPortOut.begin(); it != mapImgStreamPortOut.end(); ++it) {
                 it->second->interrupt();
                 it->second->close();
                 if(!it->second->isClosed()) {
-                    cout << "Error, port " << it->first << " could not be closed" << endl;
+                    yError() << "Error, port " << it->first << " could not be closed";
                 }
             }
             for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it) {
                 it->second->interrupt();
                 it->second->close();
                 if(!it->second->isClosed()) {
-                    cout << "Error, port " << it->first << " could not be closed" << endl;
+                    yError() << "Error, port " << it->first << " could not be closed";
                 }
             }
 
@@ -878,7 +875,7 @@ bool autobiographicalMemory::updateModule() {
 
     //go back to default global value
     if (streamStatus == "end") {
-        cout << "============================= STREAM STOP =================================" << endl;
+        yInfo() << "============================= STREAM STOP =================================";
 
         // wait for threads to be finished
         yarp::os::Time::delay(0.5);
@@ -898,7 +895,7 @@ bool autobiographicalMemory::updateModule() {
 
 bool autobiographicalMemory::interruptModule()
 {
-    cout << "Interrupting your module, for port cleanup" << endl;
+    yInfo() << "Interrupting your module, for port cleanup";
 
     storeImageOIDs();
     opcWorld->interrupt();
@@ -913,7 +910,7 @@ bool autobiographicalMemory::interruptModule()
 
 bool autobiographicalMemory::close()
 {
-    cout << "Calling close function" << endl;
+    yInfo() << "Calling close function";
 
     disconnectDataStreamProviders();
     disconnectFromImgStreamProviders();
@@ -939,7 +936,7 @@ bool autobiographicalMemory::close()
     delete opcWorld;
     delete ABMDataBase;
 
-    cout << "ABM Successfully finished!" << endl;
+    yInfo() << "ABM Successfully finished!";
 
     return true;
 }
@@ -1203,7 +1200,7 @@ Bottle autobiographicalMemory::populateOPC()
     if (!opcWorld->isConnected())
     {
         bOutput.addString("Error in autobiographicalMemory::populateOPC | OpcClient not connected.");
-        cout << bOutput.toString() << endl;
+        yError() << bOutput.toString();
         return bOutput;
     }
 
@@ -1226,7 +1223,7 @@ Bottle autobiographicalMemory::populateOPC()
         {
             osAgent << "SELECT instance FROM agent WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
             bReply = requestFromString(osAgent.str());
-            cout << bReply.get(0).toString() << endl;
+            yInfo() << bReply.get(0).toString();
             int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
 
             osAgent.str("");
@@ -1357,7 +1354,7 @@ Bottle autobiographicalMemory::populateOPC()
     ostringstream osOutput;
     osOutput << endl << incrAgent << " Agent(s) - " << incrObject << " Object(s) - " << incrRTO << " RTObject(s) added in the OPC." << endl;
 
-    cout << osOutput.str() << endl;
+    yInfo() << osOutput.str();
     bOutput.addString(osOutput.str().c_str());
 
     return bOutput;

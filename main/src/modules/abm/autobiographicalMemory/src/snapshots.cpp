@@ -90,7 +90,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     //Begin
     done = false;
     bool bBegin = false;
-    //cout << "bInput has a size of " << bInput.size() << " and is : " << bInput.toString().c_str() << endl;
+    //yDebug() << "bInput has a size of " << bInput.size() << " and is : " << bInput.toString().c_str();
     for (int i = 1; i < bInput.size(); i++)
     {
         bTemp = *(bInput.get(i).asList());
@@ -126,7 +126,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     ostringstream osName;
     osName << sName << instance;
     sName += osName.str();                         //I dont understand this Gregoire : you concatenate the name with nameInstance with itself, producing namenameinstance
-    //cout << "OPCEARS: " << sName << endl;
+    //yDebug() << "OPCEARS: " << sName;
     Bottle bSnapShot = OPCEARS.insertOPC(sName);
 
     ostringstream osAllArg;
@@ -202,9 +202,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     string isConnectedToContDataProviders = connectDataStreamProviders().toString().c_str();
 
     if (isConnectedToImgProviders != "ack" && isConnectedToContDataProviders != "ack"){
-        cout << "ABM failed to connect to imgProviders / contDataProviders" << endl;
-        cout << "Reason image providers: " << isConnectedToImgProviders << endl;
-        cout << "Reason cont data providers: " << isConnectedToContDataProviders << endl;
+        yError() << "ABM failed to connect to imgProviders / contDataProviders";
+        yError() << "Reason image providers: " << isConnectedToImgProviders;
+        yError() << "Reason cont data providers: " << isConnectedToContDataProviders;
     }
     if (isStreamActivity == true) { //just launch stream images stores when relevant activity
         if(bBegin) {
@@ -219,9 +219,8 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
         yarp::sig::Sound *s;
         s=portSoundStreamInput.read(true);
-        if(s!=NULL)
-        {
-            cout << "I have received a sound!!!!!" << endl;
+        if(s!=NULL) {
+            yDebug() << "I have received a sound!!!!!";
         }
 
         storeImagesAndData(synchroTime, true, fullSentence);
@@ -229,7 +228,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
         string reply = disconnectFromImgStreamProviders().toString().c_str();
         if (reply != "ack"){
-            cout << "ABM failed to disconnect to one imgProvider" << endl;
+            yWarning() << "ABM failed to disconnect to one imgProvider";
         }
     }
 
@@ -255,14 +254,14 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     if (bInput.size() != 5)
     {
         string sError = "Error in autobiographicalMemory::snapshotSP | Wrong number of input (!= 5)";
-        cout << sError << endl;
+        yError() << sError;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
     if (!bInput.get(0).isString() || !bInput.get(1).isList() || !bInput.get(2).isList() || !bInput.get(3).isList() || !bInput.get(4).isList())
     {
         string sError = "Error in autobiographicalMemory::snapshotSP | Wrong format of input";
-        cout << sError << endl;
+        yError() << sError;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -271,7 +270,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     if (bInput.get(2).asList()->size() != bInput.get(3).asList()->size())
     {
         string sError = "Error in autobiographicalMemory::snapshotSP | number of argument different of number of role";
-        cout << sError << endl;
+        yError() << sError;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -351,7 +350,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
 
     if (sManner == "none")
     {
-        cout << "manner not found. Auto set to : none" << endl;
+        yWarning() << "manner not found. Auto set to : none";
     }
 
     //Connection to the OPC and snapshot
@@ -440,7 +439,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     if (bInput.size() != 5)
     {
         string sError = "Error in autobiographicalMemory::snapshotBE | Wrong number of input (!= 5)";
-        cout << sError << endl;
+        yError() << sError;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -448,7 +447,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     if (!bInput.get(0).isString() || !bInput.get(1).isList() || !bInput.get(2).isList() || !bInput.get(3).isList() || !bInput.get(4).isList())
     {
         string sError = "Error in autobiographicalMemory::snapshotBE | Wrong format of input";
-        cout << sError << endl;
+        yError() << sError;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -457,7 +456,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     if (bInput.get(2).asList()->size() != bInput.get(3).asList()->size())
     {
         string sError = "Error in autobiographicalMemory::snapshotBE | number of argument different of number of role";
-        cout << sError << endl;
+        yError() << sError;
         bOutput.addString(sError.c_str());
         return bOutput;
     }

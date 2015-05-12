@@ -55,7 +55,7 @@ Bottle autobiographicalMemory::restoBottle(ResultSet bResult)
 
         //add the line bottle to the reply bottle
         //printf("Bottle lineBottle done : %s\n", lineBottle.toString().c_str());
-        //cout << "lineBottle size : " << lineBottle.size() << endl;
+        //yDebug() << "lineBottle size : " << lineBottle.size();
         bOutput.addList() = bLineBottle;
     }
     if (!isResult)
@@ -63,7 +63,7 @@ Bottle autobiographicalMemory::restoBottle(ResultSet bResult)
         bOutput.clear();
         bOutput.addString("NULL");
     }
-    //cout << "output size : " << output.size() << endl;
+    //yDebug() << "output size : " << output.size() ;
     return bOutput;
 }
 
@@ -74,24 +74,24 @@ Bottle autobiographicalMemory::request(const Bottle& bRequest)
     //prepare the ResultSet of the query and the reply
     ResultSet rs1;
     Bottle bReply;
-    //cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
+    //yDebug << "Request : "<< bRequest.get(1).asString().c_str();
 
     //send the request to the database
     try
     {
         //verbose debug
-        //cout << "Request : "<< bRequest.get(1).asString().c_str() << endl;
+        //yDebug << "Request : "<< bRequest.get(1).asString().c_str();
 
         *ABMDataBase << bRequest.get(1).asString().c_str(), rs1;
         bReply = restoBottle(rs1);
 
         //verbose print reply
-        //cout << "bReply = " << bReply.toString().c_str() << endl ;
+        //yDebug << "bReply = " << bReply.toString().c_str();
     }
     catch (DataBaseError& e)
     {
         if(strcmp(e.what(),"This command don't support results")!=0)
-            cerr << "Exception during request: " << e.what() << endl;
+            yError() << "Exception during request: " << e.what();
         string sExcept = "Exception during request: "; sExcept += e.what();
         bReply.addString(sExcept.c_str());
     }
@@ -108,7 +108,7 @@ void autobiographicalMemory::requestInsertProcessQueue() {
     for(std::vector<std::string>::size_type i = 0; i != requests.size(); i++) {
         requestFromString(requests[i]);
         if(i%100==0) {
-            cout << "Process insert queue: " << i << " of " << requests.size() << endl;
+            yInfo() << "Process insert queue: " << i << " of " << requests.size();
         }
     }
     requests.clear();
@@ -131,7 +131,7 @@ void autobiographicalMemory::writeInsert(string sRequest)
         file << sRequest << endl;
     }
     else {
-        cout << "Error, can not save request in " << savefile << endl;
+        yError() << "Error, can not save request in " << savefile;
         return;
     }
     file.close();
@@ -142,10 +142,10 @@ bool autobiographicalMemory::readInsert()
 {
     ifstream file(savefile.c_str(), ios::in);
     if (file) {
-        cout << endl << "readFile of requests from " << savefile.c_str() << endl << endl;
+        yInfo() << "readFile of requests from " << savefile.c_str();
     }
     else {
-        cout << "Error, can not open " << savefile.c_str() << endl;
+        yError() << "Error, can not open " << savefile.c_str();
         return false;
     }
 
@@ -187,7 +187,7 @@ Bottle autobiographicalMemory::connectOPC(Bottle bInput)
     int iTry = 0;
     while (!opcWorld->isConnected())
     {
-        cout << "ABM Connecting to " << OPC_name << "..." << opcWorld->connect(OPC_name) << endl;
+        yInfo() << "ABM Connecting to " << OPC_name << "..." << opcWorld->connect(OPC_name);
         Time::delay(0.5);
         iTry++;
         if (iTry > 2)
@@ -423,7 +423,7 @@ vector<double> autobiographicalMemory::tupleDoubleFromString(const string &sInpu
         osEntity << "SELECT instance, opcid FROM entity WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
         bMessenger = requestFromString(osEntity.str());
 
-        cout << "bMessenger : " << bMessenger.toString() << endl;
+        yInfo() << "bMessenger : " << bMessenger.toString();
 
         int Instance = atoi(bMessenger.get(0).asList()->get(0).toString().c_str()),
             Opcid = atoi(bMessenger.get(0).asList()->get(1).toString().c_str());
@@ -439,7 +439,7 @@ vector<double> autobiographicalMemory::tupleDoubleFromString(const string &sInpu
         bMessenger = requestFromString(osEntity.str());
 
         int iNbInteraction = atoi(bMessenger.get(0).asList()->get(0).toString().c_str());
-        cout << "I have interacted with this " << sSubType << " " << iNbInteraction / 2 << " times ! " << endl;
+        yInfo() << "I have interacted with this " << sSubType << " " << iNbInteraction / 2 << " times !";
     }
 
     return bOutput;

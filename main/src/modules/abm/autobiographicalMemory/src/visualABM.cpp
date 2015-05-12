@@ -52,8 +52,8 @@ Bottle autobiographicalMemory::addImgStreamProvider(const string &portImgStreamP
         bReply.addString("[ack]");
     }
     else { //key found
-        cout << "ERROR : addImgStreamProvider : " << portImgStreamProvider << " is already present!" << endl;
         bReply.addString("ERROR : addImgStreamProvider : " + portImgStreamProvider + " is already present!");
+        yError() << bReply.toString();
     }
 
     //send the reply
@@ -66,8 +66,8 @@ Bottle autobiographicalMemory::removeImgStreamProvider(const string &portImgStre
     Bottle bReply;
 
     if (mapImgStreamInput.find(portImgStreamProvider) == mapImgStreamInput.end()) { //key not found
-        cout << "ERROR : removeImgStreamProvider : " << portImgStreamProvider << " is NOT present! " << endl;
         bReply.addString("ERROR : removeImgStreamProvider : " + portImgStreamProvider + " is NOT present! ");
+        yError() << bReply.toString();
     }
     else { //key found
         mapImgStreamInput[portImgStreamProvider]->interrupt();
@@ -143,12 +143,12 @@ Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_numb
         string relative_path = bRequest.get(i).asList()->get(0).toString();
         string imgProviderPort = bRequest.get(i).asList()->get(1).asString();
         string imgTime = bRequest.get(i).asList()->get(2).asString();
-        //cout << "Create image " << i << " " << relative_path << endl;
+        //yDebug() << "Create image " << i << " " << relative_path;
 
         // create image in the /storePath/tmp/relative_path
         IplImage* img = cvLoadImage((storingPath + "/" + storingTmpSuffix + "/" + relative_path).c_str(), CV_LOAD_IMAGE_UNCHANGED);
         if (img == 0) {
-            cout << "Image " << storingPath << "/" << storingTmpSuffix << "/" + relative_path << " could not be loaded.";
+            yWarning() << "Image " << storingPath << "/" << storingTmpSuffix << "/" + relative_path << " could not be loaded.";
             bOutput.addString((storingPath + "/" + storingTmpSuffix + "/" + relative_path).c_str());
             return bOutput;
         }
@@ -196,18 +196,18 @@ Bottle autobiographicalMemory::connectToImgStreamProviders()
         it->second->open(portImgStreamReceiver);
         //it->first: port name of img Provider
         //it->second->getName(): portname of imgReceiver which correspond to the label of imgProvider
-        //cout << "  [connectToImgStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName() << endl;
+        //yDebug() << "[connectToImgStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName();
         if (!Network::isConnected(it->first, it->second->getName().c_str())) {
-            //cout << "Port is NOT connected : we will connect" << endl;
+            //yDebug() << "Port is NOT connected : we will connect";
             if (!Network::connect(it->first, it->second->getName().c_str())) {
-                cout << "Error: Connection could not be setup" << endl;
+                yError() << "Error: Connection could not be setup";
                 bOutput.addString(it->first);
             }
-            //cout << "Connection from : " << it->first << endl;
-            //cout << "Connection to   : " << it->second->getName() << endl;
+            //yDebug() << "Connection from : " << it->first;
+            //yDebug() << "Connection to   : " << it->second->getName()dl;
         }
         else {
-            //cout << "Error: Connection already present!" << endl ;
+            //yError() << "Error: Connection already present!";
         }
     }
 
@@ -234,11 +234,11 @@ Bottle autobiographicalMemory::disconnectFromImgStreamProviders()
         //mapImgReceiver.find(it->first)->second: port name of imgReceiver which correspond to the label of imgProvider
         Network::disconnect(it->first, it->second->getName().c_str());
         if (Network::isConnected(it->first, it->second->getName().c_str())) {
-            cout << "ERROR [disconnectFromImgStreamProviders] " << it->first << " is NOT disconnected!";
+            yError() << "ERROR [disconnectFromImgStreamProviders] " << it->first << " is NOT disconnected!";
             bOutput.addString(it->first);
             isAllDisconnected = false;
         } else {
-            //cout << "[disconnectFromImgStreamProviders] " << it->first << " successfully disconnected!"  << endl ;
+            //yInfo() << "[disconnectFromImgStreamProviders] " << it->first << " successfully disconnected!";
 
             //Have to close/interrupt each time otherwise the port is not responsive anymore
             it->second->interrupt();
@@ -250,7 +250,7 @@ Bottle autobiographicalMemory::disconnectFromImgStreamProviders()
         bOutput.addString("ack");
     }
 
-    //cout << "[disconnectFromImgStreamProviders] bOutput = {" << bOutput.toString().c_str() << "}" << endl ;
+    //yDebug() << "[disconnectFromImgStreamProviders] bOutput = {" << bOutput.toString().c_str() << "}";
     return bOutput;
 }
 
@@ -258,7 +258,7 @@ bool autobiographicalMemory::saveImageFromPort(const string &fullPath, const str
 {
     //Extract the incoming images from yarp
     ImageOf<PixelRgb> *yarpImage = imgPort->read(false);
-    //cout << "imgPort name : " << imgPort->getName() << endl ;
+    //yDebug() << "imgPort name : " << imgPort->getName();
 
     if (yarpImage != NULL) { // check we actually got something
         //use opencv to convert the image and save it
@@ -266,18 +266,18 @@ bool autobiographicalMemory::saveImageFromPort(const string &fullPath, const str
         cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
         cvSaveImage(fullPath.c_str(), cvImage);
 
-        //cout << "img created : " << fullPath << endl ;
+        //yDebug() << "img created : " << fullPath;
         cvReleaseImage(&cvImage);
         return true;
     } else {
-        //cout << "[saveImageFromPort] No image received from: " << imgPort->getName() << endl;
+        //yWarning() << "[saveImageFromPort] No image received from: " << imgPort->getName();
         return false;
     }
 }
 
 bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPort<ImageOf<PixelRgb> >* imgPort)
 {
-    //cout << "Going to send : " << fullPath << endl;
+    //yDebug() << "Going to send : " << fullPath;
     IplImage* img = cvLoadImage(fullPath.c_str(), CV_LOAD_IMAGE_UNCHANGED);
     if (img == 0)
         return false;
@@ -361,12 +361,12 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
         mapImgStreamPortOut[imgProviderPort]->open((portPrefixForStreaming+imgProviderPort).c_str());
 
         if(includeAugmented || (!includeAugmented && bRequest.get(i).asList()->get(1).asString()=="")) {
-            //cout << "Connect " << portPrefixForStreaming+imgProviderPort << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort << endl;
+            //yDebug() << "Connect " << portPrefixForStreaming+imgProviderPort << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
             Network::connect(portPrefixForStreaming+imgProviderPort, "/yarpview"+portPrefixForStreaming+imgProviderPort);
         }
     }
 
-    cout << "[openImgStreamPorts] just created " << mapImgStreamPortOut.size() << " ports." << endl;
+    yInfo() << "[openImgStreamPorts] just created " << mapImgStreamPortOut.size() << " ports.";
 
     return mapImgStreamPortOut.size();
 }
@@ -394,10 +394,10 @@ void autobiographicalMemory::processOneImagePort(const string &imagePath, const 
                                             yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >* port,
                                             const string &synchroTime) {
     if(saveImageFromPort(imagePath, portFrom, port)) {
-        //cout << "Store image " << imagePath << " in database." << endl;
+        //yDebug() << "Store image " << imagePath << " in database.";
         //create SQL entry, register the cam image in specific folder
         if(!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, portFrom)) {
-            cout << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath << endl;
+            yError() << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath;
         }
     }
 }
@@ -460,7 +460,7 @@ bool autobiographicalMemory::storeImageOIDs(int instance) {
     bRequest = requestFromString(osStoreOIDReq.str());
 
     if(bRequest.size()>0 && bRequest.get(0).toString() != "NULL") {
-        cout << "[storeImageOIDs] This may take a while!" << endl;
+        yInfo() << "[storeImageOIDs] This may take a while!";
     } else {
         return true;
     }
@@ -482,7 +482,7 @@ bool autobiographicalMemory::storeImageOIDs(int instance) {
 
         if((i%100==0 && i!=0) || i==bRequest.size() - 1) {
             requestFromString(osStoreOID.str());
-            cout << "[storeImageOIDs] Saved " << i+1 << " images out of " << bRequest.size() << endl;
+            yInfo() << "[storeImageOIDs] Saved " << i+1 << " images out of " << bRequest.size();
             osStoreOID.str("");
         }
     }
@@ -527,7 +527,7 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
                 chmod(folderName.c_str(), 0777);
  #endif
             }
-            cout << "[saveImagesFromABM] Export OID " << imageOID << " to: " << storingPath << "/" << storingTmpSuffix << "/" << relative_path << endl;
+            yInfo() << "[saveImagesFromABM] Export OID " << imageOID << " to: " << storingPath << "/" << storingTmpSuffix << "/" << relative_path;
             string imgPath = storingPath + "/" + storingTmpSuffix + "/" + relative_path;
              database_mutex.lock();
             ABMDataBase->lo_export(imageOID, imgPath.c_str());
@@ -596,7 +596,7 @@ Bottle autobiographicalMemory::saveAugmentedImages(const Bottle &bInput) {
     for(int i=1; i<bInput.size(); i++) {
         Bottle* bImageWithMeta = bInput.get(i).asList();
 
-        //cout << "extract variables from bottle" << endl;
+        //yDebug() << "extract variables from bottle";
         Bottle *bMetaInformation = bImageWithMeta->get(0).asList();
 
         string instanceString = (bMetaInformation->get(0)).toString();
@@ -607,12 +607,12 @@ Bottle autobiographicalMemory::saveAugmentedImages(const Bottle &bInput) {
         string time = (bMetaInformation->get(3)).asString().c_str();
         string augmentedLabel = bImageWithMeta->get(1).asString();
 
-        //cout << "augmentedLabel: " << augmentedLabel << endl;
+        //yDebug() << "augmentedLabel: " << augmentedLabel;
 
         string providerPortSpecifier = providerPort;
         replace(providerPortSpecifier.begin(), providerPortSpecifier.end(), '/', '_');
 
-        //cout << "save image from bottle to file" << endl;
+        //yDebug() << "save image from bottle to file";
         ImageOf<PixelRgb> yarpImage;
         Bottle* bImage = bImageWithMeta->get(2).asList();
         yarp::os::Portable::copyPortable(*bImage, yarpImage);
