@@ -91,8 +91,8 @@ public:
     void updateCameraPosition(
             const rtabmap::Transform & pose);
 
-    pcl::visualization::PCLVisualizer& getVisualizer() {
-        return *_visualizer;
+    pcl::visualization::PCLVisualizer* getVisualizer() {
+        return _visualizer;
     }
 
 private:

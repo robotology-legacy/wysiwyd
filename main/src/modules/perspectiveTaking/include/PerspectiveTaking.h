@@ -91,6 +91,7 @@ protected:
     bool isConnectedToHeadPoseEstimator;
 
     // actual perspective Taking
+    double voxelLeafSize;
     void updateObjects();
 
     void setViewRobotReference(const Eigen::Vector4f& p_pos, const Eigen::Vector4f& p_view, const Eigen::Vector4f& p_up, const std::string& viewport);

@@ -94,6 +94,7 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     //kinect2robot_pcl = getRFHTransMat(resfind.check("rfhName",Value("referenceFrameHandler")).asString().c_str());
 
     float cameraAngle = rf.check("cameraAngle",Value(-20.0)).asDouble()/180.0*M_PI;
+    voxelLeafSize = rf.check("voxelLeafSize",Value(0.05)).asDouble();
 
     Bottle* cameraOffset = rf.find("cameraOffset").asList();
     if(cameraOffset==NULL || cameraOffset->size()<3) {
@@ -184,14 +185,15 @@ void perspectiveTaking::updateObjects() {
     }
     opc->checkout();
 
-    mapBuilder->getVisualizerByName("robot")->getVisualizer().removeAllShapes();
-    mapBuilder->getVisualizerByName("partner")->getVisualizer().removeAllShapes();
+    mapBuilder->getVisualizer("robot")  ->removeAllShapes();
+    mapBuilder->getVisualizer("partner")->removeAllShapes();
 
     list<Entity*> entities = opc->EntitiesCache();
     for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++) {
         if( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ) {
             if (Object *obj=dynamic_cast<Object*>(*it)) {
-                if(obj->m_present) {
+                if(obj->m_present && obj->name()!="partner") {
+                    // draw object in visualizer
                     string obj_name = obj->name();
 
                     boost::hash<std::string> string_hash;
@@ -204,15 +206,24 @@ void perspectiveTaking::updateObjects() {
 
                     Vector obj_pos_yarp = obj->m_ego_position;
 
-                    Eigen::Vector4f obj_pos = Eigen::Vector4f(-1.0*obj_pos_yarp[0], obj_pos_yarp[1], obj_pos_yarp[2], 1.0);
+                    Eigen::Vector4f obj_pos = Eigen::Vector4f(-1.0*obj_pos_yarp[0],
+                                                                   obj_pos_yarp[1],
+                                                                   obj_pos_yarp[2],
+                                                                   1.0);
                     Eigen::Vector4f obj_pos_root = kin2root.matrix() * obj_pos;
                     Eigen::Vector4f obj_pos_head = kin2head.inverse() * obj_pos_root;
 
                     pcl::PointXYZ obj_pos_root_pcl = eigen2pclV(obj_pos_root);
                     pcl::PointXYZ obj_pos_head_pcl = eigen2pclV(obj_pos_head);
 
-                    mapBuilder->getVisualizerByName("robot")  ->getVisualizer().addSphere(obj_pos_head_pcl, obj_size, obj_r, obj_g, obj_b, obj_name);
-                    mapBuilder->getVisualizerByName("partner")->getVisualizer().addSphere(obj_pos_root_pcl, obj_size, obj_r, obj_g, obj_b, obj_name);
+                    mapBuilder->getVisualizer("robot")  ->addSphere(obj_pos_head_pcl,
+                                                                    obj_size,
+                                                                    obj_r, obj_g, obj_b,
+                                                                    obj_name);
+                    mapBuilder->getVisualizer("partner")->addSphere(obj_pos_root_pcl,
+                                                                    obj_size,
+                                                                    obj_r, obj_g, obj_b,
+                                                                    obj_name);
                 }
             }
         }
@@ -313,7 +324,7 @@ void perspectiveTaking::setPartnerCamera() {
             }
         }
 
-        mapBuilder->getVisualizerByName("robot")->getVisualizer().removeAllShapes();
+        mapBuilder->getVisualizer("robot")->removeShape("faceArrow");
 
         if(g_means.size()) {
             yInfo() << "Received pose, set camera";
@@ -334,9 +345,9 @@ void perspectiveTaking::setPartnerCamera() {
             Eigen::Vector4f up = pos; up(2) += 1.0;
             Eigen::Vector4f view = odometryPos*Eigen::Vector4f(head_front[2]/1000.0, -head_front[0]/1000.0, -head_front[1]/1000.0, 1);
 
-            //yDebug() << "Odom: " << odometryPos;
-            //yDebug() << "Pos: "  << pos ;
-            //yDebug() << "View: " << view;
+            //cout << "Odom: " << odometryPos;
+            //cout << "Pos: "  << pos ;
+            //cout << "View: " << view;
 
             pcl::PointXYZ begin(pos[0],  pos[1],  pos[2]);
             pcl::PointXYZ end(view[0], view[1], view[2]);
@@ -346,7 +357,7 @@ void perspectiveTaking::setPartnerCamera() {
             up[0]   = -up[0];       up[1] = -up[1];
             view[0] = -view[0];   view[1] = -view[1];
 
-            mapBuilder->getVisualizerByName("robot")->getVisualizer().addArrow(end, begin, 0.0, 1.0, 0.0, "faceArrow");
+            mapBuilder->getVisualizer("robot")->addArrow(end, begin, 0.0, 1.0, 0.0, "faceArrow");
 
             yDebug() << "Call setPartnerCamera";
             setViewCameraReference(pos, view, up, "partner");

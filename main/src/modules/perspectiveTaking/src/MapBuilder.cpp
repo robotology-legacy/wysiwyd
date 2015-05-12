@@ -75,12 +75,9 @@ void MapBuilder::setCameraPosition(double pos_x, double pos_y, double pos_z,
                                    double up_x, double up_y, double up_z,
                                    const std::string &visualizerName) {
     vis_mutex.lock();
-    VisualizerWrapper* vis = getVisualizerByName(visualizerName);
-    if(vis) {
-        vis->getVisualizer().setCameraPosition(pos_x, pos_y, pos_z,
-                                               view_x, view_y, view_z,
-                                               up_x, up_y, up_z);
-    }
+    getVisualizer(visualizerName)->setCameraPosition(pos_x, pos_y, pos_z,
+                                                     view_x, view_y, view_z,
+                                                    up_x, up_y, up_z);
     vis_mutex.unlock();
 }
 
@@ -101,9 +98,9 @@ cv::Mat MapBuilder::getScreen() {
 
 void MapBuilder::setCameraFieldOfView(double fovy, const std::string &visualizerName) {
     vis_mutex.lock();
-    VisualizerWrapper* vis = getVisualizerByName(visualizerName);
+    pcl::visualization::PCLVisualizer* vis = getVisualizer(visualizerName);
     if(vis) {
-        vis->getVisualizer().setCameraFieldOfView(fovy);
+        vis->setCameraFieldOfView(fovy);
     }
     vis_mutex.unlock();
 }

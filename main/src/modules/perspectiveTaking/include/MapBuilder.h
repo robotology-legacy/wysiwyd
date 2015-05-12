@@ -19,6 +19,8 @@
 #ifndef VPT_MAPBUILDER
 #define VPT_MAPBUILDER
 
+#include <yarp/os/all.h>
+
 #include <QVBoxLayout>
 #include <QtCore/QMetaType>
 
@@ -63,16 +65,30 @@ public:
         decimationStatistics_ = decimation;
     }
 
-    VisualizerWrapper* getVisualizerByName(const std::string &name) {
+    pcl::visualization::PCLVisualizer* getVisualizer(const std::string &name) {
         VisualizerWrapper* vis = NULL;
         if(name == "robot") {
             vis = _vWrapper_robot;
         } else if(name == "partner") {
             vis = _vWrapper_partner;
         } else {
-            cerr << "No visualizer with name " << name << endl;
+            yError() << "No visualizer with name " << name;
+            return NULL;
         }
-        return vis;
+        return vis->getVisualizer();
+    }
+
+    const std::map<std::string, boost::shared_ptr<cloudWithPose> > & getAddedClouds(const std::string &visname) const {
+        VisualizerWrapper* vis = NULL;
+        if(visname == "robot") {
+            vis = _vWrapper_robot;
+        } else if(visname == "partner") {
+            vis = _vWrapper_partner;
+        } else {
+            yError() << "No visualizer with name " << visname;
+            throw("No visualizer with name " + visname);
+        }
+        return vis->getAddedClouds();
     }
 
     Transform getLastOdomPose() { return lastOdomPose_; }
