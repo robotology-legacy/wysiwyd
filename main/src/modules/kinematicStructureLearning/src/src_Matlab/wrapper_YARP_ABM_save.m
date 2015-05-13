@@ -24,10 +24,12 @@
 %====================================
 %creating ports
 port2ABM_write  = Port;          %port for ABM
+portOutgoing = Port;
 
 %first close the port just in case
 %(this is to try to prevent matlab from beuing unresponsive)
 port2ABM_write.close;
+portOutgoing.close;
 
 %open the ports
 disp('_____opening ports...');
@@ -36,7 +38,14 @@ disp('_____opened port /matlab/kinematicStructure/image_write');
 pause(0.5);
 disp('_____done.');
 
+disp('_____opening ports...');
+portOutgoing.open('/matlab/kinematicStructure/imageout');
+disp('_____opened port /matlab/kinematicStructure/imageout');
+pause(0.5);
+disp('_____done.');
+
 disp('Going to open port /matlab/kinematicStructure/image_write');
+disp('Going to open port /matlab/kinematicStructure/imageout');
 
 connection_check = 0;
 while(~connection_check)
@@ -52,7 +61,7 @@ disp('Connected!')
 % Load Images
 %====================================
 load('ABM_images/ImageMeta.mat');
-load('ABM_images/RawImage.mat');
+% load('ABM_images/RawImage.mat');
 
 augmentedLabel = 'kinematic_structure';
 
@@ -65,7 +74,6 @@ augmentedLabel = 'kinematic_structure';
 disp('================================');
 disp('Start sending images!');
 tic
-frm_idx_buf = 1;
 
 bDeletePrevious = yarp.Bottle;
 bDeletePrevious.clear();
@@ -77,39 +85,46 @@ bDeletePrevious.addString(delete_command);
 port2ABM_write.write(bDeletePrevious);
 % disp(bResponseDelete.toString());
 
-% for frm_idx = 1:10
-for frm_idx = 1:num_images
-    
-    if ~isempty(bImageMeta_buf{frm_idx})
+connection_check = 0;
+while(~connection_check)
+    Network.connect('/matlab/kinematicStructure/imageout', '/autobiographicalMemory/augmented:i');
+    connection_check = Network.isConnected('/matlab/kinematicStructure/imageout','/autobiographicalMemory/augmented:i');
+    pause(1)
+    disp('waiting for connection...');
+end
+disp('Connected!')
+
+for i = 1:num_images
+    if ~isempty(bImageMeta_buf{i})
         bAugmentedImageWithMeta = yarp.Bottle;
         bAugmentedImageWithMeta.clear();
         bResponseAugmented = yarp.Bottle;
         bResponseAugmented.clear();
         
-        bImageMeta_string = bImageMeta_buf{frm_idx}.toString();
+        bImageMeta_string = bImageMeta_buf{i}.toString();
         
-        image_name = [sprintf('%04d',frm_idx_buf) '.png'];
-        fprintf(['Saving ', image_name]);
+        image_name = [sprintf('%04d',i) '.png'];
+        fprintf(['Saving ', image_name, '\n']);
         img_mat_org = imread(['result/images/',image_name]);
         [h,w,pixSize] = size(img_mat_org);
+        tool=YarpImageHelper(h, w);
         
-        img_mat_org_r = reshape(img_mat_org(:,:,1)',[1, w*h]);
-        img_mat_org_g = reshape(img_mat_org(:,:,2)',[1, w*h]);
-        img_mat_org_b = reshape(img_mat_org(:,:,3)',[1, w*h]);
-        img_mat_org_vec = [img_mat_org_r ; img_mat_org_g ; img_mat_org_b];
-        img_mat = reshape(img_mat_org_vec,[1, h*w*pixSize]);
+        img = yarp.ImageRgb(); %create a new yarp image to send results to ports
+        img.resize(w,h);   %resize it to the desired size
+        img.zero();        %set all pixels to black
+        img_mat_org = reshape(img_mat_org, [h*w*pixSize 1]); %reshape the matlab image to 1D
+        tempImg = cast(img_mat_org ,'int16');   %cast it to int16
+        img = tool.setRawImg(tempImg, h, w, pixSize); % pass it to the setRawImg function (returns the full image)
         
-%         img_mat = reshape(img_mat_org2, [h*w*pixSize 1])'; %reshape the matlab image to 1D
-        img_string = ['[mat] [rgb] (',num2str(pixSize),' ',num2str(h*w*pixSize),' 8 ',num2str(w),' ',num2str(h),') {',num2str(img_mat),'}'];   
-              
-        string_buf = ['saveAugmentedImages ((',char(bImageMeta_string),') ', augmentedLabel, ' (', img_string, '))'];
-        bAugmentedImageWithMeta.fromString(string_buf);
-        port2ABM_write.write(bAugmentedImageWithMeta, bResponseAugmented);
-        
-        disp(bResponseAugmented.toString());
-        frm_idx_buf = frm_idx_buf + 1;
+        bMetaBottle = yarp.Bottle;
+        bMetaBottle.fromString(bImageMeta_string);
+        bMetaBottle.addString(augmentedLabel);
+        portOutgoing.setEnvelope(bMetaBottle);
+        portOutgoing.write(img); %send it off
     end
 end
+
+Network.disconnect('/matlab/kinematicStructure/imageout', '/autobiographicalMemory/augmented:i');
 
 time = toc;
 fprintf('Sending back to yarp took %f seconds \n', time);
@@ -120,3 +135,4 @@ fprintf('Sending back to yarp took %f seconds \n', time);
 %====================================
 disp('Closing the port');
 port2ABM_write.close;
+portOutgoing.close;
