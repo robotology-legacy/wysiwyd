@@ -199,7 +199,7 @@ Bottle autobiographicalMemory::connectToImgStreamProviders()
         //yDebug() << "[connectToImgStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName();
         if (!Network::isConnected(it->first, it->second->getName().c_str())) {
             //yDebug() << "Port is NOT connected : we will connect";
-            if (!Network::connect(it->first, it->second->getName().c_str())) {
+            if (!Network::connect(it->first, it->second->getName().c_str()), "tcp") {
                 yError() << "Error: Connection could not be setup";
                 bOutput.addString(it->first);
             }
@@ -289,7 +289,7 @@ bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPo
     cvCopyImage(img, (IplImage *)temp.getIplImage());
 
     //send the image
-    imgPort->write();
+    imgPort->writeStrict();
 
     cvReleaseImage(&img);
 
@@ -306,24 +306,28 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
     // make sure images are stored in ABM before saving them
     storeImageOIDs(instance);
     int imageCount = saveImagesFromABM(instance);
-    streamStatus = "send"; //streamStatus changed (triggered in update())
 
-    bReply.addString(streamStatus);
+    bReply.addString("send");
     bReply.addInt(imageCount);
 
     Bottle bRequest;
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT img_provider_port FROM visualdata WHERE instance = " << instance;
+    osArg << "SELECT img_provider_port, count(img_provider_port) FROM visualdata WHERE instance = " << instance;
     if(!includeAugmented) {
         osArg << " AND augmented IS NULL";
     }
+    osArg << " GROUP BY img_provider_port";
+
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
     Bottle bImgProviders;
     for(int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
-        bImgProviders.addString(portPrefixForStreaming + bRequest.get(i).asList()->get(0).asString().c_str());
+        Bottle bSingleImgProvider;
+        bSingleImgProvider.addString(portPrefixForStreaming + bRequest.get(i).asList()->get(0).asString().c_str());
+        bSingleImgProvider.addInt(atoi(bRequest.get(i).asList()->get(1).asString().c_str()));
+        bImgProviders.addList() = bSingleImgProvider;
     }
 
     bReply.addList() = bImgProviders;
@@ -332,15 +336,20 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
     osArg.str("");
 
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT label_port FROM proprioceptivedata WHERE instance = " << instance << endl;
+    osArg << "SELECT label_port, count(label_port) FROM proprioceptivedata WHERE instance = " << instance << " GROUP BY label_port" << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
     Bottle bDataStreamProviders;
     for(int i = 0; i < bRequest.size() && bRequest.toString()!="NULL"; i++) {
-        bDataStreamProviders.addString(portPrefixForStreaming + bRequest.get(i).asList()->get(0).asString().c_str());
+        Bottle bSingleDataStreamProvider;
+        bSingleDataStreamProvider.addString(portPrefixForStreaming + bRequest.get(i).asList()->get(0).asString().c_str());
+        bSingleDataStreamProvider.addInt(atoi(bRequest.get(i).asList()->get(1).asString().c_str()));
+        bDataStreamProviders.addList() = bSingleDataStreamProvider;
     }
 
     bReply.addList() = bDataStreamProviders;
+
+    streamStatus = "send"; //streamStatus changed (triggered in update())
 
     return bReply;
 }
@@ -362,7 +371,7 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
 
         if(includeAugmented || (!includeAugmented && bRequest.get(i).asList()->get(1).asString()=="")) {
             //yDebug() << "Connect " << portPrefixForStreaming+imgProviderPort << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
-            Network::connect(portPrefixForStreaming+imgProviderPort, "/yarpview"+portPrefixForStreaming+imgProviderPort);
+            Network::connect(portPrefixForStreaming+imgProviderPort, "/yarpview"+portPrefixForStreaming+imgProviderPort, "tcp");
         }
     }
 
@@ -576,48 +585,48 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
     bListImages.addString("request");
     ostringstream osArgImages;
 
+    if(!realtimePlayback) {
+        osArgImages << "WITH data AS (";
+    }
     osArgImages << "SELECT * FROM (";
     osArgImages << "SELECT relative_path, img_provider_port, time, ";
-    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM visualdata WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
+    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM visualdata WHERE instance = '" << imgInstance << "')) * 1000000 as INT) as time_difference, frame_number ";
     osArgImages << "FROM visualdata WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
     if(realtimePlayback) {
         osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC LIMIT " << imgProviderCount << ";";
     } else {
-        osArgImages << "WHERE time_difference > " << timeLastImageSent << " ORDER BY time ASC LIMIT " << imgProviderCount << ";";
+        osArgImages << "WHERE time_difference > " << timeLastImageSent << "), min_time AS (select min(time_difference) as min from data) ";
+        osArgImages << "SELECT * FROM data, min_time WHERE data.time_difference = min_time.min;";
     }
 
     bListImages.addString(osArgImages.str());
     return request(bListImages);
 }
 
-Bottle autobiographicalMemory::saveAugmentedImages(const Bottle &bInput) {
-    Bottle bReply;
-
-    for(int i=1; i<bInput.size(); i++) {
-        Bottle* bImageWithMeta = bInput.get(i).asList();
-
-        //yDebug() << "extract variables from bottle";
-        Bottle *bMetaInformation = bImageWithMeta->get(0).asList();
-
-        string instanceString = (bMetaInformation->get(0)).toString();
+void autobiographicalMemory::saveAugmentedImages() {
+    yarp::sig::ImageOf<yarp::sig::PixelRgb> *img_augmented = portAugmentedImagesIn.read(false);
+    if(img_augmented!=NULL) {
+        Bottle env;
+        portAugmentedImagesIn.getEnvelope(env);
+        string instanceString = env.get(0).toString();
         int instance = atoi(instanceString.c_str());
-        string frameNumberString = (bMetaInformation->get(1)).toString();
+        string providerPort = env.get(1).asString();
+        string time = env.get(2).asString();
+        string frameNumberString = env.get(3).toString();
         int frame_number = atoi(frameNumberString.c_str());
-        string providerPort = (bMetaInformation->get(2)).asString().c_str();
-        string time = (bMetaInformation->get(3)).asString().c_str();
-        string augmentedLabel = bImageWithMeta->get(1).asString();
+        string augmentedLabel = env.get(4).asString();
 
-        //yDebug() << "augmentedLabel: " << augmentedLabel;
+        yDebug() << "instance: " << instance;
+        yDebug() << "port: " << providerPort;
+        yDebug() << "time: " << time;
+        yDebug() << "frame: " << frame_number;
+        yDebug() << "augmentedLabel: " << augmentedLabel;
 
         string providerPortSpecifier = providerPort;
         replace(providerPortSpecifier.begin(), providerPortSpecifier.end(), '/', '_');
 
-        //yDebug() << "save image from bottle to file";
-        ImageOf<PixelRgb> yarpImage;
-        Bottle* bImage = bImageWithMeta->get(2).asList();
-        yarp::os::Portable::copyPortable(*bImage, yarpImage);
-        IplImage *cvImage = cvCreateImage(cvSize(yarpImage.width(), yarpImage.height()), IPL_DEPTH_8U, 3);
-        cvCvtColor((IplImage*)yarpImage.getIplImage(), cvImage, CV_RGB2BGR);
+        IplImage *cvImage = cvCreateImage(cvSize(img_augmented->width(), img_augmented->height()), IPL_DEPTH_8U, 3);
+        cvCvtColor((IplImage*)img_augmented->getIplImage(), cvImage, CV_RGB2BGR);
 
         string folderName = storingPath + "/" + storingTmpSuffix + "/" + augmentedLabel;
         yarp::os::mkdir(folderName.c_str());
@@ -647,8 +656,4 @@ Bottle autobiographicalMemory::saveAugmentedImages(const Bottle &bInput) {
         bRequest.addString(osArg.str());
         request(bRequest);
     }
-    bReply.addString("ack");
-    bReply.addString("[saveAugmentedImages] Success");
-
-    return bReply;
 }

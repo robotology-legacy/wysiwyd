@@ -45,6 +45,12 @@ bool ABMAugmentionExample::configure(yarp::os::ResourceFinder &rf) {
         Time::delay(1.0);
     }
 
+    // open ports for augmented images
+    augmentedImageIn.open("/" + getName() + "/augmentedImage:i");
+    augmentedImageOut.open("/" + getName() + "/augmentedImage:o");
+
+    augmentedImageIn.setStrict(true);
+
     // attach to rpc port
     string handlerPortName = "/" + getName() + "/rpc";
 
@@ -63,7 +69,7 @@ bool ABMAugmentionExample::respond(const Bottle& bCommand, Bottle& bReply) {
     {
         if(bCommand.size() == 2 && bCommand.get(1).isInt()) {
             int instance = (atoi((bCommand.get(1)).toString().c_str()));
-            if(augmentImages(instance)) {
+            if(receiveImages(instance)) {
                 bReply.addString("[augmentImages]: Successful");
             }
         } else {
@@ -78,79 +84,79 @@ bool ABMAugmentionExample::respond(const Bottle& bCommand, Bottle& bReply) {
     return true;
 }
 
-bool ABMAugmentionExample::augmentImages(int instance) {
+bool ABMAugmentionExample::receiveImages(int instance) {
     // find out how many images are saved for a specific instance
     Bottle bCmdImagesInfo, bRespImagesInfo;
-    bCmdImagesInfo.addString("getImagesInfo");
+    bCmdImagesInfo.addString("triggerStreaming");
     bCmdImagesInfo.addInt(instance);
-    bCmdImagesInfo.addInt(0); // do not include already augmented images
-    abm.write(bCmdImagesInfo, bRespImagesInfo);
+    Bottle bIncludeAugmented;
+    bIncludeAugmented.addString("includeAugmented");
+    bIncludeAugmented.addInt(0);
+    bCmdImagesInfo.addList() = bIncludeAugmented;
+    Bottle bRealtime;
+    bRealtime.addString("realtime");
+    bRealtime.addInt(0);
+    bCmdImagesInfo.addList() = bRealtime;
 
-    int numberOfImages = atoi(bRespImagesInfo.get(0).toString().c_str());
-    //cout << "Num images: " << numberOfImages << endl;
+    yDebug() << "Send command: " << bCmdImagesInfo.toString();
+    abm.write(bCmdImagesInfo, bRespImagesInfo);
+    yDebug() << "Got reply: " << bRespImagesInfo.toString();
+
+    vRawImages.clear();
+    vEnvelopes.clear();
+    vAugmentedImages.clear();
+
+    int numberOfImages=0;
+    string portName = "/autobiographicalMemory/icub/camcalib/right/out";
+
+    Bottle* bListImgProviders = bRespImagesInfo.get(2).asList();
+    for(int i=0; i<bListImgProviders->size(); i++) {
+        if(bListImgProviders->get(i).asList()->get(0).asString()==portName) {
+            numberOfImages = bListImgProviders->get(i).asList()->get(1).asInt();
+        }
+    }
+    yDebug() << "Num images: " << numberOfImages;
+
+    while(!Network::isConnected(portName, augmentedImageIn.getName())) {
+        Network::connect(portName, augmentedImageIn.getName(), "tcp");
+        yarp::os::Time::delay(0.2);
+        yInfo() << "Trying to connect " << portName << " and " << augmentedImageIn.getName();
+    }
 
     if(numberOfImages>0) {
         // now, get images frame by frame
-        for(int frame_number=0; frame_number<numberOfImages; frame_number++) {
-            Bottle bCmdGetFrame;
-            Bottle bRespGetFrame;
+        for(int image_number=0; image_number<numberOfImages; image_number++) {
+            yInfo() << "Receive image with image number: " << image_number;
+            yarp::sig::ImageOf<yarp::sig::PixelRgb> *image = augmentedImageIn.read();
+            if(image!=NULL) {
+                Bottle env;
+                augmentedImageIn.getEnvelope(env);
+                yDebug() << "Received envelope: " << env.toString();
 
-            bCmdGetFrame.addString("provideImagesByFrame");
-            bCmdGetFrame.addInt(instance);
-            bCmdGetFrame.addInt(frame_number);
-            bCmdGetFrame.addInt(0); // do not include already augmented images
-
-            // bRespGetFrame contains the images + meta information
-            abm.write(bCmdGetFrame, bRespGetFrame);
-
-            // in augmentFrame(...), we do the actual processing
-            Bottle bCmdSaveAugmentedImages = augmentFrame(bRespGetFrame);
-            Bottle bRespSaveAugmentedImages;
-
-            // now, call the saveAugmentedImages function of the ABM
-            abm.write(bCmdSaveAugmentedImages, bRespSaveAugmentedImages);
-            cout << bRespSaveAugmentedImages.toString() << endl;
+                vRawImages.push_back(image);
+                vEnvelopes.push_back(env);
+            } else {
+                yError() << "Did not receive image!";
+            }
         }
+
+        augmentImages();
+        sendAugmentedImages();
+
         return true;
     } else {
         return false;
     }
 }
 
-Bottle ABMAugmentionExample::augmentFrame(Bottle bInput) {
-    Bottle toSend;
-    toSend.addString("saveAugmentedImages"); // method name to call in ABM
+void ABMAugmentionExample::augmentImages() {
+    yInfo() << "Going to augment images";
+    yAssert(vRawImages.size()==vEnvelopes.size());
 
-    // bInput: ack ( ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3)) )
-    if(bInput.get(0).asString()!="ack") {
-        Bottle bError;
-        bError.addString("no ack in input bottle");
-        return bError;
-    }
-
-    Bottle* bImagesWithMeta = bInput.get(1).asList(); // ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3))
-
-    //go through each of the sub-bottles, one for each imageProvider
-    for(int i = 0; i < bImagesWithMeta->size(); i++) {
-        Bottle* bSingleImageWithMeta = bImagesWithMeta->get(i).asList(); // ((imageMeta1.1) (image1.1))
-
-        Bottle* bImageMeta = bSingleImageWithMeta->get(0).asList(); // (imageMeta1.1)
-        Bottle* bRawImage = bSingleImageWithMeta->get(1).asList(); //image1.1
-
-        // get yarp image from bottle
-        ImageOf<PixelRgb> rawImageYarp;
-        yarp::os::Portable::copyPortable(*bRawImage, rawImageYarp);
-
-        // get cv::Mat from yarp image
-        IplImage *rawImageIpl = cvCreateImage(cvSize(rawImageYarp.width(), rawImageYarp.height()), IPL_DEPTH_8U, 3);
-        cvCvtColor((IplImage*)rawImageYarp.getIplImage(), rawImageIpl, CV_RGB2BGR);
+    for(size_t i = 0; i<vRawImages.size(); i++) {
+        IplImage *rawImageIpl = cvCreateImage(cvSize(vRawImages[i]->width(), vRawImages[i]->height()), IPL_DEPTH_8U, 3);
+        cvCvtColor((IplImage*)vRawImages[i]->getIplImage(), rawImageIpl, CV_RGB2BGR);
         Mat myImage(rawImageIpl);
-
-        // you do your stuff here
-        // alternatively, you can just save the image here
-        // and do batch processing after
-        // however, make sure you keep bImageMeta somewhere around!
-        string augmentedLabel = "Canny"; // identifier what we have done with the image
 
         // here, do Canny edge detection as example
         Mat myImage_gray;
@@ -175,23 +181,36 @@ Bottle ABMAugmentionExample::augmentFrame(Bottle bInput) {
         ImageOf<PixelRgb> augmentedImageYarp;
         augmentedImageYarp.resize(augmentedImageIpl.width, augmentedImageIpl.height);
         cvCopyImage(&augmentedImageIpl, (IplImage *)augmentedImageYarp.getIplImage());
+        vAugmentedImages.push_back(augmentedImageYarp);
 
         cvReleaseImage(&rawImageIpl);
+    }
+}
 
-        // from yarp image to bottle
-        Bottle bAugmentedImage;
-        yarp::os::Portable::copyPortable(augmentedImageYarp, bAugmentedImage);
+void ABMAugmentionExample::sendAugmentedImages() {
+    yInfo() << "Going to send augmented images to ABM";
+    yAssert(vAugmentedImages.size()==vEnvelopes.size());
 
-        // add the augmented image with the meta information and the augmented label
-        Bottle bAugmentedImageWithMeta;
-        bAugmentedImageWithMeta.addList() = *bImageMeta;
-        bAugmentedImageWithMeta.addString(augmentedLabel);
-        bAugmentedImageWithMeta.addList() = bAugmentedImage;
+    while(!Network::isConnected(augmentedImageOut.getName(), "/autobiographicalMemory/augmented:i")) {
+        Network::connect(augmentedImageOut.getName(), "/autobiographicalMemory/augmented:i", "tcp");
+        yarp::os::Time::delay(0.2);
+        yInfo() << "Trying to connect " << augmentedImageOut.getName() << " and " << "/autobiographicalMemory/augmented:i";
+    }
+    yDebug() << "Ports connected";
 
-        toSend.addList() = bAugmentedImageWithMeta;
-   }
+    string augmentedLabel = "Canny";
 
-    return toSend;
+    for(size_t i = 0; i<vAugmentedImages.size(); i++) {
+        yarp::sig::ImageOf<yarp::sig::PixelRgb>& currImage = augmentedImageOut.prepare();
+        currImage = vAugmentedImages[i];
+        vEnvelopes[i].addString(augmentedLabel);
+        augmentedImageOut.setEnvelope(vEnvelopes[i]);
+        yDebug() << "Send image with envelope " << vEnvelopes[i].toString();
+        augmentedImageOut.writeStrict();
+    }
+    augmentedImageOut.waitForWrite();
+
+    Network::disconnect(augmentedImageOut.getName(), "/autobiographicalMemory/augmented:i");
 }
 
 double ABMAugmentionExample::getPeriod() {
@@ -204,6 +223,9 @@ bool ABMAugmentionExample::updateModule() {
 }
 
 bool ABMAugmentionExample::interruptModule() {
+    augmentedImageIn.interrupt();
+    augmentedImageOut.interrupt();
+
     abm.interrupt();
     handlerPort.interrupt();
 
@@ -211,8 +233,14 @@ bool ABMAugmentionExample::interruptModule() {
 }
 
 bool ABMAugmentionExample::close() {
+    augmentedImageIn.interrupt();
+    augmentedImageIn.close();
+    augmentedImageOut.interrupt();
+    augmentedImageOut.close();
+
     abm.interrupt();
     abm.close();
+
     handlerPort.interrupt();
     handlerPort.close();
 

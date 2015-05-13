@@ -19,13 +19,22 @@
 #ifndef ABMAUGMENTIONEXAMPLE
 #define ABMAUGMENTIONEXAMPLE
 
+#include <vector>
+
 #include <yarp/os/RFModule.h>
 #include <yarp/math/Math.h>
+#include <yarp/sig/all.h>
 
 class ABMAugmentionExample: public yarp::os::RFModule {
 protected:
     yarp::os::Port abm;
     yarp::os::Port handlerPort;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > augmentedImageIn;
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > augmentedImageOut;
+
+    std::vector<yarp::sig::ImageOf<yarp::sig::PixelRgb>* > vRawImages;
+    std::vector<yarp::sig::ImageOf<yarp::sig::PixelRgb> > vAugmentedImages;
+    std::vector<yarp::os::Bottle> vEnvelopes;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -35,8 +44,9 @@ public:
     double getPeriod();
     bool updateModule();
 
-    bool augmentImages(int instance);
-    yarp::os::Bottle augmentFrame(yarp::os::Bottle bInput);
+    bool receiveImages(int instance);
+    void augmentImages();
+    void sendAugmentedImages();
 };
 
 #endif

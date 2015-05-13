@@ -123,7 +123,7 @@ public:
     std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamInput;
 
     //sound
-    yarp::os::BufferedPort<yarp::sig::Sound> portSoundStreamInput ;
+    yarp::os::BufferedPort<yarp::sig::Sound> portSoundStreamInput;
 
     yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented=false, std::string provider_port="");
 
@@ -173,7 +173,8 @@ public:
     yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference, std::string port);
 
     // augmented images stuff
-    yarp::os::Bottle saveAugmentedImages(const yarp::os::Bottle &bInput);
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portAugmentedImagesIn;
+    void saveAugmentedImages();
     yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages=true);
 
     //////////////////////////////////////////////////////////////////////////

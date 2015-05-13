@@ -79,13 +79,11 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     shouldClose = false;
     bPutObjectsOPC = false;
 
-    portEventsIn.open(("/" + getName() + "/request:i").c_str());
-
-    string portHandlerName = "/" + getName() + "/rpc";
-    handlerPort.open(portHandlerName.c_str());
-
-    string name_abm2reasoning = "/" + getName() + "/to_reasoning";
-    abm2reasoning.open(name_abm2reasoning.c_str());
+    portEventsIn.open("/" + getName() + "/request:i");
+    handlerPort.open("/" + getName() + "/rpc");
+    abm2reasoning.open("/" + getName() + "/to_reasoning");
+    portAugmentedImagesIn.open("/" + getName() + "/augmented:i");
+    portAugmentedImagesIn.setStrict(true);
 
     //create the storingPath and the tmp also
     string fullTmpPath = storingPath + "/" + storingTmpSuffix;
@@ -534,13 +532,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 string robot = "icubSim";
 
                 Value vRealtime = bCommand.find("realtime");
-                if(!vRealtime.isNull() && vRealtime.isBool()) {
-                    realtime = vRealtime.asBool();
+                if(!vRealtime.isNull() && vRealtime.isInt()) {
+                    realtime = vRealtime.asInt() > 0;
                 }
 
                 Value vIncludeAugmented = bCommand.find("includeAugmented");
-                if(!vIncludeAugmented.isNull() && vIncludeAugmented.isBool()) {
-                    includeAugmented = vIncludeAugmented.asBool();
+                if(!vIncludeAugmented.isNull() && vIncludeAugmented.isInt()) {
+                    includeAugmented = vIncludeAugmented.asInt() > 0;
                 }
 
                 Value vSpeedMultiplier = bCommand.find("speedMultiplier");
@@ -553,10 +551,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     robot = vRobot.asString();
                 }
 
-                yDebug() << "Instance: " << imgInstance;
-                yDebug() << "timingEnabled: " << realtime;
+                yDebug() << "instance: " << imgInstance;
+                yDebug() << "realtime: " << realtime;
                 yDebug() << "includeAugmented: " << includeAugmented;
-                yDebug() << "speedM: " << speedMultiplier;
+                yDebug() << "speedMultiplier: " << speedMultiplier;
                 yDebug() << "robot: " << robot;
 
                 bReply = triggerStreaming(imgInstance, realtime, includeAugmented, speedMultiplier, robot);
@@ -669,7 +667,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "saveAugmentedImages")
         {
-            bReply = saveAugmentedImages(bCommand);
+            saveAugmentedImages();
+            bReply.addString("ack");
         }
         else if (bCommand.get(0) == "getImagesInfo")
         {
@@ -718,7 +717,6 @@ void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool 
 
 /* rpc update module */
 bool autobiographicalMemory::updateModule() {
-
     //yDebug() << "Update loop";
     yarp::sig::Sound *s;
     s=portSoundStreamInput.read(false);
@@ -733,6 +731,8 @@ bool autobiographicalMemory::updateModule() {
     } else {
         //yDebug() << "no sound?";
     }
+
+    saveAugmentedImages();
 
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
@@ -761,7 +761,6 @@ bool autobiographicalMemory::updateModule() {
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
             yInfo() << "============================= STREAM SEND =================================";
-            timeStreamStart = getCurrentTimeInMS();
             timeLastImageSent = -1;
 
             imgProviderCount = getImagesProviderCount(imgInstance);
@@ -775,6 +774,7 @@ bool autobiographicalMemory::updateModule() {
             } else {
                 timeVeryLastStream = timeVeryLastContData;
             }
+            timeStreamStart = getCurrentTimeInMS();
 
             sendStreamIsInitialized = true;
         }
@@ -794,6 +794,13 @@ bool autobiographicalMemory::updateModule() {
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
                 BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
+                Bottle env;
+                env.addInt(imgInstance);
+                env.addString(bListImages.get(i).asList()->get(1).asString()); // port
+                env.addString(bListImages.get(i).asList()->get(2).asString()); // time
+                env.addString(bListImages.get(i).asList()->get(4).asString()); // frame_number
+                yDebug() << "ENVELOPE: " << env.toString();
+                port->setEnvelope(env);
                 if(atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
                     timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
                 }
@@ -829,10 +836,9 @@ bool autobiographicalMemory::updateModule() {
                 bCmd.addList() = bJoints;
 
                 // Send concatenated bottles to ports
-
                 yInfo() << "Write port: " << it->second->getName();
                 yInfo() << it->second->prepare().toString();
-                it->second->write();
+                it->second->writeStrict();
             }
         }
 
@@ -852,6 +858,7 @@ bool autobiographicalMemory::updateModule() {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             yInfo() << "streamStatus = end, closing ports";
             for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamPortOut.begin(); it != mapImgStreamPortOut.end(); ++it) {
+                it->second->waitForWrite();
                 it->second->interrupt();
                 it->second->close();
                 if(!it->second->isClosed()) {
@@ -859,6 +866,7 @@ bool autobiographicalMemory::updateModule() {
                 }
             }
             for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it) {
+                it->second->waitForWrite();
                 it->second->interrupt();
                 it->second->close();
                 if(!it->second->isClosed()) {
@@ -900,6 +908,7 @@ bool autobiographicalMemory::interruptModule()
     storeImageOIDs();
     opcWorld->interrupt();
 
+    portAugmentedImagesIn.interrupt();
     portSoundStreamInput.interrupt();
     handlerPort.interrupt();
     portEventsIn.interrupt();
@@ -917,6 +926,9 @@ bool autobiographicalMemory::close()
 
     opcWorld->interrupt();
     opcWorld->close();
+
+    portAugmentedImagesIn.interrupt();
+    portAugmentedImagesIn.close();
 
     portSoundStreamInput.interrupt();
     portSoundStreamInput.close();

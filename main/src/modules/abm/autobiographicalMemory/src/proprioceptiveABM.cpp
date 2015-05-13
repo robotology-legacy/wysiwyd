@@ -89,7 +89,7 @@ Bottle autobiographicalMemory::connectDataStreamProviders()
         //yDebug() << "  [connectDataStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName();
         if (!Network::isConnected(it->first, it->second->getName().c_str())) {
             //yDebug() << "Port is NOT connected : we will connect";
-            if (!Network::connect(it->first, it->second->getName().c_str())) {
+            if (!Network::connect(it->first, it->second->getName().c_str()), "tcp") {
                 yWarning() << "Error: Connection could not be setup";
                 bOutput.addString(it->first);
             }
@@ -209,7 +209,7 @@ int autobiographicalMemory::openDataStreamPorts(int instance, string robotName) 
         size_t second_slash = dataStreamPortTo.find("/", 1);
         dataStreamPortTo.replace(0, second_slash+1, robotReplacement);
 
-        Network::connect(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo);
+        Network::connect(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo, "tcp");
         if(Network::isConnected(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo)) {
             yInfo() << "Successfully connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo;
         } else {
