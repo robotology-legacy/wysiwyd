@@ -565,6 +565,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
+        //DEPRECATED!!! Use triggerStreaming instead, see ABMAugmentionExample!
         //ask for a single image : a single image for EACH image provider so you may end up by several of them
         // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
         else if (bCommand.get(0) == "provideImagesByFrame")
@@ -670,6 +671,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             saveAugmentedImages();
             bReply.addString("ack");
         }
+        // DEPRECATED! Use triggerStreaming instead, see ABMAugmentionExample!
         else if (bCommand.get(0) == "getImagesInfo")
         {
             if(bCommand.size() >= 2 && bCommand.get(1).isInt()) {

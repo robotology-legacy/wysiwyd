@@ -80,6 +80,7 @@ Bottle autobiographicalMemory::removeImgStreamProvider(const string &portImgStre
 }
 
 Bottle autobiographicalMemory::getImagesInfo(int instance, bool includeAugmentedImages) {
+    yWarning() << "This method is deprecated! Use triggerStreaming instead!";
     Bottle bRequest, bOutput;
     ostringstream osArg;
 
@@ -114,6 +115,7 @@ Bottle autobiographicalMemory::getImagesInfo(int instance, bool includeAugmented
 // Return : ack ( ((imageMeta1.1) (image1.1)) ((imageMeta1.2) (image1.2)) ((imageMeta1.3) (image1.3)) )
 Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_number, bool include_augmented, string provider_port)
 {
+    yWarning() << "This method is deprecated! Use triggerStreaming instead!";
     Bottle bSubOutput, bOutput, bRequest;
     ostringstream osArg;
 
