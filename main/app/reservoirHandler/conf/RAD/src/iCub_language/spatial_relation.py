@@ -992,10 +992,5 @@ def main(path_file_in, path_file_out, plot=False, keep_internal_states=False, ve
 if __name__ == '__main__':
     mode = 'real for icub'#'real for icub'
     
-    if mode == 'test for xav':
-        main(path_file_in="/mnt/data/Data/Workspace/Old_reservoir/XavierCode/icub_lang_action_performer_input.txt", path_file_out="/mnt/data/Data/Workspace/Old_reservoir/XavierCode/SR_output_S.txt", plot=True, keep_internal_states=True)
-#    main(path_file_in="R:/efaa/main/app/RAD/SR_input_M.txt", path_file_out="R:/efaa/main/app/RAD/SR_output_S.txt")
-    elif mode=='real for icub':
-        #main(path_file_in="/mnt/data/Data/Workspace/Old_reservoir/XavierCode/SR_input_M.txt", path_file_out="/mnt/data/Data/Workspace/Old_reservoir/XavierCode/SR_output_S.txt", plot=False, keep_internal_states=False)
-        main(path_file_in="/home/anne/.local/share/yarp/contexts/reservoirHandler/conf/SR_input_M.txt", path_file_out="/home/anne/.local/share/yarp/contexts/reservoirHandler/conf/SR_output_S.txt", plot=False, keep_internal_states=False)
+    main(path_file_in="../../../SR_input_M.txt", path_file_out="../../../SR_output_S.txt", plot=False, keep_internal_states=False)
     print "*********END OF PROGRAM********"

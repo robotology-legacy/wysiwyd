@@ -1,49 +1,110 @@
 <train data>
 put trumpet left;put the trumpet to the left # 1R/C (VSO)
-put trumpet left;to the left put the trumpet # 1R/N'1 (OVS)
-put trumpet left;put to the left the trumpet # 1R/N'2 (VOS)
-put trumpet left;the trumpet put it to the left  # 1R/N'3 (SVO)
-#~~ (SOV) too ambiguous
-#~~ (OSV) too ambiguous
 grasp guitar;grasp the guitar # 1R/C (VO)
-grasp guitar;the guitar grasp it # 1R/N (OV)
-
+point guitar;point to the guitar
+# Replace by slowly
+#### slowly
+put trumpet left slowly;put the trumpet to the left slowly # 1R/C (VSO)
+grasp guitar slowly;grasp the guitar slowly # 1R/C (VO) => doen't work
+#### Quickly
+put trumpet left quickly;put the trumpet to the left quickly # 1R/C (VSO)
+grasp guitar quickly;grasp the guitar quickly # 1R/C (VO) => doen't work
 ### 2 actions for 'put' ###
-# A canonical, B canonical
-#(A:put the trumpet to the left , B:put the guitar to the right)
+# A canonical,B canonical
+#(A:put the trumpet to the left ,B:put the guitar to the right)
 put trumpet left,put guitar right;put the trumpet to the left and then put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left quickly,point guitar;put the trumpet quickly to the left and then point to the guitar # A(and then)B
 put trumpet left,put guitar right;after you put the trumpet to the left put the guitar to the right # (after you)A,B # 2R/CC
 put trumpet left,put guitar right;put the trumpet to the left before you put the guitar to the right # A(before you)B # 2R/CC
-put trumpet left,put guitar right;before you put the guitar to the right put the trumpet to the left# (before you)B,A
-### A non canonical'2 (VOS), B canonical
-# A: put to the left the trumpet , B: put the guitar to the right
-put trumpet left,put guitar right;put to the left the trumpet and then put the guitar to the right # A(and then)B
-put trumpet left,put guitar right;after you put to the left the trumpet put the guitar to the right # (after you)A,B 
-put trumpet left,put guitar right;put to the left the trumpet before you put the guitar to the right # A(before you)B
-put trumpet left,put guitar right;before you put the guitar to the right put to the left the trumpet# (before you)B,A
-### A canonical, B non canonical'2 (VOS)
-# A: put the trumpet to the left, B : put to the right the guitar
-put trumpet left,put guitar right;put the trumpet to the left and then put to the right the guitar # A(and then)B
-put trumpet left,put guitar right;after you put the trumpet to the left put to the right the guitar # (after you)A,B 
-put trumpet left,put guitar right;put the trumpet to the left before you put to the right the guitar # A(before you)B
-put trumpet left,put guitar right;before you put to the right the guitar put the trumpet to the left# (before you)B,A
-### A non canonical'2 (VOS), B non canonical'2 (VOS)
-#A: put to the left the trumpet , B : put to the right the guitar
-put trumpet left,put guitar right;put to the left the trumpet and then put to the right the guitar # A(and then)B
-put trumpet left,put guitar right;after you put to the left the trumpet put to the right the guitar # (after you)A,B 
-put trumpet left,put guitar right;put to the left the trumpet before you put to the right the guitar # A(before you)B
-put trumpet left,put guitar right;before you put to the right the guitar put to the left the trumpet # (before you)B,A
-
-##before, vb2-vb1 canonical
+put trumpet left,put guitar right;before you put the guitar to the right put the trumpet to the left # (before you)B,A
+##before,vb2-vb1 canonical
 point guitar,put trumpet left;before you put the trumpet to the left point to the guitar # (before you)B,A
-##before, vb2-vb1 canonical
-point guitar,put trumpet left;before you put to the left the trumpet point to the guitar # (before you)B,A
-point guitar, grasp trumpet;before you grasp the trumpet point to the guitar # (before you)B,A
-put trumpet left, point guitar;before you point to the guitar put the trumpet to the left #
-
-###after you, point/put
+##before,vb2-vb1 canonical
+point guitar,grasp trumpet;before you grasp the trumpet point to the guitar # (before you)B,A => doesn't work bad meaning
+put trumpet left,point guitar;before you point to the guitar put the trumpet to the left #
+point trumpet,point guitar;before you point to the guitar point to the trumpet
+###after you,point/put
 point guitar,put trumpet left;after you point to the guitar put the trumpet to the left #(after you)A1,B2
-
-###after you, point/point
-point guitar, grasp trumpet;after you point to the guitar grasp the trumpet #(after you)A1,A2
-
+###after you,point/point
+point guitar,grasp trumpet;after you point to the guitar grasp the trumpet #(after you)A1,A2 => doesn't work bad meaning
+### 2 actions for 'put' ###
+# A canonical,B canonical
+#(A:put the trumpet to the left ,B:put the guitar to the right)
+put trumpet left quickly,put guitar right;put the trumpet quickly to the left and then put the guitar to the right # A(and then)B # 2R/CC => doesn't work bad meaning
+put trumpet left quickly,put guitar right;quickly put the trumpet to the left and then put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left quickly,put guitar right;put the trumpet to the left quickly and then put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left,put guitar right quickly;put the trumpet to the left and then put the guitar quickly to the right # A(and then)B # 2R/CC
+put trumpet left,put guitar right quickly;put the trumpet to the left and then quickly put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left,put guitar right quickly;put the trumpet to the left and then put the guitar to the right quickly # A(and then)B # 2R/CC
+point trumpet,put guitar left quickly;point to the trumpet and then put the guitar to the left quickly # A(and then)B # 2R/CC
+put trumpet left quickly,put guitar right;after you put the trumpet quickly to the left put the guitar to the right # (after you)A,B # 2R/CC
+put trumpet left quickly,put guitar right;after you quickly put the trumpet to the left put the guitar to the right # (after you)A,B # 2R/CC
+put trumpet left,put guitar right quickly;after you put the trumpet to the left put the guitar to the right quickly # (after you)A,B # 2R/CC
+put trumpet left,put guitar right quickly;after you put the trumpet to the left put the guitar quickly to the right # (after you)A,B # 2R/CC
+put trumpet left quickly,put guitar right;put the trumpet to the left quickly before you put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left quickly,put guitar right;quickly put the trumpet to the left before you put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left quickly,put guitar right;put the trumpet quickly to the left before you put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left quickly,put guitar right;before you put the guitar to the right put the trumpet to the left quickly # (before you)B,A => doesn't work bad meaning
+put trumpet left,put guitar right quickly;put the trumpet to the left before you quickly put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left,put guitar right quickly;put the trumpet to the left before you put the guitar quickly to the right # A(before you)B # 2R/CC
+put trumpet left,put guitar right quickly;put the trumpet to the left before you put the guitar to the right quickly # A(before you)B # 2R/CC
+put trumpet left,put guitar right quickly;before you put the guitar quickly to the right put the trumpet to the left # (before you)B,A
+put trumpet left,put guitar right quickly;before you quickly put the guitar to the right put the trumpet to the left # (before you)B,A
+### 2 actions for 'put' ###
+# A canonical,B canonical
+#(A:put the trumpet to the left ,B:put the guitar to the right)
+put trumpet left slowly,put guitar right;put the trumpet slowly to the left and then put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left slowly,put guitar right;slowly put the trumpet to the left and then put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left slowly,put guitar right;put the trumpet to the left slowly and then put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left,put guitar right slowly;put the trumpet to the left and then put the guitar slowly to the right # A(and then)B # 2R/CC
+put trumpet left,put guitar right slowly;put the trumpet to the left and then slowly put the guitar to the right # A(and then)B # 2R/CC
+put trumpet left,put guitar right slowly;put the trumpet to the left and then put the guitar to the right slowly # A(and then)B # 2R/CC
+put trumpet left slowly,put guitar right;after you put the trumpet slowly to the left put the guitar to the right # (after you)A,B # 2R/CC
+put trumpet left slowly,put guitar right;after you slowly put the trumpet to the left put the guitar to the right # (after you)A,B # 2R/CC
+put trumpet left,put guitar right slowly;after you put the trumpet to the left put the guitar to the right slowly # (after you)A,B # 2R/CC
+put trumpet left,put guitar right slowly;after you put the trumpet to the left put the guitar slowly to the right # (after you)A,B # 2R/CC
+put trumpet left slowly,put guitar right;put the trumpet to the left slowly before you put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left slowly,put guitar right;slowly put the trumpet to the left before you put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left slowly,put guitar right;put the trumpet slowly to the left before you put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left slowly,put guitar right;before you put the guitar to the right put the trumpet to the left slowly # (before you)B,A => doesn't work
+put trumpet left slowly,put guitar right;before you put the guitar to the right put the trumpet slowly to the left # (before you)B,A => doen't work
+put trumpet left,put guitar right slowly;put the trumpet to the left before you slowly put the guitar to the right # A(before you)B # 2R/CC
+put trumpet left,put guitar right slowly;put the trumpet to the left before you put the guitar to the right slowly # A(before you)B # 2R/CC
+put trumpet left,put guitar right slowly;put the trumpet to the left before you put the guitar slowly to the right # A(before you)B # 2R/CC
+put trumpet left,put guitar right slowly;before you put the guitar slowly to the right put the trumpet to the left # (before you)B,A
+put trumpet left,put guitar right slowly;before you slowly put the guitar to the right put the trumpet to the left # (before you)B,A
+##before,vb2-vb1 canonical
+point guitar quickly,put trumpet left;before you put the trumpet to the left point to the guitar quickly # (before you)B,A => doesn't work
+point guitar,put trumpet left quickly;before you quickly put the trumpet to the left point to the guitar # (before you)B,A
+point guitar,put trumpet left quickly;before you put the trumpet quickly to the left point to the guitar # (before you)B,A
+##before,vb2-vb1 canonical
+point guitar quickly,grasp trumpet;before you grasp the trumpet point to the guitar quickly # (before you)B,A => doesn't work
+point guitar,grasp trumpet quickly;before you quickly grasp the trumpet point to the guitar # (before you)B,A
+put trumpet left quickly,point guitar;before you point to the guitar put the trumpet quickly to the left #
+put trumpet left quickly,point guitar;before you point to the guitar put the trumpet to the left quickly #
+put trumpet left,point guitar quickly;before you quickly point to the guitar put the trumpet to the left #
+###after you,point/put
+point guitar quickly,put trumpet left;after you quickly point to the guitar put the trumpet to the left #(after you)A1,B2
+point guitar quickly,put trumpet left;after you point to the guitar quickly put the trumpet to the left #(after you)A1,B2
+point guitar,put trumpet left quickly;after you point to the guitar put the trumpet quickly to the left #(after you)A1,B2
+point guitar,put trumpet left quickly;after you point to the guitar put the trumpet to the left quickly #(after you)A1,B2
+###after you,point/point
+point guitar quickly,grasp trumpet;after you quickly point to the guitar grasp the trumpet #(after you)A1,A2
+point guitar,grasp trumpet quickly;after you point to the guitar grasp the trumpet quickly #(after you)A1,A2
+##before,vb2-vb1 canonical
+point guitar slowly,put trumpet left;before you put the trumpet to the left point to the guitar slowly # (before you)B,A => doesn't work
+point guitar,put trumpet left slowly;before you slowly put the trumpet to the left point to the guitar # (before you)B,A
+point guitar,put trumpet left slowly;before you put the trumpet slowly to the left point to the guitar # (before you)B,A
+##before,vb2-vb1 canonical
+point guitar slowly,grasp trumpet;before you grasp the trumpet point to the guitar slowly # (before you)B,A => doesn't work
+point guitar,grasp trumpet slowly;before you slowly grasp the trumpet to the left point to the guitar # (before you)B,A
+put trumpet left slowly,point guitar;before you point to the guitar put the trumpet slowly to the left #
+put trumpet left slowly,point guitar;before you point to the guitar put the trumpet to the left slowly #
+put trumpet left,point guitar slowly;before you slowly point to the guitar push the trumpet to the left # => doesn't work
+###after you,point/put
+point guitar slowly,put trumpet left;after you slowly point to the guitar put the trumpet to the left #(after you)A1,B2
+point guitar,put trumpet left slowly;after you point to the guitar put the trumpet slowly to the left #(after you)A1,B2
+point guitar,put trumpet left slowly;after you point to the guitar put the trumpet to the left slowly #(after you)A1,B2
+###after you,point/point
+point guitar slowly,grasp trumpet;after you slowly point to the guitar grasp the trumpet #(after you)A1,A2
+point guitar,grasp trumpet slowly;after you point to the guitar grasp the trumpet slowly #(after you)A1,A2

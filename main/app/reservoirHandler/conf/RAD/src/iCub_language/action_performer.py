@@ -116,7 +116,7 @@ def main(path_file_in, path_file_out, sentence_to_meaning=True, plot=False, fast
     parent_directory = os.path.dirname(current_directory)
     sys.path.append(parent_directory)
     print "sys.path.append(parent_directory)", parent_directory
-    import Common_Tools.io_language_coding as CtIolangcod
+    import io_language_coding as CtIolangcod
     
     
     # Definning parameters of stimulus (in a dictionary)
@@ -363,18 +363,6 @@ if __name__ == '__main__':
     max_nr_actionrelation = 2
     elt_pred=['P','F','O','R']
     
-    #print "Vector coding of meaning:", common.get_meaning_coding(max_nr_ocw=8, max_nr_actionrelation=2, elt_pred=elt_pred)
-    
-    mode = 'real for icub'#'test for xav'#'real for icub'
-    
-    if mode == 'test for xav':
-#        main(path_file_in="../files_useful/icub_lang_action_performer_input.txt",
-        main(path_file_in="AP_input_S.txt",
-             path_file_out="../../RES_TEMP/AP_output_M.txt", plot=True,
-             sentence_to_meaning=True,
-             keep_internal_states=True, verbose=True)
-#    main(path_file_in="R:/efaa/main/app/RAD/SR_input_M.txt", path_file_out="R:/efaa/main/app/RAD/SR_output_S.txt")
-    elif mode=='real for icub':
-        main(path_file_in="/home/anne/.local/share/yarp/contexts/reservoirHandler/conf/AP_input_S.txt",
-             path_file_out="/home/anne/.local/share/yarp/contexts/reservoirHandler/conf/AP_output_M.txt")
+    main(path_file_in="../../../AP_input_S.txt",
+             path_file_out="../../../AP_output_M.txt")
     print "*********END OF PROGRAM********"
