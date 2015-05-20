@@ -63,8 +63,10 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     fvector += rf.check("vectorFile",  Value("/vector.txt")).toString().c_str();
 
     cout << fvector << "        " << endl;
-
-    pythonPath 	= rf.check("pythonPath",  Value("/mnt/data/Data/BuildLinux/Robot/RAD/src/iCub_language")).toString().c_str();
+    pythonPath	 = rf.getContextPath().c_str();
+    cout << "rf.getContextPath().c_str() : " << rf.getContextPath().c_str() << endl;
+    pythonPath 	+= rf.check("pythonPath",  Value("/RAD/src/iCub_language")).toString().c_str();
+    cout << "pythonPath : " << pythonPath << endl;
 
     /* Mode Action Performer => Meaning*/
     fileAPimputS	 = rf.getContextPath().c_str();
@@ -165,9 +167,9 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     else
         cout << endl << endl << "----------------------------------------------" << endl << endl << "reservoirHandler ready !" << endl << endl;
 
-    //populateOPC();
-    //nodeType();
-    testARE();
+    populateOPC();
+    nodeType();
+    //testARE();
     return false;
 //    return bEveryThingisGood ;
 }
@@ -414,7 +416,7 @@ bool reservoirHandler::nodeType()
                  */
 
             cout << "iCub says : 'Set the objects'" << endl ;
-            iCub->say("I'm ready...");
+            iCub->say("I am ready...");
             iCub->say("Tell me a sentence");
             sCurrentType = "test";
             return nodeTestAP();
@@ -433,7 +435,7 @@ bool reservoirHandler::nodeType()
                  * 2. Robot describes the scene [sentence]
                  */
             cout << "here" << endl;
-            iCub->say("I'm ready...");
+            iCub->say("I am ready...");
             iCub->say("Do you want me to focus the description about object or location ?");
             return nodeModality();
         }
@@ -584,7 +586,7 @@ bool reservoirHandler::nodeModality()
                  * 1. Human says a command [sentence]
                  * 2. Robot performs corresponding actions [meaning]
                 */
-                iCub->say("I'm ready...");
+                iCub->say("I am ready...");
                 iCub->say("Tell me a sentence");
                 return nodeTestAP();
             }
@@ -603,7 +605,7 @@ bool reservoirHandler::nodeModality()
                  */
                 cout << "Dans le test (modality)"<< endl;
 
-                iCub->say("I'm ready...");
+                iCub->say("I am ready...");
                 iCub->say("Do you want me to focus the description about object or location ?");
                 inbsentence=2;
                 sobjectFocusChanged = "";
@@ -825,10 +827,13 @@ bool reservoirHandler::nodeTestAP()
         /*
          * bAnswer.get(0).asString() => the circle is to the left of of the cross
          * bAnswer.toString() =>
-         * "the circle is to the left of of the cross" (sentence (sentence1 ((object "the circle") (relative_complete ((spatial_relative ((relative to) (spatial "the left"))) (object "the cross"))))))
+         *  ("before you point to the mouse push the croco to the right" (sentence ((temporal "before you") (actionX (action1 ((verb1 point) (object mouse)))) (actionX (action2 (action21 ((verb2 push) (object croco) (location right))))))))
          */
 
         cout << "iCub says : 'I have understood      '" << bAnswer.get(0).asString() << endl ;
+
+
+
         iCub->say("I have understood ");
         sentence += bAnswer.get(0).asString() + " ";
         iCub->say(bAnswer.get(0).asString());
@@ -1200,8 +1205,8 @@ bool reservoirHandler::AREactions(vector<string> seq)
 
     // GET LOCATION OF THE OBJECT IN THE OPC + OFFSET IN Z
     iCub->opc->update();
- //   RTObject *rtObject = iCub->opc->addRTObject(sObject);
-    Object *rtObject = iCub->opc->addObject(sObject);
+    RTObject *rtObject = iCub->opc->addRTObject(sObject);
+    //Object *rtObject = iCub->opc->addObject(sObject);
     Vector value(4);
     value = rtObject->m_ego_position;
     value[2] += offsetGrasp;
@@ -1914,7 +1919,7 @@ bool reservoirHandler::languageNodeInteractionSD()
         }
         else {
             cout << bAnswer.get(1).asList()->get(1).asString();
-            cout << "I'm here in negative way" << endl;
+            cout << "I am here in negative way" << endl;
             sobjectFocusChanged="";
             iCub->say("Do you want me to focus the description about object or location ?");
             return nodeModality();
@@ -1957,7 +1962,7 @@ bool reservoirHandler::spatialRelation()
 
     if (PresentObjects.size() < 2 && PresentObjects.size() > 3)
     {
-        iCub->say("Dude, I was expecting 2 or 3 objects... Star again !");
+        iCub->say("Dude, I was expecting 2 or 3 objects... Start again !");
         return nodeTestSD();
     }
 

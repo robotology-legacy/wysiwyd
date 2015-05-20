@@ -28,35 +28,31 @@
   <RULE NAME="object" DYNAMIC="TRUE">
     <L>
 <!--
-      <P>the square</P>
-      <P>the triangle</P>
-      <P>the cross</P>
-      <P>the circle</P>
-      <P>the eraser</P>
-      <P>the glass</P>
-      <P>the girafe</P>
-      <P>the lion</P>
-      <P>the wysiwyd sponge</P>
-      <P>the white-trophy</P>
-      <P>the sponge-trophy</P>
+      <P>square</P>
+      <P>triangle</P>
+      <P>cross</P>
+      <P>circle</P>
+      <P>eraser</P>
+      <P>glass</P>
+      <P>girafe</P>
+      <P>lion</P>
+      <P>wysiwyd sponge</P>
+      <P>white-trophy</P>
+      <P>sponge-trophy</P>
 -->
-      <P>the croco</P>
-      <P>the cube</P>
-      <P>the mug</P>
-      <P>the mouse</P>
-      <P>the rabbit</P>
+      <P>croco</P>
+      <P>cube</P>
+      <P>mug</P>
+      <P>mouse</P>
+      <P>rabbit</P>
     </L>
   </RULE>
 
   <RULE NAME="location" DYNAMIC="TRUE">
     <L>
-      <P>to</P>
-      <P>on</P>
-    </L>
-    <L>
-      <P>the left</P>
-      <P>the middle</P>
-      <P>the right</P>
+      <P>left</P>
+      <P>middle</P>
+      <P>right</P>
     </L>
   </RULE>
 
@@ -68,9 +64,6 @@
       <P>take</P>
       <P>push</P>
     </L>
-    <O>
-      <P>to</P>
-    </O>
   </RULE>
 
   <RULE NAME="verb2" DYNAMIC="TRUE">
@@ -81,9 +74,6 @@
       <P>point</P>
       <P>push</P>
     </L>
-    <O>
-      <P>to</P>
-    </O>
   </RULE>
 
   <RULE NAME="temporal" DYNAMIC="TRUE">
@@ -106,6 +96,10 @@
 	<RULEREF NAME="adverb"/>
      </O> 
      <RULEREF NAME="verb1"/>
+     <O>
+       <P>to</P>
+     </O>
+     <P>the</P>
      <RULEREF NAME="object"/>
      <O> 
 	<RULEREF NAME="adverb"/>
@@ -118,10 +112,15 @@
 	<RULEREF NAME="adverb"/>
      </O> 
      <RULEREF NAME="verb2"/>
+     <O> 
+	<P>to</P>
+     </O>
+     <P>the</P>
      <RULEREF NAME="object"/>
      <O> 
 	<RULEREF NAME="adverb"/>
-     </O> 
+     </O>
+     <P>to the</P> 
      <RULEREF NAME="location"/>
      <O> 
 	<RULEREF NAME="adverb"/>
@@ -131,12 +130,17 @@
   <RULE	NAME="action22"	DYNAMIC="TRUE">
      <O> 
 	<RULEREF NAME="adverb"/>
-     </O> 
+     </O>
+     <P>to the</P>
      <RULEREF NAME="location"/>
      <O> 
 	<RULEREF NAME="adverb"/>
      </O> 
      <RULEREF NAME="verb2"/>
+     <O> 
+	<P>to</P>
+     </O>
+     <P>the</P>
      <RULEREF NAME="object"/>
      <O> 
 	<RULEREF NAME="adverb"/>
@@ -148,10 +152,12 @@
 	<RULEREF NAME="adverb"/>
      </O> 
      <RULEREF NAME="verb2"/>
+     <P>to the</P>
      <RULEREF NAME="location"/>
      <O> 
 	<RULEREF NAME="adverb"/>
      </O> 
+     <P>the</P>
      <RULEREF NAME="object"/>
      <O> 
 	<RULEREF NAME="adverb"/>
