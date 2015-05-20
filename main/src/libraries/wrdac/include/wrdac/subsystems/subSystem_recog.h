@@ -71,6 +71,70 @@ namespace wysiwyd{
 				return bReply;
 			}
 
+            /**
+			* Recursive method to extract the semantic cues of each word recognized
+            * the bRecogBottle is the sentence bottle sent by speechRecog (so without the sentence at first)
+            * e.g.  from Recgo : sentence ((temporal "before you") (actionX (action1 ((verb1 point) (object "the circle")))) (actionX (action2 ((verb2 push) (object "the ball")))))
+            * bRecogBottle     : (temporal "before you") (actionX (action1 ((verb1 point) (object "the circle")))) (actionX (action2 ((verb2 push) (object "the ball"))))
+			*
+			*/
+			void recogFromGrammarSemantic(yarp::os::Bottle bRecogBottle, std::string s_deep, int i_deep)
+			{
+				yarp::os::Bottle bReply;
+
+                //TODO : list of string for the deepness, no need for the int in that case
+                //TODO : careful, may have to copy each time because of recursive
+
+                std::string currentWord = "" ;
+                std::string currentRole = "" ;
+
+                yInfo() << "bRecogBottle = " << bRecogBottle.toString() ;
+
+                //case 1 : string string -> end of the recursive
+                if(bRecogBottle.get(0).isString() && bRecogBottle.get(1).isString()){
+
+                    yInfo() << "===== case 1 : string/string =====" ;
+
+                    currentRole = bRecogBottle.get(0).asString() ;
+                    currentWord = bRecogBottle.get(1).asString() ;
+
+                    //SQL insert
+                    std::cout << "=== s_deep = " << s_deep << " and i_deep = " << i_deep << "===" << std::endl;
+                    std::cout << "-------> role = " << currentRole << " and word = " << currentWord << std::endl ;
+                } 
+
+                //case 2 : string list -> sub-sentence, sub-part
+                else if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isList()){
+                    
+                    yInfo() << "===== case 2 : string/List =====" ;
+
+                    s_deep = bRecogBottle.get(0).asString() ; //TODO : increase the list
+                    i_deep += 1 ;
+
+                    recogFromGrammarSemantic(*bRecogBottle.get(1).asList(), s_deep, i_deep) ;
+                    
+
+                } 
+                
+                //case 3 : it is not case 1 or 2, so we should have reach the "end" of a semantic, and having group of pairs (role1 arg1) (role2 arg2) (role3 arg3) 
+                //list -> list of word
+                else if (bRecogBottle.size() > 1){
+                     yInfo() << "===== case 3 : List =====" ;
+
+                    for(unsigned int i = 0 ; i < bRecogBottle.size() ; i++) {
+
+                        yInfo() << " --> i = " << i ;
+                        recogFromGrammarSemantic(*bRecogBottle.get(i).asList(), s_deep, i_deep) ;
+
+                     }
+
+                } else {
+                    yError() << "None possible case in recogFronGrammarSemantic : something is wrong (Bottle from SpeechRecog?)" ;
+
+                }
+
+			}
+
 
 			/**
 			*   From one grxml grammar, return the first sentence non-empty recognized

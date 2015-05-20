@@ -1,0 +1,62 @@
+
+<application>
+<name>Mental World</name>
+
+		<!-- ABM modules -->
+       <module>
+          <name>autobiographicalMemory</name>
+          <node>greg-pc</node>
+          <tag>ABM</tag>
+       </module>
+	   
+	    <module>
+          <name>abmReasoning</name>
+          <node>greg-pc</node>
+          <tag>reasoning</tag>
+       </module>
+	   
+	    <module>
+          <name>opcManager</name>
+          <node>greg-pc</node>
+          <tag>manager</tag>
+       </module>
+
+		<!-- speech -->
+       <module>
+          <name>speechRecognizer</name>
+          <node>greg-pc</node>
+          <tag>speech</tag>
+       </module>
+
+        <module>
+          <name>abmHandler</name>
+          <node>greg-pc</node>
+          <tag>handler</tag>
+       </module>
+
+	   <!-- Connections : -->
+	    <connection>
+            <from>/abmReasoning/request:o</from>
+            <to>/autobiographicalMemory/request:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+	   
+	    <connection>
+            <from>/abmReasoning/interlocutor/toAbm/request:o</from>
+            <to>/autobiographicalMemory/request:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+	   
+	    <connection>
+            <from>/abmReasoning/interlocutor/toOPCManager</from>
+            <to>/opcManager/rpc</to>
+            <protocol>tcp</protocol>
+        </connection>	
+	   
+	    <connection>
+            <from>/opcManager/toABMR</from>
+            <to>/abmReasoning/rpc</to>
+            <protocol>tcp</protocol>
+        </connection>		
+	   
+</application>

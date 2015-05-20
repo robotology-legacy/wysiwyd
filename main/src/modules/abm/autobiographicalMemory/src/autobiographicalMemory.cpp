@@ -339,10 +339,25 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "CREATE TABLE visualdata(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT visualdata_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE);";
     *ABMDataBase << "ALTER TABLE visualdata OWNER TO postgres;";
 
-    /****************************** proprioceptivedata *************************/
-    *ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
-    *ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE);";
-    *ABMDataBase << "ALTER TABLE proprioceptivedata OWNER TO postgres;";
+	/****************************** proprioceptivedata *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
+	*ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE);";
+	*ABMDataBase << "ALTER TABLE proprioceptivedata OWNER TO postgres;";
+
+	/****************************** adjectivespatial *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
+
+	/****************************** adjectivetemporal *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
+
+    /****************************** sounddata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS sounddata CASCADE;";
+    *ABMDataBase << "CREATE TABLE sounddata(\"time\" timestamp without time zone NOT NULL, snd_provider_port text NOT NULL, instance integer NOT NULL, relative_path text, snd_oid oid, CONSTRAINT snd_pkey PRIMARY KEY (\"time\", snd_provider_port), CONSTRAINT sound_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (  OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE sounddata OWNER TO postgres;";
 
     string sFilename;
 
@@ -724,12 +739,12 @@ bool autobiographicalMemory::updateModule() {
     s=portSoundStreamInput.read(false);
     if(s!=NULL)
     {
-        yDebug() << "I have received a sound!!!!!";
+        yInfo() << "I have received a sound!!!!!";
         stringstream fullPath;
-        fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
-        yarp::sig::file::write(*s,(storingPath + "/" + storingTmpSuffix+ "/" + "test.wav").c_str());
+        //fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
+        yarp::sig::file::write(*s,(storingPath + "/" + storingTmpSuffix+ "/sound/" + "default.wav").c_str());
         //yarp::sig::file::write(*s,"c:\\robot\\ABMStoring\\tmp\\test.wav");
-        yDebug() << "blop";
+        //yDebug() << "blop";
     } else {
         //yDebug() << "no sound?";
     }
@@ -1031,6 +1046,16 @@ Bottle autobiographicalMemory::resetKnowledge()
     *ABMDataBase << "DROP TABLE IF EXISTS interactionknowledge CASCADE;";
     *ABMDataBase << "CREATE TABLE interactionknowledge (subject text NOT NULL, argument text NOT NULL, number integer NOT NULL, type text NOT NULL DEFAULT 'none'::text, role text NOT NULL DEFAULT 'none'::text, CONSTRAINT interactionknowledge_pkey PRIMARY KEY (subject, argument, type, role) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE interactionknowledge OWNER  TO postgres;";
+
+	/****************************** adjectivespatial *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
+
+	/****************************** adjectivetemporal *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
 
     bOutput.addString("knowledge database reset");
     return bOutput;

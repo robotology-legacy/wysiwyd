@@ -1,0 +1,80 @@
+
+<application>
+<name>OPCs</name>
+
+   <!-- real OPC-->
+       <module>
+          <name>objectsPropertiesCollector</name>
+          <parameters>--name OPC --empty --nosave</parameters>
+          <node>greg-pc</node>
+          <tag>realOPC</tag>
+       </module>
+	
+       <module>
+            <name>iCubGui</name>
+            <parameters>--from guiOPC.ini</parameters>
+          <node>greg-pc</node>
+            <tag>iCubGui_tagOPC</tag>
+        </module>
+
+       <module>
+          <name>guiUpdater</name>
+          <parameters>--name guiUpdater --OPCname OPC</parameters>
+          <node>greg-pc</node>
+          <tag>guiUpdaterModuleOPC</tag>
+        </module>
+
+   <!-- connections-->
+
+       <connection>
+            <from>/guiUpdater/gui:o</from>
+            <to>/iCubGui/objects</to>
+            <protocol>tcp</protocol>
+        </connection>
+  
+        <connection>
+          <from>/guiUpdater/guiBase:o</from>
+          <to>/iCubGui/base:i</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+
+
+   <!-- Mental OPC-->
+       <module>
+          <name>objectsPropertiesCollector</name>
+          <parameters>--name mentalOPC --empty --nosave</parameters>
+          <node>greg-pc</node>
+          <tag>opcMentalModule</tag>
+       </module>
+	
+       <module>
+            <name>iCubGui</name>
+            <parameters>--from guiMentalOPC.ini</parameters>
+			<node>greg-pc</node>
+            <tag>iCubGui_tagMentalOPC</tag>
+			<prefix>/mental</prefix> 
+        </module>
+
+       <module>
+          <name>guiUpdater</name>
+          <parameters>--name guiMentalUpdater --OPCname mentalOPC</parameters>
+          <node>greg-pc</node>
+          <tag>guiMentalUpdaterModuleOPC</tag>
+        </module>
+
+   <!-- connections-->
+
+       <connection>
+            <from>/guiMentalUpdater/gui:o</from>
+            <to>/mental/iCubGui/objects</to>
+            <protocol>tcp</protocol>
+        </connection>
+  
+        <connection>
+          <from>/guiMentalUpdater/guiBase:o</from>
+          <to>/mental/iCubGui/base:i</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+</application>	

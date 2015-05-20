@@ -84,7 +84,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 	//    adjKnowledge test;
 	//    test.determineTimingInfluence();
 
-	findAllActionsV2(1074);
+	//findAllActionsV2(1074);
 
 	// bool bTestLanguage = false;
 
@@ -623,6 +623,7 @@ Bottle abmReasoning::connectOPC(Bottle bInput)
 
 abmReasoning::~abmReasoning()
 {
+	delete iCub;
 	if (iFunction != NULL)
 		delete iFunction;
 }
@@ -5214,13 +5215,14 @@ Bottle abmReasoning::resetKnowledge(int from)
 	listPlan.clear();
 	listKnownInteraction.clear();
 
-	findAllActions(from);
+	findAllActionsV2(from);
 	findAllSharedPlan(from);
 	findAllComplex(from);
 	findAllBehaviors(from);
 	findAllInteractions(from);
 
-	int serialSpatial = Interlocutor.sendSpatialKnowledge(listSpatialKnowledge),
+	int serialAdjective = Interlocutor.sendAdjectiveKnowledge(listKnownAdverb),
+		serialSpatial = Interlocutor.sendSpatialKnowledge(listSpatialKnowledge),
 		serialTime = Interlocutor.sendTemporalKnowledge(listTimeKnowledge),
 		serialBehavior = Interlocutor.sendBehaviors(listBehaviors),
 		serialPlan = Interlocutor.sendPlan(listPlan),

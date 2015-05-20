@@ -19,10 +19,6 @@
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/clients/opcEars.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace wysiwyd::wrdac;
-
 const double time_action = 0.500;
 const double time_relation = 1.00;
 
@@ -30,24 +26,24 @@ const double time_relation = 1.00;
 /******************************************************************************************/
 
 //World, list of Entities
-class opcManager: public RFModule
+class opcManager : public yarp::os::RFModule
 {
 private:
-    OPCClient *realOPC;		// Real OPC
-    OPCClient *mentalOPC;	// Mental OPC
+   wysiwyd::wrdac::OPCClient *realOPC;		// Real OPC
+   wysiwyd::wrdac::OPCClient *mentalOPC;	// Mental OPC
 
-    opcEars OPCEARS;
+   wysiwyd::wrdac::opcEars OPCEARS;
 
-    Port handlerPort;      //a port to handle messages 
-    Port portToAbmReasoning;
-    string moduleName;
-    string s_realOPC;				// name of the real OPC
-    string s_mentalOPC;	// name of the mental OPC
+    yarp::os::Port handlerPort;      //a port to handle messages 
+	yarp::os::Port portToAbmReasoning;
+    std::string moduleName;
+	std::string s_realOPC;				// name of the real OPC
+	std::string s_mentalOPC;	// name of the mental OPC
 
 
 public:
 
-    Bottle connect(Bottle bInput);
+	yarp::os::Bottle connect(yarp::os::Bottle bInput);
     bool populate();                              // initialise the world with some objects
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
     bool interruptModule();                       // interrupt, e.g., the ports 
@@ -56,13 +52,13 @@ public:
     double getPeriod(); 
     bool updateModule();
 
-    Bottle simulateActivity(Bottle bInput);			// Simulate an activity in the mental OPC
-    Bottle simulateAction(Bottle bInput);			// Simulate an action in the mental OPC
+	yarp::os::Bottle simulateActivity(yarp::os::Bottle bInput);			// Simulate an activity in the mental OPC
+	yarp::os::Bottle simulateAction(yarp::os::Bottle bInput);			// Simulate an action in the mental OPC
 
-    Bottle updateBelief(string sOPCname);			// update the beliefs of the agent present in an OPC  
-    Bottle synchoniseOPCs();						// synchronise the mentalOPC with the content of the OPC
+	yarp::os::Bottle updateBelief(std::string sOPCname);			// update the beliefs of the agent present in an OPC  
+	yarp::os::Bottle synchoniseOPCs();						// synchronise the mentalOPC with the content of the OPC
 
-    Bottle getBeliefs(Bottle bInput);				// return the beliefs of an agent in an OPC given
-    Bottle diffOPC();
+	yarp::os::Bottle getBeliefs(yarp::os::Bottle bInput);				// return the beliefs of an agent in an OPC given
+	yarp::os::Bottle diffOPC();
 
 };

@@ -40,7 +40,7 @@ Bottle interlocutor::connectOPC()
 {
 	Bottle bOutput;
 
-	realOPC = new OPCClient("efaa/abmReasoning/interlocutor/torealOPC");
+	realOPC = new OPCClient("abmReasoning/interlocutor/torealOPC");
 	int iTry = 0;
 	while (!realOPC->isConnected())
 	{
@@ -62,7 +62,7 @@ Bottle interlocutor::connectOPC()
 		realOPC->update();
 	}
 
-	mentalOPC = new OPCClient("efaa/abmReasoning/interlocutor/toMentalOPC");
+	mentalOPC = new OPCClient("abmReasoning/interlocutor/toMentalOPC");
 	iTry = 0;
 	while (!mentalOPC->isConnected())
 	{
@@ -1094,6 +1094,71 @@ behavior interlocutor::askBehaviorFromId(int opcIdBegin)
 
 
 ///                 SENDING KNOWLEDGE FUNCTIONS
+
+
+int interlocutor::sendAdjectiveKnowledge(list<adjKnowledge> listADK)
+{
+	Bottle bRequest;
+	int serialSpatial = 0;
+	//  Spatial Knowledge
+	for (list<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
+	{
+
+		// add temporal timing
+		if (it->vdGnlTiming.size() >= 1)
+		{
+			ostringstream   osInsertKnowledge;
+			osInsertKnowledge << "INSERT INTO adjectivetemporal (name, argument, timing) VALUES ";
+			bool bFirst = true;
+			for (map<string, vector<double> >::iterator itActTim = it->mActionTiming.begin(); itActTim != it->mActionTiming.end(); itActTim++)
+			{
+				
+				for (vector<double>::iterator itTiming = itActTim->second.begin(); itTiming != itActTim->second.end(); itTiming++)
+				{
+					(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+					osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActTim->first << "' , " << *itTiming << ") ";
+
+				}
+			}
+			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+
+			osInsertKnowledge.str("");
+			bFirst = true;
+			osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, x, y) VALUES ";
+
+			for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionAbsolut.begin(); itActXY != it->mActionAbsolut.end(); itActXY++)
+			{
+
+				for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
+				{
+					(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+					osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
+				}
+			}
+			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+
+			osInsertKnowledge.str("");
+			bFirst = true;
+			osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, dx, dy) VALUES ";
+			for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionDelta.begin(); itActXY != it->mActionDelta.end(); itActXY++)
+			{
+
+				for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
+				{
+					(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+					osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
+				}
+			}
+
+
+			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+			serialSpatial++;
+		}
+	}
+
+	return serialSpatial;
+}
+
 
 /*
 * Send all the spatialKnowledge to ABM
