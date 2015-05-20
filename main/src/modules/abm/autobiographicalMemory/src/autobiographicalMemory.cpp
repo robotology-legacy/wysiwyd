@@ -344,6 +344,11 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE proprioceptivedata OWNER TO postgres;";
 
+    /****************************** sounddata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS sounddata CASCADE;";
+    *ABMDataBase << "CREATE TABLE sounddata(\"time\" timestamp without time zone NOT NULL, snd_provider_port text NOT NULL, instance integer NOT NULL, relative_path text, snd_oid oid, CONSTRAINT snd_pkey PRIMARY KEY (\"time\", snd_provider_port), CONSTRAINT sound_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (  OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE sounddata OWNER TO postgres;";
+
     string sFilename;
 
     //if filename after, load the database through this
@@ -724,12 +729,12 @@ bool autobiographicalMemory::updateModule() {
     s=portSoundStreamInput.read(false);
     if(s!=NULL)
     {
-        yDebug() << "I have received a sound!!!!!";
+        yInfo() << "I have received a sound!!!!!";
         stringstream fullPath;
-        fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
-        yarp::sig::file::write(*s,(storingPath + "/" + storingTmpSuffix+ "/" + "test.wav").c_str());
+        //fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
+        yarp::sig::file::write(*s,(storingPath + "/" + storingTmpSuffix+ "/sound/" + "default.wav").c_str());
         //yarp::sig::file::write(*s,"c:\\robot\\ABMStoring\\tmp\\test.wav");
-        yDebug() << "blop";
+        //yDebug() << "blop";
     } else {
         //yDebug() << "no sound?";
     }

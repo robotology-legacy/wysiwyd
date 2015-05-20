@@ -53,6 +53,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     bool isStreamActivity = false;
     string fullSentence = "defaultLabel";
 
+    string activityType ;
     //Action
     bool done = false;
     for (int i = 1; i < bInput.size(); i++)
@@ -70,7 +71,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             labelImg << activityName << "_" << instance;
             fullSentence = labelImg.str() ;
 
-            string activityType = bTemp.get(2).asString() ;
+            activityType = bTemp.get(2).asString() ;
             //if activity is an action -> stream
             if (activityType == "action") {
                 isStreamActivity = true;
@@ -217,13 +218,53 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         string synchroTime = getCurrentTime();
         frameNb = 0 ;
 
-        yarp::sig::Sound *s;
-        s=portSoundStreamInput.read(true);
-        if(s!=NULL) {
-            yDebug() << "I have received a sound!!!!!";
-        }
-
         storeImagesAndData(synchroTime, true, fullSentence);
+
+        //if activity = say, we have to take one image/data + the sound that is coming from another port and catch in the update method of ABM (store in /tmp/sound/default.wav
+        if(activityType == "say"){
+
+            string sndName ;
+
+            //take the full sentence, replace space by _ to have the sound name
+            replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
+            sndName = fullSentence + ".wav";
+            
+            //read default sound from file and put data in yarp::sig::Sound  to store properly with semantic/instance that we are now aware of
+            yarp::sig::Sound s;
+            string defaultSoundFullPath = storingPath + "/" + storingTmpSuffix+ "/sound/" + "default.wav"  ;
+            printf("opening file %s\n",defaultSoundFullPath);
+            if (yarp::sig::file::read(s,defaultSoundFullPath.c_str()) == false) {
+                yError() << "Cannot open the default sound file : check " << defaultSoundFullPath ;
+            } else {
+
+                yInfo() << "Default sound file loaded from " << defaultSoundFullPath ;
+                stringstream sInstance ;
+                sInstance << currentInstance ;
+
+                //build the path and the name of the sound according to the instance and sentence said
+                string relativePath = sInstance.str() + "/" + sndName ;
+                string fullPath = storingPath + "/" + relativePath ;
+                
+                if(yarp::sig::file::write(s, fullPath.c_str()) ==  false) {
+                    yError() << "Cannot save the default sound file to " << fullPath ;
+                } else {
+
+                    yInfo() << "Default sound file renamed and moved to " << fullPath ;
+                
+                    //add the sound into the  large_objects table of ABM
+                    unsigned int snd_oid = ABMDataBase->lo_import(fullPath.c_str());
+
+                    Bottle bRequest;
+                    ostringstream osArg;
+
+                    //Populate the sounddata table with the infos
+                    bRequest.addString("request");
+                    osArg << "INSERT INTO sounddata(instance, relative_path, time, snd_provider_port, snd_oid) VALUES ('" << currentInstance << "', '" << relativePath << "', '" << synchroTime << "', '" << portSoundStreamInput.getName() << "', '" << snd_oid << "');";
+                    bRequest.addString(osArg.str());
+                    request(bRequest);
+                }
+            }
+        }
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
         string reply = disconnectFromImgStreamProviders().toString().c_str();
