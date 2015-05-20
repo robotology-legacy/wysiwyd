@@ -63,18 +63,18 @@ Available are : findActivity <actionName> <begin|end|both> [<colums,to,select>] 
 None.
 
 \section portsa_sec Ports Accessed
-/efaa/abmReasoning/rpc \n
-/efaa/abmReasoning/request:o \n
-/efaa/abmReasoning/world/opc:rpc \n
+/abmReasoning/rpc \n
+/abmReasoning/request:o \n
+/abmReasoning/world/opc:rpc \n
 
 \section portsc_sec Ports Created
-- \c /efaa/abmReasoning/rpc \n This port must be used to communicate with the module \n
+- \c /abmReasoning/rpc \n This port must be used to communicate with the module \n
 
-- \c /efaa/abmReasoning/request:o \n This port is used to communicate with the memory (autobiographicalMemory) \n
+- \c /abmReasoning/request:o \n This port is used to communicate with the memory (autobiographicalMemory) \n
 
-- \c /efaa/abmReasoning/world/opc:rpc \n This port is used to communicate with the OPC \
+- \c /abmReasoning/world/opc:rpc \n This port is used to communicate with the OPC \
 
-- \c /efaa/abmReasoning/interlocutor/toOPC \n This port is use to communicate between the interlocutor and the OPC
+- \c /abmReasoning/interlocutor/toOPC \n This port is use to communicate between the interlocutor and the OPC
 
 \section tested_os_sec Tested OS
 Windows.
