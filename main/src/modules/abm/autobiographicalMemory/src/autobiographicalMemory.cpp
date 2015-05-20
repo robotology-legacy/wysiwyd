@@ -339,10 +339,20 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "CREATE TABLE visualdata(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT visualdata_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE);";
     *ABMDataBase << "ALTER TABLE visualdata OWNER TO postgres;";
 
-    /****************************** proprioceptivedata *************************/
-    *ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
-    *ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE);";
-    *ABMDataBase << "ALTER TABLE proprioceptivedata OWNER TO postgres;";
+	/****************************** proprioceptivedata *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
+	*ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE);";
+	*ABMDataBase << "ALTER TABLE proprioceptivedata OWNER TO postgres;";
+
+	/****************************** adjectivespatial *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
+
+	/****************************** adjectivetemporal *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
 
     /****************************** sounddata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS sounddata CASCADE;";
