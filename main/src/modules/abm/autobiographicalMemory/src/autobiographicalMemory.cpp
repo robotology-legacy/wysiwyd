@@ -1047,6 +1047,16 @@ Bottle autobiographicalMemory::resetKnowledge()
     *ABMDataBase << "CREATE TABLE interactionknowledge (subject text NOT NULL, argument text NOT NULL, number integer NOT NULL, type text NOT NULL DEFAULT 'none'::text, role text NOT NULL DEFAULT 'none'::text, CONSTRAINT interactionknowledge_pkey PRIMARY KEY (subject, argument, type, role) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE interactionknowledge OWNER  TO postgres;";
 
+	/****************************** adjectivespatial *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
+
+	/****************************** adjectivetemporal *************************/
+	*ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
+	*ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
+	*ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
+
     bOutput.addString("knowledge database reset");
     return bOutput;
 }
