@@ -44,8 +44,11 @@ int main(int argc, char * argv[]) {
 
     /* prepare and configure the resource finder */
     ResourceFinder rf;
-    rf.setVerbose(true);
-    rf.configure(argc, argv);
+	rf.setVerbose(true);
+	rf.setDefaultContext("opcManager");
+	rf.setDefaultConfigFile("opcManager.ini");
+	rf.configure(argc, argv);
+
 
     /* run the module: runModule() calls configure first and, if successful, it then runs */
     oManager.runModule(rf);

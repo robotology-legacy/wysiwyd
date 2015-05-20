@@ -1,5 +1,8 @@
 #include <opcManager.h>
 
+using namespace wysiwyd::wrdac;
+using namespace yarp::os;
+using namespace std;
 
 /* configure the module, default connection to the OPC called : "OPC" */
 bool opcManager::configure(yarp::os::ResourceFinder &rf)
@@ -36,9 +39,11 @@ bool opcManager::configure(yarp::os::ResourceFinder &rf)
     realOPC->isVerbose = false;
     mentalOPC->isVerbose = false;
 
-    string handlerPortName = getName() + "/rpc";
+	string handlerPortName = "/";
+	handlerPortName += getName() + "/rpc";
 
-    string nameToAbmReasoning = getName() + "/toABMR";
+	string nameToAbmReasoning = "/";
+	nameToAbmReasoning += getName() + "/toABMR";
 
     if (!handlerPort.open(handlerPortName.c_str())) {           
         cout << getName() << ": Unable to open port " << handlerPortName << endl;  
@@ -46,7 +51,7 @@ bool opcManager::configure(yarp::os::ResourceFinder &rf)
     }
 
     portToAbmReasoning.open(nameToAbmReasoning.c_str());
-    Network::connect(portToAbmReasoning.getName(), "/efaa/abmReasoning/rpc");
+    Network::connect(portToAbmReasoning.getName(), "/abmReasoning/rpc");
 
     attach(portToAbmReasoning);
     attach(handlerPort);                  // attach to port
