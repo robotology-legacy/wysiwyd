@@ -84,7 +84,7 @@ Eigen::Matrix4f perspectiveTaking::getManualTransMat(float camOffsetX,
     Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
 
     // robot head is camOffsetZ below kinect, can camOffsetX behind kinect
-    rot_trans.translation() << camOffsetX, 0.0, camOffsetZ;
+    rot_trans.translation() << camOffsetX, camOffsetY, camOffsetZ;
     // robot head is tilted by camAngle degrees down
     float theta = camAngle/180.0*M_PI;
     rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
