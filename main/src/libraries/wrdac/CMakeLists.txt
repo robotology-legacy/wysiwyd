@@ -29,6 +29,16 @@ set_target_properties(${PROJECTNAME} PROPERTIES DEBUG_POSTFIX "d")
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} wysiwydIDLClients)
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${wysiwydIDLClients_INCLUDE_DIRS}
-                                   DESTINATION include/
+                                   DESTINATION include/)
+
+icub_export_library(${PROJECTNAME} DESTINATION include/wrdac/
                                    FILES ${folder_header})
 
+icub_export_library(${PROJECTNAME} DESTINATION include/wrdac/knowledge
+                                   FILES ${folder_header_knowledge})
+
+icub_export_library(${PROJECTNAME} DESTINATION include/wrdac/clients
+                                   FILES ${folder_header_clients})
+
+icub_export_library(${PROJECTNAME} DESTINATION include/wrdac/subsystems
+                                   FILES ${folder_header_subsystems})
