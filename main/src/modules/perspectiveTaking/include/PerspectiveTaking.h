@@ -43,6 +43,10 @@ enum partnerCameraMode_t {staticPos, agentDetector, headPose};
 class perspectiveTaking: public QObject, public yarp::os::RFModule, public perspectiveTaking_IDL {
     Q_OBJECT
 protected:
+    // interface to iCub
+    yarp::dev::IGazeControl *igaze;
+    yarp::dev::PolyDriver gazeCtrl;
+
     // Kinect related
     yarp::os::BufferedPort<yarp::os::Bottle> getClickPortKinect;
     void connectToKinectServer(int verbosity);

@@ -63,6 +63,36 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
     connectToAgentDetector(rf.check("agentDetectorName",Value("agentDetector")).asString().c_str());
     connectToHeadPoseEstimator(rf.check("headPoseEstimatorName",Value("headPoseEstimator")).asString().c_str());
 
+    /*Property optionGaze;
+    optionGaze.put("device", "gazecontrollerclient");
+    optionGaze.put("remote", "/iKinGazeCtrl");
+    optionGaze.put("local", "/"+getName()+"/gazeClient");
+    if(gazeCtrl.open(optionGaze)) {
+        gazeCtrl.view(igaze);
+    } else {
+        yError() << "Gaze device not available!";
+    }
+
+    Eigen::Affine3f rot_trans = Eigen::Affine3f::Identity();
+    float theta = -90.0/180.0*M_PI;
+    rot_trans.rotate (Eigen::AngleAxisf (theta, Eigen::Vector3f::UnitY()));
+    float alpha = -90.0/180.0*M_PI;
+    rot_trans.rotate (Eigen::AngleAxisf (alpha, Eigen::Vector3f::UnitZ()));
+
+    Eigen::Matrix4f H_curr_Eigen = Eigen::Matrix4f::Identity();
+    yarp::sig::Vector leftEyePosition;
+    yarp::sig::Vector leftEyeOrientation;
+    if (igaze!=NULL && igaze->getLeftEyePose( leftEyePosition, leftEyeOrientation)) {
+        yarp::sig::Matrix R_curr=yarp::math::axis2dcm(leftEyeOrientation);
+        yarp::sig::Matrix H_curr(4, 4);
+        H_curr=R_curr;
+        H_curr(0,3)=leftEyePosition[0];
+        H_curr(1,3)=leftEyePosition[1];
+        H_curr(2,3)=leftEyePosition[2];
+        H_curr(3,3)=1.0;
+        H_curr_Eigen = yarp2EigenMatrix(H_curr);
+    }*/
+
     int partnerCameraMode_temp = rf.check("partnerCameraMode",Value(0)).asInt();
     if(partnerCameraMode_temp==0) {
         partnerCameraMode = staticPos;
@@ -108,7 +138,21 @@ bool perspectiveTaking::configure(yarp::os::ResourceFinder &rf) {
                                         cameraOffset->get(2).asDouble(),
                                         cameraAngle);
 
+    Eigen::Matrix4f kin2head_rfh;
+    kin2head_rfh << -0.863, -0.247, 0.440, -1,
+                    -0.496, 0.260, -0.828, 0.911,
+                     0.091, -0.933, -0.347, 0.297,
+                     0     , 0    , 0     , 1;
+
+    Eigen::Matrix4f kin2head_stereo;
+    kin2head_stereo << 0.152, -0.277, -0.874, 0.304,
+                      -0.821, 0.043, -0.172, 0.112,
+                       0.118, 0.743, -0.254, 0.610,
+                       0     , 0    , 0     , 1;
+
     kin2head = kin2head_manual;
+    //kin2head = kin2head_rfh;
+    //kin2head = kin2head_stereo;
 
     cout << "Kinect 2 Robot PCL: " << endl << kin2head << endl;
 
