@@ -406,12 +406,12 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 		if (bCommand.size() == 2)
 		{
 			bReply.addList() = resetKnowledge(atoi(bCommand.get(1).toString().c_str()));
-			bReply.addList() = retroReasoning(atoi(bCommand.get(1).toString().c_str()));
+			//bReply.addList() = retroReasoning(atoi(bCommand.get(1).toString().c_str()));
 		}
 		else
 		{
 			bReply.addList() = resetKnowledge();
-			bReply.addList() = retroReasoning();
+		//	bReply.addList() = retroReasoning();
 		}
 	}
 	// RETRO REASONING
@@ -2391,7 +2391,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
 	//check : simple object query :
 	Bottle bTemporal, bOutput;
 	ostringstream osRequest;
-	osRequest << "SELECT instance FROM main WHERE activitytype = 'qRM' AND begin = true AND INSTANCE > " << from;
+	osRequest << "SELECT instance FROM main WHERE (activitytype = 'qRM' or activitytype = 'action') AND begin = true AND INSTANCE > " << from << " ORDER by instance";
 	Bottle  bMessenger = requestFromStream(osRequest.str().c_str());
 	int numberAction = bMessenger.size();
 
@@ -2404,94 +2404,104 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		END2;
 
 
-	string filepath_sentence = resfind.findFileByName("sentences.txt");
-	ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+	//string filepath_sentence = resfind.findFileByName("sentences.txt");
+	//ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
-	file_sentences << "agent\tverb\tobject\tajd1\tadj2" << endl;
+	//file_sentences << "agent\tverb\tobject\tajd1\tadj2" << endl;
 
 	for (int j = 0; j < numberAction; j++)
 	{
 		std::cout << j + 1 << "..";
 		int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
+
 		Bottle bAction = Interlocutor.askActionFromIdV2(Id);
 
-
-		if (bAction.size() <= 5)
+		if (bAction.get(0).asString() == "error")
 		{
-			std::cout << endl << "Error in abmReasoning::addLastAction : wrong size of 'askLastAction' \n";
-			vError.push_back(Id);
+			cout << bAction.get(1).toString();
 			iError++;
 		}
 		else
 		{
-			string  sName = bAction.get(0).asString();
-
-			Bottle bArgument = *bAction.get(1).asList();
-
-			list<string>	lAdjectives;
-			lAdjectives.push_back(bArgument.check("adv1", Value("none")).asString());
-			lAdjectives.push_back(bArgument.check("adv2", Value("none")).asString());
-
-			string	sXY = bAction.get(2).toString().c_str();
-			string	sEND = bAction.get(3).toString().c_str();
-
-			bool ObjectPresentBefore = bAction.get(4).asInt() == 1;
-			bool ObjectPresentAfter = bAction.get(5).asInt() == 1;
-
-			double dTiming = bAction.get(6).asDouble();
-
-			BEGIN = abmReasoningFunction::coordFromString(sXY);
-
-			if (bDreaming && mentalOPC->isConnected())
+			if (bAction.size() <= 5)
 			{
-				string  sObject = "dream...";
-				RTObject* LOCATION = mentalOPC->addRTObject(sObject);
-				LOCATION->m_ego_position[0] = BEGIN.first;
-				LOCATION->m_ego_position[1] = BEGIN.second;
-				LOCATION->m_ego_position[2] = 0.01;
-				LOCATION->m_dimensions[0] = 0.04;
-				LOCATION->m_dimensions[1] = 0.04;
-				LOCATION->m_dimensions[2] = 0.08;
-				LOCATION->m_present = 1;
-				LOCATION->m_color[0] = 100;
-				LOCATION->m_color[1] = 255;
-				LOCATION->m_color[2] = 0;
-				mentalOPC->commit();
+				std::cout << endl << "Error in abmReasoning::addLastAction : wrong size of 'askLastAction' \n";
+				vError.push_back(Id);
+				iError++;
 			}
-
-			END = abmReasoningFunction::coordFromString(sEND);
-			MOVE.first = END.first - BEGIN.first;
-			MOVE.second = END.second - BEGIN.second;
-
-			file_sentences << bArgument.check("agent", Value("none")).asString() << "\t";
-			file_sentences << bArgument.check("action", Value("none")).asString() << "\t";
-			file_sentences << bArgument.check("object", Value("none")).asString() << "\t";
-			file_sentences << bArgument.check("adv1", Value("none")).asString() << "\t";
-			file_sentences << bArgument.check("adv2", Value("none")).asString() << endl;
-
-			if (ObjectPresentAfter == ObjectPresentBefore)
+			else
 			{
-				for (list<string>::iterator it = lAdjectives.begin(); it != lAdjectives.end(); it++)
+				string  sName = bAction.get(0).asString();
+
+				Bottle bArgument = *bAction.get(1).asList();
+
+				//			cout << endl << bAction.toString() << endl;
+
+				list<string>	lAdjectives;
+				lAdjectives.push_back(bArgument.check("adv1", Value("none")).asString());
+				lAdjectives.push_back(bArgument.check("adv2", Value("none")).asString());
+
+				string	sXY = bAction.get(2).toString().c_str();
+				string	sEND = bAction.get(3).toString().c_str();
+
+				bool ObjectPresentBefore = bAction.get(4).asInt() == 1;
+				bool ObjectPresentAfter = bAction.get(5).asInt() == 1;
+
+				double dTiming = bAction.get(6).asDouble();
+
+				BEGIN = abmReasoningFunction::coordFromString(sXY);
+
+				if (bDreaming && mentalOPC->isConnected())
 				{
-					if (*it != "none")
+					string  sObject = "dream...";
+					RTObject* LOCATION = mentalOPC->addRTObject(sObject);
+					LOCATION->m_ego_position[0] = BEGIN.first;
+					LOCATION->m_ego_position[1] = BEGIN.second;
+					LOCATION->m_ego_position[2] = 0.01;
+					LOCATION->m_dimensions[0] = 0.04;
+					LOCATION->m_dimensions[1] = 0.04;
+					LOCATION->m_dimensions[2] = 0.08;
+					LOCATION->m_present = 1;
+					LOCATION->m_color[0] = 100;
+					LOCATION->m_color[1] = 255;
+					LOCATION->m_color[2] = 0;
+					mentalOPC->commit();
+				}
+
+				END = abmReasoningFunction::coordFromString(sEND);
+				MOVE.first = END.first - BEGIN.first;
+				MOVE.second = END.second - BEGIN.second;
+
+				//file_sentences << bArgument.check("agent", Value("none")).asString() << "\t";
+				//file_sentences << bArgument.check("action", Value("none")).asString() << "\t";
+				//file_sentences << bArgument.check("object", Value("none")).asString() << "\t";
+				//file_sentences << bArgument.check("adv1", Value("none")).asString() << "\t";
+				//file_sentences << bArgument.check("adv2", Value("none")).asString() << endl;
+
+				if (ObjectPresentAfter == ObjectPresentBefore)
+				{
+					for (list<string>::iterator it = lAdjectives.begin(); it != lAdjectives.end(); it++)
 					{
-						addAdverbKnowledge(*it, sName, dTiming, END, MOVE);
+						if (*it != "none")
+						{
+							addAdverbKnowledge(*it, sName, dTiming, END, MOVE);
+						}
 					}
 				}
-			}
 
-			if (bDreaming && mentalOPC->isConnected())
-			{
-				string  sObject = "dream...";
-				RTObject* LOCATION = mentalOPC->addRTObject(sObject);
-				LOCATION->m_ego_position[0] = END.first;
-				LOCATION->m_ego_position[1] = END.second;
-				LOCATION->m_ego_position[2] = 0.01;
-				LOCATION->m_present = 1;
-				LOCATION->m_color[0] = 100;
-				LOCATION->m_color[1] = 255;
-				LOCATION->m_color[2] = 0;
-				mentalOPC->commit();
+				if (bDreaming && mentalOPC->isConnected())
+				{
+					string  sObject = "dream...";
+					RTObject* LOCATION = mentalOPC->addRTObject(sObject);
+					LOCATION->m_ego_position[0] = END.first;
+					LOCATION->m_ego_position[1] = END.second;
+					LOCATION->m_ego_position[2] = 0.01;
+					LOCATION->m_present = 1;
+					LOCATION->m_color[0] = 100;
+					LOCATION->m_color[1] = 255;
+					LOCATION->m_color[2] = 0;
+					mentalOPC->commit();
+				}
 			}
 		}
 	}
@@ -2502,19 +2512,19 @@ Bottle abmReasoning::findAllActionsV2(int from)
 		LOCATION->m_present = 0;
 		mentalOPC->commit();
 	}
-	std::cout << endl;
+	cout << endl;
 
-	bool print_in_file = false;
+	bool print_in_file = true;
 
 
 	if (iError != 0)
 	{
-		std::cout << iError << " errors while getting the actions:" << endl;
+		cout << iError << " errors while getting the actions:" << endl;
 		for (unsigned int j = 0; j < vError.size(); j++)
 		{
 			std::cout << vError[j] << "\t ";
 		}
-		std::cout << endl;
+		cout << endl;
 	}
 
 
@@ -2535,13 +2545,17 @@ Bottle abmReasoning::findAllActionsV2(int from)
 			filepath_time_relative += ".txt";
 			string filepath_time = resfind.findFileByName(filepath_time_relative);
 			ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // erase previous contents of file
-
-			for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
-			{
-				file_time << *itD << endl;
+			if (file_time){
+				for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
+				{
+					file_time << *itD << endl;
+				}
+				cout << "file_time " << filepath_time << " written" << endl;
 			}
-
-			cout << "file_time " << filepath_time << " written" << endl;
+			else
+			{
+				cout << "cannot write " << filepath_time << endl;
+			}
 
 			string filepath_space_relative = "space_";
 			filepath_space_relative += it->sLabel.c_str();
@@ -2549,50 +2563,53 @@ Bottle abmReasoning::findAllActionsV2(int from)
 			string filepath_space = resfind.findFileByName(filepath_space_relative);
 			ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
-			file_space << "X\tY\tDX\tDY" << endl;
+			if (file_space)
+			{
+				file_space << "X\tY\tDX\tDY" << endl;
 
-			if (it->vdGnlDelta.size() != it->vdGnlXY.size())
-			{
-				cout << "problem of size dude !" << endl;
-			}
-			else
-			{
-				for (unsigned int i = 0; i < it->vdGnlDelta.size(); i++)
+				if (it->vdGnlDelta.size() != it->vdGnlXY.size())
 				{
-					file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
+					cout << "problem of size dude !" << endl;
 				}
-			}
-			cout << "file " << filepath_space << " written" << endl;
-
-
-			if (it->mActionAbsolut.size() != it->mActionDelta.size())
-			{
-				cout << "problem of size and verb dude !" << endl;
-			}
-			else
-			{
-				string filepath_space_verb_relative = "space_verb_";
-				filepath_space_verb_relative += it->sLabel.c_str();
-				filepath_space_verb_relative += ".txt";
-				string filepath_space_verb = resfind.findFileByName(filepath_space_verb_relative);
-
-				ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
-
-				file_space_verb << "X\tY\tVerb" << endl;
-
-				for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
+				else
 				{
-					for (unsigned int i = 0; i < itMap->second.size(); i++)
+					for (unsigned int i = 0; i < it->vdGnlDelta.size(); i++)
 					{
-						file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
+						file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
 					}
+				}
+				cout << "file " << filepath_space << " written" << endl;
 
-					for (unsigned int i = 0; i < itMap->second.size(); i++)
+
+				if (it->mActionAbsolut.size() != it->mActionDelta.size())
+				{
+					cout << "problem of size and verb dude !" << endl;
+				}
+				else
+				{
+					string filepath_space_verb_relative = "space_verb_";
+					filepath_space_verb_relative += it->sLabel.c_str();
+					filepath_space_verb_relative += ".txt";
+					string filepath_space_verb = resfind.findFileByName(filepath_space_verb_relative);
+
+					ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+
+					file_space_verb << "X\tY\tVerb" << endl;
+
+					for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
 					{
-						file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
-					}
+						for (unsigned int i = 0; i < itMap->second.size(); i++)
+						{
+							file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
+						}
 
-					std::cout << "file_space_verb " << filepath_space_verb << " written" << endl;
+						for (unsigned int i = 0; i < itMap->second.size(); i++)
+						{
+							file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
+						}
+
+						std::cout << "file_space_verb " << filepath_space_verb << " written" << endl;
+					}
 				}
 			}
 		}
@@ -3740,14 +3757,14 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 
 
 	// else check for each association action/adjective:
-	for (map<string,  vector<double>  >::iterator itMap = adjInput.mActionTiming.begin(); itMap != adjInput.mActionTiming.end(); itMap++)
+	for (map<string, vector<double> >::iterator itMap = adjInput.mActionTiming.begin(); itMap != adjInput.mActionTiming.end(); itMap++)
 	{
 		abmReasoningFunction::studentttest2(itMap->second, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
 		if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
-	    {
+		{
 			cout << adjInput.sLabel << " influences timing when correlated to the action : " << itMap->first << endl;
 			adjInput.fTimingInfluence = true;
-	    }
+		}
 	}
 }
 
@@ -3895,14 +3912,14 @@ Bottle abmReasoning::executeActionFromAdv(Bottle bInput)
 	string sAction = "none";
 	string sAgent = "none";
 	string sObject = "none";
-	string sArg1   = "none";
-	string sArg2   = "none";
+	string sArg1 = "none";
+	string sArg2 = "none";
 
 	sAction = bInput.find("action").toString();
-	sAgent  = bInput.find("agent").toString();
+	sAgent = bInput.find("agent").toString();
 	sObject = bInput.find("object").toString();
-	sArg1   = bInput.find("arg1").toString();
-	sArg2   = bInput.find("arg2").toString();
+	sArg1 = bInput.find("arg1").toString();
+	sArg2 = bInput.find("arg2").toString();
 
 	list<string> listArgument;
 	if (sArg1 != "none") listArgument.push_back(sArg1);
@@ -3910,7 +3927,7 @@ Bottle abmReasoning::executeActionFromAdv(Bottle bInput)
 
 	// get the effect of each adverb with the action
 
-	for (list<string>::iterator itArg = listArgument.begin(); itArg != listArgument.end() ; itArg++)
+	for (list<string>::iterator itArg = listArgument.begin(); itArg != listArgument.end(); itArg++)
 	{
 		bool	 bFound = false;
 
@@ -5233,7 +5250,7 @@ Bottle abmReasoning::resetKnowledge(int from)
 	//  checkContextLocation();
 
 	ostringstream osOutput;
-	osOutput << "resetKnowledge : " << serialSpatial << " spatialKnowledge(s) added; " << serialTime << " timeKnowledge(s) added; " << serialBehavior << " behavior(s) added; " << serialPlan << " plan(s) added; " << serialContext << " contextualKnowledge(s) added; " << serialInteraction << " interaction(s) added";
+	osOutput << "resetKnowledge : " << serialAdjective << " adjectiveKnowledge, " << serialSpatial << " spatialKnowledge(s) added; " << serialTime << " timeKnowledge(s) added; " << serialBehavior << " behavior(s) added; " << serialPlan << " plan(s) added; " << serialContext << " contextualKnowledge(s) added; " << serialInteraction << " interaction(s) added";
 	bOutput.addString(osOutput.str().c_str());
 	bDreaming = false;
 

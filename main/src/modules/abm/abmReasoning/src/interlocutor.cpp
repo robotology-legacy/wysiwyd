@@ -359,14 +359,13 @@ Bottle interlocutor::askActionFromIdV2(int Id)
 		bQuery,
 		bAction,
 		bArguments,
-		bOject1,
 		bIdArgBegin,
 		bSubTypeArgBegin,
 		bPosArgBegin,
 		bPosArgEnd,
 		bContent,
-		bTime,
-		bName;
+		bError,
+		bTime;
 
 	string sTimeBegin,	//timing beginning of action
 		sTimeEnd,		//timing end of action
@@ -376,14 +375,22 @@ Bottle interlocutor::askActionFromIdV2(int Id)
 
 	list<string>	lAdjectives;
 
+	ostringstream osError;
+	osError << "Error in instance: " << Id << ". wrong data in ELM.";
+	bError.addString("error");
+	bError.addString(osError.str().c_str());
+
+
 	ostringstream osTime;
 	osTime << "SELECT time FROM main WHERE instance = " << Id;
 	bContent = requestFromStream(osTime.str());
+	if (bContent.toString() == "NULL")	return bError;
 	sTimeBegin = (*bContent.get(0).asList()).get(0).toString();
 
 	osTime.str("");
 	osTime << "SELECT time FROM main WHERE instance = " << Id + 1;
 	bContent = requestFromStream(osTime.str());
+	if (bContent.toString() == "NULL")	return bError;
 	sTimeEnd = (*bContent.get(0).asList()).get(0).toString();
 
 	double dTiming = abmReasoningFunction::timeDiffSecondFromString(sTimeBegin, sTimeEnd);
@@ -393,17 +400,68 @@ Bottle interlocutor::askActionFromIdV2(int Id)
 	bArguments = requestFromStream(osName.str());
 
 	sAgent = bArguments.check("agent", Value("none")).asString();
-	sName = bArguments.check("action", Value("none")).asString();
+	if (sAgent == "none")
+		sAgent = bArguments.check("agent1", Value("none")).asString();
+
 	sObject = bArguments.check("object", Value("none")).asString();
+	if (sObject == "none")
+		sObject = bArguments.check("object1", Value("none")).asString();
 
 	lAdjectives.push_back(bArguments.check("adv1", Value("none")).asString());
 	lAdjectives.push_back(bArguments.check("adv2", Value("none")).asString());
+	lAdjectives.push_back(bArguments.check("spatial1", Value("none")).asString());
+
+	sName = bArguments.check("action", Value("none")).asString();
+	if (sName == "none")
+		sName = bArguments.check("action1", Value("none")).asString();
+	if (sName == "none")
+	{
+		ostringstream osGetNameAction;
+		osGetNameAction << "SELECT (activityname) FROM main WHERE instance = " << Id;
+		Bottle bGetNameAction = requestFromStream(osGetNameAction.str().c_str());
+		if (bGetNameAction.toString() == "NULL")	return bError;
+		sName = (*bGetNameAction.get(0).asList()).get(0).toString();
+	}
+
+	Bottle bNewArgument;
+	Bottle bAgent,
+		bObject,
+		bName;
+
+	bAgent.addString("agent");
+	bAgent.addString(sAgent);
+	bNewArgument.addList() = bAgent;
+
+	bObject.addString("object");
+	bObject.addString(sObject);
+	bNewArgument.addList() = bObject;
+
+	bName.addString("action");
+	bName.addString(sName);
+	bNewArgument.addList() = bName;
+
+
+	int ii = 1;
+	for (list<string>::iterator itSt = lAdjectives.begin(); itSt != lAdjectives.end(); itSt++)
+	{
+		if (*itSt != "none")
+		{
+			Bottle bArgTemp;
+			ostringstream sArgTem;
+			sArgTem << "adv" << ii;
+			bArgTemp.addString(sArgTem.str().c_str());
+			bArgTemp.addString(*itSt);
+			bNewArgument.addList() = bArgTemp;
+			ii++;
+		}
+	}
 
 
 	//-- 1. extract the id of the argument, assuming it is an entity
 	ostringstream osEntity;
 	osEntity << "SELECT opcid FROM entity WHERE instance = " << Id << " AND name = '" << sObject << "'";
 	bIdArgBegin = requestFromStream(osEntity.str().c_str());
+	if (bIdArgBegin.toString() == "NULL")	return bError;
 	int idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str());
 	//std::cout << "Argument Id Begin id : " << idArg << endl;
 
@@ -415,6 +473,7 @@ Bottle interlocutor::askActionFromIdV2(int Id)
 	//-- 2. select the subtype of the argument in order to extract it accordingly
 	osEntity << "SELECT subtype FROM contentopc WHERE instance = " << Id << " AND opcid = " << idArg;
 	bSubTypeArgBegin = requestFromStream(osEntity.str().c_str());
+	if (bSubTypeArgBegin.toString() == "NULL")	return bError;
 	string subtypeArg = bSubTypeArgBegin.get(0).asList()->get(0).toString().c_str();
 
 
@@ -427,6 +486,7 @@ Bottle interlocutor::askActionFromIdV2(int Id)
 	osEntity.str("");
 	osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id << " AND " << subtypeArg << ".opcid = " << idArg;
 	bPosArgBegin = requestFromStream(osEntity.str().c_str());
+	if (bPosArgBegin.toString() == "NULL")	return bError;
 	string posArgBegin = bPosArgBegin.get(0).asList()->get(0).toString().c_str();
 	
 	(bPosArgBegin.get(0).asList()->get(1).toString().c_str() == test) ? ObjectPresentBefore = 1 : ObjectPresentBefore = 0;
@@ -438,13 +498,14 @@ Bottle interlocutor::askActionFromIdV2(int Id)
 	//-- 4. extract the x, y of the object at the end of the activity and the presence and absence
 	osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id + 1 << " AND " << subtypeArg << ".opcid = " << idArg;
 	bPosArgEnd = requestFromStream(osEntity.str().c_str());
+	if (bPosArgEnd.toString() == "NULL")	return bError;
 	string posArgEnd = bPosArgEnd.get(0).asList()->get(0).toString().c_str();
 
 	(bPosArgEnd.get(0).asList()->get(1).toString().c_str() == test) ? ObjectPresentAfter = 1 : ObjectPresentAfter = 0;
 
 
 	bOutput.addString(sName);
-	bOutput.addList() = bArguments;
+	bOutput.addList() = bNewArgument;
 
 	bOutput.addString(posArgBegin.c_str());
 	bOutput.addString(posArgEnd.c_str());
@@ -1100,19 +1161,19 @@ int interlocutor::sendAdjectiveKnowledge(list<adjKnowledge> listADK)
 {
 	Bottle bRequest;
 	int serialSpatial = 0;
+	bool bFirst = true;
 	//  Spatial Knowledge
+	ostringstream   osInsertKnowledge;
+	osInsertKnowledge << "INSERT INTO adjectivetemporal (name, argument, timing) VALUES ";
+
 	for (list<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
 	{
 
 		// add temporal timing
 		if (it->vdGnlTiming.size() >= 1)
 		{
-			ostringstream   osInsertKnowledge;
-			osInsertKnowledge << "INSERT INTO adjectivetemporal (name, argument, timing) VALUES ";
-			bool bFirst = true;
 			for (map<string, vector<double> >::iterator itActTim = it->mActionTiming.begin(); itActTim != it->mActionTiming.end(); itActTim++)
 			{
-				
 				for (vector<double>::iterator itTiming = itActTim->second.begin(); itTiming != itActTim->second.end(); itTiming++)
 				{
 					(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
@@ -1120,42 +1181,49 @@ int interlocutor::sendAdjectiveKnowledge(list<adjKnowledge> listADK)
 
 				}
 			}
-			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+		}
+	}
+	bRequest = requestFromStream(osInsertKnowledge.str().c_str());
 
-			osInsertKnowledge.str("");
-			bFirst = true;
-			osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, x, y) VALUES ";
+	osInsertKnowledge.str("");
+	bFirst = true;
+	osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, x, y) VALUES ";
 
-			for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionAbsolut.begin(); itActXY != it->mActionAbsolut.end(); itActXY++)
+	for (list<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
+	{
+
+		for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionAbsolut.begin(); itActXY != it->mActionAbsolut.end(); itActXY++)
+		{
+
+			for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
 			{
-
-				for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
-				{
-					(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
-					osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
-				}
+				(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+				osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
 			}
-			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
-
-			osInsertKnowledge.str("");
-			bFirst = true;
-			osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, dx, dy) VALUES ";
-			for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionDelta.begin(); itActXY != it->mActionDelta.end(); itActXY++)
-			{
-
-				for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
-				{
-					(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
-					osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
-				}
-			}
-
-
-			bRequest = requestFromStream(osInsertKnowledge.str().c_str());
-			serialSpatial++;
 		}
 	}
 
+	bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+
+	osInsertKnowledge.str("");
+	bFirst = true;
+	osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, dx, dy) VALUES ";
+	for (list<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
+	{
+		for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionDelta.begin(); itActXY != it->mActionDelta.end(); itActXY++)
+		{
+
+			for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
+			{
+				(bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+				osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
+			}
+		}
+
+		serialSpatial++;
+	}
+	bRequest = requestFromStream(osInsertKnowledge.str().c_str());
+	
 	return serialSpatial;
 }
 
