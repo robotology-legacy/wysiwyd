@@ -71,6 +71,7 @@ private:
     // helpers
     bool delete_directory(const std::string &dir_to_delete);
     yarp::os::Bottle detectFailed();
+	std::ostringstream osInsertTemp;
 
 public:
     bool shouldClose;
@@ -97,6 +98,7 @@ public:
     yarp::os::Bottle snapshot(const yarp::os::Bottle &bInput);
     yarp::os::Bottle snapshotSP(const yarp::os::Bottle &bInput);
     yarp::os::Bottle snapshotBehavior(const yarp::os::Bottle &bInput);
+	void recogFromGrammarSemantic(yarp::os::Bottle bRecogBottle, std::string s_deep, int i_deep, int iInstance);
 
     //////////////////////////////////////////////////////////////////////////
     // visual + data streaming

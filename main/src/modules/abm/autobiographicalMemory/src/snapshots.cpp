@@ -131,7 +131,8 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     Bottle bSnapShot = OPCEARS.insertOPC(sName);
 
     ostringstream osAllArg;
-
+	Bottle bRecogSemantic;
+	bool bShouldSend = true;
     // Filling contentArg
     if(opcWorld->isConnected()) {
         for (int i = 1; i < bInput.size(); i++)
@@ -162,16 +163,27 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                         cArgRole = bTemp.get(j).asList()->get(1).asString();
 
                         //add sentence for single img label
-                        if (cArgRole == "sentence"){
-                            fullSentence = cArgArgument;
-                        }
-                    }
+						if (cArgRole == "sentence"){
+							fullSentence = cArgArgument;
+						}
+						if (cArgRole == "semantic"){
+							
+							yInfo() << " " << bTemp.get(j).asList()->get(0).toString();
+							bRecogSemantic.fromString(bTemp.get(j).asList()->get(0).toString());
+							yInfo() << " " << bRecogSemantic.toString();
+							yInfo() << "  bRecog size: " << bRecogSemantic.size();
+							bShouldSend = false;
+						}
+					}
                     else {
                         cArgRole = "unknown";
                     }
-
-                    osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
-
+					if (bShouldSend){
+					osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
+					}
+					else{
+						bShouldSend = true;
+					}
                     // one stringstream with all argments
                     osAllArg << osArg.str().c_str() ;
                 }
@@ -221,7 +233,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         storeImagesAndData(synchroTime, true, fullSentence);
 
         //if activity = say, we have to take one image/data + the sound that is coming from another port and catch in the update method of ABM (store in /tmp/sound/default.wav
-        if(activityType == "say"){
+        if(activityType == "recog"){
 
             string sndName ;
 
@@ -264,6 +276,11 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                     request(bRequest);
                 }
             }
+
+			osInsertTemp.str("");
+			recogFromGrammarSemantic(bRecogSemantic, "", 1, currentInstance);
+			requestFromString(osInsertTemp.str());
+
         }
 
         //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
@@ -590,4 +607,84 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     }
 
     return bSnapShot;
+}
+
+
+/**
+* Recursive method to extract the semantic cues of each word recognized
+* the bRecogBottle is the sentence bottle sent by speechRecog (so without the sentence at first)
+* e.g.  from Recgo : sentence ((temporal "before you") (actionX (action1 ((verb1 point) (object "the circle")))) (actionX (action2 ((verb2 push) (object "the ball")))))
+* bRecogBottle     : (temporal "before you") (actionX (action1 ((verb1 point) (object "the circle")))) (actionX (action2 ((verb2 push) (object "the ball"))))
+* Modify the ostringstream osInsertTemp
+*/
+
+void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle,  string s_deep, int i_deep, int iInstance)
+{
+
+
+	yarp::os::Bottle bReply;
+
+	//TODO : list of string for the deepness, no need for the int in that case
+	//TODO : careful, may have to copy each time because of recursive
+
+	string currentWord = "";
+	string currentRole = "";
+
+	yInfo() << "bRecogBottle = " << bRecogBottle.toString() ;
+
+	//case 1 : string string -> end of the recursive
+	if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isString()){
+
+		//yInfo() << "===== case 1 : string/string =====" ;
+
+		currentRole = bRecogBottle.get(0).asString();
+		currentWord = bRecogBottle.get(1).asString();
+		cout << std::endl;
+		//SQL insert
+		//std::cout << "=== s_deep = " << s_deep << " and i_deep = " << i_deep << "===" << std::endl;
+		//std::cout << "C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep << std::endl;
+		osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << currentWord << "' , '" << currentRole << "', " << i_deep << " ) ; ";
+
+	}
+
+	//case 2 : string list -> sub-sentence, sub-part
+	else if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isList()){
+
+		//  yInfo() << "===== case 2 : string/List =====" ;
+
+		s_deep = bRecogBottle.get(0).asString(); //TODO : increase the list
+		//std::cout << "C2 : -------> role = " << "semantic" << " and word = " << s_deep << " and level = " << i_deep << std::endl;
+		osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << s_deep << "' , '" << "semantic" << "', " << i_deep << " ) ; ";
+
+
+		i_deep = i_deep * 10 + 1;
+		int i_deep_cp = i_deep;
+		recogFromGrammarSemantic(*bRecogBottle.get(1).asList(), s_deep, i_deep_cp, iInstance);
+
+
+	}
+
+	//case 3 : it is not case 1 or 2, so we should have reach the "end" of a semantic, and having group of pairs (role1 arg1) (role2 arg2) (role3 arg3) 
+	//list -> list of word
+	else if (bRecogBottle.size() > 1){
+		//       yInfo() << "===== case 3 : List =====" ;
+
+		for (unsigned int i = 0; i < bRecogBottle.size(); i++) {
+
+			//   yInfo() << " --> i = " << i ;
+
+			int i_deep_cp = i_deep;
+			if (i != 0)
+			{
+				i_deep += 1;
+				i_deep_cp = i_deep;
+				//std::cout << "C3 : -------> role = " << "semantic" << " and word = " << bRecogBottle.get(i).toString() << " and level = " << i_deep << std::endl;
+			}
+			recogFromGrammarSemantic(*bRecogBottle.get(i).asList(), s_deep, i_deep_cp, iInstance);
+		}
+	}
+	else {
+		yError() << "None possible case in recogFronGrammarSemantic : something is wrong (Bottle from SpeechRecog?) : " << bRecogBottle.toString() ;
+	}
+
 }
