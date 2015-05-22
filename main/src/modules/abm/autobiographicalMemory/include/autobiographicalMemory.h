@@ -35,6 +35,7 @@
 #endif
 
 const std::string s_real_OPC = "OPC";
+const std::string s_mental_OPC = "mentalOPC";
 
 class autobiographicalMemory: public yarp::os::RFModule
 {
@@ -62,8 +63,9 @@ private:
     int currentInstance;
 
     // connection to OPC / reasoning
-    wysiwyd::wrdac::opcEars OPCEARS;
-    wysiwyd::wrdac::OPCClient *opcWorld;
+	wysiwyd::wrdac::opcEars OPCEARS;
+	wysiwyd::wrdac::OPCClient *opcWorldReal;
+	wysiwyd::wrdac::OPCClient *opcWorldMental;
 
     bool isconnected2reasoning;
     bool bPutObjectsOPC; // not used!
@@ -198,7 +200,7 @@ public:
     static std::vector<double> tupleDoubleFromString(const std::string &sInput);
 
     yarp::os::Bottle connect2reasoning();
-    yarp::os::Bottle connectOPC(yarp::os::Bottle bInput);
+    void connectOPC();
     //yarp::os::Bottle getInfoAbout(std::string sName);
 
     yarp::os::Bottle populateOPC();

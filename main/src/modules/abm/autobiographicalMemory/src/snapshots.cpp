@@ -8,7 +8,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 {
     /*
     format of input bottle :
-    snapshot (action name_action type_action) (time t_time) (arguments (arg1) (arg2, role) ... argN) (begin 0/1)
+    snapshot (action name_action type_action) (time t_time) (arguments (arg1) (arg2, role) ... argN) (begin 0/1) (mental)
 
     Arguments are from 2 types:
     - something from the OPC : just argN is enough
@@ -17,7 +17,18 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
     //get Instance of the next opc
     string sRequest_instance;
-    if (isconnected2reasoning)
+
+	// get the OPC to check en bois
+	bool bMental = bInput.check("mental");
+
+	if (bMental)
+	{
+		// change the providers !!
+	
+	}
+
+
+	if (isconnected2reasoning)
     {
         Bottle b2reasoning;
         b2reasoning.addString("updateObjectLocation");
@@ -45,7 +56,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     bMain.addString("request");
     ostringstream osMain;
 
-    osMain << "INSERT INTO main(activityname, activitytype, time, instance, begin) VALUES ('";
+    osMain << "INSERT INTO main(activityname, activitytype, time, instance, begin, opcname) VALUES ('";
     string sName;
 
     //for streaming image
@@ -99,30 +110,35 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         {
             if (bTemp.get(1).asInt() == 1)
             {
-                osMain << "TRUE ); ";
+                osMain << "TRUE  ";
                 bBegin = true;
             }
             else
             {
-                osMain << "FALSE ); ";
+                osMain << "FALSE  ";
                 bBegin = false;
             }
             done = true;
         }
     }
     if (!done) {
-        osMain << "FALSE);";
+        osMain << "FALSE";
     }
 
     if (isStreamActivity == true && !bBegin) { //just stop stream images stores when relevant activity
         streamStatus = "end"; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
     }
 
+	bMental ? osMain << " , '" << s_mental_OPC << "' ) ; " : osMain << " , '" << s_real_OPC << "' ) ; ";
     bMain.addString(string(osMain.str()).c_str());
     bMain = request(bMain);
 
-    //Connection to the OPC
-    OPCEARS.snapshot(bInput, opcWorld);
+
+	OPCClient *opcWorld;
+	//Connection to the OPC
+	(bMental) ? opcWorld = opcWorldMental : opcWorldReal;
+
+	OPCEARS.snapshot(bInput, opcWorld);
 
     ostringstream osName;
     osName << sName << instance;
@@ -412,7 +428,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     }
 
     //Connection to the OPC and snapshot
-    OPCEARS.snapshot(bInput, opcWorld);
+    OPCEARS.snapshot(bInput, opcWorldReal);
     ostringstream osName;
     osName << sName << instance;
     sName += osName.str();
@@ -422,11 +438,11 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     ostringstream osArg;
     osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << " , '" << sManner << "' , 'manner' , 'manner' , 'manner' ) ";
 
-    if(opcWorld->isConnected()) {
+    if(opcWorldReal->isConnected()) {
         // Fill agents:
         for (unsigned int i = 0; i < vAgent.size(); i++)
         {
-            Entity* currentEntity = opcWorld->getEntity(vAgent[i]);
+			Entity* currentEntity = opcWorldReal->getEntity(vAgent[i]);
 
             if (currentEntity == NULL)
                 osArg << ", ( " << instance << ", '" << vAgent[i] << "', " << "'external', 'default', 'agent" << i + 1 << "') ";
@@ -437,7 +453,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
         // Fill objects:
         for (unsigned int i = 0; i < vObject.size(); i++)
         {
-            Entity* currentEntity = opcWorld->getEntity(vObject[i]);
+			Entity* currentEntity = opcWorldReal->getEntity(vObject[i]);
 
             if (currentEntity == NULL)
                 osArg << ", ( " << instance << ", '" << vObject[i] << "', " << "'external', 'default', 'object" << i + 1 << "') ";
@@ -448,7 +464,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
         // Fill spatials:
         for (unsigned int i = 0; i < vSpatial.size(); i++)
         {
-            Entity* currentEntity = opcWorld->getEntity(vSpatial[i]);
+			Entity* currentEntity = opcWorldReal->getEntity(vSpatial[i]);
 
             if (currentEntity == NULL)
                 osArg << ", ( " << instance << ", '" << vSpatial[i] << "', " << "'external', 'default', 'spatial" << i + 1 << "') ";
@@ -574,7 +590,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     string sRole = (*bInput.get(3).asList()).get(0).toString(); // TODO: This is unused, can it be deleted?
 
     //Connection to the OPC and snapshot
-    OPCEARS.snapshot(bInput, opcWorld);
+    OPCEARS.snapshot(bInput, opcWorldReal);
     ostringstream osName;
     osName << sName << instance;
     sName += osName.str();
@@ -590,7 +606,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     // send filling contentarg
     bArg = requestFromString(osArg.str().c_str());
 
-    if(opcWorld->isConnected()) {
+    if(opcWorldReal->isConnected()) {
         for (int i = 0; i < bSnapShot.size(); i++)
         {
             bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
@@ -617,7 +633,6 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
 * bRecogBottle     : (temporal "before you") (actionX (action1 ((verb1 point) (object "the circle")))) (actionX (action2 ((verb2 push) (object "the ball"))))
 * Modify the ostringstream osInsertTemp
 */
-
 void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle,  string s_deep, int i_deep, int iInstance)
 {
 

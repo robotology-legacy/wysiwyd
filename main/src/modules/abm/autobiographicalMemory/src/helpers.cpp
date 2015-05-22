@@ -164,42 +164,35 @@ bool autobiographicalMemory::readInsert()
     return true;
 }
 
-Bottle autobiographicalMemory::connectOPC(Bottle bInput)
+void autobiographicalMemory::connectOPC()
 {
-    Bottle bOutput;
+	opcWorldReal = new OPCClient(string(getName() + s_real_OPC));
+	opcWorldMental = new OPCClient(string(getName() + s_mental_OPC));
+	int iTry = 0;
 
-    if (bInput.size() != 2)
-    {
-        bOutput.addString("Error in connect, wrong number of input");
-    }
+	while (!opcWorldReal->isConnected())
+	{
+		yInfo() << "ABM Connecting to " << s_real_OPC << "..." << opcWorldReal->connect(s_real_OPC);
+		Time::delay(0.5);
+		iTry++;
+		if (iTry > 2)
+		{
+			yWarning() << " Connection failed, please check your port";
+		}
+	}
 
-    string OPC_name = s_real_OPC;
-    if (!bInput.get(1).isString())
-    {
-        bOutput.addString("Error in connect, wrong format of input");
-    }
-    else
-    {
-        OPC_name = bInput.get(1).toString();
-    }
+	iTry = 0;
 
-    opcWorld = new OPCClient(getName().c_str());
-    int iTry = 0;
-    while (!opcWorld->isConnected())
-    {
-        yInfo() << "ABM Connecting to " << OPC_name << "..." << opcWorld->connect(OPC_name);
-        Time::delay(0.5);
-        iTry++;
-        if (iTry > 2)
-        {
-            bOutput.addString("Connection failed, please check your port");
-            return bOutput;
-        }
-    }
-    // opcWorld->checkout();
-    // opcWorld->update();
-    bOutput.addString("Connection done");
-    return bOutput;
+	while (!opcWorldMental->isConnected())
+	{
+		yInfo() << "ABM Connecting to " << s_mental_OPC << "..." << opcWorldMental->connect(s_mental_OPC);
+		Time::delay(0.5);
+		iTry++;
+		if (iTry > 2)
+		{
+			yWarning() << " Connection failed, please check your port";
+		}
+	}
 }
 
 long autobiographicalMemory::getCurrentTimeInMS()

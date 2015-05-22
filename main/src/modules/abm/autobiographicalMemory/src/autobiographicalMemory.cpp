@@ -94,10 +94,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     attach(handlerPort);
 
-    Bottle bConnect;
-    bConnect.addString("connect");
-    bConnect.addString("OPC");
-    connectOPC(bConnect);
+	connectOPC();
 
     //populateOPC();
     //storeImageOIDs();
@@ -196,7 +193,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /****************************** Main Table ******************************/
     *ABMDataBase << "DROP TABLE IF EXISTS main CASCADE;";
-    *ABMDataBase << "CREATE TABLE main(idActivity serial NOT NULL, time timestamp without time zone NOT NULL,activityname text, activitytype text, instance integer NOT NULL UNIQUE,begin boolean NOT NULL,CONSTRAINT main_pkey PRIMARY KEY (time)) WITH (OIDS=FALSE);";
+    *ABMDataBase << "CREATE TABLE main(idActivity serial NOT NULL, time timestamp without time zone NOT NULL,activityname text, activitytype text, instance integer NOT NULL UNIQUE, opcname text, begin boolean NOT NULL,CONSTRAINT main_pkey PRIMARY KEY (time)) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE main OWNER TO postgres;";
 
     /**************************** contentopc Table **************************/
@@ -798,11 +795,11 @@ bool autobiographicalMemory::updateModule() {
 
         // Calculate time in update method since first image/contdata was sent
         long timeStreamCurrent = getCurrentTimeInMS();
-        long updateTimeDifference = (timeStreamCurrent - timeStreamStart) * speedMultiplier;
+        double updateTimeDifference = (timeStreamCurrent - timeStreamStart) * speedMultiplier;
         long timeLastImageSentCurrentIteration = 0;
 
         // Find which images to send
-        Bottle bListImages = getStreamImgWithinEpoch(updateTimeDifference);
+        Bottle bListImages = getStreamImgWithinEpoch(long(updateTimeDifference));
 
         // Save images in temp folder and send them to ports
         if(bListImages.toString()!="NULL") {
@@ -830,7 +827,7 @@ bool autobiographicalMemory::updateModule() {
         for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it)
         {
             // Find which data stream to send
-            Bottle bListContData = getStreamDataWithinEpoch(updateTimeDifference, it->first);
+            Bottle bListContData = getStreamDataWithinEpoch(long(updateTimeDifference), it->first);
 
             if(bListContData.toString()!="NULL") {
                 Bottle &bCmd = it->second->prepare();
@@ -923,7 +920,8 @@ bool autobiographicalMemory::interruptModule()
     yInfo() << "Interrupting your module, for port cleanup";
 
     storeImageOIDs();
-    opcWorld->interrupt();
+	opcWorldReal->interrupt();
+	opcWorldMental->interrupt();
 
     portAugmentedImagesIn.interrupt();
     portSoundStreamInput.interrupt();
@@ -941,8 +939,10 @@ bool autobiographicalMemory::close()
     disconnectDataStreamProviders();
     disconnectFromImgStreamProviders();
 
-    opcWorld->interrupt();
-    opcWorld->close();
+	opcWorldReal->interrupt();
+	opcWorldReal->close();
+	opcWorldMental->interrupt();
+	opcWorldMental->close();
 
     portAugmentedImagesIn.interrupt();
     portAugmentedImagesIn.close();
@@ -962,8 +962,9 @@ bool autobiographicalMemory::close()
     requestInsertProcessQueue();
     storeImageOIDs();
 
-    delete opcWorld;
-    delete ABMDataBase;
+	delete opcWorldReal;
+	delete opcWorldMental;
+	delete ABMDataBase;
 
     yInfo() << "ABM Successfully finished!";
 
@@ -1249,6 +1250,11 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
 Bottle autobiographicalMemory::populateOPC()
 {
     // 0. check if connected to the OPC.
+
+
+	OPCClient *opcWorld;
+	//Connection to the OPC
+	opcWorld = opcWorldReal;
 
     Bottle bOutput;
     if (!opcWorld->isConnected())
