@@ -53,7 +53,7 @@ public:
 
     // Functions to send knowledge to the semantic memory
 	int                 sendSpatialKnowledge(std::vector<spatialKnowledge> listSK);
-	int                 sendAdjectiveKnowledge(std::list<adjKnowledge> listADK);
+	int                 sendAdjectiveKnowledge(std::vector<adjKnowledge> listADK);
     int                 sendTemporalKnowledge(std::vector<timeKnowledge> listTk);
     int                 sendBehaviors(std::vector<behavior> listBehavior);
     int                 sendPlan(std::vector<plan> listPlan);

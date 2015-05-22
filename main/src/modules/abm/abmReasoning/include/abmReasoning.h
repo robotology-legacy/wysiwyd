@@ -36,7 +36,7 @@ private:
     std::vector<behavior>                listBehaviors;
     std::vector<contextualKnowledge>     listContextualKnowledge;
     std::vector<knownInteraction>        listKnownInteraction;
-    std::list<adjKnowledge>				 listKnownAdverb;
+    std::vector<adjKnowledge>				 listKnownAdverb;
     std::map<std::string, std::pair<std::vector<double>, std::vector<double> > >    mapLocation;                    //  known durable locations
     std::map<std::string, std::tuple<std::string, std::vector<double>, std::vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence

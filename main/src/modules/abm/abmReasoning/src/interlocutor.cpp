@@ -1157,7 +1157,7 @@ behavior interlocutor::askBehaviorFromId(int opcIdBegin)
 ///                 SENDING KNOWLEDGE FUNCTIONS
 
 
-int interlocutor::sendAdjectiveKnowledge(list<adjKnowledge> listADK)
+int interlocutor::sendAdjectiveKnowledge(vector<adjKnowledge> listADK)
 {
 	Bottle bRequest;
 	int serialSpatial = 0;
@@ -1166,7 +1166,7 @@ int interlocutor::sendAdjectiveKnowledge(list<adjKnowledge> listADK)
 	ostringstream   osInsertKnowledge;
 	osInsertKnowledge << "INSERT INTO adjectivetemporal (name, argument, timing) VALUES ";
 
-	for (list<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
+	for (vector<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
 	{
 
 		// add temporal timing
@@ -1189,7 +1189,7 @@ int interlocutor::sendAdjectiveKnowledge(list<adjKnowledge> listADK)
 	bFirst = true;
 	osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, x, y) VALUES ";
 
-	for (list<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
+	for (vector<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
 	{
 
 		for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionAbsolut.begin(); itActXY != it->mActionAbsolut.end(); itActXY++)
@@ -1208,7 +1208,7 @@ int interlocutor::sendAdjectiveKnowledge(list<adjKnowledge> listADK)
 	osInsertKnowledge.str("");
 	bFirst = true;
 	osInsertKnowledge << "INSERT INTO adjectivespatial (name, argument, dx, dy) VALUES ";
-	for (list<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
+	for (vector<adjKnowledge>::iterator it = listADK.begin(); it != listADK.end(); it++)
 	{
 		for (map<string, vector< pair<double, double > > >::iterator itActXY = it->mActionDelta.begin(); itActXY != it->mActionDelta.end(); itActXY++)
 		{

@@ -70,7 +70,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 	attach(handlerPort);
 	bPopulateOPC = !(rf.check("noPopulate"));
 
-	// if (!(rf.check("noKnowledge"))) getKnowledge();
+	if (!(rf.check("noKnowledge"))) getKnowledge();
 	//remove all the previous pddl files
 	pddlSolDelete(1, pddlNb);
 
@@ -411,7 +411,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 		else
 		{
 			bReply.addList() = resetKnowledge();
-		//	bReply.addList() = retroReasoning();
+			//	bReply.addList() = retroReasoning();
 		}
 	}
 	// RETRO REASONING
@@ -2528,7 +2528,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
 	}
 
 
-	for (list<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+	for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
 	{
 		determineTimingInfluence(*it);
 		if (it->bothtails > 0.1)
@@ -3729,7 +3729,7 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 
 	vector<double>	otherTiming;
 
-	for (list<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+	for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
 	{
 		if (it->sLabel != adjInput.sLabel)
 		{
@@ -3932,7 +3932,7 @@ Bottle abmReasoning::executeActionFromAdv(Bottle bInput)
 		bool	 bFound = false;
 
 		// search for correpondant adverb
-		for (list<adjKnowledge>::iterator itAdvFromList = listKnownAdverb.begin(); itAdvFromList != listKnownAdverb.end(); itAdvFromList++)
+		for (vector<adjKnowledge>::iterator itAdvFromList = listKnownAdverb.begin(); itAdvFromList != listKnownAdverb.end(); itAdvFromList++)
 		{
 			if (itAdvFromList->sLabel == *itArg)
 			{
@@ -4782,7 +4782,7 @@ Bottle abmReasoning::addAdverbKnowledge(string sLabel, string sTag, double dTimi
 {
 	bool bFound = false;
 	Bottle bOutput;
-	for (list<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+	for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
 	{
 		if ((it->sLabel == sLabel))
 		{
@@ -5276,338 +5276,416 @@ Bottle abmReasoning::getKnowledge()
 {
 	std::cout << endl << "loading knowledge :";
 	Bottle bOutput,
-		bTimeData,
-		bTimeKnowledge,
-		bComplex,
-		bSpatialData,
-		bSpatialKnowledge,
-		bContextualKnowledge,
-		bContextualData,
-		bBehavior,
-		bBehaviorData,
-		bAction,
-		bRequest,
-		bInteraction,
+		bAdjectiveKnowledge,
+		bError,
 		bMainInteraction;
 
 	listSpatialKnowledge.clear();
 	listTimeKnowledge.clear();
 	listKnownInteraction.clear();
+	listKnownAdverb.clear();
 	DeleteKnownLocations();
 
-	ostringstream //osSpatialKnowledge,
-		osSpatialData,
-		osContextKnowled,
-		osTimeKnowledge,
-		osTimeData;
 
-	bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
-	string sNull = "NULL",
-		sResult = bSpatialKnowledge.toString().c_str();
+	bError.addString("error");
 
-	if (sNull == sResult)
+	bAdjectiveKnowledge = requestFromStream("select name, argument, x, y, dx, dy from adjectivespatial");
+	//bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
+
+	string sNull = "NULL";
+	if (bAdjectiveKnowledge.toString() == sNull)
 	{
-		std::cout << " no spatial data to load";
-		bOutput.addString("no spatial data");
+		bError.addString("no adjective data to upload");
 	}
 	else
 	{
-		for (int i = 0; i < bSpatialKnowledge.size(); i++)
+		for (unsigned int ii = 0; ii < bAdjectiveKnowledge.size(); ii++)
 		{
-			if (bSpatialKnowledge.get(0).isList())
+
+			cout << bAdjectiveKnowledge.get(ii).asList()->toString() << endl;
+			Bottle bInstance = *bAdjectiveKnowledge.get(ii).asList();
+			adjKnowledge* adjKno;
+
+			string sName = bInstance.get(0).toString();
+			string sArgument = bInstance.get(1).toString();
+
+			// ADD XY
+			if (bInstance.get(2).toString() != "" && bInstance.get(3).toString() != "")
 			{
-				bAction = (*bSpatialKnowledge.get(i).asList());
-				int instance = atoi(bAction.get(0).toString().c_str());
-				string sName = bAction.get(1).toString().c_str(),
-					sArg = bAction.get(2).toString().c_str(),
-					sDependance = bAction.get(3).toString().c_str();
-				spatialKnowledge skAction;
-				skAction.sArgument = sArg;
-				skAction.sName = sName;
-				skAction.sDependance = sDependance;
-
-				osSpatialData.str("");
-				osSpatialData << "SELECT vx, vy, vdx, vdy FROM spatialdata WHERE instance = " << instance;
-				bSpatialData = requestFromStream(osSpatialData.str().c_str());
-
-				for (int j = 0; j < bSpatialData.size(); j++)
+				pair<double, double> pXY((atof(bInstance.get(2).toString().c_str())), (atof(bInstance.get(3).toString().c_str())));
+				bool bFound = false;
+				for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
 				{
-					skAction.vX.push_back(atof((*bSpatialData.get(j).asList()).get(0).toString().c_str()));
-					skAction.vY.push_back(atof((*bSpatialData.get(j).asList()).get(1).toString().c_str()));
-					skAction.vDX.push_back(atof((*bSpatialData.get(j).asList()).get(2).toString().c_str()));
-					skAction.vDY.push_back(atof((*bSpatialData.get(j).asList()).get(3).toString().c_str()));
+					if ((it->sLabel == sName))
+					{
+						it->mActionAbsolut[sArgument].push_back(pXY);
+						it->vdGnlXY.push_back(pXY);
+						bFound = true;
+					}
 				}
+				if (!bFound)
+				{
+					adjKnowledge	newADJ;
+					newADJ.sLabel = sName;
+					newADJ.mActionAbsolut[sArgument].push_back(pXY);
+					newADJ.vdGnlXY.push_back(pXY);
+					listKnownAdverb.push_back(newADJ);
+				}
+			}
+			
+			// ADD DXY
+			if (bInstance.get(4).toString() != "" && bInstance.get(5).toString() != "")
+			{
+				pair<double, double> pXY((atof(bInstance.get(4).toString().c_str())), (atof(bInstance.get(5).toString().c_str())));
+				bool bFound = false;
+				for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+				{
+					if ((it->sLabel == sName))
+					{
+						it->mActionDelta[sArgument].push_back(pXY);
+						it->vdGnlDelta.push_back(pXY);
+						bFound = true;
+					}
+				}
+				if (!bFound)
+				{
+					adjKnowledge	newADJ;
+					newADJ.sLabel = sName;
+					newADJ.mActionDelta[sArgument].push_back(pXY);
+					newADJ.vdGnlDelta.push_back(pXY);
+					listKnownAdverb.push_back(newADJ);
+				}
+			}
 
-				addSpatialKnowledge(skAction, false);
+
+			// ADD timing
+			if (bInstance.get(6).toString() != "")
+			{
+				bool bFound = false;
+				for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+				{
+					if ((it->sLabel == sName))
+					{
+						it->mActionTiming[sArgument].push_back((atof(bInstance.get(6).toString().c_str())));
+						it->vdGnlTiming.push_back((atof(bInstance.get(6).toString().c_str())));
+						bFound = true;
+					}
+				}
+				if (!bFound)
+				{
+					adjKnowledge	newADJ;
+					newADJ.sLabel = sName;
+					newADJ.mActionTiming[sArgument].push_back((atof(bInstance.get(6).toString().c_str())));
+					newADJ.vdGnlTiming.push_back((atof(bInstance.get(6).toString().c_str())));
+					listKnownAdverb.push_back(newADJ);
+				}
 			}
 		}
 	}
+
+	//if (sNull == sResult)
+	//{
+	//	std::cout << " no spatial data to load";
+	//	bOutput.addString("no spatial data");
+	//}
+	//else
+	//{
+	//	for (int i = 0; i < bSpatialKnowledge.size(); i++)
+	//	{
+	//		if (bSpatialKnowledge.get(0).isList())
+	//		{
+	//			bAction = (*bSpatialKnowledge.get(i).asList());
+	//			int instance = atoi(bAction.get(0).toString().c_str());
+	//			string sName = bAction.get(1).toString().c_str(),
+	//				sArg = bAction.get(2).toString().c_str(),
+	//				sDependance = bAction.get(3).toString().c_str();
+	//			spatialKnowledge skAction;
+	//			skAction.sArgument = sArg;
+	//			skAction.sName = sName;
+	//			skAction.sDependance = sDependance;
+
+	//			osSpatialData.str("");
+	//			osSpatialData << "SELECT vx, vy, vdx, vdy FROM spatialdata WHERE instance = " << instance;
+	//			bSpatialData = requestFromStream(osSpatialData.str().c_str());
+
+	//			for (int j = 0; j < bSpatialData.size(); j++)
+	//			{
+	//				skAction.vX.push_back(atof((*bSpatialData.get(j).asList()).get(0).toString().c_str()));
+	//				skAction.vY.push_back(atof((*bSpatialData.get(j).asList()).get(1).toString().c_str()));
+	//				skAction.vDX.push_back(atof((*bSpatialData.get(j).asList()).get(2).toString().c_str()));
+	//				skAction.vDY.push_back(atof((*bSpatialData.get(j).asList()).get(3).toString().c_str()));
+	//			}
+
+	//			addSpatialKnowledge(skAction, false);
+	//		}
+	//	}
+	//}
 
 	updateKnownLocations();
 
-	std::cout << " ... ";
+	//std::cout << " ... ";
 
 
-	bTimeKnowledge = requestFromStream("SELECT DISTINCT temporal FROM timeknowledge");
-	sResult = bTimeKnowledge.toString();
+	//bTimeKnowledge = requestFromStream("SELECT DISTINCT temporal FROM timeknowledge");
+	//sResult = bTimeKnowledge.toString();
 
-	if (sNull == sResult)
-	{
-		std::cout << " no temporal data to load";
-		bOutput.addString("no temporal data");
-	}
-	else
-	{
-		for (int i = 0; i < bTimeKnowledge.size(); i++)
-		{
-			if (bTimeKnowledge.get(0).isList())
-			{
-				bComplex = (*bTimeKnowledge.get(i).asList());
-				string sTemporal = bComplex.get(0).toString().c_str();
+	//if (sNull == sResult)
+	//{
+	//	std::cout << " no temporal data to load";
+	//	bOutput.addString("no temporal data");
+	//}
+	//else
+	//{
+	//	for (int i = 0; i < bTimeKnowledge.size(); i++)
+	//	{
+	//		if (bTimeKnowledge.get(0).isList())
+	//		{
+	//			bComplex = (*bTimeKnowledge.get(i).asList());
+	//			string sTemporal = bComplex.get(0).toString().c_str();
 
-				timeKnowledge tkComplex;
-				tkComplex.sTemporal = sTemporal;
+	//			timeKnowledge tkComplex;
+	//			tkComplex.sTemporal = sTemporal;
 
-				osTimeData.str("");
-				osTimeData << "SELECT timearg1, timearg2 FROM timedata WHERE temporal = '" << sTemporal << "'";
-				bTimeData = requestFromStream(osTimeData.str().c_str());
+	//			osTimeData.str("");
+	//			osTimeData << "SELECT timearg1, timearg2 FROM timedata WHERE temporal = '" << sTemporal << "'";
+	//			bTimeData = requestFromStream(osTimeData.str().c_str());
 
-				for (int j = 0; j < bTimeData.size(); j++)
-				{
-					tkComplex.timeArg1.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(0).toString()).c_str()));
-					tkComplex.timeArg2.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(1).toString()).c_str()));
-				}
-				listTimeKnowledge.push_back(tkComplex);
-			}
-		}
-	}
-
-
-	std::cout << " ... ";
-
-	Bottle  bMainBehavior = requestFromStream("SELECT DISTINCT instance, name, argument FROM behavior");
-	sResult = bMainBehavior.toString();
-	ostringstream osBehavior;
-	if (sNull == sResult)
-	{
-		std::cout << "no behavior data to load";
-		bOutput.addString("no behavior data");
-	}
-	else
-	{
-		for (int i = 0; i < bMainBehavior.size(); i++)
-		{
-			if (bMainBehavior.get(i).isList())
-			{
-				bAction = (*bMainBehavior.get(i).asList());
-				int instance = atoi(bAction.get(0).toString().c_str());
-				string sName = bAction.get(1).toString().c_str();
-				string sArg = bAction.get(2).toString().c_str();
-				behavior newBehavior;
-				newBehavior.sArgument = sArg;
-				newBehavior.sName = sName;
-				osBehavior.str("");
-				osBehavior << "SELECT DISTINCT occurence FROM behaviordata WHERE instance = " << instance;
-				Bottle bOccurence = requestFromStream(osBehavior.str().c_str());
-				vector<int>  vOccurence;
-
-				for (int oc = 0; oc < bOccurence.size(); oc++)
-				{
-					vOccurence.push_back(atoi(bOccurence.get(oc).asList()->get(0).toString().c_str()));
-				}
-
-				for (vector<int>::iterator it_occu = vOccurence.begin(); it_occu != vOccurence.end(); it_occu++)
-				{
-
-					osBehavior.str("");
-					osBehavior << "SELECT drive, effect FROM behaviordata WHERE instance = " << instance << " AND occurence = " << *it_occu;
-					bBehaviorData = requestFromStream(osBehavior.str().c_str());
-
-					vector< pair <string, double> >         vEffect;
-					for (int j = 0; j < bBehaviorData.size(); j++)
-					{
-						// name of the drive, value
-						pair<string, double>  pTemp((bBehaviorData.get(j).asList())->get(0).toString(), (atof((*bBehaviorData.get(j).asList()).get(1).toString().c_str())));
-
-						vEffect.push_back(pTemp);
-					}
-					newBehavior.vEffect.push_back(vEffect);
-				}
-				listBehaviors.push_back(newBehavior);
-			}
-		}
-	}
-
-	bContextualKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM contextknowledge");
-	sResult = bContextualKnowledge.toString();
-
-	if (sNull == sResult)
-	{
-		std::cout << " no contextual data to load";
-		bOutput.addString("no contextual data");
-	}
-	else
-	{
-		for (int i = 0; i < bContextualKnowledge.size(); i++)
-		{
-			contextualKnowledge ckAction;
-			if (bSpatialKnowledge.get(0).isList())
-			{
-				bAction = (*bContextualKnowledge.get(i).asList());
-				int instance = atoi(bAction.get(0).toString().c_str());
-				string sName = bAction.get(1).toString().c_str();
-				string sArg = bAction.get(2).toString().c_str();
-				string sDependance = bAction.get(3).toString().c_str();
-
-				ckAction.sArgument = sArg;
-				ckAction.sName = sName;
-				ckAction.sDependance = sDependance;
-
-				//Presence
-				osContextKnowled.str("");
-				osContextKnowled << "SELECT presencebegin, presenceend FROM contextdata WHERE instance = " << instance;
-				bContextualData = requestFromStream(osContextKnowled.str().c_str());
-
-				for (int j = 0; j < bContextualData.size(); j++)
-				{
-					string before = (*bContextualData.get(j).asList()).get(0).toString().c_str(),
-						after = (*bContextualData.get(j).asList()).get(1).toString().c_str();
-					pair <bool, bool > pTemp(before == "t", after == "t");
-					ckAction.vObjectPresent.push_back(pTemp);
-				}
-
-				//Loc
-			}
-			ckAction.updatePresence();
-			listContextualKnowledge.push_back(ckAction);
-		}
-	}
+	//			for (int j = 0; j < bTimeData.size(); j++)
+	//			{
+	//				tkComplex.timeArg1.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(0).toString()).c_str()));
+	//				tkComplex.timeArg2.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(1).toString()).c_str()));
+	//			}
+	//			listTimeKnowledge.push_back(tkComplex);
+	//		}
+	//	}
+	//}
 
 
-	std::cout << " ... ";
+	//std::cout << " ... ";
 
-	Bottle  bMainPlan = requestFromStream("SELECT DISTINCT instance, name, manner FROM sharedplan");
-	sResult = bMainPlan.toString();
-	osBehavior.str("");;
-	if (sNull == sResult)
-	{
-		std::cout << "no sharedplan data to load";
-		bOutput.addString("no sharedplan data");
-	}
-	else
-	{
-		for (int i = 0; i < bMainPlan.size(); i++)
-		{
-			plan NewPlan;
+	//Bottle  bMainBehavior = requestFromStream("SELECT DISTINCT instance, name, argument FROM behavior");
+	//sResult = bMainBehavior.toString();
+	//ostringstream osBehavior;
+	//if (sNull == sResult)
+	//{
+	//	std::cout << "no behavior data to load";
+	//	bOutput.addString("no behavior data");
+	//}
+	//else
+	//{
+	//	for (int i = 0; i < bMainBehavior.size(); i++)
+	//	{
+	//		if (bMainBehavior.get(i).isList())
+	//		{
+	//			bAction = (*bMainBehavior.get(i).asList());
+	//			int instance = atoi(bAction.get(0).toString().c_str());
+	//			string sName = bAction.get(1).toString().c_str();
+	//			string sArg = bAction.get(2).toString().c_str();
+	//			behavior newBehavior;
+	//			newBehavior.sArgument = sArg;
+	//			newBehavior.sName = sName;
+	//			osBehavior.str("");
+	//			osBehavior << "SELECT DISTINCT occurence FROM behaviordata WHERE instance = " << instance;
+	//			Bottle bOccurence = requestFromStream(osBehavior.str().c_str());
+	//			vector<int>  vOccurence;
 
-			// for each plan
-			if (bMainPlan.get(i).isList())
-			{
-				int instance = atoi(bMainPlan.get(i).asList()->get(0).toString().c_str());
-				NewPlan.sName = bMainPlan.get(i).asList()->get(1).toString();
-				NewPlan.sManner = bMainPlan.get(i).asList()->get(2).toString();
+	//			for (int oc = 0; oc < bOccurence.size(); oc++)
+	//			{
+	//				vOccurence.push_back(atoi(bOccurence.get(oc).asList()->get(0).toString().c_str()));
+	//			}
 
-				ostringstream osPlanArgument;
-				osPlanArgument << "SELECT argument, role FROM sharedplanarg WHERE instance = " << instance;
-				bRequest = requestFromStream(osPlanArgument.str().c_str());
+	//			for (vector<int>::iterator it_occu = vOccurence.begin(); it_occu != vOccurence.end(); it_occu++)
+	//			{
 
-				// get the argument of the plan
-				for (int arg = 0; arg < bRequest.size(); arg++)
-				{
-					pair<string, string> pArgument
-						(bRequest.get(arg).asList()->get(0).toString(),
-						bRequest.get(arg).asList()->get(1).toString());
+	//				osBehavior.str("");
+	//				osBehavior << "SELECT drive, effect FROM behaviordata WHERE instance = " << instance << " AND occurence = " << *it_occu;
+	//				bBehaviorData = requestFromStream(osBehavior.str().c_str());
 
-					NewPlan.vArguments.push_back(pArgument);
-				}
+	//				vector< pair <string, double> >         vEffect;
+	//				for (int j = 0; j < bBehaviorData.size(); j++)
+	//				{
+	//					// name of the drive, value
+	//					pair<string, double>  pTemp((bBehaviorData.get(j).asList())->get(0).toString(), (atof((*bBehaviorData.get(j).asList()).get(1).toString().c_str())));
 
-				ostringstream osPlanAct,
-					osActArg;
-				osPlanAct << "SELECT activitytype, activityname, id FROM sharedplandata WHERE instance = " << instance << "  ORDER BY id ";
-				bRequest = requestFromStream(osPlanAct.str().c_str());
+	//					vEffect.push_back(pTemp);
+	//				}
+	//				newBehavior.vEffect.push_back(vEffect);
+	//			}
+	//			listBehaviors.push_back(newBehavior);
+	//		}
+	//	}
+	//}
 
-				// get the activities of the plan
-				for (int act = 0; act < bRequest.size(); act++)
-				{
-					NewPlan.vActivitytype.push_back(bRequest.get(act).asList()->get(0).toString().c_str());
-					NewPlan.vActivityname.push_back(bRequest.get(act).asList()->get(1).toString().c_str());
-					osActArg.str("");
-					osActArg << "SELECT argument, role FROM spdataarg WHERE instance = " << instance << " AND id = " << atoi(bRequest.get(act).asList()->get(2).toString().c_str());
-					Bottle bArgAct = requestFromStream(osActArg.str().c_str());
-					list <pair <string, string> > lArgAct;
+	//bContextualKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM contextknowledge");
+	//sResult = bContextualKnowledge.toString();
 
-					// get the argument of the current activity
-					for (int arg = 0; arg < bArgAct.size(); arg++)
-					{
-						pair<string, string> pArgRole;
-						pArgRole.first = bArgAct.get(arg).asList()->get(0).toString();
-						pArgRole.second = bArgAct.get(arg).asList()->get(1).toString();
-						lArgAct.push_back(pArgRole);
-					}
-					NewPlan.vActivityArguments.push_back(lArgAct);
-				} // out of the current activity
+	//if (sNull == sResult)
+	//{
+	//	std::cout << " no contextual data to load";
+	//	bOutput.addString("no contextual data");
+	//}
+	//else
+	//{
+	//	for (int i = 0; i < bContextualKnowledge.size(); i++)
+	//	{
+	//		contextualKnowledge ckAction;
+	//		if (bSpatialKnowledge.get(0).isList())
+	//		{
+	//			bAction = (*bContextualKnowledge.get(i).asList());
+	//			int instance = atoi(bAction.get(0).toString().c_str());
+	//			string sName = bAction.get(1).toString().c_str();
+	//			string sArg = bAction.get(2).toString().c_str();
+	//			string sDependance = bAction.get(3).toString().c_str();
 
-			}// out of the current plan
+	//			ckAction.sArgument = sArg;
+	//			ckAction.sName = sName;
+	//			ckAction.sDependance = sDependance;
 
-			NewPlan = addPlan(NewPlan);
-		}
-	}
+	//			//Presence
+	//			osContextKnowled.str("");
+	//			osContextKnowled << "SELECT presencebegin, presenceend FROM contextdata WHERE instance = " << instance;
+	//			bContextualData = requestFromStream(osContextKnowled.str().c_str());
 
+	//			for (int j = 0; j < bContextualData.size(); j++)
+	//			{
+	//				string before = (*bContextualData.get(j).asList()).get(0).toString().c_str(),
+	//					after = (*bContextualData.get(j).asList()).get(1).toString().c_str();
+	//				pair <bool, bool > pTemp(before == "t", after == "t");
+	//				ckAction.vObjectPresent.push_back(pTemp);
+	//			}
 
-	std::cout << " ...";
-
-	bMainInteraction = requestFromStream("SELECT DISTINCT subject FROM interactionknowledge");
-	sResult = bMainInteraction.toString();
-	osBehavior.str("");
-	if (sNull == sResult)
-	{
-		std::cout << "no interaction data to load";
-		bOutput.addString("no interaction data");
-	}
-	else
-	{
-		for (int i = 0; i < bMainInteraction.size(); i++)
-		{
-			// for each subject
-			if (bMainInteraction.get(i).isList())
-			{
-				string sSubject = bMainInteraction.get(i).asList()->get(0).toString();
-
-				ostringstream osInteraction;
-				osInteraction << "SELECT * FROM interactionknowledge WHERE subject = '" << sSubject << "'";
-				bInteraction = requestFromStream(osInteraction.str().c_str());
-				knownInteraction TempInt;
-				TempInt.sSubject = sSubject;
-
-				// get the argument of the plan
-				for (int arg = 0; arg < bInteraction.size(); arg++)
-				{
-					tuple<string, int, string, string> tInteraction;
-					get<0>(tInteraction) = bInteraction.get(arg).asList()->get(1).toString();
-					get<1>(tInteraction) = atoi(bInteraction.get(arg).asList()->get(2).toString().c_str());
-					get<2>(tInteraction) = bInteraction.get(arg).asList()->get(3).toString();
-					get<3>(tInteraction) = bInteraction.get(arg).asList()->get(4).toString();
-
-					TempInt.addInteraction(tInteraction);
-				}
-				listKnownInteraction.push_back(TempInt);
-			}
-		}
-	}
+	//			//Loc
+	//		}
+	//		ckAction.updatePresence();
+	//		listContextualKnowledge.push_back(ckAction);
+	//	}
+	//}
 
 
+	//std::cout << " ... ";
 
-	checkContextLocation();
-	for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
-	{
-		itCK->updatePresence();
-	}
+	//Bottle  bMainPlan = requestFromStream("SELECT DISTINCT instance, name, manner FROM sharedplan");
+	//sResult = bMainPlan.toString();
+	//osBehavior.str("");;
+	//if (sNull == sResult)
+	//{
+	//	std::cout << "no sharedplan data to load";
+	//	bOutput.addString("no sharedplan data");
+	//}
+	//else
+	//{
+	//	for (int i = 0; i < bMainPlan.size(); i++)
+	//	{
+	//		plan NewPlan;
+
+	//		// for each plan
+	//		if (bMainPlan.get(i).isList())
+	//		{
+	//			int instance = atoi(bMainPlan.get(i).asList()->get(0).toString().c_str());
+	//			NewPlan.sName = bMainPlan.get(i).asList()->get(1).toString();
+	//			NewPlan.sManner = bMainPlan.get(i).asList()->get(2).toString();
+
+	//			ostringstream osPlanArgument;
+	//			osPlanArgument << "SELECT argument, role FROM sharedplanarg WHERE instance = " << instance;
+	//			bRequest = requestFromStream(osPlanArgument.str().c_str());
+
+	//			// get the argument of the plan
+	//			for (int arg = 0; arg < bRequest.size(); arg++)
+	//			{
+	//				pair<string, string> pArgument
+	//					(bRequest.get(arg).asList()->get(0).toString(),
+	//					bRequest.get(arg).asList()->get(1).toString());
+
+	//				NewPlan.vArguments.push_back(pArgument);
+	//			}
+
+	//			ostringstream osPlanAct,
+	//				osActArg;
+	//			osPlanAct << "SELECT activitytype, activityname, id FROM sharedplandata WHERE instance = " << instance << "  ORDER BY id ";
+	//			bRequest = requestFromStream(osPlanAct.str().c_str());
+
+	//			// get the activities of the plan
+	//			for (int act = 0; act < bRequest.size(); act++)
+	//			{
+	//				NewPlan.vActivitytype.push_back(bRequest.get(act).asList()->get(0).toString().c_str());
+	//				NewPlan.vActivityname.push_back(bRequest.get(act).asList()->get(1).toString().c_str());
+	//				osActArg.str("");
+	//				osActArg << "SELECT argument, role FROM spdataarg WHERE instance = " << instance << " AND id = " << atoi(bRequest.get(act).asList()->get(2).toString().c_str());
+	//				Bottle bArgAct = requestFromStream(osActArg.str().c_str());
+	//				list <pair <string, string> > lArgAct;
+
+	//				// get the argument of the current activity
+	//				for (int arg = 0; arg < bArgAct.size(); arg++)
+	//				{
+	//					pair<string, string> pArgRole;
+	//					pArgRole.first = bArgAct.get(arg).asList()->get(0).toString();
+	//					pArgRole.second = bArgAct.get(arg).asList()->get(1).toString();
+	//					lArgAct.push_back(pArgRole);
+	//				}
+	//				NewPlan.vActivityArguments.push_back(lArgAct);
+	//			} // out of the current activity
+
+	//		}// out of the current plan
+
+	//		NewPlan = addPlan(NewPlan);
+	//	}
+	//}
 
 
-	std::cout << " done ! " << endl;
-	std::cout << listSpatialKnowledge.size() << " spatialKnowledge(s) - " << listTimeKnowledge.size() << " temporalKnowledge(s) - " << listBehaviors.size() << " behavior(s) - " << listPlan.size() << " sharedplan(s) - " << listContextualKnowledge.size() << " contextualKnowledge(s) - " << listKnownInteraction.size() << " knownInteraction(s)." << endl << endl;;
+	//std::cout << " ...";
 
-	bOutput.addString("knowledge added");
+	//bMainInteraction = requestFromStream("SELECT DISTINCT subject FROM interactionknowledge");
+	//sResult = bMainInteraction.toString();
+	//osBehavior.str("");
+	//if (sNull == sResult)
+	//{
+	//	std::cout << "no interaction data to load";
+	//	bOutput.addString("no interaction data");
+	//}
+	//else
+	//{
+	//	for (int i = 0; i < bMainInteraction.size(); i++)
+	//	{
+	//		// for each subject
+	//		if (bMainInteraction.get(i).isList())
+	//		{
+	//			string sSubject = bMainInteraction.get(i).asList()->get(0).toString();
+
+	//			ostringstream osInteraction;
+	//			osInteraction << "SELECT * FROM interactionknowledge WHERE subject = '" << sSubject << "'";
+	//			bInteraction = requestFromStream(osInteraction.str().c_str());
+	//			knownInteraction TempInt;
+	//			TempInt.sSubject = sSubject;
+
+	//			// get the argument of the plan
+	//			for (int arg = 0; arg < bInteraction.size(); arg++)
+	//			{
+	//				tuple<string, int, string, string> tInteraction;
+	//				get<0>(tInteraction) = bInteraction.get(arg).asList()->get(1).toString();
+	//				get<1>(tInteraction) = atoi(bInteraction.get(arg).asList()->get(2).toString().c_str());
+	//				get<2>(tInteraction) = bInteraction.get(arg).asList()->get(3).toString();
+	//				get<3>(tInteraction) = bInteraction.get(arg).asList()->get(4).toString();
+
+	//				TempInt.addInteraction(tInteraction);
+	//			}
+	//			listKnownInteraction.push_back(TempInt);
+	//		}
+	//	}
+	//}
+
+
+
+	//checkContextLocation();
+	//for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
+	//{
+	//	itCK->updatePresence();
+	//}
+
+
+	//std::cout << " done ! " << endl;
+	//std::cout << listSpatialKnowledge.size() << " spatialKnowledge(s) - " << listTimeKnowledge.size() << " temporalKnowledge(s) - " << listBehaviors.size() << " behavior(s) - " << listPlan.size() << " sharedplan(s) - " << listContextualKnowledge.size() << " contextualKnowledge(s) - " << listKnownInteraction.size() << " knownInteraction(s)." << endl << endl;;
+
+	//bOutput.addString("knowledge added");
 
 	return bOutput;
 }
