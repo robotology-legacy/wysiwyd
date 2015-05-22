@@ -1216,12 +1216,27 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
         bRequest.addString(osRequest.str().c_str());
         request(bRequest);
 
-        osRequest.str("");
-        osRequest << "DELETE FROM main WHERE instance = " << *it;
-        bRequest.clear();
-        bRequest.addString("request");
-        bRequest.addString(osRequest.str().c_str());
-        request(bRequest);
+		osRequest.str("");
+		osRequest << "DELETE FROM sentencedata WHERE instance = " << *it;
+		bRequest.clear();
+		bRequest.addString("request");
+		bRequest.addString(osRequest.str().c_str());
+		request(bRequest);
+
+		osRequest.str("");
+		osRequest << "DELETE FROM sounddata WHERE instance = " << *it;
+		bRequest.clear();
+		bRequest.addString("request");
+		bRequest.addString(osRequest.str().c_str());
+		request(bRequest);
+
+		osRequest.str("");
+		osRequest << "DELETE FROM main WHERE instance = " << *it;
+		bRequest.clear();
+		bRequest.addString("request");
+		bRequest.addString(osRequest.str().c_str());
+		request(bRequest);
+
     }
     bOutput.addString("instance(s) erased");
     return bOutput;
