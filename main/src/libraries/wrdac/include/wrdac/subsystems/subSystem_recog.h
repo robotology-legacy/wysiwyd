@@ -88,30 +88,32 @@ namespace wysiwyd{
                 std::string currentWord = "" ;
                 std::string currentRole = "" ;
 
-                yInfo() << "bRecogBottle = " << bRecogBottle.toString() ;
+              //  yInfo() << "bRecogBottle = " << bRecogBottle.toString() ;
 
                 //case 1 : string string -> end of the recursive
                 if(bRecogBottle.get(0).isString() && bRecogBottle.get(1).isString()){
 
-                    yInfo() << "===== case 1 : string/string =====" ;
+                    //yInfo() << "===== case 1 : string/string =====" ;
 
                     currentRole = bRecogBottle.get(0).asString() ;
                     currentWord = bRecogBottle.get(1).asString() ;
-
+					std::cout << std::endl;
                     //SQL insert
-                    std::cout << "=== s_deep = " << s_deep << " and i_deep = " << i_deep << "===" << std::endl;
-                    std::cout << "-------> role = " << currentRole << " and word = " << currentWord << std::endl ;
+                    //std::cout << "=== s_deep = " << s_deep << " and i_deep = " << i_deep << "===" << std::endl;
+                    std::cout << "C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep << std::endl ;
                 } 
 
                 //case 2 : string list -> sub-sentence, sub-part
                 else if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isList()){
                     
-                    yInfo() << "===== case 2 : string/List =====" ;
+                  //  yInfo() << "===== case 2 : string/List =====" ;
 
                     s_deep = bRecogBottle.get(0).asString() ; //TODO : increase the list
-                    i_deep += 1 ;
+					std::cout << "C2 : -------> role = " << "semantic" << " and word = " << s_deep << " and level = " << i_deep << std::endl;
 
-                    recogFromGrammarSemantic(*bRecogBottle.get(1).asList(), s_deep, i_deep) ;
+                    i_deep = i_deep*10 + 1 ;
+					int i_deep_cp = i_deep;
+                    recogFromGrammarSemantic(*bRecogBottle.get(1).asList(), s_deep, i_deep_cp) ;
                     
 
                 } 
@@ -119,12 +121,21 @@ namespace wysiwyd{
                 //case 3 : it is not case 1 or 2, so we should have reach the "end" of a semantic, and having group of pairs (role1 arg1) (role2 arg2) (role3 arg3) 
                 //list -> list of word
                 else if (bRecogBottle.size() > 1){
-                     yInfo() << "===== case 3 : List =====" ;
+              //       yInfo() << "===== case 3 : List =====" ;
 
                     for(unsigned int i = 0 ; i < bRecogBottle.size() ; i++) {
 
-                        yInfo() << " --> i = " << i ;
-                        recogFromGrammarSemantic(*bRecogBottle.get(i).asList(), s_deep, i_deep) ;
+                     //   yInfo() << " --> i = " << i ;
+						
+						int i_deep_cp = i_deep;
+						if (i != 0)
+						{
+							i_deep += 1;
+							i_deep_cp = i_deep;
+							//std::cout << "C3 : -------> role = " << "semantic" << " and word = " << bRecogBottle.get(i).toString() << " and level = " << i_deep << std::endl;
+						}
+						recogFromGrammarSemantic(*bRecogBottle.get(i).asList(), s_deep, i_deep_cp);
+
 
                      }
 

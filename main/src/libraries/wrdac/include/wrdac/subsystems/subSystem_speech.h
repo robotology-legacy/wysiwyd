@@ -66,7 +66,7 @@ namespace wysiwyd{namespace wrdac{
 
             SubABM = new SubSystem_ABM("from_speech");
             ABMconnected = (SubABM->Connect());
-            std::cout << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM") << std::endl;
+            std::cout << ((ABMconnected) ? "iSpeak connected to ABM" : "iSpeak didn't connect to ABM") << std::endl;
 
             return connected;
         }
