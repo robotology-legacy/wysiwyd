@@ -1,0 +1,105 @@
+
+<application>
+<name>WYSIWYD 2015</name>
+
+   <!--OPC-->
+
+       <module>
+          <name>objectsPropertiesCollector</name>
+          <parameters>--name OPC --empty --nosave</parameters>
+          <node>greg-pc</node>
+          <tag>realOPC</tag>
+       </module>
+	
+       <module>
+            <name>iCubGui</name>
+            <parameters>--from guiOPC.ini</parameters>
+          <node>greg-pc</node>
+            <tag>iCubGui_tagOPC</tag>
+        </module>
+
+       <module>
+          <name>guiUpdater</name>
+          <parameters>--name guiUpdater --OPCname OPC</parameters>
+          <node>greg-pc</node>
+          <tag>guiUpdaterModuleOPC</tag>
+        </module>
+
+   <!-- connections-->
+
+       <connection>
+            <from>/guiUpdater/gui:o</from>
+            <to>/guiOPC/objects</to>
+            <protocol>tcp</protocol>
+        </connection>
+  
+        <connection>
+          <from>/guiUpdater/guiBase:o</from>
+          <to>/guiOPC/base:i</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+           
+        <module>
+          <name>referenceFrameHandler</name>
+          <node>localhost</node>
+        </module>  
+           
+        <module>
+            <name>reactable2opc</name>
+            <node>localhost</node>
+        </module>
+                     
+      
+        <module>
+          <name>iSpeak</name>
+          <node>localhost</node>
+        </module>
+
+        <module>
+          <name>autobiographicalMemory</name>
+          <node>icubwin1</node>
+        </module>
+		
+        <module>
+          <name>speechRecognizer</name>
+          <parameters>--noLegacy</parameters>
+          <node>icubwin1</node>
+        </module>
+
+
+        <module>
+            <name>actionRenderingEngine</name>
+            <node>localhost</node>
+            <parameters></parameters>
+        </module>
+   
+        <connection>
+          <from>/iSpeak/emotions:o</from>
+          <to>/icub/face/emotions/in</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/guiUpdater/gui:o</from>
+            <to>/iCubGui/objects</to>
+            <protocol>tcp</protocol>
+        </connection>
+  
+        <connection>
+          <from>/guiUpdater/guiBase:o</from>
+          <to>/iCubGui/base:i</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+            <from>/reactable2opc/calibration:rpc</from>
+            <to>/referenceFrameHandler/rpc</to>
+            <protocol>tcp</protocol>
+        </connection>  
+
+</application>
+
+
+
+
