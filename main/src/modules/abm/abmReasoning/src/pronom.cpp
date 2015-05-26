@@ -61,7 +61,7 @@ bool pronom::AddInstance(Bottle bInput)
 
     // addressee is
     bool fAddressee = false;
-    for (vector<pair<string, int> >::iterator it_RE = vAddresseeIs.begin() ; it_RE != vAddresseeIs.end() ; it_RE++)
+    for (vector<pair<string, int> >::iterator it_RE = vAddresseeIs.begin(); it_RE != vAddresseeIs.end(); it_RE++)
     {
         if (it_RE->first == sAddressee && !fAddressee)
         {
@@ -71,13 +71,13 @@ bool pronom::AddInstance(Bottle bInput)
     }
     if (!fAddressee)
     {
-        pair<string, int> pTemp(sAddressee,1);
+        pair<string, int> pTemp(sAddressee, 1);
         vAddresseeIs.push_back(pTemp);
     }
 
     // speaker is
     bool fSpeaker = false;
-    for (vector<pair<string, int> >::iterator it_SP = vSpeakerIs.begin() ; it_SP != vSpeakerIs.end() ; it_SP++)
+    for (vector<pair<string, int> >::iterator it_SP = vSpeakerIs.begin(); it_SP != vSpeakerIs.end(); it_SP++)
     {
         if (it_SP->first == sSpeaker && !fSpeaker)
         {
@@ -87,13 +87,13 @@ bool pronom::AddInstance(Bottle bInput)
     }
     if (!fSpeaker)
     {
-        pair<string, int> pTemp(sSpeaker,1);
+        pair<string, int> pTemp(sSpeaker, 1);
         vSpeakerIs.push_back(pTemp);
     }
 
     // agent is
     bool fAgent = false;
-    for (vector<pair<string, int> >::iterator it_Ag = vAgentIs.begin() ; it_Ag != vAgentIs.end() ; it_Ag++)
+    for (vector<pair<string, int> >::iterator it_Ag = vAgentIs.begin(); it_Ag != vAgentIs.end(); it_Ag++)
     {
         if (it_Ag->first == sAgent && !fAgent)
         {
@@ -103,7 +103,7 @@ bool pronom::AddInstance(Bottle bInput)
     }
     if (!fAgent)
     {
-        pair<string, int> pTemp(sAgent,1);
+        pair<string, int> pTemp(sAgent, 1);
         vAgentIs.push_back(pTemp);
     }
 

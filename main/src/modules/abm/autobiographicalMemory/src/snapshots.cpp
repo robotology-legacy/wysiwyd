@@ -18,17 +18,17 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     //get Instance of the next opc
     string sRequest_instance;
 
-	// get the OPC to check en bois
-	bool bMental = bInput.check("mental");
+    // get the OPC to check en bois
+    bool bMental = bInput.check("mental");
 
-	if (bMental)
-	{
-		// change the providers !!
-	
-	}
+    if (bMental)
+    {
+        // change the providers !!
+
+    }
 
 
-	if (isconnected2reasoning)
+    if (isconnected2reasoning)
     {
         Bottle b2reasoning;
         b2reasoning.addString("updateObjectLocation");
@@ -42,9 +42,10 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     bRequest.addString(sRequest_instance.c_str());
     bRequest = request(bRequest);
     int instance;
-    if(bRequest.toString()!="NULL") {
+    if (bRequest.toString() != "NULL") {
         instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
-    } else {
+    }
+    else {
         instance = 0;
     }
 
@@ -64,7 +65,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     bool isStreamActivity = false;
     string fullSentence = "defaultLabel";
 
-    string activityType ;
+    string activityType;
     //Action
     bool done = false;
     for (int i = 1; i < bInput.size(); i++)
@@ -78,11 +79,11 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             imgLabel = activityName;
 
             //used to name the single image
-            ostringstream labelImg ;
+            ostringstream labelImg;
             labelImg << activityName << "_" << instance;
-            fullSentence = labelImg.str() ;
+            fullSentence = labelImg.str();
 
-            activityType = bTemp.get(2).asString() ;
+            activityType = bTemp.get(2).asString();
             //if activity is an action -> stream
             if (activityType == "action") {
                 isStreamActivity = true;
@@ -129,16 +130,16 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         streamStatus = "end"; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
     }
 
-	bMental ? osMain << " , '" << s_mental_OPC << "' ) ; " : osMain << " , '" << s_real_OPC << "' ) ; ";
+    bMental ? osMain << " , '" << s_mental_OPC << "' ) ; " : osMain << " , '" << s_real_OPC << "' ) ; ";
     bMain.addString(string(osMain.str()).c_str());
     bMain = request(bMain);
 
 
-	OPCClient *opcWorld;
-	//Connection to the OPC
-	(bMental) ? opcWorld = opcWorldMental : opcWorldReal;
+    OPCClient *opcWorld;
+    //Connection to the OPC
+    (bMental) ? opcWorld = opcWorldMental : opcWorldReal;
 
-	OPCEARS.snapshot(bInput, opcWorld);
+    OPCEARS.snapshot(bInput, opcWorld);
 
     ostringstream osName;
     osName << sName << instance;
@@ -147,10 +148,10 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     Bottle bSnapShot = OPCEARS.insertOPC(sName);
 
     ostringstream osAllArg;
-	Bottle bRecogSemantic;
-	bool bShouldSend = true;
+    Bottle bRecogSemantic;
+    bool bShouldSend = true;
     // Filling contentArg
-    if(opcWorld->isConnected()) {
+    if (opcWorld->isConnected()) {
         for (int i = 1; i < bInput.size(); i++)
         {
             bTemp = *(bInput.get(i).asList());
@@ -179,36 +180,36 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                         cArgRole = bTemp.get(j).asList()->get(1).asString();
 
                         //add sentence for single img label
-						if (cArgRole == "sentence"){
-							fullSentence = cArgArgument;
-						}
-						if (cArgRole == "semantic"){
-							
-							yInfo() << " " << bTemp.get(j).asList()->get(0).toString();
-							bRecogSemantic.fromString(bTemp.get(j).asList()->get(0).toString());
-							yInfo() << " " << bRecogSemantic.toString();
-							yInfo() << "  bRecog size: " << bRecogSemantic.size();
-							bShouldSend = false;
-						}
-					}
+                        if (cArgRole == "sentence"){
+                            fullSentence = cArgArgument;
+                        }
+                        if (cArgRole == "semantic"){
+
+                            yInfo() << " " << bTemp.get(j).asList()->get(0).toString();
+                            bRecogSemantic.fromString(bTemp.get(j).asList()->get(0).toString());
+                            yInfo() << " " << bRecogSemantic.toString();
+                            yInfo() << "  bRecog size: " << bRecogSemantic.size();
+                            bShouldSend = false;
+                        }
+                    }
                     else {
                         cArgRole = "unknown";
                     }
-					if (bShouldSend){
-					osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
-					}
-					else{
-						bShouldSend = true;
-					}
+                    if (bShouldSend){
+                        osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
+                    }
+                    else{
+                        bShouldSend = true;
+                    }
                     // one stringstream with all argments
-                    osAllArg << osArg.str().c_str() ;
+                    osAllArg << osArg.str().c_str();
                 }
             }
         }
 
 
         // add the snapshot of the OPC
-        osAllArg << bSnapShot.get(0).asString() ;
+        osAllArg << bSnapShot.get(0).asString();
 
 
         bRequest.clear();
@@ -236,7 +237,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         yError() << "Reason cont data providers: " << isConnectedToContDataProviders;
     }
     if (isStreamActivity == true) { //just launch stream images stores when relevant activity
-        if(bBegin) {
+        if (bBegin) {
             streamStatus = "begin"; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
         }
     }
@@ -244,41 +245,43 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     {   //just one image (sentence?)
         imgInstance = currentInstance;
         string synchroTime = getCurrentTime();
-        frameNb = 0 ;
+        frameNb = 0;
 
         storeImagesAndData(synchroTime, true, fullSentence);
 
         //if activity = say, we have to take one image/data + the sound that is coming from another port and catch in the update method of ABM (store in /tmp/sound/default.wav
-        if(activityType == "recog"){
+        if (activityType == "recog"){
 
-            string sndName ;
+            string sndName;
 
             //take the full sentence, replace space by _ to have the sound name
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
             sndName = fullSentence + ".wav";
-            
+
             //read default sound from file and put data in yarp::sig::Sound  to store properly with semantic/instance that we are now aware of
             yarp::sig::Sound s;
-            string defaultSoundFullPath = storingPath + "/" + storingTmpSuffix+ "/sound/" + "default.wav"  ;
-            printf("opening file %s\n",defaultSoundFullPath);
-            if (yarp::sig::file::read(s,defaultSoundFullPath.c_str()) == false) {
-                yError() << "Cannot open the default sound file : check " << defaultSoundFullPath ;
-            } else {
+            string defaultSoundFullPath = storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav";
+            printf("opening file %s\n", defaultSoundFullPath);
+            if (yarp::sig::file::read(s, defaultSoundFullPath.c_str()) == false) {
+                yError() << "Cannot open the default sound file : check " << defaultSoundFullPath;
+            }
+            else {
 
-                yInfo() << "Default sound file loaded from " << defaultSoundFullPath ;
-                stringstream sInstance ;
-                sInstance << currentInstance ;
+                yInfo() << "Default sound file loaded from " << defaultSoundFullPath;
+                stringstream sInstance;
+                sInstance << currentInstance;
 
                 //build the path and the name of the sound according to the instance and sentence said
-                string relativePath = sInstance.str() + "/" + sndName ;
-                string fullPath = storingPath + "/" + relativePath ;
-                
-                if(yarp::sig::file::write(s, fullPath.c_str()) ==  false) {
-                    yError() << "Cannot save the default sound file to " << fullPath ;
-                } else {
+                string relativePath = sInstance.str() + "/" + sndName;
+                string fullPath = storingPath + "/" + relativePath;
 
-                    yInfo() << "Default sound file renamed and moved to " << fullPath ;
-                
+                if (yarp::sig::file::write(s, fullPath.c_str()) == false) {
+                    yError() << "Cannot save the default sound file to " << fullPath;
+                }
+                else {
+
+                    yInfo() << "Default sound file renamed and moved to " << fullPath;
+
                     //add the sound into the  large_objects table of ABM
                     unsigned int snd_oid = ABMDataBase->lo_import(fullPath.c_str());
 
@@ -293,9 +296,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                 }
             }
 
-			osInsertTemp.str("");
-			recogFromGrammarSemantic(bRecogSemantic, "", 1, currentInstance);
-			requestFromString(osInsertTemp.str());
+            osInsertTemp.str("");
+            recogFromGrammarSemantic(bRecogSemantic, "", 1, currentInstance);
+            requestFromString(osInsertTemp.str());
 
         }
 
@@ -354,9 +357,10 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
     bRequest = requestFromString("SELECT instance FROM main ORDER BY instance DESC LIMIT 1;");
     int instance;
-    if(bRequest.toString()!="NULL") {
+    if (bRequest.toString() != "NULL") {
         instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
-    } else {
+    }
+    else {
         instance = 0;
     }
     OPCEARS.setInstance(instance);
@@ -374,7 +378,8 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
         sName = bTemp.get(1).asString();
         osMain << sName << "' , '";
         osMain << bTemp.get(2).asString() << "' , '";
-    } else {
+    }
+    else {
         osMain << "unknown' , 'unknown', '";
     }
 
@@ -395,7 +400,8 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
             osMain << "FALSE ); ";
             inSharedPlan = false;
         }
-    } else {
+    }
+    else {
         osMain << "FALSE);";
     }
 
@@ -438,11 +444,11 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     ostringstream osArg;
     osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << " , '" << sManner << "' , 'manner' , 'manner' , 'manner' ) ";
 
-    if(opcWorldReal->isConnected()) {
+    if (opcWorldReal->isConnected()) {
         // Fill agents:
         for (unsigned int i = 0; i < vAgent.size(); i++)
         {
-			Entity* currentEntity = opcWorldReal->getEntity(vAgent[i]);
+            Entity* currentEntity = opcWorldReal->getEntity(vAgent[i]);
 
             if (currentEntity == NULL)
                 osArg << ", ( " << instance << ", '" << vAgent[i] << "', " << "'external', 'default', 'agent" << i + 1 << "') ";
@@ -453,7 +459,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
         // Fill objects:
         for (unsigned int i = 0; i < vObject.size(); i++)
         {
-			Entity* currentEntity = opcWorldReal->getEntity(vObject[i]);
+            Entity* currentEntity = opcWorldReal->getEntity(vObject[i]);
 
             if (currentEntity == NULL)
                 osArg << ", ( " << instance << ", '" << vObject[i] << "', " << "'external', 'default', 'object" << i + 1 << "') ";
@@ -464,7 +470,7 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
         // Fill spatials:
         for (unsigned int i = 0; i < vSpatial.size(); i++)
         {
-			Entity* currentEntity = opcWorldReal->getEntity(vSpatial[i]);
+            Entity* currentEntity = opcWorldReal->getEntity(vSpatial[i]);
 
             if (currentEntity == NULL)
                 osArg << ", ( " << instance << ", '" << vSpatial[i] << "', " << "'external', 'default', 'spatial" << i + 1 << "') ";
@@ -539,9 +545,10 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     Bottle bRequest, bTemp, bArg, bArguments, bRoles;
     bRequest = requestFromString("SELECT instance FROM main ORDER BY instance DESC LIMIT 1;");
     int instance;
-    if(bRequest.toString()!="NULL") {
+    if (bRequest.toString() != "NULL") {
         instance = atoi(bRequest.get(0).asList()->get(0).toString().c_str()) + 1;
-    } else {
+    }
+    else {
         instance = 0;
     }
     OPCEARS.setInstance(instance);
@@ -560,7 +567,8 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
         sName = bTemp.get(1).asString();
         osMain << sName << "' , '";
         osMain << bTemp.get(2).asString() << "' , '";
-    } else {
+    }
+    else {
         osMain << "unknown' , 'unknown', '";
     }
 
@@ -606,7 +614,7 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     // send filling contentarg
     bArg = requestFromString(osArg.str().c_str());
 
-    if(opcWorldReal->isConnected()) {
+    if (opcWorldReal->isConnected()) {
         for (int i = 0; i < bSnapShot.size(); i++)
         {
             bTemp = requestFromString(bSnapShot.get(i).toString().c_str());
@@ -633,73 +641,73 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
 * bRecogBottle     : (temporal "before you") (actionX (action1 ((verb1 point) (object "the circle")))) (actionX (action2 ((verb2 push) (object "the ball"))))
 * Modify the ostringstream osInsertTemp
 */
-void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle,  string s_deep, int i_deep, int iInstance)
+void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle, string s_deep, int i_deep, int iInstance)
 {
 
 
-	yarp::os::Bottle bReply;
+    yarp::os::Bottle bReply;
 
-	//TODO : list of string for the deepness, no need for the int in that case
-	//TODO : careful, may have to copy each time because of recursive
+    //TODO : list of string for the deepness, no need for the int in that case
+    //TODO : careful, may have to copy each time because of recursive
 
-	string currentWord = "";
-	string currentRole = "";
+    string currentWord = "";
+    string currentRole = "";
 
-	yInfo() << "bRecogBottle = " << bRecogBottle.toString() ;
+    yInfo() << "bRecogBottle = " << bRecogBottle.toString();
 
-	//case 1 : string string -> end of the recursive
-	if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isString()){
+    //case 1 : string string -> end of the recursive
+    if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isString()){
 
-		//yInfo() << "===== case 1 : string/string =====" ;
+        //yInfo() << "===== case 1 : string/string =====" ;
 
-		currentRole = bRecogBottle.get(0).asString();
-		currentWord = bRecogBottle.get(1).asString();
-		cout << std::endl;
-		//SQL insert
-		//std::cout << "=== s_deep = " << s_deep << " and i_deep = " << i_deep << "===" << std::endl;
-		//std::cout << "C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep << std::endl;
-		osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << currentWord << "' , '" << currentRole << "', " << i_deep << " ) ; ";
+        currentRole = bRecogBottle.get(0).asString();
+        currentWord = bRecogBottle.get(1).asString();
+        cout << std::endl;
+        //SQL insert
+        //std::cout << "=== s_deep = " << s_deep << " and i_deep = " << i_deep << "===" << std::endl;
+        //std::cout << "C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep << std::endl;
+        osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << currentWord << "' , '" << currentRole << "', " << i_deep << " ) ; ";
 
-	}
+    }
 
-	//case 2 : string list -> sub-sentence, sub-part
-	else if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isList()){
+    //case 2 : string list -> sub-sentence, sub-part
+    else if (bRecogBottle.get(0).isString() && bRecogBottle.get(1).isList()){
 
-		//  yInfo() << "===== case 2 : string/List =====" ;
+        //  yInfo() << "===== case 2 : string/List =====" ;
 
-		s_deep = bRecogBottle.get(0).asString(); //TODO : increase the list
-		//std::cout << "C2 : -------> role = " << "semantic" << " and word = " << s_deep << " and level = " << i_deep << std::endl;
-		osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << s_deep << "' , '" << "semantic" << "', " << i_deep << " ) ; ";
-
-
-		i_deep = i_deep * 10 + 1;
-		int i_deep_cp = i_deep;
-		recogFromGrammarSemantic(*bRecogBottle.get(1).asList(), s_deep, i_deep_cp, iInstance);
+        s_deep = bRecogBottle.get(0).asString(); //TODO : increase the list
+        //std::cout << "C2 : -------> role = " << "semantic" << " and word = " << s_deep << " and level = " << i_deep << std::endl;
+        osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << s_deep << "' , '" << "semantic" << "', " << i_deep << " ) ; ";
 
 
-	}
+        i_deep = i_deep * 10 + 1;
+        int i_deep_cp = i_deep;
+        recogFromGrammarSemantic(*bRecogBottle.get(1).asList(), s_deep, i_deep_cp, iInstance);
 
-	//case 3 : it is not case 1 or 2, so we should have reach the "end" of a semantic, and having group of pairs (role1 arg1) (role2 arg2) (role3 arg3) 
-	//list -> list of word
-	else if (bRecogBottle.size() > 1){
-		//       yInfo() << "===== case 3 : List =====" ;
 
-		for (unsigned int i = 0; i < bRecogBottle.size(); i++) {
+    }
 
-			//   yInfo() << " --> i = " << i ;
+    //case 3 : it is not case 1 or 2, so we should have reach the "end" of a semantic, and having group of pairs (role1 arg1) (role2 arg2) (role3 arg3) 
+    //list -> list of word
+    else if (bRecogBottle.size() > 1){
+        //       yInfo() << "===== case 3 : List =====" ;
 
-			int i_deep_cp = i_deep;
-			if (i != 0)
-			{
-				i_deep += 1;
-				i_deep_cp = i_deep;
-				//std::cout << "C3 : -------> role = " << "semantic" << " and word = " << bRecogBottle.get(i).toString() << " and level = " << i_deep << std::endl;
-			}
-			recogFromGrammarSemantic(*bRecogBottle.get(i).asList(), s_deep, i_deep_cp, iInstance);
-		}
-	}
-	else {
-		yError() << "None possible case in recogFronGrammarSemantic : something is wrong (Bottle from SpeechRecog?) : " << bRecogBottle.toString() ;
-	}
+        for (unsigned int i = 0; i < bRecogBottle.size(); i++) {
+
+            //   yInfo() << " --> i = " << i ;
+
+            int i_deep_cp = i_deep;
+            if (i != 0)
+            {
+                i_deep += 1;
+                i_deep_cp = i_deep;
+                //std::cout << "C3 : -------> role = " << "semantic" << " and word = " << bRecogBottle.get(i).toString() << " and level = " << i_deep << std::endl;
+            }
+            recogFromGrammarSemantic(*bRecogBottle.get(i).asList(), s_deep, i_deep_cp, iInstance);
+        }
+    }
+    else {
+        yError() << "None possible case in recogFronGrammarSemantic : something is wrong (Bottle from SpeechRecog?) : " << bRecogBottle.toString();
+    }
 
 }

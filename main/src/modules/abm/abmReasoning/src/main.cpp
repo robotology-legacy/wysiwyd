@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Grégoire Pointeau
  * email:   greg.pointeau@gmail.com
@@ -13,92 +13,92 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*
+ *
 
-Reasoning module based on the autobiographical memory
+ Reasoning module based on the autobiographical memory
 
-\section intro_sec Description 
+ \section intro_sec Description
 
-Module to build, maintain and query a postgreSQL 8.3 database to use interaction history of the iCub. 
+ Module to build, maintain and query a postgreSQL 8.3 database to use interaction history of the iCub.
 
-The commands it is possible to send (/efaa/abmReasoning/rpc) are:
+ The commands it is possible to send (/efaa/abmReasoning/rpc) are:
 
-@b findActivity <actionName> <begin|end|both> [<colums,to,select>] : find an action by his name. 2 OPC snapshot per action (begin and end). Could precide the column(s) you want (* by default).
-@b findSharedPlan <sharedPlanName> <begin|end|both> [<colums,to,select>] : find an sharedPlan by his name. 2 OPC snapshot per sharedPlan (begin and end). Could precide the column(s) you want (* by default).
-@b findOPC <#instance> : Give the OPC snapshot according to its instance
-@b "help" to print the available command
-@b "quit" to quit the module nicely
-@b "sqlQueryTest" to run a fixed sqlQuery, testing the access to the ABM
-@b "getActionConsequenceDrive" + 'actionName' + 'arg'
-@b "printContextualKnowledge" + 'actionName' + 'arg' 
-@b "printPDDLContextualKnowledge" + 'actionName' + 'arg'
-@b "printPDDLContextualKnowledgeProblem" + 'actionName' + 'arg'
-@b "testActionContextualKnowledge" + 'actionName' + 'arg' + 'objName'
-@b "askLastAction"
-@b "askLastActivity"
-@b "addLastActivity"
-@b "getIdFromActivity"
-@b "findPossibleSharedPlan"
-@b "availableSharedPlan"
-@b "findAllSharedPlan"
-@b "discrimminateAction"
-@b "queryBehavior"
-@b "saveKnowledge"
-@b "resetKnowledge"
-@b "discriminateUnknownActions"
-@b "connectOPC"
-@b "executeAction"
-@b "executeActivity"
-@b "updateLocation"
-
-
-Available are : findActivity <actionName> <begin|end|both> [<colums,to,select>] | findSharedPlan <sharedPlanName> <begin|end|both> [<colums,to,select>] | help | sqlQueryTest | quit ");
+ @b findActivity <actionName> <begin|end|both> [<colums,to,select>] : find an action by his name. 2 OPC snapshot per action (begin and end). Could precide the column(s) you want (* by default).
+ @b findSharedPlan <sharedPlanName> <begin|end|both> [<colums,to,select>] : find an sharedPlan by his name. 2 OPC snapshot per sharedPlan (begin and end). Could precide the column(s) you want (* by default).
+ @b findOPC <#instance> : Give the OPC snapshot according to its instance
+ @b "help" to print the available command
+ @b "quit" to quit the module nicely
+ @b "sqlQueryTest" to run a fixed sqlQuery, testing the access to the ABM
+ @b "getActionConsequenceDrive" + 'actionName' + 'arg'
+ @b "printContextualKnowledge" + 'actionName' + 'arg'
+ @b "printPDDLContextualKnowledge" + 'actionName' + 'arg'
+ @b "printPDDLContextualKnowledgeProblem" + 'actionName' + 'arg'
+ @b "testActionContextualKnowledge" + 'actionName' + 'arg' + 'objName'
+ @b "askLastAction"
+ @b "askLastActivity"
+ @b "addLastActivity"
+ @b "getIdFromActivity"
+ @b "findPossibleSharedPlan"
+ @b "availableSharedPlan"
+ @b "findAllSharedPlan"
+ @b "discrimminateAction"
+ @b "queryBehavior"
+ @b "saveKnowledge"
+ @b "resetKnowledge"
+ @b "discriminateUnknownActions"
+ @b "connectOPC"
+ @b "executeAction"
+ @b "executeActivity"
+ @b "updateLocation"
 
 
-\section lib_sec Libraries 
-- YARP libraries
-- \ref efaaHelpers
+ Available are : findActivity <actionName> <begin|end|both> [<colums,to,select>] | findSharedPlan <sharedPlanName> <begin|end|both> [<colums,to,select>] | help | sqlQueryTest | quit ");
 
-\section parameters_sec Parameters
-None.
 
-\section portsa_sec Ports Accessed
-/abmReasoning/rpc \n
-/abmReasoning/request:o \n
-/abmReasoning/world/opc:rpc \n
+ \section lib_sec Libraries
+ - YARP libraries
+ - \ref efaaHelpers
 
-\section portsc_sec Ports Created
-- \c /abmReasoning/rpc \n This port must be used to communicate with the module \n
+ \section parameters_sec Parameters
+ None.
 
-- \c /abmReasoning/request:o \n This port is used to communicate with the memory (autobiographicalMemory) \n
+ \section portsa_sec Ports Accessed
+ /abmReasoning/rpc \n
+ /abmReasoning/request:o \n
+ /abmReasoning/world/opc:rpc \n
 
-- \c /abmReasoning/world/opc:rpc \n This port is used to communicate with the OPC \
+ \section portsc_sec Ports Created
+ - \c /abmReasoning/rpc \n This port must be used to communicate with the module \n
 
-- \c /abmReasoning/interlocutor/toOPC \n This port is use to communicate between the interlocutor and the OPC
+ - \c /abmReasoning/request:o \n This port is used to communicate with the memory (autobiographicalMemory) \n
 
-\section tested_os_sec Tested OS
-Windows.
-Linux
+ - \c /abmReasoning/world/opc:rpc \n This port is used to communicate with the OPC \
 
-\section conf_file_sec Configuration Files 
+ - \c /abmReasoning/interlocutor/toOPC \n This port is use to communicate between the interlocutor and the OPC
 
-* - \c autobiographicalMemory \c config.ini \n 
-*   specifies the configuration file
+ \section tested_os_sec Tested OS
+ Windows.
+ Linux
 
-\section tested_os_sec Tested OS
-Windows
+ \section conf_file_sec Configuration Files
 
-* Tool for reasoning on the Autobiographical Memory \n
+ * - \c autobiographicalMemory \c config.ini \n
+ *   specifies the configuration file
 
-* Contact : gregoire.pointeau@inserm.fr , maxime.petit@inserm.fr
-* @author Gr\'egoire Pointeau, Maxime Petit
+ \section tested_os_sec Tested OS
+ Windows
 
-*/ 
+ * Tool for reasoning on the Autobiographical Memory \n
+
+ * Contact : gregoire.pointeau@inserm.fr , maxime.petit@inserm.fr
+ * @author Gr\'egoire Pointeau, Maxime Petit
+
+ */
 
 #include <abmReasoning.h>
 
 int main(int argc, char * argv[]) {
-    /* initialize yarp network */ 
+    /* initialize yarp network */
     yarp::os::Network yarp;
 
 
@@ -111,12 +111,12 @@ int main(int argc, char * argv[]) {
 
     /* prepare and configure the resource finder */
     yarp::os::ResourceFinder rf;
-    rf.setVerbose(true); 
+    rf.setVerbose(true);
     rf.setDefaultConfigFile("abmReasoning.ini"); //overridden by --from parameter
     rf.setDefaultContext("abmReasoning");   //overridden by --context parameter
     rf.configure(argc, argv);
     /* create your module */
-    abmReasoning module(rf); 
+    abmReasoning module(rf);
     /* run the module: runModule() calls configure first and, if successful, it then runs */
     module.runModule(rf);
 

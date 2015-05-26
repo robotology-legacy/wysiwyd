@@ -7,28 +7,28 @@ using namespace std;
 /* configure the module, default connection to the OPC called : "OPC" */
 bool opcManager::configure(yarp::os::ResourceFinder &rf)
 {
-    moduleName      =   rf.check("name", 
-        Value("opcManager"), 
+    moduleName = rf.check("name",
+        Value("opcManager"),
         "module name (string)").asString().c_str();
 
     s_realOPC = rf.check("realOpc", Value("OPC")).asString().c_str();
     s_mentalOPC = rf.check("mentalOpc", Value("mentalOPC")).asString().c_str();
 
     setName(moduleName.c_str());
-    string namePortReal = moduleName+ "/" + s_realOPC,
+    string namePortReal = moduleName + "/" + s_realOPC,
         namePortMental = moduleName + "/" + s_mentalOPC;
 
     realOPC = new OPCClient(namePortReal.c_str());
-    while(!realOPC->isConnected())
-    {  
-        cout<<"Connecting to " << s_realOPC << "..." <<realOPC->connect(s_realOPC)<<endl;
+    while (!realOPC->isConnected())
+    {
+        cout << "Connecting to " << s_realOPC << "..." << realOPC->connect(s_realOPC) << endl;
         Time::delay(0.5);
     }
 
     mentalOPC = new OPCClient(namePortMental.c_str());
-    while(!mentalOPC->isConnected())
-    {  
-        cout<<"Connecting to " << s_mentalOPC << "..." <<mentalOPC->connect(s_mentalOPC)<<endl;
+    while (!mentalOPC->isConnected())
+    {
+        cout << "Connecting to " << s_mentalOPC << "..." << mentalOPC->connect(s_mentalOPC) << endl;
         Time::delay(0.5);
     }
 
@@ -39,14 +39,14 @@ bool opcManager::configure(yarp::os::ResourceFinder &rf)
     realOPC->isVerbose = false;
     mentalOPC->isVerbose = false;
 
-	string handlerPortName = "/";
-	handlerPortName += getName() + "/rpc";
+    string handlerPortName = "/";
+    handlerPortName += getName() + "/rpc";
 
-	string nameToAbmReasoning = "/";
-	nameToAbmReasoning += getName() + "/toABMR";
+    string nameToAbmReasoning = "/";
+    nameToAbmReasoning += getName() + "/toABMR";
 
-    if (!handlerPort.open(handlerPortName.c_str())) {           
-        cout << getName() << ": Unable to open port " << handlerPortName << endl;  
+    if (!handlerPort.open(handlerPortName.c_str())) {
+        cout << getName() << ": Unable to open port " << handlerPortName << endl;
         return false;
     }
 
@@ -58,7 +58,7 @@ bool opcManager::configure(yarp::os::ResourceFinder &rf)
 
     cout << endl << endl << "----------------------------------------------" << endl << endl << "opcManager ready !" << endl << endl;
 
-    return true ;
+    return true;
 }
 
 /* Interrupt the module*/
@@ -93,21 +93,21 @@ bool opcManager::close()
 
 /* Respond function */
 bool opcManager::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& bReply)
-{  
-    string helpMessage =  string(getName().c_str()) + 
-        " commands are: \n" +  
-        "help \n" + 
+{
+    string helpMessage = string(getName().c_str()) +
+        " commands are: \n" +
+        "help \n" +
         "connect + name\n" +
-        "quit \n" ;
+        "quit \n";
 
     bReply.clear();
     string keyWord = bCommand.get(0).asString().c_str();
 
     if (keyWord == "quit") {
         bReply.addString("quitting");
-        return false;     
+        return false;
     }
-    else if (keyWord=="help") {
+    else if (keyWord == "help") {
         cout << helpMessage;
         bReply.addString("ok");
     }
@@ -164,7 +164,7 @@ bool opcManager::populate()
 {
     if (!realOPC->isConnected())
     {
-        cout << "Error, OPC not connected" <<endl;;
+        cout << "Error, OPC not connected" << endl;;
         return false;
     }
     //Clear
@@ -190,12 +190,12 @@ bool opcManager::populate()
     //Modify some properties & commit
     /* starting emotions */
 
-    icub->m_emotions_intrinsic.insert( make_pair( "anger", 0.2 ) ); 
-    icub->m_emotions_intrinsic.insert( make_pair( "disgust", 0.2 ) ); 
-    icub->m_emotions_intrinsic.insert( make_pair( "fear", 0.2 ) );
-    icub->m_emotions_intrinsic.insert( make_pair( "joy", 0.2 ) );
-    icub->m_emotions_intrinsic.insert( make_pair( "sadness", 0.2 ) );
-    icub->m_emotions_intrinsic.insert( make_pair( "surprise", 0.2 ) );
+    icub->m_emotions_intrinsic.insert(make_pair("anger", 0.2));
+    icub->m_emotions_intrinsic.insert(make_pair("disgust", 0.2));
+    icub->m_emotions_intrinsic.insert(make_pair("fear", 0.2));
+    icub->m_emotions_intrinsic.insert(make_pair("joy", 0.2));
+    icub->m_emotions_intrinsic.insert(make_pair("sadness", 0.2));
+    icub->m_emotions_intrinsic.insert(make_pair("surprise", 0.2));
 
     realOPC->commit(icub);
 
@@ -207,17 +207,19 @@ Bottle opcManager::connect(Bottle bInput)
 {
     Bottle bOutput;
 
-    if (bInput.size() !=2) {
-        bOutput.addString("Error in connect, wrong number of input");   }
+    if (bInput.size() != 2) {
+        bOutput.addString("Error in connect, wrong number of input");
+    }
 
     if (!bInput.get(1).isString()){
-        bOutput.addString("Error in connect, wrong format of input");   }
+        bOutput.addString("Error in connect, wrong format of input");
+    }
 
     realOPC = new OPCClient(moduleName.c_str());
     int iTry = 0;
-    while(!realOPC->isConnected())
-    {  
-        cout<<"Connecting to realOPC..."<<realOPC->connect("OPC")<<endl;
+    while (!realOPC->isConnected())
+    {
+        cout << "Connecting to realOPC..." << realOPC->connect("OPC") << endl;
         Time::delay(0.5);
         iTry++;
         if (iTry > 20)
@@ -234,7 +236,7 @@ Bottle opcManager::connect(Bottle bInput)
 
 Bottle opcManager::updateBelief(string sOPCname)
 {
-    cout << "Updating the beliefs in OPC ... " ;
+    cout << "Updating the beliefs in OPC ... ";
 
     Bottle bOutput;
     // Create the beliefs
@@ -314,12 +316,12 @@ Bottle opcManager::updateBelief(string sOPCname)
         isDoing = mentalOPC->addAction("isDoing");
     }
 
-    for (list<Entity*>::iterator it_E = PresentEntities.begin() ; it_E != PresentEntities.end() ; it_E++)
+    for (list<Entity*>::iterator it_E = PresentEntities.begin(); it_E != PresentEntities.end(); it_E++)
     {
         if (bReal)
-            realOPC->addRelation(*it_E, is, present,time_relation);
+            realOPC->addRelation(*it_E, is, present, time_relation);
         else
-            mentalOPC->addRelation(*it_E, is, present,time_relation);
+            mentalOPC->addRelation(*it_E, is, present, time_relation);
         listRelations.push_back(Relation(*it_E, is, present));
     }
 
@@ -334,7 +336,7 @@ Bottle opcManager::updateBelief(string sOPCname)
     else
         PresentAgents = (mentalOPC->Entities(conditionAgent));
 
-    for (list<Entity*>::iterator it_E = PresentAgents.begin() ; it_E != PresentAgents.end() ; it_E++)
+    for (list<Entity*>::iterator it_E = PresentAgents.begin(); it_E != PresentAgents.end(); it_E++)
     {
         Agent* TempAgent;
 
@@ -350,19 +352,19 @@ Bottle opcManager::updateBelief(string sOPCname)
 
         // Searching the relations to Remove
         // for each previous beliefs of an agent
-        for(list<Relation>::iterator it_RAg = AgentBeliefs.begin() ; it_RAg != AgentBeliefs.end() ; it_RAg++)
+        for (list<Relation>::iterator it_RAg = AgentBeliefs.begin(); it_RAg != AgentBeliefs.end(); it_RAg++)
         {
             // search is the relation is present in the world
             bRelPresent = false;
 
             //for each relation in the world
-            for (list<Relation>::iterator it_RWorl = listRelations.begin() ; it_RWorl != listRelations.end() ; it_RWorl++)
-            {   
+            for (list<Relation>::iterator it_RWorl = listRelations.begin(); it_RWorl != listRelations.end(); it_RWorl++)
+            {
                 if (!bRelPresent)
                 {
 
                     // is the new relation is already known
-                    if (it_RAg->toString() == it_RWorl->toString() )
+                    if (it_RAg->toString() == it_RWorl->toString())
                     {
                         bRelPresent = true;
                     }
@@ -376,18 +378,18 @@ Bottle opcManager::updateBelief(string sOPCname)
 
         // Searching the relations to Add
         //for each relation in the world
-        for (list<Relation>::iterator it_RWorl = listRelations.begin() ; it_RWorl != listRelations.end() ; it_RWorl++)
-        {   
+        for (list<Relation>::iterator it_RWorl = listRelations.begin(); it_RWorl != listRelations.end(); it_RWorl++)
+        {
             bRelPresent = false;
 
             // for each previous beliefs of an agent
-            for(list<Relation>::iterator it_RAg = AgentBeliefs.begin() ; it_RAg != AgentBeliefs.end() ; it_RAg++)
+            for (list<Relation>::iterator it_RAg = AgentBeliefs.begin(); it_RAg != AgentBeliefs.end(); it_RAg++)
             {
                 // search is the relation has to be added               
                 if (!bRelPresent)
                 {
                     // is the new relation is already known
-                    if (it_RAg->toString() == it_RWorl->toString() )
+                    if (it_RAg->toString() == it_RWorl->toString())
                         bRelPresent = true;
                 }
             }
@@ -398,14 +400,14 @@ Bottle opcManager::updateBelief(string sOPCname)
 
 
         // Removing the old relations :
-        for (vector<Relation>::iterator it_R = vRelToRemove.begin() ; it_R != vRelToRemove.end() ; it_R++)
+        for (vector<Relation>::iterator it_R = vRelToRemove.begin(); it_R != vRelToRemove.end(); it_R++)
         {
             TempAgent->removeBelief(*it_R);
         }
 
 
         // Adding the new relations :
-        for (vector<Relation>::iterator it_R = vRelToAdd.begin() ; it_R != vRelToAdd.end() ; it_R++)
+        for (vector<Relation>::iterator it_R = vRelToAdd.begin(); it_R != vRelToAdd.end(); it_R++)
         {
             TempAgent->addBelief(*it_R);
         }
@@ -421,18 +423,18 @@ Bottle opcManager::updateBelief(string sOPCname)
         mentalOPC->commit();
 
     cout << "done" << endl << endl;
-    return bOutput; 
+    return bOutput;
 }
 
-/* 
-Synchonise the content of the OPC in the mentalOPC 
+/*
+Synchonise the content of the OPC in the mentalOPC
 */
 Bottle opcManager::synchoniseOPCs()
 {
     cout << endl << "Begining of the synchronisation of the OPCs" << endl;
     Bottle bOutput;
 
-    if (!(realOPC->isConnected() && mentalOPC->isConnected() ))
+    if (!(realOPC->isConnected() && mentalOPC->isConnected()))
     {
         cout << "Error in opcManager::synchroniseOPCs : OPC not connected" << endl;
         bOutput.addString("Error in opcManager::synchroniseOPCs : OPC not connected");
@@ -442,24 +444,27 @@ Bottle opcManager::synchoniseOPCs()
     realOPC->checkout();
     mentalOPC->checkout();
 
-    list<Entity*> lEntities     = realOPC->EntitiesCacheCopy();
-    list<Relation> lRelations   =   realOPC->getRelations();
+    list<Entity*> lEntities = realOPC->EntitiesCacheCopy();
+    list<Relation> lRelations = realOPC->getRelations();
 
     //clean GUI :
     list<Entity*> lMental = mentalOPC->EntitiesCacheCopy();
-    for (list<Entity*>::iterator it_E = lMental.begin() ; it_E != lMental.end() ; it_E++)
+    for (list<Entity*>::iterator it_E = lMental.begin(); it_E != lMental.end(); it_E++)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
             Object *Ob = mentalOPC->addObject((*it_E)->name());
-            Ob->m_present = 0;  }
+            Ob->m_present = 0;
+        }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
             Agent *Ag = mentalOPC->addAgent((*it_E)->name());
-            Ag->m_present = 0;  }
+            Ag->m_present = 0;
+        }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
             RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
-            Rt->m_present = 0;  }
+            Rt->m_present = 0;
+        }
     }
 
     mentalOPC->commit();
@@ -467,38 +472,43 @@ Bottle opcManager::synchoniseOPCs()
     mentalOPC->clear();
     mentalOPC->checkout();
 
-    for (list<Entity*>::iterator it_E = lEntities.begin() ; it_E != lEntities.end() ; it_E++)
+    for (list<Entity*>::iterator it_E = lEntities.begin(); it_E != lEntities.end(); it_E++)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
             Object *Ob = mentalOPC->addObject((*it_E)->name());
-            Ob->fromBottle((*it_E)->asBottle());    }
+            Ob->fromBottle((*it_E)->asBottle());
+        }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
             Agent *Ag = mentalOPC->addAgent((*it_E)->name());
-            Ag->fromBottle((*it_E)->asBottle());    }
+            Ag->fromBottle((*it_E)->asBottle());
+        }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
             RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
-            Rt->fromBottle((*it_E)->asBottle());    }
+            Rt->fromBottle((*it_E)->asBottle());
+        }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)    {
             Adjective *Ad = mentalOPC->addAdjective((*it_E)->name());
-            Ad->fromBottle((*it_E)->asBottle());    }
+            Ad->fromBottle((*it_E)->asBottle());
+        }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_ACTION)   {
             Action *Ac = mentalOPC->addAction((*it_E)->name());
-            Ac->fromBottle((*it_E)->asBottle());    }   
+            Ac->fromBottle((*it_E)->asBottle());
+        }
     }
     mentalOPC->commit();
 
-    for (list<Relation>::iterator it_R = lRelations.begin() ; it_R != lRelations.end() ; it_R++)
+    for (list<Relation>::iterator it_R = lRelations.begin(); it_R != lRelations.end(); it_R++)
     {
         mentalOPC->addRelation(*it_R);
     }
 
     mentalOPC->update();
 
-    cout << "Synchronisation done" << endl; 
+    cout << "Synchronisation done" << endl;
     bOutput.addString("synchronisation done.");
 
     return bOutput;
@@ -522,7 +532,7 @@ Bottle opcManager::simulateAction(Bottle bAction)
     pair<double, double> pMove;
     Bottle bMove = *(bAction.get(2).asList());
 
-    pMove.first  = bMove.get(0).asDouble();
+    pMove.first = bMove.get(0).asDouble();
     pMove.second = bMove.get(1).asDouble();
 
     bActivity = *(bAction.get(3).asList());
@@ -533,27 +543,31 @@ Bottle opcManager::simulateAction(Bottle bAction)
     string sObject;
     bool fObject = false;
 
-    for (int i = 0 ; i < bRole.size() ; i++)
+    for (int i = 0; i < bRole.size(); i++)
     {
         if (bRole.get(i).toString() == "object1")   {
             sObject = bArgument.get(i).toString().c_str();
-            fObject = true; }
+            fObject = true;
+        }
     }
 
     if (!fObject)   {
         bOutput.addString("Error in opcManager::simulateAction | object not found");
-        return bOutput; }
+        return bOutput;
+    }
 
     mentalOPC->update();
 
-    RTObject *OBJECT =  mentalOPC->addRTObject(sObject);
+    RTObject *OBJECT = mentalOPC->addRTObject(sObject);
 
     if (fAbsolut)   {
         OBJECT->m_ego_position[0] = pMove.first;
-        OBJECT->m_ego_position[1] = pMove.second;   }
+        OBJECT->m_ego_position[1] = pMove.second;
+    }
     else    {
         OBJECT->m_ego_position[0] = OBJECT->m_ego_position[0] + pMove.first;
-        OBJECT->m_ego_position[1] = OBJECT->m_ego_position[1] + pMove.second;   }
+        OBJECT->m_ego_position[1] = OBJECT->m_ego_position[1] + pMove.second;
+    }
 
     mentalOPC->commit();
 
@@ -575,7 +589,7 @@ Bottle opcManager::simulateActivity(Bottle bInput)
 
     bActivity = *(bMessenger.get(1).asList());
 
-    for (int i = 0 ; i < bActivity.size(); i++)
+    for (int i = 0; i < bActivity.size(); i++)
     {
         bAction = *bActivity.get(i).asList();
         simulateAction(bAction);
@@ -621,8 +635,8 @@ Bottle opcManager::diffOPC()
 
     condition.addList() = isPresent;
 
-    list<Entity*>       RealEntities    = (realOPC->EntitiesCacheCopy());
-    list<Entity*>       MentalEntities  = (mentalOPC->EntitiesCacheCopy());
+    list<Entity*>       RealEntities = (realOPC->EntitiesCacheCopy());
+    list<Entity*>       MentalEntities = (mentalOPC->EntitiesCacheCopy());
 
     list<Relation>      RealRelations = realOPC->getRelations();
     list<Relation>      MentalRelations = mentalOPC->getRelations();
@@ -637,17 +651,17 @@ Bottle opcManager::diffOPC()
     bEnMnR.addString("Entities Mental and not Real");
 
     /// For each entity present in the real OPC
-    for (list<Entity*>::iterator it_Real = RealEntities.begin() ; it_Real != RealEntities.end() ; it_Real ++)
+    for (list<Entity*>::iterator it_Real = RealEntities.begin(); it_Real != RealEntities.end(); it_Real++)
     {
         bool fEntity = false;
         /// search for it in the mental OPC
-        for (list<Entity*>::iterator it_Mental = MentalEntities.begin() ; it_Mental != MentalEntities.end() ; it_Mental ++)
+        for (list<Entity*>::iterator it_Mental = MentalEntities.begin(); it_Mental != MentalEntities.end(); it_Mental++)
         {
             if (!fEntity && (*it_Real)->name() == (*it_Mental)->name())
             {
                 fEntity = true;
                 Bottle bDiffTemp = OPCEARS.getDifferencies(*it_Mental, *it_Real);
-                if (bDiffTemp.toString() != "none" && bDiffTemp.toString() != "" )
+                if (bDiffTemp.toString() != "none" && bDiffTemp.toString() != "")
                 {
                     cout << "this object changed : " << (*it_Real)->name() << " (" << (*it_Real)->entity_type() << ")" << endl << bDiffTemp.toString() << endl << endl;
                     bDiff.addList() = bDiffTemp;
@@ -666,11 +680,11 @@ Bottle opcManager::diffOPC()
 
 
     /// For each entity present in the mental OPC
-    for (list<Entity*>::iterator it_Mental = MentalEntities.begin() ; it_Mental != MentalEntities.end() ; it_Mental ++)
+    for (list<Entity*>::iterator it_Mental = MentalEntities.begin(); it_Mental != MentalEntities.end(); it_Mental++)
     {
         bool fEntity = false;
         /// search for it in the real OPC
-        for (list<Entity*>::iterator it_Real = RealEntities.begin() ; it_Real != RealEntities.end() ; it_Real ++)
+        for (list<Entity*>::iterator it_Real = RealEntities.begin(); it_Real != RealEntities.end(); it_Real++)
         {
             if (!fEntity && (*it_Real)->name() == (*it_Mental)->name())
             {
@@ -678,7 +692,7 @@ Bottle opcManager::diffOPC()
             }
         }
 
-        if (!fEntity && (*it_Mental)->entity_type() != EFAA_OPC_ENTITY_ADJECTIVE )
+        if (!fEntity && (*it_Mental)->entity_type() != EFAA_OPC_ENTITY_ADJECTIVE)
         {
             Bottle bEntityTemp;
             bEntityTemp.addString((*it_Mental)->name().c_str());
@@ -689,12 +703,12 @@ Bottle opcManager::diffOPC()
 
 
     bOutput.addList() = bDiff;
-    if (bEnMnR.size() !=1)
+    if (bEnMnR.size() != 1)
     {
         cout << bEnMnR.toString() << endl << endl;
         bOutput.addList() = bEnMnR;
     }
-    if (bEnRnM.size() !=1)
+    if (bEnRnM.size() != 1)
     {
         cout << bEnRnM.toString() << endl << endl;
         bOutput.addList() = bEnRnM;
@@ -710,14 +724,14 @@ Bottle opcManager::diffOPC()
 Bottle opcManager::getBeliefs(Bottle bInput)
 {
     Bottle bOutput;
-    if (bInput.size() !=3)
+    if (bInput.size() != 3)
     {
         cout << "Error in opcManager::getBeliefs | wrong size of input" << endl;
         bOutput.addString("Error in opcManager::getBeliefs | wrong size of input");
         return bOutput;
     }
 
-    if (bInput.get(1).toString() != "real" && bInput.get(1).toString() != "mental" )
+    if (bInput.get(1).toString() != "real" && bInput.get(1).toString() != "mental")
     {
         cout << "Error in opcManager::getBeliefs | unknown OPC (real/mental)" << endl;
         bOutput.addString("Error in opcManager::getBeliefs | unknown OPC (real/mental)");
@@ -738,14 +752,14 @@ Bottle opcManager::getBeliefs(Bottle bInput)
 
     cout << endl << agent->name() << " has the following beliefs in the " << bInput.get(1).toString() << " OPC (" << lRelation.size() << ") : " << endl;
 
-    for (list<Relation>::iterator it_R = lRelation.begin() ; it_R != lRelation.end() ; it_R++)
+    for (list<Relation>::iterator it_R = lRelation.begin(); it_R != lRelation.end(); it_R++)
     {
         Bottle bTemp = it_R->asLightBottle();
         cout << bTemp.toString() << endl;
         bOutput.addList() = bTemp;
     }
 
-    cout << endl ;
+    cout << endl;
 
     return bOutput;
 }

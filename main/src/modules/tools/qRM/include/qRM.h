@@ -12,7 +12,7 @@ private:
     string      nameMainGrammar;
     string      nameGrammarSentenceTemporal;
     string      nameGrammarYesNo;
-	string		nameGrammarNodeTrainAP;
+    string		nameGrammarNodeTrainAP;
 
     yarp::os::Port Port2abmReasoning;       // a port to communicate with the reasoning module
 

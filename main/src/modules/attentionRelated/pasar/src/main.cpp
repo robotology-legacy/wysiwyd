@@ -26,24 +26,24 @@ using namespace yarp::sig;
 
 
 int main(int argc, char * argv[]) {
-	srand((int)time(NULL));
-	YARP_REGISTER_DEVICES(icubmod)
-		/* initialize yarp network */
-		Network yarp;
+    srand((int)time(NULL));
+    YARP_REGISTER_DEVICES(icubmod)
+        /* initialize yarp network */
+        Network yarp;
 
-	/* prepare and configure the resource finder */
-	ResourceFinder rf;
-	rf.setVerbose(true);
-	rf.setDefaultConfigFile("pasar.ini"); //overridden by --from parameter
-	rf.setDefaultContext("pasar");   //overridden by --context parameter 
-	rf.configure(argc, argv);
+    /* prepare and configure the resource finder */
+    ResourceFinder rf;
+    rf.setVerbose(true);
+    rf.setDefaultConfigFile("pasar.ini"); //overridden by --from parameter
+    rf.setDefaultContext("pasar");   //overridden by --context parameter 
+    rf.configure(argc, argv);
 
-	/* create your module */
-	PasarModule module;
+    /* create your module */
+    PasarModule module;
 
-	/* run the module: runModule() calls configure first and, if successful, it then runs */
-	module.runModule(rf);
+    /* run the module: runModule() calls configure first and, if successful, it then runs */
+    module.runModule(rf);
 
-	return 0;
+    return 0;
 }
 

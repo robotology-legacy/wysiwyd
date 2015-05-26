@@ -14,10 +14,10 @@ bool spatialKnowledge::fromBottle(Bottle bInput)
     if (bInput.size() < 2)
     {
         std::cout << sError << "  -> wrong number of bottle" << endl;
-        return false; 
+        return false;
     }
 
-    if (! (bInput.get(0).isString()) )
+    if (!(bInput.get(0).isString()))
     {
         std::cout << sError << "  -> wrong format of action name" << endl;
         return false;
@@ -40,7 +40,7 @@ bool spatialKnowledge::fromBottle(Bottle bInput)
         std::cout << sError << "  -> wrong format of data" << endl;
         return false;
     }
-    for (int data = 2 ; data < bInput.size() ; data++)
+    for (int data = 2; data < bInput.size(); data++)
     {
         Bottle bData = *(bInput.get(data)).asList();
         if (bData.size() < 2)
@@ -88,14 +88,14 @@ void spatialKnowledge::determineInfluence()
     // Get the covariance matrix for abs and delta.
     updateDataFinalDepart();
 
-    vector<double>  covMatrixA = abmReasoningFunction::getCovMatrix(vFromX,vFromY),
+    vector<double>  covMatrixA = abmReasoningFunction::getCovMatrix(vFromX, vFromY),
         covMatrixB = abmReasoningFunction::getCovMatrix(vX, vY),
-        covMatrixD = abmReasoningFunction::getCovMatrix(vDX,vDY);
+        covMatrixD = abmReasoningFunction::getCovMatrix(vDX, vDY);
 
 
     double sigmaD;
-    double sumdX = 0, sumdY =0;
-    for (unsigned int i = 0 ; i < vDX.size() ; i++)
+    double sumdX = 0, sumdY = 0;
+    for (unsigned int i = 0; i < vDX.size(); i++)
     {
         sumdX += vDX[i];
         sumdY += vDY[i];
@@ -104,12 +104,12 @@ void spatialKnowledge::determineInfluence()
     sigmaD = sqrt(sumdX*sumdX + sumdY*sumdY);
 
     //double deter_CovA = (covMatrixA[0] * covMatrixA[3])-(covMatrixA[1] * covMatrixA[2]);
-    double deter_CovB = (covMatrixB[0] * covMatrixB[3])-(covMatrixB[1] * covMatrixB[2]);
-    double deter_CovD = (covMatrixD[0] * covMatrixD[3])-(covMatrixD[1] * covMatrixD[2]);
+    double deter_CovB = (covMatrixB[0] * covMatrixB[3]) - (covMatrixB[1] * covMatrixB[2]);
+    double deter_CovD = (covMatrixD[0] * covMatrixD[3]) - (covMatrixD[1] * covMatrixD[2]);
 
     isRelative = (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD);
 
-    isAbsolut =  (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB);
+    isAbsolut = (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB);
 }
 
 /**
@@ -122,8 +122,8 @@ void spatialKnowledge::determineInfluence()
 pair <int, double> spatialKnowledge::distFromMove(pair<double, double> XY, pair<double, double> MOVE)
 {
     // return the influence (Abs or Delta) and the Mahalanobis distance
-    int Influence =0;
-    double Dist=0;
+    int Influence = 0;
+    double Dist = 0;
     if (isAbsolut)
     {
         Dist = abmReasoningFunction::getMahalaDist(vX, vY, XY);
@@ -131,7 +131,7 @@ pair <int, double> spatialKnowledge::distFromMove(pair<double, double> XY, pair<
     }
     else if (isRelative)
     {
-        Dist = abmReasoningFunction::getMahalaDist(vDX,vDY, MOVE);
+        Dist = abmReasoningFunction::getMahalaDist(vDX, vDY, MOVE);
         Influence = 2;
     }
 
@@ -158,7 +158,7 @@ vector<double> spatialKnowledge::determineAbsolut()
         dmaxY = 0.,
         dY;
 
-    for (unsigned int i = 0 ; i < vX.size() ; i++)
+    for (unsigned int i = 0; i < vX.size(); i++)
     {
         sumX += vX[i];
         sumY += vY[i];
@@ -170,7 +170,7 @@ vector<double> spatialKnowledge::determineAbsolut()
     sumX = 0;
     sumY = 0;
 
-    for (unsigned int i = 0 ; i < vX.size() ; i++)
+    for (unsigned int i = 0; i < vX.size(); i++)
     {
         sumX += fabs(vX[i] - muX);
         sumY += fabs(vY[i] - muY);
@@ -207,17 +207,17 @@ pair <double, double> spatialKnowledge::coordRelative(double Xo, double Yo, doub
         R,      // Distance from agent to object
         A,      // temporaty for atan2 calculation
         B,      // temporaty for atan2 calculation
-        Pi = atan(1.)*4,
+        Pi = atan(1.) * 4,
         Theta;  // angle of the Human relative to the table
 
-    R = sqrt ((Xh-Xo)*(Xh-Xo) + (Yh-Yo)*(Yh-Yo));
+    R = sqrt((Xh - Xo)*(Xh - Xo) + (Yh - Yo)*(Yh - Yo));
 
     A = Xh - abmReasoningFunction::X_center;
     B = Yh - abmReasoningFunction::Y_center;
 
-    Theta = atan2( B , A ) + Pi/2.;
+    Theta = atan2(B, A) + Pi / 2.;
 
-    X = (Xo - Xh)*cos(Theta) + (Yo-Yh)*sin(Theta);
+    X = (Xo - Xh)*cos(Theta) + (Yo - Yh)*sin(Theta);
     Y = -(Xo - Xh)*sin(Theta) + (Yo - Yh)*cos(Theta);
 
     pReturn.first = X;
@@ -232,10 +232,10 @@ void spatialKnowledge::updateDataFinalDepart()
     vFromX.clear();
     vFromY.clear();
 
-    for (unsigned int i = 0 ; i < vX.size() ; i++)
+    for (unsigned int i = 0; i < vX.size(); i++)
     {
-        vFromX.push_back( vX[i] - vDX[i] );
-        vFromY.push_back( vY[i] - vDY[i] );
+        vFromX.push_back(vX[i] - vDX[i]);
+        vFromY.push_back(vY[i] - vDY[i]);
     }
 }
 

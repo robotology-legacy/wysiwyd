@@ -14,7 +14,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #ifdef BOOST_AVAILABLE
 #include <boost/chrono.hpp>
@@ -52,7 +52,8 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     try {
         ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
-    } catch (DataBaseError e) {
+    }
+    catch (DataBaseError e) {
         yError() << "Could not connect to database. Reason: " << e.what();
         return false;
     }
@@ -94,37 +95,38 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     attach(handlerPort);
 
-	connectOPC();
+    connectOPC();
 
     //populateOPC();
     //storeImageOIDs();
 
-    if(defaultImgStreamProviders) {
-        for(int i=0; i<defaultImgStreamProviders->size(); i++) {
+    if (defaultImgStreamProviders) {
+        for (int i = 0; i < defaultImgStreamProviders->size(); i++) {
             addImgStreamProvider(defaultImgStreamProviders->get(i).toString());
         }
     }
-    if(defaultDataStreamProviders) {
-        for(int i=0; i<defaultDataStreamProviders->size(); i++) {
+    if (defaultDataStreamProviders) {
+        for (int i = 0; i < defaultDataStreamProviders->size(); i++) {
             addDataStreamProvider(defaultDataStreamProviders->get(i).toString());
         }
     }
 
     //sound
-    portSoundStreamInput.open(("/" + getName() + "/sound:i").c_str()) ;
+    portSoundStreamInput.open(("/" + getName() + "/sound:i").c_str());
 
     int trials = 0;
     Network::connect("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str());
 
-    while((!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())) && (trials < 5)) {
+    while ((!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())) && (trials < 5)) {
         trials += 1;
         yInfo() << "trying to connect to /speechRecognizer/recog/sound:o ...";
 
         Network::connect("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str());
-        if(trials == 5 && (!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str()))){
+        if (trials == 5 && (!Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str()))){
             yInfo() << "Seems to be no sound, quit trying!";
-        } else if (Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())){
-            yInfo() <<  "ABM is connected to /speechRecognizer/recog/sound:o !!!";
+        }
+        else if (Network::isConnected("/speechRecognizer/recog/sound:o", portSoundStreamInput.getName().c_str())){
+            yInfo() << "ABM is connected to /speechRecognizer/recog/sound:o !!!";
         }
         yarp::os::Time::delay(0.3);
     }
@@ -336,20 +338,20 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "CREATE TABLE visualdata(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT visualdata_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE);";
     *ABMDataBase << "ALTER TABLE visualdata OWNER TO postgres;";
 
-	/****************************** proprioceptivedata *************************/
-	*ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
-	*ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE);";
-	*ABMDataBase << "ALTER TABLE proprioceptivedata OWNER TO postgres;";
+    /****************************** proprioceptivedata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS proprioceptivedata CASCADE;";
+    *ABMDataBase << "CREATE TABLE proprioceptivedata(instance integer NOT NULL, \"time\" timestamp without time zone NOT NULL, label_port text NOT NULL, subtype text NOT NULL, frame_number integer NOT NULL, value text NOT NULL, CONSTRAINT cont_pkey PRIMARY KEY (\"time\", label_port, subtype), CONSTRAINT proprio_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH ( OIDS=FALSE);";
+    *ABMDataBase << "ALTER TABLE proprioceptivedata OWNER TO postgres;";
 
-	/****************************** adjectivespatial *************************/
-	*ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
-	*ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
-	*ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
+    /****************************** adjectivespatial *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
+    *ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
+    *ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
 
-	/****************************** adjectivetemporal *************************/
-	*ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
-	*ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
-	*ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
+    /****************************** adjectivetemporal *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
+    *ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
+    *ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
 
     /****************************** sounddata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS sounddata CASCADE;";
@@ -544,22 +546,22 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 string robot = "icubSim";
 
                 Value vRealtime = bCommand.find("realtime");
-                if(!vRealtime.isNull() && vRealtime.isInt()) {
+                if (!vRealtime.isNull() && vRealtime.isInt()) {
                     realtime = vRealtime.asInt() > 0;
                 }
 
                 Value vIncludeAugmented = bCommand.find("includeAugmented");
-                if(!vIncludeAugmented.isNull() && vIncludeAugmented.isInt()) {
+                if (!vIncludeAugmented.isNull() && vIncludeAugmented.isInt()) {
                     includeAugmented = vIncludeAugmented.asInt() > 0;
                 }
 
                 Value vSpeedMultiplier = bCommand.find("speedMultiplier");
-                if(!vSpeedMultiplier.isNull() && vSpeedMultiplier.isDouble()) {
+                if (!vSpeedMultiplier.isNull() && vSpeedMultiplier.isDouble()) {
                     speedMultiplier = vSpeedMultiplier.asDouble();
                 }
 
                 Value vRobot = bCommand.find("robot");
-                if(!vRobot.isNull() && vRobot.isString()) {
+                if (!vRobot.isNull() && vRobot.isString()) {
                     robot = vRobot.asString();
                 }
 
@@ -587,15 +589,17 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
                 int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
                 if (instance > 0 && frame_number >= 0) {
-                    if(bCommand.get(3).isInt()) {
+                    if (bCommand.get(3).isInt()) {
                         bool include_augmented = (atoi((bCommand.get(3)).toString().c_str()));
-                        if(bCommand.get(4).isString()) {
+                        if (bCommand.get(4).isString()) {
                             string provider_port = bCommand.get(4).toString();
                             bReply = provideImagesByFrame(instance, frame_number, include_augmented, provider_port);
-                        } else {
+                        }
+                        else {
                             bReply = provideImagesByFrame(instance, frame_number, include_augmented);
                         }
-                    } else {
+                    }
+                    else {
                         bReply = provideImagesByFrame(instance, frame_number);
                     }
                 }
@@ -673,7 +677,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             if (bCommand.size() == 2 && bCommand.get(1).isInt()) {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
                 storeImageOIDs(instance);
-            } else {
+            }
+            else {
                 storeImageOIDs();
             }
             bReply.addString("ack");
@@ -686,15 +691,17 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         // DEPRECATED! Use triggerStreaming instead, see ABMAugmentionExample!
         else if (bCommand.get(0) == "getImagesInfo")
         {
-            if(bCommand.size() >= 2 && bCommand.get(1).isInt()) {
+            if (bCommand.size() >= 2 && bCommand.get(1).isInt()) {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
-                if(bCommand.size()==3) {
+                if (bCommand.size() == 3) {
                     bool includeAugmentedImages = (atoi((bCommand.get(2)).toString().c_str()));
                     bReply = getImagesInfo(instance, includeAugmentedImages);
-                } else {
+                }
+                else {
                     bReply = getImagesInfo(instance);
                 }
-            } else {
+            }
+            else {
                 bReply.addString("[getImagesInfo]: wrong function signature: getImagesInfo instance [includeAugmentedImages->1/0]");
             }
         }
@@ -733,16 +740,17 @@ void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool 
 bool autobiographicalMemory::updateModule() {
     //yDebug() << "Update loop";
     yarp::sig::Sound *s;
-    s=portSoundStreamInput.read(false);
-    if(s!=NULL)
+    s = portSoundStreamInput.read(false);
+    if (s != NULL)
     {
         yInfo() << "I have received a sound!!!!!";
         stringstream fullPath;
         //fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
-        yarp::sig::file::write(*s,(storingPath + "/" + storingTmpSuffix+ "/sound/" + "default.wav").c_str());
+        yarp::sig::file::write(*s, (storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav").c_str());
         //yarp::sig::file::write(*s,"c:\\robot\\ABMStoring\\tmp\\test.wav");
         //yDebug() << "blop";
-    } else {
+    }
+    else {
         //yDebug() << "no sound?";
     }
 
@@ -783,9 +791,10 @@ bool autobiographicalMemory::updateModule() {
             long timeVeryLastImage = getTimeLastImgStream(imgInstance);
             long timeVeryLastContData = getTimeLastDataStream(imgInstance);
 
-            if(timeVeryLastImage >= timeVeryLastContData) {
+            if (timeVeryLastImage >= timeVeryLastContData) {
                 timeVeryLastStream = timeVeryLastImage;
-            } else {
+            }
+            else {
                 timeVeryLastStream = timeVeryLastContData;
             }
             timeStreamStart = getCurrentTimeInMS();
@@ -802,8 +811,8 @@ bool autobiographicalMemory::updateModule() {
         Bottle bListImages = getStreamImgWithinEpoch(long(updateTimeDifference));
 
         // Save images in temp folder and send them to ports
-        if(bListImages.toString()!="NULL") {
-            for(int i=0; i<bListImages.size(); i++) {
+        if (bListImages.toString() != "NULL") {
+            for (int i = 0; i < bListImages.size(); i++) {
                 //concatenation of the storing path
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
@@ -815,7 +824,7 @@ bool autobiographicalMemory::updateModule() {
                 env.addString(bListImages.get(i).asList()->get(4).asString()); // frame_number
                 yDebug() << "ENVELOPE: " << env.toString();
                 port->setEnvelope(env);
-                if(atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                if (atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
                     timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
                 }
 
@@ -829,19 +838,19 @@ bool autobiographicalMemory::updateModule() {
             // Find which data stream to send
             Bottle bListContData = getStreamDataWithinEpoch(long(updateTimeDifference), it->first);
 
-            if(bListContData.toString()!="NULL") {
+            if (bListContData.toString() != "NULL") {
                 Bottle &bCmd = it->second->prepare();
                 bCmd.clear();
                 // for joints, begin with the command to set the position
-                if(it->first.find("state:o") != std::string::npos) {
+                if (it->first.find("state:o") != std::string::npos) {
                     bCmd.fromString("[set] [poss]");
                 }
 
                 Bottle bJoints;
 
                 // Append bottle of ports for all the subtypes
-                for(int i=0; i<bListContData.size(); i++) {
-                    if(atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                for (int i = 0; i < bListContData.size(); i++) {
+                    if (atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
                         timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                     }
                     bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
@@ -856,26 +865,27 @@ bool autobiographicalMemory::updateModule() {
             }
         }
 
-        if(timeLastImageSentCurrentIteration > timeLastImageSent) {
+        if (timeLastImageSentCurrentIteration > timeLastImageSent) {
             timeLastImageSent = timeLastImageSentCurrentIteration;
         }
 
         // Are we done?
         bool done = false;
-        if(realtimePlayback && updateTimeDifference >= timeVeryLastStream) {
+        if (realtimePlayback && updateTimeDifference >= timeVeryLastStream) {
             done = true;
-        } else if(!realtimePlayback && timeLastImageSent >= timeVeryLastStream) {
+        }
+        else if (!realtimePlayback && timeLastImageSent >= timeVeryLastStream) {
             done = true;
         }
 
-        if(done) {
+        if (done) {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             yInfo() << "streamStatus = end, closing ports";
             for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamPortOut.begin(); it != mapImgStreamPortOut.end(); ++it) {
                 it->second->waitForWrite();
                 it->second->interrupt();
                 it->second->close();
-                if(!it->second->isClosed()) {
+                if (!it->second->isClosed()) {
                     yError() << "Error, port " << it->first << " could not be closed";
                 }
             }
@@ -883,7 +893,7 @@ bool autobiographicalMemory::updateModule() {
                 it->second->waitForWrite();
                 it->second->interrupt();
                 it->second->close();
-                if(!it->second->isClosed()) {
+                if (!it->second->isClosed()) {
                     yError() << "Error, port " << it->first << " could not be closed";
                 }
             }
@@ -920,8 +930,8 @@ bool autobiographicalMemory::interruptModule()
     yInfo() << "Interrupting your module, for port cleanup";
 
     storeImageOIDs();
-	opcWorldReal->interrupt();
-	opcWorldMental->interrupt();
+    opcWorldReal->interrupt();
+    opcWorldMental->interrupt();
 
     portAugmentedImagesIn.interrupt();
     portSoundStreamInput.interrupt();
@@ -939,10 +949,10 @@ bool autobiographicalMemory::close()
     disconnectDataStreamProviders();
     disconnectFromImgStreamProviders();
 
-	opcWorldReal->interrupt();
-	opcWorldReal->close();
-	opcWorldMental->interrupt();
-	opcWorldMental->close();
+    opcWorldReal->interrupt();
+    opcWorldReal->close();
+    opcWorldMental->interrupt();
+    opcWorldMental->close();
 
     portAugmentedImagesIn.interrupt();
     portAugmentedImagesIn.close();
@@ -962,9 +972,9 @@ bool autobiographicalMemory::close()
     requestInsertProcessQueue();
     storeImageOIDs();
 
-	delete opcWorldReal;
-	delete opcWorldMental;
-	delete ABMDataBase;
+    delete opcWorldReal;
+    delete opcWorldMental;
+    delete ABMDataBase;
 
     yInfo() << "ABM Successfully finished!";
 
@@ -1048,15 +1058,15 @@ Bottle autobiographicalMemory::resetKnowledge()
     *ABMDataBase << "CREATE TABLE interactionknowledge (subject text NOT NULL, argument text NOT NULL, number integer NOT NULL, type text NOT NULL DEFAULT 'none'::text, role text NOT NULL DEFAULT 'none'::text, CONSTRAINT interactionknowledge_pkey PRIMARY KEY (subject, argument, type, role) ) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE interactionknowledge OWNER  TO postgres;";
 
-	/****************************** adjectivespatial *************************/
-	*ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
-	*ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
-	*ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
+    /****************************** adjectivespatial *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS adjectivespatial CASCADE;";
+    *ABMDataBase << "CREATE TABLE adjectivespatial ( \"name\" text NOT NULL, argument text NOT NULL, x double precision, y double precision, dx double precision, dy double precision ) WITH(OIDS = FALSE) ";
+    *ABMDataBase << "ALTER TABLE adjectivespatial OWNER TO postgres;";
 
-	/****************************** adjectivetemporal *************************/
-	*ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
-	*ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
-	*ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
+    /****************************** adjectivetemporal *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS adjectivetemporal CASCADE;";
+    *ABMDataBase << "CREATE TABLE adjectivetemporal ( \"name\" text NOT NULL, argument text NOT NULL, timing double precision) WITH(OIDS = FALSE) ";
+    *ABMDataBase << "ALTER TABLE adjectivetemporal OWNER TO postgres;";
 
     bOutput.addString("knowledge database reset");
     return bOutput;
@@ -1088,7 +1098,7 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
         else if (bInstances.size() == 2)
         {
             begin = atoi(bInstances.get(0).toString().c_str());
-            end   = atoi(bInstances.get(1).toString().c_str());
+            end = atoi(bInstances.get(1).toString().c_str());
             for (int inst = begin; inst < end + 1; inst++)
             {
                 vecToErase.push_back(inst);
@@ -1217,26 +1227,26 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
         bRequest.addString(osRequest.str().c_str());
         request(bRequest);
 
-		osRequest.str("");
-		osRequest << "DELETE FROM sentencedata WHERE instance = " << *it;
-		bRequest.clear();
-		bRequest.addString("request");
-		bRequest.addString(osRequest.str().c_str());
-		request(bRequest);
+        osRequest.str("");
+        osRequest << "DELETE FROM sentencedata WHERE instance = " << *it;
+        bRequest.clear();
+        bRequest.addString("request");
+        bRequest.addString(osRequest.str().c_str());
+        request(bRequest);
 
-		osRequest.str("");
-		osRequest << "DELETE FROM sounddata WHERE instance = " << *it;
-		bRequest.clear();
-		bRequest.addString("request");
-		bRequest.addString(osRequest.str().c_str());
-		request(bRequest);
+        osRequest.str("");
+        osRequest << "DELETE FROM sounddata WHERE instance = " << *it;
+        bRequest.clear();
+        bRequest.addString("request");
+        bRequest.addString(osRequest.str().c_str());
+        request(bRequest);
 
-		osRequest.str("");
-		osRequest << "DELETE FROM main WHERE instance = " << *it;
-		bRequest.clear();
-		bRequest.addString("request");
-		bRequest.addString(osRequest.str().c_str());
-		request(bRequest);
+        osRequest.str("");
+        osRequest << "DELETE FROM main WHERE instance = " << *it;
+        bRequest.clear();
+        bRequest.addString("request");
+        bRequest.addString(osRequest.str().c_str());
+        request(bRequest);
 
     }
     bOutput.addString("instance(s) erased");
@@ -1252,9 +1262,9 @@ Bottle autobiographicalMemory::populateOPC()
     // 0. check if connected to the OPC.
 
 
-	OPCClient *opcWorld;
-	//Connection to the OPC
-	opcWorld = opcWorldReal;
+    OPCClient *opcWorld;
+    //Connection to the OPC
+    opcWorld = opcWorldReal;
 
     Bottle bOutput;
     if (!opcWorld->isConnected())
@@ -1275,7 +1285,7 @@ Bottle autobiographicalMemory::populateOPC()
     Bottle bReply, bDistinctAgent;
     bDistinctAgent = requestFromString("SELECT DISTINCT name FROM agent");
 
-    for (int iDA = 0; iDA < bDistinctAgent.size() && bDistinctAgent.toString()!="NULL"; iDA++)
+    for (int iDA = 0; iDA < bDistinctAgent.size() && bDistinctAgent.toString() != "NULL"; iDA++)
     {
         string sName = bDistinctAgent.get(iDA).toString();
         ostringstream osAgent;
@@ -1311,7 +1321,7 @@ Bottle autobiographicalMemory::populateOPC()
     // 2. RTObjects : 
     Bottle bDistincRto = requestFromString("SELECT DISTINCT name FROM rtobject");
 
-    for (int iDTRO = 0; iDTRO < bDistincRto.size() && bDistincRto.toString()!="NULL"; iDTRO++)
+    for (int iDTRO = 0; iDTRO < bDistincRto.size() && bDistincRto.toString() != "NULL"; iDTRO++)
     {
         string sName = bDistincRto.get(iDTRO).toString();
         ostringstream osRto;
@@ -1349,7 +1359,7 @@ Bottle autobiographicalMemory::populateOPC()
     {
         Bottle bDistinctObject = requestFromString("SELECT DISTINCT name FROM object");
 
-        for (int iDO = 0; iDO < bDistinctObject.size() && bDistinctObject.toString()!="NULL"; iDO++)
+        for (int iDO = 0; iDO < bDistinctObject.size() && bDistinctObject.toString() != "NULL"; iDO++)
         {
             string sName = bDistinctObject.get(iDO).toString();
             ostringstream osObject;

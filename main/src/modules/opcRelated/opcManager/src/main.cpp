@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Grégoire Pointeau
  * email:   greg.pointeau@gmail.com
@@ -13,10 +13,10 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 
-/** 
+/**
 \defgroup opcManager opcManager
 
 
@@ -26,7 +26,7 @@ Easy interaction via rpc
 
 
 \author Maxime Petit, Grégoire Pointeau
-*/ 
+*/
 
 #include "opcManager.h" 
 
@@ -36,18 +36,18 @@ using namespace yarp::sig;
 
 int main(int argc, char * argv[]) {
 
-    /* initialize yarp network */ 
+    /* initialize yarp network */
     Network yarp;
 
     /* create your module */
-    opcManager oManager; 
+    opcManager oManager;
 
     /* prepare and configure the resource finder */
     ResourceFinder rf;
-	rf.setVerbose(true);
-	rf.setDefaultContext("opcManager");
-	rf.setDefaultConfigFile("opcManager.ini");
-	rf.configure(argc, argv);
+    rf.setVerbose(true);
+    rf.setDefaultContext("opcManager");
+    rf.setDefaultConfigFile("opcManager.ini");
+    rf.configure(argc, argv);
 
 
     /* run the module: runModule() calls configure first and, if successful, it then runs */

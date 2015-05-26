@@ -14,7 +14,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #ifndef _AUTOBIOGRAPHICALMEMORY_
 #define _AUTOBIOGRAPHICALMEMORY_
@@ -37,7 +37,7 @@
 const std::string s_real_OPC = "OPC";
 const std::string s_mental_OPC = "mentalOPC";
 
-class autobiographicalMemory: public yarp::os::RFModule
+class autobiographicalMemory : public yarp::os::RFModule
 {
 private:
     // connection to database
@@ -63,9 +63,9 @@ private:
     int currentInstance;
 
     // connection to OPC / reasoning
-	wysiwyd::wrdac::opcEars OPCEARS;
-	wysiwyd::wrdac::OPCClient *opcWorldReal;
-	wysiwyd::wrdac::OPCClient *opcWorldMental;
+    wysiwyd::wrdac::opcEars OPCEARS;
+    wysiwyd::wrdac::OPCClient *opcWorldReal;
+    wysiwyd::wrdac::OPCClient *opcWorldMental;
 
     bool isconnected2reasoning;
     bool bPutObjectsOPC; // not used!
@@ -73,7 +73,7 @@ private:
     // helpers
     bool delete_directory(const std::string &dir_to_delete);
     yarp::os::Bottle detectFailed();
-	std::ostringstream osInsertTemp;
+    std::ostringstream osInsertTemp;
 
 public:
     bool shouldClose;
@@ -100,7 +100,7 @@ public:
     yarp::os::Bottle snapshot(const yarp::os::Bottle &bInput);
     yarp::os::Bottle snapshotSP(const yarp::os::Bottle &bInput);
     yarp::os::Bottle snapshotBehavior(const yarp::os::Bottle &bInput);
-	void recogFromGrammarSemantic(yarp::os::Bottle bRecogBottle, std::string s_deep, int i_deep, int iInstance);
+    void recogFromGrammarSemantic(yarp::os::Bottle bRecogBottle, std::string s_deep, int i_deep, int iInstance);
 
     //////////////////////////////////////////////////////////////////////////
     // visual + data streaming
@@ -129,15 +129,15 @@ public:
     //sound
     yarp::os::BufferedPort<yarp::sig::Sound> portSoundStreamInput;
 
-    yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented=false, std::string provider_port="");
+    yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented = false, std::string provider_port = "");
 
     bool saveImageFromPort(const std::string &fullPath, const std::string &portFrom, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool writeImageToPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     void processOneImagePort(const std::string &imagePath, const std::string &relativeImagePath, const std::string &portFrom,
-                                                yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >* port,
-                                                const std::string &synchroTime);
+        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >* port,
+        const std::string &synchroTime);
 
-    int saveImagesFromABM(int instance, int fromFrame=-1, int toFrame=-1, std::string provider_port="");
+    int saveImagesFromABM(int instance, int fromFrame = -1, int toFrame = -1, std::string provider_port = "");
 
     // store image / data stream to ABM
     bool processInsertDelayed;
@@ -145,11 +145,11 @@ public:
     void requestInsertProcessQueue();
     std::vector<std::string> requests;
 
-    void storeImagesAndData(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
+    void storeImagesAndData(const std::string &synchroTime, bool forSingleInstance = false, std::string fullSentence = "");
 
     bool storeInfoSingleImage(int instance, int frame_number, const std::string &relativePath, const std::string &imgTime, const std::string &currentImgProviderPort);
-    bool storeInfoAllImages(const std::string &synchroTime, bool forSingleInstance=false, std::string fullSentence="");
-    bool storeImageOIDs(int instance=-1);
+    bool storeInfoAllImages(const std::string &synchroTime, bool forSingleInstance = false, std::string fullSentence = "");
+    bool storeImageOIDs(int instance = -1);
 
     bool storeDataStreamAllProviders(const std::string &synchroTime);
 
@@ -161,10 +161,10 @@ public:
     yarp::os::Bottle listImgStreamProviders();
     yarp::os::Bottle listDataStreamProviders();
 
-    int openImgStreamPorts(int instance, bool includeAugmented=true);
+    int openImgStreamPorts(int instance, bool includeAugmented = true);
     yarp::os::Bottle connectToImgStreamProviders();
     yarp::os::Bottle disconnectFromImgStreamProviders();
-    int openDataStreamPorts(int instance, std::string robotName="icubSim");
+    int openDataStreamPorts(int instance, std::string robotName = "icubSim");
     yarp::os::Bottle connectDataStreamProviders();
     yarp::os::Bottle disconnectDataStreamProviders();
 
@@ -179,7 +179,7 @@ public:
     // augmented images stuff
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portAugmentedImagesIn;
     void saveAugmentedImages();
-    yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages=true);
+    yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages = true);
 
     //////////////////////////////////////////////////////////////////////////
     // visual + data streaming end

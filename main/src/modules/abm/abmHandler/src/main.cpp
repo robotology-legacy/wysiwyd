@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
 * Authors: Grégoire Pointeau
 * email:   gregoire.pointeau@inserm.fr
@@ -18,7 +18,7 @@
 #include <abmHandler.h>
 
 int main(int argc, char * argv[]) {
-    /* initialize yarp network */ 
+    /* initialize yarp network */
     yarp::os::Network yarp;
 
     yarp::os::Network::init();
@@ -27,7 +27,7 @@ int main(int argc, char * argv[]) {
     rf.setVerbose(true);
     rf.setDefaultContext("abmHandler");
     rf.setDefaultConfigFile("abmHandler.ini");
-    rf.configure( argc, argv);
+    rf.configure(argc, argv);
     mod.runModule(rf);
     return 0;
 }

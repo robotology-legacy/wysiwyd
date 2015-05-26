@@ -25,7 +25,7 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
 
     bool fPronom = false;
     // get the pronom :
-    for (vector<pronom>::iterator itPronom = listPronom.begin() ; itPronom != listPronom.end() ; itPronom++)
+    for (vector<pronom>::iterator itPronom = listPronom.begin(); itPronom != listPronom.end(); itPronom++)
     {
         itPronom->m3Data.addLabel(X);
         itPronom->m3Data.addLabel(Y);
@@ -42,7 +42,7 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
     if (!fPronom)
     {
         pronom newPronom;
-        for (vector<string>::iterator itLabel = listPronom.begin()->m3Data.vsLabels.begin() ; itLabel < listPronom.begin()->m3Data.vsLabels.end() ; itLabel++)
+        for (vector<string>::iterator itLabel = listPronom.begin()->m3Data.vsLabels.begin(); itLabel < listPronom.begin()->m3Data.vsLabels.end(); itLabel++)
         {
             newPronom.m3Data.addLabel(*itLabel);
         }
@@ -50,13 +50,13 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
         newPronom.sSubject = P;
         listPronom.push_back(newPronom);
 
-        currentPronom =  listPronom.back();
+        currentPronom = listPronom.back();
     }
 
     matrix3D currentData = currentPronom.m3Data;
     int sumMat = currentData.iSum;
 
-    for (vector<string>::iterator itAgent = currentData.vsLabels.begin() ; itAgent != currentData.vsLabels.end() ; itAgent++)
+    for (vector<string>::iterator itAgent = currentData.vsLabels.begin(); itAgent != currentData.vsLabels.end(); itAgent++)
     {
         string Z = *itAgent;
 
@@ -73,39 +73,39 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
         double scoreTest = 0;
 
         // X Y Z P 
-        tXYZP.A = currentData.get(X,Y,Z);
-        tXYZP.C = currentData.sumLineXZ(X,Y) - tXYZP.A;
+        tXYZP.A = currentData.get(X, Y, Z);
+        tXYZP.C = currentData.sumLineXZ(X, Y) - tXYZP.A;
 
         /*-------------*/
 
         // using X == Y given P
-        tXY.A   = currentData.sumDiagDouble("z");
-        tXY.B   = sumMat - tXY.A;
+        tXY.A = currentData.sumDiagDouble("z");
+        tXY.B = sumMat - tXY.A;
 
         // using X == Z given P
-        tXZ.A   = currentData.sumDiagDouble("y");
-        tXZ.B   = sumMat - tXZ.A;
+        tXZ.A = currentData.sumDiagDouble("y");
+        tXZ.B = sumMat - tXZ.A;
 
         // using Y == Z given P
-        tYZ.A   = currentData.sumDiagDouble("x");
-        tYZ.B   = sumMat - tYZ.A;
+        tYZ.A = currentData.sumDiagDouble("x");
+        tYZ.B = sumMat - tYZ.A;
 
         /*-------------*/
 
         // using X == P given P
-        tXP.A   = currentData.sumPlan("x", X);
-        tXP.B   = sumMat - tXP.A;
+        tXP.A = currentData.sumPlan("x", X);
+        tXP.B = sumMat - tXP.A;
 
         // using Y == P given P
-        tYP.A   = currentData.sumPlan("y", Y);
-        tYP.B   = sumMat - tYP.A;
+        tYP.A = currentData.sumPlan("y", Y);
+        tYP.B = sumMat - tYP.A;
 
         // using Z == P given P
-        tZP.A   = currentData.sumPlan("z", Z);
-        tZP.B   = sumMat - tZP.A;
+        tZP.A = currentData.sumPlan("z", Z);
+        tZP.B = sumMat - tZP.A;
 
         // FOR EACH SUB PRONOM
-        for (vector<pronom>::iterator itSubPronom = listPronom.begin() ; itSubPronom != listPronom.end() ; itSubPronom++)
+        for (vector<pronom>::iterator itSubPronom = listPronom.begin(); itSubPronom != listPronom.end(); itSubPronom++)
         {
             matrix3D SubMat = itSubPronom->m3Data;
             int iSumSubMat = SubMat.getSum();
@@ -114,30 +114,30 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
             if (itSubPronom->sSubject != P)
             {
                 // using X == Y given P
-                tXY.C   += SubMat.sumDiagDouble("z");
-                tXY.D   += iSumSubMat - SubMat.sumDiagDouble("z");
+                tXY.C += SubMat.sumDiagDouble("z");
+                tXY.D += iSumSubMat - SubMat.sumDiagDouble("z");
 
                 // using X == Z given P
-                tXZ.C   += SubMat.sumDiagDouble("y");
-                tXZ.D   += iSumSubMat - SubMat.sumDiagDouble("y");
+                tXZ.C += SubMat.sumDiagDouble("y");
+                tXZ.D += iSumSubMat - SubMat.sumDiagDouble("y");
 
                 // using Y == Z given P
-                tYZ.C   += SubMat.sumDiagDouble("x");
-                tYZ.D   += iSumSubMat - SubMat.sumDiagDouble("x");
+                tYZ.C += SubMat.sumDiagDouble("x");
+                tYZ.D += iSumSubMat - SubMat.sumDiagDouble("x");
 
                 /*-------------*/
 
                 // using X == P given P
-                tXP.C   += SubMat.sumPlan("x", X);
-                tXP.D   += iSumSubMat - SubMat.sumPlan("x", X);
+                tXP.C += SubMat.sumPlan("x", X);
+                tXP.D += iSumSubMat - SubMat.sumPlan("x", X);
 
                 // using Y == P given P
-                tYP.C   += SubMat.sumPlan("y", Y);
-                tYP.D   += iSumSubMat - SubMat.sumPlan("y", Y);
+                tYP.C += SubMat.sumPlan("y", Y);
+                tYP.D += iSumSubMat - SubMat.sumPlan("y", Y);
 
                 // using Z == P given P
-                tZP.C   += SubMat.sumPlan("z", Z);
-                tZP.D   += iSumSubMat - SubMat.sumPlan("z", Z);
+                tZP.C += SubMat.sumPlan("z", Z);
+                tZP.D += iSumSubMat - SubMat.sumPlan("z", Z);
             }
 
 
@@ -146,24 +146,24 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
 
 
         // SUM of the SCORE of each PROPERTY
-        scoreTest   +=  weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
+        scoreTest += weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
 
-        scoreTest   +=  weightDouble*tXY.getScoreSum(X==Y); // X == Y given P
-        scoreTest   +=  weightDouble*tXZ.getScoreSum(X==Z); // X == Z given P
-        scoreTest   +=  weightDouble*tYZ.getScoreSum(Y==Z); // Y == Z given P
+        scoreTest += weightDouble*tXY.getScoreSum(X == Y); // X == Y given P
+        scoreTest += weightDouble*tXZ.getScoreSum(X == Z); // X == Z given P
+        scoreTest += weightDouble*tYZ.getScoreSum(Y == Z); // Y == Z given P
 
-        scoreTest   +=  weightSimple*tXP.getScoreSum(X==P); // X == P given P
-        scoreTest   +=  weightSimple*tYP.getScoreSum(Y==P); // Y == P given P
-        scoreTest   +=  weightSimple*tZP.getScoreSum(Z==P); // Z == P given P
+        scoreTest += weightSimple*tXP.getScoreSum(X == P); // X == P given P
+        scoreTest += weightSimple*tYP.getScoreSum(Y == P); // Y == P given P
+        scoreTest += weightSimple*tZP.getScoreSum(Z == P); // Z == P given P
 
         cout << endl << "agent : " << Z << endl;
-        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " <<  weightTriple*tXYZP.getScoreSum(true) <<  endl;
-        cout << "XY    pv : " << tXY.chiSquare()  << "\t A=" << tXY.A  << "\t B=" << tXY.B  << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " <<         weightDouble*tXY.getScoreSum(X==Y) <<  endl;
-        cout << "XZ    pv : " << tXZ.chiSquare()  << "\t A=" << tXZ.A  << "\t B=" << tXZ.B  << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " <<         weightDouble*tXZ.getScoreSum(X==Z) <<  endl;
-        cout << "YZ    pv : " << tYZ.chiSquare()  << "\t A=" << tYZ.A  << "\t B=" << tYZ.B  << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " <<         weightDouble*tYZ.getScoreSum(Y==Z) <<  endl;
-        cout << "XP    pv : " << tXP.chiSquare()  << "\t A=" << tXP.A  << "\t B=" << tXP.B  << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " <<         weightSimple*tXP.getScoreSum(X==P) <<  endl;
-        cout << "YP    pv : " << tYP.chiSquare()  << "\t A=" << tYP.A  << "\t B=" << tYP.B  << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " <<         weightSimple*tYP.getScoreSum(Y==P) <<  endl;
-        cout << "ZP    pv : " << tZP.chiSquare()  << "\t A=" << tZP.A  << "\t B=" << tZP.B  << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " <<         weightSimple*tZP.getScoreSum(Z==P) <<  endl;
+        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true) << endl;
+        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
+        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
+        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
+        cout << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P) << endl;
+        cout << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P) << endl;
+        cout << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P) << endl;
 
         pair<string, double>    pTemp(Z, scoreTest);
 
@@ -175,8 +175,8 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "Hesitate between Product : "  << endl;
-    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin() ; it_SubSc != vScore.end() ; it_SubSc++)
+    cout << "Hesitate between Product : " << endl;
+    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
         cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
@@ -185,7 +185,7 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
             dScoreMax = dScoreTemp;
             sResult = it_SubSc->first;
         }
-    }   
+    }
 
     if (dScoreMax <= 0)
     {
@@ -215,7 +215,7 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
 
     bool fPronom = false;
     // get the pronom :
-    for (vector<pronom>::iterator itPronom = listPronom.begin() ; itPronom != listPronom.end() ; itPronom++)
+    for (vector<pronom>::iterator itPronom = listPronom.begin(); itPronom != listPronom.end(); itPronom++)
     {
         itPronom->m3Data.addLabel(X);
         itPronom->m3Data.addLabel(Z);
@@ -232,7 +232,7 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
     if (!fPronom)
     {
         pronom newPronom;
-        for (vector<string>::iterator itLabel = listPronom.begin()->m3Data.vsLabels.begin() ; itLabel < listPronom.begin()->m3Data.vsLabels.end() ; itLabel++)
+        for (vector<string>::iterator itLabel = listPronom.begin()->m3Data.vsLabels.begin(); itLabel < listPronom.begin()->m3Data.vsLabels.end(); itLabel++)
         {
             newPronom.m3Data.addLabel(*itLabel);
         }
@@ -240,13 +240,13 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
         newPronom.sSubject = P;
         listPronom.push_back(newPronom);
 
-        currentPronom =  listPronom.back();
+        currentPronom = listPronom.back();
     }
 
     matrix3D currentData = currentPronom.m3Data;
     int sumMat = currentData.iSum;
 
-    for (vector<string>::iterator itAddressee = currentData.vsLabels.begin() ; itAddressee != currentData.vsLabels.end() ; itAddressee++)
+    for (vector<string>::iterator itAddressee = currentData.vsLabels.begin(); itAddressee != currentData.vsLabels.end(); itAddressee++)
     {
         string Y = *itAddressee;
 
@@ -263,39 +263,39 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
         double scoreTest = 0;
 
         // X Y Z P 
-        tXYZP.A = currentData.get(X,Y,Z);
-        tXYZP.C = currentData.sumLineXZ(X,Z) - tXYZP.A;
+        tXYZP.A = currentData.get(X, Y, Z);
+        tXYZP.C = currentData.sumLineXZ(X, Z) - tXYZP.A;
 
         /*-------------*/
 
         // using X == Y given P
-        tXY.A   = currentData.sumDiagDouble("z");
-        tXY.B   = sumMat - tXY.A;
+        tXY.A = currentData.sumDiagDouble("z");
+        tXY.B = sumMat - tXY.A;
 
         // using X == Z given P
-        tXZ.A   = currentData.sumDiagDouble("y");
-        tXZ.B   = sumMat - tXZ.A;
+        tXZ.A = currentData.sumDiagDouble("y");
+        tXZ.B = sumMat - tXZ.A;
 
         // using Y == Z given P
-        tYZ.A   = currentData.sumDiagDouble("x");
-        tYZ.B   = sumMat - tYZ.A;
+        tYZ.A = currentData.sumDiagDouble("x");
+        tYZ.B = sumMat - tYZ.A;
 
         /*-------------*/
 
         // using X == P given P
-        tXP.A   = currentData.sumPlan("x", X);
-        tXP.B   = sumMat - tXP.A;
+        tXP.A = currentData.sumPlan("x", X);
+        tXP.B = sumMat - tXP.A;
 
         // using Y == P given P
-        tYP.A   = currentData.sumPlan("y", Y);
-        tYP.B   = sumMat - tYP.A;
+        tYP.A = currentData.sumPlan("y", Y);
+        tYP.B = sumMat - tYP.A;
 
         // using Z == P given P
-        tZP.A   = currentData.sumPlan("z", Z);
-        tZP.B   = sumMat - tZP.A;
+        tZP.A = currentData.sumPlan("z", Z);
+        tZP.B = sumMat - tZP.A;
 
         // FOR EACH SUB PRONOM
-        for (vector<pronom>::iterator itSubPronom = listPronom.begin() ; itSubPronom != listPronom.end() ; itSubPronom++)
+        for (vector<pronom>::iterator itSubPronom = listPronom.begin(); itSubPronom != listPronom.end(); itSubPronom++)
         {
             matrix3D SubMat = itSubPronom->m3Data;
             int iSumSubMat = SubMat.getSum();
@@ -304,30 +304,30 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
             if (itSubPronom->sSubject != P)
             {
                 // using X == Y given P
-                tXY.C   += SubMat.sumDiagDouble("z");
-                tXY.D   += iSumSubMat - SubMat.sumDiagDouble("z");
+                tXY.C += SubMat.sumDiagDouble("z");
+                tXY.D += iSumSubMat - SubMat.sumDiagDouble("z");
 
                 // using X == Z given P
-                tXZ.C   += SubMat.sumDiagDouble("y");
-                tXZ.D   += iSumSubMat - SubMat.sumDiagDouble("y");
+                tXZ.C += SubMat.sumDiagDouble("y");
+                tXZ.D += iSumSubMat - SubMat.sumDiagDouble("y");
 
                 // using Y == Z given P
-                tYZ.C   += SubMat.sumDiagDouble("x");
-                tYZ.D   += iSumSubMat - SubMat.sumDiagDouble("x");
+                tYZ.C += SubMat.sumDiagDouble("x");
+                tYZ.D += iSumSubMat - SubMat.sumDiagDouble("x");
 
                 /*-------------*/
 
                 // using X == P given P
-                tXP.C   += SubMat.sumPlan("x", X);
-                tXP.D   += iSumSubMat - SubMat.sumPlan("x", X);
+                tXP.C += SubMat.sumPlan("x", X);
+                tXP.D += iSumSubMat - SubMat.sumPlan("x", X);
 
                 // using Y == P given P
-                tYP.C   += SubMat.sumPlan("y", Y);
-                tYP.D   += iSumSubMat - SubMat.sumPlan("y", Y);
+                tYP.C += SubMat.sumPlan("y", Y);
+                tYP.D += iSumSubMat - SubMat.sumPlan("y", Y);
 
                 // using Z == P given P
-                tZP.C   += SubMat.sumPlan("z", Z);
-                tZP.D   += iSumSubMat - SubMat.sumPlan("z", Z);
+                tZP.C += SubMat.sumPlan("z", Z);
+                tZP.D += iSumSubMat - SubMat.sumPlan("z", Z);
             }
 
 
@@ -336,24 +336,24 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
 
 
         // SUM of the SCORE of each PROPERTY
-        scoreTest   +=  weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
+        scoreTest += weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
 
-        scoreTest   +=  weightDouble*tXY.getScoreSum(X==Y); // X == Y given P
-        scoreTest   +=  weightDouble*tXZ.getScoreSum(X==Z); // X == Z given P
-        scoreTest   +=  weightDouble*tYZ.getScoreSum(Y==Z); // Y == Z given P
+        scoreTest += weightDouble*tXY.getScoreSum(X == Y); // X == Y given P
+        scoreTest += weightDouble*tXZ.getScoreSum(X == Z); // X == Z given P
+        scoreTest += weightDouble*tYZ.getScoreSum(Y == Z); // Y == Z given P
 
-        scoreTest   +=  weightSimple*tXP.getScoreSum(X==P); // X == P given P
-        scoreTest   +=  weightSimple*tYP.getScoreSum(Y==P); // Y == P given P
-        scoreTest   +=  weightSimple*tZP.getScoreSum(Z==P); // Z == P given P
+        scoreTest += weightSimple*tXP.getScoreSum(X == P); // X == P given P
+        scoreTest += weightSimple*tYP.getScoreSum(Y == P); // Y == P given P
+        scoreTest += weightSimple*tZP.getScoreSum(Z == P); // Z == P given P
 
         cout << endl << "addressee : " << Y << endl;
-        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " <<  weightTriple*tXYZP.getScoreSum(true) <<  endl;
-        cout << "XY    pv : " << tXY.chiSquare()  << "\t A=" << tXY.A  << "\t B=" << tXY.B  << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " <<         weightDouble*tXY.getScoreSum(X==Y) <<  endl;
-        cout << "XZ    pv : " << tXZ.chiSquare()  << "\t A=" << tXZ.A  << "\t B=" << tXZ.B  << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " <<         weightDouble*tXZ.getScoreSum(X==Z) <<  endl;
-        cout << "YZ    pv : " << tYZ.chiSquare()  << "\t A=" << tYZ.A  << "\t B=" << tYZ.B  << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " <<         weightDouble*tYZ.getScoreSum(Y==Z) <<  endl;
-        cout << "XP    pv : " << tXP.chiSquare()  << "\t A=" << tXP.A  << "\t B=" << tXP.B  << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " <<         weightSimple*tXP.getScoreSum(X==P) <<  endl;
-        cout << "YP    pv : " << tYP.chiSquare()  << "\t A=" << tYP.A  << "\t B=" << tYP.B  << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " <<         weightSimple*tYP.getScoreSum(Y==P) <<  endl;
-        cout << "ZP    pv : " << tZP.chiSquare()  << "\t A=" << tZP.A  << "\t B=" << tZP.B  << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " <<         weightSimple*tZP.getScoreSum(Z==P) <<  endl;
+        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true) << endl;
+        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
+        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
+        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
+        cout << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P) << endl;
+        cout << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P) << endl;
+        cout << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P) << endl;
 
         pair<string, double>    pTemp(Y, scoreTest);
 
@@ -365,8 +365,8 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "Hesitate between Product : "  << endl;
-    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin() ; it_SubSc != vScore.end() ; it_SubSc++)
+    cout << "Hesitate between Product : " << endl;
+    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
         cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
@@ -405,7 +405,7 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 
     bool fPronom = false;
     // get the pronom :
-    for (vector<pronom>::iterator itPronom = listPronom.begin() ; itPronom != listPronom.end() ; itPronom++)
+    for (vector<pronom>::iterator itPronom = listPronom.begin(); itPronom != listPronom.end(); itPronom++)
     {
         itPronom->m3Data.addLabel(Y);
         itPronom->m3Data.addLabel(Z);
@@ -422,7 +422,7 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
     if (!fPronom)
     {
         pronom newPronom;
-        for (vector<string>::iterator itLabel = listPronom.begin()->m3Data.vsLabels.begin() ; itLabel < listPronom.begin()->m3Data.vsLabels.end() ; itLabel++)
+        for (vector<string>::iterator itLabel = listPronom.begin()->m3Data.vsLabels.begin(); itLabel < listPronom.begin()->m3Data.vsLabels.end(); itLabel++)
         {
             newPronom.m3Data.addLabel(*itLabel);
         }
@@ -430,13 +430,13 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
         newPronom.sSubject = P;
         listPronom.push_back(newPronom);
 
-        currentPronom =  listPronom.back();
+        currentPronom = listPronom.back();
     }
 
     matrix3D currentData = currentPronom.m3Data;
     int sumMat = currentData.iSum;
 
-    for (vector<string>::iterator itSpeaker = currentData.vsLabels.begin() ; itSpeaker != currentData.vsLabels.end() ; itSpeaker++)
+    for (vector<string>::iterator itSpeaker = currentData.vsLabels.begin(); itSpeaker != currentData.vsLabels.end(); itSpeaker++)
     {
         string X = *itSpeaker;
 
@@ -453,39 +453,39 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
         double scoreTest = 0;
 
         // X Y Z P 
-        tXYZP.A = currentData.get(X,Y,Z);
-        tXYZP.C = currentData.sumLineYZ(Y,Z) - tXYZP.A;
+        tXYZP.A = currentData.get(X, Y, Z);
+        tXYZP.C = currentData.sumLineYZ(Y, Z) - tXYZP.A;
 
         /*-------------*/
 
         // using X == Y given P
-        tXY.A   = currentData.sumDiagDouble("z");
-        tXY.B   = sumMat - tXY.A;
+        tXY.A = currentData.sumDiagDouble("z");
+        tXY.B = sumMat - tXY.A;
 
         // using X == Z given P
-        tXZ.A   = currentData.sumDiagDouble("y");
-        tXZ.B   = sumMat - tXZ.A;
+        tXZ.A = currentData.sumDiagDouble("y");
+        tXZ.B = sumMat - tXZ.A;
 
         // using Y == Z given P
-        tYZ.A   = currentData.sumDiagDouble("x");
-        tYZ.B   = sumMat - tYZ.A;
+        tYZ.A = currentData.sumDiagDouble("x");
+        tYZ.B = sumMat - tYZ.A;
 
         /*-------------*/
 
         // using X == P given P
-        tXP.A   = currentData.sumPlan("x", X);
-        tXP.B   = sumMat - tXP.A;
+        tXP.A = currentData.sumPlan("x", X);
+        tXP.B = sumMat - tXP.A;
 
         // using Y == P given P
-        tYP.A   = currentData.sumPlan("y", Y);
-        tYP.B   = sumMat - tYP.A;
+        tYP.A = currentData.sumPlan("y", Y);
+        tYP.B = sumMat - tYP.A;
 
         // using Z == P given P
-        tZP.A   = currentData.sumPlan("z", Z);
-        tZP.B   = sumMat - tZP.A;
+        tZP.A = currentData.sumPlan("z", Z);
+        tZP.B = sumMat - tZP.A;
 
         // FOR EACH SUB PRONOM
-        for (vector<pronom>::iterator itSubPronom = listPronom.begin() ; itSubPronom != listPronom.end() ; itSubPronom++)
+        for (vector<pronom>::iterator itSubPronom = listPronom.begin(); itSubPronom != listPronom.end(); itSubPronom++)
         {
             matrix3D SubMat = itSubPronom->m3Data;
             int iSumSubMat = SubMat.getSum();
@@ -494,30 +494,30 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
             if (itSubPronom->sSubject != P)
             {
                 // using X == Y given P
-                tXY.C   += SubMat.sumDiagDouble("z");
-                tXY.D   += iSumSubMat - SubMat.sumDiagDouble("z");
+                tXY.C += SubMat.sumDiagDouble("z");
+                tXY.D += iSumSubMat - SubMat.sumDiagDouble("z");
 
                 // using X == Z given P
-                tXZ.C   += SubMat.sumDiagDouble("y");
-                tXZ.D   += iSumSubMat - SubMat.sumDiagDouble("y");
+                tXZ.C += SubMat.sumDiagDouble("y");
+                tXZ.D += iSumSubMat - SubMat.sumDiagDouble("y");
 
                 // using Y == Z given P
-                tYZ.C   += SubMat.sumDiagDouble("x");
-                tYZ.D   += iSumSubMat - SubMat.sumDiagDouble("x");
+                tYZ.C += SubMat.sumDiagDouble("x");
+                tYZ.D += iSumSubMat - SubMat.sumDiagDouble("x");
 
                 /*-------------*/
 
                 // using X == P given P
-                tXP.C   += SubMat.sumPlan("x", X);
-                tXP.D   += iSumSubMat - SubMat.sumPlan("x", X);
+                tXP.C += SubMat.sumPlan("x", X);
+                tXP.D += iSumSubMat - SubMat.sumPlan("x", X);
 
                 // using Y == P given P
-                tYP.C   += SubMat.sumPlan("y", Y);
-                tYP.D   += iSumSubMat - SubMat.sumPlan("y", Y);
+                tYP.C += SubMat.sumPlan("y", Y);
+                tYP.D += iSumSubMat - SubMat.sumPlan("y", Y);
 
                 // using Z == P given P
-                tZP.C   += SubMat.sumPlan("z", Z);
-                tZP.D   += iSumSubMat - SubMat.sumPlan("z", Z);
+                tZP.C += SubMat.sumPlan("z", Z);
+                tZP.D += iSumSubMat - SubMat.sumPlan("z", Z);
             }
 
 
@@ -526,24 +526,24 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 
 
         // SUM of the SCORE of each PROPERTY
-        scoreTest   +=  weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
+        scoreTest += weightTriple*tXYZP.getScoreSum(true); // X given Y Z and P
 
-        scoreTest   +=  weightDouble*tXY.getScoreSum(X==Y); // X == Y given P
-        scoreTest   +=  weightDouble*tXZ.getScoreSum(X==Z); // X == Z given P
-        scoreTest   +=  weightDouble*tYZ.getScoreSum(Y==Z); // Y == Z given P
+        scoreTest += weightDouble*tXY.getScoreSum(X == Y); // X == Y given P
+        scoreTest += weightDouble*tXZ.getScoreSum(X == Z); // X == Z given P
+        scoreTest += weightDouble*tYZ.getScoreSum(Y == Z); // Y == Z given P
 
-        scoreTest   +=  weightSimple*tXP.getScoreSum(X==P); // X == P given P
-        scoreTest   +=  weightSimple*tYP.getScoreSum(Y==P); // Y == P given P
-        scoreTest   +=  weightSimple*tZP.getScoreSum(Z==P); // Z == P given P
+        scoreTest += weightSimple*tXP.getScoreSum(X == P); // X == P given P
+        scoreTest += weightSimple*tYP.getScoreSum(Y == P); // Y == P given P
+        scoreTest += weightSimple*tZP.getScoreSum(Z == P); // Z == P given P
 
         cout << endl << "speaker : " << X << endl;
-        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " <<  weightTriple*tXYZP.getScoreSum(true) <<  endl;
-        cout << "XY    pv : " << tXY.chiSquare()  << "\t A=" << tXY.A  << "\t B=" << tXY.B  << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " <<         weightDouble*tXY.getScoreSum(X==Y) <<  endl;
-        cout << "XZ    pv : " << tXZ.chiSquare()  << "\t A=" << tXZ.A  << "\t B=" << tXZ.B  << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " <<         weightDouble*tXZ.getScoreSum(X==Z) <<  endl;
-        cout << "YZ    pv : " << tYZ.chiSquare()  << "\t A=" << tYZ.A  << "\t B=" << tYZ.B  << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " <<         weightDouble*tYZ.getScoreSum(Y==Z) <<  endl;
-        cout << "XP    pv : " << tXP.chiSquare()  << "\t A=" << tXP.A  << "\t B=" << tXP.B  << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " <<         weightSimple*tXP.getScoreSum(X==P) <<  endl;
-        cout << "YP    pv : " << tYP.chiSquare()  << "\t A=" << tYP.A  << "\t B=" << tYP.B  << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " <<         weightSimple*tYP.getScoreSum(Y==P) <<  endl;
-        cout << "ZP    pv : " << tZP.chiSquare()  << "\t A=" << tZP.A  << "\t B=" << tZP.B  << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " <<         weightSimple*tZP.getScoreSum(Z==P) <<  endl;
+        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true) << endl;
+        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
+        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
+        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
+        cout << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P) << endl;
+        cout << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P) << endl;
+        cout << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P) << endl;
 
         pair<string, double>    pTemp(X, scoreTest);
 
@@ -555,8 +555,8 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "Hesitate between Product : "  << endl;
-    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin() ; it_SubSc != vScore.end() ; it_SubSc++)
+    cout << "Hesitate between Product : " << endl;
+    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
         cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
@@ -594,7 +594,7 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
     */
 
     // FOR EACH PRONOM, TEST THE 7 PROPERTIES + if PRONOM = X, Y or Z
-    for (vector<pronom>::iterator itPronom = listPronom.begin() ; itPronom != listPronom.end() ; itPronom++)
+    for (vector<pronom>::iterator itPronom = listPronom.begin(); itPronom != listPronom.end(); itPronom++)
     {
         itPronom->m3Data.addLabel(X);
         itPronom->m3Data.addLabel(Y);
@@ -602,19 +602,19 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 
         string P = itPronom->sSubject;
 
-        scoreProp   tXYZ(0,0,0,0);      // what is the preferential pronom for X Y and Z
+        scoreProp   tXYZ(0, 0, 0, 0);      // what is the preferential pronom for X Y and Z
 
-        scoreProp   tXY(0,0,0,0);       // what is the preferential pronom for X and Y fixed, and Z variable
-        scoreProp   tXZ(0,0,0,0);       // etc ...
-        scoreProp   tYZ(0,0,0,0);
+        scoreProp   tXY(0, 0, 0, 0);       // what is the preferential pronom for X and Y fixed, and Z variable
+        scoreProp   tXZ(0, 0, 0, 0);       // etc ...
+        scoreProp   tYZ(0, 0, 0, 0);
 
-        scoreProp   tX(0,0,0,0);
-        scoreProp   tY(0,0,0,0);
-        scoreProp   tZ(0,0,0,0);
+        scoreProp   tX(0, 0, 0, 0);
+        scoreProp   tY(0, 0, 0, 0);
+        scoreProp   tZ(0, 0, 0, 0);
 
-        scoreProp   tPX(0,0,0,0);
-        scoreProp   tPY(0,0,0,0);
-        scoreProp   tPZ(0,0,0,0);
+        scoreProp   tPX(0, 0, 0, 0);
+        scoreProp   tPY(0, 0, 0, 0);
+        scoreProp   tPZ(0, 0, 0, 0);
 
         double scoreTest = 0;
         iPropertiesTakenIntoAccount = 0;
@@ -650,7 +650,7 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
         tZ.C += iSumCurrentMatrix - tZ.A;
 
         // FOR EACH SUB PRONOM
-        for (vector<pronom>::iterator itSubPronom = listPronom.begin() ; itSubPronom != listPronom.end() ; itSubPronom++)
+        for (vector<pronom>::iterator itSubPronom = listPronom.begin(); itSubPronom != listPronom.end(); itSubPronom++)
         {
 
             bool bIsSame = false;
@@ -702,24 +702,24 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 
         // SUM of the SCORE of each PROPERTY
 
-        scoreTest += weightTriple*tXYZ.getScoreSum();   
+        scoreTest += weightTriple*tXYZ.getScoreSum();
 
-        scoreTest += weightDouble*tXY.getScoreSum(X==Y);
-        scoreTest += weightDouble*tXZ.getScoreSum(X==Z);
-        scoreTest += weightDouble*tYZ.getScoreSum(Y==Z);
+        scoreTest += weightDouble*tXY.getScoreSum(X == Y);
+        scoreTest += weightDouble*tXZ.getScoreSum(X == Z);
+        scoreTest += weightDouble*tYZ.getScoreSum(Y == Z);
 
         scoreTest += weightSimple*tX.getScoreSum();
         scoreTest += weightSimple*tY.getScoreSum();
         scoreTest += weightSimple*tZ.getScoreSum();
 
         cout << endl << "Sub : " << P << endl;
-        cout << "XYZP  pv : " << tXYZ.chiSquare() << "\t A=" << tXYZ.A << "\t B=" << tXYZ.B << "\t C=" << tXYZ.C << "\t D=" << tXYZ.D << "\t score : " <<   weightTriple*tXYZ.getScoreSum() <<  endl;
-        cout << "XY    pv : " << tXY.chiSquare()  << "\t A=" << tXY.A  << "\t B=" << tXY.B  << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " <<     weightDouble*tXY.getScoreSum(X==Y) <<  endl;
-        cout << "XZ    pv : " << tXZ.chiSquare()  << "\t A=" << tXZ.A  << "\t B=" << tXZ.B  << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " <<     weightDouble*tXZ.getScoreSum(X==Z) <<  endl;
-        cout << "YZ    pv : " << tYZ.chiSquare()  << "\t A=" << tYZ.A  << "\t B=" << tYZ.B  << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " <<     weightDouble*tYZ.getScoreSum(Y==Z) <<  endl;
-        cout << "X     pv : " << tX.chiSquare()   << "\t A=" << tX.A   << "\t B=" << tX.B   << "\t C=" << tX.C  << "\t D=" << tX.D  << "\t score : " <<     weightSimple*tX.getScoreSum() <<  endl;
-        cout << "Y     pv : " << tY.chiSquare()   << "\t A=" << tY.A   << "\t B=" << tY.B   << "\t C=" << tY.C  << "\t D=" << tY.D  << "\t score : " <<     weightSimple*tY.getScoreSum() <<  endl;
-        cout << "Z     pv : " << tZ.chiSquare()   << "\t A=" << tZ.A   << "\t B=" << tZ.B   << "\t C=" << tZ.C  << "\t D=" << tZ.D  << "\t score : " <<     weightSimple*tZ.getScoreSum() <<  endl;
+        cout << "XYZP  pv : " << tXYZ.chiSquare() << "\t A=" << tXYZ.A << "\t B=" << tXYZ.B << "\t C=" << tXYZ.C << "\t D=" << tXYZ.D << "\t score : " << weightTriple*tXYZ.getScoreSum() << endl;
+        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
+        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
+        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
+        cout << "X     pv : " << tX.chiSquare() << "\t A=" << tX.A << "\t B=" << tX.B << "\t C=" << tX.C << "\t D=" << tX.D << "\t score : " << weightSimple*tX.getScoreSum() << endl;
+        cout << "Y     pv : " << tY.chiSquare() << "\t A=" << tY.A << "\t B=" << tY.B << "\t C=" << tY.C << "\t D=" << tY.D << "\t score : " << weightSimple*tY.getScoreSum() << endl;
+        cout << "Z     pv : " << tZ.chiSquare() << "\t A=" << tZ.A << "\t B=" << tZ.B << "\t C=" << tZ.C << "\t D=" << tZ.D << "\t score : " << weightSimple*tZ.getScoreSum() << endl;
 
         pair<string, double>    pTemp(itPronom->sSubject, scoreTest);
 
@@ -730,9 +730,9 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "speaker \t " << X << endl << "addressee \t " << Y << endl << "agent \t\t " << Z << endl ;
-    cout << "Hesitate between Product : "  << endl;
-    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin() ; it_SubSc != vScore.end() ; it_SubSc++)
+    cout << "speaker \t " << X << endl << "addressee \t " << Y << endl << "agent \t\t " << Z << endl;
+    cout << "Hesitate between Product : " << endl;
+    for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
         cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
@@ -760,16 +760,16 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 
 bool grammarKnowledge::addInteraction(Bottle bSentence)
 {
-    string  sSpeaker    = bSentence.get(0).toString().c_str(),
-        sAddressee  = bSentence.get(1).toString().c_str(),
-        sSubject    = bSentence.get(2).toString().c_str(),
-        sAgent      = bSentence.get(3).toString().c_str();
+    string  sSpeaker = bSentence.get(0).toString().c_str(),
+        sAddressee = bSentence.get(1).toString().c_str(),
+        sSubject = bSentence.get(2).toString().c_str(),
+        sAgent = bSentence.get(3).toString().c_str();
 
-    ofstream fileOut("C:/Users/rclab/Desktop/res/dataLearning.csv",ios::out | ios::app);
+    ofstream fileOut("C:/Users/rclab/Desktop/res/dataLearning.csv", ios::out | ios::app);
 
     if (fileOut)
-    {   
-        fileOut << sSubject << ";" << sSpeaker << ";" << sAddressee << ";" << sAgent  << endl;
+    {
+        fileOut << sSubject << ";" << sSpeaker << ";" << sAddressee << ";" << sAgent << endl;
     }
 
 
@@ -779,7 +779,7 @@ bool grammarKnowledge::addInteraction(Bottle bSentence)
     addLabel(sAddressee);
     addLabel(sAgent);
 
-    for (vector<pronom>::iterator it_GK = listPronom.begin() ; it_GK != listPronom.end() ; it_GK++)
+    for (vector<pronom>::iterator it_GK = listPronom.begin(); it_GK != listPronom.end(); it_GK++)
     {
         if (!bFound && it_GK->sSubject == sSubject)
         {
@@ -799,21 +799,21 @@ bool grammarKnowledge::addInteraction(Bottle bSentence)
     }
 
     bFound = false;
-    for (vector<string>::iterator itStr = listAddressee.begin() ; itStr != listAddressee.end() ; itStr++)
+    for (vector<string>::iterator itStr = listAddressee.begin(); itStr != listAddressee.end(); itStr++)
     {
         if (!bFound && *itStr == sAddressee) bFound = true;
     }
     if (!bFound) listAddressee.push_back(sAddressee);
 
     bFound = false;
-    for (vector<string>::iterator itStr = listAgent.begin() ; itStr != listAgent.end() ; itStr++)
+    for (vector<string>::iterator itStr = listAgent.begin(); itStr != listAgent.end(); itStr++)
     {
         if (!bFound && *itStr == sAgent) bFound = true;
     }
     if (!bFound) listAgent.push_back(sAgent);
 
     bFound = false;
-    for (vector<string>::iterator itStr = listSpeaker.begin() ; itStr != listSpeaker.end() ; itStr++)
+    for (vector<string>::iterator itStr = listSpeaker.begin(); itStr != listSpeaker.end(); itStr++)
     {
         if (!bFound && *itStr == sSpeaker) bFound = true;
     }
@@ -825,9 +825,9 @@ bool grammarKnowledge::addInteraction(Bottle bSentence)
 
 void grammarKnowledge::updateLabel()
 {
-    for (vector<string>::iterator itLabel = listAgent.begin() ; itLabel != listAgent.end() ; itLabel++)
+    for (vector<string>::iterator itLabel = listAgent.begin(); itLabel != listAgent.end(); itLabel++)
     {
-        for (vector<pronom>::iterator itPr = listPronom.begin() ; itPr != listPronom.end() ; itPr++)
+        for (vector<pronom>::iterator itPr = listPronom.begin(); itPr != listPronom.end(); itPr++)
         {
             itPr->m3Data.addLabel(*itLabel);
         }
@@ -838,7 +838,7 @@ void grammarKnowledge::addLabel(string sLabel)
 {
     bool bFound = false;
 
-    for (vector<string>::iterator itLabel = listLabel.begin() ; itLabel != listLabel.end() ; itLabel++)
+    for (vector<string>::iterator itLabel = listLabel.begin(); itLabel != listLabel.end(); itLabel++)
     {
         if (*itLabel == sLabel)     bFound = true;
     }
@@ -881,7 +881,7 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
 {
     vector<string> vsLabel;
     vsLabel = listLabel;
-    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end() ; itL++)
+    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end(); itL++)
     {
         vsLabel.push_back(*itL);
     }
@@ -889,7 +889,7 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
     ostringstream osFileOut;
     osFileOut << "C:/Users/rclab/Desktop/res/" << condition << "resultSimSP.csv";
     string sFileOut = osFileOut.str();
-    ofstream fileOut(sFileOut,ios::out | ios::trunc);
+    ofstream fileOut(sFileOut, ios::out | ios::trunc);
 
     vector<string> vsSubjects;
     vsSubjects = vsLabel;
@@ -901,8 +901,8 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
 
 
     if (fileOut)
-    {   
-        fileOut << "Subject;Speaker;Addressee;Agent;Score"<<endl;
+    {
+        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
     }
     else
     {
@@ -910,16 +910,16 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
     }
 
 
-    for (int i = 0 ; i < iInstances ; i++)
+    for (int i = 0; i < iInstances; i++)
     {
-        Su = vsSubjects[rand()%vsSubjects.size()];
+        Su = vsSubjects[rand() % vsSubjects.size()];
         bool AgCheck = false;
         bool AdCheck = false;
 
         while (!AdCheck)
         {
-            Ad = vsLabel[rand()%vsLabel.size()];
-            if (Su !="I" && Su != "You")
+            Ad = vsLabel[rand() % vsLabel.size()];
+            if (Su != "I" && Su != "You")
             {
                 if (Ad != Su)   AdCheck = true;
             }
@@ -931,7 +931,7 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
 
         while (!AgCheck)
         {
-            Ag = vsLabel[rand()%vsLabel.size()];
+            Ag = vsLabel[rand() % vsLabel.size()];
 
             if (Su == "I")
             {
@@ -947,12 +947,12 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
             }
         }
 
-        pair<string, double> res = findSpeaker(Ad,Ag,Su);
+        pair<string, double> res = findSpeaker(Ad, Ag, Su);
         dScore = res.second;
         Sp = res.first;
 
         if (fileOut)
-        {   
+        {
             fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
         }
     }
@@ -962,7 +962,7 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
 {
     vector<string> vsLabel;
     vsLabel = listLabel;
-    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end() ; itL++)
+    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end(); itL++)
     {
         vsLabel.push_back(*itL);
     }
@@ -978,11 +978,11 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
     ostringstream osFileOut;
     osFileOut << "C:/Users/rclab/Desktop/res/" << condition << "resultSimAD.csv";
     string sFileOut = osFileOut.str();
-    ofstream fileOut(sFileOut,ios::out | ios::trunc);
+    ofstream fileOut(sFileOut, ios::out | ios::trunc);
 
     if (fileOut)
-    {   
-        fileOut << "Subject;Speaker;Addressee;Agent;Score"<<endl;
+    {
+        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
     }
     else
     {
@@ -990,17 +990,17 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
     }
 
 
-    for (int i = 0 ; i < iInstances ; i++)
+    for (int i = 0; i < iInstances; i++)
     {
-        Su = vsSubjects[rand()%vsSubjects.size()];
+        Su = vsSubjects[rand() % vsSubjects.size()];
         bool SpCheck = false;
         bool AgCheck = false;
 
         while (!AgCheck)
         {
-            Ag = vsLabel[rand()%vsLabel.size()];
+            Ag = vsLabel[rand() % vsLabel.size()];
 
-            if (Su !="I" && Su != "You")
+            if (Su != "I" && Su != "You")
             {
                 if (Ag == Su)   AgCheck = true;
             }
@@ -1013,7 +1013,7 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
 
         while (!SpCheck)
         {
-            Sp = vsLabel[rand()%vsLabel.size()];
+            Sp = vsLabel[rand() % vsLabel.size()];
 
             if (Su == "I")
             {
@@ -1030,7 +1030,7 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
         Ad = res.first;
 
         if (fileOut)
-        {   
+        {
             fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
         }
     }
@@ -1041,7 +1041,7 @@ void grammarKnowledge::testAg(int iInstances, vector<string> vsLabelToAdd, int c
 {
     vector<string> vsLabel;
     vsLabel = listLabel;
-    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end() ; itL++)
+    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end(); itL++)
     {
         vsLabel.push_back(*itL);
     }
@@ -1057,11 +1057,11 @@ void grammarKnowledge::testAg(int iInstances, vector<string> vsLabelToAdd, int c
     ostringstream osFileOut;
     osFileOut << "C:/Users/rclab/Desktop/res/" << condition << "resultSimAG.csv";
     string sFileOut = osFileOut.str();
-    ofstream fileOut(sFileOut,ios::out | ios::trunc);
+    ofstream fileOut(sFileOut, ios::out | ios::trunc);
 
     if (fileOut)
-    {   
-        fileOut << "Subject;Speaker;Addressee;Agent;Score"<<endl;
+    {
+        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
     }
     else
     {
@@ -1069,23 +1069,23 @@ void grammarKnowledge::testAg(int iInstances, vector<string> vsLabelToAdd, int c
     }
 
 
-    for (int i = 0 ; i < iInstances ; i++)
+    for (int i = 0; i < iInstances; i++)
     {
-        Su = vsSubjects[rand()%vsSubjects.size()];
+        Su = vsSubjects[rand() % vsSubjects.size()];
         bool SpCheck = false;
         bool AdCheck = false;
 
         while (!AdCheck)
         {
-            Ad = vsLabel[rand()%vsLabel.size()];
+            Ad = vsLabel[rand() % vsLabel.size()];
             if (Ad != Su)   AdCheck = true;
         }
 
         while (!SpCheck)
         {
-            Sp = vsLabel[rand()%vsLabel.size()];
+            Sp = vsLabel[rand() % vsLabel.size()];
 
-            if (Sp != Ad && Sp !=Su )
+            if (Sp != Ad && Sp != Su)
             {
                 SpCheck = true;
             }
@@ -1096,7 +1096,7 @@ void grammarKnowledge::testAg(int iInstances, vector<string> vsLabelToAdd, int c
         Ag = res.first;
 
         if (fileOut)
-        {   
+        {
             fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
         }
     }
@@ -1107,7 +1107,7 @@ void grammarKnowledge::testSu(int iInstances, vector<string> vsLabelToAdd, int c
 {
     vector<string> vsLabel;
     vsLabel = listLabel;
-    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end() ; itL++)
+    for (vector<string>::iterator itL = vsLabelToAdd.begin(); itL != vsLabelToAdd.end(); itL++)
     {
         vsLabel.push_back(*itL);
     }
@@ -1118,11 +1118,11 @@ void grammarKnowledge::testSu(int iInstances, vector<string> vsLabelToAdd, int c
     ostringstream osFileOut;
     osFileOut << "C:/Users/rclab/Desktop/res/" << condition << "resultSimSU.csv";
     string sFileOut = osFileOut.str();
-    ofstream fileOut(sFileOut,ios::out | ios::trunc);
+    ofstream fileOut(sFileOut, ios::out | ios::trunc);
 
     if (fileOut)
-    {   
-        fileOut << "Subject;Speaker;Addressee;Agent;Score"<<endl;
+    {
+        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
     }
     else
     {
@@ -1130,39 +1130,39 @@ void grammarKnowledge::testSu(int iInstances, vector<string> vsLabelToAdd, int c
     }
 
 
-    for (int i = 0 ; i < iInstances ; i++)
+    for (int i = 0; i < iInstances; i++)
     {
-        Sp = vsLabel[rand()%vsLabel.size()];
+        Sp = vsLabel[rand() % vsLabel.size()];
 
         bool AdCheck = false;
 
         while (!AdCheck)
         {
-            Ad = vsLabel[rand()%vsLabel.size()];
+            Ad = vsLabel[rand() % vsLabel.size()];
             if (Sp != Ad)   AdCheck = true;
         }
 
-        Ag = vsLabel[rand()%vsLabel.size()];
+        Ag = vsLabel[rand() % vsLabel.size()];
 
         pair<string, double> res = findSubject(Sp, Ad, Ag);
         dScore = res.second;
         Su = res.first;
 
         if (fileOut)
-        {   
+        {
             fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
         }
     }
 }
 
-void    grammarKnowledge::simulateLearning(int Case,int iNbRep)
+void    grammarKnowledge::simulateLearning(int Case, int iNbRep)
 {
     cout << "Starting learning simulation" << endl;
 
     if (Case == 7)
     {
         // autistic N2
-        cout <<"Learning with Peter talking, iCub listening" << endl;
+        cout << "Learning with Peter talking, iCub listening" << endl;
 
         simulateInstance("Peter", "iCub", "Peter", "I", iNbRep);
         simulateInstance("Peter", "iCub", "iCub", "You", iNbRep);
@@ -1226,7 +1226,7 @@ void    grammarKnowledge::simulateInstance(string Sp, string Ad, string Ag, stri
     bMessenger.addString(Ad);
     bMessenger.addString(Su);
     bMessenger.addString(Ag);
-    for (int i = 0 ; i < iNbRep ; i++)
+    for (int i = 0; i < iNbRep; i++)
     {
         addInteraction(bMessenger);
     }
@@ -1234,11 +1234,11 @@ void    grammarKnowledge::simulateInstance(string Sp, string Ad, string Ag, stri
 
 grammarKnowledge::grammarKnowledge()
 {
-    ofstream fileOut("C:/Users/rclab/Desktop/res/dataLearning.csv",ios::out | ios::trunc);
+    ofstream fileOut("C:/Users/rclab/Desktop/res/dataLearning.csv", ios::out | ios::trunc);
 
     if (fileOut)
-    {   
-        fileOut << "Subject;Speaker;Addressee;Agent"<<endl;
+    {
+        fileOut << "Subject;Speaker;Addressee;Agent" << endl;
     }
 
 }

@@ -20,10 +20,10 @@
 #include <string>
 
 class DataBaseError : public std::runtime_error
-	/// DataBaseError class
+    /// DataBaseError class
 {
 public:
-	DataBaseError(const std::string& what)	: runtime_error(what.c_str())
-	{
-	}
+    DataBaseError(const std::string& what) : runtime_error(what.c_str())
+    {
+    }
 }; // DataBaseError

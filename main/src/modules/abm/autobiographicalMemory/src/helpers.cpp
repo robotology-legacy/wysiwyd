@@ -14,18 +14,18 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #include <ace/Dirent.h>
 #include "autobiographicalMemory.h"
 
 #ifdef WIN32
 #include <windows.h>
-    #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-        #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
-    #else
-        #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
-    #endif
+#if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#else
+#define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#endif
 #else
 #include <sys/time.h>
 #endif
@@ -90,7 +90,7 @@ Bottle autobiographicalMemory::request(const Bottle& bRequest)
     }
     catch (DataBaseError& e)
     {
-        if(strcmp(e.what(),"This command don't support results")!=0)
+        if (strcmp(e.what(), "This command don't support results") != 0)
             yError() << "Exception during request: " << e.what();
         string sExcept = "Exception during request: "; sExcept += e.what();
         bReply.addString(sExcept.c_str());
@@ -105,9 +105,9 @@ void autobiographicalMemory::requestInsertPushToQueue(const string &sRequest) {
 }
 
 void autobiographicalMemory::requestInsertProcessQueue() {
-    for(std::vector<std::string>::size_type i = 0; i != requests.size(); i++) {
+    for (std::vector<std::string>::size_type i = 0; i != requests.size(); i++) {
         requestFromString(requests[i]);
-        if(i%100==0) {
+        if (i % 100 == 0) {
             yInfo() << "Process insert queue: " << i << " of " << requests.size();
         }
     }
@@ -166,33 +166,33 @@ bool autobiographicalMemory::readInsert()
 
 void autobiographicalMemory::connectOPC()
 {
-	opcWorldReal = new OPCClient(string(getName() + s_real_OPC));
-	opcWorldMental = new OPCClient(string(getName() + s_mental_OPC));
-	int iTry = 0;
+    opcWorldReal = new OPCClient(string(getName() + s_real_OPC));
+    opcWorldMental = new OPCClient(string(getName() + s_mental_OPC));
+    int iTry = 0;
 
-	while (!opcWorldReal->isConnected())
-	{
-		yInfo() << "ABM Connecting to " << s_real_OPC << "..." << opcWorldReal->connect(s_real_OPC);
-		Time::delay(0.5);
-		iTry++;
-		if (iTry > 2)
-		{
-			yWarning() << " Connection failed, please check your port";
-		}
-	}
+    while (!opcWorldReal->isConnected())
+    {
+        yInfo() << "ABM Connecting to " << s_real_OPC << "..." << opcWorldReal->connect(s_real_OPC);
+        Time::delay(0.5);
+        iTry++;
+        if (iTry > 2)
+        {
+            yWarning() << " Connection failed, please check your port";
+        }
+    }
 
-	iTry = 0;
+    iTry = 0;
 
-	while (!opcWorldMental->isConnected())
-	{
-		yInfo() << "ABM Connecting to " << s_mental_OPC << "..." << opcWorldMental->connect(s_mental_OPC);
-		Time::delay(0.5);
-		iTry++;
-		if (iTry > 2)
-		{
-			yWarning() << " Connection failed, please check your port";
-		}
-	}
+    while (!opcWorldMental->isConnected())
+    {
+        yInfo() << "ABM Connecting to " << s_mental_OPC << "..." << opcWorldMental->connect(s_mental_OPC);
+        Time::delay(0.5);
+        iTry++;
+        if (iTry > 2)
+        {
+            yWarning() << " Connection failed, please check your port";
+        }
+    }
 }
 
 long autobiographicalMemory::getCurrentTimeInMS()
@@ -283,8 +283,8 @@ string autobiographicalMemory::getCurrentTime()
 bool autobiographicalMemory::delete_directory(const string& dir_to_delete) {
     ACE_Dirent dir(dir_to_delete.c_str());
 
-    for(dirent *directory; (directory = dir.read()) != 0; ) {
-        if(strcmp(directory->d_name, ".")!=0 && strcmp(directory->d_name, "..")!=0) {
+    for (dirent *directory; (directory = dir.read()) != 0;) {
+        if (strcmp(directory->d_name, ".") != 0 && strcmp(directory->d_name, "..") != 0) {
             string file_to_delete = dir_to_delete + directory->d_name;
             std::remove(file_to_delete.c_str());
         }
@@ -407,33 +407,33 @@ vector<double> autobiographicalMemory::tupleDoubleFromString(const string &sInpu
 
 /*Bottle autobiographicalMemory::getInfoAbout(string sName)
 {
-    Bottle bMessenger, bOutput;
+Bottle bMessenger, bOutput;
 
-    if (opcWorld->getEntity(sName) != NULL)
-    {
-        // The object is not in the OPC, we have to search in the memory to get the type.
-        ostringstream osEntity;
-        osEntity << "SELECT instance, opcid FROM entity WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
-        bMessenger = requestFromString(osEntity.str());
+if (opcWorld->getEntity(sName) != NULL)
+{
+// The object is not in the OPC, we have to search in the memory to get the type.
+ostringstream osEntity;
+osEntity << "SELECT instance, opcid FROM entity WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
+bMessenger = requestFromString(osEntity.str());
 
-        yInfo() << "bMessenger : " << bMessenger.toString();
+yInfo() << "bMessenger : " << bMessenger.toString();
 
-        int Instance = atoi(bMessenger.get(0).asList()->get(0).toString().c_str()),
-            Opcid = atoi(bMessenger.get(0).asList()->get(1).toString().c_str());
+int Instance = atoi(bMessenger.get(0).asList()->get(0).toString().c_str()),
+Opcid = atoi(bMessenger.get(0).asList()->get(1).toString().c_str());
 
-        osEntity.str("");
-        osEntity << "SELECT subtype FROM contentopc WHERE instance = " << Instance << " AND opcid = " << Opcid;
-        bMessenger = requestFromString(osEntity.str());
+osEntity.str("");
+osEntity << "SELECT subtype FROM contentopc WHERE instance = " << Instance << " AND opcid = " << Opcid;
+bMessenger = requestFromString(osEntity.str());
 
-        string sSubType = bMessenger.get(0).asList()->get(0).toString();
+string sSubType = bMessenger.get(0).asList()->get(0).toString();
 
-        osEntity.str("");
-        osEntity << "SELECT count(*) FROM contentarg WHERE argument = '" << sName << "'";
-        bMessenger = requestFromString(osEntity.str());
+osEntity.str("");
+osEntity << "SELECT count(*) FROM contentarg WHERE argument = '" << sName << "'";
+bMessenger = requestFromString(osEntity.str());
 
-        int iNbInteraction = atoi(bMessenger.get(0).asList()->get(0).toString().c_str());
-        yInfo() << "I have interacted with this " << sSubType << " " << iNbInteraction / 2 << " times !";
-    }
+int iNbInteraction = atoi(bMessenger.get(0).asList()->get(0).toString().c_str());
+yInfo() << "I have interacted with this " << sSubType << " " << iNbInteraction / 2 << " times !";
+}
 
-    return bOutput;
+return bOutput;
 }*/

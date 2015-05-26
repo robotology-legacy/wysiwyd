@@ -23,86 +23,86 @@
 
 
 class ResultSet
-	/// ResultSet imp
+    /// ResultSet imp
 {
 public:
 
-	ResultSet()
-		: _current(0)
-	{
-	}
+    ResultSet()
+        : _current(0)
+    {
+    }
 
-	void addRow(const std::vector<std::string>& row)
-	{
-		_resultSet.push_back(row);
-	}
+    void addRow(const std::vector<std::string>& row)
+    {
+        _resultSet.push_back(row);
+    }
 
-	bool fetch(size_t field, std::string& fieldValue)
-	{
-		size_t sz = _resultSet.size();
+    bool fetch(size_t field, std::string& fieldValue)
+    {
+        size_t sz = _resultSet.size();
 
-		if(sz)
-		{
-			if(sz > _current)
-			{
-				fieldValue = _resultSet[_current++][field];
+        if (sz)
+        {
+            if (sz > _current)
+            {
+                fieldValue = _resultSet[_current++][field];
 
-				return true;
-			}
-		}
+                return true;
+            }
+        }
 
-		_current = 0;
+        _current = 0;
 
-		return false;
-	}
+        return false;
+    }
 
-	bool fetch(std::vector<std::string>& rowValue)
-	{
-		size_t sz = _resultSet.size();
+    bool fetch(std::vector<std::string>& rowValue)
+    {
+        size_t sz = _resultSet.size();
 
-		if(sz)
-		{
-			if(sz > _current)
-			{
-				rowValue = _resultSet[_current++];
+        if (sz)
+        {
+            if (sz > _current)
+            {
+                rowValue = _resultSet[_current++];
 
-				return true;
-			}
-		}
+                return true;
+            }
+        }
 
-		_current = 0;
+        _current = 0;
 
-		return false;
-	}
+        return false;
+    }
 
-	std::string get(size_t row, size_t field)
-	{
-		return _resultSet[row][field];
-	}
+    std::string get(size_t row, size_t field)
+    {
+        return _resultSet[row][field];
+    }
 
-	std::vector<std::string> get(size_t row)
-	{
-		return _resultSet[row];
-	}
+    std::vector<std::string> get(size_t row)
+    {
+        return _resultSet[row];
+    }
 
-	size_t countRows(void)
-	{
-		if (_resultSet.empty()) return 0;
+    size_t countRows(void)
+    {
+        if (_resultSet.empty()) return 0;
 
-		return _resultSet.size();
-	}
+        return _resultSet.size();
+    }
 
-	size_t countFields(void)
-	{
-		if (_resultSet[0].empty()) return 0;
+    size_t countFields(void)
+    {
+        if (_resultSet[0].empty()) return 0;
 
-		return _resultSet[0].size();
-	}
+        return _resultSet[0].size();
+    }
 
 private:
 
-	std::vector<std::vector<std::string> > _resultSet;
+    std::vector<std::vector<std::string> > _resultSet;
 
-	size_t _current;
+    size_t _current;
 
 }; // ResultSet

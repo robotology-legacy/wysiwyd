@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Grégoire Pointeau
  * email:   greg.pointeau@gmail.com
@@ -13,15 +13,15 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 
-/** 
+/**
 storage of the memory in the data base.
 
-\section intro_sec Description 
+\section intro_sec Description
 
-Module to build, maintain and query a postgreSQL 8.3 database to use interaction history of the iCub. 
+Module to build, maintain and query a postgreSQL 8.3 database to use interaction history of the iCub.
 
 A database named 'ABM' need to be created on the local computer. (properties in the config file)
 
@@ -51,7 +51,7 @@ The commands it is possible to send (/efaa/autobiographicalMemory/request:i) are
 
 @b "close" Close the module
 
-\section lib_sec Libraries 
+\section lib_sec Libraries
 - YARP libraries
 - \ref efaaHelpers
 
@@ -71,15 +71,15 @@ None.
 - \c /efaa/autobiographicalMemory/world/opc:rpc \n This port is used to communicate with the OPC \
 
 
-\section conf_file_sec Configuration Files 
+\section conf_file_sec Configuration Files
 
-* - \c autobiographicalMemory \c config.ini \n 
+* - \c autobiographicalMemory \c config.ini \n
 *   specifies the configuration file
 
 The configuration file passed through the option \e --from
 should look like as follows:
 
-\code 
+\code
 
 //properties of the database - change according to your setup
 [database_properties]
@@ -99,12 +99,12 @@ Windows
 * Contact : gregoire.pointeau@inserm.fr , maxime.petit@inserm.fr
 * @author Gr\'egoire Pointeau, Maxime Petit
 
-*/ 
+*/
 
 #include <autobiographicalMemory.h>
 
 int main(int argc, char * argv[]) {
-    /* initialize yarp network */ 
+    /* initialize yarp network */
     yarp::os::Network yarp;
     srand(time(NULL));
 
@@ -116,7 +116,7 @@ int main(int argc, char * argv[]) {
     rf.setVerbose(true);
     rf.setDefaultConfigFile("autobiographicalMemory.ini"); //overridden by --from parameter
     rf.setDefaultContext("autobiographicalMemory");   //overridden by --context parameter
-    rf.configure( argc, argv);
+    rf.configure(argc, argv);
     /* create your module */
     autobiographicalMemory module;
     /* run the module: runModule() calls configure first and, if successful, it then runs */

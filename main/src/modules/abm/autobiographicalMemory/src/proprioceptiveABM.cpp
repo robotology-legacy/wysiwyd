@@ -14,7 +14,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #include "autobiographicalMemory.h"
 
@@ -155,10 +155,10 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
     {
         Bottle* lastReading = it->second->read(false); // (false) such that we do not wait until data arrives at port
 
-        if(lastReading!=NULL) { // only proceed if we got something
-            for(int subtype = 0; subtype < lastReading->size(); subtype++) {
+        if (lastReading != NULL) { // only proceed if we got something
+            for (int subtype = 0; subtype < lastReading->size(); subtype++) {
                 // go ahead if it is NOT a port related to skin OR it is a skin port and the value is bigger than 5.0
-                if(it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
+                if (it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
                     doInsert = true;
 
                     osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' ),";
@@ -167,14 +167,15 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
         }
     }
 
-    if(doInsert) {
+    if (doInsert) {
         string strRequest = osArg.str(); // needed so we can cut off last character below, which is a ','
-        if(processInsertDelayed) {
-            requestInsertPushToQueue(strRequest.substr(0, strRequest.size() -1));
-        } else {
+        if (processInsertDelayed) {
+            requestInsertPushToQueue(strRequest.substr(0, strRequest.size() - 1));
+        }
+        else {
             Bottle bRequest;
             bRequest.addString("request");
-            bRequest.addString(strRequest.substr(0, strRequest.size() -1));
+            bRequest.addString(strRequest.substr(0, strRequest.size() - 1));
             request(bRequest);
         }
     }
@@ -192,28 +193,29 @@ int autobiographicalMemory::openDataStreamPorts(int instance, string robotName) 
     bDistLabelPort.addString(osArg.str());
     bDistLabelPort = request(bDistLabelPort);
 
-    for (int i = 0; i < bDistLabelPort.size() && bDistLabelPort.toString()!="NULL"; i++) {
+    for (int i = 0; i < bDistLabelPort.size() && bDistLabelPort.toString() != "NULL"; i++) {
         string dataStreamPortFrom = bDistLabelPort.get(i).asList()->get(0).asString();
-        mapDataStreamPortOut[dataStreamPortFrom] = new yarp::os::BufferedPort < Bottle >;
-        mapDataStreamPortOut[dataStreamPortFrom]->open((portPrefixForStreaming+dataStreamPortFrom).c_str());
+        mapDataStreamPortOut[dataStreamPortFrom] = new yarp::os::BufferedPort < Bottle > ;
+        mapDataStreamPortOut[dataStreamPortFrom]->open((portPrefixForStreaming + dataStreamPortFrom).c_str());
 
         // in case of position commands, replace state:o with rpc:i; otherwise do nothing
-        string toReplace="state:o";
+        string toReplace = "state:o";
         string dataStreamPortTo = dataStreamPortFrom;
-        if(dataStreamPortTo.find(toReplace)!=string::npos) {
+        if (dataStreamPortTo.find(toReplace) != string::npos) {
             dataStreamPortTo.replace(dataStreamPortTo.find(toReplace), toReplace.length(), "rpc:i");
         }
 
         // if memory was made not on same robot as replay should be made
-        string robotReplacement="/"+robotName+"/";
+        string robotReplacement = "/" + robotName + "/";
         size_t second_slash = dataStreamPortTo.find("/", 1);
-        dataStreamPortTo.replace(0, second_slash+1, robotReplacement);
+        dataStreamPortTo.replace(0, second_slash + 1, robotReplacement);
 
-        Network::connect(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo, "tcp");
-        if(Network::isConnected(portPrefixForStreaming+dataStreamPortFrom, dataStreamPortTo)) {
-            yInfo() << "Successfully connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo;
-        } else {
-            yWarning() << "NOT connected " << portPrefixForStreaming+dataStreamPortFrom << " and " << dataStreamPortTo;
+        Network::connect(portPrefixForStreaming + dataStreamPortFrom, dataStreamPortTo, "tcp");
+        if (Network::isConnected(portPrefixForStreaming + dataStreamPortFrom, dataStreamPortTo)) {
+            yInfo() << "Successfully connected " << portPrefixForStreaming + dataStreamPortFrom << " and " << dataStreamPortTo;
+        }
+        else {
+            yWarning() << "NOT connected " << portPrefixForStreaming + dataStreamPortFrom << " and " << dataStreamPortTo;
         }
     }
 
@@ -230,9 +232,10 @@ unsigned int autobiographicalMemory::getStreamDataProviderCount(int instance) {
     osArg << "SELECT DISTINCT label_port, subtype FROM proprioceptivedata WHERE instance = " << instance;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
-    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+    if (bRequest.size() > 0 && bRequest.toString() != "NULL") {
         return bRequest.size();
-    } else {
+    }
+    else {
         return 0;
     }
 }
@@ -245,9 +248,10 @@ long autobiographicalMemory::getTimeLastDataStream(int instance) {
     bRequest.addString("request");
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
-    if(bRequest.size()>0 && bRequest.toString()!="NULL") {
+    if (bRequest.size() > 0 && bRequest.toString() != "NULL") {
         return atol(bRequest.get(0).asList()->get(0).asString().c_str());
-    } else {
+    }
+    else {
         return 0;
     }
 }
@@ -264,9 +268,10 @@ Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifferenc
 
     osArgDataStream << "label_port = '" << port << "' AND ";
 
-    if(realtimePlayback) {
+    if (realtimePlayback) {
         osArgDataStream << "time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
-    } else {
+    }
+    else {
         osArgDataStream << "time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
     }
 

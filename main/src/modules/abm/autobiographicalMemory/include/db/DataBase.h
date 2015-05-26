@@ -18,32 +18,32 @@
 
 template<class T>
 class DataBase
-	/// DataBase common interface class
+    /// DataBase common interface class
 {
 public:
-	DataBase()
-		: _connected(false)
-	{
-	}
+    DataBase()
+        : _connected(false)
+    {
+    }
 
-	DataBase(const std::string& server, const std::string& user, const std::string& password, const std::string& database)
-		: _connected(false)
-	{
-		connect(server, user, password, database);
-	}
-	
-	virtual ~DataBase()
-	{
-		if(_connected)
-			_dataBaseEngine.close();
-	}
-	
-	void connect(const std::string& server, const std::string& user, const std::string& password, const std::string& database)
-	{
-		_dataBaseEngine.connect(server, user, password, database);
+    DataBase(const std::string& server, const std::string& user, const std::string& password, const std::string& database)
+        : _connected(false)
+    {
+        connect(server, user, password, database);
+    }
 
-		_connected = true;
-	}
+    virtual ~DataBase()
+    {
+        if (_connected)
+            _dataBaseEngine.close();
+    }
+
+    void connect(const std::string& server, const std::string& user, const std::string& password, const std::string& database)
+    {
+        _dataBaseEngine.connect(server, user, password, database);
+
+        _connected = true;
+    }
 
     unsigned int lo_import(const char *filename)
     {
@@ -55,22 +55,22 @@ public:
         return _dataBaseEngine.lo_export_pgsql(lobjId, filename);
     }
 
-	DataBase& operator<< (const std::string& sql)
-	{
-		_dataBaseEngine.execute(sql);
+    DataBase& operator<< (const std::string& sql)
+    {
+        _dataBaseEngine.execute(sql);
 
-		return *this;
-	}
+        return *this;
+    }
 
-	DataBase& operator, (ResultSet& rs)
-	{
-		_dataBaseEngine.populate(rs);
+    DataBase& operator, (ResultSet& rs)
+    {
+        _dataBaseEngine.populate(rs);
 
-		return *this;
-	}
+        return *this;
+    }
 
 private:
-	T		_dataBaseEngine;
-	bool	_connected;
+    T		_dataBaseEngine;
+    bool	_connected;
 
 }; // DataBase

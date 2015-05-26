@@ -36,8 +36,8 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
 
     nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
     nameGrammarSentenceTemporal = rf.findFileByName(rf.check("nameGrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
-	nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
-	nameGrammarNodeTrainAP = rf.findFileByName(rf.check("nameGrammarNodeTrainAP.xml", Value("nameGrammarNodeTrainAP.xml")).toString());
+    nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
+    nameGrammarNodeTrainAP = rf.findFileByName(rf.check("nameGrammarNodeTrainAP.xml", Value("nameGrammarNodeTrainAP.xml")).toString());
 
 
     cout << moduleName << ": finding configuration files..." << endl;
@@ -65,10 +65,10 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
- //   calibrationThread = new AutomaticCalibrationThread(100,"ical");
+    //   calibrationThread = new AutomaticCalibrationThread(100,"ical");
     string test;
-//    calibrationThread->start();
-//   calibrationThread->suspend();
+    //    calibrationThread->start();
+    //   calibrationThread->suspend();
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
@@ -82,9 +82,9 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
         cout << "WARNING ABM NOT CONNECTED" << endl;
     }
 
-//    calibrationRT("right");
+    //    calibrationRT("right");
 
-//    populateOpc();
+    //    populateOpc();
 
     nodeSentenceTemporal();
 
@@ -102,9 +102,9 @@ bool qRM::close() {
 
 bool qRM::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
-            " commands are: \n" +
-            "help \n" +
-            "quit \n";
+        " commands are: \n" +
+        "help \n" +
+        "quit \n";
 
     reply.clear();
 
@@ -137,7 +137,7 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool qRM::updateModule() {
-  //  mainLoop();
+    //  mainLoop();
     return true;
 }
 
@@ -158,7 +158,7 @@ Bottle qRM::calibrationRT(std::string side)
 
     //Calibrate
     iCub->say("Now I will self calibrate.");
-  //  iCub->look("cursor_0");
+    //  iCub->look("cursor_0");
     //Start the thread that will get the points pairs
     calibrationThread->clear();
 
@@ -209,12 +209,12 @@ void    qRM::mainLoop()
 
     bool fGetaReply = false;
     Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-            bMessenger, //to be send TO speech recog
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic, // semantic information of the content of the recognition
-            bSendReasoning, // send the information of recall to the abmReasoning
-            bSpeak, // bottle for tts
-            bTemp;
+        bMessenger, //to be send TO speech recog
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bSendReasoning, // send the information of recall to the abmReasoning
+        bSpeak, // bottle for tts
+        bTemp;
 
     bMessenger.addString("recog");
     bMessenger.addString("grammarXML");
@@ -383,12 +383,12 @@ void    qRM::nodeSentenceTemporal()
 
     //bool fGetaReply = false;
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic, // semantic information of the content of the recognition
-            bSendReasoning, // send the information of recall to the abmReasoning
-            bMessenger; //to be send TO speech recog
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bSendReasoning, // send the information of recall to the abmReasoning
+        bMessenger; //to be send TO speech recog
 
-	bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarSentenceTemporal), 20);
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarSentenceTemporal), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -407,9 +407,9 @@ void    qRM::nodeSentenceTemporal()
         cout << osError.str() << endl;
     }
 
-	yInfo() << "bRecognized " << bRecognized.toString();
-	iCub->getRecogClient()->recogFromGrammarSemantic(*bAnswer.get(1).asList(), "", 1);
-	cout << bRecognized.get(1).toString() << endl;
+    yInfo() << "bRecognized " << bRecognized.toString();
+    iCub->getRecogClient()->recogFromGrammarSemantic(*bAnswer.get(1).asList(), "", 1);
+    cout << bRecognized.get(1).toString() << endl;
 
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
@@ -477,10 +477,10 @@ bool qRM::nodeYesNo()
 {
     //bool fGetaReply = false;
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic, // semantic information of the content of the recognition
-            bSendReasoning, // send the information of recall to the abmReasoning
-            bMessenger; //to be send TO speech recog
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bSendReasoning, // send the information of recall to the abmReasoning
+        bMessenger; //to be send TO speech recog
 
     bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarYesNo), 20);
 

@@ -36,7 +36,7 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
 
     for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
-        if ( ( (*it_E)->name() == "icub" || (*it_E)->name() == "iCub" ) && ( (*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT) )
+        if (((*it_E)->name() == "icub" || (*it_E)->name() == "iCub") && ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT))
         {
             Agent AgA;
             AgA.fromBottle((*it_E)->asBottle()); // Converstion Entity -> Agent
@@ -75,7 +75,7 @@ Bottle opcEars::snapshot_string(string sName, OPCClient *OPCReal)
 
     for (list<Entity*>::iterator it_E = opcNew->lEntities.begin(); it_E != opcNew->lEntities.end(); it_E++)
     {   // Check all the entities to find the iCub
-        if ( ( (*it_E)->name() == "icub" || (*it_E)->name() == "iCub" ) && ( (*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT) )
+        if (((*it_E)->name() == "icub" || (*it_E)->name() == "iCub") && ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT))
         {
             Agent AgA;
             AgA.fromBottle((*it_E)->asBottle()); // Converstion Entity -> Agent
@@ -127,11 +127,11 @@ Bottle opcEars::insertEntity(Entity *A)
         osContent;
 
     bOutput.addString(A->entity_type().c_str());
-    osContent <<  " ('entity', " << instance << " , " << opcID << " , '" << A->entity_type().c_str() << "') ";
+    osContent << " ('entity', " << instance << " , " << opcID << " , '" << A->entity_type().c_str() << "') ";
 
     bOutput.addString(osContent.str().c_str());
 
-    osEntity << " (" << opcID << " , '" << A->name().c_str() << "' , " << instance ;
+    osEntity << " (" << opcID << " , '" << A->name().c_str() << "' , " << instance;
 
 
     if (A->entity_type() == "entity")
@@ -152,21 +152,21 @@ Bottle opcEars::insertEntity(Entity *A)
             osEntity << " , FALSE , '{ ";
 
         //  Insert position
-        osEntity << OA.m_ego_position[0] << " , " << OA.m_ego_position[1] << " , " << OA.m_ego_position[2] << " }' , '{ " ;
+        osEntity << OA.m_ego_position[0] << " , " << OA.m_ego_position[1] << " , " << OA.m_ego_position[2] << " }' , '{ ";
 
         // Insert orientation
-        osEntity << OA.m_ego_orientation[0] << " , " << OA.m_ego_orientation[1] << " , " << OA.m_ego_orientation[2] << " }' , '{ " ;
+        osEntity << OA.m_ego_orientation[0] << " , " << OA.m_ego_orientation[1] << " , " << OA.m_ego_orientation[2] << " }' , '{ ";
 
         // Insert dimension
-        osEntity << OA.m_dimensions[0] << " , " << OA.m_dimensions[1] << " , " << OA.m_dimensions[2] << " }' , '{ " ;
+        osEntity << OA.m_dimensions[0] << " , " << OA.m_dimensions[1] << " , " << OA.m_dimensions[2] << " }' , '{ ";
 
         //Insert color
-        osEntity << OA.m_color[0] << " , " << OA.m_color[1] << " , " << OA.m_color[2] << " }' ,  " ;
+        osEntity << OA.m_color[0] << " , " << OA.m_color[1] << " , " << OA.m_color[2] << " }' ,  ";
 
         // Insert Saliency
-        osEntity << OA.m_saliency << " ) " ;
+        osEntity << OA.m_saliency << " ) ";
 
-        bOutput.addString(osEntity.str().c_str());  
+        bOutput.addString(osEntity.str().c_str());
     }
 
     // If entities are agent
@@ -182,19 +182,19 @@ Bottle opcEars::insertEntity(Entity *A)
             osEntity << " , FALSE , '{ ";
 
         //  Insert position
-        osEntity << AgA.m_ego_position[0] << " , " << AgA.m_ego_position[1] << " , " << AgA.m_ego_position[2] << " }' , '{ " ;
+        osEntity << AgA.m_ego_position[0] << " , " << AgA.m_ego_position[1] << " , " << AgA.m_ego_position[2] << " }' , '{ ";
 
         // Insert orientation
-        osEntity << AgA.m_ego_orientation[0] << " , " << AgA.m_ego_orientation[1] << " , " << AgA.m_ego_orientation[2] << " }' , '{ " ;
+        osEntity << AgA.m_ego_orientation[0] << " , " << AgA.m_ego_orientation[1] << " , " << AgA.m_ego_orientation[2] << " }' , '{ ";
 
         // Insert dimension
-        osEntity << AgA.m_dimensions[0] << " , " << AgA.m_dimensions[1] << " , " << AgA.m_dimensions[2] << " }' , '{ " ;
+        osEntity << AgA.m_dimensions[0] << " , " << AgA.m_dimensions[1] << " , " << AgA.m_dimensions[2] << " }' , '{ ";
 
         //Insert color
-        osEntity << AgA.m_color[0] << " , " << AgA.m_color[1] << " , " << AgA.m_color[2] << " }' ,  " ;
+        osEntity << AgA.m_color[0] << " , " << AgA.m_color[1] << " , " << AgA.m_color[2] << " }' ,  ";
 
         // Insert Saliency
-        osEntity << AgA.m_saliency << " ) " ;
+        osEntity << AgA.m_saliency << " ) ";
 
 
         // Get the beliefs:
@@ -203,8 +203,8 @@ Bottle opcEars::insertEntity(Entity *A)
 
         // TODO: Quick fix, but someone from UPF / WP5? needs to take care that
         // the comparison works properly!
-        if(AgA.beliefs().size()>0) {
-            for (list<Relation>::iterator it_Beli = AgA.beliefs().begin() ; it_Beli != AgA.beliefs().end() ; it_Beli++)
+        if (AgA.beliefs().size() > 0) {
+            for (list<Relation>::iterator it_Beli = AgA.beliefs().begin(); it_Beli != AgA.beliefs().end(); it_Beli++)
             {
                 if (!fBelief)
                 {
@@ -214,7 +214,7 @@ Bottle opcEars::insertEntity(Entity *A)
                 else {
                     osBeliefs << ", ( ";
                 }
-                osBeliefs << instance << " , " << AgA.opc_id() << " , '" << it_Beli->subject() << "' , '" << it_Beli->verb() << "' , '" << it_Beli->object() << "' , '" << it_Beli->complement_time() << "' , '" << it_Beli->complement_place() << "' , '" << it_Beli->complement_manner() << "' ) "  ;
+                osBeliefs << instance << " , " << AgA.opc_id() << " , '" << it_Beli->subject() << "' , '" << it_Beli->verb() << "' , '" << it_Beli->object() << "' , '" << it_Beli->complement_time() << "' , '" << it_Beli->complement_place() << "' , '" << it_Beli->complement_manner() << "' ) ";
             }
         }
 
@@ -240,19 +240,19 @@ Bottle opcEars::insertEntity(Entity *A)
             osEntity << " , FALSE , '{ ";
 
         //  Insert position
-        osEntity << RTA.m_ego_position[0] << " , " << RTA.m_ego_position[1] << " , " << RTA.m_ego_position[2] << " }' , '{ " ;
+        osEntity << RTA.m_ego_position[0] << " , " << RTA.m_ego_position[1] << " , " << RTA.m_ego_position[2] << " }' , '{ ";
 
         // Insert orientation
-        osEntity << RTA.m_ego_orientation[0] << " , " << RTA.m_ego_orientation[1] << " , " << RTA.m_ego_orientation[2] << " }' , '{ " ;
+        osEntity << RTA.m_ego_orientation[0] << " , " << RTA.m_ego_orientation[1] << " , " << RTA.m_ego_orientation[2] << " }' , '{ ";
 
         // Insert dimension
-        osEntity << RTA.m_dimensions[0] << " , " << RTA.m_dimensions[1] << " , " << RTA.m_dimensions[2] << " }' , '{ " ;
+        osEntity << RTA.m_dimensions[0] << " , " << RTA.m_dimensions[1] << " , " << RTA.m_dimensions[2] << " }' , '{ ";
 
         //Insert color
-        osEntity << RTA.m_color[0] << " , " << RTA.m_color[1] << " , " << RTA.m_color[2] << " }' , '{ " ;
+        osEntity << RTA.m_color[0] << " , " << RTA.m_color[1] << " , " << RTA.m_color[2] << " }' , '{ ";
 
         //Insert rt_position
-        osEntity << RTA.m_rt_position[0] << " , " << RTA.m_rt_position[1] << " , " << RTA.m_rt_position[2] << " }' , " ;
+        osEntity << RTA.m_rt_position[0] << " , " << RTA.m_rt_position[1] << " , " << RTA.m_rt_position[2] << " }' , ";
 
         // Insert Saliency
         osEntity << RTA.m_saliency << " ) ";
@@ -296,7 +296,7 @@ Bottle opcEars::insertRelation(Relation R)
         osRelation;
     opcID = R.ID();
 
-    osContent << " ('Relation' , " << instance << " , " << opcID << " , 'Relation' ) " ;
+    osContent << " ('Relation' , " << instance << " , " << opcID << " , 'Relation' ) ";
 
     osRelation << " ( " << opcID << " , " << instance << " , '" << R.subject().c_str() << "' , '" << R.verb().c_str() << "' , '" << R.object().c_str() << "' , '" << R.complement_time().c_str() << "' , '" << R.complement_manner().c_str() << "' , '" << R.complement_place().c_str() << "' ) ";
 
@@ -365,7 +365,7 @@ Bottle opcEars::insertOPC(string sName)
 
     osContent << "INSERT INTO contentopc( type , instance , opcid , subtype) VALUES ";
     osEntity << "INSERT INTO entities(opcid, name, instance) VALUES ";
-    osObject <<   "INSERT INTO object(opcid, name, instance, presence, position, orientation, dimension, color, saliency) VALUES ";
+    osObject << "INSERT INTO object(opcid, name, instance, presence, position, orientation, dimension, color, saliency) VALUES ";
     osRTObject << "INSERT INTO rtobject(opcid, name, instance, presence, position, orientation, dimension, color, rtposition, saliency) VALUES ";
     osAgent << "INSERT INTO agent(opcid, name, instance, presence, position, orientation, dimension, color, saliency) VALUES ";
     osAdjective << "INSERT INTO adjective(opcid, name, instance, quality) VALUES ";
@@ -385,46 +385,46 @@ Bottle opcEars::insertOPC(string sName)
     }
 
     // ---- Entities ---- //
-    for (list<Entity*>::iterator it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++ )
+    for (list<Entity*>::iterator it_E = opcTemp->lEntities.begin(); it_E != opcTemp->lEntities.end(); it_E++)
     {
         bTemp = insertEntity(*it_E);
 
-//        cout << "bTemp = " << bTemp.toString() << endl ;
+        //        cout << "bTemp = " << bTemp.toString() << endl ;
 
         if (!fContent)
-            osContent << bTemp.get(1).toString().c_str() ;
+            osContent << bTemp.get(1).toString().c_str();
         else
-            osContent << " , " << bTemp.get(1).toString().c_str() ;
+            osContent << " , " << bTemp.get(1).toString().c_str();
 
         fContent = true;
 
         if (bTemp.get(0).toString() == "entity")
         {
             if (fEntity)
-                osEntity << " , " ;
+                osEntity << " , ";
             osEntity << bTemp.get(2).toString().c_str();
             fEntity = true;
         }
         else if (bTemp.get(0).toString() == EFAA_OPC_ENTITY_ACTION)
         {
             if (fAction)
-                osAction << " , " ;
+                osAction << " , ";
             osAction << bTemp.get(2).toString().c_str();
             fAction = true;
         }
         else if (bTemp.get(0).toString() == EFAA_OPC_ENTITY_ADJECTIVE)
-        {       
+        {
             if (fAdjct)
-                osAdjective << " , " ;
+                osAdjective << " , ";
             osAdjective << bTemp.get(2).toString().c_str();
             fAdjct = true;
         }
         else if (bTemp.get(0).toString() == EFAA_OPC_ENTITY_AGENT)
         {
             if (fAgent)
-                osAgent << " , " ;
+                osAgent << " , ";
             osAgent << bTemp.get(2).toString().c_str();
-            if (bTemp.get(4).toString() == "true" )
+            if (bTemp.get(4).toString() == "true")
             {
                 if (fBeliefs)
                     osBeliefs << " , ";
@@ -437,15 +437,15 @@ Bottle opcEars::insertOPC(string sName)
         else if (bTemp.get(0).toString() == EFAA_OPC_ENTITY_OBJECT)
         {
             if (fObject)
-                osObject << " , " ;
+                osObject << " , ";
             osObject << bTemp.get(2).toString().c_str();
-            fObject = true ;
+            fObject = true;
         }
 
         else if (bTemp.get(0).toString() == EFAA_OPC_ENTITY_RTOBJECT)
         {
             if (fRTObject)
-                osRTObject << " , " ;
+                osRTObject << " , ";
             osRTObject << bTemp.get(2).toString().c_str();
             fRTObject = true;
         }
@@ -455,20 +455,20 @@ Bottle opcEars::insertOPC(string sName)
 
     // ---- RELATIONS ---- //
 
-    for (list<Relation>::iterator it_R = opcTemp->lRelations.begin(); it_R != opcTemp->lRelations.end(); it_R++ )
+    for (list<Relation>::iterator it_R = opcTemp->lRelations.begin(); it_R != opcTemp->lRelations.end(); it_R++)
     {
         if (!fContent)
-            osContent << " ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) " ;
+            osContent << " ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) ";
         else
-            osContent << " , ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) " ;
+            osContent << " , ( 'relation' , " << instance << " , " << it_R->ID() << " ,  'relation' ) ";
 
         fContent = true;
 
-        bTemp  = insertRelation(*it_R); 
+        bTemp = insertRelation(*it_R);
         if (!fRelation)
-            osRelation << bTemp.get(0).toString().c_str() ;
+            osRelation << bTemp.get(0).toString().c_str();
         else
-            osRelation << " , " << bTemp.get(0).toString().c_str() ;
+            osRelation << " , " << bTemp.get(0).toString().c_str();
         fRelation = true;
     }
 
@@ -481,7 +481,7 @@ Bottle opcEars::insertOPC(string sName)
         if (!fDrives)
             osDrives << bTemp.get(0).toString().c_str();
         else
-            osDrives << " , " << bTemp.get(0).toString().c_str() ;
+            osDrives << " , " << bTemp.get(0).toString().c_str();
         fDrives = true;
     }
 
@@ -492,9 +492,9 @@ Bottle opcEars::insertOPC(string sName)
     {
         bTemp = insertEmotion(*it_Emo);
         if (!fEmotion)
-            osEmotion << bTemp.get(0).toString().c_str() ;
+            osEmotion << bTemp.get(0).toString().c_str();
         else
-            osEmotion << " , " << bTemp.get(0).toString().c_str() ;
+            osEmotion << " , " << bTemp.get(0).toString().c_str();
         fEmotion = true;
     }
 
@@ -502,35 +502,35 @@ Bottle opcEars::insertOPC(string sName)
 
 
     // ---- filing bOutput ---- //
-    if(fContent)
-        osSnapshot << osContent.str().c_str() << " ; " ;
+    if (fContent)
+        osSnapshot << osContent.str().c_str() << " ; ";
 
     if (fEntity)
-        osSnapshot << osEntity.str().c_str() << " ; " ;
+        osSnapshot << osEntity.str().c_str() << " ; ";
 
     if (fAction)
-        osSnapshot << osAction.str().c_str() << " ; " ;
+        osSnapshot << osAction.str().c_str() << " ; ";
 
     if (fAgent)
-        osSnapshot << osAgent.str().c_str() << " ; " ;
+        osSnapshot << osAgent.str().c_str() << " ; ";
 
     if (fObject)
-        osSnapshot << osObject.str().c_str() << " ; " ;
+        osSnapshot << osObject.str().c_str() << " ; ";
 
     if (fRTObject)
-        osSnapshot << osRTObject.str().c_str() << " ; " ;
+        osSnapshot << osRTObject.str().c_str() << " ; ";
 
     if (fAdjct)
-        osSnapshot << osAdjective.str().c_str() << " ; " ;
+        osSnapshot << osAdjective.str().c_str() << " ; ";
 
     if (fEmotion)
-        osSnapshot << osEmotion.str().c_str() << " ; " ;
+        osSnapshot << osEmotion.str().c_str() << " ; ";
 
     if (fRelation)
-        osSnapshot << osRelation.str().c_str() << " ; " ;
+        osSnapshot << osRelation.str().c_str() << " ; ";
 
     if (fDrives)
-        osSnapshot << osDrives.str().c_str() << " ; " ;
+        osSnapshot << osDrives.str().c_str() << " ; ";
 
 
     bOutput.addString(osSnapshot.str().c_str());
@@ -558,14 +558,14 @@ string opcEars::DoutoStr(double input)
 Bottle opcEars::getDifferencies(Entity *A, Entity *B)
 {
 
-    Bottle bOutput,bTemp,bA,bB;
+    Bottle bOutput, bTemp, bA, bB;
     bA = A->asBottle();
     bB = B->asBottle();
 
     // If entities are agents : 
     if (A->entity_type() == EFAA_OPC_ENTITY_AGENT && B->entity_type() == EFAA_OPC_ENTITY_AGENT)
     {
-        Agent AgA,AgB;
+        Agent AgA, AgB;
         AgA.fromBottle(bA);
         AgB.fromBottle(bB);
 
@@ -618,7 +618,7 @@ Bottle opcEars::getDifferencies(Entity *A, Entity *B)
 Bottle opcEars::getDiffAgent(Agent *AgA, Agent *AgB)
 {
 
-    Bottle bOutput,bTemp,bBeliefsRemoved, bBeliefsAdded, bEmotion;
+    Bottle bOutput, bTemp, bBeliefsRemoved, bBeliefsAdded, bEmotion;
     bOutput = getDiffObject(AgA, AgB);
 
     bBeliefsRemoved.addString("Beliefs removed");
@@ -634,11 +634,11 @@ Bottle opcEars::getDiffAgent(Agent *AgA, Agent *AgB)
 
     // beliefs in A and not in B
     // For each element of A
-    for (list<Relation>::iterator it_A = lBeliefA.begin() ; it_A != lBeliefA.end() ; it_A++)
+    for (list<Relation>::iterator it_A = lBeliefA.begin(); it_A != lBeliefA.end(); it_A++)
     {
         bool found = false;
         // for each element of B
-        for (list<Relation>::iterator it_B = lBeliefB.begin() ; it_B != lBeliefB.end() ; it_B++)
+        for (list<Relation>::iterator it_B = lBeliefB.begin(); it_B != lBeliefB.end(); it_B++)
         {
             if (!found)
             {
@@ -656,11 +656,11 @@ Bottle opcEars::getDiffAgent(Agent *AgA, Agent *AgB)
 
     // beliefs in B and not in A
     // For each element of B
-    for (list<Relation>::iterator it_B = lBeliefB.begin() ; it_B != lBeliefB.end() ; it_B++)
+    for (list<Relation>::iterator it_B = lBeliefB.begin(); it_B != lBeliefB.end(); it_B++)
     {
         bool found = false;
         // for each element of A
-        for (list<Relation>::iterator it_A = lBeliefA.begin() ; it_A != lBeliefA.end() ; it_A++)
+        for (list<Relation>::iterator it_A = lBeliefA.begin(); it_A != lBeliefA.end(); it_A++)
         {
             if (!found)
             {
@@ -677,10 +677,10 @@ Bottle opcEars::getDiffAgent(Agent *AgA, Agent *AgB)
     }
 
 
-    if (bBeliefsAdded.size() !=1)
+    if (bBeliefsAdded.size() != 1)
         bOutput.addList() = bBeliefsAdded;
 
-    if (bBeliefsRemoved.size() !=1)
+    if (bBeliefsRemoved.size() != 1)
         bOutput.addList() = bBeliefsRemoved;
 
 
@@ -692,13 +692,13 @@ Bottle opcEars::getDiffAgent(Agent *AgA, Agent *AgB)
         {
             bTemp.clear();
             bTemp.addString(it_MapA->first.c_str());
-            bTemp.addDouble(it_MapA->second-mBEmotion[it_MapA->first]);
+            bTemp.addDouble(it_MapA->second - mBEmotion[it_MapA->first]);
             bEmotion.addList() = bTemp;
         }
     }
 
 
-    if (bEmotion.size()>1)
+    if (bEmotion.size() > 1)
     {
         bOutput.addList() = bEmotion;
     }
@@ -710,7 +710,7 @@ Bottle opcEars::getDiffAgent(Agent *AgA, Agent *AgB)
 Bottle opcEars::getDiffObject(Object *AgA, Object *AgB)
 {
 
-    Bottle bOutput,bTemp;
+    Bottle bOutput, bTemp;
 
     // Colors
     if (!(AgA->m_color == AgB->m_color))
@@ -719,21 +719,21 @@ Bottle opcEars::getDiffObject(Object *AgA, Object *AgB)
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_GUI_COLOR_R);
-            bTemp.addDouble(AgB->m_color[0]-AgA->m_color[0]);
+            bTemp.addDouble(AgB->m_color[0] - AgA->m_color[0]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_color[1] != AgB->m_color[1])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_GUI_COLOR_G);
-            bTemp.addDouble(AgB->m_color[1]-AgA->m_color[1]);
+            bTemp.addDouble(AgB->m_color[1] - AgA->m_color[1]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_color[2] != AgB->m_color[2])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_GUI_COLOR_B);
-            bTemp.addDouble(AgB->m_color[2]-AgA->m_color[2]);
+            bTemp.addDouble(AgB->m_color[2] - AgA->m_color[2]);
             bOutput.addList() = bTemp;
         }
     }
@@ -746,21 +746,21 @@ Bottle opcEars::getDiffObject(Object *AgA, Object *AgB)
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_RTDIMX_TAG);
-            bTemp.addDouble(AgB->m_dimensions[0]-AgA->m_dimensions[0]);
+            bTemp.addDouble(AgB->m_dimensions[0] - AgA->m_dimensions[0]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_dimensions[1] != AgB->m_dimensions[1])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_RTDIMY_TAG);
-            bTemp.addDouble(AgB->m_dimensions[1]-AgA->m_dimensions[1]);
+            bTemp.addDouble(AgB->m_dimensions[1] - AgA->m_dimensions[1]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_dimensions[2] != AgB->m_dimensions[2])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_RTDIMZ_TAG);
-            bTemp.addDouble(AgB->m_dimensions[2]-AgA->m_dimensions[2]);
+            bTemp.addDouble(AgB->m_dimensions[2] - AgA->m_dimensions[2]);
             bOutput.addList() = bTemp;
         }
     }
@@ -772,21 +772,21 @@ Bottle opcEars::getDiffObject(Object *AgA, Object *AgB)
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_ROBOTPOSX_TAG);
-            bTemp.addDouble(AgB->m_ego_position[0]-AgA->m_ego_position[0]);
+            bTemp.addDouble(AgB->m_ego_position[0] - AgA->m_ego_position[0]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_ego_position[1] != AgB->m_ego_position[1])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_ROBOTPOSY_TAG);
-            bTemp.addDouble(AgB->m_ego_position[1]-AgA->m_ego_position[1]);
+            bTemp.addDouble(AgB->m_ego_position[1] - AgA->m_ego_position[1]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_ego_position[2] != AgB->m_ego_position[2])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_ROBOTPOSZ_TAG);
-            bTemp.addDouble(AgB->m_ego_position[2]-AgA->m_ego_position[2]);
+            bTemp.addDouble(AgB->m_ego_position[2] - AgA->m_ego_position[2]);
             bOutput.addList() = bTemp;
         }
     }
@@ -798,21 +798,21 @@ Bottle opcEars::getDiffObject(Object *AgA, Object *AgB)
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_ROBOTORX_TAG);
-            bTemp.addDouble(AgB->m_ego_orientation[0]-AgA->m_ego_orientation[0]);
+            bTemp.addDouble(AgB->m_ego_orientation[0] - AgA->m_ego_orientation[0]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_ego_orientation[1] != AgB->m_ego_orientation[1])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_ROBOTORY_TAG);
-            bTemp.addDouble(AgB->m_ego_orientation[1]-AgA->m_ego_orientation[1]);
+            bTemp.addDouble(AgB->m_ego_orientation[1] - AgA->m_ego_orientation[1]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_ego_orientation[2] != AgB->m_ego_orientation[2])
         {
             bTemp.clear();
             bTemp.addString(EFAA_OPC_OBJECT_ROBOTORZ_TAG);
-            bTemp.addDouble(AgB->m_ego_orientation[2]-AgA->m_ego_orientation[2]);
+            bTemp.addDouble(AgB->m_ego_orientation[2] - AgA->m_ego_orientation[2]);
             bOutput.addList() = bTemp;
         }
     }
@@ -833,7 +833,7 @@ Bottle opcEars::getDiffObject(Object *AgA, Object *AgB)
 Bottle opcEars::getDiffRTObject(RTObject *AgA, RTObject *AgB)
 {
 
-    Bottle bOutput,bTemp;
+    Bottle bOutput, bTemp;
     bOutput = getDiffObject(AgA, AgB);
 
     if (!(AgA->m_rt_position == AgB->m_rt_position))
@@ -842,21 +842,21 @@ Bottle opcEars::getDiffRTObject(RTObject *AgA, RTObject *AgB)
         {
             bTemp.clear();
             bTemp.addString("rt_position_x");
-            bTemp.addDouble(AgB->m_rt_position[0]-AgA->m_rt_position[0]);
+            bTemp.addDouble(AgB->m_rt_position[0] - AgA->m_rt_position[0]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_rt_position[1] != AgB->m_rt_position[1])
         {
             bTemp.clear();
             bTemp.addString("rt_position_y");
-            bTemp.addDouble(AgB->m_rt_position[1]-AgA->m_rt_position[1]);
+            bTemp.addDouble(AgB->m_rt_position[1] - AgA->m_rt_position[1]);
             bOutput.addList() = bTemp;
         }
         if (AgA->m_rt_position[2] != AgB->m_rt_position[2])
         {
             bTemp.clear();
             bTemp.addString("rt_position_z");
-            bTemp.addDouble(AgB->m_rt_position[2]-AgA->m_rt_position[2]);
+            bTemp.addDouble(AgB->m_rt_position[2] - AgA->m_rt_position[2]);
             bOutput.addList() = bTemp;
         }
     }
@@ -867,9 +867,9 @@ Bottle opcEars::getDiffRTObject(RTObject *AgA, RTObject *AgB)
 
 Bottle opcEars::getDiffAdj(Adjective *AgA, Adjective *AgB)
 {
-    Bottle bOutput,bTemp;
+    Bottle bOutput, bTemp;
 
-    if(AgA->m_quality != AgB->m_quality)
+    if (AgA->m_quality != AgB->m_quality)
     {
         bTemp.addString("qualityType");
         bTemp.addString(AgB->m_quality.c_str());

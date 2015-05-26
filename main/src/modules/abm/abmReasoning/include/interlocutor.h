@@ -36,9 +36,9 @@ public:
     yarp::os::Bottle requestFromStream(std::string sInput);
 
     // asking functions
-	yarp::os::Bottle askLastAction();
-	yarp::os::Bottle askActionFromId(int Id);
-	yarp::os::Bottle askActionFromIdV2(int Id);
+    yarp::os::Bottle askLastAction();
+    yarp::os::Bottle askActionFromId(int Id);
+    yarp::os::Bottle askActionFromIdV2(int Id);
     yarp::os::Bottle askLastComplex();
     yarp::os::Bottle askComplexFromId(int Id);
     yarp::os::Bottle imagineOPC(int Id);
@@ -52,8 +52,8 @@ public:
 
 
     // Functions to send knowledge to the semantic memory
-	int                 sendSpatialKnowledge(std::vector<spatialKnowledge> listSK);
-	int                 sendAdjectiveKnowledge(std::vector<adjKnowledge> listADK);
+    int                 sendSpatialKnowledge(std::vector<spatialKnowledge> listSK);
+    int                 sendAdjectiveKnowledge(std::vector<adjKnowledge> listADK);
     int                 sendTemporalKnowledge(std::vector<timeKnowledge> listTk);
     int                 sendBehaviors(std::vector<behavior> listBehavior);
     int                 sendPlan(std::vector<plan> listPlan);
@@ -69,7 +69,7 @@ public:
     int     getNumberRelation(int instance);
 
     // Knowledge related function
-    yarp::os::Bottle              saveKnowledge(std::vector<spatialKnowledge> listSK , std::vector<timeKnowledge> listTK, std::vector<behavior> listBehavior , std::vector<plan> listPlan , std::vector<contextualKnowledge> listCK , std::vector<knownInteraction> listInc);
+    yarp::os::Bottle              saveKnowledge(std::vector<spatialKnowledge> listSK, std::vector<timeKnowledge> listTK, std::vector<behavior> listBehavior, std::vector<plan> listPlan, std::vector<contextualKnowledge> listCK, std::vector<knownInteraction> listInc);
     void                close();
 
 

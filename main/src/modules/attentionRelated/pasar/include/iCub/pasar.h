@@ -31,61 +31,61 @@ using namespace std;
 
 struct ObjectModel
 {
-	Object o;
-	double speed;
-	double acceleration;
-	int restingSteps;
+    Object o;
+    double speed;
+    double acceleration;
+    int restingSteps;
 };
 
 /**
 * Module in charge of polling the OPC and updating icubGUI
 */
 class PasarModule : public yarp::os::RFModule {
-	std::string moduleName;
+    std::string moduleName;
 
-	//Parameter
-	double pTopDownAppearanceBurst;         // score of saliency for an appereance
-	double pTopDownDisappearanceBurst;      // score of saliency for an diappereance
-	double pTopDownAccelerationCoef;        // score of saliency for an acceleration detected
-	double pTopDownInhibitionReturn;        // threshold of an acceleration detection
-	double pExponentialDecrease;            // under this threshlod, saliency is considered as 0
-	double thresholdMovementAccel;          // Speed of the decrease of the saliency over the time (should be less than 1)
-	double thresholdSaliency;
+    //Parameter
+    double pTopDownAppearanceBurst;         // score of saliency for an appereance
+    double pTopDownDisappearanceBurst;      // score of saliency for an diappereance
+    double pTopDownAccelerationCoef;        // score of saliency for an acceleration detected
+    double pTopDownInhibitionReturn;        // threshold of an acceleration detection
+    double pExponentialDecrease;            // under this threshlod, saliency is considered as 0
+    double thresholdMovementAccel;          // Speed of the decrease of the saliency over the time (should be less than 1)
+    double thresholdSaliency;
 
-	OPCClient *opc;					 //retrieve information from the OPC
-	yarp::os::Port handlerPort;      //a port to handle messages 
+    OPCClient *opc;					 //retrieve information from the OPC
+    yarp::os::Port handlerPort;      //a port to handle messages 
 
-	BufferedPort<ImageOf<PixelMono> > saliencyInput;
-	BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
-	ImageOf<PixelRgb>				  imageOut;
+    BufferedPort<ImageOf<PixelMono> > saliencyInput;
+    BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
+    ImageOf<PixelRgb>				  imageOut;
 
-	Agent* icub;
-	map<string, ObjectModel>  presentObjectsLastStep;
-	map<string, pair<double, double> > presentLastSpeed;
-	map<string, pair<double, double> > presentCurrentSpeed;
-	map<string, ObjectModel>  presentObjects;
+    Agent* icub;
+    map<string, ObjectModel>  presentObjectsLastStep;
+    map<string, pair<double, double> > presentLastSpeed;
+    map<string, pair<double, double> > presentCurrentSpeed;
+    map<string, ObjectModel>  presentObjects;
 
-	std::string trackedObject;
+    std::string trackedObject;
 
-	bool isControllingMotors;
-	int store_context_id;
-	PolyDriver clientGazeCtrl;
-	IGazeControl *igaze;
+    bool isControllingMotors;
+    int store_context_id;
+    PolyDriver clientGazeCtrl;
+    IGazeControl *igaze;
 
 protected:
-	bool isFixationPointSafe(yarp::sig::Vector fp);
-	void saliencyBottomUp();
-	void saliencyTopDown();
-	void saliencyNormalize();
-	void saliencyLeakyIntegration();
+    bool isFixationPointSafe(yarp::sig::Vector fp);
+    void saliencyBottomUp();
+    void saliencyTopDown();
+    void saliencyNormalize();
+    void saliencyLeakyIntegration();
 
 public:
-	bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-	bool interruptModule();                       // interrupt, e.g., the ports 
-	bool close();                                 // close and shut down the module
-	bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
-	double getPeriod();
-	bool updateModule();
+    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+    bool interruptModule();                       // interrupt, e.g., the ports 
+    bool close();                                 // close and shut down the module
+    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+    double getPeriod();
+    bool updateModule();
 };
 
 

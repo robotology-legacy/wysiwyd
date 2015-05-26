@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
 * Authors: Grégoire Pointeau
 * email:   gregoire.pointeau@inserm.fr
@@ -73,7 +73,7 @@ private:
     std::string  grammarToString(std::string sPath);
 
 public:
-    /** 
+    /**
     * document your methods too.
     */
     ~abmHandler();
@@ -82,7 +82,7 @@ public:
     bool interruptModule();                       // interrupt, e.g., the ports 
     bool close();                                 // close and shut down the module
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
-    double getPeriod(); 
+    double getPeriod();
     bool updateModule();
 };
 

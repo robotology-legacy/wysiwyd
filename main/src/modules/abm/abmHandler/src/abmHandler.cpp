@@ -481,90 +481,90 @@ Bottle abmHandler::node1()
     // Can you remember the first/last time when you ...
     /*else if (sQuestionKind == "REMEMBERING")
     {
-        cout << "============= REMEMBERING ===================" << endl ;
-        cout << bSemantic.toString().c_str() << endl ;
+    cout << "============= REMEMBERING ===================" << endl ;
+    cout << bSemantic.toString().c_str() << endl ;
 
-        bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
-        sCurrentActivity = bSemantic.check("activity_past", Value("none")).asString();
-        sCurrentPronoun = bSemantic.check("pronoun", Value("none")).asString();
+    bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
+    sCurrentActivity = bSemantic.check("activity_past", Value("none")).asString();
+    sCurrentPronoun = bSemantic.check("pronoun", Value("none")).asString();
 
-        bBodySchema.clear();
-        if(sCurrentActivity == "babbled"){
-            sCurrentActivity = "babbling";
-        }
+    bBodySchema.clear();
+    if(sCurrentActivity == "babbled"){
+    sCurrentActivity = "babbling";
+    }
 
-        cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
+    cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
 
-        if (sCurrentPronoun == "none" || sCurrentActivity == "none")
-        {
-            iCurrentInstance = -1;
-            osError << "no pronoun or activity";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
+    if (sCurrentPronoun == "none" || sCurrentActivity == "none")
+    {
+    iCurrentInstance = -1;
+    osError << "no pronoun or activity";
+    bOutput.addString(osError.str());
+    cout << osError.str() << endl;
+    return bOutput;
+    }
 
-        ostringstream osRequest;
-        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
-        if (sCurrentPronoun == "you") {
-            osRequest << " argument = 'icub' AND role = 'agent1') ";
-        } else { //IMPORTANT : don't have recognition then so I is everything but the iCub
-            osRequest << " argument != 'icub' AND role = 'agent1') ";
-        }
+    ostringstream osRequest;
+    osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+    if (sCurrentPronoun == "you") {
+    osRequest << " argument = 'icub' AND role = 'agent1') ";
+    } else { //IMPORTANT : don't have recognition then so I is everything but the iCub
+    osRequest << " argument != 'icub' AND role = 'agent1') ";
+    }
 
-        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
+    fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
 
-        cout << "REQUEST : " << osRequest.str() << endl ;
+    cout << "REQUEST : " << osRequest.str() << endl ;
 
-        bMessenger.clear();
-        bMessenger.addString("request");
-        bMessenger.addString(osRequest.str().c_str());
+    bMessenger.clear();
+    bMessenger.addString("request");
+    bMessenger.addString(osRequest.str().c_str());
 
-        bAnswer.clear();
-        Port2ABM.write(bMessenger, bAnswer);
+    bAnswer.clear();
+    Port2ABM.write(bMessenger, bAnswer);
 
-        cout << "Response of ABM: \n ==>" << bAnswer.toString() << "<==" << endl;
+    cout << "Response of ABM: \n ==>" << bAnswer.toString() << "<==" << endl;
 
-        if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
-        {
-            iCurrentInstance = -1;
-            osError.str("");
-            osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
+    if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
+    {
+    iCurrentInstance = -1;
+    osError.str("");
+    osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
+    bOutput.addString(osError.str());
+    cout << osError.str() << endl;
+    return bOutput;
+    }
 
-        iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
-        ostringstream osAnswer;
-        osAnswer << "It was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
-        sLastSentence = osAnswer.str();
+    iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
+    ostringstream osAnswer;
+    osAnswer << "It was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
+    sLastSentence = osAnswer.str();
 
-        bSpeak.clear();
-        bSpeak.addString(osAnswer.str());
-        Port2iSpeak.write(bSpeak);
+    bSpeak.clear();
+    bSpeak.addString(osAnswer.str());
+    Port2iSpeak.write(bSpeak);
 
-        //give the instance to hyung jin : iCurrentInstance
+    //give the instance to hyung jin : iCurrentInstance
 
 
-        //return bOutput ;
-        return node1() ;
+    //return bOutput ;
+    return node1() ;
     }*/
 
     // Can you remember the first/last time when you ...
     else if (sQuestionKind == "ACTING")
     {
-        cout << "============= ACTING ===================" << endl ;
-        cout << bSemantic.toString().c_str() << endl ;
+        cout << "============= ACTING ===================" << endl;
+        cout << bSemantic.toString().c_str() << endl;
 
         sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
 
         bBodySchema.clear();
-        if(sCurrentActivity == "babbling"){
+        if (sCurrentActivity == "babbling"){
             bBodySchema.addString("babblingLearning");
         }
 
-        cout << "To BodySchema : " << bBodySchema.toString() << endl ;
+        cout << "To BodySchema : " << bBodySchema.toString() << endl;
 
         //Response from iCub through iSpeak
         ostringstream osAnswer;
@@ -585,27 +585,27 @@ Bottle abmHandler::node1()
         bAnswer.clear();
         Port2BodySchema.write(bBodySchema, bAnswer);
 
-        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl ;
+        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl;
 
-        return node1() ;
+        return node1();
     }
 
     //For Apple demo
     else if (sQuestionKind == "REMEMBERING")
     {
-        cout << "============= REMEMBERING ===================" << endl ;
-        cout << bSemantic.toString().c_str() << endl ;
+        cout << "============= REMEMBERING ===================" << endl;
+        cout << bSemantic.toString().c_str() << endl;
 
         bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
         sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
         sCurrentPronoun = bSemantic.check("name", Value("HyungJin")).asString();
 
         bBodySchema.clear();
-        if(sCurrentActivity == "motor babbling"){
+        if (sCurrentActivity == "motor babbling"){
             sCurrentActivity = "babbling";
         }
 
-        cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
+        cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity << " ; sCurrentPronoun = " << sCurrentPronoun << endl;
 
         if (sCurrentPronoun == "none" || sCurrentActivity == "none")
         {
@@ -617,16 +617,17 @@ Bottle abmHandler::node1()
         }
 
         ostringstream osRequest;
-        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '" << sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
         if (sCurrentPronoun == "you") {
             osRequest << " argument = 'icub' AND role = 'agent1') ";
-        } else { 
+        }
+        else {
             osRequest << " argument = '" << sCurrentPronoun << "' AND role = 'agent1') ";
         }
 
         fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
 
-        cout << "REQUEST : " << osRequest.str() << endl ;
+        cout << "REQUEST : " << osRequest.str() << endl;
 
         bMessenger.clear();
         bMessenger.addString("request");
@@ -685,7 +686,7 @@ Bottle abmHandler::node1()
         //Network::connect("/autobiographicalMemory/icub/camcalib/left/out", "/yarpview/abm/icub/camcalib/left");
 
         //return bOutput ;
-        return appleNode2() ;
+        return appleNode2();
     }
 
     else
@@ -771,31 +772,31 @@ Bottle abmHandler::appleNode2()
 
     if (sQuestionKind == "AUGMENTING")
     {
-        cout << "============= AUGMENTING ===================" << endl ;
-        cout << bSemantic.toString().c_str() << endl ;
+        cout << "============= AUGMENTING ===================" << endl;
+        cout << bSemantic.toString().c_str() << endl;
 
         sCurrentAugmented = bSemantic.check("augmented", Value("kinematic structure")).asString();
 
         bBodySchema.clear();
-        if(sCurrentAugmented == "kinematic structure"){
+        if (sCurrentAugmented == "kinematic structure"){
             sCurrentAugmented = "kinematic_structure";
         }
-        
+
         //iCurrentInstance from node1()
-        cout << "iCurrentInstance = " << iCurrentInstance << " and want augmented for " << sCurrentAugmented << endl ;
+        cout << "iCurrentInstance = " << iCurrentInstance << " and want augmented for " << sCurrentAugmented << endl;
 
         ostringstream osAnswer;
         //TODO LATER : check if there is such augmented or not
-        osAnswer << "Yes, let me show you "<< endl ;
+        osAnswer << "Yes, let me show you " << endl;
         sLastSentence = osAnswer.str();
 
         bSpeak.clear();
         bSpeak.addString(osAnswer.str());
         Port2iSpeak.write(bSpeak);
 
-        
+
         yarp::os::Time::delay(2);
-        
+
         osAnswer.str(std::string());
         osAnswer << "You can look at my reasoning about your kinematic structure of your left hand";
         sLastSentence = osAnswer.str();
@@ -899,17 +900,17 @@ Bottle abmHandler::appleNode3()
 
     if (sQuestionKind == "ACTING")
     {
-        cout << "============= ACTING ===================" << endl ;
-        cout << bSemantic.toString().c_str() << endl ;
+        cout << "============= ACTING ===================" << endl;
+        cout << bSemantic.toString().c_str() << endl;
 
         sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
 
         bBodySchema.clear();
-        if(sCurrentActivity == "motor babbling"){
+        if (sCurrentActivity == "motor babbling"){
             bBodySchema.addString("babblingLearning");
         }
 
-        cout << "To BodySchema : " << bBodySchema.toString() << endl ;
+        cout << "To BodySchema : " << bBodySchema.toString() << endl;
 
         //Response from iCub through iSpeak
         ostringstream osAnswer;
@@ -930,15 +931,15 @@ Bottle abmHandler::appleNode3()
         bAnswer.clear();
         Port2BodySchema.write(bBodySchema, bAnswer);
 
-        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl ;
+        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl;
 
         bOutput.addList() = bAnswer;
-        
+
         //recursive loop go back initial : need to to a stop
-        return node1() ;
+        return node1();
     }
 
-    return appleNode3() ;    
+    return appleNode3();
 }
 
 /*  Node 2 : details about number and agent
