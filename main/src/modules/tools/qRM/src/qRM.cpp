@@ -407,8 +407,7 @@ void    qRM::nodeSentenceTemporal()
         cout << osError.str() << endl;
     }
 
-    yInfo() << "bRecognized " << bRecognized.toString();
-    cout << bRecognized.get(1).toString() << endl;
+    yInfo() << " bRecognized " << bRecognized.toString();
 
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
