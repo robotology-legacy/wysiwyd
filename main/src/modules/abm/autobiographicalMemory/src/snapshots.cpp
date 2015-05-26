@@ -662,10 +662,10 @@ void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle, strin
 
         currentRole = bRecogBottle.get(0).asString();
         currentWord = bRecogBottle.get(1).asString();
-        cout << std::endl;
+        
         //SQL insert
-        //std::cout << "=== s_deep = " << s_deep << " and i_deep = " << i_deep << "===" << std::endl;
-        //std::cout << "C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep << std::endl;
+        //yInfo() << " === s_deep = " << s_deep << " and i_deep = " << i_deep << "===" ;
+        //yInfo() << " C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep ;
         osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << currentWord << "' , '" << currentRole << "', " << i_deep << " ) ; ";
 
     }
@@ -676,7 +676,7 @@ void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle, strin
         //  yInfo() << "===== case 2 : string/List =====" ;
 
         s_deep = bRecogBottle.get(0).asString(); //TODO : increase the list
-        //std::cout << "C2 : -------> role = " << "semantic" << " and word = " << s_deep << " and level = " << i_deep << std::endl;
+        //yInfo() << " C2 : -------> role = " << "semantic" << " and word = " << s_deep << " and level = " << i_deep ;
         osInsertTemp << "INSERT INTO sentencedata(instance, word, role, \"level\") VALUES (" << iInstance << ", '" << s_deep << "' , '" << "semantic" << "', " << i_deep << " ) ; ";
 
 
@@ -701,7 +701,7 @@ void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle, strin
             {
                 i_deep += 1;
                 i_deep_cp = i_deep;
-                //std::cout << "C3 : -------> role = " << "semantic" << " and word = " << bRecogBottle.get(i).toString() << " and level = " << i_deep << std::endl;
+                //yInfo() << " C3 : -------> role = " << "semantic" << " and word = " << bRecogBottle.get(i).toString() << " and level = " << i_deep << std::endl;
             }
             recogFromGrammarSemantic(*bRecogBottle.get(i).asList(), s_deep, i_deep_cp, iInstance);
         }

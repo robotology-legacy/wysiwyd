@@ -408,7 +408,6 @@ void    qRM::nodeSentenceTemporal()
     }
 
     yInfo() << "bRecognized " << bRecognized.toString();
-    iCub->getRecogClient()->recogFromGrammarSemantic(*bAnswer.get(1).asList(), "", 1);
     cout << bRecognized.get(1).toString() << endl;
 
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
