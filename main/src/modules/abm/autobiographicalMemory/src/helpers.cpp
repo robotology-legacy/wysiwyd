@@ -170,10 +170,11 @@ void autobiographicalMemory::connectOPC()
     opcWorldMental = new OPCClient(string(getName() + s_mental_OPC));
     int iTry = 0;
 
+    //Try to connect to OPC until it is a succes
     while (!opcWorldReal->isConnected())
     {
         yInfo() << "ABM Connecting to " << s_real_OPC << "..." << opcWorldReal->connect(s_real_OPC);
-        Time::delay(0.5);
+        Time::delay(1.0);
         iTry++;
         if (iTry > 2)
         {
@@ -183,10 +184,11 @@ void autobiographicalMemory::connectOPC()
 
     iTry = 0;
 
-    while (!opcWorldMental->isConnected())
+    //Try only 3 times to connect to mentalOPC
+    while (!opcWorldMental->isConnected() && (iTry < 2) )
     {
         yInfo() << "ABM Connecting to " << s_mental_OPC << "..." << opcWorldMental->connect(s_mental_OPC);
-        Time::delay(0.5);
+        Time::delay(1.0);
         iTry++;
         if (iTry > 2)
         {
