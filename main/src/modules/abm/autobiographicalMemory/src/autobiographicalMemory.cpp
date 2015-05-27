@@ -805,9 +805,6 @@ bool autobiographicalMemory::updateModule() {
             yInfo() << "============================= STREAM SEND =================================";
             timeLastImageSent = -1;
 
-            imgProviderCount = getImagesProviderCount(imgInstance);
-            streamDataProviderCount = getStreamDataProviderCount(imgInstance);
-
             long timeVeryLastImage = getTimeLastImgStream(imgInstance);
             long timeVeryLastContData = getTimeLastDataStream(imgInstance);
 

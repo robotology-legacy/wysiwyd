@@ -112,8 +112,6 @@ public:
 
     long timeLastImageSent; // will be obsolete
     long timeVeryLastStream; // will be obsolete
-    unsigned int imgProviderCount; // will be obsolete
-    unsigned int streamDataProviderCount; // will be obsolete
 
     bool sendStreamIsInitialized;
 

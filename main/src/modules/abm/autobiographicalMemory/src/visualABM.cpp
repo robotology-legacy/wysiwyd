@@ -596,15 +596,15 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
     bListImages.addString("request");
     ostringstream osArgImages;
 
-    if (!realtimePlayback) {
-        osArgImages << "WITH data AS (";
-    }
+    osArgImages << "WITH data AS (";
     osArgImages << "SELECT * FROM (";
     osArgImages << "SELECT relative_path, img_provider_port, time, ";
     osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM visualdata WHERE instance = '" << imgInstance << "')) * 1000000 as INT) as time_difference, frame_number ";
     osArgImages << "FROM visualdata WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
     if (realtimePlayback) {
-        osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC LIMIT " << imgProviderCount << ";";
+        osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << "), ";
+        osArgImages << "max_time as (select max(time_difference) as max from data) ";
+        osArgImages << "SELECT * FROM data, max_time WHERE data.time_difference = max_time.max";
     }
     else {
         osArgImages << "WHERE time_difference > " << timeLastImageSent << "), min_time AS (select min(time_difference) as min from data) ";
