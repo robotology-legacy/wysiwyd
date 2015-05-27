@@ -39,7 +39,6 @@ add_executable(${PROJECTNAME} ${headers} ${idl_files} ${sources} ${docs})
 target_link_libraries(  ${PROJECTNAME}
                         wrdac
                         ${YARP_LIBRARIES}
-                        icubmod
                         ${OpenCV_LIBRARIES}
                         ${kinectWrapper_LIBRARIES}
                         ${PCL_COMMON_LIBRARIES}

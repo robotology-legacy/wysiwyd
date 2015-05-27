@@ -21,7 +21,7 @@ source_group("DOC Files"    FILES ${doc_files})
 
 include_directories(${IDL_GENERATED_CODE_DIR}/include ${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${header_files} ${source_files} ${idl_files} ${doc_files})
-target_link_libraries(${PROJECTNAME} actionPrimitives iKin ctrlLib icubmod ${YARP_LIBRARIES})
+target_link_libraries(${PROJECTNAME} actionPrimitives iKin ctrlLib ${YARP_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER systemMotor)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
