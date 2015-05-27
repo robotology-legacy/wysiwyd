@@ -833,20 +833,25 @@ bool autobiographicalMemory::updateModule() {
                 //concatenation of the storing path
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
-                BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
-                Bottle env;
-                env.addInt(imgInstance);
-                env.addString(bListImages.get(i).asList()->get(1).asString()); // port
-                env.addString(bListImages.get(i).asList()->get(2).asString()); // time
-                env.addString(bListImages.get(i).asList()->get(4).asString()); // frame_number
-                yDebug() << "Envelope: " << env.toString();
-                port->setEnvelope(env);
-                if (atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
-                    timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
-                }
+                try {
+                    BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
+                    Bottle env;
+                    env.addInt(imgInstance);
+                    env.addString(bListImages.get(i).asList()->get(1).asString()); // port
+                    env.addString(bListImages.get(i).asList()->get(2).asString()); // time
+                    env.addString(bListImages.get(i).asList()->get(4).asString()); // frame_number
+                    yDebug() << "Envelope: " << env.toString();
+                    port->setEnvelope(env);
+                    if (atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
+                        timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
+                    }
 
-                yInfo() << "Send image: " << fullPath.str();
-                writeImageToPort(fullPath.str(), port);
+                    yInfo() << "Send image: " << fullPath.str();
+                    writeImageToPort(fullPath.str(), port);
+                } catch (const std::out_of_range& oor) {
+                    yWarning() << "No corresponding port to " << bListImages.get(i).asList()->get(1).asString().c_str();
+                    yWarning() << "Not going to send image for that port!";
+                }
             }
         }
 
