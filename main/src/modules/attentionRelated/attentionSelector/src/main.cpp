@@ -26,17 +26,15 @@
 #include "iCub/attentionSelector.h" 
 #include <yarp/dev/Drivers.h>
 #include <time.h>
-YARP_DECLARE_DEVICES(icubmod)
 
-    using namespace yarp::os;
+using namespace yarp::os;
 using namespace yarp::sig;
 
 
 int main(int argc, char * argv[]) {
     srand((int)time(NULL));
-    YARP_REGISTER_DEVICES(icubmod)
-        /* initialize yarp network */ 
-        Network yarp;
+    /* initialize yarp network */
+    Network yarp;
 
     /* prepare and configure the resource finder */
     ResourceFinder rf;

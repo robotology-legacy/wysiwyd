@@ -37,9 +37,6 @@ using namespace yarp::math;
 using namespace iCub::iKin;
 using namespace iCub::ctrl;
 
-YARP_DECLARE_DEVICES(icubmod);
-
-
 class keyboardBabbling: public RFModule
 {
 private:
@@ -374,8 +371,6 @@ int main(int argc, char *argv[])
         printf("yarp network is not available!\n");
         return -1;
     }
-
-    YARP_REGISTER_DEVICES(icubmod)
 
     ResourceFinder rf;
     rf.setVerbose(true);

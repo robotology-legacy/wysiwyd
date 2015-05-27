@@ -34,8 +34,6 @@
 
 #define EXPLORATION_TOL     5e-3
 
-YARP_DECLARE_DEVICES(icubmod)
-
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::dev;
@@ -648,8 +646,6 @@ int main(int argc, char *argv[])
         printf("yarp network is not available!\n");
         return -1;
     }
-
-    YARP_REGISTER_DEVICES(icubmod)
 
     ResourceFinder rf;
     rf.setDefaultContext("slidingController");

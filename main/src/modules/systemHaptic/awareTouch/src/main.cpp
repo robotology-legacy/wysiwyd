@@ -25,8 +25,6 @@
 #include <iomanip>
 #include <iostream>
 
-YARP_DECLARE_DEVICES(icubmod)
-
 using namespace std;
 using namespace yarp;
 using namespace yarp::os;
@@ -51,8 +49,7 @@ public:
     bool close();
     bool interruptModule();
     double getPeriod();
-    bool updateModule();
-        
+    bool updateModule();    
 };
 
 
@@ -60,50 +57,50 @@ public:
 
 bool AwareTouch::configure(ResourceFinder &rf)
 {  
-   // Defining module
-   string moduleName  = rf.check("name", Value("awareTouch")).asString().c_str();            // Check name of the module
-   setName(moduleName.c_str());                                                                 // Assign this name for ports
-   cout<< "||  Starting config "<< moduleName <<endl;  
-   printf("Naming the module \n");
-   string robot=rf.check("robot",Value("icubSim")).asString().c_str();                    //type of robot   
-   cout<< "||  Robot :"<< robot <<endl;         
-    
-   // port for skin data
-   string rpcName="/" ;
-   rpcName += getName ( rf.check("inPort",Value("/skin_contacts:i")).asString() );               //input port name
- 
-   // port for output events
-   string eventsName="/" ;
-   eventsName += getName ( rf.check("eventPort",Value("/events:o")).asString() );               //events port name
-   cout<< "||  Opening port  :"<< eventsName <<endl;
-   eventsPort.open(eventsName.c_str());
+    // Defining module
+    string moduleName  = rf.check("name", Value("awareTouch")).asString().c_str();            // Check name of the module
+    setName(moduleName.c_str());                                                                 // Assign this name for ports
+    cout<< "||  Starting config "<< moduleName <<endl;
+    printf("Naming the module \n");
+    string robot=rf.check("robot",Value("icubSim")).asString().c_str();                    //type of robot
+    cout<< "||  Robot :"<< robot <<endl;
 
-   string skinManagerName  = rf.check("skinManagerPort", Value("/skinManager/skin_events:o")).asString().c_str();            // Check name of the module
-   string opcName = rf.check("opcName", Value("OPC")).asString().c_str();
- 
-   //Generating a copy of the world from OPC
-   world = new OPCClient("OPCTouch");
-   while(!world->connect(opcName)){
+    // port for skin data
+    string rpcName="/" ;
+    rpcName += getName ( rf.check("inPort",Value("/skin_contacts:i")).asString() );               //input port name
+
+    // port for output events
+    string eventsName="/" ;
+    eventsName += getName ( rf.check("eventPort",Value("/events:o")).asString() );               //events port name
+    cout<< "||  Opening port  :"<< eventsName <<endl;
+    eventsPort.open(eventsName.c_str());
+
+    string skinManagerName  = rf.check("skinManagerPort", Value("/skinManager/skin_events:o")).asString().c_str();            // Check name of the module
+    string opcName = rf.check("opcName", Value("OPC")).asString().c_str();
+
+    //Generating a copy of the world from OPC
+    world = new OPCClient("OPCTouch");
+    while(!world->connect(opcName)){
        cout<< "Trying to connect OPC Server"<<endl;
-   } 
-   cout<< "||  Connected OPC  :" <<endl;
+    }
+    cout<< "||  Connected OPC  :" <<endl;
 
-   // Generating type of gestures 
-   cout<< "||  Reading files of gesture types  ... :" <<endl;               
-   Bottle * gestureTypes=rf.find("gestureTypes").asList();
-   cout<< "||  Gesture types ("<< gestureTypes->size()<<") "<<endl;
+    // Generating type of gestures
+    cout<< "||  Reading files of gesture types  ... :" <<endl;
+    Bottle * gestureTypes=rf.find("gestureTypes").asList();
+    cout<< "||  Gesture types ("<< gestureTypes->size()<<") "<<endl;
 
 
-   //Populating the world with gestures and subjects
-   gestureSet.clear();
+    //Populating the world with gestures and subjects
+    gestureSet.clear();
 
-   string gestureStr; 
-   for (int iGesture=0;iGesture<gestureTypes->size(); iGesture++)   { 
+    string gestureStr;
+    for (int iGesture=0;iGesture<gestureTypes->size(); iGesture++)   {
      gestureStr=(gestureTypes->get(iGesture).asString().c_str() );
      gestureSet.push_back(gestureStr);
      cout<<gestureStr<<endl;
      world->addAdjective(gestureStr);
-   }
+    }
 
     world->addAgent("icub");
     touchLocation = world->addObject("touchLocation");
@@ -113,19 +110,18 @@ bool AwareTouch::configure(ResourceFinder &rf)
     world->addAdjective("none");
    
 
-   // holding time in OPC 
+    // holding time in OPC
     recordingPeriod=rf.check("recordingPeriod",Value(3.0)).asDouble();                    //type of robot   
     cout  << "|| Recording Period is " << recordingPeriod << endl ; 
 
     string pathG(rf.getHomeContextPath().c_str());
 
-
-   cout<< "|| Creating Touch  Thread:" <<endl;
-   estimationThread= new TouchEstimationThread(skinManagerName, rpcName, pathG, gestureSet, 50);
-   cout<< "|| Starting Touch  :" <<endl;
-   estimationThread->start();
-   cout<< "|| Started Touch  :" <<endl;   
-   return true;
+    cout<< "|| Creating Touch  Thread:" <<endl;
+    estimationThread= new TouchEstimationThread(skinManagerName, rpcName, pathG, gestureSet, 50);
+    cout<< "|| Starting Touch  :" <<endl;
+    estimationThread->start();
+    cout<< "|| Started Touch  :" <<endl;
+    return true;
 }
 
 
@@ -157,7 +153,6 @@ bool AwareTouch::updateModule()
 double AwareTouch::getPeriod()
 {
    return 0.2;
-
 }
 
 
@@ -215,8 +210,6 @@ int main(int argc, char *argv[])
     rf.setDefaultContext("awareTouch");
     rf.setDefaultConfigFile("config.ini");
     rf.configure(argc,argv);
-
-    YARP_REGISTER_DEVICES(icubmod)
 
     Network yarp;
     if (!yarp.checkNetwork())
