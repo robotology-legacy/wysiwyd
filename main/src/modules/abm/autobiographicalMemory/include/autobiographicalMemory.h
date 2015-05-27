@@ -179,7 +179,9 @@ public:
     // augmented images stuff
     double augmentedTime;
     double augmentedLastFrameNumber;
+    yarp::os::RpcClient abm2augmented;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portAugmentedImagesIn;
+    void requestAugmentedImages(std::string activityname, int number_of_augmentions);
     void saveAugmentedImages();
     yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages = true);
 

@@ -121,6 +121,7 @@ while(~shouldClose)
             % YARP ABM save            
             submodule_display_save_structure;
 
+            bReply.addString('ack');
             bReply.addString(['Structure learning from ABM #',instance_num, ' is completed!']);
            
         else

@@ -143,35 +143,37 @@ for i=0:num_images-1
     disp(['receive image ', num2str(i)]);
     yarpImage = yarp.ImageRgb;
     yarpImage = portIncoming.read();
-    
-    % save images
-    filename=[sprintf('%04d',i) '.png'];
-    save_path = ['ABM_images/',filename];
-    
-    if (sum(size(yarpImage)) ~= 0) %check size of bottle
-        %disp('got it..');
-        h=yarpImage.height;
-        w=yarpImage.width;
-        pixSize=yarpImage.getPixelSize();
-        tool=YarpImageHelper(h, w);
+
+    if(i+1 >= start_frame_idx & i < last_frame_idx)
+        % save images
+        filename=[sprintf('%04d',i) '.png'];
+        save_path = ['ABM_images/',filename];
+
+        if (sum(size(yarpImage)) ~= 0) %check size of bottle
+            %disp('got it..');
+            h=yarpImage.height;
+            w=yarpImage.width;
+            pixSize=yarpImage.getPixelSize();
+            tool=YarpImageHelper(h, w);
+            
+            IN = tool.getRawImg(yarpImage); %use leo pape image patch
+            TEST = reshape(IN, [h w pixSize]); %need to reshape the matrix from 1D to h w pixelSize
+            matlabImage=uint8(zeros(h, w, pixSize)); %create an empty image with the correct dimentions
+            r = cast(TEST(:,:,1),'uint8');  % need to cast the image from int16 to uint8
+            g = cast(TEST(:,:,2),'uint8');
+            b = cast(TEST(:,:,3),'uint8');
+            matlabImage(:,:,1)= r; % copy the image to the previoulsy create matrix
+            matlabImage(:,:,2)= g;
+            matlabImage(:,:,3)= b;
+        else
+            disp('incorrect image');
+        end
         
-        IN = tool.getRawImg(yarpImage); %use leo pape image patch
-        TEST = reshape(IN, [h w pixSize]); %need to reshape the matrix from 1D to h w pixelSize
-        matlabImage=uint8(zeros(h, w, pixSize)); %create an empty image with the correct dimentions
-        r = cast(TEST(:,:,1),'uint8');  % need to cast the image from int16 to uint8
-        g = cast(TEST(:,:,2),'uint8');
-        b = cast(TEST(:,:,3),'uint8');
-        matlabImage(:,:,1)= r; % copy the image to the previoulsy create matrix
-        matlabImage(:,:,2)= g;
-        matlabImage(:,:,3)= b;
-    else
-        disp('incorrect image');
+        imwrite(matlabImage,save_path);
+        env = yarp.Bottle;
+        portIncoming.getEnvelope(env);
+        bImageMeta_buf{i+1,1} = env.toString();
     end
-    
-    imwrite(matlabImage,save_path);
-    env = yarp.Bottle;
-    portIncoming.getEnvelope(env);
-    bImageMeta_buf{i+1,1} = env.toString();
 end
 
 % for frm_idx = start_frame_idx-1:last_frame_idx-1

@@ -615,6 +615,43 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
     return request(bListImages);
 }
 
+void autobiographicalMemory::requestAugmentedImages(string activityname, int number_of_augmentions) {
+    Bottle bRequest;
+    bRequest.addString("request");
+    ostringstream osRequest;
+    osRequest << "SELECT instance, COUNT(DISTINCT augmented_time) from visualdata WHERE instance IN (";
+    osRequest << "    SELECT instance FROM main WHERE activityname = '" << activityname << "' ";
+    osRequest << "    AND begin='true') ";
+    osRequest << "AND augmented!='' GROUP BY instance ";
+    osRequest << "HAVING count(DISTINCT augmented_time) < " << number_of_augmentions << ";";
+    bRequest.addString(osRequest.str());
+
+    Bottle bResponse = request(bRequest);
+
+    for(int i=0; i<bResponse.size(); i++) {
+        int instance = bResponse.get(i).asList()->get(0).asInt();
+        int existing_number_of_augmentions = bResponse.get(i).asList()->get(1).asInt();
+        Bottle bReqAugmentingModule, bRespAugmentingModule;
+        bReqAugmentingModule.addString("augmentImages");
+        bReqAugmentingModule.addInt(instance);
+
+        //bReqAugmentingModule.addString("startStructureLearning");
+        //bReqAugmentingModule.addInt(instance);
+        //bReqAugmentingModule.addString("left");
+        //bReqAugmentingModule.addInt(0);
+        //bReqAugmentingModule.addInt(50);
+
+        for(int j = existing_number_of_augmentions; j<number_of_augmentions; j++) {
+            abm2augmented.write(bReqAugmentingModule, bRespAugmentingModule);
+            if(bRespAugmentingModule.get(0).asString()=="ack") {
+                yInfo() << "Augmenting for instance " << instance << " at time " << augmentedTime << " was successful";
+            } else {
+                yWarning() << "Did not get positive reply from augmenting module for instance " << instance;
+            }
+        }
+    }
+}
+
 void autobiographicalMemory::saveAugmentedImages() {
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *img_augmented = portAugmentedImagesIn.read(false);
     if (img_augmented != NULL) {

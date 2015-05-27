@@ -88,6 +88,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     portEventsIn.open("/" + getName() + "/request:i");
     handlerPort.open("/" + getName() + "/rpc");
     abm2reasoning.open("/" + getName() + "/to_reasoning");
+    abm2augmented.open("/" + getName() + "/to_augmented");
     portAugmentedImagesIn.open("/" + getName() + "/augmented:i");
     portAugmentedImagesIn.setStrict(true);
 
@@ -114,6 +115,14 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
         for (int i = 0; i < defaultDataStreamProviders->size(); i++) {
             addDataStreamProvider(defaultDataStreamProviders->get(i).toString());
         }
+    }
+
+    //connect to augmented
+    Network::connect(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc");
+    //Network::connect(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc");
+    if(!Network::isConnected(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc")) {
+    //if(!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
+        yWarning("Could not connect to augmention module!");
     }
 
     //sound
@@ -833,7 +842,7 @@ bool autobiographicalMemory::updateModule() {
                 env.addString(bListImages.get(i).asList()->get(1).asString()); // port
                 env.addString(bListImages.get(i).asList()->get(2).asString()); // time
                 env.addString(bListImages.get(i).asList()->get(4).asString()); // frame_number
-                yDebug() << "ENVELOPE: " << env.toString();
+                yDebug() << "Envelope: " << env.toString();
                 port->setEnvelope(env);
                 if (atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
                     timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
@@ -949,6 +958,7 @@ bool autobiographicalMemory::interruptModule()
     handlerPort.interrupt();
     portEventsIn.interrupt();
     abm2reasoning.interrupt();
+    abm2augmented.interrupt();
 
     return true;
 }
@@ -979,6 +989,9 @@ bool autobiographicalMemory::close()
 
     abm2reasoning.interrupt();
     abm2reasoning.close();
+
+    abm2augmented.interrupt();
+    abm2augmented.close();
 
     requestInsertProcessQueue();
     storeImageOIDs();
