@@ -1,0 +1,38 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+	<ID  NAME="feedback10"  VAL="1"/>
+  </DEFINE>
+
+  <RULE  NAME="FEEDBACK"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+    <L>
+		<P>I think</P>
+		<P>It is</P>
+		<P>I give</P>
+    </L>
+    <O>
+		<P> a </P>
+    </O>
+	<RULEREF  NAME="feedback10"/>
+
+  </RULE>
+
+  <RULE NAME="feedback10" DYNAMIC="TRUE">
+    <L>
+		<P>1</P>
+		<P>2</P>
+		<P>3</P>
+		<P>4</P>
+		<P>5</P>
+		<P>6</P>
+		<P>7</P>
+		<P>8</P>
+		<P>9</P>
+		<P>10</P>
+    </L>
+  </RULE>
+
+
+</GRAMMAR>

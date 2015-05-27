@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>abmInteraction</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Spoken Language interaction for ABM related querries (remembering, feedback, ...)</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   Small module to interact easily with the robot related to ABM
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="m.petit@imperial.ac.uk"> Maxime Petit </author>
+   </authors>
+   
+</module>
+
