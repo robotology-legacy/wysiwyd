@@ -301,12 +301,12 @@ bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPo
     return true;
 }
 
-Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, string robotName)
+Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, const string &robotName, const vector<string> &desired_augmented_times)
 {
     Bottle bReply;
     realtimePlayback = timingE;
     speedMultiplier = speedM;
-    openImgStreamPorts(instance, includeAugmented);
+    openImgStreamPorts(instance, includeAugmented, desired_augmented_times);
     openDataStreamPorts(instance, robotName);
     // make sure images are stored in ABM before saving them
     storeImageOIDs(instance);
@@ -359,7 +359,7 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
     return bReply;
 }
 
-int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugmented)
+int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugmented, const vector<string> &desired_times)
 {
     Bottle bRequest;
     ostringstream osArg;
@@ -378,9 +378,19 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
         mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
         mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
 
-        if (includeAugmented || (!includeAugmented && augmented == "")) {
+        if (!includeAugmented && augmented == "") {
             //yDebug() << "Connect " << portPrefixForStreaming+imgProviderPort << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
             Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
+        } else if(includeAugmented) {
+            if(!desired_times.empty()) {
+                size_t pos = std::find(desired_times.begin(), desired_times.end(), augmented_time) - desired_times.begin();
+                stringstream ss; ss << pos; string pos_str = ss.str();
+                if(pos < desired_times.size()) {
+                    Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str, "tcp");
+                }
+            } else {
+                Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
+            }
         }
     }
 

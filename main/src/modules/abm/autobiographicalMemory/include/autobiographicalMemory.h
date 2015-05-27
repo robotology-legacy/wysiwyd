@@ -19,20 +19,25 @@
 #ifndef _AUTOBIOGRAPHICALMEMORY_
 #define _AUTOBIOGRAPHICALMEMORY_
 
+#include <stdio.h>
+#include <map>
+#include <vector>
+
 #ifdef BOOST_AVAILABLE
 #include <boost/thread.hpp>
 #endif
 
-#include <db/PostgreSQL.h>
-#include "wrdac/clients/opcEars.h"
 #include <yarp/os/all.h>
+
+#include <db/PostgreSQL.h>
 #include <cv.h>
 #include <highgui.h>
-#include <stdio.h>
-#include <map>
+
 #ifdef __linux__
 #include <sys/stat.h>
 #endif
+
+#include "wrdac/clients/opcEars.h"
 
 const std::string s_real_OPC = "OPC";
 const std::string s_mental_OPC = "mentalOPC";
@@ -115,7 +120,7 @@ public:
 
     bool sendStreamIsInitialized;
 
-    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback, bool includeAugmented, double speedM, std::string robotName);
+    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback, bool includeAugmented, double speedM, const std::string& robotName, const std::vector<std::string> &desired_augmented_times = std::vector<std::string>());
 
     // maps to receive / send images
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamPortOut;
@@ -159,7 +164,7 @@ public:
     yarp::os::Bottle listImgStreamProviders();
     yarp::os::Bottle listDataStreamProviders();
 
-    int openImgStreamPorts(int instance, bool includeAugmented = true);
+    int openImgStreamPorts(int instance, bool includeAugmented = true, const std::vector<std::string> &desired_times = std::vector<std::string>());
     yarp::os::Bottle connectToImgStreamProviders();
     yarp::os::Bottle disconnectFromImgStreamProviders();
     int openDataStreamPorts(int instance, std::string robotName = "icubSim");

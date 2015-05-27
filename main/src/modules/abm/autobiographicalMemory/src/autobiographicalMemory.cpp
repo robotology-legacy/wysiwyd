@@ -564,6 +564,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bool includeAugmented = true;
                 double speedMultiplier = 1.0;
                 string robot = "icubSim";
+                vector<string> desiredTimes;
 
                 Value vRealtime = bCommand.find("realtime");
                 if (!vRealtime.isNull() && vRealtime.isInt()) {
@@ -585,13 +586,21 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     robot = vRobot.asString();
                 }
 
+                Bottle bDesiredTimes = bCommand.findGroup("augmentedTimes");
+                if(!bDesiredTimes.isNull() && bDesiredTimes.size() > 1) {
+                    for(int i = 1; i < bDesiredTimes.size(); i++) {
+                        desiredTimes.push_back(bDesiredTimes.get(i).asString());
+                        yDebug() << "Push " << bDesiredTimes.get(i).asString() << " to desiredTimes";
+                    }
+                }
+
                 yDebug() << "instance: " << imgInstance;
                 yDebug() << "realtime: " << realtime;
                 yDebug() << "includeAugmented: " << includeAugmented;
                 yDebug() << "speedMultiplier: " << speedMultiplier;
                 yDebug() << "robot: " << robot;
 
-                bReply = triggerStreaming(imgInstance, realtime, includeAugmented, speedMultiplier, robot);
+                bReply = triggerStreaming(imgInstance, realtime, includeAugmented, speedMultiplier, robot, desiredTimes);
             }
             else
             {
