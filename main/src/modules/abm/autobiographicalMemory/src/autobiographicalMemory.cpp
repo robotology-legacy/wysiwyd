@@ -29,6 +29,7 @@
 #endif
 
 #include "autobiographicalMemory.h"
+#include <limits>
 
 using namespace yarp::sig;
 using namespace yarp::os;
@@ -77,6 +78,9 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     imgInstance = -1;
     frameNb = 0;
     sendStreamIsInitialized = false;
+
+    augmentedTime = 0;
+    augmentedLastFrameNumber = std::numeric_limits<int>::max();
 
     shouldClose = false;
     bPutObjectsOPC = false;

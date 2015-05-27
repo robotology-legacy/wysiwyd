@@ -628,6 +628,15 @@ void autobiographicalMemory::saveAugmentedImages() {
         int frame_number = atoi(frameNumberString.c_str());
         string augmentedLabel = env.get(4).asString();
 
+        // this is a way to keep track when the first
+        // augmented image was sent
+        // it is reset as soon as the frame number received
+        // is smaller than the last frame number which was received
+        if(frame_number < augmentedLastFrameNumber) {
+            augmentedTime = yarp::os::Time::now();
+        }
+        augmentedLastFrameNumber = frame_number;
+
         yDebug() << "instance: " << instance;
         yDebug() << "port: " << providerPort;
         yDebug() << "time: " << time;
@@ -664,7 +673,7 @@ void autobiographicalMemory::saveAugmentedImages() {
         ostringstream osArg;
 
         bRequest.addString("request");
-        osArg << "INSERT INTO visualdata(instance, frame_number, relative_path, time, img_provider_port, img_oid, augmented) VALUES (" << instance << ", '" << frame_number << "', '" << relativePath << "', '" << time << "', '" << fullProviderPort << "', '" << img_oid << "', '" << augmentedLabel << "');";
+        osArg << "INSERT INTO visualdata(instance, frame_number, relative_path, time, img_provider_port, img_oid, augmented, augmented_time) VALUES (" << instance << ", '" << frame_number << "', '" << relativePath << "', '" << time << "', '" << fullProviderPort << "', '" << img_oid << "', '" << augmentedLabel << "', '" << augmentedTime << "');";
         bRequest.addString(osArg.str());
         request(bRequest);
     }

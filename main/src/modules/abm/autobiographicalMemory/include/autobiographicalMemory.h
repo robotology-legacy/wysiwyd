@@ -177,6 +177,8 @@ public:
     yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference, std::string port);
 
     // augmented images stuff
+    double augmentedTime;
+    double augmentedLastFrameNumber;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portAugmentedImagesIn;
     void saveAugmentedImages();
     yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages = true);
