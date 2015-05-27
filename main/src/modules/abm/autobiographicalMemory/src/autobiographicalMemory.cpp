@@ -834,12 +834,19 @@ bool autobiographicalMemory::updateModule() {
                 stringstream fullPath;
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
                 try {
-                    BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(bListImages.get(i).asList()->get(1).asString().c_str());
+                    string portname = bListImages.get(i).asList()->get(1).asString();
+                    string time = bListImages.get(i).asList()->get(2).asString();
+                    string frame_number = bListImages.get(i).asList()->get(4).asString();
+                    string augmented = bListImages.get(i).asList()->get(5).asString();
+                    string augmented_time = bListImages.get(i).asList()->get(6).asString();
+                    string concatenated_port = portname + augmented + augmented_time;
+
+                    BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(concatenated_port);
                     Bottle env;
                     env.addInt(imgInstance);
-                    env.addString(bListImages.get(i).asList()->get(1).asString()); // port
-                    env.addString(bListImages.get(i).asList()->get(2).asString()); // time
-                    env.addString(bListImages.get(i).asList()->get(4).asString()); // frame_number
+                    env.addString(portname);
+                    env.addString(time);
+                    env.addString(frame_number);
                     yDebug() << "Envelope: " << env.toString();
                     port->setEnvelope(env);
                     if (atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
@@ -849,6 +856,8 @@ bool autobiographicalMemory::updateModule() {
                     yInfo() << "Send image: " << fullPath.str();
                     writeImageToPort(fullPath.str(), port);
                 } catch (const std::out_of_range& oor) {
+                    // This should never happen, as openImgStreamPorts opens ALL ports related to an instance
+                    // and just connects to the ones which are wanted, but the port still exists
                     yWarning() << "No corresponding port to " << bListImages.get(i).asList()->get(1).asString().c_str();
                     yWarning() << "Not going to send image for that port!";
                 }

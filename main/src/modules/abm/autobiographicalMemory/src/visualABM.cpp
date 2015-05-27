@@ -365,18 +365,22 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT img_provider_port, augmented FROM visualdata WHERE instance = " << instance << endl;
+    osArg << "SELECT DISTINCT img_provider_port, augmented, augmented_time FROM visualdata WHERE instance = " << instance << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
     for (int i = 0; i < bRequest.size() && bRequest.toString() != "NULL"; i++) {
         string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
-        mapImgStreamPortOut[imgProviderPort] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
-        mapImgStreamPortOut[imgProviderPort]->open((portPrefixForStreaming + imgProviderPort).c_str());
+        string augmented = bRequest.get(i).asList()->get(1).asString();
+        string augmented_time = bRequest.get(i).asList()->get(2).asString();
+        string concatenated_port = imgProviderPort + augmented + augmented_time;
 
-        if (includeAugmented || (!includeAugmented && bRequest.get(i).asList()->get(1).asString() == "")) {
+        mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+        mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
+
+        if (includeAugmented || (!includeAugmented && augmented == "")) {
             //yDebug() << "Connect " << portPrefixForStreaming+imgProviderPort << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
-            Network::connect(portPrefixForStreaming + imgProviderPort, "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
+            Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
         }
     }
 
@@ -599,7 +603,7 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
     osArgImages << "WITH data AS (";
     osArgImages << "SELECT * FROM (";
     osArgImages << "SELECT relative_path, img_provider_port, time, ";
-    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM visualdata WHERE instance = '" << imgInstance << "')) * 1000000 as INT) as time_difference, frame_number ";
+    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM visualdata WHERE instance = '" << imgInstance << "')) * 1000000 as INT) as time_difference, frame_number, augmented, augmented_time ";
     osArgImages << "FROM visualdata WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
     if (realtimePlayback) {
         osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << "), ";
