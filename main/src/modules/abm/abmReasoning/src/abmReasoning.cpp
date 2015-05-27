@@ -5299,7 +5299,7 @@ Bottle abmReasoning::getKnowledge()
     }
     else
     {
-        for (unsigned int ii = 0; ii < bAdjectiveKnowledge.size(); ii++)
+        for (int ii = 0; ii < bAdjectiveKnowledge.size(); ii++)
         {
 
             cout << bAdjectiveKnowledge.get(ii).asList()->toString() << endl;
