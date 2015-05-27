@@ -13,6 +13,8 @@ private:
     string      nameGrammarSentenceTemporal;
     string      nameGrammarYesNo;
     string		nameGrammarNodeTrainAP;
+    string      testMax1;
+    string		testMax2;
 
     yarp::os::Port Port2abmReasoning;       // a port to communicate with the reasoning module
 
@@ -40,6 +42,7 @@ public:
 
     Bottle calibrationRT(std::string side);
     void    nodeSentenceTemporal();
+    void    nodeTest();
     bool nodeYesNo();
 
     //RPC & scenarios

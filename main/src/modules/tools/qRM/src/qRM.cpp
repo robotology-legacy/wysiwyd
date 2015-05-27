@@ -38,6 +38,7 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     nameGrammarSentenceTemporal = rf.findFileByName(rf.check("nameGrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
     nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
     nameGrammarNodeTrainAP = rf.findFileByName(rf.check("nameGrammarNodeTrainAP.xml", Value("nameGrammarNodeTrainAP.xml")).toString());
+    testMax1 = rf.findFileByName(rf.check("hFeedback.xml", Value("hFeedback.xml")).toString());
 
 
     cout << moduleName << ": finding configuration files..." << endl;
@@ -86,7 +87,7 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
 
     //    populateOpc();
 
-    nodeSentenceTemporal();
+    nodeTest();
 
     return true;
 }
@@ -370,6 +371,68 @@ void    qRM::mainLoop()
         cout << "bMessenger is : " << bMessenger.toString() << endl;
 
     }
+}
+
+
+void    qRM::nodeTest()
+{
+    ostringstream osError;          // Error message
+
+    iCub->say("Yep ?");
+    cout << "Yep ? " << endl;
+
+    Bottle bOutput;
+
+    //bool fGetaReply = false;
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic, // semantic information of the content of the recognition
+        bSendReasoning, // send the information of recall to the abmReasoning
+        bMessenger; //to be send TO speech recog
+
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(testMax1), 20);
+
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        return;
+    }
+
+    bAnswer = *bRecognized.get(1).asList();
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+
+    if (bAnswer.get(0).asString() == "stop")
+    {
+        osError.str("");
+        osError << " | STOP called";
+        bOutput.addString(osError.str());
+        cout << osError.str() << endl;
+    }
+
+    yInfo() << " bRecognized " << bRecognized.toString();
+
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarYesNo), 20);
+
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        return;
+    }
+
+    bAnswer = *bRecognized.get(1).asList();
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+
+    if (bAnswer.get(0).asString() == "stop")
+    {
+        osError.str("");
+        osError << " | STOP called";
+        bOutput.addString(osError.str());
+        cout << osError.str() << endl;
+    }
+
+    yInfo() << " bRecognized " << bRecognized.toString();
+
+    nodeTest();
 }
 
 void    qRM::nodeSentenceTemporal()

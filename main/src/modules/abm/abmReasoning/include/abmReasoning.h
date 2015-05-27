@@ -118,19 +118,13 @@ public:
 
 
     // finding function
-    yarp::os::Bottle findAllActions();
-    yarp::os::Bottle findAllBehaviors();
-    yarp::os::Bottle findAllComplex();
-    yarp::os::Bottle findAllSentence();
-    yarp::os::Bottle findAllSharedPlan();
-    yarp::os::Bottle findAllInteractions();
-    yarp::os::Bottle findAllActions(int from);
-    yarp::os::Bottle findAllActionsV2(int from);
-    yarp::os::Bottle findAllBehaviors(int from);
-    yarp::os::Bottle findAllComplex(int from);
-    yarp::os::Bottle findAllSentence(int from);
-    yarp::os::Bottle findAllSharedPlan(int from);
-    yarp::os::Bottle findAllInteractions(int from);
+    yarp::os::Bottle findAllActions(int from = 0);
+    yarp::os::Bottle findAllActionsV2(int from = 0);
+    yarp::os::Bottle findAllBehaviors(int from = 0);
+    yarp::os::Bottle findAllComplex(int from = 0);
+    yarp::os::Bottle findAllSentence(int from = 0);
+    yarp::os::Bottle findAllSharedPlan(int from = 0);
+    yarp::os::Bottle findAllInteractions(int from = 0);
 
     //find possible plan into list action
     yarp::os::Bottle findPossibleSharedPlan(int, int);
@@ -173,8 +167,7 @@ public:
     yarp::os::Bottle addTimeKnowledge(yarp::os::Bottle bInput);
     plan addPlan(plan pInput);
     yarp::os::Bottle addSharedPlan(plan pInput);
-    yarp::os::Bottle resetKnowledge();
-    yarp::os::Bottle resetKnowledge(int from);
+    yarp::os::Bottle resetKnowledge(int from = 0);
     yarp::os::Bottle reasoningFrom(int instance);
     yarp::os::Bottle getKnowledge();
     yarp::os::Bottle updateKnownLocations();
@@ -192,10 +185,8 @@ public:
 
 
     // RETRO REASONING
-    yarp::os::Bottle  retroReasoning();
-    yarp::os::Bottle  level3Reasoning();
-    yarp::os::Bottle  retroReasoning(int from);
-    yarp::os::Bottle  level3Reasoning(int from);
+    yarp::os::Bottle  retroReasoning(int from = 0);
+    yarp::os::Bottle  level3Reasoning(int from = 0);
 
     //print functions
     yarp::os::Bottle printPDDLContextualKnowledgeDomain();

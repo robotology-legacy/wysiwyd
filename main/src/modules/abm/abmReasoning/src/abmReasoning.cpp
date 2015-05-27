@@ -2164,11 +2164,6 @@ Bottle abmReasoning::renameAction(Bottle bInput)
 * Find all the different complex, and put the consequence in the listTimeKnowledge
 * TODO
 */
-Bottle abmReasoning::findAllComplex()
-{
-    return findAllComplex(0);
-}
-
 Bottle abmReasoning::findAllComplex(int from)
 {
     std::cout << endl << "Creating temporal knowledge from complex." << endl;
@@ -2216,11 +2211,6 @@ Bottle abmReasoning::findAllComplex(int from)
 * Add all the action in the ABM chronologicaly
 *
 */
-Bottle abmReasoning::findAllActions()
-{
-    return findAllActions(0);
-}
-
 Bottle abmReasoning::findAllActions(int from)
 {
     std::cout << endl << "Getting actions." << endl;
@@ -2624,11 +2614,6 @@ Bottle abmReasoning::findAllActionsV2(int from)
 * Add all the sentences in the ABM chronologicaly
 *
 */
-Bottle abmReasoning::findAllSentence()
-{
-    return findAllSentence(0);
-}
-
 Bottle abmReasoning::findAllSentence(int from)
 {
     std::cout << endl << "Getting sentence." << endl;
@@ -2670,11 +2655,6 @@ Bottle abmReasoning::findAllSentence(int from)
 * Find all the different behavior, and put the consequence in the listBehavior
 * TODO
 */
-Bottle abmReasoning::findAllBehaviors()
-{
-    return findAllBehaviors(0);
-}
-
 Bottle abmReasoning::findAllBehaviors(int from)
 {
     std::cout << endl << "Creating drives knowledge from behaviors" << endl;
@@ -2739,11 +2719,6 @@ Bottle abmReasoning::askLastActivity(Bottle bInput)
 * Find all the different sharedPlan, and put the consequence in the listSharedPlan
 * TODO
 */
-Bottle abmReasoning::findAllSharedPlan()
-{
-    return findAllSharedPlan(0);
-}
-
 Bottle abmReasoning::findAllSharedPlan(int from)
 {
     std::cout << endl << "Getting known shared plans." << endl;
@@ -3049,11 +3024,6 @@ Bottle abmReasoning::findPossibleSharedPlan(int beginLastAction, int endLastActi
 * Add all the action in the ABM chronologicaly
 *
 */
-Bottle abmReasoning::findAllInteractions()
-{
-    return findAllInteractions(0);
-}
-
 Bottle abmReasoning::findAllInteractions(int from)
 {
     std::cout << "Getting interactions." << endl;
@@ -5206,12 +5176,6 @@ Bottle abmReasoning::addBehavior(behavior beInput)
 /**
 * Take all the acttivities in the database and build the spatial and time knowledges
 */
-Bottle abmReasoning::resetKnowledge()
-{
-    return resetKnowledge(0);
-}
-
-
 Bottle abmReasoning::resetKnowledge(int from)
 {
 
@@ -6273,13 +6237,6 @@ Bottle  abmReasoning::askWordKnowledge(Bottle bInput)
 
 
 
-Bottle abmReasoning::retroReasoning()
-{
-    return retroReasoning(0);
-}
-
-
-
 /////             RETRO REASONING
 
 /**
@@ -6325,12 +6282,6 @@ Bottle abmReasoning::retroReasoning(int from)
 * Third level of retro Reasoning
 * Building of the map of properties
 */
-
-Bottle abmReasoning::level3Reasoning()
-{
-    return level3Reasoning(0);
-}
-
 Bottle abmReasoning::level3Reasoning(int from)
 {
     Bottle bOutput;
@@ -6357,9 +6308,9 @@ Bottle abmReasoning::level3Reasoning(int from)
         string sName = bName.get(0).toString().c_str(),
             sArgument = bName.get(1).toString().c_str();
 
-        std::cout << "bName : \t" << bName.toString() << endl;
-        std::cout << "bRelationsBefore : \t" << bRelationsBefore.toString() << endl;
-        std::cout << "bRelationsAfter  : \t" << bRelationsAfter.toString() << endl;
+        yInfo() << " bName : \t" << bName.toString();
+        yInfo() << " bRelationsBefore : \t" << bRelationsBefore.toString();
+        yInfo() << " bRelationsAfter  : \t" << bRelationsAfter.toString();
 
         // Before
         vector<string>  vLocFocusBefore, vLocFocusAfter;       // Vector with the location of the focus object
