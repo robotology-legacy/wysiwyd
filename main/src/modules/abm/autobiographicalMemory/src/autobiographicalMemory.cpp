@@ -196,7 +196,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /****************************** Main Table ******************************/
     *ABMDataBase << "DROP TABLE IF EXISTS main CASCADE;";
-    *ABMDataBase << "CREATE TABLE main(idActivity serial NOT NULL, time timestamp without time zone NOT NULL,activityname text, activitytype text, instance integer NOT NULL UNIQUE, opcname text, begin boolean NOT NULL,CONSTRAINT main_pkey PRIMARY KEY (time)) WITH (OIDS=FALSE);";
+    *ABMDataBase << "CREATE TABLE main(idActivity serial NOT NULL, time timestamp without time zone NOT NULL,activityname text, activitytype text, instance integer NOT NULL UNIQUE, opcname text DEFAULT 'OPC'::text, begin boolean NOT NULL,CONSTRAINT main_pkey PRIMARY KEY (time)) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE main OWNER TO postgres;";
 
     /**************************** contentopc Table **************************/
@@ -358,6 +358,12 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     *ABMDataBase << "DROP TABLE IF EXISTS sounddata CASCADE;";
     *ABMDataBase << "CREATE TABLE sounddata(\"time\" timestamp without time zone NOT NULL, snd_provider_port text NOT NULL, instance integer NOT NULL, relative_path text, snd_oid oid, CONSTRAINT snd_pkey PRIMARY KEY (\"time\", snd_provider_port), CONSTRAINT sound_instance_fkey FOREIGN KEY (instance) REFERENCES main (instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH (  OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE sounddata OWNER TO postgres;";
+
+    /****************************** sentencedata *************************/
+    *ABMDataBase << "DROP TABLE IF EXISTS sentencedata CASCADE;";
+    *ABMDataBase << "CREATE TABLE sentencedata ( instance integer NOT NULL, word text, \"role\" text, \"level\" integer NOT NULL, CONSTRAINT sentencedata_pkey PRIMARY KEY(instance, level), CONSTRAINT sentencedata_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION ) WITH(OIDS = FALSE);";
+    *ABMDataBase << "ALTER TABLE sentencedata OWNER TO postgres;";
+
 
     string sFilename;
 
