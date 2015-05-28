@@ -40,7 +40,7 @@ namespace wysiwyd{
                 // paste master name of 
                 SubABM = new SubSystem_ABM("from_recog");
                 ABMconnected = (SubABM->Connect());
-                yInfo() << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM") ;
+                yInfo() << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM");
                 return yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
             }
             SubSystem_ABM* SubABM;
@@ -88,20 +88,20 @@ namespace wysiwyd{
                 bMessenger.addString("grammarXML");
                 bMessenger.addString(sInput);
 
-                int loop = 0;
-
+                int loop;
+                (iLoop == -1) ? loop = -3 : loop = 0;
                 while (!fGetaReply && loop < iLoop)
                 {
                     portRPC.write(bMessenger, bReply);
 
-                    yInfo() << " Reply from Speech Recog : " << bReply.toString() ;
+                    yInfo() << " Reply from Speech Recog : " << bReply.toString();
 
                     if (bReply.toString() == "NACK" || bReply.size() != 2)
                     {
                         bOutput.addInt(0);
                         osError << "Check grammar";
                         bOutput.addString(osError.str());
-                        yError() << " " << osError.str() ;
+                        yError() << " " << osError.str();
                         return bOutput;
                     }
 
@@ -110,7 +110,7 @@ namespace wysiwyd{
                         bOutput.addInt(0);
                         osError << "Grammar not recognized";
                         bOutput.addString(osError.str());
-                        yInfo() << " " <<  osError.str() ;
+                        yInfo() << " " << osError.str();
                         return bOutput;
                     }
 
@@ -138,7 +138,8 @@ namespace wysiwyd{
                         }
 
                     }
-                    loop++;
+                    if (iLoop != -1)
+                        loop++;
                 }
 
                 if (!fGetaReply)
@@ -146,7 +147,7 @@ namespace wysiwyd{
                     bOutput.addInt(0);
                     osError << "no vocal input";
                     bOutput.addString(osError.str());
-                    yError() << " " << osError.str() ;
+                    yError() << " " << osError.str();
                 }
 
                 return bOutput;
