@@ -860,7 +860,7 @@ Bottle interlocutor::imagineOPC(int Id)
     Bottle bOutput,
         bMessenger;
 
-    yInfo() << "\t" << " in imagination"  ;
+    yInfo() << "\t" << "in imagination"  ;
 
     if (!mentalOPC->isConnected())
     {
@@ -893,7 +893,7 @@ Bottle interlocutor::imagineOPC(int Id)
     }
 
     mentalOPC->commit();
-    Time::delay(0.2);
+    Time::delay(0.1);
     mentalOPC->clear();
     mentalOPC->checkout();
 

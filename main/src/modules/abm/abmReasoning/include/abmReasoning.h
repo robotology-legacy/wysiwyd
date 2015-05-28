@@ -36,13 +36,12 @@ private:
     std::vector<behavior>                listBehaviors;
     std::vector<contextualKnowledge>     listContextualKnowledge;
     std::vector<knownInteraction>        listKnownInteraction;
-    std::vector<adjKnowledge>				 listKnownAdverb;
-    std::map<std::string, std::pair<std::vector<double>, std::vector<double> > >    mapLocation;                    //  known durable locations
+    std::vector<adjKnowledge>            listKnownAdverb;
+    std::map<std::string, std::vector<std::pair<double, double > > >    mapLocation;                    //  known durable locations
     std::map<std::string, std::tuple<std::string, std::vector<double>, std::vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
     wordKnowledge                    WordKnowledge;
 
-    void			determineTimingInfluence(adjKnowledge &adjInput);
 
     //PDDL planner variable
     std::string      plannerPath;
@@ -75,6 +74,7 @@ private:
 
 
 public:
+    void			determineTimingInfluence(adjKnowledge &adjInput);
 
     abmReasoning(yarp::os::ResourceFinder &rf);
     ~abmReasoning();

@@ -158,7 +158,7 @@ void adjKnowledge::determineSpatialInfluence()
 
     fFromInfluence = fAbsolutInfluence && fDeltaInfluence;
 
-    if (fDeltaInfluence || fAbsolutInfluence)
+    if (fDeltaInfluence && fAbsolutInfluence)
         return;
 
     // 2 if no influence, check action by action
@@ -192,7 +192,6 @@ void adjKnowledge::determineSpatialInfluence()
 }
 
 
-
 // Check the effect of each adjverb.
 // if spatial:
 //	//	if absolute: return (absolute X Y)
@@ -201,7 +200,6 @@ void adjKnowledge::determineSpatialInfluence()
 Bottle adjKnowledge::getEffect(string sAction)
 {
     Bottle bOutput;
-    determineSpatialInfluence();
 
     // if the adverb is temporal:
     if (fTimingInfluence)
@@ -220,6 +218,8 @@ Bottle adjKnowledge::getEffect(string sAction)
         bOutput.addDouble(dDelay);
         return bOutput;
     }
+
+    determineSpatialInfluence();
 
     // if the adverb is spatial
     if (fAbsolutInfluence)
@@ -242,19 +242,22 @@ Bottle adjKnowledge::getEffect(string sAction)
         }
         else
         {
-            double X = 0, Y = 0;
-            for (vector<pair<double, double> >::iterator it = mActionAbsolut[sAction].begin(); it != mActionAbsolut[sAction].end(); it++)
+            if (mActionAbsolut[sAction].size() > 2)
             {
-                X += it->first;
-                Y += it->second;
-            }
-            X /= mActionAbsolut[sAction].size();
-            Y /= mActionAbsolut[sAction].size();
+                double X = 0, Y = 0;
+                for (vector<pair<double, double> >::iterator it = mActionAbsolut[sAction].begin(); it != mActionAbsolut[sAction].end(); it++)
+                {
+                    X += it->first;
+                    Y += it->second;
+                }
+                X /= mActionAbsolut[sAction].size();
+                Y /= mActionAbsolut[sAction].size();
 
-            bOutput.addString("absolute");
-            bOutput.addDouble(X);
-            bOutput.addDouble(Y);
-            return bOutput;
+                bOutput.addString("absolute");
+                bOutput.addDouble(X);
+                bOutput.addDouble(Y);
+                return bOutput;
+            }
         }
     }
 
@@ -272,26 +275,29 @@ Bottle adjKnowledge::getEffect(string sAction)
             X /= vdGnlDelta.size();
             Y /= vdGnlDelta.size();
 
-            bOutput.addString("absolute");
+            bOutput.addString("relative");
             bOutput.addDouble(X);
             bOutput.addDouble(Y);
             return bOutput;
         }
         else
         {
-            double X = 0, Y = 0;
-            for (vector<pair<double, double> >::iterator it = mActionDelta[sAction].begin(); it != mActionDelta[sAction].end(); it++)
+            if (mActionDelta[sAction].size() > 2)
             {
-                X += it->first;
-                Y += it->second;
-            }
-            X /= mActionDelta[sAction].size();
-            Y /= mActionDelta[sAction].size();
+                double X = 0, Y = 0;
+                for (vector<pair<double, double> >::iterator it = mActionDelta[sAction].begin(); it != mActionDelta[sAction].end(); it++)
+                {
+                    X += it->first;
+                    Y += it->second;
+                }
+                X /= mActionDelta[sAction].size();
+                Y /= mActionDelta[sAction].size();
 
-            bOutput.addString("absolute");
-            bOutput.addDouble(X);
-            bOutput.addDouble(Y);
-            return bOutput;
+                bOutput.addString("relative");
+                bOutput.addDouble(X);
+                bOutput.addDouble(Y);
+                return bOutput;
+            }
         }
     }
 
@@ -300,4 +306,5 @@ Bottle adjKnowledge::getEffect(string sAction)
 
     return bOutput;
 }
+
 

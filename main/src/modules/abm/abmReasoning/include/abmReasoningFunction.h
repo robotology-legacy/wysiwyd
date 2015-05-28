@@ -112,10 +112,12 @@ public:
     static std::vector<double> getCovMatrix(std::vector<double> vX, std::vector<double> vY);
 
     static double getMahalaDist(std::vector<double> vX, std::vector<double> vY, std::pair<double, double> XY);
+    static double getMahalaDist(std::vector<std::pair<double, double> > vData, std::pair<double, double> XY);
 
     static std::tuple<int, int, int> tupleIntFromString(std::string sInput);
     static std::tuple<double, double, double> tupleDoubleFromString(std::string sInput);
-
+  
+    
     static void studentttest2(/* Real    */ std::vector<double> x,
         /* Real    */ std::vector<double> y,
         double* bothtails,
@@ -224,6 +226,7 @@ public:
         *lefttail = p;
         *righttail = 1 - p;
     }
+
 
 
     static double studenttdistribution(int k, double t)

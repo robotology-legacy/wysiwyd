@@ -76,8 +76,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
     bestSol = -1;
 
-    yInfo() << "\n \n"  << "----------------------------------------------";
-    yInfo() << "\n \n" << "abmReasoning ready ! \n \n ";
+    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << "abmReasoning ready ! \n \n ";
 
     bReady = true;
 
@@ -2535,7 +2534,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
             if (file_time){
                 for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
                 {
-                    file_time << *itD  ;
+                    file_time << *itD << endl;
                 }
                 yInfo() << "\t" << "file_time " << filepath_time << " written"  ;
             }
@@ -2552,7 +2551,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
             if (file_space)
             {
-                file_space << "X\tY\tDX\tDY"  ;
+                file_space << "X\tY\tDX\tDY" << endl;
 
                 if (it->vdGnlDelta.size() != it->vdGnlXY.size())
                 {
@@ -2562,7 +2561,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
                 {
                     for (unsigned int i = 0; i < it->vdGnlDelta.size(); i++)
                     {
-                        file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second  ;
+                        file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
                     }
                 }
                 yInfo() << "\t" << "file " << filepath_space << " written"  ;
@@ -2581,18 +2580,18 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
                     ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
-                    file_space_verb << "X\tY\tVerb"  ;
+                    file_space_verb << "X\tY\tVerb" << endl;
 
                     for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
                     {
                         for (unsigned int i = 0; i < itMap->second.size(); i++)
                         {
-                            file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY"  ;
+                            file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
                         }
 
                         for (unsigned int i = 0; i < itMap->second.size(); i++)
                         {
-                            file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA"  ;
+                            file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
                         }
 
                         yInfo() << "\t" << "file_space_verb " << filepath_space_verb << " written"  ;
@@ -3710,13 +3709,13 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 
     abmReasoningFunction::studentttest2(adjInput.vdGnlTiming, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
 
-    yInfo() << "\t" << adjInput.sLabel << " bothtails: " << adjInput.bothtails  ;
-    yInfo() << "\t" << "lefttail : " << adjInput.lefttail  ;
-    yInfo() << "\t" << "righttail: " << adjInput.righttail  ;
+    yInfo() << "\t" << adjInput.sLabel << "\t bothtails: " << adjInput.bothtails  ;
+    yInfo() << "\t\t\t " << "lefttail : " << adjInput.lefttail  ;
+    yInfo() << "\t\t\t " << "righttail: " << adjInput.righttail  ;
 
 
     // if from a general point of view, the adjective influence the timing
-    if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
+    if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING || 1 - adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
     {
         adjInput.fTimingInfluence = true;
         return;
@@ -4627,66 +4626,66 @@ void abmReasoning::printSpatialKnowledge()
 
 /*
 * Check for each action is their is a context linked to the known location
+* TODO change
 */
 void abmReasoning::checkContextLocation()
 {
 
-    Bottle bOutput;
-    mapLocation.clear();
+    //mapLocation.clear();
 
-    for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
-    {
-        // Is the spatialKnowledge absolut (put) or relative (push)
-        if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
-        {
-            pair <vector <double>, vector<double> > vData;
-            vData.first = it->vX;
-            vData.second = it->vY;
-            mapLocation[it->sArgument] = vData;
-        }
-    }
+    //for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
+    //{
+    //    // Is the spatialKnowledge absolut (put) or relative (push)
+    //    if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
+    //    {
+    //        pair <vector <double>, vector<double> > vData;
+    //        vData.first = it->vX;
+    //        vData.second = it->vY;
+    //        mapLocation[it->sArgument] = vData;
+    //    }
+    //}
 
-    // for kind of action :
-    for (vector<spatialKnowledge>::iterator itSK = listSpatialKnowledge.begin(); itSK != listSpatialKnowledge.end(); itSK++)
-    {
-        int iNbOccurence = itSK->vX.size();
+    //// for kind of action :
+    //for (vector<spatialKnowledge>::iterator itSK = listSpatialKnowledge.begin(); itSK != listSpatialKnowledge.end(); itSK++)
+    //{
+    //    int iNbOccurence = itSK->vX.size();
 
-        // search for the CK associated
-        for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
-        {
-            // CK associated found
-            if (itCK->sArgument == itSK->sArgument && itCK->sName == itSK->sName)
-            {
+    //    // search for the CK associated
+    //    for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
+    //    {
+    //        // CK associated found
+    //        if (itCK->sArgument == itSK->sArgument && itCK->sName == itSK->sName)
+    //        {
 
-                // For each move
-                for (int Oc = 0; Oc < iNbOccurence; Oc++)
-                {
-                    // get the coordinates
-                    pair<double, double>    BEFORE(itSK->vX[Oc] - itSK->vDX[Oc], itSK->vY[Oc] - itSK->vDY[Oc]),
-                        AFTER(itSK->vX[Oc], itSK->vY[Oc]);
+    //            // For each move
+    //            for (int Oc = 0; Oc < iNbOccurence; Oc++)
+    //            {
+    //                // get the coordinates
+    //                pair<double, double>    BEFORE(itSK->vX[Oc] - itSK->vDX[Oc], itSK->vY[Oc] - itSK->vDY[Oc]),
+    //                    AFTER(itSK->vX[Oc], itSK->vY[Oc]);
 
-                    for (map<string, pair<vector<double>, vector<double> > >::iterator itMAP = mapLocation.begin(); itMAP != mapLocation.end(); itMAP++)
-                    {
+    //                for (map<string, pair<vector<double>, vector<double> > >::iterator itMAP = mapLocation.begin(); itMAP != mapLocation.end(); itMAP++)
+    //                {
 
-                        bool before = false,
-                            after = false;
+    //                    bool before = false,
+    //                        after = false;
 
-                        // BEFORE :
-                        if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, BEFORE) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
-                            before = true;
+    //                    // BEFORE :
+    //                    if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, BEFORE) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
+    //                        before = true;
 
-                        // AFTER
-                        if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, AFTER) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
-                            after = true;
+    //                    // AFTER
+    //                    if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, AFTER) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
+    //                        after = true;
 
-                        pair < bool, bool > pLoc(before, after);
+    //                    pair < bool, bool > pLoc(before, after);
 
-                        itCK->mIntersectLocation[itMAP->first].push_back(pLoc);
-                    }
-                }
-            }
-        }
-    }
+    //                    itCK->mIntersectLocation[itMAP->first].push_back(pLoc);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 }
 
 
@@ -5192,6 +5191,7 @@ Bottle abmReasoning::resetKnowledge(int from)
     listBehaviors.clear();
     listPlan.clear();
     listKnownInteraction.clear();
+    listKnownAdverb.clear();
 
     findAllActionsV2(from);
     findAllSharedPlan(from);
@@ -5317,10 +5317,32 @@ Bottle abmReasoning::getKnowledge()
                     listKnownAdverb.push_back(newADJ);
                 }
             }
+        }
+    }
 
+
+    bAdjectiveKnowledge = requestFromStream("select name, argument, timing from adjectivetemporal");
+    //bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
+
+    string sNull = "NULL";
+    if (bAdjectiveKnowledge.toString() == sNull)
+    {
+        bError.addString("no adjective data to upload");
+    }
+    else
+    {
+        for (int ii = 0; ii < bAdjectiveKnowledge.size(); ii++)
+        {
+
+            yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString();
+            Bottle bInstance = *bAdjectiveKnowledge.get(ii).asList();
+            adjKnowledge* adjKno;
+
+            string sName = bInstance.get(0).toString();
+            string sArgument = bInstance.get(1).toString();
 
             // ADD timing
-            if (bInstance.get(6).toString() != "")
+            if (bInstance.get(2).toString() != "")
             {
                 bool bFound = false;
                 for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
@@ -5661,122 +5683,135 @@ Bottle abmReasoning::updateKnownLocations()
     if ((realOPC->isConnected() || mentalOPC->isConnected()) && bPopulateOPC)
     {
         int iAdded = 0;
-        for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
+
+        for (vector<adjKnowledge>::iterator itAdv = listKnownAdverb.begin(); itAdv != listKnownAdverb.end(); itAdv++)
         {
-
-            // Is the spatialKnowledge absolut (put) or relative (push)
-            if (it->isAbsolut && it->vX.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE && it->sArgument != "near" && it->sName != "hanoi")
+            determineTimingInfluence(*itAdv);
+            if (!itAdv->fTimingInfluence)
             {
-                vector<double> CovMat = abmReasoningFunction::getCovMatrix(it->vX, it->vY);
-                double a = CovMat[0],
-                    b = CovMat[1],
-                    c = CovMat[2],
-                    d = CovMat[3];
-
-                double VP1, VP2;
-                pair<double, double > Vect1, Vect2;
-
-                if (a < d)
+                for (map<string, vector< pair<double, double > > >::iterator itSubAdv = itAdv->mActionAbsolut.begin();
+                    itSubAdv != itAdv->mActionAbsolut.end();
+                    itSubAdv++)
                 {
-                    VP1 = .5 * (a + d + sqrt((a - d)*(a - d) + 4 * b*c));
-                    VP2 = .5 * (a + d - sqrt((a - d)*(a - d) + 4 * b*c));
-                }
-                else
-                {
-                    VP1 = .5 * (a + d - sqrt((a - d)*(a - d) + 4 * b*c));
-                    VP2 = .5 * (a + d + sqrt((a - d)*(a - d) + 4 * b*c));
-                }
-
-                Vect1.first = c;
-                Vect1.second = VP1 - a;
-
-                Vect2.first = c;
-                Vect2.second = VP2 - a;
+                    Bottle bEffect = itAdv->getEffect(itSubAdv->first);
+                    if ((bEffect.get(0).toString()) == "absolute" && itSubAdv->first != "hanoi")
+                    {
+                        vector <pair <double, double> > vXY = itSubAdv->second;
+                        pair<double, double> vData(bEffect.get(1).asDouble(),
+                            bEffect.get(2).asDouble());
 
 
-                vector<double>  vData = it->determineAbsolut();
-                string sLoc = "loc_";
-                sLoc += it->sArgument;
-                string large = "large_";
-                large += it->sArgument;
+                        vector<double> CovMat = abmReasoningFunction::getCovMatrix(vXY);
+                        double a = CovMat[0],
+                            b = CovMat[1],
+                            c = CovMat[2],
+                            d = CovMat[3];
 
-                int colorR = abmReasoningFunction::color_loc_R,
-                    colorG = abmReasoningFunction::color_loc_G,
-                    colorB = abmReasoningFunction::color_loc_B;
+                        double VP1, VP2;
+                        pair<double, double > Vect1, Vect2;
 
-                if (it->sName == "move")
-                {
-                    colorR = 238;
-                    colorG = 221;
-                    colorB = 130;
-                }
+                        if (a < d)
+                        {
+                            VP1 = .5 * (a + d + sqrt((a - d)*(a - d) + 4 * b*c));
+                            VP2 = .5 * (a + d - sqrt((a - d)*(a - d) + 4 * b*c));
+                        }
+                        else
+                        {
+                            VP1 = .5 * (a + d - sqrt((a - d)*(a - d) + 4 * b*c));
+                            VP2 = .5 * (a + d + sqrt((a - d)*(a - d) + 4 * b*c));
+                        }
 
-                if (realOPC->isConnected())
-                {
-                    Object* LOCATION = realOPC->addObject(sLoc);
-                    LOCATION->m_ego_position[0] = vData[0];
-                    LOCATION->m_ego_position[1] = vData[1];
-                    LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION->m_dimensions[2] = abmReasoningFunction::size_location * 2;
-                    LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
-                    LOCATION->m_present = 1;
-                    LOCATION->m_color[0] = colorR / 2;
-                    LOCATION->m_color[1] = colorG / 2;
-                    LOCATION->m_color[2] = colorB / 2;
+                        Vect1.first = c;
+                        Vect1.second = VP1 - a;
 
-                    Object* LOCATION_LARGE = realOPC->addObject(large);
-                    LOCATION_LARGE->m_ego_position[0] = vData[0];
-                    LOCATION_LARGE->m_ego_position[1] = vData[1];
-                    LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location;
-                    LOCATION_LARGE->m_present = 1;
-                    LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
-                    LOCATION_LARGE->m_color[0] = colorR;
-                    LOCATION_LARGE->m_color[1] = colorG;
-                    LOCATION_LARGE->m_color[2] = colorB;
-
-                    iAdded++;
-                    LOCATION->m_present = 1;
-                    LOCATION_LARGE->m_present = 1;
-                    realOPC->commit();
-                }
+                        Vect2.first = c;
+                        Vect2.second = VP2 - a;
 
 
-                if (mentalOPC->isConnected())
-                {
-                    Object* LOCATION = mentalOPC->addObject(sLoc);
-                    LOCATION->m_ego_position[0] = vData[0];
-                    LOCATION->m_ego_position[1] = vData[1];
-                    LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION->m_dimensions[2] = abmReasoningFunction::size_location * 2;
-                    LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
-                    LOCATION->m_present = 1;
-                    LOCATION->m_color[0] = colorR / 2;
-                    LOCATION->m_color[1] = colorG / 2;
-                    LOCATION->m_color[2] = colorB / 2;
+                        string sLoc = "loc_";
+                        sLoc += itAdv->sLabel;
+                        string large = "large_";
+                        large += itAdv->sLabel;
 
-                    Object* LOCATION_LARGE = mentalOPC->addObject(large);
-                    LOCATION_LARGE->m_ego_position[0] = vData[0];
-                    LOCATION_LARGE->m_ego_position[1] = vData[1];
-                    LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
-                    LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
-                    LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location;
-                    LOCATION_LARGE->m_present = 1;
-                    LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
-                    LOCATION_LARGE->m_color[0] = colorR;
-                    LOCATION_LARGE->m_color[1] = colorG;
-                    LOCATION_LARGE->m_color[2] = colorB;
+                        int colorR = abmReasoningFunction::color_loc_R,
+                            colorG = abmReasoningFunction::color_loc_G,
+                            colorB = abmReasoningFunction::color_loc_B;
 
-                    iAdded++;
-                    LOCATION->m_present = 1;
-                    LOCATION_LARGE->m_present = 1;
+                        if (itSubAdv->first == "move")
+                        {
+                            colorR = 238;
+                            colorG = 221;
+                            colorB = 130;
+                        }
+
+                        if (realOPC->isConnected())
+                        {
+                            Object* LOCATION = realOPC->addObject(sLoc);
+                            LOCATION->m_ego_position[0] = vData.first;
+                            LOCATION->m_ego_position[1] = vData.second;
+                            LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
+                            LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION->m_dimensions[2] = abmReasoningFunction::size_location * 2;
+                            LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
+                            LOCATION->m_present = 1;
+                            LOCATION->m_color[0] = colorR / 2;
+                            LOCATION->m_color[1] = colorG / 2;
+                            LOCATION->m_color[2] = colorB / 2;
+
+                            Object* LOCATION_LARGE = realOPC->addObject(large);
+                            LOCATION_LARGE->m_ego_position[0] = vData.first;
+                            LOCATION_LARGE->m_ego_position[1] = vData.second;
+                            LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
+                            LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location;
+                            LOCATION_LARGE->m_present = 1;
+                            LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
+                            LOCATION_LARGE->m_color[0] = colorR;
+                            LOCATION_LARGE->m_color[1] = colorG;
+                            LOCATION_LARGE->m_color[2] = colorB;
+
+                            iAdded++;
+                            LOCATION->m_present = 1;
+                            LOCATION_LARGE->m_present = 0;
+                            realOPC->commit();
+                        }
+
+
+                        if (mentalOPC->isConnected())
+                        {
+                            Object* LOCATION = mentalOPC->addObject(sLoc);
+                            LOCATION->m_ego_position[0] = vData.first;
+                            LOCATION->m_ego_position[1] = vData.second;
+                            LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
+                            LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION->m_dimensions[2] = abmReasoningFunction::size_location * 2;
+                            LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
+                            LOCATION->m_present = 1;
+                            LOCATION->m_color[0] = colorR / 2;
+                            LOCATION->m_color[1] = colorG / 2;
+                            LOCATION->m_color[2] = colorB / 2;
+
+                            Object* LOCATION_LARGE = mentalOPC->addObject(large);
+                            LOCATION_LARGE->m_ego_position[0] = vData.first;
+                            LOCATION_LARGE->m_ego_position[1] = vData.second;
+                            LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
+                            LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
+                            LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location;
+                            LOCATION_LARGE->m_present = 1;
+                            LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
+                            LOCATION_LARGE->m_color[0] = colorR;
+                            LOCATION_LARGE->m_color[1] = colorG;
+                            LOCATION_LARGE->m_color[2] = colorB;
+
+                            iAdded++;
+                            LOCATION->m_present = 1;
+                            LOCATION_LARGE->m_present = 0;
+                        }
+                    }
                 }
             }
         }
@@ -5785,12 +5820,9 @@ Bottle abmReasoning::updateKnownLocations()
         osReturn << iAdded << " locations set in the OPC.";
         mentalOPC->commit();
         realOPC->commit();
-
         bOutput.addString(osReturn.str().c_str());
-        return bOutput;
     }
-
-    yInfo() << "\t" << "update locations : OPC not connected"  ;
+    yInfo() << "\t" << "update locations : OPC not connected";
     bOutput.addString("update locations : OPC not connected");
 
     return bOutput;
@@ -6682,87 +6714,94 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
     mapTemporalLocation.clear();
 
 
-    //for (vector<adjKnowledge>::iterator itAdv = listKnownAdverb.begin(); itAdv != listKnownAdverb.end(); itAdv++)
-    //{
-    //    if (itAdv->)
-
-    //}
-
-
-    for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
+    for (vector<adjKnowledge>::iterator itAdv = listKnownAdverb.begin(); itAdv != listKnownAdverb.end(); itAdv++)
     {
-        // Is the spatialKnowledge absolut (put) or relative (push)
-        if (it->isAbsolut && it->vX.size() > 2 && it->sDependance == abmReasoningFunction::TAG_DB_NONE && it->sName != "hanoi")
+        determineTimingInfluence(*itAdv);
+        if (!itAdv->fTimingInfluence)
         {
-            pair <vector <double>, vector<double> > vData(it->vX, it->vY);
-            mapLocation[it->sArgument] = vData;
-        }
-
-        if (it->isRelative && it->vX.size() > 2 && it->sDependance != abmReasoningFunction::TAG_DB_NONE)
-        {
-            for (list<Entity*>::iterator it_E = PresentEntities.begin(); it_E != PresentEntities.end(); it_E++)
+            for (map<string, vector< pair<double, double > > >::iterator itSubAdv = itAdv->mActionAbsolut.begin();
+                itSubAdv != itAdv->mActionAbsolut.end();
+                itSubAdv++)
             {
-                if ((*it_E)->entity_type() == it->sDependance)
+                if ((itAdv->getEffect(itSubAdv->first).get(0).toString()) == "absolute" && itSubAdv->first != "hanoi")
                 {
-
-                    pair<double, double>    pObjDep;        // coordinate of the dependent object
-
-                    if (it->sDependance == EFAA_OPC_ENTITY_RTOBJECT)
-                    {
-                        RTObject *RTOTemp;
-                        if (!bReal)
-                            RTOTemp = (mentalOPC->addRTObject((*it_E)->name()));
-                        else
-                            RTOTemp = (realOPC->addRTObject((*it_E)->name()));
-
-                        pObjDep = pair<double, double>(RTOTemp->m_ego_position[0], RTOTemp->m_ego_position[1]);
-
-                    }
-
-                    if (it->sDependance == EFAA_OPC_ENTITY_OBJECT)
-                    {
-                        Object *OTemp;
-                        if (!bReal)
-                            OTemp = (mentalOPC->addObject((*it_E)->name()));
-                        else
-                            OTemp = (realOPC->addObject((*it_E)->name()));
-
-                        pObjDep = pair<double, double>(OTemp->m_ego_position[0], OTemp->m_ego_position[1]);
-
-                    }
-
-                    if (it->sDependance == EFAA_OPC_ENTITY_AGENT)
-                    {
-                        Agent *ATemp;
-                        if (!bReal)
-                            ATemp = (mentalOPC->addAgent((*it_E)->name()));
-                        else
-                            ATemp = (realOPC->addAgent((*it_E)->name()));
-
-                        pObjDep = pair<double, double>(ATemp->m_ego_position[0], ATemp->m_ego_position[1]);
-
-                    }
-
-                    vector<double> vXTemp = it->vDX,
-                        vYTemp = it->vDY;
-
-                    for (unsigned int point = 0; point < vXTemp.size(); point++)
-                    {
-                        vXTemp[point] = pObjDep.first - vXTemp[point];
-                        vYTemp[point] = pObjDep.second - vYTemp[point];
-                    }
-
-                    tuple<string, vector<double>, vector<double> > mapTemp((*it_E)->name(), vXTemp, vYTemp);
-                    string sTemporalLocationName = it->sArgument;
-                    sTemporalLocationName += "_" + (*it_E)->name();
-                    mapTemporalLocation[sTemporalLocationName] = mapTemp;
-
-
-                   // vector<double> CovMat = abmReasoningFunction::getCovMatrix(vXTemp, vYTemp);
-
+                    vector <pair <double, double> > vData = itSubAdv->second;
+                    mapLocation[itAdv->sLabel] = vData;
                 }
             }
         }
+        else
+        {
+
+        }
+
+    
+        // relative + dependance (near, above...)
+        //if (itAdv->isRelative && it->vX.size() > 2 && it->sDependance != abmReasoningFunction::TAG_DB_NONE)
+        //{
+        //    for (list<Entity*>::iterator it_E = PresentEntities.begin(); it_E != PresentEntities.end(); it_E++)
+        //    {
+        //        if ((*it_E)->entity_type() == it->sDependance)
+        //        {
+
+        //            pair<double, double>    pObjDep;        // coordinate of the dependent object
+
+        //            if (it->sDependance == EFAA_OPC_ENTITY_RTOBJECT)
+        //            {
+        //                RTObject *RTOTemp;
+        //                if (!bReal)
+        //                    RTOTemp = (mentalOPC->addRTObject((*it_E)->name()));
+        //                else
+        //                    RTOTemp = (realOPC->addRTObject((*it_E)->name()));
+
+        //                pObjDep = pair<double, double>(RTOTemp->m_ego_position[0], RTOTemp->m_ego_position[1]);
+
+        //            }
+
+        //            if (it->sDependance == EFAA_OPC_ENTITY_OBJECT)
+        //            {
+        //                Object *OTemp;
+        //                if (!bReal)
+        //                    OTemp = (mentalOPC->addObject((*it_E)->name()));
+        //                else
+        //                    OTemp = (realOPC->addObject((*it_E)->name()));
+
+        //                pObjDep = pair<double, double>(OTemp->m_ego_position[0], OTemp->m_ego_position[1]);
+
+        //            }
+
+        //            if (it->sDependance == EFAA_OPC_ENTITY_AGENT)
+        //            {
+        //                Agent *ATemp;
+        //                if (!bReal)
+        //                    ATemp = (mentalOPC->addAgent((*it_E)->name()));
+        //                else
+        //                    ATemp = (realOPC->addAgent((*it_E)->name()));
+
+        //                pObjDep = pair<double, double>(ATemp->m_ego_position[0], ATemp->m_ego_position[1]);
+
+        //            }
+
+        //            vector<double> vXTemp = it->vDX,
+        //                vYTemp = it->vDY;
+
+        //            for (unsigned int point = 0; point < vXTemp.size(); point++)
+        //            {
+        //                vXTemp[point] = pObjDep.first - vXTemp[point];
+        //                vYTemp[point] = pObjDep.second - vYTemp[point];
+        //            }
+
+        //            tuple<string, vector<double>, vector<double> > mapTemp((*it_E)->name(), vXTemp, vYTemp);
+        //            string sTemporalLocationName = it->sArgument;
+        //            sTemporalLocationName += "_" + (*it_E)->name();
+        //            mapTemporalLocation[sTemporalLocationName] = mapTemp;
+
+
+        //           // vector<double> CovMat = abmReasoningFunction::getCovMatrix(vXTemp, vYTemp);
+
+        //        }
+        //    }
+        //}
     }
 
     // for each object present
@@ -6778,11 +6817,11 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
 
         //detect if they are is a location
 
-        for (map<string, pair<vector<double>, vector<double> > >::iterator itMAP = mapLocation.begin(); itMAP != mapLocation.end(); itMAP++)
+        for (map<string, vector<pair <double, double > > >::iterator itMAP = mapLocation.begin(); itMAP != mapLocation.end(); itMAP++)
         {
             pair <double, double > pLoc(RTTemp->m_ego_position[0], RTTemp->m_ego_position[1]);
 
-            if (abmReasoningFunction::getMahalaDist(itMAP->second.first, itMAP->second.second, pLoc) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
+            if (abmReasoningFunction::getMahalaDist(itMAP->second, pLoc) < abmReasoningFunction::THRESHOLD_IS_AT_LOCATION)
             {
                 Adjective* presence;
                 if (bReal)

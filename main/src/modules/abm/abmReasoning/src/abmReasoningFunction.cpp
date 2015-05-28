@@ -70,7 +70,7 @@ unsigned int abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE = 3;         //
 double abmReasoningFunction::FACTOR_LOCATION = 2;                  // factor of the size of a location : center +/- FACTOR_LOCATION * std dev
 double abmReasoningFunction::THRESHOLD_IS_AT_LOCATION = 4;
 double abmReasoningFunction::THRESHOLD_IS_AT_TEMPORAL_LOCATION = 12;
-double abmReasoningFunction::THRESHOLD_IS_DISPERSION = 0.00001;
+double abmReasoningFunction::THRESHOLD_IS_DISPERSION = 0.0001;
 
 double abmReasoningFunction::LIFETIME_RELATION = 2.;               // life time of a relation about the objects in the OPC
 
@@ -159,7 +159,7 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     FACTOR_LOCATION = bSpatialisation.check("FACTOR_LOCATION", Value(2)).asDouble();
     THRESHOLD_IS_AT_LOCATION = bSpatialisation.check("THRESHOLD_IS_AT_LOCATION", Value(4)).asDouble();
     THRESHOLD_IS_AT_TEMPORAL_LOCATION = bSpatialisation.check("THRESHOLD_IS_AT_TEMPORAL_LOCATION", Value(12)).asDouble();
-    THRESHOLD_IS_DISPERSION = bSpatialisation.check("THRESHOLD_IS_DISPERSION", Value(0.00001)).asDouble();
+    THRESHOLD_IS_DISPERSION = bSpatialisation.check("THRESHOLD_IS_DISPERSION", Value(0.0001)).asDouble();
 
 
     Bottle &bPDDL = rf.findGroup("PDDL");
@@ -529,7 +529,6 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<pair<double, double> > 
 }
 
 
-
 vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY)
 {
     if (vX.size() != vY.size())
@@ -554,7 +553,6 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
 }
 
 
-
 /**
 * Return the Mahalanobis distance of a point to a cluster
 * @param vX, vY : cluster
@@ -575,6 +573,66 @@ double abmReasoningFunction::getMahalaDist(vector<double> vX, vector<double> vY,
 
     muX /= (vX.size()*1.);
     muY /= (vY.size()*1.);
+
+    X = XY.first - muX;
+    Y = XY.second - muY;
+
+    a = covMatrix[0];
+    b = covMatrix[1];
+    c = covMatrix[2];
+    d = covMatrix[3];
+
+    /*
+    Mahalanobis distance : D
+    Covariance Matrix : | a , b |
+    | c , d |
+
+
+    Inverse :
+
+    1     | d , -b |
+    --- * |        |
+    det   |-c ,  a |
+
+
+    Point : X, Y
+
+    | d ,-b |(X)
+    1          | -c, a |(Y)
+    D = ---( X , Y )( X', Y')(D)
+    det
+    */
+
+    Xp = d*X - c*Y;
+    Yp = -b*X + a*Y;
+
+    D = X*Xp + Y*Yp;
+
+    D /= (a*d - b*c);
+
+    return D;
+}
+
+/**
+* Return the Mahalanobis distance of a point to a cluster
+* @param vX, vY : cluster
+* @param XY : point to analyse
+*/
+double abmReasoningFunction::getMahalaDist(vector< pair <double, double> > vData, pair<double, double> XY)
+{
+
+    vector<double> covMatrix = getCovMatrix(vData);
+
+    double X, Y, Xp, Yp, D, a, b, c, d, muX = 0, muY = 0;
+
+    for (unsigned int i = 0; i < vData.size(); i++)
+    {
+        muX += vData[i].first;
+        muY += vData[i].second;
+    }
+
+    muX /= (vData.size()*1.);
+    muY /= (vData.size()*1.);
 
     X = XY.first - muX;
     Y = XY.second - muY;
