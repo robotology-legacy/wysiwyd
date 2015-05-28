@@ -156,30 +156,30 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
         scoreTest += weightSimple*tYP.getScoreSum(Y == P); // Y == P given P
         scoreTest += weightSimple*tZP.getScoreSum(Z == P); // Z == P given P
 
-        cout << endl << "agent : " << Z << endl;
-        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true) << endl;
-        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
-        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
-        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
-        cout << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P) << endl;
-        cout << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P) << endl;
-        cout << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P) << endl;
+        yInfo() << "\t"   << "agent : " << Z  ;
+        yInfo() << "\t" << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true)  ;
+        yInfo() << "\t" << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y)  ;
+        yInfo() << "\t" << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z)  ;
+        yInfo() << "\t" << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z)  ;
+        yInfo() << "\t" << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P)  ;
+        yInfo() << "\t" << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P)  ;
+        yInfo() << "\t" << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P)  ;
 
         pair<string, double>    pTemp(Z, scoreTest);
 
         vScore.push_back(pTemp);
     }
 
-    cout << endl;
+    yInfo() << "\t"  ;
 
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "Hesitate between Product : " << endl;
+    yInfo() << "\t" << "Hesitate between Product : "  ;
     for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
-        cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
+        yInfo() << "\t" << "\t" << it_SubSc->first << "\t score = " << dScoreTemp  ;
         if (dScoreTemp > dScoreMax)
         {
             dScoreMax = dScoreTemp;
@@ -189,11 +189,11 @@ pair<string, double> grammarKnowledge::findAgent(string X, string Y, string P)
 
     if (dScoreMax <= 0)
     {
-        cout << "Can't take a decision on which ag to select" << endl;
+        yInfo() << "\t" << "Can't take a decision on which ag to select"  ;
         sResult = "none";
     }
 
-    cout << "Final choice : " << sResult << "\t score : " << dScoreMax << endl;
+    yInfo() << "\t" << "Final choice : " << sResult << "\t score : " << dScoreMax  ;
     pReturn.first = sResult;
     pReturn.second = dScoreMax;
 
@@ -346,30 +346,30 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
         scoreTest += weightSimple*tYP.getScoreSum(Y == P); // Y == P given P
         scoreTest += weightSimple*tZP.getScoreSum(Z == P); // Z == P given P
 
-        cout << endl << "addressee : " << Y << endl;
-        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true) << endl;
-        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
-        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
-        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
-        cout << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P) << endl;
-        cout << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P) << endl;
-        cout << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P) << endl;
+        yInfo() << "\t"   << "addressee : " << Y  ;
+        yInfo() << "\t" << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true)  ;
+        yInfo() << "\t" << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y)  ;
+        yInfo() << "\t" << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z)  ;
+        yInfo() << "\t" << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z)  ;
+        yInfo() << "\t" << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P)  ;
+        yInfo() << "\t" << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P)  ;
+        yInfo() << "\t" << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P)  ;
 
         pair<string, double>    pTemp(Y, scoreTest);
 
         vScore.push_back(pTemp);
     }
 
-    cout << endl;
+    yInfo() << "\t"  ;
 
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "Hesitate between Product : " << endl;
+    yInfo() << "\t" << "Hesitate between Product : "  ;
     for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
-        cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
+        yInfo() << "\t" << "\t" << it_SubSc->first << "\t score = " << dScoreTemp  ;
         if (dScoreTemp > dScoreMax)
         {
             dScoreMax = dScoreTemp;
@@ -379,11 +379,11 @@ pair<string, double> grammarKnowledge::findAddressee(string X, string Z, string 
 
     if (dScoreMax <= 0)
     {
-        cout << "Can't take a decision on which ad to select" << endl;
+        yInfo() << "\t" << "Can't take a decision on which ad to select"  ;
         sResult = "none";
     }
 
-    cout << endl << "Final choice : " << sResult << "\t score : " << dScoreMax << endl;
+    yInfo() << "\t"   << "Final choice : " << sResult << "\t score : " << dScoreMax  ;
     pReturn.first = sResult;
     pReturn.second = dScoreMax;
 
@@ -536,30 +536,30 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
         scoreTest += weightSimple*tYP.getScoreSum(Y == P); // Y == P given P
         scoreTest += weightSimple*tZP.getScoreSum(Z == P); // Z == P given P
 
-        cout << endl << "speaker : " << X << endl;
-        cout << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true) << endl;
-        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
-        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
-        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
-        cout << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P) << endl;
-        cout << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P) << endl;
-        cout << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P) << endl;
+        yInfo() << "\t"   << "speaker : " << X  ;
+        yInfo() << "\t" << "XYZP  pv : " << tXYZP.chiSquare() << "\t A=" << tXYZP.A << "\t B=" << tXYZP.B << "\t C=" << tXYZP.C << "\t D=" << tXYZP.D << "\t score : " << weightTriple*tXYZP.getScoreSum(true)  ;
+        yInfo() << "\t" << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y)  ;
+        yInfo() << "\t" << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z)  ;
+        yInfo() << "\t" << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z)  ;
+        yInfo() << "\t" << "XP    pv : " << tXP.chiSquare() << "\t A=" << tXP.A << "\t B=" << tXP.B << "\t C=" << tXP.C << "\t D=" << tXP.D << "\t score : " << weightSimple*tXP.getScoreSum(X == P)  ;
+        yInfo() << "\t" << "YP    pv : " << tYP.chiSquare() << "\t A=" << tYP.A << "\t B=" << tYP.B << "\t C=" << tYP.C << "\t D=" << tYP.D << "\t score : " << weightSimple*tYP.getScoreSum(Y == P)  ;
+        yInfo() << "\t" << "ZP    pv : " << tZP.chiSquare() << "\t A=" << tZP.A << "\t B=" << tZP.B << "\t C=" << tZP.C << "\t D=" << tZP.D << "\t score : " << weightSimple*tZP.getScoreSum(Z == P)  ;
 
         pair<string, double>    pTemp(X, scoreTest);
 
         vScore.push_back(pTemp);
     }
 
-    cout << endl;
+    yInfo() << "\t"  ;
 
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "Hesitate between Product : " << endl;
+    yInfo() << "\t" << "Hesitate between Product : "  ;
     for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
-        cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
+        yInfo() << "\t" << "\t" << it_SubSc->first << "\t score = " << dScoreTemp  ;
         if (dScoreTemp > dScoreMax)
         {
             dScoreMax = dScoreTemp;
@@ -569,11 +569,11 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 
     if (dScoreMax <= 0)
     {
-        cout << "Can't take a decision on which sp to select" << endl;
+        yInfo() << "\t" << "Can't take a decision on which sp to select"  ;
         sResult = "none";
     }
 
-    cout << endl << "Final choice : " << sResult << "\t score : " << dScoreMax << endl;
+    yInfo() << "\t"   << "Final choice : " << sResult << "\t score : " << dScoreMax  ;
     pReturn.first = sResult;
     pReturn.second = dScoreMax;
 
@@ -712,14 +712,14 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
         scoreTest += weightSimple*tY.getScoreSum();
         scoreTest += weightSimple*tZ.getScoreSum();
 
-        cout << endl << "Sub : " << P << endl;
-        cout << "XYZP  pv : " << tXYZ.chiSquare() << "\t A=" << tXYZ.A << "\t B=" << tXYZ.B << "\t C=" << tXYZ.C << "\t D=" << tXYZ.D << "\t score : " << weightTriple*tXYZ.getScoreSum() << endl;
-        cout << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y) << endl;
-        cout << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z) << endl;
-        cout << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z) << endl;
-        cout << "X     pv : " << tX.chiSquare() << "\t A=" << tX.A << "\t B=" << tX.B << "\t C=" << tX.C << "\t D=" << tX.D << "\t score : " << weightSimple*tX.getScoreSum() << endl;
-        cout << "Y     pv : " << tY.chiSquare() << "\t A=" << tY.A << "\t B=" << tY.B << "\t C=" << tY.C << "\t D=" << tY.D << "\t score : " << weightSimple*tY.getScoreSum() << endl;
-        cout << "Z     pv : " << tZ.chiSquare() << "\t A=" << tZ.A << "\t B=" << tZ.B << "\t C=" << tZ.C << "\t D=" << tZ.D << "\t score : " << weightSimple*tZ.getScoreSum() << endl;
+        yInfo() << "\t"   << "Sub : " << P  ;
+        yInfo() << "\t" << "XYZP  pv : " << tXYZ.chiSquare() << "\t A=" << tXYZ.A << "\t B=" << tXYZ.B << "\t C=" << tXYZ.C << "\t D=" << tXYZ.D << "\t score : " << weightTriple*tXYZ.getScoreSum()  ;
+        yInfo() << "\t" << "XY    pv : " << tXY.chiSquare() << "\t A=" << tXY.A << "\t B=" << tXY.B << "\t C=" << tXY.C << "\t D=" << tXY.D << "\t score : " << weightDouble*tXY.getScoreSum(X == Y)  ;
+        yInfo() << "\t" << "XZ    pv : " << tXZ.chiSquare() << "\t A=" << tXZ.A << "\t B=" << tXZ.B << "\t C=" << tXZ.C << "\t D=" << tXZ.D << "\t score : " << weightDouble*tXZ.getScoreSum(X == Z)  ;
+        yInfo() << "\t" << "YZ    pv : " << tYZ.chiSquare() << "\t A=" << tYZ.A << "\t B=" << tYZ.B << "\t C=" << tYZ.C << "\t D=" << tYZ.D << "\t score : " << weightDouble*tYZ.getScoreSum(Y == Z)  ;
+        yInfo() << "\t" << "X     pv : " << tX.chiSquare() << "\t A=" << tX.A << "\t B=" << tX.B << "\t C=" << tX.C << "\t D=" << tX.D << "\t score : " << weightSimple*tX.getScoreSum()  ;
+        yInfo() << "\t" << "Y     pv : " << tY.chiSquare() << "\t A=" << tY.A << "\t B=" << tY.B << "\t C=" << tY.C << "\t D=" << tY.D << "\t score : " << weightSimple*tY.getScoreSum()  ;
+        yInfo() << "\t" << "Z     pv : " << tZ.chiSquare() << "\t A=" << tZ.A << "\t B=" << tZ.B << "\t C=" << tZ.C << "\t D=" << tZ.D << "\t score : " << weightSimple*tZ.getScoreSum()  ;
 
         pair<string, double>    pTemp(itPronom->sSubject, scoreTest);
 
@@ -730,12 +730,12 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 
     double dScoreMax = -100000;
     string sResult;
-    cout << "speaker \t " << X << endl << "addressee \t " << Y << endl << "agent \t\t " << Z << endl;
-    cout << "Hesitate between Product : " << endl;
+    yInfo() << "\t" << "speaker \t " << X   << "addressee \t " << Y   << "agent \t\t " << Z  ;
+    yInfo() << "\t" << "Hesitate between Product : "  ;
     for (vector<pair<string, double > >::iterator it_SubSc = vScore.begin(); it_SubSc != vScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
-        cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
+        yInfo() << "\t" << "\t" << it_SubSc->first << "\t score = " << dScoreTemp  ;
         if (dScoreTemp > dScoreMax)
         {
             dScoreMax = dScoreTemp;
@@ -746,11 +746,11 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
     // if no pronom has been selected, test if X Y or Z could be pronom
     if (dScoreMax <= 0)
     {
-        cout << "Can't take a decision on which pronom to select" << endl;
+        yInfo() << "\t" << "Can't take a decision on which pronom to select"  ;
         sResult = "none";
     }
 
-    cout << endl << "Final choice : " << sResult << "\t score : " << dScoreMax << endl;
+    yInfo() << "\t"   << "Final choice : " << sResult << "\t score : " << dScoreMax  ;
     pReturn.first = sResult;
     pReturn.second = dScoreMax;
 
@@ -769,7 +769,7 @@ bool grammarKnowledge::addInteraction(Bottle bSentence)
 
     if (fileOut)
     {
-        fileOut << sSubject << ";" << sSpeaker << ";" << sAddressee << ";" << sAgent << endl;
+        fileOut << sSubject << ";" << sSpeaker << ";" << sAddressee << ";" << sAgent  ;
     }
 
 
@@ -859,20 +859,20 @@ void grammarKnowledge::testModel(int iInstances, int condition)
     //vsLabelToAdd.push_back("John");
     //vsLabelToAdd.push_back("iCub");
 
-    cout << "Starting test of model" << endl << endl;
-    cout << "Starting test of Sp" << endl;
+    yInfo() << "\t" << "Starting test of model"    ;
+    yInfo() << "\t" << "Starting test of Sp"  ;
     testSp(iInstances, vsLabelToAdd, condition);
-    cout << "End test of Sp" << endl;
-    cout << "Starting test of Ad" << endl;
+    yInfo() << "\t" << "End test of Sp"  ;
+    yInfo() << "\t" << "Starting test of Ad"  ;
     testAd(iInstances, vsLabelToAdd, condition);
-    cout << "End test of Ad" << endl;
-    cout << "Starting test of Su" << endl;
+    yInfo() << "\t" << "End test of Ad"  ;
+    yInfo() << "\t" << "Starting test of Su"  ;
     testSu(iInstances, vsLabelToAdd, condition);
-    cout << "End test of Su" << endl;
-    cout << "Starting test of Ag" << endl;
+    yInfo() << "\t" << "End test of Su"  ;
+    yInfo() << "\t" << "Starting test of Ag"  ;
     testAg(iInstances, vsLabelToAdd, condition);
-    cout << "End test of Ag" << endl;
-    cout << endl << "End test of model" << endl << endl;
+    yInfo() << "\t" << "End test of Ag"  ;
+    yInfo() << "\t"   << "End test of model"    ;
 
 }
 
@@ -902,11 +902,11 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
 
     if (fileOut)
     {
-        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
+        fileOut << "Subject;Speaker;Addressee;Agent;Score"  ;
     }
     else
     {
-        cout << "Couldn't open file" << endl;
+        yInfo() << "\t" << "Couldn't open file"  ;
     }
 
 
@@ -953,7 +953,7 @@ void grammarKnowledge::testSp(int iInstances, vector<string> vsLabelToAdd, int c
 
         if (fileOut)
         {
-            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
+            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore  ;
         }
     }
 }
@@ -982,11 +982,11 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
 
     if (fileOut)
     {
-        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
+        fileOut << "Subject;Speaker;Addressee;Agent;Score"  ;
     }
     else
     {
-        cout << "Couldn't open file" << endl;
+        yInfo() << "\t" << "Couldn't open file"  ;
     }
 
 
@@ -1031,7 +1031,7 @@ void grammarKnowledge::testAd(int iInstances, vector<string> vsLabelToAdd, int c
 
         if (fileOut)
         {
-            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
+            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore  ;
         }
     }
 
@@ -1061,11 +1061,11 @@ void grammarKnowledge::testAg(int iInstances, vector<string> vsLabelToAdd, int c
 
     if (fileOut)
     {
-        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
+        fileOut << "Subject;Speaker;Addressee;Agent;Score"  ;
     }
     else
     {
-        cout << "Couldn't open file" << endl;
+        yInfo() << "\t" << "Couldn't open file"  ;
     }
 
 
@@ -1097,7 +1097,7 @@ void grammarKnowledge::testAg(int iInstances, vector<string> vsLabelToAdd, int c
 
         if (fileOut)
         {
-            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
+            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore  ;
         }
     }
 
@@ -1122,11 +1122,11 @@ void grammarKnowledge::testSu(int iInstances, vector<string> vsLabelToAdd, int c
 
     if (fileOut)
     {
-        fileOut << "Subject;Speaker;Addressee;Agent;Score" << endl;
+        fileOut << "Subject;Speaker;Addressee;Agent;Score"  ;
     }
     else
     {
-        cout << "Couldn't open file" << endl;
+        yInfo() << "\t" << "Couldn't open file"  ;
     }
 
 
@@ -1150,19 +1150,19 @@ void grammarKnowledge::testSu(int iInstances, vector<string> vsLabelToAdd, int c
 
         if (fileOut)
         {
-            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore << endl;
+            fileOut << Su << ";" << Sp << ";" << Ad << ";" << Ag << ";" << dScore  ;
         }
     }
 }
 
 void    grammarKnowledge::simulateLearning(int Case, int iNbRep)
 {
-    cout << "Starting learning simulation" << endl;
+    yInfo() << "\t" << "Starting learning simulation"  ;
 
     if (Case == 7)
     {
         // autistic N2
-        cout << "Learning with Peter talking, iCub listening" << endl;
+        yInfo() << "\t" << "Learning with Peter talking, iCub listening"  ;
 
         simulateInstance("Peter", "iCub", "Peter", "I", iNbRep);
         simulateInstance("Peter", "iCub", "iCub", "You", iNbRep);
@@ -1238,7 +1238,7 @@ grammarKnowledge::grammarKnowledge()
 
     if (fileOut)
     {
-        fileOut << "Subject;Speaker;Addressee;Agent" << endl;
+        fileOut << "Subject;Speaker;Addressee;Agent"  ;
     }
 
 }

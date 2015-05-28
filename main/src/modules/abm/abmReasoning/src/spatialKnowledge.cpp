@@ -8,25 +8,25 @@ using namespace std;
 
 bool spatialKnowledge::fromBottle(Bottle bInput)
 {
-    //std::cout << endl << "input : " << endl << bInput.toString() << endl << endl;
+    //yInfo() << "\t"   << "input : "   << bInput.toString()    ;
 
     string sError = "in spatialKnowledge : fromBottle\nWrong format of input\n";
     if (bInput.size() < 2)
     {
-        std::cout << sError << "  -> wrong number of bottle" << endl;
+        yInfo() << "\t" << sError << "  -> wrong number of bottle"  ;
         return false;
     }
 
     if (!(bInput.get(0).isString()))
     {
-        std::cout << sError << "  -> wrong format of action name" << endl;
+        yInfo() << "\t" << sError << "  -> wrong format of action name"  ;
         return false;
     }
     Bottle bArgument = (*bInput.get(1).asList());
     sName = bInput.get(0).asString().c_str();
     iSize = 0;
     pair<double, double> BEGIN, END, MOVE;
-    //std::cout << "Arguments : \t" << bInput.get(1).toString() << endl;
+    //yInfo() << "\t" << "Arguments : \t" << bInput.get(1).toString()  ;
     if (bArgument.size() > 2)
     {
         sArgument = bArgument.get(1).toString().c_str();
@@ -37,7 +37,7 @@ bool spatialKnowledge::fromBottle(Bottle bInput)
     }
     if (sArgument == "agent1" || sArgument == abmReasoningFunction::TAG_DB_NONE)
     {
-        std::cout << sError << "  -> wrong format of data" << endl;
+        yInfo() << "\t" << sError << "  -> wrong format of data"  ;
         return false;
     }
     for (int data = 2; data < bInput.size(); data++)
@@ -45,7 +45,7 @@ bool spatialKnowledge::fromBottle(Bottle bInput)
         Bottle bData = *(bInput.get(data)).asList();
         if (bData.size() < 2)
         {
-            std::cout << sError << "  -> wrong format of data" << endl;
+            yInfo() << "\t" << sError << "  -> wrong format of data"  ;
         }
         else
         {
@@ -60,7 +60,7 @@ bool spatialKnowledge::fromBottle(Bottle bInput)
                 vDX.push_back(MOVE.first);
                 vDY.push_back(MOVE.second);
                 iSize++;
-                //  std::cout << "action added" << endl;
+                //  yInfo() << "\t" << "action added"  ;
             }
         }
     }

@@ -21,7 +21,7 @@ pair<string, double> wordKnowledge::getObjectFromWord(string sWord, vector<strin
 {
     if (matObject2Word.addLabelZ(sWord, true) || matWord2Object.addLabelX(sWord, true))
     {
-        cout << "in wordKnowledge::getObjectFromWord:: sWord unknown" << endl;
+        yInfo() << "\t" << "in wordKnowledge::getObjectFromWord:: sWord unknown"  ;
         //TODO get this case
         return pair<string, double>("none", -1000000);
     }
@@ -79,7 +79,7 @@ pair<string, double> wordKnowledge::getObjectFromWord(string sWord, vector<strin
             // correlation between word object and context:
             psdTemp.second += scorePropTemp.getScoreSum(contextPresent);
             scorePropTemp.getScoreSum(contextPresent);
-            cout << "";
+            yInfo() << "\t" << "";
         }
 
         vsdListObjectScore.push_back(psdTemp);
@@ -89,11 +89,11 @@ pair<string, double> wordKnowledge::getObjectFromWord(string sWord, vector<strin
     // display results :
     double dScoreMax = -100000;
     string sResult;
-    cout << endl << "Hesitate between Product : " << endl;
+    yInfo() << "\t"   << "Hesitate between Product : "  ;
     for (vector<pair<string, double > >::iterator it_SubSc = vsdListObjectScore.begin(); it_SubSc != vsdListObjectScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
-        cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
+        yInfo() << "\t" << "\t" << it_SubSc->first << "\t score = " << dScoreTemp  ;
         if (dScoreTemp > dScoreMax)
         {
             dScoreMax = dScoreTemp;
@@ -103,16 +103,16 @@ pair<string, double> wordKnowledge::getObjectFromWord(string sWord, vector<strin
 
     /*if (dScoreMax <= 0)
     {
-    cout << "Can't take a decision on which ag to select" << endl;
+    yInfo() << "\t" << "Can't take a decision on which ag to select"  ;
     sResult = "none";
     }*/
-    cout << "Word input is : " << sWord << endl;
-    cout << "Context is : ";
+    yInfo() << "\t" << "Word input is : " << sWord  ;
+    yInfo() << "\t" << "Context is : ";
     for (unsigned int i = 0; i < vContext.size(); i++)
     {
-        cout << "\t" << vContext[i];
+        yInfo() << "\t" << "\t" << vContext[i];
     }
-    cout << endl << "Final choice : " << sResult << "\t score : " << dScoreMax << endl;
+    yInfo() << "\t"   << "Final choice : " << sResult << "\t score : " << dScoreMax  ;
 
     return pair<string, double>(sResult, dScoreMax);
 }
@@ -121,7 +121,7 @@ pair<string, double> wordKnowledge::getWordFromObject(string sObject, vector<str
 {
     if (matObject2Word.addLabelX(sObject, true) || matWord2Object.addLabelZ(sObject, true))
     {
-        cout << "in wordKnowledge::getWordFromObject:: sObject unknown" << endl;
+        yInfo() << "\t" << "in wordKnowledge::getWordFromObject:: sObject unknown"  ;
         //TODO get this case
         return pair<string, double>("none", -1000000);
     }
@@ -187,11 +187,11 @@ pair<string, double> wordKnowledge::getWordFromObject(string sObject, vector<str
     // display results :
     double dScoreMax = -100000;
     string sResult;
-    cout << endl << "Hesitate between Product : " << endl;
+    yInfo() << "\t"   << "Hesitate between Product : "  ;
     for (vector<pair<string, double > >::iterator it_SubSc = vsdListWordScore.begin(); it_SubSc != vsdListWordScore.end(); it_SubSc++)
     {
         double dScoreTemp = it_SubSc->second;
-        cout << "\t" << it_SubSc->first << "\t score = " << dScoreTemp << endl;
+        yInfo() << "\t" << "\t" << it_SubSc->first << "\t score = " << dScoreTemp  ;
         if (dScoreTemp > dScoreMax)
         {
             dScoreMax = dScoreTemp;
@@ -201,16 +201,16 @@ pair<string, double> wordKnowledge::getWordFromObject(string sObject, vector<str
 
     /*if (dScoreMax <= 0)
     {
-    cout << "Can't take a decision on which ag to select" << endl;
+    yInfo() << "\t" << "Can't take a decision on which ag to select"  ;
     sResult = "none";
     }*/
-    cout << "Object input is : " << sObject << endl;
-    cout << "Context is : ";
+    yInfo() << "\t" << "Object input is : " << sObject  ;
+    yInfo() << "\t" << "Context is : ";
     for (unsigned int i = 0; i < vContext.size(); i++)
     {
-        cout << "\t" << vContext[i];
+        yInfo() << "\t" << "\t" << vContext[i];
     }
-    cout << endl << "Final choice : " << sResult << "\t score : " << dScoreMax << endl;
+    yInfo() << "\t"   << "Final choice : " << sResult << "\t score : " << dScoreMax  ;
 
     return pair<string, double>(sResult, dScoreMax);
 }
@@ -454,7 +454,7 @@ void wordKnowledge::simulateData()
     }
 
 
-    //cout << "\t\t 4 : " << matWord2Object.get("word_bottle","context_blue_bottle","object_green_bottle") << endl;
+    //yInfo() << "\t" << "\t\t 4 : " << matWord2Object.get("word_bottle","context_blue_bottle","object_green_bottle")  ;
 
 
     //-------------------------------- IDEM WITH GREEN BOTTLE OBJECT
@@ -601,7 +601,7 @@ void wordKnowledge::simulateData()
     //      context.push_back("context_glass");
     //context.push_back("context_blue_bottle");
 
-    cout << "\t\t" << matWord2Object.get("word_bottle", "context_green_bottle", "object_green_bottle") << endl;
+    yInfo() << "\t" << "\t\t" << matWord2Object.get("word_bottle", "context_green_bottle", "object_green_bottle")  ;
 
     getObjectFromWord("word_bottle", context);
     getWordFromObject("object_green_bottle", context);
@@ -645,7 +645,7 @@ Bottle wordKnowledge::askWordKnowledge(string sQuestion, string sWhat, vector<st
     }
     else
     {
-        cout << "Error in wordKnowledge::askWordKnowledge -- wrong question input !(getObjectFromWord or getWordFromObject)" << endl;
+        yInfo() << "\t" << "Error in wordKnowledge::askWordKnowledge -- wrong question input !(getObjectFromWord or getWordFromObject)"  ;
         bOutput.addString("Error in wordKnowledge::askWordKnowledge -- wrong question input !(getObjectFromWord or getWordFromObject)");
     }
 

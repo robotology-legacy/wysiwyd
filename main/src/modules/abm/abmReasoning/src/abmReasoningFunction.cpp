@@ -534,7 +534,7 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
 {
     if (vX.size() != vY.size())
     {
-        cout << "Error in abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY) : vX and vY size different" << endl;
+        yInfo() << "\t" << "Error in abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY) : vX and vY size different"  ;
         vector<double> vOutput;
         return vOutput;
     }

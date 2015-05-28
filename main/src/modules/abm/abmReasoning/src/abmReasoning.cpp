@@ -76,8 +76,8 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
     bestSol = -1;
 
-    cout << endl << endl << "----------------------------------------------";
-    cout << endl << endl << "abmReasoning ready !" << endl << endl;
+    yInfo() << "\n \n"  << "----------------------------------------------";
+    yInfo() << "\n \n" << "abmReasoning ready ! \n \n ";
 
     bReady = true;
 
@@ -178,7 +178,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
     if (!bReady)
     {
         bReply.addString("module not initialised yet, please wait.");
-        std::cout << "reply : " << bReply.toString().c_str() << "\n" << endl;
+        yInfo() << "\t" << "reply : " << bReply.toString().c_str() << "\n" ;
         handlerPort.reply(bReply);
         return true;
     }
@@ -199,7 +199,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 
     else if (bCommand.get(0).asString() == "findActivity") {
 
-        std::cout << "bCommand.size() = " << bCommand.size() << endl;
+        yInfo() << "\t" << "bCommand.size() = " << bCommand.size() ;
 
         if (bCommand.size() <= 2) {
             bReply.addString("nack");
@@ -524,7 +524,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addString("wrong commands. Available are : findActivity <actionName> <begin|end|both> [<colums,to,select>] | findSharedPlan <sharedPlanName> <begin|end|both> [<colums,to,select>] | help | sqlQueryTest | quit ");
     }
 
-    std::cout << "reply : " << bReply.toString().c_str() << "\n" << endl;
+    yInfo() << "\t" << "reply : " << bReply.toString().c_str() << "\n" ;
     handlerPort.reply(bReply);
 
     return true;
@@ -533,7 +533,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 
 bool abmReasoning::interruptModule()
 {
-    std::cout << "Interrupting your module, for port cleanup" << endl;
+    yInfo() << "\t" << "Interrupting your module, for port cleanup" ;
 
     Interlocutor.close();
     handlerPort.close();
@@ -550,8 +550,8 @@ bool abmReasoning::interruptModule()
 
 bool abmReasoning::close()
 {
-    std::cout << "Calling close function\n";
-    //  std::cout << saveKnowledge().toString() << endl;
+    yInfo() << "\t" << "Calling close function\n";
+    //  yInfo() << "\t" << saveKnowledge().toString()  ;
 
     if (realOPC->isConnected()) delete realOPC;
     if (mentalOPC->isConnected()) delete mentalOPC;
@@ -579,13 +579,13 @@ Bottle abmReasoning::connectOPC(Bottle bInput)
     int iTry = 0;
     while (!realOPC->isConnected())
     {
-        std::cout << "abmReasoning Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC) << endl;
+        yInfo() << "\t" << "abmReasoning Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC) ;
         if (!realOPC->isConnected())
             Time::delay(0.5);
         iTry++;
         if (iTry > 1)
         {
-            std::cout << "abmReasoning failed to connect to " << abmReasoningFunction::s_realOPC << endl;
+            yInfo() << "\t" << "abmReasoning failed to connect to " << abmReasoningFunction::s_realOPC ;
             bOutput.addString("Connection failed, please check your port");
             break;
         }
@@ -602,13 +602,13 @@ Bottle abmReasoning::connectOPC(Bottle bInput)
     iTry = 0;
     while (!mentalOPC->isConnected())
     {
-        std::cout << "abmReasoning Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC) << endl;
+        yInfo() << "\t" << "abmReasoning Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC) ;
         if (!mentalOPC->isConnected())
             Time::delay(0.5);
         iTry++;
         if (iTry > 1)
         {
-            std::cout << "abmReasoning failed to connect to " << abmReasoningFunction::s_mentalOPC << endl;
+            yInfo() << "\t" << "abmReasoning failed to connect to " << abmReasoningFunction::s_mentalOPC ;
             bOutput.addString("Connection failed, please check your port");
             return bOutput;
         }
@@ -632,7 +632,7 @@ abmReasoning::~abmReasoning()
 void abmReasoning::changeDreaming()
 {
     bDreaming = !bDreaming;
-    std::cout << "bDreaming changed to : " << bDreaming << endl;
+    yInfo() << "\t" << "bDreaming changed to : " << bDreaming ;
 }
 
 
@@ -733,7 +733,7 @@ Bottle abmReasoning::queryBehavior(Bottle bInput)
     if (bInput.size() < 3)
     {
         sError += "Wrong number of input (<2).";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -742,7 +742,7 @@ Bottle abmReasoning::queryBehavior(Bottle bInput)
     if (last < 1)
     {
         sError += "number of last action to low";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -874,7 +874,7 @@ vector<pair<int, int> > abmReasoning::getIdFromActivity(string actionName, Bottl
 
     bOutput = requestFromStream(os.str().c_str());
 
-    std::cout << "Output Bottle in getIdFromActivity : " << bOutput.toString() << endl;
+    yInfo() << "\t" << "Output Bottle in getIdFromActivity : " << bOutput.toString() ;
 
     return getIdPairsFromBottle(bOutput);
 
@@ -885,7 +885,7 @@ vector<pair<int, int> > abmReasoning::getIdPairsFromBottle(Bottle idBottle)
 {
     vector <pair <int, int> > vOutput;
 
-    //  std::cout << "Bottle received in getIdPairsFromBottle : " << idBottle.toString() << endl ;
+    //  yInfo() << "\t" << "Bottle received in getIdPairsFromBottle : " << idBottle.toString()   ;
 
     //-1 because we have iEnd which is iBegin+1
     for (int iBegin = 0; iBegin < idBottle.size() - 1; iBegin++) {
@@ -899,35 +899,35 @@ vector<pair<int, int> > abmReasoning::getIdPairsFromBottle(Bottle idBottle)
             int nbComplexWithin = 0;
             bool endComplexFound = 0;
 
-            //          std::cout << "-----> Next activity (" << idBottle.get(iEnd).asList()->get(0).toString() << ")" << endl ;
+            //          yInfo() << "\t" << "-----> Next activity (" << idBottle.get(iEnd).asList()->get(0).toString() << ")"   ;
 
             //if complex : maybe it is not the next one
             if (bActBegin.get(0).asList()->get(0).toString() == "complex") {
 
-                //              std::cout << "=======> Begin activity is a complex" << endl;
+                //              yInfo() << "\t" << "=======> Begin activity is a complex"  ;
 
                 while (endComplexFound == 0){
 
                     Bottle bActEnd = findActivityById(atoi(idBottle.get(iEnd).asList()->get(0).toString().c_str()), "activitytype, begin");
-                    std::cout << "Is " << atoi(idBottle.get(iEnd).asList()->get(0).toString().c_str()) << " the end of this complex?";
+                    yInfo() << "\t" << "Is " << atoi(idBottle.get(iEnd).asList()->get(0).toString().c_str()) << " the end of this complex?";
 
                     //go to find the next complex activity
                     if (bActEnd.get(0).asList()->get(0).toString() == "complex"){
-                        std::cout << "=======> End activity (id" << idBottle.get(iEnd).asList()->get(0).toString() << ")  is a complex" << endl;
+                        yInfo() << "\t" << "=======> End activity (id" << idBottle.get(iEnd).asList()->get(0).toString() << ")  is a complex" ;
 
                         //this complex action is a begin : it is a complex within
                         if (bActEnd.get(0).asList()->get(1).toString() == "t" || bActBegin.get(0).asList()->get(1).toString() == "TRUE"){
                             nbComplexWithin += 1;
-                            std::cout << "=======> End activity is a complex but which Begin : nbComplexWithin == " << nbComplexWithin << endl;
+                            yInfo() << "\t" << "=======> End activity is a complex but which Begin : nbComplexWithin == " << nbComplexWithin ;
                         }
                         else {
                             nbComplexWithin -= 1; //include the -1 for the END of the complex we want so nbComplexWithin will be -1
-                            std::cout << "==========> Found an END COMPLEX  (id " << idBottle.get(iEnd).asList()->get(0).toString() << ")" << endl;
+                            yInfo() << "\t" << "==========> Found an END COMPLEX  (id " << idBottle.get(iEnd).asList()->get(0).toString() << ")" ;
                         }
 
                         if (nbComplexWithin < 0) {
                             endComplexFound = 1;
-                            std::cout << "==========> Found the proper END COMPLEX  (id " << idBottle.get(iEnd).asList()->get(0).toString() << ")" << endl;
+                            yInfo() << "\t" << "==========> Found the proper END COMPLEX  (id " << idBottle.get(iEnd).asList()->get(0).toString() << ")" ;
                         }
 
                     }
@@ -942,23 +942,23 @@ vector<pair<int, int> > abmReasoning::getIdPairsFromBottle(Bottle idBottle)
             }
 
             //if activity is action, the next one is the end, or iEnd has been modified if complex
-            //          std::cout << "(idBottle)  Pair is ("<< idBottle.get(iBegin).asList()->get(0).toString() << ", " << idBottle.get(iEnd).asList()->get(0).toString() << ")" << endl;
+            //          yInfo() << "\t" << "(idBottle)  Pair is ("<< idBottle.get(iBegin).asList()->get(0).toString() << ", " << idBottle.get(iEnd).asList()->get(0).toString() << ")"  ;
             pActivity.first = atoi(idBottle.get(iBegin).asList()->get(0).toString().c_str());
             pActivity.second = atoi(idBottle.get(iEnd).asList()->get(0).toString().c_str());
-            //          std::cout << "(pActivity) Pair is ("<< pActivity.first << ", " << pActivity.second << ")" << endl;
+            //          yInfo() << "\t" << "(pActivity) Pair is ("<< pActivity.first << ", " << pActivity.second << ")"  ;
 
             vOutput.push_back(pActivity);
         }
     }
 
-    std::cout << "____________________________________ FINAL _____________________________________________" << endl;
+    yInfo() << "\t" << "____________________________________ FINAL _____________________________________________" ;
     for (vector< pair< int, int> >::iterator it = vOutput.begin(); it != vOutput.end(); it++)
     {
         pair<int, int> pActivity(it->first, it->second);
 
-        std::cout << "Pair is (" << pActivity.first << ", " << pActivity.second << ")" << endl;
+        yInfo() << "\t" << "Pair is (" << pActivity.first << ", " << pActivity.second << ")"  ;
     }
-    std::cout << "________________________________________________________________________________________" << endl;
+    yInfo() << "\t" << "________________________________________________________________________________________" ;
 
     return vOutput;
 }
@@ -971,7 +971,7 @@ vector<pair<int, int> > abmReasoning::getIDfromTime(Bottle bInput)
         sRequest;
     if (bInput.size() != 3)
     {
-        std::cout << "Error in abmReasoning::getIDfromTime | Wrong number of input  (!=3)" << endl;
+        yInfo() << "\t" << "Error in abmReasoning::getIDfromTime | Wrong number of input  (!=3)" ;
         return vOutput;
     }
 
@@ -989,7 +989,7 @@ vector<pair<int, int> > abmReasoning::getIDfromTime(Bottle bInput)
     }
     else
     {
-        std::cout << "Error in abmReasoning::getIDfromTime | can't recognize temporal argument" << endl;
+        yInfo() << "\t" << "Error in abmReasoning::getIDfromTime | can't recognize temporal argument" ;
         //  return vOutput;
     }
 
@@ -1073,10 +1073,10 @@ Bottle abmReasoning::getActionConsequence(pair<string, string> pNameArg)
     bOpcIdEnd = requestFromStream(osEnd.str().c_str());
 
     int numberAction = bOpcIdEnd.size();
-    std::cout << "Getting action consequence of : " << sName << " " << sArg << ". " << numberAction << " occurences." << endl;
+    yInfo() << "\t" << "Getting action consequence of : " << sName << " " << sArg << ". " << numberAction << " occurences." ;
     for (int i = 0; i < numberAction; i++){
 
-        std::cout << i + 1 << ".. ";
+        yInfo() << "\t" << i + 1 << ".. ";
 
         int opcIdBegin = atoi(bOpcIdBegin.get(i).asList()->get(0).toString().c_str());
         int opcIdEnd = atoi(bOpcIdEnd.get(i).asList()->get(0).toString().c_str());
@@ -1085,7 +1085,7 @@ Bottle abmReasoning::getActionConsequence(pair<string, string> pNameArg)
         ostringstream osArg;
         osArg << "SELECT argument FROM contentarg WHERE instance = " << opcIdBegin;
         bArguments = requestFromStream(osArg.str().c_str());
-        //      std::cout << "bArguments : " << bArguments.toString() << endl;
+        //      yInfo() << "\t" << "bArguments : " << bArguments.toString()  ;
         bool bCheck = false;
         for (int k = 0; k < bArguments.size(); k++)
         {
@@ -1170,7 +1170,6 @@ Bottle abmReasoning::getActionConsequence(pair<string, string> pNameArg)
             bOutput.addList() = bOutputTemp;
         }
     }
-    std::cout << endl;
 
     return bOutput;
 }
@@ -1225,23 +1224,23 @@ Bottle abmReasoning::getActionConsequenceDrives(pair<string, string> pNameArg)
 
     //check we have only pair begin/end
     if (numberActionBegin != numberActionEnd) {
-        std::cout << "ERROR : there are " << numberActionBegin << " action(s) begin = true and " << numberActionEnd << " action(s) begin = false : CLEAN THE DATABASE" << endl;
+        yInfo() << "\t" << "ERROR : there are " << numberActionBegin << " action(s) begin = true and " << numberActionEnd << " action(s) begin = false : CLEAN THE DATABASE" ;
         bOutput.addString("ERROR");
         return bOutput;
     }
 
     //here, numberAction = numberActionBegin = numberActionEnd
-    std::cout << "Getting action consequence (drives) of : " << sName << " " << sArg << ". " << numberActionBegin << " occurences." << endl;
+    yInfo() << "\t" << "Getting action consequence (drives) of : " << sName << " " << sArg << ". " << numberActionBegin << " occurences." ;
     for (int i = 0; i < numberActionBegin; i++){
 
-        std::cout << i + 1 << ".. ";
+        yInfo() << "\t" << i + 1 << ".. ";
 
         //bOpcId -> instance, driveName, value
         int opcIdBegin = atoi(bOpcIdBegin.get(i).asList()->get(0).toString().c_str());
         int currentInstance = opcIdBegin;
         int opcIdEnd = atoi(bOpcIdEnd.get(i).asList()->get(0).toString().c_str());
 
-        std::cout << "instance " << currentInstance << endl;
+        yInfo() << "\t" << "instance " << currentInstance  ;
         //print and do something for all the drives of the same instance
         // /!\ drives are not in the same order and defaultDrive is replaced after by curiosity
         while (atoi(bOpcIdBegin.get(i).asList()->get(0).toString().c_str()) == currentInstance){
@@ -1255,7 +1254,7 @@ Bottle abmReasoning::getActionConsequenceDrives(pair<string, string> pNameArg)
             double driveValueBegin = atof(bOpcIdBegin.get(i).asList()->get(2).toString().c_str());
             double driveValueEnd = atof(bOpcIdEnd.get(i).asList()->get(2).toString().c_str());
 
-            std::cout << "(" << driveNameBegin << ")" << " : " << driveValueBegin << " -> " << driveValueEnd << endl;
+            yInfo() << "\t" << "(" << driveNameBegin << ")" << " : " << driveValueBegin << " -> " << driveValueEnd << "\n";
 
             //next line. /!\ if the line was the last, we can't ask the next one, so currentInstance -1 to end the while loop
             if (i < numberActionBegin - 1) {
@@ -1266,14 +1265,12 @@ Bottle abmReasoning::getActionConsequenceDrives(pair<string, string> pNameArg)
             }
         }
 
-        std::cout << endl;
         //instance is the next, we need to go to the last of the same because of the ++ in the for loop (except if last line)
         if (currentInstance != -1) {
             i--;
         }
 
     }
-    std::cout << endl;
 
     return bOutput;
 }
@@ -1359,10 +1356,10 @@ Bottle abmReasoning::pddlPlannerSolParser(){
             char fileSolToRemove[512];
             pddlSolFileName(i - 1, fileSolToRemove);
             if (remove(fileSolToRemove) != 0){
-                std::cout << "ERROR : " << fileSolToRemove << " NOT DELETED" << endl;
+                yInfo() << "\t" << "ERROR : " << fileSolToRemove << " NOT DELETED" ;
             }
             else {
-                std::cout << "File : " << fileSolToRemove << " successfully deleted" << endl;
+                yInfo() << "\t" << "File : " << fileSolToRemove << " successfully deleted" ;
             }
         }
 
@@ -1370,7 +1367,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
         if (!fileSol){
             bestSol = i - 1;
             i = pddlNb;
-            std::cout << "----> Best solution is in the solution file number " << bestSol << endl;
+            yInfo() << "\t" << "----> Best solution is in the solution file number " << bestSol ;
         }
     }
 
@@ -1388,7 +1385,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
         while (!fileSol.eof()){
             getline(fileSol, sLine);
-            std::cout << sLine << endl;
+            yInfo() << "\t" << sLine ;
             int actBegin, actEnd;
             string currentAction;
 
@@ -1406,7 +1403,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                 nbAction += 1;
                 currentAction = sLine.substr(actBegin + 1, actEnd - actBegin - 1);
-                std::cout << "=> Action nb : " << nbAction << " is : " << currentAction << endl;
+                yInfo() << "\t" << "=> Action nb : " << nbAction << " is : " << currentAction ;
 
                 string bufferString;
                 stringstream ss(currentAction);
@@ -1420,7 +1417,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                 for (vector<string>::iterator it = vSplitAction.begin(); it != vSplitAction.end(); it++){
                     nbArg += 1;
-                    std::cout << "split : " << it->c_str() << endl;
+                    yInfo() << "\t" << "split : " << it->c_str() ;
 
                     ///////////////////////////////////////////////////////////////////////
                     //         CHANGE IT TO PARSE ACCORDING TO THE GENERALIZATION        //
@@ -1435,20 +1432,20 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
                             //upper to lower case
                             transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
-                            std::cout << "=> actionName : " << actionName << endl;
+                            yInfo() << "\t" << "=> actionName : " << actionName ;
 
                             if (actionName == "hanoi"){
                                 //upper to lower case
 
                                 objName = it->substr(sepBegin + 1, it->length());
                                 transform(objName.begin(), objName.end(), objName.begin(), abmReasoning::fixed_tolower);
-                                std::cout << "=> objName : " << objName << endl;
+                                yInfo() << "\t" << "=> objName : " << objName ;
                             }
                             else {
                                 //upper to lower case
                                 locName = it->substr(sepBegin + 1, it->length());
                                 transform(locName.begin(), locName.end(), locName.begin(), abmReasoning::fixed_tolower);
-                                std::cout << "=> locName : " << locName << endl;
+                                yInfo() << "\t" << "=> locName : " << locName ;
                             }
 
                             agentName = "icub";
@@ -1457,7 +1454,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                             //ADD, ASK, REMOVE, ...
                             actionName = it->c_str();
                             transform(actionName.begin(), actionName.end(), actionName.begin(), abmReasoning::fixed_tolower);
-                            std::cout << "=> actionName : " << actionName << endl;
+                            yInfo() << "\t" << "=> actionName : " << actionName ;
 
                             //human has to do these kind of actions
                             agentName = "partner";
@@ -1477,14 +1474,14 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                             //upper to lower case
                             transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
                             locName = argName;
-                            std::cout << "=> locName : " << locName << endl;
+                            yInfo() << "\t" << "=> locName : " << locName ;
 
                         }
                         else {
                             //upper to lower case
                             transform(argName.begin(), argName.end(), argName.begin(), abmReasoning::fixed_tolower);
                             objName = argName;
-                            std::cout << "=> objName : " << objName << endl;
+                            yInfo() << "\t" << "=> objName : " << objName ;
                         }
                     }
                 }//end go through action split
@@ -1514,7 +1511,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
                 bCurrentAction.addList() = bArg;
                 bCurrentAction.addList() = bRole;
 
-                std::cout << "actionName == (" << actionName.c_str() << ")" << endl;
+                yInfo() << "\t" << "actionName == (" << actionName.c_str() << ")" ;
 
                 //if the action is a put/push -> executeActivity to have the (move absolut/relative (x y) (action put/push (arg...) (role...))) subottle 
                 if (actionName == "put" || actionName == "push") {
@@ -1538,7 +1535,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
 
     }
     else {
-        std::cout << "ERROR : Solution find (" << filename << ") not found" << endl;
+        yInfo() << "\t" << "ERROR : Solution find (" << filename << ") not found" ;
         fileSol.close();
         return bOutput;
     }
@@ -1548,7 +1545,7 @@ Bottle abmReasoning::pddlPlannerSolParser(){
     //not erase the solution : will be done next time we do a reasoning
     //pddlSolDelete(bestSol, bestSol);
 
-    std::cout << "Bottle of actions : " << bOutput.toString().c_str() << endl;
+    yInfo() << "\t" << "Bottle of actions : " << bOutput.toString().c_str() ;
 
     return bOutput;
 }
@@ -1564,7 +1561,7 @@ void abmReasoning::pddlSolDelete(unsigned int begin, unsigned int end){
 
     //check parameters
     if (begin < 1 || end < begin) {
-        std::cout << "ERROR : begin has to be > 1, and end >= begin" << endl;
+        yInfo() << "\t" << "ERROR : begin has to be > 1, and end >= begin" ;
         return;
     }
 
@@ -1594,10 +1591,10 @@ void abmReasoning::pddlSolDelete(unsigned int begin, unsigned int end){
             char fileSolToRemove[512];
             pddlSolFileName(i, fileSolToRemove);
             if (remove(fileSolToRemove) != 0){
-                std::cout << "ERROR : " << fileSolToRemove << " NOT DELETED" << endl;
+                yInfo() << "\t" << "ERROR : " << fileSolToRemove << " NOT DELETED" ;
             }
             else {
-                std::cout << "File : " << fileSolToRemove << " successfully deleted" << endl;
+                yInfo() << "\t" << "File : " << fileSolToRemove << " successfully deleted" ;
             }
         }
     }
@@ -1613,14 +1610,14 @@ int abmReasoning::pddlPlannerLauncher(){
     if (bestSol >= 1){
         char solFilename[512];
         pddlSolFileName(bestSol, solFilename);
-        std::cout << "-----> Previous solution file was " << solFilename;
+        yInfo() << "\t" << "-----> Previous solution file was " << solFilename;
         //remove the file if present
         if (remove(solFilename) != 0){
-            std::cout << "===> Previous solution file NOT deleted (" << solFilename << ") : " << endl;
-            std::cout << "- Wrong path?" << endl;
+            yInfo() << "\t" << "===> Previous solution file NOT deleted (" << solFilename << ") : " ;
+            yInfo() << "\t" << "- Wrong path?"  ;
         }
         else {
-            std::cout << "Previous Solution file successfully deleted!" << endl;
+            yInfo() << "\t" << "Previous Solution file successfully deleted!" ;
         }
     }
 
@@ -1672,7 +1669,7 @@ int abmReasoning::pddlPlannerLauncher(){
     sPddlCpu << pddlCpu;
     strcat(plannerLauncher, sPddlCpu.str().c_str());
 
-    std::cout << "executing the command : " << endl << " - " << cdPlanner << endl << " - " << plannerLauncher << endl;
+    yInfo() << "\t" << "executing the command : "   << " - " << cdPlanner   << " - " << plannerLauncher  ;
 
     //grouping both : cd plannerPath + plannerLauncher
     strcpy(plannerCmds, cdPlanner);
@@ -1680,7 +1677,7 @@ int abmReasoning::pddlPlannerLauncher(){
     strcat(plannerCmds, plannerLauncher);
 
     //launch both cmds
-    std::cout << "System(" << plannerCmds << ")" << endl;
+    yInfo() << "\t" << "System(" << plannerCmds << ")"  ;
     return system(plannerCmds);
 }
 
@@ -1695,24 +1692,24 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
     strcpy(buffer, plannerPath.c_str());
     strcat(buffer, pddlDomain.c_str());
     ofstream myfile;
-    std::cout << "Domain PDDL written in : " << buffer << endl;
+    yInfo() << "\t" << "Domain PDDL written in : " << buffer  ;
     myfile.open(buffer, ios_base::ate);
 
 
     //print the define, requirements, predicates which will be used
-    myfile << ";; STRIPS domain automatically generated by ABMReasoning, part of EFAA" << endl;
+    myfile << ";; STRIPS domain automatically generated by ABMReasoning, part of EFAA"  ;
 
-    myfile << "(define (domain efaa)" << endl;
+    myfile << "(define (domain efaa)"  ;
 
-    myfile << "\t(:requirements :strips :typing :equality)" << endl;
+    myfile << "\t(:requirements :strips :typing :equality)"  ;
 
-    myfile << "\t(:predicates" << endl;
-    myfile << "\t\t(object ?obj)" << endl;
-    myfile << "\t\t(location ?loc)" << endl;
-    myfile << "\t\t(isPresent ?obj)" << endl;
-    //myfile << "\t\t(isReachable ?obj)" << endl ;
-    myfile << "\t\t(isAtLoc ?obj ?loc)" << endl;
-    myfile << "\t)" << endl; //end parenthesis of predicates
+    myfile << "\t(:predicates"  ;
+    myfile << "\t\t(object ?obj)"  ;
+    myfile << "\t\t(location ?loc)"  ;
+    myfile << "\t\t(isPresent ?obj)"  ;
+    //myfile << "\t\t(isReachable ?obj)"   ;
+    myfile << "\t\t(isAtLoc ?obj ?loc)"  ;
+    myfile << "\t)"  ; //end parenthesis of predicates
 
     for (vector<contextualKnowledge>::iterator it = listContextualKnowledge.begin(); it != listContextualKnowledge.end(); it++)
     {
@@ -1724,14 +1721,14 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
         string obj1, loc1, loc2;
 
         if (it->sArgument == abmReasoningFunction::TAG_DB_NONE){
-            myfile << "\t(:action " << it->sName << endl;
+            myfile << "\t(:action " << it->sName  ;
         }
         else {
             //otherwise the name is name-sArg (e.g. : put-north, put-south, put-near, ...) (in particular to managed put-near)
 
             //hanoi_loc
             if (it->sName == "hanoi"){
-                myfile << "\t(:action " << it->sName << "-" << it->sArgument << endl;
+                myfile << "\t(:action " << it->sName << "-" << it->sArgument  ;
 
                 obj1 = it->sArgument;
                 loc1 = "?from";
@@ -1739,7 +1736,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
             }
             else {
                 //move_obj, put_obj
-                myfile << "\t(:action " << it->sName << "-" << it->sArgument << endl;
+                myfile << "\t(:action " << it->sName << "-" << it->sArgument  ;
 
                 obj1 = "?obj1";
             }
@@ -1752,10 +1749,10 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
 
         //hanoi_loc
         if (it->sName == "hanoi"){
-            myfile << "\t\t:parameters (?to ?from)" << endl;
+            myfile << "\t\t:parameters (?to ?from)"  ;
         }
         else {
-            myfile << "\t\t:parameters (?obj1)" << endl;
+            myfile << "\t\t:parameters (?obj1)"  ;
         }
 
         /************************************************************************/
@@ -1850,7 +1847,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
             }
         }
 
-        myfile << ")" << endl; //end parenthesis of precondition
+        myfile << ")"  ; //end parenthesis of precondition
 
         /************************************************************************/
         /**************************  PDDL : effect  *****************************/
@@ -1919,12 +1916,12 @@ Bottle abmReasoning::printPDDLContextualKnowledgeDomain()
             }
         }
 
-        myfile << ")" << endl; //end parenthesis of effect
+        myfile << ")"  ; //end parenthesis of effect
 
-        myfile << "\t)" << endl; //end parenthesis of current Action
+        myfile << "\t)"  ; //end parenthesis of current Action
     }
 
-    myfile << ")" << endl; //end parenthesis of domain
+    myfile << ")"  ; //end parenthesis of domain
 
     myfile.close();
 
@@ -1945,15 +1942,15 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     strcpy(buffer, plannerPath.c_str());
     strcat(buffer, pddlProblem.c_str());
     ofstream myfile;
-    std::cout << "Problem PDDL written in : " << buffer << endl;
+    yInfo() << "\t" << "Problem PDDL written in : " << buffer  ;
     myfile.open(buffer, ios_base::ate);
 
     /************************ 1. define problem name, (:domain) *****************************/
-    myfile << ";; STRIPS problem automatically generated by ABMReasoning, part of EFAA" << endl;
+    myfile << ";; STRIPS problem automatically generated by ABMReasoning, part of EFAA"  ;
 
-    myfile << "(define (problem efaa-prob)" << endl;
+    myfile << "(define (problem efaa-prob)"  ;
 
-    myfile << "\t(:domain efaa)" << endl;
+    myfile << "\t(:domain efaa)"  ;
 
 
     /********************************** 2. (:objects) ***************************************/
@@ -1961,7 +1958,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     vector <string> vObjName;
     ostringstream osRequest, osRequestRelation;
 
-    myfile << "\t(:objects" << endl;
+    myfile << "\t(:objects"  ;
     osRequest.str("");
     osRequest << "SELECT distinct argument FROM contentarg WHERE subtype = '" << EFAA_OPC_ENTITY_RTOBJECT << "' AND instance > 656";
     bRequest = requestFromStream(osRequest.str().c_str());
@@ -1974,7 +1971,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
         vObjName.push_back(objectName);
     }
     //end objects name
-    myfile << endl;
+    myfile  ;
 
     //2.2 get the locations name
     vector <string> vLocName;
@@ -1991,14 +1988,14 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
         vLocName.push_back(locName);
     }
     //end locations name
-    myfile << endl << "\t)\t;; end :objects" << endl; //end objects
+    myfile   << "\t)\t;; end :objects"  ; //end objects
 
 
     /********************************** 3. (:init) ***************************************/
-    myfile << "\t(:init" << endl;
+    myfile << "\t(:init"  ;
 
     //3.1 ;;types
-    myfile << "\t\t;;types" << endl;
+    myfile << "\t\t;;types"  ;
     myfile << "\t\t";
 
     //3.1.1 init objects types
@@ -2006,7 +2003,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     {
         myfile << "(object " << *(it) << ") ";
     }
-    myfile << endl; //end of line for objects types
+    myfile  ; //end of line for objects types
 
     //3.1.2 init loc types
     myfile << "\t\t";
@@ -2014,14 +2011,14 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     {
         myfile << "(location " << *(it) << ") ";
     }
-    myfile << endl << endl; //end of line for (:init
+    myfile    ; //end of line for (:init
 
     //3.2 ;;init-conditions
-    myfile << "\t\t;;init-conditions" << endl;
+    myfile << "\t\t;;init-conditions"  ;
 
     //last instance
     Bottle  bOpcLastInstance = requestFromStream("SELECT instance FROM main WHERE activitytype = 'reasoning' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
-    //std::cout << "bottle = " << bOpcLastInstance.toString().c_str() << " and bOPCLastReasoningInstance = " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str()) << endl ;
+    //yInfo() << "\t" << "bottle = " << bOpcLastInstance.toString().c_str() << " and bOPCLastReasoningInstance = " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str())   ;
 
     //3.2.1 extract for all rtobjects which ones are present (rtobject
     osRequest.str("");
@@ -2032,7 +2029,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     //add relation (obj isAtLoc loc) inside the opc
     Bottle b = updateOpcObjectLocation(abmReasoningFunction::s_realOPC);
 
-    std::cout << "bottle reply update = " << b.toString().c_str();
+    yInfo() << "\t" << "bottle reply update = " << b.toString().c_str();
 
     for (int arg = 0; arg < bRequest.size(); arg++)
     {
@@ -2044,9 +2041,9 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
             //check if the present object intersect a/several loc
             osRequestRelation.str("");
 
-            osRequestRelation << "SELECT relation.object  FROM relation WHERE relation.instance = " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str()) << " AND relation.verb = 'isAtLoc' AND relation.subject = '" << objPresentName << "' ;" << endl;
+            osRequestRelation << "SELECT relation.object  FROM relation WHERE relation.instance = " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str()) << " AND relation.verb = 'isAtLoc' AND relation.subject = '" << objPresentName << "' ;"  ;
             bRequestRelation = requestFromStream(osRequestRelation.str().c_str());
-            std::cout << "================================================  Relation for " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str()) << " : " << endl << bRequestRelation.toString().c_str() << endl;
+            yInfo() << "\t" << "================================================  Relation for " << atoi(bOpcLastInstance.get(0).asList()->get(0).toString().c_str()) << " : "   << bRequestRelation.toString().c_str()  ;
 
             for (int argRelation = 0; argRelation < bRequestRelation.size(); argRelation++)
             {
@@ -2057,7 +2054,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
 
         }
     }
-    myfile << endl << "\t)\t;; end :init" << endl; //end (:init
+    myfile   << "\t)\t;; end :init"  ; //end (:init
 
     //3.2.2 extract for all rtobjects where they are (intersect with loc)
     //add relation (obj isAtLoc loc) inside the opc
@@ -2065,7 +2062,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
 
 
     /********************************** 4. (:goal) ***************************************/
-    myfile << "\t(:goal" << endl;
+    myfile << "\t(:goal"  ;
     myfile << "\t\t(and ";
 
     //use the input bottle to fill the goal part
@@ -2100,9 +2097,9 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
         myfile << "(" << currentCond << ") ";
     }
 
-    myfile << endl << "\t\t)\t;; end and";//end and
-    myfile << endl << "\t)\t;; end goal";//end goal
-    myfile << endl << ")\t;; end define"; //end define
+    myfile   << "\t\t)\t;; end and";//end and
+    myfile   << "\t)\t;; end goal";//end goal
+    myfile   << ")\t;; end define"; //end define
 
     myfile.close();
 
@@ -2166,19 +2163,19 @@ Bottle abmReasoning::renameAction(Bottle bInput)
 */
 Bottle abmReasoning::findAllComplex(int from)
 {
-    std::cout << endl << "Creating temporal knowledge from complex." << endl;
+    yInfo() << "\t"   << "Creating temporal knowledge from complex."  ;
 
     //check : simple object query :
     Bottle bTemporal, bOutput;
     ostringstream osRequest;
     osRequest << "SELECT DISTINCT contentarg.argument FROM main, contentarg WHERE main.activitytype = 'complex' AND contentarg.role = 'temporal' AND main.instance = contentarg.instance AND main.instance > " << from;
     bTemporal = requestFromStream(osRequest.str().c_str());
-    //std::cout << "bTemporal : " << bTemporal.toString() << endl ;
+    //yInfo() << "\t" << "bTemporal : " << bTemporal.toString()   ;
 
     string sNull = "NULL";
     if (bTemporal.toString().c_str() == sNull)
     {
-        std::cout << "0 temporal found." << endl;
+        yInfo() << "\t" << "0 temporal found."  ;
         bOutput.addString("no temporal to load.");
         return bOutput;
     }
@@ -2203,7 +2200,7 @@ Bottle abmReasoning::findAllComplex(int from)
     }
 
     bOutput.addString(osOutput.str().c_str());
-    std::cout << osOutput.str().c_str() << endl;
+    yInfo() << "\t" << osOutput.str().c_str()  ;
     return bOutput;
 }
 
@@ -2213,7 +2210,7 @@ Bottle abmReasoning::findAllComplex(int from)
 */
 Bottle abmReasoning::findAllActions(int from)
 {
-    std::cout << endl << "Getting actions." << endl;
+    yInfo() << "\t"   << "Getting actions."  ;
     int iError = 0;
     //check : simple object query :
     Bottle bTemporal, bOutput;
@@ -2223,7 +2220,7 @@ Bottle abmReasoning::findAllActions(int from)
     int numberAction = bMessenger.size();
 
     vector<int> vError;
-    std::cout << "found " << numberAction << " action(s)" << endl;
+    yInfo() << "\t" << "found " << numberAction << " action(s)"  ;
     pair<double, double> BEGIN,
         MOVE,
         END,
@@ -2232,24 +2229,24 @@ Bottle abmReasoning::findAllActions(int from)
 
     for (int j = 0; j < numberAction; j++)
     {
-        std::cout << j + 1 << "..";
+        yInfo() << "\t" << j + 1 << "..";
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
         Bottle bAction = Interlocutor.askActionFromId(Id);
 
 
 
-        //std::cout << "bAction : " << endl;
+        //yInfo() << "\t" << "bAction : "  ;
 
         //for (int kk = 0 ; kk < bAction.size() ; kk++)
         //{
-        //  std::cout << "element " << kk << " : \t" << bAction.get(kk).toString() << endl;
+        //  yInfo() << "\t" << "element " << kk << " : \t" << bAction.get(kk).toString()  ;
         //}
 
 
 
         if (bAction.size() <= 6)
         {
-            std::cout << endl << "Error in abmReasoning::addLastAction : wrong size of 'askLastAction' \n";
+            yInfo() << "\t"   << "Error in abmReasoning::addLastAction : wrong size of 'askLastAction' \n";
             vError.push_back(Id);
             iError++;
         }
@@ -2359,15 +2356,15 @@ Bottle abmReasoning::findAllActions(int from)
         LOCATION->m_present = 0;
         mentalOPC->commit();
     }
-    std::cout << endl;
+    yInfo() << "\t"  ;
     if (iError != 0)
     {
-        std::cout << iError << " errors while getting the actions:" << endl;
+        yInfo() << "\t" << iError << " errors while getting the actions:"  ;
         for (unsigned int j = 0; j < vError.size(); j++)
         {
-            std::cout << vError[j] << "\t ";
+            yInfo() << "\t" << vError[j] << "\t ";
         }
-        std::cout << endl;
+        yInfo() << "\t"  ;
     }
     return bOutput;
 }
@@ -2376,7 +2373,7 @@ Bottle abmReasoning::findAllActions(int from)
 
 Bottle abmReasoning::findAllActionsV2(int from)
 {
-    std::cout << endl << "Getting actions." << endl;
+    yInfo() << "\t"   << "Getting actions."  ;
     int iError = 0;
     //check : simple object query :
     Bottle bTemporal, bOutput;
@@ -2386,7 +2383,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
     int numberAction = bMessenger.size();
 
     vector<int> vError;
-    std::cout << "found " << numberAction << " action(s)" << endl;
+    yInfo() << "\t" << "found " << numberAction << " action(s)"  ;
     pair<double, double> BEGIN,
         MOVE,
         END,
@@ -2397,25 +2394,25 @@ Bottle abmReasoning::findAllActionsV2(int from)
     //string filepath_sentence = resfind.findFileByName("sentences.txt");
     //ofstream file_sentences(filepath_sentence.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
-    //file_sentences << "agent\tverb\tobject\tajd1\tadj2" << endl;
+    //file_sentences << "agent\tverb\tobject\tajd1\tadj2"  ;
 
     for (int j = 0; j < numberAction; j++)
     {
-        std::cout << j + 1 << "..";
+        yInfo() << "\t" << j + 1 << "..";
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
 
         Bottle bAction = Interlocutor.askActionFromIdV2(Id);
 
         if (bAction.get(0).asString() == "error")
         {
-            cout << bAction.get(1).toString();
+            yInfo() << "\t" << bAction.get(1).toString();
             iError++;
         }
         else
         {
             if (bAction.size() <= 5)
             {
-                std::cout << endl << "Error in abmReasoning::addLastAction : wrong size of 'askLastAction' \n";
+                yInfo() << "\t"   << "Error in abmReasoning::addLastAction : wrong size of 'askLastAction' \n";
                 vError.push_back(Id);
                 iError++;
             }
@@ -2425,7 +2422,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
                 Bottle bArgument = *bAction.get(1).asList();
 
-                //			cout << endl << bAction.toString() << endl;
+                //			yInfo() << "\t"   << bAction.toString()  ;
 
                 list<string>	lAdjectives;
                 lAdjectives.push_back(bArgument.check("adv1", Value("none")).asString());
@@ -2466,7 +2463,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
                 //file_sentences << bArgument.check("action", Value("none")).asString() << "\t";
                 //file_sentences << bArgument.check("object", Value("none")).asString() << "\t";
                 //file_sentences << bArgument.check("adv1", Value("none")).asString() << "\t";
-                //file_sentences << bArgument.check("adv2", Value("none")).asString() << endl;
+                //file_sentences << bArgument.check("adv2", Value("none")).asString()  ;
 
                 if (ObjectPresentAfter == ObjectPresentBefore)
                 {
@@ -2502,19 +2499,19 @@ Bottle abmReasoning::findAllActionsV2(int from)
         LOCATION->m_present = 0;
         mentalOPC->commit();
     }
-    cout << endl;
+    yInfo() << "\t"  ;
 
     bool print_in_file = true;
 
 
     if (iError != 0)
     {
-        cout << iError << " errors while getting the actions:" << endl;
+        yInfo() << "\t" << iError << " errors while getting the actions:"  ;
         for (unsigned int j = 0; j < vError.size(); j++)
         {
-            std::cout << vError[j] << "\t ";
+            yInfo() << "\t" << vError[j] << "\t ";
         }
-        cout << endl;
+        yInfo() << "\t"  ;
     }
 
 
@@ -2538,13 +2535,13 @@ Bottle abmReasoning::findAllActionsV2(int from)
             if (file_time){
                 for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
                 {
-                    file_time << *itD << endl;
+                    file_time << *itD  ;
                 }
-                cout << "file_time " << filepath_time << " written" << endl;
+                yInfo() << "\t" << "file_time " << filepath_time << " written"  ;
             }
             else
             {
-                cout << "cannot write " << filepath_time << endl;
+                yInfo() << "\t" << "cannot write " << filepath_time  ;
             }
 
             string filepath_space_relative = "space_";
@@ -2555,25 +2552,25 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
             if (file_space)
             {
-                file_space << "X\tY\tDX\tDY" << endl;
+                file_space << "X\tY\tDX\tDY"  ;
 
                 if (it->vdGnlDelta.size() != it->vdGnlXY.size())
                 {
-                    cout << "problem of size dude !" << endl;
+                    yInfo() << "\t" << "problem of size dude !"  ;
                 }
                 else
                 {
                     for (unsigned int i = 0; i < it->vdGnlDelta.size(); i++)
                     {
-                        file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
+                        file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second  ;
                     }
                 }
-                cout << "file " << filepath_space << " written" << endl;
+                yInfo() << "\t" << "file " << filepath_space << " written"  ;
 
 
                 if (it->mActionAbsolut.size() != it->mActionDelta.size())
                 {
-                    cout << "problem of size and verb dude !" << endl;
+                    yInfo() << "\t" << "problem of size and verb dude !"  ;
                 }
                 else
                 {
@@ -2584,21 +2581,21 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
                     ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
-                    file_space_verb << "X\tY\tVerb" << endl;
+                    file_space_verb << "X\tY\tVerb"  ;
 
                     for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
                     {
                         for (unsigned int i = 0; i < itMap->second.size(); i++)
                         {
-                            file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
+                            file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY"  ;
                         }
 
                         for (unsigned int i = 0; i < itMap->second.size(); i++)
                         {
-                            file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
+                            file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA"  ;
                         }
 
-                        std::cout << "file_space_verb " << filepath_space_verb << " written" << endl;
+                        yInfo() << "\t" << "file_space_verb " << filepath_space_verb << " written"  ;
                     }
                 }
             }
@@ -2616,7 +2613,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
 */
 Bottle abmReasoning::findAllSentence(int from)
 {
-    std::cout << endl << "Getting sentence." << endl;
+    yInfo() << "\t"   << "Getting sentence."  ;
     //int iError = 0;
     //check : simple object query :
     Bottle bTemporal, bOutput;
@@ -2626,7 +2623,7 @@ Bottle abmReasoning::findAllSentence(int from)
     int numberSentence = bMessenger.size();
 
     vector<int> vError;
-    std::cout << "found " << numberSentence << " sentence(s)" << endl;
+    yInfo() << "\t" << "found " << numberSentence << " sentence(s)"  ;
     pair<double, double> BEGIN,
         MOVE,
         END,
@@ -2635,12 +2632,12 @@ Bottle abmReasoning::findAllSentence(int from)
 
     for (int j = 0; j < numberSentence; j++)
     {
-        std::cout << endl << j + 1 << "..";
+        yInfo() << "\t"   << j + 1 << "..";
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
         Bottle bSentence = Interlocutor.askSentenceFromId(Id);
 
         if (bSentence.size() != 4)
-            std::cout << "Error in abmReasoning::FindAllSentence - instance " << Id << "." << endl;
+            yInfo() << "\t" << "Error in abmReasoning::FindAllSentence - instance " << Id << "."  ;
         else
         {
             // add the grammar knowledge:
@@ -2657,7 +2654,7 @@ Bottle abmReasoning::findAllSentence(int from)
 */
 Bottle abmReasoning::findAllBehaviors(int from)
 {
-    std::cout << endl << "Creating drives knowledge from behaviors" << endl;
+    yInfo() << "\t"   << "Creating drives knowledge from behaviors"  ;
 
     //check : simple object query :
     Bottle  bOutput;
@@ -2668,7 +2665,7 @@ Bottle abmReasoning::findAllBehaviors(int from)
     string sNull = "NULL";
     if (bMessenger.toString().c_str() == sNull)
     {
-        std::cout << "0 behavior found." << endl;
+        yInfo() << "\t" << "0 behavior found."  ;
         bOutput.addString("no behavior to load.");
         return bOutput;
     }
@@ -2679,7 +2676,7 @@ Bottle abmReasoning::findAllBehaviors(int from)
         bOutput.addList() = addBehavior(beBehavior);
     }
 
-    std::cout << listBehaviors.size() << " behavior(s) found." << endl;
+    yInfo() << "\t" << listBehaviors.size() << " behavior(s) found."  ;
 
     return bOutput;
 }
@@ -2721,7 +2718,7 @@ Bottle abmReasoning::askLastActivity(Bottle bInput)
 */
 Bottle abmReasoning::findAllSharedPlan(int from)
 {
-    std::cout << endl << "Getting known shared plans." << endl;
+    yInfo() << "\t"   << "Getting known shared plans."  ;
 
     //check : simple object query :
     Bottle bTemporal, bOutput;
@@ -2734,7 +2731,7 @@ Bottle abmReasoning::findAllSharedPlan(int from)
     string sNull = "NULL";
     if (bMessenger.toString().c_str() == sNull)
     {
-        std::cout << "0 shared plan found." << endl;
+        yInfo() << "\t" << "0 shared plan found."  ;
         bOutput.addString("no shared plan to load.");
         return bOutput;
     }
@@ -2789,7 +2786,7 @@ Bottle abmReasoning::findAllSharedPlan(int from)
         addSharedPlan(test);
     }
 
-    std::cout << listPlan.size() << " plan(s) found." << endl;
+    yInfo() << "\t" << listPlan.size() << " plan(s) found."  ;
     //displaySharedPlan();
 
     return bOutput;
@@ -2821,11 +2818,11 @@ Bottle abmReasoning::availableSharedPlan(int idBeginCurrentAction, int idEndCurr
     vAvailablePlans.push_back(listPlan);
 
 
-    std::cout << "List of currentActions : " << endl;
+    yInfo() << "\t" << "List of currentActions : "  ;
     for (vector <pair <int, int> >::iterator it = vCurrentActions.begin(); it < vCurrentActions.end(); it++)
     {
         //print the list
-        std::cout << "- { " << it->first << ", " << it->second << "}" << endl;
+        yInfo() << "\t" << "- { " << it->first << ", " << it->second << "}"  ;
 
         //build associated SP
         vBuiltSharedPlan.push_back(actionsToPlan(it->first, it->second));
@@ -2841,29 +2838,29 @@ Bottle abmReasoning::availableSharedPlan(int idBeginCurrentAction, int idEndCurr
         //1. just print to know where we are
 
         //name SP
-        std::cout << "\n============================================================================= " << endl;
-        std::cout << "name SP : " << it_builtSP->sName << endl;
-        std::cout << "=============================================================================\n " << endl;
+        yInfo() << "\t" << "\n============================================================================= "  ;
+        yInfo() << "\t" << "name SP : " << it_builtSP->sName  ;
+        yInfo() << "\t" << "=============================================================================\n "  ;
 
         //actionName
-        std::cout << "name actions : ";
+        yInfo() << "\t" << "name actions : ";
         for (vector< string >::iterator itActivityName = it_builtSP->vActivityname.begin(); itActivityName < it_builtSP->vActivityname.end(); itActivityName++)
         {
-            std::cout << *(itActivityName) << " ";
+            yInfo() << "\t" << *(itActivityName) << " ";
         }
-        std::cout << endl;
+        yInfo() << "\t"  ;
         //arguments
-        std::cout << "Arguments of the next SP : ";
+        yInfo() << "\t" << "Arguments of the next SP : ";
         for (vector< list < pair < string, string > > >::iterator itActivityArguments = it_builtSP->vActivityArguments.begin(); itActivityArguments < it_builtSP->vActivityArguments.end(); itActivityArguments++)
         {
-            std::cout << endl;
+            yInfo() << "\t"  ;
             for (list < pair < string, string > >::iterator itListArg = itActivityArguments->begin(); itListArg != itActivityArguments->end(); itListArg++)
             {
-                std::cout << " {" << itListArg->first << ", " << itListArg->second << "}";
+                yInfo() << "\t" << " {" << itListArg->first << ", " << itListArg->second << "}";
             }
 
         }
-        std::cout << endl;
+        yInfo() << "\t"  ;
 
         //2. For the current built plan, check if the vector of available plan could match it. Erase the ones which don't. return empty == no plan are available
 
@@ -2931,7 +2928,7 @@ Bottle abmReasoning::availableSharedPlan(int idBeginCurrentAction, int idEndCurr
                     it_actName++;
                 }
 
-                //std::cout << "Next Action : " << *it_actName << "  : " ;
+                //yInfo() << "\t" << "Next Action : " << *it_actName << "  : " ;
                 string actionName = *it_actName;
                 bNextAction.addString(actionName.c_str());
 
@@ -2940,7 +2937,7 @@ Bottle abmReasoning::availableSharedPlan(int idBeginCurrentAction, int idEndCurr
 
                 for (list < pair < string, string > >::iterator it_Arg = it_actArg->begin(); it_Arg != it_actArg->end(); it_Arg++)
                 {
-                    //std::cout << "argument ( " << it_Arg->first.c_str() << ", " << it_Arg->second.c_str() << ") " << endl ;
+                    //yInfo() << "\t" << "argument ( " << it_Arg->first.c_str() << ", " << it_Arg->second.c_str() << ") "   ;
                     subNextActionArg.addString(it_Arg->first.c_str());
 
                     //change the incrementation of the role to always be 1, just like any solely action. Assuming number < 10
@@ -3006,7 +3003,7 @@ Bottle abmReasoning::findPossibleSharedPlan(int beginLastAction, int endLastActi
     //2. Check if there is no gap between this action and the last one : new vCurrentAction otherwise
     if ((saveEndLastAction == -1) || ((beginLastAction - saveEndLastAction) > 1) || (beginLastAction < saveEndLastAction))
     {
-        std::cout << "\n===========================> New vCurrentActions <===========================\n" << endl;
+        yInfo() << "\t" << "\n===========================> New vCurrentActions <===========================\n"  ;
         vCurrentActions.clear();
         vAvailablePlans.clear();
         saveEndLastAction = endLastAction;
@@ -3026,13 +3023,13 @@ Bottle abmReasoning::findPossibleSharedPlan(int beginLastAction, int endLastActi
 */
 Bottle abmReasoning::findAllInteractions(int from)
 {
-    std::cout << "Getting interactions." << endl;
+    yInfo() << "\t" << "Getting interactions."  ;
 
     Bottle bOutput;
     if (!realOPC->isConnected())
     {
         bOutput.addString("Error in autobiographicalMemory::populateOPC | OpcClient not connected.");
-        std::cout << bOutput.toString() << endl;
+        yInfo() << "\t" << bOutput.toString()  ;
         return bOutput;
     }
 
@@ -3046,7 +3043,7 @@ Bottle abmReasoning::findAllInteractions(int from)
     string sNull = "NULL";
     if (bDistinctEntity.toString().c_str() == sNull)
     {
-        std::cout << "0 shared plan found." << endl;
+        yInfo() << "\t" << "0 shared plan found."  ;
         bOutput.addString("no shared plan to load.");
         return bOutput;
     }
@@ -3081,8 +3078,8 @@ Bottle abmReasoning::findAllInteractions(int from)
 
 
     ostringstream osOutput;
-    osOutput << listKnownInteraction.size() << " interaction(s) added." << endl;
-    std::cout << osOutput.str() << endl;
+    osOutput << listKnownInteraction.size() << " interaction(s) added."  ;
+    yInfo() << "\t" << osOutput.str()  ;
     bOutput.addString(osOutput.str().c_str());
 
     return bOutput;
@@ -3145,7 +3142,7 @@ Bottle abmReasoning::addLastAction()
         bOutput.addString("Error in abmReasoning::addLastAction : wrong size of 'askLastAction'");
         return bOutput;
     }
-    //  std::cout << "bLastAction " << bLastAction.toString() << endl;
+    //  yInfo() << "\t" << "bLastAction " << bLastAction.toString()  ;
     string  sName = (*bAction.get(0).asList()).get(0).toString().c_str(),
         sArgument = (*bAction.get(1).asList()).get(0).toString().c_str(),
         sXY = bAction.get(2).toString().c_str(),
@@ -3227,7 +3224,7 @@ Bottle abmReasoning::addLastComplex()
 {
     Bottle  bLastComplex = Interlocutor.askLastComplex(),
         bOutput;
-    //  std::cout << "bLastComplex " << bLastComplex.toString() << endl;
+    //  yInfo() << "\t" << "bLastComplex " << bLastComplex.toString()  ;
     if (bLastComplex.size() <= 2)
     {
         bOutput.addString("Error in abmReasoning::addLastAction : wrong size of 'askLastAction'");
@@ -3251,7 +3248,7 @@ plan abmReasoning::addLastPlan()
 
 Bottle abmReasoning::addLastSharedPlan()
 {
-    std::cout << endl << "Adding last Shared plan" << endl;
+    yInfo() << "\t"   << "Adding last Shared plan"  ;
 
     //check : simple object query :
     Bottle bTemporal, bOutput;
@@ -3306,7 +3303,7 @@ Bottle abmReasoning::addLastSharedPlan()
     }
     addSharedPlan(test);
 
-    std::cout << " plan added." << endl;
+    yInfo() << "\t" << " plan added."  ;
     //displaySharedPlan();
 
     return bOutput;
@@ -3352,7 +3349,7 @@ plan abmReasoning::actionsToPlan(int idBegin, int idEnd)
     // extracting activity of the plan
     for (int acti = 0; acti < NbActivity; acti++)
     {
-        //std::cout  << "NEW ACTIVITYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY" << endl;
+        //std::cout  << "NEW ACTIVITYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY"  ;
 
         // get type and name of activity
         ostringstream osActivity;
@@ -3386,8 +3383,8 @@ plan abmReasoning::actionsToPlan(int idBegin, int idEnd)
                 //check'
                 for (vector< pair <string, string > >::iterator it_p = newPlan.vArguments.begin(); it_p != newPlan.vArguments.end(); it_p++)
                 {
-                    //std::cout << "currentArg = " << it_p->first << "-" << it_p->second << endl ;
-                    //std::cout << "sArg = " << sArgument << " and sRole = " << sRole << endl ;
+                    //yInfo() << "\t" << "currentArg = " << it_p->first << "-" << it_p->second   ;
+                    //yInfo() << "\t" << "sArg = " << sArgument << " and sRole = " << sRole   ;
                     //if the name is found is vArgument -> put the proper role
                     if (it_p->first == sArgument)
                     {
@@ -3417,7 +3414,7 @@ plan abmReasoning::actionsToPlan(int idBegin, int idEnd)
                             objectNumber += 1;
                         }
 
-                        //std::cout << "Add in vArguments : " << currentArg.first << "-" << currentArg.second << endl ;
+                        //yInfo() << "\t" << "Add in vArguments : " << currentArg.first << "-" << currentArg.second   ;
                         newPlan.vArguments.push_back(currentArg);
 
                         //add in vActivityType the corresponding role
@@ -3446,7 +3443,7 @@ plan abmReasoning::actionsToPlan(int idBegin, int idEnd)
                             str << agentNumber;
                             str >> stringNumber;
 
-                            //std::cout << "agent : stringNumber = " << stringNumber << endl ;
+                            //yInfo() << "\t" << "agent : stringNumber = " << stringNumber   ;
 
                         }
                         else {
@@ -3455,14 +3452,14 @@ plan abmReasoning::actionsToPlan(int idBegin, int idEnd)
                             str << objectNumber;
                             str >> stringNumber;
 
-                            //std::cout << "object : stringNumber = " << stringNumber << endl ;
+                            //yInfo() << "\t" << "object : stringNumber = " << stringNumber   ;
                         }
 
                         commonRole = commonRole + stringNumber;
-                        //std::cout << "commonRole = " << commonRole << endl;
+                        //yInfo() << "\t" << "commonRole = " << commonRole  ;
                         currentArg.second = commonRole;
 
-                        //std::cout << "Add in vArguments : " << currentArg.first << "-" << currentArg.second << endl ;
+                        //yInfo() << "\t" << "Add in vArguments : " << currentArg.first << "-" << currentArg.second   ;
                         newPlan.vArguments.push_back(currentArg);
 
                         //add in vActivityType the corresponding role
@@ -3521,7 +3518,7 @@ Bottle abmReasoning::discriminateAction(Bottle bInput)
 
     if (bInput.size() < 2)
     {
-        std::cout << "Error in abmReasoning::discriminateAction | wrong number of inputs" << endl;
+        yInfo() << "\t" << "Error in abmReasoning::discriminateAction | wrong number of inputs"  ;
         bOutput.addString("Error in abmReasoning::discriminateAction | wrong number of inputs");
         return bOutput;
     }
@@ -3606,7 +3603,7 @@ Bottle abmReasoning::discriminateAction(Bottle bInput)
     if (bConflict)
     {
 
-        std::cout << "conflict in the discrimination" << endl;
+        yInfo() << "\t" << "conflict in the discrimination"  ;
         bActionMain.addDouble(dMin);
     }
     else
@@ -3649,12 +3646,12 @@ Bottle abmReasoning::discriminateAction(Bottle bInput)
 
         renameAction(bRename);
 
-        std::cout << "Action modified" << endl;
+        yInfo() << "\t" << "Action modified"  ;
     }
 
     bOutput.addList() = bActionMain;
 
-    std::cout << "Confidence : " << dScore << endl;
+    yInfo() << "\t" << "Confidence : " << dScore  ;
     return bOutput;
 }
 
@@ -3713,9 +3710,9 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 
     abmReasoningFunction::studentttest2(adjInput.vdGnlTiming, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
 
-    cout << adjInput.sLabel << " bothtails: " << adjInput.bothtails << endl;
-    cout << "lefttail : " << adjInput.lefttail << endl;
-    cout << "righttail: " << adjInput.righttail << endl;
+    yInfo() << "\t" << adjInput.sLabel << " bothtails: " << adjInput.bothtails  ;
+    yInfo() << "\t" << "lefttail : " << adjInput.lefttail  ;
+    yInfo() << "\t" << "righttail: " << adjInput.righttail  ;
 
 
     // if from a general point of view, the adjective influence the timing
@@ -3732,7 +3729,7 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
         abmReasoningFunction::studentttest2(itMap->second, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
         if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
         {
-            cout << adjInput.sLabel << " influences timing when correlated to the action : " << itMap->first << endl;
+            yInfo() << "\t" << adjInput.sLabel << " influences timing when correlated to the action : " << itMap->first  ;
             adjInput.fTimingInfluence = true;
         }
     }
@@ -3938,7 +3935,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
     bErrorFormat.addString(sErrorFormat.c_str());
     if (bInput.size() < 5)
     {
-        std::cout << "Error in abmReasoning::executeActivity | wrong number of input" << endl;
+        yInfo() << "\t" << "Error in abmReasoning::executeActivity | wrong number of input"  ;
         bOutput.addString("Error in abmReasoning::executeActivity | wrong number of input");
         return bOutput;
     }
@@ -3951,7 +3948,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
     }
     else
     {
-        std::cout << sErrorFormat << endl;
+        yInfo() << "\t" << sErrorFormat  ;
         return bErrorFormat;
     }
 
@@ -3968,7 +3965,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
         }
         else
         {
-            std::cout << sErrorFormat << endl;
+            yInfo() << "\t" << sErrorFormat  ;
             return bErrorFormat;
         }
 
@@ -3979,8 +3976,8 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
         }
         else
         {
-            std::cout << sErrorFormat << endl;
-            std::cout << "Arguments missing" << endl;
+            yInfo() << "\t" << sErrorFormat  ;
+            yInfo() << "\t" << "Arguments missing"  ;
             return bErrorFormat;
         }
 
@@ -3991,8 +3988,8 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
         }
         else
         {
-            std::cout << sErrorFormat << endl;
-            std::cout << "Roles missing" << endl;
+            yInfo() << "\t" << sErrorFormat  ;
+            yInfo() << "\t" << "Roles missing"  ;
             return bErrorFormat;
         }
 
@@ -4004,8 +4001,8 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
         }
         else
         {
-            std::cout << sErrorFormat << endl;
-            std::cout << "Argument and role of size different" << endl;
+            yInfo() << "\t" << sErrorFormat  ;
+            yInfo() << "\t" << "Argument and role of size different"  ;
             return bErrorFormat;
         }
 
@@ -4043,8 +4040,8 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
         }
         else
         {
-            std::cout << sErrorFormat << endl;
-            std::cout << "Can't find argument : object1 or spatial1" << endl;
+            yInfo() << "\t" << sErrorFormat  ;
+            yInfo() << "\t" << "Can't find argument : object1 or spatial1"  ;
             return bErrorFormat;
         }
     }
@@ -4109,7 +4106,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
 
                     string currentRole = bInput.get(4).asList()->get(j).toString().c_str();
 
-                    //std::cout << "element nb " << j << " in role bottle is : {" << currentRole.c_str() << "} and itString is {" << itString->c_str() << "}" <<endl ; 
+                    //yInfo() << "\t" << "element nb " << j << " in role bottle is : {" << currentRole.c_str() << "} and itString is {" << itString->c_str() << "}" <<endl ; 
 
                     if (*itString == currentRole){
                         roleFound = true;
@@ -4122,7 +4119,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
 
                 //there is a role missing
                 if (roleFound == false) {
-                    std::cout << "ERROR when building condition bottle for executeReasoning : one role in condition number " << nbCond << " is missing" << endl;
+                    yInfo() << "\t" << "ERROR when building condition bottle for executeReasoning : one role in condition number " << nbCond << " is missing"  ;
                 }
             } //end of the currentBottle build
 
@@ -4135,7 +4132,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
         //bReasoning.addList() = *bInput.get(3).asList();
         bReasoning.addList() = bCond;
 
-        std::cout << "Bottle sent to executeReasoning : " << bReasoning.toString().c_str() << endl;
+        yInfo() << "\t" << "Bottle sent to executeReasoning : " << bReasoning.toString().c_str()  ;
 
         return executeReasoning(bReasoning);
     }
@@ -4188,8 +4185,8 @@ Bottle abmReasoning::executeComplex(Bottle bInput)
     }
     else
     {
-        std::cout << sErrorFormat << endl;
-        std::cout << "Arguments missing" << endl;
+        yInfo() << "\t" << sErrorFormat  ;
+        yInfo() << "\t" << "Arguments missing"  ;
         return bErrorFormat;
     }
 
@@ -4200,8 +4197,8 @@ Bottle abmReasoning::executeComplex(Bottle bInput)
     }
     else
     {
-        std::cout << sErrorFormat << endl;
-        std::cout << "Roles missing" << endl;
+        yInfo() << "\t" << sErrorFormat  ;
+        yInfo() << "\t" << "Roles missing"  ;
         return bErrorFormat;
     }
 
@@ -4213,8 +4210,8 @@ Bottle abmReasoning::executeComplex(Bottle bInput)
     }
     else
     {
-        std::cout << sErrorFormat << endl;
-        std::cout << "Argument and role of size different" << endl;
+        yInfo() << "\t" << sErrorFormat  ;
+        yInfo() << "\t" << "Argument and role of size different"  ;
         return bErrorFormat;
     }
 
@@ -4270,8 +4267,8 @@ Bottle abmReasoning::executeComplex(Bottle bInput)
     }
     if (!fObject1 || !fObject2 || !fAction1 || !fAction2 || !fArgument1 || !fArgument2 || !fTemporal)
     {
-        std::cout << sErrorFormat << endl;
-        std::cout << "some arguments are missing" << endl;
+        yInfo() << "\t" << sErrorFormat  ;
+        yInfo() << "\t" << "some arguments are missing"  ;
         return bErrorFormat;
     }
 
@@ -4300,11 +4297,11 @@ Bottle abmReasoning::executeComplex(Bottle bInput)
             dProba = it->T1inferiorT2percent();
         }
     }
-    std::cout << "Temporal : " << sTemporal << "\ndProba : " << dProba << endl;
+    yInfo() << "\t" << "Temporal : " << sTemporal << "\ndProba : " << dProba  ;
     if (dProba == -1)
     {
-        std::cout << sErrorFormat << endl;
-        std::cout << "temporal not found" << endl;
+        yInfo() << "\t" << sErrorFormat  ;
+        yInfo() << "\t" << "temporal not found"  ;
         return bErrorFormat;
     }
 
@@ -4339,7 +4336,7 @@ Bottle abmReasoning::executeSharedPlan(Bottle bInput)
     if (bInput.size() != 4)
     {
         string sError = "Error in abmReasoning::executeSharedPlan | Wrong number of input (!= 4)";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError  ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -4347,7 +4344,7 @@ Bottle abmReasoning::executeSharedPlan(Bottle bInput)
     if (!bInput.get(0).isString() || !bInput.get(1).isList() || !bInput.get(2).isList() || !bInput.get(3).isList())
     {
         string sError = "Error in abmReasoning::executeSharedPlan | Wrong format of input";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError  ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -4365,7 +4362,7 @@ Bottle abmReasoning::executeSharedPlan(Bottle bInput)
     if (bInput.get(2).asList()->size() != bInput.get(3).asList()->size())
     {
         string sError = "Error in autobiographicalMemory::snapshotSP | number of argument different of number of role";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError  ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -4403,7 +4400,7 @@ Bottle abmReasoning::executeSharedPlan(Bottle bInput)
         pair <string, string > pArgu;
         pArgu.first = abmReasoningFunction::TAG_DB_NONE;
         pArgu.second = abmReasoningFunction::TAG_DB_MANNER;
-        std::cout << "manner not found. Auto set to : none" << endl;
+        yInfo() << "\t" << "manner not found. Auto set to : none"  ;
         sManner = abmReasoningFunction::TAG_DB_NONE;
         vArgument.push_back(pArgu);
     }
@@ -4418,7 +4415,7 @@ Bottle abmReasoning::executeSharedPlan(Bottle bInput)
     {
         if (it_SP->sManner == sManner && it_SP->sName == sName && !fSP)
         {
-            //std::cout << "sharedPlan found" << endl;
+            //yInfo() << "\t" << "sharedPlan found"  ;
             fSP = true;
 
             for (unsigned int iAction = 0; iAction < it_SP->vActivitytype.size(); iAction++)
@@ -4499,7 +4496,7 @@ Bottle abmReasoning::executeSharedPlan(Bottle bInput)
                 {
                     bOutput.clear();
                     string sError = "Error in abmReasoning::executeSharedPlan | wrong argument of sharedplan";
-                    std::cout << sError << endl;
+                    yInfo() << "\t" << sError  ;
                     bOutput.addString(sError.c_str());
                     return bOutput;
                 }
@@ -4513,7 +4510,7 @@ Bottle abmReasoning::executeSharedPlan(Bottle bInput)
 
     if (!fSP)
     {
-        std::cout << "in abmReasoning::executeSharedPlan : can't find shared plan : " << sName << "_" << sManner << endl;
+        yInfo() << "\t" << "in abmReasoning::executeSharedPlan : can't find shared plan : " << sName << "_" << sManner  ;
     }
     return bOutput;
 }
@@ -4532,7 +4529,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
     if (bInput.size() != 3)
     {
         string sError = "Error in abmReasoning::executeReasoning | Wrong number of input (!= 3)";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError  ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -4540,7 +4537,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
     if (!bInput.get(0).isString() || !bInput.get(1).isList() || !bInput.get(2).isList())
     {
         string sError = "Error in abmReasoning::executeReasoning | Wrong format of input";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError  ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -4558,7 +4555,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
     if (bInput.get(2).asList()->size() <= 0)
     {
         string sError = "Error in abmReasoning::executeReasoning | no goal are given";
-        std::cout << sError << endl;
+        yInfo() << "\t" << sError  ;
         bOutput.addString(sError.c_str());
         return bOutput;
     }
@@ -4588,7 +4585,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
     //format the plan in bOutput
     //if (!planPossible)
     //{
-    //  std::cout << "in abmReasoning::executeReasoning : can't find a proper plan :  the goal is not achievable" << endl;
+    //  yInfo() << "\t" << "in abmReasoning::executeReasoning : can't find a proper plan :  the goal is not achievable"  ;
     //}
     return bOutput;
 }
@@ -4606,7 +4603,7 @@ void abmReasoning::printSpatialKnowledge()
 {
     string spatial_knowledge_path = resfind.findFileByName("spatial_knowledge.txt");
     ofstream file(spatial_knowledge_path.c_str(), ios::out | ios::trunc);  // erase previous contents of file
-    file << "X\tY\ttype\tname" << endl;
+    file << "X\tY\ttype\tname"  ;
 
     for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
     {
@@ -4617,15 +4614,15 @@ void abmReasoning::printSpatialKnowledge()
         {
             if (it->isAbsolut)
             {
-                file << it->vX[i] << "\t" << it->vY[i] << "\tpoint\t" << sNameFile << endl;
+                file << it->vX[i] << "\t" << it->vY[i] << "\tpoint\t" << sNameFile  ;
             }
             else if (it->isRelative)
             {
-                file << it->vDX[i] << "\t" << it->vDY[i] << "\tvector\t" << sNameFile << endl;
+                file << it->vDX[i] << "\t" << it->vDY[i] << "\tvector\t" << sNameFile  ;
             }
         }
     }
-    std::cout << "file " << spatial_knowledge_path << " written" << endl;
+    yInfo() << "\t" << "file " << spatial_knowledge_path << " written"  ;
 }
 
 /*
@@ -4745,7 +4742,7 @@ Bottle abmReasoning::addSpatialKnowledge(spatialKnowledge skInput, bool b_Update
 
 
 /**
-* Add a spatialKnowledge in listSpatialKnowledge. Create a new one if the action in new or add the knowledge to an existing spatialKnowledge.
+* Add a adjKnowledge in listKnownAdverb. Create a new one if the action in new or add the knowledge to an existing adjKnowledge.
 *
 */
 Bottle abmReasoning::addAdverbKnowledge(string sLabel, string sTag, double dTiming, pair<double, double> XY, pair<double, double> DXY)
@@ -4801,13 +4798,13 @@ Bottle abmReasoning::addTimeKnowledge(Bottle bInput)
     Bottle bOutput;
     if (bInput.size() != 3)
     {
-        std::cout << "in abmReasoning::addTimeKnowledge : wrong number of inputs" << endl;
+        yInfo() << "\t" << "in abmReasoning::addTimeKnowledge : wrong number of inputs"  ;
         bOutput.addString("in abmReasoning::addTimeKnowledge : wrong number of inputs");
         return bOutput;
     }
     if (!(bInput.get(0).isString() && bInput.get(1).isString() && bInput.get(2).isString()))
     {
-        std::cout << "in abmReasoning::addTimeKnowledge : wrong number of inputs" << endl;
+        yInfo() << "\t" << "in abmReasoning::addTimeKnowledge : wrong number of inputs"  ;
         bOutput.addString("in abmReasoning::addTimeKnowledge : wrong number of inputs");
         return bOutput;
     }
@@ -4923,7 +4920,7 @@ plan abmReasoning::addPlan(plan pInput)
         }
         if (fPlan)
         {
-            //          std::cout << "plan already existing" << endl;
+            //          yInfo() << "\t" << "plan already existing"  ;
             bOutput.addString("plan already existing");
             found = true;
             plan pReturn;
@@ -4935,7 +4932,7 @@ plan abmReasoning::addPlan(plan pInput)
 
     if (!found)
     {
-        //      std::cout << "new plan. Added in listPlan" << endl;
+        //      yInfo() << "\t" << "new plan. Added in listPlan"  ;
         bOutput.addString("new plan. Added in listPlan");
         listPlan.push_back(pInput);
         plan pReturn;
@@ -4962,7 +4959,7 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
     vector<plan>::iterator current_plan = listPlanAvailable.begin();
     while (current_plan != listPlanAvailable.end())
     {
-        std::cout << "*************************************************************\ncurrent_plan->name : " << current_plan->sName << "\n*************************************************************" << endl;
+        yInfo() << "\t" << "*************************************************************\ncurrent_plan->name : " << current_plan->sName << "\n*************************************************************"  ;
         // check size and number of argument : has to be >= 
         if (current_plan->vActivitytype.size() >= pInput.vActivitytype.size())
         {
@@ -4986,8 +4983,8 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
 
                 if (*pInputActivityName != *currentActivityName)
                 {
-                    std::cout << "STOP : pInputActivityName = " << *pInputActivityName << " is different from currenActivityName = " << *currentActivityName << endl;
-                    std::cout << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in activityName. Bybye! \n" << endl;
+                    yInfo() << "\t" << "STOP : pInputActivityName = " << *pInputActivityName << " is different from currenActivityName = " << *currentActivityName  ;
+                    yInfo() << "\t" << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in activityName. Bybye! \n"  ;
                     sameActivityName = false;
                     break;
                 }
@@ -5009,7 +5006,7 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
 
                 while (pInputActivityArgument != pInput.vActivityArguments.end())
                 {
-                    std::cout << "-------- new Activity --------" << endl;
+                    yInfo() << "\t" << "-------- new Activity --------"  ;
                     //check the argument role is somewhere in vArgument of the current plan investigated :
                     //     - if yes : name could be switch
                     //     - if not : name/role is always name/role1 and name should be the same
@@ -5029,17 +5026,17 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
                             if (vArg_currentPlan->second == pInputArg->second)
                             {
                                 isRoleGeneral = true;
-                                std::cout << "Generalization allowed for " << vArg_currentPlan->second << endl;
+                                yInfo() << "\t" << "Generalization allowed for " << vArg_currentPlan->second  ;
 
                                 //change the name according to the generalization
                                 //WARNING : COULD BE RESPONSIBLE FOR A BUG
-                                //std::cout << "\n******************************************\nWARNING : COULD BE RESPONSIBLE FOR A BUG\n******************************************\n" ; 
+                                //yInfo() << "\t" << "\n******************************************\nWARNING : COULD BE RESPONSIBLE FOR A BUG\n******************************************\n" ; 
 
                                 if (vArg_currentPlan->first != pInputArg->first)
                                 {
-                                    std::cout << "Change the name of the " << vArg_currentPlan->second << " from " << vArg_currentPlan->first << " to ";
+                                    yInfo() << "\t" << "Change the name of the " << vArg_currentPlan->second << " from " << vArg_currentPlan->first << " to ";
                                     vArg_currentPlan->first = pInputArg->first;
-                                    std::cout << vArg_currentPlan->first << endl;
+                                    yInfo() << "\t" << vArg_currentPlan->first  ;
                                 }
 
                                 break;
@@ -5055,7 +5052,7 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
                             {
                                 if (pInputArg->first == currentArg->first)
                                 {
-                                    std::cout << "constant argument for " << pInputArg->second << " is found (" << currentArg->first << ")" << endl;
+                                    yInfo() << "\t" << "constant argument for " << pInputArg->second << " is found (" << currentArg->first << ")"  ;
 
                                     sameConstArg = true;
 
@@ -5065,7 +5062,7 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
                             //same role
                             else if (pInputArg->second == currentArg->second)
                             {
-                                std::cout << "role " << pInputArg->second << " is found" << endl;
+                                yInfo() << "\t" << "role " << pInputArg->second << " is found"  ;
                                 roleFound = true;
 
                                 break;
@@ -5075,8 +5072,8 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
                         //generalization : error if role not found
                         if ((isRoleGeneral == true) && (roleFound == false))
                         {
-                            std::cout << "\nSTOP : role " << pInputArg->second << " is not found" << endl;
-                            std::cout << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in a role. Bybye! \n" << endl;
+                            yInfo() << "\t" << "\nSTOP : role " << pInputArg->second << " is not found"  ;
+                            yInfo() << "\t" << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in a role. Bybye! \n"  ;
                             sameActivityArguments = false;
 
                             //remove the plan from the list
@@ -5088,8 +5085,8 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
                         //no generalization : error if not same argument name
                         if ((isRoleGeneral == false) && (sameConstArg == false))
                         {
-                            std::cout << "\nSTOP : Constant Argument  " << pInputArg->first << " is not found" << endl;
-                            std::cout << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in a constant argument. Bybye! \n" << endl;
+                            yInfo() << "\t" << "\nSTOP : Constant Argument  " << pInputArg->first << " is not found"  ;
+                            yInfo() << "\t" << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in a constant argument. Bybye! \n"  ;
                             sameActivityArguments = false;
 
                             //remove the plan from the list
@@ -5099,14 +5096,14 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
                         }
                     }
 
-                    std::cout << "------------------------------" << endl;
+                    yInfo() << "\t" << "------------------------------"  ;
 
                     if ((sameActivityArguments == false))
                     {
                         break;
                     }
 
-                    std::cout << "go to the next activityArgument" << endl;
+                    yInfo() << "\t" << "go to the next activityArgument"  ;
                     //incr iterator
                     currentActivityArgument++;
                     pInputActivityArgument++;
@@ -5114,7 +5111,7 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
 
                 if ((sameActivityName == true) && (sameActivityArguments == true))
                 {
-                    std::cout << "\n[ACK] : Shared Plan " << current_plan->sName << " is elligible \n " << endl;
+                    yInfo() << "\t" << "\n[ACK] : Shared Plan " << current_plan->sName << " is elligible \n "  ;
                     current_plan++;
                 }
             }
@@ -5124,8 +5121,8 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
             //current SP is smaller than the inputPlan
         }
         else {
-            std::cout << "\nSTOP : Shared Plan " << current_plan->sName << " is smaller than the plan input " << endl;
-            std::cout << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in a role. Bybye! \n" << endl;
+            yInfo() << "\t" << "\nSTOP : Shared Plan " << current_plan->sName << " is smaller than the plan input "  ;
+            yInfo() << "\t" << "[NACK] : " << current_plan->sName << " is the weak link because of missmatched in a role. Bybye! \n"  ;
 
             //remove the plan from the list
             current_plan = listPlanAvailable.erase(current_plan);
@@ -5185,7 +5182,7 @@ Bottle abmReasoning::resetKnowledge(int from)
         bRequest,
         bMessenger;
 
-    std::cout << endl << "starting to reset knowledge" << endl;
+    yInfo() << "\t"   << "starting to reset knowledge"  ;
 
     bMessenger.addString("resetKnowledge");
     bMessenger = request(bMessenger);
@@ -5228,7 +5225,7 @@ Bottle abmReasoning::resetKnowledge(int from)
     }
 
 
-    std::cout << endl << osOutput.str().c_str() << endl << endl;
+    yInfo() << "\t"   << osOutput.str().c_str()    ;
 
     return bOutput;
 }
@@ -5238,7 +5235,7 @@ Bottle abmReasoning::resetKnowledge(int from)
 */
 Bottle abmReasoning::getKnowledge()
 {
-    std::cout << endl << "loading knowledge :";
+    yInfo() << "\t"   << "loading knowledge :";
     Bottle bOutput,
         bAdjectiveKnowledge,
         bError,
@@ -5266,7 +5263,7 @@ Bottle abmReasoning::getKnowledge()
         for (int ii = 0; ii < bAdjectiveKnowledge.size(); ii++)
         {
 
-            cout << bAdjectiveKnowledge.get(ii).asList()->toString() << endl;
+            yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString()  ;
             Bottle bInstance = *bAdjectiveKnowledge.get(ii).asList();
             adjKnowledge* adjKno;
 
@@ -5349,7 +5346,7 @@ Bottle abmReasoning::getKnowledge()
 
     //if (sNull == sResult)
     //{
-    //	std::cout << " no spatial data to load";
+    //	yInfo() << "\t" << " no spatial data to load";
     //	bOutput.addString("no spatial data");
     //}
     //else
@@ -5387,7 +5384,7 @@ Bottle abmReasoning::getKnowledge()
 
     updateKnownLocations();
 
-    //std::cout << " ... ";
+    //yInfo() << "\t" << " ... ";
 
 
     //bTimeKnowledge = requestFromStream("SELECT DISTINCT temporal FROM timeknowledge");
@@ -5395,7 +5392,7 @@ Bottle abmReasoning::getKnowledge()
 
     //if (sNull == sResult)
     //{
-    //	std::cout << " no temporal data to load";
+    //	yInfo() << "\t" << " no temporal data to load";
     //	bOutput.addString("no temporal data");
     //}
     //else
@@ -5425,14 +5422,14 @@ Bottle abmReasoning::getKnowledge()
     //}
 
 
-    //std::cout << " ... ";
+    //yInfo() << "\t" << " ... ";
 
     //Bottle  bMainBehavior = requestFromStream("SELECT DISTINCT instance, name, argument FROM behavior");
     //sResult = bMainBehavior.toString();
     //ostringstream osBehavior;
     //if (sNull == sResult)
     //{
-    //	std::cout << "no behavior data to load";
+    //	yInfo() << "\t" << "no behavior data to load";
     //	bOutput.addString("no behavior data");
     //}
     //else
@@ -5485,7 +5482,7 @@ Bottle abmReasoning::getKnowledge()
 
     //if (sNull == sResult)
     //{
-    //	std::cout << " no contextual data to load";
+    //	yInfo() << "\t" << " no contextual data to load";
     //	bOutput.addString("no contextual data");
     //}
     //else
@@ -5526,14 +5523,14 @@ Bottle abmReasoning::getKnowledge()
     //}
 
 
-    //std::cout << " ... ";
+    //yInfo() << "\t" << " ... ";
 
     //Bottle  bMainPlan = requestFromStream("SELECT DISTINCT instance, name, manner FROM sharedplan");
     //sResult = bMainPlan.toString();
     //osBehavior.str("");;
     //if (sNull == sResult)
     //{
-    //	std::cout << "no sharedplan data to load";
+    //	yInfo() << "\t" << "no sharedplan data to load";
     //	bOutput.addString("no sharedplan data");
     //}
     //else
@@ -5596,14 +5593,14 @@ Bottle abmReasoning::getKnowledge()
     //}
 
 
-    //std::cout << " ...";
+    //yInfo() << "\t" << " ...";
 
     //bMainInteraction = requestFromStream("SELECT DISTINCT subject FROM interactionknowledge");
     //sResult = bMainInteraction.toString();
     //osBehavior.str("");
     //if (sNull == sResult)
     //{
-    //	std::cout << "no interaction data to load";
+    //	yInfo() << "\t" << "no interaction data to load";
     //	bOutput.addString("no interaction data");
     //}
     //else
@@ -5646,8 +5643,8 @@ Bottle abmReasoning::getKnowledge()
     //}
 
 
-    //std::cout << " done ! " << endl;
-    //std::cout << listSpatialKnowledge.size() << " spatialKnowledge(s) - " << listTimeKnowledge.size() << " temporalKnowledge(s) - " << listBehaviors.size() << " behavior(s) - " << listPlan.size() << " sharedplan(s) - " << listContextualKnowledge.size() << " contextualKnowledge(s) - " << listKnownInteraction.size() << " knownInteraction(s)." << endl << endl;;
+    //yInfo() << "\t" << " done ! "  ;
+    //yInfo() << "\t" << listSpatialKnowledge.size() << " spatialKnowledge(s) - " << listTimeKnowledge.size() << " temporalKnowledge(s) - " << listBehaviors.size() << " behavior(s) - " << listPlan.size() << " sharedplan(s) - " << listContextualKnowledge.size() << " contextualKnowledge(s) - " << listKnownInteraction.size() << " knownInteraction(s)."    ;;
 
     //bOutput.addString("knowledge added");
 
@@ -5793,7 +5790,7 @@ Bottle abmReasoning::updateKnownLocations()
         return bOutput;
     }
 
-    std::cout << "update locations : OPC not connected" << endl;
+    yInfo() << "\t" << "update locations : OPC not connected"  ;
     bOutput.addString("update locations : OPC not connected");
 
     return bOutput;
@@ -5924,11 +5921,11 @@ Bottle abmReasoning::updateLocation(string sLocation)
             }
         }
 
-        //std::cout << "location unknown" << endl;
+        //yInfo() << "\t" << "location unknown"  ;
         bOutput.addString("location unknown");
         return bOutput;
     }
-    //std::cout << "update locations : OPC not connected" << endl;
+    //yInfo() << "\t" << "update locations : OPC not connected"  ;
     bOutput.addString("update locations : OPC not connected");
 
     return bOutput;
@@ -5983,7 +5980,7 @@ Bottle abmReasoning::DeleteKnownLocations()
         return bOutput;
     }
 
-    //  std::cout << "update locations : OPC not connected" << endl;
+    //  yInfo() << "\t" << "update locations : OPC not connected"  ;
     bOutput.addString("update locations : OPC not connected");
 
     return bOutput;
@@ -6014,7 +6011,7 @@ Bottle abmReasoning::addContextualKnowledge(Bottle bInput)
             it_CK->vObjectPresent.push_back(pPresence);
             it_CK->updatePresence();
             it_CK->mAgentRelated[bInput.get(5).toString().c_str()] += 1;
-            //          std::cout << "ContextualKnowledge already existing" << endl;
+            //          yInfo() << "\t" << "ContextualKnowledge already existing"  ;
             bOutput.addString("ContextualKnowledge already existing");
             return bOutput;
         }
@@ -6029,7 +6026,7 @@ Bottle abmReasoning::addContextualKnowledge(Bottle bInput)
     newCK.mAgentRelated[bInput.get(5).toString().c_str()] = 1;
 
     listContextualKnowledge.push_back(newCK);
-    //  std::cout << "ContextualKnowledge created" << endl;
+    //  yInfo() << "\t" << "ContextualKnowledge created"  ;
     bOutput.addString("ContextualKnowledge created");
 
     return bOutput;
@@ -6063,14 +6060,14 @@ Bottle abmReasoning::askGrammar(Bottle bInput)
     Bottle bOutput;
     if (bInput.size() != 2)
     {
-        std::cout << "Error in abmReasoning::askGrammar - wrong size of input." << endl;
+        yInfo() << "\t" << "Error in abmReasoning::askGrammar - wrong size of input."  ;
         bOutput.addString("Error in abmReasoning::askGrammar - wrong size of input.");
         return bOutput;
     }
 
     if (!bInput.get(1).isList())
     {
-        std::cout << "Error in abmReasoning::askGrammar - wrong format of input." << endl;
+        yInfo() << "\t" << "Error in abmReasoning::askGrammar - wrong format of input."  ;
         bOutput.addString("Error in abmReasoning::askGrammar - wrong formats of input.");
         return bOutput;
     }
@@ -6079,7 +6076,7 @@ Bottle abmReasoning::askGrammar(Bottle bInput)
 
     if (bContent.size() != 4)
     {
-        std::cout << "Error in abmReasoning::askGrammar - wrong size of arguments." << endl;
+        yInfo() << "\t" << "Error in abmReasoning::askGrammar - wrong size of arguments."  ;
         bOutput.addString("Error in abmReasoning::askGrammar - wrong size of arguments.");
         return bOutput;
     }
@@ -6112,7 +6109,7 @@ Bottle abmReasoning::askGrammar(Bottle bInput)
     // if all arguments are here, or miss 2 or more arguments
     if ((int)fSpeaker + (int)fAddressee + (int)fSubject + (int)fAgent == 4 || (int)fSpeaker + (int)fAddressee + (int)fSubject + (int)fAgent < 3)
     {
-        std::cout << "Error in abmReasoning::askGrammar - wrong size of arguments." << endl;
+        yInfo() << "\t" << "Error in abmReasoning::askGrammar - wrong size of arguments."  ;
         bOutput.addString("Error in abmReasoning::askGrammar - wrong size of arguments.");
         return bOutput;
     }
@@ -6208,7 +6205,7 @@ Bottle  abmReasoning::askWordKnowledge(Bottle bInput)
 
     if (bInput.size() != 3)
     {
-        cout << "Error in abmReasoning::askWordKnowedge -- wrong input number (should be 3)" << endl;
+        yInfo() << "\t" << "Error in abmReasoning::askWordKnowedge -- wrong input number (should be 3)"  ;
     }
     string  sQuestion = bInput.get(1).toString();
     string  sWhat = bInput.get(2).toString();
@@ -6248,31 +6245,31 @@ Bottle abmReasoning::retroReasoning(int from)
     Bottle bOutput;
     if (!mentalOPC->isConnected())
     {
-        std::cout << "Error in abmReasoning::retroReasoning | mentalOPC not connect, retroReasoning impossible." << endl;
+        yInfo() << "\t" << "Error in abmReasoning::retroReasoning | mentalOPC not connect, retroReasoning impossible."  ;
         bOutput.addString("Error in abmReasoning::retroReasoning | mentalOPC not connect, retroReasoning impossible.");
         return bOutput;
     }
 
-    std::cout << "Retro Reasoning engaged." << endl;
+    yInfo() << "\t" << "Retro Reasoning engaged."  ;
     ostringstream osRequest;
     osRequest << "SELECT instance FROM main WHERE instance > " << from << " ORDER BY instance";
     Bottle  bMessenger = requestFromStream(osRequest.str());
     int numberAction = bMessenger.size();
 
-    std::cout << "found " << numberAction << " action(s)" << endl;
+    yInfo() << "\t" << "found " << numberAction << " action(s)"  ;
 
     for (int j = 0; j < numberAction; j++)
     {
 
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
-        //      std::cout << j+1 << "\t" << Id << "\t" ;
+        //      yInfo() << "\t" << j+1 << "\t" << Id << "\t" ;
 
         Interlocutor.imagineOPC(Id);
         updateOpcObjectLocation(abmReasoningFunction::s_mentalOPC);
         Interlocutor.sendRelation(Id);
     }
 
-    std::cout << "retroReasoning Done on " << numberAction << " situations." << endl;
+    yInfo() << "\t" << "retroReasoning Done on " << numberAction << " situations."  ;
     bOutput.addString("retroReasoning Done");
 
     return bOutput;
@@ -6292,11 +6289,11 @@ Bottle abmReasoning::level3Reasoning(int from)
     int numberAction = bMessenger.size();
 
     vector<int> vError;
-    std::cout << "found " << numberAction << " action(s)" << endl;
+    yInfo() << "\t" << "found " << numberAction << " action(s)"  ;
 
     for (int j = 0; j < numberAction; j++)
     {   // begin for each action
-        std::cout << j + 1 << "..";
+        yInfo() << "\t" << j + 1 << "..";
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
 
         Bottle bAction = Interlocutor.askActionForLevel3Reasoning(Id);
@@ -6521,7 +6518,7 @@ Bottle abmReasoning::level3Reasoning(int from)
         {   // begin IF has spatial1 and spatial 2
             Bottle bSpatial = *bAction.get(3).asList();
 
-            std::cout << "bSpatial : " << bSpatial.toString() << endl;
+            yInfo() << "\t" << "bSpatial : " << bSpatial.toString()  ;
 
             string sFrom, sTo; // locations from and to of the move
             // Get the argument FROM and TO
@@ -6613,14 +6610,14 @@ Bottle abmReasoning::level3Reasoning(int from)
 void abmReasoning::displayResult(Bottle bInput)
 {
     //print the result of the query, decompose elements/column
-    std::cout << "query answer : " << bInput.toString() << endl;
+    yInfo() << "\t" << "query answer : " << bInput.toString()  ;
     for (int i = 0; i < bInput.size(); i++){
-        std::cout << "***************************************" << endl;
-        //std::cout << "opc instance  " << bOpcId.get(i).asList()->get(0).asString() << " : " << bOutput.get(i).toString() << endl;
-        // std::cout << "opc instance  " << bOpcId.get(i).asList()->get(0).asString() << " : " << endl;
+        yInfo() << "\t" << "***************************************"  ;
+        //yInfo() << "\t" << "opc instance  " << bOpcId.get(i).asList()->get(0).asString() << " : " << bOutput.get(i).toString()  ;
+        // yInfo() << "\t" << "opc instance  " << bOpcId.get(i).asList()->get(0).asString() << " : "  ;
         if (bInput.get(i).toString() != "NULL") {
             for (int j = 0; j < bInput.get(i).asList()->size(); j++){
-                std::cout << "---" << opcNameTable[j] << " : " << bInput.get(i).asList()->get(j).toString() << endl;
+                yInfo() << "\t" << "---" << opcNameTable[j] << " : " << bInput.get(i).asList()->get(j).toString()  ;
             }
         }
     }
@@ -6635,11 +6632,11 @@ void abmReasoning::displaySharedPlan()
 
     for (vector<sharedPlan>::iterator it_SP = listSharedPlan.begin(); it_SP != listSharedPlan.end(); it_SP++)
     {
-        std::cout << "Shared plan : name =  " << it_SP->sName << " and manner = " << it_SP->sManner << endl;
+        yInfo() << "\t" << "Shared plan : name =  " << it_SP->sName << " and manner = " << it_SP->sManner  ;
 
         for (vector < pair <plan, int > >::iterator it_Plan = it_SP->listPlanPossible.begin(); it_Plan != it_SP->listPlanPossible.end(); it_Plan++)
         {
-            std::cout << "\tPlan : name = " << (it_Plan->first).sName << " and manner = " << it_Plan->first.sManner << ". score = " << it_Plan->second << endl;
+            yInfo() << "\t" << "\tPlan : name = " << (it_Plan->first).sName << " and manner = " << it_Plan->first.sManner << ". score = " << it_Plan->second  ;
         }
     }
 }
@@ -6683,6 +6680,14 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
     // update known location
     mapLocation.clear();
     mapTemporalLocation.clear();
+
+
+    //for (vector<adjKnowledge>::iterator itAdv = listKnownAdverb.begin(); itAdv != listKnownAdverb.end(); itAdv++)
+    //{
+    //    if (itAdv->)
+
+    //}
+
 
     for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
     {
@@ -6753,7 +6758,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                     mapTemporalLocation[sTemporalLocationName] = mapTemp;
 
 
-                    vector<double> CovMat = abmReasoningFunction::getCovMatrix(vXTemp, vYTemp);
+                   // vector<double> CovMat = abmReasoningFunction::getCovMatrix(vXTemp, vYTemp);
 
                 }
             }
@@ -6877,7 +6882,7 @@ Bottle abmReasoning::getInfoAbout(string sName)
         bMessenger = requestFromStream(osEntity.str());
 
         int iNbInteraction = atoi(bMessenger.get(0).asList()->get(0).toString().c_str());
-        std::cout << "I have interacted with this " << sSubType << " " << iNbInteraction / 2 << " times ! " << endl;
+        yInfo() << "\t" << "I have interacted with this " << sSubType << " " << iNbInteraction / 2 << " times ! "  ;
 
 
     }

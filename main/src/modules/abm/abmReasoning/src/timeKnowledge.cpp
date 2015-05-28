@@ -15,12 +15,12 @@ void timeKnowledge::fromBottle(Bottle bInput)
 {
     if (bInput.size() != 3)
     {
-        std::cout << "Error in timeKnowledge : fromBottle. Wrong number of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)" << endl;
+        yInfo() << "\t" << "Error in timeKnowledge : fromBottle. Wrong number of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)"  ;
         return;
     }
     if (!(bInput.get(0).isString() && bInput.get(1).isString() && bInput.get(2).isString()))
     {
-        std::cout << "Error in timeKnowledge : fromBottle. Wrong format of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)" << endl;
+        yInfo() << "\t" << "Error in timeKnowledge : fromBottle. Wrong format of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)"  ;
         return;
     }
 
@@ -41,12 +41,12 @@ void timeKnowledge::addKnowledge(Bottle bInput)
 {
     if (bInput.size() != 3)
     {
-        std::cout << "Error in addKnowledge : fromBottle. Wrong number of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)" << endl;
+        yInfo() << "\t" << "Error in addKnowledge : fromBottle. Wrong number of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)"  ;
         return;
     }
     if (!(bInput.get(0).isString() && bInput.get(1).isString() && bInput.get(2).isString()))
     {
-        std::cout << "Error in addKnowledge : fromBottle. Wrong format of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)" << endl;
+        yInfo() << "\t" << "Error in addKnowledge : fromBottle. Wrong format of inputs (need 3 inputs : <string name> <string timeArg1> <string timeArg2>)"  ;
         return;
     }
 
@@ -78,7 +78,7 @@ double timeKnowledge::T1inferiorT2percent()
     }
     else
     {
-        std::cout << "Error in timeKnowledge::T1inferiorT2percent() | wrong size of timeKnowledge" << endl;
+        yInfo() << "\t" << "Error in timeKnowledge::T1inferiorT2percent() | wrong size of timeKnowledge"  ;
         return 0.5;
     }
 

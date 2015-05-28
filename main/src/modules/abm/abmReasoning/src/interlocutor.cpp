@@ -44,13 +44,13 @@ Bottle interlocutor::connectOPC()
     int iTry = 0;
     while (!realOPC->isConnected())
     {
-        std::cout << "interlocutor Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC) << endl;
+        yInfo() << "\t" << "interlocutor Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC)  ;
         if (!realOPC->isConnected())
             Time::delay(0.5);
         iTry++;
         if (iTry > 1)
         {
-            std::cout << "Interlocutor failed to connect to " << abmReasoningFunction::s_realOPC << endl;
+            yInfo() << "\t" << "Interlocutor failed to connect to " << abmReasoningFunction::s_realOPC  ;
             bOutput.addString("Connection to Real OPC failed, please check your port");
             break;
         }
@@ -66,13 +66,13 @@ Bottle interlocutor::connectOPC()
     iTry = 0;
     while (!mentalOPC->isConnected())
     {
-        std::cout << "interlocutor Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC) << endl;
+        yInfo() << "\t" << "interlocutor Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC)  ;
         if (!mentalOPC->isConnected())
             Time::delay(0.5);
         iTry++;
         if (iTry > 1)
         {
-            std::cout << "Interlocutor failed to connect to " << abmReasoningFunction::s_mentalOPC << endl;
+            yInfo() << "\t" << "Interlocutor failed to connect to " << abmReasoningFunction::s_mentalOPC  ;
             bOutput.addString("Connection failed, please check your port");
             return bOutput;
         }
@@ -159,7 +159,7 @@ Bottle interlocutor::askActionFromId(int Id)
     bName.addString((*bContent.get(0).asList()).get(0).toString().c_str());
 
     bOutput.addList() = bName;
-    //std::cout << "bArguments : " << bArguments.toString() << endl;
+    //yInfo() << "\t" << "bArguments : " << bArguments.toString()  ;
     for (int i = 0; i < bContent.size(); i++)
     {
         bArguments.addString((*bContent.get(i).asList()).get(1).toString().c_str());
@@ -176,7 +176,7 @@ Bottle interlocutor::askActionFromId(int Id)
     osEntity.str("");
 
     int idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str());
-    //std::cout << "Argument Id Begin id : " << idArg << endl;
+    //yInfo() << "\t" << "Argument Id Begin id : " << idArg  ;
 
 
     //-- 2. select the subtype of the argument in order to extract it accordingly
@@ -186,7 +186,7 @@ Bottle interlocutor::askActionFromId(int Id)
 
 
 
-    //  std::cout << "Subtype Argument Begin : " << subtypeArg << endl;
+    //  yInfo() << "\t" << "Subtype Argument Begin : " << subtypeArg  ;
     int ObjectPresentBefore, ObjectPresentAfter;
     string test = "t";
 
@@ -261,7 +261,7 @@ Bottle interlocutor::askActionFromId(int Id)
         bName.addString((*bObject1.get(0).asList()).get(0).toString().c_str());
 
         bOutput.addList() = bName;
-        //std::cout << "bArguments : " << bArguments.toString() << endl;
+        //yInfo() << "\t" << "bArguments : " << bArguments.toString()  ;
         for (int i = 0; i < bObject1.size(); i++)
         {
             bArguments.addString((*bObject1.get(i).asList()).get(1).toString().c_str());
@@ -316,7 +316,7 @@ Bottle interlocutor::askActionFromId(int Id)
     osEntity.str("");
 
     idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str());
-    //std::cout << "Argument Id Begin id : " << idArg << endl;
+    //yInfo() << "\t" << "Argument Id Begin id : " << idArg  ;
 
 
     //-- 2. select the subtype of the argument in order to extract it accordingly
@@ -463,7 +463,7 @@ Bottle interlocutor::askActionFromIdV2(int Id)
     bIdArgBegin = requestFromStream(osEntity.str().c_str());
     if (bIdArgBegin.toString() == "NULL")	return bError;
     int idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str());
-    //std::cout << "Argument Id Begin id : " << idArg << endl;
+    //yInfo() << "\t" << "Argument Id Begin id : " << idArg  ;
 
 
     //clear things
@@ -477,7 +477,7 @@ Bottle interlocutor::askActionFromIdV2(int Id)
     string subtypeArg = bSubTypeArgBegin.get(0).asList()->get(0).toString().c_str();
 
 
-    //  std::cout << "Subtype Argument Begin : " << subtypeArg << endl;
+    //  yInfo() << "\t" << "Subtype Argument Begin : " << subtypeArg  ;
     int ObjectPresentBefore, ObjectPresentAfter;
     string test = "t";
 
@@ -537,14 +537,14 @@ Bottle interlocutor::askSentenceFromId(int Id)
         bTemp;
 
 
-    std::cout << endl << "Treatment of sentence instance : " << Id << endl;
+    yInfo() << "\t"   << "Treatment of sentence instance : " << Id  ;
 
     // 1-
     ostringstream osName;
     osName << "SELECT main.time, contentarg.argument, contentarg.role FROM main, contentarg WHERE main.instance = contentarg.instance AND main.instance =" << Id;
     bContent = requestFromStream(osName.str());
 
-    std::cout << "bContent : " << endl << bContent.toString() << endl << endl;
+    yInfo() << "\t" << "bContent : "   << bContent.toString()    ;
 
     string sSpeaker,
         sAddressee,
@@ -582,7 +582,7 @@ Bottle interlocutor::askSentenceFromId(int Id)
 
     if (!fAddressee || !fSpeaker || !fSubject)
     {
-        std::cout << "Error in abmReasoning::FindAllSentence::FindSentenceFromId -  Id = " << Id << ". Lack of information in the sentence." << endl;
+        yInfo() << "\t" << "Error in abmReasoning::FindAllSentence::FindSentenceFromId -  Id = " << Id << ". Lack of information in the sentence."  ;
         return bOutput;
     }
 
@@ -604,13 +604,13 @@ Bottle interlocutor::askSentenceFromId(int Id)
     osName.str("");
     osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND activitytype = 'action' and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1";
     Bottle bRequest = requestFromStream(osName.str());
-    std::cout << "brequest : " << bRequest.toString() << endl;
+    yInfo() << "\t" << "brequest : " << bRequest.toString()  ;
     int iDiffTimefromNext = 10000;
 
     if (!(bRequest.toString() == "NULL"))
     {
         bTemp = *(bRequest.get(0).asList());
-        std::cout << "bTemp : " << bTemp.toString();
+        yInfo() << "\t" << "bTemp : " << bTemp.toString();
 
         sTimeNext = bTemp.get(0).toString().c_str();
         iInstanceNext = atoi(bTemp.get(1).toString().c_str());
@@ -728,7 +728,7 @@ Bottle interlocutor::askComplexFromId(int Id)
     osOpcEnd << "SELECT instance FROM main WHERE instance > " << Id << " AND begin = false AND activitytype = 'complex' LIMIT 1 ";
     bQuery = requestFromStream(osOpcEnd.str().c_str());
 
-    //std::cout << endl << bQuery.toString() << endl;
+    //yInfo() << "\t"   << bQuery.toString()  ;
 
     int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
 
@@ -736,7 +736,7 @@ Bottle interlocutor::askComplexFromId(int Id)
     osArg << "SELECT argument FROM contentarg WHERE instance = " << opcIdBegin;
     bArguments = requestFromStream(osArg.str());
 
-    //  std::cout << "bArguments : " << bArguments.toString() << endl;
+    //  yInfo() << "\t" << "bArguments : " << bArguments.toString()  ;
     string  sObject1, sObject2,
         sAgent1, sAgent2,
         sAction1, sAction2,
@@ -746,7 +746,7 @@ Bottle interlocutor::askComplexFromId(int Id)
 
     if (bArguments.size() != 9)
     {
-        std::cout << "in askLastComplex : wrong number of argument for the last complex ( != 9)" << endl;
+        yInfo() << "\t" << "in askLastComplex : wrong number of argument for the last complex ( != 9)"  ;
         bOutput.clear();
         bOutput.addString("in askLastComplex : wrong number of argument for the last complex ( != 9)");
         return bOutput;
@@ -773,7 +773,7 @@ Bottle interlocutor::askComplexFromId(int Id)
 
     if (bTemp.get(0).toString().c_str() != sAction1 || bTemp.get(0).toString().c_str() != sAction2)
     {
-        std::cout << "in askLastComplex : Action in complex different of the ones discribed by the arguments" << endl;
+        yInfo() << "\t" << "in askLastComplex : Action in complex different of the ones discribed by the arguments"  ;
         bOutput.clear();
         bOutput.addString("in askLastComplex : Action in complex different of the ones discribed by the arguments");
         return bOutput;
@@ -787,7 +787,7 @@ Bottle interlocutor::askComplexFromId(int Id)
     bTemp = request(bTemp);
     if (bTemp.get(0).toString().c_str() != sAction1 || bTemp.get(0).toString().c_str() != sAction2)
     {
-        std::cout << "in askLastComplex : Action in complex different of the ones discribed by the arguments" << endl;
+        yInfo() << "\t" << "in askLastComplex : Action in complex different of the ones discribed by the arguments"  ;
         bOutput.clear();
         bOutput.addString("in askLastComplex : Action in complex different of the ones discribed by the arguments");
         return bOutput;
@@ -846,7 +846,7 @@ Bottle interlocutor::askComplexFromId(int Id)
     bTemporal.addString(sTime1.c_str());
     bTemporal.addString(sTime2.c_str());
 
-    //std::cout << "askLastComplex Output : " << bTemporal.toString() << endl;
+    //yInfo() << "\t" << "askLastComplex Output : " << bTemporal.toString()  ;
     return bTemporal;
 }
 
@@ -860,11 +860,11 @@ Bottle interlocutor::imagineOPC(int Id)
     Bottle bOutput,
         bMessenger;
 
-    cout << " in imagination" << endl;
+    yInfo() << "\t" << " in imagination"  ;
 
     if (!mentalOPC->isConnected())
     {
-        std::cout << "Problem in interlocutor::imagineOPC | mentalOPC not connected" << endl;
+        yInfo() << "\t" << "Problem in interlocutor::imagineOPC | mentalOPC not connected"  ;
         bOutput.addString("Problem in interlocutor::imagineOPC | mentalOPC not connected");
         return bOutput;
     }
@@ -969,7 +969,7 @@ plan interlocutor::askSharedPlanFromId(int opcIdBegin)
     osOpcEnd << "SELECT instance FROM main WHERE instance > " << opcIdBegin << " AND begin = false AND activitytype = 'sharedplan' ORDER BY instance LIMIT 1 ";
     Bottle bQuery = requestFromStream(osOpcEnd.str().c_str());
 
-    //std::cout << endl << bQuery.toString() << endl;
+    //yInfo() << "\t"   << bQuery.toString()  ;
 
     int opcIdEnd = atoi(bQuery.get(0).asList()->get(0).toString().c_str());
     osName << "SELECT activityname FROM main WHERE instance = " << opcIdBegin;
@@ -1115,7 +1115,7 @@ behavior interlocutor::askBehaviorFromId(int opcIdBegin)
     // if the drives are not the same
     if (vDrivesBegin.size() != vDrivesEnd.size())
     {
-        std::cout << "Error in abmReasoning::askBehaviorFromId | not the same drives at begining and end of a behavior" << endl;
+        yInfo() << "\t" << "Error in abmReasoning::askBehaviorFromId | not the same drives at begining and end of a behavior"  ;
     }
 
     // calculate the effect on each drive
@@ -1565,7 +1565,7 @@ Bottle interlocutor::saveKnowledge(vector<spatialKnowledge> listSK, vector<timeK
         bRequest,
         bMessenger;
 
-    std::cout << endl << "starting to save knowledge ... " << endl;
+    yInfo() << "\t"   << "starting to save knowledge ... "  ;
 
     int serialSpatial = 0,
         serialTime = 0,
@@ -1608,7 +1608,7 @@ void interlocutor::setMentalOPC(int instance)
     // get the opcID of all the entity in the OPC
     osAllOPCid << "SELECT opcid, type, subtype FROM contentopc WHERE instance = " << instance;
     bAllEntity = requestFromStream(osAllOPCid.str());
-    std::cout << "All entities are : \n\t\t" << bAllEntity.toString() << endl;
+    yInfo() << "\t" << "All entities are : \n\t\t" << bAllEntity.toString()  ;
 
     int iNbEntotyError = 0;
 
@@ -1617,7 +1617,7 @@ void interlocutor::setMentalOPC(int instance)
     for (int iEnt = 0; iEnt < bAllEntity.size(); iEnt++)
     {
         bCurrentEntity = *bAllEntity.get(iEnt).asList();
-        std::cout << "bCurrentEntity : " << bCurrentEntity.toString() << "\t size : " << bCurrentEntity.size() << endl;
+        yInfo() << "\t" << "bCurrentEntity : " << bCurrentEntity.toString() << "\t size : " << bCurrentEntity.size()  ;
         // check size of bottle
         if (bCurrentEntity.size() == 3)
         {
@@ -1626,7 +1626,7 @@ void interlocutor::setMentalOPC(int instance)
         // error : 
         else
         {
-            std::cout << "Error in interlocutor::setMentalOPC | problem with currentEntity.size() " << endl;
+            yInfo() << "\t" << "Error in interlocutor::setMentalOPC | problem with currentEntity.size() "  ;
             iNbEntotyError++;
         }
 

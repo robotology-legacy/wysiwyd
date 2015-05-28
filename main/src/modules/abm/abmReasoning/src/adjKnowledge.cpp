@@ -58,6 +58,7 @@ void    adjKnowledge::addOtherInteraction(Bottle bInput)
 
 
 /**
+* TODO
 * Return the distance of a move from a cluster (skInput)
 * First determines the influence of the cluster
 * @param skInput is the spatialKnoledge to search the distance
@@ -173,11 +174,11 @@ void adjKnowledge::determineSpatialInfluence()
         {
             if (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD)
             {
-                cout << sLabel << " is relative for " << itMap->first << endl;
+                yInfo() << "\t" << sLabel << " is relative for " << itMap->first ;
             }
             if (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB)
             {
-                cout << sLabel << " is absolute for " << itMap->first << endl;
+                yInfo() << "\t" << sLabel << " is absolute for " << itMap->first ;
             }
 
 

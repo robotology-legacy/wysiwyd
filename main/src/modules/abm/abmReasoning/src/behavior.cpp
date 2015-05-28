@@ -68,7 +68,7 @@ Bottle behavior::getConsequence(int last)
     bOutput.addString(sName.c_str());
     if (last < 1)
     {
-        std::cout << "Error in behavior::getConsequence | number of last action to low" << endl;
+        yInfo() << "\t" << "Error in behavior::getConsequence | number of last action to low"  ;
         bOutput.addString("Error in behavior::getConsequence | number of last action to low");
         return bOutput;
     }
