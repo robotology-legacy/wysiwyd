@@ -717,6 +717,24 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             saveAugmentedImages();
             bReply.addString("ack");
         }
+        else if (bCommand.get(0) == "requestAugmentedImages")
+        {
+            int quantity = 5;
+            string activity = "babbling";
+
+            Value vQuantity = bCommand.find("quantity");
+            if (!vQuantity.isNull() && vQuantity.isInt()) {
+                quantity = vQuantity.asInt();
+            }
+
+            Value vActivity = bCommand.find("activity");
+            if (!vActivity.isNull() && vActivity.isString()) {
+                activity = vActivity.asString();
+            }
+
+            requestAugmentedImages(activity, quantity);
+            bReply.addString("ack");
+        }
         // DEPRECATED! Use triggerStreaming instead, see ABMAugmentionExample!
         else if (bCommand.get(0) == "getImagesInfo")
         {
