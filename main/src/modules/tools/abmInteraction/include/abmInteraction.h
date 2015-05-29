@@ -8,14 +8,19 @@ using namespace wysiwyd::wrdac;
 class abmInteraction : public RFModule {
 private:
 
-    ICubClient *iCub;
-    double      period;
-    string      grammarToString(string sPath);
-    Port        rpc;
-    string      nameGrammarHumanFeedback;
-    string      nameGrammarYesNo;
-    bool        tryAgain;
-    int         bestRank ;
+    ICubClient      *iCub;
+    double          period;
+    string          grammarToString(string sPath);
+    Port            rpc;
+    string          nameGrammarHumanFeedback;
+    string          nameGrammarYesNo;
+    bool            tryAgain;
+    int             bestRank ;
+    int             rememberedInstance ;
+    int             feedbackInstance ;
+    vector<string>     vAugmentedTime;
+    vector<string>::iterator it_augmentedTime ;
+    string img_provider_port ;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -34,8 +39,12 @@ public:
 
     bool updateModule();
 
+    //spoken interaction node
     void nodeFeedback();
     bool nodeYesNo();
+    
+    bool createAugmentedTimeVector();
+    bool insertFeedback(int feedback, string agentName = "Bob");
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);

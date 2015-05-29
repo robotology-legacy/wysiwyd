@@ -1,17 +1,14 @@
-<GRAMMAR  LANGID="409">
+<GRAMMAR  LANGID="809">
 
   <RULE NAME="yes"  TOPLEVEL="ACTIVE" EXPORT="1">
     <L>
-      <P>yes</P>
-      <P>ok</P>
+      <P>yes, it is</P>
+      <P>That is correct</P>
     </L>
   </RULE>
 
   <RULE NAME="no" TOPLEVEL="ACTIVE" EXPORT="1">
-    <P>no</P>
+    <P>no, it is not</P>
   </RULE>
-
-
-
 
 </GRAMMAR>

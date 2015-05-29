@@ -26,6 +26,10 @@ string abmInteraction::grammarToString(string sPath)
     return sOutput;
 }
 
+
+/*
+* Configure method, connect to different subsystem
+*/
 bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("abmInteraction")).asString().c_str();
@@ -38,8 +42,8 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period", Value(0.1)).asDouble();
 
     bool    bEveryThingisGood = true;
-    bool    tryAgain = false ; //at start, iCub will explain and speaks
-    int     bestRank = 0 ;
+    tryAgain = false ; //at start, iCub will explain and speaks
+    bestRank = 0 ;
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
@@ -61,6 +65,15 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     if (!iCub->getABMClient())
     {
         cout << "WARNING ABM NOT CONNECTED" << endl;
+    }
+
+    rememberedInstance = 1333 ;
+    feedbackInstance = -1 ;
+    img_provider_port = "/icub/camcalib/left/out/kinematic_structure";
+
+    if (!createAugmentedTimeVector()){
+        yError() << " Something is wrong with the augmented memories! quit";
+        return false;
     }
 
     nodeFeedback();
@@ -103,6 +116,9 @@ bool abmInteraction::updateModule() {
     return true;
 }
 
+/*
+* Node to ask Human to give feedback on quality of augmented kinematic structure image
+*/
 void    abmInteraction::nodeFeedback()
 {
     ostringstream osError;          // Error message
@@ -113,7 +129,7 @@ void    abmInteraction::nodeFeedback()
         bMessenger; //to be send TO speech recog
     ostringstream osResponse;
 
-    if(tryAgain = false){
+    if(tryAgain == false){
         iCub->say("Note this kinematic structure between 1 and 10 please");
         yInfo() << " iCub says : Note this kinematic structure between 1 and 10 please" ;
     } else {
@@ -125,13 +141,13 @@ void    abmInteraction::nodeFeedback()
         osResponse.str("");
         osResponse << "The current best structure is shown at left. The rank is " << bestRank ;
         iCub->say(osResponse.str().c_str()) ;
-        yInfo() << "iCub says : " << osResponse ;
+        yInfo() << "iCub says : " << osResponse.str() ;
     }
 
     //Method to call ABM and remember a kinematic structure from an instance
     //if first time, just one, otherwise the current best structure and the new one
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarHumanFeedback), 20);
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarHumanFeedback));
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -171,15 +187,15 @@ void    abmInteraction::nodeFeedback()
     osResponse.str("");
     osResponse << "So for you, this kinematic structure has a score of " << sFeedback10 << ", right?";
     iCub->say(osResponse.str().c_str());
-    yInfo() << "iCub says : " << osResponse ;
-
+    yInfo() << "iCub says : " << osResponse.str() ;
+    
     if (!nodeYesNo())
     {
         osResponse.str("");
         osResponse << "Oups, I am sorry" ;
         tryAgain = true ;
         iCub->say(osResponse.str().c_str());
-        yInfo() << "iCub says : " << osResponse ;
+        yInfo() << "iCub says : " << osResponse.str() ;
         nodeFeedback();
         
         return;
@@ -187,30 +203,57 @@ void    abmInteraction::nodeFeedback()
         tryAgain = false ;
     }
 
+    list<pair<string, string> > lArgument;
+    lArgument.push_back(pair<string, string>("Bob", "agent"));
+    lArgument.push_back(pair<string, string>("kinematic structure", "about"));
+    iCub->getABMClient()->sendActivity("action", "sentence", "feedback", lArgument, true);
+
+    Bottle bResult ;
+    ostringstream osRequest ;
+    //only augmented_time is needed but better clarity for the print
+    osRequest << "SELECT instance FROM main WHERE activitytype = 'feedback' ORDER BY \"time\" DESC LIMIT 1 ;" ;
+    bResult = iCub->getABMClient()->requestFromString(osRequest.str());
+    feedbackInstance = atoi(bResult.get(0).asList()->get(0).toString().c_str()) ;
+    yInfo() << "Feedback instance stored in main (from Bottle) : " << bResult.get(0).asList()->get(0).toString().c_str();
+    yInfo() << "Feedback instance stored in main (from feedbackInstance) : " << feedbackInstance;
+
+    //insert the feedback to the SQL database
+    insertFeedback(iFeedback10);
+
     if (iFeedback10 > bestRank) {
         bestRank = iFeedback10 ;
-
-        //update ABM
 
         osResponse.str("");
         osResponse << "Yes, I have improved my skills" ;
         iCub->say(osResponse.str().c_str());
-        yInfo() << "iCub says : " << osResponse ;
+        yInfo() << "iCub says : " << osResponse.str() ;
 
     } else {
-
-        //update ABM
 
         osResponse.str("");
         osResponse << "Erf, too bad" ;
         iCub->say(osResponse.str().c_str());
-        yInfo() << "iCub says : " << osResponse ;
+        yInfo() << "iCub says : " << osResponse.str() ;
 
     }
+    
 
-    iCub->say("Ok ! Another ?");
 
-    cout << "Another ? " << endl;
+    //Check that we still have augmented feedback to do
+    if(++it_augmentedTime == vAugmentedTime.end()){
+        osResponse.str("");
+        osResponse << "I have no more augmented to check, thank you for your feedback" ;
+        iCub->say(osResponse.str().c_str());
+        yInfo() << "iCub says : " << osResponse.str() ;
+
+        return;
+    }
+
+    osResponse.str("");
+    osResponse << "Another one?" ;
+    iCub->say(osResponse.str().c_str());
+    yInfo() << "iCub says : " << osResponse.str() ;
+
     if (nodeYesNo())
     {
         nodeFeedback();
@@ -218,12 +261,20 @@ void    abmInteraction::nodeFeedback()
     }
     else
     {
+
+        osResponse.str("");
+        osResponse << "Ok, thanks anyway, bye" ;
+        iCub->say(osResponse.str().c_str());
+        yInfo() << "iCub says : " << osResponse.str() ;
+
         return;
     }
 }
 
 
-
+/*
+* Yes/No asking for confirmation, another trial, ...
+*/
 bool abmInteraction::nodeYesNo()
 {
     //bool fGetaReply = false;
@@ -233,7 +284,7 @@ bool abmInteraction::nodeYesNo()
         bSendReasoning, // send the information of recall to the abmReasoning
         bMessenger; //to be send TO speech recog
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarYesNo), 20);
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarYesNo));
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -244,8 +295,75 @@ bool abmInteraction::nodeYesNo()
     bAnswer = *bRecognized.get(1).asList();
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
-    if (bAnswer.get(0).asString() == "yes")        return true;
+    yInfo() << " bAnswer : " << bRecognized.get(1).toString() ;
+    yInfo() << " Yes/No : " << bAnswer.get(1).asList()->get(0).asString() ;
+
+    if (bAnswer.get(1).asList()->get(0).asString() == "yes")        return true;
 
     return false;
 }
 
+/*
+* create the vAugmentedTime for the current used Instance : sql to obtain the foreign key for the feedback table
+* 
+*/
+bool abmInteraction::createAugmentedTimeVector()
+{
+    Bottle bResult ;
+    ostringstream osRequest ;
+    //only augmented_time is needed but better clarity for the print
+    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port FROM visualdata WHERE instance = " << rememberedInstance << "AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' ;" ;
+    bResult = iCub->getABMClient()->requestFromString(osRequest.str());
+    yInfo() << bResult.toString();
+
+    if (bResult.toString() != "NULL") {
+        for(unsigned int i = 0; i < bResult.size(); i++){
+            //get(1) because augmented is in second column of the result
+            vAugmentedTime.push_back(bResult.get(i).asList()->get(1).toString());
+        }
+    } else {
+        yError() << "Request to obtain augmented from instance " << rememberedInstance << " is NULL : are you sure there are some augmented images?" ;
+        return false;
+    }
+
+    ostringstream osAugmentedTime ;
+    const char* const delim = ", ";
+    copy(vAugmentedTime.begin(), vAugmentedTime.end(), std::ostream_iterator<std::string>(osAugmentedTime, delim));
+    yInfo() << " vAugmentedTime = " << osAugmentedTime.str();
+
+    it_augmentedTime = vAugmentedTime.begin();
+
+    return true;
+}
+
+/*
+* create the vAugmentedTime for the current used Instance : sql to obtain the foreign key for the feedback table
+* 
+*/
+bool abmInteraction::insertFeedback(int feedback, string agentName)
+{
+    Bottle bResult ;
+    ostringstream osRequest ;
+    //take info from visualdata to put in feedback. In particular  the time of original memories is the smallest one from augmented
+    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port, min(\"time\") FROM visualdata WHERE instance = " << rememberedInstance << "AND augmented IS NOT NULL AND augmented_time = '" << *it_augmentedTime << "' AND img_provider_port = '" << img_provider_port << "' GROUP BY instance, augmented_time, img_provider_port;";
+    bResult = iCub->getABMClient()->requestFromString(osRequest.str());
+    yInfo() << bResult.toString();
+
+    if (bResult.toString() != "NULL") {
+        //we should only have one line, because instance,augmented_time,img_provider_port is primary key
+        Bottle bResInsert ;
+        ostringstream osInsertFeedback;
+
+
+
+        osInsertFeedback << "INSERT INTO feedback VALUES (" << feedbackInstance << ", '" << bResult.get(0).asList()->get(1).toString() << "', '" << bResult.get(0).asList()->get(2).toString() << "', '" << bResult.get(0).asList()->get(3).toString() << "', '" << agentName << "', " << feedback << ", 'none');" ;
+        bResInsert = iCub->getABMClient()->requestFromString(osInsertFeedback.str());
+
+        yInfo() << " Request sent : " << osInsertFeedback.str() ; 
+    } else {
+        yError() << "Request to obtain augmented from instance " << rememberedInstance << " with augmented_time = " << *it_augmentedTime << " is NULL" ;
+        return false;
+    }
+
+    return true;
+}
