@@ -5324,7 +5324,7 @@ Bottle abmReasoning::getKnowledge()
     bAdjectiveKnowledge = requestFromStream("select name, argument, timing from adjectivetemporal");
     //bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
 
-    string sNull = "NULL";
+    sNull = "NULL";
     if (bAdjectiveKnowledge.toString() == sNull)
     {
         bError.addString("no adjective data to upload");
