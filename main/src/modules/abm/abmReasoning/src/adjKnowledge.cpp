@@ -172,14 +172,14 @@ void adjKnowledge::determineSpatialInfluence()
         deter_CovD = (covMatrixD[0] * covMatrixD[3]) - (covMatrixD[1] * covMatrixD[2]);
         if (itMap->second.size() >= abmReasoningFunction::THRESHOLD_DETERMINE_INFLUENCE)
         {
-            if (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD)
-            {
-                yInfo() << "\t" << sLabel << " is relative for " << itMap->first ;
-            }
-            if (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB)
-            {
-                yInfo() << "\t" << sLabel << " is absolute for " << itMap->first ;
-            }
+            //if (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD)
+            //{
+            //    yInfo() << "\t" << sLabel << " is relative for " << itMap->first ;
+            //}
+            //if (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovB)
+            //{
+            //    yInfo() << "\t" << sLabel << " is absolute for " << itMap->first ;
+            //}
 
 
             fDeltaInfluence |= (abmReasoningFunction::THRESHOLD_IS_DISPERSION > deter_CovD);
@@ -197,7 +197,7 @@ void adjKnowledge::determineSpatialInfluence()
 //	//	if absolute: return (absolute X Y)
 //	//	if relative: return (relative DX DY)
 // if temporal: return (delay Delay)
-Bottle adjKnowledge::getEffect(string sAction)
+Bottle adjKnowledge::getEffect(string sAction, bool bPrint)
 {
     Bottle bOutput;
 
@@ -208,12 +208,15 @@ Bottle adjKnowledge::getEffect(string sAction)
         {
 
             double dDelay = accumulate(vdGnlTiming.begin(), vdGnlTiming.end(), 0.0) / vdGnlTiming.size();
+            if (bPrint)  (yInfo() << "\t" << sLabel << " is timing related");
+
             bOutput.addString("delay");
             bOutput.addDouble(dDelay);
             return bOutput;
         }
 
         double dDelay = accumulate(mActionTiming[sAction].begin(), mActionTiming[sAction].end(), 0.0) / mActionTiming[sAction].size();
+        if (bPrint) yInfo() << "\t" << sLabel << " is timing related";
         bOutput.addString("delay");
         bOutput.addDouble(dDelay);
         return bOutput;
@@ -234,6 +237,8 @@ Bottle adjKnowledge::getEffect(string sAction)
             }
             X /= vdGnlXY.size();
             Y /= vdGnlXY.size();
+            
+            if (bPrint) yInfo() << "\t" << sLabel << " is absolute";
 
             bOutput.addString("absolute");
             bOutput.addDouble(X);
@@ -252,6 +257,8 @@ Bottle adjKnowledge::getEffect(string sAction)
                 }
                 X /= mActionAbsolut[sAction].size();
                 Y /= mActionAbsolut[sAction].size();
+
+                if (bPrint) yInfo() << "\t" << sLabel << " is absolute for " << sAction;
 
                 bOutput.addString("absolute");
                 bOutput.addDouble(X);
@@ -275,6 +282,8 @@ Bottle adjKnowledge::getEffect(string sAction)
             X /= vdGnlDelta.size();
             Y /= vdGnlDelta.size();
 
+            if (bPrint) yInfo() << "\t" << sLabel << " is relative";
+
             bOutput.addString("relative");
             bOutput.addDouble(X);
             bOutput.addDouble(Y);
@@ -292,6 +301,8 @@ Bottle adjKnowledge::getEffect(string sAction)
                 }
                 X /= mActionDelta[sAction].size();
                 Y /= mActionDelta[sAction].size();
+
+                if (bPrint) yInfo() << "\t" << sLabel << " is relative for " << sAction;
 
                 bOutput.addString("relative");
                 bOutput.addDouble(X);

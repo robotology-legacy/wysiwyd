@@ -2500,7 +2500,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
     }
     yInfo() << "\t"  ;
 
-    bool print_in_file = true;
+    bool print_in_file = false;
 
 
     if (iError != 0)
@@ -2514,92 +2514,92 @@ Bottle abmReasoning::findAllActionsV2(int from)
     }
 
 
-    for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
-    {
-        determineTimingInfluence(*it);
-        if (it->bothtails > 0.1)
-        {
-            it->determineSpatialInfluence();
-        }
+    //for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
+    //{
+    //    determineTimingInfluence(*it);
+    //    if (it->bothtails > 0.1)
+    //    {
+    //        it->determineSpatialInfluence();
+    //    }
 
-        if (print_in_file)
-        {
+    //    if (print_in_file)
+    //    {
 
-            // writing data in a file
-            string filepath_time_relative = "time_";
-            filepath_time_relative += it->sLabel.c_str();
-            filepath_time_relative += ".txt";
-            string filepath_time = resfind.findFileByName(filepath_time_relative);
-            ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // erase previous contents of file
-            if (file_time){
-                for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
-                {
-                    file_time << *itD << endl;
-                }
-                yInfo() << "\t" << "file_time " << filepath_time << " written"  ;
-            }
-            else
-            {
-                yInfo() << "\t" << "cannot write " << filepath_time  ;
-            }
+    //        // writing data in a file
+    //        string filepath_time_relative = "time_";
+    //        filepath_time_relative += it->sLabel.c_str();
+    //        filepath_time_relative += ".txt";
+    //        string filepath_time = resfind.findFileByName(filepath_time_relative);
+    //        ofstream file_time(filepath_time.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+    //        if (file_time){
+    //            for (vector<double>::iterator itD = it->vdGnlTiming.begin(); itD != it->vdGnlTiming.end(); itD++)
+    //            {
+    //                file_time << *itD << endl;
+    //            }
+    //            yInfo() << "\t" << "file_time " << filepath_time << " written"  ;
+    //        }
+    //        else
+    //        {
+    //            yInfo() << "\t" << "cannot write " << filepath_time  ;
+    //        }
 
-            string filepath_space_relative = "space_";
-            filepath_space_relative += it->sLabel.c_str();
-            filepath_space_relative += ".txt";
-            string filepath_space = resfind.findFileByName(filepath_space_relative);
-            ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+    //        string filepath_space_relative = "space_";
+    //        filepath_space_relative += it->sLabel.c_str();
+    //        filepath_space_relative += ".txt";
+    //        string filepath_space = resfind.findFileByName(filepath_space_relative);
+    //        ofstream file_space(filepath_space.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
-            if (file_space)
-            {
-                file_space << "X\tY\tDX\tDY" << endl;
+    //        if (file_space)
+    //        {
+    //            file_space << "X\tY\tDX\tDY" << endl;
 
-                if (it->vdGnlDelta.size() != it->vdGnlXY.size())
-                {
-                    yInfo() << "\t" << "problem of size dude !"  ;
-                }
-                else
-                {
-                    for (unsigned int i = 0; i < it->vdGnlDelta.size(); i++)
-                    {
-                        file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
-                    }
-                }
-                yInfo() << "\t" << "file " << filepath_space << " written"  ;
+    //            if (it->vdGnlDelta.size() != it->vdGnlXY.size())
+    //            {
+    //                yInfo() << "\t" << "problem of size dude !"  ;
+    //            }
+    //            else
+    //            {
+    //                for (unsigned int i = 0; i < it->vdGnlDelta.size(); i++)
+    //                {
+    //                    file_space << it->vdGnlXY[i].first << "\t" << it->vdGnlXY[i].second << "\t" << it->vdGnlDelta[i].first << "\t" << it->vdGnlDelta[i].second << endl;
+    //                }
+    //            }
+    //            yInfo() << "\t" << "file " << filepath_space << " written"  ;
 
 
-                if (it->mActionAbsolut.size() != it->mActionDelta.size())
-                {
-                    yInfo() << "\t" << "problem of size and verb dude !"  ;
-                }
-                else
-                {
-                    string filepath_space_verb_relative = "space_verb_";
-                    filepath_space_verb_relative += it->sLabel.c_str();
-                    filepath_space_verb_relative += ".txt";
-                    string filepath_space_verb = resfind.findFileByName(filepath_space_verb_relative);
+    //            if (it->mActionAbsolut.size() != it->mActionDelta.size())
+    //            {
+    //                yInfo() << "\t" << "problem of size and verb dude !"  ;
+    //            }
+    //            else
+    //            {
+    //                string filepath_space_verb_relative = "space_verb_";
+    //                filepath_space_verb_relative += it->sLabel.c_str();
+    //                filepath_space_verb_relative += ".txt";
+    //                string filepath_space_verb = resfind.findFileByName(filepath_space_verb_relative);
 
-                    ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
+    //                ofstream file_space_verb(filepath_space_verb.c_str(), ios::out | ios::trunc);  // erase previous contents of file
 
-                    file_space_verb << "X\tY\tVerb" << endl;
+    //                file_space_verb << "X\tY\tVerb" << endl;
 
-                    for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
-                    {
-                        for (unsigned int i = 0; i < itMap->second.size(); i++)
-                        {
-                            file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
-                        }
+    //                for (map<string, vector<pair<double, double> > >::iterator itMap = it->mActionAbsolut.begin(); itMap != it->mActionAbsolut.end(); itMap++)
+    //                {
+    //                    for (unsigned int i = 0; i < itMap->second.size(); i++)
+    //                    {
+    //                        file_space_verb << itMap->second[i].first + 0.68 << "\t" << itMap->second[i].second << "\t" << itMap->first << "XY" << endl;
+    //                    }
 
-                        for (unsigned int i = 0; i < itMap->second.size(); i++)
-                        {
-                            file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
-                        }
+    //                    for (unsigned int i = 0; i < itMap->second.size(); i++)
+    //                    {
+    //                        file_space_verb << it->mActionDelta[itMap->first][i].first << "\t" << it->mActionDelta[itMap->first][i].second << "\t" << itMap->first << "DELTA" << endl;
+    //                    }
 
-                        yInfo() << "\t" << "file_space_verb " << filepath_space_verb << " written"  ;
-                    }
-                }
-            }
-        }
-    }
+    //                    yInfo() << "\t" << "file_space_verb " << filepath_space_verb << " written"  ;
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
     return bOutput;
 }
 
@@ -3689,7 +3689,7 @@ Bottle abmReasoning::discriminateUnknownActions()
 
 
 
-void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
+void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput, bool bPrint)
 {
     // get timing data all in one
 
@@ -3709,15 +3709,16 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
 
     abmReasoningFunction::studentttest2(adjInput.vdGnlTiming, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
 
-    yInfo() << "\t" << adjInput.sLabel << "\t bothtails: " << adjInput.bothtails  ;
+   /* yInfo() << "\t" << adjInput.sLabel << "\t bothtails: " << adjInput.bothtails  ;
     yInfo() << "\t\t\t " << "lefttail : " << adjInput.lefttail  ;
-    yInfo() << "\t\t\t " << "righttail: " << adjInput.righttail  ;
+    yInfo() << "\t\t\t " << "righttail: " << adjInput.righttail  ;*/
 
 
     // if from a general point of view, the adjective influence the timing
     if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING || 1 - adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
     {
         adjInput.fTimingInfluence = true;
+        if (bPrint) yInfo() << "\t" << adjInput.sLabel << " is time dependant.\t bothtails: " << adjInput.bothtails;
         return;
     }
 
@@ -3728,7 +3729,7 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput)
         abmReasoningFunction::studentttest2(itMap->second, otherTiming, &(adjInput.bothtails), &(adjInput.lefttail), &(adjInput.righttail));
         if (adjInput.bothtails < abmReasoningFunction::THRESHOLD_PVALUE_INFLUENCE_TIMING)
         {
-            yInfo() << "\t" << adjInput.sLabel << " influences timing when correlated to the action : " << itMap->first  ;
+            if (bPrint) yInfo() << "\t" << adjInput.sLabel << " influences timing when correlated to the action : " << itMap->first;
             adjInput.fTimingInfluence = true;
         }
     }
@@ -5217,7 +5218,7 @@ Bottle abmReasoning::resetKnowledge(int from)
 
     string sLocation = updateKnownLocations().toString().c_str();
     bOutput.addString(sLocation.c_str());
-    printSpatialKnowledge();
+    //printSpatialKnowledge();
 
     for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
     {
@@ -5263,7 +5264,7 @@ Bottle abmReasoning::getKnowledge()
         for (int ii = 0; ii < bAdjectiveKnowledge.size(); ii++)
         {
 
-            yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString()  ;
+            //yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString()  ;
             Bottle bInstance = *bAdjectiveKnowledge.get(ii).asList();
             adjKnowledge* adjKno;
 
@@ -5324,7 +5325,6 @@ Bottle abmReasoning::getKnowledge()
     bAdjectiveKnowledge = requestFromStream("select name, argument, timing from adjectivetemporal");
     //bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
 
-    string sNull = "NULL";
     if (bAdjectiveKnowledge.toString() == sNull)
     {
         bError.addString("no adjective data to upload");
@@ -5334,7 +5334,7 @@ Bottle abmReasoning::getKnowledge()
         for (int ii = 0; ii < bAdjectiveKnowledge.size(); ii++)
         {
 
-            yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString();
+            //yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString();
             Bottle bInstance = *bAdjectiveKnowledge.get(ii).asList();
             adjKnowledge* adjKno;
 
@@ -5349,8 +5349,8 @@ Bottle abmReasoning::getKnowledge()
                 {
                     if ((it->sLabel == sName))
                     {
-                        it->mActionTiming[sArgument].push_back((atof(bInstance.get(6).toString().c_str())));
-                        it->vdGnlTiming.push_back((atof(bInstance.get(6).toString().c_str())));
+                        it->mActionTiming[sArgument].push_back((atof(bInstance.get(2).toString().c_str())));
+                        it->vdGnlTiming.push_back((atof(bInstance.get(2).toString().c_str())));
                         bFound = true;
                     }
                 }
@@ -5358,90 +5358,52 @@ Bottle abmReasoning::getKnowledge()
                 {
                     adjKnowledge	newADJ;
                     newADJ.sLabel = sName;
-                    newADJ.mActionTiming[sArgument].push_back((atof(bInstance.get(6).toString().c_str())));
-                    newADJ.vdGnlTiming.push_back((atof(bInstance.get(6).toString().c_str())));
+                    newADJ.mActionTiming[sArgument].push_back((atof(bInstance.get(2).toString().c_str())));
+                    newADJ.vdGnlTiming.push_back((atof(bInstance.get(2).toString().c_str())));
                     listKnownAdverb.push_back(newADJ);
                 }
             }
         }
     }
 
-    //if (sNull == sResult)
-    //{
-    //	yInfo() << "\t" << " no spatial data to load";
-    //	bOutput.addString("no spatial data");
-    //}
-    //else
-    //{
-    //	for (int i = 0; i < bSpatialKnowledge.size(); i++)
-    //	{
-    //		if (bSpatialKnowledge.get(0).isList())
-    //		{
-    //			bAction = (*bSpatialKnowledge.get(i).asList());
-    //			int instance = atoi(bAction.get(0).toString().c_str());
-    //			string sName = bAction.get(1).toString().c_str(),
-    //				sArg = bAction.get(2).toString().c_str(),
-    //				sDependance = bAction.get(3).toString().c_str();
-    //			spatialKnowledge skAction;
-    //			skAction.sArgument = sArg;
-    //			skAction.sName = sName;
-    //			skAction.sDependance = sDependance;
-
-    //			osSpatialData.str("");
-    //			osSpatialData << "SELECT vx, vy, vdx, vdy FROM spatialdata WHERE instance = " << instance;
-    //			bSpatialData = requestFromStream(osSpatialData.str().c_str());
-
-    //			for (int j = 0; j < bSpatialData.size(); j++)
-    //			{
-    //				skAction.vX.push_back(atof((*bSpatialData.get(j).asList()).get(0).toString().c_str()));
-    //				skAction.vY.push_back(atof((*bSpatialData.get(j).asList()).get(1).toString().c_str()));
-    //				skAction.vDX.push_back(atof((*bSpatialData.get(j).asList()).get(2).toString().c_str()));
-    //				skAction.vDY.push_back(atof((*bSpatialData.get(j).asList()).get(3).toString().c_str()));
-    //			}
-
-    //			addSpatialKnowledge(skAction, false);
-    //		}
-    //	}
-    //}
-
     updateKnownLocations();
 
-    //yInfo() << "\t" << " ... ";
+    yInfo() << "\t" << " ... ";
 
 
-    //bTimeKnowledge = requestFromStream("SELECT DISTINCT temporal FROM timeknowledge");
-    //sResult = bTimeKnowledge.toString();
+    Bottle bTimeKnowledge = requestFromStream("SELECT DISTINCT temporal FROM timeknowledge");
+    string sResult = bTimeKnowledge.toString();
 
-    //if (sNull == sResult)
-    //{
-    //	yInfo() << "\t" << " no temporal data to load";
-    //	bOutput.addString("no temporal data");
-    //}
-    //else
-    //{
-    //	for (int i = 0; i < bTimeKnowledge.size(); i++)
-    //	{
-    //		if (bTimeKnowledge.get(0).isList())
-    //		{
-    //			bComplex = (*bTimeKnowledge.get(i).asList());
-    //			string sTemporal = bComplex.get(0).toString().c_str();
+    if (sNull == sResult)
+    {
+    	yInfo() << "\t" << " no temporal data to load";
+    	bOutput.addString("no temporal data");
+    }
+    else
+    {
+    	for (int i = 0; i < bTimeKnowledge.size(); i++)
+    	{
+    		if (bTimeKnowledge.get(0).isList())
+    		{
+    			Bottle bComplex = (*bTimeKnowledge.get(i).asList());
+    			string sTemporal = bComplex.get(0).toString().c_str();
 
-    //			timeKnowledge tkComplex;
-    //			tkComplex.sTemporal = sTemporal;
+    			timeKnowledge tkComplex;
+    			tkComplex.sTemporal = sTemporal;
 
-    //			osTimeData.str("");
-    //			osTimeData << "SELECT timearg1, timearg2 FROM timedata WHERE temporal = '" << sTemporal << "'";
-    //			bTimeData = requestFromStream(osTimeData.str().c_str());
+    			ostringstream osTimeData;
+    			osTimeData << "SELECT timearg1, timearg2 FROM timedata WHERE temporal = '" << sTemporal << "'";
+    			Bottle bTimeData = requestFromStream(osTimeData.str().c_str());
 
-    //			for (int j = 0; j < bTimeData.size(); j++)
-    //			{
-    //				tkComplex.timeArg1.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(0).toString()).c_str()));
-    //				tkComplex.timeArg2.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(1).toString()).c_str()));
-    //			}
-    //			listTimeKnowledge.push_back(tkComplex);
-    //		}
-    //	}
-    //}
+    			for (int j = 0; j < bTimeData.size(); j++)
+    			{
+    				tkComplex.timeArg1.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(0).toString()).c_str()));
+    				tkComplex.timeArg2.push_back(abmReasoningFunction::string2Time(((*bTimeData.get(j).asList()).get(1).toString()).c_str()));
+    			}
+    			listTimeKnowledge.push_back(tkComplex);
+    		}
+    	}
+    }
 
 
     //yInfo() << "\t" << " ... ";
@@ -5686,14 +5648,14 @@ Bottle abmReasoning::updateKnownLocations()
 
         for (vector<adjKnowledge>::iterator itAdv = listKnownAdverb.begin(); itAdv != listKnownAdverb.end(); itAdv++)
         {
-            determineTimingInfluence(*itAdv);
+            determineTimingInfluence(*itAdv, true);
             if (!itAdv->fTimingInfluence)
             {
                 for (map<string, vector< pair<double, double > > >::iterator itSubAdv = itAdv->mActionAbsolut.begin();
                     itSubAdv != itAdv->mActionAbsolut.end();
                     itSubAdv++)
                 {
-                    Bottle bEffect = itAdv->getEffect(itSubAdv->first);
+                    Bottle bEffect = itAdv->getEffect(itSubAdv->first, true);
                     if ((bEffect.get(0).toString()) == "absolute" && itSubAdv->first != "hanoi")
                     {
                         vector <pair <double, double> > vXY = itSubAdv->second;
@@ -6730,11 +6692,6 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                 }
             }
         }
-        else
-        {
-
-        }
-
     
         // relative + dependance (near, above...)
         //if (itAdv->isRelative && it->vX.size() > 2 && it->sDependance != abmReasoningFunction::TAG_DB_NONE)

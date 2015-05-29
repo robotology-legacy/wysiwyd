@@ -52,7 +52,7 @@ public:
     void    addInteraction(yarp::os::Bottle bInput);
     void    addOtherInteraction(yarp::os::Bottle bInput);
 
-    yarp::os::Bottle getEffect(std::string sArgument);
+    yarp::os::Bottle getEffect(std::string sArgument, bool bPrint = false);
 
     std::pair<double, double>    coordRelative(double Xo, double Yo, double Xh, double Yh);      // return the relatve coordinates of an object from an other agent
 
