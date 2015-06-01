@@ -599,6 +599,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 yDebug() << "includeAugmented: " << includeAugmented;
                 yDebug() << "speedMultiplier: " << speedMultiplier;
                 yDebug() << "robot: " << robot;
+                yDebug() << "augmentedTimes: " << bDesiredTimes.toString();
 
                 bReply = triggerStreaming(imgInstance, realtime, includeAugmented, speedMultiplier, robot, desiredTimes);
             }

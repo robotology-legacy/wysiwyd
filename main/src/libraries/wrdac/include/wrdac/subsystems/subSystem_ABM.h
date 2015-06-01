@@ -44,13 +44,13 @@ namespace wysiwyd{
                 m_type = SUBSYSTEM_ABM;
             }
 
-            virtual void Close() { portRPC.interrupt(); portRPC.close(); };
+            virtual void Close() { portRPC.interrupt(); portRPC.close(); }
 
             void sendActivity(
-                std::string activityType,
-                std::string activyInformation,
-                std::string activityContext,
-                std::list<std::pair<std::string, std::string> > arguments,
+                const std::string& activityType,
+                const std::string& activyInformation,
+                const std::string& activityContext,
+                const std::list<std::pair<std::string, std::string> >& arguments,
                 bool fBegin = true)
             {
                 yarp::os::Bottle
@@ -65,7 +65,7 @@ namespace wysiwyd{
                 bArgument.addString("arguments");
 
 
-                for (std::list<std::pair<std::string, std::string> >::iterator itArg = arguments.begin(); itArg != arguments.end(); itArg++)
+                for (std::list<std::pair<std::string, std::string> >::const_iterator itArg = arguments.begin(); itArg != arguments.end(); itArg++)
                 {
                     yarp::os::Bottle  bTemp;
                     bTemp.clear();
@@ -86,7 +86,7 @@ namespace wysiwyd{
                 portRPC.write(bSnapshot);
             }
 
-            yarp::os::Bottle requestFromString(std::string &sInput)
+            yarp::os::Bottle requestFromString(const std::string &sInput)
             {
                 yarp::os::Bottle bReplyRequest;
                 //send the SQL query within a bottle to autobiographicalMemory
@@ -102,5 +102,3 @@ namespace wysiwyd{
     }
 }//Namespace
 #endif
-
-
