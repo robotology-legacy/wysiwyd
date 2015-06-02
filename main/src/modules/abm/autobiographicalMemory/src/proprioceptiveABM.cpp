@@ -272,7 +272,7 @@ Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifferenc
         osArgDataStream << "time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
     }
     else {
-        osArgDataStream << "time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
+        osArgDataStream << "time_difference > " << timeLastImageSent << " ORDER BY time ASC, label_port, subtype::int ASC ";
     }
 
     osArgDataStream << "LIMIT (SELECT COUNT(DISTINCT subtype) FROM proprioceptivedata WHERE instance = '" << imgInstance << "' AND label_port='" << port << "')";
