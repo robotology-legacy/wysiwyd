@@ -107,14 +107,22 @@ bool ABMAugmentionExample::receiveImages(int instance) {
     vAugmentedImages.clear();
 
     int numberOfImages=0;
-    string portName = "/autobiographicalMemory/icub/camcalib/right/out";
+    string portName;
+    string portNamePrefix = "/autobiographicalMemory/icub/camcalib/right/out";
 
     Bottle* bListImgProviders = bRespImagesInfo.get(2).asList();
     for(int i=0; i<bListImgProviders->size(); i++) {
-        if(bListImgProviders->get(i).asList()->get(0).asString()==portName) {
+        if(bListImgProviders->get(i).asList()->get(0).asString().find(portNamePrefix)!=std::string::npos) {
+            portName = bListImgProviders->get(i).asList()->get(0).asString();
             numberOfImages = bListImgProviders->get(i).asList()->get(1).asInt();
         }
     }
+
+    if(portName=="") {
+        yError() << "Could not find corresponding port, abort!";
+        return false;
+    }
+
     yDebug() << "Num images: " << numberOfImages;
 
     while(!Network::isConnected(portName, augmentedImageIn.getName())) {
