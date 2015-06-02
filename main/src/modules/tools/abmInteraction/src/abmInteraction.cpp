@@ -43,7 +43,7 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
 
-    bool    bEveryThingisGood = true;
+    //bool    bEveryThingisGood = true;
     tryAgain = false ; //at start, iCub will explain and speaks
     bestRank = 0 ;
 
@@ -252,7 +252,7 @@ void    abmInteraction::nodeFeedback()
     ostringstream osRequest ;
     //only augmented_time is needed but better clarity for the print
     osRequest << "SELECT instance FROM main WHERE activitytype = 'feedback' ORDER BY \"time\" DESC LIMIT 1 ;" ;
-    bResult = iCub->getABMClient()->requestFromString(osRequest.str());
+    bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
     feedbackInstance = atoi(bResult.get(0).asList()->get(0).toString().c_str()) ;
     yInfo() << "Feedback instance stored in main (from Bottle) : " << bResult.get(0).asList()->get(0).toString().c_str();
     yInfo() << "Feedback instance stored in main (from feedbackInstance) : " << feedbackInstance;
@@ -358,7 +358,7 @@ bool abmInteraction::createAugmentedTimeVector()
     yInfo() << bResult.toString();
 
     if (bResult.toString() != "NULL") {
-        for(unsigned int i = 0; i < bResult.size(); i++){
+        for(int i = 0; i < bResult.size(); i++){
             //get(1) because augmented is in second column of the result
             vAugmentedTime.push_back(bResult.get(i).asList()->get(1).toString());
         }
@@ -398,7 +398,7 @@ bool abmInteraction::insertFeedback(int feedback, string agentName)
 
 
         osInsertFeedback << "INSERT INTO feedback VALUES (" << feedbackInstance << ", '" << bResult.get(0).asList()->get(1).toString() << "', '" << bResult.get(0).asList()->get(2).toString() << "', '" << bResult.get(0).asList()->get(3).toString() << "', '" << agentName << "', " << feedback << ", 'none');" ;
-        bResInsert = iCub->getABMClient()->requestFromString(osInsertFeedback.str());
+        bResInsert = iCub->getABMClient()->requestFromString(osInsertFeedback.str().c_str());
 
         yInfo() << " Request sent : " << osInsertFeedback.str() ; 
     } else {
