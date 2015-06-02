@@ -141,7 +141,7 @@ bool ABMAugmentionExample::receiveImages(int instance) {
                 augmentedImageIn.getEnvelope(env);
                 yDebug() << "Received envelope: " << env.toString();
 
-                vRawImages.push_back(image);
+                vRawImages.push_back(*image);
                 vEnvelopes.push_back(env);
             } else {
                 yError() << "Did not receive image!";
@@ -161,25 +161,31 @@ void ABMAugmentionExample::augmentImages() {
     yInfo() << "Going to augment images";
     yAssert(vRawImages.size()==vEnvelopes.size());
 
+    int lowThreshold = 20;
+    int ratio = 3;
+    int kernel_size = 3;
+    int color_r = yarp::os::Random::uniform(0, 255);
+    int color_g = yarp::os::Random::uniform(0, 255);
+    int color_b = yarp::os::Random::uniform(0, 255);
+
     for(size_t i = 0; i<vRawImages.size(); i++) {
-        IplImage *rawImageIpl = cvCreateImage(cvSize(vRawImages[i]->width(), vRawImages[i]->height()), IPL_DEPTH_8U, 3);
-        cvCvtColor((IplImage*)vRawImages[i]->getIplImage(), rawImageIpl, CV_RGB2BGR);
+        IplImage *rawImageIpl = cvCreateImage(cvSize(vRawImages[i].width(), vRawImages[i].height()), IPL_DEPTH_8U, 3);
+        cvCvtColor((IplImage*)vRawImages[i].getIplImage(), rawImageIpl, CV_RGB2BGR);
         Mat myImage(rawImageIpl);
 
         // here, do Canny edge detection as example
         Mat myImage_gray;
         cvtColor( myImage, myImage_gray, CV_BGR2GRAY );
-        int lowThreshold = 20;
-        int ratio = 3;
-        int kernel_size = 3;
+
         Canny( myImage_gray, myImage_gray, lowThreshold, lowThreshold*ratio, kernel_size );
         Mat augmented;
         augmented.create( myImage.size(), myImage.type() );
         augmented = Scalar::all(0);
         myImage.copyTo( augmented, myImage_gray);
 
+        //imshow("Original", myImage);
         //imshow("Canny", augmented);
-        //waitKey(0);
+        //waitKey(50);
 
         // convert back to IplImage
         IplImage augmentedImageIpl = augmented;
@@ -189,6 +195,11 @@ void ABMAugmentionExample::augmentImages() {
         ImageOf<PixelRgb> augmentedImageYarp;
         augmentedImageYarp.resize(augmentedImageIpl.width, augmentedImageIpl.height);
         cvCopyImage(&augmentedImageIpl, (IplImage *)augmentedImageYarp.getIplImage());
+
+        yarp::sig::draw::addCircle(augmentedImageYarp,PixelRgb(color_r,color_g,color_b),
+                              augmentedImageYarp.width()/2,augmentedImageYarp.height()/2,
+                              augmentedImageYarp.height()/4);
+
         vAugmentedImages.push_back(augmentedImageYarp);
 
         cvReleaseImage(&rawImageIpl);

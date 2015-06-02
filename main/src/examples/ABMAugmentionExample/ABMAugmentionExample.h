@@ -32,7 +32,7 @@ protected:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > augmentedImageIn;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > augmentedImageOut;
 
-    std::vector<yarp::sig::ImageOf<yarp::sig::PixelRgb>* > vRawImages;
+    std::vector<yarp::sig::ImageOf<yarp::sig::PixelRgb> > vRawImages;
     std::vector<yarp::sig::ImageOf<yarp::sig::PixelRgb> > vAugmentedImages;
     std::vector<yarp::os::Bottle> vEnvelopes;
 
