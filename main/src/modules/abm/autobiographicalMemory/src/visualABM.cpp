@@ -319,19 +319,28 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "SELECT img_provider_port, count(img_provider_port) FROM visualdata WHERE instance = " << instance;
+    osArg << "SELECT img_provider_port, augmented, augmented_time, count(img_provider_port) FROM visualdata WHERE instance = " << instance;
     if (!includeAugmented) {
         osArg << " AND augmented IS NULL";
     }
-    osArg << " GROUP BY img_provider_port";
+    osArg << " GROUP BY img_provider_port, augmented, augmented_time";
 
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
     Bottle bImgProviders;
     for (int i = 0; i < bRequest.size() && bRequest.toString() != "NULL"; i++) {
         Bottle bSingleImgProvider;
-        bSingleImgProvider.addString(portPrefixForStreaming + bRequest.get(i).asList()->get(0).asString().c_str());
-        bSingleImgProvider.addInt(atoi(bRequest.get(i).asList()->get(1).asString().c_str()));
+        string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
+        string augmented = bRequest.get(i).asList()->get(1).asString();
+        string augmented_time = bRequest.get(i).asList()->get(2).asString();
+        string concatenated_port = imgProviderPort + augmented + augmented_time;
+
+        // remove spaces
+        std::string::iterator end_pos = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
+        concatenated_port.erase(end_pos, concatenated_port.end());
+
+        bSingleImgProvider.addString(portPrefixForStreaming + concatenated_port);
+        bSingleImgProvider.addInt(atoi(bRequest.get(i).asList()->get(3).asString().c_str()));
         bImgProviders.addList() = bSingleImgProvider;
     }
 
@@ -375,20 +384,26 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
         string augmented_time = bRequest.get(i).asList()->get(2).asString();
         string concatenated_port = imgProviderPort + augmented + augmented_time;
 
+        // remove spaces
+        std::string::iterator end_pos = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
+        concatenated_port.erase(end_pos, concatenated_port.end());
+
         mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
         mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
 
         if (!includeAugmented && augmented == "") {
-            //yDebug() << "Connect " << portPrefixForStreaming+imgProviderPort << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
+            yDebug() << "Connect " << concatenated_port << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
             Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
         } else if(includeAugmented) {
             if(!desired_times.empty()) {
                 size_t pos = std::find(desired_times.begin(), desired_times.end(), augmented_time) - desired_times.begin();
                 stringstream ss; ss << pos; string pos_str = ss.str();
                 if(pos < desired_times.size()) {
+                    yDebug() << "Connect " << concatenated_port << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort+pos_str;
                     Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str, "tcp");
                 }
             } else {
+                yDebug() << "Connect " << concatenated_port << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
                 Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
             }
         }
@@ -629,21 +644,38 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
     return request(bListImages);
 }
 
-void autobiographicalMemory::requestAugmentedImages(string activityname, int number_of_augmentions) {
+bool autobiographicalMemory::requestAugmentedImages(string activityname, int number_of_augmentions, int instance) {
+    yDebug("Starting requestAugmentedImages");
+    if(abm2augmented.getOutputCount()==0) {
+        yError("Connect to module to augment images, abort!");
+        return false;
+    }
+
     Bottle bRequest;
     bRequest.addString("request");
     ostringstream osRequest;
-    osRequest << "SELECT instance, COUNT(DISTINCT augmented_time) from visualdata WHERE instance IN (";
+    osRequest << "SELECT instance, COUNT(DISTINCT augmented) as c from visualdata WHERE instance IN (";
     osRequest << "    SELECT instance FROM main WHERE activityname = '" << activityname << "' ";
-    osRequest << "    AND begin='true') ";
-    osRequest << "AND augmented!='' GROUP BY instance ";
-    osRequest << "HAVING count(DISTINCT augmented_time) < " << number_of_augmentions << ";";
+    osRequest << "    AND begin='true'";
+    if(instance!=-1) {
+       ostringstream osInstance; osInstance << instance;
+       osRequest << " AND instance='" << osInstance.str() << "'";
+    }
+    osRequest << ") GROUP BY instance ";
+    osRequest << "HAVING count(DISTINCT augmented) < " << number_of_augmentions;
+    osRequest << " ORDER BY instance;";
     bRequest.addString(osRequest.str());
 
     Bottle bResponse = request(bRequest);
+    yDebug() << "Response from database: " << bResponse.toString();
+
+    if(bResponse.get(0).toString()=="NULL") {
+        yError("Not a suitable instance!");
+        return false;
+    }
 
     for(int i=0; i<bResponse.size(); i++) {
-        int instance = bResponse.get(i).asList()->get(0).asInt();
+        int instance = atoi(bResponse.get(i).asList()->get(0).toString().c_str());
         int existing_number_of_augmentions = bResponse.get(i).asList()->get(1).asInt();
         Bottle bReqAugmentingModule, bRespAugmentingModule;
         bReqAugmentingModule.addString("augmentImages");
@@ -656,6 +688,7 @@ void autobiographicalMemory::requestAugmentedImages(string activityname, int num
         //bReqAugmentingModule.addInt(50);
 
         for(int j = existing_number_of_augmentions; j<number_of_augmentions; j++) {
+            yInfo() << "Send request to Augmenting module: " << bReqAugmentingModule.toString();
             abm2augmented.write(bReqAugmentingModule, bRespAugmentingModule);
             if(bRespAugmentingModule.get(0).asString()=="ack") {
                 yInfo() << "Augmenting for instance " << instance << " at time " << augmentedTime << " was successful";
@@ -664,6 +697,8 @@ void autobiographicalMemory::requestAugmentedImages(string activityname, int num
             }
         }
     }
+
+    return true;
 }
 
 void autobiographicalMemory::saveAugmentedImages() {
@@ -684,7 +719,7 @@ void autobiographicalMemory::saveAugmentedImages() {
         // it is reset as soon as the frame number received
         // is smaller than the last frame number which was received
         if(frame_number < augmentedLastFrameNumber) {
-            augmentedTime = yarp::os::Time::now();
+            augmentedTime = getCurrentTime();
         }
         augmentedLastFrameNumber = frame_number;
 

@@ -79,7 +79,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     frameNb = 0;
     sendStreamIsInitialized = false;
 
-    augmentedTime = 0;
+    augmentedTime = getCurrentTime();
     augmentedLastFrameNumber = std::numeric_limits<int>::max();
 
     shouldClose = false;
@@ -720,8 +720,14 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "requestAugmentedImages")
         {
+            int instance = -1;
             int quantity = 5;
             string activity = "babbling";
+
+            Value vInstance = bCommand.find("instance");
+            if (!vInstance.isNull() && vInstance.isInt()) {
+                instance = vInstance.asInt();
+            }
 
             Value vQuantity = bCommand.find("quantity");
             if (!vQuantity.isNull() && vQuantity.isInt()) {
@@ -733,8 +739,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 activity = vActivity.asString();
             }
 
-            requestAugmentedImages(activity, quantity);
-            bReply.addString("ack");
+            if(requestAugmentedImages(activity, quantity, instance)) {
+                bReply.addString("ack");
+            } else {
+                bReply.addString("nack");
+            }
         }
         // DEPRECATED! Use triggerStreaming instead, see ABMAugmentionExample!
         else if (bCommand.get(0) == "getImagesInfo")
@@ -871,6 +880,9 @@ bool autobiographicalMemory::updateModule() {
                     string augmented = bListImages.get(i).asList()->get(5).asString();
                     string augmented_time = bListImages.get(i).asList()->get(6).asString();
                     string concatenated_port = portname + augmented + augmented_time;
+                    // remove spaces
+                    std::string::iterator end_pos = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
+                    concatenated_port.erase(end_pos, concatenated_port.end());
 
                     BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(concatenated_port);
                     Bottle env;
@@ -882,6 +894,7 @@ bool autobiographicalMemory::updateModule() {
                     port->setEnvelope(env);
                     if (atol(bListImages.get(i).asList()->get(3).asString().c_str()) > timeLastImageSentCurrentIteration) {
                         timeLastImageSentCurrentIteration = atol(bListImages.get(i).asList()->get(3).asString().c_str());
+                        //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
 
                     yInfo() << "Send image: " << fullPath.str();
@@ -914,6 +927,7 @@ bool autobiographicalMemory::updateModule() {
                 for (int i = 0; i < bListContData.size(); i++) {
                     if (atol(bListContData.get(i).asList()->get(4).asString().c_str()) > timeLastImageSentCurrentIteration) {
                         timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
+                        //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
                     bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
                 }
@@ -929,6 +943,7 @@ bool autobiographicalMemory::updateModule() {
 
         if (timeLastImageSentCurrentIteration > timeLastImageSent) {
             timeLastImageSent = timeLastImageSentCurrentIteration;
+            //yDebug() << "Set new timeLastImageSent " << timeLastImageSent;
         }
 
         // Are we done?
@@ -937,6 +952,7 @@ bool autobiographicalMemory::updateModule() {
             done = true;
         }
         else if (!realtimePlayback && timeLastImageSent >= timeVeryLastStream) {
+            //yDebug() << timeLastImageSent << " >= " << timeVeryLastStream;
             done = true;
         }
 

@@ -180,11 +180,11 @@ public:
     yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference, std::string port);
 
     // augmented images stuff
-    double augmentedTime;
+    std::string augmentedTime;
     double augmentedLastFrameNumber;
     yarp::os::RpcClient abm2augmented;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portAugmentedImagesIn;
-    void requestAugmentedImages(std::string activityname, int number_of_augmentions);
+    bool requestAugmentedImages(std::string activityname, int number_of_augmentions, int instance = -1);
     void saveAugmentedImages();
     yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages = true);
 
