@@ -97,6 +97,16 @@ namespace wysiwyd{
                 return bReplyRequest;
             }
 
+            yarp::os::Bottle rpcCommand(yarp::os::Bottle &bRequest)
+            {
+                yarp::os::Bottle bReply;
+
+                yInfo() << " [rpcCommand] bRequest = " << bRequest.toString() ;
+                //send the SQL query within a bottle to autobiographicalMemory
+                portRPC.write(bRequest, bReply);
+                return bReply;
+            }
+
         };
 
     }

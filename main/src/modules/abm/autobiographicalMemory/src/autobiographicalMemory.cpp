@@ -794,7 +794,10 @@ bool autobiographicalMemory::updateModule() {
         yInfo() << "I have received a sound!!!!!";
         stringstream fullPath;
         //fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
-        yarp::sig::file::write(*s, (storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav").c_str());
+        if(!yarp::sig::file::write(*s, (storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav").c_str()))
+        {
+            yError() << " [Sound] Sound file not written!!";
+        }
         //yarp::sig::file::write(*s,"c:\\robot\\ABMStoring\\tmp\\test.wav");
         //yDebug() << "blop";
     }

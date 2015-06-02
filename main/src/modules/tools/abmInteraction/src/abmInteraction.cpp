@@ -36,6 +36,8 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     nameGrammarHumanFeedback = rf.findFileByName(rf.check("nameGrammarHumanFeedback", Value("hFeedback.xml")).toString());
+    //nameGrammarHumanFeedback = rf.findFileByName(rf.check("nameGrammarHumanFeedback", Value("hFeedbackDescription")).toString());
+    
     nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
 
     cout << moduleName << ": finding configuration files..." << endl;
@@ -70,6 +72,8 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     rememberedInstance = 1333 ;
     feedbackInstance = -1 ;
     img_provider_port = "/icub/camcalib/left/out/kinematic_structure";
+    bestAugmentedTime = "" ;
+    it_augmentedTime = vAugmentedTime.begin() ;
 
     if (!createAugmentedTimeVector()){
         yError() << " Something is wrong with the augmented memories! quit";
@@ -132,17 +136,46 @@ void    abmInteraction::nodeFeedback()
     if(tryAgain == false){
         iCub->say("Note this kinematic structure between 1 and 10 please");
         yInfo() << " iCub says : Note this kinematic structure between 1 and 10 please" ;
+
+        //feedback likert 1-5
+        /*iCub->say("Note this kinematic structure, Likert 1-5 quality");
+        yInfo() << " iCub says : Note this kinematic structure, Likert 1-5 quality" ;*/
+
+        //Preparing bottle to trigger the augmenting remembering
+        Bottle bRpc, bSubRealtime, bSubAugmentedTimes ;
+        
+        bRpc.addString("triggerStreaming") ;
+        bRpc.addInt(rememberedInstance);
+
+        bSubRealtime.addString("realtime");
+        bSubRealtime.addInt(1);
+
+        bSubAugmentedTimes.addString("augmentedTimes");
+        bSubAugmentedTimes.addString(*it_augmentedTime);
+
+        //If we have a previously best rank
+        if(bestRank != 0) {
+        osResponse.str("");
+        osResponse << "The current best structure is shown at left. The rank is " << bestRank << " for time = " << bestAugmentedTime ;
+        iCub->say(osResponse.str().c_str()) ;
+        yInfo() << "iCub says : " << osResponse.str() ;
+
+        bSubAugmentedTimes.addString(bestAugmentedTime);
+        }
+
+        //Ask for showing the current testing augmented + the best one if relevant
+        bRpc.addList() = bSubRealtime ;
+        bRpc.addList() = bSubAugmentedTimes ;
+
+        //iCub->getABMClient()->rpcCommand(bRpc);   
+
     } else {
         iCub->say("Can you repeat your feedback please?");
         yInfo() << "iCub says : Can you repeat your feedback please?" ;
     }
 
-    if(bestRank != 0) {
-        osResponse.str("");
-        osResponse << "The current best structure is shown at left. The rank is " << bestRank ;
-        iCub->say(osResponse.str().c_str()) ;
-        yInfo() << "iCub says : " << osResponse.str() ;
-    }
+
+
 
     //Method to call ABM and remember a kinematic structure from an instance
     //if first time, just one, otherwise the current best structure and the new one
@@ -171,6 +204,7 @@ void    abmInteraction::nodeFeedback()
 
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
+    //feedback 1-10
     if(sQuestionKind == "FEEDBACK") {
         yInfo() << "FEEDBACK received from Human!" ;
     } else {
@@ -178,14 +212,20 @@ void    abmInteraction::nodeFeedback()
         return ;
     }
 
+
     // semantic is the list of the semantic elements of the sentence except the type ef sentence
     bSemantic = *bAnswer.get(1).asList()->get(1).asList();
 
+    //feedback number 1-10
     string sFeedback10 = bSemantic.check("feedback10", Value("0")).asString();
     int iFeedback10    = atoi(sFeedback10.c_str()) ;
+   
+    //feedback likert 1-5 quality
+    /*string sFeedback10 = bAnswer.get(1).asList()->get(0).asString() ;
+    int iFeedback10    = atoi(sFeedback10.c_str())*2 ;*/
 
     osResponse.str("");
-    osResponse << "So for you, this kinematic structure has a score of " << sFeedback10 << ", right?";
+    osResponse << "So for you, this kinematic structure has a score of " << iFeedback10 << ", right?";
     iCub->say(osResponse.str().c_str());
     yInfo() << "iCub says : " << osResponse.str() ;
     
@@ -222,9 +262,10 @@ void    abmInteraction::nodeFeedback()
 
     if (iFeedback10 > bestRank) {
         bestRank = iFeedback10 ;
+        bestAugmentedTime = *it_augmentedTime ;
 
         osResponse.str("");
-        osResponse << "Yes, I have improved my skills" ;
+        osResponse << "Yes, I have improved my skills : bestAugmentedTime = " << bestAugmentedTime ;
         iCub->say(osResponse.str().c_str());
         yInfo() << "iCub says : " << osResponse.str() ;
 

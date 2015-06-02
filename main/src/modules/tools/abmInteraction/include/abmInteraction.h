@@ -20,7 +20,8 @@ private:
     int             feedbackInstance ;
     vector<string>     vAugmentedTime;
     vector<string>::iterator it_augmentedTime ;
-    string img_provider_port ;
+    string          bestAugmentedTime;
+    string          img_provider_port ;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

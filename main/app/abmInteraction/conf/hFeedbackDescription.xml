@@ -1,0 +1,69 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+	<ID  NAME="giveRank"  VAL="1"/>
+  </DEFINE>
+  
+  <RULE NAME="1"  TOPLEVEL="ACTIVE" EXPORT="1">
+	<O>
+		<RULEREF  NAME="giveRank"/>
+	</O>
+	<L>
+		<P>Extremely Poor</P>
+		<P>Very Poor</P>
+	</L>
+  </RULE>
+  
+    <RULE NAME="2"  TOPLEVEL="ACTIVE" EXPORT="1">
+	<O>
+		<RULEREF  NAME="giveRank"/>
+	</O>
+	<L>
+		<P>Below Average</P>
+		<P>Poor</P>
+	</L>
+  </RULE>
+  
+    <RULE NAME="3"  TOPLEVEL="ACTIVE" EXPORT="1">
+	<O>
+		<RULEREF  NAME="giveRank"/>
+	</O>
+	<L>
+		<P>Average</P>
+		<P>Barely Acceptable</P>
+	</L>
+  </RULE>
+  
+    <RULE NAME="4"  TOPLEVEL="ACTIVE" EXPORT="1">
+	<O>
+		<RULEREF  NAME="giveRank"/>
+	</O>
+	<L>
+		<P>Above Average</P>
+		<P>Good</P>
+	</L>
+  </RULE>
+  
+    <RULE NAME="5"  TOPLEVEL="ACTIVE" EXPORT="1">
+	<O>
+		<RULEREF  NAME="giveRank"/>
+	</O>
+	<L>
+		<P>Excellent</P>
+		<P>Very Good</P>
+	</L>
+  </RULE>
+
+   <RULE NAME="giveRank" DYNAMIC="TRUE">
+
+    <O>
+		<P>I think</P>
+    </O>  
+    <L>
+		<P>That is</P>
+		<P>It is</P>
+    </L>
+  </RULE>
+
+</GRAMMAR>
