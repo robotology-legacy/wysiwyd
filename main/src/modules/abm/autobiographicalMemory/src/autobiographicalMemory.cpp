@@ -798,7 +798,7 @@ bool autobiographicalMemory::updateModule() {
     //yDebug() << "Update loop";
     yarp::sig::Sound *s;
     s = portSoundStreamInput.read(false);
-    if (s != NULL)
+    if (s != NULL && s->getRawDataSize() > 0)
     {
         yInfo() << "I have received a sound!!!!!";
         stringstream fullPath;
@@ -870,19 +870,25 @@ bool autobiographicalMemory::updateModule() {
         // Save images in temp folder and send them to ports
         if (bListImages.toString() != "NULL") {
             for (int i = 0; i < bListImages.size(); i++) {
-                //concatenation of the storing path
-                stringstream fullPath;
-                fullPath << storingPath << "/" << storingTmpSuffix << "/" << bListImages.get(i).asList()->get(0).asString().c_str();
                 try {
+                    string relative_path = bListImages.get(i).asList()->get(0).asString();
                     string portname = bListImages.get(i).asList()->get(1).asString();
                     string time = bListImages.get(i).asList()->get(2).asString();
                     string frame_number = bListImages.get(i).asList()->get(4).asString();
                     string augmented = bListImages.get(i).asList()->get(5).asString();
                     string augmented_time = bListImages.get(i).asList()->get(6).asString();
                     string concatenated_port = portname + augmented + augmented_time;
+
                     // remove spaces
-                    std::string::iterator end_pos = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
-                    concatenated_port.erase(end_pos, concatenated_port.end());
+                    std::string::iterator end_pos1 = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
+                    concatenated_port.erase(end_pos1, concatenated_port.end());
+
+                    std::string::iterator end_pos2 = std::remove(augmented_time.begin(), augmented_time.end(), ' ');
+                    augmented_time.erase(end_pos2, augmented_time.end());
+
+                    //concatenation of the storing path
+                    stringstream fullPath;
+                    fullPath << storingPath << "/" << storingTmpSuffix << "/" << relative_path << augmented_time;
 
                     BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(concatenated_port);
                     Bottle env;

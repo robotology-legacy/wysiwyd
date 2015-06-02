@@ -544,7 +544,7 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
 
     //extract oid of all the images
     bRequest.addString("request");
-    osArg << "SELECT img_oid, relative_path FROM visualdata WHERE";
+    osArg << "SELECT img_oid, relative_path, augmented_time FROM visualdata WHERE";
     osArg << " instance = " << instance;
     if (fromFrame != -1) {
         osArg << " AND frame_number >= " << fromFrame;
@@ -564,6 +564,11 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
         for (int i = 0; i < bRequest.size(); i++) {
             int imageOID = atoi(bRequest.get(i).asList()->get(0).toString().c_str());
             string relative_path = bRequest.get(i).asList()->get(1).toString();
+            string augmented_time = bRequest.get(i).asList()->get(2).toString();
+            //remove spaces
+            std::string::iterator end_pos = std::remove(augmented_time.begin(), augmented_time.end(), ' ');
+            augmented_time.erase(end_pos, augmented_time.end());
+
             if (i == 0) { // only create folder to store images once
                 string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
                 yarp::os::mkdir(folderName.c_str());
@@ -573,11 +578,15 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
                 chmod(folderName.c_str(), 0777);
 #endif
             }
-            yInfo() << "[saveImagesFromABM] Export OID " << imageOID << " to: " << storingPath << "/" << storingTmpSuffix << "/" << relative_path;
-            string imgPath = storingPath + "/" + storingTmpSuffix + "/" + relative_path;
-            database_mutex.lock();
-            ABMDataBase->lo_export(imageOID, imgPath.c_str());
-            database_mutex.unlock();
+            string imgPath = storingPath + "/" + storingTmpSuffix + "/" + relative_path + augmented_time;
+            std::ifstream infile(imgPath.c_str());
+            if(!infile.good()) { // file does not exist yet
+                yInfo() << "[saveImagesFromABM] Export OID " << imageOID << " to: " << storingPath << "/" << storingTmpSuffix << "/" << relative_path << augmented_time;
+                database_mutex.lock();
+                ABMDataBase->lo_export(imageOID, imgPath.c_str());
+                database_mutex.unlock();
+            }
+            infile.close();
         }
 
         return bRequest.size(); // return how many images were saved
