@@ -863,7 +863,7 @@ Bottle interlocutor::imagineOPC(int Id)
 
     mentalOPC->isVerbose = false;
 
-    yInfo() << "\t" << "in imagination"  ;
+//    yInfo() << "\t" << "in imagination"  ;
 
     if (!mentalOPC->isConnected())
     {

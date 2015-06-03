@@ -2417,9 +2417,16 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
     //file_sentences << "agent\tverb\tobject\tajd1\tadj2"  ;
 
+    double step = 0.1;
+    double done = step;
+
     for (int j = 0; j < numberAction; j++)
     {
-        yInfo() << "\t" << j + 1 << "..";
+        if ((j*1.0) / (numberAction*1.0) > done)
+        {
+            yInfo() << "\t" << done * 100 << "%";
+            done += step;
+        }
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
 
         Bottle bAction = Interlocutor.askActionFromIdV2(Id);
@@ -6276,8 +6283,17 @@ Bottle abmReasoning::retroReasoning(int from)
 
     yInfo() << "\t" << "found " << numberAction << " action(s)"  ;
 
+
+    double step = 0.1;
+    double done = step;
+
     for (int j = 0; j < numberAction; j++)
     {
+        if ((j*1.0) / (numberAction*1.0) > done)
+        {
+            yInfo() << "\t" << done * 100 << "%";
+            done += step;
+        }
 
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
         //      yInfo() << "\t" << j+1 << "\t" << Id << "\t" ;
