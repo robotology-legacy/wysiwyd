@@ -76,6 +76,7 @@ Bottle interlocutor::connectOPC()
             bOutput.addString("Connection failed, please check your port");
             return bOutput;
         }
+        mentalOPC->isVerbose = false;
     }
 
     mentalOPC->checkout();
@@ -860,6 +861,8 @@ Bottle interlocutor::imagineOPC(int Id)
     Bottle bOutput,
         bMessenger;
 
+    mentalOPC->isVerbose = false;
+
     yInfo() << "\t" << "in imagination"  ;
 
     if (!mentalOPC->isConnected())
@@ -891,7 +894,6 @@ Bottle interlocutor::imagineOPC(int Id)
             Rt->m_present = 0;
         }
     }
-
     mentalOPC->commit();
     Time::delay(0.1);
     mentalOPC->clear();
@@ -1521,9 +1523,12 @@ Bottle interlocutor::sendRelation(int instance)
     {
         Bottle bTemp;
         ostringstream osRelation;
+
+        osRelation << "INSERT INTO contentopc( type , instance , opcid , subtype) VALUES ('relation', " << instance << " , " << iNbRel + 1 << " , 'relation') ; ";
         osRelation << "INSERT INTO relation( opcid, instance, subject, verb, object, time, manner, place ) VALUES ";
-        osRelation << " ( " << it_R->ID() + iNbRel + 1 << " , " << instance << " , '" << it_R->subject().c_str() << "' , '" << it_R->verb().c_str() << "' , '" << it_R->object().c_str() << "' , '" << it_R->complement_time().c_str() << "' , '" << it_R->complement_manner().c_str() << "' , '" << it_R->complement_place().c_str() << "' ) ";
+        osRelation << " ( " << iNbRel + 1 << " , " << instance << " , '" << it_R->subject().c_str() << "' , '" << it_R->verb().c_str() << "' , '" << it_R->object().c_str() << "' , '" << it_R->complement_time().c_str() << "' , '" << it_R->complement_manner().c_str() << "' , '" << it_R->complement_place().c_str() << "' ) ";
         bTemp = requestFromStream(osRelation.str());
+        iNbRel++;
         bOutput.addList() = bTemp;
     }
 
@@ -1534,13 +1539,13 @@ Bottle interlocutor::sendRelation(int instance)
 
 
 /**
-*   Get the number of relation for a given instance
+*   Get the number that a relation should take at minimum for a given instance
 *
 */
 int interlocutor::getNumberRelation(int instance)
 {
     ostringstream osRequest;
-    osRequest << "SELECT opcid FROM relation WHERE instance = " << instance << " ORDER BY opcid DESC LIMIT 1";
+    osRequest << "SELECT opcid FROM contentopc WHERE instance = " << instance << " ORDER BY opcid DESC LIMIT 1";
 
     Bottle bRequest = requestFromStream(osRequest.str());
 

@@ -78,7 +78,38 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << "abmReasoning ready ! \n \n ";
 
+
+
+    realOPC->checkout();
+
+    RTObject *giraffe = realOPC->addRTObject("giraffe");
+    giraffe->m_present = true;
+    giraffe->m_rt_position[0] = 0.2;
+    giraffe->m_rt_position[1] = 0.2;
+    Action *eat = realOPC->addAction("eat");
+    Object *grass = realOPC->addObject("grass");
+    Relation rel;
+    rel.m_verb = "eat";
+    rel.m_subject = "giraffe";
+    rel.m_object = "grass";
+    bool isAdded = realOPC->addRelation(rel, -1.0);
+
+    realOPC->commit();
+    realOPC->update();
+
+
     bReady = true;
+
+
+
+
+    list<pair<string, string> > arguments;
+
+    arguments.push_back(pair<string, string>("point cross left, put croco right", "sentence"));
+    arguments.push_back(pair<string, string>("argument1", "role1"));
+
+    iCub->getABMClient()->sendActivity("action", "test_relation", "qRM", arguments, true);
+
 
     //    adjKnowledge test;
     //    test.determineTimingInfluence();
@@ -611,6 +642,7 @@ Bottle abmReasoning::connectOPC(Bottle bInput)
             bOutput.addString("Connection failed, please check your port");
             return bOutput;
         }
+        mentalOPC->isVerbose = false;
     }
     mentalOPC->checkout();
     mentalOPC->update();
@@ -657,16 +689,6 @@ Bottle abmReasoning::requestFromStream(string sInput)
     bQuery.addString(sInput.c_str());
     senderPort.write(bQuery, bReplyRequest);
     return bReplyRequest;
-}
-
-/* TODO */
-Bottle abmReasoning::save(Bottle bInput)
-{
-    //TODO
-    Bottle bOutput;
-    bOutput = bInput;
-    //  output.addString("file saved");
-    return bOutput;
 }
 
 

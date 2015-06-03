@@ -94,7 +94,6 @@ public:
     //method called via handlerPort
     yarp::os::Bottle request(yarp::os::Bottle request);
     yarp::os::Bottle requestFromStream(std::string sInput);
-    yarp::os::Bottle save(yarp::os::Bottle bInput);
     yarp::os::Bottle sqlQueryTest();
 
 
