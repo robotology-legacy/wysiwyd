@@ -115,13 +115,16 @@ b_provide = b_response.get(2).asList();
 disp(b_provide.toString);
 
 for i=0:b_provide.size()-1
-    if strcmp(b_provide.get(i).asList().get(0).asString(), ['/autobiographicalMemory/icub/camcalib/',camera_selection,'/out'])
+    str_buf = b_provide.get(i).asList().get(0).asString();
+    char_buf = char(str_buf);
+    if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',camera_selection,'/out'])
         num_images = b_provide.get(i).asList().get(1).asInt();
+        final_portname = char_buf;
     end
 end
 disp(num2str(num_images));
 
-Network.connect(['/autobiographicalMemory/icub/camcalib/',camera_selection,'/out'], '/matlab/kinematicStructure/imagein');
+Network.connect(final_portname, '/matlab/kinematicStructure/imagein');
 
 % command = ['storeImageOIDs ', num2str(instance_num)];
 % b_write.fromString(command);

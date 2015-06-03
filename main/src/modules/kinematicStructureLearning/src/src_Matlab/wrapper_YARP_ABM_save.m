@@ -75,15 +75,15 @@ disp('================================');
 disp('Start sending images!');
 tic
 
-bDeletePrevious = yarp.Bottle;
-bDeletePrevious.clear();
-bResponseDelete = yarp.Bottle;
-% bResponseDelete.clear();
-delete_command = ['DELETE FROM visualdata WHERE instance = ', num2str(instance_num), ' AND augmented = ''', augmentedLabel, ''''];
-bDeletePrevious.addString('request');
-bDeletePrevious.addString(delete_command);
-port2ABM_write.write(bDeletePrevious);
-% disp(bResponseDelete.toString());
+% bDeletePrevious = yarp.Bottle;
+% bDeletePrevious.clear();
+% bResponseDelete = yarp.Bottle;
+% % bResponseDelete.clear();
+% delete_command = ['DELETE FROM visualdata WHERE instance = ', num2str(instance_num), ' AND augmented = ''', augmentedLabel, ''''];
+% bDeletePrevious.addString('request');
+% bDeletePrevious.addString(delete_command);
+% port2ABM_write.write(bDeletePrevious);
+% % disp(bResponseDelete.toString());
 
 connection_check = 0;
 while(~connection_check)
