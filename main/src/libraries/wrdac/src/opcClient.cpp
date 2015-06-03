@@ -49,16 +49,16 @@ OPCClient::OPCClient(const string &moduleName)
     isVerbose = false;
 }    
 
-bool OPCClient::write(Bottle &cmd, Bottle &reply, bool isVerbose)
+bool OPCClient::write(Bottle &cmd, Bottle &reply, bool Verbose)
 {
     if (opc.getOutputCount() > 0)
     {
-        if (isVerbose)
+        if (Verbose)
             cout<<"Sending to OPC: "<<cmd.toString().c_str()<<endl;
 
         opc.write(cmd,reply);
 
-        if (isVerbose)
+        if (Verbose)
             cout<<"Receiving from OPC: "<<reply.toString().c_str()<<endl;
 
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
@@ -68,7 +68,7 @@ bool OPCClient::write(Bottle &cmd, Bottle &reply, bool isVerbose)
     }
     else
     {
-        if (isVerbose)
+        if (Verbose)
             cout<<"Not connected to OPC..."<<endl;
         return false;
     }

@@ -35,7 +35,7 @@ class OPCClient
 private:
     yarp::os::Port opc;
     yarp::os::BufferedPort<yarp::os::Bottle> opcBroadcast;
-    bool                    write(yarp::os::Bottle &cmd, yarp::os::Bottle &reply, bool isVerbose=true);
+    bool                    write(yarp::os::Bottle &cmd, yarp::os::Bottle &reply, bool Verbose=false);
 
     std::map<std::string, Entity*>    entitiesByName;
     std::map<int, Entity*>       entitiesByID;
