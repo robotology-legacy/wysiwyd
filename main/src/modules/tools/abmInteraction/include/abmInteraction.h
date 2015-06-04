@@ -45,7 +45,6 @@ public:
     bool nodeYesNo();
     
     bool createAugmentedTimeVector();
-    bool insertFeedback(int feedback, string agentName = "Bob");
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);

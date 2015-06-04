@@ -69,9 +69,11 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
         cout << "WARNING ABM NOT CONNECTED" << endl;
     }
 
-    rememberedInstance = 1333 ;
+    rememberedInstance = rf.check("rememberedInstance", Value(1333)).asInt();
     feedbackInstance = -1 ;
-    img_provider_port = "/icub/camcalib/left/out/kinematic_structure";
+    //img_provider_port = "/icub/camcalib/left/out/kinematic_structure";
+    agentName = rf.check("agentName", Value("Bob")).asString().c_str();
+    img_provider_port = rf.check("img_provider_port", Value("/icub/camcalib/left/out/kinematic_structure")).asString().c_str();
     bestAugmentedTime = "" ;
     it_augmentedTime = vAugmentedTime.begin() ;
 
@@ -79,8 +81,6 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
         yError() << " Something is wrong with the augmented memories! quit";
         return false;
     }
-
-    nodeFeedback();
 
     return true;
 }
@@ -94,21 +94,76 @@ bool abmInteraction::close() {
 }
 
 
-bool abmInteraction::respond(const Bottle& command, Bottle& reply) {
+bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "help \n" +
         "quit \n";
 
-    reply.clear();
+    Bottle bError ;
+    bReply.clear();
 
-    if (command.get(0).asString() == "quit") {
-        reply.addString("quitting");
+    if (bCommand.get(0) == "set")
+        {
+            bool changeSomething = false ;
+
+            if (bCommand.size() > 1)
+            {
+                Value vRememberedInstance = bCommand.find("rememberedInstance");
+                if (!vRememberedInstance.isNull() && vRememberedInstance.isInt()) {
+                    rememberedInstance = vRememberedInstance.asInt() > 0;
+                    changeSomething = true ;
+                }
+
+                Value vImgProviderPort = bCommand.find("img_provider_port");
+                if (!vImgProviderPort.isNull() && vImgProviderPort.isString()) {
+                    img_provider_port = vImgProviderPort.asString();
+                    changeSomething = true ;
+                }
+
+                Value vAgentName = bCommand.find("agentName");
+                if (!vAgentName.isNull() && vAgentName.isString()) {
+                    agentName = vAgentName.asString();
+                    changeSomething = true ;
+                }
+
+                yDebug() << "rememberedInstace: " << rememberedInstance;
+                yDebug() << "img_provider_port: " << img_provider_port;
+                yDebug() << "agentName: " << agentName;
+
+                bReply.addString("ack");
+            }
+            else
+            {
+                string sError = "[set]: Wrong Bottle  => set (rememberedInstance int) (img_provider_port string) (agentName string)";
+                yError() << sError ;
+                bError.addString(sError);
+                bReply = bError;
+            }
+
+            if(!changeSomething) {
+                string sError = "Nothing has been changed, check the Bottle" ; 
+                                yError() << sError ;
+                                bError.addString(sError);
+                                bReply = bError;
+            }
+        }
+
+    if (bCommand.get(0).asString() == "runFeedback") {
+        bReply.addString("runFeedback");
+
+        nodeFeedback();
+
         return false;
     }
-    else if (command.get(0).asString() == "help") {
+
+    if (bCommand.get(0).asString() == "quit") {
+        bReply.addString("quitting");
+        return false;
+    }
+    else if (bCommand.get(0).asString() == "help") {
         cout << helpMessage;
-        reply.addString("ok");
+        bReply.addString("ok");
     }
 
     return true;
@@ -134,6 +189,8 @@ void    abmInteraction::nodeFeedback()
     ostringstream osResponse;
 
     if(tryAgain == false){
+
+        yInfo() << " Current time = " << *it_augmentedTime ;
         iCub->say("Note this kinematic structure between 1 and 10 please");
         yInfo() << " iCub says : Note this kinematic structure between 1 and 10 please" ;
 
@@ -167,7 +224,7 @@ void    abmInteraction::nodeFeedback()
         bRpc.addList() = bSubRealtime ;
         bRpc.addList() = bSubAugmentedTimes ;
 
-        //iCub->getABMClient()->rpcCommand(bRpc);   
+        iCub->getABMClient()->rpcCommand(bRpc);   
 
     } else {
         iCub->say("Can you repeat your feedback please?");
@@ -353,7 +410,7 @@ bool abmInteraction::createAugmentedTimeVector()
     Bottle bResult ;
     ostringstream osRequest ;
     //only augmented_time is needed but better clarity for the print
-    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port FROM visualdata WHERE instance = " << rememberedInstance << "AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' ;" ;
+    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port FROM visualdata WHERE instance = " << rememberedInstance << " AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' ;" ;
     bResult = iCub->getABMClient()->requestFromString(osRequest.str());
     yInfo() << bResult.toString();
 
@@ -381,7 +438,7 @@ bool abmInteraction::createAugmentedTimeVector()
 * create the vAugmentedTime for the current used Instance : sql to obtain the foreign key for the feedback table
 * 
 */
-bool abmInteraction::insertFeedback(int feedback, string agentName)
+bool abmInteraction::insertFeedback(int feedback)
 {
     Bottle bResult ;
     ostringstream osRequest ;

@@ -4,11 +4,15 @@
     <L>
       <P>yes, it is</P>
       <P>That is correct</P>
+	  <P>Yes, please</P>
     </L>
   </RULE>
 
   <RULE NAME="no" TOPLEVEL="ACTIVE" EXPORT="1">
+  <L>
     <P>no, it is not</P>
+	<P>no, thank you</P>
+  </L>
   </RULE>
 
 </GRAMMAR>
