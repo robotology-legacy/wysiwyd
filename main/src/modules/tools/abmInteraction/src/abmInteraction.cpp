@@ -111,7 +111,7 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
             {
                 Value vRememberedInstance = bCommand.find("rememberedInstance");
                 if (!vRememberedInstance.isNull() && vRememberedInstance.isInt()) {
-                    rememberedInstance = vRememberedInstance.asInt() > 0;
+                    rememberedInstance = vRememberedInstance.asInt() ;
                     changeSomething = true ;
                 }
 
@@ -127,7 +127,7 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
                     changeSomething = true ;
                 }
 
-                yDebug() << "rememberedInstace: " << rememberedInstance;
+                yDebug() << "rememberedInstance: " << rememberedInstance;
                 yDebug() << "img_provider_port: " << img_provider_port;
                 yDebug() << "agentName: " << agentName;
 
@@ -151,6 +151,11 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
 
     if (bCommand.get(0).asString() == "runFeedback") {
         bReply.addString("runFeedback");
+
+        if (!createAugmentedTimeVector()){
+            yError() << " Something is wrong with the augmented memories! quit";
+            return false;
+        }
 
         nodeFeedback();
 
@@ -213,7 +218,7 @@ void    abmInteraction::nodeFeedback()
         //If we have a previously best rank
         if(bestRank != 0) {
         osResponse.str("");
-        osResponse << "The current best structure is shown at left. The rank is " << bestRank << " for time = " << bestAugmentedTime ;
+        osResponse << "The current best structure is shown at left. The rank is " << bestRank ; //<< " for time = " << bestAugmentedTime ;
         iCub->say(osResponse.str().c_str()) ;
         yInfo() << "iCub says : " << osResponse.str() ;
 
@@ -365,6 +370,10 @@ void    abmInteraction::nodeFeedback()
         iCub->say(osResponse.str().c_str());
         yInfo() << "iCub says : " << osResponse.str() ;
 
+        //set back default value
+        bestRank = 0 ;
+
+
         return;
     }
 }
@@ -412,7 +421,8 @@ bool abmInteraction::createAugmentedTimeVector()
     //only augmented_time is needed but better clarity for the print
     osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port FROM visualdata WHERE instance = " << rememberedInstance << " AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' ;" ;
     bResult = iCub->getABMClient()->requestFromString(osRequest.str());
-    yInfo() << bResult.toString();
+    yInfo() << "[createAugmentedTimeVector] SQL request bReply : " << bResult.toString();
+    vAugmentedTime.clear();
 
     if (bResult.toString() != "NULL") {
         for(int i = 0; i < bResult.size(); i++){
@@ -426,6 +436,7 @@ bool abmInteraction::createAugmentedTimeVector()
 
     ostringstream osAugmentedTime ;
     const char* const delim = ", ";
+
     copy(vAugmentedTime.begin(), vAugmentedTime.end(), std::ostream_iterator<std::string>(osAugmentedTime, delim));
     yInfo() << " vAugmentedTime = " << osAugmentedTime.str();
 

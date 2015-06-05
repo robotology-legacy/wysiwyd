@@ -22,6 +22,7 @@ private:
     vector<string>::iterator it_augmentedTime ;
     string          bestAugmentedTime;
     string          img_provider_port ;
+    string          agentName ;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -45,6 +46,7 @@ public:
     bool nodeYesNo();
     
     bool createAugmentedTimeVector();
+    bool insertFeedback(int feedback);
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
