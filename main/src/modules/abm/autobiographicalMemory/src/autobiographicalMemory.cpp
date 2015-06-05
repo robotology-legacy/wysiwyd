@@ -118,10 +118,10 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     }
 
     //connect to augmented
-    Network::connect(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc");
-    //Network::connect(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc");
-    if(!Network::isConnected(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc")) {
-    //if(!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
+    //Network::connect(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc");
+    //if(!Network::isConnected(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc")) {
+    Network::connect(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc");
+    if(!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
         yWarning("Could not connect to augmention module!");
     }
 
@@ -781,8 +781,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
 void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool forSingleInstance, string fullSentence) {
 #ifdef BOOST_AVAILABLE
-    boost::thread imageThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
-    boost::thread dataStreamThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
+    boost::thread dataStreamThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
+    boost::thread imageThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
     imageThread.join();
     dataStreamThread.join();
 #else
@@ -903,7 +903,7 @@ bool autobiographicalMemory::updateModule() {
                         //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
 
-                    yInfo() << "Send image: " << fullPath.str();
+                    yInfo() << "Send image: " << fullPath.str() << " to " << port->getName();
                     writeImageToPort(fullPath.str(), port);
                 } catch (const std::out_of_range& oor) {
                     // This should never happen, as openImgStreamPorts opens ALL ports related to an instance
@@ -1348,8 +1348,6 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
 Bottle autobiographicalMemory::populateOPC()
 {
     // 0. check if connected to the OPC.
-
-
     OPCClient *opcWorld;
     //Connection to the OPC
     opcWorld = opcWorldReal;

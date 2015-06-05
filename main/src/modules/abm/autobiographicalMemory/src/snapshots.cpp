@@ -228,14 +228,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         abm2reasoning.write(b2reasoning);
     }
 
-    string isConnectedToImgProviders = connectToImgStreamProviders().toString().c_str();
-    string isConnectedToContDataProviders = connectDataStreamProviders().toString().c_str();
-
-    if (isConnectedToImgProviders != "ack" && isConnectedToContDataProviders != "ack"){
-        yError() << "ABM failed to connect to imgProviders / contDataProviders";
-        yError() << "Reason image providers: " << isConnectedToImgProviders;
-        yError() << "Reason cont data providers: " << isConnectedToContDataProviders;
-    }
     if (isStreamActivity == true) { //just launch stream images stores when relevant activity
         if (bBegin) {
             streamStatus = "begin"; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
@@ -250,8 +242,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         storeImagesAndData(synchroTime, true, fullSentence);
 
         //if activity = say, we have to take one image/data + the sound that is coming from another port and catch in the update method of ABM (store in /tmp/sound/default.wav
-        if (activityType == "recog"){
-
+        if (activityType == "recog") {
             string sndName;
 
             //take the full sentence, replace space by _ to have the sound name
@@ -299,13 +290,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             osInsertTemp.str("");
             recogFromGrammarSemantic(bRecogSemantic, "", 1, currentInstance);
             requestFromString(osInsertTemp.str());
-
-        }
-
-        //Network::disconnect(imgProviderPort, imagePortIn.getName().c_str()) ;
-        string reply = disconnectFromImgStreamProviders().toString().c_str();
-        if (reply != "ack"){
-            yWarning() << "ABM failed to disconnect to one imgProvider";
         }
     }
 

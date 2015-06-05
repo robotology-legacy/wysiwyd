@@ -157,18 +157,16 @@ public:
     bool storeDataStreamAllProviders(const std::string &synchroTime);
 
     // add / remove stream providers
-    yarp::os::Bottle addImgStreamProvider(const std::string &portImgStreamProvider);
+    yarp::os::Bottle addImgStreamProvider(const std::string &portInput);
     yarp::os::Bottle removeImgStreamProvider(const std::string &portImgStreamProvider);
-    yarp::os::Bottle addDataStreamProvider(const std::string &portDataStreamProvider);
+    yarp::os::Bottle addDataStreamProvider(const std::string &portInput);
     yarp::os::Bottle removeDataStreamProvider(const std::string &portDataStreamProvider);
     yarp::os::Bottle listImgStreamProviders();
     yarp::os::Bottle listDataStreamProviders();
 
     int openImgStreamPorts(int instance, bool includeAugmented = true, const std::vector<std::string> &desired_times = std::vector<std::string>());
-    yarp::os::Bottle connectToImgStreamProviders();
     yarp::os::Bottle disconnectFromImgStreamProviders();
     int openDataStreamPorts(int instance, std::string robotName = "icubSim");
-    yarp::os::Bottle connectDataStreamProviders();
     yarp::os::Bottle disconnectDataStreamProviders();
 
     unsigned int getImagesProviderCount(int instance); // will be obsolete

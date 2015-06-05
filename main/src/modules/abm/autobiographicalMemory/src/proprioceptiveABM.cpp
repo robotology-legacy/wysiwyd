@@ -33,19 +33,33 @@ Bottle autobiographicalMemory::listDataStreamProviders()
     return bReply;
 }
 
-Bottle autobiographicalMemory::addDataStreamProvider(const string &portDataStreamProvider)
+Bottle autobiographicalMemory::addDataStreamProvider(const string &portInput)
 {
     Bottle bReply;
 
-    if (mapDataStreamInput.find(portDataStreamProvider) == mapDataStreamInput.end()) //key not found
+    if (mapDataStreamInput.find(portInput) == mapDataStreamInput.end()) //key not found
     {
-        mapDataStreamInput[portDataStreamProvider] = new yarp::os::BufferedPort < yarp::os::Bottle > ;
-
+        mapDataStreamInput[portInput] = new yarp::os::BufferedPort < yarp::os::Bottle >;
         bReply.addString("[ack]");
-    }
-    else { //key found
-        string error = "[addDataStreamProvider] " + portDataStreamProvider + " is already present!";
+
+        string portDataStreamReceiver = "/" + getName() + "/proprioception" + portInput + "/in";
+        mapDataStreamInput[portInput]->open(portDataStreamReceiver);
+        if (!Network::isConnected(portInput, portDataStreamReceiver)) {
+            if (!Network::connect(portInput, portDataStreamReceiver)) {
+                yWarning() << "Error: Connection could not be setup from " << portInput << " to " << portDataStreamReceiver;
+                bReply.addString(portInput);
+            } else {
+                bReply.addString("[ack]");
+            }
+        }
+        else {
+            bReply.addString("nack");
+            yError() << "Error: Connection already present from " << portInput << " to " << portDataStreamReceiver;
+        }
+    } else { //key found
+        string error = "[addDataStreamProvider] " + portInput + " is already present!";
         yWarning() << error;
+        bReply.addString("nack");
         bReply.addString(error);
     }
 
@@ -69,43 +83,6 @@ Bottle autobiographicalMemory::removeDataStreamProvider(const string &portDataSt
     }
 
     return bReply;
-}
-
-Bottle autobiographicalMemory::connectDataStreamProviders()
-{
-    Bottle bOutput;
-
-    if (mapDataStreamInput.size() == 0){
-        bOutput.addString("[connectDataStreamProviders] ERROR: the map is NULL");
-        return bOutput;
-    }
-
-    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
-    {
-        string portDataStreamReceiver = "/" + getName() + "/proprioception" + it->first + "/in";
-        it->second->open(portDataStreamReceiver);
-        //it->first: port name of proprioceptive data Provider
-        //it->second: portname of mapDataStreamReceiver which correspond to the label of dataStreamProvider
-        //yDebug() << "  [connectDataStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName();
-        if (!Network::isConnected(it->first, it->second->getName().c_str())) {
-            //yDebug() << "Port is NOT connected : we will connect";
-            if (!Network::connect(it->first, it->second->getName().c_str()), "tcp") {
-                yWarning() << "Error: Connection could not be setup";
-                bOutput.addString(it->first);
-            }
-            //yDebug() << "[connectDataStreamProviders] Connection from : " << it->first;
-            //yDebug() << "[connectDataStreamProviders] Connection to   : " << it->second->getName();
-        }
-        else {
-            //yWarning() << "[connectDataStreamProviders] Error: Connection already present!";
-        }
-    }
-
-    if (bOutput.size() == 0){
-        bOutput.addString("ack");
-    }
-
-    return bOutput;
 }
 
 Bottle autobiographicalMemory::disconnectDataStreamProviders()

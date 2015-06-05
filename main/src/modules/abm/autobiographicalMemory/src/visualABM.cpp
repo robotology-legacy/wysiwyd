@@ -39,21 +39,35 @@ Bottle autobiographicalMemory::listImgStreamProviders()
     return bReply;
 }
 
-Bottle autobiographicalMemory::addImgStreamProvider(const string &portImgStreamProvider)
+Bottle autobiographicalMemory::addImgStreamProvider(const string &portInput)
 {
     //prepare the ResultSet of the query and the reply
     Bottle bReply;
 
-    if (mapImgStreamInput.find(portImgStreamProvider) == mapImgStreamInput.end()) //key not found
+    if (mapImgStreamInput.find(portInput) == mapImgStreamInput.end()) //key not found
     {
         //add the imgProvider and imgReceiver to the map
-        mapImgStreamInput[portImgStreamProvider] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+        mapImgStreamInput[portInput] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
 
-        bReply.addString("[ack]");
-    }
-    else { //key found
-        bReply.addString("ERROR : addImgStreamProvider : " + portImgStreamProvider + " is already present!");
-        yError() << bReply.toString();
+        string portImgStreamReceiver = "/" + getName() + "/images" + portInput + "/in";
+        mapImgStreamInput[portInput]->open(portImgStreamReceiver);
+        if (!Network::isConnected(portInput, portImgStreamReceiver)) {
+            if (!Network::connect(portInput, portImgStreamReceiver)) {
+                yWarning() << "Error: Connection could not be setup from " << portInput << " to " << portImgStreamReceiver;
+                bReply.addString(portInput);
+            } else {
+                bReply.addString("[ack]");
+            }
+        }
+        else {
+            bReply.addString("nack");
+            yError() << "Error: Connection already present from " << portInput << " to " << portImgStreamReceiver;
+        }
+    } else { //key found
+        string error = "[addDataStreamProvider] " + portInput + " is already present!";
+        yWarning() << error;
+        bReply.addString("nack");
+        bReply.addString(error);
     }
 
     //send the reply
@@ -180,43 +194,6 @@ Bottle autobiographicalMemory::provideImagesByFrame(int instance, int frame_numb
 
     bOutput.addString("ack");
     bOutput.addList() = bSubOutput;
-
-    return bOutput;
-}
-
-Bottle autobiographicalMemory::connectToImgStreamProviders()
-{
-    Bottle bOutput;
-
-    if (mapImgStreamInput.size() == 0){
-        bOutput.addString("ERROR [connectToImgStreamProviders] the map is NULL");
-        return bOutput;
-    }
-
-    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it)
-    {
-        string portImgStreamReceiver = "/" + getName() + "/images" + it->first + "/in";
-        it->second->open(portImgStreamReceiver);
-        //it->first: port name of img Provider
-        //it->second->getName(): portname of imgReceiver which correspond to the label of imgProvider
-        //yDebug() << "[connectToImgStreamProviders] : trying to connect " << it->first << " with " <<  it->second->getName();
-        if (!Network::isConnected(it->first, it->second->getName().c_str())) {
-            //yDebug() << "Port is NOT connected : we will connect";
-            if (!Network::connect(it->first, it->second->getName().c_str()), "tcp") {
-                yError() << "Error: Connection could not be setup";
-                bOutput.addString(it->first);
-            }
-            //yDebug() << "Connection from : " << it->first;
-            //yDebug() << "Connection to   : " << it->second->getName()dl;
-        }
-        else {
-            //yError() << "Error: Connection already present!";
-        }
-    }
-
-    if (bOutput.size() == 0){
-        bOutput.addString("ack");
-    }
 
     return bOutput;
 }
@@ -395,7 +372,7 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
             yDebug() << "Connect " << concatenated_port << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
             Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
         } else if(includeAugmented) {
-            if(!desired_times.empty()) {
+            if(!desired_times.empty() && augmented!="") {
                 size_t pos = std::find(desired_times.begin(), desired_times.end(), augmented_time) - desired_times.begin();
                 stringstream ss; ss << pos; string pos_str = ss.str();
                 if(pos < desired_times.size()) {
@@ -663,7 +640,7 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
     Bottle bRequest;
     bRequest.addString("request");
     ostringstream osRequest;
-    osRequest << "SELECT instance, COUNT(DISTINCT augmented) as c from visualdata WHERE instance IN (";
+    osRequest << "SELECT instance, COUNT(DISTINCT augmented_time) as c from visualdata WHERE instance IN (";
     osRequest << "    SELECT instance FROM main WHERE activityname = '" << activityname << "' ";
     osRequest << "    AND begin='true'";
     if(instance!=-1) {
@@ -671,7 +648,7 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
        osRequest << " AND instance='" << osInstance.str() << "'";
     }
     osRequest << ") GROUP BY instance ";
-    osRequest << "HAVING count(DISTINCT augmented) < " << number_of_augmentions;
+    osRequest << "HAVING count(DISTINCT augmented_time) < " << number_of_augmentions;
     osRequest << " ORDER BY instance;";
     bRequest.addString(osRequest.str());
 
@@ -685,16 +662,16 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
 
     for(int i=0; i<bResponse.size(); i++) {
         int instance = atoi(bResponse.get(i).asList()->get(0).toString().c_str());
-        int existing_number_of_augmentions = bResponse.get(i).asList()->get(1).asInt();
+        int existing_number_of_augmentions = atoi(bResponse.get(i).asList()->get(1).toString().c_str());
         Bottle bReqAugmentingModule, bRespAugmentingModule;
-        bReqAugmentingModule.addString("augmentImages");
-        bReqAugmentingModule.addInt(instance);
-
-        //bReqAugmentingModule.addString("startStructureLearning");
+        //bReqAugmentingModule.addString("augmentImages");
         //bReqAugmentingModule.addInt(instance);
-        //bReqAugmentingModule.addString("left");
-        //bReqAugmentingModule.addInt(0);
-        //bReqAugmentingModule.addInt(50);
+
+        bReqAugmentingModule.addString("startStructureLearning");
+        bReqAugmentingModule.addInt(instance);
+        bReqAugmentingModule.addString("left");
+        bReqAugmentingModule.addInt(0);
+        bReqAugmentingModule.addInt(50);
 
         for(int j = existing_number_of_augmentions; j<number_of_augmentions; j++) {
             yInfo() << "Send request to Augmenting module: " << bReqAugmentingModule.toString();
