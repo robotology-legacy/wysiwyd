@@ -124,21 +124,18 @@ public:
 
     // maps to receive / send images
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamPortOut;
-    std::map <std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamPortOut;
+    std::map <std::string, yarp::os::BufferedPort<yarp::os::Bottle >*> mapDataStreamPortOut;
 
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamInput;
-    std::map< std::string, yarp::os::BufferedPort< yarp::os::Bottle >*> mapDataStreamInput;
+    std::map <std::string, yarp::os::BufferedPort<yarp::os::Bottle >*> mapDataStreamInput;
 
     //sound
     yarp::os::BufferedPort<yarp::sig::Sound> portSoundStreamInput;
 
-    yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented = false, std::string provider_port = "");
+    //yarp::os::Bottle provideImagesByFrame(int instance, int frame_number, bool include_augmented = false, std::string provider_port = "");
 
     bool saveImageFromPort(const std::string &fullPath, const std::string &portFrom, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
     bool writeImageToPort(const std::string &fullPath, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*);
-    void processOneImagePort(const std::string &imagePath, const std::string &relativeImagePath, const std::string &portFrom,
-        yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >* port,
-        const std::string &synchroTime);
 
     int saveImagesFromABM(int instance, int fromFrame = -1, int toFrame = -1, std::string provider_port = "");
 
@@ -157,23 +154,22 @@ public:
     bool storeDataStreamAllProviders(const std::string &synchroTime);
 
     // add / remove stream providers
-    yarp::os::Bottle addImgStreamProvider(const std::string &portInput);
-    yarp::os::Bottle removeImgStreamProvider(const std::string &portImgStreamProvider);
-    yarp::os::Bottle addDataStreamProvider(const std::string &portInput);
-    yarp::os::Bottle removeDataStreamProvider(const std::string &portDataStreamProvider);
-    yarp::os::Bottle listImgStreamProviders();
-    yarp::os::Bottle listDataStreamProviders();
+    template<typename T>
+    yarp::os::Bottle addStreamProvider(std::map <std::string, yarp::os::BufferedPort<T>* > &map, const std::string &portRemote);
+    template<typename T>
+    yarp::os::Bottle removeStreamProvider(std::map <std::string, yarp::os::BufferedPort<T>* > &map, const std::string &portStreamProvider);
+    template<typename T>
+    yarp::os::Bottle listProviders(const std::map <std::string, yarp::os::BufferedPort<T>* > &map);
+    template<typename T>
+    yarp::os::Bottle disconnectStreamProviders(std::map <std::string, yarp::os::BufferedPort<T>* > &map);
 
     int openImgStreamPorts(int instance, bool includeAugmented = true, const std::vector<std::string> &desired_times = std::vector<std::string>());
-    yarp::os::Bottle disconnectFromImgStreamProviders();
     int openDataStreamPorts(int instance, std::string robotName = "icubSim");
-    yarp::os::Bottle disconnectDataStreamProviders();
 
-    unsigned int getImagesProviderCount(int instance); // will be obsolete
-    unsigned int getStreamDataProviderCount(int instance);
+    //unsigned int getImagesProviderCount(int instance); // obsolete
+    //unsigned int getStreamDataProviderCount(int instance); // obsolete
 
-    long getTimeLastImgStream(int instance); // will be obsolete
-    long getTimeLastDataStream(int instance); // will be obsolete
+    long getTimeLastStream(int instance, std::string table); // will be obsolete
     yarp::os::Bottle getStreamImgWithinEpoch(long updateTimeDifference);
     yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference, std::string port);
 
@@ -184,7 +180,7 @@ public:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > portAugmentedImagesIn;
     bool requestAugmentedImages(std::string activityname, int number_of_augmentions, int instance = -1);
     void saveAugmentedImages();
-    yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages = true);
+    //yarp::os::Bottle getImagesInfo(int instance, bool includeAugmentedImages = true);
 
     //////////////////////////////////////////////////////////////////////////
     // visual + data streaming end

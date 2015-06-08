@@ -29,6 +29,7 @@
 #endif
 
 #include "autobiographicalMemory.h"
+#include "templates.h"
 #include <limits>
 
 using namespace yarp::sig;
@@ -108,12 +109,12 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     if (defaultImgStreamProviders) {
         for (int i = 0; i < defaultImgStreamProviders->size(); i++) {
-            addImgStreamProvider(defaultImgStreamProviders->get(i).toString());
+            addStreamProvider(mapImgStreamInput, defaultImgStreamProviders->get(i).toString());
         }
     }
     if (defaultDataStreamProviders) {
         for (int i = 0; i < defaultDataStreamProviders->size(); i++) {
-            addDataStreamProvider(defaultDataStreamProviders->get(i).toString());
+            addStreamProvider(mapDataStreamInput, defaultDataStreamProviders->get(i).toString());
         }
     }
 
@@ -609,47 +610,12 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-        //DEPRECATED!!! Use triggerStreaming instead, see ABMAugmentionExample!
-        //ask for a single image : a single image for EACH image provider so you may end up by several of them
-        // bReply: ack ( (labelProvider1 (image1.1)) (labelProvider2 (image1.2)) (labelProvider3 (image1.3)) )
-        else if (bCommand.get(0) == "provideImagesByFrame")
-        {
-            if (bCommand.size() > 2 && bCommand.get(1).isInt() && bCommand.get(2).isInt())
-            {
-                int instance = (atoi((bCommand.get(1)).toString().c_str()));
-                int frame_number = (atoi((bCommand.get(2)).toString().c_str()));
-                if (instance > 0 && frame_number >= 0) {
-                    if (bCommand.get(3).isInt()) {
-                        bool include_augmented = (atoi((bCommand.get(3)).toString().c_str()));
-                        if (bCommand.get(4).isString()) {
-                            string provider_port = bCommand.get(4).toString();
-                            bReply = provideImagesByFrame(instance, frame_number, include_augmented, provider_port);
-                        }
-                        else {
-                            bReply = provideImagesByFrame(instance, frame_number, include_augmented);
-                        }
-                    }
-                    else {
-                        bReply = provideImagesByFrame(instance, frame_number);
-                    }
-                }
-                else {
-                    bError.addString("[provideImagesByFrame]: not valid int number for the instance or frame_number");
-                    bReply = bError;
-                }
-            }
-            else
-            {
-                bError.addString("[provideImagesByFrame]: wrong number of element -> provideImagesByFrame instanceNb frameNb provider_port (optional)");
-                bReply = bError;
-            }
-        }
         // add an image provider for the following stream recording : addImgStreamProvider (label /yarp/port/img/provider)
         else if (bCommand.get(0) == "addImgStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = addImgStreamProvider(bCommand.get(1).toString().c_str());
+                bReply = addStreamProvider(mapImgStreamInput, bCommand.get(1).toString().c_str());
             }
             else
             {
@@ -663,7 +629,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = removeImgStreamProvider(bCommand.get(1).toString().c_str());
+                bReply = removeStreamProvider(mapImgStreamInput, bCommand.get(1).toString().c_str());
             }
             else
             {
@@ -673,13 +639,13 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "listImgStreamProviders")
         {
-            bReply = listImgStreamProviders();
+            bReply = listProviders(mapImgStreamInput);
         }
         else if (bCommand.get(0) == "addDataStreamProvider")
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = addDataStreamProvider(bCommand.get(1).toString().c_str());
+                bReply = addStreamProvider(mapDataStreamInput, bCommand.get(1).toString().c_str());
             }
             else {
                 bError.addString("[addDataStreamProvider]: wrong number of elements -> addDataStreamProvider /yarp/port/contdata/provider");
@@ -690,7 +656,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             if (bCommand.size() == 2 && bCommand.get(1).isString())
             {
-                bReply = removeDataStreamProvider(bCommand.get(1).toString().c_str());
+                bReply = removeStreamProvider(mapDataStreamInput, bCommand.get(1).toString().c_str());
             }
             else
             {
@@ -700,7 +666,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "listDataStreamProviders")
         {
-            bReply = listDataStreamProviders();
+            bReply = listProviders(mapDataStreamInput);
         }
         else if (bCommand.get(0) == "storeImageOIDs")
         {
@@ -743,23 +709,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply.addString("ack");
             } else {
                 bReply.addString("nack");
-            }
-        }
-        // DEPRECATED! Use triggerStreaming instead, see ABMAugmentionExample!
-        else if (bCommand.get(0) == "getImagesInfo")
-        {
-            if (bCommand.size() >= 2 && bCommand.get(1).isInt()) {
-                int instance = (atoi((bCommand.get(1)).toString().c_str()));
-                if (bCommand.size() == 3) {
-                    bool includeAugmentedImages = (atoi((bCommand.get(2)).toString().c_str()));
-                    bReply = getImagesInfo(instance, includeAugmentedImages);
-                }
-                else {
-                    bReply = getImagesInfo(instance);
-                }
-            }
-            else {
-                bReply.addString("[getImagesInfo]: wrong function signature: getImagesInfo instance [includeAugmentedImages->1/0]");
             }
         }
         else
@@ -845,8 +794,8 @@ bool autobiographicalMemory::updateModule() {
             yInfo() << "============================= STREAM SEND =================================";
             timeLastImageSent = -1;
 
-            long timeVeryLastImage = getTimeLastImgStream(imgInstance);
-            long timeVeryLastContData = getTimeLastDataStream(imgInstance);
+            long timeVeryLastImage = getTimeLastStream(imgInstance, "visualdata");
+            long timeVeryLastContData = getTimeLastStream(imgInstance, "proprioceptivedata");
 
             if (timeVeryLastImage >= timeVeryLastContData) {
                 timeVeryLastStream = timeVeryLastImage;
@@ -1031,8 +980,8 @@ bool autobiographicalMemory::close()
 {
     yInfo() << "Calling close function";
 
-    disconnectDataStreamProviders();
-    disconnectFromImgStreamProviders();
+    disconnectStreamProviders(mapDataStreamInput);
+    disconnectStreamProviders(mapImgStreamInput);
 
     opcWorldReal->interrupt();
     opcWorldReal->close();
