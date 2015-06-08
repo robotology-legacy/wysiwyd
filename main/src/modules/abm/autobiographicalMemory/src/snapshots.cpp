@@ -646,7 +646,7 @@ void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle, strin
 
         currentRole = bRecogBottle.get(0).asString();
         currentWord = bRecogBottle.get(1).asString();
-        
+
         //SQL insert
         //yInfo() << " === s_deep = " << s_deep << " and i_deep = " << i_deep << "===" ;
         //yInfo() << " C1 : -------> role = " << currentRole << " and word = " << currentWord << " and level " << i_deep ;

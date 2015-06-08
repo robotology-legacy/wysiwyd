@@ -122,7 +122,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     //Network::connect(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc");
     //if(!Network::isConnected(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc")) {
     Network::connect(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc");
-    if(!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
+    if (!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
         yWarning("Could not connect to augmention module!");
     }
 
@@ -588,8 +588,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 }
 
                 Bottle bDesiredTimes = bCommand.findGroup("augmentedTimes");
-                if(!bDesiredTimes.isNull() && bDesiredTimes.size() > 1) {
-                    for(int i = 1; i < bDesiredTimes.size(); i++) {
+                if (!bDesiredTimes.isNull() && bDesiredTimes.size() > 1) {
+                    for (int i = 1; i < bDesiredTimes.size(); i++) {
                         desiredTimes.push_back(bDesiredTimes.get(i).asString());
                         yDebug() << "Push " << bDesiredTimes.get(i).asString() << " to desiredTimes";
                     }
@@ -705,9 +705,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 activity = vActivity.asString();
             }
 
-            if(requestAugmentedImages(activity, quantity, instance)) {
+            if (requestAugmentedImages(activity, quantity, instance)) {
                 bReply.addString("ack");
-            } else {
+            }
+            else {
                 bReply.addString("nack");
             }
         }
@@ -752,7 +753,7 @@ bool autobiographicalMemory::updateModule() {
         yInfo() << "I have received a sound!!!!!";
         stringstream fullPath;
         //fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
-        if(!yarp::sig::file::write(*s, (storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav").c_str()))
+        if (!yarp::sig::file::write(*s, (storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav").c_str()))
         {
             yError() << " [Sound] Sound file not written!!";
         }
@@ -854,7 +855,8 @@ bool autobiographicalMemory::updateModule() {
 
                     yInfo() << "Send image: " << fullPath.str() << " to " << port->getName();
                     writeImageToPort(fullPath.str(), port);
-                } catch (const std::out_of_range& oor) {
+                }
+                catch (const std::out_of_range& oor) {
                     // This should never happen, as openImgStreamPorts opens ALL ports related to an instance
                     // and just connects to the ones which are wanted, but the port still exists
                     yWarning() << "No corresponding port to " << bListImages.get(i).asList()->get(1).asString().c_str();

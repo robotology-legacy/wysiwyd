@@ -23,7 +23,7 @@ using namespace yarp::os;
 
 bool autobiographicalMemory::requestAugmentedImages(string activityname, int number_of_augmentions, int instance) {
     yDebug("Starting requestAugmentedImages");
-    if(abm2augmented.getOutputCount()==0) {
+    if (abm2augmented.getOutputCount() == 0) {
         yError("Connect to module to augment images, abort!");
         return false;
     }
@@ -34,9 +34,9 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
     osRequest << "SELECT instance, COUNT(DISTINCT augmented_time) as c from visualdata WHERE instance IN (";
     osRequest << "    SELECT instance FROM main WHERE activityname = '" << activityname << "' ";
     osRequest << "    AND begin='true'";
-    if(instance!=-1) {
-       ostringstream osInstance; osInstance << instance;
-       osRequest << " AND instance='" << osInstance.str() << "'";
+    if (instance != -1) {
+        ostringstream osInstance; osInstance << instance;
+        osRequest << " AND instance='" << osInstance.str() << "'";
     }
     osRequest << ") GROUP BY instance ";
     osRequest << "HAVING count(DISTINCT augmented_time) < " << number_of_augmentions;
@@ -46,12 +46,12 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
     Bottle bResponse = request(bRequest);
     yDebug() << "Response from database: " << bResponse.toString();
 
-    if(bResponse.get(0).toString()=="NULL") {
+    if (bResponse.get(0).toString() == "NULL") {
         yError("Not a suitable instance!");
         return false;
     }
 
-    for(int i=0; i<bResponse.size(); i++) {
+    for (int i = 0; i < bResponse.size(); i++) {
         int instance = atoi(bResponse.get(i).asList()->get(0).toString().c_str());
         int existing_number_of_augmentions = atoi(bResponse.get(i).asList()->get(1).toString().c_str());
         Bottle bReqAugmentingModule, bRespAugmentingModule;
@@ -64,12 +64,13 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
         bReqAugmentingModule.addInt(0);
         bReqAugmentingModule.addInt(50);
 
-        for(int j = existing_number_of_augmentions; j<number_of_augmentions; j++) {
+        for (int j = existing_number_of_augmentions; j < number_of_augmentions; j++) {
             yInfo() << "Send request to Augmenting module: " << bReqAugmentingModule.toString();
             abm2augmented.write(bReqAugmentingModule, bRespAugmentingModule);
-            if(bRespAugmentingModule.get(0).asString()=="ack") {
+            if (bRespAugmentingModule.get(0).asString() == "ack") {
                 yInfo() << "Augmenting for instance " << instance << " at time " << augmentedTime << " was successful";
-            } else {
+            }
+            else {
                 yWarning() << "Did not get positive reply from augmenting module for instance " << instance;
             }
         }
@@ -95,7 +96,7 @@ void autobiographicalMemory::saveAugmentedImages() {
         // augmented image was sent
         // it is reset as soon as the frame number received
         // is smaller than the last frame number which was received
-        if(frame_number < augmentedLastFrameNumber) {
+        if (frame_number < augmentedLastFrameNumber) {
             augmentedTime = getCurrentTime();
         }
         augmentedLastFrameNumber = frame_number;

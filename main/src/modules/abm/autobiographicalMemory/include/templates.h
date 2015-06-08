@@ -28,13 +28,13 @@ struct Trait
 };
 
 template<>
-struct Trait<yarp::os::Bottle>
+struct Trait < yarp::os::Bottle >
 {
     typedef typename yarp::os::Bottle value;
 };
 
 template<>
-struct Trait<yarp::sig::ImageOf<yarp::sig::PixelRgb> >
+struct Trait < yarp::sig::ImageOf<yarp::sig::PixelRgb> >
 {
     typedef typename yarp::sig::ImageOf<yarp::sig::PixelRgb> value;
 };
@@ -59,7 +59,7 @@ yarp::os::Bottle autobiographicalMemory::addStreamProvider(std::map <std::string
 
     if (map.find(portRemote) == map.end()) //key not found
     {
-        map[portRemote] = new yarp::os::BufferedPort < typename Trait<T>::value >;
+        map[portRemote] = new yarp::os::BufferedPort < typename Trait<T>::value > ;
         bReply.addString("[ack]");
 
         std::string portLocal = "/" + getName() + portRemote + "/in";
@@ -70,7 +70,8 @@ yarp::os::Bottle autobiographicalMemory::addStreamProvider(std::map <std::string
                 yError() << error;
                 bReply.addString("nack");
                 bReply.addString(error);
-            } else {
+            }
+            else {
                 bReply.addString("[ack]");
             }
         }
@@ -79,7 +80,8 @@ yarp::os::Bottle autobiographicalMemory::addStreamProvider(std::map <std::string
             bReply.addString("nack");
             yWarning() << warning;
         }
-    } else { //key found
+    }
+    else { //key found
         std::string warning = "[addStreamProvider] " + portRemote + " is already present!";
         yWarning() << warning;
         bReply.addString("nack");

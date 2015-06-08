@@ -114,18 +114,20 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
         mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
 
         if (!includeAugmented && augmented == "") {
-            yDebug() << "Connect " << concatenated_port << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
+            yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
             Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
-        } else if(includeAugmented) {
-            if(!desired_times.empty() && augmented!="") {
+        }
+        else if (includeAugmented) {
+            if (!desired_times.empty() && augmented != "") {
                 size_t pos = std::find(desired_times.begin(), desired_times.end(), augmented_time) - desired_times.begin();
                 stringstream ss; ss << pos; string pos_str = ss.str();
-                if(pos < desired_times.size()) {
-                    yDebug() << "Connect " << concatenated_port << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort+pos_str;
+                if (pos < desired_times.size()) {
+                    yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str;
                     Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str, "tcp");
                 }
-            } else {
-                yDebug() << "Connect " << concatenated_port << " with " << "/yarpview"+portPrefixForStreaming+imgProviderPort;
+            }
+            else {
+                yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
                 Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
             }
         }
@@ -220,7 +222,7 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
             }
             string imgPath = storingPath + "/" + storingTmpSuffix + "/" + relative_path + augmented_time;
             std::ifstream infile(imgPath.c_str());
-            if(!infile.good()) { // file does not exist yet
+            if (!infile.good()) { // file does not exist yet
                 yInfo() << "[saveImagesFromABM] Export OID " << imageOID << " to: " << storingPath << "/" << storingTmpSuffix << "/" << relative_path << augmented_time;
                 database_mutex.lock();
                 ABMDataBase->lo_export(imageOID, imgPath.c_str());

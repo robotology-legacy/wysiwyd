@@ -185,7 +185,7 @@ void autobiographicalMemory::connectOPC()
     iTry = 0;
 
     //Try only 3 times to connect to mentalOPC
-    while (!opcWorldMental->isConnected() && (iTry < 2) )
+    while (!opcWorldMental->isConnected() && (iTry < 2))
     {
         yInfo() << "ABM Connecting to " << s_mental_OPC << "..." << opcWorldMental->connect(s_mental_OPC);
         Time::delay(1.0);
