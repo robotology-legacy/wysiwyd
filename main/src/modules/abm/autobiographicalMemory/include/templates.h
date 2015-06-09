@@ -30,13 +30,13 @@ struct Trait
 template<>
 struct Trait < yarp::os::Bottle >
 {
-    typedef typename yarp::os::Bottle value;
+    typedef yarp::os::Bottle value;
 };
 
 template<>
 struct Trait < yarp::sig::ImageOf<yarp::sig::PixelRgb> >
 {
-    typedef typename yarp::sig::ImageOf<yarp::sig::PixelRgb> value;
+    typedef yarp::sig::ImageOf<yarp::sig::PixelRgb> value;
 };
 
 template<typename T>
