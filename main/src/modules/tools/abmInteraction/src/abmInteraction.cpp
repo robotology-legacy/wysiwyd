@@ -489,7 +489,7 @@ bool abmInteraction::insertFeedback(int feedback)
     Bottle bResult;
     ostringstream osRequest;
     //take info from visualdata to put in feedback. In particular  the time of original memories is the smallest one from augmented
-    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port, min(\"time\") FROM visualdata WHERE instance = " << rememberedInstance << "AND augmented IS NOT NULL AND augmented_time = '" << *it_augmentedTime << "' AND img_provider_port = '" << img_provider_port << "' GROUP BY instance, augmented_time, img_provider_port;";
+    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port, min(\"time\") FROM visualdata WHERE instance = " << rememberedInstance << " AND augmented IS NOT NULL AND augmented_time = '" << *it_augmentedTime << "' AND img_provider_port = '" << img_provider_port << "' GROUP BY instance, augmented_time, img_provider_port;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str());
     yInfo() << bResult.toString();
 
