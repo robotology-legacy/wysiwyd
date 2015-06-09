@@ -95,8 +95,9 @@ void autobiographicalMemory::saveAugmentedImages() {
         // this is a way to keep track when the first
         // augmented image was sent
         // it is reset as soon as the frame number received
-        // is smaller than the last frame number which was received
-        if (frame_number < augmentedLastFrameNumber) {
+        // is smaller than the last frame number which was received + 10
+        // please note that this is a HACK!!!
+        if (frame_number < augmentedLastFrameNumber + 10) {
             augmentedTime = getCurrentTime();
         }
         augmentedLastFrameNumber = frame_number;
