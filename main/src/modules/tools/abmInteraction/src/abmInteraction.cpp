@@ -71,9 +71,14 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
 
     rememberedInstance = rf.check("rememberedInstance", Value(1333)).asInt();
     feedbackInstance = -1;
-    //img_provider_port = "/icub/camcalib/left/out/kinematic_structure";
     agentName = rf.check("agentName", Value("Bob")).asString().c_str();
     img_provider_port = rf.check("img_provider_port", Value("/icub/camcalib/left/out/kinematic_structure")).asString().c_str();
+    
+    //resume : no (take all the augmented_time from the instance)
+    //resume : yes (take only the augmented_time without feedback from the instance)
+    //resume : agent (take only the augmented_time with no feedback from the agent, from the instance)
+    resume = rf.check("resume", Value("agent")).asString().c_str();
+
     bestAugmentedTime = "";
     it_augmentedTime = vAugmentedTime.begin();
 
@@ -141,9 +146,17 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
                 changeSomething = true;
             }
 
+            //resum : check for augmented_time with empty feedback from the agentName. Another one needed to check empty feedback, no matter the agent?
+            Value vResume = bCommand.find("resume");
+            if (!vResume.isNull() && vAgentName.isString()) {
+                resume = vResume.asString() ;
+                changeSomething = true;
+            }
+
             yDebug() << "rememberedInstance: " << rememberedInstance;
             yDebug() << "img_provider_port: " << img_provider_port;
             yDebug() << "agentName: " << agentName;
+            yDebug() << "resume: " << resume;
 
             bReply.addString("ack");
         }
@@ -453,9 +466,22 @@ bool abmInteraction::createAugmentedTimeVector()
     Bottle bResult;
     ostringstream osRequest;
     //only augmented_time is needed but better clarity for the print
-    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port FROM visualdata WHERE instance = " << rememberedInstance << " AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' ;";
+    osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port FROM visualdata WHERE instance = " << rememberedInstance << " AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' " ;
+    if(resume == "agent"){
+        // not proposing instance with feedback from the agent already. 
+        osRequest << "AND augmented_time NOT IN (SELECT DISTINCT augmented_time FROM feedback WHERE instance = '" << rememberedInstance << "' AND agent = '" << agentName << "') " ;
+        createBestAugmentedTime() ;
+    } else if (resume == "yes") {
+        osRequest << "AND augmented_time NOT IN (SELECT DISTINCT augmented_time FROM feedback WHERE instance = '" << rememberedInstance << "') " ;
+        createBestAugmentedTime() ;
+    } else if (resume == "no") {
+        //come back to default value for best rank/time
+        bestRank = 0 ;
+        bestAugmentedTime = "" ;
+    }
+    osRequest << " ;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str());
-    yInfo() << "[createAugmentedTimeVector] SQL request bReply : " << bResult.toString();
+    //yInfo() << "[createAugmentedTimeVector] SQL request bReply : " << bResult.toString();
     vAugmentedTime.clear();
 
     if (bResult.toString() != "NULL") {
@@ -476,6 +502,47 @@ bool abmInteraction::createAugmentedTimeVector()
     yInfo() << " vAugmentedTime = " << osAugmentedTime.str();
 
     it_augmentedTime = vAugmentedTime.begin();
+
+    return true;
+}
+
+/*
+* update bestRank and bestAugmentedTime, depending on the resume
+*
+*/
+bool abmInteraction::createBestAugmentedTime()
+{
+    Bottle bResult;
+    ostringstream osRequest;
+
+    //main select querry
+    osRequest << "SELECT feedback.augmented_time, feedback.value FROM visualdata, feedback WHERE instance = " << rememberedInstance << " AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' AND ";
+    //foreign key to join feedback/visualdata
+    osRequest << "augmented_port = img_provider_port AND original_time = \"time\" AND feedback.augmented_time = visualdata.augmented_time " ;
+    if(resume == "agent"){
+        // not proposing instance with feedback from the agent already. 
+        osRequest << "AND agent = '" << agentName << "' " ;
+    } 
+    //just the best feedback value
+    osRequest << " ORDER BY value DESC LIMIT 1;";
+
+    bResult = iCub->getABMClient()->requestFromString(osRequest.str());
+    //yInfo() << "[createBestAugmentedTime] SQL request bRequest : " << osRequest.str();
+    //yInfo() << "[createBestAugmentedTime] SQL request bReply : " << bResult.toString();
+
+    if (bResult.toString() != "NULL" && bResult.size() > 0) {
+            bestAugmentedTime = bResult.get(0).asList()->get(0).toString();
+            bestRank = atoi(bResult.get(0).asList()->get(1).toString().c_str());
+
+            yInfo() << "[createBestAugmentedTime] bestAugmentedTime : " << bestAugmentedTime << " with rank = " << bestRank;
+    }
+    else {
+        yInfo() << "Request to obtain augmented from instance " << rememberedInstance << " is NULL : are you sure there are some augmented images with feedback?";
+        bestRank = 0 ;
+        bestAugmentedTime = "" ;
+        
+        return false;
+    }
 
     return true;
 }

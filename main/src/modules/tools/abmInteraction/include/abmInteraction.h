@@ -23,6 +23,7 @@ private:
     string          bestAugmentedTime;
     string          img_provider_port ;
     string          agentName ;
+    string          resume ;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -46,6 +47,7 @@ public:
     bool nodeYesNo();
     
     bool createAugmentedTimeVector();
+    bool createBestAugmentedTime();
     bool insertFeedback(int feedback);
 
     //RPC & scenarios
