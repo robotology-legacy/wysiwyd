@@ -29,5 +29,5 @@ set_target_properties(${PROJECTNAME} PROPERTIES DEBUG_POSTFIX "d")
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} wysiwydIDLClients)
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${wysiwydIDLClients_INCLUDE_DIRS}
-                                   DESTINATION include/
+                                   DESTINATION include/wysiwyd/${PROJECTNAME}
                                    FILES ${folder_header} ${folder_header_knowledge} ${folder_clients} ${folder_subsystems})
