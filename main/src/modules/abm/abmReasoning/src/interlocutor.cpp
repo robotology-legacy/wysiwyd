@@ -1178,7 +1178,11 @@ int interlocutor::sendAdjectiveKnowledge(vector<adjKnowledge> listADK)
             {
                 for (vector<double>::iterator itTiming = itActTim->second.begin(); itTiming != itActTim->second.end(); itTiming++)
                 {
-                    (bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+                    if (bFirst)
+                        bFirst=false;
+                    else
+                        osInsertKnowledge << " , ";
+
                     osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActTim->first << "' , " << *itTiming << ") ";
 
                 }
@@ -1199,7 +1203,11 @@ int interlocutor::sendAdjectiveKnowledge(vector<adjKnowledge> listADK)
 
             for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
             {
-                (bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+                if (bFirst)
+                    bFirst=false;
+                else
+                    osInsertKnowledge << " , ";
+
                 osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
             }
         }
@@ -1217,7 +1225,11 @@ int interlocutor::sendAdjectiveKnowledge(vector<adjKnowledge> listADK)
 
             for (vector< pair<double, double > >::iterator itXY = itActXY->second.begin(); itXY != itActXY->second.end(); itXY++)
             {
-                (bFirst) ? bFirst = false : osInsertKnowledge << " , ";
+                if (bFirst)
+                    bFirst=false;
+                else
+                    osInsertKnowledge << " , ";
+
                 osInsertKnowledge << "( '" << it->sLabel << "' , '" << itActXY->first << "' , " << itXY->first << " , " << itXY->second << ") ";
             }
         }
