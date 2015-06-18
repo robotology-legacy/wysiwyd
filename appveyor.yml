@@ -7,6 +7,7 @@ branches:
 clone_folder: c:\dev\wysiwyd
 
 environment:
+  ACE_ROOT:          c:/Program Files (x86)/robotology/ace-6.1.1
   GSL_DIR:           c:/Program Files (x86)/robotology/gsl-1.14
   IPOPT_DIR:         c:/Program Files (x86)/robotology/ipopt-3.10.1
   OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-2.4.9
