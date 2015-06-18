@@ -9,11 +9,9 @@ clone_folder: c:\dev\wysiwyd
 environment:
   GSL_DIR:           c:/Program Files (x86)/robotology/gsl-1.14
   IPOPT_DIR:         c:/Program Files (x86)/robotology/ipopt-3.10.1
-  GTK_BASEPATH:      c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
-  GTKMM_BASEPATH:    c:/Program Files (x86)/robotology/gtkmm-2.22.0-2
   OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-git-snapshot-26-09-12
-  YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.63
-  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.15
+  YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.64
+  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.16
   ICUBcontrib_DIR:   c:/iCubContrib
   CMAKE_PREFIX_PATH: c:/iCubContrib
 
@@ -22,8 +20,8 @@ install:
   # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul"
 
   - ps:  $dwntool=New-Object System.Net.WebClient
-  - ps:  $dwntool.DownloadFile('http://sourceforge.net/projects/yarp0/files/yarp2/yarp-2.3.63/windows/yarp_2.3.63_v11_x86_0.exe','c:\dev\yarp.exe')
-  - ps:  $dwntool.DownloadFile('http://sourceforge.net/projects/robotcub/files/iCub-main/iCub-main-1.1.15/windows/iCub_1.1.15_v11_x86_0.exe','c:\dev\icub.exe')
+  - ps:  $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_0.exe','c:\dev\yarp.exe')
+  - ps:  $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_0.exe','c:\dev\icub.exe')
 
   - cmd: c:\dev\yarp.exe /S
   - cmd: c:\dev\icub.exe /S
@@ -33,14 +31,14 @@ install:
   - cmd: cd c:\dev\icub-contrib-common
   - cmd: md build
   - cmd: cd build
-  - cmd: cmake -DCMAKE_INSTALL_PREFIX=c:/iCubContrib -G"Visual Studio 11" ..
+  - cmd: cmake -DCMAKE_INSTALL_PREFIX=c:/iCubContrib -G"Visual Studio 12" ..
   - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" INSTALL.vcxproj
 
   - cmd: git clone https://github.com/robotology/kinect-wrapper.git c:\dev\kinect-wrapper
   - cmd: cd c:\dev\kinect-wrapper
   - cmd: md build
   - cmd: cd build
-  - cmd: cmake -G"Visual Studio 11" ..
+  - cmd: cmake -G"Visual Studio 12" ..
   - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" INSTALL.vcxproj
 
 build:
@@ -49,7 +47,7 @@ build_script:
   - cd c:\dev\wysiwyd\main
   - md build
   - cd build
-  - cmake -G"Visual Studio 11" ..
+  - cmake -G"Visual Studio 12" ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" wysiwyd.sln
 
 notifications:
@@ -60,5 +58,5 @@ notifications:
       - m.petit@imperial.ac.uk
       - anne.laure.mealier@gmail.com
     on_build_success: false
-    on_build_failure: false
+    on_build_failure: true
     on_build_status_changed: true
