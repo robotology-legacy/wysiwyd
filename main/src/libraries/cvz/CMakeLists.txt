@@ -8,11 +8,11 @@ project(${PROJECTNAME})
 include(YarpIDL)
 
 file(GLOB folder_source src/*.cpp src/*.cc src/*.c 
-	${IDL_GENERATED_CODE_DIR}/src/cvzMmcm_IDL.cpp
-	)
+   ${IDL_GENERATED_CODE_DIR}/src/cvzMmcm_IDL.cpp
+   )
 file(GLOB folder_header include/cvz/*.h  
-	${IDL_GENERATED_CODE_DIR}/include/cvzMmcm_IDL.h
-	)
+   ${IDL_GENERATED_CODE_DIR}/include/cvzMmcm_IDL.h
+   )
 file(GLOB folder_header_core include/cvz/core/*.h)
 file(GLOB folder_header_gui include/cvz/gui/*.h)
 file(GLOB folder_header_helpers include/cvz/helpers/*.h)
@@ -36,23 +36,23 @@ add_library(${PROJECTNAME} ${folder_source} ${folder_header} ${folder_header_cor
 
 set_target_properties(${PROJECTNAME} PROPERTIES DEBUG_POSTFIX "d")
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
-									 ${OpenCV_LIBRARIES}
+                                     ${OpenCV_LIBRARIES}
                                      ${GTK2_GTK_LIBRARY}
                                      ${GTK2_GLIB_LIBRARY}
                                      ${GTK2_GDK_LIBRARY}
                                      ${GTK2_GDK_PIXBUF_LIBRARY}
                                      ${GTK2_GOBJECT_LIBRARY}
                                      ${GTK2_GTHREAD_LIBRARY})
-									 
+                                                                    
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ConVergenceZone)
 
 icub_export_library(${PROJECTNAME} 
 INTERNAL_INCLUDE_DIRS 
-	${PROJECT_SOURCE_DIR}/include 
-	${IDL_GENERATED_CODE_DIR}/include
+   ${PROJECT_SOURCE_DIR}/include 
+   ${IDL_GENERATED_CODE_DIR}/include
 DESTINATION 
-	include/
+   include/
 FILES 
-	${folder_header})
+   ${folder_header})
 
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
