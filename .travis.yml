@@ -12,7 +12,7 @@ branches:
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
   - sudo apt-get update
-  - sudo apt-get dist-upgrade --force-yes
+  - sudo apt-get dist-upgrade -y
   - sudo apt-get --force-yes install icub
   - cd ..
   - git clone https://github.com/robotology/icub-contrib-common.git
