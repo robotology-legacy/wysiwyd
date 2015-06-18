@@ -9,7 +9,8 @@ clone_folder: c:\dev\wysiwyd
 environment:
   GSL_DIR:           c:/Program Files (x86)/robotology/gsl-1.14
   IPOPT_DIR:         c:/Program Files (x86)/robotology/ipopt-3.10.1
-  OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-git-snapshot-26-09-12
+  OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-2.4.9
+  Qt5_DIR:           c:/Program Files (x86)/robotology/Qt-5.4.1_v12_x86
   YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.64
   ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.16
   ICUBcontrib_DIR:   c:/iCubContrib
