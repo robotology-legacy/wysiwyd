@@ -31,7 +31,8 @@ install:
 
   # apply patch
   - cmd: git clone https://github.com/robotology/icub-main.git c:\dev\icub-main
-  - ps:  copy-item c:\dev\icub-main\conf\iCubHelpers.cmake $env:ICUB_DIR\conf\iCubHelpers.cmake -Force
+  - ps:  dir $env:ICUB_DIR
+  - ps:  copy-item c:\dev\icub-main\conf\iCubHelpers.cmake $env:ICUB_DIR\cmake\iCubHelpers.cmake -Force
 
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
