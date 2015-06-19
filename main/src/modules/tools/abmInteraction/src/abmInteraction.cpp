@@ -488,7 +488,7 @@ bool abmInteraction::createAugmentedTimeVector()
         bestAugmentedTime = "" ;
     }
 
-    osRequest << " ORDER BY augmented_time ASC ;"
+    osRequest << " ORDER BY augmented_time ASC ;";
 
     osRequest << " ;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str());
