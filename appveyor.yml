@@ -12,10 +12,8 @@ environment:
   IPOPT_DIR:         c:/Program Files (x86)/robotology/ipopt-3.10.1
   OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-2.4.9
   Qt5_DIR:           c:/Program Files (x86)/robotology/Qt-5.4.1_v12_x86
-
-  YARP_DIR:          c:/dev/yarp/build
-  ICUB_DIR:          c:/dev/icub-main/build
-
+  YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.64
+  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.16
   ICUBcontrib_DIR:   c:/iCubContrib
   CMAKE_PREFIX_PATH: c:/iCubContrib
 
@@ -31,19 +29,9 @@ install:
   - cmd: c:\dev\icub.exe /S
   - cmd: dir "c:\Program Files (x86)\robotology"
 
-  - cmd: git clone https://github.com/robotology/yarp.git c:\dev\yarp
-  - cmd: cd c:\dev\yarp
-  - cmd: md build
-  - cmd: cd build
-  - cmd: cmake -DCREATE_LIB_MATH=TRUE -G"Visual Studio 12" ..
-  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" ALL_BUILD.vcxproj
-
+  # apply patch
   - cmd: git clone https://github.com/robotology/icub-main.git c:\dev\icub-main
-  - cmd: cd c:\dev\icub-main
-  - cmd: md build
-  - cmd: cd build
-  - cmd: cmake -G"Visual Studio 12" ..
-  - cmd: msbuild /m /p:Configuration=Release /p:Platform="Win32" ALL_BUILD.vcxproj
+  - ps:  copy-item c:\dev\icub-main\conf\iCubHelpers.cmake $env:ICUB_DIR\conf\iCubHelpers.cmake -Force
 
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
