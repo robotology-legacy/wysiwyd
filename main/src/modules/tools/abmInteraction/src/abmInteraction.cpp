@@ -148,9 +148,17 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
 
             //resum : check for augmented_time with empty feedback from the agentName. Another one needed to check empty feedback, no matter the agent?
             Value vResume = bCommand.find("resume");
-            if (!vResume.isNull() && vAgentName.isString()) {
-                resume = vResume.asString() ;
-                changeSomething = true;
+            if (!vResume.isNull() && vResume.isString()) {
+
+                if(vResume != "agent" && vResume != "yes" && vResume != "no"){
+                    string sError = "[set]: Wrong resume keyWord : should be 1) yes 2) no or 3) agent (for agent specific resume)";
+                    yError() << sError;
+                    bError.addString(sError);
+                    bReply = bError;
+                } else {
+                    resume = vResume.asString() ;
+                    changeSomething = true;
+                }
             }
 
             yDebug() << "rememberedInstance: " << rememberedInstance;
@@ -479,6 +487,9 @@ bool abmInteraction::createAugmentedTimeVector()
         bestRank = 0 ;
         bestAugmentedTime = "" ;
     }
+
+    osRequest << " ORDER BY augmented_time ASC ;"
+
     osRequest << " ;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str());
     //yInfo() << "[createAugmentedTimeVector] SQL request bReply : " << bResult.toString();
