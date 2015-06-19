@@ -12,15 +12,33 @@ branches:
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
   - sudo apt-get update
-  - sudo apt-get --force-yes install icub
+  - sudo apt-get --force-yes install icub-common
   - cd ..
+
+  - git clone https://github.com/robotology/yarp.git
+  - cd yarp
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - sudo make install
+  - cd ../../
+
+  - git clone https://github.com/robotology/icub-main.git
+  - cd icub-main
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - sudo make install
+  - cd ../../
+
   - git clone https://github.com/robotology/icub-contrib-common.git
   - cd icub-contrib-common
   - mkdir build
   - cd build
   - cmake ..
   - sudo make install
-  - cd ../..
+  - cd ../../
+
   - git clone https://github.com/robotology/kinect-wrapper.git
   - cd kinect-wrapper
   - mkdir build
@@ -28,6 +46,7 @@ install:
   - cmake -DCMAKE_BUILD_TYPE=Release ..
   - sudo make install
   - cd ../../
+
   - cd wysiwyd
 
 before_script:
