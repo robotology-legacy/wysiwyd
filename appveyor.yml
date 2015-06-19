@@ -29,9 +29,9 @@ install:
   - cmd: c:\dev\icub.exe /S
   - cmd: dir "c:\Program Files (x86)\robotology"
 
-  # apply patch
+  # apply patch for macro icub_export_library() to install correctly trees of headers
   - cmd: git clone https://github.com/robotology/icub-main.git c:\dev\icub-main
-  - ps:  dir $env:ICUB_DIR
+  - ps:  dir $env:ICUB_DIR\cmake
   - ps:  copy-item c:\dev\icub-main\conf\iCubHelpers.cmake $env:ICUB_DIR\cmake\iCubHelpers.cmake -Force
 
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
@@ -61,9 +61,9 @@ notifications:
   - provider: Email
     to:
       - ugo.pattacini@iit.it
-      - t.fischer@imperial.ac.uk
-      - m.petit@imperial.ac.uk
-      - anne.laure.mealier@gmail.com
+      #- t.fischer@imperial.ac.uk
+      #- m.petit@imperial.ac.uk
+      #- anne.laure.mealier@gmail.com
     on_build_success: false
-    on_build_failure: true
+    on_build_failure: false
     on_build_status_changed: true
