@@ -22,7 +22,7 @@ install:
   - cd yarp
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -DCMAKE_BUILD_TYPE=Release -DCREATE_LIB_MATH=TRUE ..
   - sudo make install
   - cd ../../
 
