@@ -19,5 +19,5 @@ set_target_properties(${PROJECTNAME} PROPERTIES DEBUG_POSTFIX "d")
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})
 
 icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${IDL_GENERATED_CODE_DIR}/include
-                                   DESTINATION include/wysiwyd/${PROJECTNAME}
+                                   DESTINATION include/${PROJECTNAME}
                                    FILES ${header_files})
