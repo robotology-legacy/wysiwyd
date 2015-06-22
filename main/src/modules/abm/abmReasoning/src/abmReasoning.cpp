@@ -92,16 +92,13 @@ bool abmReasoning::configure(ResourceFinder &rf)
     rel.m_verb = "eat";
     rel.m_subject = "giraffe";
     rel.m_object = "grass";
-    bool isAdded = realOPC->addRelation(rel, -1.0);
+    realOPC->addRelation(rel, -1.0);
 
     realOPC->commit();
     realOPC->update();
 
 
     bReady = true;
-
-
-
 
     list<pair<string, string> > arguments;
 
@@ -2529,10 +2526,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
     }
     yInfo() << "\t"  ;
 
-    bool print_in_file = false;
-
-
-    if (iError != 0)
+        if (iError != 0)
     {
         yInfo() << "\t" << iError << " errors while getting the actions:"  ;
         for (unsigned int j = 0; j < vError.size(); j++)
@@ -5295,8 +5289,7 @@ Bottle abmReasoning::getKnowledge()
 
             //yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString()  ;
             Bottle bInstance = *bAdjectiveKnowledge.get(ii).asList();
-            adjKnowledge* adjKno;
-
+    
             string sName = bInstance.get(0).toString();
             string sArgument = bInstance.get(1).toString();
 
@@ -5367,7 +5360,6 @@ Bottle abmReasoning::getKnowledge()
 
             //yInfo() << "\t" << bAdjectiveKnowledge.get(ii).asList()->toString();
             Bottle bInstance = *bAdjectiveKnowledge.get(ii).asList();
-            adjKnowledge* adjKno;
 
             string sName = bInstance.get(0).toString();
             string sArgument = bInstance.get(1).toString();
