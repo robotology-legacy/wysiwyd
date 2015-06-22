@@ -6,6 +6,8 @@ class abmReasoning : public yarp::os::RFModule
 {
 private:
 
+
+    ICubClient *iCub;
     // Internal member, module-related :
     abmReasoningFunction *iFunction;            //  class of generic functions
     std::string  savefile;
