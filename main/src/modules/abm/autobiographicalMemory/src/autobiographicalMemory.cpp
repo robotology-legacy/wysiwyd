@@ -560,7 +560,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             if (bCommand.size() > 1 && bCommand.get(1).isInt())
             {
                 yDebug() << "Command: " << bCommand.toString();
-                imgInstance = bCommand.get(1).asInt();
+                int instance = bCommand.get(1).asInt();
                 bool realtime = false;
                 bool includeAugmented = true;
                 double speedMultiplier = 1.0;
@@ -595,14 +595,14 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     }
                 }
 
-                yDebug() << "instance: " << imgInstance;
+                yDebug() << "instance: " << instance;
                 yDebug() << "realtime: " << realtime;
                 yDebug() << "includeAugmented: " << includeAugmented;
                 yDebug() << "speedMultiplier: " << speedMultiplier;
                 yDebug() << "robot: " << robot;
                 yDebug() << "augmentedTimes: " << bDesiredTimes.toString();
 
-                bReply = triggerStreaming(imgInstance, realtime, includeAugmented, speedMultiplier, robot, desiredTimes);
+                bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot, desiredTimes);
             }
             else
             {
@@ -953,11 +953,11 @@ bool autobiographicalMemory::updateModule() {
         //TODO: startThread with storeOID()
 
         //close folder and SQL entry
-        streamStatus = "none";
         imgLabel = "defaultLabel";
         imgInstance = -1;
         frameNb = 0;
         sendStreamIsInitialized = false;
+        streamStatus = "none";
     }
 
     return !shouldClose;

@@ -26,8 +26,14 @@ using namespace cv;
 Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, const string &robotName, const vector<string> &desired_augmented_times)
 {
     Bottle bReply;
+    while(streamStatus!="none") {
+        yarp::os::Time::delay(1.0);
+    }
+
     realtimePlayback = timingE;
     speedMultiplier = speedM;
+    imgInstance = instance;
+
     openImgStreamPorts(instance, includeAugmented, desired_augmented_times);
     openDataStreamPorts(instance, robotName);
     // make sure images are stored in ABM before saving them
