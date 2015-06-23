@@ -96,6 +96,8 @@ namespace wysiwyd{namespace wrdac{
         * Return the name of an entity (which has to be unique within the OPC)
         */
         std::string             name(){return m_name.c_str();}
+
+        void                    changeName(std::string sName) { m_name = sName; }
         
         /**
         * Return the id of an entity (which has to be unique within the OPC)
