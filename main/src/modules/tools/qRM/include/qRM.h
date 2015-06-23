@@ -39,11 +39,14 @@ public:
 
     bool updateModule();
     bool    populateOpc();
+    bool    populateSpecific(Bottle bInput);
 
     Bottle calibrationRT(std::string side);
     void    nodeSentenceTemporal();
     void    nodeTest();
-    bool nodeYesNo();
+    bool    nodeYesNo();
+
+    Bottle  exploreEntity();
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);

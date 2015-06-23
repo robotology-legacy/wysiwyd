@@ -34,11 +34,11 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
 
     cout << "0" << endl;
 
-    nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
+ /*   nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
     nameGrammarSentenceTemporal = rf.findFileByName(rf.check("nameGrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
     nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
     nameGrammarNodeTrainAP = rf.findFileByName(rf.check("nameGrammarNodeTrainAP.xml", Value("nameGrammarNodeTrainAP.xml")).toString());
-    testMax1 = rf.findFileByName(rf.check("hFeedback.xml", Value("hFeedback.xml")).toString());
+    testMax1 = rf.findFileByName(rf.check("hFeedback.xml", Value("hFeedback.xml")).toString());*/
 
 
     cout << moduleName << ": finding configuration files..." << endl;
@@ -87,7 +87,7 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
 
     //    populateOpc();
 
-    nodeTest();
+//    nodeTest();
 
     return true;
 }
@@ -130,6 +130,14 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
             cout << "using " << command.get(1).asString() << " hand" << endl;
             reply = calibrationRT(command.get(1).asString());
         }
+    }
+    else if (command.get(0).asString() == "populateSpecific") {
+        yInfo() << " populateSpecific";
+        (populateSpecific(command)) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
+    }
+    else if (command.get(0).asString() == "exploreEntity") {
+        yInfo() << " exploreEntity";
+        reply = exploreEntity();
     }
 
 
@@ -575,4 +583,135 @@ bool qRM::populateOpc(){
     iCub->opc->commit();
 
     return true;
+}
+
+
+bool qRM::populateSpecific(Bottle bInput){
+
+    if (bInput.size() != 3)
+    {
+        yWarning() << " in qRM::populateSpecific | wrong number of input";
+        return false;
+    }
+    
+    if (bInput.get(1).toString() == "agent")
+    {
+        string sName = bInput.get(2).toString();
+        Agent* agent = iCub->opc->addAgent(sName);
+        agent->m_ego_position[0] = -1.4;
+        agent->m_ego_position[2] = 0.60;
+        agent->m_present = 1;
+        agent->m_color[0] = 200;
+        agent->m_color[1] = 50;
+        agent->m_color[2] = 50;
+        iCub->opc->commit(agent);
+    }
+
+    if (bInput.get(1).toString() == "object")
+    {
+        string sName = bInput.get(2).toString();
+        Object* obj = iCub->opc->addObject(sName);
+        obj->m_ego_position[0] = -.4;
+        obj->m_ego_position[2] = 0.20;
+        obj->m_present = 1;
+        obj->m_color[0] = 50;
+        obj->m_color[1] = 200;
+        obj->m_color[2] = 50;
+        iCub->opc->commit(obj);
+    }
+
+    if (bInput.get(1).toString() == "rtobject")
+    {
+        string sName = bInput.get(2).toString();
+        RTObject* obj = iCub->opc->addRTObject(sName);
+        obj->m_ego_position[0] = -0.2;
+        obj->m_present = 1;
+        obj->m_color[0] = 50;
+        obj->m_color[1] = 50;
+        obj->m_color[2] = 200;
+        iCub->opc->commit(obj);
+    }
+
+    return true;
+}
+
+
+Bottle qRM::exploreEntity()
+{
+    Bottle bOutput;
+
+    Entity* currentEntity = iCub->opc->getEntity("unknown", true);
+
+    iCub->look("unknown");
+
+    if (currentEntity->entity_type() == "agent")
+    {
+        yInfo() << " Hello, I don't know you. Who are you ?";
+        iCub->say(" Hello, I don't know you. Who are you ?");
+        string sName;
+        cin >> sName;
+        Agent* agentToChange = iCub->opc->addAgent("unknown");
+        agentToChange->m_present = false;
+        iCub->opc->commit(agentToChange);
+
+        Time::delay(0.5);
+
+        agentToChange->changeName(sName);
+        agentToChange->m_present = true;
+        iCub->opc->commit(agentToChange);
+        yInfo() << " Well, Nice to meet you " << sName;
+        iCub->say("Well, Nice to meet you " + sName);
+
+        bOutput.addString("success");
+        bOutput.addString("agent");
+        return bOutput;
+    }
+
+    if (currentEntity->entity_type() == "object")
+    {
+        yInfo() << " Hum, what is this object ?";
+        iCub->say(" Hum, what is this object ?");
+        string sName;
+        cin >> sName;
+        Object* objectToChange = iCub->opc->addObject("unknown");
+        objectToChange->m_present = false;
+        iCub->opc->commit(objectToChange);
+
+        Time::delay(0.5);
+
+        objectToChange->changeName(sName);
+        objectToChange->m_present = true;
+        iCub->opc->commit(objectToChange);
+        yInfo() << " I get it, this is a " << sName;
+        iCub->say(" I get it, this is a " + sName);
+
+        bOutput.addString("success");
+        bOutput.addString("object");
+        return bOutput;
+    }
+
+    if (currentEntity->entity_type() == "rtobject")
+    {
+        yInfo() << " Hum, what is this object ?";
+        iCub->say(" Hum, what is this object ?");
+        string sName;
+        cin >> sName;
+        RTObject* objectToChange = iCub->opc->addRTObject("unknown");
+        objectToChange->m_present = false;
+        iCub->opc->commit(objectToChange);
+
+        Time::delay(0.5);
+
+        objectToChange->changeName(sName);
+        objectToChange->m_present = true;
+        iCub->opc->commit(objectToChange);
+        yInfo() << " So this is a " << sName;
+        iCub->say(" So this is a " + sName);
+
+        bOutput.addString("success");
+        bOutput.addString("rtobject");
+        return bOutput;
+    }
+
+    return bOutput;
 }
