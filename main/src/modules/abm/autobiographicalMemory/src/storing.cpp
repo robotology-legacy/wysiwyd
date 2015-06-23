@@ -109,7 +109,9 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         if (saveImageFromPort(imagePath, it->first, it->second)) {
             //yDebug() << "Store image " << imagePath << " in database.";
             //create SQL entry, register the cam image in specific folder
-            if (!storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, it->first)) {
+            if (storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, it->first)) {
+                increaseFrameNb = true;
+            } else {
                 yError() << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath;
             }
         }
@@ -199,6 +201,7 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
             bRequest.addString(strRequest.substr(0, strRequest.size() - 1));
             request(bRequest);
         }
+        increaseFrameNb = true;
     }
 
     return true;

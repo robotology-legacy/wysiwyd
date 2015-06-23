@@ -119,6 +119,7 @@ public:
     long timeVeryLastStream; // will be obsolete
 
     bool sendStreamIsInitialized;
+    bool increaseFrameNb;
 
     yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback, bool includeAugmented, double speedM, const std::string& robotName, const std::vector<std::string> &desired_augmented_times = std::vector<std::string>());
 

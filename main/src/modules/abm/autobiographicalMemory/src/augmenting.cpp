@@ -97,7 +97,7 @@ void autobiographicalMemory::saveAugmentedImages() {
         // it is reset as soon as the frame number received
         // is smaller than the last frame number which was received + 10
         // please note that this is a HACK!!!
-        if (frame_number < augmentedLastFrameNumber + 10) {
+        if (frame_number + 10 < augmentedLastFrameNumber) {
             augmentedTime = getCurrentTime();
         }
         augmentedLastFrameNumber = frame_number;

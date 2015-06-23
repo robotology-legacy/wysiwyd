@@ -740,7 +740,10 @@ void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool 
     storeInfoAllImages(synchroTime, forSingleInstance, fullSentence);
     storeDataStreamAllProviders(synchroTime);
 #endif
-    frameNb++;
+    if(increaseFrameNb) {
+        frameNb++;
+        increaseFrameNb = false;
+    }
 }
 
 /* rpc update module */
