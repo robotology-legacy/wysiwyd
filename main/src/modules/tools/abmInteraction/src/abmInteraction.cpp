@@ -43,9 +43,8 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
 
-    //bool    bEveryThingisGood = true;
-    tryAgain = false ; //at start, iCub will explain and speaks
-    bestRank = 0 ;
+    //tryAgain = false ; //at start, iCub will explain and speaks
+    //bestRank = 0 ;
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
@@ -53,7 +52,7 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     iCub->opc->isVerbose &= false;
     if (!iCub->connect())
     {
-        cout << "iCubClient : Some dependencies are not running..." << endl;
+        cout << "iCubClient : Some dpeendencies are not running..." << endl;
         Time::delay(1.0);
     }
 
@@ -70,7 +69,6 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     }
 
     rememberedInstance = rf.check("rememberedInstance", Value(1333)).asInt();
-    feedbackInstance = -1;
     agentName = rf.check("agentName", Value("Bob")).asString().c_str();
     img_provider_port = rf.check("img_provider_port", Value("/icub/camcalib/left/out/kinematic_structure")).asString().c_str();
     
@@ -79,13 +77,13 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     //resume : agent (take only the augmented_time with no feedback from the agent, from the instance)
     resume = rf.check("resume", Value("agent")).asString().c_str();
 
-    bestAugmentedTime = "";
     it_augmentedTime = vAugmentedTime.begin();
+    /*pair<string, int> bestTimeAndRank("", -1);
 
-    if (!createAugmentedTimeVector()){
+    if (createAugmentedTimeVector(bestTimeAndRank) == -1){
         yError() << " Something is wrong with the augmented memories! quit";
-        //return false;
-    }
+        return false;
+    }*/
 
     //testing
     /*Bottle bRecognized;
@@ -187,12 +185,14 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
     if (bCommand.get(0).asString() == "runFeedback") {
         bReply.addString("runFeedback");
 
-        if (!createAugmentedTimeVector()){
+        pair <string, int> bestTimeAndRank;
+        createAugmentedTimeVector(bestTimeAndRank) ;
+        if (bestTimeAndRank.second == -1){
             yError() << " Something is wrong with the augmented memories! quit";
             return false;
         }
 
-        nodeFeedback();
+        nodeFeedback(false, bestTimeAndRank);
 
         return false;
     }
@@ -218,7 +218,7 @@ bool abmInteraction::updateModule() {
 /*
 * Node to ask Human to give feedback on quality of augmented kinematic structure image
 */
-void    abmInteraction::nodeFeedback()
+void    abmInteraction::nodeFeedback(bool tryAgain, pair<string,int> & bestTimeAndRank)
 {
     ostringstream osError;          // Error message
     Bottle bOutput;
@@ -228,6 +228,7 @@ void    abmInteraction::nodeFeedback()
         bMessenger; //to be send TO speech recog
     ostringstream osResponse;
 
+    /************************************ Usual feedback : show an image and ask for feedback ************************************/
     if (tryAgain == false){
 
         yInfo() << " Current time = " << *it_augmentedTime;
@@ -251,13 +252,13 @@ void    abmInteraction::nodeFeedback()
         bSubAugmentedTimes.addString(*it_augmentedTime);
 
         //If we have a previously best rank
-        if (bestRank != 0) {
+        if (bestTimeAndRank.second != 0) {
             osResponse.str("");
-            osResponse << "The current best structure is shown at left. The rank is " << bestRank; //<< " for time = " << bestAugmentedTime ;
+            osResponse << "The current best structure is shown at left. The rank is " << bestTimeAndRank.second; //<< " for time = " << bestAugmentedTime ;
             iCub->say(osResponse.str().c_str(), false);
             yInfo() << "iCub says : " << osResponse.str();
 
-            bSubAugmentedTimes.addString(bestAugmentedTime);
+            bSubAugmentedTimes.addString(bestTimeAndRank.first);
         }
 
         //Ask for showing the current testing augmented + the best one if relevant
@@ -274,9 +275,8 @@ void    abmInteraction::nodeFeedback()
 
 
 
+    /************************************ Retrieve Human spoken feedback ************************************/
 
-    //Method to call ABM and remember a kinematic structure from an instance
-    //if first time, just one, otherwise the current best structure and the new one
 
     bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarHumanFeedback));
 
@@ -309,7 +309,7 @@ void    abmInteraction::nodeFeedback()
     else {
         yError() << " The sentence type is not recognized, waiting for FEEDBACK";
         tryAgain = true;
-        nodeFeedback();
+        nodeFeedback(tryAgain, bestTimeAndRank);
         return;
     }
 
@@ -325,6 +325,8 @@ void    abmInteraction::nodeFeedback()
     /*string sFeedback10 = bAnswer.get(1).asList()->get(0).asString() ;
     int iFeedback10    = atoi(sFeedback10.c_str())*2 ;*/
 
+
+    /************************************ Ask confirmation for the feedback (i.e. if misrecognition) ************************************/
     osResponse.str("");
     osResponse << "So for you, this kinematic structure has a score of " << iFeedback10 << ", right?";
     iCub->say(osResponse.str().c_str(), false);
@@ -337,7 +339,7 @@ void    abmInteraction::nodeFeedback()
         tryAgain = true;
         iCub->say(osResponse.str().c_str(), false);
         yInfo() << "iCub says : " << osResponse.str();
-        nodeFeedback();
+        nodeFeedback(tryAgain, bestTimeAndRank);
 
         return;
     }
@@ -345,6 +347,8 @@ void    abmInteraction::nodeFeedback()
         tryAgain = false;
     }
 
+
+    /************************************ put the feedback into ABM, feedback table ************************************/
     list<pair<string, string> > lArgument;
     lArgument.push_back(pair<string, string>("Bob", "agent"));
     lArgument.push_back(pair<string, string>("kinematic structure", "about"));
@@ -355,19 +359,23 @@ void    abmInteraction::nodeFeedback()
     //only augmented_time is needed but better clarity for the print
     osRequest << "SELECT instance FROM main WHERE activitytype = 'feedback' ORDER BY \"time\" DESC LIMIT 1 ;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+    int feedbackInstance = -1;
     feedbackInstance = atoi(bResult.get(0).asList()->get(0).toString().c_str());
+
     yInfo() << "Feedback instance stored in main (from Bottle) : " << bResult.get(0).asList()->get(0).toString().c_str();
     yInfo() << "Feedback instance stored in main (from feedbackInstance) : " << feedbackInstance;
 
     //insert the feedback to the SQL database
-    insertFeedback(iFeedback10);
+    insertFeedback(iFeedback10, feedbackInstance);
 
-    if (iFeedback10 > bestRank) {
-        bestRank = iFeedback10;
-        bestAugmentedTime = *it_augmentedTime;
+
+    /************************************ Update best feedback ************************************/
+    if (iFeedback10 > bestTimeAndRank.second) {
+        bestTimeAndRank.first = *it_augmentedTime;
+        bestTimeAndRank.second = iFeedback10;
 
         osResponse.str("");
-        osResponse << "Yes, I have improved my skills : best rank is now " << bestRank;
+        osResponse << "Yes, I have improved my skills : best rank is now " << bestTimeAndRank.second;
         iCub->say(osResponse.str().c_str(), false);
         yInfo() << "iCub says : " << osResponse.str();
 
@@ -400,7 +408,7 @@ void    abmInteraction::nodeFeedback()
 
     if (nodeYesNo())
     {
-        nodeFeedback();
+        nodeFeedback(tryAgain, bestTimeAndRank);
         return;
     }
     else
@@ -412,7 +420,8 @@ void    abmInteraction::nodeFeedback()
         yInfo() << "iCub says : " << osResponse.str();
 
         //set back default value
-        bestRank = 0;
+        bestTimeAndRank.first = "";
+        bestTimeAndRank.second = 0;
 
 
         return;
@@ -469,30 +478,31 @@ bool abmInteraction::nodeYesNo()
 * create the vAugmentedTime for the current used Instance : sql to obtain the foreign key for the feedback table
 *
 */
-bool abmInteraction::createAugmentedTimeVector()
+bool abmInteraction::createAugmentedTimeVector(pair<string,int> & bestTimeAndRank)
 {
     Bottle bResult;
     ostringstream osRequest;
+
     //only augmented_time is needed but better clarity for the print
     osRequest << "SELECT DISTINCT instance, augmented_time, img_provider_port FROM visualdata WHERE instance = " << rememberedInstance << " AND augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' " ;
     if(resume == "agent"){
         // not proposing instance with feedback from the agent already. 
         osRequest << "AND augmented_time NOT IN (SELECT DISTINCT augmented_time FROM feedback WHERE instance = '" << rememberedInstance << "' AND agent = '" << agentName << "') " ;
-        createBestAugmentedTime() ;
+        createBestAugmentedTime(bestTimeAndRank) ;
     } else if (resume == "yes") {
         osRequest << "AND augmented_time NOT IN (SELECT DISTINCT augmented_time FROM feedback WHERE instance = '" << rememberedInstance << "') " ;
-        createBestAugmentedTime() ;
+        createBestAugmentedTime(bestTimeAndRank);
     } else if (resume == "no") {
         //come back to default value for best rank/time
-        bestRank = 0 ;
-        bestAugmentedTime = "" ;
+        bestTimeAndRank.first = "";
+        bestTimeAndRank.second = 0;
     }
 
     osRequest << " ORDER BY augmented_time ASC ;";
 
     osRequest << " ;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str());
-    //yInfo() << "[createAugmentedTimeVector] SQL request bReply : " << bResult.toString();
+    yInfo() << "[createAugmentedTimeVector] SQL request bReply : " << bResult.toString();
     vAugmentedTime.clear();
 
     if (bResult.toString() != "NULL") {
@@ -503,6 +513,8 @@ bool abmInteraction::createAugmentedTimeVector()
     }
     else {
         yError() << "Request to obtain augmented from instance " << rememberedInstance << " is NULL : are you sure there are some augmented images?";
+        bestTimeAndRank.first = "";
+        bestTimeAndRank.second = -1;
         return false;
     }
 
@@ -521,7 +533,7 @@ bool abmInteraction::createAugmentedTimeVector()
 * update bestRank and bestAugmentedTime, depending on the resume
 *
 */
-bool abmInteraction::createBestAugmentedTime()
+bool abmInteraction::createBestAugmentedTime(pair<string,int> & bestTimeAndRank)
 {
     Bottle bResult;
     ostringstream osRequest;
@@ -542,15 +554,15 @@ bool abmInteraction::createBestAugmentedTime()
     //yInfo() << "[createBestAugmentedTime] SQL request bReply : " << bResult.toString();
 
     if (bResult.toString() != "NULL" && bResult.size() > 0) {
-            bestAugmentedTime = bResult.get(0).asList()->get(0).toString();
-            bestRank = atoi(bResult.get(0).asList()->get(1).toString().c_str());
+            bestTimeAndRank.first = bResult.get(0).asList()->get(0).toString();
+            bestTimeAndRank.second = atoi(bResult.get(0).asList()->get(1).toString().c_str());
 
-            yInfo() << "[createBestAugmentedTime] bestAugmentedTime : " << bestAugmentedTime << " with rank = " << bestRank;
+            yInfo() << "[createBestAugmentedTime] bestAugmentedTime : " << bestTimeAndRank.first << " with rank = " << bestTimeAndRank.second;
     }
     else {
-        yInfo() << "Request to obtain augmented from instance " << rememberedInstance << " is NULL : are you sure there are some augmented images with feedback?";
-        bestRank = 0 ;
-        bestAugmentedTime = "" ;
+        yInfo() << "No feedback yet according to resume setup for instance " << rememberedInstance ;
+        bestTimeAndRank.first = "";
+        bestTimeAndRank.second = 0;
         
         return false;
     }
@@ -562,7 +574,7 @@ bool abmInteraction::createBestAugmentedTime()
 * create the vAugmentedTime for the current used Instance : sql to obtain the foreign key for the feedback table
 *
 */
-bool abmInteraction::insertFeedback(int feedback)
+bool abmInteraction::insertFeedback(int feedback, int feedbackInstance)
 {
     Bottle bResult;
     ostringstream osRequest;
