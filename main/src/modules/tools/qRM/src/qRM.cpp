@@ -2,7 +2,7 @@
 
 
 /*
-*   Get the context path of a .grxml grammar, and return it as a string
+*  Get the context path of a .grxml grammar, and return it as a string
 *
 */
 string qRM::grammarToString(string sPath)
@@ -12,7 +12,7 @@ string qRM::grammarToString(string sPath)
 
     if (!isGrammar)
     {
-        cout << "Error in qRM::grammarToString. Couldn't open file : " << sPath << "." << endl;
+        yInfo() << " Error in qRM::grammarToString. Couldn't open file : " << sPath << " .";
         return "Error in qRM::grammarToString. Couldn't open file";
     }
 
@@ -31,27 +31,26 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("qRM")).asString().c_str();
     setName(moduleName.c_str());
 
-
-    cout << "0" << endl;
-
- /*   nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
+    nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
     nameGrammarSentenceTemporal = rf.findFileByName(rf.check("nameGrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
     nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
-    nameGrammarNodeTrainAP = rf.findFileByName(rf.check("nameGrammarNodeTrainAP.xml", Value("nameGrammarNodeTrainAP.xml")).toString());
-    testMax1 = rf.findFileByName(rf.check("hFeedback.xml", Value("hFeedback.xml")).toString());*/
+    nameGrammarNodeTrainAP = rf.findFileByName(rf.check("GrammarNodeTrainAP", Value("GrammarNodeTrainAP.xml")).toString());
+    nameGrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
+    nameGrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
+    testMax1 = rf.findFileByName(rf.check("hFeedback.xml", Value("hFeedback.xml")).toString());
 
 
-    cout << moduleName << ": finding configuration files..." << endl;
+    yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
 
-    bool    bEveryThingisGood = true;
+    bool  bEveryThingisGood = true;
 
     // Open port2reasoning
     port2abmReasoningName = "/";
     port2abmReasoningName += getName() + "/toAbmR";
 
     if (!Port2abmReasoning.open(port2abmReasoningName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2abmReasoningName << endl;
+        yInfo() << getName() << " : Unable to open port " << port2abmReasoningName;
         bEveryThingisGood &= false;
     }
     bEveryThingisGood &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
@@ -62,32 +61,32 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     iCub->opc->isVerbose &= false;
     if (!iCub->connect())
     {
-        cout << "iCubClient : Some dependencies are not running..." << endl;
+        yInfo() << " iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
 
-    //   calibrationThread = new AutomaticCalibrationThread(100,"ical");
+    //  calibrationThread = new AutomaticCalibrationThread(100,"ical");
     string test;
-    //    calibrationThread->start();
-    //   calibrationThread->suspend();
+    //  calibrationThread->start();
+    //  calibrationThread->suspend();
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
 
     if (!iCub->getRecogClient())
     {
-        cout << "WARNING SPEECH RECOGNIZER NOT CONNECTED" << endl;
+        yInfo() << " WARNING SPEECH RECOGNIZER NOT CONNECTED";
     }
     if (!iCub->getABMClient())
     {
-        cout << "WARNING ABM NOT CONNECTED" << endl;
+        yInfo() << " WARNING ABM NOT CONNECTED";
     }
 
-    //    calibrationRT("right");
+    //  calibrationRT("right");
 
-    //    populateOpc();
+    //  populateOpc();
 
-//    nodeTest();
+    //  nodeTest();
 
     return true;
 }
@@ -114,20 +113,20 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         return false;
     }
     else if (command.get(0).asString() == "help") {
-        cout << helpMessage;
+        yInfo() << helpMessage;
         reply.addString("ok");
     }
     else if (command.get(0).asString() == "calib")
     {
-        cout << "calibration of the RT" << endl;
+        yInfo() << " calibration of the RT";
         if (command.size() == 2)
         {
-            cout << "default : left hand" << endl;
+            yInfo() << " default : left hand";
             reply = calibrationRT("left");
         }
         else
         {
-            cout << "using " << command.get(1).asString() << " hand" << endl;
+            yInfo() << " using " << command.get(1).asString() << " hand";
             reply = calibrationRT(command.get(1).asString());
         }
     }
@@ -146,7 +145,7 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool qRM::updateModule() {
-    //  mainLoop();
+    // mainLoop();
     return true;
 }
 
@@ -167,7 +166,7 @@ Bottle qRM::calibrationRT(std::string side)
 
     //Calibrate
     iCub->say("Now I will self calibrate.");
-    //  iCub->look("cursor_0");
+    // iCub->look("cursor_0");
     //Start the thread that will get the points pairs
     calibrationThread->clear();
 
@@ -210,9 +209,9 @@ Bottle qRM::calibrationRT(std::string side)
 }
 
 
-void    qRM::mainLoop()
+void  qRM::mainLoop()
 {
-    ostringstream osError;          // Error message
+    ostringstream osError;     // Error message
 
     Bottle bOutput;
 
@@ -233,22 +232,22 @@ void    qRM::mainLoop()
 
     while (!fGetaReply)
     {
-        //      Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
+        //   Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
 
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
+        yInfo() << " Reply from Speech Recog : " << bSpeechRecognized.toString();
 
         if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
-            osError << "Check " << nameMainGrammar;
+            osError << " Check " << nameMainGrammar;
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
         }
 
         if (bSpeechRecognized.get(0).toString() == "0")
         {
-            osError << "Grammar not recognized";
+            osError << " Grammar not recognized";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
         }
 
         bAnswer = *bSpeechRecognized.get(1).asList();
@@ -267,7 +266,7 @@ void    qRM::mainLoop()
         osError.str("");
         osError << " | STOP called";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
     }
 
 
@@ -284,7 +283,7 @@ void    qRM::mainLoop()
 
         lArgument.push_back(pair<string, string>(sObject, "word"));
 
-        vector<Object*>      presentObjects;
+        vector<Object*>   presentObjects;
         iCub->opc->checkout();
         list<Entity*> entities = iCub->opc->EntitiesCache();
         presentObjects.clear();
@@ -310,7 +309,7 @@ void    qRM::mainLoop()
         }
 
 
-        cout << "Most salient is : " << nameTrackedObject << " with saliency=" << maxSalience << endl;
+        yInfo() << " Most salient is : " << nameTrackedObject << " with saliency=" << maxSalience;
         lArgument.push_back(pair<string, string>(nameTrackedObject, "focus"));
 
         iCub->getABMClient()->sendActivity("says", "look", "sentence", lArgument, true);
@@ -328,7 +327,7 @@ void    qRM::mainLoop()
 
         lArgument.push_back(pair<string, string>(sWord, "word"));
 
-        cout << "bMessenger is : " << bMessenger.toString() << endl;
+        yInfo() << " bMessenger is : " << bMessenger.toString();
 
         iCub->getABMClient()->sendActivity("says", "look", "sentence", lArgument, true);
 
@@ -338,7 +337,7 @@ void    qRM::mainLoop()
         bSendReasoning.addString("askWordKnowledge");
         bSendReasoning.addString("getWordFromObject");
 
-        vector<Object*>      presentObjects;
+        vector<Object*>   presentObjects;
         iCub->opc->checkout();
         list<Entity*> entities = iCub->opc->EntitiesCache();
         presentObjects.clear();
@@ -363,31 +362,31 @@ void    qRM::mainLoop()
             }
         }
 
-        cout << "Most salient is : " << nameTrackedObject << " with saliency=" << maxSalience << endl;
+        yInfo() << " Most salient is : " << nameTrackedObject << " with saliency=" << maxSalience;
 
         list<pair<string, string> > lArgument;
 
         lArgument.push_back(pair<string, string>(nameTrackedObject, "word"));
 
-        cout << "bMessenger is : " << bMessenger.toString() << endl;
+        yInfo() << " bMessenger is : " << bMessenger.toString();
 
         iCub->getABMClient()->sendActivity("says", "look", "sentence", lArgument, true);
 
         bSendReasoning.addString(nameTrackedObject);
         Port2abmReasoning.write(bSendReasoning, bMessenger);
 
-        cout << "bMessenger is : " << bMessenger.toString() << endl;
+        yInfo() << " bMessenger is : " << bMessenger.toString();
 
     }
 }
 
 
-void    qRM::nodeTest()
+void  qRM::nodeTest()
 {
-    ostringstream osError;          // Error message
+    ostringstream osError;     // Error message
 
     iCub->say("Yep ?");
-    cout << "Yep ? " << endl;
+    yInfo() << " Yep ? ";
 
     Bottle bOutput;
 
@@ -414,7 +413,7 @@ void    qRM::nodeTest()
         osError.str("");
         osError << " | STOP called";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
     }
 
     yInfo() << " bRecognized " << bRecognized.toString();
@@ -435,7 +434,7 @@ void    qRM::nodeTest()
         osError.str("");
         osError << " | STOP called";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
     }
 
     yInfo() << " bRecognized " << bRecognized.toString();
@@ -443,12 +442,12 @@ void    qRM::nodeTest()
     nodeTest();
 }
 
-void    qRM::nodeSentenceTemporal()
+void  qRM::nodeSentenceTemporal()
 {
-    ostringstream osError;          // Error message
+    ostringstream osError;     // Error message
 
     iCub->say("Yep ?");
-    cout << "Yep ? " << endl;
+    yInfo() << " Yep ? ";
 
     Bottle bOutput;
 
@@ -475,7 +474,7 @@ void    qRM::nodeSentenceTemporal()
         osError.str("");
         osError << " | STOP called";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
     }
 
     yInfo() << " bRecognized " << bRecognized.toString();
@@ -507,11 +506,11 @@ void    qRM::nodeSentenceTemporal()
     }
 
     ostringstream osResponse;
-    osResponse << "So, you said that " << (sAgent == "I") ? "you " : ((sAgent == "You") ? "I" : sAgent);
-    osResponse << " will " << sVerb << "to the " << sLocation << " " << sAdverb << " ?";
+    osResponse << " So, you said that " << (sAgent == "I") ? "you " : ((sAgent == "You") ? "I" : sAgent);
+    osResponse << " will " << sVerb << " to the " << sLocation << " " << sAdverb << " ?";
 
     iCub->say(osResponse.str().c_str());
-    cout << "osResponse" << endl;
+    yInfo() << " osResponse";
     if (!nodeYesNo())
     {
         nodeSentenceTemporal();
@@ -520,15 +519,15 @@ void    qRM::nodeSentenceTemporal()
 
     iCub->getABMClient()->sendActivity("action", sVerb, "qRM", lArgument, true);
 
-    cout << "Wait for end signal" << endl;
+    yInfo() << " Wait for end signal";
 
-    nodeYesNo();        // wait for end of action
+    nodeYesNo();    // wait for end of action
 
     iCub->getABMClient()->sendActivity("action", sVerb, "qRM", lArgument, false);
 
     iCub->say("Ok ! Another ?");
 
-    cout << "Another ? " << endl;
+    yInfo() << " Another ? ";
     if (nodeYesNo())
     {
         nodeSentenceTemporal();
@@ -555,14 +554,14 @@ bool qRM::nodeYesNo()
 
     if (bRecognized.get(0).asInt() == 0)
     {
-        cout << bRecognized.get(1).toString() << endl;
+        yInfo() << bRecognized.get(1).toString();
         return false;
     }
 
     bAnswer = *bRecognized.get(1).asList();
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
-    if (bAnswer.get(0).asString() == "yes")        return true;
+    if (bAnswer.get(0).asString() == "yes")    return true;
 
     return false;
 }
@@ -593,7 +592,7 @@ bool qRM::populateSpecific(Bottle bInput){
         yWarning() << " in qRM::populateSpecific | wrong number of input";
         return false;
     }
-    
+
     if (bInput.get(1).toString() == "agent")
     {
         string sName = bInput.get(2).toString();
@@ -648,8 +647,34 @@ Bottle qRM::exploreEntity()
     {
         yInfo() << " Hello, I don't know you. Who are you ?";
         iCub->say(" Hello, I don't know you. Who are you ?");
-        string sName;
-        cin >> sName;
+
+        //bool fGetaReply = false;
+        Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+            bAnswer, //response from speech recog without transfer information, including raw sentence
+            bSemantic; // semantic information of the content of the recognition
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskNameAgent), 20);
+
+        if (bRecognized.get(0).asInt() == 0)
+        {
+            yWarning() << " error in qRM::exploreEntity | askNameAgent | Error in speechRecog";
+            bOutput.addString("error");
+            bOutput.addString("error in speechRecog");
+            return bOutput;
+        }
+
+        bAnswer = *bRecognized.get(1).asList();
+        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+        if (bAnswer.get(0).asString() == "stop")
+        {
+            yInfo() << " in qRM::exploreEntity | askNameAgent | stop called";
+            bOutput.addString("error");
+            bOutput.addString("stop called");
+            return bOutput;
+        }
+
+        string sName = bSemantic.check("agent", Value("unknown")).asString();
+
         Agent* agentToChange = iCub->opc->addAgent("unknown");
         agentToChange->m_present = false;
         iCub->opc->commit(agentToChange);
@@ -671,8 +696,34 @@ Bottle qRM::exploreEntity()
     {
         yInfo() << " Hum, what is this object ?";
         iCub->say(" Hum, what is this object ?");
-        string sName;
-        cin >> sName;
+
+        //bool fGetaReply = false;
+        Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+            bAnswer, //response from speech recog without transfer information, including raw sentence
+            bSemantic; // semantic information of the content of the recognition
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskNameObject), 20);
+
+        if (bRecognized.get(0).asInt() == 0)
+        {
+            yWarning() << " error in qRM::exploreEntity | askNameObject | Error in speechRecog";
+            bOutput.addString("error");
+            bOutput.addString("error in speechRecog");
+            return bOutput;
+        }
+
+        bAnswer = *bRecognized.get(1).asList();
+        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+        if (bAnswer.get(0).asString() == "stop")
+        {
+            yInfo() << " in qRM::exploreEntity | askNameObject | stop called";
+            bOutput.addString("error");
+            bOutput.addString("stop called");
+            return bOutput;
+        }
+
+        string sName = bSemantic.check("agent", Value("unknown")).asString();
+
         Object* objectToChange = iCub->opc->addObject("unknown");
         objectToChange->m_present = false;
         iCub->opc->commit(objectToChange);
@@ -694,8 +745,34 @@ Bottle qRM::exploreEntity()
     {
         yInfo() << " Hum, what is this object ?";
         iCub->say(" Hum, what is this object ?");
-        string sName;
-        cin >> sName;
+
+        //bool fGetaReply = false;
+        Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+            bAnswer, //response from speech recog without transfer information, including raw sentence
+            bSemantic; // semantic information of the content of the recognition
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskNameObject), 20);
+
+        if (bRecognized.get(0).asInt() == 0)
+        {
+            yWarning() << " error in qRM::exploreEntity | askNameRTObject | Error in speechRecog";
+            bOutput.addString("error");
+            bOutput.addString("error in speechRecog");
+            return bOutput;
+        }
+
+        bAnswer = *bRecognized.get(1).asList();
+        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+        if (bAnswer.get(0).asString() == "stop")
+        {
+            yInfo() << " in qRM::exploreEntity | askNameRTObject | stop called";
+            bOutput.addString("error");
+            bOutput.addString("stop called");
+            return bOutput;
+        }
+
+        string sName = bSemantic.check("agent", Value("unknown")).asString();
+
         RTObject* objectToChange = iCub->opc->addRTObject("unknown");
         objectToChange->m_present = false;
         iCub->opc->commit(objectToChange);

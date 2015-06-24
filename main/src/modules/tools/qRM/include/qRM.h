@@ -10,6 +10,8 @@ private:
     AutomaticCalibrationThread* calibrationThread;
     Port        rpc;
     string      nameMainGrammar;
+    string      nameGrammarAskNameAgent;
+    string      nameGrammarAskNameObject;
     string      nameGrammarSentenceTemporal;
     string      nameGrammarYesNo;
     string		nameGrammarNodeTrainAP;
