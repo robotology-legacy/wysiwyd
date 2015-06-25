@@ -139,7 +139,6 @@ Bottle opcEars::insertEntity(Entity *A)
         osEntity << ") ";
         bOutput.addString(osEntity.str().c_str());
     }
-
     // If entities are object :
     if (A->entity_type() == EFAA_OPC_ENTITY_OBJECT)
     {
@@ -201,24 +200,18 @@ Bottle opcEars::insertEntity(Entity *A)
         // output format : (instance, idagent, subject, verb, object, time, place, manner )
         // for each beliefs
 
-        // TODO: Quick fix, but someone from UPF / WP5? needs to take care that
-        // the comparison works properly!
-        if (AgA.beliefs().size() > 0) {
-            for (list<Relation>::iterator it_Beli = AgA.beliefs().begin(); it_Beli != AgA.beliefs().end(); it_Beli++)
+        for (list<Relation>::const_iterator it_Beli = AgA.beliefs().begin(); it_Beli != AgA.beliefs().end(); ++it_Beli)
+        {
+            if (!fBelief)
             {
-                if (!fBelief)
-                {
-                    osBeliefs << " ( ";
-                    fBelief = true;
-                }
-                else {
-                    osBeliefs << ", ( ";
-                }
-                osBeliefs << instance << " , " << AgA.opc_id() << " , '" << it_Beli->subject() << "' , '" << it_Beli->verb() << "' , '" << it_Beli->object() << "' , '" << it_Beli->complement_time() << "' , '" << it_Beli->complement_place() << "' , '" << it_Beli->complement_manner() << "' ) ";
+                osBeliefs << " ( ";
+                fBelief = true;
             }
+            else {
+                osBeliefs << ", ( ";
+            }
+            osBeliefs << instance << " , " << AgA.opc_id() << " , '" << it_Beli->subject() << "' , '" << it_Beli->verb() << "' , '" << it_Beli->object() << "' , '" << it_Beli->complement_time() << "' , '" << it_Beli->complement_place() << "' , '" << it_Beli->complement_manner() << "' ) ";
         }
-
-
 
         bOutput.addString(osEntity.str().c_str());
         bOutput.addString(osBeliefs.str().c_str());
@@ -454,7 +447,6 @@ Bottle opcEars::insertOPC(string sName)
     bEntities.addString(osContent.str().c_str());
 
     // ---- RELATIONS ---- //
-
     for (list<Relation>::iterator it_R = opcTemp->lRelations.begin(); it_R != opcTemp->lRelations.end(); it_R++)
     {
         if (!fContent)

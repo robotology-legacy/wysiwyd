@@ -212,7 +212,7 @@ public:
     /**
     * Get a read-only copy of the agent believes.
     */
-    std::list<Relation> beliefs();
+    const std::list<Relation> &beliefs();
 
     bool                operator==(const Agent &b);
 };

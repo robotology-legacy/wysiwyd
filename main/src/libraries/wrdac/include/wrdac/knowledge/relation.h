@@ -77,32 +77,32 @@ namespace wysiwyd{namespace wrdac{
         /**
         * Get the name of the relation's subject.
         */
-        std::string        subject();
+        std::string        subject() const;
         
         /**
         * Get the name of the relation's object.
         */
-        std::string        object();
+        std::string        object() const;
 
         /**
         * Get the type of the relation.
         */
-        std::string        verb();
+        std::string        verb() const;
 
         /**
         * Get the complement of place of the relation.
         */
-        std::string        complement_place();
+        std::string        complement_place() const;
         
         /**
         * Get the complement of time of the relation.
         */
-        std::string        complement_time();
+        std::string        complement_time() const;
         
         /**
         * Get the complement of manner of the relation.
         */
-        std::string        complement_manner();
+        std::string        complement_manner() const;
         
         bool                operator==(const Relation &b);
         bool                operator<(const Relation &b);

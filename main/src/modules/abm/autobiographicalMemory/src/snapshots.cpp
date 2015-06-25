@@ -134,7 +134,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     bMain.addString(string(osMain.str()).c_str());
     bMain = request(bMain);
 
-
     OPCClient *opcWorld;
     //Connection to the OPC
     (bMental) ? opcWorld = opcWorldMental : opcWorld = opcWorldReal;

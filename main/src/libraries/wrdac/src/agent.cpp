@@ -187,7 +187,7 @@ bool Agent::checkBelief(Relation r)
 	return (find(m_belief.begin(),m_belief.end(),r) != m_belief.end());
 }
 
-list<Relation> Agent::beliefs()
+const std::list<Relation> &Agent::beliefs()
 {
 	return m_belief;
 }

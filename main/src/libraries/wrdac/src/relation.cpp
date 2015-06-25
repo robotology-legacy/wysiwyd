@@ -209,32 +209,32 @@ int Relation::ID()
     return m_opcId;
 }
 
-string Relation::subject()
+string Relation::subject() const
 {    
     return m_subject;
 }
 
-string Relation::object()
+string Relation::object() const
 {    
     return m_object;
 }
 
-string Relation::verb()
+string Relation::verb() const
 {    
     return m_verb;
 }
 
-string Relation::complement_place()
+string Relation::complement_place() const
 {    
     return m_complement_place;
 }
 
-string Relation::complement_time()
+string Relation::complement_time() const
 {    
     return m_complement_time;
 }
 
-string Relation::complement_manner()
+string Relation::complement_manner() const
 {    
     return m_complement_manner;
 }

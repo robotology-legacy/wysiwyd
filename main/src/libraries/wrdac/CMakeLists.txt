@@ -17,7 +17,6 @@ set(folder_source src/action.cpp
                   src/opcEars.cpp          
                   src/opcSave.cpp
                   src/relation.cpp
-                  src/representations.cpp
                   src/rtObject.cpp)
 
 set(folder_header include/wrdac/functions.h

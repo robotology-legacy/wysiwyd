@@ -95,14 +95,14 @@ namespace wysiwyd{namespace wrdac{
         /**
         * Return the name of an entity (which has to be unique within the OPC)
         */
-        std::string             name(){return m_name.c_str();}
+        std::string             name() const {return m_name.c_str();}
 
         void                    changeName(std::string sName) { m_name = sName; }
         
         /**
         * Return the id of an entity (which has to be unique within the OPC)
         */
-        int                 opc_id(){return m_opc_id;}
+        int                 opc_id() const {return m_opc_id;}
 
         /**
         * Returns the name of an entity contained in a property, returns the string NULL if property is not set
