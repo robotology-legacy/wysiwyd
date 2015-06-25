@@ -116,25 +116,27 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
         std::string::iterator end_pos = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
         concatenated_port.erase(end_pos, concatenated_port.end());
 
-        mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
-        mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
-
         if (!includeAugmented && augmented == "") {
+            mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+            mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
             yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
-            Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
+            Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort);
         }
         else if (includeAugmented) {
             if (!desired_times.empty() && augmented != "") {
                 size_t pos = std::find(desired_times.begin(), desired_times.end(), augmented_time) - desired_times.begin();
                 stringstream ss; ss << pos; string pos_str = ss.str();
                 if (pos < desired_times.size()) {
+                    mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+                    mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
                     yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str;
-                    Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str, "tcp");
+                    Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str);
                 }
-            }
-            else {
+            } else {
+                mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
+                mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
                 yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort;
-                Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort, "tcp");
+                Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort);
             }
         }
     }
