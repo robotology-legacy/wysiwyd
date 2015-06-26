@@ -32,18 +32,23 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
-    nameGrammarSentenceTemporal = rf.findFileByName(rf.check("nameGrammarSentenceTemporal", Value("GrammarSentenceTemporal.xml")).toString());
     nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
-    nameGrammarNodeTrainAP = rf.findFileByName(rf.check("GrammarNodeTrainAP", Value("GrammarNodeTrainAP.xml")).toString());
     nameGrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
     nameGrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
-    testMax1 = rf.findFileByName(rf.check("hFeedback.xml", Value("hFeedback.xml")).toString());
 
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
 
     bool  bEveryThingisGood = true;
+
+    double seed = (double)time(NULL);
+    int count = 0;
+    while (seed == time(NULL)){ ++count; }
+    seed = (int)seed % 100;
+    srand((int)seed);
+    yInfo() << " seed is: " << seed;
+    yInfo() << " rand is: " << rand();
 
     // Open port2reasoning
     port2abmReasoningName = "/";
@@ -130,13 +135,9 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
             reply = calibrationRT(command.get(1).asString());
         }
     }
-    else if (command.get(0).asString() == "populateSpecific") {
-        yInfo() << " populateSpecific";
-        (populateSpecific(command)) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
-    }
     else if (command.get(0).asString() == "exploreEntity") {
         yInfo() << " exploreEntity";
-        reply = exploreEntity();
+        reply = exploreEntity(command);
     }
 
 
@@ -397,7 +398,7 @@ void  qRM::nodeTest()
         bSendReasoning, // send the information of recall to the abmReasoning
         bMessenger; //to be send TO speech recog
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(testMax1), 20);
+    //   bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(testMax1), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -458,7 +459,7 @@ void  qRM::nodeSentenceTemporal()
         bSendReasoning, // send the information of recall to the abmReasoning
         bMessenger; //to be send TO speech recog
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarSentenceTemporal), 20);
+    //    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarSentenceTemporal), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -584,70 +585,28 @@ bool qRM::populateOpc(){
     return true;
 }
 
-
-bool qRM::populateSpecific(Bottle bInput){
-
-    if (bInput.size() != 3)
-    {
-        yWarning() << " in qRM::populateSpecific | wrong number of input";
-        return false;
-    }
-
-    if (bInput.get(1).toString() == "agent")
-    {
-        string sName = bInput.get(2).toString();
-        Agent* agent = iCub->opc->addAgent(sName);
-        agent->m_ego_position[0] = -1.4;
-        agent->m_ego_position[2] = 0.60;
-        agent->m_present = 1;
-        agent->m_color[0] = 200;
-        agent->m_color[1] = 50;
-        agent->m_color[2] = 50;
-        iCub->opc->commit(agent);
-    }
-
-    if (bInput.get(1).toString() == "object")
-    {
-        string sName = bInput.get(2).toString();
-        Object* obj = iCub->opc->addObject(sName);
-        obj->m_ego_position[0] = -.4;
-        obj->m_ego_position[2] = 0.20;
-        obj->m_present = 1;
-        obj->m_color[0] = 50;
-        obj->m_color[1] = 200;
-        obj->m_color[2] = 50;
-        iCub->opc->commit(obj);
-    }
-
-    if (bInput.get(1).toString() == "rtobject")
-    {
-        string sName = bInput.get(2).toString();
-        RTObject* obj = iCub->opc->addRTObject(sName);
-        obj->m_ego_position[0] = -0.2;
-        obj->m_present = 1;
-        obj->m_color[0] = 50;
-        obj->m_color[1] = 50;
-        obj->m_color[2] = 200;
-        iCub->opc->commit(obj);
-    }
-
-    return true;
-}
-
-
-Bottle qRM::exploreEntity()
+Bottle qRM::exploreEntity(Bottle bInput)
 {
     Bottle bOutput;
 
-    Entity* currentEntity = iCub->opc->getEntity("unknown", true);
+    if (bInput.size() != 3)
+    {
+        yInfo() << " qRM::exploreEntity | Problem in input size.";
+        bOutput.addString("Problem in input size");
+        return bOutput;
+    }
 
-    iCub->look("unknown");
+    string currentEntityType = bInput.get(1).toString();
+    string sNameTarget = bInput.get(2).toString();
 
-    if (currentEntity->entity_type() == "agent")
+    yInfo() << " EntityType : " << currentEntityType;
+    double timeDelay = 1.;
+
+    if (currentEntityType == "agent")
     {
         yInfo() << " Hello, I don't know you. Who are you ?";
+        iCub->getSpeechClient()->TTS(" Hello, I don't know you. Who are you ?", false);
         iCub->say(" Hello, I don't know you. Who are you ?");
-
         //bool fGetaReply = false;
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
             bAnswer, //response from speech recog without transfer information, including raw sentence
@@ -673,29 +632,39 @@ Bottle qRM::exploreEntity()
             return bOutput;
         }
 
+        bSemantic = *bAnswer.get(1).asList();
         string sName = bSemantic.check("agent", Value("unknown")).asString();
 
-        Agent* agentToChange = iCub->opc->addAgent("unknown");
+        Agent* agentToChange = iCub->opc->addAgent(sNameTarget);
+        Time::delay(timeDelay);
+
         agentToChange->m_present = false;
         iCub->opc->commit(agentToChange);
-
-        Time::delay(0.5);
+        Time::delay(timeDelay);
 
         agentToChange->changeName(sName);
+        iCub->opc->commit(agentToChange);
+        Time::delay(timeDelay);
+
         agentToChange->m_present = true;
         iCub->opc->commit(agentToChange);
+
         yInfo() << " Well, Nice to meet you " << sName;
         iCub->say("Well, Nice to meet you " + sName);
+        Time::delay(timeDelay);
+
+        iCub->opc->update();
 
         bOutput.addString("success");
         bOutput.addString("agent");
         return bOutput;
     }
 
-    if (currentEntity->entity_type() == "object")
+    if (currentEntityType == "object")
     {
         yInfo() << " Hum, what is this object ?";
-        iCub->say(" Hum, what is this object ?");
+        iCub->getSpeechClient()->TTS(" Hum, what is this object ?", false);
+        //      iCub->say(" Hum, what is this object ?");
 
         //bool fGetaReply = false;
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
@@ -722,9 +691,13 @@ Bottle qRM::exploreEntity()
             return bOutput;
         }
 
-        string sName = bSemantic.check("agent", Value("unknown")).asString();
+        yInfo() << " bAnswer is: " << bAnswer.toString();
+        bSemantic = *bAnswer.get(1).asList();
+        yInfo() << " bSemantic is: " << bSemantic.toString();
 
-        Object* objectToChange = iCub->opc->addObject("unknown");
+        string sName = bSemantic.check("object", Value("unknown")).asString();
+
+        Object* objectToChange = iCub->opc->addObject(sNameTarget);
         objectToChange->m_present = false;
         iCub->opc->commit(objectToChange);
 
@@ -741,10 +714,11 @@ Bottle qRM::exploreEntity()
         return bOutput;
     }
 
-    if (currentEntity->entity_type() == "rtobject")
+    if (currentEntityType == "rtobject")
     {
         yInfo() << " Hum, what is this object ?";
-        iCub->say(" Hum, what is this object ?");
+        //        iCub->say(" Hum, what is this object ?");
+        iCub->getSpeechClient()->TTS(" Hum, what is this object ?", false);
 
         //bool fGetaReply = false;
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
@@ -771,9 +745,13 @@ Bottle qRM::exploreEntity()
             return bOutput;
         }
 
-        string sName = bSemantic.check("agent", Value("unknown")).asString();
+        yInfo() << " bAnswer is: " << bAnswer.toString();
+        bSemantic = *bAnswer.get(1).asList();
+        yInfo() << " bSemantic is: " << bSemantic.toString();
 
-        RTObject* objectToChange = iCub->opc->addRTObject("unknown");
+        string sName = bSemantic.check("object", Value("unknown")).asString();
+
+        RTObject* objectToChange = iCub->opc->addRTObject(sNameTarget);
         objectToChange->m_present = false;
         iCub->opc->commit(objectToChange);
 

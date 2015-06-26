@@ -12,11 +12,7 @@ private:
     string      nameMainGrammar;
     string      nameGrammarAskNameAgent;
     string      nameGrammarAskNameObject;
-    string      nameGrammarSentenceTemporal;
     string      nameGrammarYesNo;
-    string		nameGrammarNodeTrainAP;
-    string      testMax1;
-    string		testMax2;
 
     yarp::os::Port Port2abmReasoning;       // a port to communicate with the reasoning module
 
@@ -41,14 +37,13 @@ public:
 
     bool updateModule();
     bool    populateOpc();
-    bool    populateSpecific(Bottle bInput);
 
     Bottle calibrationRT(std::string side);
     void    nodeSentenceTemporal();
     void    nodeTest();
     bool    nodeYesNo();
 
-    Bottle  exploreEntity();
+    Bottle  exploreEntity(Bottle bInput);
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);

@@ -111,12 +111,26 @@ bool IIE::updateModule() {
 
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
     {
+        string sName = (*itEnt)->name();
+        string sNameCut = sName;
+        string delimiter = "_";
+        size_t pos = 0;
+        std::string token;
+        while ((pos = sName.find(delimiter)) != std::string::npos) {
+            token = sName.substr(0, pos);
+            std::cout << token << std::endl;
+            sName.erase(0, pos + delimiter.length());
+            sNameCut = token;
+        }
+        yInfo() << " sNameCut is:" << sNameCut;
         // check is label is known
-        if ((*itEnt)->name() == "unknown")
+
+        if (sNameCut == "unknown" || sNameCut == "partner")
         {
             // label is unknown send information to qRM
             Bottle b2Supervisor;
             b2Supervisor.addString("exploreEntity");
+            b2Supervisor.addString((*itEnt)->entity_type());
             b2Supervisor.addString((*itEnt)->name());
             Bottle bReplyFromQRM;
             Port2Supervisor.write(b2Supervisor, bReplyFromQRM);
