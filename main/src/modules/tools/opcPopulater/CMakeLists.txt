@@ -1,4 +1,4 @@
-﻿# Copyright: (C) 2015WYSIWYD Consortium
+# Copyright: (C) 2015WYSIWYD Consortium
 # Authors: Grégoire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
