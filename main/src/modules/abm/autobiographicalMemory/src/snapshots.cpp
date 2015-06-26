@@ -248,7 +248,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
             sndName = fullSentence + ".wav";
 
-            //read default sound from file and put data in yarp::sig::Sound  to store properly with semantic/instance that we are now aware of
+            //read sound from file and put data in yarp::sig::Sound to store properly with semantic/instance that we are now aware of
             yarp::sig::Sound s;
             string defaultSoundFullPath = storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav";
             printf("opening file %s\n", defaultSoundFullPath.c_str());
@@ -272,8 +272,10 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
                     yInfo() << "Default sound file renamed and moved to " << fullPath;
 
+                    database_mutex.lock();
                     //add the sound into the  large_objects table of ABM
                     unsigned int snd_oid = ABMDataBase->lo_import(fullPath.c_str());
+                    database_mutex.unlock();
 
                     Bottle bRequest;
                     ostringstream osArg;
