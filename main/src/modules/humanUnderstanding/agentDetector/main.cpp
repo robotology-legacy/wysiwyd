@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Stéphane Lallée, moved from EFAA by Maxime Petit
+ * Authors: StÃ©phane LallÃ©e, moved from EFAA by Maxime Petit
  * email:   stephane.lallee@gmail.com
  * website: http://wysiwyd.upf.edu/ 
  * Permission is granted to copy, distribute, and/or modify this program
@@ -55,7 +55,7 @@ It requires the \ref kinectServer an OPC and RFH running.
 \section tested_os_sec Tested OS
 Windows, Linux
 
-\author Stéphane Lallée
+\author StÃ©phane LallÃ©e
 */
 
 #include <yarp/os/Network.h>

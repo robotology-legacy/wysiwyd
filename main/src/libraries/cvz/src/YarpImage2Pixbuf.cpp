@@ -13,7 +13,7 @@
 bool cvz::helpers::yarpImage2Pixbuf(yarp::sig::ImageOf<yarp::sig::PixelRgb> *sourceImg, 
                       GdkPixbuf* destPixbuf)
 {
-	// il pixbuf deve essere gia`  allocato e di dimensioni opportune
+	// il pixbuf deve essere gia`Â  allocato e di dimensioni opportune
 	guchar *dst_data;
 	char *src_data;
 	unsigned int rowstride;
