@@ -28,10 +28,7 @@ private:
     std::string sKeyWord;
 
     std::string handlerPortName;
-    std::string port2SpeechRecogName;
-    std::string port2abmName;
     std::string port2abmReasoningName;
-    std::string port2iSpeakName;
     std::string port2OPCmanagerName;
     std::string port2BodySchemaName;
 
@@ -41,11 +38,8 @@ private:
     std::string nameGrammarNode4;
 
     yarp::os::Port handlerPort;             // a port to handle messages 
-    yarp::os::Port Port2SpeechRecog;        // a port to send grammar to the speech recog
-    yarp::os::Port Port2ABM;                // a port to communicate with autobiographicalMemory
     yarp::os::Port Port2abmReasoning;       // a port to communicate with the reasoning module
     yarp::os::Port Port2OPCManager;         // a port to communicate with the OPC manager to imagine the memory
-    yarp::os::Port Port2iSpeak;             // a port to communicate with the speech synthesis
     yarp::os::Port Port2BodySchema;         // a port to communicate with the Body Schema module
 
     bool isAwake;

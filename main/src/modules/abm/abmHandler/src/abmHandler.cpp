@@ -68,25 +68,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     handlerPortName += getName() + "/rpc";         // use getName() rather than a literal 
 
     if (!handlerPort.open(handlerPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << handlerPortName << endl;
-        bEveryThingisGood = false;
-    }
-
-    // Open port2abm
-    port2abmName = "/";
-    port2abmName += getName() + "/toABM";
-
-    if (!Port2ABM.open(port2abmName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2abmName << endl;
-        bEveryThingisGood = false;
-    }
-
-    // Open port2speech
-    port2SpeechRecogName = "/";
-    port2SpeechRecogName += getName() + "/toSpeechRecog";
-
-    if (!Port2SpeechRecog.open(port2SpeechRecogName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2SpeechRecogName << endl;
+        yInfo() << getName() << ": Unable to open port " << handlerPortName;
         bEveryThingisGood = false;
     }
 
@@ -95,7 +77,7 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     port2abmReasoningName += getName() + "/toAbmR";
 
     if (!Port2abmReasoning.open(port2abmReasoningName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2abmReasoningName << endl;
+        yInfo() << getName() << ": Unable to open port " << port2abmReasoningName;
         bEveryThingisGood = false;
     }
 
@@ -105,24 +87,15 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     port2OPCmanagerName += getName() + "/toOPCManager";
 
     if (!Port2OPCManager.open(port2OPCmanagerName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2OPCmanagerName << endl;
+        yInfo() << getName() << ": Unable to open port " << port2OPCmanagerName;
         bEveryThingisGood = false;
     }
 
-    // Open port2ispeak
-    port2iSpeakName = "/";
-    port2iSpeakName += getName() + "/toiSpeak";
 
-    if (!Port2iSpeak.open(port2iSpeakName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2iSpeakName << endl;
-        bEveryThingisGood = false;
-    }
-
-    // Open port2ispeak
     port2BodySchemaName = "/" + getName() + "/toBodySchema";
 
     if (!Port2BodySchema.open(port2BodySchemaName.c_str())) {
-        cout << getName() << ": Unable to open port " << port2BodySchemaName << endl;
+        yInfo() << getName() << ": Unable to open port " << port2BodySchemaName;
         bEveryThingisGood = false;
     }
 
@@ -143,18 +116,15 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     //      bEveryThingisGood &= !iCub->connect()  
     //bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/request:i");
 
-    bEveryThingisGood &= Network::connect(port2abmName.c_str(), "/autobiographicalMemory/rpc");
-    bOptionnalModule &= Network::connect(port2SpeechRecogName.c_str(), "/speechRecognizer/rpc");
     bOptionnalModule &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
     bOptionnalModule &= Network::connect(port2OPCmanagerName, "/opcManager/rpc");
-    bOptionnalModule &= Network::connect(port2iSpeakName, "/iSpeak");
     bOptionnalModule &= Network::connect(port2BodySchemaName, "/bodySchema/rpc");
 
     bOptionnalModule &= Network::connect("/mainLoop/speechGrammar/keyword:o", handlerPortName.c_str());
 
     if (!bOptionnalModule)
     {
-        cout << endl << "Some dependencies are not running (ICubClient or port(s) connections)" << endl << endl;
+        yInfo() << " Some dependencies are not running (ICubClient or port(s) connections)";
     }
 
     //Deal with settings of the speech synthesizer
@@ -167,9 +137,12 @@ bool abmHandler::configure(yarp::os::ResourceFinder &rf) {
     //iCub->opc->checkout();
 
     if (!bEveryThingisGood || !bOptionnalModule)
-        cout << endl << "Some dependencies are not running (ICubClient or port(s) connections)" << endl << endl;
+        yInfo() << " Some dependencies are not running (ICubClient or port(s) connections)";
     else
-        cout << endl << endl << "----------------------------------------------" << endl << endl << "abmHandler ready !" << endl << endl;
+    {
+        yInfo() << " ----------------------------------------------";
+        yInfo() << " abmHandler ready !";
+    }
 
     node1();
 
@@ -182,11 +155,8 @@ bool abmHandler::interruptModule() {
 
 bool abmHandler::close() {
     handlerPort.close();
-    Port2ABM.close();
-    Port2SpeechRecog.close();
     Port2abmReasoning.close();
     Port2OPCManager.close();
-    Port2iSpeak.close();
     iCub->close();
     delete iCub;
 
@@ -206,7 +176,7 @@ bool abmHandler::respond(const Bottle& command, Bottle& reply) {
         return false;
     }
     else if (command.get(0).asString() == "help") {
-        cout << helpMessage;
+        yInfo() << helpMessage;
         reply.addString("ok");
     }
     else if (command.get(0).asString() == sKeyWord.c_str()) {
@@ -240,7 +210,7 @@ string abmHandler::grammarToString(string sPath)
 
     if (!isGrammar)
     {
-        cout << "Error in abmHandler::grammarToString. Couldn't open file : " << sPath << "." << endl;
+        yInfo() << " Error in abmHandler::grammarToString. Couldn't open file : " << sPath << ".";
         return "Error in abmHandler::grammarToString. Couldn't open file";
     }
 
@@ -266,73 +236,32 @@ Bottle abmHandler::node1()
     sCurrentGrammarFile = nameGrammarNode1;
     ostringstream osError;          // Error message
     osError << "Error in abmHandler | " << sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
+    yInfo() << " In " << sCurrentNode;
 
     Bottle bOutput;
 
-    bool fGetaReply = false;
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-        bMessenger, //to be send TO speech recog
-        bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSendReasoning, // send the information of recall to the abmReasoning
-        bBodySchema, //send rpc command to BodySchema
-        bSpeak, // bottle for tts
-        bTemp;
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+        bAnswer, //response from speech recog without transfer information, including raw sentence, or with ABM
+        bSemantic; // semantic information of the content of the recognition
 
-    bMessenger.addString("recog");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(sCurrentGrammarFile), 20);
 
-
-    while (!fGetaReply)
+    if (bRecognized.get(0).asInt() == 0)
     {
-        Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
-
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
-        {
-            osError << "Check " << sCurrentGrammarFile;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (!bSpeechRecognized.get(1).isList())
-        {
-            osError << "Grammar not recognized or speechRecognizer is in Legacy mode!";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-
+        yWarning() << " error in abmHandler::node1 | Error in speechRecog";
+        bOutput.addString("error");
+        bOutput.addString("error in speechRecog");
+        return bOutput;
     }
-    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
+    bAnswer = *bRecognized.get(1).asList();
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
     if (bAnswer.get(0).asString() == "stop")
     {
-        iCurrentInstance = -1;
-        osError.str("");
-        osError << " | STOP called";
-        bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << " in abmHandler::node1 | stop called";
+        bOutput.addString("error");
+        bOutput.addString("stop called");
         return bOutput;
     }
 
@@ -355,15 +284,9 @@ Bottle abmHandler::node1()
         }
         else if (sCurrentActivity == "shared plan")
         {
-            ostringstream osRequest;
-            osRequest << "SELECT DISTINCT activityname FROM main WHERE activitytype = 'sharedplan'";
-            bMessenger.clear();
-            bMessenger.addString("request");
-            bMessenger.addString(osRequest.str().c_str());
+            bAnswer = iCub->getABMClient()->requestFromString("SELECT DISTINCT activityname FROM main WHERE activitytype = 'sharedplan'");
 
-            Port2ABM.write(bMessenger, bAnswer);
-
-            cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+            yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
 
             if (bAnswer.toString() == "NULL" || bAnswer.isNull())
             {
@@ -371,7 +294,7 @@ Bottle abmHandler::node1()
                 osError.str("");
                 osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
                 bOutput.addString(osError.str());
-                cout << osError.str() << endl;
+                yInfo() << osError.str();
                 return bOutput;
             }
 
@@ -385,15 +308,10 @@ Bottle abmHandler::node1()
             }
             osSentence << ".";
 
-            cout << osSentence.str() << endl;
+            yInfo() << osSentence.str();
             iCub->say(osSentence.str());
-            sLastSentence = osSentence.str();
-            bSpeak.addString(osSentence.str());
-            Port2iSpeak.write(bSpeak);
-
 
             return node3();
-
 
         }
         else if (sCurrentActivity == "game")
@@ -409,7 +327,7 @@ Bottle abmHandler::node1()
         bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
         sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
         sCurrentPronoun = bSemantic.check("pronon", Value("none")).asString();
-        bTemp = *bSemantic.get(3).asList()->get(1).asList();
+        Bottle bTemp = *bSemantic.get(3).asList()->get(1).asList();
 
         psCurrentComplement.first = bTemp.get(0).asString();
         psCurrentComplement.second = bTemp.get(1).asString();
@@ -421,15 +339,15 @@ Bottle abmHandler::node1()
             iCurrentInstance = -1;
             osError << "no pronoun or activity";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
             return bOutput;
         }
 
         ostringstream osRequest;
-        osRequest << "SELECT main.instance, main.time FROM main, contentarg WHERE main.instance = contentarg.instance ";
-
-
-        osRequest << " AND ( contentarg.argument = '" << psCurrentComplement.second << "' OR main.activitytype = '" << psCurrentComplement.second << "' OR main.activityname = '" << psCurrentComplement.second << "' ) ";
+        osRequest << "SELECT main.instance, main.time FROM main, contentarg WHERE main.instance = contentarg.instance "
+            << " AND ( contentarg.argument = '" << psCurrentComplement.second <<
+            "' OR main.activitytype = '" << psCurrentComplement.second <<
+            "' OR main.activityname = '" << psCurrentComplement.second << "' ) ";
 
         if (sCurrentActivity != "met" && sCurrentActivity != "played")
         {
@@ -443,37 +361,30 @@ Bottle abmHandler::node1()
 
         fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
 
-        bMessenger.clear();
-        bMessenger.addString("request");
-        bMessenger.addString(osRequest.str().c_str());
+        bAnswer = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
-        Port2ABM.write(bMessenger, bAnswer);
-
-        cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+        yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
         if (bAnswer.toString() == "NULL" || bAnswer.isNull())
         {
             iCurrentInstance = -1;
             osError.str("");
             osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
             return bOutput;
         }
 
         iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
         ostringstream osAnswer;
         osAnswer << "It was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
-        sLastSentence = osAnswer.str();
-        bSpeak.addString(osAnswer.str());
+        iCub->say(osAnswer.str());
 
-        Port2iSpeak.write(bSpeak);
-
+        Bottle bSendReasoning;
         bSendReasoning.addString("imagine");
         bSendReasoning.addInt(iCurrentInstance);
         Port2abmReasoning.write(bSendReasoning);
-        cout << "Result of Reasoning for imagination: " << bTemp.toString() << endl;
-
-        cout << "iCurrentInstance = " << iCurrentInstance << endl;
+        yInfo() << " Result of Reasoning for imagination: " << bTemp.toString();
+        yInfo() << " iCurrentInstance = " << iCurrentInstance;
 
         return node2();
     }
@@ -481,8 +392,8 @@ Bottle abmHandler::node1()
     // Can you remember the first/last time when you ...
     /*else if (sQuestionKind == "REMEMBERING")
     {
-    cout << "============= REMEMBERING ===================" << endl ;
-    cout << bSemantic.toString().c_str() << endl ;
+    yInfo() << " ============= REMEMBERING ===================" ;
+    yInfo() << bSemantic.toString().c_str() ;
 
     bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
     sCurrentActivity = bSemantic.check("activity_past", Value("none")).asString();
@@ -493,14 +404,14 @@ Bottle abmHandler::node1()
     sCurrentActivity = "babbling";
     }
 
-    cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun << endl ;
+    yInfo() << " first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun ;
 
     if (sCurrentPronoun == "none" || sCurrentActivity == "none")
     {
     iCurrentInstance = -1;
     osError << "no pronoun or activity";
     bOutput.addString(osError.str());
-    cout << osError.str() << endl;
+    yInfo() << osError.str() ;
     return bOutput;
     }
 
@@ -514,7 +425,7 @@ Bottle abmHandler::node1()
 
     fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
 
-    cout << "REQUEST : " << osRequest.str() << endl ;
+    yInfo() << " REQUEST : " << osRequest.str() ;
 
     bMessenger.clear();
     bMessenger.addString("request");
@@ -523,7 +434,7 @@ Bottle abmHandler::node1()
     bAnswer.clear();
     Port2ABM.write(bMessenger, bAnswer);
 
-    cout << "Response of ABM: \n ==>" << bAnswer.toString() << "<==" << endl;
+    yInfo() << " Response of ABM: \n ==>" << bAnswer.toString() << "<==" ;
 
     if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
     {
@@ -531,7 +442,7 @@ Bottle abmHandler::node1()
     osError.str("");
     osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
     bOutput.addString(osError.str());
-    cout << osError.str() << endl;
+    yInfo() << osError.str() ;
     return bOutput;
     }
 
@@ -552,151 +463,150 @@ Bottle abmHandler::node1()
     }*/
 
     // Can you remember the first/last time when you ...
-    else if (sQuestionKind == "ACTING")
-    {
-        cout << "============= ACTING ===================" << endl;
-        cout << bSemantic.toString().c_str() << endl;
+    ////else if (sQuestionKind == "ACTING")
+    ////{
+    ////    yInfo() << " ============= ACTING ===================";
+    ////    yInfo() << bSemantic.toString().c_str();
 
-        sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
+    ////    sCurrentActivity = bSemantic.check("activity", Value("none")).asString();
 
-        bBodySchema.clear();
-        if (sCurrentActivity == "babbling"){
-            bBodySchema.addString("babblingLearning");
-        }
+    ////    bBodySchema.clear();
+    ////    if (sCurrentActivity == "babbling"){
+    ////        bBodySchema.addString("babblingLearning");
+    ////    }
 
-        cout << "To BodySchema : " << bBodySchema.toString() << endl;
+    ////    yInfo() << " To BodySchema : " << bBodySchema.toString();
 
-        //Response from iCub through iSpeak
-        ostringstream osAnswer;
-        osAnswer << "Of course! Let me show you with my left arm";
+    ////    //Response from iCub through iSpeak
+    ////    ostringstream osAnswer;
+    ////    osAnswer << "Of course! Let me show you with my left arm";
 
-        bSpeak.clear();
-        bAnswer.clear();
-        bSpeak.addString(osAnswer.str());
-        Port2iSpeak.write(bSpeak);
+    ////    bSpeak.clear();
+    ////    bAnswer.clear();
+    ////    bSpeak.addString(osAnswer.str());
+    ////    Port2iSpeak.write(bSpeak);
 
-        yarp::os::Time::delay(3);
-        //cout << "bAnswer from iSpeak : " << bAnswer.toString() << endl ;
+    ////    yarp::os::Time::delay(3);
+    ////    //yInfo() << " bAnswer from iSpeak : " << bAnswer.toString() ;
 
-        //Port2BodySchema (testing no reply)
-        //Port2BodySchema.write(bBodySchema);
+    ////    //Port2BodySchema (testing no reply)
+    ////    //Port2BodySchema.write(bBodySchema);
 
-        //waiting for reply
-        bAnswer.clear();
-        Port2BodySchema.write(bBodySchema, bAnswer);
+    ////    //waiting for reply
+    ////    bAnswer.clear();
+    ////    Port2BodySchema.write(bBodySchema, bAnswer);
 
-        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl;
+    ////    yInfo() << " bAnswer from BodySchema : " << bAnswer.toString();
 
-        return node1();
-    }
+    ////    return node1();
+    ////}
 
-    //For Apple demo
-    else if (sQuestionKind == "REMEMBERING")
-    {
-        cout << "============= REMEMBERING ===================" << endl;
-        cout << bSemantic.toString().c_str() << endl;
+    //////For Apple demo
+    ////else if (sQuestionKind == "REMEMBERING")
+    ////{
+    ////    yInfo() << " ============= REMEMBERING ===================";
+    ////    yInfo() << bSemantic.toString().c_str();
 
-        bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
-        sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
-        sCurrentPronoun = bSemantic.check("name", Value("HyungJin")).asString();
+    ////    bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
+    ////    sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
+    ////    sCurrentPronoun = bSemantic.check("name", Value("HyungJin")).asString();
 
-        bBodySchema.clear();
-        if (sCurrentActivity == "motor babbling"){
-            sCurrentActivity = "babbling";
-        }
+    ////    bBodySchema.clear();
+    ////    if (sCurrentActivity == "motor babbling"){
+    ////        sCurrentActivity = "babbling";
+    ////    }
 
-        cout << "first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity << " ; sCurrentPronoun = " << sCurrentPronoun << endl;
+    ////    yInfo() << " first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity << " ; sCurrentPronoun = " << sCurrentPronoun;
 
-        if (sCurrentPronoun == "none" || sCurrentActivity == "none")
-        {
-            iCurrentInstance = -1;
-            osError << "no pronoun or activity";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
+    ////    if (sCurrentPronoun == "none" || sCurrentActivity == "none")
+    ////    {
+    ////        iCurrentInstance = -1;
+    ////        osError << "no pronoun or activity";
+    ////        bOutput.addString(osError.str());
+    ////        yInfo() << osError.str();
+    ////        return bOutput;
+    ////    }
 
-        ostringstream osRequest;
-        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '" << sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
-        if (sCurrentPronoun == "you") {
-            osRequest << " argument = 'icub' AND role = 'agent1') ";
-        }
-        else {
-            osRequest << " argument = '" << sCurrentPronoun << "' AND role = 'agent1') ";
-        }
+    ////    ostringstream osRequest;
+    ////    osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '" << sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+    ////    if (sCurrentPronoun == "you") {
+    ////        osRequest << " argument = 'icub' AND role = 'agent1') ";
+    ////    }
+    ////    else {
+    ////        osRequest << " argument = '" << sCurrentPronoun << "' AND role = 'agent1') ";
+    ////    }
 
-        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
+    ////    fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
 
-        cout << "REQUEST : " << osRequest.str() << endl;
+    ////    yInfo() << " REQUEST : " << osRequest.str();
 
-        bMessenger.clear();
-        bMessenger.addString("request");
-        bMessenger.addString(osRequest.str().c_str());
+    ////    bMessenger.clear();
+    ////    bMessenger.addString("request");
+    ////    bMessenger.addString(osRequest.str().c_str());
 
-        bAnswer.clear();
-        Port2ABM.write(bMessenger, bAnswer);
+    ////    bAnswer.clear();
+    ////    Port2ABM.write(bMessenger, bAnswer);
 
-        cout << "Response of ABM: ==>" << bAnswer.toString() << "<==" << endl;
+    ////    yInfo() << " Response of ABM: ==>" << bAnswer.toString() << "<==";
 
-        if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
-        {
-            iCurrentInstance = -1;
-            osError.str("");
-            osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
+    ////    if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
+    ////    {
+    ////        iCurrentInstance = -1;
+    ////        osError.str("");
+    ////        osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
+    ////        bOutput.addString(osError.str());
+    ////        yInfo() << osError.str();
+    ////        return bOutput;
+    ////    }
 
-        iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
-        ostringstream osAnswer;
-        osAnswer << "Yes, it was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
-        sLastSentence = osAnswer.str();
+    ////    iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
+    ////    ostringstream osAnswer;
+    ////    osAnswer << "Yes, it was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
+    ////    sLastSentence = osAnswer.str();
 
-        bSpeak.clear();
-        bSpeak.addString(osAnswer.str());
-        Port2iSpeak.write(bSpeak);
+    ////    bSpeak.clear();
+    ////    bSpeak.addString(osAnswer.str());
+    ////    Port2iSpeak.write(bSpeak);
 
-        yarp::os::Time::delay(2);
+    ////    yarp::os::Time::delay(2);
 
-        osAnswer.str(std::string());
-        osAnswer << "Actually, I remember, I am visualizing it right now ";
-        sLastSentence = osAnswer.str();
+    ////    osAnswer.str(std::string());
+    ////    osAnswer << "Actually, I remember, I am visualizing it right now ";
+    ////    sLastSentence = osAnswer.str();
 
-        bSpeak.clear();
-        bSpeak.addString(osAnswer.str());
-        Port2iSpeak.write(bSpeak);
+    ////    bSpeak.clear();
+    ////    bSpeak.addString(osAnswer.str());
+    ////    Port2iSpeak.write(bSpeak);
 
-        //yarp::os::Time::delay(3);
+    //    //yarp::os::Time::delay(3);
 
-        //TODO : triggerStreaming for raw images
-        bMessenger.clear();
-        bAnswer.clear();
-        bMessenger.addString("triggerStreaming");
-        bMessenger.addInt(iCurrentInstance); //string iCurrentInstance cast in int
-        bMessenger.addInt(1); //for syncro real time : Yes
-        bMessenger.addInt(0); //for include augmented images? No
+    //    //TODO : triggerStreaming for raw images
+    //    bMessenger.clear();
+    //    bAnswer.clear();
+    //    bMessenger.addString("triggerStreaming");
+    //    bMessenger.addInt(iCurrentInstance); //string iCurrentInstance cast in int
+    //    bMessenger.addInt(1); //for syncro real time : Yes
+    //    bMessenger.addInt(0); //for include augmented images? No
 
-        cout << "Bottle sent to ABM: ==>" << bMessenger.toString() << "<==" << endl;
-        Port2ABM.write(bMessenger, bAnswer);
-        cout << "Response of ABM: ==>" << bAnswer.toString() << "<==" << endl;
+    //    yInfo() << " Bottle sent to ABM: ==>" << bMessenger.toString() << "<==";
+    //    Port2ABM.write(bMessenger, bAnswer);
+    //    yInfo() << " Response of ABM: ==>" << bAnswer.toString() << "<==";
 
-        //Connect port to yarpview for future visualization : HACK
-        //Network::connect("/autobiographicalMemory/icub/camcalib/right/out", "/yarpview/abm/icub/camcalib/right");
-        //Network::connect("/autobiographicalMemory/icub/camcalib/left/out", "/yarpview/abm/icub/camcalib/left");
+    //    //Connect port to yarpview for future visualization : HACK
+    //    //Network::connect("/autobiographicalMemory/icub/camcalib/right/out", "/yarpview/abm/icub/camcalib/right");
+    //    //Network::connect("/autobiographicalMemory/icub/camcalib/left/out", "/yarpview/abm/icub/camcalib/left");
 
-        //return bOutput ;
-        return appleNode2();
-    }
+    //    //return bOutput ;
+    //    return appleNode2();
+    //}
 
     else
     {
         string sError = "What da hell are you talking about Bro ?";
-        cout << sError << endl;
+        yInfo() << sError;
         iCub->say(sError);
         sLastSentence = sError;
         bOutput.addString(sError);
-        Port2iSpeak.write(bOutput);
         return bOutput;
     }
 }
@@ -704,66 +614,40 @@ Bottle abmHandler::node1()
 Bottle abmHandler::appleNode2()
 {
     sCurrentNode = "Apple Node 2";
-    sCurrentGrammarFile = nameGrammarNode2;
+    sCurrentGrammarFile = nameGrammarNode2; // TO  I guess there is a mistake
     ostringstream osError;          // Error message
     osError << "Error in abmHandler | " << sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
+    yInfo() << " In " << sCurrentNode;
 
     Bottle bOutput;
 
     bool fGetaReply = false;
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-        bMessenger, //to be send TO speech recog
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSendReasoning, // send the information of recall to the abmReasoning
-        bBodySchema, //send rpc command to BodySchema
-        bSpeak, // bottle for tts
-        bTemp;
+        bBodySchema,
+        bSemantic; // semantic information of the content of the recognition
 
-    bMessenger.addString("recog");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(sCurrentGrammarFile), 20);
 
-    while (!fGetaReply)
+    if (bRecognized.get(0).asInt() == 0)
     {
-        Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
-
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
-        {
-            osError << "Check " << sCurrentGrammarFile;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (!bSpeechRecognized.get(1).isList())
-        {
-            osError << "Grammar not recognized or speechRecognizer is in Legacy mode!";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-
+        yWarning() << " error in abmHandler::appleNode2 | Error in speechRecog";
+        bOutput.addString("error");
+        bOutput.addString("error in speechRecog");
+        return bOutput;
     }
+
+    bAnswer = *bRecognized.get(1).asList();
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    if (bAnswer.get(0).asString() == "stop")
+    {
+        yInfo() << " in abmHandler::appleNode2 | stop called";
+        bOutput.addString("error");
+        bOutput.addString("stop called");
+        return bOutput;
+    }
+
 
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
@@ -772,8 +656,8 @@ Bottle abmHandler::appleNode2()
 
     if (sQuestionKind == "AUGMENTING")
     {
-        cout << "============= AUGMENTING ===================" << endl;
-        cout << bSemantic.toString().c_str() << endl;
+        yInfo() << " ============= AUGMENTING ===================";
+        yInfo() << bSemantic.toString().c_str();
 
         sCurrentAugmented = bSemantic.check("augmented", Value("kinematic structure")).asString();
 
@@ -783,17 +667,14 @@ Bottle abmHandler::appleNode2()
         }
 
         //iCurrentInstance from node1()
-        cout << "iCurrentInstance = " << iCurrentInstance << " and want augmented for " << sCurrentAugmented << endl;
+        yInfo() << " iCurrentInstance = " << iCurrentInstance << " and want augmented for " << sCurrentAugmented;
 
         ostringstream osAnswer;
         //TODO LATER : check if there is such augmented or not
-        osAnswer << "Yes, let me show you " << endl;
+        osAnswer << "Yes, let me show you ";
         sLastSentence = osAnswer.str();
 
-        bSpeak.clear();
-        bSpeak.addString(osAnswer.str());
-        Port2iSpeak.write(bSpeak);
-
+        iCub->say(sLastSentence);
 
         yarp::os::Time::delay(2);
 
@@ -801,20 +682,13 @@ Bottle abmHandler::appleNode2()
         osAnswer << "You can look at my reasoning about your kinematic structure of your left hand";
         sLastSentence = osAnswer.str();
 
-        bSpeak.clear();
-        bSpeak.addString(osAnswer.str());
-        Port2iSpeak.write(bSpeak);
+        iCub->say(sLastSentence);
 
         //yarp::os::Time::delay(3);
 
-        //TODO : triggerStreaming for raw images
-        bMessenger.clear();
-        bMessenger.addString("triggerStreaming");
-        bMessenger.addInt(iCurrentInstance);
-        bMessenger.addInt(1); //for syncro real time : yes
-        bMessenger.addInt(1); //for include augmented images?: yes
+        //TODO : triggerStreaming for raw images  
+        bAnswer = iCub->getABMClient()->triggerStreaming(iCurrentInstance, 1, 1); // syncro real time yes, augmented images yes
 
-        Port2ABM.write(bMessenger, bAnswer);
 
         //TODO : streaming RAW + augmented image from sCurrentAugmented
         /*string augmentedFromPortName = "/autobiographicalMemory/icub/camcalib/left/out/" + sCurrentAugmented;
@@ -835,63 +709,35 @@ Bottle abmHandler::appleNode3()
     sCurrentGrammarFile = nameGrammarNode3;
     ostringstream osError;          // Error message
     osError << "Error in abmHandler | " << sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
+    yInfo() << " In " << sCurrentNode;
 
     Bottle bOutput;
 
-    bool fGetaReply = false;
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-        bMessenger, //to be send TO speech recog
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSendReasoning, // send the information of recall to the abmReasoning
-        bBodySchema, //send rpc command to BodySchema
-        bSpeak, // bottle for tts
-        bTemp;
+        bBodySchema,
+        bSemantic; // semantic information of the content of the recognition
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(sCurrentGrammarFile), 20);
 
-    bMessenger.addString("recog");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
-
-    while (!fGetaReply)
+    if (bRecognized.get(0).asInt() == 0)
     {
-        Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
-
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
-        {
-            osError << "Check " << sCurrentGrammarFile;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (!bSpeechRecognized.get(1).isList())
-        {
-            osError << "Grammar not recognized or speechRecognizer is in Legacy mode!";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-
+        yWarning() << " error in abmHandler::appleNode3 | Error in speechRecog";
+        bOutput.addString("error");
+        bOutput.addString("error in speechRecog");
+        return bOutput;
     }
+
+    bAnswer = *bRecognized.get(1).asList();
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    if (bAnswer.get(0).asString() == "stop")
+    {
+        yInfo() << " in abmHandler::appleNode3 | stop called";
+        bOutput.addString("error");
+        bOutput.addString("stop called");
+        return bOutput;
+    }
+
 
     string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
@@ -900,8 +746,8 @@ Bottle abmHandler::appleNode3()
 
     if (sQuestionKind == "ACTING")
     {
-        cout << "============= ACTING ===================" << endl;
-        cout << bSemantic.toString().c_str() << endl;
+        yInfo() << " ============= ACTING ===================";
+        yInfo() << bSemantic.toString().c_str();
 
         sCurrentActivity = bSemantic.check("activity", Value("motor babbling")).asString();
 
@@ -910,19 +756,12 @@ Bottle abmHandler::appleNode3()
             bBodySchema.addString("babblingLearning");
         }
 
-        cout << "To BodySchema : " << bBodySchema.toString() << endl;
+        yInfo() << " To BodySchema : " << bBodySchema.toString();
 
-        //Response from iCub through iSpeak
-        ostringstream osAnswer;
-        osAnswer << "Of course! Let me show you with my left arm";
-
-        bSpeak.clear();
-        bAnswer.clear();
-        bSpeak.addString(osAnswer.str());
-        Port2iSpeak.write(bSpeak);
-
+        sLastSentence = "Of course! Let me show you with my left arm";
+        iCub->say(sLastSentence);
         yarp::os::Time::delay(3);
-        //cout << "bAnswer from iSpeak : " << bAnswer.toString() << endl ;
+        //yInfo() << " bAnswer from iSpeak : " << bAnswer.toString() ;
 
         //Port2BodySchema (testing no reply)
         //Port2BodySchema.write(bBodySchema);
@@ -931,7 +770,7 @@ Bottle abmHandler::appleNode3()
         bAnswer.clear();
         Port2BodySchema.write(bBodySchema, bAnswer);
 
-        cout << "bAnswer from BodySchema : " << bAnswer.toString() << endl;
+        yInfo() << " bAnswer from BodySchema : " << bAnswer.toString();
 
         bOutput.addList() = bAnswer;
 
@@ -953,73 +792,38 @@ Bottle abmHandler::node2()
     sCurrentGrammarFile = nameGrammarNode2;
     ostringstream osError;          // Error message
     osError << "Error in abmHandler | " << sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
-
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-        bMessenger, //to be send TO speech recog
-        bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSpeak, // to ommunicate with the tts
-        bTemp;
+    yInfo() << " In " << sCurrentNode;
 
     Bottle bOutput;
+    
     string sSentence = "You want to know more about it ?";
     iCub->say(sSentence);
-    bSpeak.addString(sSentence);
-    cout << sSentence << endl;
-    Port2iSpeak.write(bSpeak);
+    yInfo() << sSentence;
 
-    bool fGetaReply = false;
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic; // semantic information of the content of the recognition
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(sCurrentGrammarFile), 20);
 
-
-    bMessenger.addString("recog");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
-
-
-    while (!fGetaReply)
+    if (bRecognized.get(0).asInt() == 0)
     {
-        Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
-
-        cout << "Reply from Speech Recog : " << bSpeechRecognized.toString() << endl;
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
-        {
-            osError << "Check " << sCurrentGrammarFile;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-
+        yWarning() << " error in qRM::exploreEntity | askNameAgent | Error in speechRecog";
+        bOutput.addString("error");
+        bOutput.addString("error in speechRecog");
+        return bOutput;
     }
 
-    // STOP & REPEAT | not Bottle
+    bAnswer = *bRecognized.get(1).asList();
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
     if (bAnswer.get(0).asString() == "stop")
     {
-        iCurrentInstance = -1;
-        osError.str("");
-        osError << " | STOP called";
-        bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << " in qRM::exploreEntity | askNameAgent | stop called";
+        bOutput.addString("error");
+        bOutput.addString("stop called");
         return bOutput;
     }
+    
 
     if (bAnswer.get(1).asList()->get(0).asString() == "repeat")
     {
@@ -1027,15 +831,13 @@ Bottle abmHandler::node2()
         osError.str("");
         osError << sCurrentNode << " | REPEAT called";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
 
-        bSpeak.clear();
         sLastSentence = "I said, " + sLastSentence;
-        bSpeak.addString(sLastSentence);
-        Port2iSpeak.write(bSpeak);
-
+        iCub->say(sLastSentence);
         return node2();
     }
+
     else if (bAnswer.get(1).asList()->get(0).asString() == "WHO")
     {
         // previous question was not about a game
@@ -1044,9 +846,7 @@ Bottle abmHandler::node2()
             ostringstream osAnswer;
             osAnswer << "What da hell are you taking about bro ?";
             sLastSentence = osAnswer.str();
-            bSpeak.addString(osAnswer.str());
-
-            Port2iSpeak.write(bSpeak);
+            iCub->say(sLastSentence);
             return node2();
         }
 
@@ -1061,32 +861,25 @@ Bottle abmHandler::node2()
             ostringstream osRequest;
             osRequest << "SELECT argument FROM contentarg WHERE role = 'winner' AND instance = " << iCurrentInstance;
 
-            bMessenger.clear();
-            bMessenger.addString("request");
-            bMessenger.addString(osRequest.str().c_str());
-            Port2ABM.write(bMessenger, bAnswer);
+            bAnswer = iCub->getABMClient()->requestFromString(osRequest.str());
 
-            cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+            yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
             if (bAnswer.toString() == "NULL" || bAnswer.isNull())
             {
-                bSpeak.clear();
-                bSpeak.addString("Can't remember... It might be me !");
-                sLastSentence = bSpeak.toString();
-                Port2iSpeak.write(bSpeak);
+                sLastSentence = "Can't remember... It might be me !";
+                iCub->say(sLastSentence);
 
-                bOutput = bSpeak;
+                bOutput.clear();
+                bOutput.addString(sLastSentence);
                 return node2();
             }
             string sWinner = bAnswer.get(0).asList()->get(0).toString();
             (sWinner == "icub") ? sWinner = "I" : sWinner = sWinner;
             ostringstream osAnswer;
             osAnswer << sWinner << " won the game";
-            bSpeak.clear();
-            bSpeak.addString(osAnswer.str());
             sLastSentence = osAnswer.str();
-            cout << osAnswer.str() << endl;
-            Port2iSpeak.write(bSpeak);
-
+            yInfo() << sLastSentence;
+            iCub->say(sLastSentence);
             bOutput = bAnswer;
             return node2();
         }
@@ -1095,20 +888,16 @@ Bottle abmHandler::node2()
 
             ostringstream osRequest;
             osRequest << "SELECT contentarg.argument FROM main, contentarg WHERE contentarg.instance = main.instance AND main.activityname='" << psCurrentComplement.second << "' AND contentarg.role ='winner' AND main.begin = false";
-            bMessenger.clear();
-            bMessenger.addString("request");
-            bMessenger.addString(osRequest.str().c_str());
-            Port2ABM.write(bMessenger, bAnswer);
+            bAnswer = iCub->getABMClient()->requestFromString(osRequest.str());
 
-            cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+            yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
             if (bAnswer.toString() == "NULL" || bAnswer.isNull())
             {
-                bSpeak.clear();
-                bSpeak.addString("Can't remember... It might be me !");
-                sLastSentence = bSpeak.toString();
-                Port2iSpeak.write(bSpeak);
+                sLastSentence = "Can't remember... It might be me !";
+                iCub->say(sLastSentence);
 
-                bOutput = bSpeak;
+                bOutput.clear();
+                bOutput.addString(sLastSentence);
                 return node2();
             }
 
@@ -1149,13 +938,12 @@ Bottle abmHandler::node2()
             ostringstream osAnswer;
             osAnswer << sWinnner << " usualy wins.";
 
-            bSpeak.clear();
-            bSpeak.addString(osAnswer.str());
             sLastSentence = osAnswer.str();
-            cout << osAnswer.str() << endl;
-            Port2iSpeak.write(bSpeak);
+            yInfo() << osAnswer.str();
+            iCub->say(sLastSentence);
 
-            bOutput = bAnswer;
+            bOutput.clear();
+            bOutput.addString(sLastSentence);
             return node2();
 
         }
@@ -1168,7 +956,7 @@ Bottle abmHandler::node2()
     {
         osError << "semantic is not bottle";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
         return bOutput;
     }
 
@@ -1182,7 +970,7 @@ Bottle abmHandler::node2()
 
     if (sNextTopic == "ELSE")
     {
-        cout << "Human wants to talk about something else" << endl;
+        yInfo() << " Human wants to talk about something else";
         return node1();
     }
 
@@ -1195,7 +983,7 @@ Bottle abmHandler::node2()
         {
             osError << "doesn't know context (iCurrentInstance < 7)";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
             return bOutput;
         }
 
@@ -1203,26 +991,20 @@ Bottle abmHandler::node2()
 
         if (bNextTopic.get(0).toString() == "about_agent")
         {
-            cout << sCurrentNode << " :: MORE :: about agent" << endl;
+            yInfo() << sCurrentNode << " :: MORE :: about agent";
 
             ostringstream osRequest;
-            osRequest << "SELECT name from agent WHERE presence = true AND instance = " << iCurrentInstance << endl;
+            osRequest << "SELECT name from agent WHERE presence = true AND instance = " << iCurrentInstance;
+            bAnswer = iCub->getABMClient()->requestFromString(osRequest.str());
 
-            bMessenger.clear();
-            bMessenger.addString("request");
-            bMessenger.addString(osRequest.str().c_str());
-
-            Port2ABM.write(bMessenger, bAnswer);
-
-            cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+            yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
             if (bAnswer.toString() == "NULL" || bAnswer.isNull())
             {
-                bSpeak.clear();
-                bSpeak.addString("At least me... I guess...");
-                sLastSentence = bSpeak.toString();
-                Port2iSpeak.write(bSpeak);
+                sLastSentence = "At least me... I guess...";
+                iCub->say(sLastSentence);
 
-                bOutput = bSpeak;
+                bOutput.clear();
+                bOutput.addString(sLastSentence);
                 return node2();
             }
 
@@ -1232,21 +1014,19 @@ Bottle abmHandler::node2()
                 osAnswer << bAnswer.get(0).asList()->get(i).toString() << ", ";
             }
             osAnswer << " were present.";
-            bSpeak.clear();
-            bSpeak.addString(osAnswer.str());
             sLastSentence = osAnswer.str();
-            Port2iSpeak.write(bSpeak);
+            iCub->say(sLastSentence);
 
-            bOutput = bAnswer;
+            bOutput.clear();
+            bOutput.addString(sLastSentence);
             return node2();
         }
 
         if (bNextTopic.get(0).toString() == "about_number")
         {
-            cout << sCurrentNode << " :: MORE :: about number" << endl;
+            yInfo() << sCurrentNode << " :: MORE :: about number";
 
             ostringstream osRequest;
-
 
             // ACTIVITY IS MET
             if (sCurrentActivity == "met")
@@ -1269,32 +1049,29 @@ Bottle abmHandler::node2()
                 }
             }
 
-            bMessenger.clear();
-            bMessenger.addString("request");
-            bMessenger.addString(osRequest.str().c_str());
+            bAnswer = iCub->getABMClient()->requestFromString(osRequest.str());
 
-            Port2ABM.write(bMessenger, bAnswer);
-
-            cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+            yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
             if (bAnswer.toString() == "NULL" || bAnswer.isNull())
             {
                 iCurrentInstance = -1;
-                bSpeak.clear();
-                bSpeak.addString("At least once... I guess...");
-                sLastSentence = bSpeak.toString();
-                Port2iSpeak.write(bSpeak);
 
-                bOutput = bSpeak;
+                sLastSentence = "At least once... I guess...";
+                iCub->say(sLastSentence);
+
+                bOutput.clear();
+                bOutput.addString(sLastSentence);
                 return node2();
             }
 
             ostringstream osAnswer;
             osAnswer << "It happend " << bAnswer.get(0).asList()->get(0).toString() << " times";
-            bSpeak.clear();
-            bSpeak.addString(osAnswer.str());
             sLastSentence = osAnswer.str();
-            Port2iSpeak.write(bSpeak);
 
+            iCub->say(sLastSentence);
+
+            bOutput.clear();
+            bOutput.addString(sLastSentence);
             return node2();
         }
     }
@@ -1309,80 +1086,39 @@ Bottle abmHandler::node3()
     sCurrentGrammarFile = nameGrammarNode3;
     ostringstream osError;          // Error message
     osError << "Error in abmHandler | " << sCurrentNode << " :: ";
-    cout << endl << "In " << sCurrentNode << endl << endl;
-
-    Bottle bSpeechRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer) ACK/NACK)
-        bMessenger, //to be send TO speech recog
-        bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSpeak, // to ommunicate with the tts
-        bTemp;
+    yInfo() << " In " << sCurrentNode;
 
     Bottle bOutput;
 
     string sMessage = "something else ?";
     iCub->say(sMessage);
-    bSpeak.addString(sMessage);
-    cout << sMessage << endl;
-    Port2iSpeak.write(bSpeak);
-    bSpeak.clear();
+    yInfo() << sMessage;
 
-    bool fGetaReply = false;
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic; // semantic information of the content of the recognition
 
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(sCurrentGrammarFile), 20);
 
-    bMessenger.addString("recog");
-    bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(sCurrentGrammarFile).c_str());
-
-
-    while (!fGetaReply)
+    if (bRecognized.get(0).asInt() == 0)
     {
-        Port2SpeechRecog.write(bMessenger, bSpeechRecognized);
-
-        if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 3)
-        {
-            osError << "Check " << sCurrentGrammarFile;
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        if (bSpeechRecognized.get(0).toString() == "0")
-        {
-            osError << "Grammar not recognized";
-            bOutput.addString(osError.str());
-            cout << osError.str() << endl;
-            return bOutput;
-        }
-
-        cout << "Reply from speech : " << bSpeechRecognized.toString() << endl;
-
-        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
-        bAnswer = *bSpeechRecognized.get(1).asList();
-
-        if (bAnswer.toString() != "" && !bAnswer.isNull())
-        {
-            fGetaReply = true;
-        }
-
-    }
-
-
-
-
-    // REPLY GET FROM SPEECH RECOGNIZER
-
-
-    // STOP & REPEAT
-    if (bAnswer.get(0).asString() == "stop")
-    {
-        iCurrentInstance = -1;
-        osError.str("");
-        osError << sCurrentNode << " | STOP called";
-        bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yWarning() << " error in abmHandler::node3 | Error in speechRecog";
+        bOutput.addString("error");
+        bOutput.addString("error in speechRecog");
         return bOutput;
     }
+
+    bAnswer = *bRecognized.get(1).asList();
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    if (bAnswer.get(0).asString() == "stop")
+    {
+        yInfo() << " in abmHandler::node3 | stop called";
+        bOutput.addString("error");
+        bOutput.addString("stop called");
+        return bOutput;
+    }
+
 
     if (bAnswer.get(1).asList()->get(0).asString() == "repeat")
     {
@@ -1390,13 +1126,11 @@ Bottle abmHandler::node3()
         osError.str("");
         osError << sCurrentNode << " | REPEAT called";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
 
-        bSpeak.clear();
         sLastSentence = "I said, " + sLastSentence;
-        bSpeak.addString(sLastSentence);
-        Port2iSpeak.write(bSpeak);
-
+iCub->say(sLastSentence);
+        
         return node3();
     }
 
@@ -1404,7 +1138,7 @@ Bottle abmHandler::node3()
     {
         osError << "semantic is not bottle";
         bOutput.addString(osError.str());
-        cout << osError.str() << endl;
+        yInfo() << osError.str();
         return bOutput;
     }
 
@@ -1418,7 +1152,7 @@ Bottle abmHandler::node3()
 
     if (sNextTopic == "ELSE")
     {
-        cout << "something else" << endl;
+        yInfo() << " something else";
         return node1();
     }
 
@@ -1434,20 +1168,17 @@ Bottle abmHandler::node3()
 
         ostringstream osRequest;
         osRequest << "SELECT instance FROM main WHERE activitytype = 'sharedplan' AND activityname = '" << sSP << "' LIMIT 1";
-        bMessenger.clear();
-        bMessenger.addString("request");
-        bMessenger.addString(osRequest.str().c_str());
 
-        Port2ABM.write(bMessenger, bAnswer);
+        bAnswer = iCub->getABMClient()->requestFromString(osRequest.str());
 
-        cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+        yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
         if (bAnswer.toString() == "NULL" || bAnswer.isNull())
         {
             iCurrentInstance = -1;
             osError.str("");
             osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
             return bOutput;
         }
 
@@ -1458,7 +1189,7 @@ Bottle abmHandler::node3()
             osError.str("");
             osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
             return bOutput;
         }
 
@@ -1478,20 +1209,16 @@ Bottle abmHandler::node3()
         osRequest.str("");
         osRequest << "SELECT DISTINCT contentarg.role, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND main.begin = true AND main.instance  = " << iCurrentInstance;
 
-        bMessenger.clear();
-        bMessenger.addString("request");
-        bMessenger.addString(osRequest.str().c_str());
+        bAnswer = iCub->getABMClient()->requestFromString(osRequest.str());
 
-        Port2ABM.write(bMessenger, bAnswer);
-
-        cout << "Reponse de ABM : \n" << bAnswer.toString() << endl;
+        yInfo() << " Reponse de ABM : \n" << bAnswer.toString();
         if (bAnswer.toString() == "NULL" || bAnswer.isNull())
         {
             iCurrentInstance = -1;
             osError.str("");
             osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
             return bOutput;
         }
 
@@ -1509,15 +1236,18 @@ Bottle abmHandler::node3()
 
         Bottle bToabmReasoning,
             bAction,
+            bTemp,
             bExplanation;
+
         bToabmReasoning.addString("executeActivity");
         bToabmReasoning.addString("sharedplan");
         bToabmReasoning.addString(sSP);
         bToabmReasoning.addList().copy(bListArgument);
         bToabmReasoning.addList().copy(bListRole);
         bTemp.clear();
+        
         Port2abmReasoning.write(bToabmReasoning, bTemp);
-        cout << "Response from abmR : " << endl << bTemp.toString() << endl;
+        yInfo() << " Response from abmR : \n" << bTemp.toString();
 
         if (bTemp.get(0).toString() != "ack")
         {
@@ -1525,12 +1255,12 @@ Bottle abmHandler::node3()
             osError.str("");
             osError << sCurrentNode << " :: Response from abmReasoning :: Unknown Event";
             bOutput.addString(osError.str());
-            cout << osError.str() << endl;
+            yInfo() << osError.str();
             return bOutput;
         }
         bExplanation = *bTemp.get(1).asList();
 
-        cout << endl << "bExplanation : " << bExplanation.toString() << endl << endl;
+        yInfo() << " bExplanation : " << bExplanation.toString();
 
         ostringstream osAnswer;
         Time::delay(3);
@@ -1542,8 +1272,8 @@ Bottle abmHandler::node3()
             /* bAction :
             move absolut (0.0  0.0) (action put (left cross icub) (spatial1 object1 agent1))
             */
-            cout << "Sub bottle " << i << "\t";
-            cout << bExplanation.get(i).toString() << endl;
+            yInfo() << " Sub bottle " << i << "\t";
+            yInfo() << bExplanation.get(i).toString();
             osAnswer.str("");
 
             string sAgent = bAction.get(3).asList()->get(2).asList()->get(2).toString();
@@ -1565,17 +1295,16 @@ Bottle abmHandler::node3()
             bToImagine.addList().copy(bListArgument);
             bToImagine.addList().copy(bListRole);
 
-            cout << bToImagine.toString() << endl;
+            yInfo() << bToImagine.toString();
 
             Port2OPCManager.write(bToImagine);
 
             (i != bExplanation.size() - 1) ? osAnswer << ", then, " : osAnswer << ".";
 
-            bSpeak.clear();
-            bSpeak.addString(osAnswer.str());
-            cout << "osAnswer : " << osAnswer.str() << endl;
+
+            yInfo() << " osAnswer : " << osAnswer.str();
             sLastSentence += osAnswer.str();
-            Port2iSpeak.write(bSpeak);
+            iCub->say(sLastSentence);
             Time::delay(4);
         }
     }
