@@ -97,6 +97,21 @@ namespace wysiwyd{
                 return bReplyRequest;
             }
 
+            yarp::os::Bottle triggerStreaming(int iCurrentInstance, int iSyncro, int iAugmented)
+            {
+                yarp::os::Bottle bSend,
+                    bReceived;
+
+                bSend.addString("triggerStreaming");
+                bSend.addInt(iCurrentInstance);
+                bSend.addInt(iSyncro);
+                bSend.addInt(iAugmented);
+
+                portRPC.write(bSend, bReceived);
+
+                return bReceived;
+            }
+
             yarp::os::Bottle rpcCommand(yarp::os::Bottle &bRequest)
             {
                 yarp::os::Bottle bReply;
