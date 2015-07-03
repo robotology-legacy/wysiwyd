@@ -9,9 +9,7 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
-
-    bool  bEveryThingisGood = true;
-
+    
     double seed = (double)time(NULL);
     int count = 0;
     while (seed == time(NULL)){ ++count; }
