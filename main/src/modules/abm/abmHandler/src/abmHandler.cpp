@@ -619,12 +619,10 @@ Bottle abmHandler::appleNode2()
     osError << "Error in abmHandler | " << sCurrentNode << " :: ";
     yInfo() << " In " << sCurrentNode;
 
-    Bottle bOutput;
-
-    bool fGetaReply = false;
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bBodySchema,
+        bOutput,
         bSemantic; // semantic information of the content of the recognition
 
     bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(sCurrentGrammarFile), 20);
