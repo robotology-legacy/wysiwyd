@@ -390,77 +390,72 @@ Bottle abmHandler::node1()
     }
 
     // Can you remember the first/last time when you ...
-    /*else if (sQuestionKind == "REMEMBERING")
+    else if (sQuestionKind == "REMEMBERING")
     {
-    yInfo() << " ============= REMEMBERING ===================" ;
-    yInfo() << bSemantic.toString().c_str() ;
 
-    bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
-    sCurrentActivity = bSemantic.check("activity_past", Value("none")).asString();
-    sCurrentPronoun = bSemantic.check("pronoun", Value("none")).asString();
+        Bottle bBodySchema;
+        yInfo() << " ============= REMEMBERING ===================";
+        yInfo() << bSemantic.toString().c_str();
 
-    bBodySchema.clear();
-    if(sCurrentActivity == "babbled"){
-    sCurrentActivity = "babbling";
+        bool fTimeFirst = bSemantic.check("time_value", Value("last")).asString() == "first";
+        sCurrentActivity = bSemantic.check("activity_past", Value("none")).asString();
+        sCurrentPronoun = bSemantic.check("pronoun", Value("none")).asString();
+
+        bBodySchema.clear();
+        if (sCurrentActivity == "babbled"){
+            sCurrentActivity = "babbling";
+        }
+
+        yInfo() << " first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity << " ; sCurrentPronoun = " << sCurrentPronoun;
+
+        if (sCurrentPronoun == "none" || sCurrentActivity == "none")
+        {
+            iCurrentInstance = -1;
+            osError << "no pronoun or activity";
+            bOutput.addString(osError.str());
+            yInfo() << osError.str();
+            return bOutput;
+        }
+
+        ostringstream osRequest;
+        osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '" << sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
+        if (sCurrentPronoun == "you") {
+            osRequest << " argument = 'icub' AND role = 'agent1') ";
+        }
+        else { //IMPORTANT : don't have recognition then so I is everything but the iCub
+            osRequest << " argument != 'icub' AND role = 'agent1') ";
+        }
+
+        fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
+
+        yInfo() << " REQUEST : " << osRequest.str();
+
+        Bottle bAnswer = iCub->getABMClient()->requestFromString(osRequest.str());
+
+        yInfo() << " Response of ABM: \n ==>" << bAnswer.toString() << "<==";
+
+        if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
+        {
+            iCurrentInstance = -1;
+            osError.str("");
+            osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
+            bOutput.addString(osError.str());
+            yInfo() << osError.str();
+            return bOutput;
+        }
+
+        iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
+        ostringstream osAnswer;
+        osAnswer << "It was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
+        sLastSentence = osAnswer.str();
+        iCub->say(sLastSentence);
+
+        //give the instance to hyung jin : iCurrentInstance
+
+
+        //return bOutput ;
+        return node1();
     }
-
-    yInfo() << " first time? = " << fTimeFirst << " ; activity = " << sCurrentActivity  << " ; sCurrentPronoun = " << sCurrentPronoun ;
-
-    if (sCurrentPronoun == "none" || sCurrentActivity == "none")
-    {
-    iCurrentInstance = -1;
-    osError << "no pronoun or activity";
-    bOutput.addString(osError.str());
-    yInfo() << osError.str() ;
-    return bOutput;
-    }
-
-    ostringstream osRequest;
-    osRequest << "SELECT DISTINCT main.instance, main.time FROM main, contentarg WHERE main.activityname = '"<< sCurrentActivity << "' AND main.instance = contentarg.instance AND main.begin = TRUE AND contentarg.instance IN (SELECT instance FROM contentarg WHERE ";
-    if (sCurrentPronoun == "you") {
-    osRequest << " argument = 'icub' AND role = 'agent1') ";
-    } else { //IMPORTANT : don't have recognition then so I is everything but the iCub
-    osRequest << " argument != 'icub' AND role = 'agent1') ";
-    }
-
-    fTimeFirst ? osRequest << " ORDER BY main.instance LIMIT 1" : osRequest << " ORDER BY main.instance DESC LIMIT 1";
-
-    yInfo() << " REQUEST : " << osRequest.str() ;
-
-    bMessenger.clear();
-    bMessenger.addString("request");
-    bMessenger.addString(osRequest.str().c_str());
-
-    bAnswer.clear();
-    Port2ABM.write(bMessenger, bAnswer);
-
-    yInfo() << " Response of ABM: \n ==>" << bAnswer.toString() << "<==" ;
-
-    if (bAnswer.toString() == "NULL" || bAnswer.isNull() || bAnswer.toString() == "")
-    {
-    iCurrentInstance = -1;
-    osError.str("");
-    osError << sCurrentNode << " :: Response from ABM :: Unknown Event";
-    bOutput.addString(osError.str());
-    yInfo() << osError.str() ;
-    return bOutput;
-    }
-
-    iCurrentInstance = atoi(bAnswer.get(0).asList()->get(0).asString().c_str());
-    ostringstream osAnswer;
-    osAnswer << "It was the " << dateToSpeech(bAnswer.get(0).asList()->get(1).asString().c_str());
-    sLastSentence = osAnswer.str();
-
-    bSpeak.clear();
-    bSpeak.addString(osAnswer.str());
-    Port2iSpeak.write(bSpeak);
-
-    //give the instance to hyung jin : iCurrentInstance
-
-
-    //return bOutput ;
-    return node1() ;
-    }*/
 
     // Can you remember the first/last time when you ...
     ////else if (sQuestionKind == "ACTING")
@@ -793,7 +788,7 @@ Bottle abmHandler::node2()
     yInfo() << " In " << sCurrentNode;
 
     Bottle bOutput;
-    
+
     string sSentence = "You want to know more about it ?";
     iCub->say(sSentence);
     yInfo() << sSentence;
@@ -821,7 +816,7 @@ Bottle abmHandler::node2()
         bOutput.addString("stop called");
         return bOutput;
     }
-    
+
 
     if (bAnswer.get(1).asList()->get(0).asString() == "repeat")
     {
@@ -1127,8 +1122,8 @@ Bottle abmHandler::node3()
         yInfo() << osError.str();
 
         sLastSentence = "I said, " + sLastSentence;
-iCub->say(sLastSentence);
-        
+        iCub->say(sLastSentence);
+
         return node3();
     }
 
@@ -1243,7 +1238,7 @@ iCub->say(sLastSentence);
         bToabmReasoning.addList().copy(bListArgument);
         bToabmReasoning.addList().copy(bListRole);
         bTemp.clear();
-        
+
         Port2abmReasoning.write(bToabmReasoning, bTemp);
         yInfo() << " Response from abmR : \n" << bTemp.toString();
 
