@@ -1,4 +1,17 @@
-#include <interlocutor.h>
+#ifndef _ABMREASONING_H_
+#define _ABMREASONING_H_
+
+#include <spatialKnowledge.h>
+#include <timeKnowledge.h>
+#include <sharedPlan.h>
+#include <contextualKnowledge.h>
+#include <adjKnowledge.h>
+#include <behavior.h>
+#include <knownInteraction.h>
+#include <grammarKnowledge.h>
+#include <wordKnowledge.h>
+#include <deque>
+#include <iostream>
 
 
 
@@ -9,7 +22,6 @@ private:
     // Internal member, module-related :
     abmReasoningFunction *iFunction;            //  class of generic functions
     std::string  savefile;
-    interlocutor        Interlocutor;           // interlocutor with the ABM
     wysiwyd::wrdac::OPCClient           *realOPC;                       // OPC
     wysiwyd::wrdac::OPCClient           *mentalOPC;
 
@@ -20,6 +32,8 @@ private:
 
     yarp::os::Port handlerPort;     //a port to handle messages
     yarp::os::Port senderPort;      //a port to send command to autobiographicalMemory (retrieve data from SQL db)
+    yarp::os::Port port_to_OPCManager;                    // a port to send command to the OPCManager
+
 
     // internal boolean
     bool                bDreaming;      // is the dreaming display is active for the KCF
@@ -94,7 +108,6 @@ public:
     //method called via handlerPort
     yarp::os::Bottle request(yarp::os::Bottle request);
     yarp::os::Bottle requestFromStream(std::string sInput);
-    yarp::os::Bottle sqlQueryTest();
 
 
     // query from outside
@@ -111,7 +124,6 @@ public:
 
     yarp::os::Bottle getActionConsequence(std::pair<std::string, std::string> pNameArg);
     yarp::os::Bottle getActionConsequenceDrives(std::pair<std::string, std::string> pNameArg);
-    yarp::os::Bottle testGetIdFromActivity();
 
     yarp::os::Bottle renameAction(yarp::os::Bottle bInput);
 
@@ -142,6 +154,20 @@ public:
 
     // asking functions
     yarp::os::Bottle askLastActivity(yarp::os::Bottle bInput);
+    yarp::os::Bottle askGrammar(yarp::os::Bottle bInput);
+    yarp::os::Bottle askWordKnowledge(yarp::os::Bottle bInput);
+    yarp::os::Bottle askLastAction();
+    yarp::os::Bottle askActionFromId(int Id);
+    yarp::os::Bottle askActionFromIdV2(int Id);
+    yarp::os::Bottle askLastComplex();
+    yarp::os::Bottle askComplexFromId(int Id);
+    yarp::os::Bottle askActionForLevel3Reasoning(int Id);
+    yarp::os::Bottle askSentenceFromId(int Id);
+    plan askLastSharedPlan();
+    plan askSharedPlanFromId(int Id);
+    behavior askLastBehavior();
+    behavior askBehaviorFromId(int Id);
+
 
     // discriminate functions
     yarp::os::Bottle discriminateLastAction();
@@ -175,8 +201,6 @@ public:
     yarp::os::Bottle addContextualKnowledge(yarp::os::Bottle bInput);
     yarp::os::Bottle addBehavior(behavior beInput);
     yarp::os::Bottle saveKnowledge();
-    yarp::os::Bottle askGrammar(yarp::os::Bottle bInput);
-    yarp::os::Bottle askWordKnowledge(yarp::os::Bottle bInput);
 
 
     // memory related
@@ -204,5 +228,31 @@ public:
 
     // OPC related
     yarp::os::Bottle updateOpcObjectLocation(std::string sOPCname);
+    yarp::os::Bottle imagineOPC(int Id);
+    yarp::os::Bottle  updateBeliefs(bool bOPC);           // send a command to OPCManager to update the beliefs. true is for the real opc, false for the mental
+
+
+    // Functions to send knowledge to the semantic memory
+    int                 sendSpatialKnowledge(std::vector<spatialKnowledge> listSK);
+    int                 sendAdjectiveKnowledge(std::vector<adjKnowledge> listADK);
+    int                 sendTemporalKnowledge(std::vector<timeKnowledge> listTk);
+    int                 sendBehaviors(std::vector<behavior> listBehavior);
+    int                 sendPlan(std::vector<plan> listPlan);
+    int                 sendContextual(std::vector<contextualKnowledge> listCK);
+    int                 sendInteractionKnowledge(std::vector<knownInteraction> listIn);
+
+
+    // Retro reasoning
+    yarp::os::Bottle              sendRelation(int Instance); // send the current relation of the mentalOPC to the ABM at the given instance
+    void    setMentalOPC(int instance);
+    int     getNumberRelation(int instance);
+
+    // Knowledge related function
+    yarp::os::Bottle              saveKnowledge(std::vector<spatialKnowledge> listSK, std::vector<timeKnowledge> listTK, std::vector<behavior> listBehavior, std::vector<plan> listPlan, std::vector<contextualKnowledge> listCK, std::vector<knownInteraction> listInc);
+
 
 };
+
+
+
+#endif
