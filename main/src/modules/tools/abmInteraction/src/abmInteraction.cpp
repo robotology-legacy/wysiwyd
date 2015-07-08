@@ -186,6 +186,9 @@ bool abmInteraction::respond(const Bottle& bCommand, Bottle& bReply) {
         bReply.addString("runFeedback");
 
         pair <string, int> bestTimeAndRank;
+
+        showBestOfAllForAgent();
+
         createAugmentedTimeVector(bestTimeAndRank) ;
         if (bestTimeAndRank.second == -1){
             yError() << " Something is wrong with the augmented memories! quit";
@@ -566,6 +569,98 @@ bool abmInteraction::createBestAugmentedTime(pair<string,int> & bestTimeAndRank)
         
         return false;
     }
+
+    return true;
+}
+
+
+/*
+* Show best augmented so far for the current agent, no matter the instance
+*
+*/
+bool abmInteraction::showBestOfAllForAgent()
+{
+    Bottle bResult;
+    ostringstream osRequest;
+
+    //main select querry
+    osRequest << "SELECT feedback.augmented_port, feedback.original_time, feedback.augmented_time, feedback.value FROM visualdata, feedback WHERE augmented IS NOT NULL AND img_provider_port = '" << img_provider_port << "' AND ";
+    //foreign key to join feedback/visualdata
+    osRequest << "augmented_port = img_provider_port AND original_time = \"time\" AND feedback.augmented_time = visualdata.augmented_time ";
+    if (resume == "agent"){
+        // not proposing instance with feedback from the agent already.
+        osRequest << "AND agent = '" << agentName << "' ";
+    }
+    //just the best feedback value
+    osRequest << " ORDER BY value DESC LIMIT 1;";
+
+
+
+    bResult = iCub->getABMClient()->requestFromString(osRequest.str());
+
+    if (bResult.toString() != "NULL" && bResult.size() > 0) {
+
+        //take the data from best
+        string augmented_port = bResult.get(0).asList()->get(0).toString();
+        string original_time = bResult.get(0).asList()->get(1).toString();
+        string augmented_time = bResult.get(0).asList()->get(2).toString();
+        int value = atoi(bResult.get(0).asList()->get(3).toString().c_str());
+
+        bResult.clear();
+
+        //find the corresponding instance number
+        osRequest.str("");
+        osRequest << "SELECT instance FROM visualdata WHERE visualdata.time = '" << original_time << "' AND img_provider_port = '" << augmented_port << "' AND augmented_time = '" << augmented_time << "';";
+
+        bResult = iCub->getABMClient()->requestFromString(osRequest.str());
+
+        if (bResult.toString() != "NULL" && bResult.size() > 0){
+            int instance = atoi(bResult.get(0).asList()->get(0).toString().c_str());
+            yInfo() << "[showBestOfAll] best feedback : " << " instance = " << instance << " augmented_time = " << augmented_time << " with rank = " << value;
+
+            //show the best with triggerstreaming
+            Bottle bRpc, bSubRealtime, bSubAugmentedTimes;
+
+            bRpc.addString("triggerStreaming");
+            bRpc.addInt(instance);
+
+            bSubRealtime.addString("realtime");
+            bSubRealtime.addInt(1);
+
+            bSubAugmentedTimes.addString("augmentedTimes");
+            bSubAugmentedTimes.addString(augmented_time);
+
+            //Ask for showing the current testing augmented + the best one if relevant
+            bRpc.addList() = bSubRealtime;
+            bRpc.addList() = bSubAugmentedTimes;
+
+            ostringstream osResponse;
+            osResponse.str("");
+            osResponse << "The current best structure you have ever ranked is shown. The rank is " << value; //<< " for time = " << bestAugmentedTime ;
+            iCub->say(osResponse.str().c_str(), false);
+            yInfo() << "iCub says : " << osResponse.str();
+
+            iCub->getABMClient()->rpcCommand(bRpc);
+        }
+        else {
+            yError() << " [showBestOfAll] : could not find the instance from the best augmented : something is wrong!!!";
+        }
+
+
+    }
+    else {
+        yInfo() << "This is the first time " << agentName << " give feedback!";
+    }
+
+    //check that the streaming is finished before going next
+    bResult.clear();
+    Bottle bRpc;
+    bRpc.addString("getStreamStatus");
+
+    do{
+        bResult = iCub->getABMClient()->rpcCommand(bRpc);
+        yarp::os::Time::delay(1);
+    } while (bResult.get(0).asString() != "none");
 
     return true;
 }

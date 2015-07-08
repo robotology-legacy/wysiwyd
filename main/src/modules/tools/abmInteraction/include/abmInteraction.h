@@ -50,6 +50,7 @@ public:
     bool createAugmentedTimeVector(std::pair<std::string, int> & bestTimeAndRank);
     bool createBestAugmentedTime(std::pair<std::string, int> & bestTimeAndRank);
     bool insertFeedback(int feedback, int instanceFeedback);
+    bool showBestOfAllForAgent();
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
