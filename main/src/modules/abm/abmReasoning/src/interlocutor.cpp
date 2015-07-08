@@ -11,8 +11,15 @@ void interlocutor::initialize()
     senderPort.open("/abmReasoning/interlocutor/toAbm/request:o");
     port_to_OPCManager.open("/abmReasoning/interlocutor/toOPCManager");
 
-    Network::connect(senderPort.getName(), "/autobiographicalMemory/rpc");
-    Network::connect(port_to_OPCManager.getName(), "/opcManager/rpc");
+    if (!Network::connect(senderPort.getName(), "/autobiographicalMemory/rpc"))
+    {
+        yInfo() << " Warning in abmReasoning::Interlocutor::Initialize | connection problem with ABM";
+    }
+    if (!Network::connect(port_to_OPCManager.getName(), "/opcManager/rpc"))
+    {
+        yInfo() << " Warning in abmReasoning::Interlocutor::Initialize | connection problem with OPCManager";
+    }
+
     //  iCub  = new ICubClient("interlocutor", false);
     //  iCub->opc->isVerbose = false;
 
