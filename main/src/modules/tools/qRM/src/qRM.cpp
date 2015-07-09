@@ -12,8 +12,10 @@ string qRM::grammarToString(string sPath)
 
     if (!isGrammar)
     {
-        yInfo() << " Error in qRM::grammarToString. Couldn't open file : " << sPath << " .";
-        return "Error in qRM::grammarToString. Couldn't open file";
+        string sErrorMessage = " Error in qRM::grammarToString. Couldn't open file : " + sPath;
+        sErrorMessage += " .";
+        yInfo() << sErrorMessage;
+        return sErrorMessage;
     }
 
     string sLine;
@@ -35,7 +37,8 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
     nameGrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
     nameGrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
-
+    thresholdDistinguishObjectsRatio = rf.check("thresholdDistinguishObjectsRatio", Value(3.0)).asDouble();
+    thresholdSalienceDetection = rf.check("thresholdSalienceDetection", Value(2.0)).asDouble();
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
@@ -63,7 +66,7 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "qRM", "client.ini", isRFVerbose);
-    iCub->opc->isVerbose &= false;
+    iCub->opc->isVerbose = false;
     if (!iCub->connect())
     {
         yInfo() << " iCubClient : Some dependencies are not running...";
@@ -135,9 +138,9 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
             reply = calibrationRT(command.get(1).asString());
         }
     }
-    else if (command.get(0).asString() == "exploreEntity") {
-        yInfo() << " exploreEntity";
-        reply = exploreEntity(command);
+    else if (command.get(0).asString() == "exploreUnknownEntity") {
+        yInfo() << " exploreUnknownEntity";
+        reply = exploreUnknownEntity(command);
     }
 
 
@@ -546,10 +549,7 @@ bool qRM::nodeYesNo()
 {
     //bool fGetaReply = false;
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-        bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSendReasoning, // send the information of recall to the abmReasoning
-        bMessenger; //to be send TO speech recog
+        bAnswer; //response from speech recog without transfer information, including raw sentence
 
     bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarYesNo), 20);
 
@@ -585,7 +585,7 @@ bool qRM::populateOpc(){
     return true;
 }
 
-Bottle qRM::exploreEntity(Bottle bInput)
+Bottle qRM::exploreUnknownEntity(Bottle bInput)
 {
     Bottle bOutput;
 
@@ -636,17 +636,7 @@ Bottle qRM::exploreEntity(Bottle bInput)
         string sName = bSemantic.check("agent", Value("unknown")).asString();
 
         Agent* agentToChange = iCub->opc->addAgent(sNameTarget);
-        Time::delay(timeDelay);
-
-        agentToChange->m_present = false;
-        iCub->opc->commit(agentToChange);
-        Time::delay(timeDelay);
-
         agentToChange->changeName(sName);
-        iCub->opc->commit(agentToChange);
-        Time::delay(timeDelay);
-
-        agentToChange->m_present = true;
         iCub->opc->commit(agentToChange);
 
         yInfo() << " Well, Nice to meet you " << sName;
@@ -698,13 +688,8 @@ Bottle qRM::exploreEntity(Bottle bInput)
         string sName = bSemantic.check("object", Value("unknown")).asString();
 
         Object* objectToChange = iCub->opc->addObject(sNameTarget);
-        objectToChange->m_present = false;
-        iCub->opc->commit(objectToChange);
-
-        Time::delay(0.5);
-
         objectToChange->changeName(sName);
-        objectToChange->m_present = true;
+
         iCub->opc->commit(objectToChange);
         yInfo() << " I get it, this is a " << sName;
         iCub->say(" I get it, this is a " + sName);
@@ -752,20 +737,214 @@ Bottle qRM::exploreEntity(Bottle bInput)
         string sName = bSemantic.check("object", Value("unknown")).asString();
 
         RTObject* objectToChange = iCub->opc->addRTObject(sNameTarget);
-        objectToChange->m_present = false;
-        iCub->opc->commit(objectToChange);
-
-        Time::delay(0.5);
-
         objectToChange->changeName(sName);
-        objectToChange->m_present = true;
         iCub->opc->commit(objectToChange);
+
         yInfo() << " So this is a " << sName;
         iCub->say(" So this is a " + sName);
 
         bOutput.addString("success");
         bOutput.addString("rtobject");
         return bOutput;
+    }
+
+    return bOutput;
+}
+
+/*
+* Search for the entity corresponding to a certain name in all the unknown entity
+*
+*/
+Bottle qRM::exploreEntityByName(Bottle bInput)
+{
+    Bottle bOutput;
+
+    if (bInput.size() != 2)
+    {
+        yInfo() << " qRM::exploreEntityByName | Problem in input size.";
+        bOutput.addString("Problem in input size");
+        return bOutput;
+    }
+
+    string sNameTarget = bInput.get(1).toString();
+    yInfo() << " Entity to find: " << sNameTarget;
+
+    // check if the entity is not present and known
+    if (iCub->opc->isConnected())
+    {
+        iCub->opc->checkout();
+        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+
+        for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+        {
+            if ((*itEnt)->name() == sNameTarget)
+            {
+                yInfo() << " Entity " << sNameTarget << " is already known";
+                bOutput.addString("warning");
+                bOutput.addString("entity already exists");
+
+                return bOutput;
+            }
+        }
+    }
+    else
+    {
+        yWarning() << " in qRM::exploreEntityByName | OPC not Connected";
+        bOutput.addString("error");
+        bOutput.addString("OPC not connected");
+
+        return bOutput;
+    }
+
+    string sSentence = "I don't known which of these objects is a " + sNameTarget;
+    iCub->say(sSentence);
+    yInfo() << " " << sSentence;
+
+    bool bFound = false;
+
+    Time::delay(2.);
+
+    while (!bFound)
+    {
+        iCub->opc->checkout();
+        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+
+        double highestSaliency = 0.0;
+        double secondSaliency = 0.0;
+        string sNameBestEntity = "none";
+        string sTypeBestEntity = "none";
+
+        for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+        {
+            string sName = (*itEnt)->name();
+            string sNameCut = sName;
+            string delimiter = "_";
+            size_t pos = 0;
+            std::string token;
+            while ((pos = sName.find(delimiter)) != std::string::npos) {
+                token = sName.substr(0, pos);
+                std::cout << token << std::endl;
+                sName.erase(0, pos + delimiter.length());
+                sNameCut = token;
+            }
+            yInfo() << " sNameCut is:" << sNameCut;
+            // check is label is known
+
+            if (sNameCut == "unknown")
+            {
+                if ((*itEnt)->entity_type() == "agent")
+                {
+                    Agent* temp = iCub->opc->addAgent((*itEnt)->name());
+                    if (temp->m_saliency > highestSaliency)
+                    {
+                        if (secondSaliency != 0.0)
+                        {
+                            secondSaliency = highestSaliency;
+                        }
+                        highestSaliency = temp->m_saliency;
+                        sNameBestEntity = temp->name();
+                        sTypeBestEntity = temp->entity_type();
+                    }
+                    else
+                    {
+                        if (temp->m_saliency > secondSaliency)
+                        {
+                            secondSaliency = temp->m_saliency;
+                        }
+                    }
+                }
+
+                if ((*itEnt)->entity_type() == "object")
+                {
+                    Object* temp = iCub->opc->addObject((*itEnt)->name());
+                    if (temp->m_saliency > highestSaliency)
+                    {
+                        if (secondSaliency != 0.0)
+                        {
+                            secondSaliency = highestSaliency;
+                        }
+                        highestSaliency = temp->m_saliency;
+                        sNameBestEntity = temp->name();
+                        sTypeBestEntity = temp->entity_type();
+                    }
+                    else
+                    {
+                        if (temp->m_saliency > secondSaliency)
+                        {
+                            secondSaliency = temp->m_saliency;
+                        }
+                    }
+                }
+
+                if ((*itEnt)->entity_type() == "rtobject")
+                {
+                    RTObject* temp = iCub->opc->addRTObject((*itEnt)->name());
+                    if (temp->m_saliency > highestSaliency)
+                    {
+                        if (secondSaliency != 0.0)
+                        {
+                            secondSaliency = highestSaliency;
+                        }
+                        highestSaliency = temp->m_saliency;
+                        sNameBestEntity = temp->name();
+                        sTypeBestEntity = temp->entity_type();
+                    }
+                    else
+                    {
+                        if (temp->m_saliency > secondSaliency)
+                        {
+                            secondSaliency = temp->m_saliency;
+                        }
+                    }
+                }
+            }
+        }
+
+        bFound = false;
+        if (highestSaliency > thresholdSalienceDetection)
+        {
+            //the object with highest salience is salient enough
+            if (secondSaliency != 0.0)
+            {
+                // there are other salient objects
+                if ((highestSaliency / secondSaliency) > thresholdDistinguishObjectsRatio)
+                {
+                    //but it is enough difference
+                    bFound = true;
+                }
+            }
+            else
+            {
+                //other object are not salient
+                bFound = true;
+            }
+        }
+        if (sNameBestEntity == "none")
+        {
+            bFound = false;
+        }
+
+        if (bFound)
+        {
+            // change name
+            if (sTypeBestEntity == "agent")
+            {
+                Agent* TARGET = iCub->opc->addAgent(sNameBestEntity);
+                TARGET->changeName(sNameTarget);
+            }
+            if (sTypeBestEntity == "object")
+            {
+                Object* TARGET = iCub->opc->addObject(sNameBestEntity);
+                TARGET->changeName(sNameTarget);
+            }
+            if (sTypeBestEntity == "rtobject")
+            {
+                RTObject* TARGET = iCub->opc->addRTObject(sNameBestEntity);
+                TARGET->changeName(sNameTarget);
+            }
+            yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
+            bOutput.addString("name changed");
+        }
     }
 
     return bOutput;

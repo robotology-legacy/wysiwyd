@@ -12,7 +12,7 @@ string IIE::grammarToString(string sPath)
 
     if (!isGrammar)
     {
-        yInfo() << " Error in iie::grammarToString. Couldn't open file : " << sPath << "." ;
+        yInfo() << " Error in iie::grammarToString. Couldn't open file : " << sPath << ".";
         return "Error in iie::grammarToString. Couldn't open file";
     }
 
@@ -30,20 +30,20 @@ bool IIE::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("iie")).asString().c_str();
     setName(moduleName.c_str());
-    
-    yInfo() << moduleName << ": finding configuration files..." ;
+
+    yInfo() << moduleName << ": finding configuration files...";
     period = rf.check("period", Value(1.)).asDouble();
 
     bool    bEveryThingisGood = true;
 
-        //Create an iCub Client and check that all dependencies are here before starting
+    //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "iie", "client.ini", isRFVerbose);
-  
+
     iCub->opc->isVerbose &= false;
     if (!iCub->connect())
     {
-        yInfo() << " iCubClient : Some dependencies are not running..." ;
+        yInfo() << " iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
 
@@ -65,9 +65,9 @@ bool IIE::configure(yarp::os::ResourceFinder &rf)
 
     if (!iCub->getABMClient())
     {
-        yInfo() << " WARNING ABM NOT CONNECTED" ;
+        yInfo() << " WARNING ABM NOT CONNECTED";
     }
-    
+
     return true;
 }
 
@@ -106,40 +106,40 @@ bool IIE::updateModule() {
 
     if (iCub->opc->isConnected())
     {
-    iCub->opc->checkout();
-    list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+        iCub->opc->checkout();
+        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
 
-    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
-    {
-        string sName = (*itEnt)->name();
-        string sNameCut = sName;
-        string delimiter = "_";
-        size_t pos = 0;
-        std::string token;
-        while ((pos = sName.find(delimiter)) != std::string::npos) {
-            token = sName.substr(0, pos);
-            std::cout << token << std::endl;
-            sName.erase(0, pos + delimiter.length());
-            sNameCut = token;
-        }
-        yInfo() << " sNameCut is:" << sNameCut;
-        // check is label is known
-
-        if (sNameCut == "unknown" || sNameCut == "partner")
+        for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
         {
-            // label is unknown send information to qRM
-            Bottle b2Supervisor;
-            b2Supervisor.addString("exploreEntity");
-            b2Supervisor.addString((*itEnt)->entity_type());
-            b2Supervisor.addString((*itEnt)->name());
-            Bottle bReplyFromQRM;
-            Port2Supervisor.write(b2Supervisor, bReplyFromQRM);
-            yInfo() << " ACHTUNG! UNKNOWN OBJECT MODAKUKA !";
+            string sName = (*itEnt)->name();
+            string sNameCut = sName;
+            string delimiter = "_";
+            size_t pos = 0;
+            std::string token;
+            while ((pos = sName.find(delimiter)) != std::string::npos) {
+                token = sName.substr(0, pos);
+                std::cout << token << std::endl;
+                sName.erase(0, pos + delimiter.length());
+                sNameCut = token;
+            }
+            yInfo() << " sNameCut is:" << sNameCut;
+            // check is label is known
 
-            yInfo() << " bReplyFromQRM: " << bReplyFromQRM.toString();
+            if (sNameCut == "unknown" || sNameCut == "partner")
+            {
+                // label is unknown send information to qRM
+                Bottle b2Supervisor;
+                b2Supervisor.addString("exploreUnknownEntity");
+                b2Supervisor.addString((*itEnt)->entity_type());
+                b2Supervisor.addString((*itEnt)->name());
+                Bottle bReplyFromQRM;
+                Port2Supervisor.write(b2Supervisor, bReplyFromQRM);
+                yInfo() << " ACHTUNG! UNKNOWN OBJECT MODAKUKA !";
+
+                yInfo() << " bReplyFromQRM: " << bReplyFromQRM.toString();
+            }
+
         }
-
-    }
     }
     else
     {

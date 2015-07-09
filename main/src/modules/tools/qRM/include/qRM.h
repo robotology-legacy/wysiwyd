@@ -43,8 +43,15 @@ public:
     void    nodeTest();
     bool    nodeYesNo();
 
-    Bottle  exploreEntity(Bottle bInput);
+    Bottle  exploreUnknownEntity(Bottle bInput);
+    Bottle  exploreEntityByName(Bottle bInput);
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
+
+
+
+    double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other
+    double  thresholdSalienceDetection; //value of saliency needed to detect if 1 object is more salient that the other
+
 };
