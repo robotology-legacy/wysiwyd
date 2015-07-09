@@ -297,6 +297,14 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
 }
 
 long autobiographicalMemory::getTimeLastStream(int instance, string table) {
+    // only send request to database if we are actually going to send something
+    // to that port!
+    if(table=="visualdata" && mapImgStreamPortOut.size()==0) {
+        return 0;
+    } else if(table=="proprioceptivedata" && mapDataStreamPortOut.size()==0) {
+        return 0;
+    }
+
     Bottle bRequest;
     ostringstream osArg;
 
