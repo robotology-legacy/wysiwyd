@@ -5,8 +5,8 @@
 
 class rekognition: public yarp::os::RFModule {
 protected:
-    yarp::os::Port handlerPort;
-    yarp::os::Port abmPort;
+    yarp::os::RpcServer handlerPort;
+    yarp::os::RpcClient abmPort;
 
 public:
     std::string api_addr_base;

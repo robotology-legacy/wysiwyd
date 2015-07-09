@@ -16,10 +16,6 @@
  * Public License for more details
  */
 
-#ifdef BOOST_AVAILABLE
-#include <boost/thread.hpp>
-#endif
-
 #include <yarp/sig/all.h>
 #include "autobiographicalMemory.h"
 
@@ -158,12 +154,13 @@ bool autobiographicalMemory::storeImageOIDs(int instance) {
         osStoreOID << "UPDATE visualdata SET img_oid=" << new_img_oid;
         osStoreOID << " WHERE time='" << imgTime << "' and img_provider_port = '" << imgProviderPort << "';";
 
-        if ((i % 100 == 0 && i != 0) || i == bRequest.size() - 1) {
+        if (((i+1) % 100 == 0 && i != 0) || i == bRequest.size() - 1) {
             requestFromString(osStoreOID.str());
-            yInfo() << "[storeImageOIDs] Saved " << i + 1 << " images out of " << bRequest.size();
+            yInfo() << "[storeImageOIDs] Saved " << i+1 << " images out of " << bRequest.size();
             osStoreOID.str("");
         }
     }
+    yInfo() << "[storeImageOIDs] All images saved.";
 
     return true;
 }

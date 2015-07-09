@@ -23,10 +23,6 @@
 #include <map>
 #include <vector>
 
-#ifdef BOOST_AVAILABLE
-#include <boost/thread.hpp>
-#endif
-
 #include <yarp/os/all.h>
 
 #include <db/PostgreSQL.h>

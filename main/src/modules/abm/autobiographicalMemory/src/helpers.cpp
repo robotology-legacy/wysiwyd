@@ -108,9 +108,10 @@ void autobiographicalMemory::requestInsertProcessQueue() {
     for (std::vector<std::string>::size_type i = 0; i != requests.size(); i++) {
         requestFromString(requests[i]);
         if (i % 100 == 0) {
-            yInfo() << "Process insert queue: " << i << " of " << requests.size();
+            yInfo() << "[requestInsertProcessQueue] Process insert queue: " << i << " of " << requests.size();
         }
     }
+    yInfo() << "[requestInsertProcessQueue] Process insert queue done.";
     requests.clear();
 }
 

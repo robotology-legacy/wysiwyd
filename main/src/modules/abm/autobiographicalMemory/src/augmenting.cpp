@@ -51,6 +51,7 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
         return false;
     }
 
+    bool allOkay = true;
     for (int i = 0; i < bResponse.size(); i++) {
         int instance = atoi(bResponse.get(i).asList()->get(0).toString().c_str());
         int existing_number_of_augmentions = atoi(bResponse.get(i).asList()->get(1).toString().c_str());
@@ -62,7 +63,7 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
         bReqAugmentingModule.addInt(instance);
         bReqAugmentingModule.addString("left");
         bReqAugmentingModule.addInt(0);
-        bReqAugmentingModule.addInt(50);
+        bReqAugmentingModule.addInt(600);
 
         for (int j = existing_number_of_augmentions; j < number_of_augmentions; j++) {
             yInfo() << "Send request to Augmenting module: " << bReqAugmentingModule.toString();
@@ -72,11 +73,12 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
             }
             else {
                 yWarning() << "Did not get positive reply from augmenting module for instance " << instance;
+                allOkay = false;
             }
         }
     }
 
-    return true;
+    return allOkay;
 }
 
 void autobiographicalMemory::saveAugmentedImages() {
