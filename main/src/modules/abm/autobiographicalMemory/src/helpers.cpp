@@ -111,8 +111,10 @@ void autobiographicalMemory::requestInsertProcessQueue() {
             yInfo() << "[requestInsertProcessQueue] Process insert queue: " << i << " of " << requests.size();
         }
     }
-    yInfo() << "[requestInsertProcessQueue] Process insert queue done.";
-    requests.clear();
+    if(requests.size() > 0) {
+        yInfo() << "[requestInsertProcessQueue] Process insert queue done.";
+        requests.clear();
+    }
 }
 
 Bottle autobiographicalMemory::requestFromString(const string& sInput)
