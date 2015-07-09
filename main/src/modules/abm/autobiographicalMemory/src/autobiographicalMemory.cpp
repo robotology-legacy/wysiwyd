@@ -121,6 +121,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     //connect to augmented
     //Network::connect(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc");
     //if(!Network::isConnected(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc")) {
+
     Network::connect(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc");
     if (!Network::isConnected(abm2augmented.getName().c_str(), "/matlab/kinematicStructure/rpc")) {
         yWarning("Could not connect to augmention module!");
@@ -712,6 +713,10 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply.addString("nack");
             }
         }
+        else if (bCommand.get(0) == "getStreamStatus")
+        {
+            bReply.addString(streamStatus);
+        }
         else
         {
             bError.addString("Command not understood!");
@@ -823,26 +828,26 @@ bool autobiographicalMemory::updateModule() {
         // Save images in temp folder and send them to ports
         if (bListImages.toString() != "NULL") {
             for (int i = 0; i < bListImages.size(); i++) {
+                string relative_path = bListImages.get(i).asList()->get(0).asString();
+                string portname = bListImages.get(i).asList()->get(1).asString();
+                string time = bListImages.get(i).asList()->get(2).asString();
+                string frame_number = bListImages.get(i).asList()->get(4).asString();
+                string augmented = bListImages.get(i).asList()->get(5).asString();
+                string augmented_time = bListImages.get(i).asList()->get(6).asString();
+                string concatenated_port = portname + augmented + augmented_time;
+
+                // remove spaces
+                std::string::iterator end_pos1 = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
+                concatenated_port.erase(end_pos1, concatenated_port.end());
+
+                std::string::iterator end_pos2 = std::remove(augmented_time.begin(), augmented_time.end(), ' ');
+                augmented_time.erase(end_pos2, augmented_time.end());
+
+                //concatenation of the storing path
+                stringstream fullPath;
+                fullPath << storingPath << "/" << storingTmpSuffix << "/" << relative_path << augmented_time;
+
                 try {
-                    string relative_path = bListImages.get(i).asList()->get(0).asString();
-                    string portname = bListImages.get(i).asList()->get(1).asString();
-                    string time = bListImages.get(i).asList()->get(2).asString();
-                    string frame_number = bListImages.get(i).asList()->get(4).asString();
-                    string augmented = bListImages.get(i).asList()->get(5).asString();
-                    string augmented_time = bListImages.get(i).asList()->get(6).asString();
-                    string concatenated_port = portname + augmented + augmented_time;
-
-                    // remove spaces
-                    std::string::iterator end_pos1 = std::remove(concatenated_port.begin(), concatenated_port.end(), ' ');
-                    concatenated_port.erase(end_pos1, concatenated_port.end());
-
-                    std::string::iterator end_pos2 = std::remove(augmented_time.begin(), augmented_time.end(), ' ');
-                    augmented_time.erase(end_pos2, augmented_time.end());
-
-                    //concatenation of the storing path
-                    stringstream fullPath;
-                    fullPath << storingPath << "/" << storingTmpSuffix << "/" << relative_path << augmented_time;
-
                     BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(concatenated_port);
                     Bottle env;
                     env.addInt(imgInstance);
@@ -859,11 +864,8 @@ bool autobiographicalMemory::updateModule() {
                     yInfo() << "Send image: " << fullPath.str() << " to " << port->getName();
                     writeImageToPort(fullPath.str(), port);
                 }
-                catch (const std::out_of_range& oor) {
-                    // This should never happen, as openImgStreamPorts opens ALL ports related to an instance
-                    // and just connects to the ones which are wanted, but the port still exists
-                    yWarning() << "No corresponding port to " << bListImages.get(i).asList()->get(1).asString().c_str();
-                    yWarning() << "Not going to send image for that port!";
+                catch (const std::out_of_range&) {
+                    yWarning() << "No corresponding port to" << portname << ", not going to send image for this port!";
                 }
             }
         }
