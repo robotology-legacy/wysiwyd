@@ -246,32 +246,7 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
     }
 }
 
-Bottle autobiographicalMemory::getStreamDataWithinEpoch(long updateTimeDifference, string port) {
-    Bottle bListDataStream;
-    bListDataStream.addString("request");
-    ostringstream osArgDataStream;
-
-    osArgDataStream << "SELECT * FROM (";
-    osArgDataStream << "SELECT subtype, label_port, time, value, ";
-    osArgDataStream << "CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM proprioceptivedata WHERE instance = '" << imgInstance << "' ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference ";
-    osArgDataStream << "FROM proprioceptivedata WHERE instance = '" << imgInstance << "' ORDER BY time) s WHERE ";
-    osArgDataStream << "label_port = '" << port << "' AND ";
-
-    if (realtimePlayback) {
-        osArgDataStream << "time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << " ORDER BY time DESC, label_port, subtype::int ASC ";
-    }
-    else {
-        osArgDataStream << "time_difference > " << timeLastImageSent << " ORDER BY time ASC, label_port, subtype::int ASC ";
-    }
-
-    osArgDataStream << "LIMIT (SELECT COUNT(DISTINCT subtype) FROM proprioceptivedata WHERE instance = '" << imgInstance << "' AND label_port='" << port << "')";
-
-    bListDataStream.addString(osArgDataStream.str());
-
-    return request(bListDataStream);
-}
-
-Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference) {
+Bottle autobiographicalMemory::getStreamWithinEpoch(long updateTimeDifference, string table, string port) {
     // Find which images to send
     Bottle bListImages;
     bListImages.addString("request");
@@ -279,16 +254,30 @@ Bottle autobiographicalMemory::getStreamImgWithinEpoch(long updateTimeDifference
 
     osArgImages << "WITH data AS (";
     osArgImages << "SELECT * FROM (";
-    osArgImages << "SELECT relative_path, img_provider_port, time, ";
-    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM visualdata WHERE instance = '" << imgInstance << "')) * 1000000 as INT) as time_difference, frame_number, augmented, augmented_time ";
-    osArgImages << "FROM visualdata WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
+    if(table=="visualdata") {
+        osArgImages << "SELECT relative_path, img_provider_port, time, ";
+    } else if(table=="proprioceptivedata") {
+        osArgImages << "SELECT subtype, label_port, time, value, ";
+    }
+    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM " << table << " WHERE instance = '" << imgInstance << "')) * 1000000 as INT) as time_difference ";
+    if(table=="visualdata") {
+        osArgImages << ", frame_number, augmented, augmented_time ";
+    }
+    osArgImages << "FROM " << table << " WHERE instance = '" << imgInstance << "' ORDER BY time) s ";
     if (realtimePlayback) {
-        osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent << "), ";
-        osArgImages << "max_time as (select max(time_difference) as max from data) ";
+        osArgImages << "WHERE time_difference <= " << updateTimeDifference << " and time_difference > " << timeLastImageSent;
+        if(port!="") {
+            osArgImages << " and label_port = '" << port << "'";
+        }
+        osArgImages << "), max_time as (select max(time_difference) as max from data) ";
         osArgImages << "SELECT * FROM data, max_time WHERE data.time_difference = max_time.max";
     }
     else {
-        osArgImages << "WHERE time_difference > " << timeLastImageSent << "), min_time AS (select min(time_difference) as min from data) ";
+        osArgImages << "WHERE time_difference > " << timeLastImageSent;
+        if(port!="") {
+            osArgImages << " and label_port = '" << port << "'";
+        }
+        osArgImages << "), min_time AS (select min(time_difference) as min from data) ";
         osArgImages << "SELECT * FROM data, min_time WHERE data.time_difference = min_time.min;";
     }
 

@@ -823,7 +823,7 @@ bool autobiographicalMemory::updateModule() {
         long timeLastImageSentCurrentIteration = 0;
 
         // Find which images to send
-        Bottle bListImages = getStreamImgWithinEpoch(long(updateTimeDifference));
+        Bottle bListImages = getStreamWithinEpoch(long(updateTimeDifference), "visualdata");
 
         // Save images in temp folder and send them to ports
         if (bListImages.toString() != "NULL") {
@@ -873,7 +873,7 @@ bool autobiographicalMemory::updateModule() {
         for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it)
         {
             // Find which data stream to send
-            Bottle bListContData = getStreamDataWithinEpoch(long(updateTimeDifference), it->first);
+            Bottle bListContData = getStreamWithinEpoch(long(updateTimeDifference), "proprioceptivedata", it->first);
 
             if (bListContData.toString() != "NULL") {
                 Bottle &bCmd = it->second->prepare();

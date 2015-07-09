@@ -167,8 +167,7 @@ public:
     //unsigned int getStreamDataProviderCount(int instance); // obsolete
 
     long getTimeLastStream(int instance, std::string table); // will be obsolete
-    yarp::os::Bottle getStreamImgWithinEpoch(long updateTimeDifference);
-    yarp::os::Bottle getStreamDataWithinEpoch(long updateTimeDifference, std::string port);
+    yarp::os::Bottle getStreamWithinEpoch(long updateTimeDifference, std::string table, std::string port="");
 
     // augmented images stuff
     std::string augmentedTime;
