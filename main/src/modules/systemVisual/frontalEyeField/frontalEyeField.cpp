@@ -36,51 +36,51 @@ bool FrontalEyeField::configure(yarp::os::ResourceFinder &rf) {
     retinaH = rf.check("retinaH", Value(3)).asInt();
     string nameSourcePrefix = rf.check("nameSplitterPrefix", Value("/v1Retina/in_")).asString();
     string nameSourceSuffix = rf.check("nameSplitterSuffix", Value("/error:o")).asString();
-	cameraUsed = (rf.check("camera", Value("left")).asString() == "right");
+    cameraUsed = (rf.check("camera", Value("left")).asString() == "right");
 
     //string nameSourcePrefix = rf.check("nameSplitterPrefix", Value("/retina/")).asString();
     //string nameSourceSuffix = rf.check("nameSplitterSuffix", Value("/retina/error:o")).asString();
 
 
-	//----------------------------//
-	//Configure the egocentric error cvz
-	stringstream configEgocentricError;
-	configEgocentricError
-		<< "type" << '\t' << cvz::core::TYPE_MMCM << endl
-		<< "name" << '\t' << "egocentricError" << endl
-		<< "width" << '\t' << 10 << endl
-		<< "height" << '\t' << 10 << endl
-		<< "layers" << '\t' << 5 << endl
-		<< "sigmaFactor" << '\t' << 0.75 << endl
-		<< "learningRate" << '\t' << 0.01 << endl << endl;
+    //----------------------------//
+    //Configure the egocentric error cvz
+    stringstream configEgocentricError;
+    configEgocentricError
+        << "type" << '\t' << cvz::core::TYPE_MMCM << endl
+        << "name" << '\t' << "egocentricError" << endl
+        << "width" << '\t' << 10 << endl
+        << "height" << '\t' << 10 << endl
+        << "layers" << '\t' << 5 << endl
+        << "sigmaFactor" << '\t' << 0.75 << endl
+        << "learningRate" << '\t' << 0.01 << endl << endl;
 
-	//Add the proprioception
-	configEgocentricError
-		<< "[modality_0]" << endl
-		<< "name" << '\t' << "fixationPoint" << endl
-		<< "type" << '\t' << "yarpVector" << endl
-		<< "size" << '\t' << 3 << endl
-		<< "minBounds" << '\t' << "(-2.0 -1.0 -1.0)" << endl
-		<< "maxBounds" << '\t' << "(-1.0 1.0 1.0)" << endl
-		<< "autoconnect" << '\t' << "/iKinGazeCtrl/x:o" << endl << endl;
+    //Add the proprioception
+    configEgocentricError
+        << "[modality_0]" << endl
+        << "name" << '\t' << "fixationPoint" << endl
+        << "type" << '\t' << "yarpVector" << endl
+        << "size" << '\t' << 3 << endl
+        << "minBounds" << '\t' << "(-2.0 -1.0 -1.0)" << endl
+        << "maxBounds" << '\t' << "(-1.0 1.0 1.0)" << endl
+        << "autoconnect" << '\t' << "/iKinGazeCtrl/x:o" << endl << endl;
 
-	//Add the v1Retina
-	configEgocentricError
-		<< "[modality_1]" << endl
-		<< "name" << '\t' << "v2Error" << endl
-		<< "type" << '\t' << "yarpVector" << endl
-		<< "size" << '\t' << 1 << endl
-		//<< "isBlocking" << endl
-		<< "autoconnect" << '\t' << "/v2/v1Retina/error:o"<<endl;
+    //Add the v1Retina
+    configEgocentricError
+        << "[modality_1]" << endl
+        << "name" << '\t' << "v2Error" << endl
+        << "type" << '\t' << "yarpVector" << endl
+        << "size" << '\t' << 1 << endl
+        //<< "isBlocking" << endl
+        << "autoconnect" << '\t' << "/v2/v1Retina/error:o"<<endl;
 
-	Property prop;
-	prop.fromConfig(configEgocentricError.str().c_str());
-	mmcmErrorPrediction = new cvz::core::ThreadedCvz(prop, 100);
-	mmcmErrorPrediction->start();
-	//cvz::core::CvzBuilder::allocate(&mmcmErrorPrediction, cvz::core::TYPE_MMCM);
-	//mmcmErrorPrediction->configure(prop);
+    Property prop;
+    prop.fromConfig(configEgocentricError.str().c_str());
+    mmcmErrorPrediction = new cvz::core::ThreadedCvz(prop, 100);
+    mmcmErrorPrediction->start();
+    //cvz::core::CvzBuilder::allocate(&mmcmErrorPrediction, cvz::core::TYPE_MMCM);
+    //mmcmErrorPrediction->configure(prop);
 
-	//----------------------------//
+    //----------------------------//
     //Open the gaze controller
     gazePortName = "/";
     gazePortName += getName() + "/gaze";
@@ -107,8 +107,7 @@ bool FrontalEyeField::configure(yarp::os::ResourceFinder &rf) {
     igaze->bindNeckPitch(-15.0, 10.0);
     igaze->bindNeckRoll(-10.0, 10.0);
     igaze->bindNeckYaw(-20.0, 20.0);
-	igaze->setSaccadesStatus(false);
-	igaze->blockEyes(0.0);
+    igaze->blockEyes(0.0);
 
     //Open the retina input ports
     retinaInput.resize(retinaW);
@@ -127,7 +126,7 @@ bool FrontalEyeField::configure(yarp::os::ResourceFinder &rf) {
     }
     //Wait for the connection
     connectErrorInput(nameSourcePrefix, nameSourceSuffix);
-	timeNextSaccade = Time::now() + tau;
+    timeNextSaccade = Time::now() + tau;
     return true;
 }
 
@@ -191,35 +190,35 @@ bool FrontalEyeField::updateModule()
     //Update the error map activity, mean error and maximum error region
     int xMax = 0;
     int yMax = 0;
-	double meanError = 0.0;
+    double meanError = 0.0;
     //std::cout << "Receiving error:" << endl;
-	for (int x = 0; x < retinaW; x++)
-	{
-		for (int y = 0; y < retinaH; y++)
-		{
-			Bottle* bError = retinaInput[x][y]->read(true);
-			if (bError)
-			{
-				errorMap[x][y].update(bError->get(0).asDouble());
-				meanError += errorMap[x][y].x;
-				if (errorMap[x][y].x>errorMap[xMax][yMax].x)
-				{
-					xMax = x;
-					yMax = y;
-				}
-			}
-		}
-		//std::cout << endl;
-	}
-	meanError /= (retinaW*retinaH);
-	//cout << "Mean error : " << meanError << "\t Max Error : " << errorMap[xMax][yMax].x<<" in \t" << xMax << " " << yMax << endl;
+    for (int x = 0; x < retinaW; x++)
+    {
+        for (int y = 0; y < retinaH; y++)
+        {
+            Bottle* bError = retinaInput[x][y]->read(true);
+            if (bError)
+            {
+                errorMap[x][y].update(bError->get(0).asDouble());
+                meanError += errorMap[x][y].x;
+                if (errorMap[x][y].x>errorMap[xMax][yMax].x)
+                {
+                    xMax = x;
+                    yMax = y;
+                }
+            }
+        }
+        //std::cout << endl;
+    }
+    meanError /= (retinaW*retinaH);
+    //cout << "Mean error : " << meanError << "\t Max Error : " << errorMap[xMax][yMax].x<<" in \t" << xMax << " " << yMax << endl;
 
     double SACCADE_TRESHOLD = 0.0001;
-	//Bottom up saccades, triggered from high retina level error
-	if (Time::now()>timeNextSaccade && errorMap[xMax][yMax].x>SACCADE_TRESHOLD/*meanError>SACCADE_TRESHOLD && errorMap[xMax][yMax].x > meanError + 0.1*meanError*/)
-	{
-		timeNextSaccade = Time::now() + tau;
-		//cout << "Triggering a saccade "
+    //Bottom up saccades, triggered from high retina level error
+    if (Time::now()>timeNextSaccade && errorMap[xMax][yMax].x>SACCADE_TRESHOLD/*meanError>SACCADE_TRESHOLD && errorMap[xMax][yMax].x > meanError + 0.1*meanError*/)
+    {
+        timeNextSaccade = Time::now() + tau;
+        //cout << "Triggering a saccade "
         //Reset the whole error map
         resetErrorMap();
 
@@ -230,34 +229,34 @@ bool FrontalEyeField::updateModule()
         px[0] = xMax * caseW + caseW/2.0;
         px[1] = yMax * caseH + caseH/2.0;
         std::cout << "Bottom up saccade to : " << px.toString() << endl;
-		igaze->lookAtMonoPixel(cameraUsed, px);
+        igaze->lookAtMonoPixel(cameraUsed, px);
     }
-	else if (Time::now()>timeNextSaccade)
-	{
+    else if (Time::now()>timeNextSaccade)
+    {
 
-		timeNextSaccade = Time::now() + tau;
-		//Top down saccade, triggered from high prediction of error at v2 level
-		mmcmErrorPrediction->suspend();
-		mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/v2Error"]] = 1.0;
-		mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]] = 0.0;
-		//Predict the position in space that is associated with the highest error
-		vector<double> highError(1, 1.0);
-		mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/v2Error"]->SetValueReal(highError);
-		mmcmErrorPrediction->cvz->ComputePrediction();
-		vector<double> worsePredictedPosition = mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]->GetValuePrediction();
-		worsePredictedPosition = mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]->unscale(worsePredictedPosition);
-		//Make a saccade toward this point
-		Vector fxPt(3); 
-		fxPt[0] = worsePredictedPosition[0];
-		fxPt[1] = worsePredictedPosition[1];
-		fxPt[2] = worsePredictedPosition[2];
-		igaze->lookAtFixationPoint(fxPt);
+        timeNextSaccade = Time::now() + tau;
+        //Top down saccade, triggered from high prediction of error at v2 level
+        mmcmErrorPrediction->suspend();
+        mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/v2Error"]] = 1.0;
+        mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]] = 0.0;
+        //Predict the position in space that is associated with the highest error
+        vector<double> highError(1, 1.0);
+        mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/v2Error"]->SetValueReal(highError);
+        mmcmErrorPrediction->cvz->ComputePrediction();
+        vector<double> worsePredictedPosition = mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]->GetValuePrediction();
+        worsePredictedPosition = mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]->unscale(worsePredictedPosition);
+        //Make a saccade toward this point
+        Vector fxPt(3); 
+        fxPt[0] = worsePredictedPosition[0];
+        fxPt[1] = worsePredictedPosition[1];
+        fxPt[2] = worsePredictedPosition[2];
+        igaze->lookAtFixationPoint(fxPt);
 
-		mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/v2Error"]] = 1.0;
-		mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]] = 1.0;
-		mmcmErrorPrediction->resume();
-		cout << "Top down saccade to " << fxPt.toString(3,3)<< endl;
-	}
+        mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/v2Error"]] = 1.0;
+        mmcmErrorPrediction->cvz->modalitiesInfluence[mmcmErrorPrediction->cvz->modalitiesBottomUp["/egocentricError/fixationPoint"]] = 1.0;
+        mmcmErrorPrediction->resume();
+        cout << "Top down saccade to " << fxPt.toString(3,3)<< endl;
+    }
     return true;
 }
 
