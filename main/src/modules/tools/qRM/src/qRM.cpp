@@ -589,6 +589,12 @@ bool qRM::populateOpc(){
     return true;
 }
 
+
+/*
+* Ask the name of an unknown entity
+* input: exploreUnknownEntity entityType entityName (eg: exploreUnknownEntity agent unknown_25)
+* ask through speech the name of an unknwon entity
+*/
 Bottle qRM::exploreUnknownEntity(Bottle bInput)
 {
     Bottle bOutput;
