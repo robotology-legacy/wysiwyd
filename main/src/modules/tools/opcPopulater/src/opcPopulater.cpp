@@ -62,11 +62,11 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "addUnknownEntity") {
         yInfo() << " addUnknownEntity";
-        (addUnknownEntity(command)) ? reply.addString("addUnknownEntity done !") : reply.addString("populateSpecific failed !");
+        (addUnknownEntity(command)) ? reply.addString("addUnknownEntity done !") : reply.addString("addUnknownEntity failed !");
     }
     else if (command.get(0).asString() == "setSaliencyEntity") {
         yInfo() << " setSaliencyEntity";
-        (setSaliencyEntity(command)) ? reply.addString("setSaliencyEntity done !") : reply.addString("populateSpecific failed !");
+        (setSaliencyEntity(command)) ? reply.addString("setSaliencyEntity done !") : reply.addString("setSaliencyEntity failed !");
     }
 
 
@@ -172,7 +172,7 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         agent = NULL;
     }
 
-    if (bInput.get(1).toString() == "object")
+    else if (bInput.get(1).toString() == "object")
     {
         Object* obj = iCub->opc->addObject(sName);
         obj->m_ego_position[0] = (-1.5) * ((double)rand() / (double)RAND_MAX) - 0.2;
@@ -187,7 +187,7 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         obj = NULL;
     }
 
-    if (bInput.get(1).toString() == "rtobject")
+    else if (bInput.get(1).toString() == "rtobject")
     {
         RTObject* obj = iCub->opc->addRTObject(sName);
         obj->m_ego_position[0] = (-1.5) * ((double)rand() / (double)RAND_MAX) - 0.2;
@@ -200,7 +200,11 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
 
         obj = NULL;
     }
-
+    else
+    {
+        yInfo() << " " << bInput.get(1).toString() << " unknown kind of entity";
+        return false;
+    }
     return true;
 }
 
