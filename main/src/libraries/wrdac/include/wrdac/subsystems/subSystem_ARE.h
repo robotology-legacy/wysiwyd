@@ -108,6 +108,7 @@ namespace wysiwyd {
                 cmdPort.interrupt();
                 rpcPort.interrupt();
                 getPort.interrupt();
+                SubABM->Close();
 
                 cmdPort.close();
                 rpcPort.close();
