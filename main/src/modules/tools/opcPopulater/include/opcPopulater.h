@@ -29,7 +29,12 @@ public:
 
 
     bool updateModule();
-    bool    populateSpecific(Bottle bInput);
+    bool    populateSpecific1(Bottle bInput);
+
+    bool    addUnknownEntity(Bottle bInput);
+    bool    setSaliencyEntity(Bottle bInput);
+
+
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
 };
