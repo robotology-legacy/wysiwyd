@@ -53,7 +53,11 @@ namespace wysiwyd{
             }
 
 
-            virtual void Close() { portRPC.interrupt(); portRPC.close(); };
+            virtual void Close() {
+                portRPC.interrupt();
+                portRPC.close();
+                SubABM->Close();
+            };
 
 
             /**

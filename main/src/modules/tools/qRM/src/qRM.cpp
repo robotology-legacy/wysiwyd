@@ -142,6 +142,10 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " exploreUnknownEntity";
         reply = exploreUnknownEntity(command);
     }
+    else if (command.get(0).asString() == "exploreEntityByName") {
+        yInfo() << " exploreEntityByName";
+        reply = exploreEntityByName(command);
+    }
 
 
     return true;
@@ -585,6 +589,12 @@ bool qRM::populateOpc(){
     return true;
 }
 
+
+/*
+* Ask the name of an unknown entity
+* input: exploreUnknownEntity entityType entityName (eg: exploreUnknownEntity agent unknown_25)
+* ask through speech the name of an unknwon entity
+*/
 Bottle qRM::exploreUnknownEntity(Bottle bInput)
 {
     Bottle bOutput;
@@ -752,8 +762,10 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
 }
 
 /*
-* Search for the entity corresponding to a certain name in all the unknown entity
-*
+* Search for the entity corresponding to a certain name in all the unknown entities
+* return a bottle of 2 elements.
+* First element is: error - warning - success
+* Second element is: information about the action
 */
 Bottle qRM::exploreEntityByName(Bottle bInput)
 {
@@ -769,7 +781,7 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
     string sNameTarget = bInput.get(1).toString();
     yInfo() << " Entity to find: " << sNameTarget;
 
-    // check if the entity is not present and known
+    // check if the entity is already present in the OPC
     if (iCub->opc->isConnected())
     {
         iCub->opc->checkout();
@@ -779,10 +791,9 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
         {
             if ((*itEnt)->name() == sNameTarget)
             {
-                yInfo() << " Entity " << sNameTarget << " is already known";
+                yInfo() << " Entity " << sNameTarget << " is already known.";
                 bOutput.addString("warning");
                 bOutput.addString("entity already exists");
-
                 return bOutput;
             }
         }
@@ -796,7 +807,13 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
         return bOutput;
     }
 
+
+    // if there is several objects unknown (or at least one)
     string sSentence = "I don't known which of these objects is a " + sNameTarget;
+    iCub->say(sSentence);
+    yInfo() << " " << sSentence;
+
+    sSentence = "Can you show me the " + sNameTarget;
     iCub->say(sSentence);
     yInfo() << " " << sSentence;
 
@@ -804,6 +821,7 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
 
     Time::delay(2.);
 
+    // start detecting unknown objects
     while (!bFound)
     {
         iCub->opc->checkout();
@@ -820,14 +838,13 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
             string sNameCut = sName;
             string delimiter = "_";
             size_t pos = 0;
-            std::string token;
-            while ((pos = sName.find(delimiter)) != std::string::npos) {
+            string token;
+            while ((pos = sName.find(delimiter)) != string::npos) {
                 token = sName.substr(0, pos);
                 std::cout << token << std::endl;
                 sName.erase(0, pos + delimiter.length());
                 sNameCut = token;
             }
-            yInfo() << " sNameCut is:" << sNameCut;
             // check is label is known
 
             if (sNameCut == "unknown")
@@ -946,6 +963,8 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
             bOutput.addString("name changed");
         }
     }
+
+    iCub->opc->commit();
 
     return bOutput;
 }

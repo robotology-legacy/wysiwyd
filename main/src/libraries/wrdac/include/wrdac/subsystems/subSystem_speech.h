@@ -203,6 +203,7 @@ namespace wysiwyd{
                 stt.close();
                 sttRpc.interrupt();
                 sttRpc.close();
+                SubABM->Close();
             }
         };
 
