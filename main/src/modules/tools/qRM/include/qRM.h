@@ -49,6 +49,9 @@ public:
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
 
+    Bottle learnSharedPlan(Bottle bInput);
+    Bottle executeSharedPlan(Bottle bInput);
+
 
 
     double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other
