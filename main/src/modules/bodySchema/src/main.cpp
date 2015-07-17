@@ -38,5 +38,6 @@ int main(int argc, char * argv[])
 //    string part = rf.find("part").asString();
     bodySchema mod;
     mod.runModule(rf);
+    cout << "Bye bye." << endl;
     return 0;
 }

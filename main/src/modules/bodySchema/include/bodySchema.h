@@ -54,12 +54,13 @@ using namespace wysiwyd::wrdac;
 using namespace OTL;
 using namespace cv;
 
-typedef enum {idle, learning, babbling} State;
+typedef enum {idle, learning, babblingArm, babblingHand, vvv2015} State;
 
 class bodySchema : public RFModule {
 private:
     string moduleName;
     int isVerbose;
+    bool shouldQuit;
 
     Port handlerPort;// a port to handle messages
 
@@ -71,12 +72,14 @@ private:
     BufferedPort< ImageOf<PixelRgb> > imgPortOut;
     BufferedPort<Bottle> portVelocityOut;
     BufferedPort<Bottle> portPredictionErrors;
+    Port portToABM;
 
     IPositionControl* pos;
     IVelocityControl* vel;
     IEncoders* encs;
     IControlMode2 *ictrl;
     IInteractionMode *iint;
+    ITorqueControl *itrq;
 
     IPositionControl* posHead;
     IVelocityControl* velHead;
@@ -87,6 +90,7 @@ private:
 
     yarp::sig::Vector encoders, cmd, command, new_command, tmpSpeed, tmpAcc;
     yarp::sig::Vector encodersHead, commandHead;
+    yarp::sig::Vector handTarget;
 
     string ports[4];
     string video[2];
@@ -98,30 +102,30 @@ private:
 
     string part;
     string robot;
-    string mode;
 
     int nInputs;
     int nOutputs;
 
     double initTime;
-
     int capseq;
 
+    bool endTrain;
     string foldername;
     string foldernamepoints;
     string foldernamevideo;
     string foldernameframes;
     string fileEncData;
     string fileCmdData;
-    
-    double freq1, freq2, freq3, amp, ampcos2;
+
+    double freq1, freq2, freq3, freq4, amp, ampcos2;
     double amp0,amp1,amp2,amp3,amp4;
+    double amp8,amp9,amp11,amp12,amp13,amp14,amp15;
     double train_duration;
     double test_duration;
-    
+
     double start_commandHead[5];
-    double start_command[7];
-    
+    double start_command[16];
+
     int frame_idx;
     int num_init_points;
     vector<int> points_idx;
@@ -148,8 +152,9 @@ private:
     int p_capacity;
     int p_random_seed;
 
+    int joint_index;
+
     State state;
-    bool endTrain;
 
 public:
     bool configure(ResourceFinder &rf); // configure
@@ -158,32 +163,30 @@ public:
     bool respond(const Bottle& command, Bottle& reply);
     double getPeriod();
     bool updateModule();
-    
-    bool learnAbsPos();
+
+    bool init_iCub(string &part);
+    Bottle dealABM(const Bottle& command, int begin);
+
+
+
+private:
 
     const std::string trail_string();
     bool create_folders();
-    yarp::sig::Vector babblingExecution(double &t);
+
+    yarp::sig::Vector babblingExecution(double &t, double &AOD);
+    yarp::sig::Vector babblingHandExecution(double &t);
+
+    bool learnAbsPos(State &state);
     bool goStartPos();
+    bool init_oesgp_learner();
+
     bool writeEncoderData(Point2f &lost_indic,ofstream& fs_enc,ofstream& fs_cmd);
     bool findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size &winSize);
     bool getBabblingImages();
-    bool init_iCub(string &part);
-    bool init_oesgp_learner();
-    
-private:
-    string portImageLeftName;
-    string portImageTargetLeftName;
-    BufferedPort<ImageOf<PixelRgb> > portImageLeft;
-    BufferedPort<yarp::sig::Vector> portImageTargetLeft;
-    
-    double prev_x;
-    double prev_y;
-    double prev_xMean;
-    double prev_yMean;
-    yarp::sig::Vector setpoints;
-    
-    void find_image();
+
+    bool VVV2015(int j_idx);
+
 };
 
 #endif // __BODYSCHEMA_H__
