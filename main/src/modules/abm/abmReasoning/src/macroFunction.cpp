@@ -41,12 +41,14 @@ Bottle abmReasoning::executeAction(Bottle bInput)
     // Check format of input
     if (bInput.size() <= 4)
     {
+        bOutput.addString("NACK");
         bOutput.addString("Error in the size of the input in executeAction");
         return bOutput;
     }
 
     if (!bInput.get(1).isString() || !bInput.get(2).isString() || !bInput.get(3).isString())
     {
+        bOutput.addString("NACK");
         bOutput.addString("Error in the format of the input in executeAction");
         return bOutput;
     }
@@ -58,22 +60,25 @@ Bottle abmReasoning::executeAction(Bottle bInput)
 
     // Search action in the list of knowledge
     bool bFound = false;
-    spatialKnowledge skWantedAction;
-    for (vector<spatialKnowledge>::iterator it = listSpatialKnowledge.begin(); it != listSpatialKnowledge.end(); it++)
+    adjKnowledge skWantedAction;
+    for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
     {
-        if (it->sName == sAction)
+        if (it->sLabel == sArgument)
         {
-            if (it->sArgument == sArgument)
-            {
-                skWantedAction = *it;
-                bFound = true;
-            }
+            yInfo() << " in abmReasoning::macroFunction.cpp::executeAction : getEffect is: " << it->getEffect(sAction, true).toString();
+            Bottle bTemp;
+            bTemp.addString("effect");
+            bTemp.addList() = it->getEffect(sAction, true);
+            bOutput.addList() = bTemp;
+            bFound = true;
         }
     }
 
     if (!bFound)
     {
         sAction = "Cannot find action : " + sAction;
+        sAction += " " + sArgument;
+        bOutput.addString("NACK");
         bOutput.addString(sAction.c_str());
         return bOutput;
     }
@@ -92,63 +97,66 @@ Bottle abmReasoning::executeAction(Bottle bInput)
         }
     }
 
-    if (bFound)
-    {
-        ckAction.checkConditions();
-    }
+    /*   if (bFound)
+       {
+       ckAction.checkConditions();
+       }
 
-    // Return
-    if (skWantedAction.isAbsolut)
-    {
-        bOutput.addString("move");
-        bOutput.addString("absolut");
-        double muX = 0, muY = 0;
-        for (unsigned int i = 0; i < skWantedAction.vX.size(); i++)
-        {
-            muX += skWantedAction.vX[i];
-            muY += skWantedAction.vY[i];
-        }
-        muX /= (skWantedAction.vX.size() *1.);
-        muY /= (skWantedAction.vX.size() *1.);
-        bCoord.addDouble(muX);
-        bCoord.addDouble(muY);
-        bOutput.addList() = bCoord;
-    }
-    else if (skWantedAction.isRelative)
-    {
-        bOutput.addString("move");
-        bOutput.addString("relative");
-        double muDX = 0, muDY = 0;
-        for (unsigned int i = 0; i < skWantedAction.vX.size(); i++)
-        {
-            muDX += skWantedAction.vDX[i];
-            muDY += skWantedAction.vDY[i];
-        }
-        muDX /= (skWantedAction.vX.size() *1.);
-        muDY /= (skWantedAction.vX.size() *1.);
+       Return
+       if (skWantedAction.isAbsolut)
+       {
+       bOutput.addString("move");
+       bOutput.addString("absolut");
+       double muX = 0, muY = 0;
+       for (unsigned int i = 0; i < skWantedAction.vX.size(); i++)
+       {
+       muX += skWantedAction.vX[i];
+       muY += skWantedAction.vY[i];
+       }
+       muX /= (skWantedAction.vX.size() *1.);
+       muY /= (skWantedAction.vX.size() *1.);
+       bCoord.addDouble(muX);
+       bCoord.addDouble(muY);
+       bOutput.addList() = bCoord;
+       }
+       else if (skWantedAction.isRelative)
+       {
+       bOutput.addString("move");
+       bOutput.addString("relative");
+       double muDX = 0, muDY = 0;
+       for (unsigned int i = 0; i < skWantedAction.vX.size(); i++)
+       {
+       muDX += skWantedAction.vDX[i];
+       muDY += skWantedAction.vDY[i];
+       }
+       muDX /= (skWantedAction.vX.size() *1.);
+       muDY /= (skWantedAction.vX.size() *1.);
 
-        bCoord.addDouble(muDX);
-        bCoord.addDouble(muDY);
-        bOutput.addList() = bCoord;
-    }
-    Bottle bArgu, bRole, bAction;
+       bCoord.addDouble(muDX);
+       bCoord.addDouble(muDY);
+       bOutput.addList() = bCoord;
+       }*/
+    Bottle bPredicate,
+        bAgent,
+        bObject,
+        bRecipient;
 
-    bAction.addString(abmReasoningFunction::TAG_DB_ACTION.c_str());
-    bAction.addString(sAction.c_str());
+    bPredicate.addString("predicate");
+    bPredicate.addString(sAction);
 
-    bRole.addString("spatial1");
-    bRole.addString("object1");
-    bRole.addString("agent1");
+    bAgent.addString("agent");
+    bAgent.addString(sAgent);
 
-    bArgu.addString(sArgument.c_str());
-    bArgu.addString(sObject.c_str());
-    bArgu.addString(sAgent.c_str());
+    bObject.addString("object");
+    bObject.addString(sObject);
 
-    bAction.addList() = bArgu;
-    bAction.addList() = bRole;
+    bRecipient.addString("recipient");
+    bRecipient.addString(sArgument);
 
-    bOutput.addList() = bAction;
-
+    bOutput.addList() = bPredicate;
+    bOutput.addList() = bAgent;
+    bOutput.addList() = bObject;
+    bOutput.addList() = bRecipient;
 
     return bOutput;
 }

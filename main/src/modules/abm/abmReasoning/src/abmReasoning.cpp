@@ -84,34 +84,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << "abmReasoning ready ! \n \n ";
 
-
-
-    realOPC->checkout();
-
-    RTObject *giraffe = realOPC->addRTObject("giraffe");
-    giraffe->m_present = true;
-    giraffe->m_rt_position[0] = 0.2;
-    giraffe->m_rt_position[1] = 0.2;
-    Action *eat = realOPC->addAction("eat");
-    Object *grass = realOPC->addObject("grass");
-    Relation rel;
-    rel.m_verb = "eat";
-    rel.m_subject = "giraffe";
-    rel.m_object = "grass";
-    realOPC->addRelation(rel, -1.0);
-
-    realOPC->commit();
-    realOPC->update();
-
-
     bReady = true;
-
-    list<pair<string, string> > arguments;
-
-    arguments.push_back(pair<string, string>("point cross left, put croco right", "sentence"));
-    arguments.push_back(pair<string, string>("argument1", "role1"));
-
-    iCub->getABMClient()->sendActivity("action", "test_relation", "qRM", arguments, true);
 
 
     //    adjKnowledge test;
@@ -211,7 +184,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
     if (!bReady)
     {
         bReply.addString("module not initialised yet, please wait.");
-        yInfo() << "\t" << "reply : " << bReply.toString().c_str() << "\n" ;
+        yInfo() << "\t" << "reply : " << bReply.toString().c_str() << "\n";
         handlerPort.reply(bReply);
         return true;
     }
@@ -232,7 +205,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 
     else if (bCommand.get(0).asString() == "findActivity") {
 
-        yInfo() << "\t" << "bCommand.size() = " << bCommand.size() ;
+        yInfo() << "\t" << "bCommand.size() = " << bCommand.size();
 
         if (bCommand.size() <= 2) {
             bReply.addString("nack");
@@ -557,7 +530,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addString("wrong commands. Available are : findActivity <actionName> <begin|end|both> [<colums,to,select>] | findSharedPlan <sharedPlanName> <begin|end|both> [<colums,to,select>] | help | sqlQueryTest | quit ");
     }
 
-    yInfo() << "\t" << "reply : " << bReply.toString().c_str() << "\n" ;
+    yInfo() << "\t" << "reply : " << bReply.toString().c_str() << "\n";
     handlerPort.reply(bReply);
 
     return true;
@@ -566,7 +539,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 
 bool abmReasoning::interruptModule()
 {
-    yInfo() << "\t" << "Interrupting your module, for port cleanup" ;
+    yInfo() << "\t" << "Interrupting your module, for port cleanup";
 
     handlerPort.close();
     senderPort.close();
@@ -611,13 +584,13 @@ Bottle abmReasoning::connectOPC(Bottle bInput)
     int iTry = 0;
     while (!realOPC->isConnected())
     {
-        yInfo() << "\t" << "abmReasoning Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC) ;
+        yInfo() << "\t" << "abmReasoning Connecting to " << abmReasoningFunction::s_realOPC << "..." << realOPC->connect(abmReasoningFunction::s_realOPC);
         if (!realOPC->isConnected())
             Time::delay(0.5);
         iTry++;
         if (iTry > 1)
         {
-            yInfo() << "\t" << "abmReasoning failed to connect to " << abmReasoningFunction::s_realOPC ;
+            yInfo() << "\t" << "abmReasoning failed to connect to " << abmReasoningFunction::s_realOPC;
             bOutput.addString("Connection failed, please check your port");
             break;
         }
@@ -634,13 +607,13 @@ Bottle abmReasoning::connectOPC(Bottle bInput)
     iTry = 0;
     while (!mentalOPC->isConnected())
     {
-        yInfo() << "\t" << "abmReasoning Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC) ;
+        yInfo() << "\t" << "abmReasoning Connecting to " << abmReasoningFunction::s_mentalOPC << "..." << mentalOPC->connect(abmReasoningFunction::s_mentalOPC);
         if (!mentalOPC->isConnected())
             Time::delay(0.5);
         iTry++;
         if (iTry > 1)
         {
-            yInfo() << "\t" << "abmReasoning failed to connect to " << abmReasoningFunction::s_mentalOPC ;
+            yInfo() << "\t" << "abmReasoning failed to connect to " << abmReasoningFunction::s_mentalOPC;
             bOutput.addString("Connection failed, please check your port");
             return bOutput;
         }
@@ -665,7 +638,7 @@ abmReasoning::~abmReasoning()
 void abmReasoning::changeDreaming()
 {
     bDreaming = !bDreaming;
-    yInfo() << "\t" << "bDreaming changed to : " << bDreaming ;
+    yInfo() << "\t" << "bDreaming changed to : " << bDreaming;
 }
 
 

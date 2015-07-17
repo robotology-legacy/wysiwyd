@@ -529,6 +529,9 @@ Bottle abmReasoning::getActionConsequence(pair<string, string> pNameArg)
     return bOutput;
 }
 
+
+
+
 /**
 * Return the position of the object of focus of an action before and after execution.
 * @param name : name of the action to get and name of the argument (e.g. : put east, push west, play gangnam-style, put none, ...). If arg is none, just the actionName is used
