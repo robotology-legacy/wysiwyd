@@ -652,6 +652,13 @@ bool bodySchema::create_folders()
 
 yarp::sig::Vector bodySchema::babblingExecution(double &t, double &AOD)
 {
+
+
+    for(int i=0; i<16; i++)
+    {
+        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
+    }
+
     double w1 = freq1*t;
     double w2 = freq2*t;
     double w3 = freq3*t;
@@ -689,6 +696,14 @@ yarp::sig::Vector bodySchema::babblingExecution(double &t, double &AOD)
 
 yarp::sig::Vector bodySchema::babblingHandExecution(double &t)
 {
+
+
+    for(int i=0; i<16; i++)
+    {
+        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
+    }
+
+
         double w1 = freq1*t;
         double w2 = freq2*t;
         double w3 = freq3*t;
@@ -1134,6 +1149,13 @@ bool bodySchema::VVV2015(int j_idx)
         cout << "I got lost going home!" << endl;
     }
 
+    for(int i=0; i<16; i++)
+    {
+        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
+    }
+
+
+
     while(!Network::isConnected(ports[0], imgPortIn.getName())) {
         Network::connect(ports[0], imgPortIn.getName());
         cout << "Waiting for port " << ports[0] << " to connect to " << imgPortIn.getName() << endl;
@@ -1202,7 +1224,7 @@ bool bodySchema::VVV2015(int j_idx)
 
         //cout << "Do velocity move" << endl;
 
-        cout << command.data() << endl;
+//        cout << command.toString() << endl;
         vel->velocityMove(command.data());
 
         babCmd = command;
