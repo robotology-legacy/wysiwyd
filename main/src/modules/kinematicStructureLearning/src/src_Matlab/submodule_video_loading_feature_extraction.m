@@ -96,6 +96,8 @@ window = figure('KeyPressFcn',@(obj,evt)setappdata(obj,'flag',true));
 setappdata(window,'flag',false);
 
 %
+disp('++++++++++++++++++++++++++++++++++++++++++++++');
+disp('Loading parameters for feature extraction.\n');
 feature_extraction_parameters;
 
 %
@@ -159,13 +161,13 @@ while true
     image(:,:,3) = imageB;
 % %         
 % %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     % noise reduction
-    for layer_idx = 1:3
-%         image(:,:,layer_idx) = imadjust(image(:,:,layer_idx));
-        image(:,:,layer_idx) = medfilt2(image(:,:,layer_idx));
-% %         image(:,:,layer_idx) = wiener2(image(:,:,layer_idx),[5,5]);
-% 
-    end
+% %     % noise reduction
+%     for layer_idx = 1:3
+% %         image(:,:,layer_idx) = imadjust(image(:,:,layer_idx));
+%         image(:,:,layer_idx) = medfilt2(image(:,:,layer_idx));
+% % %         image(:,:,layer_idx) = wiener2(image(:,:,layer_idx),[5,5]);
+% % 
+%     end
     
     cur_Gray = cv.cvtColor(image, 'RGB2GRAY');
     
@@ -179,9 +181,15 @@ while true
     hold on;
     
     if needToInit
+%         cur_points = cv.goodFeaturesToTrack(cur_Gray, ...
+%             'MaxCorners', MAX_COUNT, ...
+%             'QualityLevel',0.01,...
+%             'MinDistance',5,...
+%             'BlockSize',5,...
+%             'K',0.04);
         cur_points = cv.goodFeaturesToTrack(cur_Gray, ...
             'MaxCorners', MAX_COUNT, ...
-            'QualityLevel',0.01,...
+            'QualityLevel',0.001,...
             'MinDistance',5,...
             'BlockSize',5,...
             'K',0.04);

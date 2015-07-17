@@ -107,10 +107,10 @@ while(~shouldClose)
             [y, W, frames, points] = submodule_cvuKltRead([pwd,'/points/',filename(1:end-4),'/point_seq_%d.txt'], 1, nFrames, 'workspace', points_total);
     
             %%
-    
-            % submodule_bg_removal;
-            % W = W_fg;
-            % y = y_fg;
+            % background subtraction
+            submodule_bg_removal;
+            W = W_fg;
+            y = y_fg;
     
             %%
             % main algorithm
