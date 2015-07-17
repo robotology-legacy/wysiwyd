@@ -34,5 +34,5 @@ cur_Gray = [];
 prev_Gray = [];
 mask = [];
 
-subPixWinSize = [10,10];
+subPixWinSize = [5,5];
 termcrit = struct('type','Count+EPS', 'maxCount', 20, 'epsilon', 0.03);
