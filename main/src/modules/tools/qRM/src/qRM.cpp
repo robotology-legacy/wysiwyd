@@ -152,6 +152,10 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " executeSharedPlan";
         reply = executeSharedPlan(command);
     }
+    else if (command.get(0).asString() == "learnSharedPlan") {
+        yInfo() << " learnSharedPlan";
+        reply = learnSharedPlan(command);
+    }
 
 
     return true;
@@ -977,16 +981,6 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
 
 
 
-Bottle qRM::learnSharedPlan(Bottle bInput)
-{
-    Bottle bOutput;
-
-    return bOutput;
-}
-
-
-
-
 Bottle qRM::executeSharedPlan(Bottle bInput)
 {
     Bottle bOutput,
@@ -1021,156 +1015,11 @@ Bottle qRM::executeSharedPlan(Bottle bInput)
 
 
     for (int i = 0; i < bPlan.size(); i++)
-    {
+    {         
         if (bPlan.get(i).isList())
         {
             Bottle bTemp = *bPlan.get(i).asList();
-            Bottle bEffect;
-
-            sPredicate = bTemp.check("predicate", Value("none")).asString();
-            sAgent = bTemp.check("agent", Value("none")).asString();
-            sObject = bTemp.check("object", Value("none")).asString();
-            sRecipient = bTemp.check("recipient", Value("none")).asString();
-
-            if (bTemp.findGroup("effect").size() != 2)
-            {
-                yInfo() << " qRM::executeSharedPlan:: no effect of action";
-                sEffect = "none";
-            }
-            else
-            {
-                bEffect = *bTemp.findGroup("effect").get(1).asList();
-                sEffect = bEffect.toString();
-            }
-
-
-            yInfo() << " predicate: " << sPredicate;
-            yInfo() << " agent:     " << sAgent;
-            yInfo() << " object:    " << sObject;
-            yInfo() << " recipient: " << sRecipient;
-            yInfo() << " effect:    " << sEffect << "\n";
-
-            //            if (sPredicate == "none" || sAgent == "none" || sObject == "none" || sRecipient == "none")
-
-            if (sAgent == "iCub")
-            {
-                iCub->opc->checkout();
-                if (bEffect.get(0).toString() == "absolute")
-                {
-
-                    if (sObject == "none")
-                    {
-                        yInfo() << " Error in qRM::executeSharedPlan. Object is set at 'none'";
-                    }
-                    else
-                    {
-
-                        Entity *EntToGrasp = iCub->opc->getEntity(sObject);
-                        if (EntToGrasp == NULL)
-                        {
-                            ostringstream osSentence;
-                            osSentence << " Franckly my dear, I don't think I'll be able to " << sPredicate << " the " << sObject << " to the " << sRecipient;
-                            yInfo() << " " << osSentence.str();
-                            iCub->say(osSentence.str());
-                        }
-                        else if (EntToGrasp->isType("object"))
-                        {
-                            Object *toGrasp = iCub->opc->addObject(sObject);
-                            if (toGrasp->m_present)
-                            {
-                                yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
-
-                                yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                                iCub->getARE()->take(coordToGrasp);
-
-                                coordToGrasp[0] = bEffect.get(1).asDouble();
-                                coordToGrasp[1] = bEffect.get(2).asDouble();
-
-                                yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                                iCub->getARE()->dropOn(coordToGrasp);
-                            }
-                        }
-                        else if (EntToGrasp->isType("RTObject"))
-                        {
-                            RTObject *toGrasp = iCub->opc->addRTObject(sObject);
-                            if (toGrasp->m_present)
-                            {
-                                yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
-
-                                yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                                iCub->getARE()->take(coordToGrasp);
-
-                                coordToGrasp[0] = bEffect.get(1).asDouble();
-                                coordToGrasp[1] = bEffect.get(2).asDouble();
-
-                                yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                                iCub->getARE()->dropOn(coordToGrasp);
-                            }
-                        }
-                    }
-                }
-                else if (bEffect.get(0).toString() == "relative")
-                {
-                    if (sObject == "none")
-                    {
-                        yInfo() << " Error in qRM::executeSharedPlan. Object is set at 'none'";
-                    }
-                    else
-                    {
-                        Entity *EntToGrasp = iCub->opc->getEntity(sObject);
-                        if (EntToGrasp == NULL)
-                        {
-                            ostringstream osSentence;
-                            osSentence << " Francly my dear, I don't think I'll be able to " << sPredicate << " the " << sObject << " to the " << sRecipient;
-                            yInfo() << " " << osSentence.str();
-                            iCub->say(osSentence.str());
-                        }
-                        else if (EntToGrasp->isType("object"))
-                        {
-                            Object *toGrasp = iCub->opc->addObject(sObject);
-                            yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
-
-                            yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                            iCub->getARE()->take(coordToGrasp);
-
-                            coordToGrasp[0] += bEffect.get(1).asDouble();
-                            coordToGrasp[1] += bEffect.get(2).asDouble();
-
-                            yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                            iCub->getARE()->dropOn(coordToGrasp);
-                        }
-                        else if (EntToGrasp->isType("RTObject"))
-                        {
-                            RTObject *toGrasp = iCub->opc->addRTObject(sObject);
-                            yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
-
-                            yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
-                            iCub->getARE()->take(coordToGrasp);
-
-                            coordToGrasp[0] += bEffect.get(1).asDouble();
-                            coordToGrasp[1] += bEffect.get(2).asDouble();
-
-                            yInfo() << " trying to drop at location: " << coordToGrasp.toString();
-                            iCub->getARE()->dropOn(coordToGrasp);
-                        }
-                    }
-
-                }
-            }
-            else if (sAgent != "none")
-            {
-                ostringstream osSentence;
-                osSentence << sAgent << ", you should " << sPredicate << " the " << sObject << " to the " << sRecipient << ".";
-                string sentence = osSentence.str();
-
-                iCub->say(sentence);
-                yInfo() << "\n " << sentence << "\n";
-                Time::delay(2.);
-            }
-            else
-            {
-                yInfo() << " in qRM::executeSharedPlan :: problem: doesn't know agent: " << sAgent;
-            }
+            executeAction(bTemp);
         }
     }
 
@@ -1184,4 +1033,387 @@ Bottle qRM::executeSharedPlan(Bottle bInput)
     bOutput.addString("done");
     return bOutput;
 
+}
+
+
+
+/*
+* dialogue for learning a shared plan through ABM and ABMReasoning
+* input: "learnSharedPlan" shared_plan_name
+*/
+Bottle qRM::learnSharedPlan(Bottle bInput)
+{
+    Bottle bOutput;
+
+    if (bInput.size() != 2)
+    {
+        yInfo() << " in qRM::learnSharedPlan:: wrong size of input";
+        bOutput.addString("nack");
+        bOutput.addString("in qRM::learnSharedPlan:: wrong size of input");
+        return bOutput;
+    }
+
+    string sNameSp = bInput.get(1).toString();
+
+
+    list<pair<string, string> > lpArg;
+
+    iCub->getABMClient()->sendActivity("sharedplan",
+        sNameSp,
+        "qRM",
+        lpArg,
+        true);
+
+    string sSentence = "Ok, can you show me of to " +sNameSp;
+    yInfo() << " " << sSentence ;
+    iCub->say(sSentence);
+
+    bool bSPonGoing = true;
+
+    Bottle bRecognized,
+        bAnswer,
+        bSemantic;
+
+    string sPredicate ;
+    string sAgent     ;
+    string sObject    ;
+    string sRecipient ;
+
+    bool fActionStarted = false;
+
+    Bottle ABMR_end_Action;
+    ABMR_end_Action.addString("addLastActivity");
+    ABMR_end_Action.addString("action");
+
+
+    while (bSPonGoing)
+    {
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(grammarLearnSpAction));
+
+        if (bRecognized.get(0).asInt() == 0)
+        {
+            yWarning() << " error in qRM::exploreEntity | askNameAgent | Error in speechRecog";
+            bOutput.addString("error");
+            bOutput.addString("error in speechRecog");
+            return bOutput;
+        }
+
+        bAnswer = *bRecognized.get(1).asList();
+        /*
+        * Human had an ongoing action it might be ended.
+        */
+        if (fActionStarted)
+        {
+            iCub->getABMClient()->sendActivity("action",
+                sPredicate,
+                "qRM",
+                lpArg,
+                false);
+            Port2abmReasoning.write(ABMR_end_Action);
+            fActionStarted = false;
+        }
+
+        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+        /*
+        * Human signals the end of the SP
+        */ 
+        if (bAnswer.get(0).asString() == "stop")
+        {
+            yInfo() << " in qRM::learnSharedPlan | end of SP."; 
+            bSPonGoing = false;
+        }
+        else
+        {
+            /*
+            * Plan is not finished
+            */
+
+            bSemantic = *bAnswer.get(1).asList();
+
+            /*
+            * TODO
+            * Use reservoir to treat the sentence and get PAOR.
+            */
+
+            sPredicate = bSemantic.check("predicate", Value("none")).asString();
+            sAgent     = bSemantic.check("agent", Value("none")).asString();
+            sObject    = bSemantic.check("object", Value("none")).asString();
+            sRecipient = bSemantic.check("recipient", Value("none")).asString();
+
+            if (sPredicate == "none")
+            {
+                yInfo() << " in qRM::learnSharedPlan:: problem of recognition of action: no predicate";
+                iCub->say("What did you said bro ?");
+            }
+            else
+            {
+
+                lpArg.clear();
+                lpArg.push_back(pair<string, string>(sPredicate, "prediacte"));
+                lpArg.push_back(pair<string, string>(sAgent, "agent"));
+                lpArg.push_back(pair<string, string>(sObject, "object"));
+                lpArg.push_back(pair<string, string>(sRecipient, "recipient"));
+
+                iCub->getABMClient()->sendActivity("action",
+                    sPredicate,
+                    "qRM",
+                    lpArg,
+                    true);
+
+                /*
+                * The iCub is agent: ask how to to ABMR, then execute it
+                *
+                */
+                if (sAgent == "you" || sAgent == "iCub")
+                {
+                    Bottle bActionSent,
+                        bActionGet;
+                    bActionSent.addString("executeAction");
+                    bActionSent.addString(sPredicate);
+                    bActionSent.addString(sRecipient);
+                    bActionSent.addString(sObject);
+                    bActionSent.addString(sAgent);
+
+                    Port2abmReasoning.write(bActionSent, bActionGet);
+
+                    executeAction(bActionGet);
+                }
+                else 
+                {
+                    /* 
+                    * the Human will do the action
+                    */
+                    fActionStarted = true;
+                }
+            }
+        }
+    }
+
+
+    iCub->getABMClient()->sendActivity("sharedplan",
+        sNameSp,
+        "qRM",
+        lpArg,
+        false);
+
+
+    Bottle ABMR_end_SP;
+    ABMR_end_SP.addString("addLastActivity");
+    ABMR_end_SP.addString("sharedplan");
+    Port2abmReasoning.write(ABMR_end_SP);
+
+
+
+    return bOutput;
+}
+
+
+
+
+Bottle qRM::executeAction(Bottle bInput)
+{
+    Bottle bOutput;
+    Bottle bEffect;
+
+
+    Bottle ABMR_end_Action;
+    ABMR_end_Action.addString("addLastActivity");
+    ABMR_end_Action.addString("action");
+
+    string sEffect;
+
+    string sPredicate = bInput.check("predicate", Value("none")).asString();
+    string sAgent = bInput.check("agent", Value("none")).asString();
+    string sObject = bInput.check("object", Value("none")).asString();
+    string sRecipient = bInput.check("recipient", Value("none")).asString();
+
+    list<pair<string, string > > lpArg;
+    lpArg.push_back(pair<string, string>(sPredicate, "prediacte"));
+    lpArg.push_back(pair<string, string>(sAgent, "agent"));
+    lpArg.push_back(pair<string, string>(sObject, "object"));
+    lpArg.push_back(pair<string, string>(sRecipient, "recipient"));
+
+    if (bInput.findGroup("effect").size() != 2)
+    {
+        yInfo() << " qRM::executeSharedPlan:: no effect of action";
+        sEffect = "none";
+    }
+    else
+    {
+        bEffect = *bInput.findGroup("effect").get(1).asList();
+        sEffect = bEffect.toString();
+    }
+
+
+    yInfo() << " predicate: " << sPredicate;
+    yInfo() << " agent:     " << sAgent;
+    yInfo() << " object:    " << sObject;
+    yInfo() << " recipient: " << sRecipient;
+    yInfo() << " effect:    " << sEffect << "\n";
+
+    //            if (sPredicate == "none" || sAgent == "none" || sObject == "none" || sRecipient == "none")
+
+    if (sAgent == "iCub")
+    {
+        iCub->opc->checkout();
+        if (bEffect.get(0).toString() == "absolute")
+        {
+
+            if (sObject == "none")
+            {
+                yInfo() << " Error in qRM::executeSharedPlan. Object is set at 'none'";
+            }
+            else
+            {
+
+                Entity *EntToGrasp = iCub->opc->getEntity(sObject);
+                if (EntToGrasp == NULL)
+                {
+                    ostringstream osSentence;
+                    osSentence << " Franckly my dear, I don't think I'll be able to " << sPredicate << " the " << sObject << " to the " << sRecipient;
+                    yInfo() << " " << osSentence.str();
+                    iCub->say(osSentence.str());
+                }
+                else if (EntToGrasp->isType("object"))
+                {
+                    Object *toGrasp = iCub->opc->addObject(sObject);
+                    if (toGrasp->m_present)
+                    {
+                        yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
+                        iCub->getABMClient()->sendActivity("action",
+                            sPredicate,
+                            "qRM",
+                            lpArg,
+                            true);
+                        yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
+                        iCub->getARE()->take(coordToGrasp);
+
+                        coordToGrasp[0] = bEffect.get(1).asDouble();
+                        coordToGrasp[1] = bEffect.get(2).asDouble();
+
+                        yInfo() << " trying to drop at location: " << coordToGrasp.toString();
+                        iCub->getARE()->dropOn(coordToGrasp);
+                        iCub->getABMClient()->sendActivity("action",
+                            sPredicate,
+                            "qRM",
+                            lpArg,
+                            false);
+                        Port2abmReasoning.write(ABMR_end_Action);
+                    }
+                }
+                else if (EntToGrasp->isType("RTObject"))
+                {
+                    RTObject *toGrasp = iCub->opc->addRTObject(sObject);
+                    if (toGrasp->m_present)
+                    {
+                        yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
+                        iCub->getABMClient()->sendActivity("action",
+                            sPredicate,
+                            "qRM",
+                            lpArg,
+                            true);
+                        yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
+                        iCub->getARE()->take(coordToGrasp);
+
+                        coordToGrasp[0] = bEffect.get(1).asDouble();
+                        coordToGrasp[1] = bEffect.get(2).asDouble();
+
+                        yInfo() << " trying to drop at location: " << coordToGrasp.toString();
+                        iCub->getARE()->dropOn(coordToGrasp);
+                        iCub->getABMClient()->sendActivity("action",
+                            sPredicate,
+                            "qRM",
+                            lpArg,
+                            false);
+                        Port2abmReasoning.write(ABMR_end_Action);
+                    }
+                }
+            }
+        }
+        else if (bEffect.get(0).toString() == "relative")
+        {
+            if (sObject == "none")
+            {
+                yInfo() << " Error in qRM::executeSharedPlan. Object is set at 'none'";
+            }
+            else
+            {
+                Entity *EntToGrasp = iCub->opc->getEntity(sObject);
+                if (EntToGrasp == NULL)
+                {
+                    ostringstream osSentence;
+                    osSentence << " Francly my dear, I don't think I'll be able to " << sPredicate << " the " << sObject << " to the " << sRecipient;
+                    yInfo() << " " << osSentence.str();
+                    iCub->say(osSentence.str());
+                }
+                else if (EntToGrasp->isType("object"))
+                {
+                    Object *toGrasp = iCub->opc->addObject(sObject);
+                    yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
+                    iCub->getABMClient()->sendActivity("action",
+                        sPredicate,
+                        "qRM",
+                        lpArg,
+                        true);
+                    yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
+                    iCub->getARE()->take(coordToGrasp);
+
+                    coordToGrasp[0] += bEffect.get(1).asDouble();
+                    coordToGrasp[1] += bEffect.get(2).asDouble();
+
+                    yInfo() << " trying to drop at location: " << coordToGrasp.toString();
+                    iCub->getARE()->dropOn(coordToGrasp);
+                    iCub->getABMClient()->sendActivity("action",
+                        sPredicate,
+                        "qRM",
+                        lpArg,
+                        false);
+                    Port2abmReasoning.write(ABMR_end_Action);
+                }
+                else if (EntToGrasp->isType("RTObject"))
+                {
+                    RTObject *toGrasp = iCub->opc->addRTObject(sObject);
+                    yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
+                    iCub->getABMClient()->sendActivity("action",
+                        sPredicate,
+                        "qRM",
+                        lpArg,
+                        true);
+                    yInfo() << " trying to grasp at location: " << coordToGrasp.toString();
+                    iCub->getARE()->take(coordToGrasp);
+
+                    coordToGrasp[0] += bEffect.get(1).asDouble();
+                    coordToGrasp[1] += bEffect.get(2).asDouble();
+
+                    yInfo() << " trying to drop at location: " << coordToGrasp.toString();
+                    iCub->getARE()->dropOn(coordToGrasp);
+                    iCub->getABMClient()->sendActivity("action",
+                        sPredicate,
+                        "qRM",
+                        lpArg,
+                        false);
+                    Port2abmReasoning.write(ABMR_end_Action);
+                }
+            }
+
+        }
+    }
+    else if (sAgent != "none")
+    {
+        ostringstream osSentence;
+        osSentence << sAgent << ", you should " << sPredicate << " the " << sObject << " to the " << sRecipient << ".";
+        string sentence = osSentence.str();
+
+        iCub->say(sentence);
+        yInfo() << "\n " << sentence << "\n";
+        Time::delay(2.);
+    }
+    else
+    {
+        yInfo() << " in qRM::executeAction :: problem: doesn't know agent: " << sAgent;
+    }
+
+
+    return bOutput;
 }

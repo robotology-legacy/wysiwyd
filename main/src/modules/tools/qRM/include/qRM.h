@@ -14,6 +14,8 @@ private:
     string      nameGrammarAskNameObject;
     string      nameGrammarYesNo;
 
+    string      grammarLearnSpAction;
+
     yarp::os::Port Port2abmReasoning;       // a port to communicate with the reasoning module
 
     string port2abmReasoningName;
@@ -51,6 +53,7 @@ public:
 
     Bottle learnSharedPlan(Bottle bInput);
     Bottle executeSharedPlan(Bottle bInput);
+    Bottle executeAction(Bottle bInput);
 
 
 
