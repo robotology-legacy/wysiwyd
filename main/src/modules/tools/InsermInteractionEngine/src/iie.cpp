@@ -138,7 +138,6 @@ bool IIE::updateModule() {
 
                 yInfo() << " bReplyFromQRM: " << bReplyFromQRM.toString();
             }
-
         }
     }
     else

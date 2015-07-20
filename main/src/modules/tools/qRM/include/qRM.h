@@ -9,12 +9,12 @@ private:
     string      grammarToString(string sPath);
     AutomaticCalibrationThread* calibrationThread;
     Port        rpc;
-    string      nameMainGrammar;
-    string      nameGrammarAskNameAgent;
-    string      nameGrammarAskNameObject;
-    string      nameGrammarYesNo;
+    string      MainGrammar;
+    string      GrammarAskNameAgent;
+    string      GrammarAskNameObject;
+    string      GrammarYesNo;
 
-    string      grammarLearnSpAction;
+    string      grammarAction;
 
     yarp::os::Port Port2abmReasoning;       // a port to communicate with the reasoning module
 

@@ -33,10 +33,11 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("qRM")).asString().c_str();
     setName(moduleName.c_str());
 
-    nameMainGrammar = rf.findFileByName(rf.check("nameMainGrammar", Value("mainLoopGrammar.xml")).toString());
-    nameGrammarYesNo = rf.findFileByName(rf.check("nameGrammarYesNo", Value("nodeYesNo.xml")).toString());
-    nameGrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
-    nameGrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
+    MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("LoopGrammar.xml")).toString());
+    GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
+    GrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
+    GrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
+    grammarAction = rf.findFileByName(rf.check("grammarAction", Value("grammarAction.xml")).toString());
     thresholdDistinguishObjectsRatio = rf.check("thresholdDistinguishObjectsRatio", Value(3.0)).asDouble();
     thresholdSalienceDetection = rf.check("thresholdSalienceDetection", Value(2.0)).asDouble();
 
@@ -88,15 +89,6 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
     {
         yInfo() << " WARNING ABM NOT CONNECTED";
     }
-
-    //  calibrationRT("right");
-
-    //  populateOpc();
-
-    //  nodeTest();
-
-    Bottle bInput;
-    executeSharedPlan(bInput);
 
     return true;
 }
@@ -151,6 +143,10 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "executeSharedPlan") {
         yInfo() << " executeSharedPlan";
         reply = executeSharedPlan(command);
+    }
+    else if (command.get(0).asString() == "executeAction") {
+        yInfo() << " executeAction";
+        reply = executeAction(command);
     }
     else if (command.get(0).asString() == "learnSharedPlan") {
         yInfo() << " learnSharedPlan";
@@ -244,9 +240,9 @@ void  qRM::mainLoop()
 
     bMessenger.addString("recog");
     bMessenger.addString("grammarXML");
-    bMessenger.addString(grammarToString(nameMainGrammar).c_str());
+    bMessenger.addString(grammarToString(MainGrammar).c_str());
 
-    Bottle bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameMainGrammar));
+    Bottle bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar));
 
     while (!fGetaReply)
     {
@@ -256,7 +252,7 @@ void  qRM::mainLoop()
 
         if (bSpeechRecognized.toString() == "NACK" || bSpeechRecognized.size() != 2)
         {
-            osError << " Check " << nameMainGrammar;
+            osError << " Check " << MainGrammar;
             bOutput.addString(osError.str());
             yInfo() << osError.str();
         }
@@ -436,7 +432,7 @@ void  qRM::nodeTest()
 
     yInfo() << " bRecognized " << bRecognized.toString();
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarYesNo), 20);
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarYesNo), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -565,7 +561,7 @@ bool qRM::nodeYesNo()
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer; //response from speech recog without transfer information, including raw sentence
 
-    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarYesNo), 20);
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarYesNo), 20);
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -631,7 +627,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
             bAnswer, //response from speech recog without transfer information, including raw sentence
             bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskNameAgent), 20);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -680,7 +676,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
             bAnswer, //response from speech recog without transfer information, including raw sentence
             bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskNameObject), 20);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -729,7 +725,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
             bAnswer, //response from speech recog without transfer information, including raw sentence
             bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskNameObject), 20);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -1064,7 +1060,7 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
         lpArg,
         true);
 
-    string sSentence = "Ok, can you show me of to " +sNameSp;
+    string sSentence = "Ok, can you show me how to " +sNameSp;
     yInfo() << " " << sSentence ;
     iCub->say(sSentence);
 
@@ -1084,11 +1080,14 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
     Bottle ABMR_end_Action;
     ABMR_end_Action.addString("addLastActivity");
     ABMR_end_Action.addString("action");
+    Bottle bOPCUpdateLocation;
+    bOPCUpdateLocation.addString("updateOpcObjectLocation");
+    bOPCUpdateLocation.addString("OPC");
 
 
     while (bSPonGoing)
     {
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(grammarLearnSpAction));
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(grammarAction));
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -1110,6 +1109,7 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
                 lpArg,
                 false);
             Port2abmReasoning.write(ABMR_end_Action);
+            Port2abmReasoning.write(bOPCUpdateLocation);
             fActionStarted = false;
         }
 
@@ -1209,8 +1209,10 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
 }
 
 
-
-
+/*
+* ask the ABMR for the action to perform, and execute it with ARE
+* bInput: ("predicate" action_name) ("agent" agent_name) ("object" object_name) ("recipient" adjective_name)
+*/
 Bottle qRM::executeAction(Bottle bInput)
 {
     Bottle bOutput;
@@ -1220,6 +1222,9 @@ Bottle qRM::executeAction(Bottle bInput)
     Bottle ABMR_end_Action;
     ABMR_end_Action.addString("addLastActivity");
     ABMR_end_Action.addString("action");
+    Bottle bOPCUpdateLocation;
+    bOPCUpdateLocation.addString("updateOpcObjectLocation");
+    bOPCUpdateLocation.addString("OPC");
 
     string sEffect;
 
@@ -1300,6 +1305,7 @@ Bottle qRM::executeAction(Bottle bInput)
                             lpArg,
                             false);
                         Port2abmReasoning.write(ABMR_end_Action);
+                        Port2abmReasoning.write(bOPCUpdateLocation);
                     }
                 }
                 else if (EntToGrasp->isType("RTObject"))
@@ -1327,6 +1333,7 @@ Bottle qRM::executeAction(Bottle bInput)
                             lpArg,
                             false);
                         Port2abmReasoning.write(ABMR_end_Action);
+                        Port2abmReasoning.write(bOPCUpdateLocation);
                     }
                 }
             }
@@ -1370,6 +1377,7 @@ Bottle qRM::executeAction(Bottle bInput)
                         lpArg,
                         false);
                     Port2abmReasoning.write(ABMR_end_Action);
+                    Port2abmReasoning.write(bOPCUpdateLocation);
                 }
                 else if (EntToGrasp->isType("RTObject"))
                 {
@@ -1394,6 +1402,7 @@ Bottle qRM::executeAction(Bottle bInput)
                         lpArg,
                         false);
                     Port2abmReasoning.write(ABMR_end_Action);
+                    Port2abmReasoning.write(bOPCUpdateLocation);
                 }
             }
 
