@@ -2,7 +2,7 @@
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Stéphane Lallée
  * email:   stephane.lallee@gmail.com
- * website: http://efaa.upf.edu/ 
+ * website: http://efaa.upf.edu/
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -79,7 +79,7 @@ void OPCClient::interrupt()
     opcBroadcast.interrupt();
     opc.interrupt();
 }
-    
+
 void OPCClient::close()
 {
     opcBroadcast.close();
@@ -113,7 +113,7 @@ Entity*    OPCClient::addEntity(Entity* e)
     cmd.addVocab(Vocab::encode("add"));
     Bottle& query = cmd.addList();
     query = e->asBottle();
-    write(cmd,reply,isVerbose);   
+    write(cmd,reply,isVerbose);
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
@@ -153,7 +153,7 @@ Agent*    OPCClient::addAgent(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
-    {            
+    {
         if (isVerbose)
             cerr<<"Trying to add an already existing agent ("<<name.c_str()<<")"<<endl;
         return (Agent*)e;
@@ -170,7 +170,7 @@ Action*    OPCClient::addAction(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
-    {    
+    {
         if (isVerbose)
             cerr<<"Trying to add an already existing action ("<<name.c_str()<<")"<<endl;
         return (Action*)e;
@@ -187,7 +187,7 @@ RTObject*    OPCClient::addRTObject(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
-    {            
+    {
         if (isVerbose)
             cerr<<"Trying to add an already existing rt object ("<<name.c_str()<<")"<<endl;
         return (RTObject*)e;
@@ -204,7 +204,7 @@ Adjective*    OPCClient::addAdjective(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
-    {            
+    {
         if (isVerbose)
             cerr<<"Trying to add an already existing adjective ("<<name.c_str()<<")"<<endl;
         return (Adjective*)e;
@@ -216,10 +216,10 @@ Adjective*    OPCClient::addAdjective(const string &name)
     addEntity(o);
     return o;
 }
-    
+
 /**
 * Try to assign a property from an entity to another entity, using a specific property name
- */ 
+ */
 bool OPCClient::setEntityProperty(std::string sourceEntityName, std::string propertyName, std::string targetEntityName)
 {
     Entity* source = getEntity(sourceEntityName,false);
@@ -256,7 +256,7 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
     write(cmd,reply,isVerbose);
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    {        
+    {
         if(this->isVerbose)
             cerr<<"Unable to talk correctly to OPC"<<endl;
         return NULL;
@@ -270,7 +270,7 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
     }
 
     if (reply.get(1).asList()->get(1).asList()->size() > 1)
-    {        
+    {
         if(this->isVerbose)
             cerr<<"[IMPORTANT] Duplicated names... You should fix this!"<<endl;
     }
@@ -300,9 +300,9 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     sub.addString("id");
     sub.addInt(id);
     write(cmd,reply,isVerbose);
-            
+
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    {        
+    {
         if(this->isVerbose)
             cerr<<"Unable to talk correctly to OPC"<<endl;
         return NULL;
@@ -313,17 +313,17 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     //Cast to the right type
     if (newE->entity_type() == EFAA_OPC_ENTITY_OBJECT)
         newE = new Object();
-    else if 
-        (newE->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
+    else if
+            (newE->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
         newE = new RTObject();
-    else if 
-        (newE->entity_type() == EFAA_OPC_ENTITY_AGENT)
+    else if
+            (newE->entity_type() == EFAA_OPC_ENTITY_AGENT)
         newE = new Agent();
-    else if 
-        (newE->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)
+    else if
+            (newE->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)
         newE = new Adjective();
-     else if 
-        (newE->entity_type() == "action")
+    else if
+            (newE->entity_type() == "action")
         newE = new Action();
 
     //Update the fields
@@ -338,12 +338,12 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
 
 //Returns the OPCid of a relation on the server side
 int OPCClient::getRelationID(
-    Entity* subject,
-    Entity* verb, 
-    Entity* object, 
-    Entity* complement_place,
-    Entity* complement_time,
-    Entity* complement_manner)
+        Entity* subject,
+        Entity* verb,
+        Entity* object,
+        Entity* complement_place,
+        Entity* complement_time,
+        Entity* complement_manner)
 {
     Relation r(subject,verb,object,complement_place,complement_time,complement_manner);
     //Check if the relation already exists on the server side (which means same source/target/type)
@@ -357,8 +357,8 @@ int OPCClient::getRelationID(
     sub.addString("==");
     sub.addString(EFAA_OPC_ENTITY_RELATION);
     query.addList() = sub;
-            
-    query.addString("&&");      
+
+    query.addString("&&");
 
     sub.clear();
     sub.addString("rSubject");
@@ -409,7 +409,7 @@ int OPCClient::getRelationID(
     write(cmd,reply,isVerbose);
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    {        
+    {
         if(this->isVerbose)
             cerr<<"Unable to talk correctly to OPC"<<endl;
         return false;
@@ -443,13 +443,13 @@ bool OPCClient::addRelation(Relation r, double lifeTime)
 
 //Adds a relation between 2 entities
 bool OPCClient::addRelation(
-    Entity* subject,
-    Entity* verb, 
-    Entity* object, 
-    double lifeTime,
-    Entity* complement_place,
-    Entity* complement_time,
-    Entity* complement_manner)
+        Entity* subject,
+        Entity* verb,
+        Entity* object,
+        double lifeTime,
+        Entity* complement_place,
+        Entity* complement_time,
+        Entity* complement_manner)
 {   
 
     //Check if the relation already exists on the server side (which means same source/target/type)
@@ -473,15 +473,15 @@ bool OPCClient::addRelation(
     write(cmd,reply,isVerbose);
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    {            
-        if(this->isVerbose)        
+    {
+        if(this->isVerbose)
             cerr<<"Unable to talk correctly to OPC"<<endl;
         return false;
     }
     index = reply.get(1).asList()->get(1).asInt();
     return setLifeTime(index,lifeTime);
 }
-    
+
 //Removes a relation between 2 entities
 bool OPCClient::removeRelation(Relation r)
 {   
@@ -496,18 +496,18 @@ bool OPCClient::removeRelation(Relation r)
 
 //Removes a relation between 2 entities
 bool OPCClient::removeRelation(
-    Entity* subject,
-    Entity* verb, 
-    Entity* object,
-    Entity* complement_place,
-    Entity* complement_time,
-    Entity* complement_manner)
+        Entity* subject,
+        Entity* verb,
+        Entity* object,
+        Entity* complement_place,
+        Entity* complement_time,
+        Entity* complement_manner)
 {       
 
     int index = getRelationID(subject,verb,object,complement_place,complement_time,complement_manner);
 
     if (index == -1)
-    {        
+    {
         if(this->isVerbose)
             cerr<<"This relation do not exist on the OPC server, not removed"<<endl;
     }
@@ -524,8 +524,8 @@ bool OPCClient::removeRelation(
 
         write(cmd,reply,isVerbose);
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-        {            
-            if(this->isVerbose)     
+        {
+            if(this->isVerbose)
             {
                 cerr<<"Unable to talk correctly to OPC. Item not deleted."<<endl;
                 cout << "command used to remove = " << cmd.toString().c_str() << endl ;
@@ -538,12 +538,12 @@ bool OPCClient::removeRelation(
 }
 
 bool OPCClient::containsRelation(
-    Entity* subject,
-    Entity* verb, 
-    Entity* object,
-    Entity* complement_place,
-    Entity* complement_time,
-    Entity* complement_manner)
+        Entity* subject,
+        Entity* verb,
+        Entity* object,
+        Entity* complement_place,
+        Entity* complement_time,
+        Entity* complement_manner)
 {
     int index = getRelationID(subject,verb,object,complement_place,complement_time,complement_manner);
     return (index != -1);
@@ -563,52 +563,52 @@ bool OPCClient::containsRelation(Relation r)
 bool OPCClient::setLifeTime(int opcID, double lifeTime)
 {
     Bottle cmd,reply;
-        //Do the right lifeTimer operation (we simply remove it if it is -1)
-        if (lifeTime == -1)
-        {            
-            cmd.clear();
-            cmd.addString("del");
+    //Do the right lifeTimer operation (we simply remove it if it is -1)
+    if (lifeTime == -1)
+    {
+        cmd.clear();
+        cmd.addString("del");
 
-            Bottle &args = cmd.addList();
-            Bottle &id = args.addList();
-            id.clear();
-            id.addString("id");
-            id.addInt(opcID);
-            Bottle &props = args.addList();
-            props.clear();
-            props.addString("propSet");
-            props.addList().addString("lifeTimer");
-        }
-        else
-        {
-            cmd.clear();
-            cmd.addString("set");
+        Bottle &args = cmd.addList();
+        Bottle &id = args.addList();
+        id.clear();
+        id.addString("id");
+        id.addInt(opcID);
+        Bottle &props = args.addList();
+        props.clear();
+        props.addString("propSet");
+        props.addList().addString("lifeTimer");
+    }
+    else
+    {
+        cmd.clear();
+        cmd.addString("set");
 
-            Bottle &args = cmd.addList();
-            Bottle &id = args.addList();
-            id.clear();
-            id.addString("id");
-            id.addInt(opcID);
-            Bottle &props = args.addList();
-            props.clear();
-            props.addString("lifeTimer");
-            props.addDouble(lifeTime);
-        }
+        Bottle &args = cmd.addList();
+        Bottle &id = args.addList();
+        id.clear();
+        id.addString("id");
+        id.addInt(opcID);
+        Bottle &props = args.addList();
+        props.clear();
+        props.addString("lifeTimer");
+        props.addDouble(lifeTime);
+    }
 
-        write(cmd,reply,isVerbose);
-        if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-        {         
-            if(this->isVerbose)              
-                cerr<<"Unable to talk correctly to OPC"<<endl;
-            return false;
-        }
-        return true;
+    write(cmd,reply,isVerbose);
+    if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
+    {
+        if(this->isVerbose)
+            cerr<<"Unable to talk correctly to OPC"<<endl;
+        return false;
+    }
+    return true;
 }
 
 list<Relation> OPCClient::getRelations()
 {
     list<Relation> relations;
-            
+
     //Checkout the relations
     Bottle cmd,sub,reply;
     cmd.addString("ask");
@@ -619,7 +619,7 @@ list<Relation> OPCClient::getRelations()
     sub.addString(EFAA_OPC_ENTITY_RELATION);
     cond.addList() = sub;
     write(cmd,reply,isVerbose);
-           
+
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if (isVerbose)
@@ -641,8 +641,8 @@ list<Relation> OPCClient::getRelations()
         cmd.addList().addList() = sub;
         write(cmd,getReply,isVerbose);
         if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-        {        
-            if(this->isVerbose)   
+        {
+            if(this->isVerbose)
                 cerr<<"Unable to talk to OPC."<<endl;
             return relations;
         }
@@ -705,7 +705,7 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
         subCond.addString("rCompPlace");
         subCond.addString("==");
         subCond.addString(c_place.c_str());
-    }    
+    }
     if (c_manner != "any")
     {
         cond.addString("&&");
@@ -715,7 +715,7 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
         subCond.addString(c_manner.c_str());
     }
     write(cmd,reply,isVerbose);
-           
+
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if (isVerbose)
@@ -737,8 +737,8 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
         cmd.addList().addList() = sub;
         write(cmd,getReply,isVerbose);
         if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-        {        
-            if(this->isVerbose)   
+        {
+            if(this->isVerbose)
                 cerr<<"Unable to talk to OPC."<<endl;
             return relations;
         }
@@ -751,21 +751,21 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
 }
 std::list<Relation>  OPCClient::getRelationsMatchingLoosly(std::string subject, std::string verb, std::string object, std::string c_place, std::string c_time, std::string c_manner)
 {
-	list<Relation> relations = getRelations();
-	list<Relation> filteredRelations;
-	for (list<Relation>::iterator it = relations.begin(); it != relations.end(); it++)
-	{
-		if (it->subject() == subject ||
-			it->verb() == verb ||
-			it->object() == object ||
-			it->complement_time() == c_time ||
-			it->complement_place() == c_place ||
-			it->complement_manner() == c_manner)
-		{
-			filteredRelations.push_back(*it);
-		}
-	}	
-	return filteredRelations;
+    list<Relation> relations = getRelations();
+    list<Relation> filteredRelations;
+    for (list<Relation>::iterator it = relations.begin(); it != relations.end(); it++)
+    {
+        if (it->subject() == subject ||
+                it->verb() == verb ||
+                it->object() == object ||
+                it->complement_time() == c_time ||
+                it->complement_place() == c_place ||
+                it->complement_manner() == c_manner)
+        {
+            filteredRelations.push_back(*it);
+        }
+    }
+    return filteredRelations;
 }
 
 std::list<Relation>  OPCClient::getRelations(std::string entity)
@@ -775,11 +775,11 @@ std::list<Relation>  OPCClient::getRelations(std::string entity)
     for(list<Relation>::iterator it = relations.begin(); it != relations.end() ; it++)
     {
         if (it->subject() == entity ||
-            it->verb() == entity ||
-            it->object() == entity ||
-            it->complement_time() == entity ||
-            it->complement_place() == entity ||
-            it->complement_manner() == entity)
+                it->verb() == entity ||
+                it->object() == entity ||
+                it->complement_time() == entity ||
+                it->complement_place() == entity ||
+                it->complement_manner() == entity)
         {
             filteredRelations.push_back(*it);
         }
@@ -848,7 +848,7 @@ std::list<Relation>  OPCClient::getRelations(std::string entity)
     //Bottle& cond5 = cmd.addList();
     //cond5.addList() = isRelation;
     //cond5.addString("&&");
-    //cond5.addList() = matchCT;        
+    //cond5.addList() = matchCT;
     //cmd.addString("||");
     //Bottle& cond6 = cmd.addList();
     //cond6.addList() = isRelation;
@@ -856,7 +856,7 @@ std::list<Relation>  OPCClient::getRelations(std::string entity)
     //cond6.addList() = matchCM;
 
     //write(cmd,reply,isVerbose);
-    //       
+    //
     //if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     //{
     //    if (isVerbose)
@@ -878,8 +878,8 @@ std::list<Relation>  OPCClient::getRelations(std::string entity)
     //    cmd.addList().addList() = sub;
     //    write(cmd,getReply,isVerbose);
     //    if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    //    {        
-    //        if(this->isVerbose)   
+    //    {
+    //        if(this->isVerbose)
     //            cerr<<"Unable to talk to OPC."<<endl;
     //        return relations;
     //    }
@@ -933,8 +933,8 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
                 /*map<string, Entity*>::iterator itE = entitiesByName.find(tmp.name());
                 if (itE != entitiesByName.end())
                 {
-                    entitiesByName[tmp.name()]->fromBottle(*bEntity); 
-                    //entitiesByID[ tmp.opc_id() ]->fromBottle(*bEntity); 
+                    entitiesByName[tmp.name()]->fromBottle(*bEntity);
+                    //entitiesByID[ tmp.opc_id() ]->fromBottle(*bEntity);
                 }*/
                 else
                 {
@@ -943,14 +943,14 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
                     //Cast to the right type
                     if (entityType == EFAA_OPC_ENTITY_OBJECT)
                         newE = new Object();
-                    else if 
-                        (entityType == EFAA_OPC_ENTITY_RTOBJECT)
+                    else if
+                            (entityType == EFAA_OPC_ENTITY_RTOBJECT)
                         newE = new RTObject();
-                    else if 
-                        (entityType == EFAA_OPC_ENTITY_AGENT)
+                    else if
+                            (entityType == EFAA_OPC_ENTITY_AGENT)
                         newE = new Agent();
-                    else if 
-                        (entityType == EFAA_OPC_ENTITY_ADJECTIVE)
+                    else if
+                            (entityType == EFAA_OPC_ENTITY_ADJECTIVE)
                         newE = new Adjective();
                     else if (entityType == EFAA_OPC_ENTITY_ACTION)
                         newE = new Action();
@@ -967,8 +967,8 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
                 }
             }
         }
-    if (isVerbose)
-        cout<<"Checkout result (broadcast) : "<< entitiesByID.size() << " entities added."<<endl;
+        if (isVerbose)
+            cout<<"Checkout result (broadcast) : "<< entitiesByID.size() << " entities added."<<endl;
 
     }
     else
@@ -985,8 +985,8 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
 
         write(cmd,reply,isVerbose);
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-        {        
-            if(this->isVerbose)   
+        {
+            if(this->isVerbose)
                 cerr<<"Unable to talk to OPC."<<endl;
             return;
         }
@@ -997,8 +997,8 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
             int currentID = ids->get(i).asInt();
             getEntity(currentID, updateCache); //Automatically update the dictionnaries
         }
-    if (isVerbose)
-        cout<<"Checkout result : "<< ids->size() << " entities added."<<endl;
+        if (isVerbose)
+            cout<<"Checkout result : "<< ids->size() << " entities added."<<endl;
     }
 }
 
@@ -1024,8 +1024,8 @@ void OPCClient::update(Entity *e)
     write(cmd,reply,isVerbose);
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    {        
-        if(this->isVerbose)   
+    {
+        if(this->isVerbose)
             cerr<<"OPC Client : error while updating "<<e->opc_id()<<endl;
         return;
     }
@@ -1067,8 +1067,8 @@ void OPCClient::commit(Entity *e)
     write(cmd,reply,isVerbose);
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    {        
-        if(this->isVerbose)   
+    {
+        if(this->isVerbose)
             cerr<<"OPC Client : error while commiting "<<e->opc_id()<<endl;
         return;
     }
@@ -1085,8 +1085,8 @@ list<Entity*> OPCClient::Entities(const Bottle &condition)
     write(cmd,reply,isVerbose);
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
-    {        
-        if(this->isVerbose)   
+    {
+        if(this->isVerbose)
             cerr<<"Unable to talk to OPC."<<endl;
         return matchingEntities;
     }
