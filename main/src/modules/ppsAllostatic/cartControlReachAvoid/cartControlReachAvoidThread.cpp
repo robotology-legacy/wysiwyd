@@ -861,14 +861,14 @@ bool cartControlReachAvoidThread::threadInit()
         wentHome=false;
         state=STATE_IDLE;
 
-        minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,10); //3 torso + 7 arm
+        minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,torsoAxes); //3 torso + 7 arm
         
         return true;
       
   
 }
 
-void cartControlReachAvoidThread::cartControlReachAvoidThread::run()
+void cartControlReachAvoidThread::run()
 {
      ts.update();
     
