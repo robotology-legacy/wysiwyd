@@ -90,7 +90,6 @@ void OPCClient::close()
         delete it->second;
     }
     this->entitiesByID.clear();
-    this->entitiesByName.clear();
 }
 
 void OPCClient::clear()
@@ -105,7 +104,6 @@ void OPCClient::clear()
         delete it->second;
     }
     this->entitiesByID.clear();
-    this->entitiesByName.clear();
     write(cmd,reply);
 }
 
@@ -129,8 +127,7 @@ Entity*    OPCClient::addEntity(Entity* e)
     //Forces an update of the object
     update(e);
 
-    //Commit to the dictionaries
-    entitiesByName[e->name().c_str()] = e;
+    //Commit to the dictionary
     entitiesByID[e->opc_id()] = e;
     return e;
 }
@@ -238,12 +235,12 @@ bool OPCClient::setEntityProperty(std::string sourceEntityName, std::string prop
 Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
 {
     //If the object is already in the dictionary we return it.
-    map<string, Entity*>::iterator itE = entitiesByName.find(name.c_str());
-    if (itE != entitiesByName.end())
-    {            
-        if (forceUpdate)
-            update(itE->second);
-        return itE->second;
+    for(map<int,Entity*>::iterator it=entitiesByID.begin(); it!=entitiesByID.end(); it++) {
+        if(it->second->name() == name) {
+            if (forceUpdate)
+                update(it->second);
+            return it->second;
+        }
     }
 
     //Else we try to find the item in the OPC
@@ -333,8 +330,7 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     newE->fromBottle(*reply.get(1).asList());
     newE->m_opc_id = id;
 
-    //Commit to the dictionaries
-    entitiesByName[newE->name().c_str()] = newE;
+    //Commit to the dictionary
     entitiesByID[newE->opc_id()] = newE;
 
     return newE;
@@ -910,7 +906,6 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
         {
             delete it->second;
         }
-        entitiesByName.clear();
         entitiesByID.clear();
     }
 
@@ -928,12 +923,19 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
                 tmp.fromBottle(*bEntity);
                 tmp.m_opc_id = bEntity->find("id").asInt();
 
-                map<string, Entity*>::iterator itE = entitiesByName.find(tmp.name());
+                // TODO: NOT SURE WHETHER THIS CHANGE IS CORRECT
+                // CAN SOMEONE PLEASE LOOK OVER THIS WHETHER IT LOOKS OKAY?
+                map<int, Entity*>::iterator itE = entitiesByID.find(tmp.opc_id());
+                if(itE != entitiesByID.end())
+                {
+                    entitiesByID[ tmp.opc_id() ]->fromBottle(*bEntity);
+                }
+                /*map<string, Entity*>::iterator itE = entitiesByName.find(tmp.name());
                 if (itE != entitiesByName.end())
                 {
                     entitiesByName[tmp.name()]->fromBottle(*bEntity); 
                     //entitiesByID[ tmp.opc_id() ]->fromBottle(*bEntity); 
-                }
+                }*/
                 else
                 {
                     Entity* newE=NULL;
@@ -959,8 +961,7 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
                         newE->fromBottle(*bEntity);
                         newE->m_opc_id = tmp.opc_id();
 
-                        //Commit to the dictionaries
-                        entitiesByName[newE->name().c_str()] = newE;
+                        //Commit to the dictionary
                         entitiesByID[newE->opc_id()] = newE;
                     }
                 }
@@ -1004,7 +1005,7 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
 //Update the whole content of the world (poll the OPC for all items)
 void OPCClient::update()
 {
-    for(map<string, Entity* >::iterator it = entitiesByName.begin(); it != entitiesByName.end(); it++)
+    for(map<int, Entity* >::iterator it = entitiesByID.begin(); it != entitiesByID.end(); it++)
     {
         update(it->second);
     }
@@ -1040,7 +1041,7 @@ void OPCClient::update(Entity *e)
 //Commit the whole world to the OPC (erase everything)
 void OPCClient::commit()
 {
-    for(map<string, Entity* >::iterator it = entitiesByName.begin(); it != entitiesByName.end(); it++)
+    for(map<int, Entity* >::iterator it = entitiesByID.begin(); it != entitiesByID.end(); it++)
     {
         commit(it->second);
     }
@@ -1174,7 +1175,7 @@ list<Entity*> OPCClient::EntitiesCacheCopy()
 string OPCClient::print()
 {
     string s="WORLD STATE \n";
-    for(map<string, Entity* >::iterator it = entitiesByName.begin(); it != entitiesByName.end(); it++)
+    for(map<int, Entity* >::iterator it = entitiesByID.begin(); it != entitiesByID.end(); it++)
     {
         s += it->second->toString();
     }

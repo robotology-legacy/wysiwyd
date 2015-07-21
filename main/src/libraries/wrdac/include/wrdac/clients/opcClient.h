@@ -1,6 +1,6 @@
 /* 
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Stéphane Lallée
+ * Authors: StÃ©phane LallÃ©e
  * email:   stephane.lallee@gmail.com
  * website: http://efaa.upf.edu/ 
  * Permission is granted to copy, distribute, and/or modify this program
@@ -37,7 +37,6 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> opcBroadcast;
     bool                    write(yarp::os::Bottle &cmd, yarp::os::Bottle &reply, bool Verbose=false);
 
-    std::map<std::string, Entity*>    entitiesByName;
     std::map<int, Entity*>       entitiesByID;
     Entity*                 addEntity(Entity* e);
 
