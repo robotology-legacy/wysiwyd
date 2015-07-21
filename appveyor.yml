@@ -64,6 +64,7 @@ notifications:
       - m.petit@imperial.ac.uk
       - anne.laure.mealier@gmail.com
       - gregoire.pointeau@inserm.fr
+      - matej.hoffmann@iit.it
     on_build_success: false
     on_build_failure: false
     on_build_status_changed: true
