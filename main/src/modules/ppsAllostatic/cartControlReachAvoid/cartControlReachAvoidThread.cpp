@@ -604,7 +604,7 @@ bool cartControlReachAvoidThread::targetCloseEnough(){
 }
     
 cartControlReachAvoidThread::cartControlReachAvoidThread(int _rate, const string &_name, const string &_robot, int _v,ResourceFinder &_rf): 
-RateThread(_rate),name(_name), robot(_robot), verbosity(_v),rf(_rf)
+RateThread(_rate),verbosity(_v),name(_name),robot(_robot),rf(_rf)
 {
    
   ;
@@ -988,7 +988,7 @@ void cartControlReachAvoidThread::threadRelease()
 
 bool cartControlReachAvoidThread::setTargetFromRPC(const Vector target_pos)
 {
-        for(int i=0;i<target_pos.size();i++)
+        for(unsigned int i=0;i<target_pos.size();i++)
         {
             targetPos[i]=target_pos[i];
         }
