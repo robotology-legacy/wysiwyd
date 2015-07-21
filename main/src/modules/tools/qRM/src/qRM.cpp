@@ -106,17 +106,18 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "help \n" +
-        "quit \n";
+        "quit \n"
+        "exploreUnknowneEntity entity_type entity_name \n" +
+        "exploreEntityByName entity_name \n" +
+        "executeSharedPlan  ('action' name_plan 'sharedplan') (<arg 1>  <arg 2>  ...  <arg n>)  (<role 1>  <role 2 >  ... <role n>) \n" +
+        "executeAction ('predicate' action_name) ('agent' agent_name) ('object' object_name) ('recipient' adjective_name) \n" +
+        "learnSharedPlan sharedplan_name\n";
 
     reply.clear();
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
-    }
-    else if (command.get(0).asString() == "help") {
-        yInfo() << helpMessage;
-        reply.addString("ok");
     }
     else if (command.get(0).asString() == "calib")
     {
@@ -151,6 +152,10 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "learnSharedPlan") {
         yInfo() << " learnSharedPlan";
         reply = learnSharedPlan(command);
+    }
+    else {
+        yInfo() << helpMessage;
+        reply.addString("wrong command");
     }
 
 
@@ -581,7 +586,6 @@ bool qRM::nodeYesNo()
 
 bool qRM::populateOpc(){
     iCub->opc->update();
-    iCub->opc->commit();
 
     Agent* agent = iCub->opc->addAgent("Carol");
     agent->m_ego_position[0] = -1.4;
@@ -975,7 +979,9 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
     return bOutput;
 }
 
-
+/*
+* executeSharedPlan  ('action' name_action 'sharedplan') (<arg 1>  <arg 2>  ...  <arg n>)  (<role 1>  <role 2 >  ... <role n>)
+*/
 
 Bottle qRM::executeSharedPlan(Bottle bInput)
 {

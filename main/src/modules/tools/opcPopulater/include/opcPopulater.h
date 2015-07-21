@@ -34,6 +34,8 @@ public:
     bool    addUnknownEntity(Bottle bInput);
     bool    setSaliencyEntity(Bottle bInput);
 
+    bool    populateABM(Bottle bInput);
+
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
