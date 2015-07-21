@@ -38,51 +38,6 @@ void cartControlReachAvoidThread::getTorsoOptions(Bottle &b, const char *type, c
         }
 }
 
-void cartControlReachAvoidThread::getArmOptions(Bottle &b, Vector &reachOffs, Vector &orien, bool &impVelMode,
-                       Vector &impStiff, Vector &impDamp)
-    {
-        if (b.check("reach_offset","Getting reaching offset"))
-        {
-            Bottle &grp=b.findGroup("reach_offset");
-            int sz=grp.size()-1;
-            int len=sz>3?3:sz;
-
-            for (int i=0; i<len; i++)
-                reachOffs[i]=grp.get(1+i).asDouble();
-        }
-
-        if (b.check("hand_orientation","Getting hand orientation"))
-        {
-            Bottle &grp=b.findGroup("hand_orientation");
-            int sz=grp.size()-1;
-            int len=sz>4?4:sz;
-
-            for (int i=0; i<len; i++)
-                orien[i]=grp.get(1+i).asDouble();
-        }
-
-        impVelMode=b.check("impedance_velocity_mode",Value("off"),"Getting arm impedance-velocity-mode").asString()=="on"?true:false;
-
-        if (b.check("impedance_stiffness","Getting joints stiffness"))
-        {
-            Bottle &grp=b.findGroup("impedance_stiffness");
-            size_t sz=grp.size()-1;
-            size_t len=sz>impStiff.length()?impStiff.length():sz;
-
-            for (size_t i=0; i<len; i++)
-                impStiff[i]=grp.get(1+i).asDouble();
-        }
-
-        if (b.check("impedance_damping","Getting joints damping"))
-        {
-            Bottle &grp=b.findGroup("impedance_damping");
-            size_t sz=grp.size()-1;
-            size_t len=sz>impDamp.length()?impDamp.length():sz;
-
-            for (size_t i=0; i<len; i++)
-                impDamp[i]=grp.get(1+i).asDouble();
-        }
-    }
 
 void cartControlReachAvoidThread::getHomeOptions(Bottle &b, Vector &poss, Vector &vels)
 {
@@ -214,9 +169,8 @@ void cartControlReachAvoidThread::selectArm()
                drvRightArm->view(encArm);
                drvRightArm->view(posArm);
                drvRightArm->view(velArm);
+               drvRightArm->view(modArm);
                drvCartRightArm->view(cartArm);
-               armReachOffs=&rightArmReachOffs;
-               armHandOrien=&rightArmHandOrien;
            }
            else{
                armSel=LEFTARM; 
@@ -224,9 +178,8 @@ void cartControlReachAvoidThread::selectArm()
                drvLeftArm->view(encArm);
                drvLeftArm->view(posArm);
                drvLeftArm->view(velArm);
+               drvLeftArm->view(modArm);
                drvCartLeftArm->view(cartArm);
-               armReachOffs=&leftArmReachOffs;
-               armHandOrien=&leftArmHandOrien;
            }
          }
 }
@@ -240,7 +193,6 @@ void cartControlReachAvoidThread::doReach()
                 int cart_dof_nr = 0.0;
                 //torso has global vars torsoAxes (~torso_joints_nr) and torso (~encodersTorso)
                 
-                Vector curDof;
                 Vector xdhat, odhat, qdhat;
                 Vector torsoAndArmJointDeltas; //!torso already in motor control order 
                 // iKin / cartControl pitch, roll, yaw;   motorInterface - yaw, roll, pitch
@@ -249,20 +201,17 @@ void cartControlReachAvoidThread::doReach()
               
                 /**** init ***************/
               
-                qdotArm.resize(armAxes);
+                qdotArm.resize(armIdx.size(),0.0); //size 7 
                 qdotTorso.resize(torsoAxes,0.0);
-                
-                cartArm->getDOF(curDof);
-                yDebug("cartArm DOFs [%s]\n",curDof.toString().c_str());  // [0 0 0 1 1 1 1 1 1 1] will be printed out if torso is off
-                cart_dof_nr = curDof.length();
-                torsoAndArmJointDeltas.resize(cart_dof_nr,0.0);
-                qdotReach.resize(cart_dof_nr);
-                qdotReachAndAvoid.resize(cart_dof_nr,0.0); 
+                           
+                torsoAndArmJointDeltas.resize(cartNrDOF,0.0);
+                qdotReach.resize(cartNrDOF);
+                qdotReachAndAvoid.resize(cartNrDOF,0.0); 
                      
                 
                 /******* solve for optimal reaching configuration  **********************************/  
                 //optionally set up weights - setRestWeights - optionally to give more value current joint pos (10 values, torso + arm))
-                Vector x=R.transposed()*(targetPos+*armReachOffs);
+                Vector x=R.transposed()*(targetPos);
                 limitRange(x);
                 x=R*x;
                 yDebug("doReach(): reach target x %s.\n",x.toString().c_str());
@@ -300,7 +249,7 @@ void cartControlReachAvoidThread::doReach()
                     torsoAndArmJointDeltas[9]=qdhat[9]-arm[6]; // wrist yaw
                     
                     yDebug("torsoAndArmJointDeltas: %s\n",torsoAndArmJointDeltas.toString().c_str());
-                    qdotReach = minJerkVelCtrl->computeCmd(trajTime,torsoAndArmJointDeltas); //2 seconds to reach       
+                    qdotReach = minJerkVelCtrl->computeCmd(2.0,torsoAndArmJointDeltas); //2 seconds to reach       
                     yDebug("qdotReach: %s\n",qdotReach.toString().c_str());
                     
                 }
@@ -347,12 +296,12 @@ void cartControlReachAvoidThread::doReach()
                 qdotArm[4]=qdotReachAndAvoid[7];
                 qdotArm[5]=qdotReachAndAvoid[8];
                 qdotArm[6]=qdotReachAndAvoid[9];     
-                for(int j=7;j<armAxes;j++){
-                  qdotArm[j]=0.0; //no movement for the rest of the joints   
-                }
+                //for(int j=7;j<armAxes;j++){
+                  //qdotArm[j]=0.0; //no movement for the rest of the joints   
+                //}
                               
                 yDebug("velocityMove(qdotArm.data()), qdotArm: %s\n", qdotArm.toString().c_str());
-                velArm->velocityMove(qdotArm.data());
+                velArm->velocityMove(armIdx.size(),armIdx.getFirst(),qdotArm.data());
                 yDebug("velocityMove(qdotTorso.data()), qdotTorso: %s\n", qdotTorso.toString().c_str());
                 velTorso->velocityMove(qdotTorso.data());
               
@@ -518,16 +467,24 @@ void cartControlReachAvoidThread::checkArmHome(const int sel, const double timeo
         fprintf(stdout,"*** done\n");
     }
     
-void cartControlReachAvoidThread::stopControl()
-    {
-        if (useLeftArm || useRightArm)
-        {
-            fprintf(stdout,"stopping control\n");
-            cartArm->stopControl();
-            Time::delay(0.1);
-        }        
-    }
+void cartControlReachAvoidThread::setControlModeArmsAndTorso(const int mode)
+{
+        IControlMode2 *mod_;
+        drvLeftArm->view(mod_);
+        for(int i=0; i<7; i++){
+          mod_->setControlMode(i,mode);   
+        };
+        drvRightArm->view(mod_);
+        for(int i=0; i<7; i++){
+          mod_->setControlMode(i,mode);   
+        };
+        drvTorso->view(mod_);
+        for(int i=0; i<3; i++){
+          mod_->setControlMode(i,mode);   
+        };       
+}
 
+    
 void cartControlReachAvoidThread::limitRange(Vector &x)
     {               
         x[0]=x[0]>-0.1 ? -0.1 : x[0];       
@@ -640,28 +597,8 @@ bool cartControlReachAvoidThread::threadInit()
         getTorsoOptions(bTorso,"pitch",0,torsoSwitch,torsoLimits);
         getTorsoOptions(bTorso,"roll",1,torsoSwitch,torsoLimits);
         getTorsoOptions(bTorso,"yaw",2,torsoSwitch,torsoLimits);    
-               
-        // arm parts
-        Bottle &bLeftArm=rf.findGroup("left_arm");
-        Bottle &bRightArm=rf.findGroup("right_arm");
-        bLeftArm.setMonitor(rf.getMonitor());
-        bRightArm.setMonitor(rf.getMonitor());
         
-        // arm parts
-        leftArmReachOffs.resize(3,0.0);
-        leftArmHandOrien.resize(4,0.0);
-        leftArmJointsStiffness.resize(5,0.0);
-        leftArmJointsDamping.resize(5,0.0);
-        rightArmReachOffs.resize(3,0.0);
-        rightArmHandOrien.resize(4,0.0);
-        rightArmJointsStiffness.resize(5,0.0);
-        rightArmJointsDamping.resize(5,0.0);
-
-        getArmOptions(bLeftArm,leftArmReachOffs,leftArmHandOrien,leftArmImpVelMode,
-                      leftArmJointsStiffness,leftArmJointsDamping);
-        getArmOptions(bRightArm,rightArmReachOffs,rightArmHandOrien,rightArmImpVelMode,
-                      rightArmJointsStiffness,rightArmJointsDamping);
-       
+            
         // home part
         Bottle &bHome=rf.findGroup("home_arm");
         bHome.setMonitor(rf.getMonitor());
@@ -739,23 +676,7 @@ bool cartControlReachAvoidThread::threadInit()
                 threadRelease();
                 return false;
             }
-            if (leftArmImpVelMode)
-            {
-                IControlMode      *imode;
-                IImpedanceControl *iimp;
-
-                drvLeftArm->view(imode);
-                drvLeftArm->view(iimp);
-
-                int len=leftArmJointsStiffness.length()<leftArmJointsDamping.length()?
-                        leftArmJointsStiffness.length():leftArmJointsDamping.length();
-
-                for (int j=0; j<len; j++)
-                {
-                    imode->setImpedanceVelocityMode(j);
-                    iimp->setImpedance(j,leftArmJointsStiffness[j],leftArmJointsDamping[j]);
-                }
-            }
+           
         }
 
         if (useRightArm)
@@ -767,23 +688,7 @@ bool cartControlReachAvoidThread::threadInit()
                 return false;
             }
 
-            if (rightArmImpVelMode)
-            {
-                IControlMode      *imode;
-                IImpedanceControl *iimp;
-
-                drvRightArm->view(imode);
-                drvRightArm->view(iimp);
-
-                int len=rightArmJointsStiffness.length()<rightArmJointsDamping.length()?
-                        rightArmJointsStiffness.length():rightArmJointsDamping.length();
-
-                for (int j=0; j<len; j++)
-                {
-                    imode->setImpedanceVelocityMode(j);
-                    iimp->setImpedance(j,rightArmJointsStiffness[j],rightArmJointsDamping[j]);
-                }
-            }
+            
         }
 
         // open views
@@ -791,15 +696,15 @@ bool cartControlReachAvoidThread::threadInit()
         drvTorso->view(encTorso);
         drvTorso->view(posTorso);
         drvTorso->view(velTorso);
-              
+        drvTorso->view(modTorso);
+        
         if (useLeftArm)
         {
             drvLeftArm->view(encArm);
             drvLeftArm->view(posArm);
             drvLeftArm->view(velArm);
+            drvLeftArm->view(modArm);
             drvCartLeftArm->view(cartArm);
-            armReachOffs=&leftArmReachOffs;
-            armHandOrien=&leftArmHandOrien;
             armSel=LEFTARM;
         }
         else if (useRightArm)
@@ -807,9 +712,8 @@ bool cartControlReachAvoidThread::threadInit()
             drvRightArm->view(encArm);
             drvRightArm->view(posArm);
             drvRightArm->view(velArm);
+            drvRightArm->view(modArm);
             drvCartRightArm->view(cartArm);
-            armReachOffs=&rightArmReachOffs;
-            armHandOrien=&rightArmHandOrien;
             armSel=RIGHTARM;
         }
         else
@@ -818,8 +722,6 @@ bool cartControlReachAvoidThread::threadInit()
             posArm=NULL;
             velArm=NULL;
             cartArm=NULL;
-            armReachOffs=NULL;
-            armHandOrien=NULL;
             armSel=NOARM;
         }
 
@@ -836,8 +738,16 @@ bool cartControlReachAvoidThread::threadInit()
         for (k = 0; k < armAxes; k++) {
             tmp_acc_arm[k] = REF_ACC;
         }
-        velArm->setRefAccelerations(tmp_acc_arm.data());
-                 
+        IVelocityControl2 *velArm_;
+        drvLeftArm->view(velArm_);
+        velArm_->setRefAccelerations(tmp_acc_arm.data());
+        drvRightArm->view(velArm_);
+        velArm_->setRefAccelerations(tmp_acc_arm.data());
+         
+        for(int j=0;j<7;j++){
+            armIdx.push_back(j); 
+        }
+                   
         int l;
         Vector tmp_acc_torso;
         tmp_acc_torso.resize(torsoAxes,0.0);
@@ -851,9 +761,12 @@ bool cartControlReachAvoidThread::threadInit()
 
         initCartesianCtrl(torsoSwitch,torsoLimits,LEFTARM);
         initCartesianCtrl(torsoSwitch,torsoLimits,RIGHTARM);
+        cartArm->getDOF(cartDOFconfig);
+        yInfo("cartArm DOFs [%s]\n",cartDOFconfig.toString().c_str());  // [0 0 0 1 1 1 1 1 1 1] will be printed out if torso is off
+        cartNrDOF = cartDOFconfig.length();
 
         // steer the robot to the initial configuration
-        stopControl();
+        setControlModeArmsAndTorso(VOCAB_CM_POSITION);
         steerTorsoToHome();
         steerArmToHome(LEFTARM);
         steerArmToHome(RIGHTARM);
@@ -861,7 +774,7 @@ bool cartControlReachAvoidThread::threadInit()
         wentHome=false;
         state=STATE_IDLE;
 
-        minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,torsoAxes); //3 torso + 7 arm
+        minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,10); //3 torso + 7 arm
         
         return true;
       
@@ -908,7 +821,8 @@ void cartControlReachAvoidThread::run()
         }
     else if(state==STATE_REACH){
         yDebug("run(): STATE_REACH\n");
-        selectArm();
+        selectArm(); 
+        setControlModeArmsAndTorso(VOCAB_CM_VELOCITY);
         doReach();
         
     }
@@ -934,14 +848,18 @@ void cartControlReachAvoidThread::run()
      
     else if(state==STATE_GO_HOME){
         yDebug("run(): STATE_GO_HOME\n");
-        stopControl();
+        setControlModeArmsAndTorso(VOCAB_CM_POSITION);
         steerTorsoToHome();
         steerArmToHome(LEFTARM);
         steerArmToHome(RIGHTARM);
+        checkTorsoHome(3.0);
+        checkArmHome(LEFTARM,3.0);
+        checkArmHome(RIGHTARM,3.0);
         yDebug("--- I'm home => go idle\n");
         state=STATE_IDLE;
     }
 }
+
  
 
 int cartControlReachAvoidThread::printMessage(const int l, const char *f, ...)
@@ -962,6 +880,8 @@ int cartControlReachAvoidThread::printMessage(const int l, const char *f, ...)
 
 void cartControlReachAvoidThread::threadRelease()
 {
+     setControlModeArmsAndTorso(VOCAB_CM_POSITION);
+     
      delete drvTorso;
      delete drvLeftArm;
      delete drvRightArm;

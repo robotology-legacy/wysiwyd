@@ -97,45 +97,38 @@ protected:
        
     PolyDriver *drvTorso, *drvLeftArm, *drvRightArm;
     PolyDriver *drvCartLeftArm, *drvCartRightArm;
-    
-    minJerkVelCtrlForIdealPlant *minJerkVelCtrl;
-    
+       
+    IEncoders         *encArm;
+    IPositionControl  *posArm;
+    IVelocityControl2 *velArm;
+    ICartesianControl *cartArm;
+    IControlMode2     *modArm;
     IEncoders         *encTorso;
     IPositionControl  *posTorso;
     IVelocityControl  *velTorso;
-    IEncoders         *encArm;
-    IPositionControl  *posArm;
-    IVelocityControl  *velArm;
-    ICartesianControl *cartArm;
+    IControlMode2     *modTorso;
+   
+    minJerkVelCtrlForIdealPlant *minJerkVelCtrl;
     
     BufferedPort<Bottle> inportTargetCoordinates;
-    Bottle                 *targetCoordinates;
+    Bottle               *targetCoordinates;
     BufferedPort<Bottle> inportAvoidanceVectors;
     BufferedPort<Bottle> inportReachingGain;
     BufferedPort<Bottle> inportAvoidanceGain;
     
-    Vector leftArmReachOffs;
-    Vector leftArmHandOrien;
-    Vector leftArmJointsStiffness;
-    Vector leftArmJointsDamping;
-
-    Vector rightArmReachOffs;
-    Vector rightArmHandOrien;
-    Vector rightArmJointsStiffness;
-    Vector rightArmJointsDamping;
-    
-    Vector *armReachOffs;
-    Vector *armHandOrien;
+    VectorOf<int> armIdx;
     
     Vector homePoss, homeVels;
+          
+    int armAxes;    //16 joints of the arm+hand (no torso)
+    Vector arm; //encoder values
+    int torsoAxes;
+    Vector torso; //encoder values
+    int cartNrDOF;
+    Vector cartDOFconfig;
     
     bool wentHome;
-    bool leftArmImpVelMode;
-    bool rightArmImpVelMode;
-    
-    bool newTargetFromRPC;
-    bool newTargetFromPort;
-
+  
     double trajTime;
     double reachTol;
     double reachTimer, reachTmo;
@@ -148,12 +141,9 @@ protected:
   
     Vector openHandPoss;
     Vector handVels;
-    
-    int armAxes;    //16 joints of the arm+hand (no torso)
-    Vector arm; //encoder values
-    int torsoAxes;
-    Vector torso; //encoder values
-    
+      
+    bool newTargetFromRPC;
+    bool newTargetFromPort;
     Vector targetPosFromPort;
     Vector targetPosFromRPC;
     Vector targetPos;
@@ -165,8 +155,6 @@ protected:
     int startup_context_id_right;
     
     void getTorsoOptions(Bottle &b, const char *type, const int i, Vector &sw, Matrix &lim);
-    void getArmOptions(Bottle &b, Vector &reachOffs, Vector &orien, bool &impVelMode,
-                       Vector &impStiff, Vector &impDamp);
     void getHomeOptions(Bottle &b, Vector &poss, Vector &vels);
     void initCartesianCtrl(Vector &sw, Matrix &lim, const int sel=USEDARM);
     void getSensorData();
@@ -179,7 +167,7 @@ protected:
     void stopArmJoints(const int sel=USEDARM);
     void steerArmToHome(const int sel=USEDARM);
     void checkArmHome(const int sel=USEDARM, const double timeout=10.0);
-    void stopControl();
+    void setControlModeArmsAndTorso(const int mode);
     
     void limitRange(Vector &x);
     Matrix &rotx(const double theta);
