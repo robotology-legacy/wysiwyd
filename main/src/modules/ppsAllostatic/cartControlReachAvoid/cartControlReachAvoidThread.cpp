@@ -152,6 +152,34 @@ bool cartControlReachAvoidThread::checkTargetFromPortInput(Vector &target_pos, d
         }
 }
     
+bool cartControlReachAvoidThread::getAvoidanceVectorsFromPort()
+{
+    avoidanceStruct_t avoidanceStruct;
+    avoidanceStruct.skin_part = SKIN_PART_UNKNOWN;
+    avoidanceStruct.x.resize(3,0.0);
+    avoidanceStruct.n.resize(3,0.0);
+    
+    Bottle* avoidanceMultiBottle = inportAvoidanceVectors.read(false);
+    if(avoidanceMultiBottle != NULL){
+         yDebug("getAvoidanceVectorsFromPort(): There were %d bottles on the port.\n",avoidanceMultiBottle->size());
+         for(int i=0; i< avoidanceMultiBottle->size();i++){
+             Bottle* avoidanceStructBottle = avoidanceMultiBottle->get(i).asList();
+             yDebug("Bottle %d contains %s", i,avoidanceStructBottle->toString().c_str());
+             avoidanceStruct.skin_part =  (SkinPart)(avoidanceStructBottle->get(0).asInt());
+             avoidanceStruct.x(0) = avoidanceStructBottle->get(1).asDouble();
+             avoidanceStruct.x(1) = avoidanceStructBottle->get(2).asDouble();
+             avoidanceStruct.x(2) = avoidanceStructBottle->get(3).asDouble();
+             avoidanceStruct.n(0) = avoidanceStructBottle->get(4).asDouble();
+             avoidanceStruct.n(1) = avoidanceStructBottle->get(5).asDouble();
+             avoidanceStruct.n(2) = avoidanceStructBottle->get(6).asDouble();
+             avoidanceVectors.push_back(avoidanceStruct);
+         }
+        
+    }
+    else{
+       yDebug("getAvoidanceVectorsFromPort(): no avoidance vectors on the port.") ;  
+    };
+}
 
     
 void cartControlReachAvoidThread::selectArm()
@@ -257,7 +285,15 @@ void cartControlReachAvoidThread::doReach()
                 for each avoidance vector
                     skinPart gives FoR, which is link after the point - move to first joint/link before the point
                     express point in last proximal joint; create extra link - rototranslation    
+               */
                 
+                
+                
+               
+
+
+               /*
+               
                 instantiate new chain
                 iKin:: iCubArm 
                 
@@ -771,6 +807,10 @@ bool cartControlReachAvoidThread::threadInit()
 
         minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,10); //3 torso + 7 arm
         
+        //TODO can be  moved to config file, but will be eventually obtained from allostatic control
+        reachingGain = 0.5; 
+        avoidanceGain = 0.5; 
+        
         return true;
       
   
@@ -781,7 +821,8 @@ void cartControlReachAvoidThread::run()
      ts.update();
     
      bool newTarget = false;
-       
+     avoidanceVectors.clear();
+     
      newTargetFromPort =  checkTargetFromPortInput(targetPosFromPort,targetRadius);
      if(newTargetFromPort || newTargetFromRPC){ //target from RPC is set asynchronously
             newTarget = true;
@@ -795,7 +836,19 @@ void cartControlReachAvoidThread::run()
                 newTargetFromPort = false;
             }
      }
-        
+     
+    // updateGainsFromPort();
+    getAvoidanceVectorsFromPort(); //fills up global avoidanceVectors vector
+    
+    //debug code
+    vector<avoidanceStruct_t>::const_iterator it;
+    for(it=avoidanceVectors.begin(); it!=avoidanceVectors.end(); it++)
+    {
+         yDebug("run(): Avoidance struct read from port: SkinPart:%s, x,y,z: %s, n1,n2,n3: %s",SkinPart_s[it->skin_part].c_str(),it->x.toString().c_str(),it->n.toString().c_str());
+    }
+    
+   
+    
     if (state==STATE_IDLE){
         yDebug("run(): STATE_IDLE\n");
         if (newTarget){

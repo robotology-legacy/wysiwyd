@@ -23,6 +23,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <vector>
+
 #include <gsl/gsl_math.h>
 
 #include <yarp/os/Time.h>
@@ -41,6 +43,8 @@
 #include <yarp/os/Log.h>
 #include <iCub/ctrl/neuralNetworks.h>
 #include <iCub/ctrl/minJerkCtrl.h>
+
+#include <iCub/skinDynLib/common.h>
 
 #define DEFAULT_THR_PER     10
 
@@ -67,6 +71,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace yarp::dev;
 using namespace iCub::ctrl;
+using namespace iCub::skinDynLib;
 
 class cartControlReachAvoidThread: public RateThread
 {
@@ -132,6 +137,9 @@ protected:
     double trajTime;
     double reachTol;
     double reachTimer, reachTmo;
+    
+    double reachingGain;
+    double avoidanceGain;
        
     struct {
         double minX, maxX;
@@ -139,6 +147,13 @@ protected:
         double minZ, maxZ;
     } reachableSpace;
   
+    struct avoidanceStruct_t{
+        SkinPart skin_part;
+        Vector x;
+        Vector n;
+    };
+    vector<avoidanceStruct_t> avoidanceVectors;
+    
     Vector openHandPoss;
     Vector handVels;
       
@@ -159,6 +174,9 @@ protected:
     void getHomeOptions(Bottle &b, Vector &poss, Vector &vels);
     void initCartesianCtrl(Vector &sw, Matrix &lim, const int sel=USEDARM);
     bool checkTargetFromPortInput(Vector &target_pos, double &target_radius);
+    bool updateGainsFromPort();
+    bool getGainsFromPort();
+    bool getAvoidanceVectorsFromPort();
     void selectArm();
     void doReach(); 
     void doIdle();
