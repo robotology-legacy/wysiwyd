@@ -9,26 +9,25 @@
 
 
 
-bool ppsSim::configure(yarp::os::ResourceFinder &rf)
+bool objectGeneratorSim::configure(yarp::os::ResourceFinder &rf)
 {
 
     elapsedCycles = 0;
     listSize[0]=0;
     listSize[1]=0;
     listSize[2]=0;
-    string moduleName = rf.check("name", Value("ppsSim")).asString().c_str();
+    string moduleName = rf.check("name", Value("objectGeneratorSim")).asString().c_str();
     //setName(moduleName.c_str());
 
-    string moduleOutput = rf.check("output", Value("/pos:o")).asString().c_str();
-    string moduleOutputTarget = rf.check("output", Value("/posT:o")).asString().c_str();
+    string moduleOutput = rf.check("output", Value("/obstacles:o")).asString().c_str();
+    string moduleOutputTarget = rf.check("output", Value("/reachingTarget:o")).asString().c_str();
     string moduleInput = "/pos:i";
 
     bool    bEveryThingisGood = true;
 
-    string port2icubsim = "/" + moduleName + "sim:o";
+    string port2icubsim = "/" + moduleName + "/sim:o";
     if (!portSim.open(port2icubsim.c_str())) {
         cout << getName() << ": Unable to open port " << port2icubsim << endl;
-        cout << "The microphone might be turned on" << endl;
         bEveryThingisGood &= false;
     }    
 
@@ -37,14 +36,12 @@ bool ppsSim::configure(yarp::os::ResourceFinder &rf)
 
     if (!portOutput.open(port2output.c_str())) {
         cout << getName() << ": Unable to open port " << port2output << endl;
-        cout << "The microphone might be turned on" << endl;
         bEveryThingisGood &= false;
     }
     std::string port2outputT = "/" + moduleName + moduleOutputTarget;
 
     if (!portOutputTarget.open(port2outputT.c_str())) {
         cout << getName() << ": Unable to open port " << port2outputT << endl;
-        cout << "The microphone might be turned on" << endl;
         bEveryThingisGood &= false;
     }
 
@@ -52,13 +49,12 @@ bool ppsSim::configure(yarp::os::ResourceFinder &rf)
 
     if (!portInput.open(port2input.c_str())) {
         cout << getName() << ": Unable to open port " << port2input << endl;
-        cout << "The microphone might be turned on" << endl;
         bEveryThingisGood &= false;
     }
     std::string port2world = "/icubSim/world";
     while (!Network::connect(port2icubsim, port2world.c_str()))
     {
-        std::cout << "Trying to get input from microphone..." << std::endl;
+        std::cout << "Trying to get input from "<< port2icubsim << "..." << std::endl;
         yarp::os::Time::delay(1.0);
     }
 
@@ -75,20 +71,20 @@ bool ppsSim::configure(yarp::os::ResourceFinder &rf)
     pos1.addDouble(0.1);
     pos1.addDouble(0.35);
     pos1.addDouble(0.55);
-    ppsSim::createObject(pos1, true);
+    objectGeneratorSim::createObject(pos1, true);
 
     pos1.clear();
     pos1.addDouble(0);
     pos1.addDouble(0.55);
     pos1.addDouble(0.35);
-    ppsSim::createObject(pos1);
+    objectGeneratorSim::createObject(pos1);
 
     cout<<"Configuration done."<<endl;
 
     return true;
 }
 
-void ppsSim::spamTable()
+void objectGeneratorSim::spamTable()
 {
     yarp::os::Bottle size;
     size.clear();
@@ -109,11 +105,11 @@ void ppsSim::spamTable()
     colour.addDouble(0);
     std::string b = "box";
 
-    ppsSim::createObject(b,size, pos, colour,true);
+    objectGeneratorSim::createObject(b,size, pos, colour,true);
     std::cout<< "Table Spammed" << std::endl;
 }
 
-void ppsSim::createObject(std::string ob, yarp::os::Bottle size, yarp::os::Bottle pos, yarp::os::Bottle colour, bool target)
+void objectGeneratorSim::createObject(std::string ob, yarp::os::Bottle size, yarp::os::Bottle pos, yarp::os::Bottle colour, bool target)
 {
     yarp::os::Bottle pair;
     pair.clear();
@@ -159,7 +155,7 @@ void ppsSim::createObject(std::string ob, yarp::os::Bottle size, yarp::os::Bottl
     }
 }
 
-void ppsSim::createObject(yarp::os::Bottle pos, bool target)
+void objectGeneratorSim::createObject(yarp::os::Bottle pos, bool target)
 {
     yarp::os::Bottle s;
     yarp::os::Bottle c;
@@ -175,10 +171,10 @@ void ppsSim::createObject(yarp::os::Bottle pos, bool target)
     else
         c.addDouble(0);
 
-    ppsSim::createObject("box",s,pos,c);
+    objectGeneratorSim::createObject("box",s,pos,c);
     
 }
-void ppsSim::getCoordinates(std::string object, int id, bool target)
+void objectGeneratorSim::getCoordinates(std::string object, int id, bool target)
 {
     cmd.clear();
     cmd.addString("world");
@@ -190,13 +186,13 @@ void ppsSim::getCoordinates(std::string object, int id, bool target)
     portSim.write(cmd,pos);
 
     if (target == false){
-        ppsSim::positions.append(pos);
+        objectGeneratorSim::positions.append(pos);
     }else{
-        ppsSim::tpositions.append(pos);
+        objectGeneratorSim::tpositions.append(pos);
     }
 }
 
-bool ppsSim::close() {
+bool objectGeneratorSim::close() {
     portOutput.close();
     portInput.close();
     rpc.close();
@@ -205,7 +201,7 @@ bool ppsSim::close() {
 
 
 /* Respond function */
-bool ppsSim::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& bReply)
+bool objectGeneratorSim::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& bReply)
 {
 /*
     std::string helpMessage = std::string(getName().c_str()) +
@@ -268,7 +264,7 @@ bool ppsSim::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& bReply)
 
 
 /* Called periodically every getPeriod() seconds */
-bool ppsSim::updateModule() {
+bool objectGeneratorSim::updateModule() {
     cout<<"."<<endl;
 
     Bottle &p = portOutput.prepare();

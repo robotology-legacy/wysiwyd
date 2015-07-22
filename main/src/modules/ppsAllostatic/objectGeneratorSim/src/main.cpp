@@ -26,10 +26,10 @@ int main(int argc, char * argv[])
 {
 
     Network::init();
-    ppsSim mod;
+    objectGeneratorSim mod;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("ppsSim");
+    rf.setDefaultContext("objectGeneratorSim");
     rf.setDefaultConfigFile("default.ini");
     rf.configure( argc, argv);
     mod.runModule(rf);

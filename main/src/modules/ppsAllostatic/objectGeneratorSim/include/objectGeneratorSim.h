@@ -11,7 +11,7 @@ using namespace wysiwyd::wrdac;
 
 
 
-class ppsSim : public RFModule {
+class objectGeneratorSim : public RFModule {
 private:
 
     Port        rpc;
@@ -31,8 +31,8 @@ private:
     yarp::os::Bottle    cmd;
 
 public:
-    ppsSim() {  }
-    virtual ~ppsSim() {  }
+    objectGeneratorSim() {  }
+    virtual ~objectGeneratorSim() {  }
     bool configure(yarp::os::ResourceFinder &rf); //Connect to icubSim
     bool interruptModule()
     {
