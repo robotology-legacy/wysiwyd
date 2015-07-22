@@ -29,6 +29,7 @@ private:
 
     string port2output;
     yarp::os::Bottle    cmd;
+    Matrix H;
 
 public:
     objectGeneratorSim() {  }
@@ -47,7 +48,8 @@ public:
     void createObject(yarp::os::Bottle pos,bool target=false); // Add new object to simulation and OPC
     int destroyObject(); // destroy an object in the scene and OPC
     int moveObject(); //move an object to xyz
-    void getCoordinates(std::string object, int id,bool target=false); //send xyz to port
+    void tf(Bottle* b); //transform a vector from world coordinates to icub
+    void getCoordinates(std::string object, int id, double size,bool target=false); //send xyz to port
 
     bool close();
     //void    mainLoop();

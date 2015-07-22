@@ -6,12 +6,21 @@
 
 #include <cstdlib>
 #include <vector>
-
+using namespace yarp::math;
 
 
 bool objectGeneratorSim::configure(yarp::os::ResourceFinder &rf)
 {
 
+    Matrix iH;
+    iH = zeros(4,4);
+    iH(0,1)=-1;
+    iH(1,2)=1;
+    iH(1,3)=0.5976;
+    iH(2,0)=-1;
+    iH(2,3)=-0.026;
+    iH(3,3)=1;
+    H=SE3inv(iH);
     elapsedCycles = 0;
     listSize[0]=0;
     listSize[1]=0;
@@ -148,6 +157,8 @@ void objectGeneratorSim::createObject(std::string ob, yarp::os::Bottle size, yar
     cmd.addDouble(colour.get(2).asDouble());
     portSim.write(cmd);
     //increase ob list and add ob to the list
+    //add radius
+    pair.addDouble(size.get(0).asDouble());
     if (target==true){
         targets.append(pair);
     }else{
@@ -174,7 +185,23 @@ void objectGeneratorSim::createObject(yarp::os::Bottle pos, bool target)
     objectGeneratorSim::createObject("box",s,pos,c);
     
 }
-void objectGeneratorSim::getCoordinates(std::string object, int id, bool target)
+
+void objectGeneratorSim::tf(Bottle* b)
+{
+    Vector v(4);
+    for(int i=0;i<3;i++)
+    {
+        v[i]=b->get(i).asDouble();
+    }
+    v[3]=1;
+    Vector new_v = v*H;
+    for(int i=0;i<3;i++)
+    {
+        b->get(i)=new_v[i];
+    }
+}
+
+void objectGeneratorSim::getCoordinates(std::string object, int id,double size, bool target)
 {
     cmd.clear();
     cmd.addString("world");
@@ -183,13 +210,20 @@ void objectGeneratorSim::getCoordinates(std::string object, int id, bool target)
     cmd.addInt(id);
     yarp::os::Bottle pos;
     pos.clear();
+    stringstream ID;
+    ID << object << id;
+    
     portSim.write(cmd,pos);
     cout << pos.toString() << endl;
+    tf(&pos);
+
+    pos.addDouble(size);
+    pos.addString(ID.str());
 
     if (target == false){
-        objectGeneratorSim::positions.append(pos);
+        objectGeneratorSim::positions.addList()=pos;
     }else{
-        objectGeneratorSim::tpositions.append(pos);
+        objectGeneratorSim::tpositions.addList()=pos;
     }
 }
 
@@ -267,22 +301,26 @@ bool objectGeneratorSim::respond(const yarp::os::Bottle& bCommand, yarp::os::Bot
 /* Called periodically every getPeriod() seconds */
 bool objectGeneratorSim::updateModule() {
     cout<<"."<<endl;
+    positions.clear();
+    tpositions.clear();
 
     Bottle &p = portOutput.prepare();
     p.clear();
     Bottle &t = portOutputTarget.prepare();
     
-    for(int i=0;i<listSize[0]+listSize[1]+listSize[2];i++)
+
+
+    for(int i=0;i<listSize[0]-1+listSize[1]+listSize[2];i++)
     {
-        cout << i << ": "<< objects.get(2*i).asString().c_str() << endl;
-        getCoordinates(objects.get(2*i).asString().c_str(), objects.get(2*i+1).asInt());
+        cout << i << ": "<< objects.get(3*i).asString().c_str() << " " <<objects.get(3*i+1).asInt()<< endl;
+        getCoordinates(objects.get(3*i).asString().c_str(), objects.get(3*i+1).asInt(),objects.get(3*i+2).asDouble());
 
     }
-    getCoordinates(targets.get(0).asString().c_str(), objects.get(3).asInt());
-    cout << "Target: " << targets.get(0).asString().c_str() << endl;
-
-    p.copy(positions);
-    t.copy(tpositions);
+    getCoordinates(targets.get(0).asString().c_str(), targets.get(1).asInt(),targets.get(2).asDouble(),true);
+    cout << "Target: " << targets.get(1).asString().c_str() << endl;
+    cout << targets.toString() << endl;
+    p.addList()=positions;
+    t.addList()=tpositions;
     portOutput.write();
     portOutputTarget.write();
 

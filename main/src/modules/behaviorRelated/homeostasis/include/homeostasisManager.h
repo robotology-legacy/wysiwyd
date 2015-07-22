@@ -28,72 +28,73 @@ public:
 	/*Not implemented*/
 	bool updateDrives(double t);
 	/*Calls the update function for each drive. */
-	bool setDriveParameter(int d, int p, double val)
-	{
-		/*Allows to change any parameter from a drive, except name. 
-		Name must be defined on creation. */
-		switch (p)
-		{
-			case 0:
-				drives[d]->setValue(val);
-				break;			
-			case 1:
-				drives[d]->setDecay(val);
-				break;
-			case 2:
-				drives[d]->setHomeostasisMin(val);
-				break;
-			case 3:
-				drives[d]->setHomeostasisMax(val);
-				break;
-			default:
-				cout<<"ERROR!! Could not process parameter"<< p << endl;
-				cout<< "Parameter options are: " <<endl;
-				cout <<"0: Value"<<endl;
-				cout <<"1: Decay"<<endl;
-				cout << "2: HomeostasisMin"<<endl;
-				cout << "3: HomeostasisMax"<<endl;
-				cout << endl<<" Please revise the module. "<<endl;
-				return false;
-				break;
+	
+	// bool setDriveParameter(int d, int p, double val)
+	// {
+	// 	/*Allows to change any parameter from a drive, except name. 
+	// 	Name must be defined on creation. */
+	// 	switch (p)
+	// 	{
+	// 		case 0:
+	// 			drives[d]->setValue(val);
+	// 			break;			
+	// 		case 1:
+	// 			drives[d]->setDecay(val);
+	// 			break;
+	// 		case 2:
+	// 			drives[d]->setHomeostasisMin(val);
+	// 			break;
+	// 		case 3:
+	// 			drives[d]->setHomeostasisMax(val);
+	// 			break;
+	// 		default:
+	// 			cout<<"ERROR!! Could not process parameter"<< p << endl;
+	// 			cout<< "Parameter options are: " <<endl;
+	// 			cout <<"0: Value"<<endl;
+	// 			cout <<"1: Decay"<<endl;
+	// 			cout << "2: HomeostasisMin"<<endl;
+	// 			cout << "3: HomeostasisMax"<<endl;
+	// 			cout << endl<<" Please revise the module. "<<endl;
+	// 			return false;
+	// 			break;
 
-		}
-		return true;
-	}
+	// 	}
+	// 	return true;
+	// }
 
-	bool deltaDriveParameter(int d, int p, double delta)
-	{
-		/*Allows to change any parameter from a drive, except name. 
-		Name must be defined on creation. */
-		switch (p)
-		{
-			case 0:
-				drives[d]->deltaValue(delta);
-				break;			
-			case 1:
-				drives[d]->deltaDecay(delta);
-				break;
-			case 2:
-				drives[d]->deltaHomeostasisMin(delta);
-				break;
-			case 3:
-				drives[d]->deltaHomeostasisMax(delta);
-				break;
-			default:
-				cout<<"ERROR!! Could not process parameter"<< p << endl;
-				cout<< "Parameter options are: " <<endl;
-				cout <<"0: Value"<<endl;
-				cout <<"1: Decay"<<endl;
-				cout << "2: HomeostasisMin"<<endl;
-				cout << "3: HomeostasisMax"<<endl;
-				cout << endl<<" Please revise the module. "<<endl;
-				return false;
-				break;
+	// bool deltaDriveParameter(int d, int p, double delta)
+	// {
+	// 	/*Allows to change any parameter from a drive, except name. 
+	// 	Name must be defined on creation. */
+	// 	switch (p)
+	// 	{
+	// 		case 0:
+	// 			drives[d]->deltaValue(delta);
+	// 			break;			
+	// 		case 1:
+	// 			drives[d]->deltaDecay(delta);
+	// 			break;
+	// 		case 2:
+	// 			drives[d]->deltaHomeostasisMin(delta);
+	// 			break;
+	// 		case 3:
+	// 			drives[d]->deltaHomeostasisMax(delta);
+	// 			break;
+	// 		default:
+	// 			cout<<"ERROR!! Could not process parameter"<< p << endl;
+	// 			cout<< "Parameter options are: " <<endl;
+	// 			cout <<"0: Value"<<endl;
+	// 			cout <<"1: Decay"<<endl;
+	// 			cout << "2: HomeostasisMin"<<endl;
+	// 			cout << "3: HomeostasisMax"<<endl;
+	// 			cout << endl<<" Please revise the module. "<<endl;
+	// 			return false;
+	// 			break;
 
-		}
-		return true;
-	}
-
+	// 	}
+	// 	return true;
+	// }
+	
 	vector<double*> getDriveStatus(int n);
 	/*Returns a vector with the updated list of values
 	of each drive, or a specific one. */
