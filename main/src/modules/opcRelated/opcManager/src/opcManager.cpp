@@ -174,7 +174,7 @@ bool opcManager::populate()
     realOPC->checkout();
 
     //Initialise our entities (retrieved from opc or created and added to the opc)
-    Agent* icub = realOPC->addAgent("iCub");
+    Agent* icub = realOPC->addOrRetrieveAgent("iCub");
 
     Drive icub_energy_drive("energy", 1.0, 0.2, 1.0);
     Drive icub_fun_drive("fun", 0.5, 0.7, 1.0);
@@ -299,10 +299,10 @@ Bottle opcManager::updateBelief(string sOPCname)
         list<Entity*> tmp = realOPC->Entities(conditionRTO);
         PresentEntities.splice(PresentEntities.end(), tmp);
         listRelations = realOPC->getRelations();
-        present = realOPC->addAdjective("isPresent");
+        present = realOPC->addOrRetrieveAdjective("isPresent");
         present->m_quality = "presence";
-        is = realOPC->addAction("is");
-        isDoing = realOPC->addAction("isDoing");
+        is = realOPC->addOrRetrieveAction("is");
+        isDoing = realOPC->addOrRetrieveAction("isDoing");
     }
     else
     {
@@ -310,10 +310,10 @@ Bottle opcManager::updateBelief(string sOPCname)
         list<Entity*> tmp = mentalOPC->Entities(conditionRTO);
         PresentEntities.splice(PresentEntities.end(), tmp);
         listRelations = mentalOPC->getRelations();
-        present = mentalOPC->addAdjective("isPresent");
+        present = mentalOPC->addOrRetrieveAdjective("isPresent");
         present->m_quality = "presence";
-        is = mentalOPC->addAction("is");
-        isDoing = mentalOPC->addAction("isDoing");
+        is = mentalOPC->addOrRetrieveAction("is");
+        isDoing = mentalOPC->addOrRetrieveAction("isDoing");
     }
 
     for (list<Entity*>::iterator it_E = PresentEntities.begin(); it_E != PresentEntities.end(); it_E++)
@@ -338,12 +338,7 @@ Bottle opcManager::updateBelief(string sOPCname)
 
     for (list<Entity*>::iterator it_E = PresentAgents.begin(); it_E != PresentAgents.end(); it_E++)
     {
-        Agent* TempAgent;
-
-        if (bReal)
-            TempAgent = realOPC->addAgent((*it_E)->name());
-        else
-            TempAgent = mentalOPC->addAgent((*it_E)->name());
+        Agent* TempAgent = dynamic_cast<Agent*>(*it_E);
 
         list<Relation> AgentBeliefs = TempAgent->beliefs();
         vRelToAdd.clear();
@@ -452,17 +447,17 @@ Bottle opcManager::synchoniseOPCs()
     for (list<Entity*>::iterator it_E = lMental.begin(); it_E != lMental.end(); it_E++)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
-            Object *Ob = mentalOPC->addObject((*it_E)->name());
+            Object *Ob = dynamic_cast<Object*>(*it_E);
             Ob->m_present = 0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
-            Agent *Ag = mentalOPC->addAgent((*it_E)->name());
+            Agent *Ag = dynamic_cast<Agent*>(*it_E);
             Ag->m_present = 0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
-            RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
+            RTObject *Rt = dynamic_cast<RTObject*>(*it_E);
             Rt->m_present = 0;
         }
     }
@@ -475,27 +470,27 @@ Bottle opcManager::synchoniseOPCs()
     for (list<Entity*>::iterator it_E = lEntities.begin(); it_E != lEntities.end(); it_E++)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
-            Object *Ob = mentalOPC->addObject((*it_E)->name());
+            Object *Ob = dynamic_cast<Object*>(*it_E);
             Ob->fromBottle((*it_E)->asBottle());
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
-            Agent *Ag = mentalOPC->addAgent((*it_E)->name());
+            Agent *Ag = dynamic_cast<Agent*>(*it_E);
             Ag->fromBottle((*it_E)->asBottle());
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
-            RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
+            RTObject *Rt = dynamic_cast<RTObject*>(*it_E);
             Rt->fromBottle((*it_E)->asBottle());
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)    {
-            Adjective *Ad = mentalOPC->addAdjective((*it_E)->name());
+            Adjective *Ad = dynamic_cast<Adjective*>(*it_E);
             Ad->fromBottle((*it_E)->asBottle());
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_ACTION)   {
-            Action *Ac = mentalOPC->addAction((*it_E)->name());
+            Action *Ac = dynamic_cast<Action*>(*it_E);
             Ac->fromBottle((*it_E)->asBottle());
         }
     }
@@ -558,7 +553,7 @@ Bottle opcManager::simulateAction(Bottle bAction)
 
     mentalOPC->update();
 
-    RTObject *OBJECT = mentalOPC->addRTObject(sObject);
+    RTObject *OBJECT = mentalOPC->addOrRetrieveRTObject(sObject);
 
     if (fAbsolut)   {
         OBJECT->m_ego_position[0] = pMove.first;
@@ -741,11 +736,11 @@ Bottle opcManager::getBeliefs(Bottle bInput)
     Agent *agent;
     if (bInput.get(1).toString() == "real")
     {
-        agent = realOPC->addAgent(bInput.get(2).toString().c_str());
+        agent = dynamic_cast<Agent*>(realOPC->getEntity(bInput.get(2).toString().c_str()));
     }
     else
     {
-        agent = mentalOPC->addAgent(bInput.get(2).toString().c_str());
+        agent = dynamic_cast<Agent*>(mentalOPC->getEntity(bInput.get(2).toString().c_str()));
     }
 
     list<Relation> lRelation = agent->beliefs();

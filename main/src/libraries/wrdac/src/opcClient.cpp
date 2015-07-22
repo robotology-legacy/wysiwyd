@@ -132,7 +132,7 @@ Entity*    OPCClient::addEntity(Entity* e)
     return e;
 }
 
-Object*    OPCClient::addObject(const string &name)
+Object*    OPCClient::addOrRetrieveObject(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
@@ -149,7 +149,28 @@ Object*    OPCClient::addObject(const string &name)
     return o;
 }
 
-Agent*    OPCClient::addAgent(const string &name)
+
+Object*    OPCClient::addObject(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    Object *o = new Object();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+Agent*    OPCClient::addOrRetrieveAgent(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
@@ -166,7 +187,28 @@ Agent*    OPCClient::addAgent(const string &name)
     return o;
 }
 
-Action*    OPCClient::addAction(const string &name)
+Agent*    OPCClient::addAgent(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    Agent *o = new Agent();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+Action*    OPCClient::addOrRetrieveAction(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
@@ -183,7 +225,28 @@ Action*    OPCClient::addAction(const string &name)
     return o;
 }
 
-RTObject*    OPCClient::addRTObject(const string &name)
+Action*    OPCClient::addAction(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    Action *o = new Action();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+RTObject*    OPCClient::addOrRetrieveRTObject(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
@@ -200,7 +263,28 @@ RTObject*    OPCClient::addRTObject(const string &name)
     return o;
 }
 
-Adjective*    OPCClient::addAdjective(const string &name)
+RTObject*    OPCClient::addRTObject(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    RTObject *o = new RTObject();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+Adjective*    OPCClient::addOrRetrieveAdjective(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
@@ -213,6 +297,27 @@ Adjective*    OPCClient::addAdjective(const string &name)
     //Else we create it in the OPC.
     Adjective *o = new Adjective();
     o->m_name = name;
+    addEntity(o);
+    return o;
+}
+
+Adjective*    OPCClient::addAdjective(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    Adjective *o = new Adjective();
+    o->m_name = name_appended;
     addEntity(o);
     return o;
 }

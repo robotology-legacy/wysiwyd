@@ -132,7 +132,7 @@ bool GuiUpdaterModule::updateModule()
 
         //Just add the iCub in case it's not there
         if(iCub == NULL)
-            iCub = w->addAgent("icub");
+            iCub = w->addOrRetrieveAgent("icub");
 
         iCub = (Agent*) w->getEntity("icub");
         //cout<<"iCub Position: \t"<<iCub->m_ego_position.toString(3,3)<<endl

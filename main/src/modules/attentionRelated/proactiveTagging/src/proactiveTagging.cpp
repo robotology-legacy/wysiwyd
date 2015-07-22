@@ -314,7 +314,7 @@ bool proactiveTagging::populateOpc(){
     iCub->opc->update();
     iCub->opc->commit();
 
-    Agent* agent = iCub->opc->addAgent("Carol");
+    Agent* agent = iCub->opc->addOrRetrieveAgent("Carol");
     agent->m_ego_position[0] = -1.4;
     agent->m_ego_position[2] = 0.60;
     agent->m_present = 1;
@@ -322,12 +322,12 @@ bool proactiveTagging::populateOpc(){
     agent->m_color[1] = 50;
     agent->m_color[2] = 50;
 
-    Object* book = iCub->opc->addObject("book");
+    Object* book = iCub->opc->addOrRetrieveObject("book");
     book->m_ego_position[0] = -1.2;
     book->m_ego_position[2] = 0.4;
     book->m_present = 1;
 
-    Action* verb = iCub->opc->addAction("write");
+    Action* verb = iCub->opc->addOrRetrieveAction("write");
     iCub->opc->commit();
 
 

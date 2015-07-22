@@ -1326,17 +1326,17 @@ Bottle abmReasoning::imagineOPC(int Id)
     for (list<Entity*>::iterator it_E = lMental.begin(); it_E != lMental.end(); it_E++)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
-            Object *Ob = mentalOPC->addObject((*it_E)->name());
+            Object *Ob = dynamic_cast<Object*>(*it_E);
             Ob->m_present = 0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
-            Agent *Ag = mentalOPC->addAgent((*it_E)->name());
+            Agent *Ag = dynamic_cast<Agent*>(*it_E);
             Ag->m_present = 0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
-            RTObject *Rt = mentalOPC->addRTObject((*it_E)->name());
+            RTObject *Rt = dynamic_cast<RTObject*>(*it_E);
             Rt->m_present = 0;
         }
     }
@@ -1346,8 +1346,7 @@ Bottle abmReasoning::imagineOPC(int Id)
     mentalOPC->checkout();
 
     // ADD Agent iCub
-
-    Agent *icub = mentalOPC->addAgent("icub");
+    Agent *icub = mentalOPC->addOrRetrieveAgent("icub");
     icub->m_present = true;
     mentalOPC->commit(icub);
 
@@ -1374,7 +1373,7 @@ Bottle abmReasoning::imagineOPC(int Id)
         bool bPresence = test == sPresence;
         tuple<int, int, int> tColor = abmReasoningFunction::tupleIntFromString(sColor);
 
-        RTObject *RTOtemp = mentalOPC->addRTObject(sName);
+        RTObject *RTOtemp = dynamic_cast<RTObject*>(mentalOPC->getEntity(sName));
         RTOtemp->m_ego_position[0] = pCoordinate.first;
         RTOtemp->m_ego_position[1] = pCoordinate.second;
         RTOtemp->m_present = bPresence;

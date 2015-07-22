@@ -92,25 +92,50 @@ public:
     /**
     * Obtains an object with the given name. If this name is already present then the existing object is returned, else a new one is created.
     */
+    Object          *addOrRetrieveObject(const std::string &name);
+
+    /**
+    * Creates a new object. If an Object with the provided name is already existing, a new Object with an appended number is returned.
+    */
     Object          *addObject(const std::string &name);
 
     /**
     * Obtains an agent with the given name. If this name is already present then the existing agent is returned, else a new one is created.
+    */
+    Agent           *addOrRetrieveAgent(const std::string &name);
+
+    /**
+    * Creates a new agent. If an Agent with the provided name is already existing, a new Agent with an appended number is returned.
     */
     Agent           *addAgent(const std::string &name);
 
     /**
     * Obtains an action with the given name. If this name is already present then the existing action is returned, else a new one is created.
     */
+    Action           *addOrRetrieveAction(const std::string &name);
+
+    /**
+    * Creates a new action. If an Action with the provided name is already existing, a new Action with an appended number is returned.
+    */
     Action           *addAction(const std::string &name);
 
     /**
     * Obtains a reactable object with the given name. If this name is already present then the existing object is returned, else a new one is created.
     */
-    RTObject        *addRTObject(const std::string &name);
+    RTObject        *addOrRetrieveRTObject(const std::string &name);
+
+    /**
+    * Creates a new RTObject. If an RTObject with the provided name is already existing, a new RTObject with an appended number is returned.
+    */
+    RTObject       *addRTObject(const std::string &name);
 
     /**
     * Obtains an adjective with the given name. If this name is already present then the existing adjective is returned, else a new one is created.
+    */
+    Adjective       *addOrRetrieveAdjective(const std::string &name);
+
+    /**
+    * Creates a new adjective. If an adjective with the provided name is already existing, a new adjective with an appended number is returned.
     */
     Adjective       *addAdjective(const std::string &name);
 

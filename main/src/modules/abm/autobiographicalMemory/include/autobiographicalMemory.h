@@ -200,7 +200,7 @@ public:
     void connectOPC();
     //yarp::os::Bottle getInfoAbout(std::string sName);
 
-    yarp::os::Bottle populateOPC();
+    //yarp::os::Bottle populateOPC();
 };
 
 #endif

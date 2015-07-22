@@ -56,7 +56,7 @@ bool AdaptiveLayer::handleGesture()
 {
     bool gotSignal = false;
     string humanName = "partner";
-    Agent* partner = iCub->opc->addAgent(humanName);
+    Agent* partner = dynamic_cast<Agent*>(iCub->opc->getEntity(humanName));
     if (partner->m_present)
     {
 
@@ -184,7 +184,7 @@ bool AdaptiveLayer::handleSpeech()
                 answerFromRobot = "I already knew that.";
             }
             //Update the other model to reflect his knowledge
-            Agent* partner = iCub->opc->addAgent("partner");
+            Agent* partner = dynamic_cast<Agent*>(iCub->opc->getEntity("partner"));
             partner->addBelief(relationForm);
             iCub->opc->commit(partner);
         }
@@ -243,7 +243,7 @@ bool AdaptiveLayer::handleSpeech()
             if (realAnswers.size() >0)
             {
 
-                Agent* partner = iCub->opc->addAgent("partner");
+                Agent* partner = dynamic_cast<Agent*>(iCub->opc->getEntity("partner"));
                 Relation relationToBeStated = realAnswers.front();
                 bool partnerShouldHaveKnown = true;
 
@@ -434,7 +434,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<agentList->size(); d++)
             {
                 string name = agentList->get(d).asString().c_str();
-                Agent* agent = iCub->opc->addAgent(name);
+                Agent* agent = iCub->opc->addOrRetrieveAgent(name);
                 agent->m_present = false;
                 iCub->opc->commit(agent);
             }
@@ -446,7 +446,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<objectList->size(); d++)
             {
                 string name = objectList->get(d).asString().c_str();
-                Object* o = iCub->opc->addObject(name);
+                Object* o = iCub->opc->addOrRetrieveObject(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -458,7 +458,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<rtobjectList->size(); d++)
             {
                 string name = rtobjectList->get(d).asString().c_str();
-                RTObject* o = iCub->opc->addRTObject(name);
+                RTObject* o = iCub->opc->addOrRetrieveRTObject(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -470,7 +470,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<adjectiveList->size(); d++)
             {
                 string name = adjectiveList->get(d).asString().c_str();
-                iCub->opc->addAdjective(name);
+                iCub->opc->addOrRetrieveAdjective(name);
             }
         }
 
@@ -480,7 +480,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<actionList->size(); d++)
             {
                 string name = actionList->get(d).asString().c_str();
-                iCub->opc->addAction(name);
+                iCub->opc->addOrRetrieveAction(name);
             }
         }
     }
