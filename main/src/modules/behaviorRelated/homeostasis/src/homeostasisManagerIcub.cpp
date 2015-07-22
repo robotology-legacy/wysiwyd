@@ -85,6 +85,7 @@ int homeostaticModule::openPorts(string driveName,int d)
 
 bool homeostaticModule::configure(yarp::os::ResourceFinder &rf)
 {
+    manager = homeostasisManager(0);
     
     moduleName = rf.check("name",Value("homeoManager")).asString().c_str();
     setName(moduleName.c_str());

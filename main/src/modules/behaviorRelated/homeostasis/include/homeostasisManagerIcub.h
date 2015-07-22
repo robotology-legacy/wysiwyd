@@ -33,7 +33,7 @@ private:
     vector< yarp::os::BufferedPort<Bottle>* > input_ports;
     vector< yarp::os::BufferedPort<Bottle>* > outputM_ports;
     vector< yarp::os::BufferedPort<Bottle>* > outputm_ports;
-    homeostasisManager manager = homeostasisManager(0);
+    homeostasisManager manager;
 
 	//Reflexes
 
@@ -45,6 +45,8 @@ private:
 	//void configureSalutation(yarp::os::ResourceFinder &rf);
 
 public:
+
+    homeostaticModule():manager(0){;}
 
     Drive bDrive(yarp::os::Bottle* b)
     {

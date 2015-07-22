@@ -10,11 +10,7 @@ using namespace std;
 
 class homeostasisManager
 {
-private:
 
-	
-    
-    
 
 public:
 	std::vector<Drive*> drives;
@@ -22,12 +18,7 @@ public:
 	std::vector<double*> drive_values;
 	unsigned int n_drives;
 
-	homeostasisManager(int n)
-    {
-    	drives.resize(n);
-    	n_drives = n;
-    }
-    
+    homeostasisManager(int n);
 	//bool configHomeostatic(n_drives);
 	bool addDrive(Drive *D,unsigned int n);
 	/*Generates a drive in the homeostasis manager. 

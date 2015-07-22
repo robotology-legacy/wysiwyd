@@ -184,6 +184,7 @@ void objectGeneratorSim::getCoordinates(std::string object, int id, bool target)
     yarp::os::Bottle pos;
     pos.clear();
     portSim.write(cmd,pos);
+    cout << pos.toString() << endl;
 
     if (target == false){
         objectGeneratorSim::positions.append(pos);
@@ -273,10 +274,12 @@ bool objectGeneratorSim::updateModule() {
     
     for(int i=0;i<listSize[0]+listSize[1]+listSize[2];i++)
     {
+        cout << i << ": "<< objects.get(2*i).asString().c_str() << endl;
         getCoordinates(objects.get(2*i).asString().c_str(), objects.get(2*i+1).asInt());
 
     }
-    getCoordinates(targets.get(2).asString().c_str(), objects.get(3).asInt());
+    getCoordinates(targets.get(0).asString().c_str(), objects.get(3).asInt());
+    cout << "Target: " << targets.get(0).asString().c_str() << endl;
 
     p.copy(positions);
     t.copy(tpositions);
