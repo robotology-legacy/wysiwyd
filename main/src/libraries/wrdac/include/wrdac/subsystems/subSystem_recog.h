@@ -1,8 +1,8 @@
 /*
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
-* Authors: Gr?goire Pointeau
-* email:   gregoire.pointeau@inserm.fr
-* website: http://efaa.upf.edu/
+* Authors: Gregoire Pointeau, Maxime Petit
+* email:   gregoire.pointeau@inserm.fr, m.petit@imperial.ac.uk
+* website: http://wysiwyd.upf.edu/
 * Permission is granted to copy, distribute, and/or modify this program
 * under the terms of the GNU General Public License, version 2 or any
 * later version published by the Free Software Foundation.
@@ -44,6 +44,8 @@ namespace wysiwyd{
                 return yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
             }
             SubSystem_ABM* SubABM;
+            std::string speakerName_;
+
         public:
 
             yarp::os::Port portRPC;
@@ -58,6 +60,17 @@ namespace wysiwyd{
                 portRPC.close();
                 SubABM->Close();
             };
+
+            /**
+            * Set the speaker name to be sent as argument to abm when snapshot
+            *
+            */
+            bool setSpeakerName(std::string speaker)
+            {
+                speakerName_ = speaker ;
+                yInfo() << " [subSystem_Recog] : speaker is now " << speakerName_ ;
+                return true;
+            }
 
 
             /**
@@ -134,6 +147,12 @@ namespace wysiwyd{
                             lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
                             lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
                             lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                            //add speaker name. name should be sent through fonction before
+                            if(speakerName_.empty()){
+                                speakerName_ = "partner";
+                                yWarning() << " [subSystem_Recog] " << "name of the speaker has been assigned to the default value : " << speakerName_ ;
+                            }
+                            lArgument.push_back(std::pair<std::string, std::string>(speakerName_, "speaker"));
                             SubABM->sendActivity("action",
                                 "sentence",
                                 "recog",
