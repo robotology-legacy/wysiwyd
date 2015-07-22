@@ -169,7 +169,7 @@ bool AlostaticModule::updateModule()
 	Bottle &ga = avoidPort_o.prepare();
 	ga.clear();
 	ga.addDouble(iCub->icubAgent->m_drives["avoiding"].value);
-	avoidPort_o.write();
+	
 	//write exploreGain
 	Bottle &ge = explorePort.prepare();
 	ge.clear();
@@ -177,7 +177,7 @@ bool AlostaticModule::updateModule()
 	
 
 	reachPort.write();
-
+    avoidPort_o.write();
 	explorePort.write();
 
 	//updateEmotions();
