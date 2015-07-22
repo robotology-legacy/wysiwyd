@@ -135,20 +135,15 @@ void cartControlReachAvoidThread::initCartesianCtrl(Vector &sw, Matrix &lim, con
         fprintf(stdout,")\n");
 }
     
-void cartControlReachAvoidThread::getSensorData()
+ 
+bool cartControlReachAvoidThread::checkTargetFromPortInput(Vector &target_pos, double &target_radius)
 {
-         if (encTorso->getEncoders(torso.data())){
-            R=(rotx(torso[1])) * (roty(-torso[2])) * (rotz(-torso[0]));
-         }
-}
-    
-bool cartControlReachAvoidThread::checkPosFromPortInput(Vector &target_pos)
-{
-        if (Bottle *targetPosNew=inportTargetCoordinates.read(false))
+        if (Bottle *target=inportTargetCoordinates.read(false))
         {
-            target_pos[0]=targetPosNew->get(0).asDouble();
-            target_pos[1]=targetPosNew->get(1).asDouble();
-            target_pos[2]=targetPosNew->get(2).asDouble();
+            target_pos[0]=target->get(0).asDouble();
+            target_pos[1]=target->get(1).asDouble();
+            target_pos[2]=target->get(2).asDouble();
+            target_radius = target->get(3).asDouble();
             return true;
            
         }
@@ -787,9 +782,7 @@ void cartControlReachAvoidThread::run()
     
      bool newTarget = false;
        
-     getSensorData();
-        
-     newTargetFromPort =  checkPosFromPortInput(targetPosFromPort);
+     newTargetFromPort =  checkTargetFromPortInput(targetPosFromPort,targetRadius);
      if(newTargetFromPort || newTargetFromRPC){ //target from RPC is set asynchronously
             newTarget = true;
             if (newTargetFromRPC){ //RPC has priority
