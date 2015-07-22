@@ -281,7 +281,7 @@ bool GameCluedo::handleSpeech(bool expectAffirmation, Relation* queriedRelation,
 
             if (realAnswers.size() > 0)
             {
-                Agent* partner = iCub->opc->addAgent("partner");
+                Agent* partner = iCub->opc->addOrRetrieveAgent("partner");
                 Relation relationToBeStated = realAnswers.front();
                 bool partnerShouldHaveKnown = true;
 
@@ -394,7 +394,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < agentList->size(); d++)
             {
                 std::string name = agentList->get(d).asString().c_str();
-                wysiwyd::wrdac::Agent* agent = iCub->opc->addAgent(name);
+                wysiwyd::wrdac::Agent* agent = iCub->opc->addOrRetrieveAgent(name);
                 agent->m_present = false;
                 iCub->opc->commit(agent);
             }
@@ -406,7 +406,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < objectList->size(); d++)
             {
                 std::string name = objectList->get(d).asString().c_str();
-                wysiwyd::wrdac::Object* o = iCub->opc->addObject(name);
+                wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveObject(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -418,7 +418,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < rtobjectList->size(); d++)
             {
                 std::string name = rtobjectList->get(d).asString().c_str();
-                wysiwyd::wrdac::RTObject* o = iCub->opc->addRTObject(name);
+                wysiwyd::wrdac::RTObject* o = iCub->opc->addOrRetrieveRTObject(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -430,7 +430,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < adjectiveList->size(); d++)
             {
                 std::string name = adjectiveList->get(d).asString().c_str();
-                iCub->opc->addAdjective(name);
+                iCub->opc->addOrRetrieveAdjective(name);
             }
         }
 
@@ -440,7 +440,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < actionList->size(); d++)
             {
                 std::string name = actionList->get(d).asString().c_str();
-                iCub->opc->addAction(name);
+                iCub->opc->addOrRetrieveAction(name);
             }
         }
 

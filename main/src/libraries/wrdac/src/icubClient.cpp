@@ -227,7 +227,7 @@ void ICubClient::updateAgent()
     {
         if (this->icubAgent == NULL)
         {
-            icubAgent=opc->addAgent("icub");
+            icubAgent=opc->addOrRetrieveAgent("icub");
         }
         else
             opc->update(this->icubAgent);

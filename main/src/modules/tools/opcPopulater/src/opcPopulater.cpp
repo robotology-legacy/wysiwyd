@@ -100,7 +100,7 @@ bool opcPopulater::populateSpecific1(Bottle bInput){
 
     if (bInput.get(1).toString() == "agent")
     {
-        Agent* agent = iCub->opc->addAgent(sName);
+        Agent* agent = iCub->opc->addOrRetrieveAgent(sName);
         agent->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.5;
         agent->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         agent->m_ego_position[2] = 0.60;
@@ -115,7 +115,7 @@ bool opcPopulater::populateSpecific1(Bottle bInput){
 
     else if (bInput.get(1).toString() == "object")
     {
-        Object* obj = iCub->opc->addObject(sName);
+        Object* obj = iCub->opc->addOrRetrieveObject(sName);
         obj->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.2;
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         obj->m_ego_position[2] = 0.20;
@@ -130,7 +130,7 @@ bool opcPopulater::populateSpecific1(Bottle bInput){
 
     else if (bInput.get(1).toString() == "rtobject")
     {
-        RTObject* obj = iCub->opc->addRTObject(sName);
+        RTObject* obj = iCub->opc->addOrRetrieveRTObject(sName);
         obj->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.2;
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         obj->m_present = 1;
@@ -156,11 +156,7 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
 
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
-    int iNbEnt = Random::uniform(10,2000);
-    stringstream s;
-    s << "unknown_" << iNbEnt;
-    string sName = s.str();
-    cout << " sName = " << sName << endl;
+    string sName = "unknown";
     yInfo() << " to be added: " << bInput.get(1).toString() << " called " << sName;
 
     if (bInput.get(1).toString() == "agent")
@@ -241,17 +237,17 @@ bool opcPopulater::setSaliencyEntity(Bottle bInput){
         {
             if ((*itEnt)->entity_type() == "agent")
             {
-                Agent* temp = iCub->opc->addAgent((*itEnt)->name());
+                Agent* temp = dynamic_cast<Agent*>(*itEnt);
                 temp->m_saliency = targetSaliency;
             }
             if ((*itEnt)->entity_type() == "object")
             {
-                Object* temp = iCub->opc->addObject((*itEnt)->name());
+                Object* temp = dynamic_cast<Object*>(*itEnt);
                 temp->m_saliency = targetSaliency;
             }
             if ((*itEnt)->entity_type() == "rtobject")
             {
-                RTObject* temp = iCub->opc->addRTObject((*itEnt)->name());
+                RTObject* temp = dynamic_cast<RTObject*>(*itEnt);
                 temp->m_saliency = targetSaliency;
             }
         }
@@ -287,11 +283,11 @@ bool opcPopulater::populateABM(Bottle bInput)
 
     // first the Giraffe is close to larry (from left to right)
     iCub->opc->checkout();
-    Agent* Larry = iCub->opc->addAgent("Larry");
-    Agent* Robert = iCub->opc->addAgent("Robert");
-    Object* Giraffe = iCub->opc->addObject("giraffe");
-    Action* Want = iCub->opc->addAction("want");
-    Action* Has = iCub->opc->addAction("has");
+    Agent* Larry = iCub->opc->addOrRetrieveAgent("Larry");
+    Agent* Robert = iCub->opc->addOrRetrieveAgent("Robert");
+    Object* Giraffe = iCub->opc->addOrRetrieveObject("giraffe");
+    Action* Want = iCub->opc->addOrRetrieveAction("want");
+    Action* Has = iCub->opc->addOrRetrieveAction("has");
 
 
     Relation LarryHasGiraffe(Larry, Has, Giraffe);

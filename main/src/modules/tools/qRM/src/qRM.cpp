@@ -587,7 +587,7 @@ bool qRM::nodeYesNo()
 bool qRM::populateOpc(){
     iCub->opc->update();
 
-    Agent* agent = iCub->opc->addAgent("Carol");
+    Agent* agent = iCub->opc->addOrRetrieveAgent("Carol");
     agent->m_ego_position[0] = -1.4;
     agent->m_ego_position[2] = 0.60;
     agent->m_present = 1;
@@ -655,7 +655,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
         bSemantic = *bAnswer.get(1).asList();
         string sName = bSemantic.check("agent", Value("unknown")).asString();
 
-        Agent* agentToChange = iCub->opc->addAgent(sNameTarget);
+        Agent* agentToChange = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameTarget));
         agentToChange->changeName(sName);
         iCub->opc->commit(agentToChange);
 
@@ -707,7 +707,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
 
         string sName = bSemantic.check("object", Value("unknown")).asString();
 
-        Object* objectToChange = iCub->opc->addObject(sNameTarget);
+        Object* objectToChange = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
         objectToChange->changeName(sName);
 
         iCub->opc->commit(objectToChange);
@@ -756,7 +756,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
 
         string sName = bSemantic.check("object", Value("unknown")).asString();
 
-        RTObject* objectToChange = iCub->opc->addRTObject(sNameTarget);
+        RTObject* objectToChange = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameTarget));
         objectToChange->changeName(sName);
         iCub->opc->commit(objectToChange);
 
@@ -861,7 +861,7 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
             {
                 if ((*itEnt)->entity_type() == "agent")
                 {
-                    Agent* temp = iCub->opc->addAgent((*itEnt)->name());
+                    Agent* temp = dynamic_cast<Agent*>(*itEnt);
                     if (temp->m_saliency > highestSaliency)
                     {
                         if (secondSaliency != 0.0)
@@ -883,7 +883,7 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
 
                 if ((*itEnt)->entity_type() == "object")
                 {
-                    Object* temp = iCub->opc->addObject((*itEnt)->name());
+                    Object* temp = dynamic_cast<Object*>(*itEnt);
                     if (temp->m_saliency > highestSaliency)
                     {
                         if (secondSaliency != 0.0)
@@ -905,7 +905,7 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
 
                 if ((*itEnt)->entity_type() == "rtobject")
                 {
-                    RTObject* temp = iCub->opc->addRTObject((*itEnt)->name());
+                    RTObject* temp = dynamic_cast<RTObject*>(*itEnt);
                     if (temp->m_saliency > highestSaliency)
                     {
                         if (secondSaliency != 0.0)
@@ -956,17 +956,17 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
             // change name
             if (sTypeBestEntity == "agent")
             {
-                Agent* TARGET = iCub->opc->addAgent(sNameBestEntity);
+                Agent* TARGET = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameBestEntity));
                 TARGET->changeName(sNameTarget);
             }
             if (sTypeBestEntity == "object")
             {
-                Object* TARGET = iCub->opc->addObject(sNameBestEntity);
+                Object* TARGET = dynamic_cast<Object*>(iCub->opc->getEntity(sNameBestEntity));
                 TARGET->changeName(sNameTarget);
             }
             if (sTypeBestEntity == "rtobject")
             {
-                RTObject* TARGET = iCub->opc->addRTObject(sNameBestEntity);
+                RTObject* TARGET = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameBestEntity));
                 TARGET->changeName(sNameTarget);
             }
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
@@ -1288,7 +1288,7 @@ Bottle qRM::executeAction(Bottle bInput)
                 }
                 else if (EntToGrasp->isType("object"))
                 {
-                    Object *toGrasp = iCub->opc->addObject(sObject);
+                    Object *toGrasp = dynamic_cast<Object*>(iCub->opc->getEntity(sObject));
                     if (toGrasp->m_present)
                     {
                         yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
@@ -1316,7 +1316,7 @@ Bottle qRM::executeAction(Bottle bInput)
                 }
                 else if (EntToGrasp->isType("RTObject"))
                 {
-                    RTObject *toGrasp = iCub->opc->addRTObject(sObject);
+                    RTObject *toGrasp = dynamic_cast<RTObject*>(iCub->opc->getEntity(sObject));
                     if (toGrasp->m_present)
                     {
                         yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
@@ -1387,7 +1387,7 @@ Bottle qRM::executeAction(Bottle bInput)
                 }
                 else if (EntToGrasp->isType("RTObject"))
                 {
-                    RTObject *toGrasp = iCub->opc->addRTObject(sObject);
+                    RTObject *toGrasp = dynamic_cast<RTObject*>(iCub->opc->getEntity(sObject));
                     yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
                     iCub->getABMClient()->sendActivity("action",
                         sPredicate,

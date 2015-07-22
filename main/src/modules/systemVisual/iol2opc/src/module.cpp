@@ -592,7 +592,7 @@ void IOL2OPCBridge::updateOPC()
                     Vector x;
                     if (get3DPosition(cog,x))
                     {
-                        Object *obj=opc->addObject(object);
+                        Object *obj=opc->addOrRetrieveObject(object);
                         obj->m_ego_position=x;
                         obj->m_present=true;
                     }
@@ -605,7 +605,7 @@ void IOL2OPCBridge::updateOPC()
         // garbage collection
         for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
             if (it->second.isDead())
-                opc->addObject(it->first)->m_present=false;                
+                dynamic_cast<Object*>(opc->getEntity(it->first))->m_present=false;
 
         opc->commit();
     }
@@ -932,7 +932,7 @@ bool IOL2OPCBridge::remove_all()
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
     for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
-        opc->addObject(it->first)->m_present=false;                
+        dynamic_cast<Object*>(opc->getEntity(it->first))->m_present=false;
 
     opc->commit();
     db.clear();
