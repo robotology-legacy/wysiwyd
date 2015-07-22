@@ -58,7 +58,7 @@ int homeostaticModule::openPorts(string driveName,int d)
         cout << getName() << ": Unable to open port " << pn << endl;
     }
 
-    return 42
+    return 42;
 }
 /*bool homeostaticModule::addNewDrive(string driveName, yarp::os::Value grpHomeostatic,int d)
 {
