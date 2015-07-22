@@ -40,10 +40,11 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/math/Math.h>
+#include <yarp/math/SVD.h>
 #include <yarp/os/Log.h>
 #include <iCub/ctrl/neuralNetworks.h>
 #include <iCub/ctrl/minJerkCtrl.h>
-
+#include <iCub/iKin/iKinFwd.h>
 #include <iCub/skinDynLib/common.h>
 
 #define DEFAULT_THR_PER     10
@@ -193,6 +194,9 @@ protected:
     Matrix &rotz(const double theta);
     bool reachableTarget(const Vector target_pos);
     bool targetCloseEnough();
+
+    bool computeFoR(const Vector &pos, const Vector &norm, Matrix &FoR);
+    bool computeXdotAvoid(const Vector &pos, const Vector &norm, Vector &xDotAvoid);
     
     
 public:
