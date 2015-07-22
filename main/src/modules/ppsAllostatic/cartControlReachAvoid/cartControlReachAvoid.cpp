@@ -39,13 +39,13 @@ YARP, ICUB libraries
 - The name of the .ini file with the configuration parameters.
 
 --name          \e name
-- The name of the module (default virtualContactGeneration).
+- The name of the module (default cartControlReachAvoid).
 
 --robot         \e rob
-- The name of the robot (either "icub" or "icub"). Default icubSim.
+- The name of the robot (either "icub" or "icubSim"). Default icubSim.
 
 --rate          \e rate
-- The period used by the thread. Default 100ms, i.e. 10 Hz.
+- The period used by the thread. Default 10ms, i.e. 100 Hz.
 
 --verbosity  \e verb
 - Verbosity level (default 0). The higher is the verbosity, the more

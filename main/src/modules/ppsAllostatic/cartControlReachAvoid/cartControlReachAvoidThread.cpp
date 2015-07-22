@@ -152,6 +152,35 @@ bool cartControlReachAvoidThread::checkTargetFromPortInput(Vector &target_pos, d
         }
 }
     
+bool cartControlReachAvoidThread::getAvoidanceVectorsFromPort()
+{
+    avoidanceStruct_t avoidanceStruct;
+    avoidanceStruct.skin_part = SKIN_PART_UNKNOWN;
+    avoidanceStruct.x.resize(3,0.0);
+    avoidanceStruct.n.resize(3,0.0);
+    
+    Bottle* avoidanceMultiBottle = inportAvoidanceVectors.read(false);
+    if(avoidanceMultiBottle != NULL){
+         yDebug("getAvoidanceVectorsFromPort(): There were %d bottles on the port.\n",avoidanceMultiBottle->size());
+         for(int i=0; i< avoidanceMultiBottle->size();i++){
+             Bottle* avoidanceStructBottle = avoidanceMultiBottle->get(i).asList();
+             yDebug("Bottle %d contains %s", i,avoidanceStructBottle->toString().c_str());
+             avoidanceStruct.skin_part =  (SkinPart)(avoidanceStructBottle->get(0).asInt());
+             avoidanceStruct.x(0) = avoidanceStructBottle->get(1).asDouble();
+             avoidanceStruct.x(1) = avoidanceStructBottle->get(2).asDouble();
+             avoidanceStruct.x(2) = avoidanceStructBottle->get(3).asDouble();
+             avoidanceStruct.n(0) = avoidanceStructBottle->get(4).asDouble();
+             avoidanceStruct.n(1) = avoidanceStructBottle->get(5).asDouble();
+             avoidanceStruct.n(2) = avoidanceStructBottle->get(6).asDouble();
+             avoidanceVectors.push_back(avoidanceStruct);
+         }
+        return true;
+    }
+    else{
+       yDebug("getAvoidanceVectorsFromPort(): no avoidance vectors on the port.") ;  
+       return false;
+    };
+}
 
     
 void cartControlReachAvoidThread::selectArm()
@@ -191,7 +220,7 @@ void cartControlReachAvoidThread::doReach()
                 Vector xdhat, odhat, qdhat;
                 Vector torsoAndArmJointDeltas; //!torso already in motor control order 
                 // iKin / cartControl pitch, roll, yaw;   motorInterface - yaw, roll, pitch
-                Vector qdotReach, qdotReachAndAvoid; //3 torso joint velocities (but in motor interface order! yaw, roll, pitch) + 7 arm joints
+                Vector qdotReach, qdotAvoid, qdotReachAndAvoid; //3 torso joint velocities (but in motor interface order! yaw, roll, pitch) + 7 arm joints
                 Vector qdotArm, qdotTorso; //joint velocities in motor interface format
               
                 /**** init ***************/
@@ -200,7 +229,8 @@ void cartControlReachAvoidThread::doReach()
                 qdotTorso.resize(torsoAxes,0.0);
                            
                 torsoAndArmJointDeltas.resize(cartNrDOF,0.0);
-                qdotReach.resize(cartNrDOF);
+                qdotReach.resize(cartNrDOF,0.0);
+                qdotAvoid.resize(cartNrDOF,0.0); 
                 qdotReachAndAvoid.resize(cartNrDOF,0.0); 
                      
                 
@@ -257,7 +287,15 @@ void cartControlReachAvoidThread::doReach()
                 for each avoidance vector
                     skinPart gives FoR, which is link after the point - move to first joint/link before the point
                     express point in last proximal joint; create extra link - rototranslation    
+               */
                 
+                
+                
+               
+
+
+               /*
+               
                 instantiate new chain
                 iKin:: iCubArm 
                 
@@ -274,6 +312,47 @@ void cartControlReachAvoidThread::doReach()
                 
                 combine q_dot_reach with q_dot_avoidance; such as weighted sum using gains from allostasis
                 */
+
+                // Instantiate new chain iCub::iKin::iKinChain from iCub::iKin::iCubArm                
+                iCub::iKin::iKinChain *chain;
+                iCub::iKin::iCubArm   *arm;
+
+                if (armSel==LEFTARM)
+                {
+                    arm   = new iCub::iKin::iCubArm("left");
+                    chain = arm->asChain();
+                }
+                else if (armSel==RIGHTARM)
+                {
+                    arm   = new iCub::iKin::iCubArm("right");
+                    chain = arm->asChain();
+                }
+
+                // Block all the more distal joints after the joint 
+                unsigned int dof = chain -> getDOF();
+
+              
+
+                for (int i = dof; i < avoidanceVectors[0].skin_part; --i)
+                {
+                    chain -> blockLink(i);
+                }
+
+                // SetHN to move the end effector toward the point to be controlled
+                Matrix HN = eye(4);
+                computeFoR(avoidanceVectors[0].x,avoidanceVectors[0].n,HN);
+                chain -> setHN(HN);
+
+                // Ask for geoJacobian
+                Matrix J = chain -> GeoJacobian();
+
+                Vector xdotAvoid(3,0.0);
+                computeXdotAvoid(avoidanceVectors[0].x,avoidanceVectors[0].n,xdotAvoid);
+
+                // Compute the q_dot_avoidance
+                qdotAvoid = yarp::math::pinv(J) * xdotAvoid;
+
+
                 qdotReachAndAvoid = qdotReach;
                 
                 
@@ -303,6 +382,48 @@ void cartControlReachAvoidThread::doReach()
             }
         }
     }
+
+bool cartControlReachAvoidThread::computeXdotAvoid(const Vector &pos, const Vector &norm, Vector &xdotAvoid)
+{
+    // Actually I really don't know if this method makes sense
+    
+    // velocity vector = speed (10cm/s) * direction of motion (the unitary version of the norm vector)
+    xdotAvoid = 0.01 * (norm / yarp::math::norm(norm));
+    return true;
+}
+
+bool cartControlReachAvoidThread::computeFoR(const Vector &pos, const Vector &norm, Matrix &FoR)
+{
+    if (norm == zeros(3))
+    {
+        FoR=eye(4);
+        return false;
+    }
+    
+    // Set the proper orientation for the touching end-effector
+    Vector x(3,0.0), z(3,0.0), y(3,0.0);
+
+    z = norm;
+    if (z[0] == 0.0)
+    {
+        z[0] = 0.00000001;    // Avoid the division by 0
+    }
+    y[0] = -z[2]/z[0]; y[2] = 1;
+    x = -1*(cross(z,y));
+
+    // Let's make them unitary vectors:
+    x = x / yarp::math::norm(x);
+    y = y / yarp::math::norm(y);
+    z = z / yarp::math::norm(z);
+
+    FoR=eye(4);
+    FoR.setSubcol(x,0,0);
+    FoR.setSubcol(y,0,1);
+    FoR.setSubcol(z,0,2);
+    FoR.setSubcol(pos,0,3);
+
+    return true;
+}
          
 void cartControlReachAvoidThread::doIdle()
     {
@@ -771,6 +892,10 @@ bool cartControlReachAvoidThread::threadInit()
 
         minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,10); //3 torso + 7 arm
         
+        //TODO can be  moved to config file, but will be eventually obtained from allostatic control
+        reachingGain = 0.5; 
+        avoidanceGain = 0.5; 
+        
         return true;
       
   
@@ -781,7 +906,8 @@ void cartControlReachAvoidThread::run()
      ts.update();
     
      bool newTarget = false;
-       
+     avoidanceVectors.clear();
+     
      newTargetFromPort =  checkTargetFromPortInput(targetPosFromPort,targetRadius);
      if(newTargetFromPort || newTargetFromRPC){ //target from RPC is set asynchronously
             newTarget = true;
@@ -795,7 +921,19 @@ void cartControlReachAvoidThread::run()
                 newTargetFromPort = false;
             }
      }
-        
+     
+    // updateGainsFromPort();
+    getAvoidanceVectorsFromPort(); //fills up global avoidanceVectors vector
+    
+    //debug code
+    vector<avoidanceStruct_t>::const_iterator it;
+    for(it=avoidanceVectors.begin(); it!=avoidanceVectors.end(); it++)
+    {
+         yDebug("run(): Avoidance struct read from port: SkinPart:%s, x,y,z: %s, n1,n2,n3: %s",SkinPart_s[it->skin_part].c_str(),it->x.toString().c_str(),it->n.toString().c_str());
+    }
+    
+   
+    
     if (state==STATE_IDLE){
         yDebug("run(): STATE_IDLE\n");
         if (newTarget){
