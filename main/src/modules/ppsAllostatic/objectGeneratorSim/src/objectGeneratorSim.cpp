@@ -1,7 +1,7 @@
 
 
 //   Include declaration file
-#include "ppsSim.h"
+#include "objectGeneratorSim.h"
 //   Include math library
 
 #include <cstdlib>

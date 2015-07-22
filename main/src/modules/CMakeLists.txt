@@ -14,7 +14,6 @@ add_subdirectory(systemMotor)
 add_subdirectory(systemHaptic)
 add_subdirectory(systemAuditory)
 add_subdirectory(scenarioSpecific)
-add_subdirectory(ppsSim)
 
 add_subdirectory(ppsAllostatic)
 add_subdirectory(behaviorRelated)

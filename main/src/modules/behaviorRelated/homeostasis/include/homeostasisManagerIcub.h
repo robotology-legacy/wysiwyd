@@ -52,7 +52,7 @@ public:
         return d;
     }
 
-    bool openPorts(string driveName, int d);
+    int openPorts(string driveName, int d);
 
     bool configure(yarp::os::ResourceFinder &rf);
 

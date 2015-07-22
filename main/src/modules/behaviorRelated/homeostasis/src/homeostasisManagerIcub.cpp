@@ -25,7 +25,7 @@ bool homeostaticModule::addNewDrive(string driveName, yarp::os::Bottle* grpHomeo
     return true;
 }
 
-bool homeostaticModule::openPorts(string driveName,int d)
+int homeostaticModule::openPorts(string driveName,int d)
 {
     input_ports.resize(input_ports.size()+1);
     outputM_ports.resize(outputM_ports.size()+1);
@@ -57,6 +57,8 @@ bool homeostaticModule::openPorts(string driveName,int d)
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
+
+    return 42
 }
 /*bool homeostaticModule::addNewDrive(string driveName, yarp::os::Value grpHomeostatic,int d)
 {

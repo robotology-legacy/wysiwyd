@@ -3,7 +3,7 @@
  
 <module>
 
-   <name>ppsSim</name>
+   <name>objectGeneratorSim</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
    <description>Small module for interfacing and populating the simulater ofr PPS experiments</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>

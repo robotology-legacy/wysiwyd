@@ -17,7 +17,7 @@
 
 
 
-#include "ppsSim.h"
+#include "objectGeneratorSim.h"
 
 using namespace std;
 using namespace yarp::os;
