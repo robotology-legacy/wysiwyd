@@ -138,11 +138,11 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString()=="track") {
         autoSwitch = false;
         if (command.get(1).isInt()) {
-            trackedObject = (Object*)opc->getEntity(command.get(1).asInt());
+            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt()));
             trackedCoordinates = false ;
         }
         else if (command.get(1).isString()) {
-            trackedObject = (Object*)opc->getEntity(command.get(1).asString().c_str());
+            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asString().c_str()));
             trackedCoordinates = false ;
         }
         else {
@@ -220,19 +220,19 @@ bool attentionSelectorModule::updateModule() {
     for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
     {
         if ((*it)->name() == "icub")
-            icub = (Agent*)(*it);
+            icub = dynamic_cast<Agent*>(*it);
         else
         {
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && ((Object*)(*it))->m_present )
+            if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
             {
-                presentObjects.push_back((Object*)(*it));
+                presentObjects.push_back(dynamic_cast<Object*>(*it));
             }
         }
     }
 
     if (icub == NULL)
-        icub = opc->addAgent("icub");
+        icub = opc->addOrRetrieveAgent("icub");
 
     if (presentObjects.size() <= 0)
     {

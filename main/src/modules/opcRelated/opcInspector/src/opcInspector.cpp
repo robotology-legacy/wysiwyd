@@ -235,7 +235,7 @@ bool OpcInspector::respond(const yarp::os::Bottle& command, yarp::os::Bottle& re
     {
         string key2 = command.get(1).asString().c_str();
         string objectName = command.get(2).asString().c_str();
-        Object* objPtr = (Object* )opc->getEntity(objectName);
+        Object* objPtr = dynamic_cast<Object*>(opc->getEntity(objectName));
         if( objPtr == NULL)
         {
             reply.addString("Warning: " + objectName + "not present in OPC. Created as a generic object");

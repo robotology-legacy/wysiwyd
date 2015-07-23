@@ -1303,7 +1303,7 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
 * Put in the OPC all the words known in the ABM.
 */
 // Not used, but can be seen as example how to use the OPC Client
-Bottle autobiographicalMemory::populateOPC()
+/*Bottle autobiographicalMemory::populateOPC()
 {
     // 0. check if connected to the OPC.
     OPCClient *opcWorld;
@@ -1472,4 +1472,4 @@ Bottle autobiographicalMemory::populateOPC()
     bOutput.addString(osOutput.str().c_str());
 
     return bOutput;
-}
+}*/

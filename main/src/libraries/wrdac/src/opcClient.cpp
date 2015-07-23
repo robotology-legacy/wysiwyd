@@ -132,14 +132,14 @@ Entity*    OPCClient::addEntity(Entity* e)
     return e;
 }
 
-Object*    OPCClient::addObject(const string &name)
+Object*    OPCClient::addOrRetrieveObject(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing object ("<<name.c_str()<<")"<<endl;
-        return (Object*)e;
+        return dynamic_cast<Object*>(e);
     }
 
     //Else we create it in the OPC.
@@ -149,14 +149,35 @@ Object*    OPCClient::addObject(const string &name)
     return o;
 }
 
-Agent*    OPCClient::addAgent(const string &name)
+
+Object*    OPCClient::addObject(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    Object *o = new Object();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+Agent*    OPCClient::addOrRetrieveAgent(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing agent ("<<name.c_str()<<")"<<endl;
-        return (Agent*)e;
+        return dynamic_cast<Agent*>(e);
     }
 
     //Else we create it in the OPC.
@@ -166,14 +187,35 @@ Agent*    OPCClient::addAgent(const string &name)
     return o;
 }
 
-Action*    OPCClient::addAction(const string &name)
+Agent*    OPCClient::addAgent(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    Agent *o = new Agent();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+Action*    OPCClient::addOrRetrieveAction(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing action ("<<name.c_str()<<")"<<endl;
-        return (Action*)e;
+        return dynamic_cast<Action*>(e);
     }
 
     //Else we create it in the OPC.
@@ -183,14 +225,35 @@ Action*    OPCClient::addAction(const string &name)
     return o;
 }
 
-RTObject*    OPCClient::addRTObject(const string &name)
+Action*    OPCClient::addAction(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    Action *o = new Action();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+RTObject*    OPCClient::addOrRetrieveRTObject(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing rt object ("<<name.c_str()<<")"<<endl;
-        return (RTObject*)e;
+        return dynamic_cast<RTObject*>(e);
     }
 
     //Else we create it in the OPC.
@@ -200,19 +263,61 @@ RTObject*    OPCClient::addRTObject(const string &name)
     return o;
 }
 
-Adjective*    OPCClient::addAdjective(const string &name)
+RTObject*    OPCClient::addRTObject(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    RTObject *o = new RTObject();
+    o->m_name = name_appended;
+    addEntity(o);
+    return o;
+}
+
+Adjective*    OPCClient::addOrRetrieveAdjective(const string &name)
 {
     Entity *e = getEntity(name,true);
     if ( e != NULL)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing adjective ("<<name.c_str()<<")"<<endl;
-        return (Adjective*)e;
+        return dynamic_cast<Adjective*>(e);
     }
 
     //Else we create it in the OPC.
     Adjective *o = new Adjective();
     o->m_name = name;
+    addEntity(o);
+    return o;
+}
+
+Adjective*    OPCClient::addAdjective(const string &name)
+{
+    string name_appended = name;
+    int appendix = 0;
+    Entity *e = getEntity(name,true);
+    // loop until we find the first appendix which is not used yet
+    while(e!=NULL) {
+        stringstream ss;
+        ++appendix;
+        ss << appendix;
+        name_appended = name + "_" + ss.str();
+        e = getEntity(name_appended,true);
+    }
+
+    //Else we create it in the OPC.
+    Adjective *o = new Adjective();
+    o->m_name = name_appended;
     addEntity(o);
     return o;
 }

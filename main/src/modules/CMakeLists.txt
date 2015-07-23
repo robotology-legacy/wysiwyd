@@ -14,9 +14,9 @@ add_subdirectory(systemMotor)
 add_subdirectory(systemHaptic)
 add_subdirectory(systemAuditory)
 add_subdirectory(scenarioSpecific)
-add_subdirectory(ppsSim)
-add_subdirectory(allostasis)
+
 add_subdirectory(ppsAllostatic)
+add_subdirectory(behaviorRelated)
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_GTK2)

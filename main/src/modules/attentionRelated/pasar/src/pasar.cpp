@@ -72,7 +72,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
             return false;
     opc->checkout();
 
-    icub = opc->addAgent("icub");
+    icub = opc->addOrRetrieveAgent("icub");
 
     saliencyPortName = "/";
     saliencyPortName += getName() + "/saliency:i";
@@ -205,7 +205,7 @@ bool PasarModule::updateModule()
 
                 if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
                 {
-                    RTObject * rto = opc->addRTObject((*it)->name());
+                    RTObject * rto = dynamic_cast<RTObject*>(*it);
                     presentObjects[(*it)->name()].o.fromBottle(rto->asBottle());
                     presentObjects[(*it)->name()].o.m_saliency = rto->m_saliency;
                     presentObjects[(*it)->name()].speed = 0.0;
@@ -216,7 +216,7 @@ bool PasarModule::updateModule()
 
                 if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
                 {
-                    Agent *ag = opc->addAgent((*it)->name());
+                    Agent *ag = dynamic_cast<Agent*>(*it);
                     presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
                     presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
                     presentObjects[(*it)->name()].speed = 0.0;
@@ -284,7 +284,7 @@ bool PasarModule::updateModule()
         {
             if (presentObjects.find((*it)->name()) != presentObjects.end())
             {
-                ((Object*)(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
+                (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
             }
         }
         opc->commit();

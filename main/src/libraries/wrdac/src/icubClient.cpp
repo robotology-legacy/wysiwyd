@@ -227,7 +227,7 @@ void ICubClient::updateAgent()
     {
         if (this->icubAgent == NULL)
         {
-            icubAgent=opc->addAgent("icub");
+            icubAgent=opc->addOrRetrieveAgent("icub");
         }
         else
             opc->update(this->icubAgent);
@@ -638,7 +638,7 @@ list<Action*> ICubClient::getKnownActions()
     list<Entity*> entities = opc->Entities(EFAA_OPC_ENTITY_TAG,"==",EFAA_OPC_ENTITY_ACTION);
     for(list<Entity*>::iterator it = entities.begin(); it!= entities.end() ; it++)
     {
-        actionsKnown.push_back( (Action*) (*it) );
+        actionsKnown.push_back(dynamic_cast<Action*>(*it) );
     }
     return actionsKnown;
 }
@@ -653,11 +653,11 @@ list<Object*> ICubClient::getObjectsInSight()
     {
         if ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) )
         {
-            Vector itemPosition = this->icubAgent->getSelfRelativePosition( ((Object*)(*it))->m_ego_position );
+            Vector itemPosition = this->icubAgent->getSelfRelativePosition( (dynamic_cast<Object*>(*it))->m_ego_position );
 
             //For now we just test if the object is in front of the robot
             if (itemPosition[0] < 0)
-                inSight.push_back((Object*)(*it));
+                inSight.push_back(dynamic_cast<Object*>(*it));
         }
     }
     return inSight;
@@ -675,12 +675,12 @@ list<Object*> ICubClient::getObjectsInRange()
     list<Entity*> allEntities = opc->EntitiesCache();
     for(list<Entity*>::iterator it = allEntities.begin(); it!= allEntities.end() ; it++)
     {
-        if ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) && ((Object*)(*it))->m_present)
+        if ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) && (dynamic_cast<Object*>(*it))->m_present)
         {
-            Vector itemPosition = this->icubAgent->getSelfRelativePosition( ((Object*)(*it))->m_ego_position );
+            Vector itemPosition = this->icubAgent->getSelfRelativePosition( (dynamic_cast<Object*>(*it))->m_ego_position );
 
             if (isTargetInRange(itemPosition))
-                inRange.push_back((Object*)(*it));
+                inRange.push_back(dynamic_cast<Object*>(*it));
         }
     }
     return inRange;

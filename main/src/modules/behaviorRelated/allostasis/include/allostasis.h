@@ -23,6 +23,7 @@ struct StimulusEmotionalResponse
     string getRandomChoregraphy() { if(m_choregraphies.size()==0) return "default"; return m_choregraphies[yarp::os::Random::uniform(0,m_choregraphies.size()-1)];}
 };
 
+
 class AlostaticModule: public RFModule
 {
 private:

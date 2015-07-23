@@ -23,6 +23,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <vector>
+
 #include <gsl/gsl_math.h>
 
 #include <yarp/os/Time.h>
@@ -38,9 +40,12 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/math/Math.h>
+#include <yarp/math/SVD.h>
 #include <yarp/os/Log.h>
 #include <iCub/ctrl/neuralNetworks.h>
 #include <iCub/ctrl/minJerkCtrl.h>
+#include <iCub/iKin/iKinFwd.h>
+#include <iCub/skinDynLib/common.h>
 
 #define DEFAULT_THR_PER     10
 
@@ -67,6 +72,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace yarp::dev;
 using namespace iCub::ctrl;
+using namespace iCub::skinDynLib;
 
 class cartControlReachAvoidThread: public RateThread
 {
@@ -132,6 +138,9 @@ protected:
     double trajTime;
     double reachTol;
     double reachTimer, reachTmo;
+    
+    double reachingGain;
+    double avoidanceGain;
        
     struct {
         double minX, maxX;
@@ -139,6 +148,13 @@ protected:
         double minZ, maxZ;
     } reachableSpace;
   
+    struct avoidanceStruct_t{
+        SkinPart skin_part;
+        Vector x;
+        Vector n;
+    };
+    vector<avoidanceStruct_t> avoidanceVectors;
+    
     Vector openHandPoss;
     Vector handVels;
       
@@ -147,6 +163,7 @@ protected:
     Vector targetPosFromPort;
     Vector targetPosFromRPC;
     Vector targetPos;
+    double targetRadius;
     
     Matrix R,Rx,Ry,Rz;
     
@@ -157,8 +174,10 @@ protected:
     void getTorsoOptions(Bottle &b, const char *type, const int i, Vector &sw, Matrix &lim);
     void getHomeOptions(Bottle &b, Vector &poss, Vector &vels);
     void initCartesianCtrl(Vector &sw, Matrix &lim, const int sel=USEDARM);
-    void getSensorData();
-    bool checkPosFromPortInput(Vector &target_pos);
+    bool checkTargetFromPortInput(Vector &target_pos, double &target_radius);
+    bool updateGainsFromPort();
+    bool getGainsFromPort();
+    bool getAvoidanceVectorsFromPort();
     void selectArm();
     void doReach(); 
     void doIdle();
@@ -175,6 +194,9 @@ protected:
     Matrix &rotz(const double theta);
     bool reachableTarget(const Vector target_pos);
     bool targetCloseEnough();
+
+    bool computeFoR(const Vector &pos, const Vector &norm, Matrix &FoR);
+    bool computeXdotAvoid(const Vector &pos, const Vector &norm, Vector &xDotAvoid);
     
     
 public:
