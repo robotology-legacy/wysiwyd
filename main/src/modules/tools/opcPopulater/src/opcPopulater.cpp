@@ -150,13 +150,13 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
 
     if (bInput.size() != 2)
     {
-//        yWarning() << " in opcPopulater::addUnknownEntity | wrong number of inputCACA";
+        //        yWarning() << " in opcPopulater::addUnknownEntity | wrong number of inputCACA";
         return false;
     }
 
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
-    int iNbEnt = Random::uniform(10,2000);
+    int iNbEnt = Random::uniform(10, 2000);
     stringstream s;
     s << "unknown_" << iNbEnt;
     string sName = s.str();
@@ -170,9 +170,9 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         agent->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         agent->m_ego_position[2] = 0.60;
         agent->m_present = 1;
-        agent->m_color[0] = Random::uniform(0,80);
-        agent->m_color[1] = Random::uniform(180,250);
-        agent->m_color[2] = Random::uniform(80,180);
+        agent->m_color[0] = Random::uniform(0, 80);
+        agent->m_color[1] = Random::uniform(180, 250);
+        agent->m_color[2] = Random::uniform(80, 180);
         iCub->opc->commit(agent);
 
         agent = NULL;
@@ -185,9 +185,9 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         obj->m_ego_position[2] = 0.20;
         obj->m_present = 1;
-        obj->m_color[0] = Random::uniform(100,180);
-        obj->m_color[1] = Random::uniform(0,80);
-        obj->m_color[2] = Random::uniform(180,250);
+        obj->m_color[0] = Random::uniform(100, 180);
+        obj->m_color[1] = Random::uniform(0, 80);
+        obj->m_color[2] = Random::uniform(180, 250);
         iCub->opc->commit(obj);
 
         obj = NULL;
@@ -199,9 +199,9 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         obj->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.2;
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         obj->m_present = 1;
-        obj->m_color[0] = Random::uniform(180,250);
-        obj->m_color[1] = Random::uniform(100,180);
-        obj->m_color[2] = Random::uniform(0,80);
+        obj->m_color[0] = Random::uniform(180, 250);
+        obj->m_color[1] = Random::uniform(100, 180);
+        obj->m_color[2] = Random::uniform(0, 80);
         iCub->opc->commit(obj);
 
         obj = NULL;
@@ -266,25 +266,6 @@ bool opcPopulater::setSaliencyEntity(Bottle bInput){
 
 bool opcPopulater::populateABM(Bottle bInput)
 {
-
-    Bottle bTempLarry;
-    bTempLarry.addString("populateSpecific1");
-    bTempLarry.addString("agent");
-    bTempLarry.addString("Larry");
-    populateSpecific1(bTempLarry);
-    
-    Bottle bTempRobert;
-    bTempRobert.addString("populateSpecific1");
-    bTempRobert.addString("agent");
-    bTempRobert.addString("Robert");
-    populateSpecific1(bTempRobert);
-
-    Bottle bTempGiraffe;
-    bTempGiraffe.addString("populateSpecific1");
-    bTempGiraffe.addString("object");
-    bTempGiraffe.addString("giraffe");
-    populateSpecific1(bTempGiraffe);
-
     // first the Giraffe is close to larry (from left to right)
     iCub->opc->checkout();
     Agent* Larry = iCub->opc->addAgent("Larry");
@@ -292,18 +273,38 @@ bool opcPopulater::populateABM(Bottle bInput)
     Object* Giraffe = iCub->opc->addObject("giraffe");
     Action* Want = iCub->opc->addAction("want");
     Action* Has = iCub->opc->addAction("has");
-
+    iCub->opc->commit();
 
     Relation LarryHasGiraffe(Larry, Has, Giraffe);
     Relation LarryWantsGiraffe(Larry, Want, Giraffe);
     Relation RobertHasGiraffe(Robert, Has, Giraffe);
     Relation RobertWantsGiraffe(Robert, Want, Giraffe);
 
-    int iRepetition = 1;
+    int iRepetition = 5;
     double dDelay = 2.5;
+    double dThresholdDelay = 1.5;
 
     for (int i = 0; i < iRepetition; i++)
-    { 
+    {
+
+        Bottle bTempLarry;
+        bTempLarry.addString("populateSpecific1");
+        bTempLarry.addString("agent");
+        bTempLarry.addString("Larry");
+        populateSpecific1(bTempLarry);
+
+        Bottle bTempRobert;
+        bTempRobert.addString("populateSpecific1");
+        bTempRobert.addString("agent");
+        bTempRobert.addString("Robert");
+        populateSpecific1(bTempRobert);
+
+        Bottle bTempGiraffe;
+        bTempGiraffe.addString("populateSpecific1");
+        bTempGiraffe.addString("object");
+        bTempGiraffe.addString("giraffe");
+        populateSpecific1(bTempGiraffe);
+
         iCub->opc->checkout();
 
         Giraffe->m_ego_position[0] = Larry->m_ego_position[0] + 0.15;
@@ -320,8 +321,24 @@ bool opcPopulater::populateABM(Bottle bInput)
         iCub->opc->addRelation(LarryHasGiraffe);
         iCub->opc->addRelation(RobertWantsGiraffe);
         iCub->opc->commit();
-        
-        Time::delay(1+ dDelay*Random::uniform());
+
+        Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+        if (iCub->getABMClient()->Connect())
+        {
+            std::list<std::pair<std::string, std::string> > lArgument;
+            lArgument.push_back(std::pair<std::string, std::string>("Give me the giraffe", "sentence"));
+            lArgument.push_back(std::pair<std::string, std::string>("(predicate give) (subject larry) (giraffe object)", "semantic"));
+            lArgument.push_back(std::pair<std::string, std::string>("qRM", "provider"));
+            lArgument.push_back(std::pair<std::string, std::string>("Robert", "speaker"));
+            iCub->getABMClient()->sendActivity("action",
+                "sentence",
+                "recog",
+                lArgument,
+                true);
+        }
+
+        Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
         iCub->opc->checkout();
 
@@ -337,7 +354,7 @@ bool opcPopulater::populateABM(Bottle bInput)
         iCub->opc->commit();
         iCub->opc->checkout();
 
-        Time::delay(1 + dDelay*Random::uniform());
+        Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
     }
 
