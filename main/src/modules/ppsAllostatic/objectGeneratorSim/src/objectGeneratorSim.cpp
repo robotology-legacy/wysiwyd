@@ -72,6 +72,14 @@ bool objectGeneratorSim::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
 
+    Bottle cmd;
+    cmd.clear();
+    cmd.addString("world");
+    cmd.addString("del");
+    cmd.addString("all");
+
+    portSim.write(cmd);
+    yarp::os::Time::delay(1);   
     spamTable();
     yarp::os::Time::delay(3);
     
@@ -185,7 +193,7 @@ void objectGeneratorSim::createObject(yarp::os::Bottle pos, bool target)
     else
         c.addDouble(0);
 
-    objectGeneratorSim::createObject("box",s,pos,c);
+    objectGeneratorSim::createObject("box",s,pos,c,target);
     
 }
 
@@ -226,7 +234,7 @@ void objectGeneratorSim::getCoordinates(std::string object, int id,double size, 
     if (target == false){
         objectGeneratorSim::positions.addList()=pos;
     }else{
-        objectGeneratorSim::tpositions.addList()=pos;
+        objectGeneratorSim::tpositions.append(pos);
     }
 }
 
@@ -309,8 +317,9 @@ bool objectGeneratorSim::updateModule() {
 
     Bottle &p = portOutput.prepare();
     p.clear();
-    Bottle &t = portOutputTarget.prepare();
     
+    Bottle &t = portOutputTarget.prepare();
+    t.clear();
 
 
     for(int i=0;i<listSize[0]-1+listSize[1]+listSize[2];i++)
