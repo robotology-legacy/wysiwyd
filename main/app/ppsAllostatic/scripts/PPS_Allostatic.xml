@@ -23,7 +23,7 @@
         <stdio></stdio>
     </module> 
     <module>
-        <name>allostasis</name>
+        <name>homeostasis</name>
         <parameters></parameters>
         <node>localhost</node>
         <stdio></stdio>
@@ -35,8 +35,7 @@
         <stdio></stdio>
     </module>
       
-   
-   
+     
     <!--connection>
         <from></from>
         <to></to>
@@ -55,19 +54,19 @@
     </connection>
     <connection>
         <from>/visuoTactileRF/skin_events:o</from>
-        <to>/allostasis/avoidanceVectors:i</to>
+        <to>/homeostasis/avoidanceVectors:i</to>
         <protocol>udp</protocol>
     </connection>
-    <connection>
+    <!--connection>
         <from>/objectGeneratorSim/reachingTarget:o</from>
-        <to>/allostasis/reachingTarget:i</to>
+        <to>/homeostasis/reachingTarget:i</to>
         <protocol>udp</protocol>
-    </connection>
-    <connection>
-        <from>/icub/cartesianController/right_arm/state:o</from>
-        <to>/allostasis/rightArmState:i</to>
+    </connection-->
+    <!--connection>
+        <from>/icubSim/cartesianController/right_arm/state:o</from>
+        <to>/homeostasis/rightArmState:i</to>
         <protocol>udp</protocol>
-    </connection>
+    </connection-->
     <connection>
         <from>/objectGeneratorSim/reachingTarget:o</from>
         <to>/cartControlReachAvoid/reachingTarget:i</to>
@@ -79,12 +78,12 @@
         <protocol>udp</protocol>
     </connection>
     <connection>
-        <from>allostasis/reachingGain:o</from>
+        <from>homeostasis/reachingGain:o</from>
         <to>/cartControlReachAvoid/reachingGain:i</to>
         <protocol>udp</protocol>
     </connection>
     <connection>
-        <from>allostasis/avoidanceGain:o</from>
+        <from>homeostasis/avoidance/max:o</from>
         <to>/cartControlReachAvoid/avoidanceGain:i</to>
         <protocol>udp</protocol>
     </connection>
