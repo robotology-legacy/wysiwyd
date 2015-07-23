@@ -73,6 +73,8 @@ public:
 
 	bool updateAllostatic();
 
+    bool processAvoidance(int d, Bottle* avoidanceBottle);
+
 	//RPC & scenarios
 	bool respond(const Bottle& cmd, Bottle& reply);
 };

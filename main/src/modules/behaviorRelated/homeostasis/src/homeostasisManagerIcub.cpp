@@ -87,7 +87,7 @@ bool homeostaticModule::configure(yarp::os::ResourceFinder &rf)
 {
     manager = homeostasisManager(0);
     
-    moduleName = rf.check("name",Value("homeoManager")).asString().c_str();
+    moduleName = rf.check("name",Value("homeostasis")).asString().c_str();
     setName(moduleName.c_str());
 
     cout<<moduleName<<": finding configuration files..."<<endl;
@@ -261,27 +261,80 @@ bool homeostaticModule::updateModule()
             if (inp)
             {
                 cout<< "Input: "<<inp->get(0).asString()<<endl;
-                manager.drives[d]->setValue(inp->get(0).asDouble());
+                if (*(manager.drive_names[d])=="avoidance")
+                    {
+                        processAvoidance(d,inp);
+                    }
+                else
+                {
+                    manager.drives[d]->setValue(inp->get(0).asDouble());
+                }
             }else{
                 //manager.drives[d]->setValue(inp->get(0).asDouble());
             }
         }
         manager.drives[d]->update();
-        yarp::os::Bottle &out1 = outputm_ports[d]->prepare();// = output_ports[d].prepare();
-        out1.clear();
-        out1.addDouble(-manager.drives[d]->getValue()+manager.drives[d]->homeostasisMin);
-        outputm_ports[d]->write();
-        yarp::os::Bottle &out2 = outputM_ports[d]->prepare();
-        out2.clear();
-        cout<<manager.drives[d]->getValue()<<endl;
-        cout << manager.drives[d]->homeostasisMax<<endl;
-        out2.addDouble(+manager.drives[d]->getValue()-manager.drives[d]->homeostasisMax);
-        cout<<out2.get(0).asDouble()<<endl;
-        outputM_ports[d]->write();
+
+        if (*(manager.drive_names[d])=="avoidance")
+        {
+            yarp::os::Bottle &out1 = outputm_ports[d]->prepare();// = output_ports[d].prepare();
+            out1.clear();
+            out1.addDouble(-manager.drives[d]->getValue()+manager.drives[d]->homeostasisMin);
+            outputm_ports[d]->write();
+            yarp::os::Bottle &out2 = outputM_ports[d]->prepare();
+            out2.clear();
+            double aux = +manager.drives[d]->getValue()-manager.drives[d]->homeostasisMax;
+            if (aux>0)
+            {
+                aux=0;
+            }else{
+                aux=1;
+                //aux = 0-aux;
+            }
+            cout<<manager.drives[d]->getValue()<<endl;
+            cout << manager.drives[d]->homeostasisMax<<endl;
+            out2.addDouble(aux);
+            cout<<out2.get(0).asDouble()<<endl;
+            outputM_ports[d]->write();
+        }else{
+            yarp::os::Bottle &out1 = outputm_ports[d]->prepare();// = output_ports[d].prepare();
+            out1.clear();
+            out1.addDouble(-manager.drives[d]->getValue()+manager.drives[d]->homeostasisMin);
+            outputm_ports[d]->write();
+            yarp::os::Bottle &out2 = outputM_ports[d]->prepare();
+            out2.clear();
+            cout<<manager.drives[d]->getValue()<<endl;
+            cout << manager.drives[d]->homeostasisMax<<endl;
+            out2.addDouble(+manager.drives[d]->getValue()-manager.drives[d]->homeostasisMax);
+            cout<<out2.get(0).asDouble()<<endl;
+            outputM_ports[d]->write();
+        }
+        
         
     }
 
     return true;
+}
+
+//Hardcoded function. This must go outside!!!
+bool homeostaticModule::processAvoidance(int d, Bottle* avoidanceBottle)
+{
+    double intensity=0;
+    for (int i =0;i<avoidanceBottle->size();i++)
+    {
+        Bottle* aux = avoidanceBottle->get(i).asList();
+        if (aux->size() < 8)
+        {
+            intensity +=0.5;
+        }
+        else
+        {
+            intensity += aux->get(7).asDouble();
+        }
+    }
+    manager.drives[d]->setValue(intensity);
+    return true;
+
 }
 
 bool homeostaticModule::close()
