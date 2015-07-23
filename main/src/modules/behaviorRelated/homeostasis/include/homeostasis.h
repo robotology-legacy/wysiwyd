@@ -16,7 +16,7 @@ public:
     {
 
         //todo : check the min/max
-        std::string name = d_name;
+        name = d_name;
         value = d_value;
         homeostasisMin = d_homeo_min;
         homeostasisMax = d_homeo_max;
