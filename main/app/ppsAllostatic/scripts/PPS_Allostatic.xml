@@ -54,7 +54,7 @@
     </connection>
     <connection>
         <from>/visuoTactileRF/skin_events:o</from>
-        <to>/homeostasis/avoidanceVectors:i</to>
+        <to>/homeostasis/avoidance:i</to>
         <protocol>udp</protocol>
     </connection>
     <!--connection>
@@ -78,7 +78,7 @@
         <protocol>udp</protocol>
     </connection>
     <connection>
-        <from>homeostasis/reachingGain:o</from>
+        <from>homeostasis/reaching/max:o</from>
         <to>/cartControlReachAvoid/reachingGain:i</to>
         <protocol>udp</protocol>
     </connection>
