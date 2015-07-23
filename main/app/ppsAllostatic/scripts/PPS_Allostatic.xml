@@ -6,13 +6,13 @@
      
     <module>
         <name>visuoTactileWrapper</name>
-        <parameters>--noDoubleTouch</parameters>
+        <parameters>--noDoubleTouch --robot icubSim</parameters>
         <node>localhost</node>
         <stdio></stdio>
     </module>
     <module>
         <name>visuoTactileRF</name>
-        <parameters></parameters>
+        <parameters>--robot icubSim</parameters>
         <node>localhost</node>
         <stdio></stdio>
     </module>
@@ -44,7 +44,7 @@
        
     <connection>
         <from>/objectGeneratorSim/obstacles:o</from>
-        <to>/visuoTactileWrapper/objectGeneratorSim:i</to>
+        <to>/visuoTactileWrapper/genericObjects:i</to>
         <protocol>udp</protocol>
     </connection>
     <connection>
@@ -78,12 +78,12 @@
         <protocol>udp</protocol>
     </connection>
     <connection>
-        <from>homeostasis/reaching/max:o</from>
+        <from>/homeostasis/reaching/max:o</from>
         <to>/cartControlReachAvoid/reachingGain:i</to>
         <protocol>udp</protocol>
     </connection>
     <connection>
-        <from>homeostasis/avoidance/max:o</from>
+        <from>/homeostasis/avoidance/max:o</from>
         <to>/cartControlReachAvoid/avoidanceGain:i</to>
         <protocol>udp</protocol>
     </connection>
