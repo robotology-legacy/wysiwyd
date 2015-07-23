@@ -144,6 +144,7 @@ bool cartControlReachAvoidThread::checkTargetFromPortInput(Vector &target_pos, d
             target_pos[1]=target->get(1).asDouble();
             target_pos[2]=target->get(2).asDouble();
             target_radius = target->get(3).asDouble();
+            yDebug("checkTargetFromPortInput: getting target %s and radius %f from the port:",target_pos.toString().c_str(),target_radius);
             return true;
            
         }
@@ -182,7 +183,35 @@ bool cartControlReachAvoidThread::getAvoidanceVectorsFromPort()
     };
 }
 
+
+bool cartControlReachAvoidThread::getReachingGainFromPort()
+{
+    Bottle* reachingGainBottle = inportReachingGain.read(false);
+    if(reachingGainBottle != NULL){
+        reachingGain = reachingGainBottle->get(0).asDouble();
+        yDebug("getReachingGainFromPort(): Reading %f from port and setting to global reachingGain.\n",reachingGain);
+        return true;        
+    }
+    else{
+        return false;
+    }
+}
+
+bool cartControlReachAvoidThread::getAvoidanceGainFromPort()
+{
+    Bottle* avoidanceGainBottle = inportAvoidanceGain.read(false);
+    if(avoidanceGainBottle != NULL){
+        avoidanceGain = avoidanceGainBottle->get(0).asDouble();
+        yDebug("getAvoidanceGainFromPort(): Reading %f from port and setting to global avoidanceGain.\n",avoidanceGain);
+        return true;        
+    }
+    else{
+        return false;
+    }
+}
     
+
+
 void cartControlReachAvoidThread::selectArm()
 {
         if (useLeftArm && useRightArm)
@@ -918,7 +947,8 @@ void cartControlReachAvoidThread::run()
             }
      }
      
-    // updateGainsFromPort();
+    getReachingGainFromPort();
+    getAvoidanceGainFromPort();
     getAvoidanceVectorsFromPort(); //fills up global avoidanceVectors vector
     
     //debug code

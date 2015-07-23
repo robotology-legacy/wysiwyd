@@ -175,8 +175,8 @@ protected:
     void getHomeOptions(Bottle &b, Vector &poss, Vector &vels);
     void initCartesianCtrl(Vector &sw, Matrix &lim, const int sel=USEDARM);
     bool checkTargetFromPortInput(Vector &target_pos, double &target_radius);
-    bool updateGainsFromPort();
-    bool getGainsFromPort();
+    bool getReachingGainFromPort();
+    bool getAvoidanceGainFromPort();
     bool getAvoidanceVectorsFromPort();
     void selectArm();
     void doReach(); 
