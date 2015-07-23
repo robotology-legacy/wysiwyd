@@ -1,0 +1,33 @@
+<application>
+<name>Cart_solvers_controller-icubSim_noLegs</name>
+
+        <dependencies>
+        <port>/icubSim/left_arm/state:o</port>
+        <port>/icubSim/right_arm/state:o</port>
+        </dependencies>
+      
+        <module>
+                <name>simCartesianControl</name>
+		<parameters>--no_legs</parameters>
+                <node>localhost</node>
+                <tag>limbsController</tag>
+        </module>
+
+        <module>
+                <name>iKinCartesianSolver</name>
+                <parameters>--context simCartesianControl --part right_arm</parameters>
+                <node>localhost</node>
+                <tag>rightArmSolver</tag>
+        </module>
+
+        <module>
+                <name>iKinCartesianSolver</name>
+                <parameters>--context simCartesianControl --part left_arm</parameters>
+                <node>localhost</node>
+                <tag>leftArmSolver</tag>
+        </module>
+
+ 	
+</application>
+
+
