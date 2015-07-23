@@ -666,7 +666,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
         vObjName.push_back(objectName);
     }
     //end objects name
-    myfile;
+    myfile << endl ;
 
     //2.2 get the locations name
     vector <string> vLocName;
@@ -698,7 +698,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     {
         myfile << "(object " << *(it) << ") ";
     }
-    myfile; //end of line for objects types
+    myfile << endl ; //end of line for objects types
 
     //3.1.2 init loc types
     myfile << "\t\t";
@@ -706,7 +706,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     {
         myfile << "(location " << *(it) << ") ";
     }
-    myfile; //end of line for (:init
+    myfile << endl ; //end of line for (:init
 
     //3.2 ;;init-conditions
     myfile << "\t\t;;init-conditions";
