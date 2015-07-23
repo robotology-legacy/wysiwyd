@@ -72,7 +72,6 @@ bool GuiUpdaterModule::configure(yarp::os::ResourceFinder &rf)
         return false;
     }
     attach(handlerPort);                  // attach to port
-    lastEntitiesCount = 0;
 
     return true ;
 }
@@ -143,10 +142,22 @@ bool GuiUpdaterModule::updateModule()
         addDrives(iCub);
 
         //Display the objects
-        list<Entity*> entities = w->EntitiesCache();
-        if (lastEntitiesCount != entities.size())
+        list<Entity*> entities = w->EntitiesCacheCopy();
+        if (oldEntities.size() != entities.size()) {
             resetGUI();
-        lastEntitiesCount = entities.size();
+        } else {
+            list<Entity*>::iterator e_new, e_old;
+            for(e_new = entities.begin(), e_old = oldEntities.begin();
+                e_new != entities.end() && e_old != oldEntities.end();
+                e_new++, e_old++)
+            {
+                if((*e_new)->name() != (*e_old)->name()) {
+                    resetGUI();
+                    break;
+                }
+            }
+        }
+        oldEntities = entities;
 
         for(list<Entity*>::iterator e = entities.begin(); e != entities.end() ; e++)
         {

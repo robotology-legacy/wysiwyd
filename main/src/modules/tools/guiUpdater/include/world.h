@@ -36,7 +36,7 @@ private:
     Port handlerPort;      //a port to handle messages 
     Port toGui;
     Port toGuiBase;
-    unsigned int lastEntitiesCount;
+    list<Entity*> oldEntities;
     bool displaySkeleton;
 
 public:
