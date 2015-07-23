@@ -26,6 +26,9 @@ private:
 
     string        askManner(string agent, string verb, string object);
 
+    //Configure
+    void configureOPC(yarp::os::ResourceFinder &rf);
+
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 

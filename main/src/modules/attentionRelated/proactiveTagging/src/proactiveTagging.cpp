@@ -47,14 +47,17 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     //bool    bEveryThingisGood = true;
 
     //Create an iCub Client and check that all dependencies are here before starting
-    bool isRFVerbose = false;
+    bool isRFVerbose = true;
     iCub = new ICubClient(moduleName, "proactiveTagging", "client.ini", isRFVerbose);
-    iCub->opc->isVerbose &= false;
+    iCub->opc->isVerbose &= true;
+
     if (!iCub->connect())
     {
         cout << "iCubClient : Some dependencies are not running..." << endl;
         Time::delay(1.0);
     }
+
+    configureOPC(rf);
 
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
@@ -121,7 +124,51 @@ bool proactiveTagging::updateModule() {
 
 
 
+void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
+{
+    //Populate the OPC if required
+    std::cout << "Populating OPC";
 
+    //1. Populate AddOrRetrieve part
+    Bottle grpOPC_AOR = rf.findGroup("OPC_AddOrRetrieve");
+    bool shouldPopulate_AOR = grpOPC_AOR.find("populateOPC").asInt() == 1;
+    if (shouldPopulate_AOR)
+    {
+        Bottle *objectList = grpOPC_AOR.find("object").asList();
+        if (objectList)
+        {
+            for (int d = 0; d < objectList->size(); d++)
+            {
+                std::string name = objectList->get(d).asString().c_str();
+                wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveObject(name);
+                yInfo() << " [configureOPC] object " << o->m_name << "added" ;
+                o->m_present = false;
+                iCub->opc->commit(o);
+            }
+        }
+    }
+
+    //2. Populate Add part (allows several object with same base name, e.g. object, object_1, object_2, ..., object_n)
+    Bottle grpOPC_Add = rf.findGroup("OPC_Add");
+    bool shouldPopulate_Add = grpOPC_Add.find("populateOPC").asInt() == 1;
+    if (shouldPopulate_Add)
+    {
+        Bottle *objectList = grpOPC_Add.find("object").asList();
+        if (objectList)
+        {
+            for (int d = 0; d < objectList->size(); d++)
+            {
+                std::string name = objectList->get(d).asString().c_str();
+                wysiwyd::wrdac::Object* o = iCub->opc->addObject(name);
+                yInfo() << " [configureOPC] object " << o->m_name << "added" ;
+                o->m_present = false;
+                iCub->opc->commit(o);
+            }
+        }
+    }
+
+    std::cout << "done" << endl;
+}
 
 
 void proactiveTagging::checkRelations()
