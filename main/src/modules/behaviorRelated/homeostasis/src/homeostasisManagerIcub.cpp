@@ -284,7 +284,7 @@ bool homeostaticModule::updateModule()
             yarp::os::Bottle &out2 = outputM_ports[d]->prepare();
             out2.clear();
             double aux = +manager.drives[d]->getValue()-manager.drives[d]->homeostasisMax;
-            if (aux>0)
+            if (aux<0)
             {
                 aux=0;
             }else{

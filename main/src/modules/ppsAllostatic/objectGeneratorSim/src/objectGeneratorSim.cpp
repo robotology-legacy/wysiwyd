@@ -73,20 +73,23 @@ bool objectGeneratorSim::configure(yarp::os::ResourceFinder &rf)
     attach(rpc);
 
     spamTable();
+    yarp::os::Time::delay(3);
     
     yarp::os::Bottle pos1;
 
     pos1.clear();
-    pos1.addDouble(0.1);
-    pos1.addDouble(0.35);
-    pos1.addDouble(0.55);
+    pos1.addDouble(-0.01);
+    pos1.addDouble(0.61);
+    pos1.addDouble(0.36);
     objectGeneratorSim::createObject(pos1, true);
+    yarp::os::Time::delay(3);
 
     pos1.clear();
-    pos1.addDouble(0);
-    pos1.addDouble(0.55);
-    pos1.addDouble(0.35);
+    pos1.addDouble(-0.07);
+    pos1.addDouble(0.61);
+    pos1.addDouble(0.29);
     objectGeneratorSim::createObject(pos1);
+    yarp::os::Time::delay(3);
 
     cout<<"Configuration done."<<endl;
 
@@ -97,15 +100,15 @@ void objectGeneratorSim::spamTable()
 {
     yarp::os::Bottle size;
     size.clear();
-    size.addDouble(0.45);
-    size.addDouble(0.45);
-    size.addDouble(0.45);
+    size.addDouble(0.24);
+    size.addDouble(0.60);
+    size.addDouble(0.46);
 
     yarp::os::Bottle pos;
     pos.clear();
     pos.addDouble(0);
-    pos.addDouble(0.25);
-    pos.addDouble(0.45);
+    pos.addDouble(0.23);
+    pos.addDouble(0.43);
 
     yarp::os::Bottle colour;
     colour.clear();
@@ -114,7 +117,7 @@ void objectGeneratorSim::spamTable()
     colour.addDouble(0);
     std::string b = "box";
 
-    objectGeneratorSim::createObject(b,size, pos, colour,true);
+    objectGeneratorSim::createObject(b,size, pos, colour);
     std::cout<< "Table Spammed" << std::endl;
 }
 
@@ -172,9 +175,9 @@ void objectGeneratorSim::createObject(yarp::os::Bottle pos, bool target)
     yarp::os::Bottle c;
     s.clear();
     c.clear();
-    s.addDouble(0.1);
-    s.addDouble(0.1);
-    s.addDouble(0.1);
+    s.addDouble(0.06);
+    s.addDouble(0.06);
+    s.addDouble(0.06);
     c.addDouble(255);
     c.addDouble(0);
     if(target==true)
@@ -194,7 +197,7 @@ void objectGeneratorSim::tf(Bottle* b)
         v[i]=b->get(i).asDouble();
     }
     v[3]=1;
-    Vector new_v = v*H;
+    Vector new_v = H*v;
     for(int i=0;i<3;i++)
     {
         b->get(i)=new_v[i];
@@ -320,7 +323,7 @@ bool objectGeneratorSim::updateModule() {
     cout << "Target: " << targets.get(1).asString().c_str() << endl;
     cout << targets.toString() << endl;
     p.addList()=positions;
-    t.addList()=tpositions;
+    t.append(tpositions);
     portOutput.write();
     portOutputTarget.write();
 
