@@ -254,7 +254,7 @@ public:
 
     /**
     * Poll the OPC for all entities and relations and store them locally.
-    * @param updateCache If this option is turned off the local cache will be wiped
+    * @param updateCache If this option is turned on the local cache will be wiped
     */
     void checkout(bool updateCache=true, bool useBroadcast=false);
 

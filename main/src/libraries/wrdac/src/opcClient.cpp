@@ -1004,7 +1004,7 @@ std::list<Relation>  OPCClient::getRelations(Entity* entity)
 //Clear local dictionnaries and populate them using the server content
 void OPCClient::checkout(bool updateCache, bool useBroadcast)
 {
-    if (!updateCache)
+    if (updateCache)
     {
         //Clear the content of dictionaries
         for(map<int,Entity*>::iterator it=entitiesByID.begin(); it!=entitiesByID.end(); it++)
