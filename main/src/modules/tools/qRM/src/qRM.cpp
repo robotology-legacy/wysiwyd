@@ -795,7 +795,7 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
     if (iCub->opc->isConnected())
     {
         iCub->opc->checkout();
-        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+        list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
         for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
         {
@@ -835,7 +835,7 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
     while (!bFound)
     {
         iCub->opc->checkout();
-        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+        list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
         double highestSaliency = 0.0;
         double secondSaliency = 0.0;

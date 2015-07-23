@@ -1322,7 +1322,7 @@ Bottle abmReasoning::imagineOPC(int Id)
     mentalOPC->checkout();
 
     //clean GUI :
-    list<Entity*> lMental = mentalOPC->EntitiesCacheCopy();
+    list<Entity*> lMental = mentalOPC->EntitiesCache();
     for (list<Entity*>::iterator it_E = lMental.begin(); it_E != lMental.end(); it_E++)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {

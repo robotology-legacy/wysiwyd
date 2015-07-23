@@ -1251,7 +1251,7 @@ list<Entity*> OPCClient::EntitiesCacheCopy()
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
-        if ((it->second)->m_entity_type == "action")
+        if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ACTION)
         {
             Action *A = new Action();
             A->Action::fromBottle(it->second->asBottle());

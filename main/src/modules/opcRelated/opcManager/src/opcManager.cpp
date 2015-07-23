@@ -439,11 +439,11 @@ Bottle opcManager::synchoniseOPCs()
     realOPC->checkout();
     mentalOPC->checkout();
 
-    list<Entity*> lEntities = realOPC->EntitiesCacheCopy();
+    list<Entity*> lEntities = realOPC->EntitiesCache();
     list<Relation> lRelations = realOPC->getRelations();
 
     //clean GUI :
-    list<Entity*> lMental = mentalOPC->EntitiesCacheCopy();
+    list<Entity*> lMental = mentalOPC->EntitiesCache();
     for (list<Entity*>::iterator it_E = lMental.begin(); it_E != lMental.end(); it_E++)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
@@ -630,8 +630,8 @@ Bottle opcManager::diffOPC()
 
     condition.addList() = isPresent;
 
-    list<Entity*>       RealEntities = (realOPC->EntitiesCacheCopy());
-    list<Entity*>       MentalEntities = (mentalOPC->EntitiesCacheCopy());
+    list<Entity*>       RealEntities = (realOPC->EntitiesCache());
+    list<Entity*>       MentalEntities = (mentalOPC->EntitiesCache());
 
     list<Relation>      RealRelations = realOPC->getRelations();
     list<Relation>      MentalRelations = mentalOPC->getRelations();

@@ -155,7 +155,6 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
     }
 
     iCub->opc->checkout();
-    list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
     string sName = "unknown";
     yInfo() << " to be added: " << bInput.get(1).toString() << " called " << sName;
 
@@ -229,7 +228,7 @@ bool opcPopulater::setSaliencyEntity(Bottle bInput){
     double targetSaliency = bInput.get(2).asDouble();
 
     iCub->opc->checkout();
-    list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
     {
