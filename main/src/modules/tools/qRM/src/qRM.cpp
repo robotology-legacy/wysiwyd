@@ -309,9 +309,9 @@ void  qRM::mainLoop()
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && ((Object*)(*it))->m_present)
+            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && (dynamic_cast<Object*>(*it))->m_present)
             {
-                presentObjects.push_back((Object*)(*it));
+                presentObjects.push_back(dynamic_cast<Object*>(*it));
             }
         }
 
@@ -363,9 +363,9 @@ void  qRM::mainLoop()
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && ((Object*)(*it))->m_present)
+            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && (dynamic_cast<Object*>(*it))->m_present)
             {
-                presentObjects.push_back((Object*)(*it));
+                presentObjects.push_back(dynamic_cast<Object*>(*it));
             }
         }
 

@@ -134,7 +134,7 @@ bool GuiUpdaterModule::updateModule()
         if(iCub == NULL)
             iCub = w->addOrRetrieveAgent("icub");
 
-        iCub = (Agent*) w->getEntity("icub");
+        iCub = dynamic_cast<Agent*>(w->getEntity("icub"));
         //cout<<"iCub Position: \t"<<iCub->m_ego_position.toString(3,3)<<endl
         //    <<"iCub Orientation: \t"<<iCub->m_ego_orientation.toString(3,3)<<endl;
 
@@ -152,7 +152,7 @@ bool GuiUpdaterModule::updateModule()
         {
             if( isDisplayable(*e) )
             {
-                Object* o = (Object*) (*e);
+                Object* o = dynamic_cast<Object*>(*e);
             
                 ostringstream guiTag;
                 guiTag<< o->name() <<"("<<o->opc_id()<<")";
@@ -165,7 +165,7 @@ bool GuiUpdaterModule::updateModule()
                     {
                         if (o->isType(EFAA_OPC_ENTITY_AGENT))
                         {
-                            addAgent( (Agent*)o, guiTag.str());
+                            addAgent(dynamic_cast<Agent*>(o), guiTag.str());
                         }
                         else
                             addObject(o,guiTag.str());
@@ -195,7 +195,7 @@ void GuiUpdaterModule::deleteObject(const string &opcTag, Object* o)
     if (o != NULL && o->entity_type() == EFAA_OPC_ENTITY_AGENT && displaySkeleton)
     {   
         int i = 0;
-        Agent* a = (Agent*)o;
+        Agent* a = dynamic_cast<Agent*>(o);
         for(map<string,Vector>::iterator part=a->m_body.m_parts.begin();
             part != a->m_body.m_parts.end();
             part++)
@@ -213,7 +213,7 @@ void GuiUpdaterModule::deleteObject(const string &opcTag, Object* o)
     //delete all the drives
     if (o != NULL && o->entity_type() == EFAA_OPC_ENTITY_AGENT)
     {   
-        Agent* a = (Agent*)o;
+        Agent* a = dynamic_cast<Agent*>(o);
         for(map<string,Drive>::iterator drive = a->m_drives.begin(); drive != a->m_drives.end(); drive++)
         {    
             ostringstream opcTagDrive;

@@ -139,7 +139,7 @@ Object*    OPCClient::addOrRetrieveObject(const string &name)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing object ("<<name.c_str()<<")"<<endl;
-        return (Object*)e;
+        return dynamic_cast<Object*>(e);
     }
 
     //Else we create it in the OPC.
@@ -177,7 +177,7 @@ Agent*    OPCClient::addOrRetrieveAgent(const string &name)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing agent ("<<name.c_str()<<")"<<endl;
-        return (Agent*)e;
+        return dynamic_cast<Agent*>(e);
     }
 
     //Else we create it in the OPC.
@@ -215,7 +215,7 @@ Action*    OPCClient::addOrRetrieveAction(const string &name)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing action ("<<name.c_str()<<")"<<endl;
-        return (Action*)e;
+        return dynamic_cast<Action*>(e);
     }
 
     //Else we create it in the OPC.
@@ -253,7 +253,7 @@ RTObject*    OPCClient::addOrRetrieveRTObject(const string &name)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing rt object ("<<name.c_str()<<")"<<endl;
-        return (RTObject*)e;
+        return dynamic_cast<RTObject*>(e);
     }
 
     //Else we create it in the OPC.
@@ -291,7 +291,7 @@ Adjective*    OPCClient::addOrRetrieveAdjective(const string &name)
     {
         if (isVerbose)
             cerr<<"Trying to add an already existing adjective ("<<name.c_str()<<")"<<endl;
-        return (Adjective*)e;
+        return dynamic_cast<Adjective*>(e);
     }
 
     //Else we create it in the OPC.

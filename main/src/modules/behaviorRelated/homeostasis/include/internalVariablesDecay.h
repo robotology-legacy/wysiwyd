@@ -62,7 +62,7 @@ public:
 
         for(list<Entity*>::iterator aIt = presentAgents.begin(); aIt != presentAgents.end() ; aIt++)
         {
-            Agent* currentAgent = (Agent*) (*aIt);
+            Agent* currentAgent = dynamic_cast<Agent*>(*aIt);
             opc->update(currentAgent);
 
             //Decay drives

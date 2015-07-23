@@ -284,7 +284,7 @@ bool PasarModule::updateModule()
         {
             if (presentObjects.find((*it)->name()) != presentObjects.end())
             {
-                ((Object*)(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
+                (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
             }
         }
         opc->commit();
