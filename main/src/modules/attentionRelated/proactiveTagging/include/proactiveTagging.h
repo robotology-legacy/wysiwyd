@@ -15,15 +15,12 @@ private:
     string      grammarToString(string sPath);
     Port        rpcPort;
 
-    string      nameMainGrammar;
-    string      nameGrammarSentenceTemporal;
-    string      nameGrammarYesNo;
-    string      nameGrammarAskManner;
-    string      GrammarSentenceTemporal	;
-    string      nameGrammarNodeTestAP	;
-    string      nameGrammarNodeTrainAP	;
-    string      nameGrammarNodeTrainSD	;
+    string      GrammarAskNameAgent;
+    string      GrammarAskNameObject;
+    string      GrammarYesNo;
 
+    double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other
+    double  thresholdSalienceDetection; //value of saliency needed to detect if 1 object is more salient that the other
 
     void        checkRelations();
 
@@ -45,11 +42,12 @@ public:
     }
 
 
-    bool updateModule();
-    bool    populateOpc();
+    Bottle  exploreUnknownEntity(Bottle bInput);
+    Bottle  exploreEntityByName(Bottle bInput);
 
-    void    nodeSentenceTemporal();
-    bool nodeYesNo();
+    bool updateModule();
+
+
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
