@@ -214,9 +214,7 @@ void cartControlReachAvoidThread::doReach()
         {
             if (state==STATE_REACH)
             {
-                int cart_dof_nr = 0.0;
-                //torso has global vars torsoAxes (~torso_joints_nr) and torso (~encodersTorso)
-                
+               
                 Vector xdhat, odhat, qdhat;
                 Vector torsoAndArmJointDeltas; //!torso already in motor control order 
                 // iKin / cartControl pitch, roll, yaw;   motorInterface - yaw, roll, pitch
@@ -349,8 +347,10 @@ void cartControlReachAvoidThread::doReach()
  
                //  combine q_dot_reach with q_dot_avoidance; such as weighted sum using gains from allostasis
                 
-                for(int i=0;i<cart_dof_nr;i++){
+                for(int i=0;i<cartNrDOF;i++){
                     qdotReachAndAvoid[i] = reachingGain*qdotReach[i] + avoidanceGain*qdotAvoid[i];
+                   // yDebug("qdotReachAndAvoid[i] = reachingGain*qdotReach[i] + avoidanceGain*qdotAvoid[i]");
+                   // yDebug("%f = %f * %f + %f * %f",qdotReachAndAvoid[i],reachingGain,qdotReach[i],avoidanceGain,qdotAvoid[i]);
                 }
                 yDebug("qdotReachAndAvoid: %s",qdotReachAndAvoid.toString().c_str());
                 /**** do the movement - send velocities ************************************/
