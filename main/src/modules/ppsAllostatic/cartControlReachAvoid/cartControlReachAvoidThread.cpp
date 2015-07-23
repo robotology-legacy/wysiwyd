@@ -222,7 +222,7 @@ void cartControlReachAvoidThread::doReach()
                 // iKin / cartControl pitch, roll, yaw;   motorInterface - yaw, roll, pitch
                 Vector qdotReach, qdotAvoid, qdotReachAndAvoid; //3 torso joint velocities (but in motor interface order! yaw, roll, pitch) + 7 arm joints
                 Vector qdotArm, qdotTorso; //joint velocities in motor interface format
-              
+                              
                 /**** init ***************/
               
                 qdotArm.resize(armIdx.size(),0.0); //size 7 
@@ -280,82 +280,78 @@ void cartControlReachAvoidThread::doReach()
                 }
           
                 //so far, qdot based only on reaching; now combine magically with avoidance  
-         
-                           
-                //TODO
+                                    
+               
                 /*
                 for each avoidance vector
                     skinPart gives FoR, which is link after the point - move to first joint/link before the point
                     express point in last proximal joint; create extra link - rototranslation    
                */
-                
-                
-                
-               
-
-
-               /*
-               
-                instantiate new chain
-                iKin:: iCubArm 
-                
-                blockLink() to block all the more distal joints after the joint
-                (release all others)
-                setHN applies the rototranslation to 
-                then
-                GeoJacobian to get J
-                then from x_dot = J * q_dot
-                q_dot_avoidance = pimv(J) * x_dot
-                (maybe also here the weights)
-                
-                (optionally, if you want avoidance to act more locally, you can 0 some joints from q_dot_avoidance)
-                
-                combine q_dot_reach with q_dot_avoidance; such as weighted sum using gains from allostasis
-                */
-
+                       
                 // Instantiate new chain iCub::iKin::iKinChain from iCub::iKin::iCubArm                
                 iCub::iKin::iKinChain *chain;
-                iCub::iKin::iCubArm   *arm;
+                iCub::iKin::iCubArm   *icub_arm;
 
                 if (armSel==LEFTARM)
                 {
-                    arm   = new iCub::iKin::iCubArm("left");
-                    chain = arm->asChain();
+                    icub_arm   = new iCub::iKin::iCubArm("left");
+                    icub_arm->setAng(arm*CTRL_DEG2RAD);
+                    chain = icub_arm->asChain();
                 }
                 else if (armSel==RIGHTARM)
                 {
-                    arm   = new iCub::iKin::iCubArm("right");
-                    chain = arm->asChain();
+                    icub_arm   = new iCub::iKin::iCubArm("right");
+                    icub_arm->setAng(arm*CTRL_DEG2RAD);
+                    chain = icub_arm->asChain();
                 }
 
                 // Block all the more distal joints after the joint 
-                unsigned int dof = chain -> getDOF();
-
-              
-
-                for (int i = dof; i < avoidanceVectors[0].skin_part; --i)
-                {
-                    chain -> blockLink(i);
+                unsigned int dof = chain -> getDOF(); //should be 10 by default (3 + 7, with torso)
+                // if the skin part is a hand, no need to block any joints
+                if ((avoidanceVectors[0].skin_part == SKIN_LEFT_FOREARM) ||  (avoidanceVectors[0].skin_part == SKIN_RIGHT_FOREARM)){
+                    chain->blockLink(10); chain->blockLink(9);//wrist joints
+                    yDebug("obstacle threatening skin part %s, blocking links 9 and 10 (wrist)",SkinPart_s[avoidanceVectors[0].skin_part].c_str());
                 }
-
+                else if  ((avoidanceVectors[0].skin_part == SKIN_LEFT_UPPER_ARM) ||  (avoidanceVectors[0].skin_part == SKIN_RIGHT_UPPER_ARM)){
+                    chain->blockLink(10); chain->blockLink(9);chain->blockLink(8);chain->blockLink(7); //wrist joints + elbow joints
+                    yDebug("obstacle threatening skin part %s, blocking links 7,8,9 and 10 (wrist+elbow)",SkinPart_s[avoidanceVectors[0].skin_part].c_str());
+                }
+                //or:
+                //for (int i = dof; i > Skin_2_Link(avoidanceVectors[0].skin_part)+torsoAxes+1; --i)
+                //that is, i from 10, block all joint up to link nr. of specific skin part, + 3 for the extra torso joints in the chain
+                //so, for forearm, this is blocking 10,9... up to 7, where nr. 7 = 4 (link nr. of forearm) + 3 will be first free joint),
+                //effectively blocking the wrist joints + elbow joints
+                
                 // SetHN to move the end effector toward the point to be controlled
                 Matrix HN = eye(4);
                 computeFoR(avoidanceVectors[0].x,avoidanceVectors[0].n,HN);
+                yDebug("HN matrix: %s",HN.toString().c_str());
                 chain -> setHN(HN);
-
+                //  GeoJacobian to get J,  then from x_dot = J * q_dot
+                //q_dot_avoidance = pimv(J) * x_dot
+                //(maybe also here the weights)
                 // Ask for geoJacobian
-                Matrix J = chain -> GeoJacobian();
-
+                Matrix J = chain -> GeoJacobian(); //6 rows, n columns for every avctive DOF (excluding the blocked)
+                yDebug("GeoJacobian matrix: %s",J.toString().c_str());
                 Vector xdotAvoid(3,0.0);
-                computeXdotAvoid(avoidanceVectors[0].x,avoidanceVectors[0].n,xdotAvoid);
-
+                // velocity vector = speed (10cm/s) * direction of motion (the unitary version of the normal vector)
+                xdotAvoid = 0.01 * (avoidanceVectors[0].n / yarp::math::norm(avoidanceVectors[0].n));
+                yDebug("xdotAvoid: %s",xdotAvoid.toString().c_str());
                 // Compute the q_dot_avoidance
                 qdotAvoid = yarp::math::pinv(J) * xdotAvoid;
+                yDebug("qdotAvoid: %s",qdotAvoid.toString().c_str());
 
-
-                qdotReachAndAvoid = qdotReach;
+                delete icub_arm; 
+                //(optionally, if you want avoidance to act more locally, you can 0 some joints from q_dot_avoidance)
+       
+                /* end of avoidance *****************************/  
+ 
+               //  combine q_dot_reach with q_dot_avoidance; such as weighted sum using gains from allostasis
                 
-                
+                for(int i=0;i<cart_dof_nr;i++){
+                    qdotReachAndAvoid[i] = reachingGain*qdotReach[i] + avoidanceGain*qdotAvoid[i];
+                }
+                yDebug("qdotReachAndAvoid: %s",qdotReachAndAvoid.toString().c_str());
                 /**** do the movement - send velocities ************************************/
                 //need to pass from the cartArm format (3 for torso, 7 for arm) to torso (3 joints) + arm motor control (16 joints)
                 
@@ -378,19 +374,17 @@ void cartControlReachAvoidThread::doReach()
                 velArm->velocityMove(armIdx.size(),armIdx.getFirst(),qdotArm.data());
                 yDebug("velocityMove(qdotTorso.data()), qdotTorso: %s\n", qdotTorso.toString().c_str());
                 velTorso->velocityMove(qdotTorso.data());
+               
               
             }
         }
     }
 
-bool cartControlReachAvoidThread::computeXdotAvoid(const Vector &pos, const Vector &norm, Vector &xdotAvoid)
-{
-    // Actually I really don't know if this method makes sense
+
     
-    // velocity vector = speed (10cm/s) * direction of motion (the unitary version of the norm vector)
-    xdotAvoid = 0.01 * (norm / yarp::math::norm(norm));
-    return true;
-}
+   
+        
+
 
 bool cartControlReachAvoidThread::computeFoR(const Vector &pos, const Vector &norm, Matrix &FoR)
 {
@@ -408,7 +402,8 @@ bool cartControlReachAvoidThread::computeFoR(const Vector &pos, const Vector &no
     {
         z[0] = 0.00000001;    // Avoid the division by 0
     }
-    y[0] = -z[2]/z[0]; y[2] = 1;
+    y[0] = -z[2]/z[0]; //y is in normal plane
+    y[2] = 1; //this setting is arbitrary
     x = -1*(cross(z,y));
 
     // Let's make them unitary vectors:

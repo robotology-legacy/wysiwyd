@@ -196,9 +196,7 @@ protected:
     bool targetCloseEnough();
 
     bool computeFoR(const Vector &pos, const Vector &norm, Matrix &FoR);
-    bool computeXdotAvoid(const Vector &pos, const Vector &norm, Vector &xDotAvoid);
-    
-    
+       
 public:
     // CONSTRUCTOR
     cartControlReachAvoidThread(int _rate, const string &_name, const string &_robot,
