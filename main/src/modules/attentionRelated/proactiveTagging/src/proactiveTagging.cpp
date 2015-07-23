@@ -141,7 +141,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 std::string name = objectList->get(d).asString().c_str();
                 wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveObject(name);
-                yInfo() << " [configureOPC] object " << o->m_name << "added" ;
+                yInfo() << " [configureOPC] object " << o->name() << "added" ;
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -160,7 +160,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 std::string name = objectList->get(d).asString().c_str();
                 wysiwyd::wrdac::Object* o = iCub->opc->addObject(name);
-                yInfo() << " [configureOPC] object " << o->m_name << "added" ;
+                yInfo() << " [configureOPC] object " << o->name() << "added" ;
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
