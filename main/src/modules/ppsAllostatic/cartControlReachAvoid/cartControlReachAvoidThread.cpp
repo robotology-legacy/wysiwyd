@@ -138,21 +138,22 @@ void cartControlReachAvoidThread::initCartesianCtrl(Vector &sw, Matrix &lim, con
  
 bool cartControlReachAvoidThread::checkTargetFromPortInput(Vector &target_pos, double &target_radius)
 {
-        if (Bottle *target=inportTargetCoordinates.read(false))
+        Bottle *targetBottle=inportTargetCoordinates.read(false);
+        if(targetBottle != NULL)
         {
-            target_pos[0]=target->get(0).asDouble();
-            target_pos[1]=target->get(1).asDouble();
-            target_pos[2]=target->get(2).asDouble();
-            target_radius = target->get(3).asDouble();
+            target_pos(0)=targetBottle->get(0).asDouble();
+            target_pos(1)=targetBottle->get(1).asDouble();
+            target_pos(2)=targetBottle->get(2).asDouble();
+            target_radius = targetBottle->get(3).asDouble();
+            yDebug("checkTargetFromPortInput: getting target %f %f %f and radius %f from the port:",targetBottle->get(0).asDouble(),targetBottle->get(1).asDouble(),targetBottle->get(2).asDouble(),targetBottle->get(3).asDouble());
             yDebug("checkTargetFromPortInput: getting target %s and radius %f from the port:",target_pos.toString().c_str(),target_radius);
             return true;
-           
         }
         else{
             return false;   
         }
 }
-    
+        
 bool cartControlReachAvoidThread::getAvoidanceVectorsFromPort()
 {
     avoidanceStruct_t avoidanceStruct;
