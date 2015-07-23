@@ -17,11 +17,11 @@ public:
 
         //todo : check the min/max
         std::string name = d_name;
-        double value = d_value;
-        double homeostasisMin = d_homeo_min;
-        double homeostasisMax = d_homeo_max;
-        double decay = d_decay;
-        bool gradient = d_gradient;
+        value = d_value;
+        homeostasisMin = d_homeo_min;
+        homeostasisMax = d_homeo_max;
+        decay = d_decay;
+        gradient = d_gradient;
     }
 
     Drive()

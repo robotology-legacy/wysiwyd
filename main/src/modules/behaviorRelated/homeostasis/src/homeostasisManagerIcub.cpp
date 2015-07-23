@@ -7,7 +7,7 @@
 bool homeostaticModule::addNewDrive(string driveName, yarp::os::Bottle* grpHomeostatic,int d)
 {
 
-    int asd;
+    //int asd;
     Drive* drv = new Drive();
     drv->setName(driveName);    
 
@@ -224,6 +224,16 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
             reply.addString("nack");
         }
 
+    }
+    else if (cmd.get(0).asString()=="names")
+    {
+        Bottle nms;
+        nms.clear();
+        for (unsigned int i=0;i<manager.n_drives;i++)
+        {
+            nms.addString(*manager.drive_names[i]);
+        }
+        reply.addList()=nms;
     }
     else
     {
