@@ -851,7 +851,6 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
             string token;
             while ((pos = sName.find(delimiter)) != string::npos) {
                 token = sName.substr(0, pos);
-                std::cout << token << std::endl;
                 sName.erase(0, pos + delimiter.length());
                 sNameCut = token;
             }
