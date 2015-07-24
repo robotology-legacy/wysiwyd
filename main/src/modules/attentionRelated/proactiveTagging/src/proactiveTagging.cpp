@@ -259,7 +259,64 @@ string proactiveTagging::askManner(string agent, string verb, string object)
 }
 
 /*
-* Ask the name of an unknown entity
+* Recognize the name of an unknown entity
+* Recognize through speech the name of an unknwon entity.
+* @return (error errorDescription) or (sName)
+*/
+Bottle proactiveTagging::recogName(string entityType)
+{
+    Bottle bOutput;
+
+    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+    bAnswer, //response from speech recog without transfer information, including raw sentence
+    bSemantic; // semantic information of the content of the recognition
+
+    //Load the Speech Recognition with grammar according to entityType
+    if(entityType == "agent"){
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
+    } else if (entityType == "object" || entityType == "rtobject"){
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
+    } else {
+        yError() << " error in proactiveTagging::askName | for " << entityType << " | Entity Type not managed" ;
+        bOutput.addString("error");
+        bOutput.addString("Entity Type not managed");
+        return bOutput;
+    }
+
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        yError() << " error in proactiveTagging::askName | for " << entityType << " | Error in speechRecog" ;
+        bOutput.addString("error");
+        bOutput.addString("error in speechRecog");
+        return bOutput;
+    }
+
+    bAnswer = *bRecognized.get(1).asList();
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    if (bAnswer.get(0).asString() == "stop")
+    {
+        yError() << " in proactiveTagging::askName | for " << entityType << " | stop called";
+        bOutput.addString("error");
+        bOutput.addString("stop called");
+        return bOutput;
+    }
+
+    bSemantic = *bAnswer.get(1).asList();
+    string sName ;
+    if(entityType == "agent"){
+        sName = bSemantic.check("agent", Value("unknown")).asString();
+    } else if (entityType == "object" || entityType == "rtobject"){
+        sName = bSemantic.check("object", Value("unknown")).asString();
+    }
+
+    bOutput.addString(sName);
+
+    return bOutput;
+}
+
+/*
+* Explore an unknown entity by asking the name
 * input: exploreUnknownEntity entityType entityName (eg: exploreUnknownEntity agent unknown_25)
 * ask through speech the name of an unknwon entity
 */
@@ -280,151 +337,73 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     yInfo() << " EntityType : " << currentEntityType;
     double timeDelay = 1.;
 
+
+    //Ask question for the human
+    string sQuestion ;
     if (currentEntityType == "agent")
     {
-        yInfo() << " Hello, I don't know you. Who are you ?";
-        iCub->getSpeechClient()->TTS(" Hello, I don't know you. Who are you ?", false);
-        iCub->say(" Hello, I don't know you. Who are you ?");
-        //bool fGetaReply = false;
-        Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
+        sQuestion = " Hello, I don't know you. Who are you ?";
+    } else if (currentEntityType == "object" || currentEntityType == "rtobject") {
+        sQuestion = " Hum, what is this object ?" ;
+    } else {
+        yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed" ;
+        bOutput.addString("error");
+        bOutput.addString("Entity Type not managed");
+        return bOutput;
+    }
 
-        if (bRecognized.get(0).asInt() == 0)
-        {
-            yWarning() << " error in proactiveTagging::exploreEntity | askNameAgent | Error in speechRecog";
-            bOutput.addString("error");
-            bOutput.addString("error in speechRecog");
-            return bOutput;
-        }
+    //TODO : choose between say and TTS. say put stuff in ABM, TTS?
+    yInfo() << sQuestion;
+    //iCub->getSpeechClient()->TTS(sQuestion, false);
+    iCub->say(sQuestion);
 
-        bAnswer = *bRecognized.get(1).asList();
-        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+    //
+    Bottle bName = recogName(currentEntityType) ;
+    string sName;
 
-        if (bAnswer.get(0).asString() == "stop")
-        {
-            yInfo() << " in proactiveTagging::exploreEntity | askNameAgent | stop called";
-            bOutput.addString("error");
-            bOutput.addString("stop called");
-            return bOutput;
-        }
+    //if error, bName = (error errorDescription) -> return it
+    if(bName.get(0).asString() == "error"){
+        return bName ;
+    } else {
+        sName = bName.get(0).asString();
+    }
 
-        bSemantic = *bAnswer.get(1).asList();
-        string sName = bSemantic.check("agent", Value("unknown")).asString();
+    string sReply ;
+    if (currentEntityType == "agent")
+    {
 
         Agent* agentToChange = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameTarget));
         agentToChange->changeName(sName);
         iCub->opc->commit(agentToChange);
 
-        yInfo() << " Well, Nice to meet you " << sName;
-        iCub->say("Well, Nice to meet you " + sName);
-        Time::delay(timeDelay);
+        sReply = " Well, Nice to meet you " + sName;
 
-        iCub->opc->update();
-
-        bOutput.addString("success");
-        bOutput.addString("agent");
-        return bOutput;
-    }
-
-    if (currentEntityType == "object")
-    {
-        yInfo() << " Hum, what is this object ?";
-        iCub->getSpeechClient()->TTS(" Hum, what is this object ?", false);
-        //      iCub->say(" Hum, what is this object ?");
-
-        //bool fGetaReply = false;
-        Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
-
-        if (bRecognized.get(0).asInt() == 0)
-        {
-            yWarning() << " error in proactiveTagging::exploreEntity | askNameObject | Error in speechRecog";
-            bOutput.addString("error");
-            bOutput.addString("error in speechRecog");
-            return bOutput;
-        }
-
-        bAnswer = *bRecognized.get(1).asList();
-        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
-
-        if (bAnswer.get(0).asString() == "stop")
-        {
-            yInfo() << " in proactiveTagging::exploreEntity | askNameObject | stop called";
-            bOutput.addString("error");
-            bOutput.addString("stop called");
-            return bOutput;
-        }
-
-        yInfo() << " bAnswer is: " << bAnswer.toString();
-        bSemantic = *bAnswer.get(1).asList();
-        yInfo() << " bSemantic is: " << bSemantic.toString();
-
-        string sName = bSemantic.check("object", Value("unknown")).asString();
+    } else if (currentEntityType == "object") {
 
         Object* objectToChange = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
         objectToChange->changeName(sName);
-
-        iCub->opc->commit(objectToChange);
-        yInfo() << " I get it, this is a " << sName;
-        iCub->say(" I get it, this is a " + sName);
-
-        bOutput.addString("success");
-        bOutput.addString("object");
-        return bOutput;
-    }
-
-    if (currentEntityType == "rtobject")
-    {
-        yInfo() << " Hum, what is this object ?";
-        //        iCub->say(" Hum, what is this object ?");
-        iCub->getSpeechClient()->TTS(" Hum, what is this object ?", false);
-
-        //bool fGetaReply = false;
-        Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
-
-        if (bRecognized.get(0).asInt() == 0)
-        {
-            yWarning() << " error in proactiveTagging::exploreEntity | askNameRTObject | Error in speechRecog";
-            bOutput.addString("error");
-            bOutput.addString("error in speechRecog");
-            return bOutput;
-        }
-
-        bAnswer = *bRecognized.get(1).asList();
-        // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
-
-        if (bAnswer.get(0).asString() == "stop")
-        {
-            yInfo() << " in proactiveTagging::exploreEntity | askNameRTObject | stop called";
-            bOutput.addString("error");
-            bOutput.addString("stop called");
-            return bOutput;
-        }
-
-        yInfo() << " bAnswer is: " << bAnswer.toString();
-        bSemantic = *bAnswer.get(1).asList();
-        yInfo() << " bSemantic is: " << bSemantic.toString();
-
-        string sName = bSemantic.check("object", Value("unknown")).asString();
-
-        RTObject* objectToChange = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameTarget));
-        objectToChange->changeName(sName);
         iCub->opc->commit(objectToChange);
 
-        yInfo() << " So this is a " << sName;
-        iCub->say(" So this is a " + sName);
+        sReply = " I get it, this is a " + sName;
 
-        bOutput.addString("success");
-        bOutput.addString("rtobject");
-        return bOutput;
-    }
+    } else if (currentEntityType == "rtobject") {
+
+        RTObject* rtObjectToChange = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameTarget));
+        rtObjectToChange->changeName(sName);
+        iCub->opc->commit(rtObjectToChange);
+
+        sReply = " So this is a " + sName;
+
+    } //go out before if not one of those entityType
+
+    yInfo() << sReply;
+    iCub->say(sReply);
+    Time::delay(timeDelay);
+
+    iCub->opc->update();
+
+    bOutput.addString("success");
+    bOutput.addString(currentEntityType);
 
     return bOutput;
 }

@@ -25,6 +25,7 @@ private:
     void        checkRelations();
 
     string        askManner(string agent, string verb, string object);
+    Bottle        recogName(string entityType);
 
     //Configure
     void configureOPC(yarp::os::ResourceFinder &rf);
