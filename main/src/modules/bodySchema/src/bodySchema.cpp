@@ -342,24 +342,24 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
 
                 state = vvv2015;
                 yInfo() << "... state: " << state;
-                reply = dealABM(command,1);
+                Bottle abmReply = dealABM(command,1);
 
                 //check ABM reply
-                if (reply.isNull()) {
+                if (abmReply.isNull()) {
                     yWarning() << "Reply from ABM is null NOT connected?";
-                } else if (reply.get(0).asString()!="ack"){
-                    yDebug() << "Response from ABM: " << reply.toString();
+                } else if (abmReply.get(0).asString()!="ack"){
+                    yWarning() << "Response from ABM: " << abmReply.toString();
                 }
 
-                reply.clear();
+                abmReply.clear();
                 singleJointBabbling(joint_index);
-                reply = dealABM(command,0);
+                abmReply = dealABM(command,0);
 
                 //check ABM reply
-                if (reply.isNull()) {
+                if (abmReply.isNull()) {
                     yWarning() << "Reply from ABM is null NOT connected?";
-                } else if (reply.get(0).asString()!="ack"){
-                    yDebug() << "Response from ABM: " << reply.toString();
+                } else if (abmReply.get(0).asString()!="ack"){
+                    yWarning() << "Response from ABM: " << abmReply.toString();
                 }
 
                 yInfo() << "Finish singleJointBabbling";
@@ -370,6 +370,7 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
             }
             else {
                 yError() << "Argument missing! singleJointBabbling jointNumber";
+                reply.addString("nack");
             }
         }
         else {
