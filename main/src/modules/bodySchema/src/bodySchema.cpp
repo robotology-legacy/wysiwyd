@@ -1159,23 +1159,16 @@ bool bodySchema::singleJointBabbling(int j_idx)
     // this needs to be a configuration option
     double startTime = yarp::os::Time::now();
 
-    videoName = "video";
     MAX_COUNT = 150;
 
-
     capseq = 1;
-
-    Point2f lost_indic(-1.0f, -1.0f);
 
     num_init_points = 0;
 
     source_window = "image";
-    frame_idx = 0;
 
     TermCriteria termcrit(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,50, 0.3);//75,0.0001);//20, 0.03);//
     Size subPixWinSize(10,10), winSize(31,31);
-
-
 
     while (Time::now() < startTime + train_duration){
         double t = Time::now() - startTime;
@@ -1187,7 +1180,6 @@ bool bodySchema::singleJointBabbling(int j_idx)
         }
         command[j_idx]=10*cos(0.1*t * 2 * M_PI);
         vel->velocityMove(command.data());
-
 
         bool babImg = getBabblingImages();
         if(!babImg) {
