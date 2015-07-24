@@ -333,54 +333,55 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
             reply.addString("nack");
         }
     }
-
-    else if (command.get(0).asString()=="VVV2015") {
+    else if (command.get(0).asString()=="singleJointBabbling") {
         if (state==idle)
         {
             if (command.size()==2)
             {
-                joint_index = command.get(1).asInt();
+                int joint_index = command.get(1).asInt();
 
                 state = vvv2015;
-                cout << "... state : " << state <<endl;
+                yInfo() << "... state: " << state;
                 reply = dealABM(command,1);
 
                 //check ABM reply
                 if (reply.isNull()) {
-                    cout << "Reply from ABM is null : NOT connected?" << endl;
+                    yWarning() << "Reply from ABM is null NOT connected?";
                 } else if (reply.get(0).asString()!="ack"){
-                    cout << reply.toString() << endl;
+                    yDebug() << "Response from ABM: " << reply.toString();
                 }
 
                 reply.clear();
-                VVV2015(joint_index);
+                singleJointBabbling(joint_index);
                 reply = dealABM(command,0);
 
                 //check ABM reply
                 if (reply.isNull()) {
-                    cout << "Reply from ABM is null : NOT connected?" << endl;
+                    yWarning() << "Reply from ABM is null NOT connected?";
                 } else if (reply.get(0).asString()!="ack"){
-                    cout << reply.toString() << endl;
+                    yDebug() << "Response from ABM: " << reply.toString();
                 }
-                cout << "Finish ..." << endl;
-                state = idle;
-                cout << "... state : " << state <<endl;
-                cout << helpMessage;
-                reply.addString("ack");
 
+                yInfo() << "Finish singleJointBabbling";
+                state = idle;
+                yDebug() << "... state : " << state;
+                yInfo() << helpMessage;
+                reply.addString("ack");
             }
             else {
-                cout << "Argument missing!" << endl;
+                yError() << "Argument missing! singleJointBabbling jointNumber";
             }
-
         }
         else {
+            yError() << "Still busy with previous babbling action, try again later.";
             reply.addString("nack");
         }
     }
-
-    else
+    else {
+        yError() << "Unknown command!";
+        yInfo() << helpMessage;
         reply.addString("nack");
+    }
 
     return true;
 }
@@ -407,7 +408,16 @@ double bodySchema::getPeriod() {
  */
 Bottle bodySchema::dealABM(const Bottle& command, int begin)
 {
-    cout << "Dealing with ABM " <<endl;
+    yDebug() << "Dealing with ABM";
+    if (begin<0 || begin>1)
+    {
+        yError() << "begin parameter must be 1 or 0.";
+        Bottle bError;
+        bError.addString("nack");
+        bError.addString("Error: begin item should be either 1 or 0.");
+        return bError;
+    }
+
     Bottle bABM, bABMreply;
     bABM.addString("snapshot");
     Bottle bSubMain;
@@ -420,23 +430,14 @@ Bottle bodySchema::dealABM(const Bottle& command, int begin)
     bSubSubArgument.addString(command.get(1).asString());
     bSubSubArgument.addString("limb");
     Bottle bSubSubArgument2;
-    bSubSubArgument2.addString("left");
+    bSubSubArgument2.addString(part);
     bSubSubArgument2.addString("side");
     Bottle bSubSubArgument3;
     bSubSubArgument3.addString(robot);
     bSubSubArgument3.addString("agent1");
     Bottle bBegin;
     bBegin.addString("begin");
-    if (begin<0 || begin>1)
-    {
-        cout << "Error: begin item should be either 1 or 0." << endl;
-        bABM.clear();
-        bABM.addString("nack");
-        bABM.addString("Error: begin item should be either 1 or 0.");
-        return bABM;
-    }
-    else
-        bBegin.addInt(begin);
+    bBegin.addInt(begin);
 
     bABM.addList() = bSubMain;
     bSubArgument.addList() = bSubSubArgument;
@@ -449,7 +450,6 @@ Bottle bodySchema::dealABM(const Bottle& command, int begin)
 
     return bABMreply;
 }
-
 
 /*
  * Learning while babbling
@@ -1130,31 +1130,25 @@ bool bodySchema::init_iCub(string &part)
 }
 
 
-
-
-
 /*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * VVV 2015
+ * Babbling with a single joint
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 
-
-bool bodySchema::VVV2015(int j_idx)
+bool bodySchema::singleJointBabbling(int j_idx)
 {
-
     // First go to home position
     bool homeStart = goStartPos();
     if(!homeStart) {
-        cout << "I got lost going home!" << endl;
+        yError() << "I got lost going home! Abort!";
+        return false;
     }
 
     for(int i=0; i<16; i++)
     {
         ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
     }
-
-
 
     while(!Network::isConnected(ports[0], imgPortIn.getName())) {
         Network::connect(ports[0], imgPortIn.getName());
@@ -1174,12 +1168,12 @@ bool bodySchema::VVV2015(int j_idx)
     }
     ofstream fs_enc(fileEncData.c_str());
     if(!fs_enc) {
-        std::cerr<<"Cannot open the output file 'encData' ."<<std::endl;
+        yError() <<"Cannot open the output file 'encData'.";
         return 0;
     }
     ofstream fs_cmd(fileCmdData.c_str());
     if(!fs_cmd) {
-        std::cerr<<"Cannot open the output file 'cmdData' ."<<std::endl;
+        yError() <<"Cannot open the output file 'cmdData'.";
         return 0;
     }
 
@@ -1229,17 +1223,15 @@ bool bodySchema::VVV2015(int j_idx)
 
         babCmd = command;
 
-
-
         input(0) = babCmd[0];
 
         bool babImg = getBabblingImages();
         if(!babImg) {
-            cout << "Error getting images while babbling" << endl;
+            yError() << "Error getting images while babbling";
         }
         bool findFeat = findFeatures(termcrit, subPixWinSize, winSize);
         if(!findFeat) {
-            cout << "Error finding features" << endl;
+            yError() << "Error finding features";
         }
 
         //        cout << "Write encoder data" << endl;
@@ -1316,15 +1308,12 @@ bool bodySchema::VVV2015(int j_idx)
 
     bool homeEnd = goStartPos();
     if(!homeEnd) {
-        cout << "I got lost going home!" << endl;
+        yError() << "I got lost going home!";
     }
 
     Network::disconnect(ports[0], imgPortIn.getName());
 
     destroyWindow(source_window);
-
-
-
 
     return true;
 }

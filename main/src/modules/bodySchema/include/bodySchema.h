@@ -152,8 +152,6 @@ private:
     int p_capacity;
     int p_random_seed;
 
-    int joint_index;
-
     State state;
 
 public:
@@ -185,7 +183,7 @@ private:
     bool findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size &winSize);
     bool getBabblingImages();
 
-    bool VVV2015(int j_idx);
+    bool singleJointBabbling(int j_idx);
 
 };
 
