@@ -109,7 +109,7 @@ namespace wysiwyd{namespace wrdac{
         bool                operator>(const Relation &b);
     };
 
-}}; //namespaces
+}} //namespaces
 
 #endif
 

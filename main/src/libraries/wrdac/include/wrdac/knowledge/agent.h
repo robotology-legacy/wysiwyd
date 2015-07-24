@@ -217,7 +217,7 @@ public:
     bool                operator==(const Agent &b);
 };
 
-}}; //namespaces
+}} //namespaces
 
 #endif
 

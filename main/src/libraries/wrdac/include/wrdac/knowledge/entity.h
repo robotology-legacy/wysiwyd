@@ -120,7 +120,7 @@ namespace wysiwyd{namespace wrdac{
         bool                operator>(const Entity &b);
     };
 
-}}; //namespaces
+}} //namespaces
 
 #endif
 

@@ -83,7 +83,7 @@ public:
     yarp::sig::Vector getSelfRelativePosition(const yarp::sig::Vector &vInitialRoot);
 };
 
-}}; //namespaces
+}} //namespaces
 
 #endif
 

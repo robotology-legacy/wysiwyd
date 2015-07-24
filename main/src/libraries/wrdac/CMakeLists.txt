@@ -9,6 +9,7 @@ set(folder_source src/action.cpp
                   src/adjective.cpp
                   src/agent.cpp
                   src/animation.cpp
+                  src/bodypart.cpp
                   src/entity.cpp           
                   src/functions.cpp
                   src/icubClient.cpp
@@ -24,8 +25,9 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/tags.h
                   include/wrdac/knowledge/action.h         
                   include/wrdac/knowledge/adjective.h      
-                  include/wrdac/knowledge/agent.h          
-                  include/wrdac/knowledge/conjugator.h     
+                  include/wrdac/knowledge/agent.h
+                  include/wrdac/knowledge/bodypart.h
+                  include/wrdac/knowledge/conjugator.h
                   include/wrdac/knowledge/entity.h         
                   include/wrdac/knowledge/object.h         
                   include/wrdac/knowledge/relation.h       

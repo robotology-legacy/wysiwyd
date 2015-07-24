@@ -50,7 +50,7 @@ public:
     virtual std::string      toString();
 };
 
-}}; //namespaces
+}} //namespaces
 
 #endif
 
