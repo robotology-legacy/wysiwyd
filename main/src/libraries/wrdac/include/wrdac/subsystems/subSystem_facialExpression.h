@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Stéphane Lallée
+ * Authors: StÃ©phane LallÃ©e
  * email:   stephane.lallee@gmail.com
  * website: http://efaa.upf.edu/
  * Permission is granted to copy, distribute, and/or modify this program
@@ -40,7 +40,7 @@ namespace wysiwyd{namespace wrdac{
  *
  * A simple structure and a client to manage the LEDs on the iCub face
  *
- * @author Stéphane Lallée
+ * @author StÃ©phane LallÃ©e
  */
 
 /**

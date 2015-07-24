@@ -1,6 +1,6 @@
 /* 
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Lallée Stéohane
+ * Authors: LallÃ©e StÃ©ohane
  * email:   stephane.lallee@gmail.com
  * website: http://efaa.upf.edu/ 
  * Permission is granted to copy, distribute, and/or modify this program
@@ -24,7 +24,7 @@
  * Contains classes to represent entities and relations between them.
  * Those classes are meant to be accessed through the opcClient.
  *
- * @author Ugo Pattacini & Stéphane Lallée
+ * @author Ugo Pattacini & StÃ©phane LallÃ©e
  */ 
 
 #include "entity.h"

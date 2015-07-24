@@ -1,6 +1,6 @@
 /* 
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Lallée Stéohane
+ * Authors: LallÃ©e StÃ©ohane
  * email:   stephane.lallee@gmail.com
  * website: http://efaa.upf.edu/ 
  * Permission is granted to copy, distribute, and/or modify this program
@@ -23,7 +23,7 @@
  *  
  * Contains clients designed to facilitate access to the different components of the projects.
  *
- * @author Stéphane Lallée
+ * @author StÃ©phane LallÃ©e
  */ 
 
 #ifndef __EFAA_CLIENTS_H__

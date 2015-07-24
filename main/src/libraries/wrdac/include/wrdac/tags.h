@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Ugo Pattacini, Stéphane Lallée
+ * Authors: Ugo Pattacini, StÃ©phane LallÃ©e
  * email:   ugo.pattacini@iit.it stephane.lallee@gmail.com
  * website: http://efaa.upf.edu/
  * Permission is granted to copy, distribute, and/or modify this program
@@ -24,7 +24,7 @@
  * A container library containing defines and structures to formalize
  * knowledge within an objectPropertiesCollector module.
  *
- * @author Ugo Pattacini & Stéphane Lallée
+ * @author Ugo Pattacini & StÃ©phane LallÃ©e
  */
 #ifndef __EFAA_OPCTAGS_H__
 #define __EFAA_OPCTAGS_H__

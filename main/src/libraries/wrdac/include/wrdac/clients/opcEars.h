@@ -2,7 +2,7 @@
 #define __EFAA_OPCEARS_H__
 /* 
 * Copyright (C) 2012 EFAA Consortium, European Commission FP7 Project IST-270490
-* Authors: Grégoire Pointeau
+* Authors: GrÃ©goire Pointeau
 * email:   gregoire.pointeau@inserm.fr
 * website: http://efaa.upf.edu/ 
 * Permission is granted to copy, distribute, and/or modify this program
@@ -25,7 +25,7 @@
  *  
  * Tool for operations on the OPC as : transforming in SQL request for the integration in the DataBase, difference between 2 OPCs...
  * Contact : gregoire.pointeau@inserm.fr
- * @author Grégoire Pointeau
+ * @author GrÃ©goire Pointeau
  */ 
 #include <wrdac/clients/opcSave.h>
 
@@ -35,7 +35,7 @@ namespace wysiwyd{namespace wrdac{
     * \ingroup efaa_opcears
     *
     * Main module.
-    * @author Grégoire Pointeau
+    * @author GrÃ©goire Pointeau
     */
 
     class opcEars {

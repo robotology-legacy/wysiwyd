@@ -1,6 +1,6 @@
 /* 
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Lallée Stéphane
+ * Authors: LallÃ©e StÃ©phane
  * email:   stephane.lallee@gmail.com
  * website: http://efaa.upf.edu/ 
  * Permission is granted to copy, distribute, and/or modify this program
