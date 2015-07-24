@@ -30,6 +30,7 @@
 #include "entity.h"
 #include "object.h"
 #include "rtObject.h"
+#include "bodypart.h"
 #include "agent.h"
 #include "adjective.h"
 #include "relation.h"

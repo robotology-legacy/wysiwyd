@@ -26,8 +26,8 @@
  *
  * @author Ugo Pattacini & Stéphane Lallée
  */
-#ifndef __EFAA_OPCTAGS_H__
-#define __EFAA_OPCTAGS_H__
+#ifndef __WYSIWYD_OPCTAGS_H__
+#define __WYSIWYD_OPCTAGS_H__
 
 #define EFAA_OPC_INVALID_ID                 -1
 
