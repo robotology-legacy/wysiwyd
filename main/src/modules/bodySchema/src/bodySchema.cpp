@@ -1162,20 +1162,6 @@ bool bodySchema::singleJointBabbling(int j_idx)
     videoName = "video";
     MAX_COUNT = 150;
 
-    bool createfolders = create_folders();
-    if(!createfolders) {
-        cout << "Error creating folders" << endl;
-    }
-    ofstream fs_enc(fileEncData.c_str());
-    if(!fs_enc) {
-        yError() <<"Cannot open the output file 'encData'.";
-        return 0;
-    }
-    ofstream fs_cmd(fileCmdData.c_str());
-    if(!fs_cmd) {
-        yError() <<"Cannot open the output file 'cmdData'.";
-        return 0;
-    }
 
     capseq = 1;
 
@@ -1189,13 +1175,7 @@ bool bodySchema::singleJointBabbling(int j_idx)
     TermCriteria termcrit(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,50, 0.3);//75,0.0001);//20, 0.03);//
     Size subPixWinSize(10,10), winSize(31,31);
 
-    init_oesgp_learner();
 
-    VectorXd input(1);
-    VectorXd output(1);
-    VectorXd input_test(1);
-
-    yarp::sig::Vector babCmd;
 
     while (Time::now() < startTime + train_duration){
         double t = Time::now() - startTime;
@@ -1206,24 +1186,8 @@ bool bodySchema::singleJointBabbling(int j_idx)
             command[l]=0;
         }
         command[j_idx]=10*cos(0.1*t * 2 * M_PI);
-
-        //cout << "Sending bottle" << endl;
-        Bottle& inDataB = portVelocityOut.prepare(); // Get the object
-        inDataB.clear();
-        for  (unsigned int l=0; l<command.size(); l++)
-        {
-            inDataB.addDouble(command[l]);
-        }
-        portVelocityOut.write();
-
-        //cout << "Do velocity move" << endl;
-
-//        cout << command.toString() << endl;
         vel->velocityMove(command.data());
 
-        babCmd = command;
-
-        input(0) = babCmd[0];
 
         bool babImg = getBabblingImages();
         if(!babImg) {
@@ -1234,77 +1198,11 @@ bool bodySchema::singleJointBabbling(int j_idx)
             yError() << "Error finding features";
         }
 
-        //        cout << "Write encoder data" << endl;
-        bool writeEncData = writeEncoderData(lost_indic, fs_enc, fs_cmd);
-        if(!writeEncData) {
-            cout << "Error writing encoder data" << endl;
-        }
-
         std::swap(points[1], points[0]);
         cv::swap(prevGray, gray);
 
-//        //update learner
-//        oesgp.update(input);
-
-//        //predict the next state
-//        oesgp.predict(prediction, prediction_variance);
-
-//        output(0) = encoders[0];
-
-//        double error[1];
-//        error[0] = (prediction(0) - output(0));
-//        //        cout << "Error: " << error[0] << ", |BV|: " << oesgp.getCurrentSize() <<  endl;
-
-//        //train with the true next state
-//        oesgp.train(output);
-
         capseq++;
     }
-
-    /* Validation */
-//    cout << "Testing saving and loading model " << std::endl;
-
-//    oesgp.save("oesgptest");
-//    oesgp2.load("oesgptest");
-
-//    int sum=0;
-//    int Sqno=0;
-//    int count=0;
-
-//    double startTime_test = yarp::os::Time::now();
-
-//    while (Time::now() < startTime_test  + test_duration) {
-//        double t = Time::now() - startTime_test;
-//        cout << endl << " Time: " << t << " / "<< test_duration << endl;
-
-//        double AOD = 1;
-//        yarp::sig::Vector babCmd_test = babblingExecution(t,AOD);
-//        input_test(0) = babCmd_test[0];
-
-//        //update
-//        oesgp2.update(input_test);
-
-//        //predict
-//        oesgp2.predict(prediction, prediction_variance);
-
-//        VectorXd output(1);
-//        output(0) = encoders[0];
-
-//        double error[1], rmse[1];
-//        error[0] = (prediction(0) - output(0));
-
-//        count++;
-//        Sqno=pow(error[0],2);
-//        sum=sum+Sqno;
-
-//        rmse[0] = sqrt(sum/count); //rmse(output(0),prediction(0));//
-//        cout << "Error: " << error[0] << endl;
-//        cout << "RMSE: " << rmse[0] << endl;
-//        Bottle& errB = portPredictionErrors.prepare(); // Get the object
-//        errB.clear();
-//        errB.addDouble(rmse[0]);
-//        portPredictionErrors.write(); // Now send it on its way
-//    }
 
     bool homeEnd = goStartPos();
     if(!homeEnd) {
