@@ -1,5 +1,26 @@
+/*
+ * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+ * Authors: Grégoire Pointeau, Tobias Fischer, Maxime Petit
+ * email:   greg.pointeau@gmail.com, t.fischer@imperial.ac.uk, m.petit@imperial.ac.uk
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * wysiwyd/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+
 #include "proactiveTagging.h"
 
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace wysiwyd::wrdac;
+using namespace std;
 
 /*
 *   Get the context path of a .grxml grammar, and return it as a string
@@ -30,10 +51,6 @@ string proactiveTagging::grammarToString(string sPath)
 
 bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 {
-
-    string opcName;
-    string handlerPortName;
-
     string moduleName = rf.check("name", Value("proactiveTagging")).asString().c_str();
     setName(moduleName.c_str());
 
@@ -72,8 +89,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     }
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
-
-
 
     return true;
 }
@@ -210,8 +225,7 @@ void proactiveTagging::checkRelations()
 string proactiveTagging::askManner(string agent, string verb, string object)
 {
 
-    ostringstream osSentenceToSay,
-        osError;
+    ostringstream osSentenceToSay, osError;
     osSentenceToSay << "Do you know how " << agent << " " << verb << " the " << object << " ?";
 
     iCub->say(osSentenceToSay.str());
@@ -303,7 +317,7 @@ Bottle proactiveTagging::recogName(string entityType)
     }
 
     bSemantic = *bAnswer.get(1).asList();
-    string sName ;
+    string sName;
     if(entityType == "agent"){
         sName = bSemantic.check("agent", Value("unknown")).asString();
     } else if (entityType == "object" || entityType == "rtobject"){
@@ -340,8 +354,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
 
     //Ask question for the human
     string sQuestion ;
-    if (currentEntityType == "agent")
-    {
+    if (currentEntityType == "agent") {
         sQuestion = " Hello, I don't know you. Who are you ?";
     } else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         sQuestion = " Hum, what is this object ?" ;
@@ -357,7 +370,6 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     //iCub->getSpeechClient()->TTS(sQuestion, false);
     iCub->say(sQuestion);
 
-    //
     Bottle bName = recogName(currentEntityType) ;
     string sName;
 
@@ -369,31 +381,16 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     }
 
     string sReply ;
-    if (currentEntityType == "agent")
-    {
+    Entity* e = iCub->opc->getEntity(sNameTarget);
+    e->changeName(sName);
+    iCub->opc->commit(e);
 
-        Agent* agentToChange = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameTarget));
-        agentToChange->changeName(sName);
-        iCub->opc->commit(agentToChange);
-
+    if (currentEntityType == "agent") {
         sReply = " Well, Nice to meet you " + sName;
-
     } else if (currentEntityType == "object") {
-
-        Object* objectToChange = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
-        objectToChange->changeName(sName);
-        iCub->opc->commit(objectToChange);
-
         sReply = " I get it, this is a " + sName;
-
     } else if (currentEntityType == "rtobject") {
-
-        RTObject* rtObjectToChange = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameTarget));
-        rtObjectToChange->changeName(sName);
-        iCub->opc->commit(rtObjectToChange);
-
         sReply = " So this is a " + sName;
-
     } //go out before if not one of those entityType
 
     yInfo() << sReply;
@@ -495,53 +492,9 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
 
             if (sNameCut == "unknown")
             {
-                if ((*itEnt)->entity_type() == "agent")
+                if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
                 {
-                    Agent* temp = dynamic_cast<Agent*>(*itEnt);
-                    if (temp->m_saliency > highestSaliency)
-                    {
-                        if (secondSaliency != 0.0)
-                        {
-                            secondSaliency = highestSaliency;
-                        }
-                        highestSaliency = temp->m_saliency;
-                        sNameBestEntity = temp->name();
-                        sTypeBestEntity = temp->entity_type();
-                    }
-                    else
-                    {
-                        if (temp->m_saliency > secondSaliency)
-                        {
-                            secondSaliency = temp->m_saliency;
-                        }
-                    }
-                }
-
-                if ((*itEnt)->entity_type() == "object")
-                {
-                    Object* temp = iCub->opc->addOrRetrieveObject((*itEnt)->name());
-                    if (temp->m_saliency > highestSaliency)
-                    {
-                        if (secondSaliency != 0.0)
-                        {
-                            secondSaliency = highestSaliency;
-                        }
-                        highestSaliency = temp->m_saliency;
-                        sNameBestEntity = temp->name();
-                        sTypeBestEntity = temp->entity_type();
-                    }
-                    else
-                    {
-                        if (temp->m_saliency > secondSaliency)
-                        {
-                            secondSaliency = temp->m_saliency;
-                        }
-                    }
-                }
-
-                if ((*itEnt)->entity_type() == "rtobject")
-                {
-                    RTObject* temp = dynamic_cast<RTObject*>(*itEnt);
+                    Object* temp = dynamic_cast<Object*>(*itEnt);
                     if (temp->m_saliency > highestSaliency)
                     {
                         if (secondSaliency != 0.0)
@@ -590,21 +543,8 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
         if (bFound)
         {
             // change name
-            if (sTypeBestEntity == "agent")
-            {
-                Agent* TARGET = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameBestEntity));
-                TARGET->changeName(sNameTarget);
-            }
-            if (sTypeBestEntity == "object")
-            {
-                Object* TARGET = dynamic_cast<Object*>(iCub->opc->getEntity(sNameBestEntity));
-                TARGET->changeName(sNameTarget);
-            }
-            if (sTypeBestEntity == "rtobject")
-            {
-                RTObject* TARGET = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameBestEntity));
-                TARGET->changeName(sNameTarget);
-            }
+            Entity* TARGET = iCub->opc->getEntity(sNameBestEntity);
+            TARGET->changeName(sNameTarget);
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
         }
