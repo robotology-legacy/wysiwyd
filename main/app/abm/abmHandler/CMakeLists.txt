@@ -1,5 +1,5 @@
 # Copyright: (C) 2014 WYSIWYD Consortium
-# Authors: Grégoire Pointeau, Maxime Petit
+# Authors: GrÃ©goire Pointeau, Maxime Petit
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(appname abmHandler)

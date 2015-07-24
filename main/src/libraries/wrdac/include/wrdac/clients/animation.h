@@ -2,7 +2,6 @@
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Stéphane Lallée
  * email:   stephane.lallee@gmail.com
- * website: http://efaa.upf.edu/ 
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -16,8 +15,8 @@
  * Public License for more details
  */
 
-#ifndef __EFAA_ANIMATION_H__
-#define __EFAA_ANIMATION_H__
+#ifndef __WYSIWYD_ANIMATION_H__
+#define __WYSIWYD_ANIMATION_H__
 
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>

@@ -1,4 +1,4 @@
-# Copyright: (C) 2014 EFAA Consortium
+# Copyright: (C) 2014 WYSIWYD Consortium
 # Authors: Stephane Lallee
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 

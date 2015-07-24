@@ -1,5 +1,5 @@
-# Copyright: (C) 2011 EFAA Consortium
-# Authors: Grégoire Pointeau
+# Copyright: (C) 2015 WYSIWYD Consortium
+# Authors: GrÃ©goire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(appname pasar)

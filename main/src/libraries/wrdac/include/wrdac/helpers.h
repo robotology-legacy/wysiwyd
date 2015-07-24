@@ -27,8 +27,8 @@
  * @author Ugo Pattacini & Stéphane Lallée
  */ 
 
-#ifndef __EFAA_HELPERS_H__
-#define __EFAA_HELPERS_H__
+#ifndef __WYSIWYD_HELPERS_H__
+#define __WYSIWYD_HELPERS_H__
 
 #include "tags.h"
 #include "functions.h"

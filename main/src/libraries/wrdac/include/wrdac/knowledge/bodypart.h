@@ -41,9 +41,14 @@ public:
     int m_joint_number;
 
     /**
-    * Tactile numbers
+    * Tactile number
     */
     int m_tactile_number;
+
+    /**
+    * The part itself, e.g. left_arm, right_arm, ...
+    */
+    std::string m_part;
 
     virtual bool isType(std::string _entityType)
     {

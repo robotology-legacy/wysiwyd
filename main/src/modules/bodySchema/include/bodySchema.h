@@ -72,7 +72,7 @@ private:
     BufferedPort< ImageOf<PixelRgb> > imgPortOut;
     BufferedPort<Bottle> portVelocityOut;
     BufferedPort<Bottle> portPredictionErrors;
-    Port portToABM;
+    RpcClient portToABM;
 
     IPositionControl* pos;
     IVelocityControl* vel;
@@ -165,10 +165,7 @@ public:
     bool init_iCub(string &part);
     Bottle dealABM(const Bottle& command, int begin);
 
-
-
 private:
-
     const std::string trail_string();
     bool create_folders();
 
@@ -184,7 +181,6 @@ private:
     bool getBabblingImages();
 
     bool singleJointBabbling(int j_idx);
-
 };
 
 #endif // __BODYSCHEMA_H__
