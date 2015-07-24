@@ -16,6 +16,8 @@ using namespace wysiwyd::wrdac;
 
 struct StimulusEmotionalResponse
 {
+    Port output_port;
+    Bottle rpc_command;
     vector<string> m_sentences;
     vector<string> m_choregraphies;
     map<string, double> m_emotionalEffect;
@@ -86,6 +88,9 @@ public:
     }
 
     bool updateModule();
+
+    //Check for unknown tags in the opc
+    bool handleTagging();
 
 	//Check for newcomers and salute them if required
 	bool handleSalutation(bool& someoneIsPresent);
