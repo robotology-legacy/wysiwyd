@@ -22,33 +22,6 @@ using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
 
-/*
-*   Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-string proactiveTagging::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    cout << "path is: " << sPath << endl;
-
-    if (!isGrammar)
-    {
-        cout << "Error in proactiveTagging::grammarToString. Couldn't open file : " << sPath << "." << endl;
-        return "Error in proactiveTagging::grammarToString. Couldn't open file";
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}
-
 bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("proactiveTagging")).asString().c_str();
@@ -139,55 +112,6 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
 bool proactiveTagging::updateModule() {
     return true;
 }
-
-
-
-void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
-{
-    //Populate the OPC if required
-    std::cout << "Populating OPC";
-
-    //1. Populate AddOrRetrieve part
-    Bottle grpOPC_AOR = rf.findGroup("OPC_AddOrRetrieve");
-    bool shouldPopulate_AOR = grpOPC_AOR.find("populateOPC").asInt() == 1;
-    if (shouldPopulate_AOR)
-    {
-        Bottle *objectList = grpOPC_AOR.find("object").asList();
-        if (objectList)
-        {
-            for (int d = 0; d < objectList->size(); d++)
-            {
-                std::string name = objectList->get(d).asString().c_str();
-                wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveObject(name);
-                yInfo() << " [configureOPC] object " << o->name() << "added" ;
-                o->m_present = false;
-                iCub->opc->commit(o);
-            }
-        }
-    }
-
-    //2. Populate Add part (allows several object with same base name, e.g. object, object_1, object_2, ..., object_n)
-    Bottle grpOPC_Add = rf.findGroup("OPC_Add");
-    bool shouldPopulate_Add = grpOPC_Add.find("populateOPC").asInt() == 1;
-    if (shouldPopulate_Add)
-    {
-        Bottle *objectList = grpOPC_Add.find("object").asList();
-        if (objectList)
-        {
-            for (int d = 0; d < objectList->size(); d++)
-            {
-                std::string name = objectList->get(d).asString().c_str();
-                wysiwyd::wrdac::Object* o = iCub->opc->addObject(name);
-                yInfo() << " [configureOPC] object " << o->name() << "added" ;
-                o->m_present = false;
-                iCub->opc->commit(o);
-            }
-        }
-    }
-
-    std::cout << "done" << endl;
-}
-
 
 void proactiveTagging::checkRelations()
 {
