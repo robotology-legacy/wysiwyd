@@ -206,7 +206,6 @@ bool bodySchema::interruptModule() {
     portToABM.interrupt();
     handlerPort.interrupt();
 
-
     cout << "Bye!" << endl;
 
     return true;
@@ -222,6 +221,7 @@ bool bodySchema::close() {
     }
 
     armDev->close();
+    headDev->close();
 
     imgPortIn.interrupt();
     imgPortIn.close();
@@ -1032,7 +1032,6 @@ bool bodySchema::init_iCub(string &part)
     armDev->view(iint);
     armDev->view(itrq);
 
-
     if (pos==NULL || encs==NULL || vel==NULL || ictrl==NULL || iint==NULL  || itrq==NULL ){
         cout << "Cannot get interface to robot device" << endl;
         armDev->close();
@@ -1058,7 +1057,6 @@ bool bodySchema::init_iCub(string &part)
     cout << endl << endl;
 
     cout << "Arm initialized." << endl;
-
 
     /* Init. head */
     string portnameHead = "head";
