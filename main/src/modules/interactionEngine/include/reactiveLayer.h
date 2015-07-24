@@ -28,6 +28,8 @@ class ReactiveLayer: public RFModule
 private:
     ICubClient *iCub;
 
+    Bottle *drivesList;
+
     Port to_homeo_rpc;
     string moduleName;
     string homeo_name;
@@ -52,7 +54,7 @@ private:
 
     Port    rpc;
 
-    vector< yarp::os::BufferedPort<Bottle>* > input_ports;
+    vector< yarp::os::Port* > rpc_ports;
     vector< yarp::os::BufferedPort<Bottle>* > outputM_ports;
     vector< yarp::os::BufferedPort<Bottle>* > outputm_ports;
 

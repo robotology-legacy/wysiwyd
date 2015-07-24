@@ -10,22 +10,28 @@ bool ReactiveLayer::close()
 
 int ReactiveLayer::openPorts(string driveName,int d)
 {
-    input_ports.resize(input_ports.size()+1);
+	rpc_ports.resize(rpc_ports.size()+1);
     outputM_ports.resize(outputM_ports.size()+1);
     outputm_ports.resize(outputm_ports.size()+1);
 
     //Create Ports
     string portName = "/" + moduleName + "/" + driveName;
     
-    string pn = portName + ":i";
-    input_ports[d] = new BufferedPort<Bottle>;
+    rpc_ports[d] = new Port;
     outputm_ports[d] = new BufferedPort<Bottle>;
     outputM_ports[d] = new BufferedPort<Bottle>;
-    cout << "Configuring port " <<d<< " : " << pn << " ..." << endl;
-    if (!input_ports[d]->open((pn).c_str())) 
+    
+    string pn = portName + "/rpc:o";
+    cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
+    if (!rpc_ports[d]->open((pn).c_str())) 
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
+    string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
+
+    while(!Network::connect(targetPortName,portName))
+    	{cout<<"Setting up homeostatic connections..."<<endl;yarp::os::Time::delay(0.5);}
+
 
     pn = portName + "/min:i";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
@@ -33,16 +39,19 @@ int ReactiveLayer::openPorts(string driveName,int d)
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
-    string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
+    targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
 
     while(!Network::connect(targetPortName,portName))
-
+    {cout<<"Setting up homeostatic connections..."<<endl;yarp::os::Time::delay(0.5);}
     pn = portName + "/max:i";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
     if (!outputM_ports[d]->open((pn).c_str())) 
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
+    targetPortName = "/" + homeo_name + "/" + driveName + "/max:o";
+    while(!Network::connect(targetPortName,portName))
+    {cout<<"Setting up homeostatic connections..."<<endl;yarp::os::Time::delay(0.5);}
 
     return 42;
 }
@@ -198,7 +207,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 	//Initialise the iCub allostatic model. Drives for interaction engine will be read from IE default.ini file
 	cout << "Initializing drives";
 	Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
-	Bottle *drivesList = grpAllostatic.find("drives").asList();
+	drivesList = grpAllostatic.find("drives").asList();
 	iCub->icubAgent->m_drives.clear();
 	Bottle cmd;
 	if (drivesList)
@@ -220,6 +229,9 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 			drv.append(grpAllostatic);
 
 			to_homeo_rpc.write(cmd);
+
+			int answer = openPorts(driveName,d);
+			cout << "The answer is " << answer <<endl;
 
 
 			//Under effects
@@ -401,24 +413,66 @@ bool ReactiveLayer::updateAllostatic()
 
 	//Update some specific drives based on the previous stimuli encountered
 	if (physicalInteraction)
-		iCub->icubAgent->m_drives["physicalInteraction"].value += 0.1;
+		{
+			Bottle cmd;
+			cmd.clear();
+			cmd.addString("delta");
+			cmd.addString("physicalInteraction");
+			cmd.addString("value");
+			cmd.addDouble(0.1);
+
+			rpc_ports[0]->write(cmd);
+		}
+
+		
+		//iCub->icubAgent->m_drives["physicalInteraction"].value += 0.1;
 	if (someonePresent)
-		iCub->icubAgent->m_drives["socialInteraction"].value += iCub->icubAgent->m_drives["socialInteraction"].decay * 2;
+		{
+			Bottle cmd;
+			cmd.clear();
+			cmd.addString("par");
+			cmd.addString("socialInteraction");
+			cmd.addString("value");
+			cmd.addDouble(-0.2);
+
+			rpc_ports[1]->write(cmd);
+		}
+	//iCub->icubAgent->m_drives["socialInteraction"].value += iCub->icubAgent->m_drives["socialInteraction"].decay * 2;
 
 	//Trigger drive related sentences
-	for (map<string, Drive>::iterator d = iCub->icubAgent->m_drives.begin(); d != iCub->icubAgent->m_drives.end(); d++)
+	for ( int i =0;i<drivesList->size();i++)
+	//for (map<string, Drive>::iterator d = iCub->icubAgent->m_drives.begin(); d != iCub->icubAgent->m_drives.end(); d++)
 	{
+		double val = outputm_ports[i]->read()->get(0).asDouble();
 		//Check under homeostasis
-		if (d->second.value < d->second.homeoStasisMin)
+		if (val>0)
 		{
-			iCub->say(homeostaticUnderEffects[d->first].getRandomSentence());
-			d->second.value += (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;
+			iCub->say(homeostaticUnderEffects[drivesList->get(i).asString().c_str()].getRandomSentence());
+			Bottle cmd;
+			cmd.clear();
+			cmd.addString("delta");
+			cmd.addString(drivesList->get(i).asString().c_str());
+			cmd.addString("value");
+			cmd.addDouble(0.15);
+
+			rpc_ports[i]->write(cmd);
+
+			//d->second.value += (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;
 		}
+		val = outputM_ports[i]->read()->get(0).asDouble();
 		//Check over homeostasis
-		if (d->second.value > d->second.homeoStasisMax)
+		if (val>0)
 		{
-			iCub->say(homeostaticOverEffects[d->first].getRandomSentence());
-			d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
+			iCub->say(homeostaticOverEffects[drivesList->get(i).asString().c_str()].getRandomSentence());
+			Bottle cmd;
+			cmd.clear();
+			cmd.addString("delta");
+			cmd.addString(drivesList->get(i).asString().c_str());
+			cmd.addString("value");
+			cmd.addDouble(-0.15);
+
+			rpc_ports[i]->write(cmd);
+			//d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
 		}
 	}
 	iCub->commitAgent();
