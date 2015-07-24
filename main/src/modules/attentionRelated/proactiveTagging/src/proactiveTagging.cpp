@@ -98,6 +98,9 @@ bool proactiveTagging::close() {
     iCub->close();
     delete iCub;
 
+    rpcPort.interrupt();
+    rpcPort.close();
+
     return true;
 }
 

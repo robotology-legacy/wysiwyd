@@ -25,7 +25,7 @@ private:
     double      period;
 
     std::string      grammarToString(std::string sPath);
-    yarp::os::Port        rpcPort;
+    yarp::os::Port   rpcPort;
 
     std::string      GrammarAskNameAgent;
     std::string      GrammarAskNameObject;
@@ -46,6 +46,7 @@ public:
 
     bool interruptModule()
     {
+        rpcPort.interrupt();
         return true;
     }
 
