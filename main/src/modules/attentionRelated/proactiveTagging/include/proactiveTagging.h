@@ -26,6 +26,7 @@ private:
 
     std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
+    yarp::os::Port   portToBodySchema;
 
     std::string      GrammarAskNameAgent;
     std::string      GrammarAskNameObject;
@@ -37,9 +38,13 @@ private:
     void        checkRelations();
 
     std::string        askManner(std::string agent, std::string verb, std::string object);
-    yarp::os::Bottle        recogName(std::string entityType);
+    yarp::os::Bottle   recogName(std::string entityType);
+
     //Configure
     void configureOPC(yarp::os::ResourceFinder &rf);
+
+    //selfTagging.cpp
+    yarp::os::Bottle moveJoint(int joint, std::string sBodypart) ;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

@@ -59,7 +59,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
     bool shouldPopulate_AOR = grpOPC_AOR.find("populateOPC").asInt() == 1;
     if (shouldPopulate_AOR)
     {
-        Bottle *objectList = grpOPC_AOR.find("object").asList();
+        Bottle *objectList = grpOPC_AOR.find("objectName").asList();
         if (objectList)
         {
             for (int d = 0; d < objectList->size(); d++)
@@ -78,7 +78,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
     bool shouldPopulate_Add = grpOPC_Add.find("populateOPC").asInt() == 1;
     if (shouldPopulate_Add)
     {
-        Bottle *objectList = grpOPC_Add.find("object").asList();
+        Bottle *objectList = grpOPC_Add.find("objectName").asList();
         if (objectList)
         {
             for (int d = 0; d < objectList->size(); d++)
@@ -87,6 +87,28 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
                 wysiwyd::wrdac::Object* o = iCub->opc->addEntity<Object>(name);
                 yInfo() << " [configureOPC] object " << o->name() << "added" ;
                 o->m_present = false;
+                iCub->opc->commit(o);
+            }
+        }
+    }
+
+    if (shouldPopulate_Add)
+    {
+        Bottle *bodyPartList = grpOPC_Add.find("bodypartName").asList();
+        Bottle *bodyPartJointList = grpOPC_Add.find("bodypartJoint").asList();
+        if (bodyPartList)
+        {
+            for (int d = 0; d < bodyPartList->size(); d++)
+            {
+                std::string name = bodyPartList->get(d).asString().c_str();
+                wysiwyd::wrdac::Bodypart* o = iCub->opc->addEntity<Bodypart>(name);
+                yInfo() << " [configureOPC] Bodypart " << o->name() << "added" ;
+                o->m_present = false;
+                //apply the joint number if available. protect for the loop because using d from bodyPartList. should be same number of element between bodyPartList and bodyPartJointList
+                if(d < bodyPartJointList->size()){
+                    o->m_joint_number = bodyPartJointList->get(d).asInt();
+                    yInfo() << " [configureOPC] Bodypart " << o->name() << " has now a joint " << o->m_joint_number ;
+                }
                 iCub->opc->commit(o);
             }
         }

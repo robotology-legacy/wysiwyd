@@ -1,0 +1,40 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+    <ID  NAME="fingerName"  VAL="1"/>
+  </DEFINE>
+
+
+  <RULE  NAME="SENTENCE1"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <L>
+		<P>This is</P>
+		<P>That is</P>
+		<P>It is</P>
+	</L>
+	<O>
+		<L>
+			<P>a</P>
+			<P>the</P>
+			<P>your</P>
+		</L>
+	</O>
+    <RULEREF  NAME="fingerName"/>
+	<O>
+		<P>finger</P>
+	</O>
+   </RULE>
+
+
+  <RULE NAME="fingerName" DYNAMIC="TRUE">
+    <L>
+      <P>thumb</P>
+      <P>index</P>
+      <P>middle</P>
+      <P>ring</P>
+      <P>little</P>
+    </L>
+  </RULE>
+
+</GRAMMAR>
