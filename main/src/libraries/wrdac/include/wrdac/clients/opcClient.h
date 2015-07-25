@@ -38,7 +38,7 @@ private:
     bool                    write(yarp::os::Bottle &cmd, yarp::os::Bottle &reply, bool Verbose=false);
 
     std::map<int, Entity*>       entitiesByID;
-    Entity*                 addEntity(Entity* e);
+    Entity* addEntity(Entity* e);
 
     int                     getRelationID(
             Entity* subject,
@@ -51,6 +51,44 @@ private:
 public: 
     bool                    isVerbose;
 
+    template <class T>
+    Entity* addEntity(const std::string &name) {
+        std::string name_appended = name;
+        int appendix = 0;
+        Entity *e = getEntity(name, true);
+        // loop until we find the first appendix which is not used yet
+        while(e!=NULL) {
+            std::stringstream ss;
+            ++appendix;
+            ss << appendix;
+            name_appended = name + "_" + ss.str();
+            e = getEntity(name_appended,true);
+        }
+
+        //Else we create it in the OPC.
+        T *o = new T();
+        o->m_name = name_appended;
+        addEntity(o);
+        return o;
+    }
+
+    template <class T>
+    Entity* addOrRetrieveEntity(const std::string &name)
+    {
+        Entity *e = getEntity(name,true);
+        if ( e != NULL)
+        {
+            if (isVerbose)
+                yError() <<"Trying to add an already existing entity (" << name << ")";
+            return dynamic_cast<T*>(e);
+        }
+
+        //Else we create it in the OPC.
+        T *o = new T();
+        o->m_name = name;
+        addEntity(o);
+        return o;
+    }
 
     /**
     * Create an OPC client
