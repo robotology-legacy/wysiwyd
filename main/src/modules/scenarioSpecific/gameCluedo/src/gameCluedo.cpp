@@ -224,7 +224,7 @@ bool GameCluedo::handleSpeech(bool expectAffirmation, Relation* queriedRelation,
             //    answerFromRobot = "I already knew that.";
             //}
             //Update the other model to reflect his knowledge
-            //Agent* partner = iCub->opc->addAgent("partner");
+            //Agent* partner = iCub->opc->addEntity<Agent>("partner");
             //partner->addBelief(relationForm);
             //iCub->opc->commit(partner);
         }
@@ -281,7 +281,7 @@ bool GameCluedo::handleSpeech(bool expectAffirmation, Relation* queriedRelation,
 
             if (realAnswers.size() > 0)
             {
-                Agent* partner = iCub->opc->addOrRetrieveAgent("partner");
+                Agent* partner = iCub->opc->addOrRetrieveEntity<Agent>("partner");
                 Relation relationToBeStated = realAnswers.front();
                 bool partnerShouldHaveKnown = true;
 
@@ -394,7 +394,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < agentList->size(); d++)
             {
                 std::string name = agentList->get(d).asString().c_str();
-                wysiwyd::wrdac::Agent* agent = iCub->opc->addOrRetrieveAgent(name);
+                wysiwyd::wrdac::Agent* agent = iCub->opc->addOrRetrieveEntity<Agent>(name);
                 agent->m_present = false;
                 iCub->opc->commit(agent);
             }
@@ -406,7 +406,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < objectList->size(); d++)
             {
                 std::string name = objectList->get(d).asString().c_str();
-                wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveObject(name);
+                wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveEntity<wysiwyd::wrdac::Object>(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -418,7 +418,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < rtobjectList->size(); d++)
             {
                 std::string name = rtobjectList->get(d).asString().c_str();
-                wysiwyd::wrdac::RTObject* o = iCub->opc->addOrRetrieveRTObject(name);
+                wysiwyd::wrdac::RTObject* o = iCub->opc->addOrRetrieveEntity<wysiwyd::wrdac::RTObject>(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -430,7 +430,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < adjectiveList->size(); d++)
             {
                 std::string name = adjectiveList->get(d).asString().c_str();
-                iCub->opc->addOrRetrieveAdjective(name);
+                iCub->opc->addOrRetrieveEntity<Adjective>(name);
             }
         }
 
@@ -440,7 +440,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             for (int d = 0; d < actionList->size(); d++)
             {
                 std::string name = actionList->get(d).asString().c_str();
-                iCub->opc->addOrRetrieveAction(name);
+                iCub->opc->addOrRetrieveEntity<Action>(name);
             }
         }
 

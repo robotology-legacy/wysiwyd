@@ -1346,7 +1346,7 @@ Bottle abmReasoning::imagineOPC(int Id)
     mentalOPC->checkout();
 
     // ADD Agent iCub
-    Agent *icub = mentalOPC->addOrRetrieveAgent("icub");
+    Agent *icub = mentalOPC->addOrRetrieveEntity<Agent>("icub");
     icub->m_present = true;
     mentalOPC->commit(icub);
 

@@ -769,7 +769,7 @@ Bottle abmReasoning::findAllActions(int from)
             if (bDreaming && mentalOPC->isConnected())
             {
                 string  sObject = "dream...";
-                RTObject* LOCATION = mentalOPC->addOrRetrieveRTObject(sObject);
+                RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
                 LOCATION->m_ego_position[0] = BEGIN.first;
                 LOCATION->m_ego_position[1] = BEGIN.second;
                 LOCATION->m_ego_position[2] = 0.01;
@@ -832,7 +832,7 @@ Bottle abmReasoning::findAllActions(int from)
             if (bDreaming && mentalOPC->isConnected())
             {
                 string  sObject = "dream...";
-                RTObject* LOCATION = mentalOPC->addOrRetrieveRTObject(sObject);
+                RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
                 LOCATION->m_ego_position[0] = END.first;
                 LOCATION->m_ego_position[1] = END.second;
                 LOCATION->m_ego_position[2] = 0.01;
@@ -847,7 +847,7 @@ Bottle abmReasoning::findAllActions(int from)
     if (bDreaming && mentalOPC->isConnected())
     {
         string  sObject = "dream...";
-        RTObject* LOCATION = mentalOPC->addOrRetrieveRTObject(sObject);
+        RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
         LOCATION->m_present = 0;
         mentalOPC->commit();
     }
@@ -943,7 +943,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
                 if (bDreaming && mentalOPC->isConnected())
                 {
                     string  sObject = "dream...";
-                    RTObject* LOCATION = mentalOPC->addOrRetrieveRTObject(sObject);
+                    RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
                     LOCATION->m_ego_position[0] = BEGIN.first;
                     LOCATION->m_ego_position[1] = BEGIN.second;
                     LOCATION->m_ego_position[2] = 0.01;
@@ -981,7 +981,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
                 if (bDreaming && mentalOPC->isConnected())
                 {
                     string  sObject = "dream...";
-                    RTObject* LOCATION = mentalOPC->addOrRetrieveRTObject(sObject);
+                    RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
                     LOCATION->m_ego_position[0] = END.first;
                     LOCATION->m_ego_position[1] = END.second;
                     LOCATION->m_ego_position[2] = 0.01;
@@ -997,7 +997,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
     if (bDreaming && mentalOPC->isConnected())
     {
         string  sObject = "dream...";
-        RTObject* LOCATION = mentalOPC->addOrRetrieveRTObject(sObject);
+        RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
         LOCATION->m_present = 0;
         mentalOPC->commit();
     }

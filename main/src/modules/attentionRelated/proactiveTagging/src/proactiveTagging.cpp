@@ -136,7 +136,7 @@ void proactiveTagging::checkRelations()
 
             cout << "relation is now: " << itRel->toString() << endl;
             itRel->m_complement_manner = sManner;
-            iCub->opc->addAdjective(sManner);
+            iCub->opc->addEntity<Adjective>(sManner);
             iCub->opc->addRelation(*itRel);
             iCub->opc->commit();
         }

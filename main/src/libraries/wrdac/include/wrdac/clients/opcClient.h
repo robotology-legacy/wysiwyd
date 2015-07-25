@@ -51,8 +51,13 @@ private:
 public: 
     bool                    isVerbose;
 
+    /**
+    * Creates a new entity. If an Entity with the provided name is already existing,
+    * a new Entity with an appended number is returned.
+    * It is a template method, so all subclasses of Entity can be created like this
+    */
     template <class T>
-    Entity* addEntity(const std::string &name) {
+    T* addEntity(const std::string &name) {
         std::string name_appended = name;
         int appendix = 0;
         Entity *e = getEntity(name, true);
@@ -72,8 +77,14 @@ public:
         return o;
     }
 
+    /**
+    * Obtains an entity with the given name.
+    * If this name is already present, then the existing entity is returned,
+    * otherwise a new one is created.
+    * It is a template method, so all subclasses of Entity can be created like this
+    */
     template <class T>
-    Entity* addOrRetrieveEntity(const std::string &name)
+    T* addOrRetrieveEntity(const std::string &name)
     {
         Entity *e = getEntity(name,true);
         if ( e != NULL)
@@ -84,7 +95,7 @@ public:
         }
 
         //Else we create it in the OPC.
-        T *o = new T();
+        T* o = new T();
         o->m_name = name;
         addEntity(o);
         return o;
@@ -126,56 +137,6 @@ public:
     * Clear the OPC content.
     */
     void clear();
-
-    /**
-    * Obtains an object with the given name. If this name is already present then the existing object is returned, else a new one is created.
-    */
-    Object          *addOrRetrieveObject(const std::string &name);
-
-    /**
-    * Creates a new object. If an Object with the provided name is already existing, a new Object with an appended number is returned.
-    */
-    Object          *addObject(const std::string &name);
-
-    /**
-    * Obtains an agent with the given name. If this name is already present then the existing agent is returned, else a new one is created.
-    */
-    Agent           *addOrRetrieveAgent(const std::string &name);
-
-    /**
-    * Creates a new agent. If an Agent with the provided name is already existing, a new Agent with an appended number is returned.
-    */
-    Agent           *addAgent(const std::string &name);
-
-    /**
-    * Obtains an action with the given name. If this name is already present then the existing action is returned, else a new one is created.
-    */
-    Action           *addOrRetrieveAction(const std::string &name);
-
-    /**
-    * Creates a new action. If an Action with the provided name is already existing, a new Action with an appended number is returned.
-    */
-    Action           *addAction(const std::string &name);
-
-    /**
-    * Obtains a reactable object with the given name. If this name is already present then the existing object is returned, else a new one is created.
-    */
-    RTObject        *addOrRetrieveRTObject(const std::string &name);
-
-    /**
-    * Creates a new RTObject. If an RTObject with the provided name is already existing, a new RTObject with an appended number is returned.
-    */
-    RTObject       *addRTObject(const std::string &name);
-
-    /**
-    * Obtains an adjective with the given name. If this name is already present then the existing adjective is returned, else a new one is created.
-    */
-    Adjective       *addOrRetrieveAdjective(const std::string &name);
-
-    /**
-    * Creates a new adjective. If an adjective with the provided name is already existing, a new adjective with an appended number is returned.
-    */
-    Adjective       *addAdjective(const std::string &name);
 
     /**
     * Try to assign a property from an entity to another entity, using a specific property name

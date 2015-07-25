@@ -93,33 +93,33 @@ bool OpcInspector::respond(const yarp::os::Bottle& command, yarp::os::Bottle& re
             if(opc->getEntity(subject) == NULL)
             {
                 reply.addString("Warning: " + subject + "not present in OPC. Created as an adjective");
-                opc->addAdjective(subject);
+                opc->addEntity<Adjective>(subject);
             }
             if(opc->getEntity(verb) == NULL)
             {
                 reply.addString("Warning: " + verb + "not present in OPC. Created as an action");
-                opc->addAction(verb);
+                opc->addEntity<Action>(verb);
             }
             if(opc->getEntity(object) == NULL)
             {
                 reply.addString("Warning: " + object + "not present in OPC. Created as an adjective");
-                opc->addAdjective(object);
+                opc->addEntity<Adjective>(object);
             }
 
             if(ccplace!= "none" && opc->getEntity(ccplace) == NULL)
             {
                 reply.addString("Warning: " + ccplace + "not present in OPC. Created as an adjective");
-                opc->addAdjective(ccplace);
+                opc->addEntity<Adjective>(ccplace);
             }
             if(cctime!= "none" && opc->getEntity(cctime) == NULL)
             {
                 reply.addString("Warning: " + cctime + "not present in OPC. Created as an adjective");
-                opc->addAdjective(cctime);
+                opc->addEntity<Adjective>(cctime);
             }
             if(ccmanner!= "none" && opc->getEntity(ccmanner) == NULL)
             {
                 reply.addString("Warning: " + ccmanner + "not present in OPC. Created as an adjective");
-                opc->addAdjective(ccmanner);
+                opc->addEntity<Adjective>(ccmanner);
             }
             Relation r(subject,verb,object,ccplace,cctime,ccmanner);
             opc->addRelation(r);
@@ -143,33 +143,33 @@ bool OpcInspector::respond(const yarp::os::Bottle& command, yarp::os::Bottle& re
             if(opc->getEntity(subject) == NULL)
             {
                 reply.addString("Warning: " + subject + "not present in OPC. Created as an adjective");
-                opc->addAdjective(subject);
+                opc->addEntity<Adjective>(subject);
             }
             if(opc->getEntity(verb) == NULL)
             {
                 reply.addString("Warning: " + verb + "not present in OPC. Created as an action");
-                opc->addAction(verb);
+                opc->addEntity<Action>(verb);
             }
             if(opc->getEntity(object) == NULL)
             {
                 reply.addString("Warning: " + object + "not present in OPC. Created as an adjective");
-                opc->addAdjective(object);
+                opc->addEntity<Adjective>(object);
             }
 
             if(ccplace!= "none" && opc->getEntity(ccplace) == NULL)
             {
                 reply.addString("Warning: " + ccplace + "not present in OPC. Created as an adjective");
-                opc->addAdjective(ccplace);
+                opc->addEntity<Adjective>(ccplace);
             }
             if(cctime!= "none" && opc->getEntity(cctime) == NULL)
             {
                 reply.addString("Warning: " + cctime + "not present in OPC. Created as an adjective");
-                opc->addAdjective(cctime);
+                opc->addEntity<Adjective>(cctime);
             }
             if(ccmanner!= "none" && opc->getEntity(ccmanner) == NULL)
             {
                 reply.addString("Warning: " + ccmanner + "not present in OPC. Created as an adjective");
-                opc->addAdjective(ccmanner);
+                opc->addEntity<Adjective>(ccmanner);
             }
 
             Relation r(subject,verb,object,ccplace,cctime,ccmanner);
@@ -194,33 +194,33 @@ bool OpcInspector::respond(const yarp::os::Bottle& command, yarp::os::Bottle& re
             if(opc->getEntity(subject) == NULL)
             {
                 reply.addString("Warning: " + subject + "not present in OPC. Created as an adjective");
-                opc->addAdjective(subject);
+                opc->addEntity<Adjective>(subject);
             }
             if(opc->getEntity(verb) == NULL)
             {
                 reply.addString("Warning: " + verb + "not present in OPC. Created as an action");
-                opc->addAction(verb);
+                opc->addEntity<Action>(verb);
             }
             if(opc->getEntity(object) == NULL)
             {
                 reply.addString("Warning: " + object + "not present in OPC. Created as an adjective");
-                opc->addAdjective(object);
+                opc->addEntity<Adjective>(object);
             }
 
             if(ccplace!= "any" && opc->getEntity(ccplace) == NULL)
             {
                 reply.addString("Warning: " + ccplace + "not present in OPC. Created as an adjective");
-                opc->addAdjective(ccplace);
+                opc->addEntity<Adjective>(ccplace);
             }
             if(cctime!= "any" && opc->getEntity(cctime) == NULL)
             {
                 reply.addString("Warning: " + cctime + "not present in OPC. Created as an adjective");
-                opc->addAdjective(cctime);
+                opc->addEntity<Adjective>(cctime);
             }
             if(ccmanner!= "any" && opc->getEntity(ccmanner) == NULL)
             {
                 reply.addString("Warning: " + ccmanner + "not present in OPC. Created as an adjective");
-                opc->addAdjective(ccmanner);
+                opc->addEntity<Adjective>(ccmanner);
             }
 
             Relation r(subject,verb,object,ccplace,cctime,ccmanner);
@@ -239,7 +239,7 @@ bool OpcInspector::respond(const yarp::os::Bottle& command, yarp::os::Bottle& re
         if( objPtr == NULL)
         {
             reply.addString("Warning: " + objectName + "not present in OPC. Created as a generic object");
-            objPtr = opc->addObject(objectName);
+            objPtr = opc->addEntity<Object>(objectName);
         }
         if( key2 == "display")
         {

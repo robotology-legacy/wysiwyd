@@ -42,7 +42,7 @@ bool InterpersonalDistanceRegulator::updateModule()
 
     if (!isPaused)
     {
-        partner = opc->addOrRetrieveAgent("partner");
+        partner = opc->addOrRetrieveEntity<Agent>("partner");
 
         if (partner->m_present)
         {

@@ -99,15 +99,15 @@ bool AwareTouch::configure(ResourceFinder &rf)
         gestureStr=(gestureTypes->get(iGesture).asString().c_str() );
         gestureSet.push_back(gestureStr);
         cout<<gestureStr<<endl;
-        world->addOrRetrieveAdjective(gestureStr);
+        world->addOrRetrieveEntity<Adjective>(gestureStr);
     }
 
-    world->addOrRetrieveAgent("icub");
-    touchLocation = world->addOrRetrieveObject("touchLocation");
+    world->addOrRetrieveEntity<Agent>("icub");
+    touchLocation = world->addOrRetrieveEntity<Object>("touchLocation");
     touchLocation->m_present = false;
     world->commit(touchLocation);
-    world->addOrRetrieveAction("is");
-    world->addOrRetrieveAdjective("none");
+    world->addOrRetrieveEntity<Action>("is");
+    world->addOrRetrieveEntity<Adjective>("none");
 
     // holding time in OPC
     recordingPeriod=rf.check("recordingPeriod",Value(3.0)).asDouble();                    //type of robot   
