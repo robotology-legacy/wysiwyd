@@ -68,20 +68,25 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
     freq2 = babbl_par.check("freq2", Value(0.5)).asDouble();
     freq3 = babbl_par.check("freq3", Value(0.2)).asDouble();
     freq4 = babbl_par.check("freq4", Value(0.1)).asDouble();
-    amp0 = babbl_par.check("amp0", Value(6)).asDouble();
-    amp1 = babbl_par.check("amp1", Value(4)).asDouble();
-    amp2 = babbl_par.check("amp2", Value(7)).asDouble();
-    amp3 = babbl_par.check("amp3", Value(6)).asDouble();
-    amp4 = babbl_par.check("amp4", Value(12)).asDouble();
-    amp8 = babbl_par.check("amp8", Value(-40)).asDouble();
-    amp9 = babbl_par.check("amp9", Value(-40)).asDouble();
-    amp11 = babbl_par.check("amp11", Value(-20)).asDouble();
-    amp12 = babbl_par.check("amp12", Value(-20)).asDouble();
-    amp13 = babbl_par.check("amp13", Value(-20)).asDouble();
-    amp14 = babbl_par.check("amp14", Value(-20)).asDouble();
-    amp15 = babbl_par.check("amp15", Value(-20)).asDouble();
+    cos_freq = babbl_par.check("cos_freq", Value(0.2)).asDouble();
+    amp[0] = babbl_par.check("amp0", Value(6)).asDouble();
+    amp[1] = babbl_par.check("amp1", Value(4)).asDouble();
+    amp[2] = babbl_par.check("amp2", Value(7)).asDouble();
+    amp[3] = babbl_par.check("amp3", Value(6)).asDouble();
+    amp[4] = babbl_par.check("amp4", Value(12)).asDouble();
+    amp[5] = babbl_par.check("amp5", Value(0)).asDouble();
+    amp[6] = babbl_par.check("amp6", Value(0)).asDouble();
+    amp[7] = babbl_par.check("amp7", Value(0)).asDouble();
+    amp[8] = babbl_par.check("amp8", Value(-40)).asDouble();
+    amp[9] = babbl_par.check("amp9", Value(-40)).asDouble();
+    amp[10] = babbl_par.check("amp10", Value(0)).asDouble();
+    amp[11] = babbl_par.check("amp11", Value(-20)).asDouble();
+    amp[12] = babbl_par.check("amp12", Value(-20)).asDouble();
+    amp[13] = babbl_par.check("amp13", Value(-20)).asDouble();
+    amp[14] = babbl_par.check("amp14", Value(-20)).asDouble();
+    amp[15] = babbl_par.check("amp15", Value(-20)).asDouble();
     ampcos2 = babbl_par.check("ampcos2", Value(0.0)).asDouble();
-    train_duration = babbl_par.check("train_duration", Value(10.0)).asDouble();
+    train_duration = babbl_par.check("train_duration", Value(20.0)).asDouble();
     test_duration = babbl_par.check("test_duration", Value(5.0)).asDouble();
 
     Bottle &oesgp_par = rf.findGroup("oesgp_learner");
@@ -713,14 +718,14 @@ yarp::sig::Vector bodySchema::babblingHandExecution(double &t)
         for (unsigned int l=0; l<command.size(); l++) {
             command[l]=0;
         }
-        command[6]=amp4*cos(w3 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);
-        command[8]=amp8*cos(w1 * 2 * M_PI);//-40*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[9]=amp9*cos(w1 * 2 * M_PI);//-40*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[11]=amp11*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[13]=amp13*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[15]=amp15*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[12]=amp12*cos(w2 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[14]=amp14*cos(w2 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
+        command[6]=amp[6]*cos(w3 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);
+        command[8]=amp[8]*cos(w1 * 2 * M_PI);//-40*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
+        command[9]=amp[9]*cos(w1 * 2 * M_PI);//-40*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
+        command[11]=amp[11]*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
+        command[13]=amp[13]*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
+        command[15]=amp[15]*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
+        command[12]=amp[12]*cos(w2 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
+        command[14]=amp[14]*cos(w2 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
 
         //cout << "Sending bottle" << endl;
         Bottle& inDataB = portVelocityOut.prepare(); // Get the object
@@ -1137,6 +1142,11 @@ bool bodySchema::init_iCub(string &part)
 
 bool bodySchema::singleJointBabbling(int j_idx)
 {
+    bool createfolders = create_folders();
+    if(!createfolders) {
+        cout << "Error creating folders" << endl;
+    }
+
     // First go to home position
     bool homeStart = goStartPos();
     if(!homeStart) {
@@ -1177,7 +1187,7 @@ bool bodySchema::singleJointBabbling(int j_idx)
         for (unsigned int l=0; l<command.size(); l++) {
             command[l]=0;
         }
-        command[j_idx]=10*cos(0.1*t * 2 * M_PI);
+        command[j_idx]=amp[j_idx]*cos(cos_freq*t * 2 * M_PI);
         vel->velocityMove(command.data());
 
         bool babImg = getBabblingImages();
