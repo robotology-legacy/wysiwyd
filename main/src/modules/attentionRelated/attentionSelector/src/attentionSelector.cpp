@@ -232,7 +232,7 @@ bool attentionSelectorModule::updateModule() {
     }
 
     if (icub == NULL)
-        icub = opc->addOrRetrieveAgent("icub");
+        icub = opc->addOrRetrieveEntity<Agent>("icub");
 
     if (presentObjects.size() <= 0)
     {

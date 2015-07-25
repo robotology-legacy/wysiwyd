@@ -191,7 +191,7 @@ bool reservoirHandler::testARE(){
 bool reservoirHandler::populateOPC(){
     iCub->opc->update();
     iCub->opc->commit();
-    RTObject* obj1 = iCub->opc->addOrRetrieveRTObject("cube");
+    RTObject* obj1 = iCub->opc->addOrRetrieveEntity<RTObject>("cube");
 
     Vector dimensionObject(3);
     dimensionObject[0]=0.065;
@@ -217,7 +217,7 @@ bool reservoirHandler::populateOPC(){
     color[0]=0;
     color[1]=100;
     color[2]=200;
-    RTObject* obj2 = iCub->opc->addOrRetrieveRTObject("mouse");
+    RTObject* obj2 = iCub->opc->addOrRetrieveEntity<RTObject>("mouse");
     x[0]=-0.45;  //y position
     x[1]=0.0;    //x position
     x[2]=0.0016; //z position
@@ -230,7 +230,7 @@ bool reservoirHandler::populateOPC(){
     color[0]=70;
     color[1]=200;
     color[2]=80;
-    RTObject* obj3 = iCub->opc->addOrRetrieveRTObject("croco");
+    RTObject* obj3 = iCub->opc->addOrRetrieveEntity<RTObject>("croco");
     x[0]=-0.35;
     x[1]=-0.2;
     x[2]=0.0016;
@@ -240,7 +240,7 @@ bool reservoirHandler::populateOPC(){
     obj3->m_dimensions = dimensionObject;
     obj3->m_color = color;
 
-    Agent* coco = iCub->opc->addOrRetrieveAgent("Michel");
+    Agent* coco = iCub->opc->addOrRetrieveEntity<Agent>("Michel");
     coco->m_ego_position[0] = -1.2;
     coco->m_ego_position[2] = 0.60;
     coco->m_present = 1;
@@ -1206,7 +1206,7 @@ bool reservoirHandler::AREactions(vector<string> seq)
     // GET LOCATION OF THE OBJECT IN THE OPC + OFFSET IN Z
     iCub->opc->update();
     RTObject *rtObject = dynamic_cast<RTObject*>(iCub->opc->getEntity(sObject));
-    //Object *rtObject = iCub->opc->addObject(sObject);
+    //Object *rtObject = iCub->opc->addEntity<Object>(sObject);
     Vector value(4);
     value = rtObject->m_ego_position;
     value[2] += offsetGrasp;

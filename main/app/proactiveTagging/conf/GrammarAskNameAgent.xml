@@ -1,0 +1,31 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+    <ID  NAME="agent"  VAL="1"/>
+  </DEFINE>
+
+
+  <RULE  NAME="SENTENCE1"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <O>
+		<L>
+			<P>I am</P>
+			<P>my name is</P>
+		</L>
+	</O>
+    <RULEREF  NAME="agent"/>
+   </RULE>
+
+
+  <RULE NAME="agent" DYNAMIC="TRUE">
+    <L>
+      <P>I</P>
+      <P>Icub</P>
+      <P>You</P>
+      <P>Carol</P>
+      <P>Greg</P>
+    </L>
+  </RULE>
+
+</GRAMMAR>

@@ -174,7 +174,7 @@ bool opcManager::populate()
     realOPC->checkout();
 
     //Initialise our entities (retrieved from opc or created and added to the opc)
-    Agent* icub = realOPC->addOrRetrieveAgent("iCub");
+    Agent* icub = realOPC->addOrRetrieveEntity<Agent>("iCub");
 
     Drive icub_energy_drive("energy", 1.0, 0.2, 1.0);
     Drive icub_fun_drive("fun", 0.5, 0.7, 1.0);
@@ -299,10 +299,10 @@ Bottle opcManager::updateBelief(string sOPCname)
         list<Entity*> tmp = realOPC->Entities(conditionRTO);
         PresentEntities.splice(PresentEntities.end(), tmp);
         listRelations = realOPC->getRelations();
-        present = realOPC->addOrRetrieveAdjective("isPresent");
+        present = realOPC->addOrRetrieveEntity<Adjective>("isPresent");
         present->m_quality = "presence";
-        is = realOPC->addOrRetrieveAction("is");
-        isDoing = realOPC->addOrRetrieveAction("isDoing");
+        is = realOPC->addOrRetrieveEntity<Action>("is");
+        isDoing = realOPC->addOrRetrieveEntity<Action>("isDoing");
     }
     else
     {
@@ -310,10 +310,10 @@ Bottle opcManager::updateBelief(string sOPCname)
         list<Entity*> tmp = mentalOPC->Entities(conditionRTO);
         PresentEntities.splice(PresentEntities.end(), tmp);
         listRelations = mentalOPC->getRelations();
-        present = mentalOPC->addOrRetrieveAdjective("isPresent");
+        present = mentalOPC->addOrRetrieveEntity<Adjective>("isPresent");
         present->m_quality = "presence";
-        is = mentalOPC->addOrRetrieveAction("is");
-        isDoing = mentalOPC->addOrRetrieveAction("isDoing");
+        is = mentalOPC->addOrRetrieveEntity<Action>("is");
+        isDoing = mentalOPC->addOrRetrieveEntity<Action>("isDoing");
     }
 
     for (list<Entity*>::iterator it_E = PresentEntities.begin(); it_E != PresentEntities.end(); it_E++)
@@ -553,7 +553,7 @@ Bottle opcManager::simulateAction(Bottle bAction)
 
     mentalOPC->update();
 
-    RTObject *OBJECT = mentalOPC->addOrRetrieveRTObject(sObject);
+    RTObject *OBJECT = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
 
     if (fAbsolut)   {
         OBJECT->m_ego_position[0] = pMove.first;

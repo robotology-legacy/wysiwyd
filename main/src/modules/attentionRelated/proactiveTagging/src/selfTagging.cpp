@@ -16,3 +16,47 @@
 */
 
 #include "proactiveTagging.h"
+
+using namespace yarp::os;
+using namespace yarp::sig;
+using namespace wysiwyd::wrdac;
+using namespace std;
+
+/*
+* Send a rpc command to BodySchema to move a single joint
+* input: joint number to be moved + body part
+* ask through speech the name of an unknwon entity
+*/
+Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
+
+    Bottle bBodyPart, bSingleJoint, bOutput;
+
+    //TODO : bodySchema should be able to change bodyPart on the fly. Or provide the bodyPart activated to allow or not moving
+
+    //1. prepare first Bottle to change bodyPart
+    //bBodyPart.addString("XXX");
+    //bBodyPart.addString(sBodyPart);
+    //2. Send bodyPart
+    //portToBodySchema.write(bBodyPart, bOutput);
+
+    /*TODO : check reply
+    if(bOutput.get(0).asString() == "nack"){
+        return bOutput ;
+    }*/
+
+    bOutput.clear();
+
+    //3. prepare second Bottle to move the single joint
+    bSingleJoint.addString("singleJointBabbling");
+    bSingleJoint.addInt(joint);
+
+    //4. send single joint moving bottle
+    portToBodySchema.write(bSingleJoint, bOutput);
+    yDebug() << "Reply from bodySchema:" << bOutput.toString();
+
+    //bOutput == "nack" if something goes wrong, "ack" otherwise
+
+    return bOutput;
+
+}
+

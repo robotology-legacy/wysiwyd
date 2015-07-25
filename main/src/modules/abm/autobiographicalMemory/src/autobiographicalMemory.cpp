@@ -1346,7 +1346,7 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
             bReply = requestFromString(osAgent.str());
             vector<int> colorAgent = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-            Agent *TempAgent = opcWorld->addAgent(sName.c_str());
+            Agent *TempAgent = opcWorld->addEntity<Agent>(sName.c_str());
 
             TempAgent->m_color.clear();
             for (vector<int>::iterator it = colorAgent.begin(); it != colorAgent.end(); it++){
@@ -1381,7 +1381,7 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
             bReply = requestFromString(osRto.str());
             vector<int> colorRto = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-            RTObject *RTO = opcWorld->addRTObject(sName.c_str());
+            RTObject *RTO = opcWorld->addEntity<RTObject>(sName.c_str());
 
             //RTO->m_color[0] = get<0>(colorRto);
             //RTO->m_color[1] = get<1>(colorRto);
@@ -1419,7 +1419,7 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
                 bReply = requestFromString(osObject.str());
                 vector<int> colorObject = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-                Object *TempObj = opcWorld->addObject(sName.c_str());
+                Object *TempObj = opcWorld->addEntity<Object>(sName.c_str());
                 //TempObj->m_color[0] = get<0>(colorObject);
                 //TempObj->m_color[1] = get<1>(colorObject);
                 //TempObj->m_color[2] = get<2>(colorObject); 

@@ -587,7 +587,7 @@ bool qRM::nodeYesNo()
 bool qRM::populateOpc(){
     iCub->opc->update();
 
-    Agent* agent = iCub->opc->addOrRetrieveAgent("Carol");
+    Agent* agent = iCub->opc->addOrRetrieveEntity<Agent>("Carol");
     agent->m_ego_position[0] = -1.4;
     agent->m_ego_position[2] = 0.60;
     agent->m_present = 1;
@@ -1361,7 +1361,7 @@ Bottle qRM::executeAction(Bottle bInput)
                 }
                 else if (EntToGrasp->isType("object"))
                 {
-                    Object *toGrasp = iCub->opc->addObject(sObject);
+                    Object *toGrasp = iCub->opc->addEntity<Object>(sObject);
                     yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
                     iCub->getABMClient()->sendActivity("action",
                         sPredicate,

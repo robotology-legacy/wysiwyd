@@ -1439,7 +1439,7 @@ Bottle abmReasoning::updateKnownLocations()
 
                         if (realOPC->isConnected())
                         {
-                            Object* LOCATION = realOPC->addOrRetrieveObject(sLoc);
+                            Object* LOCATION = realOPC->addOrRetrieveEntity<Object>(sLoc);
                             LOCATION->m_ego_position[0] = vData.first;
                             LOCATION->m_ego_position[1] = vData.second;
                             LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1452,7 +1452,7 @@ Bottle abmReasoning::updateKnownLocations()
                             LOCATION->m_color[1] = colorG / 2;
                             LOCATION->m_color[2] = colorB / 2;
 
-                            Object* LOCATION_LARGE = realOPC->addOrRetrieveObject(large);
+                            Object* LOCATION_LARGE = realOPC->addOrRetrieveEntity<Object>(large);
                             LOCATION_LARGE->m_ego_position[0] = vData.first;
                             LOCATION_LARGE->m_ego_position[1] = vData.second;
                             LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1474,7 +1474,7 @@ Bottle abmReasoning::updateKnownLocations()
 
                         if (mentalOPC->isConnected())
                         {
-                            Object* LOCATION = mentalOPC->addOrRetrieveObject(sLoc);
+                            Object* LOCATION = mentalOPC->addOrRetrieveEntity<Object>(sLoc);
                             LOCATION->m_ego_position[0] = vData.first;
                             LOCATION->m_ego_position[1] = vData.second;
                             LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1487,7 +1487,7 @@ Bottle abmReasoning::updateKnownLocations()
                             LOCATION->m_color[1] = colorG / 2;
                             LOCATION->m_color[2] = colorB / 2;
 
-                            Object* LOCATION_LARGE = mentalOPC->addOrRetrieveObject(large);
+                            Object* LOCATION_LARGE = mentalOPC->addOrRetrieveEntity<Object>(large);
                             LOCATION_LARGE->m_ego_position[0] = vData.first;
                             LOCATION_LARGE->m_ego_position[1] = vData.second;
                             LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1575,7 +1575,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
 
                 if (realOPC->isConnected())
                 {
-                    Object* LOCATION = realOPC->addOrRetrieveObject(sLoc);
+                    Object* LOCATION = realOPC->addOrRetrieveEntity<Object>(sLoc);
                     LOCATION->m_ego_position[0] = vData[0];
                     LOCATION->m_ego_position[1] = vData[1];
                     LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1588,7 +1588,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION->m_color[1] = colorG / 2;
                     LOCATION->m_color[2] = colorB / 2;
 
-                    Object* LOCATION_LARGE = realOPC->addOrRetrieveObject(large);
+                    Object* LOCATION_LARGE = realOPC->addOrRetrieveEntity<Object>(large);
                     LOCATION_LARGE->m_ego_position[0] = vData[0];
                     LOCATION_LARGE->m_ego_position[1] = vData[1];
                     LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1609,7 +1609,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
 
                 if (mentalOPC->isConnected())
                 {
-                    Object* LOCATION = mentalOPC->addOrRetrieveObject(sLoc);
+                    Object* LOCATION = mentalOPC->addOrRetrieveEntity<Object>(sLoc);
                     LOCATION->m_ego_position[0] = vData[0];
                     LOCATION->m_ego_position[1] = vData[1];
                     LOCATION->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1622,7 +1622,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION->m_color[1] = abmReasoningFunction::color_loc_G / 2;
                     LOCATION->m_color[2] = abmReasoningFunction::color_loc_B / 2;
 
-                    Object* LOCATION_LARGE = mentalOPC->addOrRetrieveObject(large);
+                    Object* LOCATION_LARGE = mentalOPC->addOrRetrieveEntity<Object>(large);
                     LOCATION_LARGE->m_ego_position[0] = vData[0];
                     LOCATION_LARGE->m_ego_position[1] = vData[1];
                     LOCATION_LARGE->m_ego_position[2] = abmReasoningFunction::height_location;
@@ -1677,19 +1677,19 @@ Bottle abmReasoning::DeleteKnownLocations()
 
                 if (realOPC->isConnected())
                 {
-                    Object* LOCATION = realOPC->addOrRetrieveObject(sLoc);
+                    Object* LOCATION = realOPC->addOrRetrieveEntity<Object>(sLoc);
                     LOCATION->m_present = 0;
 
-                    Object* LOCATION_LARGE = realOPC->addOrRetrieveObject(large);
+                    Object* LOCATION_LARGE = realOPC->addOrRetrieveEntity<Object>(large);
                     LOCATION_LARGE->m_present = 0;
                 }
 
                 if (mentalOPC->isConnected())
                 {
-                    Object* LOCATION = mentalOPC->addOrRetrieveObject(sLoc);
+                    Object* LOCATION = mentalOPC->addOrRetrieveEntity<Object>(sLoc);
                     LOCATION->m_present = 0;
 
-                    Object* LOCATION_LARGE = mentalOPC->addOrRetrieveObject(large);
+                    Object* LOCATION_LARGE = mentalOPC->addOrRetrieveEntity<Object>(large);
                     LOCATION_LARGE->m_present = 0;
                 }
             }
@@ -1793,9 +1793,9 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
         //            {
         //                RTObject *RTOTemp;
         //                if (!bReal)
-        //                    RTOTemp = (mentalOPC->addRTObject((*it_E)->name()));
+        //                    RTOTemp = (mentalOPC->addEntity<RTObject>((*it_E)->name()));
         //                else
-        //                    RTOTemp = (realOPC->addRTObject((*it_E)->name()));
+        //                    RTOTemp = (realOPC->addEntity<RTObject>((*it_E)->name()));
 
         //                pObjDep = pair<double, double>(RTOTemp->m_ego_position[0], RTOTemp->m_ego_position[1]);
 
@@ -1805,9 +1805,9 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
         //            {
         //                Object *OTemp;
         //                if (!bReal)
-        //                    OTemp = (mentalOPC->addObject((*it_E)->name()));
+        //                    OTemp = (mentalOPC->addEntity<Object>((*it_E)->name()));
         //                else
-        //                    OTemp = (realOPC->addObject((*it_E)->name()));
+        //                    OTemp = (realOPC->addEntity<Object>((*it_E)->name()));
 
         //                pObjDep = pair<double, double>(OTemp->m_ego_position[0], OTemp->m_ego_position[1]);
 
@@ -1817,9 +1817,9 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
         //            {
         //                Agent *ATemp;
         //                if (!bReal)
-        //                    ATemp = (mentalOPC->addAgent((*it_E)->name()));
+        //                    ATemp = (mentalOPC->addEntity<Agent>((*it_E)->name()));
         //                else
-        //                    ATemp = (realOPC->addAgent((*it_E)->name()));
+        //                    ATemp = (realOPC->addEntity<Agent>((*it_E)->name()));
 
         //                pObjDep = pair<double, double>(ATemp->m_ego_position[0], ATemp->m_ego_position[1]);
 
@@ -1864,18 +1864,18 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                 Adjective* presence;
                 if (bReal)
                 {
-                    presence = realOPC->addOrRetrieveAdjective(itMAP->first.c_str());
+                    presence = realOPC->addOrRetrieveEntity<Adjective>(itMAP->first.c_str());
                     presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
-                    Action* is = realOPC->addOrRetrieveAction(abmReasoningFunction::TAG_IS_AT_LOC);
+                    Action* is = realOPC->addOrRetrieveEntity<Action>(abmReasoningFunction::TAG_IS_AT_LOC);
                     realOPC->commit();
                     realOPC->addRelation(*it_E, is, presence, 2 * abmReasoningFunction::LIFETIME_RELATION);
                 }
                 else
                 {
 
-                    presence = mentalOPC->addOrRetrieveAdjective(itMAP->first.c_str());
+                    presence = mentalOPC->addOrRetrieveEntity<Adjective>(itMAP->first.c_str());
                     presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
-                    Action* is = mentalOPC->addOrRetrieveAction(abmReasoningFunction::TAG_IS_AT_LOC);
+                    Action* is = mentalOPC->addOrRetrieveEntity<Action>(abmReasoningFunction::TAG_IS_AT_LOC);
                     mentalOPC->commit();
                     mentalOPC->addRelation(*it_E, is, presence, 2 * abmReasoningFunction::LIFETIME_RELATION);
                 }
@@ -1895,17 +1895,17 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
                     Adjective* presence;
                     if (bReal)
                     {
-                        presence = realOPC->addOrRetrieveAdjective(itMAP->first.c_str());
+                        presence = realOPC->addOrRetrieveEntity<Adjective>(itMAP->first.c_str());
                         presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
-                        Action* is = realOPC->addOrRetrieveAction(abmReasoningFunction::TAG_IS_AT_LOC);
+                        Action* is = realOPC->addOrRetrieveEntity<Action>(abmReasoningFunction::TAG_IS_AT_LOC);
                         realOPC->commit();
                         realOPC->addRelation(*it_E, is, presence, 2 * abmReasoningFunction::LIFETIME_RELATION);
                     }
                     else
                     {
-                        presence = mentalOPC->addOrRetrieveAdjective(itMAP->first.c_str());
+                        presence = mentalOPC->addOrRetrieveEntity<Adjective>(itMAP->first.c_str());
                         presence->m_quality = (abmReasoningFunction::TAG_LOCATION);
-                        Action* is = mentalOPC->addOrRetrieveAction(abmReasoningFunction::TAG_IS_AT_LOC);
+                        Action* is = mentalOPC->addOrRetrieveEntity<Action>(abmReasoningFunction::TAG_IS_AT_LOC);
                         mentalOPC->commit();
                         mentalOPC->addRelation(*it_E, is, presence, 2 * abmReasoningFunction::LIFETIME_RELATION);
                     }

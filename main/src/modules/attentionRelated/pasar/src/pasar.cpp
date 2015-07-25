@@ -72,7 +72,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
             return false;
     opc->checkout();
 
-    icub = opc->addOrRetrieveAgent("icub");
+    icub = opc->addOrRetrieveEntity<Agent>("icub");
 
     saliencyPortName = "/";
     saliencyPortName += getName() + "/saliency:i";

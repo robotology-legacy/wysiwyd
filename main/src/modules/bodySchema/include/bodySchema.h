@@ -117,9 +117,8 @@ private:
     string fileEncData;
     string fileCmdData;
 
-    double freq1, freq2, freq3, freq4, amp, ampcos2;
-    double amp0,amp1,amp2,amp3,amp4;
-    double amp8,amp9,amp11,amp12,amp13,amp14,amp15;
+    double freq1, freq2, freq3, freq4, cos_freq, ampcos2;
+    double amp[16];
     double train_duration;
     double test_duration;
 

@@ -96,7 +96,7 @@ void Reactable2OPC::loadObjectsDatabase(ResourceFinder& rf)
 		int id = cObject.find("id").asInt();
 		cout<<"Mapping ("<<id<<" , "<<oName<<")"<<endl;
 		idMap[id] = oName;
-				
+
 		//Store the offset of the marker locally
 		Bottle* bOffset = cObject.find("marker-offset").asList();
 		idOffsets[id].resize(3);
@@ -105,7 +105,7 @@ void Reactable2OPC::loadObjectsDatabase(ResourceFinder& rf)
 		idOffsets[id][2] = bOffset->get(2).asDouble();
 
 		//Push the object to OPC
-		RTObject* o = w->addRTObject(oName);
+		RTObject* o = w->addEntity<RTObject>(oName);
 		Bottle* bDim = cObject.find("dimensions").asList();
 		o->m_dimensions[0] = bDim->get(0).asDouble();
 		o->m_dimensions[1] = bDim->get(1).asDouble();
@@ -115,10 +115,10 @@ void Reactable2OPC::loadObjectsDatabase(ResourceFinder& rf)
 		o->m_color[0] = bColor->get(0).asDouble();
 		o->m_color[1] = bColor->get(1).asDouble();
 		o->m_color[2] = bColor->get(2).asDouble();
-		
+
 		o->m_present = false;
 		w->commit(o);
-		//cout<<o->toString()<<endl;		
+		//cout<<o->toString()<<endl;
 	}
 }
 
@@ -142,7 +142,7 @@ bool Reactable2OPC::checkCalibration(bool forceRefresh)
 		{
 			cout<<"Transformation matrix not retrieved"<<endl;
 			return false;
-		}		
+		}
 		else
 		{
 			Bottle* bMat = reply.get(1).asList();
@@ -174,7 +174,7 @@ bool Reactable2OPC::checkCalibration(bool forceRefresh)
 		{
 			cout<<"Inverse Transformation matrix not retrieved"<<endl;
 			return false;
-		}		
+		}
 		else
 		{
 			Bottle* bMat = reply.get(1).asList();
@@ -195,21 +195,21 @@ bool Reactable2OPC::checkCalibration(bool forceRefresh)
 
 void Reactable2OPC::addTuioObject(TuioObject *tobj) {
 
-    std::cout << "add obj " << tobj->getSymbolID() << " (" << tobj->getSessionID() << ") "<< tobj->getX() << " " << tobj->getY() << " " << tobj->getAngle() << std::endl;
-    	
+	std::cout << "add obj " << tobj->getSymbolID() << " (" << tobj->getSessionID() << ") "<< tobj->getX() << " " << tobj->getY() << " " << tobj->getAngle() << std::endl;
+
 	if (idMap.find(tobj->getSymbolID()) == idMap.end() )
 	{
 		cout<<"Unknown object with ID "<<tobj->getSymbolID()<<" added"<<endl;
 		return;
 	}
 
-	if (!w->isConnected())	
+	if (!w->isConnected())
 	{
 		cout<<"Not connected to OPC"<<endl;
 		return;
 	}
 
-	RTObject* o = w->addRTObject(idMap[tobj->getSymbolID()]);
+	RTObject* o = w->addEntity<RTObject>(idMap[tobj->getSymbolID()]);
 	//w->update(o);
 
 	Vector rtPosition(4);
@@ -242,7 +242,7 @@ void Reactable2OPC::addTuioObject(TuioObject *tobj) {
 }
 
 void Reactable2OPC::updateTuioObject(TuioObject *tobj) {
-addTuioObject(tobj);
+	addTuioObject(tobj);
 }
 
 void Reactable2OPC::removeTuioObject(TuioObject *tobj) {
@@ -267,15 +267,15 @@ void Reactable2OPC::removeTuioObject(TuioObject *tobj) {
 
 void Reactable2OPC::addTuioCursor(TuioCursor *tcur) {
     std::cout << "add cur " << tcur->getCursorID() << " (" <<  tcur->getSessionID() << ") " << tcur->getX() << " " << tcur->getY() << std::endl;
-	
-	if (!w->isConnected())	
+
+	if (!w->isConnected())
 	{
 		cout<<"Not connected to OPC"<<endl;
 		return;
 	}
 	ostringstream curName;
 	curName<<"cursor_"<<tcur->getCursorID();
-	RTObject* o = w->addRTObject(curName.str().c_str());
+	RTObject* o = w->addEntity<RTObject>(curName.str().c_str());
 	//w->update(o);
 
 	Vector rtPosition(4);
@@ -321,10 +321,10 @@ addTuioCursor(tcur);
 
 void Reactable2OPC::removeTuioCursor(TuioCursor *tcur) {
     std::cout << "rem cur " << tcur->getCursorID() << " (" <<  tcur->getSessionID() << ") "<< std::endl;
-    
+
    ostringstream curName;
    curName<<"cursor_"<<tcur->getCursorID();
-   RTObject* o = w->addRTObject(curName.str().c_str());
+   RTObject* o = w->addEntity<RTObject>(curName.str().c_str());
    o->m_present = false;
    w->commit(o);
 }

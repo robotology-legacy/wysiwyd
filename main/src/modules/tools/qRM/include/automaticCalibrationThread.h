@@ -44,7 +44,7 @@ public:
             cout<<"Connecting InterpersonalThread to RFH..."<<endl;
             Time::delay(1.0);
         }
-        cursor = opc->addOrRetrieveRTObject("cursor_0");
+        cursor = opc->addOrRetrieveEntity<RTObject>("cursor_0");
     }
 
     void threadRelease()

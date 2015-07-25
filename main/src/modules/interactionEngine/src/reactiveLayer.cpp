@@ -177,8 +177,8 @@ void ReactiveLayer::configureSalutation(yarp::os::ResourceFinder &rf)
 	}
 
     //Add the relevant Entities for handling salutation
-    iCub->opc->addOrRetrieveAction("is");
-    iCub->opc->addOrRetrieveAdjective("saluted");
+    iCub->opc->addOrRetrieveEntity<Action>("is");
+    iCub->opc->addOrRetrieveEntity<Adjective>("saluted");
 }
 
 void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
@@ -660,7 +660,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<agentList->size(); d++)
             {
                 string name = agentList->get(d).asString().c_str();
-                Agent* agent = iCub->opc->addOrRetrieveAgent(name);
+                Agent* agent = iCub->opc->addOrRetrieveEntity<Agent>(name);
                 agent->m_present = false;
                 iCub->opc->commit(agent);
             }
@@ -672,7 +672,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<objectList->size(); d++)
             {
                 string name = objectList->get(d).asString().c_str();
-                Object* o = iCub->opc->addOrRetrieveObject(name);
+                Object* o = iCub->opc->addOrRetrieveEntity<Object>(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -684,7 +684,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<rtobjectList->size(); d++)
             {
                 string name = rtobjectList->get(d).asString().c_str();
-                RTObject* o = iCub->opc->addOrRetrieveRTObject(name);
+                RTObject* o = iCub->opc->addOrRetrieveEntity<RTObject>(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -696,7 +696,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<adjectiveList->size(); d++)
             {
                 string name = adjectiveList->get(d).asString().c_str();
-                iCub->opc->addOrRetrieveAdjective(name);
+                iCub->opc->addOrRetrieveEntity<Adjective>(name);
             }
         }
 
@@ -706,7 +706,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<actionList->size(); d++)
             {
                 string name = actionList->get(d).asString().c_str();
-                iCub->opc->addOrRetrieveAction(name);
+                iCub->opc->addOrRetrieveEntity<Action>(name);
             }
         }
     }

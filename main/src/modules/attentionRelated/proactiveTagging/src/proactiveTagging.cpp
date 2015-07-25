@@ -30,6 +30,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
     GrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
     GrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
+    GrammarAskNameBodypart = rf.findFileByName(rf.check("GrammarAskNameBodypart", Value("GrammarAskNameSelf.xml")).toString());
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
@@ -49,16 +50,25 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     configureOPC(rf);
 
+    //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
+    //output port
+    portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str()) ;
+    string bodySchemaRpc = rf.check("bodySchemaRpc",Value("/bodySchema/rpc")).asString().c_str();
+
+    if (!Network::connect(portToBodySchema.getName().c_str(),bodySchemaRpc.c_str())) {
+        yWarning() << " BODY SCHEMA NOT CONNECTED : selfTagging will not work" ;
+    }
+
     if (!iCub->getRecogClient())
     {
-        cout << "WARNING SPEECH RECOGNIZER NOT CONNECTED" << endl;
+        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED" ;
     }
     if (!iCub->getABMClient())
     {
-        cout << "WARNING ABM NOT CONNECTED" << endl;
+       yWarning() << "WARNING ABM NOT CONNECTED" ;
     }
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -136,7 +146,7 @@ void proactiveTagging::checkRelations()
 
             cout << "relation is now: " << itRel->toString() << endl;
             itRel->m_complement_manner = sManner;
-            iCub->opc->addAdjective(sManner);
+            iCub->opc->addEntity<Adjective>(sManner);
             iCub->opc->addRelation(*itRel);
             iCub->opc->commit();
         }
@@ -217,8 +227,10 @@ Bottle proactiveTagging::recogName(string entityType)
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
     } else if (entityType == "object" || entityType == "rtobject"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
+    } else if (entityType == "bodypart"){
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameBodypart), 20);
     } else {
-        yError() << " error in proactiveTagging::askName | for " << entityType << " | Entity Type not managed" ;
+        yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed" ;
         bOutput.addString("error");
         bOutput.addString("Entity Type not managed");
         return bOutput;
@@ -245,10 +257,14 @@ Bottle proactiveTagging::recogName(string entityType)
 
     bSemantic = *bAnswer.get(1).asList();
     string sName;
-    if(entityType == "agent"){
+    if(entityType == "agent") {
         sName = bSemantic.check("agent", Value("unknown")).asString();
-    } else if (entityType == "object" || entityType == "rtobject"){
+    } else if(entityType == "object" || entityType == "rtobject") {
         sName = bSemantic.check("object", Value("unknown")).asString();
+    } else if(entityType == "bodypart") {
+        sName = bSemantic.check("fingerName", Value("unknown")).asString();
+    } else {
+        yError("recogName ERROR entitytype not known!");
     }
 
     bOutput.addString(sName);
@@ -279,12 +295,15 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     double timeDelay = 1.;
 
 
-    //Ask question for the human
+    //Ask question for the human, or ask to pay attention (if action to focus attention after)
     string sQuestion ;
     if (currentEntityType == "agent") {
         sQuestion = " Hello, I don't know you. Who are you ?";
     } else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         sQuestion = " Hum, what is this object ?" ;
+    } else if (currentEntityType == "bodypart") {
+        sQuestion = " Watch please, I will move a part of my body" ;
+        yInfo() << " sQuestion: " << sQuestion;
     } else {
         yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed" ;
         bOutput.addString("error");
@@ -296,6 +315,29 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     yInfo() << sQuestion;
     //iCub->getSpeechClient()->TTS(sQuestion, false);
     iCub->say(sQuestion);
+
+    //Act to determine the entity to be named, according to entityType (e.g. bodypart is sending a command to move the joint, ...)
+    if(currentEntityType == "bodypart") {
+        Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
+        yInfo() << "Cast okay";
+        int joint = BPtemp->m_joint_number;
+        string sBodyPartType = BPtemp->m_part;
+        //send rpc command to bodySchema to move the corresponding part
+        yInfo() << "Start bodySchema";
+        Bottle bReplyFromBodySchema = moveJoint(joint, sBodyPartType);
+
+        if(bReplyFromBodySchema.get(0).asString() == "nack"){
+            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved" ;
+            bOutput.addString("error");
+            bOutput.addString("Joint has not moved");
+            return bOutput;
+        }
+
+        sQuestion = " How do you call this part of my body?" ;
+        yInfo() << sQuestion;
+        //iCub->getSpeechClient()->TTS(sQuestion, false);
+        iCub->say(sQuestion);
+    }
 
     Bottle bName = recogName(currentEntityType) ;
     string sName;
@@ -318,7 +360,9 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         sReply = " I get it, this is a " + sName;
     } else if (currentEntityType == "rtobject") {
         sReply = " So this is a " + sName;
-    } //go out before if not one of those entityType
+    } else if (currentEntityType == "bodypart") {
+        sReply = " Nice, I know that I have a " + sName;
+    }//go out before if not one of those entityType
 
     yInfo() << sReply;
     iCub->say(sReply);

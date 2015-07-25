@@ -592,7 +592,7 @@ void IOL2OPCBridge::updateOPC()
                     Vector x;
                     if (get3DPosition(cog,x))
                     {
-                        Object *obj=opc->addOrRetrieveObject(object);
+                        Object *obj=opc->addOrRetrieveEntity<Object>(object);
                         obj->m_ego_position=x;
                         obj->m_present=true;
                     }
