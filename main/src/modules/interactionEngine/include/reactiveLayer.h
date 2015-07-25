@@ -16,6 +16,7 @@ using namespace wysiwyd::wrdac;
 
 struct StimulusEmotionalResponse
 {
+    bool active;
     Port output_port;
     Bottle rpc_command;
     vector<string> m_sentences;
@@ -47,7 +48,7 @@ private:
 	//Drive triggers
 	bool physicalInteraction;
 	bool someonePresent;
-
+    bool confusion;
 	//Reflexes
 	map<string, StimulusEmotionalResponse> salutationEffects;
 	map<string, StimulusEmotionalResponse> tactileEffects;
