@@ -246,6 +246,23 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 			{
 				responseUnder.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
 			}
+            string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port").c_str(), Value("None")).asString();
+            
+            if (under_port_name != "None")
+                {
+                	responseUnder.active = true;
+                    string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
+                    responseUnder.output_port.open(out_port_name);
+                    cout << "trying to connect to " << under_port_name << endl;
+                    while(!Network::connect(out_port_name,under_port_name))
+                    {
+                        cout << "." << endl;
+                        yarp::os::Time::delay(0.5);
+                    }
+                }else{
+                	responseUnder.active = false;
+                }
+
 			homeostaticUnderEffects[driveName] = responseUnder;
 
 			//Over effects
@@ -260,6 +277,22 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 			{
 				responseOver.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
 			}
+            string over_port_name = grpAllostatic.check((driveName + "-over-behavior-port").c_str(), Value("None")).asString();
+            if (over_port_name != "None")
+            {
+            	responseOver.active=true;
+                string out_port_name = "/" + moduleName + "/" + driveName + "/over_action:o";
+                responseOver.output_port.open(out_port_name);
+                cout << "trying to connect to " << over_port_name << endl;
+                while(!Network::connect(out_port_name,over_port_name))
+                {
+                    cout << "." << endl;
+                    yarp::os::Time::delay(0.5);
+                }
+            }else{
+                	responseOver.active = false;
+                }
+
 			homeostaticOverEffects[driveName] = responseOver;
 		}
 	}
@@ -299,10 +332,69 @@ bool ReactiveLayer::updateModule()
 
 	handleSalutation(someonePresent);
 	physicalInteraction = handleTactile();
+	confusion = handleTagging();
 	updateAllostatic();
 	updateEmotions();
 	
     return true;
+}
+
+bool ReactiveLayer::handleTagging()
+{
+    iCub->opc->checkout();
+    list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+
+    int counter = 0;
+    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    {
+        string sName = (*itEnt)->name();
+        string sNameCut = sName;
+        string delimiter = "_";
+        size_t pos = 0;
+        string token;
+        while ((pos = sName.find(delimiter)) != string::npos) {
+            token = sName.substr(0, pos);
+            sName.erase(0, pos + delimiter.length());
+            sNameCut = token;
+        }
+        // check is label is known
+
+        if (sNameCut == "unknown") {
+            if ((*itEnt)->entity_type() == "object" )//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            {
+            	//If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
+            	Bottle* tag_word = &(homeostaticUnderEffects["tagging"].rpc_command);
+            	tag_word->clear();
+            	tag_word->addString("exploreUnkownObject");
+            	tag_word->addString((*itEnt)->entity_type());
+            	tag_word->addString((*itEnt)->name());
+            	return true;
+            	/*
+                Object* temp = dynamic_cast<Object*>(*itEnt);
+                if (temp->m_saliency > highestSaliency)
+                {
+                    if (secondSaliency != 0.0)
+                    {
+                        secondSaliency = highestSaliency;
+                    }
+                    highestSaliency = temp->m_saliency;
+                    sNameBestEntity = temp->name();
+                    sTypeBestEntity = temp->entity_type();
+                }
+                else
+                {
+                    if (temp->m_saliency > secondSaliency)
+                    {
+                        secondSaliency = temp->m_saliency;
+                    }
+                }
+                counter++;
+                */
+            }
+        }
+    }
+    //if no unknown object was found, return false
+    return counter > 0; 
 }
 
 bool ReactiveLayer::handleTactile()
@@ -421,7 +513,7 @@ bool ReactiveLayer::updateAllostatic()
 			cmd.addString("value");
 			cmd.addDouble(0.1);
 
-			rpc_ports[0]->write(cmd);
+			rpc_ports[1]->write(cmd);
 		}
 
 		
@@ -432,12 +524,33 @@ bool ReactiveLayer::updateAllostatic()
 			cmd.clear();
 			cmd.addString("par");
 			cmd.addString("socialInteraction");
-			cmd.addString("value");
-			cmd.addDouble(-0.2);
+			cmd.addString("decay");
+			cmd.addDouble(-0.002);
 
-			rpc_ports[1]->write(cmd);
+			rpc_ports[2]->write(cmd);
 		}
 	//iCub->icubAgent->m_drives["socialInteraction"].value += iCub->icubAgent->m_drives["socialInteraction"].decay * 2;
+
+	if (confusion)
+	{
+		Bottle cmd;
+		cmd.clear();
+		cmd.addString("par");
+		cmd.addString("socialInteraction");
+		cmd.addString("decay");
+		cmd.addDouble(0.02);
+
+		rpc_ports[0]->write(cmd);
+	}else{
+		Bottle cmd;
+		cmd.clear();
+		cmd.addString("par");
+		cmd.addString("socialInteraction");
+		cmd.addString("decay");
+		cmd.addDouble(0.0);
+
+		rpc_ports[0]->write(cmd);
+	}
 
 	//Trigger drive related sentences
 	for ( int i =0;i<drivesList->size();i++)
@@ -448,6 +561,11 @@ bool ReactiveLayer::updateAllostatic()
 		if (val>0)
 		{
 			iCub->say(homeostaticUnderEffects[drivesList->get(i).asString().c_str()].getRandomSentence());
+			if (homeostaticUnderEffects[drivesList->get(i).asString().c_str()].active)
+			{
+				homeostaticUnderEffects[drivesList->get(i).asString().c_str()].output_port.write(homeostaticUnderEffects[drivesList->get(i).asString().c_str()].rpc_command);
+				yarp::os::Time::delay(0.1);
+			}
 			Bottle cmd;
 			cmd.clear();
 			cmd.addString("delta");

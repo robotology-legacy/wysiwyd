@@ -16,6 +16,9 @@ using namespace wysiwyd::wrdac;
 
 struct StimulusEmotionalResponse
 {
+    bool active;
+    Port output_port;
+    Bottle rpc_command;
     vector<string> m_sentences;
     vector<string> m_choregraphies;
     map<string, double> m_emotionalEffect;
@@ -45,7 +48,7 @@ private:
 	//Drive triggers
 	bool physicalInteraction;
 	bool someonePresent;
-
+    bool confusion;
 	//Reflexes
 	map<string, StimulusEmotionalResponse> salutationEffects;
 	map<string, StimulusEmotionalResponse> tactileEffects;
@@ -86,6 +89,9 @@ public:
     }
 
     bool updateModule();
+
+    //Check for unknown tags in the opc
+    bool handleTagging();
 
 	//Check for newcomers and salute them if required
 	bool handleSalutation(bool& someoneIsPresent);
