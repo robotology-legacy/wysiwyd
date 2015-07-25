@@ -22,17 +22,22 @@ int ReactiveLayer::openPorts(string driveName,int d)
     outputM_ports[d] = new BufferedPort<Bottle>;
     
     string pn = portName + "/rpc:o";
+    string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
+    /*
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
     if (!rpc_ports[d]->open((pn).c_str())) 
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
-    string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
+    
 
     while(!Network::connect(targetPortName,portName))
-    	{cout<<"Setting up homeostatic connections..."<<endl;yarp::os::Time::delay(0.5);}
+    	{
+            cout<<"Setting up homeostatic connections... "<< targetPortName << " " << portName <<endl;
+            yarp::os::Time::delay(0.5);
+        }
 
-
+    */
     pn = portName + "/min:i";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
     if (!outputm_ports[d]->open((pn).c_str())) 
@@ -40,18 +45,20 @@ int ReactiveLayer::openPorts(string driveName,int d)
         cout << getName() << ": Unable to open port " << pn << endl;
     }
     targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
-
-    while(!Network::connect(targetPortName,portName))
-    {cout<<"Setting up homeostatic connections..."<<endl;yarp::os::Time::delay(0.5);}
+    yarp::os::Time::delay(0.1);
+    while(!Network::connect(targetPortName,pn))
+    {cout<<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;yarp::os::Time::delay(0.5);}
     pn = portName + "/max:i";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
+    yarp::os::Time::delay(0.1);
     if (!outputM_ports[d]->open((pn).c_str())) 
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
+    yarp::os::Time::delay(0.1);
     targetPortName = "/" + homeo_name + "/" + driveName + "/max:o";
-    while(!Network::connect(targetPortName,portName))
-    {cout<<"Setting up homeostatic connections..."<<endl;yarp::os::Time::delay(0.5);}
+    while(!Network::connect(targetPortName,pn))
+    {cout<<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;yarp::os::Time::delay(0.5);}
 
     return 42;
 }
@@ -179,7 +186,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 	//The homeostatic module should be running in parallel, independent from this, so the objective of 
 	//this config would be to have a proper list  and connect to each port
 
-	homeo_name = "homeoManager";
+	homeo_name = "homeostasis";
 	string homeo_rpc_name = "/" + homeo_name + "/rpc";
 	string to_h_rpc_name="/"+moduleName+"/toHomeoRPC:o";
 	to_homeo_rpc.open(to_h_rpc_name);
@@ -187,6 +194,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 	while(!Network::connect(to_h_rpc_name,homeo_rpc_name))
 	{
 		cout<<"Trying to connect to homeostasis..."<<endl;
+        cout << "from " << to_h_rpc_name << " to " << homeo_rpc_name << endl;
 		yarp::os::Time::delay(0.2);
 	}
 
@@ -205,12 +213,13 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 	*/
 
 	//Initialise the iCub allostatic model. Drives for interaction engine will be read from IE default.ini file
-	cout << "Initializing drives";
+	cout << "Initializing drives..."<<endl;
 	Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
 	drivesList = grpAllostatic.find("drives").asList();
 	iCub->icubAgent->m_drives.clear();
 	Bottle cmd;
 	if (drivesList)
+        cout << "Configuring Drives..."<<endl;
 	{
 		for (int d = 0; d<drivesList->size(); d++)
 		{
@@ -227,8 +236,18 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 			drv.addList()=aux;
 			aux.clear();
 			drv.append(grpAllostatic);
+            cmd.append(drv);//addList()=drv;
+            Bottle rply;
+            rply.clear();
+            rply.get(0).asString();
+            cout << cmd.toString() << endl;
+			/*while(rply.get(0).asString()!="ack")
+                {*/
+                    to_homeo_rpc.write(cmd,rply);
+                    cout << rply.toString()<<endl;
+                  /*  cout<<"cannot create drive "<< driveName << "..."<<endl;
+                }*/
 
-			to_homeo_rpc.write(cmd);
 
 			int answer = openPorts(driveName,d);
 			cout << "The answer is " << answer <<endl;
@@ -513,7 +532,7 @@ bool ReactiveLayer::updateAllostatic()
 			cmd.addString("value");
 			cmd.addDouble(0.1);
 
-			rpc_ports[1]->write(cmd);
+			to_homeo_rpc.write(cmd);
 		}
 
 		
@@ -527,7 +546,7 @@ bool ReactiveLayer::updateAllostatic()
 			cmd.addString("decay");
 			cmd.addDouble(-0.002);
 
-			rpc_ports[2]->write(cmd);
+			to_homeo_rpc.write(cmd);
 		}
 	//iCub->icubAgent->m_drives["socialInteraction"].value += iCub->icubAgent->m_drives["socialInteraction"].decay * 2;
 
@@ -536,20 +555,20 @@ bool ReactiveLayer::updateAllostatic()
 		Bottle cmd;
 		cmd.clear();
 		cmd.addString("par");
-		cmd.addString("socialInteraction");
+		cmd.addString("tagging");
 		cmd.addString("decay");
 		cmd.addDouble(0.02);
 
-		rpc_ports[0]->write(cmd);
+		to_homeo_rpc.write(cmd);
 	}else{
 		Bottle cmd;
 		cmd.clear();
 		cmd.addString("par");
-		cmd.addString("socialInteraction");
+		cmd.addString("tagging");
 		cmd.addString("decay");
 		cmd.addDouble(0.0);
 
-		rpc_ports[0]->write(cmd);
+		to_homeo_rpc.write(cmd);
 	}
 
 	//Trigger drive related sentences

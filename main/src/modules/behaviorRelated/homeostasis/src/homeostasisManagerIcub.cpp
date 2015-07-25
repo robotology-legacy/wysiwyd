@@ -43,13 +43,14 @@ int homeostaticModule::openPorts(string driveName,int d)
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
-
+    cout<<"here seems to be a problem"<<endl;
     pn = portName + "/min:o";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
     if (!outputm_ports[d]->open((pn).c_str())) 
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
+    cout<<"and never gets here"<<endl;
 
     pn = portName + "/max:o";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
