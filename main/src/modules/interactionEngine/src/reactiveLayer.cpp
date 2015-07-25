@@ -381,12 +381,12 @@ bool ReactiveLayer::handleTagging()
 
         if (sNameCut == "unknown") {
 
-            if ((*itEnt)->entity_type() == "object" )//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 cout << "I found unknown entities!!!!"<<endl;
             	//If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
             	homeostaticUnderEffects["tagging"].rpc_command.clear();
-            	homeostaticUnderEffects["tagging"].rpc_command.addString("exploreUnkownObject");
+            	homeostaticUnderEffects["tagging"].rpc_command.addString("exploreUnknownEntity");
             	homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->entity_type());
             	homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->name());
             	return true;
@@ -559,7 +559,7 @@ bool ReactiveLayer::updateAllostatic()
 		cmd.addString("par");
 		cmd.addString("tagging");
 		cmd.addString("dec");
-		cmd.addDouble(0.001);
+		cmd.addDouble(0.1);
         cout << cmd.toString()<<endl;
         Bottle rply;
         rply.clear();
@@ -591,10 +591,13 @@ bool ReactiveLayer::updateAllostatic()
 			iCub->say(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
 			if (homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active)
 			{
-                cout << drivesList.get(i).asString().c_str() << endl;
+                cout << "Command sent!!!"<< endl;
                 cout <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString() << endl;
-				homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command);
+                Bottle rply;
+                rply.clear();
+				homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command,rply);
 				yarp::os::Time::delay(0.1);
+                cout<<rply.toString()<<endl;
 			}
             cout<< "after the if "<<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active<<endl;
 			Bottle cmd;
@@ -602,7 +605,7 @@ bool ReactiveLayer::updateAllostatic()
 			cmd.addString("delta");
 			cmd.addString(drivesList.get(i).asString().c_str());
 			cmd.addString("val");
-			cmd.addDouble(0.15);
+			cmd.addDouble(0.35);
 
 			rpc_ports[i]->write(cmd);
 
