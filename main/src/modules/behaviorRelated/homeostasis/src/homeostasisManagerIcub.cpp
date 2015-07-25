@@ -16,9 +16,10 @@ bool homeostaticModule::addNewDrive(string driveName, yarp::os::Bottle* grpHomeo
     drv->setDecay(grpHomeostatic->check((driveName + "-decay").c_str(), Value(0.05)).asDouble());
     drv->setValue((drv->homeostasisMax + drv->homeostasisMin) / 2.0);
     drv->setGradient(grpHomeostatic->check((driveName + "-gradient").c_str()));
-    //cout << drv.name << " " << drv.homeostasisMin << " " << drv.homeostasisMax << " " << drv.decay << " " <<drv.gradient << endl;
-
-    manager.addDrive(drv,d);
+    cout << drv->name << " " << drv->homeostasisMin << " " << drv->homeostasisMax << " " << drv->decay << " " <<drv->gradient << endl;
+    cout << d << endl;
+    //cout << grpHomeostatic.toString()<<endl;
+    manager.addDrive(drv);
     
     openPorts(driveName,d);
 
@@ -144,39 +145,41 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     {
         for (unsigned int d = 0; d<manager.n_drives;d++)
         {
-            if (cmd.get(0).asString() == manager.drive_names[d]->c_str())
+            if (cmd.get(1).asString() == *(manager.drive_names[d]))
             {
                 if (cmd.get(2).asString()=="val")
                 {
                     manager.drives[d]->setValue(cmd.get(3).asDouble());
                 }
-                else if (cmd.get(2)=="min")
+                else if (cmd.get(2).asString()=="min")
                 {
                     manager.drives[d]->setHomeostasisMin(cmd.get(3).asDouble());
                 }
-                else if (cmd.get(2)=="max")
+                else if (cmd.get(2).asString()=="max")
                 {
                     manager.drives[d]->setHomeostasisMax(cmd.get(3).asDouble());
                 }
-                else if (cmd.get(2)=="dec")
+                else if (cmd.get(2).asString()=="dec")
                 {
                     manager.drives[d]->setDecay(cmd.get(3).asDouble());
                 }
                 else
                 {
-                    reply.addString("nack");
+                    reply.addString("Format is: \n - ['par'] [drive_name] [val/min/max/dec] [value]");
                     cout << "Format is: \n - ['par'] [drive_name] [val/min/max/dec] [value]"<<endl;
                 }
                 reply.addString("ack");
                 cout<<"Received a order"<<endl;
             }
+
         }
+        reply.addString("nack: wrong drive name");
     }
     else if (cmd.get(0).asString() == "delta" )
     {
         for (unsigned int d = 0; d<manager.n_drives;d++)
         {
-            if (cmd.get(0).asString() == manager.drive_names[d]->c_str())
+            if (cmd.get(0).asString() == *(manager.drive_names[d]))
             {
                 if (cmd.get(2).asString()=="val")
                 {
@@ -208,15 +211,17 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     {
         if (cmd.get(1).asString()=="conf")
         {
+            Bottle *ga = cmd.get(2).asList();
+           Bottle grpAllostatic = ga->findGroup("ALLOSTATIC");
             addNewDrive(cmd.get(2).check("name",yarp::os::Value("")).asString(), 
-                cmd.get(2).asList(), 
+                &grpAllostatic, 
                 manager.n_drives+1);
             reply.addString("add drive from config bottle: ack");
         }
         else if (cmd.get(1).asString()=="botl")
         {
             Drive d = bDrive(cmd.get(2).asList());
-            manager.addDrive(&d,manager.n_drives+1);
+            manager.addDrive(&d);
             openPorts(d.name,manager.n_drives);
             reply.addString("add drive from bottle: ack");
         }
@@ -248,8 +253,9 @@ bool homeostaticModule::updateModule()
     cout << manager.n_drives << endl;
     for(unsigned int d = 0; d<manager.n_drives;d++)
     {
-        cout << manager.drives[d]->homeostasisMax<<endl;
-        cout << "Going by drive #"<<d<<endl;
+        //cout << manager.drives[d]->homeostasisMax<<endl;
+        cout<<manager.n_drives << "   "<< manager.drives<<endl;
+        cout << "Going by drive #"<<d << " with name "<<*(manager.drive_names[d])<<endl;
         
         //yarp::os::Bottle* inp = input_ports[d]->read();
         yarp::os::Bottle* inp;

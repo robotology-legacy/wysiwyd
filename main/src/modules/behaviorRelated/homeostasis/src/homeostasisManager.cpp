@@ -18,22 +18,24 @@ bool homeostasisManager::updateDrives(double t)
 
 
 
-bool homeostasisManager::addDrive(Drive *D,unsigned int n)
+bool homeostasisManager::addDrive(Drive *D)
 {
-    cout<<2<<endl;
-    if (n>=n_drives)
-    {
+    // if (n>=n_drives)
+    // {
+    //     cout<<"aaaaaaaaaaaaaaaaaAAA"<<endl;
         
-        n_drives +=1;
-        drives.resize(n_drives);
-        drive_values.resize(n_drives);
-        drive_names.resize(n_drives);
+    //     n_drives +=1;
+    //     drives.resize(n_drives);
+    //     drive_values.resize(n_drives);
+    //     drive_names.resize(n_drives);
 
-    }
-    drives[n] = D;
+    // }
+    cout << D << endl;
+    drives.push_back(D);
+    n_drives=drives.size();
     
-    drive_values[n] = &(D->value);
-    drive_names[n] = &(D->name);
+    drive_values.push_back(&(D->value));
+    drive_names.push_back(&(D->name));
     return true;
 }
 

@@ -215,105 +215,103 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 	//Initialise the iCub allostatic model. Drives for interaction engine will be read from IE default.ini file
 	cout << "Initializing drives..."<<endl;
 	Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
-	drivesList = grpAllostatic.find("drives").asList();
+	drivesList = *grpAllostatic.find("drives").asList();
 	iCub->icubAgent->m_drives.clear();
 	Bottle cmd;
-	if (drivesList)
-        cout << "Configuring Drives..."<<endl;
+	for (int d = 0; d<drivesList.size(); d++)
 	{
-		for (int d = 0; d<drivesList->size(); d++)
+		cmd.clear();
+		string driveName = drivesList.get(d).asString().c_str();
+		cmd.addString("add");
+		cmd.addString("conf");
+		Bottle drv;
+		drv.clear();
+		Bottle aux;
+		aux.clear();
+		aux.addString("name");
+		aux.addString(driveName);
+		drv.addList()=aux;
+		aux.clear();
+		drv.append(grpAllostatic);
+        cmd.append(drv);//addList()=drv;
+        Bottle rply;
+        rply.clear();
+        rply.get(0).asString();
+        cout << cmd.toString() << endl;
+		/*while(rply.get(0).asString()!="ack")
+            {*/
+                //to_homeo_rpc.write(cmd,rply);
+                cout << rply.toString()<<endl;
+              /*  cout<<"cannot create drive "<< driveName << "..."<<endl;
+            }*/
+
+
+		int answer = openPorts(driveName,d);
+		cout << "The answer is " << answer <<endl;
+
+
+		//Under effects
+		StimulusEmotionalResponse responseUnder;
+		Bottle * bSentences = grpAllostatic.find((driveName + "-under-sentences").c_str()).asList();
+		for (int s = 0; bSentences && s<bSentences->size(); s++)
 		{
-			cmd.clear();
-			string driveName = drivesList->get(d).asString().c_str();
-			cmd.addString("add");
-			cmd.addString("conf");
-			Bottle drv;
-			drv.clear();
-			Bottle aux;
-			aux.clear();
-			aux.addString("name");
-			aux.addString(driveName);
-			drv.addList()=aux;
-			aux.clear();
-			drv.append(grpAllostatic);
-            cmd.append(drv);//addList()=drv;
-            Bottle rply;
-            rply.clear();
-            rply.get(0).asString();
-            cout << cmd.toString() << endl;
-			/*while(rply.get(0).asString()!="ack")
-                {*/
-                    to_homeo_rpc.write(cmd,rply);
-                    cout << rply.toString()<<endl;
-                  /*  cout<<"cannot create drive "<< driveName << "..."<<endl;
-                }*/
-
-
-			int answer = openPorts(driveName,d);
-			cout << "The answer is " << answer <<endl;
-
-
-			//Under effects
-			StimulusEmotionalResponse responseUnder;
-			Bottle * bSentences = grpAllostatic.find((driveName + "-under-sentences").c_str()).asList();
-			for (int s = 0; bSentences && s<bSentences->size(); s++)
-			{
-				responseUnder.m_sentences.push_back(bSentences->get(s).asString().c_str());
-			}
-			Bottle *bChore = grpAllostatic.find((driveName + "-under-chore").c_str()).asList();
-			for (int sC = 0; bChore && sC<bChore->size(); sC++)
-			{
-				responseUnder.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
-			}
-            string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port").c_str(), Value("None")).asString();
-            
-            if (under_port_name != "None")
-                {
-                	responseUnder.active = true;
-                    string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
-                    responseUnder.output_port.open(out_port_name);
-                    cout << "trying to connect to " << under_port_name << endl;
-                    while(!Network::connect(out_port_name,under_port_name))
-                    {
-                        cout << "." << endl;
-                        yarp::os::Time::delay(0.5);
-                    }
-                }else{
-                	responseUnder.active = false;
-                }
-
-			homeostaticUnderEffects[driveName] = responseUnder;
-
-			//Over effects
-			StimulusEmotionalResponse responseOver;
-			bSentences = grpAllostatic.find((driveName + "-over-sentences").c_str()).asList();
-			for (int s = 0; bSentences&& s<bSentences->size(); s++)
-			{
-				responseOver.m_sentences.push_back(bSentences->get(s).asString().c_str());
-			}
-			bChore = grpAllostatic.find((driveName + "-over-chore").c_str()).asList();
-			for (int sC = 0; bChore && sC<bChore->size(); sC++)
-			{
-				responseOver.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
-			}
-            string over_port_name = grpAllostatic.check((driveName + "-over-behavior-port").c_str(), Value("None")).asString();
-            if (over_port_name != "None")
+			responseUnder.m_sentences.push_back(bSentences->get(s).asString().c_str());
+		}
+		Bottle *bChore = grpAllostatic.find((driveName + "-under-chore").c_str()).asList();
+		for (int sC = 0; bChore && sC<bChore->size(); sC++)
+		{
+			responseUnder.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
+		}
+        string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port").c_str(), Value("None")).asString();
+        
+        if (under_port_name != "None")
             {
-            	responseOver.active=true;
-                string out_port_name = "/" + moduleName + "/" + driveName + "/over_action:o";
-                responseOver.output_port.open(out_port_name);
-                cout << "trying to connect to " << over_port_name << endl;
-                while(!Network::connect(out_port_name,over_port_name))
+            	responseUnder.active = true;
+                string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
+                responseUnder.output_port = new Port();
+                responseUnder.output_port->open(out_port_name);
+                cout << "trying to connect to " << under_port_name << endl;
+                while(!Network::connect(out_port_name,under_port_name))
                 {
                     cout << "." << endl;
                     yarp::os::Time::delay(0.5);
                 }
             }else{
-                	responseOver.active = false;
-                }
+            	responseUnder.active = false;
+            }
 
-			homeostaticOverEffects[driveName] = responseOver;
+		homeostaticUnderEffects[driveName] = responseUnder;
+
+		//Over effects
+		StimulusEmotionalResponse responseOver;
+		bSentences = grpAllostatic.find((driveName + "-over-sentences").c_str()).asList();
+		for (int s = 0; bSentences&& s<bSentences->size(); s++)
+		{
+			responseOver.m_sentences.push_back(bSentences->get(s).asString().c_str());
 		}
+		bChore = grpAllostatic.find((driveName + "-over-chore").c_str()).asList();
+		for (int sC = 0; bChore && sC<bChore->size(); sC++)
+		{
+			responseOver.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
+		}
+        string over_port_name = grpAllostatic.check((driveName + "-over-behavior-port").c_str(), Value("None")).asString();
+        if (over_port_name != "None")
+        {
+        	responseOver.active=true;
+            string out_port_name = "/" + moduleName + "/" + driveName + "/over_action:o";
+            responseOver.output_port = new Port();
+            responseOver.output_port->open(out_port_name);
+            cout << "trying to connect to " << over_port_name << endl;
+            while(!Network::connect(out_port_name,over_port_name))
+            {
+                cout << "." << endl;
+                yarp::os::Time::delay(0.5);
+            }
+        }else{
+            	responseOver.active = false;
+            }
+
+		homeostaticOverEffects[driveName] = responseOver;
 	}
 	cout << "done" << endl;
 
@@ -349,19 +347,22 @@ bool ReactiveLayer::updateModule()
 {
     cout<<".";
 
-	handleSalutation(someonePresent);
-	physicalInteraction = handleTactile();
+	//handleSalutation(someonePresent);
+	//physicalInteraction = handleTactile();
+    cout << "here" << endl;
 	confusion = handleTagging();
-	updateAllostatic();
-	updateEmotions();
-	
+    cout << confusion << endl;
+    updateAllostatic();
+	//updateEmotions();
+    cout << "here" << endl;
+    	
     return true;
 }
 
 bool ReactiveLayer::handleTagging()
 {
     iCub->opc->checkout();
-    list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
     int counter = 0;
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
@@ -379,14 +380,15 @@ bool ReactiveLayer::handleTagging()
         // check is label is known
 
         if (sNameCut == "unknown") {
+
             if ((*itEnt)->entity_type() == "object" )//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
+                cout << "I found unknown entities!!!!"<<endl;
             	//If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
-            	Bottle* tag_word = &(homeostaticUnderEffects["tagging"].rpc_command);
-            	tag_word->clear();
-            	tag_word->addString("exploreUnkownObject");
-            	tag_word->addString((*itEnt)->entity_type());
-            	tag_word->addString((*itEnt)->name());
+            	homeostaticUnderEffects["tagging"].rpc_command.clear();
+            	homeostaticUnderEffects["tagging"].rpc_command.addString("exploreUnkownObject");
+            	homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->entity_type());
+            	homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->name());
             	return true;
             	/*
                 Object* temp = dynamic_cast<Object*>(*itEnt);
@@ -529,7 +531,7 @@ bool ReactiveLayer::updateAllostatic()
 			cmd.clear();
 			cmd.addString("delta");
 			cmd.addString("physicalInteraction");
-			cmd.addString("value");
+			cmd.addString("val");
 			cmd.addDouble(0.1);
 
 			to_homeo_rpc.write(cmd);
@@ -543,7 +545,7 @@ bool ReactiveLayer::updateAllostatic()
 			cmd.clear();
 			cmd.addString("par");
 			cmd.addString("socialInteraction");
-			cmd.addString("decay");
+			cmd.addString("dec");
 			cmd.addDouble(-0.002);
 
 			to_homeo_rpc.write(cmd);
@@ -556,63 +558,77 @@ bool ReactiveLayer::updateAllostatic()
 		cmd.clear();
 		cmd.addString("par");
 		cmd.addString("tagging");
-		cmd.addString("decay");
-		cmd.addDouble(0.02);
+		cmd.addString("dec");
+		cmd.addDouble(0.001);
+        cout << cmd.toString()<<endl;
+        Bottle rply;
+        rply.clear();
+		to_homeo_rpc.write(cmd,rply);
+        cout<<rply.toString()<<endl;
 
-		to_homeo_rpc.write(cmd);
 	}else{
 		Bottle cmd;
 		cmd.clear();
 		cmd.addString("par");
 		cmd.addString("tagging");
-		cmd.addString("decay");
+		cmd.addString("dec");
 		cmd.addDouble(0.0);
+        cout << cmd.toString()<<endl;
 
 		to_homeo_rpc.write(cmd);
 	}
+    cout <<drivesList.size()<<endl;
 
 	//Trigger drive related sentences
-	for ( int i =0;i<drivesList->size();i++)
+	for ( int i =0;i<drivesList.size();i++)
 	//for (map<string, Drive>::iterator d = iCub->icubAgent->m_drives.begin(); d != iCub->icubAgent->m_drives.end(); d++)
 	{
 		double val = outputm_ports[i]->read()->get(0).asDouble();
 		//Check under homeostasis
+        cout << "in the loop"<< val<<endl;
 		if (val>0)
 		{
-			iCub->say(homeostaticUnderEffects[drivesList->get(i).asString().c_str()].getRandomSentence());
-			if (homeostaticUnderEffects[drivesList->get(i).asString().c_str()].active)
+			iCub->say(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
+			if (homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active)
 			{
-				homeostaticUnderEffects[drivesList->get(i).asString().c_str()].output_port.write(homeostaticUnderEffects[drivesList->get(i).asString().c_str()].rpc_command);
+                cout << drivesList.get(i).asString().c_str() << endl;
+                cout <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString() << endl;
+				homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command);
 				yarp::os::Time::delay(0.1);
 			}
+            cout<< "after the if "<<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active<<endl;
 			Bottle cmd;
 			cmd.clear();
 			cmd.addString("delta");
-			cmd.addString(drivesList->get(i).asString().c_str());
-			cmd.addString("value");
+			cmd.addString(drivesList.get(i).asString().c_str());
+			cmd.addString("val");
 			cmd.addDouble(0.15);
 
 			rpc_ports[i]->write(cmd);
 
 			//d->second.value += (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;
 		}
+
 		val = outputM_ports[i]->read()->get(0).asDouble();
 		//Check over homeostasis
+        cout<<val<<endl;
 		if (val>0)
 		{
-			iCub->say(homeostaticOverEffects[drivesList->get(i).asString().c_str()].getRandomSentence());
+			iCub->say(homeostaticOverEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
 			Bottle cmd;
 			cmd.clear();
 			cmd.addString("delta");
-			cmd.addString(drivesList->get(i).asString().c_str());
-			cmd.addString("value");
+			cmd.addString(drivesList.get(i).asString().c_str());
+			cmd.addString("val");
 			cmd.addDouble(-0.15);
 
 			rpc_ports[i]->write(cmd);
 			//d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
 		}
 	}
-	iCub->commitAgent();
+    cout<<"come on..."<<endl;
+	//iCub->commitAgent();
+    //cout<<"commited"<<endl;
 	return true;
 }
 

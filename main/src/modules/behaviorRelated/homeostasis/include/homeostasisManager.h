@@ -20,7 +20,7 @@ public:
 
     homeostasisManager(int n);
 	//bool configHomeostatic(n_drives);
-	bool addDrive(Drive *D,unsigned int n);
+	bool addDrive(Drive *D);
 	/*Generates a drive in the homeostasis manager. 
 	Homeostasis manager will take care of updating it. 
 	Input must be a drive and its position*/

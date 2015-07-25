@@ -17,7 +17,7 @@ using namespace wysiwyd::wrdac;
 struct StimulusEmotionalResponse
 {
     bool active;
-    Port output_port;
+    Port *output_port;
     Bottle rpc_command;
     vector<string> m_sentences;
     vector<string> m_choregraphies;
@@ -31,7 +31,7 @@ class ReactiveLayer: public RFModule
 private:
     ICubClient *iCub;
 
-    Bottle *drivesList;
+    Bottle drivesList;
 
     Port to_homeo_rpc;
     string moduleName;
