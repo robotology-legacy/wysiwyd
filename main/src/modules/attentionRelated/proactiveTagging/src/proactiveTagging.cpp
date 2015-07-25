@@ -30,6 +30,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
     GrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
     GrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
+    GrammarAskNameBodypart = rf.findFileByName(rf.check("GrammarAskNameBodypart", Value("GrammarAskNameSelf.xml")).toString());
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
@@ -226,8 +227,10 @@ Bottle proactiveTagging::recogName(string entityType)
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
     } else if (entityType == "object" || entityType == "rtobject"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
+    } else if (entityType == "bodypart"){
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameBodypart), 20);
     } else {
-        yError() << " error in proactiveTagging::askName | for " << entityType << " | Entity Type not managed" ;
+        yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed" ;
         bOutput.addString("error");
         bOutput.addString("Entity Type not managed");
         return bOutput;
@@ -254,10 +257,14 @@ Bottle proactiveTagging::recogName(string entityType)
 
     bSemantic = *bAnswer.get(1).asList();
     string sName;
-    if(entityType == "agent"){
+    if(entityType == "agent") {
         sName = bSemantic.check("agent", Value("unknown")).asString();
-    } else if (entityType == "object" || entityType == "rtobject"){
+    } else if(entityType == "object" || entityType == "rtobject") {
         sName = bSemantic.check("object", Value("unknown")).asString();
+    } else if(entityType == "bodypart") {
+        sName = bSemantic.check("fingerName", Value("unknown")).asString();
+    } else {
+        yError("recogName ERROR entitytype not known!");
     }
 
     bOutput.addString(sName);
@@ -296,11 +303,14 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         sQuestion = " Hum, what is this object ?" ;
     } else if (currentEntityType == "bodypart") {
         sQuestion = " How do you call this part of my body?" ;
+        yInfo() << " sQuestion: " << sQuestion;
 
-        Bodypart *BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
-        int joint = BPtemp->m_joint_number ;
-        string sBodyPartType = BPtemp->m_part ;
+        Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
+        yInfo() << "Cast okay";
+        int joint = BPtemp->m_joint_number;
+        string sBodyPartType = BPtemp->m_part;
         //send rpc command to bodySchema to move the corresponding part
+        yInfo() << "Start bodySchema";
         Bottle bReplyFromBodySchema = moveJoint(joint, sBodyPartType);
 
         if(bReplyFromBodySchema.get(0).asString() == "nack"){
@@ -309,7 +319,6 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
             bOutput.addString("Joint has not moved");
             return bOutput;
         }
-
     } else {
         yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed" ;
         bOutput.addString("error");

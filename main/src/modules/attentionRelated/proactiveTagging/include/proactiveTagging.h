@@ -30,6 +30,7 @@ private:
 
     std::string      GrammarAskNameAgent;
     std::string      GrammarAskNameObject;
+    std::string      GrammarAskNameBodypart;
     std::string      GrammarYesNo;
 
     double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other

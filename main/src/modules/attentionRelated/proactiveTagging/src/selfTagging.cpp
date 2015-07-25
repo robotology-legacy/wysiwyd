@@ -52,10 +52,11 @@ Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
 
     //4. send single joint moving bottle
     portToBodySchema.write(bSingleJoint, bOutput);
+    yDebug() << "Reply from bodySchema:" << bOutput.toString();
 
     //bOutput == "nack" if something goes wrong, "ack" otherwise
 
-    return bOutput ;
+    return bOutput;
 
 }
 
