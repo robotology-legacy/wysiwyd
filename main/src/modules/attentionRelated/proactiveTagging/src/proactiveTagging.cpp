@@ -295,16 +295,29 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     double timeDelay = 1.;
 
 
-    //Ask question for the human
+    //Ask question for the human, or ask to pay attention (if action to focus attention after)
     string sQuestion ;
     if (currentEntityType == "agent") {
         sQuestion = " Hello, I don't know you. Who are you ?";
     } else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         sQuestion = " Hum, what is this object ?" ;
     } else if (currentEntityType == "bodypart") {
-        sQuestion = " How do you call this part of my body?" ;
+        sQuestion = " Watch please, I will move a part of my body" ;
         yInfo() << " sQuestion: " << sQuestion;
+    } else {
+        yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed" ;
+        bOutput.addString("error");
+        bOutput.addString("Entity Type not managed");
+        return bOutput;
+    }
 
+    //TODO : choose between say and TTS. say put stuff in ABM, TTS?
+    yInfo() << sQuestion;
+    //iCub->getSpeechClient()->TTS(sQuestion, false);
+    iCub->say(sQuestion);
+
+    //Act to determine the entity to be named, according to entityType (e.g. bodypart is sending a command to move the joint, ...)
+    if(currentEntityType == "bodypart") {
         Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
         yInfo() << "Cast okay";
         int joint = BPtemp->m_joint_number;
@@ -319,17 +332,12 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
             bOutput.addString("Joint has not moved");
             return bOutput;
         }
-    } else {
-        yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed" ;
-        bOutput.addString("error");
-        bOutput.addString("Entity Type not managed");
-        return bOutput;
-    }
 
-    //TODO : choose between say and TTS. say put stuff in ABM, TTS?
-    yInfo() << sQuestion;
-    //iCub->getSpeechClient()->TTS(sQuestion, false);
-    iCub->say(sQuestion);
+        sQuestion = " How do you call this part of my body?" ;
+        yInfo() << sQuestion;
+        //iCub->getSpeechClient()->TTS(sQuestion, false);
+        iCub->say(sQuestion);
+    }
 
     Bottle bName = recogName(currentEntityType) ;
     string sName;
