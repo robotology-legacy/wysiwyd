@@ -138,7 +138,7 @@ bool AlostaticModule::updateModule()
     Bottle endEffector = *endEffectorPort.read();
     //Compute distance to target
     double squared_distance = pow(target.get(0).asDouble() - endEffector.get(0).asDouble(),2.0) + pow(target.get(1).asDouble() - endEffector.get(1).asDouble(),2.0) + pow(target.get(2).asDouble() - endEffector.get(2).asDouble(),2.0);
-    
+
     distanceList.addDouble(sqrt(squared_distance));
     if (distanceList.size() >= windowSize)
     	distanceList = distanceList.tail();
@@ -159,22 +159,22 @@ bool AlostaticModule::updateModule()
 
 
 	updateAllostatic();
-	
+
 	//write reachGain
 	Bottle &gr = reachPort.prepare();
 	gr.clear();
 	gr.addDouble(iCub->icubAgent->m_drives["reaching"].value);
-	
+
 	//write avoidGain
 	Bottle &ga = avoidPort_o.prepare();
 	ga.clear();
 	ga.addDouble(iCub->icubAgent->m_drives["avoiding"].value);
-	
+
 	//write exploreGain
 	Bottle &ge = explorePort.prepare();
 	ge.clear();
 	ge.addDouble(iCub->icubAgent->m_drives["exploring"].value);
-	
+
 
 	reachPort.write();
     avoidPort_o.write();
@@ -251,7 +251,7 @@ void AlostaticModule::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<agentList->size(); d++)
             {
                 string name = agentList->get(d).asString().c_str();
-                Agent* agent = iCub->opc->addAgent(name);
+                Agent* agent = iCub->opc->addEntity<Agent>(name);
                 agent->m_present = false;
                 iCub->opc->commit(agent);
             }
@@ -263,7 +263,7 @@ void AlostaticModule::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<objectList->size(); d++)
             {
                 string name = objectList->get(d).asString().c_str();
-                Object* o = iCub->opc->addObject(name);
+                Object* o = iCub->opc->addEntity<Object>(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -275,7 +275,7 @@ void AlostaticModule::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<rtobjectList->size(); d++)
             {
                 string name = rtobjectList->get(d).asString().c_str();
-                RTObject* o = iCub->opc->addRTObject(name);
+                RTObject* o = iCub->opc->addEntity<RTObject>(name);
                 o->m_present = false;
                 iCub->opc->commit(o);
             }
@@ -287,7 +287,7 @@ void AlostaticModule::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<adjectiveList->size(); d++)
             {
                 string name = adjectiveList->get(d).asString().c_str();
-                iCub->opc->addAdjective(name);
+                iCub->opc->addEntity<Adjective>(name);
             }
         }
 
@@ -297,7 +297,7 @@ void AlostaticModule::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<actionList->size(); d++)
             {
                 string name = actionList->get(d).asString().c_str();
-                iCub->opc->addAction(name);
+                iCub->opc->addEntity<Action>(name);
             }
         }
     }

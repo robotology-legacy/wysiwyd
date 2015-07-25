@@ -7,7 +7,7 @@ OscThread::OscThread(OPCClient * _opc, int _port)
 }
 
 bool OscThread::threadInit()
-{	
+{
 	cout<<"Opening OSC listener on port " << port <<endl;
 	s = new UdpListeningReceiveSocket(
 		IpEndpointName( IpEndpointName::ANY_ADDRESS, port ),
@@ -47,7 +47,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
 		{
 		cout<<"Received virtual object from osc"<<endl;
 			//if (H2ICUB != NULL)
-			
+
 				osc::ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
 				const char *type = (arg++)->AsString();
 				const char *name = (arg++)->AsString();
@@ -67,14 +67,14 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
 					{
 						cout<<"Not connected to OPC"<<endl;
 						return;
-					}					
-					if (!isCalibrated)	
+					}
+					if (!isCalibrated)
 					{
 						cout<<"Not calibrated"<<endl;
 						return;
 					}
 
-					RTObject* o = opc->addRTObject(name);
+					RTObject* o = opc->addEntity<RTObject>(name);
 					opc->update(o);
 
 					Vector rtPosition(4);
@@ -102,7 +102,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
 					o->m_ego_orientation[0] = 0.0;
 					o->m_ego_orientation[1] = 0.0;
 					o->m_ego_orientation[2] = 0.0;//tobj->getAngle();
-					
+
 					o->m_color[0] = r;
 					o->m_color[1] = g;
 					o->m_color[2] = b;//tobj->getAngle();
@@ -111,22 +111,22 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
 					opc->commit(o);
 					//opc->isVerbose = false;
 			cout<<"Added"<<endl;
-				}				
+				}
 				if (typeword == "remove")
-				{					
-					if (!opc->isConnected())	
+				{
+					if (!opc->isConnected())
 					{
 						cout<<"Not connected to OPC"<<endl;
 						return;
 					}
 			cout<<"Removing object"<<endl;
-					RTObject* o = opc->addRTObject(name);
+					RTObject* o = opc->addEntity<RTObject>(name);
 					o->m_present = false;
 					//opc->isVerbose = true;
 					opc->commit(o);
 					//opc->isVerbose = false;
 			cout<<"Removed"<<endl;
-				}			
+				}
 
         	}
 		else if( keyword == "/event")
@@ -156,7 +156,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
 		cout<<endl;
           }
 		else if( keyword == "/revent")
-		{  
+		{
               osc::ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
                 const char *subject = (arg++)->AsString();
                 const char *verb = (arg++)->AsString();
@@ -183,13 +183,13 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
           } 
           else if ( keyword == "/bottle")
           {
-            Bottle bFwd;				
+            Bottle bFwd;
 			osc::ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
 			const char *fwdMsg = (arg++)->AsString();
             cout<<"OSC input (bottle forwarding) : "<<fwdMsg<<endl;
 			bFwd.addString(fwdMsg);
 			oscFwding.write(bFwd);
-          }          
+          }
 		  else
           {
             cout<<"OSC input : Unknown format"<<endl;

@@ -24,7 +24,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     partner = opc->addEntity<Agent>("partner");
     partner->m_present = false;
     opc->commit(partner);
-    opc->addAction("named");
+    opc->addEntity<Action>("named");
 
     //Retrieve the calibration matrix from RFH
     string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
@@ -153,7 +153,7 @@ bool AgentDetector::checkCalibration()
         {
             //cout<<"Transformation matrix not retrieved"<<endl;
             return false;
-        }       
+        }
         else
         {
             Bottle* bMat = reply.get(1).asList();
@@ -212,7 +212,7 @@ double AgentDetector::getPeriod()
 }
 
 bool AgentDetector::updateModule()
-{    
+{
     icub = opc->addEntity<Agent>("icub");
     bool isRefreshed = client.getDepthAndPlayers(depth,players);
     client.getRgb(rgb);
@@ -351,7 +351,7 @@ bool AgentDetector::updateModule()
             }
         }
     }
-    
+
     if (isRefreshed)
     {
         //////////////////////////////////////////////////////////////////
@@ -396,16 +396,16 @@ bool AgentDetector::updateModule()
 
                         //if (useFaceRecognition)
                         playerName = getIdentity(*p);
-                
+
                     }
-        
+
                     //We interact with OPC only if the calibration is done
                     if (localIsCalibrated)
                     {
                         //Retrieve this player in OPC or create if does not exist
 
                         partner->m_present = true;
-                    
+
                         if (identities.find(p->ID) == identities.end())
                         {
                             cout<<"Assigning name "<<playerName<<" to skeleton "<<p->ID<<endl;
@@ -415,12 +415,12 @@ bool AgentDetector::updateModule()
                             identities[p->ID] = specificAgent;
                             specificAgent->m_present = true;
                             opc->commit(specificAgent);
-                        }       
-                    
+                        }
+
                         Relation r(partner->name(),"named",playerName);
                         opc->addRelation(r,1.0);
 
-                        //cout<<"Commiting : "<<r.toString()<<endl; 
+                        //cout<<"Commiting : "<<r.toString()<<endl;
 
                         //Convert the skeleton into efaaHelpers body. We loose orientation in the process...
                         for(map<string,Joint>::iterator jnt = p->skeleton.begin() ; jnt != p->skeleton.end() ; jnt++)
@@ -429,7 +429,7 @@ bool AgentDetector::updateModule()
                             kPosition[0] = jnt->second.x;
                             kPosition[1] = jnt->second.y;
                             kPosition[2] = jnt->second.z;
-                            kPosition[3] = 1;   
+                            kPosition[3] = 1;
                             Vector icubPos(4);
                             icubPos = kinect2icub * kPosition;
                             icubPos.resize(3);
@@ -476,7 +476,7 @@ Vector AgentDetector::getSkeletonPattern(Player p)
 {
     //Create the skeleton pattern
     Vector pattern(5);
-        
+
     pattern[0] = distanceVector(p.skeleton[EFAA_OPC_BODY_PART_TYPE_ELBOW_L], p.skeleton[EFAA_OPC_BODY_PART_TYPE_SHOULDER_L]);
     pattern[1] = distanceVector(p.skeleton[EFAA_OPC_BODY_PART_TYPE_SHOULDER_L], p.skeleton[EFAA_OPC_BODY_PART_TYPE_SHOULDER_C]);
     pattern[2] = distanceVector(p.skeleton[EFAA_OPC_BODY_PART_TYPE_SHOULDER_C], p.skeleton[EFAA_OPC_BODY_PART_TYPE_SHOULDER_R]);
