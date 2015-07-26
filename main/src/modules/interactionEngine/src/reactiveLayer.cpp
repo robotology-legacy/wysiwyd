@@ -263,6 +263,10 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 			responseUnder.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
 		}
         string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port").c_str(), Value("None")).asString();
+
+        // set drive priorities. Default to 1.
+        //drivePriorities.push_back(grpAllostatic.check((driveName + "-priority"), Value(1.)).asDouble());
+
         
         if (under_port_name != "None")
             {
@@ -314,6 +318,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 		homeostaticOverEffects[driveName] = responseOver;
 	}
 	cout << "done" << endl;
+    //cout << "Drive priorities: " << drivePriorities << cout; 
 
 	//Initialise the iCub emotional model
 	cout << "Initializing emotions...";

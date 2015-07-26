@@ -55,6 +55,8 @@ private:
 	map<string, StimulusEmotionalResponse> homeostaticOverEffects;
 	map<string, StimulusEmotionalResponse> homeostaticUnderEffects;
 
+    //vector<double> drivePriorities;
+
     Port    rpc;
 
     vector< yarp::os::Port* > rpc_ports;
