@@ -730,39 +730,8 @@ bool ReactiveLayer::updateAllostatic()
     }
     //cout <<drivesList.size()<<endl;
 
-<<<<<<< HEAD
     DriveOutCZ activeDrive = chooseDrive();
-=======
-	//Trigger drive related sentences
-	for ( int i =0;i<drivesList.size();i++)
-	//for (map<string, Drive>::iterator d = iCub->icubAgent->m_drives.begin(); d != iCub->icubAgent->m_drives.end(); d++)
-	{
-		double val = outputm_ports[i]->read()->get(0).asDouble();
-		//Check under homeostasis
-        //cout << "in the loop"<< val<<endl;
-		if (val>0)
-		{
-			iCub->say(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
-			if (homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active)
-			{
-                cout << "Command sent!!!"<< endl;
-                cout <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString() << endl;
-                Bottle rply;
-                rply.clear();
-				homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command,rply);
-				yarp::os::Time::delay(0.1);
-                cout<<rply.toString()<<endl;
 
-                homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.clear();
-			}
-            cout<< "after the if "<<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active<<endl;
-			Bottle cmd;
-			cmd.clear();
-			cmd.addString("delta");
-			cmd.addString(drivesList.get(i).asString().c_str());
-			cmd.addString("val");
-			cmd.addDouble(0.35);
->>>>>>> [IE] Tested with fingers
 
     int i; // the chosen drive
 
@@ -773,22 +742,8 @@ bool ReactiveLayer::updateAllostatic()
     else
         i = activeDrive.idx;
 
-<<<<<<< HEAD
     //Under homeostasis
-=======
-		val = outputM_ports[i]->read()->get(0).asDouble();
-		//Check over homeostasis
-        //cout<<val<<endl;
-		if (val>0)
-		{
-			//iCub->say(homeostaticOverEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
-			Bottle cmd;
-			cmd.clear();
-			cmd.addString("delta");
-			cmd.addString(drivesList.get(i).asString().c_str());
-			cmd.addString("val");
-			cmd.addDouble(-0.15);
->>>>>>> [IE] Tested with fingers
+
 
     if (activeDrive.level == UNDER)
     {
@@ -833,12 +788,8 @@ bool ReactiveLayer::updateAllostatic()
 		rpc_ports[i]->write(cmd);
 		//d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
 	}
-<<<<<<< HEAD
 
-    cout<<"come on..."<<endl;
-=======
     //cout<<"come on..."<<endl;
->>>>>>> [IE] Tested with fingers
 	//iCub->commitAgent();
     //cout<<"commited"<<endl;
 	return true;
