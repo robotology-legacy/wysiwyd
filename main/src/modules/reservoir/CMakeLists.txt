@@ -6,4 +6,4 @@ if(WYSIWYD_USE_Boost)
     add_subdirectory(reservoirHandler)
 endif()
 
-add_subdirectory(languageActionAnalysis)
+#add_subdirectory(languageActionAnalysis)
