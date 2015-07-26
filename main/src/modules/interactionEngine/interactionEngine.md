@@ -16,7 +16,11 @@ You can therefore play with the drive priorities in the config file to have a be
 
 Whenever a drive is out of its CZ, it can trigger behavior according to some parameters and methods. To simply trigger speech, use name-over-sentences  and name-under-sentences (and if you don't want trigger speech, just don't specify those). To trigger behavior from another module using rpc, specify the port in name-under-behavior-port and name-over-behavior-port. This port will be open and connected during the interactionEngine module configuration. In the case of using rpc, define a new method in the ReactiveLayer class to implement the message construction, by taking example of the ReactiveLayer::handleTagging method. Finally, call this new method in ReactiveLayer::updateModule(). Yes, module, file and class names are not coherent at all, we'll fix this. If you don't want to use rpc you can also directly code your behavior in a ReactiveLayer::handleSomething method (don't forget to call it in ReactiveLayer::updateModule() as in the rpc case).
 
+To run the allostatic controller with the proactive tagging drive, launch modules in that order:
 
+homeostasis
+proactiveTagging
+reactiveLayer
 
 # Warning notes
 To be honest, the code is a mess like I've rarely seen before. It relies on the original reactiveLayer from Stephane's code (which was of good quality but rather specific speech-emotional responses) and has then be adapted in an attempt to be more general by managing the triggered behaviors in other modules through rpc (as in the proactive case), instead of directly in the current module. However this has been only tried during VVV ans is still in development state (by development, understand messy). It uses Jordi's new homeostasis module, which was done to separate the generic drive implementation from the Yarp-specific module, due to the fact that we also xneed this code in other contexts than icub/wysiwyd ones. In summary, all this part has to be recoded properly. I have now sufficient knowledge to do it, thanks VVV! We just have to find a few days to do it with Jordi	.
