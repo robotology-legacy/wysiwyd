@@ -250,6 +250,7 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
 
 bool homeostaticModule::updateModule()
 {
+    cout << manager.n_drives <<endl;
     for(unsigned int d = 0; d<manager.n_drives;d++)
     {
         cout << "Going by drive #"<<d << " with name "<<*(manager.drive_names[d])<<endl;
@@ -307,7 +308,7 @@ bool homeostaticModule::updateModule()
             yarp::os::Bottle &out2 = outputM_ports[d]->prepare();
             out2.clear();
             cout<<manager.drives[d]->getValue()<<endl;
-            cout << manager.drives[d]->homeostasisMax<<endl;
+            cout << manager.drives[d]->decay<<endl;
             out2.addDouble(+manager.drives[d]->getValue()-manager.drives[d]->homeostasisMax);
             cout<<out1.get(0).asDouble()<<endl;
             outputM_ports[d]->write();

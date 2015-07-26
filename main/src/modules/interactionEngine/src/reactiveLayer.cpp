@@ -88,7 +88,7 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
     //Set the voice
     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
     if (iCub->getSpeechClient())
-        iCub->getSpeechClient()->SetOptions(ttsOptions);
+        //iCub->getSpeechClient()->SetOptions(ttsOptions);
 
     //Configure the various components
 	configureOPC(rf);
@@ -243,7 +243,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
         rply.clear();
         rply.get(0).asString();
         cout << cmd.toString() << endl;
-		/*while(rply.get(0).asString()!="ack")
+		/*while(rply.get(0).auxsString()!="ack")
             {*/
                 //to_homeo_rpc.write(cmd,rply);
                 cout << rply.toString()<<endl;
@@ -381,12 +381,70 @@ bool ReactiveLayer::updateModule()
 	//physicalInteraction = handleTactile();
 	confusion = handleTagging();
     cout << confusion << endl;
+    learning = handlePointing();
     updateAllostatic();
 	//updateEmotions();
     	
     return true;
 }
+bool ReactiveLayer::handlePointing()
+{
+     iCub->opc->checkout();
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
+    int counter = 0;
+    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    {
+        string sName = (*itEnt)->name();
+        string sNameCut = sName;
+        string delimiter = "_";
+        size_t pos = 0;
+        string token;
+        while ((pos = sName.find(delimiter)) != string::npos) {
+            token = sName.substr(0, pos);
+            sName.erase(0, pos + delimiter.length());
+            sNameCut = token;
+        }
+        // check is label is known
+
+        if (sNameCut != "unknown") {
+
+            if ((*itEnt)->entity_type() == "object" )//|| (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            {
+                cout << "I'd like to point " << (*itEnt)->name() <<endl;
+                //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
+                homeostaticUnderEffects["pointing"].rpc_command.clear();
+                homeostaticUnderEffects["pointing"].rpc_command.addString("point");
+                //homeostaticUnderEffects["pointing"].rpc_command.addString((*itEnt)->entity_type());
+                homeostaticUnderEffects["pointing"].rpc_command.addString((*itEnt)->name());
+                return true;
+                /*
+                Object* temp = dynamic_cast<Object*>(*itEnt);
+                if (temp->m_saliency > highestSaliency)
+                {
+                    if (secondSaliency != 0.0)
+                    {
+                        secondSaliency = highestSaliency;
+                    }
+                    highestSaliency = temp->m_saliency;
+                    sNameBestEntity = temp->name();
+                    sTypeBestEntity = temp->entity_type();
+                }
+                else
+                {
+                    if (temp->m_saliency > secondSaliency)
+                    {
+                        secondSaliency = temp->m_saliency;
+                    }
+                }
+                counter++;
+                */
+            }
+        }
+    }
+    //if no unknown object was found, return false
+    return counter > 0; 
+}
 bool ReactiveLayer::handleTagging()
 {
     iCub->opc->checkout();
@@ -627,7 +685,7 @@ bool ReactiveLayer::updateAllostatic()
 		cmd.addString("par");
 		cmd.addString("tagging");
 		cmd.addString("dec");
-		cmd.addDouble(0.1);
+		cmd.addDouble(0.006);
         cout << cmd.toString()<<endl;
         Bottle rply;
         rply.clear();
@@ -640,14 +698,71 @@ bool ReactiveLayer::updateAllostatic()
 		cmd.addString("par");
 		cmd.addString("tagging");
 		cmd.addString("dec");
-		cmd.addDouble(0.0);
+		cmd.addDouble(-0.01);
         cout << cmd.toString()<<endl;
 
 		to_homeo_rpc.write(cmd);
 	}
-    cout <<drivesList.size()<<endl;
+    if (learning)
+    {
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("par");
+        cmd.addString("pointing");
+        cmd.addString("dec");
+        cmd.addDouble(0.021);
+        cout << cmd.toString()<<endl;
+        Bottle rply;
+        rply.clear();
+        to_homeo_rpc.write(cmd,rply);
+        cout<<rply.toString()<<endl;
 
+    }else{
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("par");
+        cmd.addString("pointing");
+        cmd.addString("dec");
+        cmd.addDouble(0.0);
+        cout << cmd.toString()<<endl;
+
+        to_homeo_rpc.write(cmd);
+    }
+    //cout <<drivesList.size()<<endl;
+
+<<<<<<< HEAD
     DriveOutCZ activeDrive = chooseDrive();
+=======
+	//Trigger drive related sentences
+	for ( int i =0;i<drivesList.size();i++)
+	//for (map<string, Drive>::iterator d = iCub->icubAgent->m_drives.begin(); d != iCub->icubAgent->m_drives.end(); d++)
+	{
+		double val = outputm_ports[i]->read()->get(0).asDouble();
+		//Check under homeostasis
+        //cout << "in the loop"<< val<<endl;
+		if (val>0)
+		{
+			iCub->say(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
+			if (homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active)
+			{
+                cout << "Command sent!!!"<< endl;
+                cout <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString() << endl;
+                Bottle rply;
+                rply.clear();
+				homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command,rply);
+				yarp::os::Time::delay(0.1);
+                cout<<rply.toString()<<endl;
+
+                homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.clear();
+			}
+            cout<< "after the if "<<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active<<endl;
+			Bottle cmd;
+			cmd.clear();
+			cmd.addString("delta");
+			cmd.addString(drivesList.get(i).asString().c_str());
+			cmd.addString("val");
+			cmd.addDouble(0.35);
+>>>>>>> [IE] Tested with fingers
 
     int i; // the chosen drive
 
@@ -658,7 +773,22 @@ bool ReactiveLayer::updateAllostatic()
     else
         i = activeDrive.idx;
 
+<<<<<<< HEAD
     //Under homeostasis
+=======
+		val = outputM_ports[i]->read()->get(0).asDouble();
+		//Check over homeostasis
+        //cout<<val<<endl;
+		if (val>0)
+		{
+			//iCub->say(homeostaticOverEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
+			Bottle cmd;
+			cmd.clear();
+			cmd.addString("delta");
+			cmd.addString(drivesList.get(i).asString().c_str());
+			cmd.addString("val");
+			cmd.addDouble(-0.15);
+>>>>>>> [IE] Tested with fingers
 
     if (activeDrive.level == UNDER)
     {
@@ -703,8 +833,12 @@ bool ReactiveLayer::updateAllostatic()
 		rpc_ports[i]->write(cmd);
 		//d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
 	}
+<<<<<<< HEAD
 
     cout<<"come on..."<<endl;
+=======
+    //cout<<"come on..."<<endl;
+>>>>>>> [IE] Tested with fingers
 	//iCub->commitAgent();
     //cout<<"commited"<<endl;
 	return true;

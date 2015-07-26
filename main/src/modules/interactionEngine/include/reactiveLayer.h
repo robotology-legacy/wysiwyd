@@ -58,6 +58,7 @@ private:
 	bool physicalInteraction;
 	bool someonePresent;
     bool confusion;
+    bool learning;
 	//Reflexes
 	map<string, StimulusEmotionalResponse> salutationEffects;
 	map<string, StimulusEmotionalResponse> tactileEffects;
@@ -103,6 +104,9 @@ public:
 
     //Check for unknown tags in the opc
     bool handleTagging();
+
+    //Check for objects to point to
+    bool handlePointing();
 
 	//Check for newcomers and salute them if required
 	bool handleSalutation(bool& someoneIsPresent);

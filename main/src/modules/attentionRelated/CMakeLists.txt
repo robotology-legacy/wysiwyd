@@ -5,3 +5,4 @@
 add_subdirectory(attentionSelector)
 add_subdirectory(pasar)
 add_subdirectory(proactiveTagging)
+add_subdirectory(dexis)

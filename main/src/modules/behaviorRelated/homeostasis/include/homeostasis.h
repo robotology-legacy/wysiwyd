@@ -1,7 +1,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
-
+#include <math.h>
 
 using namespace std;
 
@@ -79,9 +79,25 @@ public:
     {
         this->decay += d_decay;
     }
-    void update()
+
+    double sigDecay()
     {
+        double aux = (1/(1+exp(-this->value)))-0.5;
+        if (aux<0)
+            aux=-aux;
+        cout << "sig function: "<< aux << endl;
+        return this->decay*(aux-1);
+
+    }
+    void update()
+
+    {
+        if ((this->value > 1 && this->decay<0)|| (this->value < 0 && this->decay>0))
+            this->decay = 0.0;
         this->value -= this->decay;
+
+        //cout<<"real decay: "<<this->sigDecay()<<endl;
+        //this->value -= this->sigDecay();
     }
 
     double getValue()
