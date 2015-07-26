@@ -4,6 +4,7 @@
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/math/SVD.h>
+#include <yarp/math/Rand.h>
 #include "wrdac/clients/icubClient.h"
 #include <map>
 #include "internalVariablesDecay.h"
@@ -13,6 +14,14 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
 using namespace wysiwyd::wrdac;
+
+enum OutCZ {UNDER, OVER};
+
+struct DriveOutCZ {
+    int idx;
+    OutCZ level;
+
+};
 
 struct StimulusEmotionalResponse
 {
@@ -55,9 +64,9 @@ private:
 	map<string, StimulusEmotionalResponse> homeostaticOverEffects;
 	map<string, StimulusEmotionalResponse> homeostaticUnderEffects;
 
-    //vector<double> drivePriorities;
+    vector<double> drivePriorities;
 
-    Port    rpc;
+    Port rpc;
 
     vector< yarp::os::Port* > rpc_ports;
     vector< yarp::os::BufferedPort<Bottle>* > outputM_ports;
@@ -112,4 +121,9 @@ public:
 
 	//RPC & scenarios
 	bool respond(const Bottle& cmd, Bottle& reply);
+
+    bool Normalize(vector<double>& vec);
+
+    // Choose a drive out of CZ, according to drive priorities
+    DriveOutCZ chooseDrive();
 };

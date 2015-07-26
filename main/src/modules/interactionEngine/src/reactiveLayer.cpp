@@ -106,6 +106,8 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
 	physicalInteraction = false;
 	someonePresent = false;
 
+    Rand::init();
+
 	//iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong start"));
 
     return true;
@@ -218,6 +220,9 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 	drivesList = *grpAllostatic.find("drives").asList();
 	iCub->icubAgent->m_drives.clear();
 	Bottle cmd;
+
+    double priority_sum = 0.; 
+    double priority;
 	for (int d = 0; d<drivesList.size(); d++)
 	{
 		cmd.clear();
@@ -264,8 +269,12 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 		}
         string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port").c_str(), Value("None")).asString();
 
+        cout << under_port_name << endl;
+
         // set drive priorities. Default to 1.
-        //drivePriorities.push_back(grpAllostatic.check((driveName + "-priority"), Value(1.)).asDouble());
+        priority = grpAllostatic.check((driveName + "-priority"), Value(1.)).asDouble();
+        priority_sum += priority;
+        drivePriorities.push_back(priority);
 
         
         if (under_port_name != "None")
@@ -318,7 +327,12 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 		homeostaticOverEffects[driveName] = responseOver;
 	}
 	cout << "done" << endl;
-    //cout << "Drive priorities: " << drivePriorities << cout; 
+
+    // Normalize drive priorities
+    if ( ! Normalize(drivePriorities))
+        cout << "Error: Drive priorities sum up to 0." << endl;
+
+    cout << "Drive priorities: " << drivePriorities << endl; 
 
 	//Initialise the iCub emotional model
 	cout << "Initializing emotions...";
@@ -348,18 +362,27 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 	decayThread->start();
 }
 
+bool ReactiveLayer::Normalize(vector<double>& vec) {
+    double sum = 0.;
+    for (unsigned int i = 0; i<vec.size(); i++)
+        sum += vec[i];
+    if (sum == 0.)
+        return false;
+    for (unsigned int i = 0; i<vec.size(); i++)
+        vec[i] /= sum;
+    return true;
+}
+
 bool ReactiveLayer::updateModule()
 {
     cout<<".";
 
 	//handleSalutation(someonePresent);
 	//physicalInteraction = handleTactile();
-    cout << "here" << endl;
 	confusion = handleTagging();
     cout << confusion << endl;
     updateAllostatic();
 	//updateEmotions();
-    cout << "here" << endl;
     	
     return true;
 }
@@ -523,6 +546,46 @@ bool ReactiveLayer::handleSalutation(bool& someoneIsPresent)
 	return false;
 }
 
+// Return the index of a drive to solve according to priorities and homeostatis levels
+// Return -1 if no drive to be solved
+DriveOutCZ ReactiveLayer::chooseDrive() {
+
+    DriveOutCZ result;
+    bool inCZ;
+    int numOutCz = 0;
+    double random, cum;
+    vector<double> outOfCzPriorities(drivePriorities);
+
+    for ( int i =0;i<drivesList.size();i++) {
+         inCZ = outputm_ports[i]->read()->get(0).asDouble() <= 0 && outputM_ports[i]->read()->get(0).asDouble() <= 0;
+         if (inCZ) {
+            outOfCzPriorities[i] = 0.;           
+         }
+         else {
+            numOutCz ++;
+         }
+        cout << "Drive " << i << ", " << drivesList.get(i).asString() << ". Priority: " << outOfCzPriorities[i] << "." << endl; 
+    }
+    if (! numOutCz) {
+        result.idx = -1;
+        return result;
+    }
+    if ( ! Normalize(outOfCzPriorities))
+        cout << "Error: outOfCzPriorities sum up to 0." << endl;
+    random = Rand::scalar();
+    cum = outOfCzPriorities[0];
+    int idx = 0;
+    while (cum < random) {
+        cum += outOfCzPriorities[idx + 1];
+        idx++;
+    }
+    result.idx = idx;
+    if (outputm_ports[idx]->read()->get(0).asDouble() > 0)
+        result.level = UNDER;
+    if (outputM_ports[idx]->read()->get(0).asDouble() > 0)
+        result.level = OVER;    
+    return result;
+}
 
 
 bool ReactiveLayer::updateAllostatic()
@@ -584,56 +647,63 @@ bool ReactiveLayer::updateAllostatic()
 	}
     cout <<drivesList.size()<<endl;
 
-	//Trigger drive related sentences
-	for ( int i =0;i<drivesList.size();i++)
-	//for (map<string, Drive>::iterator d = iCub->icubAgent->m_drives.begin(); d != iCub->icubAgent->m_drives.end(); d++)
-	{
-		double val = outputm_ports[i]->read()->get(0).asDouble();
-		//Check under homeostasis
-        cout << "in the loop"<< val<<endl;
-		if (val>0)
-		{
-			iCub->say(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
-			if (homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active)
-			{
-                cout << "Command sent!!!"<< endl;
-                cout <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString() << endl;
-                Bottle rply;
-                rply.clear();
-				homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command,rply);
-				yarp::os::Time::delay(0.1);
-                cout<<rply.toString()<<endl;
-			}
-            cout<< "after the if "<<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active<<endl;
-			Bottle cmd;
-			cmd.clear();
-			cmd.addString("delta");
-			cmd.addString(drivesList.get(i).asString().c_str());
-			cmd.addString("val");
-			cmd.addDouble(0.35);
+    DriveOutCZ activeDrive = chooseDrive();
 
-			rpc_ports[i]->write(cmd);
+    int i; // the chosen drive
 
-			//d->second.value += (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;
-		}
+    if (activeDrive.idx == -1) {
+        cout << "No drive out of CZ." << endl;
+        return true;
+    }
+    else
+        i = activeDrive.idx;
 
-		val = outputM_ports[i]->read()->get(0).asDouble();
-		//Check over homeostasis
-        cout<<val<<endl;
-		if (val>0)
-		{
-			iCub->say(homeostaticOverEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
-			Bottle cmd;
-			cmd.clear();
-			cmd.addString("delta");
-			cmd.addString(drivesList.get(i).asString().c_str());
-			cmd.addString("val");
-			cmd.addDouble(-0.15);
+    //Under homeostasis
 
-			rpc_ports[i]->write(cmd);
-			//d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
-		}
+    if (activeDrive.level == UNDER)
+    {
+        cout << "Drive " << activeDrive.idx << " chosen. Under level." << endl;
+        iCub->say(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
+        if (homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active)
+        {
+            cout << "Command sent!!!"<< endl;
+            cout <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString() << endl;
+            Bottle rply;
+            rply.clear();
+            homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command,rply);
+            yarp::os::Time::delay(0.1);
+            cout<<rply.toString()<<endl;
+
+        }
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("delta");
+        cmd.addString(drivesList.get(i).asString().c_str());
+        cmd.addString("val");
+        cmd.addDouble(0.35);
+
+        rpc_ports[i]->write(cmd);
+
+        //d->second.value += (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;
+    }
+
+    //Over homeostasis
+
+    if (activeDrive.level == OVER)
+    {
+        cout << "Drive " << activeDrive.idx << " chosen. Under level." << endl;
+		iCub->say(homeostaticOverEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
+		Bottle cmd;
+		cmd.clear();
+		cmd.addString("delta");
+		cmd.addString(drivesList.get(i).asString().c_str());
+		cmd.addString("val");
+		cmd.addDouble(-0.15);
+
+		rpc_ports[i]->write(cmd);
+		//d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
 	}
+
     cout<<"come on..."<<endl;
 	//iCub->commitAgent();
     //cout<<"commited"<<endl;
