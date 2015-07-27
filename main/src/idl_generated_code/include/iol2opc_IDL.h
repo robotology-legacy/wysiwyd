@@ -38,6 +38,13 @@ public:
    * @return true/false on success/failure.
    */
   virtual bool remove_all();
+  /**
+   * Change the name of an object
+   * @param old_name is the object which name is to be changed
+   * @param new_name is the new object name
+   * @return true/false on success/failure.
+   */
+  virtual bool change_name(const std::string& old_name, const std::string& new_name);
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };

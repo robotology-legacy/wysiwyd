@@ -54,7 +54,9 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-    //output port
+    //--------------------------------------------- output port
+
+    //out to BodySchema
     portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str()) ;
     string bodySchemaRpc = rf.check("bodySchemaRpc",Value("/bodySchema/rpc")).asString().c_str();
 
@@ -72,6 +74,8 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     }
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+
+    iCub->getSpeechClient()->TTS("proactive tagging is ready", false);
 
     return true;
 }
@@ -361,7 +365,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     } else if (currentEntityType == "rtobject") {
         sReply = " So this is a " + sName;
     } else if (currentEntityType == "bodypart") {
-        sReply = " Nice, I know that I have a " + sName;
+        sReply = " Nice, I know that I have a " + sName + " finger.";
     }//go out before if not one of those entityType
 
     yInfo() << sReply;

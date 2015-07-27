@@ -28,6 +28,7 @@ Bodypart::Bodypart():Object()
     m_entity_type = "bodypart";
     m_joint_number = -1;
     m_tactile_number = -1;
+    m_kinStruct_instance = -1;
     m_part = "unknown";
     m_present = true;
 }
@@ -38,6 +39,7 @@ Bodypart::Bodypart(const Bodypart &b):Object(b)
     this->m_entity_type = b.m_entity_type;
     this->m_joint_number = b.m_joint_number;
     this->m_tactile_number = b.m_tactile_number;
+    this->m_kinStruct_instance = b.m_kinStruct_instance;
     this->m_part = b.m_part;
     this->m_present = true;
 }
@@ -59,6 +61,10 @@ Bottle Bodypart::asBottle()
     bSub.addString("part");
     bSub.addString(m_part);
     b.addList() = bSub;
+    bSub.clear();
+    bSub.addString("kinStruct_instance");
+    bSub.addInt(m_kinStruct_instance);
+    b.addList() = bSub;
 
     return b;
 }
@@ -67,12 +73,14 @@ string Bodypart::toString()
 {
     std::ostringstream oss;
     oss<< this->Object::toString();
-    oss<<"joint number: \t\t";
-    oss<< m_joint_number <<endl;
-    oss<<"tactile number: \t\t";
-    oss<< m_tactile_number <<endl;
-    oss<<"part: \t\t";
+    oss<< "joint number: \t\t";
+    oss<< m_joint_number << endl;
+    oss<< "tactile number: \t\t";
+    oss<< m_tactile_number << endl;
+    oss<< "part: \t\t";
     oss<< m_part <<endl;
+    oss<< "kinematic structure instance: \t";
+    oss<< m_kinStruct_instance << endl;
     return oss.str();
 }
 
@@ -83,14 +91,16 @@ bool Bodypart::fromBottle(Bottle b)
 
     if (!b.check("joint_number") ||
         !b.check("tactile_number") ||
-        !b.check("part"))
+        !b.check("part") ||
+        !b.check("kinStruct_instance"))
     {
         return false;
     }
 
-    m_joint_number   = b.find("joint_number").asInt();
-    m_tactile_number = b.find("tactile_number").asInt();
-    m_part           = b.find("part").asString();
+    m_joint_number       = b.find("joint_number").asInt();
+    m_tactile_number     = b.find("tactile_number").asInt();
+    m_part               = b.find("part").asString();
+    m_kinStruct_instance = b.find("kinStruct_instance").asInt();
 
     return true;
 }

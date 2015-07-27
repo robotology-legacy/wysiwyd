@@ -148,6 +148,7 @@ public:
     bool    train_object(const string &name);
     bool    remove_object(const string &name);
     bool    remove_all();
+    bool    change_name(const string &old_name, const string &new_name);
 };
 
 #endif

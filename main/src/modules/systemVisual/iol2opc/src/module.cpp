@@ -579,6 +579,7 @@ void IOL2OPCBridge::updateOPC()
 
             // find the blob name (or unknown)
             string object=findName(scores,tag.str());
+
             if (object!=OBJECT_UNKNOWN)
             {
                 CvPoint cog=getBlobCOG(blobs,j);
@@ -587,7 +588,7 @@ void IOL2OPCBridge::updateOPC()
 
                 map<string,IOLObject>::iterator it=db.find(object);
                 if (it!=db.end())
-                {                    
+                {
                     // find 3d position
                     Vector x;
                     if (get3DPosition(cog,x))
@@ -599,6 +600,12 @@ void IOL2OPCBridge::updateOPC()
 
                     it->second.heartBeat();
                 }
+            }
+            else
+            {
+                Object* obj=opc->addEntity<Object>("unknown");
+                db[obj->name()]=IOLObject(presence_timeout);
+                train(obj->name(),blobs,j);
             }
         }
 
@@ -790,7 +797,7 @@ bool IOL2OPCBridge::updateModule()
     }
     // highlight selected blob
     else if (state==Bridge::localization)
-    {        
+    {
         CvPoint loc;
         if (imgSelBlobOut.getOutputCount()>0)
         {
@@ -940,3 +947,43 @@ bool IOL2OPCBridge::remove_all()
     return true;
 }
 
+/**********************************************************/
+bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
+{
+    if (!opc->isConnected())
+    {
+        yError("No connection to OPC");
+        return false;
+    }
+
+    // grab resources
+    LockGuard lg(mutexResources);
+
+    Bottle cmdClassifier,replyClassifier;
+    cmdClassifier.addVocab(VOCAB4('c','h','n','a'));
+    cmdClassifier.addString(old_name);
+    cmdClassifier.addString(new_name);
+    yInfo("Sending change name request: %s",cmdClassifier.toString().c_str());
+    rpcClassifier.write(cmdClassifier,replyClassifier);
+    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+
+    if(replyClassifier.get(0).asString()=="nack") {
+        yError("Classifier did not allow name change.");
+        yError("Is there already an object with this name in the classifier database?");
+        return false;
+    }
+    else
+    {
+        yInfo("Name change successful, reloading local cache");
+        const map<string,IOLObject>::iterator it = db.find(old_name);
+        if (it != db.end()) {
+          // Swap value from oldKey to newKey, note that a default constructed value
+          // is created by operator[] if 'm' does not contain newKey.
+          std::swap(db[new_name], it->second);
+          // Erase old key-value from map
+          db.erase(it);
+        }
+    }
+
+    return true;
+}
