@@ -17,15 +17,13 @@ add_subdirectory(scenarioSpecific)
 add_subdirectory(interactionEngine)
 add_subdirectory(ppsAllostatic)
 add_subdirectory(behaviorRelated)
+add_subdirectory(reservoir)
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_GTK2)
     add_subdirectory(cvz)
 endif()
 
-if(WYSIWYD_USE_Boost)
-    add_subdirectory(reservoirHandler)
-endif()
 
 if(WYSIWYD_USE_kinectWrapper)
     add_subdirectory(humanUnderstanding)

@@ -428,12 +428,12 @@ Bottle bodySchema::dealABM(const Bottle& command, int begin)
     bABM.addString("snapshot");
     Bottle bSubMain;
     bSubMain.addString("action");
-    bSubMain.addString("babbling");
+    bSubMain.addString(command.get(0).asString());
     bSubMain.addString("action");
     Bottle bSubArgument;
     bSubArgument.addString("arguments");
     Bottle bSubSubArgument;
-    bSubSubArgument.addString(command.get(1).asString());
+    bSubSubArgument.addString(command.get(1).toString());
     bSubSubArgument.addString("limb");
     Bottle bSubSubArgument2;
     bSubSubArgument2.addString(part);
