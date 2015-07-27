@@ -54,7 +54,9 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-    //output port
+    //--------------------------------------------- output port
+
+    //out to BodySchema
     portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str()) ;
     string bodySchemaRpc = rf.check("bodySchemaRpc",Value("/bodySchema/rpc")).asString().c_str();
 
