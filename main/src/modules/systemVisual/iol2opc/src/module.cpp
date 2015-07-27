@@ -940,3 +940,28 @@ bool IOL2OPCBridge::remove_all()
     return true;
 }
 
+/**********************************************************/
+bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
+{
+    if (!opc->isConnected())
+    {
+        yError("No connection to OPC");
+        return false;
+    }
+
+    // grab resources
+    LockGuard lg(mutexResources);
+
+    Bottle cmdClassifier,replyClassifier;
+    cmdClassifier.addVocab(Vocab::encode("change_name"));
+    cmdClassifier.addString(old_name);
+    cmdClassifier.addString(new_name);
+    yInfo("Sending change name request: %s",cmdClassifier.toString().c_str());
+    rpcClassifier.write(cmdClassifier,replyClassifier);
+    yInfo("Received reply: %s",replyClassifier.toString().c_str());
+
+    db.clear();
+    state = Bridge::load_database;
+
+    return true;
+}

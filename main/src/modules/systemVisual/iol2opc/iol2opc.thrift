@@ -34,4 +34,12 @@ service iol2opc_IDL
    * @return true/false on success/failure.
    */
    bool remove_all();
+
+   /**
+   * Change the name of an object
+   * @param old_name is the object which name is to be changed
+   * @param new_name is the new object name
+   * @return true/false on success/failure.
+   */
+   bool change_name(1:string old_name, 2:string new_name);
 }

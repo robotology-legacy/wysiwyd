@@ -32,6 +32,16 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class iol2opc_IDL_change_name : public yarp::os::Portable {
+public:
+  std::string old_name;
+  std::string new_name;
+  bool _return;
+  void init(const std::string& old_name, const std::string& new_name);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool iol2opc_IDL_train_object::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
@@ -99,6 +109,31 @@ void iol2opc_IDL_remove_all::init() {
   _return = false;
 }
 
+bool iol2opc_IDL_change_name::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(4)) return false;
+  if (!writer.writeTag("change_name",1,2)) return false;
+  if (!writer.writeString(old_name)) return false;
+  if (!writer.writeString(new_name)) return false;
+  return true;
+}
+
+bool iol2opc_IDL_change_name::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void iol2opc_IDL_change_name::init(const std::string& old_name, const std::string& new_name) {
+  _return = false;
+  this->old_name = old_name;
+  this->new_name = new_name;
+}
+
 iol2opc_IDL::iol2opc_IDL() {
   yarp().setOwner(*this);
 }
@@ -128,6 +163,16 @@ bool iol2opc_IDL::remove_all() {
   helper.init();
   if (!yarp().canWrite()) {
     yError("Missing server method '%s'?","bool iol2opc_IDL::remove_all()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+bool iol2opc_IDL::change_name(const std::string& old_name, const std::string& new_name) {
+  bool _return = false;
+  iol2opc_IDL_change_name helper;
+  helper.init(old_name,new_name);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool iol2opc_IDL::change_name(const std::string& old_name, const std::string& new_name)");
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
@@ -185,6 +230,27 @@ bool iol2opc_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "change_name") {
+      std::string old_name;
+      std::string new_name;
+      if (!reader.readString(old_name)) {
+        reader.fail();
+        return false;
+      }
+      if (!reader.readString(new_name)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = change_name(old_name,new_name);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -222,6 +288,7 @@ std::vector<std::string> iol2opc_IDL::help(const std::string& functionName) {
     helpString.push_back("train_object");
     helpString.push_back("remove_object");
     helpString.push_back("remove_all");
+    helpString.push_back("change_name");
     helpString.push_back("help");
   }
   else {
@@ -244,6 +311,13 @@ std::vector<std::string> iol2opc_IDL::help(const std::string& functionName) {
       helpString.push_back("bool remove_all() ");
       helpString.push_back("Remove all objects from the object-recognition ");
       helpString.push_back("database. ");
+      helpString.push_back("@return true/false on success/failure. ");
+    }
+    if (functionName=="change_name") {
+      helpString.push_back("bool change_name(const std::string& old_name, const std::string& new_name) ");
+      helpString.push_back("Change the name of an object ");
+      helpString.push_back("@param old_name is the object which name is to be changed ");
+      helpString.push_back("@param new_name is the new object name ");
       helpString.push_back("@return true/false on success/failure. ");
     }
     if (functionName=="help") {
