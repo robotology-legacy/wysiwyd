@@ -628,8 +628,10 @@ DriveOutCZ ReactiveLayer::chooseDrive() {
         result.idx = -1;
         return result;
     }
-    if ( ! Normalize(outOfCzPriorities))
-        cout << "Error: outOfCzPriorities sum up to 0." << endl;
+    if ( ! Normalize(outOfCzPriorities)) {
+        result.idx = -1;
+        return result;
+    }
     random = Rand::scalar();
     cum = outOfCzPriorities[0];
     int idx = 0;

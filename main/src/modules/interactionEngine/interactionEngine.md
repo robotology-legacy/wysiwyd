@@ -6,7 +6,7 @@ The config file is app/reactiveLayer/conf/default.ini
 
 The involved parameters are in the section [ALLOSTATIC]
 
-The parameter "drives" is a list of drive names. You can add those you want here. Drives which require modules that can't be loaded should not be a problem, they are just nor taken into account. At the current time (end of first week at VVV2015), only the "tagging" drive (for proactive tagging) plays a role (triggering behavior through the ProactiveTagging module, using rpc commands). However it is in principle feasible to add more, see below (and the # Warning notes at the end, unfortunately).
+The parameter "drives" is a list of drive names. You can add those you want here. Drives which require modules that can't be loaded should not be a problem, they are just nor taken into account. At the current time (end of first week at VVV2015), only the "tagging" drive (for proactive tagging) plays a role (triggering behavior through the ProactiveTagging module, using rpc commands). However it is in principle feasible to add more, see below (and the # Warning notes at the end, unfortunately). There is also a test drive in the config file which has been use to test the priority settings (see how to configure drive priorities below). Currently it has a priority set to 0 so it is never active.
 
 Each drive "name" (to be replaced by the actual drive name) has to define three parameters:
 name-homeostasisMin, name-homeostasisMax and name-decay, corresponding to the comfort zone (CZ) lower bound, the CZ upper bound, and the decay rate (linear decay), respectively.
