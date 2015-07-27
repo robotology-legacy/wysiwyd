@@ -64,7 +64,6 @@ script:
 notifications:
   email:
   - ugo.pattacini@iit.it
-  - stephane.lallee@gmail.com
   - gregoire.pointeau@inserm.fr
   - anne.laure.mealier@gmail.com
   - maxpetit@gmail.com
