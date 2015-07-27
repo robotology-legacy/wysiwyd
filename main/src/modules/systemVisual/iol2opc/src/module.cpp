@@ -797,7 +797,7 @@ bool IOL2OPCBridge::updateModule()
     }
     // highlight selected blob
     else if (state==Bridge::localization)
-    {        
+    {
         CvPoint loc;
         if (imgSelBlobOut.getOutputCount()>0)
         {
@@ -975,8 +975,14 @@ bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
     else
     {
         yInfo("Name change successful, reloading local cache");
-        db.clear();
-        state = Bridge::load_database;
+        const map<string,IOLObject>::iterator it = db.find(old_name);
+        if (it != db.end()) {
+          // Swap value from oldKey to newKey, note that a default constructed value
+          // is created by operator[] if 'm' does not contain newKey.
+          std::swap(db[new_name], it->second);
+          // Erase old key-value from map
+          db.erase(it);
+        }
     }
 
     return true;
