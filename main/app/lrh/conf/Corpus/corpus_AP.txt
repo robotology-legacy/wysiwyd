@@ -1,0 +1,12 @@
+<train data>
+wanted I , get I giraffe <o> [A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>; I wanted to get the giraffe
+failed I , grasp I it <o> [A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>; but I failed to grasp it
+laid it outofreach , <o> [A-P-R-_-_-_-_-_][_-_-_-_-_-_-_-_] <o>; because it laid outofreach   #doen't work
+found I action different <o> [A-P-R-O-_-_-_-_][_-_-_-_-_-_-_-_] <o>; so I found a different action
+ask I you, give you it me <o> [A-P-R-_-_-_-_-_][_-_-A-P-O-R-_-_] <o>; if I could ask you to give it to me
+would you, give you it me <o> [A-P-_-_-_-_-_-_][A-_-P-O-R-_-_-_] <o>; then you would give it to me
+ask I you, give you it me <o> [A-P-R-_-_-_-_-_][_-_-A-P-O-R-_-_] <o>; so I asked you to give it to me
+gave you it me <o> [A-P-O-R-_-_-_-_][_-_-_-_-_-_-_-_] <o>; and you gave it to me
+have I giraffe <o> [A-P-O-_-_-_-_-_][_-_-_-_-_-_-_-_] <o>; now I have the giraffe
+
+
