@@ -436,3 +436,4 @@ def _teach_and_test_flow(inputs_train_set, teacher_outputs_train_set, inputs_tes
         return (states_out, internal_states, internal_outputs, neuron_states, flow_trained)
     else:
         return (states_out, internal_states, internal_outputs, neuron_states)
+

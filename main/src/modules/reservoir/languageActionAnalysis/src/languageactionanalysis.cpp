@@ -17,17 +17,7 @@
  * Public License for more details
 */
 
-LanguageActionAnalysis::LanguageActionAnalysis(ResourceFinder &rf)
-{
-    iCurrentInstance = -1;
 
-}
-
-
-LanguageActionAnalysis::~LanguageActionAnalysis()
-{
-    close();
-}
 
 bool LanguageActionAnalysis::configure(ResourceFinder &rf){
     bool	bEveryThingisGood = true;

@@ -108,6 +108,8 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
     string helpMessage =  string(getName().c_str()) +
             " commands are: \n" +
             "help \n" +
+            "production objectFocus \n" +
+            "meaning sentence \n" +
             "quit \n";
 
     reply.clear();
@@ -120,14 +122,13 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
         cout << helpMessage;
         reply.addString("ok");
     }
-    else if (command.get(0).asString()=="production") {
-        reply.addString("I'm here !!!!! in production command");
-        cout << "command.get(1).asString() : " << endl;
-        meaningToSentence(command.get(1).asString());
+    else if (command.get(0).asString()=="production"  && command.size() == 2) {
+        reply.addString("OK, send the language production");
+        cout << "command.get(1).asString() : " << command.get(1).asString() << endl;
+        spatialRelation(command.get(1).asString());
     }
-    else if (command.get(0).asString()=="meaning") {
-        reply.addString("I'm here !!!!! in meaning command");
-        cout << "command.get(1).asString() : " << endl;
+    else if (command.get(0).asString()=="meaning" && command.size() == 2) {
+        reply.addString("OK, send the language comprehension");
         sentenceToMeaning(command.get(1).asString());
     }
 
@@ -263,7 +264,6 @@ string LRH::openResult(const char* fileNameIn)
 
 int LRH::createTest(const char* filename, string sMeaningSentence)
 {
-    cout << "createTestwithTrainData(const char* filename, string sMeaningSentence " << endl;
     cout << filename << "    " << "sMeaningSentence" << endl;
     ofstream file;
     file.open (filename, ios::app);
@@ -417,7 +417,7 @@ bool LRH::AREactions(vector<string> seq)
     }
     else
     {
-        iCub->say(sObject + " is not present");
+        //iCub->say(sObject + " is not present");
         cout << sObject << " is not present ! " << endl;
         success = false;
     }
@@ -432,24 +432,14 @@ bool LRH::AREactions(vector<string> seq)
 bool LRH::spatialRelation(string sObjectFocus)
 {
     iCub->opc->update();
-    std::list<Entity*> PresentObjectsALL = iCub->opc->EntitiesCache();
-    std::list<Entity*> PresentObjects;
-    std::vector<RTObject> PresentRtoBefore;
-
-    if (PresentObjects.size() > 2)
-    {
-        //string object1 = PresentObjectsALL.get(rand()%PresentObjects.size());
-        //string object2 = PresentObjectsALL[rand()%PresentObjects.size()];
-        //PresentObjects.append(object1);
-        //PresentObjects.append(object2);
-    }
-
+    std::list<Entity*> PresentObjects = iCub->opc->EntitiesCache();
+    std::vector<Object> PresentRtoBefore;
 
     for(std::list<Entity*>::iterator itE = PresentObjects.begin() ; itE != PresentObjects.end(); itE++)
     {
-        if ((*itE)->isType(EFAA_OPC_ENTITY_RTOBJECT))
+        if ((*itE)->isType(EFAA_OPC_ENTITY_OBJECT))
         {
-            RTObject rto;
+            Object rto;
             rto.fromBottle((*itE)->asBottle());
             if (rto.m_present)PresentRtoBefore.push_back(rto) ;
         }
@@ -458,7 +448,7 @@ bool LRH::spatialRelation(string sObjectFocus)
 
     if (PresentObjects.size() < 2)
     {
-        iCub->say("Dude, I was expecting more than 3 objects... Start again !");
+        iCub->say("Dude, I was expecting more than 3 objects... ");
         return false;
     }
 
@@ -469,7 +459,7 @@ bool LRH::spatialRelation(string sObjectFocus)
     if (sobjectFocusChanged.empty())
     {
         double maxSalience = 0.4;
-        for (std::vector<RTObject>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
+        for (std::vector<Object>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
         {
             if (itRTO->m_saliency > maxSalience)
             {
@@ -480,16 +470,14 @@ bool LRH::spatialRelation(string sObjectFocus)
 
         if (maxSalience == 0.)
         {
-            iCub->say("I think I didn't get your focus object");
             return false;
         }
-
-        string sSentence = "Ok, so you decided to focus on " + sObjectFocus;
-        iCub->say(sSentence);
     }
     else{
         sObjectFocus = sobjectFocusChanged;
     }
+
+    cout << "In spatialRelation" <<endl;
 
     if (PresentRtoBefore.size()==2)
     {
@@ -510,9 +498,12 @@ bool LRH::spatialRelation(string sObjectFocus)
         sdataTestSD = sLocation + " " + sObjectFocus + " " + sRelative;
 
     }
+
+
+
     else    // case of 3 objects
     {
-        RTObject rtFocus,
+        Object rtFocus,
                 rtRelative1,
                 rtRelative2;
         bool bFirstRelative = true;
@@ -529,7 +520,6 @@ bool LRH::spatialRelation(string sObjectFocus)
             }
         }
 
-        iCub->say("I can see");
         double deltaX1 ; // difference btw focus and relative1
         double deltaX2 ; // difference btw focus and relative2
 
@@ -548,7 +538,11 @@ bool LRH::spatialRelation(string sObjectFocus)
         cout << "I understood : " << sLocation1 << "\t" << sObjectFocus << "\t" << sRelative1 << endl;
         cout << "and          : " << sLocation2 << "\t" << sObjectFocus << "\t" << sRelative2 << endl;
 
-        sdataTestSD = sLocation1 + " " + sObjectFocus + " " + sRelative1 + ", " + sLocation2 + " " + sObjectFocus + " " + sRelative2;
+        string sfocusHierarchy =  "<o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>";
+        sdataTestSD = sLocation1 + " " + sObjectFocus + " " + sRelative1 + "," + sLocation2 + " " + sObjectFocus + " " + sRelative2 + " " + sfocusHierarchy;
+
+        cout << "sdataTestSD : "  << sdataTestSD << endl;
+        meaningToSentence(sdataTestSD);
         string result = openResult(sfileResult.c_str());
         iCub->say(result);
     }

@@ -11,16 +11,12 @@ import mdp
 import Oger
 import numpy as np
 import common_PAOR as common
-greg = []
+
 
 def get_closed_class_words():
     """
     list of closed class words
     """
-
-    #    return ['and', 'is', 'of', 'the', 'to', '.']
-    #    return ['after', 'before', 'it', 'on', 'the', '.']
-    #return ['after', 'and', 'before', 'it', 'on', 'in', 'to', 'the', 'then', 'you', '.', 'my', 'red', 'blue','please', 'twice', 'two', 'steps', 'do', 'a', 'u-turn', 'both', 'objects', 'having', 'again','afterwards', 'time','firstly','first', 'over', 'back', 'at','followed','once']
     return closed_class_wordsAP
     
 def meaning_stim_to_meaning_code(stim, ocw_array, l_m_elt, verbose=False):
@@ -101,7 +97,7 @@ def convert_l_output_activity_in_meaning(l_out_act, l_ocw_array, l_m_elt):
     return l_meanings
 
 def main(path_file_in, path_file_out, plot=False, fast=False, keep_internal_states=False, verbose=False):
-    import sys,os
+    import os
     #sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/..")
     #print "path   ", os.path.dirname(os.path.abspath(__file__))+"/.."
     current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -270,3 +266,4 @@ if __name__ == '__main__':
              path_file_out=fileResult)
 
     print "*********END OF PROGRAM********"
+

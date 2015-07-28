@@ -8,16 +8,20 @@ xavier.hinaut #/at\# inserm.fr
 
 import mdp
 import numpy as np
-import random
 import reservoir
     
 ### Extraction Methods ###
 ##########################
+    
+
+
 def get_closed_class_words():
     """
     list of closed class words (the correct list depends on the corpus)
     """
-    return closed_class_wordsSD
+    return ['after', 'is', 'of', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now'];
+    #return ['is', 'of', 'the', 'to']
+    #return closed_class_wordsSD
 
 def extr_sent(sent):
     sent = sent.strip() #removing spaces before and after the sentence
@@ -47,8 +51,6 @@ def extr_meaning(meaning, verbose=False):
             raise Exception, "Number of words not good for 1st meaning: "+str(len(m1))
     #print "    result extr meaning: "+str(m_res)
     a_res.append(assignement)
-    print "a_res : ", a_res
-    print "m_res : ", m_res
     return m_res, a_res
 
 def extract_line_train(l):
@@ -428,7 +430,7 @@ def treshold_signal(vect, sup, inf):
 ### Main Methods ###
 ##########################
 #COLAS : function modified in order to give parameters in argument. New reservoir as well. Feedback implemented but it doesn't work for now (see report and readme)
-def main(path_file_in, path_file_out,N=800, sr=3, iss=0.1, leak=0.1, ridge=10**-1, plot=False, feedback=False, return_result=False, verbose=False):
+def main(path_file_in, path_file_out,N=400, sr=3, iss=0.1, leak=0.1, ridge=10**-1, plot=False, feedback=False, return_result=False, verbose=False):
     def write_list_in_file(l, file=None, file_path=None):
         """
         Write a list in a file with with one item per line (like a one column csv).
@@ -618,12 +620,14 @@ def main(path_file_in, path_file_out,N=800, sr=3, iss=0.1, leak=0.1, ridge=10**-
         for list_words in l_recovered_sentences_test:
             l_final_sent_test.append(" ".join(list_words))
 
-        write_list_in_file(l=l_final_sent_test, file_path=path_file_out)
+        
         #print " *** ... Writting done ***"
         #print "**********************************************"
         print "********************************************** "
         print " *** RECOGNIZED SENTENCES *** "
         print l_final_sent_test[0]
+
+        write_list_in_file(l=l_final_sent_test, file_path=path_file_out)
         if return_result:   
             return l_final_sent_test
 
@@ -634,16 +638,29 @@ def main(path_file_in, path_file_out,N=800, sr=3, iss=0.1, leak=0.1, ridge=10**-
         plotting.plot_array_in_file(root_file_name="../Results/states_out_train", array_=states_out_train, titles_subset=l_construction_train, legend_=construction_words, plot_slice=None, title="", subtitle="")
 
         plotting.plot_array_in_file(root_file_name="../Results/states_out_test", array_=states_out_test, titles_subset=l_recovered_sentences_test, legend_=construction_words, plot_slice=None, title="", subtitle="")
-    
-    
+
+    print ""
+
 if __name__ == '__main__':
     import sys
+    print "############################################################################################"
     corpusFileSD = sys.argv[1]
     fileResult = sys.argv[2]
-    closed_class_wordsSD= sys.argv[3].split(',')
-    print "#################################"
-    print "closed_class_wordsSD ", closed_class_wordsSD
+        
+    closed_class_wordsSD = sys.argv[3].split(',') # ['after', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now']
 
+    max_nr_ocw = int(sys.argv[4])              #10
+    max_nr_actionrelation = int(sys.argv[5])    #4
+    elt_pred= sys.argv[6].split(',')     #['P','A','O','R','V']
+    #    
     main(path_file_in=corpusFileSD, path_file_out=fileResult, plot=False, feedback=False)
 
+
+    #corpusFileSD = "/home/anne/.local/share/yarp/contexts/lrh/conf/Corpus/temporaryCorpus.txt"
+    #fileResult = "/home/anne/.local/share/yarp/contexts/lrh/conf/Corpus/output.txt"
+    #closed_class_wordsSD =  ['after', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now']
+    #print "closed_class_wordsSD ", closed_class_wordsSD   
+    #max_nr_ocw = 10
+    #max_nr_actionrelation = 4
+    #elt_pred = ['P','A','O','R','V']
     print "*********END OF PROGRAM********"
