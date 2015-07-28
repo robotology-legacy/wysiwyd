@@ -98,12 +98,16 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         "help \n" +
         "quit \n"
         "exploreUnknowneEntity entity_type entity_name \n" +
-        "exploreEntityByName entity_name \n";
+        "exploreEntityByName entity_name \n" + 
+        "exploreKinematicByName entity_name bodypart [true/false] \n" +
+        "exploreKinematicByJoint joint bodypart [true/false] \n";
 
     reply.clear();
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
+
+        rpcPort.reply(reply);
         return false;
     }
     else if (command.get(0).asString() == "exploreUnknownEntity") {
@@ -126,6 +130,8 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByName name bodypart [true/false]"  ;
             reply.addString("error");
             reply.addString("Not enough argument : exploreKinematicByName name bodypart [true/false]");
+
+            rpcPort.reply(reply);
             return true;
         }
 
@@ -149,6 +155,8 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByJoint joint bodypart [true/false]"  ;
             reply.addString("error");
             reply.addString("Not enough argument : exploreKinematicByJoint joint bodypart [true/false]");
+
+            rpcPort.reply(reply);
             return true;
         }
 
@@ -156,6 +164,8 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Second argument (joint) should be an Int!"  ;
             reply.addString("error");
             reply.addString("Second argument (joint) should be an Int!");
+
+            rpcPort.reply(reply);
             return true;
         }
 
@@ -171,6 +181,8 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         cout << helpMessage;
         reply.addString("ok");
     }
+
+    rpcPort.reply(reply);
 
     return true;
 }
