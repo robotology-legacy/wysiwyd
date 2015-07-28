@@ -389,7 +389,7 @@ bool ReactiveLayer::updateModule()
 }
 bool ReactiveLayer::handlePointing()
 {
-     iCub->opc->checkout();
+    iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
     int counter = 0;
@@ -450,7 +450,6 @@ bool ReactiveLayer::handleTagging()
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
-    int counter = 0;
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
     {
         string sName = (*itEnt)->name();
@@ -465,43 +464,54 @@ bool ReactiveLayer::handleTagging()
         }
         // check is label is known
 
+        bool sendRPC = false;
+
         if (sNameCut == "unknown") {
 
             if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 cout << "I found unknown entities!!!!"<<endl;
-            	//If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
-            	homeostaticUnderEffects["tagging"].rpc_command.clear();
-            	homeostaticUnderEffects["tagging"].rpc_command.addString("exploreUnknownEntity");
-            	homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->entity_type());
-            	homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->name());
-            	return true;
-            	/*
-                Object* temp = dynamic_cast<Object*>(*itEnt);
-                if (temp->m_saliency > highestSaliency)
-                {
-                    if (secondSaliency != 0.0)
-                    {
-                        secondSaliency = highestSaliency;
-                    }
-                    highestSaliency = temp->m_saliency;
-                    sNameBestEntity = temp->name();
-                    sTypeBestEntity = temp->entity_type();
-                }
-                else
-                {
-                    if (temp->m_saliency > secondSaliency)
-                    {
-                        secondSaliency = temp->m_saliency;
-                    }
-                }
-                counter++;
-                */
+                sendRPC = true;
+
             }
+        }
+        else {
+            if ((*itEnt)->entity_type() == "bodypart" && dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1)
+                sendRPC = true;
+        }
+
+        if (sendRPC) {
+            //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
+            homeostaticUnderEffects["tagging"].rpc_command.clear();
+            homeostaticUnderEffects["tagging"].rpc_command.addString("exploreUnknownEntity");
+            homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->entity_type());
+            homeostaticUnderEffects["tagging"].rpc_command.addString((*itEnt)->name());
+            return true;
+            /*
+            Object* temp = dynamic_cast<Object*>(*itEnt);
+            if (temp->m_saliency > highestSaliency)
+            {
+                if (secondSaliency != 0.0)
+                {
+                    secondSaliency = highestSaliency;
+                }
+                highestSaliency = temp->m_saliency;
+                sNameBestEntity = temp->name();
+                sTypeBestEntity = temp->entity_type();
+            }
+            else
+            {
+                if (temp->m_saliency > secondSaliency)
+                {
+                    secondSaliency = temp->m_saliency;
+                }
+            }
+            counter++;
+            */            
         }
     }
     //if no unknown object was found, return false
-    return counter > 0; 
+    return false; 
 }
 
 bool ReactiveLayer::handleTactile()
