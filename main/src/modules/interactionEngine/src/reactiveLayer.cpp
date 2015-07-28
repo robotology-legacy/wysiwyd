@@ -470,7 +470,6 @@ bool ReactiveLayer::handleTagging()
 
             if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
-                cout << "I found unknown entities!!!!"<<endl;
                 sendRPC = true;
 
             }
@@ -481,6 +480,7 @@ bool ReactiveLayer::handleTagging()
         }
 
         if (sendRPC) {
+            cout << "send rpc to proactiveTagging"<<endl;
             //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
             homeostaticUnderEffects["tagging"].rpc_command.clear();
             homeostaticUnderEffects["tagging"].rpc_command.addString("exploreUnknownEntity");
