@@ -114,6 +114,59 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " exploreEntityByName";
         reply = exploreEntityByName(command);
     }
+    else if (command.get(0).asString() == "exploreKinematicByName") {
+        //exploreKinematicByName name bodypart [true/false]
+        //name : index, thumb, biceps, etc.
+        //bodypart : left_hand, right_arm, etc.
+        //true/false : OPTIONAL : forcingKinematicStructure : do you want to launch a KS generation (may take minutes)
+
+        yInfo() << " exploreKinematicByName";
+
+        if (command.size() < 3) {
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByName name bodypart [true/false]"  ;
+            reply.addString("error");
+            reply.addString("Not enough argument : exploreKinematicByName name bodypart [true/false]");
+            return true;
+        }
+
+        string sName     = command.get(1).asString() ;
+        string sBodyPart = command.get(2).asString() ;
+        bool forcingKS = false;
+        if (command.size() == 4) {
+            bool forcingKS = (command.get(3).asString() == "true") ;
+        }
+        reply = assignKinematicStructureByName(sName, sBodyPart, forcingKS);
+    }
+    else if (command.get(0).asString() == "exploreKinematicByJoint") {
+        //exploreKinematicByName name bodypart [true/false]
+        //name : index, thumb, biceps, etc.
+        //bodypart : left_hand, right_arm, etc.
+        //true/false : OPTIONAL : forcingKinematicStructure : do you want to launch a KS generation (may take minutes)
+
+        yInfo() << " exploreKinematicByJoint";
+
+        if (command.size() < 3) {
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByJoint joint bodypart [true/false]"  ;
+            reply.addString("error");
+            reply.addString("Not enough argument : exploreKinematicByJoint joint bodypart [true/false]");
+            return true;
+        }
+
+        if (!command.get(1).isInt()) {
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Second argument (joint) should be an Int!"  ;
+            reply.addString("error");
+            reply.addString("Second argument (joint) should be an Int!");
+            return true;
+        }
+
+        int BPjoint      = command.get(1).asInt();
+        string sBodyPart = command.get(2).asString() ;
+        bool forcingKS   = false;
+        if (command.size() == 4) {
+            bool forcingKS = (command.get(3).asString() == "true") ;
+        }
+        reply = assignKinematicStructureByJoint(BPjoint, sBodyPart, forcingKS);
+    }
     else {
         cout << helpMessage;
         reply.addString("ok");
