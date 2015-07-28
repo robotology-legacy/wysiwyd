@@ -601,7 +601,7 @@ void IOL2OPCBridge::updateOPC()
                     it->second.heartBeat();
                 }
             }
-            TODO: Find a smart way to create new objects
+            //TODO: Find a smart way to create new objects
             /*else
             {
                 Object* obj=opc->addEntity<Object>("unknown");
