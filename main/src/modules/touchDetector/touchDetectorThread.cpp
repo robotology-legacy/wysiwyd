@@ -184,6 +184,7 @@ void TouchDetectorThread::run()
 	catch(BadFormatException &ex)
 	{
 		ex.portName = bodyParts[port];
+		throw ex;
 	}
 	
 	Bottle& output = touchPort->prepare();
@@ -197,7 +198,7 @@ void TouchDetectorThread::run()
 
 void TouchDetectorThread::countActivations(int bodyPart, Bottle* data, vector<int> &activations)
 {
-	int i = 2;
+	int i = 0;
 	for (vector<int>::iterator it = taxels2Clusters[bodyPart].begin() ; it != taxels2Clusters[bodyPart].end(); ++it)
 	{
 		Value v = data->get(i);
@@ -207,7 +208,7 @@ void TouchDetectorThread::countActivations(int bodyPart, Bottle* data, vector<in
 			ex.expectedType = "double";
 			throw ex;
 		}
-		if (!v.isNull() && v.asInt() > threshold && *it != noCluster)
+		if (v.asInt() > threshold && *it != noCluster)
 		{
 			++activations[*it];
 		}
@@ -242,7 +243,7 @@ BadFormatException::BadFormatException()
 
 const char* BadFormatException::what() const throw()
 {
-	string msg = "Bad format encoountered ";
+	string msg = "Bad format encountered ";
 	if (expectedType != NULL)
 	{
 		msg += "(expecting ";

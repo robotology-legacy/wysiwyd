@@ -76,7 +76,7 @@ void TouchDetectorModule::initializeParameters(ResourceFinder &rf)
 	moduleName = rf.check("name", Value("touchDetector"), "Module name (string)").asString();
 	setName(moduleName.c_str());
 	period = rf.check("period", Value(1000 / 30), "Thread period (string)").asInt();
-	threshold = rf.check("threshold", Value(50), "Activation threshold (string)").asInt();
+	threshold = rf.check("threshold", Value(50), "Activation threshold (int)").asInt();
 	rf.setDefault("clustersConfFile", Value("clustersConfig.ini"));
 	clustersConfFilepath = rf.findFile("clustersConfFile");
 	
