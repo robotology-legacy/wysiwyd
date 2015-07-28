@@ -200,10 +200,6 @@ void TouchDetectorThread::countActivations(int bodyPart, Bottle* data, vector<in
 	int i = 2;
 	for (vector<int>::iterator it = taxels2Clusters[bodyPart].begin() ; it != taxels2Clusters[bodyPart].end(); ++it)
 	{
-		if (bodyPart == 5)
-		{
-			cerr << *it << ' ';
-		}
 		Value v = data->get(i);
 		if (v.isNull() || !v.isDouble())
 		{
@@ -215,8 +211,8 @@ void TouchDetectorThread::countActivations(int bodyPart, Bottle* data, vector<in
 		{
 			++activations[*it];
 		}
+		++i;
 	}
-	cerr << endl;
 }
 
 ParsingException::ParsingException()
