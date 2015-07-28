@@ -158,4 +158,7 @@ bool Entity::operator>(const Entity &b)
 }
 
 
-
+void Entity::changeName(std::string sName)
+{
+    m_name = sName;
+}

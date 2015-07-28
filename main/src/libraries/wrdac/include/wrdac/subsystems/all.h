@@ -25,6 +25,7 @@
 #include "subSystem_ARE.h"
 #include "subSystem_attention.h"
 #include "subSystem_facialExpression.h"
+#include "subSystem_iol2opc.h"
 #include "subSystem_iKart.h"
 #include "subSystem_postures.h"
 #include "subSystem_reactable.h"

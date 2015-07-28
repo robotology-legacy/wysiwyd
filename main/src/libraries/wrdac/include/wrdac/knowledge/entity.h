@@ -42,9 +42,6 @@ namespace wysiwyd{namespace wrdac{
     */
     class Entity
     {friend class OPCClient;
-        
-    
-
 
     //Writing access to name/id is granted only to OPCClient
     private:
@@ -97,7 +94,7 @@ namespace wysiwyd{namespace wrdac{
         */
         std::string             name() const {return m_name.c_str();}
 
-        void                    changeName(std::string sName) { m_name = sName; }
+        void                    changeName(std::string sName);
         
         /**
         * Return the id of an entity (which has to be unique within the OPC)

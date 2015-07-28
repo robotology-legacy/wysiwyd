@@ -45,6 +45,7 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/subsystems/subSystem_ARE.h             
                   include/wrdac/subsystems/subSystem_attention.h       
                   include/wrdac/subsystems/subSystem_facialExpression.h
+                  include/wrdac/subsystems/subSystem_iol2opc.h
                   include/wrdac/subsystems/subSystem_iKart.h           
                   include/wrdac/subsystems/subSystem_postures.h        
                   include/wrdac/subsystems/subSystem_reactable.h       

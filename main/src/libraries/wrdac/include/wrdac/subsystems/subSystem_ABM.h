@@ -123,7 +123,6 @@ namespace wysiwyd{
             }
 
         };
-
     }
 }//Namespace
 #endif

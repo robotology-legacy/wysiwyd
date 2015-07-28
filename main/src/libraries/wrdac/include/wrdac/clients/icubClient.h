@@ -119,6 +119,14 @@ public:
         else
             return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
     }
+    SubSystem_IOL2OPC* getIOL2OPCClient()
+    {
+        if (subSystems.find(SUBSYSTEM_IOL2OPC) == subSystems.end())
+            return NULL;
+        else
+            return (SubSystem_IOL2OPC*) subSystems[SUBSYSTEM_IOL2OPC];
+    }
+
     SubSystem_Recog* getRecogClient() 
     {         
         if (subSystems.find(SUBSYSTEM_RECOG) == subSystems.end())

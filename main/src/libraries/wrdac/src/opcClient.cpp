@@ -197,7 +197,6 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
 //Get by ID
 Entity *OPCClient::getEntity(int id, bool forceUpdate)
 {
-
     //If the object is already in the dictionary we return it.
     map<int, Entity*>::iterator itE = entitiesByID.find(id);
     if (itE != entitiesByID.end())
