@@ -68,6 +68,8 @@ public:
 
     /**********************************************************/
     bool isDead() const { return (Time::now()-timer>=presenceTmo); }
+
+    int opc_id;
 };
 
 

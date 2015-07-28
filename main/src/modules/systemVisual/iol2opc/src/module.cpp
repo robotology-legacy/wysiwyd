@@ -596,6 +596,7 @@ void IOL2OPCBridge::updateOPC()
                         Object *obj=opc->addOrRetrieveEntity<Object>(object);
                         obj->m_ego_position=x;
                         obj->m_present=true;
+                        it->second.opc_id = obj->opc_id();
                     }
 
                     it->second.heartBeat();
@@ -613,7 +614,7 @@ void IOL2OPCBridge::updateOPC()
         // garbage collection
         for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
             if (it->second.isDead())
-                dynamic_cast<Object*>(opc->getEntity(it->first))->m_present=false;
+                dynamic_cast<Object*>(opc->getEntity(it->second.opc_id))->m_present=false;
 
         opc->commit();
     }
@@ -906,7 +907,7 @@ bool IOL2OPCBridge::remove_object(const string &name)
     if (it!=db.end())
         db.erase(it);
 
-    if (Entity *en=opc->getEntity(name))
+    if (Entity *en=opc->getEntity(it->second.opc_id))
     {
         if (Object *obj=dynamic_cast<Object*>(en))
         {
@@ -940,7 +941,7 @@ bool IOL2OPCBridge::remove_all()
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
     for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
-        dynamic_cast<Object*>(opc->getEntity(it->first))->m_present=false;
+        dynamic_cast<Object*>(opc->getEntity(it->second.opc_id))->m_present=false;
 
     opc->commit();
     db.clear();
