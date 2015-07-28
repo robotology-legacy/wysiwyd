@@ -426,6 +426,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     if (currentEntityType == "agent") {
         sReply = " Well, Nice to meet you " + sName;
     } else if (currentEntityType == "object") {
+        iCub->getIOL2OPCClient()->changeName(sNameTarget, sName);
         sReply = " I get it, this is a " + sName;
     } else if (currentEntityType == "rtobject") {
         sReply = " So this is a " + sName;
@@ -587,6 +588,9 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
             TARGET->changeName(sNameTarget);
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
+            if(TARGET->entity_type()=="object") {
+                iCub->getIOL2OPCClient()->changeName(sNameBestEntity, sNameTarget);
+            }
         }
     }
 
