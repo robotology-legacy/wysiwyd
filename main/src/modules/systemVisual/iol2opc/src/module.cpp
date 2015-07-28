@@ -601,12 +601,13 @@ void IOL2OPCBridge::updateOPC()
                     it->second.heartBeat();
                 }
             }
-            else
+            TODO: Find a smart way to create new objects
+            /*else
             {
                 Object* obj=opc->addEntity<Object>("unknown");
                 db[obj->name()]=IOLObject(presence_timeout);
                 train(obj->name(),blobs,j);
-            }
+            }*/
         }
 
         // garbage collection
