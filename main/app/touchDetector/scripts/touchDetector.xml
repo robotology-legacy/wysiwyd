@@ -1,0 +1,52 @@
+  <application>
+      <!-- Generic information-->
+      <name>Touch Detector</name>
+
+      <authors>
+          <author>Bertrand Higy</author>
+      </authors>
+
+      <!-- Required modules -->
+      <module>
+          <name>touchDetector</name>
+          <node>localhost</node>
+      </module>
+
+      <!-- Required connections -->
+      <connection>
+          <from>/icub/skin/torso_comp</from>
+          <to>/touchDetector/torso:i</to>
+          <protocol></protocol>
+      </connection>
+      <connection>
+          <from>/icub/skin/left_arm_comp</from>
+          <to>/touchDetector/left_arm:i</to>
+          <protocol></protocol>
+      </connection>
+      <connection>
+          <from>/icub/skin/right_arm_comp</from>
+          <to>/touchDetector/right_arm:i</to>
+          <protocol></protocol>
+      </connection>
+      <connection>
+          <from>/icub/skin/left_forearm_comp</from>
+          <to>/touchDetector/left_forearm:i</to>
+          <protocol></protocol>
+      </connection>
+      <connection>
+          <from>/icub/skin/right_forearm_comp</from>
+          <to>/touchDetector/right_forearm:i</to>
+          <protocol></protocol>
+      </connection>
+      <connection>
+          <from>/icub/skin/left_hand_comp</from>
+          <to>/touchDetector/left_hand:i</to>
+          <protocol></protocol>
+      </connection>
+      <connection>
+          <from>/icub/skin/right_hand_comp</from>
+          <to>/touchDetector/right_hand:i</to>
+          <protocol></protocol>
+      </connection>
+
+  </application>

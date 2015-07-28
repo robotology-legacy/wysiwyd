@@ -18,6 +18,7 @@ add_subdirectory(interactionEngine)
 add_subdirectory(ppsAllostatic)
 add_subdirectory(behaviorRelated)
 add_subdirectory(reservoir)
+add_subdirectory(touchDetector)
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_GTK2)
@@ -45,3 +46,4 @@ endif()
 if(WYSIWYD_USE_RTABMap AND WYSIWYD_USE_OpenCV AND WYSIWYD_USE_PCL AND WYSIWYD_USE_Qt5 AND WYSIWYD_USE_kinectWrapper)
     add_subdirectory(perspectiveTaking)
 endif()
+
