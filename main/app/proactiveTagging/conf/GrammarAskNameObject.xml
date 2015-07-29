@@ -4,14 +4,12 @@
 
   <DEFINE>
     <ID  NAME="object"  VAL="1"/>
-    <ID  NAME="adjective"  VAL="2"/>
   </DEFINE>
 
 
   <RULE  NAME="SENTENCE1"  TOPLEVEL="ACTIVE"  EXPORT="1">
-    <O>
-		<P>this is</P>
-	</O>
+
+	<P>this is</P>
 	<O>
 		<L>
 			<P>the</P>
@@ -20,9 +18,6 @@
 			<P>my</P>
 		</L>
 	</O>
-	<O>
-		<RULEREF  NAME="adjective"/>
-	</O>
     <RULEREF  NAME="object"/>
    </RULE>
 
@@ -30,18 +25,9 @@
 
   <RULE NAME="object" DYNAMIC="TRUE">
     <L>
-      <P>cross</P>
-      <P>circle</P>
-      <P>croco</P>
-      <P>cube</P>
-      <P>mouse</P>
-    </L>
-  </RULE>
-
-  <RULE NAME="adjective" DYNAMIC="TRUE">
-    <L>
-      <P>big</P>
-      <P>yellow</P>
+      <P>ladybug</P>
+      <P>carrots</P>
+      <P>joystick</P>
     </L>
   </RULE>
 
