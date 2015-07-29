@@ -59,10 +59,10 @@ Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
         return bOutput;
     }
 
-    bOutput.clear();
+    /*bOutput.clear();
     Bottle bABMRpc ;
     bABMRpc.addString("processInsertQueue");
-    bOutput = iCub->getABMClient()->rpcCommand(bABMRpc);
+    bOutput = iCub->getABMClient()->rpcCommand(bABMRpc);*/
 
     //bOutput == "nack" if something goes wrong, "ack" otherwise
 

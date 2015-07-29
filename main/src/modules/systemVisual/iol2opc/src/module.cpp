@@ -699,8 +699,6 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
 
-    onlyKnownObjects = IOLObject(1.0);
-
     imgRtLoc.resize(320,240);
     imgRtLoc.zero();
 
@@ -801,6 +799,7 @@ bool IOL2OPCBridge::updateModule()
 
             yInfo("Turning localization on");
             state=Bridge::localization;
+            onlyKnownObjects = IOLObject(1.0);
         }        
     }
     // highlight selected blob
@@ -837,31 +836,33 @@ bool IOL2OPCBridge::updateModule()
             imgSelBlobOut.prepare()=imgLatch;
             imgSelBlobOut.write();
         }
-    }
 
-    if(onlyKnownObjects.isDead()) {
-        // grab resources
+        if(onlyKnownObjects.isDead()) {
+            // grab resources
+            yDebug("onlyKnownObjects.isDead()");
+            mutexResourcesOpc.lock();
+            Bottle blobs=opcBlobs;
+            Bottle scores=opcScores;
+            mutexResourcesOpc.unlock();
 
-        mutexResourcesOpc.lock();
-        Bottle blobs=opcBlobs;
-        Bottle scores=opcScores;
-        mutexResourcesOpc.unlock();
-
-        for (int j=0; j<blobs.size(); j++)
-        {
-            ostringstream tag;
-            tag<<"blob_"<<j;
-
-            // find the blob name (or unknown)
-            string object=findName(scores,tag.str());
-
-            if (object==OBJECT_UNKNOWN)
+            for (int j=0; j<blobs.size(); j++)
             {
-                Object* obj=opc->addEntity<Object>("unknown");
-                db[obj->name()]=IOLObject(presence_timeout);
-                train(obj->name(),blobs,j);
-                onlyKnownObjects.heartBeat();
-                break;
+                ostringstream tag;
+                tag<<"blob_"<<j;
+
+                // find the blob name (or unknown)
+                string object=findName(scores,tag.str());
+
+                if (object==OBJECT_UNKNOWN)
+                {
+                    yDebug("Going to learn unknown object");
+                    Object* obj=opc->addEntity<Object>("unknownobject");
+                    db[obj->name()]=IOLObject(presence_timeout);
+                    train(obj->name(),blobs,j);
+                    yDebug("Train done!");
+                    onlyKnownObjects.heartBeat();
+                    break;
+                }
             }
         }
     }

@@ -578,7 +578,7 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
             string delimiter = "_";
             size_t pos = 0;
             string token;
-            while ((pos = sName.find(delimiter)) != string::npos) {
+            if ((pos = sName.find(delimiter)) != string::npos) {
                 token = sName.substr(0, pos);
                 sName.erase(0, pos + delimiter.length());
                 sNameCut = token;
