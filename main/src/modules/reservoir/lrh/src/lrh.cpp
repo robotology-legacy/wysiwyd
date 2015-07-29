@@ -16,7 +16,7 @@
 */
 
 //#include "modules/reservoir/lrh/include/lrh.h"
-#include " lrh.h"
+#include "lrh.h"
 
 bool LRH::configure(ResourceFinder &rf) {
 
@@ -543,11 +543,24 @@ bool LRH::spatialRelation(string sObjectFocus)
         string sfocusHierarchy =  "<o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>";
         sdataTestSD = sLocation1 + " " + sObjectFocus + " " + sRelative1 + "," + sLocation2 + " " + sObjectFocus + " " + sRelative2 + " " + sfocusHierarchy;
 
+        // spatial location
         cout << "sdataTestSD : "  << sdataTestSD << endl;
         meaningToSentence(sdataTestSD);
         string result = openResult(sfileResult.c_str());
         iCub->say("I have discoverd a new object " + sObjectFocus);
         iCub->say("And now I can say you that");
+        iCub->say(result);
+
+        // distance
+        //the objectFocus is closer/further the object1 than the object2
+        string sproximity;
+        (deltaX1>deltaX2)? sproximity = "closer" : sproximity = "further";
+        string sfocusHierarchy =  "<o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>";
+        sdataTestSD = sproximity + " " + sObjectFocus + " " + sRelative1 + " " + sRelative2 +" " + sfocusHierarchy;
+        cout << "sdataTestSD : "  << sdataTestSD << endl;
+        meaningToSentence(sdataTestSD);
+        string result = openResult(sfileResult.c_str());
+        iCub->say("I learned also that");
         iCub->say(result);
     }
     return true;
