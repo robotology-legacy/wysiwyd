@@ -50,7 +50,8 @@ Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
     bSingleJoint.addInt(joint);
 
     //4. send single joint moving bottle
-    portToBodySchema.write(bSingleJoint, bOutput);
+    if(portToBodySchema.getOutputCount()>0)
+        portToBodySchema.write(bSingleJoint, bOutput);
     yDebug() << "Reply from bodySchema:" << bOutput.toString();
 
     //check if bodySchema was fine
