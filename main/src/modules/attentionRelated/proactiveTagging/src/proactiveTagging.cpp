@@ -410,6 +410,14 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         //iCub->getSpeechClient()->TTS(sQuestion, false);
         iCub->say(sQuestion);
     }
+    else if(currentEntityType == "object" || currentEntityType == "rtobject") {
+        Bottle bHand("left");
+        iCub->point(sNameTarget, bHand);
+    } else if(currentEntityType == "agent") {
+        iCub->getARE()->waving(true);
+        yarp::os::Time::delay(3.0);
+        iCub->getARE()->waving(false);
+    }
 
     Bottle bName = recogName(currentEntityType) ;
     string sName;
@@ -427,7 +435,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     iCub->opc->commit(e);
 
     if (currentEntityType == "agent") {
-        sReply = " Well, Nice to meet you " + sName;
+        sReply = " Nice to meet you " + sName;
     } else if (currentEntityType == "object") {
         iCub->getIOL2OPCClient()->changeName(sNameTarget, sName);
         sReply = " I get it, this is a " + sName;
