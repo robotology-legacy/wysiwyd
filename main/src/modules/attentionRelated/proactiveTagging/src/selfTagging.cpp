@@ -53,6 +53,16 @@ Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
     portToBodySchema.write(bSingleJoint, bOutput);
     yDebug() << "Reply from bodySchema:" << bOutput.toString();
 
+    //check if bodySchema was fine
+    if(bOutput.get(0).asString() == "nack"){
+        return bOutput;
+    }
+
+    bOutput.clear();
+    Bottle bABMRpc ;
+    bABMRpc.addString("processInsertQueue");
+    bOutput = iCub->getABMClient()->rpcCommand(bABMRpc);
+
     //bOutput == "nack" if something goes wrong, "ack" otherwise
 
     return bOutput;
@@ -103,7 +113,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
     //1. extract instance from singleJointAction for joint BPjoint, from ABM
     Bottle bResult, bOutput;
     ostringstream osRequest;
-    osRequest << "SELECT max(instance) FROM main, contentarg WHERE main.instance = contentarg.instance AND activitytype = 'singleJointBabbling' AND contentarg.type = 'limb' AND contarg.value = '" << BPjoint << "' ;";
+    osRequest << "SELECT max(main.instance) FROM main, contentarg WHERE main.instance = contentarg.instance AND activityname = 'singleJointBabbling' AND main.begin = TRUE AND contentarg.role = 'limb' AND contentarg.argument = '" << BPjoint << "' ;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     if (bResult.toString() == "NULL") {
@@ -112,7 +122,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
         bOutput.addString("No instance corresponding to singleJointBabbling for this part");
         return bOutput;
     }
-    int ksInstance = atoi(bResult.get(0).asList()->get(0).toString().c_str());
+    int ksInstance = atoi(bResult.get(0).asList()->get(0).asString().c_str());
 
     Bottle bResultCheckKS = checkForKinematicStructure(ksInstance, forcingKS);
     if(bResultCheckKS.get(0).asString() == "error") {
@@ -121,19 +131,24 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
     yInfo() << " [assignKinematicStructureByJoint] | for joint " << BPjoint << " | instance found : " << ksInstance;
 
     //WRITE IN OPC
-    list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+    iCub->opc->checkout();
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
     Bottle bListEntChanged;
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++) //go through all entity
     {
+        yInfo() << "Checking if entity " << (*itEnt)->name() << " has entitytype = bodypart : ----> " << (*itEnt)->entity_type() ; 
         if ((*itEnt)->entity_type() == "bodypart")                                             //check bodypart entity
         {
-            Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
+            //Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
+            Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity((*itEnt)->name()));
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
             }
         }
     }
+
+    yInfo() << "Out of the loop for checking entity in OPC, number of entityChanged : " << bListEntChanged.size() ;
 
     if(bListEntChanged.isNull()){
         yWarning() << "assignKinematicStructureByJoint | for joint " << BPjoint << " | no bodypart has been found with this joint!";
@@ -160,7 +175,7 @@ Bottle proactiveTagging::checkForKinematicStructure(int instance, bool forcingKS
     //1. Check that the instance number has some augmented kinematicStructure images
     Bottle bOutput, bResult;
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main, visualdata WHERE main.instance = visualdata.instance AND augmented = 'kinematic_structure';";
+    osRequest << "SELECT main.instance FROM main, visualdata WHERE main.instance = visualdata.instance AND augmented = 'kinematic_structure';";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     //2.a if yes, assign it to the bodypart in the opc

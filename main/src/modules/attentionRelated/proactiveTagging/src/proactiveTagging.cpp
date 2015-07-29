@@ -75,7 +75,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    iCub->getSpeechClient()->TTS("proactive tagging is ready", false);
+    iCub->say("proactive tagging is ready", false);
 
     return true;
 }
@@ -84,6 +84,9 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 bool proactiveTagging::close() {
     iCub->close();
     delete iCub;
+
+    portToBodySchema.interrupt();
+    portToBodySchema.close();
 
     rpcPort.interrupt();
     rpcPort.close();
@@ -97,7 +100,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "help \n" +
         "quit \n"
-        "exploreUnknowneEntity entity_type entity_name \n" +
+        "exploreUnknownEntity entity_type entity_name \n" +
         "exploreEntityByName entity_name \n" + 
         "exploreKinematicByName entity_name bodypart [true/false] \n" +
         "exploreKinematicByJoint joint bodypart [true/false] \n";
@@ -396,9 +399,9 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         Bottle bReplyFromBodySchema = moveJoint(joint, sBodyPartType);
 
         if(bReplyFromBodySchema.get(0).asString() == "nack"){
-            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved" ;
+            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved or ABM cannot stores images" ;
             bOutput.addString("error");
-            bOutput.addString("Joint has not moved");
+            bOutput.addString("Joint has not moved or ABM cannot stores images");
             return bOutput;
         }
 

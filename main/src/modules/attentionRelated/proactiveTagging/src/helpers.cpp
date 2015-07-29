@@ -52,7 +52,7 @@ string proactiveTagging::grammarToString(string sPath)
 void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
 {
     //Populate the OPC if required
-    std::cout << "Populating OPC";
+    std::cout << "Populating OPC...";
 
     //1. Populate AddOrRetrieve part
     Bottle grpOPC_AOR = rf.findGroup("OPC_AddOrRetrieve");
