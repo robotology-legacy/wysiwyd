@@ -16,7 +16,7 @@
 */
 
 //#include "modules/reservoir/lrh/include/lrh.h"
-#include " lrh.h"
+#include "lrh.h"
 
 bool LRH::configure(ResourceFinder &rf) {
 
