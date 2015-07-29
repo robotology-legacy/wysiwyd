@@ -69,7 +69,7 @@ bool LRH::configure(ResourceFinder &rf) {
     //------------------------//
 
     // string ttsSystem = SUBSYSTEM_SPEECH;
-    iCub = new ICubClient(moduleName.c_str(),"LRH","client.ini",true);
+    iCub = new ICubClient(moduleName.c_str(),"lrh","client.ini",true);
     iCub->opc->isVerbose = false;
 
     char rep = 'n';

@@ -1,8 +1,8 @@
 <train data>
 left violin trumpet <o> [A-P-O-_-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>;the violin is left of the trumpet left violin trumpet;the violin is to the left of the trumpet
 left violin trumpet,right violin guitar <o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>;the violin is to the left of the trumpet and to the right of the guitar
-closer violin trumpet clarinet <o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>; the violin is closer the trumpet than the clarinet
-further violin trumpet clarinet <o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>; the violin is further the trumpet than the clarinet
+closer violin trumpet clarinet <o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>; the violin is closer to the trumpet than to the clarinet
+further violin trumpet clarinet <o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>; the violin is further to the trumpet than to the clarinet
 #
 wanted I , get I giraffe <o> [A-P-_-_-_-_-_-_-_][A-_-P-O-_-_-_-_-_] <o>; I wanted to get the giraffe
 #failed I , grasp I it <o> [A-P-_-_-_-_-_-_-_][A-_-P-O-_-_-_-_-_] <o>; but I failed to grasp it
