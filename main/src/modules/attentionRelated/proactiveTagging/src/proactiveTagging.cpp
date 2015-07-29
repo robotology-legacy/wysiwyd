@@ -123,10 +123,13 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "exploreUnknownEntity") {
         yInfo() << " exploreUnknownEntity";
-        reply = exploreUnknownEntity(command);
-
-        //TOBI : to call if name is known and type = bodypart
-        reply = exploreTactileEntityWithName(command)
+        string type = command.get(1).toString();
+        string name = command.get(2).toString();
+        if(type=="bodypart" && name.find("unknown") == std::string::npos) {
+            reply = exploreTactileEntityWithName(command);
+        } else {
+            reply = exploreUnknownEntity(command);
+        }
     }
     else if (command.get(0).asString() == "exploreEntityByName") {
         yInfo() << " exploreEntityByName";
