@@ -446,7 +446,6 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         yInfo() << sQuestion;
         //iCub->getSpeechClient()->TTS(sQuestion, false);
         iCub->say(sQuestion);
-        iCub->home();
     }
     else if(currentEntityType == "object" || currentEntityType == "rtobject") {
         Bottle bHand("left");
@@ -466,6 +465,8 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     } else {
         sName = bName.get(0).asString();
     }
+
+    iCub->home();
 
     string sReply;
     Entity* e = iCub->opc->getEntity(sNameTarget);
@@ -499,7 +500,6 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     Time::delay(timeDelay);
 
     iCub->opc->update();
-    iCub->home();
 
     bOutput.addString("success");
     bOutput.addString(currentEntityType);
