@@ -671,8 +671,9 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         {
             bReply = listProviders(mapDataStreamInput);
         }
-        else if (bCommand.get(0) == "storeImageOIDs")
+        else if (bCommand.get(0) == "processInsertQueue")
         {
+            requestInsertProcessQueue();
             if (bCommand.size() == 2 && bCommand.get(1).isInt()) {
                 int instance = (atoi((bCommand.get(1)).toString().c_str()));
                 storeImageOIDs(instance);
@@ -760,15 +761,15 @@ bool autobiographicalMemory::updateModule() {
     s = portSoundStreamInput.read(false);
     if (s != NULL && s->getRawDataSize() > 0)
     {
-        yInfo() << "I have received a sound!!!!!";
-        stringstream fullPath;
-        //fullPath << storingPath << "/" << storingTmpSuffix << "/" << "test.wav";
-        if (!yarp::sig::file::write(*s, (storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav").c_str()))
+        yInfo() << "I have received a sound!";
+        string soundPath = storingPath + "/" + storingTmpSuffix + "/sound/";
+        if (yarp::os::mkdir(soundPath.c_str()) == -1) {
+            yWarning() << "Folder " << soundPath << " already exists or could not be created!";
+        }
+        if (!yarp::sig::file::write(*s, (soundPath + "default.wav").c_str()))
         {
             yError() << " [Sound] Sound file not written!!";
         }
-        //yarp::sig::file::write(*s,"c:\\robot\\ABMStoring\\tmp\\test.wav");
-        //yDebug() << "blop";
     }
     else {
         //yDebug() << "no sound?";
