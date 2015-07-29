@@ -475,7 +475,13 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     if (currentEntityType == "agent") {
         sReply = " Nice to meet you " + sName;
     } else if (currentEntityType == "object") {
-        iCub->getIOL2OPCClient()->changeName(sNameTarget, sName);
+        SubSystem_IOL2OPC* iol2opcClient = iCub->getIOL2OPCClient();
+        if(iol2opcClient!=NULL) {
+            iol2opcClient->changeName(sNameTarget, sName);
+        }
+        else {
+             yError() << "Could not connect to IOL2OPC subsystem";
+        }
         sReply = " I get it, this is a " + sName;
         Bottle bToLRH, bFromLRH;
         bToLRH.addString("production");
@@ -643,7 +649,13 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
             if(TARGET->entity_type()=="object") {
-                iCub->getIOL2OPCClient()->changeName(sNameBestEntity, sNameTarget);
+                SubSystem_IOL2OPC* iol2opcClient = iCub->getIOL2OPCClient();
+                if(iol2opcClient!=NULL) {
+                    iol2opcClient->changeName(sNameBestEntity, sNameTarget);
+                }
+                else {
+                     yError() << "Could not connect to IOL2OPC subsystem";
+                }
             }
         }
     }
