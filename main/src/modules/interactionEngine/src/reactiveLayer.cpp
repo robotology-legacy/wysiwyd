@@ -1,3 +1,4 @@
+#include <algorithm>    // std::random_shuffle
 #include "reactiveLayer.h"
 
 bool ReactiveLayer::close()
@@ -449,8 +450,12 @@ bool ReactiveLayer::handleTagging()
 {
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
+    vector<Entity*> vEntities;
+    copy(lEntities.begin(), lEntities.end(), vEntities.begin());
+    std::random_shuffle ( vEntities.begin(), vEntities.end() );
+    list<Entity*> lEntitiesShuffled(vEntities.begin(), vEntities.end());
 
-    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    for (list<Entity*>::iterator itEnt = lEntitiesShuffled.begin(); itEnt != lEntitiesShuffled.end(); itEnt++)
     {
         string sName = (*itEnt)->name();
         string sNameCut = sName;
@@ -467,15 +472,12 @@ bool ReactiveLayer::handleTagging()
         bool sendRPC = false;
 
         if (sNameCut == "unknown") {
-
             if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 cout << "I found unknown entities!!!!"<<endl;
                 sendRPC = true;
-
             }
-        }
-        else {
+        } else {
             if ((*itEnt)->entity_type() == "bodypart" && dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1)
                 sendRPC = true;
         }
