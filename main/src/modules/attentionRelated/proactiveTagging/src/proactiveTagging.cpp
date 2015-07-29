@@ -60,8 +60,16 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str()) ;
     string bodySchemaRpc = rf.check("bodySchemaRpc",Value("/bodySchema/rpc")).asString().c_str();
 
+    //in from TouchDetector
+    portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str()) ;
+    string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touch:o")).asString().c_str();
+
     if (!Network::connect(portToBodySchema.getName().c_str(),bodySchemaRpc.c_str())) {
         yWarning() << " BODY SCHEMA NOT CONNECTED : selfTagging will not work" ;
+    }
+
+    if (!Network::connect(portTouchDetectorOut.c_str(),portFromTouchDetector.getName().c_str())) {
+        yWarning() << " TOUCH DETECTOR NOT CONNECTED : selfTagging will not work" ;
     }
 
     if (!iCub->getRecogClient())
@@ -116,6 +124,9 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "exploreUnknownEntity") {
         yInfo() << " exploreUnknownEntity";
         reply = exploreUnknownEntity(command);
+
+        //TOBI : to call if name is known and type = bodypart
+        reply = exploreTactileEntityWithName(command)
     }
     else if (command.get(0).asString() == "exploreEntityByName") {
         yInfo() << " exploreEntityByName";
@@ -142,7 +153,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         string sBodyPart = command.get(2).asString() ;
         bool forcingKS = false;
         if (command.size() == 4) {
-            bool forcingKS = (command.get(3).asString() == "true") ;
+            forcingKS = (command.get(3).asString() == "true") ;
         }
         reply = assignKinematicStructureByName(sName, sBodyPart, forcingKS);
     }
@@ -176,7 +187,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         string sBodyPart = command.get(2).asString() ;
         bool forcingKS   = false;
         if (command.size() == 4) {
-            bool forcingKS = (command.get(3).asString() == "true") ;
+            forcingKS = (command.get(3).asString() == "true") ;
         }
         reply = assignKinematicStructureByJoint(BPjoint, sBodyPart, forcingKS);
     }
@@ -366,6 +377,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     yInfo() << " EntityType : " << currentEntityType;
     double timeDelay = 1.;
 
+    //Check if name is known or not. if yes, and body part : ask tactile
 
     //Ask question for the human, or ask to pay attention (if action to focus attention after)
     string sQuestion ;

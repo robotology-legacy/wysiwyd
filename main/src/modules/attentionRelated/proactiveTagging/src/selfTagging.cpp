@@ -139,11 +139,17 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
         yInfo() << "Checking if entity " << (*itEnt)->name() << " has entitytype = bodypart : ----> " << (*itEnt)->entity_type() ; 
         if ((*itEnt)->entity_type() == "bodypart")                                             //check bodypart entity
         {
-            //Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
-            Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity((*itEnt)->name()));
+            //pb with the casting: BPtemp is empty
+            /*Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
+            }*/
+
+            //to check if working
+            if(dynamic_cast<Bodypart*>(*itEnt)->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
+                dynamic_cast<Bodypart*>(*itEnt)->m_kinStruct_instance = ksInstance;
+                bListEntChanged.addString((*itEnt)->name());
             }
         }
     }
@@ -240,5 +246,59 @@ Bottle proactiveTagging::orderKinematicStructure(int instance) {
     }
 
     return bReplyFromABM;
+}
+
+/*
+* Explore an unknown tactile entity (e.g. fingertips), when knowing the name
+* @param: Bottle with (exploreTactileUnknownEntity entityType entityName) (eg: exploreUnknownEntity agent unknown_25)
+* @return Bottle with the result (error or ack?)
+*/
+yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {  
+    Bottle bOutput ;
+
+    if (bInput.size() != 3)
+    {
+        yInfo() << " proactiveTagging::exploreTactileEntityWithName | Problem in input size.";
+        bOutput.addString("Problem in input size");
+        return bOutput;
+    }
+
+    string sBodyPart = bInput.get(1).toString();
+    string sName = bInput.get(2).toString();
+
+    yInfo() << " EntityType : " << sBodyPart;
+    double timeDelay = 1.;
+
+    //1. search through opc for the bodypart entity
+    Entity* e = iCub->opc->getEntity(sName);
+    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName));
+
+    //2.Ask human to touch
+    string sAsking = " Can you please touch my " + sName ;
+    yInfo() << " sAsking: " << sAsking;
+    iCub->say(sAsking);
+
+    //3. Read until some tactile value are detected
+    Bottle *bTactile = portFromTouchDetector.read();
+
+    if(bTactile == NULL){
+        yError() << " error in proactiveTagging::exploreTactileEntityWithName | for " << sName << " | Touch not detected!" ;
+        bOutput.addString("error");
+        bOutput.addString("Touch not detected!");
+        return bOutput;
+    }
+
+    //4. Assign m_tactile_number
+    BPentity->m_tactile_number = bTactile->get(0).asInt();
+    bOutput.addString("ack");
+    bOutput.addInt(bTactile->get(0).asInt());
+    iCub->opc->commit() ;
+
+    //4.Ask human to touch
+    string sThank = " Thank you, now I know when I am touching object with my " + sName ;
+    yInfo() << " sThank: " << sThank;
+    iCub->say(sThank);
+
+    return bOutput ;
 }
 
