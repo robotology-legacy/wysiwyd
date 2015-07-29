@@ -15,8 +15,8 @@
  * Public License for more details
 */
 
-#include "lrh.h"
-
+//#include "modules/reservoir/lrh/include/lrh.h"
+#include " lrh.h"
 
 bool LRH::configure(ResourceFinder &rf) {
 
@@ -123,11 +123,13 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ok");
     }
     else if (command.get(0).asString()=="production"  && command.size() == 2) {
+        reply.addString("ack");
         reply.addString("OK, send the language production");
         cout << "command.get(1).asString() : " << command.get(1).asString() << endl;
         spatialRelation(command.get(1).asString());
     }
     else if (command.get(0).asString()=="meaning" && command.size() == 2) {
+        reply.addString("ack");
         reply.addString("OK, send the language comprehension");
         sentenceToMeaning(command.get(1).asString());
     }
@@ -544,6 +546,8 @@ bool LRH::spatialRelation(string sObjectFocus)
         cout << "sdataTestSD : "  << sdataTestSD << endl;
         meaningToSentence(sdataTestSD);
         string result = openResult(sfileResult.c_str());
+        iCub->say("I have discoverd a new object " + sObjectFocus);
+        iCub->say("And now I can say you that");
         iCub->say(result);
     }
     return true;

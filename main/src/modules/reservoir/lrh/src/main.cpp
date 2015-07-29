@@ -15,7 +15,7 @@
  * Public License for more details
 */
 
-#include <lrh.h>
+#include "lrh.h"
 
 int main(int argc, char * argv[]) {
 
