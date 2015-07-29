@@ -83,7 +83,7 @@ bool LRH::configure(ResourceFinder &rf) {
     iCub->opc->checkout();
     cout<<"Checkout done"<<endl;
 
-    populateOPC();
+    //populateOPC();
 
     return true;
 }
