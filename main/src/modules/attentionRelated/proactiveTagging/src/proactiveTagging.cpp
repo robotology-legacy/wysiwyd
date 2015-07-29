@@ -57,28 +57,35 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     //--------------------------------------------- output port
 
     //out to BodySchema
-    portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str()) ;
+    portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str());
     string bodySchemaRpc = rf.check("bodySchemaRpc",Value("/bodySchema/rpc")).asString().c_str();
 
-    //in from TouchDetector
-    portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str()) ;
-    string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touchDetector/touch:o")).asString().c_str();
-
     if (!Network::connect(portToBodySchema.getName().c_str(),bodySchemaRpc.c_str())) {
-        yWarning() << " BODY SCHEMA NOT CONNECTED : selfTagging will not work" ;
+        yWarning() << " BODY SCHEMA NOT CONNECTED: selfTagging will not work";
     }
 
+    //out to LRH
+    portToLRH.open(("/" + moduleName + "/toLRH:o").c_str());
+    string LRHRpc = rf.check("LRHRpc",Value("/lrh/rpc")).asString().c_str();
+    if (!Network::connect(portToLRH.getName().c_str(),LRHRpc.c_str())) {
+        yWarning() << " LRH NOT CONNECTED: will not produce sentences";
+    }
+
+    //in from TouchDetector
+    portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str());
+    string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touchDetector/touch:o")).asString().c_str();
+
     if (!Network::connect(portTouchDetectorOut.c_str(),portFromTouchDetector.getName().c_str(), "tcp+recv.portmonitor+file.conversion_cluster_list")) {
-        yWarning() << " TOUCH DETECTOR NOT CONNECTED : selfTagging will not work" ;
+        yWarning() << " TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
     }
 
     if (!iCub->getRecogClient())
     {
-        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED" ;
+        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
     }
     if (!iCub->getABMClient())
     {
-       yWarning() << "WARNING ABM NOT CONNECTED" ;
+       yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -89,9 +96,24 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 }
 
 
+bool proactiveTagging::interruptModule() {
+    portToLRH.interrupt();
+    portFromTouchDetector.interrupt();
+    portToBodySchema.interrupt();
+    rpcPort.interrupt();
+
+    return true;
+}
+
 bool proactiveTagging::close() {
     iCub->close();
     delete iCub;
+
+    portToLRH.interrupt();
+    portToLRH.close();
+
+    portFromTouchDetector.interrupt();
+    portFromTouchDetector.close();
 
     portToBodySchema.interrupt();
     portToBodySchema.close();
@@ -144,7 +166,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " exploreKinematicByName";
 
         if (command.size() < 3) {
-            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByName name bodypart [true/false]"  ;
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByName name bodypart [true/false]";
             reply.addString("error");
             reply.addString("Not enough argument : exploreKinematicByName name bodypart [true/false]");
 
@@ -152,11 +174,11 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             return true;
         }
 
-        string sName     = command.get(1).asString() ;
-        string sBodyPart = command.get(2).asString() ;
+        string sName     = command.get(1).asString();
+        string sBodyPart = command.get(2).asString();
         bool forcingKS = false;
         if (command.size() == 4) {
-            forcingKS = (command.get(3).asString() == "true") ;
+            forcingKS = (command.get(3).asString() == "true");
         }
         reply = assignKinematicStructureByName(sName, sBodyPart, forcingKS);
     }
@@ -169,7 +191,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " exploreKinematicByJoint";
 
         if (command.size() < 3) {
-            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByJoint joint bodypart [true/false]"  ;
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByJoint joint bodypart [true/false]";
             reply.addString("error");
             reply.addString("Not enough argument : exploreKinematicByJoint joint bodypart [true/false]");
 
@@ -178,7 +200,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         }
 
         if (!command.get(1).isInt()) {
-            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Second argument (joint) should be an Int!"  ;
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Second argument (joint) should be an Int!";
             reply.addString("error");
             reply.addString("Second argument (joint) should be an Int!");
 
@@ -187,10 +209,10 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         }
 
         int BPjoint      = command.get(1).asInt();
-        string sBodyPart = command.get(2).asString() ;
+        string sBodyPart = command.get(2).asString();
         bool forcingKS   = false;
         if (command.size() == 4) {
-            forcingKS = (command.get(3).asString() == "true") ;
+            forcingKS = (command.get(3).asString() == "true");
         }
         reply = assignKinematicStructureByJoint(BPjoint, sBodyPart, forcingKS);
     }
@@ -316,7 +338,7 @@ Bottle proactiveTagging::recogName(string entityType)
     } else if (entityType == "bodypart"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameBodypart), 20);
     } else {
-        yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed" ;
+        yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed";
         bOutput.addString("error");
         bOutput.addString("Entity Type not managed");
         return bOutput;
@@ -324,7 +346,7 @@ Bottle proactiveTagging::recogName(string entityType)
 
     if (bRecognized.get(0).asInt() == 0)
     {
-        yError() << " error in proactiveTagging::askName | for " << entityType << " | Error in speechRecog" ;
+        yError() << " error in proactiveTagging::askName | for " << entityType << " | Error in speechRecog";
         bOutput.addString("error");
         bOutput.addString("error in speechRecog");
         return bOutput;
@@ -383,16 +405,16 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     //Check if name is known or not. if yes, and body part : ask tactile
 
     //Ask question for the human, or ask to pay attention (if action to focus attention after)
-    string sQuestion ;
+    string sQuestion;
     if (currentEntityType == "agent") {
         sQuestion = " Hello, I don't know you. Who are you ?";
     } else if (currentEntityType == "object" || currentEntityType == "rtobject") {
-        sQuestion = " Hum, what is this object ?" ;
+        sQuestion = " Hum, what is this object ?";
     } else if (currentEntityType == "bodypart") {
-        sQuestion = " Watch please, I will move a part of my body" ;
+        sQuestion = " Watch please, I will move a part of my body";
         yInfo() << " sQuestion: " << sQuestion;
     } else {
-        yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed" ;
+        yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed";
         bOutput.addString("error");
         bOutput.addString("Entity Type not managed");
         return bOutput;
@@ -414,16 +436,17 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         Bottle bReplyFromBodySchema = moveJoint(joint, sBodyPartType);
 
         if(bReplyFromBodySchema.get(0).asString() == "nack"){
-            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved or ABM cannot stores images" ;
+            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved or ABM cannot stores images";
             bOutput.addString("error");
             bOutput.addString("Joint has not moved or ABM cannot stores images");
             return bOutput;
         }
 
-        sQuestion = " How do you call this part of my body?" ;
+        sQuestion = " How do you call this part of my body?";
         yInfo() << sQuestion;
         //iCub->getSpeechClient()->TTS(sQuestion, false);
         iCub->say(sQuestion);
+        iCub->home();
     }
     else if(currentEntityType == "object" || currentEntityType == "rtobject") {
         Bottle bHand("left");
@@ -434,17 +457,17 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         iCub->getARE()->waving(false);
     }
 
-    Bottle bName = recogName(currentEntityType) ;
+    Bottle bName = recogName(currentEntityType);
     string sName;
 
     //if error, bName = (error errorDescription) -> return it
     if(bName.get(0).asString() == "error"){
-        return bName ;
+        return bName;
     } else {
         sName = bName.get(0).asString();
     }
 
-    string sReply ;
+    string sReply;
     Entity* e = iCub->opc->getEntity(sNameTarget);
     e->changeName(sName);
     iCub->opc->commit(e);
@@ -454,6 +477,11 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     } else if (currentEntityType == "object") {
         iCub->getIOL2OPCClient()->changeName(sNameTarget, sName);
         sReply = " I get it, this is a " + sName;
+        Bottle bToLRH, bFromLRH;
+        bToLRH.addString("production");
+        bToLRH.addString(sName);
+        if(portToLRH.getOutputCount()>0)
+            portToLRH.write(bToLRH, bFromLRH);
     } else if (currentEntityType == "rtobject") {
         sReply = " So this is a " + sName;
     } else if (currentEntityType == "bodypart") {

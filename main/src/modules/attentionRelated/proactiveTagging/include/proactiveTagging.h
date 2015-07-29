@@ -27,6 +27,7 @@ private:
     std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
     yarp::os::Port   portToBodySchema;
+    yarp::os::Port   portToLRH;
     yarp::os::BufferedPort<yarp::os::Bottle>   portFromTouchDetector;
 
     std::string      GrammarAskNameAgent;
@@ -63,11 +64,7 @@ private:
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
-    bool interruptModule()
-    {
-        rpcPort.interrupt();
-        return true;
-    }
+    bool interruptModule();
 
     bool close();
 
