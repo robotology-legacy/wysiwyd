@@ -572,6 +572,7 @@ void IOL2OPCBridge::updateOPC()
         Bottle scores=opcScores;
         mutexResourcesOpc.unlock();
 
+        bool unknownObjectInScene = false;
         for (int j=0; j<blobs.size(); j++)
         {
             ostringstream tag;
@@ -601,22 +602,25 @@ void IOL2OPCBridge::updateOPC()
 
                     it->second.heartBeat();
                 }
+            } else {
+                unknownObjectInScene = true;
             }
-            //TODO: Find a smart way to create new objects
-            /*else
-            {
-                Object* obj=opc->addEntity<Object>("unknown");
-                db[obj->name()]=IOLObject(presence_timeout);
-                train(obj->name(),blobs,j);
-            }*/
         }
 
         // garbage collection
-        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
-            if (it->second.isDead())
-                dynamic_cast<Object*>(opc->getEntity(it->second.opc_id))->m_present=false;
+        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++) {
+            if (it->second.isDead()) {
+                Object *obj = dynamic_cast<Object*>(opc->getEntity(it->second.opc_id));
+                if(obj)
+                    obj->m_present=false;
+            }
+        }
 
         opc->commit();
+
+        if(!unknownObjectInScene) {
+            onlyKnownObjects.heartBeat();
+        }
     }
 }
 
@@ -694,6 +698,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
+
+    onlyKnownObjects = IOLObject(1.0);
 
     imgRtLoc.resize(320,240);
     imgRtLoc.zero();
@@ -830,6 +836,33 @@ bool IOL2OPCBridge::updateModule()
 
             imgSelBlobOut.prepare()=imgLatch;
             imgSelBlobOut.write();
+        }
+    }
+
+    if(onlyKnownObjects.isDead()) {
+        // grab resources
+
+        mutexResourcesOpc.lock();
+        Bottle blobs=opcBlobs;
+        Bottle scores=opcScores;
+        mutexResourcesOpc.unlock();
+
+        for (int j=0; j<blobs.size(); j++)
+        {
+            ostringstream tag;
+            tag<<"blob_"<<j;
+
+            // find the blob name (or unknown)
+            string object=findName(scores,tag.str());
+
+            if (object==OBJECT_UNKNOWN)
+            {
+                Object* obj=opc->addEntity<Object>("unknown");
+                db[obj->name()]=IOLObject(presence_timeout);
+                train(obj->name(),blobs,j);
+                onlyKnownObjects.heartBeat();
+                break;
+            }
         }
     }
 
