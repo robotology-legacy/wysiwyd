@@ -267,10 +267,8 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     string sName = bInput.get(2).toString();
 
     yInfo() << " EntityType : " << sBodyPart;
-    double timeDelay = 1.;
 
     //1. search through opc for the bodypart entity
-    Entity* e = iCub->opc->getEntity(sName);
     Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName));
 
     //2.Ask human to touch
