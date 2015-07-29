@@ -62,13 +62,13 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     //in from TouchDetector
     portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str()) ;
-    string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touch:o")).asString().c_str();
+    string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touchDetector/touch:o")).asString().c_str();
 
     if (!Network::connect(portToBodySchema.getName().c_str(),bodySchemaRpc.c_str())) {
         yWarning() << " BODY SCHEMA NOT CONNECTED : selfTagging will not work" ;
     }
 
-    if (!Network::connect(portTouchDetectorOut.c_str(),portFromTouchDetector.getName().c_str())) {
+    if (!Network::connect(portTouchDetectorOut.c_str(),portFromTouchDetector.getName().c_str(), "tcp+recv.portmonitor+file.conversion_cluster_list")) {
         yWarning() << " TOUCH DETECTOR NOT CONNECTED : selfTagging will not work" ;
     }
 
