@@ -19,7 +19,7 @@ def get_closed_class_words():
     """
     list of closed class words (the correct list depends on the corpus)
     """
-    return ['after', 'is', 'of', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now'];
+    return ['after', 'than', 'is', 'of', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now'];
     #return ['is', 'of', 'the', 'to']
     #return closed_class_wordsSD
 

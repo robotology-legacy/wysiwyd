@@ -555,11 +555,11 @@ bool LRH::spatialRelation(string sObjectFocus)
         //the objectFocus is closer/further the object1 than the object2
         string sproximity;
         (deltaX1>deltaX2)? sproximity = "closer" : sproximity = "further";
-        string sfocusHierarchy =  "<o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>";
+        sfocusHierarchy =  "<o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>";
         sdataTestSD = sproximity + " " + sObjectFocus + " " + sRelative1 + " " + sRelative2 +" " + sfocusHierarchy;
         cout << "sdataTestSD : "  << sdataTestSD << endl;
         meaningToSentence(sdataTestSD);
-        string result = openResult(sfileResult.c_str());
+        result = openResult(sfileResult.c_str());
         iCub->say("I learned also that");
         iCub->say(result);
     }
