@@ -478,7 +478,7 @@ bool ReactiveLayer::handleTagging()
             {
                 cout << "I found unknown entities!!!!"<<endl;
                 Object* o = dynamic_cast<Object*>(*itEnt);
-                if(o->m_present) {
+                if(o && o->m_present) {
                     sendRPC = true;
                 }
             }
