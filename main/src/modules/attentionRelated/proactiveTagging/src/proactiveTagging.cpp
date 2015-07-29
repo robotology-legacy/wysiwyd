@@ -499,6 +499,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     Time::delay(timeDelay);
 
     iCub->opc->update();
+    iCub->home();
 
     bOutput.addString("success");
     bOutput.addString(currentEntityType);
