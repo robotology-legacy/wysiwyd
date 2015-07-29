@@ -799,7 +799,7 @@ bool IOL2OPCBridge::updateModule()
 
             yInfo("Turning localization on");
             state=Bridge::localization;
-            onlyKnownObjects = IOLObject(1.0);
+            onlyKnownObjects = IOLObject(10.0);
         }        
     }
     // highlight selected blob
