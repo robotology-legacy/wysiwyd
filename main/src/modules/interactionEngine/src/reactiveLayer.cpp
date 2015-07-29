@@ -474,13 +474,15 @@ bool ReactiveLayer::handleTagging()
         bool sendRPC = false;
 
         if (sNameCut == "unknown") {
-            if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 cout << "I found unknown entities!!!!"<<endl;
                 Object* o = dynamic_cast<Object*>(*itEnt);
                 if(o && o->m_present) {
                     sendRPC = true;
                 }
+            } else if((*itEnt)->entity_type() == "bodypart") {
+                sendRPC = true;
             }
         } else {
             if ((*itEnt)->entity_type() == "bodypart" && dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1)
