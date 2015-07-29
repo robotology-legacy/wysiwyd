@@ -856,7 +856,7 @@ bool IOL2OPCBridge::updateModule()
                 if (object==OBJECT_UNKNOWN)
                 {
                     yDebug("Going to learn unknown object");
-                    Object* obj=opc->addEntity<Object>("unknownobject");
+                    Object* obj=opc->addEntity<Object>("unknown_object");
                     db[obj->name()]=IOLObject(presence_timeout);
                     train(obj->name(),blobs,j);
                     yDebug("Train done!");

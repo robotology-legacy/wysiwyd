@@ -88,7 +88,7 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
 
     //Set the voice
     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
-    if (iCub->getSpeechClient())
+    //if (iCub->getSpeechClient())
         //iCub->getSpeechClient()->SetOptions(ttsOptions);
 
     //Configure the various components
@@ -110,6 +110,8 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
     Rand::init();
 
 	//iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong start"));
+
+    yInfo("Init done");
 
     return true;
 }
@@ -382,7 +384,7 @@ bool ReactiveLayer::updateModule()
 	//physicalInteraction = handleTactile();
 	confusion = handleTagging();
     cout << confusion << endl;
-    learning = handlePointing();
+    //learning = handlePointing();
     updateAllostatic();
 	//updateEmotions();
     	
@@ -401,7 +403,7 @@ bool ReactiveLayer::handlePointing()
         string delimiter = "_";
         size_t pos = 0;
         string token;
-        while ((pos = sName.find(delimiter)) != string::npos) {
+        if ((pos = sName.find(delimiter)) != string::npos) {
             token = sName.substr(0, pos);
             sName.erase(0, pos + delimiter.length());
             sNameCut = token;
@@ -450,12 +452,12 @@ bool ReactiveLayer::handleTagging()
 {
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
-    vector<Entity*> vEntities;
-    copy(lEntities.begin(), lEntities.end(), vEntities.begin());
-    std::random_shuffle ( vEntities.begin(), vEntities.end() );
-    list<Entity*> lEntitiesShuffled(vEntities.begin(), vEntities.end());
+    //vector<Entity*> vEntities;
+    //copy(lEntities.begin(), lEntities.end(), vEntities.begin());
+    //std::random_shuffle ( vEntities.begin(), vEntities.end() );
+    //list<Entity*> lEntitiesShuffled(vEntities.begin(), vEntities.end());
 
-    for (list<Entity*>::iterator itEnt = lEntitiesShuffled.begin(); itEnt != lEntitiesShuffled.end(); itEnt++)
+    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
     {
         string sName = (*itEnt)->name();
         string sNameCut = sName;
