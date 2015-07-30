@@ -227,18 +227,18 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     //Cast to the right type
     if (newE->entity_type() == EFAA_OPC_ENTITY_OBJECT)
         newE = new Object();
-    else if
-            (newE->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
+    else if (newE->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
         newE = new RTObject();
-    else if
-            (newE->entity_type() == EFAA_OPC_ENTITY_AGENT)
+    else if (newE->entity_type() == EFAA_OPC_ENTITY_AGENT)
         newE = new Agent();
-    else if
-            (newE->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)
+    else if (newE->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)
         newE = new Adjective();
-    else if
-            (newE->entity_type() == "action")
+    else if (newE->entity_type() == "action")
         newE = new Action();
+    else if (newE->entity_type() == "bodypart")
+        newE = new Bodypart();
+    else
+        yError() << "getEntity: Unknown Entity type!";
 
     //Update the fields
     newE->fromBottle(*reply.get(1).asList());
@@ -868,6 +868,10 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
                         newE = new Adjective();
                     else if (entityType == EFAA_OPC_ENTITY_ACTION)
                         newE = new Action();
+                    else if (entityType == "bodypart")
+                        newE = new Bodypart();
+                    else
+                        yError() << "checkout unknown entity type";
 
                     if (newE!=NULL)
                     {
@@ -1053,33 +1057,44 @@ list<Entity*> OPCClient::EntitiesCacheCopy()
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
-        if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_OBJECT)
+        else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_OBJECT)
         {
             Object *A = new Object();
             A->Object::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
-        if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ACTION)
+        else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ACTION)
         {
             Action *A = new Action();
             A->Action::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
-        if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ADJECTIVE)
+        else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ADJECTIVE)
         {
             Adjective *A = new Adjective();
             A->Adjective::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
         }
-        if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_RTOBJECT)
+        else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_RTOBJECT)
         {
             RTObject *A = new RTObject();
             A->RTObject::fromBottle(it->second->asBottle());
             A->m_opc_id = it->second->m_opc_id;
             lR.push_back(A);
+        }
+        else if ((it->second)->m_entity_type == "bodypart")
+        {
+            Bodypart *A = new Bodypart();
+            A->Bodypart::fromBottle(it->second->asBottle());
+            A->m_opc_id = it->second->m_opc_id;
+            lR.push_back(A);
+        }
+        else
+        {
+            yError() << "EntitiesCacheCopy: Unknown entity type!";
         }
     }
     return lR;
