@@ -651,13 +651,19 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
+    yDebug("before skim");
     skim_blobs_x_bounds.resize(2);
+    yDebug("Resized");
     skim_blobs_x_bounds[0]=-0.50;
     skim_blobs_x_bounds[1]=-0.10;
+    yDebug("what the hell?");
     if (rf.check("skim_blobs_x_bounds"))
     {
+        yDebug("found x_bounds");
         if (Bottle *bounds=rf.find("skim_blobs_x_bounds").asList())
         {
+            yDebug() << "get bounds";
+            yDebug() << bounds->size();
             if (bounds->size()>=2)
             {
                 skim_blobs_x_bounds[0]=bounds->get(0).asDouble();
@@ -665,6 +671,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
             }
         }
     }
+    yDebug("aftger x bounds");
 
     skim_blobs_y_bounds.resize(2);
     skim_blobs_y_bounds[0]=-0.30;
@@ -681,6 +688,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
         }
     }
 
+    yDebug("before objloc");
     // location used to display the
     // histograms upon the closest blob
     histObjLocation.resize(3);
@@ -688,6 +696,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histObjLocation[1]=0.0;
     histObjLocation[2]=-0.1;
 
+    yDebug("Before bridge");
     rtLocalization.setBridge(this);
     rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
 
@@ -701,6 +710,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     imgRtLoc.resize(320,240);
     imgRtLoc.zero();
+
+    yDebug("1");
 
     histColorsCode.push_back(cvScalar( 65, 47,213));
     histColorsCode.push_back(cvScalar(122, 79, 58));
@@ -718,7 +729,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     state=Bridge::idle;
     rpcClassifier.setReporter(classifierReporter);
-
+    yDebug("2");
     return true;
 }
 

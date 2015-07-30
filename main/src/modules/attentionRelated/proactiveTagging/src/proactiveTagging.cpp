@@ -482,8 +482,9 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         }
         else {
              yError() << "Could not connect to IOL2OPC subsystem";
+             sReply = " I get it, this is a " + sName;
         }
-        sReply = " I get it, this is a " + sName;
+        //sReply = " I get it, this is a " + sName;
         Bottle bToLRH, bFromLRH;
         bToLRH.addString("production");
         bToLRH.addString(sName);
