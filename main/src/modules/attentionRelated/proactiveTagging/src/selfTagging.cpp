@@ -78,7 +78,8 @@ Bottle proactiveTagging::assignKinematicStructureByName(std::string sName, std::
     Bottle bOutput;
 
     //1. search through opc for the m_joint_number corresponding to the bodypart name
-    Entity* e = iCub->opc->getEntity(sName);
+    iCub->opc->checkout();
+    Entity* e = iCub->opc->getEntity(sName, true);
 
     //Error if the name does NOT correspond to a bodypart
     if(!e->isType("bodypart")) {
@@ -87,7 +88,7 @@ Bottle proactiveTagging::assignKinematicStructureByName(std::string sName, std::
         bOutput.addString("NOT a bodypart : no kinematicStructure are allowed!");
         return bOutput;
     }
-    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName));
+    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName, true));
     int BPjoint = BPentity->m_joint_number;
 
     //2. go through ABM to find a singleJointBabbling with the corresponding joint, retrieve the instance number
@@ -141,16 +142,10 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
         if ((*itEnt)->entity_type() == "bodypart")                                             //check bodypart entity
         {
             //pb with the casting: BPtemp is empty
-            /*Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
+            Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
-            }*/
-
-            //to check if working
-            if(dynamic_cast<Bodypart*>(*itEnt)->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
-                dynamic_cast<Bodypart*>(*itEnt)->m_kinStruct_instance = ksInstance;
-                bListEntChanged.addString((*itEnt)->name());
             }
         }
     }
@@ -270,7 +265,8 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     yInfo() << " EntityType : " << sBodyPart;
 
     //1. search through opc for the bodypart entity
-    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName));
+    iCub->opc->checkout();
+    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName, true));
 
     //2.Ask human to touch
     string sAsking = " Can you please touch my " + sName ;

@@ -422,13 +422,13 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
 
     //TODO : choose between say and TTS. say put stuff in ABM, TTS?
     yInfo() << sQuestion;
-    //iCub->getSpeechClient()->TTS(sQuestion, false);
     iCub->say(sQuestion);
+    iCub->opc->checkout();
 
     //Act to determine the entity to be named, according to entityType (e.g. bodypart is sending a command to move the joint, ...)
     if(currentEntityType == "bodypart") {
-        Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
-        yInfo() << "Cast okay";
+        Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget, true));
+        yInfo() << "Cast okay : name BP = " << BPtemp->name();
         int joint = BPtemp->m_joint_number;
         string sBodyPartType = BPtemp->m_part;
         //send rpc command to bodySchema to move the corresponding part
