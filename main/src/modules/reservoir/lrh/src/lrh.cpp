@@ -434,9 +434,11 @@ bool LRH::AREactions(vector<string> seq)
 bool LRH::spatialRelation(string sObjectFocus)
 {
     iCub->opc->update();
+    iCub->opc->checkout();
     std::list<Entity*> PresentObjects = iCub->opc->EntitiesCache();
     std::vector<Object> PresentRtoBefore;
 
+    yDebug() << "before loop into present object";
     for(std::list<Entity*>::iterator itE = PresentObjects.begin() ; itE != PresentObjects.end(); itE++)
     {
         if ((*itE)->isType(EFAA_OPC_ENTITY_OBJECT))
@@ -448,6 +450,7 @@ bool LRH::spatialRelation(string sObjectFocus)
     }
 
 
+    yDebug() << "check if at least 2 obj present";
     if (PresentObjects.size() < 2)
     {
         iCub->say("Dude, I was expecting more than 3 objects... ");
@@ -461,10 +464,13 @@ bool LRH::spatialRelation(string sObjectFocus)
     if (sobjectFocusChanged.empty())
     {
         double maxSalience = 0.4;
+        yDebug() << "obj focus is empty" ;
         for (std::vector<Object>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
         {
+            yDebug() << "loop in present RTO" ;
             if (itRTO->m_saliency > maxSalience)
             {
+                yDebug() << "new max sliency" ;
                 maxSalience = itRTO->m_saliency;
                 sObjectFocus = itRTO->name();
             }
@@ -484,18 +490,20 @@ bool LRH::spatialRelation(string sObjectFocus)
     if (PresentRtoBefore.size()==2)
     {
 
+        yDebug() << "== than 2 obj present" ;
         double deltaX = 0.0;
         double deltaY = 0.0;
         int iFactor;
         (PresentRtoBefore[0].name() == sObjectFocus) ? iFactor = 1 : iFactor = -1;
+        yDebug() << "weird if done" ;
         deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
         deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
 
         string sLocation;
         (deltaY>0)? sLocation = "right" : sLocation = "left";
+        yDebug() << "second weird if done" ;
         string sRelative;
         (iFactor==1)? sRelative = (PresentRtoBefore[1].name()) : sRelative =(PresentRtoBefore[0].name());
-
         cout << "I understood :" << endl << sObjectFocus << "\t" << sLocation << "\t" << sRelative << endl ;
         sdataTestSD = sLocation + " " + sObjectFocus + " " + sRelative;
 
@@ -511,13 +519,16 @@ bool LRH::spatialRelation(string sObjectFocus)
         bool bFirstRelative = true;
         for (unsigned int i = 0 ; i < 3 ; i++)
         {
+            yDebug() << "in loop because  more than 3 obj" ;
             if (PresentRtoBefore[i].name() != sObjectFocus )
             {
+                yDebug() << "if 1" ;
                 bFirstRelative? rtRelative1 = PresentRtoBefore[i] : rtRelative2 =PresentRtoBefore[i];
                 bFirstRelative = false;
             }
             else
             {
+                yDebug() << "else 1" ;
                 rtFocus = PresentRtoBefore[i];
             }
         }
