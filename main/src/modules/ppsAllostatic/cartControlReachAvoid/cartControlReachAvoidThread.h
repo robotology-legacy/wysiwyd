@@ -124,7 +124,10 @@ protected:
     
     VectorOf<int> armIdx;
     
-    Vector homePoss, homeVels;
+    Vector torsoHomePoss, torsoHomeVels;
+    Vector torsoSwitch;
+    Matrix torsoLimits;
+    Vector armHomePoss, armHomeVels;
           
     int armAxes;    //16 joints of the arm+hand (no torso)
     Vector arm; //encoder values
@@ -155,9 +158,6 @@ protected:
     };
     vector<avoidanceStruct_t> avoidanceVectors;
     
-    Vector openHandPoss;
-    Vector handVels;
-      
     bool newTargetFromRPC;
     bool newTargetFromPort;
     Vector targetPosFromPort;
@@ -172,7 +172,8 @@ protected:
     int startup_context_id_right;
     
     void getTorsoOptions(Bottle &b, const char *type, const int i, Vector &sw, Matrix &lim);
-    void getHomeOptions(Bottle &b, Vector &poss, Vector &vels);
+    void getTorsoHomeOptions(Bottle &b, Vector &poss, Vector &vels);
+    void getArmHomeOptions(Bottle &b, Vector &poss, Vector &vels);
     void initCartesianCtrl(Vector &sw, Matrix &lim, const int sel=USEDARM);
     bool checkTargetFromPortInput(Vector &target_pos, double &target_radius);
     bool getReachingGainFromPort();
