@@ -54,12 +54,12 @@ bool OPCClient::write(Bottle &cmd, Bottle &reply, bool Verbose)
     if (opc.getOutputCount() > 0)
     {
         if (Verbose)
-            cout<<"Sending to OPC: "<<cmd.toString().c_str()<<endl;
+            yDebug()<<"Sending to OPC: "<<cmd.toString().c_str();
 
         opc.write(cmd,reply);
 
         if (Verbose)
-            cout<<"Receiving from OPC: "<<reply.toString().c_str()<<endl;
+            yDebug()<<"Receiving from OPC: "<<reply.toString().c_str();
 
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
             return false;
@@ -69,7 +69,7 @@ bool OPCClient::write(Bottle &cmd, Bottle &reply, bool Verbose)
     else
     {
         if (Verbose)
-            cout<<"Not connected to OPC..."<<endl;
+            yWarning()<<"Not connected to OPC...";
         return false;
     }
 }
@@ -117,7 +117,7 @@ Entity*    OPCClient::addEntity(Entity* e)
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        cerr<<"Impossible to communicate correctly with OPC"<<endl;
+        yError() << "Impossible to communicate correctly with OPC";
         return NULL;
     }
 
@@ -173,21 +173,21 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"Unable to talk correctly to OPC"<<endl;
+            yError() << "Unable to talk correctly to OPC";
         return NULL;
     }
 
     if (reply.get(1).asList()->get(1).asList()->size() == 0)
     {
         if(this->isVerbose)
-            cerr<<"Object doesn't exist yet. Use addEntity<Object>() first."<<endl;
+            yError() << "Object doesn't exist yet. Use addEntity<Object>() first.";
         return NULL;
     }
 
     if (reply.get(1).asList()->get(1).asList()->size() > 1)
     {
         if(this->isVerbose)
-            cerr<<"[IMPORTANT] Duplicated names... You should fix this!"<<endl;
+            yError() << "[IMPORTANT] Duplicated names... You should fix this!";
     }
 
     int item_id = reply.get(1).asList()->get(1).asList()->get(0).asInt();
@@ -218,14 +218,17 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"Unable to talk correctly to OPC"<<endl;
+            yError() << "Unable to talk correctly to OPC";
         return NULL;
     }
 
-    Entity* newE = new Entity(*reply.get(1).asList());
+    Entity* newE = NULL;
+    std::string newEntityType = reply.get(1).asList()->find("entity").asString().c_str();
 
     //Cast to the right type
-    if (newE->entity_type() == EFAA_OPC_ENTITY_OBJECT)
+    if(newEntityType == "entity")
+        newE = new Entity();
+    else if (newE->entity_type() == EFAA_OPC_ENTITY_OBJECT)
         newE = new Object();
     else if (newE->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
         newE = new RTObject();
@@ -325,7 +328,7 @@ int OPCClient::getRelationID(
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"Unable to talk correctly to OPC"<<endl;
+            yError()<<"Unable to talk correctly to OPC";
         return false;
     }
     
@@ -348,7 +351,7 @@ bool OPCClient::addRelation(Relation r, double lifeTime)
     Entity* verb = getEntity(r.verb());
     if (subject == NULL || verb == NULL)
     {
-        cerr<<"Verb and subject should exist before you try to add a relation"<<endl;
+        yError() << "Verb and subject should exist before you try to add a relation";
         return false;
     }
 
@@ -373,7 +376,7 @@ bool OPCClient::addRelation(
     if (index != -1)
     {
         if (isVerbose)
-            cerr<<"This relation already exist, only reseting lifeTimer"<<endl;
+            yWarning() << "This relation already exist, only reseting lifeTimer";
         return setLifeTime(index,lifeTime);
     }
 
@@ -389,7 +392,7 @@ bool OPCClient::addRelation(
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"Unable to talk correctly to OPC"<<endl;
+            yError() << "Unable to talk correctly to OPC";
         return false;
     }
     index = reply.get(1).asList()->get(1).asInt();
@@ -423,7 +426,7 @@ bool OPCClient::removeRelation(
     if (index == -1)
     {
         if(this->isVerbose)
-            cerr<<"This relation do not exist on the OPC server, not removed"<<endl;
+            yError() << "This relation do not exist on the OPC server, not removed";
     }
     else
     {
@@ -441,8 +444,8 @@ bool OPCClient::removeRelation(
         {
             if(this->isVerbose)
             {
-                cerr<<"Unable to talk correctly to OPC. Item not deleted."<<endl;
-                cout << "command used to remove = " << cmd.toString().c_str() << endl ;
+                yError() << "Unable to talk correctly to OPC. Item not deleted.";
+                yError() << "command used to remove = " << cmd.toString().c_str();
             }
             return false;
         }
@@ -513,7 +516,7 @@ bool OPCClient::setLifeTime(int opcID, double lifeTime)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"Unable to talk correctly to OPC"<<endl;
+            yError() << "Unable to talk correctly to OPC";
         return false;
     }
     return true;
@@ -537,11 +540,11 @@ list<Relation> OPCClient::getRelations()
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if (isVerbose)
-            cerr<<"Unable to talk to OPC."<<endl;
+            yError() << "Unable to talk to OPC.";
         return relations;
     }
 
-    //cout << reply.toString() << endl;
+    //yDebug() << reply.toString();
     Bottle* ids = reply.get(1).asList()->get(1).asList();
     for(int i=0;i<ids->size();i++)
     {
@@ -557,7 +560,7 @@ list<Relation> OPCClient::getRelations()
         if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
             if(this->isVerbose)
-                cerr<<"Unable to talk to OPC."<<endl;
+                yError() << "Unable to talk to OPC.";
             return relations;
         }
 
@@ -633,11 +636,11 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if (isVerbose)
-            cerr<<"Unable to talk to OPC."<<endl;
+            yError() << "Unable to talk to OPC.";
         return relations;
     }
 
-    //cout << reply.toString() << endl;
+    //yDebug() << reply.toString();
     Bottle* ids = reply.get(1).asList()->get(1).asList();
     for(int i=0;i<ids->size();i++)
     {
@@ -653,7 +656,7 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
         if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
             if(this->isVerbose)
-                cerr<<"Unable to talk to OPC."<<endl;
+                yError() << "Unable to talk to OPC.";
             return relations;
         }
 
@@ -774,11 +777,11 @@ std::list<Relation>  OPCClient::getRelations(std::string entity)
     //if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     //{
     //    if (isVerbose)
-    //        cerr<<"Unable to talk to OPC."<<endl;
+    //        yError() << "Unable to talk to OPC.";
     //    return relations;
     //}
 
-    //cout << reply.toString() << endl;
+    //yDebug() << reply.toString();
     //Bottle* ids = reply.get(1).asList()->get(1).asList();
     //for(int i=0;i<ids->size();i++)
     //{
@@ -794,7 +797,7 @@ std::list<Relation>  OPCClient::getRelations(std::string entity)
     //    if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     //    {
     //        if(this->isVerbose)
-    //            cerr<<"Unable to talk to OPC."<<endl;
+    //            yError() << "Unable to talk to OPC.";
     //        return relations;
     //    }
 
@@ -831,40 +834,29 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
             Bottle* bEntity = bBroadcastIn->get(i).asList();
             //std::string test = bEntity->toString();
             string entityType = bEntity->check(EFAA_OPC_ENTITY_TAG,Value("INVALID")).asString();
-            if (entityType!= "INVALID" && entityType != EFAA_OPC_ENTITY_RELATION)
+            if (entityType!="INVALID" && entityType != EFAA_OPC_ENTITY_RELATION)
             {
-                Entity tmp;
-                tmp.fromBottle(*bEntity);
-                tmp.m_opc_id = bEntity->find("id").asInt();
-
                 // TODO: NOT SURE WHETHER THIS CHANGE IS CORRECT
                 // CAN SOMEONE PLEASE LOOK OVER THIS WHETHER IT LOOKS OKAY?
-                map<int, Entity*>::iterator itE = entitiesByID.find(tmp.opc_id());
+                map<int, Entity*>::iterator itE = entitiesByID.find(bEntity->find("id").asInt());
                 if(itE != entitiesByID.end())
                 {
-                    entitiesByID[ tmp.opc_id() ]->fromBottle(*bEntity);
+                    entitiesByID[bEntity->find("id").asInt()]->fromBottle(*bEntity);
                 }
-                /*map<string, Entity*>::iterator itE = entitiesByName.find(tmp.name());
-                if (itE != entitiesByName.end())
-                {
-                    entitiesByName[tmp.name()]->fromBottle(*bEntity);
-                    //entitiesByID[ tmp.opc_id() ]->fromBottle(*bEntity);
-                }*/
                 else
                 {
                     Entity* newE=NULL;
 
                     //Cast to the right type
-                    if (entityType == EFAA_OPC_ENTITY_OBJECT)
+                    if(entityType == "entity")
+                        newE = new Entity();
+                    else if (entityType == EFAA_OPC_ENTITY_OBJECT)
                         newE = new Object();
-                    else if
-                            (entityType == EFAA_OPC_ENTITY_RTOBJECT)
+                    else if (entityType == EFAA_OPC_ENTITY_RTOBJECT)
                         newE = new RTObject();
-                    else if
-                            (entityType == EFAA_OPC_ENTITY_AGENT)
+                    else if (entityType == EFAA_OPC_ENTITY_AGENT)
                         newE = new Agent();
-                    else if
-                            (entityType == EFAA_OPC_ENTITY_ADJECTIVE)
+                    else if (entityType == EFAA_OPC_ENTITY_ADJECTIVE)
                         newE = new Adjective();
                     else if (entityType == EFAA_OPC_ENTITY_ACTION)
                         newE = new Action();
@@ -877,7 +869,7 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
                     {
                         //Update the fields
                         newE->fromBottle(*bEntity);
-                        newE->m_opc_id = tmp.opc_id();
+                        newE->m_opc_id = bEntity->find("id").asInt();
 
                         //Commit to the dictionary
                         entitiesByID[newE->opc_id()] = newE;
@@ -886,7 +878,7 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
             }
         }
         if (isVerbose)
-            cout<<"Checkout result (broadcast) : "<< entitiesByID.size() << " entities added."<<endl;
+            yInfo() << "Checkout result (broadcast): " << entitiesByID.size() << " entities added.";
 
     }
     else
@@ -905,7 +897,7 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
             if(this->isVerbose)
-                cerr<<"Unable to talk to OPC."<<endl;
+                yError() << "Unable to talk to OPC.";
             return;
         }
 
@@ -916,7 +908,7 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
             getEntity(currentID, updateCache); //Automatically update the dictionnaries
         }
         if (isVerbose)
-            cout<<"Checkout result : "<< ids->size() << " entities added."<<endl;
+            yInfo() << "Checkout result: "<< ids->size() << " entities added.";
     }
 }
 
@@ -944,7 +936,7 @@ void OPCClient::update(Entity *e)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"OPC Client : error while updating "<<e->opc_id()<<endl;
+            yError() << "OPC Client: error while updating " << e->opc_id();
         return;
     }
 
@@ -987,7 +979,7 @@ void OPCClient::commit(Entity *e)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"OPC Client : error while commiting "<<e->opc_id()<<endl;
+            yError() << "OPC Client: error while commiting " << e->opc_id();
         return;
     }
 }
@@ -1005,7 +997,7 @@ list<Entity*> OPCClient::Entities(const Bottle &condition)
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
         if(this->isVerbose)
-            cerr<<"Unable to talk to OPC."<<endl;
+            yError() << "Unable to talk to OPC.";
         return matchingEntities;
     }
 
@@ -1017,7 +1009,7 @@ list<Entity*> OPCClient::Entities(const Bottle &condition)
         update(matchingEntities.back());
     }
     if (isVerbose)
-        cout<<"Checkout result : "<< ids->size() << " entities added."<<endl;
+        yInfo() << "Checkout result: " << ids->size() << " entities added.";
     return matchingEntities;
 }
 
@@ -1050,51 +1042,40 @@ list<Entity*> OPCClient::EntitiesCacheCopy()
     list<Entity*> lR;
     for(map<int,Entity*>::iterator it = this->entitiesByID.begin() ; it != this->entitiesByID.end() ; it++)
     {
+        Entity* E = NULL;
         if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_AGENT)
         {
-            Agent *A = new Agent();
-            A->Agent::fromBottle(it->second->asBottle());
-            A->m_opc_id = it->second->m_opc_id;
-            lR.push_back(A);
+            E = new Agent();
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_OBJECT)
         {
-            Object *A = new Object();
-            A->Object::fromBottle(it->second->asBottle());
-            A->m_opc_id = it->second->m_opc_id;
-            lR.push_back(A);
+            E = new Object();
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ACTION)
         {
-            Action *A = new Action();
-            A->Action::fromBottle(it->second->asBottle());
-            A->m_opc_id = it->second->m_opc_id;
-            lR.push_back(A);
+            E = new Action();
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_ADJECTIVE)
         {
-            Adjective *A = new Adjective();
-            A->Adjective::fromBottle(it->second->asBottle());
-            A->m_opc_id = it->second->m_opc_id;
-            lR.push_back(A);
+            E = new Adjective();
         }
         else if ((it->second)->m_entity_type == EFAA_OPC_ENTITY_RTOBJECT)
         {
-            RTObject *A = new RTObject();
-            A->RTObject::fromBottle(it->second->asBottle());
-            A->m_opc_id = it->second->m_opc_id;
-            lR.push_back(A);
+            E = new RTObject();
         }
         else if ((it->second)->m_entity_type == "bodypart")
         {
-            Bodypart *A = new Bodypart();
-            A->Bodypart::fromBottle(it->second->asBottle());
-            A->m_opc_id = it->second->m_opc_id;
-            lR.push_back(A);
+            E = new Bodypart();
         }
         else
         {
             yError() << "EntitiesCacheCopy: Unknown entity type!";
+        }
+
+        if(E != NULL) {
+            E->fromBottle(it->second->asBottle());
+            E->m_opc_id = it->second->m_opc_id;
+            lR.push_back(E);
         }
     }
     return lR;

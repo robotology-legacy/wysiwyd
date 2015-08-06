@@ -105,7 +105,6 @@ bool Entity::fromBottle(Bottle b)
 {
     if (!b.check("name") || !b.check("entity"))
         return false;
-	std::string test = b.toString().c_str();
 
 //	m_opc_id = b->find("id").asInt();
     m_name = b.find("name").asString().c_str();
