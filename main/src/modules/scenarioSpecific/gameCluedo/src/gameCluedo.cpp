@@ -217,7 +217,10 @@ bool GameCluedo::handleSpeech(bool expectAffirmation, Relation* queriedRelation,
             std::string affirmation = formAffirmationFromRelation(&completedRelation);
             answerFromRobot = "Ok, I will know that " + affirmation;
             log("iCub: complete relation :" + affirmation);
-            myIncompleteBeliefs.remove(*queriedRelation);
+            std::list<Relation>::iterator it = std::find(myIncompleteBeliefs.begin(), myIncompleteBeliefs.end(), *queriedRelation);
+            if (it != myIncompleteBeliefs.end() ){
+                myIncompleteBeliefs.erase(it);
+            }
             //}
             //else
             //{

@@ -27,10 +27,10 @@ namespace cvz {
 				double getDistance(double x1, double y1, double x2, double y2)
 				{
 					double d = 0.0;
-					double dX = abs(x1 - x2);
-					double dY = abs(y1 - y2);
-					double tdX = abs(x1 + (1.0 - x2));
-					double tdY = abs(y1 + (1.0 - y2));
+                    double dX = std::abs(x1 - x2);
+                    double dY = std::abs(y1 - y2);
+                    double tdX = std::abs(x1 + (1.0 - x2));
+                    double tdY = std::abs(y1 + (1.0 - y2));
 					d = sqrt(pow(std::min(dX, tdX), 2.0) + pow(std::min(dY, tdY), 2.0));
 					return d;
 				}
