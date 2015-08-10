@@ -19,6 +19,8 @@
 #include <string>
 #include <sstream>
 
+#include <yarp/os/Property.h>
+
 #include "touchDetectorThread.h"
 
 using namespace std;
@@ -59,77 +61,37 @@ bool TouchDetectorThread::threadInit()
 
 bool TouchDetectorThread::readTaxelsMapping(const char* filename)
 {
-	ifstream is(filename);
-	if (!is.is_open())
+	Property p;
+	p.fromConfigFile(filename);
+	int clusterId = 0;
+	for (int iPart = 0; iPart < nbBodyParts; ++iPart)
 	{
-		cerr << "Unable to open file: " << clustersConfFilepath << endl;
-		return false;
-	}
-	
-	int clusterId = -1;
-	bool newCluster = true;
-	int bodyPart, firstTaxel, lastTaxel;
-	int lineNumber = 0;
-	while(!is.eof())
-	{
-		string line;
-		std::getline(is, line);
-		++lineNumber;
-		
-		if (line.empty())
+		Bottle clusters = p.findGroup(bodyParts[iPart]).tail();
+		for (int iCluster = 0; iCluster < clusters.size(); ++iCluster)
 		{
-			newCluster = true;
-		}
-		else
-		{
-			if (newCluster)
+			++clusterId;
+			Bottle *c = clusters.get(iCluster).asList();
+			for (int iRange = 0; iRange < c->size(); ++iRange)
 			{
-				++clusterId;
-				newCluster = false;
-			}
-				
-			try
-			{
-				parseMappingLine(line, bodyPart, firstTaxel, lastTaxel);
-				updateMapping(bodyPart, firstTaxel, lastTaxel, clusterId);
-			}
-			catch (ParsingException &ex)
-			{
-				ex.line = lineNumber;
-				throw ex;
+				Bottle *range = c->get(iRange).asList();
+				if (range->size() == 1)
+				{
+					int taxel = range->get(0).asInt();
+					updateMapping(iPart, taxel, taxel, clusterId);
+				}
+				if (range->size() >= 2)
+				{
+					int first = range->get(0).asInt();
+					int last = range->get(1).asInt();
+					updateMapping(iPart, first, last, clusterId);
+				}
 			}
 		}
 	}
 	
-	nbClusters = clusterId + 1;
+	nbClusters = clusterId;
 	
-	is.close();
 	return true;
-}
-
-void TouchDetectorThread::parseMappingLine(string line, int &bodyPart, int &firstTaxel, int &lastTaxel)
-{
-	istringstream iss(line);
-	
-	// Parsing the body part
-	string bodyPartName;
-	if (!(iss >> bodyPartName))
-	{
-		throw ParsingException();
-	}
-	bodyPart = getBodyPartId(bodyPartName);
-	
-	// Parsing the first taxel id
-	if (!(iss >> firstTaxel))
-	{
-		throw ParsingException();
-	}
-	
-	// Parsing the second taxel id (optional)
-	if (!(iss >> lastTaxel))
-	{
-		lastTaxel = firstTaxel;
-	}
 }
 
 int TouchDetectorThread::getBodyPartId(string bodyPartName)
@@ -166,27 +128,19 @@ void TouchDetectorThread::run()
 	int port = 0;
 	try
 	{
-		Bottle *tactileData = torsoPort->read();
-		countActivations(port, tactileData, activations);
-		tactileData = leftArmPort->read();
-		countActivations(++port, tactileData, activations);
-		tactileData = rightArmPort->read();
-		countActivations(++port, tactileData, activations);
-		tactileData = leftForearmPort->read();
-		countActivations(++port, tactileData, activations);
-		tactileData = rightForearmPort->read();
-		countActivations(++port, tactileData, activations);
-		tactileData = leftHandPort->read();
-		countActivations(++port, tactileData, activations);
-		tactileData = rightHandPort->read();
-		countActivations(++port, tactileData, activations);
+		processPort(port, torsoPort, activations);
+		processPort(++port, leftArmPort, activations);
+		processPort(++port, rightArmPort, activations);
+		processPort(++port, leftForearmPort, activations);
+		processPort(++port, rightForearmPort, activations);
+		processPort(++port, leftHandPort, activations);
+		processPort(++port, rightHandPort, activations);
 	}
 	catch(BadFormatException &ex)
 	{
 		ex.portName = bodyParts[port];
 		throw ex;
 	}
-	
 	Bottle& output = touchPort->prepare();
 	output.clear();
 	for (vector<int>::iterator it = activations.begin() ; it != activations.end(); ++it)
@@ -194,6 +148,19 @@ void TouchDetectorThread::run()
 		output.addInt(*it);
 	}
 	touchPort->write();
+}
+
+void TouchDetectorThread::processPort(int portNum, yarp::os::BufferedPort<yarp::os::Bottle> *port, vector<int> &activations)
+{
+	Bottle *tactileData = port->read(false);
+	if (tactileData != NULL)
+	{
+		countActivations(portNum, tactileData, activations);
+	}
+	else
+	{
+		cerr << "Unable to read data for " << bodyParts[portNum] << endl;;
+	}
 }
 
 void TouchDetectorThread::countActivations(int bodyPart, Bottle* data, vector<int> &activations)
