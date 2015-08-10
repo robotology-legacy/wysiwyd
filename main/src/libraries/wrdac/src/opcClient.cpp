@@ -228,17 +228,17 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     //Cast to the right type
     if(newEntityType == "entity")
         newE = new Entity();
-    else if (newE->entity_type() == EFAA_OPC_ENTITY_OBJECT)
+    else if (newEntityType == EFAA_OPC_ENTITY_OBJECT)
         newE = new Object();
-    else if (newE->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
+    else if (newEntityType == EFAA_OPC_ENTITY_RTOBJECT)
         newE = new RTObject();
-    else if (newE->entity_type() == EFAA_OPC_ENTITY_AGENT)
+    else if (newEntityType == EFAA_OPC_ENTITY_AGENT)
         newE = new Agent();
-    else if (newE->entity_type() == EFAA_OPC_ENTITY_ADJECTIVE)
+    else if (newEntityType == EFAA_OPC_ENTITY_ADJECTIVE)
         newE = new Adjective();
-    else if (newE->entity_type() == "action")
+    else if (newEntityType == "action")
         newE = new Action();
-    else if (newE->entity_type() == "bodypart")
+    else if (newEntityType == "bodypart")
         newE = new Bodypart();
     else
         yError() << "getEntity: Unknown Entity type!";
