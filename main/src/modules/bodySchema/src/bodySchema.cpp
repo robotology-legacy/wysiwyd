@@ -220,11 +220,6 @@ bool bodySchema::interruptModule() {
 bool bodySchema::close() {
     cout << "Closing module, please wait ... " <<endl;
 
-    bool homeStart = goStartPos();
-    if(!homeStart) {
-        cout << "I got lost going home!" << endl;
-    }
-
     armDev->close();
     headDev->close();
 
