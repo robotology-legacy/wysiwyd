@@ -3,8 +3,8 @@
 
 bool ReactiveLayer::close()
 {
-	//iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong stop"));
-	iCub->close();
+    //iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong stop"));
+    iCub->close();
     delete iCub;
 
     return true;
@@ -12,7 +12,7 @@ bool ReactiveLayer::close()
 
 int ReactiveLayer::openPorts(string driveName,int d)
 {
-	rpc_ports.resize(rpc_ports.size()+1);
+    rpc_ports.resize(rpc_ports.size()+1);
     outputM_ports.resize(outputM_ports.size()+1);
     outputm_ports.resize(outputm_ports.size()+1);
 
@@ -27,14 +27,14 @@ int ReactiveLayer::openPorts(string driveName,int d)
     string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
     /*
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
-    if (!rpc_ports[d]->open((pn).c_str())) 
+    if (!rpc_ports[d]->open((pn).c_str()))
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
     
 
     while(!Network::connect(targetPortName,portName))
-    	{
+        {
             cout<<"Setting up homeostatic connections... "<< targetPortName << " " << portName <<endl;
             yarp::os::Time::delay(0.5);
         }
@@ -42,7 +42,7 @@ int ReactiveLayer::openPorts(string driveName,int d)
     */
     pn = portName + "/min:i";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
-    if (!outputm_ports[d]->open((pn).c_str())) 
+    if (!outputm_ports[d]->open((pn).c_str()))
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
@@ -53,7 +53,7 @@ int ReactiveLayer::openPorts(string driveName,int d)
     pn = portName + "/max:i";
     cout << "Configuring port " <<d<< " : "<< pn << " ..." << endl;
     yarp::os::Time::delay(0.1);
-    if (!outputM_ports[d]->open((pn).c_str())) 
+    if (!outputM_ports[d]->open((pn).c_str()))
     {
         cout << getName() << ": Unable to open port " << pn << endl;
     }
@@ -90,27 +90,27 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
     //Set the voice
     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
     //if (iCub->getSpeechClient())
-        //iCub->getSpeechClient()->SetOptions(ttsOptions);
+    //iCub->getSpeechClient()->SetOptions(ttsOptions);
 
     //Configure the various components
-	configureOPC(rf);
-	configureAllostatic(rf);
-	configureTactile(rf);
-	configureSalutation(rf);
-	
+    configureOPC(rf);
+    configureAllostatic(rf);
+    configureTactile(rf);
+    configureSalutation(rf);
+
     cout<<"Configuration done."<<endl;
 
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
 
-	//Initialise timers
+    //Initialise timers
     lastFaceUpdate = Time::now();
-	physicalInteraction = false;
-	someonePresent = false;
+    physicalInteraction = false;
+    someonePresent = false;
 
     Rand::init();
 
-	//iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong start"));
+    //iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong start"));
 
     yInfo("Init done");
 
@@ -119,68 +119,68 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
 
 void ReactiveLayer::configureTactile(yarp::os::ResourceFinder &rf)
 {
-	//Initialise the tactile response
-	Bottle grpTactile = rf.findGroup("TACTILE");
-	Bottle *tactileStimulus = grpTactile.find("stimuli").asList();
+    //Initialise the tactile response
+    Bottle grpTactile = rf.findGroup("TACTILE");
+    Bottle *tactileStimulus = grpTactile.find("stimuli").asList();
 
-	if (tactileStimulus)
-	{
-		for (int d = 0; d<tactileStimulus->size(); d++)
-		{
-			string tactileStimulusName = tactileStimulus->get(d).asString().c_str();
-			StimulusEmotionalResponse response;
-			Bottle * bSentences = grpTactile.find((tactileStimulusName + "-sentence").c_str()).asList();
-			for (int s = 0; s<bSentences->size(); s++)
-			{
-				response.m_sentences.push_back(bSentences->get(s).asString().c_str());
-			}
-			//choregraphies
-			Bottle *bChore = grpTactile.find((tactileStimulusName + "-chore").c_str()).asList();
-			for (int sC = 0; bChore && sC<bChore->size(); sC++)
-			{
-				response.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
-			}
-			std::string sGroupTemp = tactileStimulusName;
-			sGroupTemp += "-effect";
-			Bottle *bEffects = grpTactile.find(sGroupTemp.c_str()).asList();
-			for (int i = 0; bEffects && i<bEffects->size(); i += 2)
-			{
-				response.m_emotionalEffect[bEffects->get(i).asString().c_str()] = bEffects->get(i + 1).asDouble();
-			}
-			tactileEffects[tactileStimulusName] = response;
-		}
-	}
+    if (tactileStimulus)
+    {
+        for (int d = 0; d<tactileStimulus->size(); d++)
+        {
+            string tactileStimulusName = tactileStimulus->get(d).asString().c_str();
+            StimulusEmotionalResponse response;
+            Bottle * bSentences = grpTactile.find((tactileStimulusName + "-sentence").c_str()).asList();
+            for (int s = 0; s<bSentences->size(); s++)
+            {
+                response.m_sentences.push_back(bSentences->get(s).asString().c_str());
+            }
+            //choregraphies
+            Bottle *bChore = grpTactile.find((tactileStimulusName + "-chore").c_str()).asList();
+            for (int sC = 0; bChore && sC<bChore->size(); sC++)
+            {
+                response.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
+            }
+            std::string sGroupTemp = tactileStimulusName;
+            sGroupTemp += "-effect";
+            Bottle *bEffects = grpTactile.find(sGroupTemp.c_str()).asList();
+            for (int i = 0; bEffects && i<bEffects->size(); i += 2)
+            {
+                response.m_emotionalEffect[bEffects->get(i).asString().c_str()] = bEffects->get(i + 1).asDouble();
+            }
+            tactileEffects[tactileStimulusName] = response;
+        }
+    }
 }
 
 void ReactiveLayer::configureSalutation(yarp::os::ResourceFinder &rf)
 {
-	;
-	//Initialise the gestures response
-	Bottle grpSocial = rf.findGroup("SOCIAL");
-	salutationLifetime = grpSocial.check("salutationLifetime", Value(15.0)).asDouble();
-	Bottle *socialStimulus = grpSocial.find("stimuli").asList();
+    ;
+    //Initialise the gestures response
+    Bottle grpSocial = rf.findGroup("SOCIAL");
+    salutationLifetime = grpSocial.check("salutationLifetime", Value(15.0)).asDouble();
+    Bottle *socialStimulus = grpSocial.find("stimuli").asList();
 
-	if (socialStimulus)
-	{
-		for (int d = 0; d<socialStimulus->size(); d++)
-		{
-			string socialStimulusName = socialStimulus->get(d).asString().c_str();
-			StimulusEmotionalResponse response;
-			Bottle * bSentences = grpSocial.find((socialStimulusName + "-sentence").c_str()).asList();
-			for (int s = 0; s<bSentences->size(); s++)
-			{
-				response.m_sentences.push_back(bSentences->get(s).asString().c_str());
-			}
-			std::string sGroupTemp = socialStimulusName;
-			sGroupTemp += "-effect";
-			Bottle *bEffects = grpSocial.find(sGroupTemp.c_str()).asList();
-			for (int i = 0; bEffects && i<bEffects->size(); i += 2)
-			{
-				response.m_emotionalEffect[bEffects->get(i).asString().c_str()] = bEffects->get(i + 1).asDouble();
-			}
-			salutationEffects[socialStimulusName] = response;
-		}
-	}
+    if (socialStimulus)
+    {
+        for (int d = 0; d<socialStimulus->size(); d++)
+        {
+            string socialStimulusName = socialStimulus->get(d).asString().c_str();
+            StimulusEmotionalResponse response;
+            Bottle * bSentences = grpSocial.find((socialStimulusName + "-sentence").c_str()).asList();
+            for (int s = 0; s<bSentences->size(); s++)
+            {
+                response.m_sentences.push_back(bSentences->get(s).asString().c_str());
+            }
+            std::string sGroupTemp = socialStimulusName;
+            sGroupTemp += "-effect";
+            Bottle *bEffects = grpSocial.find(sGroupTemp.c_str()).asList();
+            for (int i = 0; bEffects && i<bEffects->size(); i += 2)
+            {
+                response.m_emotionalEffect[bEffects->get(i).asString().c_str()] = bEffects->get(i + 1).asDouble();
+            }
+            salutationEffects[socialStimulusName] = response;
+        }
+    }
 
     //Add the relevant Entities for handling salutation
     iCub->opc->checkout();
@@ -192,88 +192,88 @@ void ReactiveLayer::configureSalutation(yarp::os::ResourceFinder &rf)
 
 void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 {
-	//The homeostatic module should be running in parallel, independent from this, so the objective of 
-	//this config would be to have a proper list  and connect to each port
+    //The homeostatic module should be running in parallel, independent from this, so the objective of
+    //this config would be to have a proper list  and connect to each port
 
-	homeo_name = "homeostasis";
-	string homeo_rpc_name = "/" + homeo_name + "/rpc";
-	string to_h_rpc_name="/"+moduleName+"/toHomeoRPC:o";
-	to_homeo_rpc.open(to_h_rpc_name);
+    homeo_name = "homeostasis";
+    string homeo_rpc_name = "/" + homeo_name + "/rpc";
+    string to_h_rpc_name="/"+moduleName+"/toHomeoRPC:o";
+    to_homeo_rpc.open(to_h_rpc_name);
 
-	while(!Network::connect(to_h_rpc_name,homeo_rpc_name))
-	{
-		cout<<"Trying to connect to homeostasis..."<<endl;
+    while(!Network::connect(to_h_rpc_name,homeo_rpc_name))
+    {
+        cout<<"Trying to connect to homeostasis..."<<endl;
         cout << "from " << to_h_rpc_name << " to " << homeo_rpc_name << endl;
-		yarp::os::Time::delay(0.2);
-	}
+        yarp::os::Time::delay(0.2);
+    }
 
-	/*
-	Bottle cmd;
-	Bottle rpl;
-	rpl.clear();
-	cmd.clear();
-	cmd.addString("names");
-	to_homeo_rpc.write(cmd,rpl);
-	if (rpl.get(0).asString()!="nack")
-	{
-		n_drives = rpl.size();
-		drive_names = rpl;
-	}
-	*/
+    /*
+    Bottle cmd;
+    Bottle rpl;
+    rpl.clear();
+    cmd.clear();
+    cmd.addString("names");
+    to_homeo_rpc.write(cmd,rpl);
+    if (rpl.get(0).asString()!="nack")
+    {
+        n_drives = rpl.size();
+        drive_names = rpl;
+    }
+    */
 
-	//Initialise the iCub allostatic model. Drives for interaction engine will be read from IE default.ini file
-	cout << "Initializing drives..."<<endl;
-	Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
-	drivesList = *grpAllostatic.find("drives").asList();
-	iCub->icubAgent->m_drives.clear();
-	Bottle cmd;
+    //Initialise the iCub allostatic model. Drives for interaction engine will be read from IE default.ini file
+    cout << "Initializing drives..."<<endl;
+    Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
+    drivesList = *grpAllostatic.find("drives").asList();
+    iCub->icubAgent->m_drives.clear();
+    Bottle cmd;
 
-    double priority_sum = 0.; 
+    double priority_sum = 0.;
     double priority;
-	for (int d = 0; d<drivesList.size(); d++)
-	{
-		cmd.clear();
-		string driveName = drivesList.get(d).asString().c_str();
-		cmd.addString("add");
-		cmd.addString("conf");
-		Bottle drv;
-		drv.clear();
-		Bottle aux;
-		aux.clear();
-		aux.addString("name");
-		aux.addString(driveName);
-		drv.addList()=aux;
-		aux.clear();
-		drv.append(grpAllostatic);
+    for (int d = 0; d<drivesList.size(); d++)
+    {
+        cmd.clear();
+        string driveName = drivesList.get(d).asString().c_str();
+        cmd.addString("add");
+        cmd.addString("conf");
+        Bottle drv;
+        drv.clear();
+        Bottle aux;
+        aux.clear();
+        aux.addString("name");
+        aux.addString(driveName);
+        drv.addList()=aux;
+        aux.clear();
+        drv.append(grpAllostatic);
         cmd.append(drv);//addList()=drv;
         Bottle rply;
         rply.clear();
         rply.get(0).asString();
         cout << cmd.toString() << endl;
-		/*while(rply.get(0).auxsString()!="ack")
+        /*while(rply.get(0).auxsString()!="ack")
             {*/
-                //to_homeo_rpc.write(cmd,rply);
-                cout << rply.toString()<<endl;
-              /*  cout<<"cannot create drive "<< driveName << "..."<<endl;
+        //to_homeo_rpc.write(cmd,rply);
+        cout << rply.toString()<<endl;
+        /*  cout<<"cannot create drive "<< driveName << "..."<<endl;
             }*/
 
 
-		int answer = openPorts(driveName,d);
-		cout << "The answer is " << answer <<endl;
+        int answer = openPorts(driveName,d);
+        cout << "The answer is " << answer <<endl;
 
 
-		//Under effects
-		StimulusEmotionalResponse responseUnder;
-		Bottle * bSentences = grpAllostatic.find((driveName + "-under-sentences").c_str()).asList();
-		for (int s = 0; bSentences && s<bSentences->size(); s++)
-		{
-			responseUnder.m_sentences.push_back(bSentences->get(s).asString().c_str());
-		}
-		Bottle *bChore = grpAllostatic.find((driveName + "-under-chore").c_str()).asList();
-		for (int sC = 0; bChore && sC<bChore->size(); sC++)
-		{
-			responseUnder.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
-		}
+        //Under effects
+        StimulusEmotionalResponse responseUnder;
+        Bottle * bSentences = grpAllostatic.find((driveName + "-under-sentences").c_str()).asList();
+        for (int s = 0; bSentences && s<bSentences->size(); s++)
+        {
+            responseUnder.m_sentences.push_back(bSentences->get(s).asString().c_str());
+        }
+        Bottle *bChore = grpAllostatic.find((driveName + "-under-chore").c_str()).asList();
+        for (int sC = 0; bChore && sC<bChore->size(); sC++)
+        {
+            responseUnder.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
+        }
         string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port").c_str(), Value("None")).asString();
 
         cout << under_port_name << endl;
@@ -285,39 +285,39 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
 
         
         if (under_port_name != "None")
+        {
+            responseUnder.active = true;
+            string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
+            responseUnder.output_port = new Port();
+            responseUnder.output_port->open(out_port_name);
+            cout << "trying to connect to " << under_port_name << endl;
+            while(!Network::connect(out_port_name,under_port_name))
             {
-            	responseUnder.active = true;
-                string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
-                responseUnder.output_port = new Port();
-                responseUnder.output_port->open(out_port_name);
-                cout << "trying to connect to " << under_port_name << endl;
-                while(!Network::connect(out_port_name,under_port_name))
-                {
-                    cout << "." << endl;
-                    yarp::os::Time::delay(0.5);
-                }
-            }else{
-            	responseUnder.active = false;
+                cout << "." << endl;
+                yarp::os::Time::delay(0.5);
             }
+        }else{
+            responseUnder.active = false;
+        }
 
-		homeostaticUnderEffects[driveName] = responseUnder;
+        homeostaticUnderEffects[driveName] = responseUnder;
 
-		//Over effects
-		StimulusEmotionalResponse responseOver;
-		bSentences = grpAllostatic.find((driveName + "-over-sentences").c_str()).asList();
-		for (int s = 0; bSentences&& s<bSentences->size(); s++)
-		{
-			responseOver.m_sentences.push_back(bSentences->get(s).asString().c_str());
-		}
-		bChore = grpAllostatic.find((driveName + "-over-chore").c_str()).asList();
-		for (int sC = 0; bChore && sC<bChore->size(); sC++)
-		{
-			responseOver.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
-		}
+        //Over effects
+        StimulusEmotionalResponse responseOver;
+        bSentences = grpAllostatic.find((driveName + "-over-sentences").c_str()).asList();
+        for (int s = 0; bSentences&& s<bSentences->size(); s++)
+        {
+            responseOver.m_sentences.push_back(bSentences->get(s).asString().c_str());
+        }
+        bChore = grpAllostatic.find((driveName + "-over-chore").c_str()).asList();
+        for (int sC = 0; bChore && sC<bChore->size(); sC++)
+        {
+            responseOver.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
+        }
         string over_port_name = grpAllostatic.check((driveName + "-over-behavior-port").c_str(), Value("None")).asString();
         if (over_port_name != "None")
         {
-        	responseOver.active=true;
+            responseOver.active=true;
             string out_port_name = "/" + moduleName + "/" + driveName + "/over_action:o";
             responseOver.output_port = new Port();
             responseOver.output_port->open(out_port_name);
@@ -328,45 +328,45 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
                 yarp::os::Time::delay(0.5);
             }
         }else{
-            	responseOver.active = false;
-            }
+            responseOver.active = false;
+        }
 
-		homeostaticOverEffects[driveName] = responseOver;
-	}
-	cout << "done" << endl;
+        homeostaticOverEffects[driveName] = responseOver;
+    }
+    cout << "done" << endl;
 
     // Normalize drive priorities
     if ( ! Normalize(drivePriorities))
         cout << "Error: Drive priorities sum up to 0." << endl;
 
-    cout << "Drive priorities: " << drivePriorities << endl; 
+    cout << "Drive priorities: " << drivePriorities << endl;
 
-	//Initialise the iCub emotional model
-	cout << "Initializing emotions...";
-	Bottle grpEmotions = rf.findGroup("EMOTIONS");
-	Bottle *emotionsList = grpEmotions.find("emotions").asList();
-	double emotionalDecay = grpEmotions.check("emotionalDecay", Value(0.1)).asDouble();
+    //Initialise the iCub emotional model
+    cout << "Initializing emotions...";
+    Bottle grpEmotions = rf.findGroup("EMOTIONS");
+    Bottle *emotionsList = grpEmotions.find("emotions").asList();
+    double emotionalDecay = grpEmotions.check("emotionalDecay", Value(0.1)).asDouble();
 
-	iCub->icubAgent->m_emotions_intrinsic.clear();
-	if (emotionsList)
-	{
-		for (int d = 0; d<emotionsList->size(); d++)
-		{
-			string emoName = emotionsList->get(d).asString().c_str();
-			iCub->icubAgent->m_emotions_intrinsic[emoName] = 0.0;
-		}
-	}
-	cout << "done" << endl;
+    iCub->icubAgent->m_emotions_intrinsic.clear();
+    if (emotionsList)
+    {
+        for (int d = 0; d<emotionsList->size(); d++)
+        {
+            string emoName = emotionsList->get(d).asString().c_str();
+            iCub->icubAgent->m_emotions_intrinsic[emoName] = 0.0;
+        }
+    }
+    cout << "done" << endl;
 
-	faceUpdatePeriod = grpEmotions.check("expressionUpdatePeriod", Value(0.5)).asDouble();
+    faceUpdatePeriod = grpEmotions.check("expressionUpdatePeriod", Value(0.5)).asDouble();
 
-	cout << "Commiting iCubAgent...";
-	iCub->commitAgent();
-	cout << "done." << endl;
+    cout << "Commiting iCubAgent...";
+    iCub->commitAgent();
+    cout << "done." << endl;
 
-	InternalVariablesDecay* decayThread;
-	decayThread = new InternalVariablesDecay(500, emotionalDecay);
-	decayThread->start();
+    InternalVariablesDecay* decayThread;
+    decayThread = new InternalVariablesDecay(500, emotionalDecay);
+    decayThread->start();
 }
 
 bool ReactiveLayer::Normalize(vector<double>& vec) {
@@ -384,13 +384,13 @@ bool ReactiveLayer::updateModule()
 {
     cout<<".";
 
-	//handleSalutation(someonePresent);
-	//physicalInteraction = handleTactile();
-	confusion = handleTagging();
+    //handleSalutation(someonePresent);
+    //physicalInteraction = handleTactile();
+    confusion = handleTagging();
     cout << confusion << endl;
     //learning = handlePointing();
     updateAllostatic();
-	//updateEmotions();
+    //updateEmotions();
 
     return true;
 }
@@ -450,7 +450,7 @@ bool ReactiveLayer::handlePointing()
         }
     }
     //if no unknown object was found, return false
-    return counter > 0; 
+    return counter > 0;
 }
 bool ReactiveLayer::handleTagging()
 {
@@ -521,11 +521,11 @@ bool ReactiveLayer::handleTagging()
                 }
             }
             counter++;
-            */            
+            */
         }
     }
     //if no unknown object was found, return false
-    return false; 
+    return false;
 }
 
 bool ReactiveLayer::handleTactile()
@@ -580,54 +580,54 @@ bool ReactiveLayer::handleTactile()
 
 bool ReactiveLayer::handleSalutation(bool& someoneIsPresent)
 {
-	someoneIsPresent = false;
-	//Handle the salutation of newcomers
+    someoneIsPresent = false;
+    //Handle the salutation of newcomers
     iCub->opc->checkout();
-	list<Entity*> allAgents = iCub->opc->Entities(EFAA_OPC_ENTITY_TAG, "==", EFAA_OPC_ENTITY_AGENT);
-	list<Relation> salutedAgents = iCub->opc->getRelations("saluted");
-	list<Relation> identity = iCub->opc->getRelationsMatching("partner", "named");
-	string identityName = "unknown";
-	if (identity.size() > 0)
-		identityName = identity.front().object();
+    list<Entity*> allAgents = iCub->opc->Entities(EFAA_OPC_ENTITY_TAG, "==", EFAA_OPC_ENTITY_AGENT);
+    list<Relation> salutedAgents = iCub->opc->getRelations("saluted");
+    list<Relation> identity = iCub->opc->getRelationsMatching("partner", "named");
+    string identityName = "unknown";
+    if (identity.size() > 0)
+        identityName = identity.front().object();
 
-	for (list<Entity*>::iterator currentAgentIt = allAgents.begin(); currentAgentIt != allAgents.end(); currentAgentIt++)
-	{
-		Agent* currentAgent = (Agent*)(*currentAgentIt);
+    for (list<Entity*>::iterator currentAgentIt = allAgents.begin(); currentAgentIt != allAgents.end(); currentAgentIt++)
+    {
+        Agent* currentAgent = (Agent*)(*currentAgentIt);
 
 
-		if (currentAgent->name() != "icub" && currentAgent->m_present)
-		{
-			someoneIsPresent = true;
-			string currentPartner = currentAgent->name();
-			//cout<<"Testing salutation for "<<currentPartner<<" with name "<<identityName<<endl;
+        if (currentAgent->name() != "icub" && currentAgent->m_present)
+        {
+            someoneIsPresent = true;
+            string currentPartner = currentAgent->name();
+            //cout<<"Testing salutation for "<<currentPartner<<" with name "<<identityName<<endl;
 
-			bool saluted = false;
-			for (list<Relation>::iterator it = salutedAgents.begin(); it != salutedAgents.end(); it++)
-			{
-				//cout<< it->toString()<<endl;
-				if (it->subject() == identityName)
-				{
-					//cout<<"Same agent detected... Reseting salutation lifetime"<<endl;
-					//This guy has already been saluted, we reset the lifetime
-					iCub->opc->setLifeTime(it->ID(), salutationLifetime);
-					saluted = true;
-				}
-			}
+            bool saluted = false;
+            for (list<Relation>::iterator it = salutedAgents.begin(); it != salutedAgents.end(); it++)
+            {
+                //cout<< it->toString()<<endl;
+                if (it->subject() == identityName)
+                {
+                    //cout<<"Same agent detected... Reseting salutation lifetime"<<endl;
+                    //This guy has already been saluted, we reset the lifetime
+                    iCub->opc->setLifeTime(it->ID(), salutationLifetime);
+                    saluted = true;
+                }
+            }
 
-			if (!saluted)
-			{
-				iCub->look(currentPartner);
-				iCub->say(salutationEffects["humanEnter"].getRandomSentence(), false);
-				iCub->playChoregraphy("wave");
-				if (identityName != "unknown")
-					iCub->say(identityName + "! nice to see you again!", false);
-				iCub->opc->addRelation(Relation(identityName, "is", "saluted"), salutationLifetime);
+            if (!saluted)
+            {
+                iCub->look(currentPartner);
+                iCub->say(salutationEffects["humanEnter"].getRandomSentence(), false);
+                iCub->playChoregraphy("wave");
+                if (identityName != "unknown")
+                    iCub->say(identityName + "! nice to see you again!", false);
+                iCub->opc->addRelation(Relation(identityName, "is", "saluted"), salutationLifetime);
                 iCub->opc->commit();
-				return true;
-			}
-		}
-	}
-	return false;
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 // Return the index of a drive to solve according to priorities and homeostatis levels
@@ -641,14 +641,14 @@ DriveOutCZ ReactiveLayer::chooseDrive() {
     vector<double> outOfCzPriorities(drivePriorities);
 
     for ( int i =0;i<drivesList.size();i++) {
-         inCZ = outputm_ports[i]->read()->get(0).asDouble() <= 0 && outputM_ports[i]->read()->get(0).asDouble() <= 0;
-         if (inCZ) {
-            outOfCzPriorities[i] = 0.;           
-         }
-         else {
+        inCZ = outputm_ports[i]->read()->get(0).asDouble() <= 0 && outputM_ports[i]->read()->get(0).asDouble() <= 0;
+        if (inCZ) {
+            outOfCzPriorities[i] = 0.;
+        }
+        else {
             numOutCz ++;
-         }
-        cout << "Drive " << i << ", " << drivesList.get(i).asString() << ". Priority: " << outOfCzPriorities[i] << "." << endl; 
+        }
+        cout << "Drive " << i << ", " << drivesList.get(i).asString() << ". Priority: " << outOfCzPriorities[i] << "." << endl;
     }
     if (! numOutCz) {
         result.idx = -1;
@@ -669,68 +669,68 @@ DriveOutCZ ReactiveLayer::chooseDrive() {
     if (outputm_ports[idx]->read()->get(0).asDouble() > 0)
         result.level = UNDER;
     if (outputM_ports[idx]->read()->get(0).asDouble() > 0)
-        result.level = OVER;    
+        result.level = OVER;
     return result;
 }
 
 
 bool ReactiveLayer::updateAllostatic()
 {
-	iCub->updateAgent();
+    iCub->updateAgent();
 
-	//Update some specific drives based on the previous stimuli encountered
-	if (physicalInteraction)
-		{
-			Bottle cmd;
-			cmd.clear();
-			cmd.addString("delta");
-			cmd.addString("physicalInteraction");
-			cmd.addString("val");
-			cmd.addDouble(0.1);
+    //Update some specific drives based on the previous stimuli encountered
+    if (physicalInteraction)
+    {
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("delta");
+        cmd.addString("physicalInteraction");
+        cmd.addString("val");
+        cmd.addDouble(0.1);
 
-			to_homeo_rpc.write(cmd);
-		}
+        to_homeo_rpc.write(cmd);
+    }
 
-		
-		//iCub->icubAgent->m_drives["physicalInteraction"].value += 0.1;
-	if (someonePresent)
-		{
-			Bottle cmd;
-			cmd.clear();
-			cmd.addString("par");
-			cmd.addString("socialInteraction");
-			cmd.addString("dec");
-			cmd.addDouble(-0.002);
 
-			to_homeo_rpc.write(cmd);
-		}
-	//iCub->icubAgent->m_drives["socialInteraction"].value += iCub->icubAgent->m_drives["socialInteraction"].decay * 2;
+    //iCub->icubAgent->m_drives["physicalInteraction"].value += 0.1;
+    if (someonePresent)
+    {
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("par");
+        cmd.addString("socialInteraction");
+        cmd.addString("dec");
+        cmd.addDouble(-0.002);
 
-	if (confusion)
-	{
-		Bottle cmd;
-		cmd.clear();
-		cmd.addString("par");
-		cmd.addString("tagging");
-		cmd.addString("dec");
-		cmd.addDouble(0.006);
+        to_homeo_rpc.write(cmd);
+    }
+    //iCub->icubAgent->m_drives["socialInteraction"].value += iCub->icubAgent->m_drives["socialInteraction"].decay * 2;
+
+    if (confusion)
+    {
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("par");
+        cmd.addString("tagging");
+        cmd.addString("dec");
+        cmd.addDouble(0.006);
         cout << cmd.toString()<<endl;
         Bottle rply;
         rply.clear();
-		to_homeo_rpc.write(cmd,rply);
+        to_homeo_rpc.write(cmd,rply);
         cout<<rply.toString()<<endl;
 
-	}else{
-		Bottle cmd;
-		cmd.clear();
-		cmd.addString("par");
-		cmd.addString("tagging");
-		cmd.addString("dec");
-		cmd.addDouble(-0.01);
+    }else{
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("par");
+        cmd.addString("tagging");
+        cmd.addString("dec");
+        cmd.addDouble(-0.01);
         cout << cmd.toString()<<endl;
 
-		to_homeo_rpc.write(cmd);
-	}
+        to_homeo_rpc.write(cmd);
+    }
     if (learning)
     {
         Bottle cmd;
@@ -808,36 +808,36 @@ bool ReactiveLayer::updateAllostatic()
     if (activeDrive.level == OVER)
     {
         cout << "Drive " << activeDrive.idx << " chosen. Under level." << endl;
-		iCub->say(homeostaticOverEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
-		Bottle cmd;
-		cmd.clear();
-		cmd.addString("delta");
-		cmd.addString(drivesList.get(i).asString().c_str());
-		cmd.addString("val");
-		cmd.addDouble(-0.15);
+        iCub->say(homeostaticOverEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
+        Bottle cmd;
+        cmd.clear();
+        cmd.addString("delta");
+        cmd.addString(drivesList.get(i).asString().c_str());
+        cmd.addString("val");
+        cmd.addDouble(-0.15);
 
-		rpc_ports[i]->write(cmd);
-		//d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
-	}
+        rpc_ports[i]->write(cmd);
+        //d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
+    }
 
     //cout<<"come on..."<<endl;
-	//iCub->commitAgent();
+    //iCub->commitAgent();
     //cout<<"commited"<<endl;
-	return true;
+    return true;
 }
 
 bool ReactiveLayer::updateEmotions()
 {
-	//Expresses the maximum emotion
-	string maxEmotion; double emotionalValue;
-	iCub->getHighestEmotion(maxEmotion, emotionalValue);
-	if (lastFaceUpdate + faceUpdatePeriod<Time::now())
-	{
-		iCub->getExpressionClient()->express(maxEmotion, emotionalValue);
-		lastFaceUpdate = Time::now();
-		//cout<<"Expressing "<<maxEmotion<<" at "<<emotionalValue<<endl;
-	}
-	return true;
+    //Expresses the maximum emotion
+    string maxEmotion; double emotionalValue;
+    iCub->getHighestEmotion(maxEmotion, emotionalValue);
+    if (lastFaceUpdate + faceUpdatePeriod<Time::now())
+    {
+        iCub->getExpressionClient()->express(maxEmotion, emotionalValue);
+        lastFaceUpdate = Time::now();
+        //cout<<"Expressing "<<maxEmotion<<" at "<<emotionalValue<<endl;
+    }
+    return true;
 }
 
 void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
@@ -913,6 +913,6 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
 
 bool ReactiveLayer::respond(const Bottle& cmd, Bottle& reply)
 {
-	reply.addString("NACK");
+    reply.addString("NACK");
     return true;
 }
