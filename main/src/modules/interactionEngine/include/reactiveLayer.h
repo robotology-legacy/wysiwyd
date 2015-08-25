@@ -89,11 +89,6 @@ public:
     }
 
     bool close();
-    /*{
-        iCub->close();
-        delete iCub;
-        return true;
-    }*/
 
     double getPeriod()
     {

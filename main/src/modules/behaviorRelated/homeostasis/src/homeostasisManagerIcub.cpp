@@ -345,10 +345,20 @@ bool homeostaticModule::close()
 {
     for (unsigned int d=0;d<manager.n_drives;d++)
     {
+        input_ports[d]->interrupt();
         input_ports[d]->close();
+        delete input_ports[d];
+
+        outputM_ports[d]->interrupt();
         outputM_ports[d]->close();
+        delete outputM_ports[d];
+
+        outputm_ports[d]->interrupt();
         outputm_ports[d]->close();
+        delete outputm_ports[d];
     }
+    rpc.interrupt();
     rpc.close();
+
     return true;
 }

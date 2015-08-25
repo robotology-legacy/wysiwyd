@@ -89,8 +89,8 @@ public:
         return this->decay*(aux-1);
 
     }
-    void update()
 
+    void update()
     {
         if ((this->value > 1 && this->decay<0)|| (this->value < 0 && this->decay>0))
             this->decay = 0.0;

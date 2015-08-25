@@ -6,6 +6,7 @@ bool ReactiveLayer::close()
 	//iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong stop"));
 	iCub->close();
     delete iCub;
+
     return true;
 }
 
@@ -182,8 +183,11 @@ void ReactiveLayer::configureSalutation(yarp::os::ResourceFinder &rf)
 	}
 
     //Add the relevant Entities for handling salutation
-    iCub->opc->addOrRetrieveEntity<Action>("is");
-    iCub->opc->addOrRetrieveEntity<Adjective>("saluted");
+    iCub->opc->checkout();
+    Action* actIs = iCub->opc->addOrRetrieveEntity<Action>("is");
+    iCub->opc->commit(actIs);
+    Adjective* adjSal = iCub->opc->addOrRetrieveEntity<Adjective>("saluted");
+    iCub->opc->commit(adjSal);
 }
 
 void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
@@ -387,7 +391,7 @@ bool ReactiveLayer::updateModule()
     //learning = handlePointing();
     updateAllostatic();
 	//updateEmotions();
-    	
+
     return true;
 }
 bool ReactiveLayer::handlePointing()
@@ -451,6 +455,7 @@ bool ReactiveLayer::handlePointing()
 bool ReactiveLayer::handleTagging()
 {
     iCub->opc->checkout();
+    yInfo() << " [handleTagging] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
     //vector<Entity*> vEntities;
     //copy(lEntities.begin(), lEntities.end(), vEntities.begin());
@@ -476,7 +481,7 @@ bool ReactiveLayer::handleTagging()
         if (sNameCut == "unknown") {
             if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
-                cout << "I found unknown entities!!!!"<<endl;
+                yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(*itEnt);
                 if(o && o->m_present) {
                     sendRPC = true;
@@ -526,6 +531,7 @@ bool ReactiveLayer::handleTagging()
 bool ReactiveLayer::handleTactile()
 {
     bool gotSignal = false;
+    iCub->opc->checkout();
     list<Relation> tactileRelations = iCub->opc->getRelationsMatching("icub","is","any","touchLocation");
 
     if (tactileRelations.size() > 0)
@@ -533,8 +539,7 @@ bool ReactiveLayer::handleTactile()
         cout<<"I am touched"<<endl;
         Relation r = *tactileRelations.begin();
         //Look at the place where it has been touched
-        Object* touchLocation = (Object*) iCub->opc->getEntity("touchLocation");
-        iCub->opc->update(touchLocation);
+        Object* touchLocation = (Object*) iCub->opc->getEntity("touchLocation", true);
         touchLocation->m_present = true;
         iCub->opc->commit(touchLocation);
 
@@ -546,7 +551,7 @@ bool ReactiveLayer::handleTactile()
         {
             iCub->say(tactileEffects[r.object()].getRandomSentence(), false);
             //Apply each emotional effect
-            for(map<string, double>::iterator itEffects = tactileEffects[r.object()].m_emotionalEffect.begin() ; itEffects != tactileEffects[r.object()].m_emotionalEffect.end(); itEffects++)
+            for(map<string, double>::iterator itEffects = tactileEffects[r.object()].m_emotionalEffect.begin(); itEffects != tactileEffects[r.object()].m_emotionalEffect.end(); itEffects++)
             {
                 iCub->icubAgent->m_emotions_intrinsic[itEffects->first] += itEffects->second;
                 iCub->icubAgent->m_emotions_intrinsic[itEffects->first] = min(1.0, max(0.0,itEffects->second));
@@ -577,6 +582,7 @@ bool ReactiveLayer::handleSalutation(bool& someoneIsPresent)
 {
 	someoneIsPresent = false;
 	//Handle the salutation of newcomers
+    iCub->opc->checkout();
 	list<Entity*> allAgents = iCub->opc->Entities(EFAA_OPC_ENTITY_TAG, "==", EFAA_OPC_ENTITY_AGENT);
 	list<Relation> salutedAgents = iCub->opc->getRelations("saluted");
 	list<Relation> identity = iCub->opc->getRelationsMatching("partner", "named");
@@ -616,6 +622,7 @@ bool ReactiveLayer::handleSalutation(bool& someoneIsPresent)
 				if (identityName != "unknown")
 					iCub->say(identityName + "! nice to see you again!", false);
 				iCub->opc->addRelation(Relation(identityName, "is", "saluted"), salutationLifetime);
+                iCub->opc->commit();
 				return true;
 			}
 		}
@@ -768,18 +775,21 @@ bool ReactiveLayer::updateAllostatic()
 
     if (activeDrive.level == UNDER)
     {
-        cout << "Drive " << activeDrive.idx << " chosen. Under level." << endl;
+        yInfo() << " [updateAllostatic] Drive " << activeDrive.idx << " chosen. Under level.";
         iCub->say(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].getRandomSentence());
         if (homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active)
         {
-            cout << "Command sent!!!"<< endl;
-            cout <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString() << endl;
+            yInfo() << " [updateAllostatic] Command will be send";
+            yInfo() <<homeostaticUnderEffects[drivesList.get(i).asString().c_str()].active << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString();
             Bottle rply;
             rply.clear();
             homeostaticUnderEffects[drivesList.get(i).asString().c_str()].output_port->write(homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command,rply);
             yarp::os::Time::delay(0.1);
-            cout<<rply.toString()<<endl;
+            yInfo() << "[updateAllostatic] reply from homeostatis : " << rply.toString();
 
+            //clear as soon as sent
+            homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.clear();
+            yInfo() << "check rpc command is empty : " << homeostaticUnderEffects[drivesList.get(i).asString().c_str()].rpc_command.toString();
         }
         Bottle cmd;
         cmd.clear();
@@ -838,6 +848,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
     bool shouldPopulate = grpOPC.find("populateOPC").asInt() == 1;
     if (shouldPopulate)
     {
+        iCub->opc->checkout();
         Bottle *agentList = grpOPC.find("agent").asList();
         if (agentList)
         {
@@ -880,7 +891,8 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<adjectiveList->size(); d++)
             {
                 string name = adjectiveList->get(d).asString().c_str();
-                iCub->opc->addOrRetrieveEntity<Adjective>(name);
+                Adjective* a = iCub->opc->addOrRetrieveEntity<Adjective>(name);
+                iCub->opc->commit(a);
             }
         }
 
@@ -890,7 +902,8 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             for(int d=0; d<actionList->size(); d++)
             {
                 string name = actionList->get(d).asString().c_str();
-                iCub->opc->addOrRetrieveEntity<Action>(name);
+                Action* a = iCub->opc->addOrRetrieveEntity<Action>(name);
+                iCub->opc->commit(a);
             }
         }
     }
