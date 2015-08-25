@@ -199,11 +199,6 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
 
 bool bodySchema::interruptModule() {
 
-    bool homeStart = goStartPos();
-    if(!homeStart) {
-        cout << "I got lost going home!" << endl;
-    }
-
     imgPortIn.interrupt();
     imgPortOut.interrupt();
     portVelocityOut.interrupt();
@@ -264,7 +259,7 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
 
     if (command.get(0).asString()=="help") {
         cout << helpMessage;
-        reply.addString("ok");
+        reply.addString(helpMessage);
     } else if (command.get(0).asString()=="quit") {
         shouldQuit = true;
         reply.addString("closing");
