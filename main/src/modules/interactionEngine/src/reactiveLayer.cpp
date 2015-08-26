@@ -95,7 +95,7 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
     //Configure the various components
     configureOPC(rf);
     configureAllostatic(rf);
-    configureTactile(rf);
+    //configureTactile(rf);
     configureSalutation(rf);
 
     cout<<"Configuration done."<<endl;
@@ -115,41 +115,6 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
     yInfo("Init done");
 
     return true;
-}
-
-void ReactiveLayer::configureTactile(yarp::os::ResourceFinder &rf)
-{
-    //Initialise the tactile response
-    Bottle grpTactile = rf.findGroup("TACTILE");
-    Bottle *tactileStimulus = grpTactile.find("stimuli").asList();
-
-    if (tactileStimulus)
-    {
-        for (int d = 0; d<tactileStimulus->size(); d++)
-        {
-            string tactileStimulusName = tactileStimulus->get(d).asString().c_str();
-            StimulusEmotionalResponse response;
-            Bottle * bSentences = grpTactile.find((tactileStimulusName + "-sentence").c_str()).asList();
-            for (int s = 0; s<bSentences->size(); s++)
-            {
-                response.m_sentences.push_back(bSentences->get(s).asString().c_str());
-            }
-            //choregraphies
-            Bottle *bChore = grpTactile.find((tactileStimulusName + "-chore").c_str()).asList();
-            for (int sC = 0; bChore && sC<bChore->size(); sC++)
-            {
-                response.m_choregraphies.push_back(bChore->get(sC).asString().c_str());
-            }
-            std::string sGroupTemp = tactileStimulusName;
-            sGroupTemp += "-effect";
-            Bottle *bEffects = grpTactile.find(sGroupTemp.c_str()).asList();
-            for (int i = 0; bEffects && i<bEffects->size(); i += 2)
-            {
-                response.m_emotionalEffect[bEffects->get(i).asString().c_str()] = bEffects->get(i + 1).asDouble();
-            }
-            tactileEffects[tactileStimulusName] = response;
-        }
-    }
 }
 
 void ReactiveLayer::configureSalutation(yarp::os::ResourceFinder &rf)
@@ -225,7 +190,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
     cout << "Initializing drives..."<<endl;
     Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
     drivesList = *grpAllostatic.find("drives").asList();
-    iCub->icubAgent->m_drives.clear();
+    //iCub->icubAgent->m_drives.clear();
     Bottle cmd;
 
     double priority_sum = 0.;
@@ -347,13 +312,13 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
     Bottle *emotionsList = grpEmotions.find("emotions").asList();
     double emotionalDecay = grpEmotions.check("emotionalDecay", Value(0.1)).asDouble();
 
-    iCub->icubAgent->m_emotions_intrinsic.clear();
+    //iCub->icubAgent->m_emotions_intrinsic.clear();
     if (emotionsList)
     {
         for (int d = 0; d<emotionsList->size(); d++)
         {
             string emoName = emotionsList->get(d).asString().c_str();
-            iCub->icubAgent->m_emotions_intrinsic[emoName] = 0.0;
+            //iCub->icubAgent->m_emotions_intrinsic[emoName] = 0.0;
         }
     }
     cout << "done" << endl;
@@ -528,55 +493,6 @@ bool ReactiveLayer::handleTagging()
     return false;
 }
 
-bool ReactiveLayer::handleTactile()
-{
-    bool gotSignal = false;
-    iCub->opc->checkout();
-    list<Relation> tactileRelations = iCub->opc->getRelationsMatching("icub","is","any","touchLocation");
-
-    if (tactileRelations.size() > 0)
-    {
-        cout<<"I am touched"<<endl;
-        Relation r = *tactileRelations.begin();
-        //Look at the place where it has been touched
-        Object* touchLocation = (Object*) iCub->opc->getEntity("touchLocation");
-        touchLocation->m_present = true;
-        iCub->opc->commit(touchLocation);
-
-        iCub->look("touchLocation");//r.complement_place().c_str());
-        Time::delay(1.0);
-
-        //If we have a stored reaction pattern to this tactile stimulus
-        if (tactileEffects.find(r.object()) != tactileEffects.end() )
-        {
-            iCub->say(tactileEffects[r.object()].getRandomSentence(), false);
-            //Apply each emotional effect
-            for(map<string, double>::iterator itEffects = tactileEffects[r.object()].m_emotionalEffect.begin(); itEffects != tactileEffects[r.object()].m_emotionalEffect.end(); itEffects++)
-            {
-                iCub->icubAgent->m_emotions_intrinsic[itEffects->first] += itEffects->second;
-                iCub->icubAgent->m_emotions_intrinsic[itEffects->first] = min(1.0, max(0.0,itEffects->second));
-            }
-            //play choreography
-            if(yarp::os::Random::uniform()>0.33)
-            {
-                string randomChoregraphy = tactileEffects[r.object()].getRandomChoregraphy();
-                iCub->playBodyPartChoregraphy(randomChoregraphy.c_str(), "left_arm",1.0,false);
-                iCub->playBodyPartChoregraphy(randomChoregraphy.c_str(), "right_arm",1.0,true);
-                cout << "random Choreography Chosen: " << randomChoregraphy.c_str() << endl;
-            }
-        }
-        iCub->commitAgent();
-
-        iCub->opc->removeRelation(r);
-        touchLocation->m_present = false;
-        iCub->opc->commit(touchLocation);
-        iCub->look("partner");
-        iCub->lookAround();
-        gotSignal = true;
-    }
-    return gotSignal;
-}
-
 
 bool ReactiveLayer::handleSalutation(bool& someoneIsPresent)
 {
@@ -676,7 +592,7 @@ DriveOutCZ ReactiveLayer::chooseDrive() {
 
 bool ReactiveLayer::updateAllostatic()
 {
-    iCub->updateAgent();
+    //iCub->updateAgent();
 
     //Update some specific drives based on the previous stimuli encountered
     if (physicalInteraction)
@@ -823,20 +739,6 @@ bool ReactiveLayer::updateAllostatic()
     //cout<<"come on..."<<endl;
     //iCub->commitAgent();
     //cout<<"commited"<<endl;
-    return true;
-}
-
-bool ReactiveLayer::updateEmotions()
-{
-    //Expresses the maximum emotion
-    string maxEmotion; double emotionalValue;
-    iCub->getHighestEmotion(maxEmotion, emotionalValue);
-    if (lastFaceUpdate + faceUpdatePeriod<Time::now())
-    {
-        iCub->getExpressionClient()->express(maxEmotion, emotionalValue);
-        lastFaceUpdate = Time::now();
-        //cout<<"Expressing "<<maxEmotion<<" at "<<emotionalValue<<endl;
-    }
     return true;
 }
 
