@@ -509,6 +509,10 @@ bool bodySchema::learnAbsPos(State &state)
     double AOD = rand() / double(RAND_MAX);
     yarp::sig::Vector babCmd;
 
+    for(int i=0; i<16; i++)
+    {
+        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
+    }
 
     while (Time::now() < startTime + train_duration){
         double t = Time::now() - startTime;
@@ -648,13 +652,6 @@ bool bodySchema::create_folders()
 
 yarp::sig::Vector bodySchema::babblingExecution(double &t, double &AOD)
 {
-
-
-    for(int i=0; i<16; i++)
-    {
-        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
-    }
-
     double w1 = freq1*t;
     double w2 = freq2*t;
     double w3 = freq3*t;
@@ -692,14 +689,6 @@ yarp::sig::Vector bodySchema::babblingExecution(double &t, double &AOD)
 
 yarp::sig::Vector bodySchema::babblingHandExecution(double &t)
 {
-
-
-    for(int i=0; i<16; i++)
-    {
-        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
-    }
-
-
         double w1 = freq1*t;
         double w2 = freq2*t;
         double w3 = freq3*t;
