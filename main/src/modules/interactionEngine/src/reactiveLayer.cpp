@@ -490,7 +490,7 @@ bool ReactiveLayer::handleTagging()
                 sendRPC = true;
             }
         } else {
-            if ((*itEnt)->entity_type() == "bodypart" && dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1)
+            if ((*itEnt)->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1 || dynamic_cast<Bodypart*>(*itEnt)->m_kinStruct_instance == -1))
                 sendRPC = true;
         }
 
@@ -539,7 +539,7 @@ bool ReactiveLayer::handleTactile()
         cout<<"I am touched"<<endl;
         Relation r = *tactileRelations.begin();
         //Look at the place where it has been touched
-        Object* touchLocation = (Object*) iCub->opc->getEntity("touchLocation", true);
+        Object* touchLocation = (Object*) iCub->opc->getEntity("touchLocation");
         touchLocation->m_present = true;
         iCub->opc->commit(touchLocation);
 

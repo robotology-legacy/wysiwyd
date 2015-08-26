@@ -931,18 +931,21 @@ void OPCClient::update(Entity *e)
     Bottle& id = query.addList();
     id.addString("id");
     id.addInt(e->opc_id());
+    yDebug() << "OPCClient send request to OPC: " << cmd.toString();
     write(cmd,reply,isVerbose);
+    yDebug() << "OPCClient response: " << reply.toString();
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError() << "OPC Client: error while updating " << e->opc_id();
+        yError() << "OPC Client: error while updating " << e->opc_id();
         return;
     }
 
     //Fill the datastructure with the bottle content
-    Bottle *props = reply.get(1).asList();
-    e->fromBottle(*props);
+    Bottle props = *reply.get(1).asList();
+    yDebug() << "OPCClient props:" << props.toString();
+    e->fromBottle(props);
+    yDebug() << "OPCClient fromBottle success";
 
     //Set the initial signature of this entity
     e->m_original_entity = e->asBottle();

@@ -75,7 +75,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str());
     string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touchDetector/touch:o")).asString().c_str();
 
-    if (!Network::connect(portTouchDetectorOut.c_str(),portFromTouchDetector.getName().c_str(), "tcp+recv.portmonitor+context.touchDetector+file.conversion_cluster_list")) {
+    if (!Network::connect(portTouchDetectorOut.c_str(),portFromTouchDetector.getName().c_str(), "tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list")) {
         yWarning() << " TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
     }
 
@@ -148,7 +148,17 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         string type = command.get(1).toString();
         string name = command.get(2).toString();
         if(type=="bodypart" && name.find("unknown") == std::string::npos) {
-            reply = exploreTactileEntityWithName(command);
+            iCub->opc->checkout();
+            Bodypart* bp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(name));
+            // TODO: Make calls of exploreTactileEntityWithName and assignKinematicStructureByName consistent
+            if(bp->m_tactile_number == -1) {
+                reply = exploreTactileEntityWithName(command);
+            } else if(bp->m_kinStruct_instance == -1) {
+                bool forcingKS   = true;
+                reply = assignKinematicStructureByName(name, type, forcingKS);
+            } else {
+                yWarning("Not sure what to do, name + kinematic structure + tactile information already known");
+            }
         } else {
             reply = exploreUnknownEntity(command);
         }
@@ -184,7 +194,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "exploreKinematicByJoint") {
         //exploreKinematicByName name bodypart [true/false]
-        //name : index, thumb, biceps, etc.
+        //joint : 9, 10, ...
         //bodypart : left_hand, right_arm, etc.
         //true/false : OPTIONAL : forcingKinematicStructure : do you want to launch a KS generation (may take minutes)
 
@@ -427,7 +437,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
 
     //Act to determine the entity to be named, according to entityType (e.g. bodypart is sending a command to move the joint, ...)
     if(currentEntityType == "bodypart") {
-        Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget, true));
+        Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
         yInfo() << "Cast okay : name BP = " << BPtemp->name();
         int joint = BPtemp->m_joint_number;
         string sBodyPartType = BPtemp->m_part;

@@ -88,7 +88,7 @@ Bottle proactiveTagging::assignKinematicStructureByName(std::string sName, std::
         bOutput.addString("NOT a bodypart : no kinematicStructure are allowed!");
         return bOutput;
     }
-    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName, true));
+    Bodypart* BPentity = dynamic_cast<Bodypart*>(e);
     int BPjoint = BPentity->m_joint_number;
 
     //2. go through ABM to find a singleJointBabbling with the corresponding joint, retrieve the instance number
@@ -146,6 +146,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
+                break;
             }
         }
     }
@@ -177,13 +178,13 @@ Bottle proactiveTagging::checkForKinematicStructure(int instance, bool forcingKS
     //1. Check that the instance number has some augmented kinematicStructure images
     Bottle bOutput, bResult;
     ostringstream osRequest;
-    osRequest << "SELECT main.instance FROM main, visualdata WHERE main.instance = visualdata.instance AND augmented = 'kinematic_structure';";
+    osRequest << "SELECT main.instance FROM main, visualdata WHERE main.instance = " << instance << " and main.instance = visualdata.instance AND augmented = 'kinematic_structure';";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     //2.a if yes, assign it to the bodypart in the opc
     //ELSE
     // 2.b i) launch kinematicStructure if forcingKS = true, ii) go out with error/warning otherwise
-    if (bResult.toString() == "NULL") {    
+    if (bResult.toString() == "NULL") {
         if (!forcingKS) { //Instance with no KS, no forcingKS: send an error
             yError() << "checkForKinematicStructure | for instance " << instance << " | No instance corresponding to singleJointBabbling for this part (forcingKS = false, no attempt to launch it)" ;
             bOutput.addString("error");
@@ -214,8 +215,8 @@ Bottle proactiveTagging::orderKinematicStructure(int instance) {
     bInstance.addString("instance");
     bInstance.addInt(instance);
 
-    bActivity.addString("quantity");
-    bActivity.addInt(1);
+    bQuantity.addString("quantity");
+    bQuantity.addInt(2);
 
     bActivity.addString("activity");
     bActivity.addString("singleJointBabbling");
