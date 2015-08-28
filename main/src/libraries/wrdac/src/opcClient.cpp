@@ -931,9 +931,9 @@ void OPCClient::update(Entity *e)
     Bottle& id = query.addList();
     id.addString("id");
     id.addInt(e->opc_id());
-    yDebug() << "OPCClient send request to OPC: " << cmd.toString();
+//    yDebug() << "OPCClient send request to OPC: " << cmd.toString();
     write(cmd,reply,isVerbose);
-    yDebug() << "OPCClient response: " << reply.toString();
+//    yDebug() << "OPCClient response: " << reply.toString();
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
@@ -943,9 +943,9 @@ void OPCClient::update(Entity *e)
 
     //Fill the datastructure with the bottle content
     Bottle props = *reply.get(1).asList();
-    yDebug() << "OPCClient props:" << props.toString();
+//    yDebug() << "OPCClient props:" << props.toString();
     e->fromBottle(props);
-    yDebug() << "OPCClient fromBottle success";
+//    yDebug() << "OPCClient fromBottle success";
 
     //Set the initial signature of this entity
     e->m_original_entity = e->asBottle();
