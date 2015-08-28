@@ -448,7 +448,7 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
 }
 
 
-bool ICubClient::point(const string &oLocation, const Bottle &options)
+bool ICubClient::point(const string &oLocation, const Bottle &options, bool shouldWait)
 {
     Entity *target=opc->getEntity(oLocation,true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
@@ -464,11 +464,11 @@ bool ICubClient::point(const string &oLocation, const Bottle &options)
         return false;
     }
 
-    return point(oTarget->m_ego_position,options);
+    return point(oTarget->m_ego_position,options, shouldWait);
 }
 
 
-bool ICubClient::point(const Vector &target, const Bottle &options)
+bool ICubClient::point(const Vector &target, const Bottle &options, bool shouldWait)
 {
     SubSystem_ARE *are=getARE();
     if (are==NULL)
@@ -479,7 +479,7 @@ bool ICubClient::point(const Vector &target, const Bottle &options)
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->point(target,opt);
+    return are->point(target,opt, shouldWait);
 }
 
 
