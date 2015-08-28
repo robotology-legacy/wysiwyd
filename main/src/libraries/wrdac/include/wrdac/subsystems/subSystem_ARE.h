@@ -42,8 +42,8 @@ namespace wysiwyd {
         class SubSystem_ARE : public SubSystem
         {
         protected:
-            yarp::os::RpcClient cmdPort;
-            yarp::os::RpcClient cmdNoWaitPort;
+            yarp::os::BufferedPort<yarp::os::Bottle> cmdNoWaitPort;
+            yarp::os::RpcClient cmdPort;            
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
 
