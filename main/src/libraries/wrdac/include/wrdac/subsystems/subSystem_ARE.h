@@ -43,6 +43,7 @@ namespace wysiwyd {
         {
         protected:
             yarp::os::RpcClient cmdPort;
+            yarp::os::RpcClient cmdNoWaitPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
 
@@ -65,7 +66,10 @@ namespace wysiwyd {
                         return (bReply.get(0).asVocab() == yarp::os::Vocab::encode("ack"));
                 }
                 else
-                    return cmdPort.asPort().write(cmd);
+                {
+                    cmdNoWaitPort.prepare()=cmd;
+                    return cmdNoWaitPort.writeStrict();
+                }
 
                 return false;
             }
@@ -78,9 +82,10 @@ namespace wysiwyd {
                 std::cout << ((ABMconnected) ? "ARE connected to ABM" : "ARE didn't connect to ABM") << std::endl;
 
                 bool ret = true;
-                ret &= yarp::os::Network::connect(cmdPort.getName(), "/actionsRenderingEngine/cmd:io");
-                ret &= yarp::os::Network::connect(rpcPort.getName(), "/actionsRenderingEngine/rpc");
-                ret &= yarp::os::Network::connect(getPort.getName(), "/actionsRenderingEngine/get:io");
+                ret &= yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
+                ret &= yarp::os::Network::connect(cmdNoWaitPort.getName(),"/actionsRenderingEngine/cmd:io");
+                ret &= yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
+                ret &= yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
                 return ret;
             }
 
@@ -95,6 +100,7 @@ namespace wysiwyd {
             SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
             {
                 cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
+                cmdNoWaitPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd_nowait:io").c_str());
                 rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
                 getPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/get:io").c_str());
                 m_type = SUBSYSTEM_ARE;
@@ -106,11 +112,13 @@ namespace wysiwyd {
             void Close()
             {
                 cmdPort.interrupt();
+                cmdNoWaitPort.interrupt();
                 rpcPort.interrupt();
                 getPort.interrupt();
                 SubABM->Close();
 
                 cmdPort.close();
+                cmdNoWaitPort.close();
                 rpcPort.close();
                 getPort.close();
             }
