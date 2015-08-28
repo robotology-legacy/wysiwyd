@@ -68,7 +68,8 @@ namespace wysiwyd {
                 else
                 {
                     cmdNoWaitPort.prepare()=cmd;
-                    return cmdNoWaitPort.writeStrict();
+                    cmdNoWaitPort.writeStrict();
+                    return true;
                 }
 
                 return false;
