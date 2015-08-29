@@ -45,9 +45,7 @@ Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
     Bottle bHand("left");
     yInfo() << "Sending command : point to " << sNameTarget ;
 
-    yInfo() << "BEFOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOORE Point" ;
     iCub->point(sNameTarget, bHand, true); //false for shouldWait = False : will continue to the looping describe
-    yInfo() << "AFTERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR Point" ;
 
     //------------------------------------------------- Loop Speech Recog -------------------------------------------
 
@@ -57,13 +55,9 @@ Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
     yInfo() << "before do loop" ;
     //Load the Speech Recognition with grammar according to entityType
     do {
-
-        yInfo() << "----> Do, before getRecog : " << bRecognized.toString().c_str() ;
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarDescribeAction), 20);
         bAnswer = *bRecognized.get(1).asList();
 
-        yInfo() << "----> Recognized : " << bRecognized.toString().c_str() ;
-        yInfo() << "----> bAnswer.get(0).asString() == " << bAnswer.get(0).asString() ;
         yInfo() << "----> Sentence type = " << bAnswer.get(1).asList()->get(0).toString();
     } while (bAnswer.get(1).asList()->get(0).toString() != "stop");
 
