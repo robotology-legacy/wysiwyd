@@ -226,6 +226,12 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         }
         reply = assignKinematicStructureByJoint(BPjoint, sBodyPart, forcingKS);
     }
+    else if (command.get(0).asString() == "describeAction"){  //describeAction : TODO -> protection and stuff
+        string sName   = command.get(1).asString() ;
+        string sTarget = command.get(2).asString() ;
+
+        reply = describeAction(sName, sTarget);
+    }
     else {
         cout << helpMessage;
         reply.addString("ok");

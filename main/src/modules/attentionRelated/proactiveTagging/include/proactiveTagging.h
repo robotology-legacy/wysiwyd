@@ -35,6 +35,8 @@ private:
     std::string      GrammarAskNameBodypart;
     std::string      GrammarYesNo;
 
+    std::string      GrammarDescribeAction;
+
     double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other
     double  thresholdSalienceDetection; //value of saliency needed to detect if 1 object is more salient that the other
 
@@ -59,6 +61,9 @@ private:
     yarp::os::Bottle orderKinematicStructure(int instance);
 
     yarp::os::Bottle exploreTactileEntityWithName(yarp::os::Bottle bInput);
+
+    //actionTagging
+    yarp::os::Bottle describeAction(std::string actionName, std::string sNameTarget);
 
 
 public:
