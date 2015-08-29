@@ -1,0 +1,40 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+    <ID  NAME="object"  VAL="1"/>
+  </DEFINE>
+
+
+  <RULE  NAME="stop"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+	<P>Description finished</P>
+
+   </RULE>
+
+  <RULE  NAME="SENTENCE1"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+	<P>this is</P>
+	<O>
+		<L>
+			<P>the</P>
+			<P>an</P>
+			<P>a</P>
+			<P>my</P>
+		</L>
+	</O>
+    <RULEREF  NAME="object"/>
+   </RULE>
+
+
+
+  <RULE NAME="object" DYNAMIC="TRUE">
+    <L>
+      <P>ladybug</P>
+      <P>carrots</P>
+      <P>joystick</P>
+    </L>
+  </RULE>
+
+</GRAMMAR>
