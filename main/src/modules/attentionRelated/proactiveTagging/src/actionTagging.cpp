@@ -45,7 +45,7 @@ Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
     Bottle bHand("left");
     yInfo() << "Sending command : point to " << sNameTarget ;
 
-    iCub->point(sNameTarget, bHand, true); //false for shouldWait = False : will continue to the looping describe
+    iCub->point(sNameTarget, bHand, false); //false for shouldWait = False : will continue to the looping describe
 
     //------------------------------------------------- Loop Speech Recog -------------------------------------------
 
