@@ -19,6 +19,7 @@ add_subdirectory(ppsAllostatic)
 add_subdirectory(behaviorRelated)
 add_subdirectory(reservoir)
 add_subdirectory(touchDetector)
+add_subdirectory(learnPrimitive)
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_GTK2)
