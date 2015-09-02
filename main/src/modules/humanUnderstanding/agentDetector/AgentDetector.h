@@ -23,6 +23,7 @@ protected:
     IplImage* depthTmp;
     IplImage* rgbTmp;
     
+    yarp::os::BufferedPort<Bottle> outputSkeletonPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelFloat> > depthPort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > imagePort;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > playersPort;

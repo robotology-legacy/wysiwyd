@@ -49,6 +49,13 @@ bool AgentDetector::configure(ResourceFinder &rf)
     string clientName = name;
     clientName += "/kinect";
 
+    //Prepare skeleton output port
+    string skeletonName = "/";
+    skeletonName += name;
+    skeletonName += "/skeleton:o";
+    outputSkeletonPort.open(skeletonName.c_str());
+
+
    
     depthPort.open( ("/"+clientName+"/depthPort:o").c_str());
     imagePort.open(("/"+clientName+"/imagePort:o").c_str());
@@ -183,6 +190,8 @@ bool AgentDetector::close()
     playersPort.close();
     skeletonPort.interrupt();
     skeletonPort.close();
+    outputSkeletonPort.interrupt();
+    outputSkeletonPort.close();
     client.close();
     cvReleaseImage(&depthTmp);
     cvReleaseImage(&rgbTmp);
@@ -284,6 +293,7 @@ bool AgentDetector::updateModule()
     //Allow click calibration
     if (!localIsCalibrated)
     {
+        cout<<'not calib'<<endl;
         if (AgentDetector::clicked)
         {
             AgentDetector::clicked = false;
@@ -355,6 +365,7 @@ bool AgentDetector::updateModule()
 
     if (isRefreshed)
     {
+        cout<<'refreshed'<<endl;
         //////////////////////////////////////////////////////////////////
         //Clear the previous agents
         for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
@@ -422,8 +433,9 @@ bool AgentDetector::updateModule()
                         Relation r(partner->name(),"named",playerName);
                         opc->addRelation(r,1.0);
 
-                        //cout<<"Commiting : "<<r.toString()<<endl;
-
+                        cout<<"Commiting : "<<r.toString()<<endl;
+                        yarp::os::Bottle &skeleton = outputSkeletonPort.prepare();
+                        skeleton.clear();
                         //Convert the skeleton into efaaHelpers body. We loose orientation in the process...
                         for(map<string,Joint>::iterator jnt = p->skeleton.begin() ; jnt != p->skeleton.end() ; jnt++)
                         {
@@ -436,8 +448,18 @@ bool AgentDetector::updateModule()
                             icubPos = kinect2icub * kPosition;
                             icubPos.resize(3);
                             Vector irPos = icubPos;
+
                             if (isMounted)
+                            {
                                 irPos = transform2IR(irPos);
+                                Bottle jntBtl;
+                                jntBtl.clear();
+                                jntBtl.addString(jnt->first);
+                                jntBtl.addDouble(jnt->second.x);
+                                jntBtl.addDouble(jnt->second.y);
+                                jntBtl.addDouble(jnt->second.z);
+                                skeleton.addList() = jntBtl;
+                            }
 
                             if (jnt->first == EFAA_OPC_BODY_PART_TYPE_HEAD)
                             {
@@ -445,8 +467,11 @@ bool AgentDetector::updateModule()
                             }
                             partner->m_body.m_parts[jnt->first] = irPos;
                         }
+                        cout << skeleton.toString()<< endl;
+                        outputSkeletonPort.write();
                         //opc->commit(agent);
                     }
+                    cout<<'1'<<endl;
                 }
             }
         }
