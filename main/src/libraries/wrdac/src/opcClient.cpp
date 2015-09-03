@@ -172,22 +172,19 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC";
         return NULL;
     }
 
     if (reply.get(1).asList()->get(1).asList()->size() == 0)
     {
-        if(this->isVerbose)
-            yError() << "Object doesn't exist yet. Use addEntity<Object>() first.";
+        yError() << "Entity doesn't exist yet. Use addEntity<>() first.";
         return NULL;
     }
 
     if (reply.get(1).asList()->get(1).asList()->size() > 1)
     {
-        if(this->isVerbose)
-            yError() << "[IMPORTANT] Duplicated names... You should fix this!";
+        yError() << "[IMPORTANT] Duplicated names... You should fix this!";
     }
 
     int item_id = reply.get(1).asList()->get(1).asList()->get(0).asInt();
@@ -217,8 +214,7 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC";
         return NULL;
     }
 
@@ -327,8 +323,7 @@ int OPCClient::getRelationID(
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError()<<"Unable to talk correctly to OPC";
+        yError()<<"Unable to talk correctly to OPC";
         return false;
     }
     
@@ -391,8 +386,7 @@ bool OPCClient::addRelation(
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC";
         return false;
     }
     index = reply.get(1).asList()->get(1).asInt();
@@ -425,8 +419,7 @@ bool OPCClient::removeRelation(
 
     if (index == -1)
     {
-        if(this->isVerbose)
-            yError() << "This relation do not exist on the OPC server, not removed";
+        yWarning() << "This relation do not exist on the OPC server, not removed";
     }
     else
     {
@@ -442,11 +435,8 @@ bool OPCClient::removeRelation(
         write(cmd,reply,isVerbose);
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
-            if(this->isVerbose)
-            {
-                yError() << "Unable to talk correctly to OPC. Item not deleted.";
-                yError() << "command used to remove = " << cmd.toString().c_str();
-            }
+            yError() << "Unable to talk correctly to OPC. Item not deleted.";
+            yError() << "command used to remove = " << cmd.toString().c_str();
             return false;
         }
     }
@@ -515,8 +505,7 @@ bool OPCClient::setLifeTime(int opcID, double lifeTime)
     write(cmd,reply,isVerbose);
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC";
         return false;
     }
     return true;
@@ -539,8 +528,7 @@ list<Relation> OPCClient::getRelations()
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if (isVerbose)
-            yError() << "Unable to talk to OPC.";
+        yError() << "Unable to talk to OPC.";
         return relations;
     }
 
@@ -559,8 +547,7 @@ list<Relation> OPCClient::getRelations()
         write(cmd,getReply,isVerbose);
         if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
-            if(this->isVerbose)
-                yError() << "Unable to talk to OPC.";
+            yError() << "Unable to talk to OPC.";
             return relations;
         }
 
@@ -635,8 +622,7 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if (isVerbose)
-            yError() << "Unable to talk to OPC.";
+        yError() << "Unable to talk to OPC.";
         return relations;
     }
 
@@ -655,8 +641,7 @@ std::list<Relation>  OPCClient::getRelationsMatching(std::string subject,std::st
         write(cmd,getReply,isVerbose);
         if (getReply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
-            if(this->isVerbose)
-                yError() << "Unable to talk to OPC.";
+            yError() << "Unable to talk to OPC.";
             return relations;
         }
 
@@ -896,8 +881,7 @@ void OPCClient::checkout(bool updateCache, bool useBroadcast)
         write(cmd,reply,isVerbose);
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
-            if(this->isVerbose)
-                yError() << "Unable to talk to OPC.";
+            yError() << "Unable to talk to OPC.";
             return;
         }
 
@@ -944,7 +928,9 @@ void OPCClient::update(Entity *e)
     //Fill the datastructure with the bottle content
     Bottle props = *reply.get(1).asList();
 //    yDebug() << "OPCClient props:" << props.toString();
-    e->fromBottle(props);
+    if(!e->fromBottle(props)) {
+        yError("Error updating entity fromBottle!");
+    }
 //    yDebug() << "OPCClient fromBottle success";
 
     //Set the initial signature of this entity
@@ -981,8 +967,7 @@ void OPCClient::commit(Entity *e)
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError() << "OPC Client: error while commiting " << e->opc_id();
+        yError() << "OPC Client: error while commiting " << e->opc_id();
         return;
     }
 }
@@ -999,8 +984,7 @@ list<Entity*> OPCClient::Entities(const Bottle &condition)
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        if(this->isVerbose)
-            yError() << "Unable to talk to OPC.";
+        yError() << "Unable to talk to OPC.";
         return matchingEntities;
     }
 
