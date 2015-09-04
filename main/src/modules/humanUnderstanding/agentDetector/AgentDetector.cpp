@@ -293,7 +293,7 @@ bool AgentDetector::updateModule()
     //Allow click calibration
     if (!localIsCalibrated)
     {
-        cout<<'not calib'<<endl;
+        yInfo() << " not calib";
         if (AgentDetector::clicked)
         {
             AgentDetector::clicked = false;
@@ -365,7 +365,7 @@ bool AgentDetector::updateModule()
 
     if (isRefreshed)
     {
-        cout<<'refreshed'<<endl;
+        yInfo() << " refreshed";
         //////////////////////////////////////////////////////////////////
         //Clear the previous agents
         for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
