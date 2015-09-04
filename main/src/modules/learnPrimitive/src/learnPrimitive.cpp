@@ -40,6 +40,19 @@ bool learnPrimitive::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "learnPrimitive", "client.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
 
+    string robot = rf.check("robot", Value("icubSim")).asString().c_str();
+    string arm   = rf.check("arm", Value("left_arm")).asString().c_str();
+
+    portToArm.open(("/" + moduleName + "/toArm:rpc").c_str());
+    string portRobotArmName = "/" + robot + "/" + arm + "/rpc:i";
+
+    yInfo() << "================> port controlling the arm : " << portRobotArmName;
+    if (!Network::connect(portToArm.getName().c_str(),portRobotArmName))
+    {
+        yWarning() << "WARNING PORT TO CONTROL ARM IS NOT CONNECTED";
+    }
+
+
     if (!iCub->connect())
     {
         cout << "iCubClient : Some dependencies are not running..." << endl;
@@ -104,8 +117,9 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "basicCommand"){  //describeAction : TODO -> protection and stuff
         string sActionName   = command.get(1).asString() ;
         string sBodypartName   = command.get(2).asString() ;
+        int maxAngle   = command.get(3).asInt() ;
 
-        reply = basicCommand(sActionName, sBodypartName);
+        reply = basicCommand(sActionName, sBodypartName, maxAngle);
     }
     else {
         cout << helpMessage;
@@ -122,17 +136,53 @@ bool learnPrimitive::updateModule() {
     return true;
 }
 
-
-Bottle learnPrimitive::basicCommand(string sActionName, string sBodypartName){
+//For now only control in position. Careful, angle is in percentage of maxAngle
+Bottle learnPrimitive::basicCommand(string sActionName, string sBodyPartName, int maxAngle){
     Bottle bOutput;
 
+    int targetAngle = 0;
     //1. check if proto is known
+    if ( mProtoActionEnd.find(sActionName) == mProtoActionEnd.end() ) {
+        yError() << " error in learnPrimitive::basicCommand | for " << sActionName << " | sActionName is unknown";
+        bOutput.addString("error");
+        bOutput.addString("sActionName is unknown");
+        return bOutput;
+    } else {
+        targetAngle = mProtoActionEnd.at(sActionName);
+    }
 
-    //2. if yes, check if bodypart is known
+    yInfo() << " Basic angle position for action " << sActionName << " is " << targetAngle ;
 
-    //3.a if yes : add protoaction with bodypart effect
+    //2. if yes, check if bodypart is known. Warning if not found for generalization
+    int effectAngleBodyPart = 0 ;
+    if ( mBodyPartEnd.find(sBodyPartName) == mBodyPartEnd.end() ) {
+        yWarning() << " warning in learnPrimitive::basicCommand | for " << sBodyPartName << " | not protoaction effect define, GENERALIZATION MODE then";
+    } else {
+        effectAngleBodyPart = mBodyPartEnd.at(sBodyPartName.c_str());
+        yInfo() << " effect of the bodypart : " <<  effectAngleBodyPart ;
+    }
 
-    //3.b if no, ask if should generalize and check only the protoaction value without correction
+    //3. add protoaction with bodypart effect. Careful, Angle is in percentage of max angle
+    yInfo() << " Target Angle Final (percentage) : " << (targetAngle + effectAngleBodyPart) ;
+    int finalTargetAngle = (targetAngle + effectAngleBodyPart)*maxAngle/100;
+    yInfo() << " Target Angle Final : " << finalTargetAngle ;
+    //TODOOOOOOOOOOOOOOOOOOOOOOOOOOO : For now use maxangle in the conf file but should extract it or provided in the OPC bodypart!
+
+    iCub->opc->checkout();
+    //should check at some point that the bodypart is there and loaded no?
+    Bodypart* bp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sBodyPartName));
+    int joint = bp->m_joint_number ;
+
+    //4. execute action.
+    Bottle bToArm;
+    bToArm.addString("set");
+    bToArm.addString("pos");
+    bToArm.addInt(joint);
+    bToArm.addInt(finalTargetAngle);
+
+    yInfo() << " cmd sent : " << bToArm.toString();
+
+    portToArm.write(bToArm, bOutput);
 
     return bOutput;
 }
@@ -150,7 +200,7 @@ bool learnPrimitive::updateProtoAction(ResourceFinder &rf){
         Bottle * bProtoActionSpeed = bProtoAction.find("protoActionSpeed").asList();
 
        if(bProtoActionName->isNull() || bProtoActionEnd->isNull() || bProtoActionSpeed->isNull()){
-            yError() << "ERROOOOOOOOOOOOOOOOOOOOOOOOOR ELEMENT NULL TODO" ;
+           yError() << " [updateProtoAction] : one of the protoAction conf is null : protoActionName, protoActionEnd, protoActionSpeed" ;
             return false ;
         }
 
@@ -159,21 +209,25 @@ bool learnPrimitive::updateProtoAction(ResourceFinder &rf){
         if(bProtoActionName->size() == bProtoActionEnd->size() && bProtoActionEnd->size() == bProtoActionSpeed->size()){
             protoActionSize =  bProtoActionName->size() ;
         } else {
-            yError() << "ERRORRRRRRRRRRRRRRRRRRRRRRR TODO" ;
+            yError() << " [updateProtoAction] : one of the protoAction conf has different size!" ;
             return false ;
         }
 
         if(protoActionSize == 0) {
-            yWarning() << "No protoaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" ; 
+            yWarning() << " [updateProtoAction] : there is no protoaction defined at startup!" ;
         } else {
 
             for(int i = 0; i < protoActionSize ; i++) {
 
-                //TODOOOOOOO : check the key is not existing!!!
+                //insert protoaction even if already there
+                yInfo() << "ProtoAction added : (" << bProtoActionName->get(i).asString() << ", " << bProtoActionEnd->get(i).asInt() << ", " << bProtoActionSpeed->get(i).asDouble() << ")" ;
                 mProtoActionEnd[bProtoActionName->get(i).asString()] = bProtoActionEnd->get(i).asInt();
                 mProtoActionSpeed[bProtoActionName->get(i).asString()] = bProtoActionSpeed->get(i).asDouble();
             }
         }
+    } else {
+        yError() << " error in learnPrimitive::updateProtoAction | Proto_Action is NOT defined in the learnPrimitive.ini";
+        return false;
     }
 
     //2. Effect of bodypart
@@ -188,7 +242,7 @@ bool learnPrimitive::updateProtoAction(ResourceFinder &rf){
         //Crash if no match : isnull is not good for that
 
         if(bBodyPartName->isNull() || bBodyPartEnd->isNull() || bBodyPartSpeed->isNull()){
-            yError() << "ERROOOOOOOOOOOOOOOOOOOOOOOOOR ELEMENT NULL TODO" ;
+            yError() << "[updateProtoAction] : one of the bodyPartProto conf is null : bodyPartName, bodyPartProtoEnd, bodyPartProtoSpeed" ;
             return false ;
         }
 
@@ -197,20 +251,24 @@ bool learnPrimitive::updateProtoAction(ResourceFinder &rf){
         if(bBodyPartName->size() == bBodyPartEnd->size() && bBodyPartEnd->size() == bBodyPartSpeed->size()){
             bodyPartSize =  bBodyPartName->size() ;
         } else {
-            yError() << "ERRORRRRRRRRRRRRRRRRRRRRRRR TODO" ;
+            yError() << "[updateProtoAction] : one of the bodyPartProto conf has different size!" ;
             return false ;
         }
 
         if(bodyPartSize == 0) {
-            yWarning() << "No bodypart !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" ; 
+            yWarning() << "[updateProtoAction] : there is no bodyPartProto defined at startup!" ;
         } else {
             for(int i = 0; i < bodyPartSize ; i++) {
 
-                //TODOOOOOOO : check the key is not existing!!! or use insert?
+                //insert protoaction even if already there
+                yInfo() << "bodyPartProto added : (" << bBodyPartName->get(i).asString() << ", " << bBodyPartEnd->get(i).asInt() << ", " << bBodyPartSpeed->get(i).asDouble() << ")" ;
                 mBodyPartEnd[bBodyPartName->get(i).asString()] = bBodyPartEnd->get(i).asInt();
                 mBodyPartSpeed[bBodyPartName->get(i).asString()] = bBodyPartSpeed->get(i).asDouble();
             }
         }
+    } else {
+        yError() << " error in learnPrimitive::updateProtoAction | BodyPart is NOT defined in the learnPrimitive.ini";
+        return false;
     }
 
     return true;

@@ -15,6 +15,7 @@ private:
 
     std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
+    yarp::os::Port   portToArm;
 
     std::string      GrammarYesNo;
     std::string      GrammarDescribeAction;
@@ -41,7 +42,7 @@ public:
     //spoken interaction node
     //bool nodeYesNo();
 
-    yarp::os::Bottle basicCommand(std::string sActionName, std::string sBodypartName);
+    yarp::os::Bottle basicCommand(std::string sActionName, std::string sBodypartName, int maxAngle=10);
     bool updateProtoAction(yarp::os::ResourceFinder &rf);
 
     //RPC & scenarios
