@@ -49,7 +49,7 @@ bool learnPrimitive::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "================> port controlling the arm : " << portRobotArmName;
     if (!Network::connect(portToArm.getName().c_str(),portRobotArmName))
     {
-        yWarning() << "WARNING PORT TO CONTROL ARM IS NOT CONNECTED";
+        yWarning() << "WARNING PORT TO CONTROL ARM (" << portRobotArmName << ") IS NOT CONNECTED";
     }
 
 
