@@ -30,17 +30,17 @@ using namespace std;
 bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {    
 
     moduleName            = rf.check("name",
-                                     Value("attentionSelector"),
-                                     "module name (string)").asString();
+        Value("attentionSelector"),
+        "module name (string)").asString();
 
     setName(moduleName.c_str());
 
     opcName             = rf.check("opcName",
-                                   Value("OPC"),
-                                   "Opc name (string)").asString();
+        Value("OPC"),
+        "Opc name (string)").asString();
 
     trackSwitchingPeriod = rf.check("trackSwitchingPeriod",
-                                    Value(1.0)).asDouble();
+        Value(1.0)).asDouble();
 
 
     opc = new OPCClient(moduleName.c_str());
@@ -74,7 +74,7 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
     igaze->storeContext(&store_context_id);
 
     double neckTrajTime = rf.check("neckTrajTime",
-                                   Value(0.75)).asDouble();
+        Value(0.75)).asDouble();
     igaze->setNeckTrajTime(neckTrajTime);
 
     double bindNeckPitchMin = rf.check("neckPitchBindMin", Value(-25.0)).asDouble();
@@ -116,14 +116,14 @@ bool attentionSelectorModule::close() {
 /************************************************************************/
 bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     string helpMessage =  string(getName().c_str()) +
-            " commands are: \n" +
-            "track <string name> : track the object with the given opc name \n" +
-            "track <int id> : track the object with the given opc id \n" +
-            "track <double x> <double y> <double z> : track with the object coordinates\n" +
-            "auto : switch attention between present objects \n" +
-            "sleep : pauses the head control until next command" +
-            "help \n" +
-            "quit \n";
+        " commands are: \n" +
+        "track <string name> : track the object with the given opc name \n" +
+        "track <int id> : track the object with the given opc id \n" +
+        "track <double x> <double y> <double z> : track with the object coordinates\n" +
+        "auto : switch attention between present objects \n" +
+        "sleep : pauses the head control until next command" +
+        "help \n" +
+        "quit \n";
 
     reply.clear();
 
@@ -223,12 +223,31 @@ bool attentionSelectorModule::updateModule() {
             icub = dynamic_cast<Agent*>(*it);
         else
         {
-            //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
+            ////!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
+            //if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
+            //{
+            //    //yDebug() << "push back " << (*it)->name() << *it;
+            //    presentObjects.push_back(dynamic_cast<Object*>(*it));
+            //}
+
+            // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
+            if (!(dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0  &&  (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0  )
             {
-                //yDebug() << "push back " << (*it)->name() << *it;
-                presentObjects.push_back(dynamic_cast<Object*>(*it));
+                if ( ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ||  (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) )
+                {
+                    if ((dynamic_cast<Object*>(*it))->m_present )
+                    {
+                        //yDebug() << "push back " << (*it)->name() << *it;
+                        presentObjects.push_back(dynamic_cast<Object*>(*it));
+                    }
+                    else if ((dynamic_cast<Object*>(*it))->m_saliency > 0.0)
+                    {
+                        presentObjects.push_back(dynamic_cast<Object*>(*it));
+                    }
+                }
             }
+
+
         }
     }
 
