@@ -73,6 +73,7 @@ bool learnPrimitive::configure(yarp::os::ResourceFinder &rf)
     }
 
     updateProtoAction(rf);
+    updatePrimitive(rf);
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -104,7 +105,7 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "help \n" +
         "quit \n" +
-        "basicCommand actionName fingerName [true/false] \n";
+        "protoCommand actionName fingerName [true/false] \n";
 
     reply.clear();
 
@@ -114,10 +115,10 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         rpcPort.reply(reply);
         return false;
     }
-    else if (command.get(0).asString() == "basicCommand"){  //describeAction : TODO -> protection and stuff
+    else if (command.get(0).asString() == "protoCommand"){  //describeAction : TODO -> protection and stuff
 
         if(command.size() < 2){
-            yError() << " error in learnPrimitive::basicCommand | Too few arguments!";
+            yError() << " error in learnPrimitive::protoCommand | Too few arguments!";
             reply.addString("error");
             reply.addString("Too few arguments");
 
@@ -131,7 +132,22 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         if( command.size() >= 3 && command.get(3).isInt()) {
             maxAngle   = command.get(3).asInt() ;
         }
-        reply = basicCommand(sActionName, sBodypartName, maxAngle);
+        reply = protoCommand(sActionName, sBodypartName, maxAngle);
+    }  
+    else if (command.get(0).asString() == "primitiveCommand"){  //describeAction : TODO -> protection and stuff
+
+        if(command.size() < 2){
+            yError() << " error in learnPrimitive::primitiveCommand | Too few arguments!";
+            reply.addString("error");
+            reply.addString("Too few arguments");
+
+            rpcPort.reply(reply);
+            return false;
+
+        }
+        string sPrimitiveName  = command.get(1).asString() ;
+        string sPrimitiveArg   = command.get(2).asString() ;
+        reply = primitiveCommand(sPrimitiveName, sPrimitiveArg);
     }
     else if (command.get(0).asString() == "learn"){  //describeAction : TODO -> protection and stuff
         reply = learn();
@@ -278,13 +294,19 @@ Bottle learnPrimitive::learnAction(){
 }
 
 //For now only control in position. Careful, angle is in percentage of maxAngle
-Bottle learnPrimitive::basicCommand(string sActionName, string sBodyPartName, int maxAngle){
+Bottle learnPrimitive::protoCommand(string sActionName, string sBodyPartName, int maxAngle){
     Bottle bOutput;
+
+    if(sBodyPartName == "ring" || sBodyPartName == "little"){
+        maxAngle = 250 ;
+    } else if (sBodyPartName == "thumb" || sBodyPartName == "index" || sBodyPartName == "middle") {
+        maxAngle = 90 ;
+    }
 
     int targetAngle = 0;
     //1. check if proto is known
     if ( mProtoActionEnd.find(sActionName) == mProtoActionEnd.end() ) {
-        yError() << " error in learnPrimitive::basicCommand | for " << sActionName << " | sActionName is unknown";
+        yError() << " error in learnPrimitive::protoCommand | for " << sActionName << " | sActionName is unknown";
         bOutput.addString("error");
         bOutput.addString("sActionName is unknown");
         return bOutput;
@@ -292,20 +314,26 @@ Bottle learnPrimitive::basicCommand(string sActionName, string sBodyPartName, in
         targetAngle = mProtoActionEnd.at(sActionName);
     }
 
-    yInfo() << " Basic angle position for action " << sActionName << " is " << targetAngle ;
+    //yInfo() << " Basic angle position for action " << sActionName << " is " << targetAngle ;
 
     //2. if yes, check if bodypart is known. Warning if not found for generalization
     int effectAngleBodyPart = 0 ;
     if ( mBodyPartEnd.find(sBodyPartName) == mBodyPartEnd.end() ) {
-        yWarning() << " warning in learnPrimitive::basicCommand | for " << sBodyPartName << " | not protoaction effect define, GENERALIZATION MODE then";
+        yWarning() << " warning in learnPrimitive::protoCommand | for " << sBodyPartName << " | not protoaction effect define, GENERALIZATION MODE then";
     } else {
         effectAngleBodyPart = mBodyPartEnd.at(sBodyPartName.c_str());
-        yInfo() << " effect of the bodypart : " <<  effectAngleBodyPart ;
+       // yInfo() << " effect of the bodypart : " <<  effectAngleBodyPart ;
     }
 
     //3. add protoaction with bodypart effect. Careful, Angle is in percentage of max angle
-    yInfo() << " Target Angle Final (percentage) : " << (targetAngle + effectAngleBodyPart) ;
+    yInfo() << " Target Angle Final (percentage) : " << (targetAngle + effectAngleBodyPart) << ", maxAngle = " << maxAngle ;
     int finalTargetAngle = (targetAngle + effectAngleBodyPart)*maxAngle/100;
+
+    //angle should be at least 0? check with min angle otherwise
+    if(finalTargetAngle < 0){
+        yInfo() << "Angle cannot be negative value : from " << finalTargetAngle << " to 0" ;
+        finalTargetAngle = 0;
+    }
     yInfo() << " Target Angle Final : " << finalTargetAngle ;
     //TODOOOOOOOOOOOOOOOOOOOOOOOOOOO : For now use maxangle provided but should extract it or provided in the OPC bodypart!
 
@@ -324,6 +352,55 @@ Bottle learnPrimitive::basicCommand(string sActionName, string sBodyPartName, in
     yInfo() << " cmd sent : " << bToArm.toString();
 
     portToArm.write(bToArm, bOutput);
+
+    return bOutput;
+}
+
+
+Bottle learnPrimitive::primitiveCommand(string sActionName, string sArg){
+
+    Bottle bOutput;
+
+    //1. check if primitive is known
+    //   vPrimitiveActionBottle =
+    //   open    (hand)     ( (unfold thumb) (unfold index) (unfold middle) (unfold ring) )
+    //   close   (hand)     ( (fold thumb) (fold index) (fold middle) (fold ring) )
+    //   b.get(1) b.get(2)  b.get(3)
+    //   name     arg        list of proto-action
+    Bottle bProtoActionList;
+    for(std::vector<yarp::os::Bottle>::iterator it = vPrimitiveActionBottle.begin(); it < vPrimitiveActionBottle.end(); it++){
+        string currentName = it->get(0).toString();
+        if(currentName == sActionName){
+            yInfo() << "found " << currentName << "as a known primitive";
+            string currentArg = it->get(1).toString();
+            if(currentArg == sArg){
+                yInfo() << "and we have a corresponding argument " << currentArg ;
+                for(int i = 0; i < it->get(2).asList()->size(); i++){
+                    bProtoActionList.addList() = *it->get(2).asList()->get(i).asList() ;
+                }
+                break;
+            } else {
+                yInfo() << " BUT argument " << currentArg << " does NOT match" ;
+            }
+
+        }
+    }
+
+    if (bProtoActionList.size() == 0){
+        yError() << " error in proactiveTagging::primitiveAction | action '" << sActionName << " " << sArg << "' is NOT known";
+        bOutput.addString("error");
+        bOutput.addString("action is NOT known");
+        return bOutput ;
+    }
+
+    yInfo() << "Actions to do : " << bProtoActionList.toString() ;
+
+    for(int i = 0; i < bProtoActionList.size(); i++){
+        yInfo() << "action #" << i << " : "<< bProtoActionList.get(i).asList()->get(0).toString() << " the " << bProtoActionList.get(i).asList()->get(1).asList()->get(0).toString() ;
+        bOutput.addList() = protoCommand(bProtoActionList.get(i).asList()->get(0).toString(), bProtoActionList.get(i).asList()->get(1).asList()->get(0).toString());
+    }
+
+    bOutput.addString("ack");
 
     return bOutput;
 }
@@ -411,6 +488,68 @@ bool learnPrimitive::updateProtoAction(ResourceFinder &rf){
         yError() << " error in learnPrimitive::updateProtoAction | BodyPart is NOT defined in the learnPrimitive.ini";
         return false;
     }
+
+    return true;
+}
+
+bool learnPrimitive::updatePrimitive(ResourceFinder &rf){
+    Bottle bOutput;
+
+    //1. Protoaction
+    Bottle bPrimitiveAction = rf.findGroup("Primitive_Action");
+
+    if (!bPrimitiveAction.isNull())
+    {
+        Bottle * bPrimitiveActionName = bPrimitiveAction.find("primitiveActionName").asList();
+        Bottle * bPrimitiveActionArg  = bPrimitiveAction.find("primitiveActionArg").asList();
+
+       if(bPrimitiveActionName->isNull() || bPrimitiveActionArg->isNull()){
+           yError() << " [updatePrimitiveAction] : one of the primitiveAction conf is null : primitiveActionName, primitiveActionArg" ;
+            return false ;
+        }
+
+        int primitiveActionSize = -1 ;
+        if(bPrimitiveActionName->size() == bPrimitiveActionArg->size()){
+            primitiveActionSize =  bPrimitiveActionName->size() ;
+        } else {
+            yError() << " [updatePrimitiveAction] : one of the primitiveAction conf has different size!" ;
+            return false ;
+        }
+
+        if(primitiveActionSize == 0) {
+            yWarning() << " [updatePrimitiveAction] : there is no primitiveAction defined at startup!" ;
+        } else {
+
+            for(int i = 0; i < primitiveActionSize ; i++) {
+                //insert protoaction even if already there
+                Bottle bPrimitive;
+                string currentPrimName = bPrimitiveActionName->get(i).asString();
+                string currentPrimArg  = bPrimitiveActionArg->get(i).asString();
+
+                bPrimitive.addString(currentPrimName);
+                bPrimitive.addString(currentPrimArg);
+
+                string concat = currentPrimName + "_" + currentPrimArg;
+                Bottle bCurrentPrim = rf.findGroup(concat);
+                if(bCurrentPrim.isNull()){
+                    yError() << " [updatePrimitiveAction] : " << concat << "is NOT defined" ;
+                    return false ;
+                }
+                Bottle * bListProtoAction = bCurrentPrim.find("actionList").asList();
+                if(bListProtoAction->isNull()){
+                    yError() << " [updatePrimitiveAction] : " << concat << "is there but is not defined (actionList)" ;
+                    return false ;
+                }
+                bPrimitive.addList() = *bListProtoAction ;
+                yInfo() << "Primitive Action added : (" <<bPrimitive.get(0).asString() << ", " << bPrimitive.get(1).asString() << ", ( " << bPrimitive.get(2).asList()->toString()<< "))" ;
+                vPrimitiveActionBottle.push_back(bPrimitive);
+            }
+        }
+    } else {
+        yError() << " error in learnPrimitive::updatePrimitive | Primitive_Action is NOT defined in the learnPrimitive.ini";
+        return false;
+    }
+
 
     return true;
 }

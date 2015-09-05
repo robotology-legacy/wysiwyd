@@ -6,6 +6,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 
+
 class learnPrimitive : public RFModule {
 private:
 
@@ -24,6 +25,18 @@ private:
     std::map<std::string, double> mProtoActionSpeed;
     std::map<std::string, int> mBodyPartEnd;
     std::map<std::string, double> mBodyPartSpeed;
+
+    std::vector<yarp::os::Bottle> vPrimitiveActionBottle;
+    //   open    (hand)     ( (unfold thumb) (unfold index) (unfold middle) (unfold ring) )
+    //   close   (hand)     ( (fold thumb) (fold index) (fold middle) (fold ring) )
+    //   b.get(1) b.get(2)  b.get(3)
+    //   name     arg        list of proto-action
+
+    std::vector<yarp::os::Bottle*> vActionBottle;
+    //   point   (left)     ( (close hand) (unfold index) (goto left) )
+    //   b.get(1) b.get(2)  b.get(3)
+    //   name     arg        list of proto/prim/action
+
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -49,11 +62,14 @@ public:
     yarp::os::Bottle nodeNameAction(std::string actionTypeNeeded = "any");
 
 
-    yarp::os::Bottle basicCommand(std::string sActionName, std::string sBodypartName, int maxAngle=10);
+    yarp::os::Bottle protoCommand(std::string sActionName, std::string sBodypartName, int maxAngle=10);
+    yarp::os::Bottle primitiveCommand(std::string sActionName, std::string sBodypartName);
+
     yarp::os::Bottle learn();
     yarp::os::Bottle learnPrim();
     yarp::os::Bottle learnAction();
     bool updateProtoAction(yarp::os::ResourceFinder &rf);
+    bool updatePrimitive(yarp::os::ResourceFinder &rf);
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
