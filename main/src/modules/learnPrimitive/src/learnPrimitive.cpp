@@ -28,7 +28,7 @@ bool learnPrimitive::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     GrammarYesNo           = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
-    GrammarDescribeAction  = rf.findFileByName(rf.check("GrammarDescribeAction", Value("GrammarDescribeAction.xml")).toString());
+    GrammarNameAction      = rf.findFileByName(rf.check("GrammarNameAction", Value("GrammarNAmeAction.xml")).toString());
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
@@ -115,11 +115,26 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         return false;
     }
     else if (command.get(0).asString() == "basicCommand"){  //describeAction : TODO -> protection and stuff
+
+        if(command.size() < 2){
+            yError() << " error in learnPrimitive::basicCommand | Too few arguments!";
+            reply.addString("error");
+            reply.addString("Too few arguments");
+
+            rpcPort.reply(reply);
+            return false;
+
+        }
         string sActionName   = command.get(1).asString() ;
         string sBodypartName   = command.get(2).asString() ;
-        int maxAngle   = command.get(3).asInt() ;
-
+        int maxAngle = 10;
+        if( command.size() >= 3 && command.get(3).isInt()) {
+            maxAngle   = command.get(3).asInt() ;
+        }
         reply = basicCommand(sActionName, sBodypartName, maxAngle);
+    }
+    else if (command.get(0).asString() == "learn"){  //describeAction : TODO -> protection and stuff
+        reply = learn();
     }
     else {
         cout << helpMessage;
@@ -134,6 +149,132 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool learnPrimitive::updateModule() {
     return true;
+}
+
+
+//action type : proto-action, primitive, action and stop
+Bottle learnPrimitive::nodeNameAction(string actionTypeNeeded){
+    Bottle bOutput ;
+    Bottle bRecognized, //received FROM speech recog with transfer information (1/0 (bAnswer))
+    bAnswer, //response from speech recog without transfer information, including raw sentence
+    bSemantic; // semantic information of the content of the recognition
+
+    //Load the Speech Recognition with grammar according to entityType
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarNameAction), 20);
+
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        yError() << " error in proactiveTagging::nodeNameAction | Error in speechRecog (nodeNamePrimitive)";
+        bOutput.addString("error");
+        bOutput.addString("error in speechRecog (nodeNameAction)");
+        return bOutput;
+    }
+
+    bAnswer = *bRecognized.get(1).asList();
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    string actionType = bAnswer.get(0).asString() ;
+
+
+    //If not "any" : should match (e.g. when "I will teach you how to ...")
+    if (actionType != "any"){
+        if(actionType != actionTypeNeeded){
+            yError() << " error in proactiveTagging::nodeNameAction | Error in speechRecog (nodeNameAction) : actionType mismatch" ;
+            bOutput.addString("error");
+            bOutput.addString("Error in speechRecog (nodeNameAction) : actionType mismatch");
+            return bOutput;
+        }
+    }
+
+    bSemantic = *bAnswer.get(1).asList();
+    string sName, sArg;
+
+    if(actionType == "proto-action") {
+        sName = bSemantic.check("proto-action_name", Value("unknown")).asString();
+        sArg = bSemantic.check("proto-action_arg", Value("unknown")).asString();
+    } else if(actionType == "primitive") {
+        sName = bSemantic.check("primitive_name", Value("unknown")).asString();
+        sArg = bSemantic.check("primitive_arg", Value("unknown")).asString();
+    } else if(actionType == "action") {
+        sName = bSemantic.check("action_name", Value("unknown")).asString();
+        sArg = bSemantic.check("action_arg", Value("unknown")).asString();
+    } else if (actionType == "stop") {
+        bOutput.addString("stop") ;
+        return bOutput ;
+    } else {
+        yError() << " error in proactiveTagging::nodeNameAction | ACtion type " << actionType << "is not known" ;
+        bOutput.addString("error");
+        bOutput.addString("Entity type is not known");
+        return bOutput;
+    }
+
+    bOutput.addString(actionType);
+    bOutput.addString(sName);
+    bOutput.addString(sArg);
+
+    return bOutput ;
+}
+
+//For now only control in position. Careful, angle is in percentage of maxAngle
+Bottle learnPrimitive::learn(){
+    Bottle bOutput;
+
+    //1. recog for name primitive : I will teach you how to <close> your <hand>
+    bOutput = nodeNameAction("any");
+
+    string sSay;
+    if(bOutput.get(0).asString() == "stop"){
+        sSay = " Can you repeat please?";
+        yInfo() << sSay;
+        iCub->say(sSay);
+        bOutput = learn();
+    } else if (bOutput.get(0).asString() == "proto-action") {
+        sSay = " Oh I cannot learn a proto-action right now";
+        yInfo() << sSay;
+        iCub->say(sSay);
+        bOutput.addString("proto-action");
+        return bOutput;
+    }
+
+    //2. Check that action is not already there (need to update list like in updateProtoAction)
+
+    //3. Loop in recog to build with protoAction
+
+    //4. write it
+
+    return bOutput;
+}
+
+//For now only control in position. Careful, angle is in percentage of maxAngle
+Bottle learnPrimitive::learnPrim(){
+    Bottle bOutput;
+
+    //1. recog for name primitive : I will teach you how to <close> your <hand>
+    bOutput = nodeNameAction("primitive");
+
+    //2. Check that action is not already there (need to update list like in updateProtoAction)
+
+    //3. Loop in recog to build with protoAction
+
+    //4. write it
+
+    return bOutput;
+}
+
+//For now only control in position. Careful, angle is in percentage of maxAngle
+Bottle learnPrimitive::learnAction(){
+    Bottle bOutput;
+
+    //1. recog for name primitive : I will teach you how to <close> your <hand>
+    bOutput = nodeNameAction("action");
+
+    //2. Check that action is not already there (need to update list like in updateProtoAction)
+
+    //3. Loop in recog to build with protoAction
+
+    //4. write it
+
+    return bOutput;
 }
 
 //For now only control in position. Careful, angle is in percentage of maxAngle
@@ -166,7 +307,7 @@ Bottle learnPrimitive::basicCommand(string sActionName, string sBodyPartName, in
     yInfo() << " Target Angle Final (percentage) : " << (targetAngle + effectAngleBodyPart) ;
     int finalTargetAngle = (targetAngle + effectAngleBodyPart)*maxAngle/100;
     yInfo() << " Target Angle Final : " << finalTargetAngle ;
-    //TODOOOOOOOOOOOOOOOOOOOOOOOOOOO : For now use maxangle in the conf file but should extract it or provided in the OPC bodypart!
+    //TODOOOOOOOOOOOOOOOOOOOOOOOOOOO : For now use maxangle provided but should extract it or provided in the OPC bodypart!
 
     iCub->opc->checkout();
     //should check at some point that the bodypart is there and loaded no?
@@ -272,6 +413,33 @@ bool learnPrimitive::updateProtoAction(ResourceFinder &rf){
     }
 
     return true;
+}
+
+/*
+*   Get the context path of a .grxml grammar, and return it as a string
+*
+*/
+string learnPrimitive::grammarToString(string sPath)
+{
+    string sOutput = "";
+    ifstream isGrammar(sPath.c_str());
+
+    cout << "path is: " << sPath << endl;
+
+    if (!isGrammar)
+    {
+        cout << "Error in proactiveTagging::grammarToString. Couldn't open file : " << sPath << "." << endl;
+        return "Error in proactiveTagging::grammarToString. Couldn't open file";
+    }
+
+    string sLine;
+    while (getline(isGrammar, sLine))
+    {
+        sOutput += sLine;
+        sOutput += "\n";
+    }
+
+    return sOutput;
 }
 
 

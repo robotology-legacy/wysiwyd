@@ -18,7 +18,7 @@ private:
     yarp::os::Port   portToArm;
 
     std::string      GrammarYesNo;
-    std::string      GrammarDescribeAction;
+    std::string      GrammarNameAction;
 
     std::map<std::string, int> mProtoActionEnd;
     std::map<std::string, double> mProtoActionSpeed;
@@ -41,8 +41,18 @@ public:
 
     //spoken interaction node
     //bool nodeYesNo();
+    //grammar with proto-action, primitive and action. Can specify if you need something particular (when 1. "I will teach you how to") or if use to
+    //combine during the learning :
+    //-> proto-action cannot be (proactiveTagging is doing that)
+    //-> primitive can only call proto so should use proto-action,
+    //-> action can call whatever, included other action ("any")
+    yarp::os::Bottle nodeNameAction(std::string actionTypeNeeded = "any");
+
 
     yarp::os::Bottle basicCommand(std::string sActionName, std::string sBodypartName, int maxAngle=10);
+    yarp::os::Bottle learn();
+    yarp::os::Bottle learnPrim();
+    yarp::os::Bottle learnAction();
     bool updateProtoAction(yarp::os::ResourceFinder &rf);
 
     //RPC & scenarios
