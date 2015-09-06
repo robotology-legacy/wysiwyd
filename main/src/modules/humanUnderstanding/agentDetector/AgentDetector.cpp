@@ -14,7 +14,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     dThresholdDisparition = rf.check("dThresholdDisparition",Value("3.0")).asDouble();
 
     // initialise timing in case of misrecognition
-    dTimingLastApparition = unsigned long (0.0);
+    dTimingLastApparition = clock();
 
     //Open the OPC Client
     string opcName=rf.check("opc",Value("OPC")).asString().c_str();
