@@ -52,10 +52,10 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.9)).asDouble();
 
     //check for decrease
-    if (pExponentialDecrease >= 1)   pExponentialDecrease = 0.95;
+    if (pExponentialDecrease >= 1 || pExponentialDecrease <= 0.0)   pExponentialDecrease = 0.95;
 
     thresholdMovementAccel = rf.check("thresholdMovementAccel",
-        Value(0.0)).asDouble();
+        Value(0.02)).asDouble();
     thresholdSaliency = rf.check("thresholdSaliency",
         Value(0.005)).asDouble();
 
