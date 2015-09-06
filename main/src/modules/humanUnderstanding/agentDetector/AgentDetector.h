@@ -2,6 +2,7 @@
 #include <yarp/math/Math.h>
 #include <kinectWrapper/kinectWrapper_client.h>
 #include <wrdac/helpers.h>
+#include <time.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -56,6 +57,9 @@ protected:
     map<int, Agent*> identities;
     string currentTrainingFace;
 	map<string, Vector> skeletonPatterns;
+
+    unsigned long dTimingLastApparition;        // time struct of the last appartition of an agent
+    double dThresholdDisparition;           // timing maximal of non-reconnaissance of a agent, after thath we consider the agent as absent
 
 public:
 

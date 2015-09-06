@@ -11,7 +11,10 @@ bool AgentDetector::configure(ResourceFinder &rf)
     handleMultiplePlayers = rf.check("multiplePlayers");
     isMounted = !rf.check("isFixed");
     string show=rf.check("showImages",Value("false")).asString().c_str();
+    dThresholdDisparition = rf.check("dThresholdDisparition",Value("3.0")).asDouble();
 
+    // initialise timing in case of misrecognition
+    dTimingLastApparition = unsigned long (0.0);
 
     //Open the OPC Client
     string opcName=rf.check("opc",Value("OPC")).asString().c_str();
@@ -25,6 +28,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     partner->m_present = false;
     opc->commit(partner);
     opc->addOrRetrieveEntity<Action>("named");
+
 
     //Retrieve the calibration matrix from RFH
     string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
@@ -56,7 +60,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     outputSkeletonPort.open(skeletonName.c_str());
 
 
-   
+
     depthPort.open( ("/"+clientName+"/depthPort:o").c_str());
     imagePort.open(("/"+clientName+"/imagePort:o").c_str());
     playersPort.open(("/"+clientName+"/playersPort:o").c_str());
@@ -73,7 +77,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
 
     Property opt;
     client.getInfo(opt);
-        
+
     showImages=(show=="true")?true:false;
     int xPos = rf.check("x",Value(10)).asInt();
     int yPos = rf.check("y",Value(10)).asInt();
@@ -88,10 +92,10 @@ bool AgentDetector::configure(ResourceFinder &rf)
     depthToDisplay.resize(depth_width,depth_height);
     playersImage.resize(depth_width,depth_height);
     skeletonImage.resize(depth_width,depth_height);
-        
+
     depthTmp=cvCreateImage(cvSize(depth_width,depth_height),IPL_DEPTH_32F,1);
     rgbTmp=cvCreateImage(cvSize(img_width,img_height),IPL_DEPTH_8U,3);
-        
+
     if (showImages)
     {
         cvNamedWindow("rgb",CV_WINDOW_AUTOSIZE);
@@ -113,7 +117,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
         faceRecognName+=name;
         faceRecognName+="/faceRecognizer:rpc";
         faceRecognizerModule.open(faceRecognName.c_str());
-                
+
         string faceRecognResName = "/";
         faceRecognResName+=name;
         faceRecognResName+="/faceRecognizer/results:i";
@@ -228,7 +232,7 @@ bool AgentDetector::updateModule()
     client.getRgb(rgb);
 
     bool tracked;
-    
+
     if (handleMultiplePlayers)
         tracked=client.getJoints(joints);
     else
@@ -246,28 +250,28 @@ bool AgentDetector::updateModule()
             joints.push_back(joint);
         }
     } 
-        
+
     client.getPlayersImage(players,playersImage);
     client.getDepthImage(depth,depthToDisplay);
-        
+
     if (depthPort.getOutputCount()>0)
     {
         depthPort.prepare()=depthToDisplay;
         depthPort.write();
     }
-        
+
     if (imagePort.getOutputCount()>0)
     {
         imagePort.prepare()=rgb;
         imagePort.write();
     }
-        
+
     if (playersPort.getOutputCount()>0)
     {
         playersPort.prepare()=playersImage;
         playersPort.write();
     }
-        
+
     if (skeletonPort.getOutputCount()>0)
     {
         skeletonPort.prepare()=skeletonImage;
@@ -286,7 +290,7 @@ bool AgentDetector::updateModule()
         cvCvtColor((IplImage*)rgb.getIplImage(),rgbTmp,CV_BGR2RGB);
         cvShowImage("rgb",rgbTmp);
     }
-    
+
     //Send the players information to the OPC
     bool localIsCalibrated = checkCalibration();
 
@@ -368,12 +372,17 @@ bool AgentDetector::updateModule()
         yInfo() << " refreshed";
         //////////////////////////////////////////////////////////////////
         //Clear the previous agents
-        for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
-        {
-            pA->second->m_present = false;
-        }  
-        partner->m_present = false;
+        //for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
+        //{
+        //    pA->second->m_present = false;
+        //}  
+        //partner->m_present = false;
 
+        // check if last apparition was more than dThreshlodDisaparition ago
+        if (clock() - dTimingLastApparition > dThresholdDisparition)
+        {
+            partner->m_present = false;
+        }
         if (tracked)
         {
             //Go through all skeletons
@@ -415,9 +424,11 @@ bool AgentDetector::updateModule()
                     if (localIsCalibrated)
                     {
                         //Retrieve this player in OPC or create if does not exist
-
                         partner->m_present = true;
 
+                        // reset the timing.
+                        dTimingLastApparition = clock();
+                        
                         if (identities.find(p->ID) == identities.end())
                         {
                             cout<<"Assigning name "<<playerName<<" to skeleton "<<p->ID<<endl;
@@ -561,7 +572,7 @@ string AgentDetector::getIdentity(Player p)
         {
             double bestVal = DBL_MAX;
             string bestName = "unknown";
-            
+
             Vector currentPattern = getSkeletonPattern(p);
             for(map<string, Vector>::iterator patternIt = skeletonPatterns.begin(); patternIt != skeletonPatterns.end();patternIt++)
             {
@@ -594,7 +605,7 @@ Vector AgentDetector::transform2IR(Vector v)
     Vector Xs = icub->m_ego_position;
     double phi = icub->m_ego_orientation[2] * M_PI / 180.0;
     //cout<<"Robot position = "<<Xs.toString(3,3)<< " Orientation = "<<phi<<endl;
-   // cout<<"Kinect position = "<<v.toString(3,3)<<endl;
+    // cout<<"Kinect position = "<<v.toString(3,3)<<endl;
 
     Matrix H(4,4);
     H(0,0) = cos(phi);  H(0,1) = -sin(phi);    H(0,2) = 0.0; H(0,3) = Xs[0];
