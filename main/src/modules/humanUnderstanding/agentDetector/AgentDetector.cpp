@@ -384,9 +384,13 @@ bool AgentDetector::updateModule()
 
         if (dSince > dThresholdDisparition)
         {
-            yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
+//            yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
             partner->m_present = false;
-            yInfo() << " deleting agent";
+        
+        }
+        else
+        {
+            yInfo() << " agent dissapeared but not for too long.";
         }
         if (tracked)
         {
