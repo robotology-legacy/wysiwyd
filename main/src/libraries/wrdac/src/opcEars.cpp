@@ -18,7 +18,7 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
     }
 
 
-    yInfo() << " bName : " << bName.toString() << endl;
+    std::cout << " bName : " << bName.toString() << endl;
     if (!bName.get(1).isString())
     {
         bOutput.addString("Error wrong format of input");
