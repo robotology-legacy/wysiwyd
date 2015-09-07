@@ -64,7 +64,7 @@ bool actionLund::updateModule() {
     Bottle &objectsToStream = stream.prepare();
     objectsToStream.clear();
     
-    for (list<Entity*>::iterator itObj = objects.begin() ; itObj = objects.end() ; itObj++)
+    for (list<Entity*>::iterator itObj = objects.begin() ; itObj != objects.end() ; itObj++)
     {
         objectsToStream.addList() = (*itObj)->asBottle();    
     }
