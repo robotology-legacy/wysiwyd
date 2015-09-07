@@ -1,5 +1,8 @@
 #include "wrdac/clients/icubClient.h"
 #include <map>
+#include <fstream>
+#include <string>
+
 
 using namespace std;
 using namespace yarp::os;
@@ -20,6 +23,9 @@ private:
 
     std::string      GrammarYesNo;
     std::string      GrammarNameAction;
+    std::string      GrammarTypeAction;
+
+    std::string      pathToIniFile ;
 
     std::map<std::string, int> mProtoActionEnd;
     std::map<std::string, double> mProtoActionSpeed;
@@ -32,7 +38,7 @@ private:
     //   b.get(1) b.get(2)  b.get(3)
     //   name     arg        list of proto-action
 
-    std::vector<yarp::os::Bottle*> vActionBottle;
+    std::vector<yarp::os::Bottle> vActionBottle;
     //   point   (left)     ( (close hand) (unfold index) (goto left) )
     //   b.get(1) b.get(2)  b.get(3)
     //   name     arg        list of proto/prim/action
@@ -70,6 +76,8 @@ public:
     yarp::os::Bottle learnAction();
     bool updateProtoAction(yarp::os::ResourceFinder &rf);
     bool updatePrimitive(yarp::os::ResourceFinder &rf);
+
+    bool saveToIniFile(string sType, string sName, string sArg, yarp::os::Bottle bActionDescription);
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);

@@ -17,7 +17,6 @@
   </RULE>
 
   <RULE  NAME="proto-action"  TOPLEVEL="ACTIVE"  EXPORT="1">
-	</O><P>I will teach you how to</P></O>
     	<RULEREF  NAME="proto-action_name"/>
     	<O> 
        	    <L>
@@ -28,7 +27,6 @@
   </RULE>
 
   <RULE  NAME="primitive"  TOPLEVEL="ACTIVE"  EXPORT="1">
-	</O><P>I will teach you how to</P></O>
     	<RULEREF  NAME="primitive_name"/>
     	<O> 
        	    <L>
@@ -40,12 +38,11 @@
 
 
   <RULE  NAME="action"  TOPLEVEL="ACTIVE"  EXPORT="1">
-	</O><P>I will teach you how to</P></O>
     	<RULEREF  NAME="action_name"/>
     	<O> 
        	    <L>
                 <P> your </P>
-		<P> the </P>
+				<P> the </P>
             </L>
         </O>
 	<RULEREF  NAME="action_arg"/>
@@ -75,7 +72,7 @@
     </L>
   </RULE>
 
-  <RULE NAME="proto-action_arg" DYNAMIC="TRUE">
+  <RULE NAME="primitive_arg" DYNAMIC="TRUE">
     <L>
       <P>hand</P>
     </L>
