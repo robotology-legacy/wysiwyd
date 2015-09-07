@@ -151,6 +151,7 @@ bool PasarModule::interruptModule() {
     handlerPort.interrupt();
     saliencyInput.interrupt();
     saliencyOutput.interrupt();
+    skeletonIn.interrupt();
     return true;
 }
 
@@ -160,7 +161,7 @@ bool PasarModule::close() {
     handlerPort.close();
     saliencyInput.close();
     saliencyOutput.close();
-
+    skeletonIn.close();
     igaze->restoreContext(store_context_id);
     if (clientGazeCtrl.isValid())
         clientGazeCtrl.close();
@@ -234,41 +235,49 @@ bool PasarModule::updateModule()
         if ((*it)->name() != "icub")
         {
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if (((*it)->isType(EFAA_OPC_ENTITY_OBJECT)))
+
+            if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
             {
+                RTObject * rto = dynamic_cast<RTObject*>(*it);
+                presentObjects[(*it)->name()].o.fromBottle(rto->asBottle());
+                presentObjects[(*it)->name()].o.m_saliency = rto->m_saliency;
+                presentObjects[(*it)->name()].speed = 0.0;
+                presentObjects[(*it)->name()].acceleration = 0.0;
+                presentObjects[(*it)->name()].restingSteps = 0;
 
-                if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
-                {
-                    RTObject * rto = dynamic_cast<RTObject*>(*it);
-                    presentObjects[(*it)->name()].o.fromBottle(rto->asBottle());
-                    presentObjects[(*it)->name()].o.m_saliency = rto->m_saliency;
-                    presentObjects[(*it)->name()].speed = 0.0;
-                    presentObjects[(*it)->name()].acceleration = 0.0;
-                    presentObjects[(*it)->name()].restingSteps = 0;
-
-                }
-
-                if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
-                {
-                    Agent *ag = dynamic_cast<Agent*>(*it);
-                    presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
-                    presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
-                    presentObjects[(*it)->name()].speed = 0.0;
-                    presentObjects[(*it)->name()].acceleration = 0.0;
-                    presentObjects[(*it)->name()].restingSteps = 0;
-
-                }/*
-                 presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
-                 presentObjects[ (*it)->name() ].o.m_saliency = 0.0;
-                 presentObjects[ (*it)->name() ].speed = 0.0;
-                 presentObjects[ (*it)->name() ].acceleration = 0.0;
-                 presentObjects[ (*it)->name() ].restingSteps = 0;*/
             }
-        }
-        //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
-        //    cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
 
+            if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+            {
+                Object * ob = dynamic_cast<RTObject*>(*it);
+                presentObjects[(*it)->name()].o.fromBottle(ob->asBottle());
+                presentObjects[(*it)->name()].o.m_saliency = ob->m_saliency;
+                presentObjects[(*it)->name()].speed = 0.0;
+                presentObjects[(*it)->name()].acceleration = 0.0;
+                presentObjects[(*it)->name()].restingSteps = 0;
+
+            }
+
+            if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
+            {
+                Agent *ag = dynamic_cast<Agent*>(*it);
+                presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
+                presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
+                presentObjects[(*it)->name()].speed = 0.0;
+                presentObjects[(*it)->name()].acceleration = 0.0;
+                presentObjects[(*it)->name()].restingSteps = 0;
+
+            }/*
+             presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
+             presentObjects[ (*it)->name() ].o.m_saliency = 0.0;
+             presentObjects[ (*it)->name() ].speed = 0.0;
+             presentObjects[ (*it)->name() ].acceleration = 0.0;
+             presentObjects[ (*it)->name() ].restingSteps = 0;*/
+        }
     }
+    //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
+    //    cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
+
     if (presentObjectsLastStep.size() > 0)
     {
         //Retrieve the bottom-up saliency (vision based) and attribute it to objects
@@ -277,10 +286,6 @@ bool PasarModule::updateModule()
         //Compute top down saliency (concept based)
         saliencyTopDown();
 
-        if (isPointing)
-        {
-            saliencyPointing();
-        }
 
         //Normalize
         //saliencyNormalize();
@@ -317,6 +322,8 @@ bool PasarModule::updateModule()
         ImageOf<PixelRgb> &img = saliencyOutput.prepare();
         img.copy(imageOut);
         saliencyOutput.write();
+
+        if (isPointing)  saliencyPointing();
 
         //Update the OPC values
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
