@@ -602,7 +602,7 @@ void PasarModule::saliencyPointing()
         return;
     }
     Bottle *skeleton = skeletonIn.read(false);
-    Bottle rightHand = *(skeleton->find("right hand")).asList();
+    Bottle rightHand = *(skeleton->find("handRight")).asList();
     
     double x = rightHand.get(0).asDouble();
     double y = rightHand.get(1).asDouble();
