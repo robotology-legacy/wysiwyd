@@ -1,0 +1,97 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+    <ID  NAME="proto-action_name"  VAL="1"/>
+    <ID  NAME="proto-action_arg"  VAL="2"/>
+    <ID  NAME="primitive_name"  VAL="3"/>
+    <ID  NAME="primitive_arg"  VAL="4"/>
+    <ID  NAME="action_name"  VAL="5"/>
+    <ID  NAME="action_arg"  VAL="6"/>
+  </DEFINE>
+
+
+  <RULE  NAME="stop"  TOPLEVEL="ACTIVE"  EXPORT="1">
+	<P>Teaching finished</P>
+  </RULE>
+
+  <RULE  NAME="proto-action"  TOPLEVEL="ACTIVE"  EXPORT="1">
+	</O><P>I will teach you how to</P></O>
+    	<RULEREF  NAME="proto-action_name"/>
+    	<O> 
+       	    <L>
+                <P> your </P>
+            </L>
+        </O>
+	<RULEREF  NAME="proto-action_arg"/>
+  </RULE>
+
+  <RULE  NAME="primitive"  TOPLEVEL="ACTIVE"  EXPORT="1">
+	</O><P>I will teach you how to</P></O>
+    	<RULEREF  NAME="primitive_name"/>
+    	<O> 
+       	    <L>
+                <P> your </P>
+            </L>
+        </O>
+	<RULEREF  NAME="primitive_arg"/>
+  </RULE>
+
+
+  <RULE  NAME="action"  TOPLEVEL="ACTIVE"  EXPORT="1">
+	</O><P>I will teach you how to</P></O>
+    	<RULEREF  NAME="action_name"/>
+    	<O> 
+       	    <L>
+                <P> your </P>
+		<P> the </P>
+            </L>
+        </O>
+	<RULEREF  NAME="action_arg"/>
+  </RULE>
+
+  <RULE NAME="proto-action_name" DYNAMIC="TRUE">
+    <L>
+      <P>fold</P>
+      <P>unfold</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="proto-action_arg" DYNAMIC="TRUE">
+    <L>
+      <P>thumb</P>
+      <P>index</P>
+      <P>middle</P>
+      <P>ring</P>
+      <P>little</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="primitive_name" DYNAMIC="TRUE">  
+    <L>
+      <P>open</P>
+      <P>close</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="proto-action_arg" DYNAMIC="TRUE">
+    <L>
+      <P>hand</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="action_name" DYNAMIC="TRUE">  
+    <L>
+      <P>point</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="action_arg" DYNAMIC="TRUE">
+    <L>
+      <P>left</P>
+      <P>right</P>
+    </L>
+  </RULE>
+
+</GRAMMAR>
