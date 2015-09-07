@@ -381,6 +381,7 @@ bool AgentDetector::updateModule()
         // check if last apparition was more than dThreshlodDisaparition ago
         if (clock() - dTimingLastApparition > dThresholdDisparition)
         {
+            yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition;
             partner->m_present = false;
             yInfo() << " deleting agent";
         }
