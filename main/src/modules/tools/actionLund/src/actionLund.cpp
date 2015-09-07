@@ -20,6 +20,8 @@ bool actionLund::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
     rpc.open(("/" + moduleName + "/rpc").c_str());
+    stream.open(("/" + moduleName + "/stream").c_str());
+
     attach(rpc);
 
     return true;
@@ -55,6 +57,20 @@ bool actionLund::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool actionLund::updateModule() {
+
+    iCub->opc->checkout();
+    list<Entity*> objects = iCub->opc->EntitiesCacheCopy();
+
+    Bottle &objectsToStream = stream.prepare();
+    objectsToStream.clear();
+    
+    for (list<Entity*>::iterator itObj = objects.begin() ; itObj = objects.end() ; itObj++)
+    {
+        objectsToStream.addList() = (*itObj)->asBottle();    
+    }
+
+    stream.write();
+
     return true;
 }
 
