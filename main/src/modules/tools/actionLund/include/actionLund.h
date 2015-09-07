@@ -10,7 +10,6 @@ private:
     ICubClient *iCub;
     double      period;
     Port        rpc;
-    BufferedPort<Bottle>        stream;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
