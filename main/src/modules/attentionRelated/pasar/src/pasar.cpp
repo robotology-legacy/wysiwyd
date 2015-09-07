@@ -603,7 +603,7 @@ void PasarModule::saliencyPointing()
     }
     Bottle *skeleton = skeletonIn.read(false);
     Bottle rightHand = *(skeleton->find("handRight")).asList();
-    
+
     double x = rightHand.get(0).asDouble();
     double y = rightHand.get(1).asDouble();
     double z = rightHand.get(2).asDouble();
@@ -633,35 +633,6 @@ void PasarModule::saliencyPointing()
                     closest = distance;
                     objectPointed = rto->name();
                 }
-            }    if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
-            {
-                RTObject * rto = dynamic_cast<RTObject*>(*it);
-                distance = sqrt(
-                    (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
-                    (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
-                    (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
-                    );
-                if (distance < closest)
-                {
-                    closest = distance;
-                    objectPointed = rto->name();
-                }
-            }
-
-            if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
-            {
-                Agent *ag = dynamic_cast<Agent*>(*it);
-                distance = sqrt(
-                    (x-ag->m_ego_position[0])*(x-ag->m_ego_position[0])+
-                    (y-ag->m_ego_position[1])*(y-ag->m_ego_position[1])+
-                    (z-ag->m_ego_position[2])*(z-ag->m_ego_position[2])
-                    );
-                if (distance < closest)
-                {
-                    closest = distance;
-                    objectPointed = ag->name();
-                }
-
             }
         }
     }
