@@ -369,7 +369,7 @@ bool AgentDetector::updateModule()
 
     if (isRefreshed)
     {
-        yInfo() << " refreshed";
+//        yInfo() << " refreshed";
         //////////////////////////////////////////////////////////////////
         //Clear the previous agents
         //for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
@@ -382,6 +382,7 @@ bool AgentDetector::updateModule()
         if (clock() - dTimingLastApparition > dThresholdDisparition)
         {
             partner->m_present = false;
+            yInfo() << " deleting agent";
         }
         if (tracked)
         {
@@ -444,7 +445,7 @@ bool AgentDetector::updateModule()
                         Relation r(partner->name(),"named",playerName);
                         opc->addRelation(r,1.0);
 
-                        cout<<"Commiting : "<<r.toString()<<endl;
+//                        cout<<"Commiting : "<<r.toString()<<endl;
                         yarp::os::Bottle &skeleton = outputSkeletonPort.prepare();
                         skeleton.clear();
                         //Convert the skeleton into efaaHelpers body. We loose orientation in the process...
@@ -478,7 +479,7 @@ bool AgentDetector::updateModule()
                             }
                             partner->m_body.m_parts[jnt->first] = irPos;
                         }
-                        cout << skeleton.toString()<< endl;
+//                        cout << skeleton.toString()<< endl;
                         outputSkeletonPort.write();
                         //opc->commit(agent);
                     }
