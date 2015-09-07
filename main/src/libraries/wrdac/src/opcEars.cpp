@@ -18,7 +18,7 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
     }
 
 
-    cout << "bName : " << bName.toString() << endl;
+    yInfo() << " bName : " << bName.toString() << endl;
     if (!bName.get(1).isString())
     {
         bOutput.addString("Error wrong format of input");
@@ -382,7 +382,7 @@ Bottle opcEars::insertOPC(string sName)
     {
         bTemp = insertEntity(*it_E);
 
-        //        cout << "bTemp = " << bTemp.toString() << endl ;
+        //        yInfo() << " bTemp = " << bTemp.toString() << endl ;
 
         if (!fContent)
             osContent << bTemp.get(1).toString().c_str();
