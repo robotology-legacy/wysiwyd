@@ -51,6 +51,7 @@ class PasarModule : public yarp::os::RFModule {
     double pExponentialDecrease;            // under this threshlod, saliency is considered as 0
     double thresholdMovementAccel;          // Speed of the decrease of the saliency over the time (should be less than 1)
     double thresholdSaliency;
+    double dBurstOfPointing;
 
     OPCClient *opc;					 //retrieve information from the OPC
     yarp::os::Port handlerPort;      //a port to handle messages 
@@ -58,6 +59,9 @@ class PasarModule : public yarp::os::RFModule {
     BufferedPort<ImageOf<PixelMono> > saliencyInput;
     BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
     ImageOf<PixelRgb>				  imageOut;
+
+    BufferedPort<Bottle>        skeletonIn;
+    bool    isSkeletonIn;
 
     Agent* icub;
     map<string, ObjectModel>  presentObjectsLastStep;
@@ -68,6 +72,7 @@ class PasarModule : public yarp::os::RFModule {
     std::string trackedObject;
 
     bool isControllingMotors;
+    bool isPointing; // is the human is pointing
     int store_context_id;
     PolyDriver clientGazeCtrl;
     IGazeControl *igaze;
@@ -78,6 +83,7 @@ protected:
     void saliencyTopDown();
     void saliencyNormalize();
     void saliencyLeakyIntegration();
+    void saliencyPointing();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful

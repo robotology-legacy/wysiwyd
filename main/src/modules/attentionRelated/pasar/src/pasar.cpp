@@ -50,6 +50,8 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.05)).asDouble();
     pExponentialDecrease = rf.check("ExponentialDecrease",
         Value(0.9)).asDouble();
+    dBurstOfPointing = rf.check("BurstOfPointing",
+        Value(0.2)).asDouble();
 
     //check for decrease
     if (pExponentialDecrease >= 1 || pExponentialDecrease <= 0.0)   pExponentialDecrease = 0.95;
@@ -80,6 +82,24 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         cout << getName() << ": Unable to open port " << saliencyPortName << endl;
         return false;
     }
+
+    string skeletonPortName = "/" + getName();
+    skeletonPortName += "/skeletonIn";
+    if (!skeletonIn.open(skeletonPortName.c_str())) {
+        cout << getName() << ": Unable to open port " << skeletonPortName << endl;
+        isSkeletonIn = false;
+    }
+    if (!Network::connect("/agentDetector/skeleton:o", skeletonPortName))
+    {
+        isSkeletonIn = false;
+    }
+    else
+    {
+        isSkeletonIn = true;
+    }
+
+
+    isPointing = false;
 
     saliencyPortName = "/";
     saliencyPortName += getName() + "/saliency:o";
@@ -156,8 +176,9 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
         "track <int id> : track the object with the given opc id \n" +
         "track <double x> <double y> <double z> : track with the object coordinates\n" +
         "auto : switch attention between present objects \n" +
-        "sleep : pauses the head control until next command" +
+        "sleep : pauses the head control until next command\n" +
         "help \n" +
+        "pointing: detect the closest object from the right hand and increase salience\n"
         "quit \n";
 
     reply.clear();
@@ -169,6 +190,19 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "help") {
         reply.addString(helpMessage.c_str());
+    }
+    else if (command.get(0).asString() == "pointing") {
+        if (isPointing)
+        {
+            yInfo() << " stop pointing";
+            reply.addString("stop pointing");
+        }
+        else
+        {
+            yInfo() << " start pointing";
+            reply.addString("start pointing");
+        }
+        isPointing = !isPointing;
     }
     else if (command.get(0).asString() == "set") {
         reply.addString("set");
@@ -242,6 +276,11 @@ bool PasarModule::updateModule()
 
         //Compute top down saliency (concept based)
         saliencyTopDown();
+
+        if (isPointing)
+        {
+            saliencyPointing();
+        }
 
         //Normalize
         //saliencyNormalize();
@@ -550,4 +589,97 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 }
 
 
+
+/*
+* increase the salience of the closest object from the right hand
+*
+*/
+void PasarModule::saliencyPointing()
+{
+    if (!isSkeletonIn)
+    {
+        yInfo() << " problem in pasar::saliencyPointing: port not connected";
+        return;
+    }
+    Bottle *skeleton = skeletonIn.read(false);
+    Bottle rightHand = *(skeleton->find("right hand")).asList();
+    
+    double x = rightHand.get(0).asDouble();
+    double y = rightHand.get(1).asDouble();
+    double z = rightHand.get(2).asDouble();
+
+    double closest;
+    string objectPointed = "none";
+
+    opc->update();
+    list<Entity*> entities = opc->EntitiesCache();
+
+    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    {
+        double distance;
+        if ((*it)->name() != "icub")
+        {
+            //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
+            if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+            {
+                Object * rto = dynamic_cast<RTObject*>(*it);
+                distance = sqrt(
+                    (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
+                    (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
+                    (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
+                    );
+                if (distance < closest)
+                {
+                    closest = distance;
+                    objectPointed = rto->name();
+                }
+            }    if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
+            {
+                RTObject * rto = dynamic_cast<RTObject*>(*it);
+                distance = sqrt(
+                    (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
+                    (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
+                    (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
+                    );
+                if (distance < closest)
+                {
+                    closest = distance;
+                    objectPointed = rto->name();
+                }
+            }
+
+            if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
+            {
+                Agent *ag = dynamic_cast<Agent*>(*it);
+                distance = sqrt(
+                    (x-ag->m_ego_position[0])*(x-ag->m_ego_position[0])+
+                    (y-ag->m_ego_position[1])*(y-ag->m_ego_position[1])+
+                    (z-ag->m_ego_position[2])*(z-ag->m_ego_position[2])
+                    );
+                if (distance < closest)
+                {
+                    closest = distance;
+                    objectPointed = ag->name();
+                }
+
+            }
+        }
+    }
+    if (objectPointed != "none")
+    {
+        for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+        {
+            if ((*it)->name() == objectPointed)
+            {
+                (dynamic_cast<Object*>(*it))->m_saliency += dBurstOfPointing;
+            }
+        }
+        opc->commit();
+    }
+    else
+    {
+        yInfo() << " pasar: no object pointed";
+    }
+
+}
 
