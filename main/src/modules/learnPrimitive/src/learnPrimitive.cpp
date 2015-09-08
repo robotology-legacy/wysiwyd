@@ -463,11 +463,11 @@ bool learnPrimitive::saveToIniFile(string sType, string sName, string sArg, Bott
     } 
 
     ifstream iniFile;
-    iniFile.open(pathToIniFile, ios::in | ios::out | ios::app);
+    iniFile.open(pathToIniFile.c_str(), ios::in | ios::out | ios::app);
 
     ofstream tempFile;
     string tempPath = pathToIniFile + ".tmp.xml" ;
-    tempFile.open(tempPath, ios::out);
+    tempFile.open(tempPath.c_str(), ios::out);
 
     if(!tempFile.is_open()){
         yError() << "Cannot open the temp file in " << tempPath ;
@@ -545,7 +545,7 @@ bool learnPrimitive::saveToIniFile(string sType, string sName, string sArg, Bott
 
 
     ofstream iniFileOut;
-    iniFileOut.open(pathToIniFile, ios::out | ios::app);
+    iniFileOut.open(pathToIniFile.c_str(), ios::out | ios::app);
     //add at the end
     if(iniFileOut.is_open()){
         iniFileOut << endl;
