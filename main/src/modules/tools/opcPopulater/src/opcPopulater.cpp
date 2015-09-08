@@ -366,7 +366,7 @@ bool opcPopulater::populateABM(Bottle bInput)
 bool opcPopulater::populateSpecific2(){
 
 
-    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("unknown_object_10");
+    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("left_obj");
     obj1->m_ego_position[0] = (-0.5);
     obj1->m_ego_position[1] = (0.3);
     obj1->m_ego_position[2] = 0.20;
@@ -376,7 +376,7 @@ bool opcPopulater::populateSpecific2(){
     obj1->m_color[2] = Random::uniform(180, 250);
     iCub->opc->commit(obj1);
 
-    Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("unknown_object_11");
+    Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("right_obj");
     obj2->m_ego_position[0] = (-0.5);
     obj2->m_ego_position[1] = (-0.3);
     obj2->m_ego_position[2] = 0.20;
@@ -386,7 +386,7 @@ bool opcPopulater::populateSpecific2(){
     obj2->m_color[2] = Random::uniform(180, 250);
     iCub->opc->commit(obj2);
 
-    Object* obj3 = iCub->opc->addOrRetrieveEntity<Object>("unknown_object_12");
+    Object* obj3 = iCub->opc->addOrRetrieveEntity<Object>("middle_obj");
     obj3->m_ego_position[0] = (-0.5);
     obj3->m_ego_position[1] = (0.0);
     obj3->m_ego_position[2] = 0.20;

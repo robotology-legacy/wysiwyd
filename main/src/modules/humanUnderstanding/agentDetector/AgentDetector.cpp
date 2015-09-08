@@ -380,16 +380,16 @@ bool AgentDetector::updateModule()
 
         // check if last apparition was more than dThreshlodDisaparition ago
 
-        unsigned long dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
+        double dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
 
         if (dSince > dThresholdDisparition)
         {
-//            yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
             partner->m_present = false;
         
         }
         else
         {
+            yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
             yInfo() << " agent dissapeared but not for too long.";
         }
         if (tracked)

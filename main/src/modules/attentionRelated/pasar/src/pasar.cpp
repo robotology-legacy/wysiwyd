@@ -637,6 +637,7 @@ void PasarModule::saliencyPointing()
     }
     if (objectPointed != "none")
     {
+        yInfo() << " pointed object is: \t" << objectPointed;
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
             if ((*it)->name() == objectPointed)
