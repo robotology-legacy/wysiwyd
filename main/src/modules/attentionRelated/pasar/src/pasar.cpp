@@ -607,7 +607,7 @@ void PasarModule::saliencyPointing()
     double y = rightHand.get(1).asDouble();
     double z = rightHand.get(2).asDouble();
 
-    double closest;
+    double closest = 10e5;
     string objectPointed = "none";
 
     opc->update();
