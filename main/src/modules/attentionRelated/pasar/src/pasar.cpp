@@ -32,10 +32,13 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     std::string handlerPortName;
     std::string saliencyPortName;
 
-    moduleName = rf.check("name",
-        Value("pasar"),
-        "module name (string)").asString();
+    string moduleName = rf.check("name", Value("pasar")).asString().c_str();
     setName(moduleName.c_str());
+
+
+    //    moduleName = rf.check("name",
+    //        Value("pasar")).asString();
+    //    setName(moduleName.c_str());
 
     //Parameters
     pTopDownAppearanceBurst = rf.check("parameterTopDownAppearanceBurst",
@@ -64,63 +67,57 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     isControllingMotors = rf.check("motorControl",
         Value(0)).asInt() == 1;
     //Ports
-    opcName = rf.check("opcName",
-        Value("OPC"),
-        "Opc name (string)").asString();
-    opc = new OPCClient(moduleName.c_str());
-    opc->connect(opcName);
-    if (!opc->isConnected())
-        if (!opc->connect("OPC"))
-            return false;
+
+    opcName=rf.check("opc",Value("OPC")).asString().c_str();
+    opc = new OPCClient(moduleName);
+    while (!opc->connect(opcName))
+    {
+        cout<<"Waiting connection to OPC..."<<endl;
+        Time::delay(1.0);
+    }
+
     opc->checkout();
 
     icub = opc->addOrRetrieveEntity<Agent>("icub");
 
-    saliencyPortName = "/";
-    saliencyPortName += getName() + "/saliency:i";
-    if (!saliencyInput.open(saliencyPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << saliencyPortName << endl;
+
+
+    if (!saliencyInput.open(("/" + moduleName + "/saliency:i").c_str())) {
+        cout << getName() << ": Unable to open port saliency:i" << endl;
         return false;
     }
 
-    string skeletonPortName = "/" + getName();
-    skeletonPortName += "/skeletonIn";
-    if (!skeletonIn.open(skeletonPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << skeletonPortName << endl;
+
+    if (!skeletonIn.open(("/" + moduleName + "/skeleton:i").c_str())) {
+        cout << getName() << ": Unable to open port skeleton:i" << endl;
         isSkeletonIn = false;
     }
-    if (!Network::connect("/agentDetector/skeleton:o", skeletonPortName))
+    if (!Network::connect("/agentDetector/skeleton:o", ("/" + moduleName + "/skeleton:i").c_str()))
     {
         isSkeletonIn = false;
     }
     else
     {
+        yInfo() << " is connected to skeleton";
         isSkeletonIn = true;
     }
 
-
     isPointing = false;
 
-    saliencyPortName = "/";
-    saliencyPortName += getName() + "/saliency:o";
-    if (!saliencyOutput.open(saliencyPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << saliencyPortName << endl;
+    if (!saliencyOutput.open(("/" + moduleName + "/saliency:o").c_str())) {
+        cout << getName() << ": Unable to open port saliency:o" << endl;
         return false;
     }
 
-    handlerPortName = "/";
-    handlerPortName += getName() + "/rpc";
-    if (!handlerPort.open(handlerPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << handlerPortName << endl;
+    if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
+        cout << getName() << ": Unable to open port rpc" << endl;
         return false;
     }
 
-    gazePortName = "/";
-    gazePortName += getName() + "/gaze";
     Property option;
     option.put("device", "gazecontrollerclient");
     option.put("remote", "/iKinGazeCtrl");
-    option.put("local", gazePortName.c_str());
+    option.put("local", ("/" + moduleName + "/gaze").c_str());
 
     if (isControllingMotors)
     {
@@ -226,7 +223,7 @@ bool PasarModule::updateModule()
 {
 
     opc->update();
-    list<Entity*> entities = opc->EntitiesCache();
+    list<Entity*> entities = opc->EntitiesCacheCopy();
     presentObjects.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
@@ -236,35 +233,39 @@ bool PasarModule::updateModule()
         {
             //!!! ONLY OBJECTS, RT_OBJECT and AGENTS ARE TRACKED !!!
 
-            if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
-            {
-                RTObject * rto = dynamic_cast<RTObject*>(*it);
-                presentObjects[(*it)->name()].o.fromBottle(rto->asBottle());
-                presentObjects[(*it)->name()].o.m_saliency = rto->m_saliency;
+            if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) || (*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+            {            
 
+                if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
+                {
+                    RTObject * rto = dynamic_cast<RTObject*>(*it);
+                    presentObjects[(*it)->name()].o.fromBottle(rto->asBottle());
+                    presentObjects[(*it)->name()].o.m_saliency = rto->m_saliency;
+
+                }
+
+                if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+                {
+                    Object * ob = dynamic_cast<Object*>(*it);
+                    presentObjects[(*it)->name()].o.fromBottle(ob->asBottle());
+                    presentObjects[(*it)->name()].o.m_saliency = ob->m_saliency;
+
+                }
+
+                if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
+                {
+                    Agent *ag = dynamic_cast<Agent*>(*it);
+                    presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
+                    presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
+
+                }/*
+                 presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
+                 presentObjects[ (*it)->name() ].o.m_saliency = 0.0;*/
+
+                presentObjects[(*it)->name()].speed = 0.0;
+                presentObjects[(*it)->name()].acceleration = 0.0;
+                presentObjects[(*it)->name()].restingSteps = 0;
             }
-
-            if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
-            {
-                Object * ob = dynamic_cast<Object*>(*it);
-                presentObjects[(*it)->name()].o.fromBottle(ob->asBottle());
-                presentObjects[(*it)->name()].o.m_saliency = ob->m_saliency;
-
-            }
-
-            if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
-            {
-                Agent *ag = dynamic_cast<Agent*>(*it);
-                presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
-                presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
-
-            }/*
-             presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
-             presentObjects[ (*it)->name() ].o.m_saliency = 0.0;*/
-
-            presentObjects[(*it)->name()].speed = 0.0;
-            presentObjects[(*it)->name()].acceleration = 0.0;
-            presentObjects[(*it)->name()].restingSteps = 0;
         }
     }
     //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
@@ -324,10 +325,21 @@ bool PasarModule::updateModule()
             {
                 (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
             }
+            if ((*it)->name() == "partner")
+            {
+                yInfo() << "\t before commit \t partner salience:" << dynamic_cast<Object*>(*it))->m_saliency;
+
+            }
         }
         opc->commit();
     }
     presentObjectsLastStep = presentObjects;
+
+    opc->update();
+    Agent *tmp = opc->addOrRetrieveEntity<Agent>("partner");
+
+    yInfo() << "\t\t partner salience:" << tmp->m_saliency;
+
     return true;
 }
 
@@ -523,11 +535,10 @@ void PasarModule::saliencyTopDown() {
                 it->second.o.m_saliency += pTopDownDisappearanceBurst;
             }
 
-
             if (acceleration > thresholdMovementAccel)
             {
                 it->second.o.m_saliency += pTopDownAccelerationCoef;
-                //cout << "ca bouge !!! " << it->second.o.name() << " salience : " << acceleration << endl;
+                cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << endl;
             }
         }
     }
@@ -595,17 +606,25 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 */
 void PasarModule::saliencyPointing()
 {
+
+    yInfo() << " in pointing";
     if (!isSkeletonIn)
     {
         yInfo() << " problem in pasar::saliencyPointing: port not connected";
         return;
     }
-    Bottle *skeleton = skeletonIn.read(false);
-    Bottle rightHand = *(skeleton->find("handRight")).asList();
+    Bottle *skeleton = skeletonIn.read(true);
+    
+    yInfo() << " skeleton is:" << skeleton->toString();
 
-    double x = rightHand.get(0).asDouble();
-    double y = rightHand.get(1).asDouble();
-    double z = rightHand.get(2).asDouble();
+    Bottle *rightHand = (skeleton->find("handRight")).asList();
+
+    yInfo() << " righthand is:" << rightHand->toString();
+
+
+    double x = rightHand->get(0).asDouble();
+    double y = rightHand->get(1).asDouble();
+    double z = rightHand->get(2).asDouble();
 
     double closest = 10e5;
     string objectPointed = "none";
