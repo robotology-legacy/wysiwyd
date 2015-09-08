@@ -16,6 +16,7 @@
 */
 
 #include <sstream>
+#include <cstdio>
 #include <algorithm>
 #include <set>
 
@@ -94,7 +95,7 @@ Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
         if (get3DPosition(cog,x))
         {
             if ((x[0]>skim_blobs_x_bounds[0])&&(x[0]<skim_blobs_x_bounds[1])&&
-                (x[1]>skim_blobs_y_bounds[0])&&(x[1]<skim_blobs_y_bounds[1])) {
+                    (x[1]>skim_blobs_y_bounds[0])&&(x[1]<skim_blobs_y_bounds[1])) {
                 skimmedBlobs.add(blobs.get(i));
             }
         }
@@ -575,6 +576,10 @@ void IOL2OPCBridge::updateOPC()
         bool unknownObjectInScene = false;
         for (int j=0; j<blobs.size(); j++)
         {
+            Bottle *item=blobs.get(j).asList();
+            if (item==NULL)
+                continue;
+
             ostringstream tag;
             tag<<"blob_"<<j;
 
@@ -598,6 +603,31 @@ void IOL2OPCBridge::updateOPC()
                         obj->m_ego_position=x;
                         obj->m_present=true;
                         it->second.opc_id = obj->opc_id();
+
+                        // Extract color information from blob:
+                        // find dimensions of object in 2D space (top-left, bottom-right)
+                        CvPoint tl, br;
+                        tl.x=(int)item->get(0).asDouble();
+                        tl.y=(int)item->get(1).asDouble();
+                        br.x=(int)item->get(2).asDouble();
+                        br.y=(int)item->get(3).asDouble();
+
+                        CvPoint sz; // get size of blob
+                        sz.x=br.x-tl.x;
+                        sz.y=br.y-tl.y;
+
+                        // create temporary image, and copy blob in there
+                        ImageOf<PixelBgr> imgTmp1;
+                        imgTmp1.resize(sz.x,sz.y);
+                        cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),cvRect(tl.x,tl.y,sz.x,sz.y));
+                        cvCopy(imgRtLoc.getIplImage(),imgTmp1.getIplImage());
+                        cvResetImageROI((IplImage*)imgRtLoc.getIplImage());
+
+                        // now get mean color of blob, and fill the OPC object with the information
+                        CvScalar meanColor = cvAvg(imgTmp1.getIplImage());
+                        obj->m_color[0] = meanColor.val[0];
+                        obj->m_color[1] = meanColor.val[1];
+                        obj->m_color[2] = meanColor.val[2];
                     }
 
                     it->second.heartBeat();
@@ -651,7 +681,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
-    yDebug("before skim");
+
     skim_blobs_x_bounds.resize(2);
     yDebug("Resized");
     skim_blobs_x_bounds[0]=-0.50;
@@ -811,7 +841,7 @@ bool IOL2OPCBridge::updateModule()
             yInfo("Turning localization on");
             state=Bridge::localization;
             onlyKnownObjects = IOLObject(10.0);
-        }        
+        }
     }
     // highlight selected blob
     else if (state==Bridge::localization)
@@ -1024,11 +1054,11 @@ bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
         yInfo("Name change successful, reloading local cache");
         const map<string,IOLObject>::iterator it = db.find(old_name);
         if (it != db.end()) {
-          // Swap value from oldKey to newKey, note that a default constructed value
-          // is created by operator[] if 'm' does not contain newKey.
-          std::swap(db[new_name], it->second);
-          // Erase old key-value from map
-          db.erase(it);
+            // Swap value from oldKey to newKey, note that a default constructed value
+            // is created by operator[] if 'm' does not contain newKey.
+            std::swap(db[new_name], it->second);
+            // Erase old key-value from map
+            db.erase(it);
         }
     }
 
