@@ -27,7 +27,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     partner = opc->addOrRetrieveEntity<Agent>("partner");
     partner->m_present = false;
     opc->commit(partner);
-    opc->addOrRetrieveEntity<Action>("named");
+//    opc->addOrRetrieveEntity<Action>("named");
 
 
     //Retrieve the calibration matrix from RFH
@@ -382,16 +382,6 @@ bool AgentDetector::updateModule()
 
         double dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
 
-        if (dSince > dThresholdDisparition)
-        {
-            partner->m_present = false;
-        
-        }
-        else
-        {
-            yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
-            yInfo() << " agent dissapeared but not for too long.";
-        }
         if (tracked)
         {
             //Go through all skeletons
@@ -493,6 +483,19 @@ bool AgentDetector::updateModule()
                     }
 //                    cout<<'1'<<endl;
                 }
+            }
+        }
+        else
+        {
+            if (dSince > dThresholdDisparition)
+            {
+                partner->m_present = false;
+
+            }
+            else
+            {
+                yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
+                yInfo() << " agent dissapeared but not for too long.";
             }
         }
         opc->commit();
