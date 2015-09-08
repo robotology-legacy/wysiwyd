@@ -53,13 +53,27 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.05)).asDouble();
     pExponentialDecrease = rf.check("ExponentialDecrease",
         Value(0.9)).asDouble();
-    dBurstOfPointing = rf.check("BurstOfPointing",
+    pTopDownWaving = rf.check("pTopDownWaving",
+        Value(0.2)).asDouble();
+    dBurstOfPointing = rf.check("pBurstOfPointing",
         Value(0.2)).asDouble();
 
     //check for decrease
     if (pExponentialDecrease >= 1 || pExponentialDecrease <= 0.0)   pExponentialDecrease = 0.95;
 
+    presentRightHand.first = false;
+    presentRightHand.second = false;
+    presentLeftHand.first = false;
+    presentLeftHand.first = false;
+
+    rightHandt1 = Vector(3, 0.0);
+    rightHandt2 = Vector(3, 0.0);
+    leftHandt1 = Vector(3, 0.0);
+    leftHandt2 = Vector(3, 0.0);
+
     thresholdMovementAccel = rf.check("thresholdMovementAccel",
+        Value(0.02)).asDouble();
+    thresholdWaving = rf.check("thresholdWaving",
         Value(0.02)).asDouble();
     thresholdSaliency = rf.check("thresholdSaliency",
         Value(0.005)).asDouble();
@@ -225,15 +239,6 @@ bool PasarModule::updateModule()
     opc->update();
     entities = opc->EntitiesCache();
 
-    //Update the OPC values
-    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
-    {
-        if ((*it)->name() == "partner")
-        {
-            yInfo() << "\t 1.1 \t partner salience:" << dynamic_cast<Object*>(*it)->m_saliency;
-        }
-    }
-
     presentObjects.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
@@ -292,6 +297,7 @@ bool PasarModule::updateModule()
         //Compute top down saliency (concept based)
         saliencyTopDown();
 
+        saliencyWaving();
 
         //Normalize
         //saliencyNormalize();
@@ -331,7 +337,7 @@ bool PasarModule::updateModule()
 
         if (isPointing)  saliencyPointing();
 
-//        entities = opc->EntitiesCacheCopy();
+        //        entities = opc->EntitiesCacheCopy();
 
         //Update the OPC values
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
@@ -547,7 +553,7 @@ void PasarModule::saliencyTopDown() {
             if (acceleration > thresholdMovementAccel)
             {
                 it->second.o.m_saliency += pTopDownAccelerationCoef;
-                cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << " acceleration: " << acceleration << endl;
+                //cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << " acceleration: " << acceleration << endl;
             }
         }
     }
@@ -678,9 +684,104 @@ void PasarModule::saliencyPointing()
 
         if ((*it)->name() == objectPointed)
         {
-            yInfo() << "\t 1.1 \t objectPointed:" << dynamic_cast<Object*>(*it)->m_saliency;
+            yInfo() << "\t \t objectPointed:" << dynamic_cast<Object*>(*it)->m_saliency;
         }
     }
-
 }
 
+
+/*
+*  Increase the saliency of the agent waving
+*
+*/
+void PasarModule::saliencyWaving()
+{
+
+    opc->update();
+    Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
+    if (!(ag->m_present)) 
+    {
+        presentRightHand.first = presentRightHand.second;
+        presentLeftHand.first = presentLeftHand.second;
+
+        presentRightHand.second = false;
+        presentLeftHand.second = false;
+
+        return;
+    }
+
+
+    Vector vecRight = ag->m_body.m_parts["handRight"];
+    Vector vecLeft = ag->m_body.m_parts["handLeft"];
+
+    Vector speedRightt1(3);
+    Vector speedRightt2(3);
+
+    Vector speedLeftt1(3);
+    Vector speedLeftt2(3);
+
+    Vector accelRight(3);
+    Vector accelLeft(3);
+
+    
+    speedRightt2[0] = (rightHandt1[0] - rightHandt2[0]);
+    speedRightt2[1] = (rightHandt1[1] - rightHandt2[1]);
+    speedRightt2[2] = (rightHandt1[2] - rightHandt2[2]);
+
+    speedRightt1[0] = (vecRight[0] - rightHandt1[0]);
+    speedRightt1[1] = (vecRight[1] - rightHandt1[1]);
+    speedRightt1[2] = (vecRight[2] - rightHandt1[2]);
+
+    speedLeftt1[0] = (vecLeft[0] - leftHandt1[0]);
+    speedLeftt1[1] = (vecLeft[1] - leftHandt1[1]);
+    speedLeftt1[2] = (vecLeft[2] - leftHandt1[2]);
+
+    speedLeftt2[0] = (leftHandt1[0] - leftHandt2[0]);
+    speedLeftt2[1] = (leftHandt1[1] - leftHandt2[1]);
+    speedLeftt2[2] = (leftHandt1[2] - leftHandt2[2]);
+
+    accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
+    accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
+    accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
+
+    accelLeft[0] = (speedLeftt1[0] - speedLeftt2[0]);
+    accelLeft[1] = (speedLeftt1[1] - speedLeftt2[1]);
+    accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
+
+    // get the norm of the accel vector
+    double dAccelLeft = sqrt(accelLeft[0]*accelLeft[0] + accelLeft[1]*accelLeft[1] + accelLeft[2]*accelLeft[2]);
+    double dAccelRight = sqrt(accelRight[0]*accelRight[0] + accelRight[1]*accelRight[1] + accelRight[2]*accelRight[2]);
+
+
+//    yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
+
+    // if the acceleration is made on 3 consecutive frames
+    if (presentRightHand.first && presentRightHand.second)
+    {
+        if (dAccelRight > thresholdWaving)
+        {
+            ag->m_saliency += pTopDownWaving;
+            yInfo() << "\t\t\t\t\tagent is waving right hand";
+        }
+        rightHandt2 = rightHandt1;
+        rightHandt1 = vecRight;
+    }
+
+    if (presentLeftHand.first && presentLeftHand.second)
+    {
+        if (dAccelLeft > thresholdWaving)
+        {
+            ag->m_saliency += pTopDownWaving;
+            yInfo() << "\t\tagent is waving left hand";
+        }
+        leftHandt2 = leftHandt1;
+        leftHandt1 = vecLeft;
+    }
+    opc->commit();
+
+    presentRightHand.first = presentRightHand.second;
+    presentLeftHand.first = presentLeftHand.second;
+
+    presentRightHand.second = true;
+    presentLeftHand.second = true;
+}

@@ -48,8 +48,10 @@ class PasarModule : public yarp::os::RFModule {
     double pTopDownDisappearanceBurst;      // score of saliency for an diappereance
     double pTopDownAccelerationCoef;        // score of saliency for an acceleration detected
     double pTopDownInhibitionReturn;        // threshold of an acceleration detection
-    double pExponentialDecrease;            // under this threshlod, saliency is considered as 0
-    double thresholdMovementAccel;          // Speed of the decrease of the saliency over the time (should be less than 1)
+    double pExponentialDecrease;            // Speed of the decrease of the saliency over the time (should be less than 1)
+    double pTopDownWaving;                  // increase of saliency if waving
+    double thresholdMovementAccel;          // minimum acceleration detect
+    double thresholdWaving;                 // minimum waving detected
     double thresholdSaliency;
     double dBurstOfPointing;
 
@@ -57,6 +59,14 @@ class PasarModule : public yarp::os::RFModule {
     yarp::os::Port handlerPort;      //a port to handle messages 
 
     list<Entity*> entities;
+
+    yarp::sig::Vector rightHandt1;  // position of right at t1
+    yarp::sig::Vector rightHandt2;  // position of right at t2
+    yarp::sig::Vector leftHandt1;   // position of left hand at t1
+    yarp::sig::Vector leftHandt2;   // position of left hand at t2
+
+    pair<bool,bool> presentRightHand;
+    pair<bool,bool> presentLeftHand;
 
     BufferedPort<ImageOf<PixelMono> > saliencyInput;
     BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
@@ -86,6 +96,7 @@ protected:
     void saliencyNormalize();
     void saliencyLeakyIntegration();
     void saliencyPointing();
+    void saliencyWaving();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
