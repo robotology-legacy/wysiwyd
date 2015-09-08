@@ -491,7 +491,7 @@ bool AgentDetector::updateModule()
                         outputSkeletonPort.write();
                         //opc->commit(agent);
                     }
-                    cout<<'1'<<endl;
+//                    cout<<'1'<<endl;
                 }
             }
         }

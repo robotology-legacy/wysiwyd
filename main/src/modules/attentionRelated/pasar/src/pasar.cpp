@@ -223,7 +223,17 @@ bool PasarModule::updateModule()
 {
 
     opc->update();
-    list<Entity*> entities = opc->EntitiesCacheCopy();
+    entities = opc->EntitiesCache();
+
+    //Update the OPC values
+    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    {
+        if ((*it)->name() == "partner")
+        {
+            yInfo() << "\t 1.1 \t partner salience:" << dynamic_cast<Object*>(*it)->m_saliency;
+        }
+    }
+
     presentObjects.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
@@ -235,6 +245,10 @@ bool PasarModule::updateModule()
 
             if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) || (*it)->isType(EFAA_OPC_ENTITY_OBJECT))
             {            
+                //if ((*it)->name() == "partner")
+                //{
+                //    yInfo() << "\t 1.0 \t partner salience:" << dynamic_cast<Object*>(*it)->m_saliency;
+                //}
 
                 if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
                 {
@@ -257,14 +271,13 @@ bool PasarModule::updateModule()
                     Agent *ag = dynamic_cast<Agent*>(*it);
                     presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
                     presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
-
                 }/*
                  presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
                  presentObjects[ (*it)->name() ].o.m_saliency = 0.0;*/
 
-                presentObjects[(*it)->name()].speed = 0.0;
-                presentObjects[(*it)->name()].acceleration = 0.0;
-                presentObjects[(*it)->name()].restingSteps = 0;
+                //presentObjects[(*it)->name()].speed = 0.0;
+                //presentObjects[(*it)->name()].acceleration = 0.0;
+                //presentObjects[(*it)->name()].restingSteps = 0;
             }
         }
     }
@@ -318,6 +331,8 @@ bool PasarModule::updateModule()
 
         if (isPointing)  saliencyPointing();
 
+//        entities = opc->EntitiesCacheCopy();
+
         //Update the OPC values
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
@@ -325,20 +340,15 @@ bool PasarModule::updateModule()
             {
                 (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
             }
-            if ((*it)->name() == "partner")
-            {
-                yInfo() << "\t before commit \t partner salience:" << dynamic_cast<Object*>(*it))->m_saliency;
-
-            }
+            //if ((*it)->name() == "partner")
+            //{
+            //    yInfo() << "\t 1.1 \t partner salience:" << dynamic_cast<Object*>(*it)->m_saliency;
+            //}
         }
         opc->commit();
     }
     presentObjectsLastStep = presentObjects;
 
-    opc->update();
-    Agent *tmp = opc->addOrRetrieveEntity<Agent>("partner");
-
-    yInfo() << "\t\t partner salience:" << tmp->m_saliency;
 
     return true;
 }
@@ -487,7 +497,6 @@ void PasarModule::saliencyBottomUp()
                     it->second.o.m_saliency = avg / (double)count;
                 else
                     it->second.o.m_saliency = 0.1;
-
             }
         }
         //saliencyNormalize();
@@ -538,7 +547,7 @@ void PasarModule::saliencyTopDown() {
             if (acceleration > thresholdMovementAccel)
             {
                 it->second.o.m_saliency += pTopDownAccelerationCoef;
-                cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << endl;
+                cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << " acceleration: " << acceleration << endl;
             }
         }
     }
@@ -607,45 +616,37 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 void PasarModule::saliencyPointing()
 {
 
-    yInfo() << " in pointing";
-    if (!isSkeletonIn)
-    {
-        yInfo() << " problem in pasar::saliencyPointing: port not connected";
-        return;
-    }
-    Bottle *skeleton = skeletonIn.read(true);
-    
-    yInfo() << " skeleton is:" << skeleton->toString();
+    opc->update();
+    Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
+    if (!(ag->m_present)) return;
 
-    Bottle *rightHand = (skeleton->find("handRight")).asList();
+    Vector vec = ag->m_body.m_parts["handRight"];
 
-    yInfo() << " righthand is:" << rightHand->toString();
+    yInfo() << " righthand is:" << vec.toString();
 
-
-    double x = rightHand->get(0).asDouble();
-    double y = rightHand->get(1).asDouble();
-    double z = rightHand->get(2).asDouble();
+    double x = vec[0];
+    double y = vec[1];
+    double z = vec[2];
 
     double closest = 10e5;
     string objectPointed = "none";
 
-    opc->update();
-    list<Entity*> entities = opc->EntitiesCache();
-
     for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
     {
         double distance;
-        if ((*it)->name() != "icub")
+        if ((*it)->name() != "partner")
         {
+
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
             if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
             {
-                Object * rto = dynamic_cast<RTObject*>(*it);
+                Object * rto = dynamic_cast<Object*>(*it);
                 distance = sqrt(
                     (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
                     (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
                     (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
                     );
+                //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
                 if (distance < closest)
                 {
                     closest = distance;
@@ -654,6 +655,7 @@ void PasarModule::saliencyPointing()
             }
         }
     }
+
     if (objectPointed != "none")
     {
         yInfo() << " pointed object is: \t" << objectPointed;
@@ -669,6 +671,15 @@ void PasarModule::saliencyPointing()
     else
     {
         yInfo() << " pasar: no object pointed";
+    }
+    opc->update();
+    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    {
+
+        if ((*it)->name() == objectPointed)
+        {
+            yInfo() << "\t 1.1 \t objectPointed:" << dynamic_cast<Object*>(*it)->m_saliency;
+        }
     }
 
 }

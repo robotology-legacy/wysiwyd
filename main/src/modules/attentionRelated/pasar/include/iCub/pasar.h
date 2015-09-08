@@ -56,6 +56,8 @@ class PasarModule : public yarp::os::RFModule {
     OPCClient *opc;					 //retrieve information from the OPC
     yarp::os::Port handlerPort;      //a port to handle messages 
 
+    list<Entity*> entities;
+
     BufferedPort<ImageOf<PixelMono> > saliencyInput;
     BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
     ImageOf<PixelRgb>				  imageOut;
