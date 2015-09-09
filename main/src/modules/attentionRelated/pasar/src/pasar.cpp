@@ -32,10 +32,13 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     std::string handlerPortName;
     std::string saliencyPortName;
 
-    moduleName = rf.check("name",
-        Value("pasar"),
-        "module name (string)").asString();
+    string moduleName = rf.check("name", Value("pasar")).asString().c_str();
     setName(moduleName.c_str());
+
+
+    //    moduleName = rf.check("name",
+    //        Value("pasar")).asString();
+    //    setName(moduleName.c_str());
 
     //Parameters
     pTopDownAppearanceBurst = rf.check("parameterTopDownAppearanceBurst",
@@ -50,57 +53,85 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.05)).asDouble();
     pExponentialDecrease = rf.check("ExponentialDecrease",
         Value(0.9)).asDouble();
+    pTopDownWaving = rf.check("pTopDownWaving",
+        Value(0.2)).asDouble();
+    dBurstOfPointing = rf.check("pBurstOfPointing",
+        Value(0.2)).asDouble();
 
     //check for decrease
-    if (pExponentialDecrease >= 1)   pExponentialDecrease = 0.95;
+    if (pExponentialDecrease >= 1 || pExponentialDecrease <= 0.0)   pExponentialDecrease = 0.95;
+
+    presentRightHand.first = false;
+    presentRightHand.second = false;
+    presentLeftHand.first = false;
+    presentLeftHand.first = false;
+
+    rightHandt1 = Vector(3, 0.0);
+    rightHandt2 = Vector(3, 0.0);
+    leftHandt1 = Vector(3, 0.0);
+    leftHandt2 = Vector(3, 0.0);
 
     thresholdMovementAccel = rf.check("thresholdMovementAccel",
-        Value(0.0)).asDouble();
+        Value(0.02)).asDouble();
+    thresholdWaving = rf.check("thresholdWaving",
+        Value(0.02)).asDouble();
     thresholdSaliency = rf.check("thresholdSaliency",
         Value(0.005)).asDouble();
 
     isControllingMotors = rf.check("motorControl",
         Value(0)).asInt() == 1;
     //Ports
-    opcName = rf.check("opcName",
-        Value("OPC"),
-        "Opc name (string)").asString();
-    opc = new OPCClient(moduleName.c_str());
-    opc->connect(opcName);
-    if (!opc->isConnected())
-        if (!opc->connect("OPC"))
-            return false;
+
+    opcName=rf.check("opc",Value("OPC")).asString().c_str();
+    opc = new OPCClient(moduleName);
+    while (!opc->connect(opcName))
+    {
+        cout<<"Waiting connection to OPC..."<<endl;
+        Time::delay(1.0);
+    }
+
     opc->checkout();
 
     icub = opc->addOrRetrieveEntity<Agent>("icub");
 
-    saliencyPortName = "/";
-    saliencyPortName += getName() + "/saliency:i";
-    if (!saliencyInput.open(saliencyPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << saliencyPortName << endl;
+
+
+    if (!saliencyInput.open(("/" + moduleName + "/saliency:i").c_str())) {
+        cout << getName() << ": Unable to open port saliency:i" << endl;
         return false;
     }
 
-    saliencyPortName = "/";
-    saliencyPortName += getName() + "/saliency:o";
-    if (!saliencyOutput.open(saliencyPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << saliencyPortName << endl;
+
+    if (!skeletonIn.open(("/" + moduleName + "/skeleton:i").c_str())) {
+        cout << getName() << ": Unable to open port skeleton:i" << endl;
+        isSkeletonIn = false;
+    }
+    if (!Network::connect("/agentDetector/skeleton:o", ("/" + moduleName + "/skeleton:i").c_str()))
+    {
+        isSkeletonIn = false;
+    }
+    else
+    {
+        yInfo() << " is connected to skeleton";
+        isSkeletonIn = true;
+    }
+
+    isPointing = false;
+
+    if (!saliencyOutput.open(("/" + moduleName + "/saliency:o").c_str())) {
+        cout << getName() << ": Unable to open port saliency:o" << endl;
         return false;
     }
 
-    handlerPortName = "/";
-    handlerPortName += getName() + "/rpc";
-    if (!handlerPort.open(handlerPortName.c_str())) {
-        cout << getName() << ": Unable to open port " << handlerPortName << endl;
+    if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
+        cout << getName() << ": Unable to open port rpc" << endl;
         return false;
     }
 
-    gazePortName = "/";
-    gazePortName += getName() + "/gaze";
     Property option;
     option.put("device", "gazecontrollerclient");
     option.put("remote", "/iKinGazeCtrl");
-    option.put("local", gazePortName.c_str());
+    option.put("local", ("/" + moduleName + "/gaze").c_str());
 
     if (isControllingMotors)
     {
@@ -131,6 +162,7 @@ bool PasarModule::interruptModule() {
     handlerPort.interrupt();
     saliencyInput.interrupt();
     saliencyOutput.interrupt();
+    skeletonIn.interrupt();
     return true;
 }
 
@@ -140,7 +172,7 @@ bool PasarModule::close() {
     handlerPort.close();
     saliencyInput.close();
     saliencyOutput.close();
-
+    skeletonIn.close();
     igaze->restoreContext(store_context_id);
     if (clientGazeCtrl.isValid())
         clientGazeCtrl.close();
@@ -156,8 +188,9 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
         "track <int id> : track the object with the given opc id \n" +
         "track <double x> <double y> <double z> : track with the object coordinates\n" +
         "auto : switch attention between present objects \n" +
-        "sleep : pauses the head control until next command" +
+        "sleep : pauses the head control until next command\n" +
         "help \n" +
+        "pointing: detect the closest object from the right hand and increase salience\n"
         "quit \n";
 
     reply.clear();
@@ -169,6 +202,27 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "help") {
         reply.addString(helpMessage.c_str());
+    }
+    else if (command.get(0).asString() == "pointing") {
+        if (command.size() != 2)
+        {
+            reply.addString("error in PASAR: Botte 'pointing' misses information (on/off)");
+        }
+        else
+        {
+            if (command.get(1).asString() == "off")
+            {
+                isPointing = false;
+                yInfo() << " stop pointing";
+                reply.addString("stop pointing");
+            }
+            else if (command.get(1).asString() == "on")
+            {
+                isPointing = true;
+                yInfo() << " start pointing";
+                reply.addString("start pointing");
+            }
+        }
     }
     else if (command.get(0).asString() == "set") {
         reply.addString("set");
@@ -191,7 +245,8 @@ bool PasarModule::updateModule()
 {
 
     opc->update();
-    list<Entity*> entities = opc->EntitiesCache();
+    entities = opc->EntitiesCache();
+
     presentObjects.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
@@ -199,18 +254,28 @@ bool PasarModule::updateModule()
     {
         if ((*it)->name() != "icub")
         {
-            //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if (((*it)->isType(EFAA_OPC_ENTITY_OBJECT)))
-            {
+            //!!! ONLY OBJECTS, RT_OBJECT and AGENTS ARE TRACKED !!!
+
+            if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) || (*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+            {            
+                //if ((*it)->name() == "partner")
+                //{
+                //    yInfo() << "\t 1.0 \t partner salience:" << dynamic_cast<Object*>(*it)->m_saliency;
+                //}
 
                 if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
                 {
                     RTObject * rto = dynamic_cast<RTObject*>(*it);
                     presentObjects[(*it)->name()].o.fromBottle(rto->asBottle());
                     presentObjects[(*it)->name()].o.m_saliency = rto->m_saliency;
-                    presentObjects[(*it)->name()].speed = 0.0;
-                    presentObjects[(*it)->name()].acceleration = 0.0;
-                    presentObjects[(*it)->name()].restingSteps = 0;
+
+                }
+
+                if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+                {
+                    Object * ob = dynamic_cast<Object*>(*it);
+                    presentObjects[(*it)->name()].o.fromBottle(ob->asBottle());
+                    presentObjects[(*it)->name()].o.m_saliency = ob->m_saliency;
 
                 }
 
@@ -219,22 +284,19 @@ bool PasarModule::updateModule()
                     Agent *ag = dynamic_cast<Agent*>(*it);
                     presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
                     presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
-                    presentObjects[(*it)->name()].speed = 0.0;
-                    presentObjects[(*it)->name()].acceleration = 0.0;
-                    presentObjects[(*it)->name()].restingSteps = 0;
-
                 }/*
                  presentObjects[ (*it)->name() ].o.fromBottle( (*it)->asBottle() );
-                 presentObjects[ (*it)->name() ].o.m_saliency = 0.0;
-                 presentObjects[ (*it)->name() ].speed = 0.0;
-                 presentObjects[ (*it)->name() ].acceleration = 0.0;
-                 presentObjects[ (*it)->name() ].restingSteps = 0;*/
+                 presentObjects[ (*it)->name() ].o.m_saliency = 0.0;*/
+
+                //presentObjects[(*it)->name()].speed = 0.0;
+                //presentObjects[(*it)->name()].acceleration = 0.0;
+                //presentObjects[(*it)->name()].restingSteps = 0;
             }
         }
-        //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
-        //    cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
-
     }
+    //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
+    //    cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
+
     if (presentObjectsLastStep.size() > 0)
     {
         //Retrieve the bottom-up saliency (vision based) and attribute it to objects
@@ -242,6 +304,8 @@ bool PasarModule::updateModule()
 
         //Compute top down saliency (concept based)
         saliencyTopDown();
+
+        saliencyWaving();
 
         //Normalize
         //saliencyNormalize();
@@ -279,6 +343,10 @@ bool PasarModule::updateModule()
         img.copy(imageOut);
         saliencyOutput.write();
 
+        if (isPointing)  saliencyPointing();
+
+        //        entities = opc->EntitiesCacheCopy();
+
         //Update the OPC values
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
@@ -286,10 +354,16 @@ bool PasarModule::updateModule()
             {
                 (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
             }
+            //if ((*it)->name() == "partner")
+            //{
+            //    yInfo() << "\t 1.1 \t partner salience:" << dynamic_cast<Object*>(*it)->m_saliency;
+            //}
         }
         opc->commit();
     }
     presentObjectsLastStep = presentObjects;
+
+
     return true;
 }
 
@@ -437,7 +511,6 @@ void PasarModule::saliencyBottomUp()
                     it->second.o.m_saliency = avg / (double)count;
                 else
                     it->second.o.m_saliency = 0.1;
-
             }
         }
         //saliencyNormalize();
@@ -485,11 +558,10 @@ void PasarModule::saliencyTopDown() {
                 it->second.o.m_saliency += pTopDownDisappearanceBurst;
             }
 
-
             if (acceleration > thresholdMovementAccel)
             {
                 it->second.o.m_saliency += pTopDownAccelerationCoef;
-                //cout << "ca bouge !!! " << it->second.o.name() << " salience : " << acceleration << endl;
+                //cout << "ca bouge !!! " << it->second.o.name() << " salience : " << it->second.o.m_saliency << " acceleration: " << acceleration << endl;
             }
         }
     }
@@ -551,3 +623,173 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 
 
 
+/*
+* increase the salience of the closest object from the right hand
+*
+*/
+void PasarModule::saliencyPointing()
+{
+
+    opc->update();
+    Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
+    if (!(ag->m_present)) return;
+
+    Vector vec = ag->m_body.m_parts["handRight"];
+
+//    yInfo() << " righthand is:" << vec.toString();
+
+    double x = vec[0];
+    double y = vec[1];
+    double z = vec[2];
+
+    double closest = 10e5;
+    string objectPointed = "none";
+
+    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    {
+        double distance;
+        if ((*it)->name() != "partner")
+        {
+
+            //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
+            if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+            {
+                Object * rto = dynamic_cast<Object*>(*it);
+                distance = sqrt(
+                    (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
+                    (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
+                    (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
+                    );
+                //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
+                if (distance < closest)
+                {
+                    closest = distance;
+                    objectPointed = rto->name();
+                }
+            }
+        }
+    }
+
+    if (objectPointed != "none")
+    {
+        yInfo() << " pointed object is: \t" << objectPointed;
+        for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+        {
+            if ((*it)->name() == objectPointed)
+            {
+                (dynamic_cast<Object*>(*it))->m_saliency += dBurstOfPointing;
+            }
+        }
+        opc->commit();
+    }
+    else
+    {
+        yInfo() << " pasar: no object pointed";
+    }
+    opc->update();
+    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    {
+
+        if ((*it)->name() == objectPointed)
+        {
+ //           yInfo() << "\t \t objectPointed:" << dynamic_cast<Object*>(*it)->m_saliency;
+        }
+    }
+}
+
+
+/*
+*  Increase the saliency of the agent waving
+*
+*/
+void PasarModule::saliencyWaving()
+{
+
+    opc->update();
+    Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
+    if (!(ag->m_present)) 
+    {
+        presentRightHand.first = presentRightHand.second;
+        presentLeftHand.first = presentLeftHand.second;
+
+        presentRightHand.second = false;
+        presentLeftHand.second = false;
+
+        return;
+    }
+
+
+    Vector vecRight = ag->m_body.m_parts["handRight"];
+    Vector vecLeft = ag->m_body.m_parts["handLeft"];
+
+    Vector speedRightt1(3);
+    Vector speedRightt2(3);
+
+    Vector speedLeftt1(3);
+    Vector speedLeftt2(3);
+
+    Vector accelRight(3);
+    Vector accelLeft(3);
+
+    
+    speedRightt2[0] = (rightHandt1[0] - rightHandt2[0]);
+    speedRightt2[1] = (rightHandt1[1] - rightHandt2[1]);
+    speedRightt2[2] = (rightHandt1[2] - rightHandt2[2]);
+
+    speedRightt1[0] = (vecRight[0] - rightHandt1[0]);
+    speedRightt1[1] = (vecRight[1] - rightHandt1[1]);
+    speedRightt1[2] = (vecRight[2] - rightHandt1[2]);
+
+    speedLeftt1[0] = (vecLeft[0] - leftHandt1[0]);
+    speedLeftt1[1] = (vecLeft[1] - leftHandt1[1]);
+    speedLeftt1[2] = (vecLeft[2] - leftHandt1[2]);
+
+    speedLeftt2[0] = (leftHandt1[0] - leftHandt2[0]);
+    speedLeftt2[1] = (leftHandt1[1] - leftHandt2[1]);
+    speedLeftt2[2] = (leftHandt1[2] - leftHandt2[2]);
+
+    accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
+    accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
+    accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
+
+    accelLeft[0] = (speedLeftt1[0] - speedLeftt2[0]);
+    accelLeft[1] = (speedLeftt1[1] - speedLeftt2[1]);
+    accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
+
+    // get the norm of the accel vector
+    double dAccelLeft = sqrt(accelLeft[0]*accelLeft[0] + accelLeft[1]*accelLeft[1] + accelLeft[2]*accelLeft[2]);
+    double dAccelRight = sqrt(accelRight[0]*accelRight[0] + accelRight[1]*accelRight[1] + accelRight[2]*accelRight[2]);
+
+
+//    yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
+
+    // if the acceleration is made on 3 consecutive frames
+    if (presentRightHand.first && presentRightHand.second)
+    {
+        if (dAccelRight > thresholdWaving)
+        {
+            ag->m_saliency += pTopDownWaving;
+     //       yInfo() << "\t\t\t\t\tagent is waving right hand";
+        }
+        rightHandt2 = rightHandt1;
+        rightHandt1 = vecRight;
+    }
+
+    if (presentLeftHand.first && presentLeftHand.second)
+    {
+        if (dAccelLeft > thresholdWaving)
+        {
+            ag->m_saliency += pTopDownWaving;
+       //     yInfo() << "\t\tagent is waving left hand";
+        }
+        leftHandt2 = leftHandt1;
+        leftHandt1 = vecLeft;
+    }
+    opc->commit();
+
+    presentRightHand.first = presentRightHand.second;
+    presentLeftHand.first = presentLeftHand.second;
+
+    presentRightHand.second = true;
+    presentLeftHand.second = true;
+}

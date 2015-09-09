@@ -1,0 +1,32 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+    <ID  NAME="actionType"  VAL="1"/>
+  </DEFINE>
+
+
+  <RULE  NAME="stop"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+	<P>stop</P>
+
+   </RULE>
+
+  <RULE  NAME="TYPE"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+	<P>I will teach you a</P>
+    <RULEREF  NAME="actionType"/>
+   </RULE>
+
+
+
+  <RULE NAME="actionType" DYNAMIC="TRUE">
+    <L>
+      <P>proto-action</P>
+      <P>primitive</P>
+      <P>action</P>
+    </L>
+  </RULE>
+
+</GRAMMAR>

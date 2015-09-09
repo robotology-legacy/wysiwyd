@@ -11,11 +11,15 @@ bool AgentDetector::configure(ResourceFinder &rf)
     handleMultiplePlayers = rf.check("multiplePlayers");
     isMounted = !rf.check("isFixed");
     string show=rf.check("showImages",Value("false")).asString().c_str();
+    dThresholdDisparition = rf.check("dThresholdDisparition",Value("3.0")).asDouble();
 
+    // initialise timing in case of misrecognition
+    dTimingLastApparition = clock();
 
     //Open the OPC Client
     string opcName=rf.check("opc",Value("OPC")).asString().c_str();
     opc = new OPCClient(name);
+    dSince = 0.0;
     while (!opc->connect(opcName))
     {
         cout<<"Waiting connection to OPC..."<<endl;
@@ -24,7 +28,8 @@ bool AgentDetector::configure(ResourceFinder &rf)
     partner = opc->addOrRetrieveEntity<Agent>("partner");
     partner->m_present = false;
     opc->commit(partner);
-    opc->addOrRetrieveEntity<Action>("named");
+//    opc->addOrRetrieveEntity<Action>("named");
+
 
     //Retrieve the calibration matrix from RFH
     string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
@@ -49,7 +54,14 @@ bool AgentDetector::configure(ResourceFinder &rf)
     string clientName = name;
     clientName += "/kinect";
 
-   
+    //Prepare skeleton output port
+    string skeletonName = "/";
+    skeletonName += name;
+    skeletonName += "/skeleton:o";
+    outputSkeletonPort.open(skeletonName.c_str());
+
+
+
     depthPort.open( ("/"+clientName+"/depthPort:o").c_str());
     imagePort.open(("/"+clientName+"/imagePort:o").c_str());
     playersPort.open(("/"+clientName+"/playersPort:o").c_str());
@@ -66,7 +78,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
 
     Property opt;
     client.getInfo(opt);
-        
+
     showImages=(show=="true")?true:false;
     int xPos = rf.check("x",Value(10)).asInt();
     int yPos = rf.check("y",Value(10)).asInt();
@@ -81,10 +93,10 @@ bool AgentDetector::configure(ResourceFinder &rf)
     depthToDisplay.resize(depth_width,depth_height);
     playersImage.resize(depth_width,depth_height);
     skeletonImage.resize(depth_width,depth_height);
-        
+
     depthTmp=cvCreateImage(cvSize(depth_width,depth_height),IPL_DEPTH_32F,1);
     rgbTmp=cvCreateImage(cvSize(img_width,img_height),IPL_DEPTH_8U,3);
-        
+
     if (showImages)
     {
         cvNamedWindow("rgb",CV_WINDOW_AUTOSIZE);
@@ -106,7 +118,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
         faceRecognName+=name;
         faceRecognName+="/faceRecognizer:rpc";
         faceRecognizerModule.open(faceRecognName.c_str());
-                
+
         string faceRecognResName = "/";
         faceRecognResName+=name;
         faceRecognResName+="/faceRecognizer/results:i";
@@ -183,6 +195,8 @@ bool AgentDetector::close()
     playersPort.close();
     skeletonPort.interrupt();
     skeletonPort.close();
+    outputSkeletonPort.interrupt();
+    outputSkeletonPort.close();
     client.close();
     cvReleaseImage(&depthTmp);
     cvReleaseImage(&rgbTmp);
@@ -219,7 +233,7 @@ bool AgentDetector::updateModule()
     client.getRgb(rgb);
 
     bool tracked;
-    
+
     if (handleMultiplePlayers)
         tracked=client.getJoints(joints);
     else
@@ -237,28 +251,28 @@ bool AgentDetector::updateModule()
             joints.push_back(joint);
         }
     } 
-        
+
     client.getPlayersImage(players,playersImage);
     client.getDepthImage(depth,depthToDisplay);
-        
+
     if (depthPort.getOutputCount()>0)
     {
         depthPort.prepare()=depthToDisplay;
         depthPort.write();
     }
-        
+
     if (imagePort.getOutputCount()>0)
     {
         imagePort.prepare()=rgb;
         imagePort.write();
     }
-        
+
     if (playersPort.getOutputCount()>0)
     {
         playersPort.prepare()=playersImage;
         playersPort.write();
     }
-        
+
     if (skeletonPort.getOutputCount()>0)
     {
         skeletonPort.prepare()=skeletonImage;
@@ -277,13 +291,14 @@ bool AgentDetector::updateModule()
         cvCvtColor((IplImage*)rgb.getIplImage(),rgbTmp,CV_BGR2RGB);
         cvShowImage("rgb",rgbTmp);
     }
-    
+
     //Send the players information to the OPC
     bool localIsCalibrated = checkCalibration();
 
     //Allow click calibration
     if (!localIsCalibrated)
     {
+        yInfo() << " not calib";
         if (AgentDetector::clicked)
         {
             AgentDetector::clicked = false;
@@ -355,13 +370,17 @@ bool AgentDetector::updateModule()
 
     if (isRefreshed)
     {
+//        yInfo() << " refreshed";
         //////////////////////////////////////////////////////////////////
         //Clear the previous agents
-        for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
-        {
-            pA->second->m_present = false;
-        }  
-        partner->m_present = false;
+        //for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
+        //{
+        //    pA->second->m_present = false;
+        //}  
+        //partner->m_present = false;
+
+        // check if last apparition was more than dThreshlodDisaparition ago
+
 
         if (tracked)
         {
@@ -379,6 +398,8 @@ bool AgentDetector::updateModule()
                 }
                 if ( reallyTracked)
                 {
+                    dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
+                    yInfo() << " is REALLY tracked";
                     string playerName = "partner";
 
                     //If the skeleton is tracked we dont identify
@@ -404,9 +425,13 @@ bool AgentDetector::updateModule()
                     if (localIsCalibrated)
                     {
                         //Retrieve this player in OPC or create if does not exist
-
                         partner->m_present = true;
+                                    yInfo() << " is localIsCalibrated";
 
+                            
+                        // reset the timing.
+                        dTimingLastApparition = clock();
+                        
                         if (identities.find(p->ID) == identities.end())
                         {
                             cout<<"Assigning name "<<playerName<<" to skeleton "<<p->ID<<endl;
@@ -416,14 +441,17 @@ bool AgentDetector::updateModule()
 
                             identities[p->ID] = specificAgent;
                             specificAgent->m_present = true;
+                            yInfo() << " specific agent is commited";
+
                             opc->commit(specificAgent);
                         }
 
-                        Relation r(partner->name(),"named",playerName);
-                        opc->addRelation(r,1.0);
+//                        Relation r(partner->name(),"named",playerName);
+//                        opc->addRelation(r,1.0);
 
-                        //cout<<"Commiting : "<<r.toString()<<endl;
-
+//                        cout<<"Commiting : "<<r.toString()<<endl;
+                        yarp::os::Bottle &skeleton = outputSkeletonPort.prepare();
+                        skeleton.clear();
                         //Convert the skeleton into efaaHelpers body. We loose orientation in the process...
                         for(map<string,Joint>::iterator jnt = p->skeleton.begin() ; jnt != p->skeleton.end() ; jnt++)
                         {
@@ -436,8 +464,18 @@ bool AgentDetector::updateModule()
                             icubPos = kinect2icub * kPosition;
                             icubPos.resize(3);
                             Vector irPos = icubPos;
+
                             if (isMounted)
+                            {
                                 irPos = transform2IR(irPos);
+                                Bottle jntBtl;
+                                jntBtl.clear();
+                                jntBtl.addString(jnt->first);
+                                jntBtl.addDouble(jnt->second.x);
+                                jntBtl.addDouble(jnt->second.y);
+                                jntBtl.addDouble(jnt->second.z);
+                                skeleton.addList() = jntBtl;
+                            }
 
                             if (jnt->first == EFAA_OPC_BODY_PART_TYPE_HEAD)
                             {
@@ -445,9 +483,25 @@ bool AgentDetector::updateModule()
                             }
                             partner->m_body.m_parts[jnt->first] = irPos;
                         }
+//                        cout << skeleton.toString()<< endl;
+                        outputSkeletonPort.write();
                         //opc->commit(agent);
                     }
+//                    cout<<'1'<<endl;
                 }
+            }
+        }
+        else
+        {
+            if (dSince > dThresholdDisparition)
+            {
+                partner->m_present = false;
+
+            }
+            else
+            {
+                yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
+                yInfo() << " agent dissapeared but not for too long.";
             }
         }
         opc->commit();
@@ -536,7 +590,7 @@ string AgentDetector::getIdentity(Player p)
         {
             double bestVal = DBL_MAX;
             string bestName = "unknown";
-            
+
             Vector currentPattern = getSkeletonPattern(p);
             for(map<string, Vector>::iterator patternIt = skeletonPatterns.begin(); patternIt != skeletonPatterns.end();patternIt++)
             {
@@ -569,7 +623,7 @@ Vector AgentDetector::transform2IR(Vector v)
     Vector Xs = icub->m_ego_position;
     double phi = icub->m_ego_orientation[2] * M_PI / 180.0;
     //cout<<"Robot position = "<<Xs.toString(3,3)<< " Orientation = "<<phi<<endl;
-   // cout<<"Kinect position = "<<v.toString(3,3)<<endl;
+    // cout<<"Kinect position = "<<v.toString(3,3)<<endl;
 
     Matrix H(4,4);
     H(0,0) = cos(phi);  H(0,1) = -sin(phi);    H(0,2) = 0.0; H(0,3) = Xs[0];

@@ -49,6 +49,7 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         "help \n" +
         "quit \n" +
         "populateSpecific1 entity_type entity_name \n" +
+        "populateSpecific2 \n" +
         "addUnknownEntity entity_type\n" +
         "populateABM \n" +
         "setSaliencyEntity entity_name saliency_name\n";
@@ -62,6 +63,10 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "populateSpecific1") {
         yInfo() << " populateSpecific1";
         (populateSpecific1(command)) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
+    }
+    else if (command.get(0).asString() == "populateSpecific2") {
+        yInfo() << " populateSpecific2";
+        (populateSpecific2()) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
     }
     else if (command.get(0).asString() == "populateABM") {
         yInfo() << " populateABM";
@@ -356,3 +361,45 @@ bool opcPopulater::populateABM(Bottle bInput)
 
     return true;
 }
+
+
+bool opcPopulater::populateSpecific2(){
+
+
+    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("unknown_3");
+    obj1->m_ego_position[0] = (-0.5);
+    obj1->m_ego_position[1] = (0.3);
+    obj1->m_ego_position[2] = 0.0;
+    obj1->m_present = 1;
+    obj1->m_color[0] = Random::uniform(100, 180);
+    obj1->m_color[1] = Random::uniform(0, 80);
+    obj1->m_color[2] = Random::uniform(180, 250);
+    iCub->opc->commit(obj1);
+
+    Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("unknown_4");
+    obj2->m_ego_position[0] = (-0.5);
+    obj2->m_ego_position[1] = (-0.3);
+    obj2->m_ego_position[2] = 0.0;
+    obj2->m_present = 1;
+    obj2->m_color[0] = Random::uniform(100, 180);
+    obj2->m_color[1] = Random::uniform(0, 80);
+    obj2->m_color[2] = Random::uniform(180, 250);
+    iCub->opc->commit(obj2);
+
+    Object* obj3 = iCub->opc->addOrRetrieveEntity<Object>("unknown_5");
+    obj3->m_ego_position[0] = (-0.5);
+    obj3->m_ego_position[1] = (0.0);
+    obj3->m_ego_position[2] = 0.0;
+    obj3->m_present = 1;
+    obj3->m_color[0] = Random::uniform(100, 180);
+    obj3->m_color[1] = Random::uniform(0, 80);
+    obj3->m_color[2] = Random::uniform(180, 250);
+    iCub->opc->commit(obj3);
+
+    obj1 = NULL;
+    obj2 = NULL;
+    obj3 = NULL;
+
+    return true;
+}
+

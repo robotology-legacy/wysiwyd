@@ -72,6 +72,13 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " LRH NOT CONNECTED: will not produce sentences";
     }
 
+    // out to pasar
+    portToPasar.open(("/" + moduleName + "/pasar:o").c_str());
+    if (!Network::connect(portToPasar.getName().c_str(),"/pasar/rpc")) {
+        yWarning() << " PASAR NOT CONNECTED: will not engage pointing";
+    }
+
+
     //in from TouchDetector
     portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str());
     string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touchDetector/touch:o")).asString().c_str();
@@ -581,6 +588,12 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
     iCub->say(sSentence);
     yInfo() << " " << sSentence;
 
+
+    Bottle bToPasar;
+    bToPasar.addString("pointing");
+    bToPasar.addString("on");
+    portToPasar.write(bToPasar);
+
     bool bFound = false;
 
     Time::delay(2.);
@@ -678,6 +691,12 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
             }
         }
     }
+
+    bToPasar.clear();
+    bToPasar.addString("pointing");
+    bToPasar.addString("off");
+    portToPasar.write(bToPasar);
+
 
     iCub->opc->commit();
 
