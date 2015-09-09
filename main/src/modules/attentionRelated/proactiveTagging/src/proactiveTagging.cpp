@@ -472,7 +472,10 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         iCub->say(sQuestion);
     }
     else if(currentEntityType == "object" || currentEntityType == "rtobject") {
-        Bottle bHand("left");
+        Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("sNameTarget");
+        string sHand = "right";
+        if (obj1->m_ego_position[1]<0) sHand = "left";
+        Bottle bHand(sHand);
         iCub->point(sNameTarget, bHand);
     } else if(currentEntityType == "agent") {
         iCub->getARE()->waving(true);
