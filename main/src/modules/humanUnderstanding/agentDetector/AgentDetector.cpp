@@ -19,6 +19,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     //Open the OPC Client
     string opcName=rf.check("opc",Value("OPC")).asString().c_str();
     opc = new OPCClient(name);
+    dSince = 0.0;
     while (!opc->connect(opcName))
     {
         cout<<"Waiting connection to OPC..."<<endl;
@@ -380,7 +381,6 @@ bool AgentDetector::updateModule()
 
         // check if last apparition was more than dThreshlodDisaparition ago
 
-        double dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
 
         if (tracked)
         {
@@ -398,6 +398,8 @@ bool AgentDetector::updateModule()
                 }
                 if ( reallyTracked)
                 {
+                    dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
+                    yInfo() << " is REALLY tracked";
                     string playerName = "partner";
 
                     //If the skeleton is tracked we dont identify
@@ -424,7 +426,9 @@ bool AgentDetector::updateModule()
                     {
                         //Retrieve this player in OPC or create if does not exist
                         partner->m_present = true;
+                                    yInfo() << " is localIsCalibrated";
 
+                            
                         // reset the timing.
                         dTimingLastApparition = clock();
                         
@@ -437,11 +441,13 @@ bool AgentDetector::updateModule()
 
                             identities[p->ID] = specificAgent;
                             specificAgent->m_present = true;
+                            yInfo() << " specific agent is commited";
+
                             opc->commit(specificAgent);
                         }
 
-                        Relation r(partner->name(),"named",playerName);
-                        opc->addRelation(r,1.0);
+//                        Relation r(partner->name(),"named",playerName);
+//                        opc->addRelation(r,1.0);
 
 //                        cout<<"Commiting : "<<r.toString()<<endl;
                         yarp::os::Bottle &skeleton = outputSkeletonPort.prepare();

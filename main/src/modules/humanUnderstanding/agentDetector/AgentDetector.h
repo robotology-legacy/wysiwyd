@@ -57,6 +57,7 @@ protected:
     map<int, Agent*> identities;
     string currentTrainingFace;
 	map<string, Vector> skeletonPatterns;
+    double dSince;
 
     unsigned long dTimingLastApparition;        // time struct of the last appartition of an agent
     double dThresholdDisparition;           // timing maximal of non-reconnaissance of a agent, after thath we consider the agent as absent
