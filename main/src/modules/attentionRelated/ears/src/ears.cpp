@@ -106,6 +106,8 @@ bool ears::updateModule() {
         iCub->opc->update();
         list<Entity*> entities = iCub->opc->EntitiesCacheCopy();
 
+        int iPriority = 1;
+
         vector<Bottle> vListAction;
 
         bool bFoundObject = false;
@@ -130,6 +132,8 @@ bool ears::updateModule() {
             bCondition.addString("macro");
             bCondition.addString("search");
             bCondition.addString(sObject);
+            bCondition.addInt(iPriority);
+            iPriority++;
             vListAction.push_back(bCondition);
         }
 
@@ -138,12 +142,14 @@ bool ears::updateModule() {
         bAction.addString("primitive");
         bAction.addString(sPredicate);
         bAction.addString(sObject);
+        bAction.addInt(iPriority);
 
         vListAction.push_back(bAction);
+        Bottle bRead;
 
         for (vector<Bottle>::iterator itBo = vListAction.begin() ; itBo != vListAction.end() ; itBo++)
         {
-            portToReactive.write(*itBo);
+            portToReactive.write(*itBo, bRead);
         }
     }
 
