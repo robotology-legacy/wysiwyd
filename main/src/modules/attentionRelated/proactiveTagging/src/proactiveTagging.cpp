@@ -1,18 +1,18 @@
 /*
- * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
- * Authors: Grégoire Pointeau, Tobias Fischer, Maxime Petit
- * email:   greg.pointeau@gmail.com, t.fischer@imperial.ac.uk, m.petit@imperial.ac.uk
- * Permission is granted to copy, distribute, and/or modify this program
- * under the terms of the GNU General Public License, version 2 or any
- * later version published by the Free Software Foundation.
- *
- * A copy of the license can be found at
- * wysiwyd/license/gpl.txt
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details
+* Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
+* Authors: Grégoire Pointeau, Tobias Fischer, Maxime Petit
+* email:   greg.pointeau@gmail.com, t.fischer@imperial.ac.uk, m.petit@imperial.ac.uk
+* Permission is granted to copy, distribute, and/or modify this program
+* under the terms of the GNU General Public License, version 2 or any
+* later version published by the Free Software Foundation.
+*
+* A copy of the license can be found at
+* wysiwyd/license/gpl.txt
+*
+* This program is distributed in the hope that it will be useful, but
+* WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+* Public License for more details
 */
 
 #include "proactiveTagging.h"
@@ -93,12 +93,12 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     }
     if (!iCub->getABMClient())
     {
-       yWarning() << "WARNING ABM NOT CONNECTED";
+        yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
+    std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
     //if (iCub->getSpeechClient())
     iCub->getSpeechClient()->SetOptions(ttsOptions);
 
@@ -356,8 +356,8 @@ Bottle proactiveTagging::recogName(string entityType)
     Bottle bOutput;
 
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-    bAnswer, //response from speech recog without transfer information, including raw sentence
-    bSemantic; // semantic information of the content of the recognition
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic; // semantic information of the content of the recognition
 
     //Load the Speech Recognition with grammar according to entityType
     if(entityType == "agent"){
@@ -513,8 +513,8 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
             iol2opcClient->changeName(sNameTarget, sName);
         }
         else {
-             yError() << "Could not connect to IOL2OPC subsystem";
-             sReply = " I get it, this is a " + sName;
+            yError() << "Could not connect to IOL2OPC subsystem";
+            sReply = " I get it, this is a " + sName;
         }
         //sReply = " I get it, this is a " + sName;
         Bottle bToLRH, bFromLRH;
@@ -694,7 +694,7 @@ Bottle proactiveTagging::searchingEntity(Bottle bInput)
                     iol2opcClient->changeName(sNameBestEntity, sNameTarget);
                 }
                 else {
-                     yError() << "Could not connect to IOL2OPC subsystem";
+                    yError() << "Could not connect to IOL2OPC subsystem";
                 }
             }
         }
