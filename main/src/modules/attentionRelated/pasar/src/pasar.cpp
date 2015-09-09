@@ -628,7 +628,7 @@ void PasarModule::saliencyPointing()
 
     Vector vec = ag->m_body.m_parts["handRight"];
 
-    yInfo() << " righthand is:" << vec.toString();
+//    yInfo() << " righthand is:" << vec.toString();
 
     double x = vec[0];
     double y = vec[1];
@@ -684,7 +684,7 @@ void PasarModule::saliencyPointing()
 
         if ((*it)->name() == objectPointed)
         {
-            yInfo() << "\t \t objectPointed:" << dynamic_cast<Object*>(*it)->m_saliency;
+ //           yInfo() << "\t \t objectPointed:" << dynamic_cast<Object*>(*it)->m_saliency;
         }
     }
 }
@@ -761,7 +761,7 @@ void PasarModule::saliencyWaving()
         if (dAccelRight > thresholdWaving)
         {
             ag->m_saliency += pTopDownWaving;
-            yInfo() << "\t\t\t\t\tagent is waving right hand";
+     //       yInfo() << "\t\t\t\t\tagent is waving right hand";
         }
         rightHandt2 = rightHandt1;
         rightHandt1 = vecRight;
@@ -772,7 +772,7 @@ void PasarModule::saliencyWaving()
         if (dAccelLeft > thresholdWaving)
         {
             ag->m_saliency += pTopDownWaving;
-            yInfo() << "\t\tagent is waving left hand";
+       //     yInfo() << "\t\tagent is waving left hand";
         }
         leftHandt2 = leftHandt1;
         leftHandt1 = vecLeft;
