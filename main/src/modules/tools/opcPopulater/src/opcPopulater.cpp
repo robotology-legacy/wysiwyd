@@ -367,9 +367,9 @@ bool opcPopulater::populateSpecific2(){
 
 
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("unknown_3");
-    obj1->m_ego_position[0] = (-0.5);
+    obj1->m_ego_position[0] = (-0.34);
     obj1->m_ego_position[1] = (0.3);
-    obj1->m_ego_position[2] = 0.0;
+    obj1->m_ego_position[2] = 0.1;
     obj1->m_present = 1;
     obj1->m_color[0] = Random::uniform(100, 180);
     obj1->m_color[1] = Random::uniform(0, 80);
@@ -377,9 +377,9 @@ bool opcPopulater::populateSpecific2(){
     iCub->opc->commit(obj1);
 
     Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("unknown_4");
-    obj2->m_ego_position[0] = (-0.5);
+    obj2->m_ego_position[0] = (-0.34);
     obj2->m_ego_position[1] = (-0.3);
-    obj2->m_ego_position[2] = 0.0;
+    obj2->m_ego_position[2] = 0.1;
     obj2->m_present = 1;
     obj2->m_color[0] = Random::uniform(100, 180);
     obj2->m_color[1] = Random::uniform(0, 80);
@@ -387,9 +387,9 @@ bool opcPopulater::populateSpecific2(){
     iCub->opc->commit(obj2);
 
     Object* obj3 = iCub->opc->addOrRetrieveEntity<Object>("unknown_5");
-    obj3->m_ego_position[0] = (-0.5);
+    obj3->m_ego_position[0] = (-0.34);
     obj3->m_ego_position[1] = (0.0);
-    obj3->m_ego_position[2] = 0.0;
+    obj3->m_ego_position[2] = 0.1;
     obj3->m_present = 1;
     obj3->m_color[0] = Random::uniform(100, 180);
     obj3->m_color[1] = Random::uniform(0, 80);
