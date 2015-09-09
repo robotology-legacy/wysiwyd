@@ -215,39 +215,45 @@ bool attentionSelectorModule::updateModule() {
             return true;
 
     opc->checkout();
-    list<Entity*> entities = opc->EntitiesCacheCopy();
+    //list<Entity*> entities = opc->EntitiesCacheCopy();
+    list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
     for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
     {
-        if ((*it)->name() == "icub")
-            icub = dynamic_cast<Agent*>(*it);
+        if ((*it)->isType(EFAA_OPC_ENTITY_ACTION))
+            cout << "Ignoring relation..." << endl;
         else
         {
-            ////!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            //if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
-            //{
-            //    //yDebug() << "push back " << (*it)->name() << *it;
-            //    presentObjects.push_back(dynamic_cast<Object*>(*it));
-            //}
-
-            // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
-            if (!(dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0  &&  (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0  )
+            if ((*it)->name() == "icub")
+                icub = dynamic_cast<Agent*>(*it);
+            else
             {
-                if ( ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ||  (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) )
+                ////!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
+                //if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
+                //{
+                //    //yDebug() << "push back " << (*it)->name() << *it;
+                //    presentObjects.push_back(dynamic_cast<Object*>(*it));
+                //}
+
+                // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
+                if (!(dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0  &&  (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0  )
                 {
-                    if ((dynamic_cast<Object*>(*it))->m_present )
+                    if ( ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ||  (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) )
                     {
-                        //yDebug() << "push back " << (*it)->name() << *it;
-                        presentObjects.push_back(dynamic_cast<Object*>(*it));
-                    }
-                    else if ((dynamic_cast<Object*>(*it))->m_saliency > 0.0)
-                    {
-                        presentObjects.push_back(dynamic_cast<Object*>(*it));
+                        if ((dynamic_cast<Object*>(*it))->m_present )
+                        {
+                            //yDebug() << "push back " << (*it)->name() << *it;
+                            presentObjects.push_back(dynamic_cast<Object*>(*it));
+                        }
+                        else if ((dynamic_cast<Object*>(*it))->m_saliency > 0.0)
+                        {
+                            presentObjects.push_back(dynamic_cast<Object*>(*it));
+                        }
                     }
                 }
+
+
             }
-
-
         }
     }
 

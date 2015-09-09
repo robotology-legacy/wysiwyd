@@ -41,6 +41,7 @@ private:
     ICubClient *iCub;
 
     Bottle drivesList;
+    Bottle temporalDrivesList;
 
     Port to_homeo_rpc;
     string moduleName;
@@ -65,7 +66,9 @@ private:
 	map<string, StimulusEmotionalResponse> homeostaticOverEffects;
 	map<string, StimulusEmotionalResponse> homeostaticUnderEffects;
 
+
     vector<double> drivePriorities;
+    double priority_sum;
 
     Port rpc;
 
@@ -122,6 +125,8 @@ public:
 	bool respond(const Bottle& cmd, Bottle& reply);
 
     bool Normalize(vector<double>& vec);
+
+    bool createTemporalDrive(string name, double prior);
 
     // Choose a drive out of CZ, according to drive priorities
     DriveOutCZ chooseDrive();

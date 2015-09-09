@@ -195,7 +195,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
     //iCub->icubAgent->m_drives.clear();
     Bottle cmd;
 
-    double priority_sum = 0.;
+    priority_sum = 0.;
     double priority;
     for (int d = 0; d<drivesList.size(); d++)
     {
@@ -354,6 +354,39 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
     InternalVariablesDecay* decayThread;
     decayThread = new InternalVariablesDecay(500, emotionalDecay);
     decayThread->start();
+}
+
+bool ReactiveLayer::createTemporalDrive(string name, double prior)
+{
+    //Add new drive with default configuration
+    Bottle cmd;
+    cmd.clear();
+    cmd.addString("add");
+    cmd.addString("new");
+    cmd.addString(name);
+    to_homeo_rpc.write(cmd);
+    yarp::os::Time::delay(0.2);
+    //drivesList.push_back(name);
+
+    //Remove decay: it will always be either needed or not
+    cmd.clear();
+    cmd.addString("par");
+    cmd.addString(name);
+    cmd.addString("dec");
+    cmd.addDouble(0.0);
+    to_homeo_rpc.write(cmd);
+    yarp::os::Time::delay(0.2);
+
+    //Change priorities
+    double priority = priority_sum*prior;
+    priority_sum += priority;
+    //drivePriorities.push_back();
+    Normalize(drivePriorities);
+
+
+    //Is everything alright¿?
+    return true;
+
 }
 
 bool ReactiveLayer::Normalize(vector<double>& vec) {
@@ -697,6 +730,8 @@ bool ReactiveLayer::updateAllostatic()
     }
     //cout <<drivesList.size()<<endl;
 
+    //TODO: Add temporal drive handling
+
     DriveOutCZ activeDrive = chooseDrive();
 
 
@@ -838,6 +873,31 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
 
 bool ReactiveLayer::respond(const Bottle& cmd, Bottle& reply)
 {
-    reply.addString("NACK");
+    if (cmd.get(0).asString() == "help" )
+    {   string help = "\n";
+        help += " ['need'] ['macro'] [name] [arguments]   : Assigns a value to a specific parameter \n";
+        reply.addString(help);
+        /*cout << " [par] [drive] [val/min/max/dec] [value]   : Assigns a value to a specific parameter \n"<<
+                " [delta] [drive] [val/min/max/dec] [value] : Adds a value to a specific parameter  \n"<<
+                " [add] [conf] [drive Bottle]               : Adds a drive to the manager as a drive directly read from conf-file  \n"<<
+                " [add] [botl] [drive Bottle]                : Adds a drive to the manager as a Bottle of values of shape \n"<<
+                "                                           : (string name, double value, double homeo_min, double homeo_max, double decay = 0.05, bool gradient = true) \n"<<endl;
+    */
+    }else if (cmd.get(0).asString() == "need")
+    {
+        if (cmd.get(1).asString() == "macro") //macro is for subgoals or general actions
+        {
+            if (cmd.get(2).asString() == "search")
+            {
+                string o_name = cmd.get(3).asString();
+                double p = (1/cmd.get(4).asDouble() * 5 ) * 100;
+                createTemporalDrive(o_name, p);
+            }
+        }else if (cmd.get(1).asString() == "primitive")
+        {
+
+        }
+    }
+
     return true;
 }

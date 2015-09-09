@@ -28,6 +28,27 @@ bool homeostaticModule::addNewDrive(string driveName, yarp::os::Bottle& grpHomeo
 
     return true;
 }
+bool homeostaticModule::addNewDrive(string driveName)
+{
+
+    cout << "adding a default drive..." << endl;
+    Drive* drv = new Drive(driveName);
+
+
+    drv->setHomeostasisMin(drv->homeostasisMin);
+    drv->setHomeostasisMax(drv->homeostasisMax);
+    drv->setDecay(drv->decay);
+    drv->setValue((drv->homeostasisMax + drv->homeostasisMin) / 2.);
+    drv->setGradient(false);
+    
+    manager.addDrive(drv);
+    
+    cout << "default drive added. Opening ports..."<<endl;
+    openPorts(driveName);
+    cout << "new drive created successfully!"<<endl;
+
+    return true;
+}
 
 int homeostaticModule::openPorts(string driveName)
 {
@@ -121,17 +142,34 @@ bool homeostaticModule::configure(yarp::os::ResourceFinder &rf)
     return true;
 }
 
+bool homeostaticModule::removeDrive(int d)
+{
+    //Remove drive
+    manager.removeDrive(d);
+    //close ports
+    input_ports[d]->close();
+    outputm_ports[d]->close();
+    outputM_ports[d]->close();
+    //Remove ports from lists
+    input_ports.erase(input_ports.begin()+d);
+    outputm_ports.erase(outputm_ports.begin()+d);
+    outputM_ports.erase(outputM_ports.begin()+d);
+    return true;
+}
 
 
 bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
 {
 	if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
-        help += " [par] [drive] [val/min/max/dec] [value]   : Assigns a value to a specific parameter \n";
-        help += " [delta] [drive] [val/min/max/dec] [value] : Adds a value to a specific parameter  \n";
-        help += " [add] [conf] [drive Bottle]               : Adds a drive to the manager as a drive directly read from conf-file  \n";
-        help += " [add] [botl] [drive Bottle]                : Adds a drive to the manager as a Bottle of values of shape \n";
-        help += "                                           : (string name, double value, double homeo_min, double homeo_max, double decay = 0.05, bool gradient = true) \n";
+        help += " ['par'] ['drive'] ['val'/'min'/'max'/'dec'] [value]   : Assigns a value to a specific parameter \n";
+        help += " ['delta'] ['drive'] ['val'/'min'/'max'/'dec'] [value] : Adds a value to a specific parameter  \n";
+        help += " ['add'] ['conf'] [drive Bottle]                       : Adds a drive to the manager as a drive directly read from conf-file  \n";
+        help += " ['add'] ['botl'] [drive Bottle]                       : Adds a drive to the manager as a Bottle of values of shape \n";
+        help += " ['add'] ['new'] [drive name]                          : Adds a default drive to the manager \n";
+        help += " ['rm'] [drive name]                                   : removes a drive from the manager \n";
+        help += " ['names']                                             : returns an ordered list of the drives in the manager \n";
+        help += "                                                       : (string name, double value, double homeo_min, double homeo_max, double decay = 0.05, bool gradient = true) \n";
         reply.addString(help);
         /*cout << " [par] [drive] [val/min/max/dec] [value]   : Assigns a value to a specific parameter \n"<<
                 " [delta] [drive] [val/min/max/dec] [value] : Adds a value to a specific parameter  \n"<<
@@ -178,7 +216,7 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     {
         for (unsigned int d = 0; d<manager.drives.size();d++)
         {
-            if (cmd.get(0).asString() == manager.drives[d]->name)
+            if (cmd.get(1).asString() == manager.drives[d]->name)
             {
                 if (cmd.get(2).asString()=="val")
                 {
@@ -213,7 +251,7 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
             Bottle *ga = cmd.get(2).asList();
            // cout <<"HOMEOSTATIC"<< ga->toString() << endl;
             Bottle grpAllostatic = ga->findGroup("ALLOSTATIC");
-           cout <<"HOMEOSTATIC"<< grpAllostatic.toString() << endl;
+            cout <<"HOMEOSTATIC"<< grpAllostatic.toString() << endl;
             cout << "Bottle allo check: " << grpAllostatic.find("test-decay").asDouble() << endl; 
 
             addNewDrive(cmd.get(2).check("name",yarp::os::Value("")).asString(), grpAllostatic);
@@ -226,11 +264,36 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
             openPorts(d.name);
             reply.addString("add drive from bottle: ack");
         }
+        else if (cmd.get(1).asString()=="new")
+        {
+            string d_name = cmd.get(2).asString();
+            bool b = addNewDrive(d_name);
+            if (b)
+                reply.addString("add new drive: ack");
+            else
+                reply.addString("ack. drive not created");
+        }
         else
         {
             reply.addString("nack");
         }
 
+    }
+    else if (cmd.get(0).asString()=="rm")
+    {
+        for (unsigned int d = 0; d<manager.drives.size();d++)
+        {
+            if (cmd.get(1).asString() == manager.drives[d]->name)
+            {
+                bool b = removeDrive(d);
+                if (b)
+                    reply.addString("ack: Successfully removed");
+                else
+                    reply.addString("ack: Could not remove the drive");
+
+            }
+        }
+        reply.addString("nack");
     }
     else if (cmd.get(0).asString()=="names")
     {

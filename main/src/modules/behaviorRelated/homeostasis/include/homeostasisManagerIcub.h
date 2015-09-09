@@ -40,6 +40,8 @@ private:
     Port    rpc;
 
     bool addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic);
+    bool addNewDrive(string driveName);
+    bool removeDrive(int d);
     //bool addNewDrive(string driveName, yarp::os::Value grpHomeostatic, int d);
 	//void configureTactile(yarp::os::ResourceFinder &rf);
 	//void configureSalutation(yarp::os::ResourceFinder &rf);
