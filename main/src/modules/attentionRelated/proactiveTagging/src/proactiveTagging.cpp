@@ -98,6 +98,11 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
+     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
+    //if (iCub->getSpeechClient())
+    iCub->getSpeechClient()->SetOptions(ttsOptions);
+
+
     iCub->say("proactive tagging is ready", false);
 
     return true;
@@ -242,7 +247,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
     }
     else {
         cout << helpMessage;
-        reply.addString("ok");
+        reply.addString(helpMessage);
     }
 
     rpcPort.reply(reply);
