@@ -204,17 +204,25 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
         reply.addString(helpMessage.c_str());
     }
     else if (command.get(0).asString() == "pointing") {
-        if (isPointing)
+        if (command.size() != 2)
         {
-            yInfo() << " stop pointing";
-            reply.addString("stop pointing");
+            reply.addString("error in PASAR: Botte 'pointing' misses information (on/off)");
         }
         else
         {
-            yInfo() << " start pointing";
-            reply.addString("start pointing");
+            if (command.get(1).asString() == "off")
+            {
+                isPointing = false;
+                yInfo() << " stop pointing";
+                reply.addString("stop pointing");
+            }
+            else if (command.get(1).asString() == "on")
+            {
+                isPointing = true;
+                yInfo() << " start pointing";
+                reply.addString("start pointing");
+            }
         }
-        isPointing = !isPointing;
     }
     else if (command.get(0).asString() == "set") {
         reply.addString("set");
