@@ -51,7 +51,7 @@ private:
 
     //objectTagging
     yarp::os::Bottle  exploreUnknownEntity(yarp::os::Bottle bInput);
-    yarp::os::Bottle  exploreEntityByName(yarp::os::Bottle bInput);
+    yarp::os::Bottle  searchingEntity(yarp::os::Bottle bInput);
 
 
     //selfTagging.cpp

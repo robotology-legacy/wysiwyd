@@ -176,9 +176,9 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             reply = exploreUnknownEntity(command);
         }
     }
-    else if (command.get(0).asString() == "exploreEntityByName") {
-        yInfo() << " exploreEntityByName";
-        reply = exploreEntityByName(command);
+    else if (command.get(0).asString() == "searchingEntity") {
+        yInfo() << " searchingEntity";
+        reply = searchingEntity(command);
     }
     else if (command.get(0).asString() == "exploreKinematicByName") {
         //exploreKinematicByName name bodypart [true/false]
@@ -546,13 +546,13 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
 * First element is: error - warning - success
 * Second element is: information about the action
 */
-Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
+Bottle proactiveTagging::searchingEntity(Bottle bInput)
 {
     Bottle bOutput;
 
     if (bInput.size() != 2)
     {
-        yInfo() << " proactiveTagging::exploreEntityByName | Problem in input size.";
+        yInfo() << " proactiveTagging::searchingEntity | Problem in input size.";
         bOutput.addString("Problem in input size");
         return bOutput;
     }
@@ -579,7 +579,7 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
     }
     else
     {
-        yWarning() << " in proactiveTagging::exploreEntityByName | OPC not Connected";
+        yWarning() << " in proactiveTagging::searchingEntity | OPC not Connected";
         bOutput.addString("error");
         bOutput.addString("OPC not connected");
 
