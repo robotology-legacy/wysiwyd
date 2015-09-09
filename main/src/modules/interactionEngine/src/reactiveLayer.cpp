@@ -173,7 +173,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
         yarp::os::Time::delay(0.2);
     }
 
-    /*
+    /*//Query drive names
     Bottle cmd;
     Bottle rpl;
     rpl.clear();
@@ -190,6 +190,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
     //Initialise the iCub allostatic model. Drives for interaction engine will be read from IE default.ini file
     cout << "Initializing drives..."<<endl;
     Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
+    cout << "HERREEE" << grpAllostatic.toString() << endl;
     drivesList = *grpAllostatic.find("drives").asList();
     //iCub->icubAgent->m_drives.clear();
     Bottle cmd;
@@ -200,6 +201,7 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
     {
         cmd.clear();
         string driveName = drivesList.get(d).asString().c_str();
+
         cmd.addString("add");
         cmd.addString("conf");
         Bottle drv;
@@ -210,18 +212,37 @@ void ReactiveLayer::configureAllostatic(yarp::os::ResourceFinder &rf)
         aux.addString(driveName);
         drv.addList()=aux;
         aux.clear();
-        drv.append(grpAllostatic);
-        cmd.append(drv);//addList()=drv;
+        drv.addList()=grpAllostatic;
+        cmd.addList()=drv;
         Bottle rply;
         rply.clear();
         rply.get(0).asString();
         cout << cmd.toString() << endl;
-        /*while(rply.get(0).auxsString()!="ack")
-            {*/
-        //to_homeo_rpc.write(cmd,rply);
-        cout << rply.toString()<<endl;
-        /*  cout<<"cannot create drive "<< driveName << "..."<<endl;
-            }*/
+
+        // cmd.addString("add");
+        // cmd.addString("conf");
+        // Bottle drv;
+        // drv.clear();
+        // Bottle aux;
+        // aux.clear();
+        // aux.addString("name");
+        // aux.addString(driveName);
+        // drv.addList()=aux;
+        // aux.clear();
+        // drv.append(grpAllostatic);
+        // cmd.append(drv);//addList()=drv;
+        // Bottle rply;
+        // rply.clear();
+        // rply.get(0).asString();
+        // cout << cmd.toString() << endl;
+
+
+        // while(rply.get(0).asString()!="ack")
+        // {
+            to_homeo_rpc.write(cmd,rply);
+            cout << rply.toString()<<endl;
+            // cout<<"cannot create drive "<< driveName << "..."<<endl;
+        // }
 
 
         int answer = openPorts(driveName,d);
@@ -461,6 +482,7 @@ bool ReactiveLayer::handleTagging()
         }
 
         if (sendRPC) {
+            cout << "send rpc to proactiveTagging"<<endl;
             //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
             homeostaticUnderEffects["tagging"].rpc_command.clear();
             homeostaticUnderEffects["tagging"].rpc_command.addString("exploreUnknownEntity");

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h>
+#include <limits> 
 
 using namespace std;
 
@@ -9,39 +10,39 @@ class Drive
 {
 public:
     std::string name;
-    double value, homeostasisMin, homeostasisMax, decay;
+    double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax;
     bool gradient;
 
-    Drive(std::string d_name, double d_value, double d_homeo_min, double d_homeo_max, double d_decay = 0.05, bool d_gradient = true)
+    Drive(std::string d_name, double d_value=0.5, double d_homeo_min=0.25, double d_homeo_max=0.75, double d_decay = 0.05, double d_value_min=numeric_limits<double>::min(), double d_value_max=numeric_limits<double>::max(), bool d_gradient = false)
     {
-
-        //todo : check the min/max
         name = d_name;
         value = d_value;
         homeostasisMin = d_homeo_min;
         homeostasisMax = d_homeo_max;
         decay = d_decay;
         gradient = d_gradient;
+        //todo : check the min/max
+        double homeoRange =  homeostasisMax - homeostasisMin;
+        if (d_value_min == numeric_limits<double>::min() && d_value_max == numeric_limits<double>::max()){
+            valueMin = homeostasisMin - 0.5 * homeoRange;
+            valueMax = homeostasisMax + 0.5 * homeoRange;
+        } else {
+            valueMin = d_value_min;
+            valueMax = d_value_max;
+        }
+             
+
     }
 
     Drive()
     {
+        cout << "Drive created using the default construtor, you should not do this" << endl;
         name = "defaultDrive";
         value = 0.5;
         homeostasisMin = 0.25;
         homeostasisMax = 0.75;
         decay = 0.0;
         gradient = true;
-    }
-
-    Drive(const Drive &b)
-    {
-        name = b.name;
-        value = b.value;
-        homeostasisMin = b.homeostasisMin;
-        homeostasisMax = b.homeostasisMax;
-        decay = b.decay;
-        gradient = b.gradient;
     }
 
     void setValue(double d_value)
@@ -92,9 +93,10 @@ public:
 
     void update()
     {
-        if ((this->value > 1 && this->decay<0)|| (this->value < 0 && this->decay>0))
-            this->decay = 0.0;
-        this->value -= this->decay;
+        if (! ((this->value > valueMax && this->decay<0) || (this->value < valueMin && this->decay>0))) {
+            this->value -= this->decay;           
+        }
+
 
         //cout<<"real decay: "<<this->sigDecay()<<endl;
         //this->value -= this->sigDecay();

@@ -8,24 +8,20 @@ using namespace std;
 
 
 
+
 class homeostasisManager
 {
 
 
 public:
 	std::vector<Drive*> drives;
-	std::vector<string*> drive_names;
-	std::vector<double*> drive_values;
-	unsigned int n_drives;
 
-    homeostasisManager(int n);
+    //homeostasisManager(int n);
 	//bool configHomeostatic(n_drives);
-	bool addDrive(Drive *D);
+	void addDrive(Drive* D);
 	/*Generates a drive in the homeostasis manager. 
 	Homeostasis manager will take care of updating it. 
 	Input must be a drive and its position*/
-	bool removeDrive(Drive &D,unsigned int n);
-	/*Not implemented*/
 	bool updateDrives(double t);
 	/*Calls the update function for each drive. */
 	
@@ -95,9 +91,7 @@ public:
 	// 	return true;
 	// }
 	
-	vector<double*> getDriveStatus(int n);
-	/*Returns a vector with the updated list of values
-	of each drive, or a specific one. */
+
 
 	
 
