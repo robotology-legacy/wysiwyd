@@ -95,9 +95,11 @@ bool ears::updateModule() {
         }
 
         bAnswer = *bRecognized.get(1).asList();
+
         // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
-        bSemantic = *bAnswer.get(1).asList();
+        bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
+        cout << bSemantic.toString() << endl;
         string sPredicate = bSemantic.check("predicate", Value("none")).asString();
         string sObject    = bSemantic.check("object", Value("none")).asString();
 
