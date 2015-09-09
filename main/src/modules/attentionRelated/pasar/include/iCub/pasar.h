@@ -72,7 +72,6 @@ class PasarModule : public yarp::os::RFModule {
     BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
     ImageOf<PixelRgb>				  imageOut;
 
-    BufferedPort<Bottle>        skeletonIn;
     bool    isSkeletonIn;
 
     Agent* icub;
@@ -86,12 +85,9 @@ class PasarModule : public yarp::os::RFModule {
     bool isControllingMotors;
     bool isPointing; // is the human is pointing
     int store_context_id;
-    PolyDriver clientGazeCtrl;
-    IGazeControl *igaze;
 
 protected:
     bool isFixationPointSafe(yarp::sig::Vector fp);
-    void saliencyBottomUp();
     void saliencyTopDown();
     void saliencyNormalize();
     void saliencyLeakyIntegration();
