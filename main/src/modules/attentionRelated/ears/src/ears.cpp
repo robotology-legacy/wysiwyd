@@ -1,7 +1,5 @@
 #include "ears.h"
 
-
-
 bool ears::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("ears")).asString().c_str();
@@ -27,15 +25,12 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " reactive Layer is not reachable";
     }
 
-
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
 
     bListen = false;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
-    iCub->say("ears are ready", false);
-
-
+    
     return true;
 }
 
