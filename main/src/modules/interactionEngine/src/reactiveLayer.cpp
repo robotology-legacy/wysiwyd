@@ -88,6 +88,7 @@ bool ReactiveLayer::configure(yarp::os::ResourceFinder &rf)
     }
 
     //Set the voice
+
     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
     //if (iCub->getSpeechClient())
     //iCub->getSpeechClient()->SetOptions(ttsOptions);
