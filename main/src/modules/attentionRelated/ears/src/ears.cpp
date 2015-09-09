@@ -23,7 +23,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     attach(rpc);
 
     portToReactive.open(("/" + moduleName + "/reactive:o").c_str());
-        if (!Network::connect(portToReactive.getName().c_str(),"/reactiveLayer/rpc")) {
+    if (!Network::connect(portToReactive.getName().c_str(),"/reactiveLayer/rpc")) {
         yWarning() << " reactive Layer is not reachable";
     }
 
@@ -130,17 +130,18 @@ bool ears::updateModule() {
         {
             Bottle bCondition;
             bCondition.addString("need");
+            bCondition.addString("macro");
             bCondition.addString("search");
             bCondition.addString(sObject);
             vListAction.push_back(bCondition);
         }
 
         Bottle bAction;
-            bAction.addString("action");
-        bAction.addString("iCub");
+        bAction.addString("need");
+        bAction.addString("primitive");
         bAction.addString(sPredicate);
         bAction.addString(sObject);
-    
+
         vListAction.push_back(bAction);
 
         for (vector<Bottle>::iterator itBo = vListAction.begin() ; itBo != vListAction.end() ; itBo++)
