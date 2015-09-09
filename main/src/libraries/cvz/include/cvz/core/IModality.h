@@ -452,41 +452,7 @@ namespace cvz {
                 if (autoConnect != "")
                     ConnectInput(autoConnect);
             }
-
-            /**
-            * Instantiate a new BufferedPortModality<T>.
-            * @parameter _name The name of the modality, including any prefix you want to use (like the cvz name)
-            * @parameter _size The size of the modality (i.e the number of components of the vectors)
-            * @parameter min The minimum limits of the input space, are used internally for scaling in [0,1].
-            * @parameter max The maximum limits of the modality, are used internally for scaling in [0,1].
-            * @parameter _mask Apply a mask on the input got through input(). The number of True of the mask should match the size of the modality. Providing an empty vector (size==0) will ensure that your do not apply any mask and get everything.
-            * @parameter _autoScale Should the boudaries auto adapt to the input?.           
-            * @parameter _isBlocking Specify is the ports will use blocking read in the input() method.
-            */
-            ModalityBufferedPort(std::string _name, int _size, std::vector<double> min, std::vector<double> max, std::vector<bool> _mask, bool _autoScale, bool _isBlocking = false) :IModality(_name, _size, min, max, _autoScale)
-            {
-                isBlocking = _isBlocking;
-                mask = _mask;
-                //if no mask is provided we build one that allows all
-                if (mask.size() == 0)
-                for (int i = 0; i < size; i++)
-                    mask.push_back(true);
-
-                valueReal.resize(size);
-                valuePrediction.resize(size);
-                std::string pName = name;
-                pName += "/real:i";
-                portReal.open(pName.c_str());
-
-                pName = name;
-                pName += "/prediction:o";
-                portPrediction.open(pName.c_str());
-
-                pName = name;
-                pName += "/error:o";
-                portError.open(pName.c_str());
-            }
-
+            
             /**
             * Connects a port to the real input port
             * @param from The name of the port you want to read from

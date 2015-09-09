@@ -1,0 +1,98 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+    <ID  NAME="action_object"  VAL="1"/>
+    <ID  NAME="relative_loc"  VAL="2"/>
+    <ID  NAME="object"  VAL="3"/>
+    <ID  NAME="action_direction"  VAL="4"/>
+    <ID  NAME="direction"  VAL="5"/>
+  </DEFINE>
+
+
+  <RULE  NAME="stop"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+	<P>Description finished</P>
+
+   </RULE>
+
+  <RULE  NAME="SENTENCE_OBJECT"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+    <P>you</P>
+    <RULEREF  NAME="action_object"/>
+    <O>
+        <L>
+            <P> to the </P>
+            <P> in </P>
+            <P> on </P>
+        </L>
+    </O>
+    <O> <RULEREF  NAME="relative_loc"/> </O>
+    <O>
+        <L>
+            <P> of the </P>
+	    <P> the </P>
+        </L>
+    </O>
+    <RULEREF  NAME="object"/>
+   </RULE>
+
+  <RULE  NAME="SENTENCE_DIRECTION"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+    <P>you</P>
+    <RULEREF  NAME="action_direction"/>
+    <O>
+        <L>
+            <P> toward </P>
+        </L>
+    </O>
+    <O> <RULEREF  NAME="direction"/> </O>
+   </RULE>
+
+  <RULE NAME="action_object" DYNAMIC="TRUE">
+    <L>
+      <P>point</P>
+      <P>grasp</P>
+      <P>go</P>
+      <P>move</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="relative_loc" DYNAMIC="TRUE">
+    <L>
+      <P>right</P>
+      <P>left</P>
+      <P>front</P>
+      <P>top</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="object" DYNAMIC="TRUE">
+    <L>
+      <P>ladybug</P>
+      <P>carrots</P>
+      <P>joystick</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="action_direction" DYNAMIC="TRUE">
+    <L>
+      <P>move</P>
+      <P>go</P>
+      <P>rotate</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="direction" DYNAMIC="TRUE">
+    <L>
+      <P>left</P>
+      <P>right</P>
+      <P>up</P>
+      <P>down</P>
+    </L>
+  </RULE>
+
+
+
+</GRAMMAR>

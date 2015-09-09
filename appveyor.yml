@@ -22,8 +22,8 @@ install:
   # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul"
 
   - ps:  $dwntool=New-Object System.Net.WebClient
-  - ps:  $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_0.exe','c:\dev\yarp.exe')
-  - ps:  $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_0.exe','c:\dev\icub.exe')
+  - ps:  $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_1.exe','c:\dev\yarp.exe')
+  - ps:  $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_1.exe','c:\dev\icub.exe')
 
   - cmd: c:\dev\yarp.exe /S
   - cmd: c:\dev\icub.exe /S

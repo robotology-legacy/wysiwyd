@@ -142,7 +142,7 @@ if isequal(last_frame_idx, 'last')
     last_frame_idx = num_images;
 end
 
-for i=0:num_images-1
+for i=0:num_images-2
     disp(['receive image ', num2str(i)]);
     yarpImage = yarp.ImageRgb;
     yarpImage = portIncoming.read();

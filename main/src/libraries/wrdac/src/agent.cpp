@@ -174,7 +174,7 @@ bool Agent::removeBelief(Relation r)
 	list<Relation>::iterator it = find(m_belief.begin(),m_belief.end(),r);
 	if (it != m_belief.end())
 	{
-		m_belief.remove(r);
+		m_belief.erase(it);
 		//cout<<"Agent "+name()+" do not believes anymore that " + r.toString();
 		return true;
 	}

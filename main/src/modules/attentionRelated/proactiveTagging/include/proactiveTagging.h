@@ -27,11 +27,15 @@ private:
     std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
     yarp::os::Port   portToBodySchema;
+    yarp::os::Port   portToLRH;
+    yarp::os::BufferedPort<yarp::os::Bottle>   portFromTouchDetector;
 
     std::string      GrammarAskNameAgent;
     std::string      GrammarAskNameObject;
     std::string      GrammarAskNameBodypart;
     std::string      GrammarYesNo;
+
+    std::string      GrammarDescribeAction;
 
     double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other
     double  thresholdSalienceDetection; //value of saliency needed to detect if 1 object is more salient that the other
@@ -44,6 +48,11 @@ private:
     //Configure
     void configureOPC(yarp::os::ResourceFinder &rf);
 
+    //objectTagging
+    yarp::os::Bottle  exploreUnknownEntity(yarp::os::Bottle bInput);
+    yarp::os::Bottle  exploreEntityByName(yarp::os::Bottle bInput);
+
+
     //selfTagging.cpp
     yarp::os::Bottle moveJoint(int joint, std::string sBodypartType);
     yarp::os::Bottle assignKinematicStructureByName(std::string sName, std::string sBodyPartType, bool forcingKS = false);
@@ -51,15 +60,16 @@ private:
     yarp::os::Bottle checkForKinematicStructure(int instance, bool forcingKS = false);
     yarp::os::Bottle orderKinematicStructure(int instance);
 
+    yarp::os::Bottle exploreTactileEntityWithName(yarp::os::Bottle bInput);
+
+    //actionTagging
+    yarp::os::Bottle describeAction(std::string actionName, std::string sNameTarget);
+
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
-    bool interruptModule()
-    {
-        rpcPort.interrupt();
-        return true;
-    }
+    bool interruptModule();
 
     bool close();
 
@@ -67,10 +77,6 @@ public:
     {
         return period;
     }
-
-
-    yarp::os::Bottle  exploreUnknownEntity(yarp::os::Bottle bInput);
-    yarp::os::Bottle  exploreEntityByName(yarp::os::Bottle bInput);
 
     bool updateModule();
 

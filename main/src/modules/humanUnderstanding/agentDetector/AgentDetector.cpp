@@ -21,10 +21,10 @@ bool AgentDetector::configure(ResourceFinder &rf)
         cout<<"Waiting connection to OPC..."<<endl;
         Time::delay(1.0);
     }
-    partner = opc->addEntity<Agent>("partner");
+    partner = opc->addOrRetrieveEntity<Agent>("partner");
     partner->m_present = false;
     opc->commit(partner);
-    opc->addEntity<Action>("named");
+    opc->addOrRetrieveEntity<Action>("named");
 
     //Retrieve the calibration matrix from RFH
     string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
@@ -213,7 +213,8 @@ double AgentDetector::getPeriod()
 
 bool AgentDetector::updateModule()
 {
-    icub = opc->addEntity<Agent>("icub");
+    icub = opc->addOrRetrieveEntity<Agent>("icub");
+
     bool isRefreshed = client.getDepthAndPlayers(depth,players);
     client.getRgb(rgb);
 
@@ -410,7 +411,8 @@ bool AgentDetector::updateModule()
                         {
                             cout<<"Assigning name "<<playerName<<" to skeleton "<<p->ID<<endl;
 
-                            Agent* specificAgent = opc->addEntity<Agent>(playerName);
+                            //Agent* specificAgent = opc->addEntity<Agent>(playerName);
+                            Agent* specificAgent = opc->addOrRetrieveEntity<Agent>(playerName);
 
                             identities[p->ID] = specificAgent;
                             specificAgent->m_present = true;

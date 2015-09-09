@@ -84,8 +84,9 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
     robotHead->view(pos);
     robotHead->view(vel);
     robotHead->view(enc);
+    robotHead->view(ictrl);
 
-    if(pos==NULL || vel==NULL || enc==NULL)
+    if(pos==NULL || vel==NULL || enc==NULL || ictrl==NULL)
     {
         cout << "Cannot get interface to robot head" << endl;
         robotHead->close();
@@ -103,6 +104,11 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
 	{
 		setpoints[i] = 0;
 	}
+
+    for(int i=0; i<jnts; i++)
+    {
+        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
+    }
 
 	// ==================================================================
 	//// create a opencv window

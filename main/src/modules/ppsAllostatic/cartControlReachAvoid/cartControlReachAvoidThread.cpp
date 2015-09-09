@@ -39,19 +39,45 @@ void cartControlReachAvoidThread::getTorsoOptions(Bottle &b, const char *type, c
 }
 
 
-void cartControlReachAvoidThread::getHomeOptions(Bottle &b, Vector &poss, Vector &vels)
+void cartControlReachAvoidThread::getTorsoHomeOptions(Bottle &b, Vector &poss, Vector &vels)
 {
-        if (b.check("poss","Getting home poss"))
+        if (b.check("poss","Getting torso home poss"))
+        {
+            Bottle &grp=b.findGroup("poss");
+            int sz=grp.size()-1;
+            int len=sz>3?3:sz;
+
+            for (int i=0; i<len; i++){
+                poss[i]=grp.get(1+i).asDouble();
+            }
+        }
+
+        if (b.check("vels","Getting torso home vels"))
+        {
+            Bottle &grp=b.findGroup("vels");
+            int sz=grp.size()-1;
+            int len=sz>3?3:sz;
+
+            for (int i=0; i<len; i++)
+                vels[i]=grp.get(1+i).asDouble();
+        }
+}
+
+
+void cartControlReachAvoidThread::getArmHomeOptions(Bottle &b, Vector &poss, Vector &vels)
+{
+        if (b.check("poss","Getting arm home poss"))
         {
             Bottle &grp=b.findGroup("poss");
             int sz=grp.size()-1;
             int len=sz>7?7:sz;
 
-            for (int i=0; i<len; i++)
+            for (int i=0; i<len; i++){
                 poss[i]=grp.get(1+i).asDouble();
+            }
         }
 
-        if (b.check("vels","Getting home vels"))
+        if (b.check("vels","Getting arm home vels"))
         {
             Bottle &grp=b.findGroup("vels");
             int sz=grp.size()-1;
@@ -270,8 +296,8 @@ void cartControlReachAvoidThread::doReach()
                 yDebug("doReach(): reach target x %s.\n",x.toString().c_str());
                 cartArm->askForPosition(x,xdhat,odhat,qdhat); //7+3, including torso, probably even if torso is off
                 //  qdhat now contains target joint pos
-                yDebug("xdhat from cart solver %s.\n",xdhat.toString().c_str());
-                yDebug("qdhat from cart solver %s.\n",qdhat.toString().c_str());
+                yDebug("xdhat from cart solver %s\n",xdhat.toString().c_str());
+                yDebug("qdhat from cart solver %s\n",qdhat.toString().c_str());
            
                 
                 //*********** now the controller...  ***************************/
@@ -335,7 +361,7 @@ void cartControlReachAvoidThread::doReach()
                     }
 
                     // Block all the more distal joints after the joint 
-                    unsigned int dof = chain -> getDOF(); //should be 10 by default (3 + 7, with torso)
+                    //unsigned int dof = chain -> getDOF(); //should be 10 by default (3 + 7, with torso)
                     // if the skin part is a hand, no need to block any joints
                     if ((avoidanceVectors[0].skin_part == SKIN_LEFT_FOREARM) ||  (avoidanceVectors[0].skin_part == SKIN_RIGHT_FOREARM)){
                         chain->blockLink(10); chain->blockLink(9);//wrist joints
@@ -379,8 +405,8 @@ void cartControlReachAvoidThread::doReach()
                 
                 for(int i=0;i<cartNrDOF;i++){
                     qdotReachAndAvoid[i] = reachingGain*qdotReach[i] + avoidanceGain*qdotAvoid[i];
-                   // yDebug("qdotReachAndAvoid[i] = reachingGain*qdotReach[i] + avoidanceGain*qdotAvoid[i]");
-                   // yDebug("%f = %f * %f + %f * %f",qdotReachAndAvoid[i],reachingGain,qdotReach[i],avoidanceGain,qdotAvoid[i]);
+                    yDebug("qdotReachAndAvoid[%d] = reachingGain*qdotReach[%d] + avoidanceGain*qdotAvoid[%d]",i,i,i);
+                    yDebug("%f = %f * %f + %f * %f",qdotReachAndAvoid[i],reachingGain,qdotReach[i],avoidanceGain,qdotAvoid[i]);
                 }
                 yDebug("qdotReachAndAvoid: %s",qdotReachAndAvoid.toString().c_str());
                 /**** do the movement - send velocities ************************************/
@@ -457,16 +483,9 @@ void cartControlReachAvoidThread::doIdle()
     
 void cartControlReachAvoidThread::steerTorsoToHome()
     {
-        Vector homeTorso(3);
-        homeTorso.zero();
-
-        Vector velTorso(3);
-        velTorso=10.0;
-
-        fprintf(stdout,"*** Homing torso\n");
-
-        posTorso->setRefSpeeds(velTorso.data());
-        posTorso->positionMove(homeTorso.data());
+        yInfo("*** Homing torso\n");
+        //posTorso->setRefSpeeds(torsoHomePoss.data()); //has been set in threadInit
+        posTorso->positionMove(torsoHomePoss.data());
     }
     
 void cartControlReachAvoidThread::checkTorsoHome(const double timeout)
@@ -521,7 +540,7 @@ void cartControlReachAvoidThread::stopArmJoints(const int sel)
             return;
 
         fprintf(stdout,"*** Stopping %s joints\n",type.c_str());
-        for (size_t j=0; j<homeVels.length(); j++)
+        for (size_t j=0; j<armHomeVels.length(); j++)
         {
             double fb;
 
@@ -558,14 +577,14 @@ void cartControlReachAvoidThread::steerArmToHome(const int sel)
         else
             return;
 
-        fprintf(stdout,"*** Homing %s\n",type.c_str());
-        for (size_t j=0; j<homeVels.length(); j++)
+        fprintf(stdout,"*** Homing arm %s\n",type.c_str());
+        for (size_t j=0; j<armHomeVels.length(); j++)
         {
-            ipos->setRefSpeed(j,homeVels[j]);
-            ipos->positionMove(j,homePoss[j]);
+            //ipos->setRefSpeed(j,armHomeVels[j]); //has been set in threadInit
+            ipos->positionMove(j,armHomePoss[j]);
         }
 
-        //openHand(sel);
+       
     }
     
 void cartControlReachAvoidThread::checkArmHome(const int sel, const double timeout)
@@ -730,23 +749,53 @@ bool cartControlReachAvoidThread::threadInit()
         reachTmo=bGeneral.check("reach_tmo",Value(10.0),"Getting reach timeout").asDouble();
               
         // torso part
-        Bottle &bTorso=rf.findGroup("torso");
-        bTorso.setMonitor(rf.getMonitor());
-
-        Vector torsoSwitch(3);   torsoSwitch.zero();
-        Matrix torsoLimits(3,4); torsoLimits.zero();
-
-        getTorsoOptions(bTorso,"pitch",0,torsoSwitch,torsoLimits);
-        getTorsoOptions(bTorso,"roll",1,torsoSwitch,torsoLimits);
-        getTorsoOptions(bTorso,"yaw",2,torsoSwitch,torsoLimits);    
+        torsoSwitch.resize(3,0);
+        torsoLimits.resize(4,3); torsoLimits.zero();
+        torsoHomePoss.resize(3,0.0);
+        torsoHomeVels.resize(3,10.0);
         
+        Bottle &bTorso=rf.findGroup("torso");
+        if(!bTorso.isNull()){ 
+            yInfo("Setting torso options from config file:");
+            bTorso.setMonitor(rf.getMonitor());
+            getTorsoOptions(bTorso,"pitch",0,torsoSwitch,torsoLimits);
+            getTorsoOptions(bTorso,"roll",1,torsoSwitch,torsoLimits);
+            getTorsoOptions(bTorso,"yaw",2,torsoSwitch,torsoLimits);  
+            getTorsoHomeOptions(bTorso,torsoHomePoss,torsoHomeVels);
+        }
+        else{
+           yInfo("Setting default torso options ([torso] in .ini file not found)");
+           torsoSwitch(0)=0; torsoSwitch(1)=0; torsoSwitch(2)=0;  //all off
+           //torsoSwitch(0)=1; torsoSwitch(1)=0; torsoSwitch(2)=1;  //pitch on, roll off, yaw on
+           //torsoLimits(0,2)=1.0; 
+           //torsoLimits(1,0)=10.0; //pitch max limit
+           //torsoHomePoss and torsoHomeVels was already intialized fine during definition
+        }
+        yInfo("torsoSwitch: %s",torsoSwitch.toString().c_str());
+        yInfo("torsoLimits: %s",torsoLimits.toString().c_str());
+        yInfo("torsoHomePoss: %s",torsoHomePoss.toString().c_str());
+        yInfo("torsoHomeVels: %s",torsoHomeVels.toString().c_str());
+   
             
-        // home part
+        // arm home part
+        armHomePoss.resize(7,0.0); armHomeVels.resize(7,0.0);
         Bottle &bHome=rf.findGroup("home_arm");
-        bHome.setMonitor(rf.getMonitor());
-        homePoss.resize(7,0.0); homeVels.resize(7,0.0);
-        getHomeOptions(bHome,homePoss,homeVels);
+        if(!bHome.isNull()){  
+            bHome.setMonitor(rf.getMonitor());
+            getArmHomeOptions(bHome,armHomePoss,armHomeVels);
+            yInfo("Setting arm home from config file:");           
+        }
+        else{
+            yInfo("Setting default arm home values (home_arm in .ini file not found)");
+            armHomePoss[0]=-30.0; armHomePoss[1]=30.0; armHomePoss[2]=0.0; armHomePoss[3]=45.0; armHomePoss[4]=0.0; armHomePoss[5]=0.0; armHomePoss[6]=0.0;
+            armHomeVels[0]=10.0; armHomeVels[1]=10.0; armHomeVels[2]=10.0; armHomeVels[3]=10.0; armHomeVels[4]=10.0; armHomeVels[5]=10.0; armHomeVels[6]=10.0;
+        }
+        yInfo("armHomePoss: %s",armHomePoss.toString().c_str());
+        yInfo("armHomeVels: %s",armHomeVels.toString().c_str());
       
+        newTargetFromPort = false;
+        newTargetFromRPC = false;
+        
         targetPosFromPort.resize(3,0.0);
         targetPosFromRPC.resize(3,0.0);
         targetPos.resize(3,0.0);
@@ -872,6 +921,16 @@ bool cartControlReachAvoidThread::threadInit()
         encTorso->getAxes(&torsoAxes);
         torso.resize(torsoAxes,0.0);
 
+         
+        /* set reference speeds for position controllers (used for homing) */ 
+        posTorso->setRefSpeeds(torsoHomeVels.data());
+        IPositionControl *posArm_;
+        drvLeftArm->view(posArm_);
+        posArm_->setRefSpeeds(armHomeVels.data());
+        drvRightArm->view(posArm_);
+        posArm_->setRefSpeeds(armHomeVels.data());
+             
+        
         /* we need to set reference accelerations for the velocityMove to be used later */
         /* profile, 50 degrees/sec^2 */
         int k;
@@ -889,7 +948,7 @@ bool cartControlReachAvoidThread::threadInit()
         for(int j=0;j<7;j++){
             armIdx.push_back(j); 
         }
-                   
+                
         int l;
         Vector tmp_acc_torso;
         tmp_acc_torso.resize(torsoAxes,0.0);
@@ -904,9 +963,9 @@ bool cartControlReachAvoidThread::threadInit()
         initCartesianCtrl(torsoSwitch,torsoLimits,LEFTARM);
         initCartesianCtrl(torsoSwitch,torsoLimits,RIGHTARM);
         cartArm->getDOF(cartDOFconfig);
-        yInfo("cartArm DOFs [%s]\n",cartDOFconfig.toString().c_str());  // [0 0 0 1 1 1 1 1 1 1] will be printed out if torso is off
         cartNrDOF = cartDOFconfig.length();
-
+        yInfo("cartArm DOFs [%s]\n",cartDOFconfig.toString().c_str());  // [0 0 0 1 1 1 1 1 1 1] will be printed out if torso is off 
+        
         // steer the robot to the initial configuration
         setControlModeArmsAndTorso(VOCAB_CM_POSITION);
         steerTorsoToHome();
@@ -916,11 +975,11 @@ bool cartControlReachAvoidThread::threadInit()
         wentHome=false;
         state=STATE_IDLE;
 
-        minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,10); //3 torso + 7 arm
+        minJerkVelCtrl = new  minJerkVelCtrlForIdealPlant(threadPeriod,cartNrDOF); //3 torso + 7 arm
         
         //TODO can be  moved to config file, but will be eventually obtained from allostatic control
-        reachingGain = 0.5; 
-        avoidanceGain = 0.5; 
+        reachingGain = 1.0; 
+        avoidanceGain = 0.0; 
         
         return true;
       
@@ -929,6 +988,7 @@ bool cartControlReachAvoidThread::threadInit()
 
 void cartControlReachAvoidThread::run()
 {
+     yDebug("*************   run() ************************************");
      ts.update();
     
      bool newTarget = false;

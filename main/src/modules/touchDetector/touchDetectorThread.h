@@ -58,7 +58,8 @@ class TouchDetectorThread : public yarp::os::RateThread
 		void parseMappingLine(std::string line, int &bodyPart, int &firstTaxel, int &lastTaxel);
 		int getBodyPartId(std::string bodyPartName);
 		void updateMapping(int bodyPart, int firstTaxel, int lastTaxel, int cluster);
-		void countActivations(int bodyPart, yarp::os::Bottle* data, std::vector<int> &activations);
+		void countActivations(int bodyPart, yarp::os::Bottle *data, std::vector<int> &activations);
+		void processPort(int portNum, yarp::os::BufferedPort<yarp::os::Bottle> *port, std::vector<int> &activations);
 };
 
 class ParsingException: public std::exception

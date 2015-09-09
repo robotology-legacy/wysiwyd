@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
    ResourceFinder rf;
    rf.setDefaultContext("touchDetector");
-   rf.setDefaultConfigFile("config.ini");
+   rf.setDefaultConfigFile("clustersConfig.ini");
    rf.configure(argc,argv);
    TouchDetectorModule server;
 

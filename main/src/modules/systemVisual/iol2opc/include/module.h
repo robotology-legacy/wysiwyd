@@ -103,6 +103,7 @@ protected:
     double presence_timeout;
     map<string,IOLObject> db;
     Bridge::State state;
+    IOLObject onlyKnownObjects;
 
     map<string,Filter*> histFiltersPool;
     int histFilterLength;

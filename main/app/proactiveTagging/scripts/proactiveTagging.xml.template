@@ -1,0 +1,201 @@
+<application>
+  <name>WYSIWYD Proactive Tagging</name>
+  <dependencies>
+    <port>/icub/cartesianController/right_arm/state:o</port>
+    <port>/icub/cartesianController/left_arm/state:o</port>
+    <port>/iKinGazeCtrl/rpc</port>
+    <port>/icub/camcalib/left/out</port>
+    <port>/icub/camcalib/right/out</port>
+  </dependencies>
+  <!--Memory-->
+  <module>
+    <name>objectsPropertiesCollector</name>
+    <parameters>--name OPC --empty --nosave</parameters>
+    <node>icuboracle</node>
+    <tag>opcTag</tag>
+  </module>
+  <module>
+    <name>autobiographicalMemory</name>
+    <parameters />
+    <node>deepthought</node>
+    <tag>ABM</tag>
+  </module>
+  <!--GUI-->
+  <module>
+    <name>iCubGui</name>
+    <parameters>--from guiOPC.ini --xpos 3000 --ypos 0 --width 600 --height 600</parameters>
+    <node>prl-13</node>
+    <tag>iCubGui_tagOPC</tag>
+  </module>
+  <module>
+    <name>guiUpdater</name>
+    <node>obsidian</node>
+    <tag>guiUpdaterTag</tag>
+  </module>
+  <!--iCub action/speech-->
+  <module>
+    <name>speechRecognizer</name>
+    <parameters />
+    <node>winNode</node>
+    <tag>speechRecoTag</tag>
+  </module>
+  <module>
+    <name>bodySchema</name>
+    <parameters>--robot icub</parameters>
+    <node>arancia</node>
+    <tag>bodySchemaTag</tag>
+  </module>
+  <module>
+    <name>actionsRenderingEngine</name>
+    <parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
+    <node>obsidian</node>
+    <tag>ARETag</tag>
+  </module>
+  <module>
+    <name>lrh</name>
+    <parameters></parameters>
+    <node>icuboracle</node>
+    <tag>LRHTag</tag>
+  </module>
+  <module>
+    <name>touchDetector</name>
+    <parameters></parameters>
+    <node>icuboracle</node>
+    <tag>touchDetectorTag</tag>
+  </module>
+  <!--Drives-->
+  <module>
+    <name>homeostasis</name>
+    <parameters />
+    <node>icuboracle</node>
+    <tag>homeostasisTag</tag>
+  </module>
+  <module>
+    <name>proactiveTagging</name>
+    <parameters />
+    <node>icuboracle</node>
+    <tag>proactiveTaggingTag</tag>
+  </module>
+  <module>
+    <name>reactiveLayer</name>
+    <parameters />
+    <node>icuboracle</node>
+    <tag>reactiveLayerTag</tag>
+  </module>
+  <!--proactiveTagging-->
+  <module>
+    <name>kinematicStructure</name>
+    <parameters />
+    <node>hjchang</node>
+    <tag>ksTag</tag>
+  </module>
+  <!--yarpview-->
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out --x 2370 --y 0 --p 50 --w 640 --h 480</parameters>
+    <node>prl-13</node>
+    <tag>yarpview_camRight</tag>
+  </module>
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/right/out --x 1700 --y 0 --p 50 --w 640 --h 480</parameters>
+    <node>prl-13</node>
+    <tag>yarpview_camLeft</tag>
+  </module>
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out/kinematic_structure --x 2370 --y 500 --p 50 --w 640 --h 480</parameters>
+    <node>prl-13</node>
+    <tag>yarpview_augmentRight</tag>
+  </module>
+
+  <connection>
+    <from>/guiUpdater/gui:o</from>
+    <to>/guiOPC/objects</to>
+    <protocol>tcp</protocol>
+  </connection>
+  <connection>
+    <from>/guiUpdater/guiBase:o</from>
+    <to>/guiOPC/base:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+  <!-- GUI OPC ICUB BODY-->
+  <connection>
+    <from>/wholeBodyDynamics/contacts:o</from>
+    <to>/guiOPC/forces</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/armSkinMan/skin_events:o</from>
+    <to>/guiOPC/forces</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/head/state:o</from>
+    <to>/guiOPC/head:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/inertial</from>
+    <to>/guiOPC/inertial:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/left_arm/state:o</from>
+    <to>/guiOPC/left_arm:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/right_arm/state:o</from>
+    <to>/guiOPC/right_arm:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/icub/torso/state:o</from>
+    <to>/guiOPC/torso:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/bodySchema/featureImg:o</from>
+    <to>/yarpview/bodySchema/featureImg:i</to>
+    <protocol>udp</protocol>
+  </connection>
+
+  <!-- TouchDetector -->
+  <connection>
+    <from>/icub/skin/torso_comp</from>
+    <to>/touchDetector/torso:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_arm_comp</from>
+    <to>/touchDetector/left_arm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_arm_comp</from>
+    <to>/touchDetector/right_arm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_forearm_comp</from>
+    <to>/touchDetector/left_forearm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_forearm_comp</from>
+    <to>/touchDetector/right_forearm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_hand_comp</from>
+    <to>/touchDetector/left_hand:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_hand_comp</from>
+    <to>/touchDetector/right_hand:i</to>
+    <protocol></protocol>
+  </connection>
+
+</application>

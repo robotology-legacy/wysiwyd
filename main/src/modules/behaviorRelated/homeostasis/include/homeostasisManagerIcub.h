@@ -30,23 +30,23 @@ private:
 
     //vector< yarp::os::BufferedPort<yarp::os::Bottle> *> output_ports;
     //vector< yarp::os::BufferedPort<yarp::os::Bottle> *> input_ports;
-    vector< yarp::os::BufferedPort<Bottle>* > input_ports;
-    vector< yarp::os::BufferedPort<Bottle>* > outputM_ports;
-    vector< yarp::os::BufferedPort<Bottle>* > outputm_ports;
+    vector< yarp::os::BufferedPort<Bottle> * > input_ports;
+    vector< yarp::os::BufferedPort<Bottle> * > outputM_ports;
+    vector< yarp::os::BufferedPort<Bottle> * > outputm_ports;
     homeostasisManager manager;
 
 	//Reflexes
 
     Port    rpc;
 
-    bool addNewDrive(string driveName, yarp::os::Bottle* grpHomeostatic, int d);
+    bool addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic);
     //bool addNewDrive(string driveName, yarp::os::Value grpHomeostatic, int d);
 	//void configureTactile(yarp::os::ResourceFinder &rf);
 	//void configureSalutation(yarp::os::ResourceFinder &rf);
 
 public:
 
-    homeostaticModule():manager(0){;}
+    //homeostaticModule():manager(0){;}
 
     Drive bDrive(yarp::os::Bottle* b)
     {
@@ -54,7 +54,7 @@ public:
         return d;
     }
 
-    int openPorts(string driveName, int d);
+    int openPorts(string driveName);
 
     bool configure(yarp::os::ResourceFinder &rf);
 

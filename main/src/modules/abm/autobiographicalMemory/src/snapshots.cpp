@@ -256,7 +256,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                 yError() << "Cannot open the default sound file : check " << defaultSoundFullPath;
             }
             else {
-
                 yInfo() << "Default sound file loaded from " << defaultSoundFullPath;
                 stringstream sInstance;
                 sInstance << currentInstance;
@@ -269,7 +268,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                     yError() << "Cannot save the default sound file to " << fullPath;
                 }
                 else {
-
                     yInfo() << "Default sound file renamed and moved to " << fullPath;
 
                     database_mutex.lock();

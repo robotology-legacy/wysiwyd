@@ -27,10 +27,11 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("proactiveTagging")).asString().c_str();
     setName(moduleName.c_str());
 
-    GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
-    GrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
-    GrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
+    GrammarYesNo           = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
+    GrammarAskNameObject   = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
+    GrammarAskNameAgent    = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
     GrammarAskNameBodypart = rf.findFileByName(rf.check("GrammarAskNameBodypart", Value("GrammarAskNameSelf.xml")).toString());
+    GrammarDescribeAction  = rf.findFileByName(rf.check("GrammarDescribeAction", Value("GrammarDescribeAction.xml")).toString());
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
@@ -57,33 +58,66 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     //--------------------------------------------- output port
 
     //out to BodySchema
-    portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str()) ;
+    portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str());
     string bodySchemaRpc = rf.check("bodySchemaRpc",Value("/bodySchema/rpc")).asString().c_str();
 
     if (!Network::connect(portToBodySchema.getName().c_str(),bodySchemaRpc.c_str())) {
-        yWarning() << " BODY SCHEMA NOT CONNECTED : selfTagging will not work" ;
+        yWarning() << " BODY SCHEMA NOT CONNECTED: selfTagging will not work";
+    }
+
+    //out to LRH
+    portToLRH.open(("/" + moduleName + "/toLRH:o").c_str());
+    string LRHRpc = rf.check("LRHRpc",Value("/lrh/rpc")).asString().c_str();
+    if (!Network::connect(portToLRH.getName().c_str(),LRHRpc.c_str())) {
+        yWarning() << " LRH NOT CONNECTED: will not produce sentences";
+    }
+
+    //in from TouchDetector
+    portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str());
+    string portTouchDetectorOut = rf.check("touchDetectorOut",Value("/touchDetector/touch:o")).asString().c_str();
+
+    if (!Network::connect(portTouchDetectorOut.c_str(),portFromTouchDetector.getName().c_str(), "tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list")) {
+        yWarning() << " TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
     }
 
     if (!iCub->getRecogClient())
     {
-        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED" ;
+        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
     }
     if (!iCub->getABMClient())
     {
-       yWarning() << "WARNING ABM NOT CONNECTED" ;
+       yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    iCub->getSpeechClient()->TTS("proactive tagging is ready", false);
+    iCub->say("proactive tagging is ready", false);
 
     return true;
 }
 
 
+bool proactiveTagging::interruptModule() {
+    portToLRH.interrupt();
+    portFromTouchDetector.interrupt();
+    portToBodySchema.interrupt();
+    rpcPort.interrupt();
+
+    return true;
+}
+
 bool proactiveTagging::close() {
     iCub->close();
     delete iCub;
+
+    portToLRH.interrupt();
+    portToLRH.close();
+
+    portFromTouchDetector.interrupt();
+    portFromTouchDetector.close();
+
+    portToBodySchema.interrupt();
+    portToBodySchema.close();
 
     rpcPort.interrupt();
     rpcPort.close();
@@ -97,7 +131,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "help \n" +
         "quit \n"
-        "exploreUnknowneEntity entity_type entity_name \n" +
+        "exploreUnknownEntity entity_type entity_name \n" +
         "exploreEntityByName entity_name \n" + 
         "exploreKinematicByName entity_name bodypart [true/false] \n" +
         "exploreKinematicByJoint joint bodypart [true/false] \n";
@@ -112,7 +146,23 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "exploreUnknownEntity") {
         yInfo() << " exploreUnknownEntity";
-        reply = exploreUnknownEntity(command);
+        string type = command.get(1).toString();
+        string name = command.get(2).toString();
+        if(type=="bodypart" && name.find("unknown") == std::string::npos) {
+            iCub->opc->checkout();
+            Bodypart* bp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(name));
+            // TODO: Make calls of exploreTactileEntityWithName and assignKinematicStructureByName consistent
+            if(bp->m_tactile_number == -1) {
+                reply = exploreTactileEntityWithName(command);
+            } else if(bp->m_kinStruct_instance == -1) {
+                bool forcingKS   = true;
+                reply = assignKinematicStructureByName(name, type, forcingKS);
+            } else {
+                yWarning("Not sure what to do, name + kinematic structure + tactile information already known");
+            }
+        } else {
+            reply = exploreUnknownEntity(command);
+        }
     }
     else if (command.get(0).asString() == "exploreEntityByName") {
         yInfo() << " exploreEntityByName";
@@ -127,7 +177,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " exploreKinematicByName";
 
         if (command.size() < 3) {
-            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByName name bodypart [true/false]"  ;
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByName name bodypart [true/false]";
             reply.addString("error");
             reply.addString("Not enough argument : exploreKinematicByName name bodypart [true/false]");
 
@@ -135,24 +185,24 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             return true;
         }
 
-        string sName     = command.get(1).asString() ;
-        string sBodyPart = command.get(2).asString() ;
+        string sName     = command.get(1).asString();
+        string sBodyPart = command.get(2).asString();
         bool forcingKS = false;
         if (command.size() == 4) {
-            bool forcingKS = (command.get(3).asString() == "true") ;
+            forcingKS = (command.get(3).asString() == "true");
         }
         reply = assignKinematicStructureByName(sName, sBodyPart, forcingKS);
     }
     else if (command.get(0).asString() == "exploreKinematicByJoint") {
         //exploreKinematicByName name bodypart [true/false]
-        //name : index, thumb, biceps, etc.
+        //joint : 9, 10, ...
         //bodypart : left_hand, right_arm, etc.
         //true/false : OPTIONAL : forcingKinematicStructure : do you want to launch a KS generation (may take minutes)
 
         yInfo() << " exploreKinematicByJoint";
 
         if (command.size() < 3) {
-            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByJoint joint bodypart [true/false]"  ;
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Not enough argument : exploreKinematicByJoint joint bodypart [true/false]";
             reply.addString("error");
             reply.addString("Not enough argument : exploreKinematicByJoint joint bodypart [true/false]");
 
@@ -161,7 +211,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         }
 
         if (!command.get(1).isInt()) {
-            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Second argument (joint) should be an Int!"  ;
+            yError() << " error in proactiveTagging::respond | for " << command.get(0).asString() << " | Second argument (joint) should be an Int!";
             reply.addString("error");
             reply.addString("Second argument (joint) should be an Int!");
 
@@ -170,12 +220,18 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         }
 
         int BPjoint      = command.get(1).asInt();
-        string sBodyPart = command.get(2).asString() ;
+        string sBodyPart = command.get(2).asString();
         bool forcingKS   = false;
         if (command.size() == 4) {
-            bool forcingKS = (command.get(3).asString() == "true") ;
+            forcingKS = (command.get(3).asString() == "true");
         }
         reply = assignKinematicStructureByJoint(BPjoint, sBodyPart, forcingKS);
+    }
+    else if (command.get(0).asString() == "describeAction"){  //describeAction : TODO -> protection and stuff
+        string sName   = command.get(1).asString() ;
+        string sTarget = command.get(2).asString() ;
+
+        reply = describeAction(sName, sTarget);
     }
     else {
         cout << helpMessage;
@@ -299,7 +355,7 @@ Bottle proactiveTagging::recogName(string entityType)
     } else if (entityType == "bodypart"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameBodypart), 20);
     } else {
-        yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed" ;
+        yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed";
         bOutput.addString("error");
         bOutput.addString("Entity Type not managed");
         return bOutput;
@@ -307,7 +363,7 @@ Bottle proactiveTagging::recogName(string entityType)
 
     if (bRecognized.get(0).asInt() == 0)
     {
-        yError() << " error in proactiveTagging::askName | for " << entityType << " | Error in speechRecog" ;
+        yError() << " error in proactiveTagging::askName | for " << entityType << " | Error in speechRecog";
         bOutput.addString("error");
         bOutput.addString("error in speechRecog");
         return bOutput;
@@ -363,18 +419,19 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     yInfo() << " EntityType : " << currentEntityType;
     double timeDelay = 1.;
 
+    //Check if name is known or not. if yes, and body part : ask tactile
 
     //Ask question for the human, or ask to pay attention (if action to focus attention after)
-    string sQuestion ;
+    string sQuestion;
     if (currentEntityType == "agent") {
         sQuestion = " Hello, I don't know you. Who are you ?";
     } else if (currentEntityType == "object" || currentEntityType == "rtobject") {
-        sQuestion = " Hum, what is this object ?" ;
+        sQuestion = " Hum, what is this object ?";
     } else if (currentEntityType == "bodypart") {
-        sQuestion = " Watch please, I will move a part of my body" ;
+        sQuestion = " Watch please, I will move a part of my body";
         yInfo() << " sQuestion: " << sQuestion;
     } else {
-        yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed" ;
+        yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed";
         bOutput.addString("error");
         bOutput.addString("Entity Type not managed");
         return bOutput;
@@ -382,13 +439,13 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
 
     //TODO : choose between say and TTS. say put stuff in ABM, TTS?
     yInfo() << sQuestion;
-    //iCub->getSpeechClient()->TTS(sQuestion, false);
     iCub->say(sQuestion);
+    iCub->opc->checkout();
 
     //Act to determine the entity to be named, according to entityType (e.g. bodypart is sending a command to move the joint, ...)
     if(currentEntityType == "bodypart") {
         Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
-        yInfo() << "Cast okay";
+        yInfo() << "Cast okay : name BP = " << BPtemp->name();
         int joint = BPtemp->m_joint_number;
         string sBodyPartType = BPtemp->m_part;
         //send rpc command to bodySchema to move the corresponding part
@@ -396,38 +453,60 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         Bottle bReplyFromBodySchema = moveJoint(joint, sBodyPartType);
 
         if(bReplyFromBodySchema.get(0).asString() == "nack"){
-            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved" ;
+            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved or ABM cannot stores images";
             bOutput.addString("error");
-            bOutput.addString("Joint has not moved");
+            bOutput.addString("Joint has not moved or ABM cannot stores images");
             return bOutput;
         }
 
-        sQuestion = " How do you call this part of my body?" ;
+        sQuestion = " How do you call this part of my body?";
         yInfo() << sQuestion;
         //iCub->getSpeechClient()->TTS(sQuestion, false);
         iCub->say(sQuestion);
     }
+    else if(currentEntityType == "object" || currentEntityType == "rtobject") {
+        Bottle bHand("left");
+        iCub->point(sNameTarget, bHand);
+    } else if(currentEntityType == "agent") {
+        iCub->getARE()->waving(true);
+        yarp::os::Time::delay(3.0);
+        iCub->getARE()->waving(false);
+    }
 
-    Bottle bName = recogName(currentEntityType) ;
+    Bottle bName = recogName(currentEntityType);
     string sName;
 
     //if error, bName = (error errorDescription) -> return it
     if(bName.get(0).asString() == "error"){
-        return bName ;
+        return bName;
     } else {
         sName = bName.get(0).asString();
     }
 
-    string sReply ;
+    iCub->home();
+
+    string sReply;
     Entity* e = iCub->opc->getEntity(sNameTarget);
     e->changeName(sName);
     iCub->opc->commit(e);
 
     if (currentEntityType == "agent") {
-        sReply = " Well, Nice to meet you " + sName;
+        sReply = " Nice to meet you " + sName;
     } else if (currentEntityType == "object") {
-        iCub->getIOL2OPCClient()->changeName(sNameTarget, sName);
-        sReply = " I get it, this is a " + sName;
+        SubSystem_IOL2OPC* iol2opcClient = iCub->getIOL2OPCClient();
+        if(iol2opcClient!=NULL) {
+            iol2opcClient->changeName(sNameTarget, sName);
+        }
+        else {
+             yError() << "Could not connect to IOL2OPC subsystem";
+             sReply = " I get it, this is a " + sName;
+        }
+        //sReply = " I get it, this is a " + sName;
+        Bottle bToLRH, bFromLRH;
+        bToLRH.addString("production");
+        bToLRH.addString(sName);
+        if(portToLRH.getOutputCount()>0)
+            portToLRH.write(bToLRH, bFromLRH);
     } else if (currentEntityType == "rtobject") {
         sReply = " So this is a " + sName;
     } else if (currentEntityType == "bodypart") {
@@ -524,7 +603,7 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
             string delimiter = "_";
             size_t pos = 0;
             string token;
-            while ((pos = sName.find(delimiter)) != string::npos) {
+            if ((pos = sName.find(delimiter)) != string::npos) {
                 token = sName.substr(0, pos);
                 sName.erase(0, pos + delimiter.length());
                 sNameCut = token;
@@ -589,7 +668,13 @@ Bottle proactiveTagging::exploreEntityByName(Bottle bInput)
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
             if(TARGET->entity_type()=="object") {
-                iCub->getIOL2OPCClient()->changeName(sNameBestEntity, sNameTarget);
+                SubSystem_IOL2OPC* iol2opcClient = iCub->getIOL2OPCClient();
+                if(iol2opcClient!=NULL) {
+                    iol2opcClient->changeName(sNameBestEntity, sNameTarget);
+                }
+                else {
+                     yError() << "Could not connect to IOL2OPC subsystem";
+                }
             }
         }
     }

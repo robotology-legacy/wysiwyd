@@ -50,8 +50,19 @@ Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
     bSingleJoint.addInt(joint);
 
     //4. send single joint moving bottle
-    portToBodySchema.write(bSingleJoint, bOutput);
+    if(portToBodySchema.getOutputCount()>0)
+        portToBodySchema.write(bSingleJoint, bOutput);
     yDebug() << "Reply from bodySchema:" << bOutput.toString();
+
+    //check if bodySchema was fine
+    if(bOutput.get(0).asString() == "nack"){
+        return bOutput;
+    }
+
+    /*bOutput.clear();
+    Bottle bABMRpc ;
+    bABMRpc.addString("processInsertQueue");
+    bOutput = iCub->getABMClient()->rpcCommand(bABMRpc);*/
 
     //bOutput == "nack" if something goes wrong, "ack" otherwise
 
@@ -67,7 +78,8 @@ Bottle proactiveTagging::assignKinematicStructureByName(std::string sName, std::
     Bottle bOutput;
 
     //1. search through opc for the m_joint_number corresponding to the bodypart name
-    Entity* e = iCub->opc->getEntity(sName);
+    iCub->opc->checkout();
+    Entity* e = iCub->opc->getEntity(sName, true);
 
     //Error if the name does NOT correspond to a bodypart
     if(!e->isType("bodypart")) {
@@ -76,7 +88,7 @@ Bottle proactiveTagging::assignKinematicStructureByName(std::string sName, std::
         bOutput.addString("NOT a bodypart : no kinematicStructure are allowed!");
         return bOutput;
     }
-    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName));
+    Bodypart* BPentity = dynamic_cast<Bodypart*>(e);
     int BPjoint = BPentity->m_joint_number;
 
     //2. go through ABM to find a singleJointBabbling with the corresponding joint, retrieve the instance number
@@ -103,7 +115,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
     //1. extract instance from singleJointAction for joint BPjoint, from ABM
     Bottle bResult, bOutput;
     ostringstream osRequest;
-    osRequest << "SELECT max(instance) FROM main, contentarg WHERE main.instance = contentarg.instance AND activitytype = 'singleJointBabbling' AND contentarg.type = 'limb' AND contarg.value = '" << BPjoint << "' ;";
+    osRequest << "SELECT max(main.instance) FROM main, contentarg WHERE main.instance = contentarg.instance AND activityname = 'singleJointBabbling' AND main.begin = TRUE AND contentarg.role = 'limb' AND contentarg.argument = '" << BPjoint << "' ;";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     if (bResult.toString() == "NULL") {
@@ -112,7 +124,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
         bOutput.addString("No instance corresponding to singleJointBabbling for this part");
         return bOutput;
     }
-    int ksInstance = atoi(bResult.get(0).asList()->get(0).toString().c_str());
+    int ksInstance = atoi(bResult.get(0).asList()->get(0).asString().c_str());
 
     Bottle bResultCheckKS = checkForKinematicStructure(ksInstance, forcingKS);
     if(bResultCheckKS.get(0).asString() == "error") {
@@ -121,19 +133,25 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
     yInfo() << " [assignKinematicStructureByJoint] | for joint " << BPjoint << " | instance found : " << ksInstance;
 
     //WRITE IN OPC
-    list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+    iCub->opc->checkout();
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
     Bottle bListEntChanged;
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++) //go through all entity
     {
+        yInfo() << "Checking if entity " << (*itEnt)->name() << " has entitytype = bodypart : ----> " << (*itEnt)->entity_type() ; 
         if ((*itEnt)->entity_type() == "bodypart")                                             //check bodypart entity
         {
+            //pb with the casting: BPtemp is empty
             Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
+                break;
             }
         }
     }
+
+    yInfo() << "Out of the loop for checking entity in OPC, number of entityChanged : " << bListEntChanged.size() ;
 
     if(bListEntChanged.isNull()){
         yWarning() << "assignKinematicStructureByJoint | for joint " << BPjoint << " | no bodypart has been found with this joint!";
@@ -160,13 +178,13 @@ Bottle proactiveTagging::checkForKinematicStructure(int instance, bool forcingKS
     //1. Check that the instance number has some augmented kinematicStructure images
     Bottle bOutput, bResult;
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main, visualdata WHERE main.instance = visualdata.instance AND augmented = 'kinematic_structure';";
+    osRequest << "SELECT main.instance FROM main, visualdata WHERE main.instance = " << instance << " and main.instance = visualdata.instance AND augmented = 'kinematic_structure';";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     //2.a if yes, assign it to the bodypart in the opc
     //ELSE
     // 2.b i) launch kinematicStructure if forcingKS = true, ii) go out with error/warning otherwise
-    if (bResult.toString() == "NULL") {    
+    if (bResult.toString() == "NULL") {
         if (!forcingKS) { //Instance with no KS, no forcingKS: send an error
             yError() << "checkForKinematicStructure | for instance " << instance << " | No instance corresponding to singleJointBabbling for this part (forcingKS = false, no attempt to launch it)" ;
             bOutput.addString("error");
@@ -197,8 +215,8 @@ Bottle proactiveTagging::orderKinematicStructure(int instance) {
     bInstance.addString("instance");
     bInstance.addInt(instance);
 
-    bActivity.addString("quantity");
-    bActivity.addInt(1);
+    bQuantity.addString("quantity");
+    bQuantity.addInt(2);
 
     bActivity.addString("activity");
     bActivity.addString("singleJointBabbling");
@@ -225,5 +243,58 @@ Bottle proactiveTagging::orderKinematicStructure(int instance) {
     }
 
     return bReplyFromABM;
+}
+
+/*
+* Explore an unknown tactile entity (e.g. fingertips), when knowing the name
+* @param: Bottle with (exploreTactileUnknownEntity entityType entityName) (eg: exploreUnknownEntity agent unknown_25)
+* @return Bottle with the result (error or ack?)
+*/
+yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {  
+    Bottle bOutput ;
+
+    if (bInput.size() != 3)
+    {
+        yInfo() << " proactiveTagging::exploreTactileEntityWithName | Problem in input size.";
+        bOutput.addString("Problem in input size");
+        return bOutput;
+    }
+
+    string sBodyPart = bInput.get(1).toString();
+    string sName = bInput.get(2).toString();
+
+    yInfo() << " EntityType : " << sBodyPart;
+
+    //1. search through opc for the bodypart entity
+    iCub->opc->checkout();
+    Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName, true));
+
+    //2.Ask human to touch
+    string sAsking = " Can you please touch my " + sName ;
+    yInfo() << " sAsking: " << sAsking;
+    iCub->say(sAsking);
+
+    //3. Read until some tactile value are detected
+    Bottle *bTactile = portFromTouchDetector.read();
+
+    if(bTactile == NULL){
+        yError() << " error in proactiveTagging::exploreTactileEntityWithName | for " << sName << " | Touch not detected!" ;
+        bOutput.addString("error");
+        bOutput.addString("Touch not detected!");
+        return bOutput;
+    }
+
+    //4. Assign m_tactile_number
+    BPentity->m_tactile_number = bTactile->get(0).asInt();
+    bOutput.addString("ack");
+    bOutput.addInt(bTactile->get(0).asInt());
+    iCub->opc->commit() ;
+
+    //4.Ask human to touch
+    string sThank = " Thank you, now I know when I am touching object with my " + sName ;
+    yInfo() << " sThank: " << sThank;
+    iCub->say(sThank);
+
+    return bOutput ;
 }
 

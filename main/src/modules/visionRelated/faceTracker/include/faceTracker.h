@@ -113,6 +113,8 @@ class faceTrackerModule : public yarp::os::RFModule {
 	Vector cur_encoders;
 	Vector prev_encoders;
 
+    IControlMode2 *ictrl;
+
 protected:
     //void exploring();
 

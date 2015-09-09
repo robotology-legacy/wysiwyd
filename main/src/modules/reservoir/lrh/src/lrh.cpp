@@ -15,8 +15,8 @@
  * Public License for more details
 */
 
+//#include "modules/reservoir/lrh/include/lrh.h"
 #include "lrh.h"
-
 
 bool LRH::configure(ResourceFinder &rf) {
 
@@ -69,7 +69,7 @@ bool LRH::configure(ResourceFinder &rf) {
     //------------------------//
 
     // string ttsSystem = SUBSYSTEM_SPEECH;
-    iCub = new ICubClient(moduleName.c_str(),"LRH","client.ini",true);
+    iCub = new ICubClient(moduleName.c_str(),"lrh","client.ini",true);
     iCub->opc->isVerbose = false;
 
     char rep = 'n';
@@ -83,7 +83,7 @@ bool LRH::configure(ResourceFinder &rf) {
     iCub->opc->checkout();
     cout<<"Checkout done"<<endl;
 
-    populateOPC();
+    //populateOPC();
 
     return true;
 }
@@ -123,11 +123,13 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ok");
     }
     else if (command.get(0).asString()=="production"  && command.size() == 2) {
+        reply.addString("ack");
         reply.addString("OK, send the language production");
         cout << "command.get(1).asString() : " << command.get(1).asString() << endl;
         spatialRelation(command.get(1).asString());
     }
     else if (command.get(0).asString()=="meaning" && command.size() == 2) {
+        reply.addString("ack");
         reply.addString("OK, send the language comprehension");
         sentenceToMeaning(command.get(1).asString());
     }
@@ -432,9 +434,11 @@ bool LRH::AREactions(vector<string> seq)
 bool LRH::spatialRelation(string sObjectFocus)
 {
     iCub->opc->update();
+    iCub->opc->checkout();
     std::list<Entity*> PresentObjects = iCub->opc->EntitiesCache();
     std::vector<Object> PresentRtoBefore;
 
+    yDebug() << "before loop into present object";
     for(std::list<Entity*>::iterator itE = PresentObjects.begin() ; itE != PresentObjects.end(); itE++)
     {
         if ((*itE)->isType(EFAA_OPC_ENTITY_OBJECT))
@@ -446,6 +450,7 @@ bool LRH::spatialRelation(string sObjectFocus)
     }
 
 
+    yDebug() << "check if at least 2 obj present";
     if (PresentObjects.size() < 2)
     {
         iCub->say("Dude, I was expecting more than 3 objects... ");
@@ -459,10 +464,13 @@ bool LRH::spatialRelation(string sObjectFocus)
     if (sobjectFocusChanged.empty())
     {
         double maxSalience = 0.4;
+        yDebug() << "obj focus is empty" ;
         for (std::vector<Object>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
         {
+            yDebug() << "loop in present RTO" ;
             if (itRTO->m_saliency > maxSalience)
             {
+                yDebug() << "new max sliency" ;
                 maxSalience = itRTO->m_saliency;
                 sObjectFocus = itRTO->name();
             }
@@ -482,18 +490,20 @@ bool LRH::spatialRelation(string sObjectFocus)
     if (PresentRtoBefore.size()==2)
     {
 
+        yDebug() << "== than 2 obj present" ;
         double deltaX = 0.0;
         double deltaY = 0.0;
         int iFactor;
         (PresentRtoBefore[0].name() == sObjectFocus) ? iFactor = 1 : iFactor = -1;
+        yDebug() << "weird if done" ;
         deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
         deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
 
         string sLocation;
         (deltaY>0)? sLocation = "right" : sLocation = "left";
+        yDebug() << "second weird if done" ;
         string sRelative;
         (iFactor==1)? sRelative = (PresentRtoBefore[1].name()) : sRelative =(PresentRtoBefore[0].name());
-
         cout << "I understood :" << endl << sObjectFocus << "\t" << sLocation << "\t" << sRelative << endl ;
         sdataTestSD = sLocation + " " + sObjectFocus + " " + sRelative;
 
@@ -509,13 +519,16 @@ bool LRH::spatialRelation(string sObjectFocus)
         bool bFirstRelative = true;
         for (unsigned int i = 0 ; i < 3 ; i++)
         {
+            yDebug() << "in loop because  more than 3 obj" ;
             if (PresentRtoBefore[i].name() != sObjectFocus )
             {
+                yDebug() << "if 1" ;
                 bFirstRelative? rtRelative1 = PresentRtoBefore[i] : rtRelative2 =PresentRtoBefore[i];
                 bFirstRelative = false;
             }
             else
             {
+                yDebug() << "else 1" ;
                 rtFocus = PresentRtoBefore[i];
             }
         }
@@ -541,9 +554,24 @@ bool LRH::spatialRelation(string sObjectFocus)
         string sfocusHierarchy =  "<o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>";
         sdataTestSD = sLocation1 + " " + sObjectFocus + " " + sRelative1 + "," + sLocation2 + " " + sObjectFocus + " " + sRelative2 + " " + sfocusHierarchy;
 
+        // spatial location
         cout << "sdataTestSD : "  << sdataTestSD << endl;
         meaningToSentence(sdataTestSD);
         string result = openResult(sfileResult.c_str());
+        iCub->say("I have discoverd a new object " + sObjectFocus);
+        iCub->say("And now I can say you that");
+        iCub->say(result);
+
+        // distance
+        //the objectFocus is closer/further the object1 than the object2
+        string sproximity;
+        (deltaX1>deltaX2)? sproximity = "closer" : sproximity = "further";
+        sfocusHierarchy =  "<o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>";
+        sdataTestSD = sproximity + " " + sObjectFocus + " " + sRelative1 + " " + sRelative2 +" " + sfocusHierarchy;
+        cout << "sdataTestSD : "  << sdataTestSD << endl;
+        meaningToSentence(sdataTestSD);
+        result = openResult(sfileResult.c_str());
+        iCub->say("I learned also that");
         iCub->say(result);
     }
     return true;

@@ -964,9 +964,7 @@ Bottle abmReasoning::level3Reasoning(int from)
         string sName = bName.get(0).toString().c_str(),
             sArgument = bName.get(1).toString().c_str();
 
-        yInfo() << " bName : \t" << bName.toString();
-        yInfo() << " bRelationsBefore : \t" << bRelationsBefore.toString();
-        yInfo() << " bRelationsAfter  : \t" << bRelationsAfter.toString();
+        yInfo() << " bName : \t" << bName.toString() << "\t" << " bRelationsBefore : \t" << bRelationsBefore.toString() << "\t" << " bRelationsAfter  : \t" << bRelationsAfter.toString();
 
         // Before
         vector<string>  vLocFocusBefore, vLocFocusAfter;       // Vector with the location of the focus object
@@ -1248,6 +1246,8 @@ Bottle abmReasoning::level3Reasoning(int from)
 
     } // end for each action
 
+    yInfo() << "\t " << "level3 finished";
+
     for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
     {
         itCK->updatePresence();
@@ -1344,12 +1344,12 @@ Bottle abmReasoning::imagineOPC(int Id)
     Time::delay(0.1);
     mentalOPC->clear();
     mentalOPC->checkout();
-
+    
     // ADD Agent iCub
     Agent *icub = mentalOPC->addOrRetrieveEntity<Agent>("icub");
     icub->m_present = true;
     mentalOPC->commit(icub);
-
+    
     // Get the id of the RTO present
     ostringstream osIdRTO;
     osIdRTO << "SELECT position,presence,name,color FROM rtobject WHERE instance = " << Id;
@@ -1361,8 +1361,10 @@ Bottle abmReasoning::imagineOPC(int Id)
         bOutput.addString("No RTObject.");
         return bOutput;
     }
+
     for (int iRTO = 0; iRTO < bMessenger.size(); iRTO++)
     {
+
         Bottle bRTO = *(bMessenger.get(iRTO).asList());
         string sCoordinate = bRTO.get(0).toString(),
             sPresence = bRTO.get(1).toString().c_str(),
@@ -1372,8 +1374,9 @@ Bottle abmReasoning::imagineOPC(int Id)
         pair<double, double> pCoordinate = abmReasoningFunction::coordFromString(sCoordinate);
         bool bPresence = test == sPresence;
         tuple<int, int, int> tColor = abmReasoningFunction::tupleIntFromString(sColor);
-
-        RTObject *RTOtemp = dynamic_cast<RTObject*>(mentalOPC->getEntity(sName));
+        
+        RTObject *RTOtemp = mentalOPC->addEntity<RTObject>(sName);
+        
         RTOtemp->m_ego_position[0] = pCoordinate.first;
         RTOtemp->m_ego_position[1] = pCoordinate.second;
         RTOtemp->m_present = bPresence;
@@ -1383,7 +1386,6 @@ Bottle abmReasoning::imagineOPC(int Id)
 
         mentalOPC->commit(RTOtemp);
     }
-
     mentalOPC->update();
 
     return bOutput;

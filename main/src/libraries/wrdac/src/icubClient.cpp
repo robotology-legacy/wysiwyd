@@ -93,6 +93,8 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_ARE] = new SubSystem_ARE(fullName);
 			else if (currentSS == SUBSYSTEM_RECOG)
                 subSystems[SUBSYSTEM_RECOG] = new SubSystem_Recog(fullName);
+            else if (currentSS == SUBSYSTEM_IOL2OPC)
+                subSystems[SUBSYSTEM_IOL2OPC] = new SubSystem_IOL2OPC(fullName);
         }
     }
 
@@ -446,7 +448,7 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
 }
 
 
-bool ICubClient::point(const string &oLocation, const Bottle &options)
+bool ICubClient::point(const string &oLocation, const Bottle &options, bool shouldWait)
 {
     Entity *target=opc->getEntity(oLocation,true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
@@ -462,11 +464,11 @@ bool ICubClient::point(const string &oLocation, const Bottle &options)
         return false;
     }
 
-    return point(oTarget->m_ego_position,options);
+    return point(oTarget->m_ego_position,options, shouldWait);
 }
 
 
-bool ICubClient::point(const Vector &target, const Bottle &options)
+bool ICubClient::point(const Vector &target, const Bottle &options, bool shouldWait)
 {
     SubSystem_ARE *are=getARE();
     if (are==NULL)
@@ -477,7 +479,7 @@ bool ICubClient::point(const Vector &target, const Bottle &options)
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->point(target,opt);
+    return are->point(target,opt, shouldWait);
 }
 
 

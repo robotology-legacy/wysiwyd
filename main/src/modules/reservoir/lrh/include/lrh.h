@@ -76,9 +76,9 @@ private:
     bool spatialRelation(string sObjectFocus);
 
 public:
-    bool configure(ResourceFinder &rf); // configure all the module parameters and return true if successful
-    bool interruptModule();                       // interrupt, e.g., the ports
-    bool close();                                 // close and shut down the module
+    bool configure(ResourceFinder &rf);
+    bool interruptModule();
+    bool close();
     bool respond(const Bottle& command, Bottle& reply);
     double getPeriod();
     bool updateModule();
