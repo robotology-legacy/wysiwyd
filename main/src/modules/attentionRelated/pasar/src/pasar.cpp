@@ -112,7 +112,12 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         isSkeletonIn = true;
     }
 
-    isPointing = false;
+    isPointing = rf.find("isPointing").asInt() == 1;
+    isWaving = rf.find("isWaving").asInt() == 1;
+
+    yInfo() << " pointing: "  << isPointing;
+    yInfo() << " waving: " << isWaving;
+
 
     if (!saliencyOutput.open(("/" + moduleName + "/saliency:o").c_str())) {
         cout << getName() << ": Unable to open port saliency:o" << endl;
@@ -158,7 +163,8 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
         "auto : switch attention between present objects \n" +
         "sleep : pauses the head control until next command\n" +
         "help \n" +
-        "pointing: detect the closest object from the right hand and increase salience\n"
+        "pointing on/off:  launch or stop pointing\n"+
+        "waving on/off:  launch or stop waving\n"+
         "quit \n";
 
     reply.clear();
@@ -189,6 +195,27 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
                 isPointing = true;
                 yInfo() << " start pointing";
                 reply.addString("start pointing");
+            }
+        }
+    }
+    else if (command.get(0).asString() == "waving") {
+        if (command.size() != 2)
+        {
+            reply.addString("error in PASAR: Botte 'waving' misses information (on/off)");
+        }
+        else
+        {
+            if (command.get(1).asString() == "off")
+            {
+                isWaving = false;
+                yInfo() << " stop waving";
+                reply.addString("stop waving");
+            }
+            else if (command.get(1).asString() == "on")
+            {
+                isWaving = true;
+                yInfo() << " start waving";
+                reply.addString("start waving");
             }
         }
     }
@@ -259,15 +286,15 @@ bool PasarModule::updateModule()
     {
         //Compute top down saliency (concept based)
         saliencyTopDown();
-
-        saliencyWaving();
+        if (isPointing) saliencyPointing();
+        if (isWaving)   saliencyWaving();
 
         //Normalize
         //saliencyNormalize();
 
         //Inhinbition of return
-//                if(trackedObject!= "")
-//                    presentObjects[trackedObject].o.m_saliency = max(0.0, presentObjects[trackedObject].o.m_saliency - pTopDownInhibitionReturn);
+        //                if(trackedObject!= "")
+        //                    presentObjects[trackedObject].o.m_saliency = max(0.0, presentObjects[trackedObject].o.m_saliency - pTopDownInhibitionReturn);
 
 
         //Leaky integrate
@@ -289,7 +316,6 @@ bool PasarModule::updateModule()
             cout << "Tracking : " << trackedObject << " Salience : " << presentObjects[trackedObject].o.m_saliency << endl;
         }
 
-        if (isPointing)  saliencyPointing();
 
         //Update the OPC values
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
@@ -424,7 +450,7 @@ void PasarModule::saliencyPointing()
 
     Vector vec = ag->m_body.m_parts["handRight"];
 
-//    yInfo() << " righthand is:" << vec.toString();
+    //    yInfo() << " righthand is:" << vec.toString();
 
     double x = vec[0];
     double y = vec[1];
@@ -433,55 +459,69 @@ void PasarModule::saliencyPointing()
     double closest = 10e5;
     string objectPointed = "none";
 
-    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+
+    for (map<string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
     {
-        double distance;
-        if ((*it)->name() != "partner")
+        if (it->first != "partner")
         {
+            double distance;
 
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+
+            distance = sqrt(
+                (x-it->second.o.m_ego_position[0])*(x-it->second.o.m_ego_position[0])+
+                (y-it->second.o.m_ego_position[1])*(y-it->second.o.m_ego_position[1])+
+                (z-it->second.o.m_ego_position[2])*(z-it->second.o.m_ego_position[2])
+                );
+            //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
+            if (distance < closest)
             {
-                Object * rto = dynamic_cast<Object*>(*it);
-                distance = sqrt(
-                    (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
-                    (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
-                    (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
-                    );
-                //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
-                if (distance < closest)
-                {
-                    closest = distance;
-                    objectPointed = rto->name();
-                }
+                closest = distance;
+                objectPointed = it->first;
             }
         }
     }
+
+
+    //for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    //{
+    //    double distance;
+    //    if ((*it)->name() != "partner")
+    //    {
+
+    //        //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
+    //        if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+    //        {
+    //            Object * rto = dynamic_cast<Object*>(*it);
+    //            distance = sqrt(
+    //                (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
+    //                (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
+    //                (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
+    //                );
+    //            //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
+    //            if (distance < closest)
+    //            {
+    //                closest = distance;
+    //                objectPointed = rto->name();
+    //            }
+    //        }
+    //    }
+    //}
 
     if (objectPointed != "none")
     {
         yInfo() << " pointed object is: \t" << objectPointed;
-        for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+        for (map<string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
         {
-            if ((*it)->name() == objectPointed)
+            if (it->first == objectPointed)
             {
-                (dynamic_cast<Object*>(*it))->m_saliency += dBurstOfPointing;
+                it->second.o.m_saliency += dBurstOfPointing;
             }
         }
-        opc->commit();
     }
     else
     {
         yInfo() << " pasar: no object pointed";
-    }
-    opc->update();
-    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
-    {
-
-        if ((*it)->name() == objectPointed)
-        {
- //           yInfo() << "\t \t objectPointed:" << dynamic_cast<Object*>(*it)->m_saliency;
-        }
     }
 }
 
@@ -492,6 +532,7 @@ void PasarModule::saliencyPointing()
 */
 void PasarModule::saliencyWaving()
 {
+    yInfo() << "is Waving: " << isWaving;
 
     opc->update();
     Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
@@ -519,7 +560,7 @@ void PasarModule::saliencyWaving()
     Vector accelRight(3);
     Vector accelLeft(3);
 
-    
+
     speedRightt2[0] = (rightHandt1[0] - rightHandt2[0]);
     speedRightt2[1] = (rightHandt1[1] - rightHandt2[1]);
     speedRightt2[2] = (rightHandt1[2] - rightHandt2[2]);

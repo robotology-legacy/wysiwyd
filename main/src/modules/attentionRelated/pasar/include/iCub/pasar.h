@@ -83,7 +83,8 @@ class PasarModule : public yarp::os::RFModule {
     std::string trackedObject;
 
     bool isControllingMotors;
-    bool isPointing; // is the human is pointing
+    bool isPointing; // if the human is pointing
+    bool isWaving; // check if the human is waving
     int store_context_id;
 
 protected:
