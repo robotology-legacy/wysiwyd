@@ -150,6 +150,7 @@ bool ears::updateModule() {
         for (vector<Bottle>::iterator itBo = vListAction.begin() ; itBo != vListAction.end() ; itBo++)
         {
             portToReactive.write(*itBo, bRead);
+            Time::delay(.5);
         }
     }
 
