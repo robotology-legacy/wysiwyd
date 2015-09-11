@@ -70,12 +70,14 @@ public:
 
     yarp::os::Bottle protoCommand(std::string sActionName, std::string sBodypartName, int maxAngle=10);
     yarp::os::Bottle primitiveCommand(std::string sActionName, std::string sBodypartName);
+    yarp::os::Bottle actionCommand(std::string sActionName, std::string sArgument);
 
     yarp::os::Bottle learn();
     yarp::os::Bottle learnPrim();
     yarp::os::Bottle learnAction();
     bool updateProtoAction(yarp::os::ResourceFinder &rf);
     bool updatePrimitive(yarp::os::ResourceFinder &rf);
+    bool updateAction(yarp::os::ResourceFinder &rf);
 
     bool saveToIniFile(string sType, string sName, string sArg, yarp::os::Bottle bActionDescription);
 

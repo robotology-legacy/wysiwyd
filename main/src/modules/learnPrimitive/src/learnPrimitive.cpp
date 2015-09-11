@@ -78,6 +78,7 @@ bool learnPrimitive::configure(yarp::os::ResourceFinder &rf)
 
     updateProtoAction(rf);
     updatePrimitive(rf);
+    updateAction(rf);
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -154,6 +155,21 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         string sPrimitiveName  = command.get(1).asString() ;
         string sPrimitiveArg   = command.get(2).asString() ;
         reply = primitiveCommand(sPrimitiveName, sPrimitiveArg);
+    }
+    else if (command.get(0).asString() == "complexCommand"){  //describeAction : TODO -> protection and stuff
+
+        if(command.size() < 2){
+            yError() << " error in learnPrimitive::complexCommand | Too few arguments!";
+            reply.addString("error");
+            reply.addString("Too few arguments");
+
+            rpcPort.reply(reply);
+            return false;
+
+        }
+        string sActionName  = command.get(1).asString() ;
+        string sActionArg   = command.get(2).asString() ;
+        reply = actionCommand(sActionName, sActionArg);
     }
     else if (command.get(0).asString() == "learn"){  //describeAction : TODO -> protection and stuff
         reply = learn();
@@ -656,6 +672,64 @@ Bottle learnPrimitive::protoCommand(string sActionName, string sBodyPartName, in
 }
 
 
+Bottle learnPrimitive::actionCommand(string sActionName, string sArg){
+
+    Bottle bOutput;
+
+    //1. check if primitive is known
+    //   vPrimitiveActionBottle =
+    //   open    (hand)     ( (unfold thumb) (unfold index) (unfold middle) (unfold ring) )
+    //   close   (hand)     ( (fold thumb) (fold index) (fold middle) (fold ring) )
+    //   b.get(1) b.get(2)  b.get(3)
+    //   name     arg        list of proto-action
+    Bottle bSubActionList;
+    for(std::vector<yarp::os::Bottle>::iterator it = vActionBottle.begin(); it < vActionBottle.end(); it++){
+        string currentName = it->get(0).toString();
+        //yInfo() << "Current name of the knwon actions : " << currentName ;
+        if(currentName == sActionName){
+            yInfo() << "found " << currentName << "as a known complex action";
+            string currentArg = it->get(1).toString();
+            if(currentArg == sArg){
+                yInfo() << "and we have a corresponding argument " << currentArg ;
+                for(int i = 0; i < it->get(2).asList()->size(); i++){
+                    bSubActionList.addList() = *it->get(2).asList()->get(i).asList() ;
+                }
+                break;
+            } else {
+                yInfo() << " BUT argument " << currentArg << " does NOT match" ;
+            }
+
+        }
+    }
+
+    if (bSubActionList.size() == 0){
+        yError() << " error in learnPrimitive::actionCommand | action '" << sActionName << " " << sArg << "' is NOT known";
+        bOutput.addString("error");
+        bOutput.addString("action is NOT known");
+        return bOutput ;
+    }
+
+    yInfo() << "Actions to do : " << bSubActionList.toString() ;
+
+    for(int i = 0; i < bSubActionList.size(); i++){
+        yInfo() << "action #" << i << " : "<< bSubActionList.get(i).asList()->get(0).toString() << " the " << bSubActionList.get(i).asList()->get(1).asList()->get(0).toString() ;
+
+        //1. check if subaction is a proto 
+        if ( mProtoActionEnd.find(bSubActionList.get(i).asList()->get(0).toString()) != mProtoActionEnd.end() ) {  //proto-action
+            bOutput.addList() = protoCommand(bSubActionList.get(i).asList()->get(0).toString(), bSubActionList.get(i).asList()->get(1).asList()->get(0).toString());
+        } else { //primitive
+            bOutput.addList() = primitiveCommand(bSubActionList.get(i).asList()->get(0).toString(), bSubActionList.get(i).asList()->get(1).asList()->get(0).toString());
+            yarp::os::Time::delay(2);
+        } //else { //another action
+
+        //}
+    }
+
+    bOutput.addString("ack");
+
+    return bOutput;
+}
+
 Bottle learnPrimitive::primitiveCommand(string sActionName, string sArg){
 
     Bottle bOutput;
@@ -666,7 +740,7 @@ Bottle learnPrimitive::primitiveCommand(string sActionName, string sArg){
     //   close   (hand)     ( (fold thumb) (fold index) (fold middle) (fold ring) )
     //   b.get(1) b.get(2)  b.get(3)
     //   name     arg        list of proto-action
-    Bottle bProtoActionList;
+    Bottle bProtoActionList; //primitive only composed by proto-action
     for(std::vector<yarp::os::Bottle>::iterator it = vPrimitiveActionBottle.begin(); it < vPrimitiveActionBottle.end(); it++){
         string currentName = it->get(0).toString();
         if(currentName == sActionName){
@@ -686,7 +760,7 @@ Bottle learnPrimitive::primitiveCommand(string sActionName, string sArg){
     }
 
     if (bProtoActionList.size() == 0){
-        yError() << " error in proactiveTagging::primitiveAction | action '" << sActionName << " " << sArg << "' is NOT known";
+        yError() << " error in learnPrimitive::primitiveCommand | action '" << sActionName << " " << sArg << "' is NOT known";
         bOutput.addString("error");
         bOutput.addString("action is NOT known");
         return bOutput ;
@@ -794,7 +868,7 @@ bool learnPrimitive::updateProtoAction(ResourceFinder &rf){
 bool learnPrimitive::updatePrimitive(ResourceFinder &rf){
     Bottle bOutput;
 
-    //1. Protoaction
+    //1. Primitive
     Bottle bPrimitiveAction = rf.findGroup("Primitive_Action");
 
     if (!bPrimitiveAction.isNull())
@@ -852,6 +926,76 @@ bool learnPrimitive::updatePrimitive(ResourceFinder &rf){
 
     return true;
 }
+
+bool learnPrimitive::updateAction(ResourceFinder &rf){
+    Bottle bOutput;
+
+    //1. Primitive
+    Bottle bAction = rf.findGroup("Action");
+
+    if (!bAction.isNull())
+    {
+        Bottle * bActionName = bAction.find("ActionName").asList();
+        Bottle * bActionArg  = bAction.find("ActionArg").asList();
+
+       if(bActionName->isNull() || bActionArg->isNull()){
+           yError() << " [updateAction] : one of the primitiveAction conf is null : ActionName, ActionArg" ;
+            return false ;
+        }
+
+        int actionSize = -1 ;
+        if(bActionName->size() == bActionArg->size()){
+            actionSize =  bActionName->size() ;
+        } else {
+            yError() << " [updateAction] : one of the Action conf has different size!" ;
+            return false ;
+        }
+
+        if(actionSize == 0) {
+            yWarning() << " [updateAction] : there is no Action defined at startup!" ;
+        } else {
+
+            for(int i = 0; i < actionSize ; i++) {
+                //insert protoaction even if already there
+                Bottle bSubAction;
+                string currentActionName = bActionName->get(i).asString();
+                string currentActionArg  = bActionArg->get(i).asString();
+
+                bSubAction.addString(currentActionName);
+                bSubAction.addString(currentActionArg);
+
+                string concat = currentActionName + "_" + currentActionArg;
+
+               // yInfo() << " Looking for " << concat ;
+
+                Bottle bCurrent = rf.findGroup(concat);
+                if(bCurrent.isNull()){
+                    yError() << " [updateAction] : " << concat << "is NOT defined" ;
+                    return false ;
+                }
+
+                Bottle * bListSubAction = bCurrent.find("actionList").asList();
+
+                //yInfo() << "Subaction found : " << bListSubAction->toString() ;
+                if(bListSubAction->isNull()){
+                    yError() << " [updateAction] : " << concat << "is there but is not defined (actionList)" ;
+                    return false ;
+                }
+
+                bSubAction.addList() = *bListSubAction ;
+                yInfo() << "Complex Action added : (" <<bSubAction.get(0).asString() << ", " << bSubAction.get(1).asString() << ", ( " << bSubAction.get(2).asList()->toString()<< "))" ;
+                vActionBottle.push_back(bSubAction);
+            }
+        }
+    } else {
+        yError() << " error in learnPrimitive::updatePrimitive | Primitive_Action is NOT defined in the learnPrimitive.ini";
+        return false;
+    }
+
+
+    return true;
+}
+
 
 /*
 *   Get the context path of a .grxml grammar, and return it as a string
