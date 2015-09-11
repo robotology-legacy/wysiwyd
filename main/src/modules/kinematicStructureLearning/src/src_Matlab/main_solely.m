@@ -40,7 +40,6 @@ submodule_video_loading_feature_extraction;
 %%
 % converting feature data to y
 [y, W, frames, points] = submodule_cvuKltRead([pwd,'/points/',filename(1:end-4),'/point_seq_%d.txt'], 1, nFrames, 'workspace', points_total);
-% [y, W, frames, points] = submodule_cvuKltRead(['/home/human/robot/wysiwyd/main/build/bin/data2014-12-17-15-00/points/video/point_seq_%d.txt'], 1, 279, 'file', []);
 
 %%
 % submodule_bg_removal;
@@ -51,6 +50,7 @@ submodule_video_loading_feature_extraction;
 % main algorithm
 disp('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
 submodule_motion_segmentation;
+
 %%
 % output display
 submodule_display_save_structure;

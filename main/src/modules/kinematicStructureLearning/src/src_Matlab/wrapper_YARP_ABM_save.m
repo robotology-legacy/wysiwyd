@@ -105,7 +105,8 @@ for i = 1:num_images
         
         image_name = [sprintf('%04d',i) '.png'];
         fprintf(['Saving ', image_name, '\n']);
-        img_mat_org = imread(['result/images/',image_name]);
+%         img_mat_org = imread(['result/images/graph/',image_name]);
+        img_mat_org = imread(['result/images/points/',image_name]);
         [h,w,pixSize] = size(img_mat_org);
         tool=YarpImageHelper(h, w);
         

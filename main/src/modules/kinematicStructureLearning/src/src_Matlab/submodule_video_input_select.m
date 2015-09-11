@@ -34,8 +34,6 @@ switch videoMode
         disp('At least one input should be selected!!');
 end
 
-
-
 % h = uibuttongroup('visible','off','Position',[0 0 .2 1]);
 % u0 = uicontrol('Style','Radio','String','Video',...
 %     'pos',[10 350 100 30],'parent',h,'HandleVisibility','off');
@@ -46,3 +44,14 @@ end
 % set(h,'SelectionChangeFcn', 'disp selectionChanged');
 % set(h,'SelectedObject',[]);  % No selection
 % set(h,'Visible','on');
+
+%%
+% Number of Segments
+numOfSegments = input('Number of Motion Segments? [0:Adaptive, 0<:Manual] ');
+
+switch numOfSegments
+    case 0
+        disp('Calculate the number of motion segments adaptively!');
+    otherwise
+        disp(['The number of motion segments: ',numOfSegments]);
+end

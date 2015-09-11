@@ -61,7 +61,7 @@ while(~shouldClose)
     %----------------------------------------------------------------------
     if (all(isletter(bCommand.get(0))))
         if (strcmp(bCommand.get(0).toString, 'quit') || strcmp(bCommand.get(0).toString, 'close'))
-            bReply.addString('close kinematic structure module');
+            bReply.addString('[ACK. Kinematic structure module is closed.]');
             shouldClose = true;
             
         elseif (strcmp(bCommand.get(0).toString, 'startStructureLearning'))
