@@ -28,7 +28,7 @@ using namespace std;
 * todo
 */
 Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
-    Bottle bOutput;
+    Bottle bOutput, bSingleJoint;
 
     yInfo() << " EntityType : " << sNameTarget;
 
@@ -45,7 +45,16 @@ Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
     Bottle bHand("left");
     yInfo() << "Sending command : point to " << sNameTarget ;
 
-    iCub->point(sNameTarget, bHand, false); //false for shouldWait = False : will continue to the looping describe
+    //iCub->point(sNameTarget, bHand, false); //false for shouldWait = False : will continue to the looping describe
+    //bottle to move single joint
+    bSingleJoint.addString("singleJointBabbling");
+
+    //9 11 13 15
+    bSingleJoint.addInt(15);
+
+    portNoWaitToBodySchema.prepare() = bSingleJoint ;
+    portNoWaitToBodySchema.writeStrict() ;
+
 
     //------------------------------------------------- Loop Speech Recog -------------------------------------------
 
@@ -61,7 +70,7 @@ Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
         yInfo() << "----> Sentence type = " << bAnswer.get(1).asList()->get(0).toString();
     } while (bAnswer.get(1).asList()->get(0).toString() != "stop");
 
-    iCub->home();
+    //iCub->home();
 
     /*bSemantic = *bAnswer.get(1).asList();
     string sName;

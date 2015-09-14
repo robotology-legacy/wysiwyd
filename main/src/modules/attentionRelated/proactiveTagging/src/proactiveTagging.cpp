@@ -65,6 +65,12 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " BODY SCHEMA NOT CONNECTED: selfTagging will not work";
     }
 
+    //out to BodySchema, bufferedPort for no wait and allow describe actions
+    portNoWaitToBodySchema.open(("/" + moduleName + "/BufferedPort/toBodySchema:o").c_str());
+    if (!Network::connect(portNoWaitToBodySchema.getName().c_str(),bodySchemaRpc.c_str())) {
+        yWarning() << " BODY SCHEMA BUFFERED PORT NOT CONNECTED: actionTagging will not work";
+    }
+
     //out to LRH
     portToLRH.open(("/" + moduleName + "/toLRH:o").c_str());
     string LRHRpc = rf.check("LRHRpc",Value("/lrh/rpc")).asString().c_str();

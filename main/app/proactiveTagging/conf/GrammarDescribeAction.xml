@@ -8,6 +8,8 @@
     <ID  NAME="object"  VAL="3"/>
     <ID  NAME="action_direction"  VAL="4"/>
     <ID  NAME="direction"  VAL="5"/>
+    <ID  NAME="action_joint"  VAL="6"/>
+    <ID  NAME="finger"  VAL="7"/>
   </DEFINE>
 
 
@@ -48,6 +50,19 @@
         </L>
     </O>
     <O> <RULEREF  NAME="direction"/> </O>
+   </RULE>
+
+  <RULE  NAME="SENTENCE_JOINT"  TOPLEVEL="ACTIVE"  EXPORT="1">
+
+    <P>you</P>
+    <RULEREF  NAME="action_joint"/>
+    <O>
+        <L>
+            <P> your </P>
+            <P> the </P>
+        </L>
+    </O>
+    <RULEREF  NAME="finger"/>
    </RULE>
 
   <RULE NAME="action_object" DYNAMIC="TRUE">
@@ -93,6 +108,22 @@
     </L>
   </RULE>
 
+  <RULE NAME="action_joint" DYNAMIC="TRUE">
+    <L>
+      <P>fold</P>
+      <P>unfold</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="finger" DYNAMIC="TRUE">
+    <L>
+      <P>thumb</P>
+      <P>index</P>
+      <P>middle</P>
+      <P>ring</P>
+      <P>little</P>
+    </L>
+  </RULE>
 
 
 </GRAMMAR>
