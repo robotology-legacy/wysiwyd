@@ -28,7 +28,7 @@ install:
   - cmd: c:\dev\yarp.exe /S
   - cmd: timeout 120
   - cmd: c:\dev\icub.exe /S
-  - cmd: timeout 180
+  - cmd: timeout 181
   - cmd: dir "c:\Program Files (x86)\robotology"
 
   # apply patch for macro icub_export_library() to install correctly trees of headers
