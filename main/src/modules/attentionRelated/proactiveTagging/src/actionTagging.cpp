@@ -27,15 +27,15 @@ using namespace std;
 * input: todo
 * todo
 */
-Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
+Bottle proactiveTagging::describeBabbling(string sJointName, int joint) {
     Bottle bOutput, bSingleJoint;
 
-    yInfo() << " EntityType : " << sNameTarget;
+    yInfo() << " sJointName : " << sJointName;
 
     //Check if name is known or not. if yes, and body part : ask tactile
 
     //Ask question for the human, or ask to pay attention (if action to focus attention after)
-    string sQuestion = "Ready to point";
+    string sQuestion = "I will move my " + sJointName + " finger. Can you describe the proto-actions I will do?" ;
 
     //TODO : choose between say and TTS. say put stuff in ABM, TTS?
     yInfo() << sQuestion;
@@ -43,14 +43,14 @@ Bottle proactiveTagging::describeAction(string actionName, string sNameTarget) {
     iCub->opc->checkout();
 
     Bottle bHand("left");
-    yInfo() << "Sending command : point to " << sNameTarget ;
+    yInfo() << "Sending command : Babbling " << sJointName ;
 
     //iCub->point(sNameTarget, bHand, false); //false for shouldWait = False : will continue to the looping describe
     //bottle to move single joint
     bSingleJoint.addString("singleJointBabbling");
 
     //9 11 13 15
-    bSingleJoint.addInt(15);
+    bSingleJoint.addInt(joint);
 
     portNoWaitToBodySchema.prepare() = bSingleJoint ;
     portNoWaitToBodySchema.writeStrict() ;

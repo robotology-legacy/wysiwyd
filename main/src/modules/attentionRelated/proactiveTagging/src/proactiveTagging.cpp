@@ -102,14 +102,12 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
-    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
-
-    std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
+    //std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
     //if (iCub->getSpeechClient())
-    iCub->getSpeechClient()->SetOptions(ttsOptions);
-
+    //iCub->getSpeechClient()->SetOptions(ttsOptions);
 
     iCub->say("proactive tagging is ready", false);
+    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
     return true;
 }

@@ -65,7 +65,7 @@ yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
     yarp::os::Bottle exploreTactileEntityWithName(yarp::os::Bottle bInput);
 
     //actionTagging
-    yarp::os::Bottle describeAction(std::string actionName, std::string sNameTarget);
+    yarp::os::Bottle describeBabbling(std::string sJointName, int jointNumber); // to change extract the joint from the name
 
 
 public:
