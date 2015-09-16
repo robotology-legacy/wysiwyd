@@ -25,10 +25,10 @@ install:
   - ps:  $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_1.exe','c:\dev\yarp.exe')
   - ps:  $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_1.exe','c:\dev\icub.exe')
 
-  - cmd: c:\dev\yarp.exe /S
+  - cmd: start "" /WAIT "c:\dev\yarp.exe" /S
   - cmd: timeout 10
-  - cmd: c:\dev\icub.exe /S
-  - cmd: timeout 181
+  - cmd: start "" /WAIT "c:\dev\icub.exe" /S
+  - cmd: timeout 10
   - cmd: dir "c:\Program Files (x86)\robotology"
 
   # apply patch for macro icub_export_library() to install correctly trees of headers
