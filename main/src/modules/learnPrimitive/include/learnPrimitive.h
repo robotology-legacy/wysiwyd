@@ -75,6 +75,9 @@ public:
     yarp::os::Bottle learn();
     yarp::os::Bottle learnPrim();
     yarp::os::Bottle learnAction();
+
+    yarp::os::Bottle execute();
+
     bool updateProtoAction(yarp::os::ResourceFinder &rf);
     bool updatePrimitive(yarp::os::ResourceFinder &rf);
     bool updateAction(yarp::os::ResourceFinder &rf);

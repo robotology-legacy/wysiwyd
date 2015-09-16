@@ -113,7 +113,7 @@ namespace wysiwyd{
 
                     yInfo() << " Reply from Speech Recog : " << bReply.toString();
 
-                    if (bReply.toString() == "NACK" || bReply.size() <= 2)
+                    if (bReply.toString() == "NACK" || bReply.size() < 2)
                     {
                         bOutput.addInt(0);
                         osError << "Check grammar";

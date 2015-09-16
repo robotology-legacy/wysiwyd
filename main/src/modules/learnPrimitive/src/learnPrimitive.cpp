@@ -174,6 +174,10 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "learn"){  //describeAction : TODO -> protection and stuff
         reply = learn();
     }
+
+    else if (command.get(0).asString() == "execute"){  //describeAction : TODO -> protection and stuff
+        reply = execute();
+    }
     else if (command.get(0).asString() == "save"){  //describeAction : TODO -> protection and stuff
         Bottle blop;
         blop.addString("Blip");
@@ -188,6 +192,44 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     rpcPort.reply(reply);
 
     return true;
+}
+
+//execute action, stop to go out
+Bottle learnPrimitive::execute(){
+    Bottle bOutput ;
+    Bottle bRecognized, //received FROM speech recog with transfer information (1/0 (bAnswer))
+    bAnswer, //response from speech recog without transfer information, including raw sentence
+    bSemantic; // semantic information of the content of the recognition
+
+    string sSay = " What do you want me to do?";
+    yInfo() << sSay;
+    iCub->say(sSay);
+
+    Bottle bCurrentOrder = nodeNameAction("any");
+
+    string orderType = bCurrentOrder.get(0).asString();
+    if(orderType == "stop"){
+        string sSay = " Allright, thank you for the exercice";
+        yInfo() << sSay;
+        iCub->say(sSay);
+
+        return bCurrentOrder ;
+    }
+
+    string orderVerb = bCurrentOrder.get(1).asString();
+    string orderArg  = bCurrentOrder.get(2).asString();
+
+    if(orderType == "proto-action") {
+        protoCommand(orderVerb, orderArg);
+        return execute() ;
+    } else if (orderType == "primitive") {
+        primitiveCommand(orderVerb, orderArg);
+        return execute();
+    } else {
+        actionCommand(orderVerb, orderArg);
+        return execute();
+    }
+
 }
 
 /* Called periodically every getPeriod() seconds */
@@ -205,6 +247,8 @@ Bottle learnPrimitive::nodeNameAction(string actionTypeNeeded){
 
     //Load the Speech Recognition with grammar according to entityType
     bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarNameAction), 20);
+
+    yInfo() << "bRecognized = " << bRecognized.toString();
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -274,10 +318,13 @@ Bottle learnPrimitive::learn(){
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
     bAnswer, //response from speech recog without transfer information, including raw sentence
     bSemantic; // semantic information of the content of the recognition
+    
+    string sSay = " What do you want to teach me?";
+    yInfo() << sSay;
+    iCub->say(sSay);
 
     //Load the Speech Recognition with grammar according to entityType
     bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarTypeAction), 20);
-
 
     if (bRecognized.get(0).asInt() == 0)
     {
@@ -303,7 +350,6 @@ Bottle learnPrimitive::learn(){
     yInfo() << " bSemantic = " << bSemantic.toString() ;
     string sType = bSemantic.check("actionType", Value("unknown")).asString();
 
-    string sSay;
     if(sType == "proto-action"){
         sSay = " Oh I cannot learn a proto-action right now";
         yInfo() << sSay;
@@ -316,7 +362,7 @@ Bottle learnPrimitive::learn(){
     yInfo() << sSay;
     iCub->say(sSay);
 
-    sSay = " What do you want to teach me?";
+    sSay = " How can I do that?";
     yInfo() << sSay;
     iCub->say(sSay);
 
@@ -467,7 +513,9 @@ Bottle learnPrimitive::learn(){
     bOutput.addString("ack");
     bOutput.addString(sName);
     bOutput.addString(sArg);
-    return bOutput;
+
+    return learn(); //loop the learning until "stop"
+    //return bOutput; learn just once
 }
 
 //For now only control in position. Careful, angle is in percentage of maxAngle
