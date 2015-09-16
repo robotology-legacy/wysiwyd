@@ -421,6 +421,9 @@ Bottle learnPrimitive::learn(){
 
     //3. Loop in recog to build with protoAction
     sSay = " Allright, can you describe how I can " + sName + " my " + sArg + ", please?";
+   if(sArg == "one" || sArg == "two" || sArg == "three" || sArg == "four" || sArg == "five"){
+        sSay = " Allright, can you describe how I can " + sName + sArg + ", please?";
+    }
     yInfo() << sSay;
     iCub->say(sSay);
     string sTypeNeeded = "any" ;
