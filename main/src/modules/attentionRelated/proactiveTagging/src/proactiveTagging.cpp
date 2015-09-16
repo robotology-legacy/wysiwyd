@@ -243,11 +243,11 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         }
         reply = assignKinematicStructureByJoint(BPjoint, sBodyPart, forcingKS);
     }
-    else if (command.get(0).asString() == "describeAction"){  //describeAction : TODO -> protection and stuff
-        string sName   = command.get(1).asString() ;
-        string sTarget = command.get(2).asString() ;
+    else if (command.get(0).asString() == "describeBabbling"){  //describeAction : TODO -> protection and stuff
+        string sJointName   = command.get(1).asString() ;
+        int jointNumber = command.get(2).asInt() ;
 
-        reply = describeAction(sName, sTarget);
+        reply = describeBabbling(sJointName, jointNumber);
     }
     else {
         cout << helpMessage;
