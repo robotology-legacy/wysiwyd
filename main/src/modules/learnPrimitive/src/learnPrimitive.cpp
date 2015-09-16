@@ -219,6 +219,14 @@ Bottle learnPrimitive::execute(){
     string orderVerb = bCurrentOrder.get(1).asString();
     string orderArg  = bCurrentOrder.get(2).asString();
 
+    sSay = orderVerb + "ing my " + orderArg;
+    if(orderArg == "one" || orderArg == "two" || orderArg == "three" || orderArg == "four" || orderArg == "five"){
+        sSay = orderVerb + "ing " + orderArg;
+    }
+    sSay = sSay ;
+    yInfo() << sSay;
+    iCub->say(sSay);
+
     if(orderType == "proto-action") {
         protoCommand(orderVerb, orderArg);
         return execute() ;
@@ -264,12 +272,11 @@ Bottle learnPrimitive::nodeNameAction(string actionTypeNeeded){
 
     string actionType = bSemantic.get(0).asString() ;
     yInfo() << "bSemantic = " << bSemantic.toString() ;
-
     yInfo() << "actionTypeNeeded = " << actionTypeNeeded << " and actionType = " << actionType ;
 
 
     //If not "any" : should match (e.g. when "I will teach you how to ...")
-    if (actionType != "any"){
+    if (actionTypeNeeded != "any"){
         if(actionType != actionTypeNeeded && actionType != "stop"){
             yError() << " error in proactiveTagging::nodeNameAction | Error in speechRecog (nodeNameAction) : actionType mismatch" ;
             bOutput.addString("error");
@@ -279,8 +286,6 @@ Bottle learnPrimitive::nodeNameAction(string actionTypeNeeded){
     }
 
     string sName, sArg;
-
-    yInfo() << "ACTION TYPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE = '" << actionType << "'";
 
     //get(1).asList() because there are several sub part in the semantic
     if(actionType == "proto-action") {
@@ -362,7 +367,7 @@ Bottle learnPrimitive::learn(){
     yInfo() << sSay;
     iCub->say(sSay);
 
-    sSay = " How can I do that?";
+    sSay = " What is the exact "  + sType + " that you will teach me?";
     yInfo() << sSay;
     iCub->say(sSay);
 
