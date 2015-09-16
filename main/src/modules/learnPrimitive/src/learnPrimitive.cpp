@@ -428,9 +428,8 @@ Bottle learnPrimitive::learn(){
     string sTypeNeeded = "any" ;
     if(sType == "primitive"){
         sTypeNeeded = "proto-action" ;
-    } else { //should be action cause proto-action quit before
-        sTypeNeeded = "action" ;
-    }
+    } //should be action cause proto-action quit before : any is fine then
+
 
     //Bottle bReplyFromNameAction = nodeNameAction(sTypeNeeded);  //provide bottle : <type> <name> <arg>. type == error if not good
 
