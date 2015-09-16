@@ -229,15 +229,14 @@ Bottle learnPrimitive::execute(){
 
     if(orderType == "proto-action") {
         protoCommand(orderVerb, orderArg);
-        return execute() ;
     } else if (orderType == "primitive") {
         primitiveCommand(orderVerb, orderArg);
-        return execute();
     } else {
         actionCommand(orderVerb, orderArg);
-        return execute();
     }
 
+    yarp::os::Time::delay(6);
+    return execute();
 }
 
 /* Called periodically every getPeriod() seconds */
