@@ -56,6 +56,8 @@ install:
 build:
 
 build_script:
+  - cd "c:\Program Files (x86)\robotology\icub-1.1.16\cmake"
+  - type "icub-config.cmake"
   - cd c:\dev\wysiwyd\main
   - md build
   - cd build
