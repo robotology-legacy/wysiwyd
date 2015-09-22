@@ -26,14 +26,10 @@ install:
   - ps:  $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_1.exe','c:\dev\icub.exe')
 
   - cmd: start "" /WAIT "c:\dev\yarp.exe" /S
-  - cmd: timeout 60
+  - cmd: timeout 10
   - cmd: start "" /WAIT "c:\dev\icub.exe" /S
-  - cmd: timeout 360
+  - cmd: timeout 10
   - cmd: dir "c:\Program Files (x86)\robotology"
-  - cmd: cd "c:\Program Files (x86)\robotology\icub-1.1.16\cmake"
-  - cmd: type "icub-config.cmake"
-  - cmd: powershell -Command "(gc icub-config.cmake) -replace ' __NSIS_ICUB_INSTALLED_LOCATION__', ' c:\Program Files (x86)\robotology\icub-1.1.16'"
-  - cmd: type "icub-config.cmake"
 
   # apply patch for macro icub_export_library() to install correctly trees of headers
   - cmd: git clone https://github.com/robotology/icub-main.git c:\dev\icub-main
@@ -56,8 +52,6 @@ install:
 build:
 
 build_script:
-  - cd "c:\Program Files (x86)\robotology\icub-1.1.16\cmake"
-  - type "icub-config.cmake"
   - cd c:\dev\wysiwyd\main
   - md build
   - cd build
