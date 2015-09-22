@@ -1176,7 +1176,7 @@ Bottle abmReasoning::level3Reasoning(int from)
             Bottle bSpatial = *bAction.get(3).asList();
 
             yInfo() << "\t" << "bSpatial : " << bSpatial.toString();
-
+            
             string sFrom, sTo; // locations from and to of the move
             // Get the argument FROM and TO
             for (int i = 0; i < 2; i++)
@@ -1344,12 +1344,12 @@ Bottle abmReasoning::imagineOPC(int Id)
     Time::delay(0.1);
     mentalOPC->clear();
     mentalOPC->checkout();
-    
+
     // ADD Agent iCub
     Agent *icub = mentalOPC->addOrRetrieveEntity<Agent>("icub");
     icub->m_present = true;
     mentalOPC->commit(icub);
-    
+
     // Get the id of the RTO present
     ostringstream osIdRTO;
     osIdRTO << "SELECT position,presence,name,color FROM rtobject WHERE instance = " << Id;
@@ -1374,9 +1374,9 @@ Bottle abmReasoning::imagineOPC(int Id)
         pair<double, double> pCoordinate = abmReasoningFunction::coordFromString(sCoordinate);
         bool bPresence = test == sPresence;
         tuple<int, int, int> tColor = abmReasoningFunction::tupleIntFromString(sColor);
-        
+
         RTObject *RTOtemp = mentalOPC->addEntity<RTObject>(sName);
-        
+
         RTOtemp->m_ego_position[0] = pCoordinate.first;
         RTOtemp->m_ego_position[1] = pCoordinate.second;
         RTOtemp->m_present = bPresence;
