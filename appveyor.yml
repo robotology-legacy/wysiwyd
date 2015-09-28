@@ -32,8 +32,8 @@ install:
   - cmd: dir "c:\Program Files (x86)\robotology"
 
   # temporary fix: apply patch for macro icub_export_library() to install correctly trees of headers
-  # - cmd: git clone https://github.com/robotology/icub-main.git c:\dev\icub-main
-  # - ps:  copy-item c:\dev\icub-main\conf\iCubHelpers.cmake $env:ICUB_DIR\share\iCub\cmake\iCubHelpers.cmake -Force
+  - cmd: git clone https://github.com/robotology/icub-main.git c:\dev\icub-main
+  - ps:  copy-item c:\dev\icub-main\conf\iCubHelpers.cmake $env:ICUB_DIR\share\iCub\cmake\iCubHelpers.cmake -Force
 
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
