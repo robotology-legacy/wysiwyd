@@ -23,7 +23,7 @@ install:
 
   - ps:  $dwntool=New-Object System.Net.WebClient
   - ps:  $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_1.exe','c:\dev\yarp.exe')
-  - ps:  $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_1.exe','c:\dev\icub.exe')
+  - ps:  $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_2.exe','c:\dev\icub.exe')
 
   - cmd: start "" /WAIT "c:\dev\yarp.exe" /S
   - cmd: timeout 10
@@ -34,10 +34,6 @@ install:
   # temporary fix: apply patch for macro icub_export_library() to install correctly trees of headers
   - cmd: git clone https://github.com/robotology/icub-main.git c:\dev\icub-main
   - ps:  copy-item c:\dev\icub-main\conf\iCubHelpers.cmake $env:ICUB_DIR\share\iCub\cmake\iCubHelpers.cmake -Force
-  
-  # temporary fix: delete additional cmake files
-  - cmd: cd "c:\Program Files (x86)\robotology\icub-1.1.16\lib\ICUB"
-  - cmd: del /f "icub-*-fp.cmake"
 
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
