@@ -1,0 +1,3 @@
+add_subdirectory(cvz)
+add_subdirectory(cvzBCBT2014)
+add_subdirectory(cvzDoubleTouch)
