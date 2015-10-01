@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+<module>
+
+   <name>bodyReservoir</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>application for body movement in reservoir learning</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+Module to generate movement for the robot. The goal is to record the joint and to analyze them through reservoir computing
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="greg.pointeau@gmail.com"> Grégoire Pointeau </author>
+   </authors>
+   
+</module>
