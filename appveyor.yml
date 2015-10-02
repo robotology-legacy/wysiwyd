@@ -22,19 +22,21 @@ install:
   # the format is: "7z x c:\path-to-archive\archive.zip -oc:\path-where-unzip -y > nul"
 
   - ps: >-
-        $dwntool = New-Object System.Net.WebClient
-        $Stoploop = $false
-        do {
-          try {
+    $dwntool = New-Object System.Net.WebClient
+    
+    $Stoploop = $false
+    
+    do {
+        try {
             $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_1.exe','c:\dev\yarp.exe')
             $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_2.exe','c:\dev\icub.exe')
             $Stoploop = $true
-          }
-          catch {
-            Start-Sleep -Seconds 15
-          }
         }
-        While ($Stoploop -eq $false)
+        catch {
+            Start-Sleep -Seconds 15
+        }
+    }
+    While ($Stoploop -eq $false)
 
   #- ps:  $dwntool=New-Object System.Net.WebClient
   #- ps:  $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_1.exe','c:\dev\yarp.exe')
