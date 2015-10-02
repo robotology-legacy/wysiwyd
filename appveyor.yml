@@ -30,6 +30,7 @@ install:
           try {
             $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_1.exe','c:\dev\yarp.exe')
             $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_2.exe','c:\dev\icub.exe')
+            $dwntool.DownloadFile('https://raw.githubusercontent.com/robotology/icub-main/master/conf/iCubHelpers.cmake','c:\dev\iCubHelpers.cmake')
             $Stoploop = $true
           }
           catch {
@@ -45,7 +46,6 @@ install:
   - cmd: dir "c:\Program Files (x86)\robotology"
 
   # temporary fix: apply patch for macro icub_export_library() to install correctly trees of headers
-  - ps:  $dwntool.DownloadFile('https://raw.githubusercontent.com/robotology/icub-main/master/conf/iCubHelpers.cmake','c:\dev\iCubHelpers.cmake')
   - ps:  copy-item c:\dev\iCubHelpers.cmake $env:ICUB_DIR\share\iCub\cmake\iCubHelpers.cmake -Force
 
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
