@@ -15,33 +15,12 @@
 #ifndef __CARTCONTROLREACHAVOIDTHREAD_H__
 #define __CARTCONTROLREACHAVOIDTHREAD_H__
 
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>       /* time */
-#include <stdarg.h>
-#include <string> 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include <vector>
-
-#include <gsl/gsl_math.h>
-
-#include <yarp/os/Time.h>
-#include <yarp/os/RateThread.h>
-#include <yarp/os/BufferedPort.h>
-#include <yarp/os/RFModule.h>
-#include <yarp/os/Stamp.h>
-#include <yarp/sig/Vector.h>
-#include <yarp/dev/PolyDriver.h>
-#include <yarp/dev/CartesianControl.h>
-#include <yarp/dev/Drivers.h>
 #include <yarp/dev/all.h>
+#include <yarp/os/all.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/sig/Matrix.h>
 #include <yarp/math/Math.h>
 #include <yarp/math/SVD.h>
-#include <yarp/os/Log.h>
 #include <iCub/ctrl/neuralNetworks.h>
 #include <iCub/ctrl/minJerkCtrl.h>
 #include <iCub/iKin/iKinFwd.h>

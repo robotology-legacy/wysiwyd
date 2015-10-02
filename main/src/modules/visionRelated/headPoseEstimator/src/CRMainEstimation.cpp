@@ -29,7 +29,7 @@ bool CRMainEstimation::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("headPoseEstimator"), "module name (string)").asString().c_str());
 
     g_ntrees = rf.check("g_ntrees",Value(10)).asInt();
-    g_maxv = rf.check("g_maxv",Value(800)).asInt();
+    g_maxv = (float)rf.check("g_maxv",Value(800.0)).asDouble();
     g_larger_radius_ratio = rf.check("g_larger_radius_ratio",Value(1.6)).asDouble();
     g_smaller_radius_ratio = rf.check("g_smaller_radius_ratio",Value(5.0)).asDouble();
     g_stride = rf.check("g_stride",Value(5)).asInt();

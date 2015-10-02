@@ -13,6 +13,20 @@
 * Public License for more details
 */
 
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include <stdarg.h>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+#include <vector>
+
+#include <gsl/gsl_math.h>
+
+#include <yarp/os/all.h>
+#include <yarp/dev/all.h>
 
 #include "cartControlReachAvoidThread.h"
 
@@ -358,6 +372,10 @@ void cartControlReachAvoidThread::doReach()
                         icub_arm   = new iCub::iKin::iCubArm("right");
                         icub_arm->setAng(arm*CTRL_DEG2RAD);
                         chain = icub_arm->asChain();
+                    }
+                    else {
+                        yError() << "armSel neither left or right; abort";
+                        return;
                     }
 
                     // Block all the more distal joints after the joint 

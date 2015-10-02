@@ -46,10 +46,7 @@ Entity::Entity(const Entity &b)
 
 Bottle Entity::asBottle()
 {
-    Bottle b,bId;
- /*   bId.addString("id");
-    bId.addInt(this->m_opc_id);
-	b.addList() = bId;*/
+    Bottle b;
 
     Bottle bName;
     bName.addString("name");
