@@ -50,6 +50,10 @@ bool AgentDetector::configure(ResourceFinder &rf)
     isCalibrated = false;
     isCalibrated = checkCalibration();
 
+    if(!isCalibrated){
+        yWarning() << " ========================= KINECT NEED TO BE CALIBRATED ============================" ;
+    }
+
     pointsCount = 0;
     string clientName = name;
     clientName += "/kinect";
@@ -163,7 +167,7 @@ bool AgentDetector::checkCalibration()
         rfh.write(bCmd, reply);
         if (reply.get(0) == "nack")
         {
-            //cout<<"Transformation matrix not retrieved"<<endl;
+            //yWarning() <<"Transformation matrix not retrieved";
             return false;
         }
         else
@@ -177,7 +181,7 @@ bool AgentDetector::checkCalibration()
                     kinect2icub(i,j)=bMat->get(4*i+j).asDouble();
                 }
             }
-            cout<<"Transformation matrix retrieved"<<endl<<kinect2icub.toString(3,3).c_str()<<endl;
+            //yInfo()<<"Transformation matrix retrieved"<<endl<<kinect2icub.toString(3,3).c_str();
             isCalibrated = true;
             return true;
         }
@@ -298,7 +302,7 @@ bool AgentDetector::updateModule()
     //Allow click calibration
     if (!localIsCalibrated)
     {
-        yInfo() << " not calib";
+        //yInfo() << " not calib";
         if (AgentDetector::clicked)
         {
             AgentDetector::clicked = false;
@@ -309,29 +313,29 @@ bool AgentDetector::updateModule()
             cout<<clickedPoint.toString(3,3)<<endl;
 
             Bottle bCond;
-            Bottle bRTObject;
-            bRTObject.addString(EFAA_OPC_ENTITY_TAG);
-            bRTObject.addString("==");
-            bRTObject.addString(EFAA_OPC_ENTITY_RTOBJECT);
+            Bottle bObject;
+            bObject.addString(EFAA_OPC_ENTITY_TAG);
+            bObject.addString("==");
+            bObject.addString(EFAA_OPC_ENTITY_OBJECT);
 
             Bottle bPresent;
             bPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
             bPresent.addString("==");
             bPresent.addInt(1);
 
-            bCond.addList() = bRTObject;
+            bCond.addList() = bObject;
             bCond.addString("&&");
             bCond.addList() = bPresent;
             opc->isVerbose = true;
-            list<Entity*> presentRTObjects = opc->Entities(bCond);
+            list<Entity*> presentObjects = opc->Entities(bCond);
             opc->isVerbose = false;
-            if (presentRTObjects.size() != 1)
+            if (presentObjects.size() != 1)
             {
                 cout<<"There should be 1 and only 1 object on the table"<<endl;
             }
             else
             {
-                RTObject* o = (RTObject*) (presentRTObjects.front());
+                Object* o = (Object*) (presentObjects.front());
                 //Prepare the bottle to be sent to RFH
                 Bottle botRPH, botRPHRep;
                 botRPH.addString("add");
@@ -399,7 +403,7 @@ bool AgentDetector::updateModule()
                 if ( reallyTracked)
                 {
                     dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
-                    yInfo() << " is REALLY tracked";
+                    //yInfo() << " is REALLY tracked";
                     string playerName = "partner";
 
                     //If the skeleton is tracked we dont identify
@@ -426,7 +430,7 @@ bool AgentDetector::updateModule()
                     {
                         //Retrieve this player in OPC or create if does not exist
                         partner->m_present = true;
-                                    yInfo() << " is localIsCalibrated";
+                        //yInfo() << " is localIsCalibrated";
 
                             
                         // reset the timing.
@@ -500,8 +504,8 @@ bool AgentDetector::updateModule()
             }
             else
             {
-                yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
-                yInfo() << " agent dissapeared but not for too long.";
+                //yInfo() << " clock is: " << clock() << "\t last apparition: " << dTimingLastApparition  << "\t dSince: " << dSince;
+                //yInfo() << " agent dissapeared but not for too long.";
             }
         }
         opc->commit();
