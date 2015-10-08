@@ -314,9 +314,18 @@ bool AgentDetector::updateModule()
 
             Bottle bCond;
             Bottle bObject;
+            Bottle bRTObject;
+
+            //(entity ==  object or entity == rtobject) && isPresent == 1. But OPC does not handle nested condition so
+            //(entity == object) && (isPresent == 1) || (entity == rtobject) && (isPresent == 1)
+
             bObject.addString(EFAA_OPC_ENTITY_TAG);
             bObject.addString("==");
             bObject.addString(EFAA_OPC_ENTITY_OBJECT);
+
+            bRTObject.addString(EFAA_OPC_ENTITY_TAG);
+            bRTObject.addString("==");
+            bRTObject.addString(EFAA_OPC_ENTITY_RTOBJECT);
 
             Bottle bPresent;
             bPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
@@ -324,6 +333,10 @@ bool AgentDetector::updateModule()
             bPresent.addInt(1);
 
             bCond.addList() = bObject;
+            bCond.addString("&&");
+            bCond.addList() = bPresent;
+            bCond.addString("||");
+            bCond.addList() = bRTObject;
             bCond.addString("&&");
             bCond.addList() = bPresent;
             opc->isVerbose = true;
