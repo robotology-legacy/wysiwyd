@@ -29,6 +29,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
+    sAgentName= rf.check("agentName", Value("partner")).asString();
 
     //bool    bEveryThingisGood = true;
 
@@ -43,10 +44,15 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
+    humanDump = false;
+    sObjectToDump = "none";
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
+    portInfoDumper.open(("/" + moduleName + "/InfoDump").c_str());
+    DumperPort.open(("/" + moduleName + "/humanDump").c_str());
+    
     if (!iCub->getRecogClient())
     {
         yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
@@ -55,11 +61,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
     {
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
-
-    //std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
-    //if (iCub->getSpeechClient())
-    //iCub->getSpeechClient()->SetOptions(ttsOptions);
-
+    
     iCub->say("proactive tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -69,6 +71,8 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
 bool bodyReservoir::interruptModule() {
     rpcPort.interrupt();
+    portInfoDumper.interrupt();
+    DumperPort.interrupt();
 
     return true;
 }
@@ -79,6 +83,10 @@ bool bodyReservoir::close() {
 
     rpcPort.interrupt();
     rpcPort.close();
+    portInfoDumper.interrupt();
+    portInfoDumper.close();
+    DumperPort.interrupt();
+    DumperPort.close();
 
     return true;
 }
@@ -88,6 +96,10 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "help \n" +
+        "'point' + object to point \n" +
+        "'humanDump' + (on/off) \n" +
+        "'objectToDum' + object \n" +
+        "'agentName' + object \n" +
         "quit \n";
 
     reply.clear();
@@ -114,6 +126,51 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
             reply.addString("error in waveAtAgent, wrong size of input (2 element: 'wave' + agent)");
         }
     }
+    else if (command.get(0).asString() == "humanDump"){
+        if (command.size() != 2)
+        {
+            reply.addString("error in bodyReservoir: Botte 'humanDump' misses information (on/off)");
+        }
+        else
+        {
+            if (command.get(1).asString() == "off")
+            {
+                humanDump = false;
+                yInfo() << " stop humanDumping";
+                reply.addString("stop humanDumping");
+            }
+            else if (command.get(1).asString() == "on")
+            {
+                humanDump = true;
+                yInfo() << " start humanDumping";
+                reply.addString("start humanDumping");
+            }
+        }
+    }
+    else if (command.get(0).asString() == "objectToDump"){
+        if (command.size() != 2)
+        {
+            reply.addString("error in bodyReservoir: Botte 'objectToDump' misses information (object name)");
+        }
+        else
+        {
+            sObjectToDump = command.get(1).toString();
+            yInfo() << " object to dump: " + sObjectToDump;
+            reply.addString("object to dump: " + sObjectToDump);
+        }
+    }
+    else if (command.get(0).asString() == "agentName"){
+        if (command.size() != 2)
+        {
+            reply.addString("error in bodyReservoir: Botte 'agentName' misses information (agent name)");
+        }
+        else
+        {
+            sAgentName = command.get(1).toString();
+            yInfo() << " agent to dump: " + sAgentName;
+            reply.addString("agent to dump: " + sAgentName);
+        }
+    }
     else {
         cout << helpMessage;
         reply.addString(helpMessage);
@@ -126,6 +183,12 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool bodyReservoir::updateModule() {
+
+    if (humanDump)
+    {
+        DumpHumanObject();
+    }
+
     return true;
 }
 
@@ -144,7 +207,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     bToDumper.addString("pointing");
     bToDumper.addString(sHand);
     bToDumper.addInt(1);
-    port2Dumper.write(bToDumper);
+    portInfoDumper.write(bToDumper);
 
     bool bSuccess = iCub->look(sObject);
     Time::delay(0.5);
@@ -154,7 +217,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     bToDumper.addString("none");
     bToDumper.addString("none");
     bToDumper.addInt(0);
-    port2Dumper.write(bToDumper);
+    portInfoDumper.write(bToDumper);
 
     bOutput.addString("pointing");
     bOutput.addString(sObject);
@@ -176,7 +239,7 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     bToDumper.addString("waving");
     bToDumper.addString(sHand);
     bToDumper.addInt(1);
-    port2Dumper.write(bToDumper);
+    portInfoDumper.write(bToDumper);
 
     bool bSuccess = iCub->look(sAgent);
     Time::delay(0.5);
@@ -186,11 +249,32 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     bToDumper.addString("none");
     bToDumper.addString("none");
     bToDumper.addInt(0);
-    port2Dumper.write(bToDumper);
+    portInfoDumper.write(bToDumper);
 
     bOutput.addString("waving");
     bOutput.addString(sAgent);
     (bSuccess) ? bOutput.addString("success") : bOutput.addString("failed");
 
     return bOutput;
+}
+
+
+/*
+*   Dump in the port DumperPort the human skeleton, and the object of the OPC: sObjectToDump
+*
+*/
+void bodyReservoir::DumpHumanObject()
+{
+    Agent* ag = iCub->opc->addOrRetrieveEntity<Agent>(sAgentName);
+
+    Bottle bDump;
+    bDump.addList() = ag->m_body.asBottle();
+
+    if (sObjectToDump != "none")
+    {
+        RTObject* ob = iCub->opc->addOrRetrieveEntity<RTObject>(sObjectToDump);
+        bDump.addList() = ob->asBottle();
+    }
+
+    DumperPort.write(bDump);
 }

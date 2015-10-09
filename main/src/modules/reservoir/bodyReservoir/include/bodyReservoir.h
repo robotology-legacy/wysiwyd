@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #include "wrdac/clients/icubClient.h"
 
@@ -24,13 +24,18 @@ private:
 
     double      period;
 
-    yarp::os::Port   rpcPort;
-    yarp::os::Port   port2Dumper;
+    yarp::os::Port  rpcPort;
+    yarp::os::Port  portInfoDumper;     // port for setting parameters for dumper of the robot information
+    yarp::os::Port  DumperPort;         // port to dump information about the human
 
     yarp::os::Bottle        pointObject(std::string sObject);
     yarp::os::Bottle        waveAtAgent(std::string sAgent);
 
+    void DumpHumanObject();
 
+    bool humanDump;
+    std::string sObjectToDump;
+    std::string sAgentName;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -38,6 +43,7 @@ public:
     bool interruptModule();
 
     bool close();
+
 
     double getPeriod()
     {
