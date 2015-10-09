@@ -29,7 +29,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
-    sAgentName= rf.check("agentName", Value("partner")).asString();
+    sAgentName = rf.check("agentName", Value("partner")).asString();
 
     //bool    bEveryThingisGood = true;
 
@@ -52,7 +52,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
     portInfoDumper.open(("/" + moduleName + "/InfoDump").c_str());
     DumperPort.open(("/" + moduleName + "/humanDump").c_str());
-    
+
     if (!iCub->getRecogClient())
     {
         yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
@@ -61,7 +61,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
     {
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
-    
+
     iCub->say("proactive tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -198,7 +198,7 @@ Bottle bodyReservoir::pointObject(string sObject)
 
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     string sHand;
-    (obj1->m_ego_position[1]<0) ? sHand = "left" : sHand = "right";
+    (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
     Bottle bHand(sHand);
 
     Bottle bToDumper,
@@ -231,7 +231,7 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
 
     Agent* obj1 = iCub->opc->addOrRetrieveEntity<Agent>(sAgent);
     string sHand;
-    (obj1->m_ego_position[1]<0) ? sHand = "left": sHand = "right";
+    (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
 
     Bottle bToDumper,
         bOutput;

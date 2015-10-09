@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Grégoire Pointeau
  * email:   gregoire.pointeau@inserm.fr
@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 #include "bodyReservoir.h"
 
@@ -25,7 +25,7 @@ int main(int argc, char * argv[])
     rf.setVerbose(true);
     rf.setDefaultContext("bodyReservoir");
     rf.setDefaultConfigFile("bodyReservoir.ini");
-    rf.configure( argc, argv);
+    rf.configure(argc, argv);
     mod.runModule(rf);
     return 0;
 }
