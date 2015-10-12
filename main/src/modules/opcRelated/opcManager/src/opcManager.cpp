@@ -164,7 +164,7 @@ bool opcManager::populate()
 {
     if (!realOPC->isConnected())
     {
-        cout << "Error, OPC not connected" << endl;;
+        yError() << "OPC not connected!";
         return false;
     }
     //Clear

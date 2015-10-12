@@ -24,9 +24,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     if (bMental)
     {
         // change the providers !!
-
     }
-
 
     if (isconnected2reasoning)
     {
@@ -61,7 +59,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     string sName;
 
     //for streaming image
-    string activityName;
     bool isStreamActivity = false;
     string fullSentence = "defaultLabel";
 
@@ -73,14 +70,13 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         bTemp = *(bInput.get(i).asList());
         if (bTemp.get(0) == "action" && !done)
         {
-            osMain << bTemp.get(1).asString() << "' , '";
+            osMain << bTemp.get(1).asString() << "' , '"; // activityname
             sName = bTemp.get(1).asString();
-            activityName = bTemp.get(1).asString(); //sName is concatenated after...need to save label
-            imgLabel = activityName;
+            imgLabel = bTemp.get(1).asString();
 
             //used to name the single image
             ostringstream labelImg;
-            labelImg << activityName << "_" << instance;
+            labelImg << imgLabel << "_" << instance;
             fullSentence = labelImg.str();
 
             activityType = bTemp.get(2).asString();
@@ -89,16 +85,16 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                 isStreamActivity = true;
             }
 
-            osMain << bTemp.get(2).asString() << "' , '";
+            osMain << bTemp.get(2).asString() << "' , '"; // activitytype
             done = true;
         }
     }
     if (!done) {
-        osMain << "unknown' , '";
+        osMain << "unknown' , 'unknown', '";
     }
     // Time
     string sTime = getCurrentTime();
-    osMain << sTime << "' , " << instance << " , ";
+    osMain << sTime << "' , " << instance << " , "; // time + instance
 
     //Begin
     done = false;
@@ -130,21 +126,31 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         streamStatus = "end"; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
     }
 
-    bMental ? osMain << " , '" << s_mental_OPC << "' ) ; " : osMain << " , '" << s_real_OPC << "' ) ; ";
+    if(bMental) {
+        osMain << " , '" << s_mental_OPC << "' ) ; ";
+    } else {
+        osMain << " , '" << s_real_OPC << "' ) ; ";
+    }
     bMain.addString(string(osMain.str()).c_str());
-    bMain = request(bMain);
+    request(bMain);
 
     OPCClient *opcWorld;
     //Connection to the OPC
     (bMental) ? opcWorld = opcWorldMental : opcWorld = opcWorldReal;
 
-    OPCEARS.snapshot(bInput, opcWorld);
+    Bottle bOPCEearsResponse = OPCEARS.snapshot(bInput, opcWorld);
+    if(bOPCEearsResponse.get(0).asString() == "nack") {
+        return bOPCEearsResponse;
+    }
 
     ostringstream osName;
     osName << sName << instance;
     sName += osName.str();                         //I dont understand this Gregoire : you concatenate the name with nameInstance with itself, producing namenameinstance
     //yDebug() << "OPCEARS: " << sName;
     Bottle bSnapShot = OPCEARS.insertOPC(sName);
+    if(bSnapShot.get(0).asString() == "nack") {
+        return bSnapShot;
+    }
 
     ostringstream osAllArg;
     Bottle bRecogSemantic;
@@ -210,11 +216,12 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         // add the snapshot of the OPC
         osAllArg << bSnapShot.get(0).asString();
 
-
         bRequest.clear();
-        bRequest.addString("request");
-        bRequest.addString(osAllArg.str().c_str());
-        request(bRequest);
+        if(osAllArg.str() != "") {
+            bRequest.addString("request");
+            bRequest.addString(osAllArg.str().c_str());
+            request(bRequest);
+        }
     }
 
 

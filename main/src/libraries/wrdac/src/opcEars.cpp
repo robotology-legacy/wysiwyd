@@ -10,18 +10,30 @@ using namespace wysiwyd::wrdac;
 Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
 {
     Bottle bOutput;
-    Bottle bName = *bInput.get(1).asList();
-    if (!OPCReal->isConnected())
+
+    if (bInput.size() < 2)
     {
-        bOutput.addString("Error, OPC not connected");
+        yError("Error wrong format of input");
+        bOutput.addString("nack");
+        bOutput.addString("Error wrong format of input");
         return bOutput;
     }
 
+    Bottle bName = *bInput.get(1).asList();
+    if (!OPCReal->isConnected())
+    {
+        bOutput.addString("nack");
+        bOutput.addString("Error, OPCa not connected");
+        return bOutput;
+    }
 
-    std::cout << " bName : " << bName.toString() << endl;
+    yInfo() << " bName : " << bName.toString();
     if (!bName.get(1).isString())
     {
+        yError("Error wrong format of input");
+        bOutput.addString("nack");
         bOutput.addString("Error wrong format of input");
+        return bOutput;
     }
     ostringstream osName;
     string sName = bName.get(1).asString().c_str();
@@ -373,6 +385,8 @@ Bottle opcEars::insertOPC(string sName)
 
     if (opcTemp == NULL)
     {
+        yError() << "insertOPC: OPC not connected!";
+        bOutput.addString("nack");
         bOutput.addString("Error, OPC not connected");
         return bOutput;
     }
