@@ -86,7 +86,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     shouldClose = false;
     bPutObjectsOPC = false;
 
-    portEventsIn.open("/" + getName() + "/request:i");
     handlerPort.open("/" + getName() + "/rpc");
     abm2reasoning.open("/" + getName() + "/to_reasoning");
     abm2augmented.open("/" + getName() + "/to_augmented");
@@ -732,8 +731,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         bReply = bError;
     }
 
-    portEventsIn.reply(bReply);
-
     return true;
 }
 
@@ -979,7 +976,6 @@ bool autobiographicalMemory::interruptModule()
     portAugmentedImagesIn.interrupt();
     portSoundStreamInput.interrupt();
     handlerPort.interrupt();
-    portEventsIn.interrupt();
     abm2reasoning.interrupt();
     abm2augmented.interrupt();
 
@@ -1006,9 +1002,6 @@ bool autobiographicalMemory::close()
 
     handlerPort.interrupt();
     handlerPort.close();
-
-    portEventsIn.interrupt();
-    portEventsIn.close();
 
     abm2reasoning.interrupt();
     abm2reasoning.close();

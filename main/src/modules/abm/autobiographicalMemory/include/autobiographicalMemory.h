@@ -76,13 +76,12 @@ private:
     yarp::os::Bottle detectFailed();
     std::ostringstream osInsertTemp;
 
-public:
     bool shouldClose;
 
-    yarp::os::Port portEventsIn;
     yarp::os::Port handlerPort;      //a port to handle messages
     yarp::os::Port abm2reasoning;
 
+public:
     // autobiographicalMemory
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     bool interruptModule();

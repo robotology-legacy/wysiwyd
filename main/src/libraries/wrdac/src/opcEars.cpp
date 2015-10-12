@@ -23,7 +23,7 @@ Bottle opcEars::snapshot(Bottle bInput, OPCClient *OPCReal)
     if (!OPCReal->isConnected())
     {
         bOutput.addString("nack");
-        bOutput.addString("Error, OPCa not connected");
+        bOutput.addString("Error, OPC not connected");
         return bOutput;
     }
 
