@@ -232,6 +232,9 @@ bool bodySchema::close() {
 
     portToABM.interrupt();
     portToABM.close();
+    
+    
+    portReadSkin.close();
 
     handlerPort.interrupt();
     handlerPort.close();
@@ -1212,6 +1215,18 @@ int bodySchema::move_arm()
     arm = "left_arm"; // to move to ini
     bool useSFM = false; // to move to ini
 
+    if (!portReadSkin.open("/portReadSkin:i")) {
+        cout << ": Unable to open port " << "/portReadSkin:i" << endl;
+    }
+
+    if(useSFM)
+    {
+        if (!portToSFM.open("/toSFM")) {
+            cout << ": Unable to open port " << "/toSFM" << endl;
+        }
+    }
+
+
 
     while(!Network::connect("/target/out","/target/in")) {
         Network::connect("/target/out", "/target/in");
@@ -1247,12 +1262,12 @@ int bodySchema::move_arm()
     }
 
 
-if (!portToMatlab.open("/portToMatlab:o")) {
-        		cout << ": Unable to open port " << "/portToMatlab:o" << endl;
-    		}
-    		if (!portReadMatlab.open("/portReadMatlab:i")) {
-        		cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
-    		}
+    if (!portToMatlab.open("/portToMatlab:o")) {
+        cout << ": Unable to open port " << "/portToMatlab:o" << endl;
+    }
+    if (!portReadMatlab.open("/portReadMatlab:i")) {
+        cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
+    }
     		
 
     while(!Network::isConnected(portToMatlab.getName(), "/matlab/read")) {
