@@ -73,6 +73,10 @@ private:
     BufferedPort<Bottle> portVelocityOut;
     BufferedPort<Bottle> portPredictionErrors;
     RpcClient portToABM;
+    Port portToMatlab;
+    BufferedPort<Bottle> portReadMatlab;
+    BufferedPort<Bottle> portReadSkin;
+    Port portToSFM;
 
     IPositionControl* pos;
     IVelocityControl* vel;
@@ -90,7 +94,7 @@ private:
 
     yarp::sig::Vector encoders, cmd, command, new_command, tmpSpeed, tmpAcc;
     yarp::sig::Vector encodersHead, commandHead;
-    yarp::sig::Vector handTarget;
+    yarp::sig::Vector handTarget, armTarget, fingerTarget;
 
     string ports[4];
     string video[2];
@@ -102,6 +106,7 @@ private:
 
     string part;
     string robot;
+    string arm;
 
     int nInputs;
     int nOutputs;
@@ -150,6 +155,8 @@ private:
     double p_epsilon;
     int p_capacity;
     int p_random_seed;
+    
+    double xMeanPrevR, yMeanPrevR, xMeanPrevG, yMeanPrevG, xMeanPrevB, yMeanPrevB;
 
     State state;
 
@@ -180,6 +187,9 @@ private:
     bool getBabblingImages();
 
     bool singleJointBabbling(int j_idx);
+    
+    int move_arm();
+    void find_image();
 };
 
 #endif // __BODYSCHEMA_H__

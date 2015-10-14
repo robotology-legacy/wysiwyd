@@ -1195,3 +1195,378 @@ bool bodySchema::singleJointBabbling(int j_idx)
 
     return true;
 }
+
+
+
+
+
+
+/* * * * * * * * * * 
+ * See and touch
+ * * * * * * * * * */
+ 
+ 
+int bodySchema::move_arm()
+{
+    cout << "robot " << robot << endl;
+    arm = "left_arm"; // to move to ini
+    bool useSFM = false; // to move to ini
+
+
+    while(!Network::connect("/target/out","/target/in")) {
+        Network::connect("/target/out", "/target/in");
+        cout << "Waiting for port /target/out to connect to " << "/target/in" << endl;
+        Time::delay(1.0);
+    }
+
+    if(arm=="right_arm")
+    {
+        while(!Network::isConnected("/"+robot+"/skin/right_hand_comp", portReadSkin.getName())) {
+            Network::connect("/"+robot+"/skin/right_hand_comp", portReadSkin.getName());
+            cout << "Waiting for port " << "/"+robot+"/skin/right_hand_comp" << " to connect to " << portReadSkin.getName() << endl;
+            Time::delay(1.0);
+        }
+    }
+    else
+    {
+        while(!Network::isConnected("/"+robot+"/skin/left_hand_comp", portReadSkin.getName())) {
+            Network::connect("/"+robot+"/skin/left_hand_comp", portReadSkin.getName());
+            cout << "Waiting for port " << "/"+robot+"/skin/left_hand_comp" << " to connect to " << portReadSkin.getName() << endl;
+            Time::delay(1.0);
+        }
+    }
+
+
+    if(useSFM)
+    {
+        while(!Network::isConnected(portToSFM.getName(), "/SFM/rpc")) {
+            Network::connect(portToSFM.getName(), "/SFM/rpc");
+            cout << "Waiting for port " << portToSFM.getName() << " to connect to " << "/SFM/rpc" << endl;
+            Time::delay(1.0);
+        }
+    }
+
+
+if (!portToMatlab.open("/portToMatlab:o")) {
+        		cout << ": Unable to open port " << "/portToMatlab:o" << endl;
+    		}
+    		if (!portReadMatlab.open("/portReadMatlab:i")) {
+        		cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
+    		}
+    		
+
+    while(!Network::isConnected(portToMatlab.getName(), "/matlab/read")) {
+        Network::connect(portToMatlab.getName(), "/matlab/read");
+        cout << "Waiting for port " << portToMatlab.getName() << " to connect to " << "/matlab/read" << endl;
+        Time::delay(1.0);
+    }
+
+    while(!Network::isConnected("/matlab/write", portReadMatlab.getName())) {
+        Network::connect("/matlab/write", portReadMatlab.getName());
+        cout << "Waiting for port " << "/matlab/write" << " to connect to " << portReadMatlab.getName() << endl;
+        Time::delay(1.0);
+    }
+
+
+    cout << "Connections ok..." << endl;
+
+
+    for(int i=0; i<=6; i++)
+    {
+        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
+    }
+    
+
+    Bottle *endMatlab;
+    Bottle *cmdMatlab;
+    Bottle replyFromMatlab;
+    Bottle bToMatlab;
+    Bottle *skinContact;
+    yarp::sig::Vector pressure;
+
+    Bottle bToSFM;
+    Bottle replyFromSFM;
+
+    bool done = false;
+
+
+    int nPr = 1;
+    while(!done)
+    {
+
+        find_image();
+
+        /// get 3D position (SFM)
+        if(useSFM)
+        {
+            bToSFM.clear(); replyFromSFM.clear();
+            bToSFM.addString("Left");
+            bToSFM.addDouble(handTarget[0]);
+            bToSFM.addDouble(handTarget[1]);
+            portToSFM.write(bToSFM,replyFromSFM);
+            cout << replyFromSFM.toString() << endl;
+        }
+
+
+        bToMatlab.clear();replyFromMatlab.clear();
+        bToMatlab.addDouble(handTarget[0]);
+        bToMatlab.addDouble(handTarget[1]);
+        bToMatlab.addDouble(armTarget[0]);
+        bToMatlab.addDouble(armTarget[1]);
+        bToMatlab.addDouble(fingerTarget[0]);
+        bToMatlab.addDouble(fingerTarget[1]);
+        if(useSFM)
+        {
+            bToMatlab.addDouble(replyFromSFM.get(0).asDouble());
+            bToMatlab.addDouble(replyFromSFM.get(1).asDouble());
+            bToMatlab.addDouble(replyFromSFM.get(2).asDouble());
+        }
+        portToMatlab.write(bToMatlab,replyFromMatlab);
+
+
+        /// get contact vector
+        skinContact = portReadSkin.read(true);
+
+        bToMatlab.clear();replyFromMatlab.clear();
+
+        pressure.resize(skinContact->size());
+        for (int i=0; i<skinContact->size(); i++)
+        {
+            pressure[i] = skinContact->get(i).asDouble();
+            bToMatlab.addDouble(pressure[i]);
+        }
+
+        portToMatlab.write(bToMatlab,replyFromMatlab);
+
+
+        /// get proprioceptive info
+        bToMatlab.clear();replyFromMatlab.clear();
+        bool okEnc = encs->getEncoders(encoders.data());
+        bool okEncHead = encsHead->getEncoders(encodersHead.data());
+        if(!okEnc || !okEncHead) {
+            cerr << "Error receiving encoders" << endl;
+        }
+        else
+        {
+            for (unsigned int kk=0; kk<16; kk++){
+                bToMatlab.addDouble(encoders[kk]);
+            }
+            for (unsigned int kk=0; kk<6; kk++){
+                bToMatlab.addDouble(encodersHead[kk]);
+            }
+            portToMatlab.write(bToMatlab,replyFromMatlab);
+        }
+        
+        
+        
+        
+
+        for (unsigned int l=1; l<command.size(); l++)
+            command[l]=0;
+
+        // get the commands from Matlab
+        cmdMatlab = portReadMatlab.read(true) ;
+        command[0] = cmdMatlab->get(0).asDouble();
+        command[1] = cmdMatlab->get(1).asDouble();
+        command[2] = cmdMatlab->get(2).asDouble();
+        command[3] = cmdMatlab->get(3).asDouble();
+        command[4] = cmdMatlab->get(4).asDouble();
+        command[5] = cmdMatlab->get(5).asDouble();
+        command[6] = cmdMatlab->get(6).asDouble();
+        
+
+
+        // Move
+        int j=1;
+        while(j--)
+        {
+            vel->velocityMove(command.data());
+            Time::delay(0.02); 
+        }
+
+
+        // Tell Matlab that motion is done
+        bToMatlab.clear();replyFromMatlab.clear();
+        bToMatlab.addInt(1);
+        portToMatlab.write(bToMatlab,replyFromMatlab);
+
+        endMatlab = portReadMatlab.read(true) ;
+        done = endMatlab->get(0).asInt();
+
+        nPr = nPr +1;
+ 
+    }
+
+
+    cout << "Going to tell Matlab that ports will be closed here." << endl;
+    // Tell Matlab that ports will be closed here
+    bToMatlab.clear();replyFromMatlab.clear();
+    bToMatlab.addInt(1);
+    portToMatlab.write(bToMatlab,replyFromMatlab);
+
+
+
+    portToMatlab.close();
+    portReadMatlab.close();
+
+    cout << "Finished and ports to/from Matlab closed." << endl;
+
+    return 0;
+}
+
+void bodySchema::find_image()
+{
+
+    handTarget.resize(3);
+    armTarget.resize(3);
+    fingerTarget.resize(3);
+
+    ImageOf<PixelRgb> *image = imgPortIn.read(true);
+    if (image!=NULL)
+    {
+
+        double xMeanR = 0;
+        double yMeanR = 0;
+        int ctR = 0;
+        double xMeanG = 0;
+        double yMeanG = 0;
+        int ctG = 0;
+        double xMeanB = 0;
+        double yMeanB = 0;
+        int ctB = 0;
+
+        for (int x=0; x<image->width(); x++)
+        {
+            for (int y=0; y<image->height(); y++)
+            {
+                PixelRgb& pixel = image->pixel(x,y);
+                if (pixel.r>pixel.b*1.2+10 && pixel.r>pixel.g*1.2+10)
+                {
+                    xMeanR += x;
+                    yMeanR += y;
+                    ctR++;
+                }
+                if (pixel.g>pixel.b*1.2+10 && pixel.g>pixel.r*1.2+10)
+                {
+                    xMeanG += x;
+                    yMeanG += y;
+                    ctG++;
+                }
+                if (pixel.b>pixel.g*1.2+10 && pixel.b>pixel.r*1.2+10)
+                {
+                    xMeanB += x;
+                    yMeanB += y;
+                    ctB++;
+                }
+            }
+        }
+        if (ctR>0)
+        {
+            xMeanR /= ctR;
+            yMeanR /= ctR;
+        }
+        else
+        {
+            xMeanR = 320/2;
+            yMeanR = 240/2;
+        }
+        if (ctG>0)
+        {
+            xMeanG /= ctG;
+            yMeanG /= ctG;
+        }
+        else
+        {
+            xMeanG = 320/2;
+            yMeanG = 240/2;
+        }
+        if (ctB>0)
+        {
+            xMeanB /= ctB;
+            yMeanB /= ctB;
+        }
+        else
+        {
+            xMeanB = 320/2;
+            yMeanB = 240/2;
+        }
+
+
+        if (ctG>(image->width()/20)*(image->height()/20))
+        {
+            handTarget.resize(3);
+            handTarget[0] = xMeanG;
+            handTarget[1] = yMeanG;
+            handTarget[2] = 1;
+
+            xMeanPrevG=xMeanG; yMeanPrevG=yMeanG;
+
+        }
+        else
+        {
+            handTarget.resize(3);
+            handTarget[0] = xMeanPrevG;
+            handTarget[1] = yMeanPrevG;
+            handTarget[2] = 0;
+
+        }
+        if (ctR>(image->width()/20)*(image->height()/20))
+        {
+            fingerTarget.resize(3);
+            fingerTarget[0] = xMeanR;
+            fingerTarget[1] = yMeanR;
+            fingerTarget[2] = 1;
+
+            xMeanPrevR=xMeanR; yMeanPrevR=yMeanR;
+
+        }
+        else
+        {
+            fingerTarget.resize(3);
+            fingerTarget[0] = xMeanPrevR;
+            fingerTarget[1] = yMeanPrevR;
+            fingerTarget[2] = 0;
+
+        }
+        if (ctB>(image->width()/20)*(image->height()/20))
+        {
+            armTarget.resize(3);
+            armTarget[0] = xMeanB;
+            armTarget[1] = yMeanB;
+            armTarget[2] = 1;
+
+            xMeanPrevB=xMeanB; yMeanPrevB=yMeanB;
+
+        }
+        else
+        {
+            armTarget.resize(3);
+            armTarget[0] = xMeanPrevB;
+            armTarget[1] = yMeanPrevB;
+            armTarget[2] = 0;
+
+        }
+
+    }
+    else
+    {
+        printf(">>>>>>> Image NULL...\n");
+        handTarget.resize(3);
+        handTarget[0] = 320/2;
+        handTarget[1] = 240/2;
+        handTarget[2] = 0;
+        fingerTarget.resize(3);
+        fingerTarget[0] = 320/2;
+        fingerTarget[1] = 240/2;
+        fingerTarget[2] = 0;
+        armTarget.resize(3);
+        armTarget[0] = 320/2;
+        armTarget[1] = 240/2;
+        armTarget[2] = 0;
+
+
+    }
+
+
+}
+
