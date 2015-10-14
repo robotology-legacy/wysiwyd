@@ -233,7 +233,7 @@ bool bodySchema::close() {
     portToABM.interrupt();
     portToABM.close();
     
-    
+    portToSFM.close();
     portReadSkin.close();
 
     handlerPort.interrupt();
