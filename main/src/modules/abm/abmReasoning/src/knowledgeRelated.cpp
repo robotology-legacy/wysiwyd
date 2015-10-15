@@ -971,15 +971,20 @@ Bottle abmReasoning::getKnowledge()
         bAdjectiveKnowledge,
         bError,
         bMainInteraction;
+    bError.addString("error");
 
     listSpatialKnowledge.clear();
     listTimeKnowledge.clear();
+    listSharedPlan.clear();
+    listPlan.clear();
+    listBehaviors.clear();
+    listContextualKnowledge.clear();
     listKnownInteraction.clear();
     listKnownAdverb.clear();
     DeleteKnownLocations();
 
-
-    bError.addString("error");
+    RTObject* croco = iCub->opc->addOrRetrieveEntity<RTObject>("croco");
+    croco->m_ego_position;
 
     bAdjectiveKnowledge = requestFromStream("select name, argument, x, y, dx, dy from adjectivespatial");
     //bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
