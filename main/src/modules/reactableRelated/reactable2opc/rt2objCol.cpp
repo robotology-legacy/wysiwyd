@@ -105,7 +105,7 @@ void Reactable2OPC::loadObjectsDatabase(ResourceFinder& rf)
 		idOffsets[id][2] = bOffset->get(2).asDouble();
 
 		//Push the object to OPC
-		RTObject* o = w->addEntity<RTObject>(oName);
+        RTObject* o = w->addOrRetrieveEntity<RTObject>(oName);
 		Bottle* bDim = cObject.find("dimensions").asList();
 		o->m_dimensions[0] = bDim->get(0).asDouble();
 		o->m_dimensions[1] = bDim->get(1).asDouble();
@@ -209,7 +209,7 @@ void Reactable2OPC::addTuioObject(TuioObject *tobj) {
 		return;
 	}
 
-	RTObject* o = w->addEntity<RTObject>(idMap[tobj->getSymbolID()]);
+    RTObject* o = w->addOrRetrieveEntity<RTObject>(idMap[tobj->getSymbolID()]);
 	//w->update(o);
 
 	Vector rtPosition(4);
@@ -260,9 +260,11 @@ void Reactable2OPC::removeTuioObject(TuioObject *tobj) {
 	}
 
 	string objectName = idMap[tobj->getSymbolID()];
-	RTObject *o = (RTObject*)w->getEntity(objectName);
-	o->m_present = false;
-	w->commit(o);
+    RTObject *o = dynamic_cast<RTObject*>(w->getEntity(objectName));
+    if(o) {
+        o->m_present = false;
+        w->commit(o);
+    }
 }
 
 void Reactable2OPC::addTuioCursor(TuioCursor *tcur) {
@@ -275,7 +277,7 @@ void Reactable2OPC::addTuioCursor(TuioCursor *tcur) {
 	}
 	ostringstream curName;
 	curName<<"cursor_"<<tcur->getCursorID();
-	RTObject* o = w->addEntity<RTObject>(curName.str().c_str());
+    RTObject* o = w->addOrRetrieveEntity<RTObject>(curName.str().c_str());
 	//w->update(o);
 
 	Vector rtPosition(4);
@@ -324,9 +326,11 @@ void Reactable2OPC::removeTuioCursor(TuioCursor *tcur) {
 
    ostringstream curName;
    curName<<"cursor_"<<tcur->getCursorID();
-   RTObject* o = w->addEntity<RTObject>(curName.str().c_str());
-   o->m_present = false;
-   w->commit(o);
+   RTObject *o = dynamic_cast<RTObject*>(w->getEntity(curName.str()));
+   if(o) {
+       o->m_present = false;
+       w->commit(o);
+   }
 }
 
 void  Reactable2OPC::refresh(TuioTime frameTime) {

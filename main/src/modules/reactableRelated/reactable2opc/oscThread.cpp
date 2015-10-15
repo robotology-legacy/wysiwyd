@@ -74,7 +74,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
 						return;
 					}
 
-					RTObject* o = opc->addEntity<RTObject>(name);
+                    RTObject* o = opc->addOrRetrieveEntity<RTObject>(name);
 					opc->update(o);
 
 					Vector rtPosition(4);
@@ -120,12 +120,14 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
 						return;
 					}
 			cout<<"Removing object"<<endl;
-					RTObject* o = opc->addEntity<RTObject>(name);
-					o->m_present = false;
-					//opc->isVerbose = true;
-					opc->commit(o);
-					//opc->isVerbose = false;
+            RTObject *o = dynamic_cast<RTObject*>(opc->getEntity(name));
+                    if(o) {
+                        o->m_present = false;
+                        //opc->isVerbose = true;
+                        opc->commit(o);
+                        //opc->isVerbose = false;
 			cout<<"Removed"<<endl;
+                    }
 				}
 
         	}
