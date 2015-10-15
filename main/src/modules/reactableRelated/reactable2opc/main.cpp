@@ -4,32 +4,27 @@
 
 #include "rt2objCol.h"
 
-bool loadingEvent;
 int main(int argc, char* argv[])
 {
-	if (argc >= 2 && strcmp(argv[1], "-h") == 0)
-	{
-		std::cout << "usage: Reactable2OPC [port]\n";
-		return 0;
-	}
+    if (argc >= 2 && strcmp(argv[1], "-h") == 0)
+    {
+        std::cout << "usage: Reactable2OPC [port]\n";
+        return 0;
+    }
 
-	int port = 3333;
-	if (argc >= 2) port = atoi(argv[1]);
+    int port = 3333;
+    if (argc >= 2) port = atoi(argv[1]);
 
-	Network yarp;
-	if (!yarp.checkNetwork())
-		return false;
+    Network yarp;
+    if (!yarp.checkNetwork())
+        return false;
 
-	loadingEvent = false;
+    Reactable2OPC *dump = new Reactable2OPC();
+    TuioClient client(dump->OSC_INPUT_TABLE_PORT);
+    client.addTuioListener(dump);
+    client.connect(true);
+    delete dump;
 
-	Reactable2OPC *dump = new Reactable2OPC();
-	TuioClient client(dump->OSC_INPUT_TABLE_PORT);
-	client.addTuioListener(dump);
-	client.connect(true);
-	delete dump;
-
-	return 0;
+    return 0;
 }
-
-
 */

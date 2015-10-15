@@ -1,5 +1,6 @@
 #ifndef INCLUDED_OSCTHREAD_H
 #define INCLUDED_OSCTHREAD_H
+
 #include <osc/OscReceivedElements.h>
 #include <osc/OscPacketListener.h>
 
@@ -19,25 +20,25 @@ using namespace yarp::math;
 
 class OscThread: public yarp::os::Thread, public osc::OscPacketListener
 {
-	int port;
-	UdpListeningReceiveSocket *s;
-	OPCClient *opc;
-	Port oscFwding;
+    int port;
+    UdpListeningReceiveSocket *s;
+    OPCClient *opc;
+    Port oscFwding;
 
 public:
-	Matrix			H2ICUB;			
-	bool			isCalibrated;
-	int			YaxisFactor;
-	int			XaxisFactor;
+    Matrix			H2ICUB;
+    bool			isCalibrated;
+    int			YaxisFactor;
+    int			XaxisFactor;
 
-	OscThread(OPCClient * _opc, int _port = 7000);
-	void forceBreak();
+    OscThread(OPCClient * _opc, int _port = 7000);
+    void forceBreak();
 
 protected:
-	virtual bool threadInit();
-	virtual void run();
-	virtual void threadRelease();
-	virtual void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& remoteEndpoint);
+    virtual bool threadInit();
+    virtual void run();
+    virtual void threadRelease();
+    virtual void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& remoteEndpoint);
 
 };
 
