@@ -12,7 +12,7 @@
 	
        <module>
             <name>iCubGui</name>
-            <parameters>--from guiOPC.ini</parameters>
+            <parameters>--from iCubGui.ini</parameters>
           <node>localhost</node>
             <tag>iCubGui_tagOPC</tag>
         </module>
@@ -77,7 +77,7 @@
 
         <connection>
           <from>/bodyReservoir/humanDump</from>
-          <to>/data/dumpLund</to>
+          <to>/dumpLund</to>
           <protocol>tcp</protocol>
         </connection>
 
