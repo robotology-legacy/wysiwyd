@@ -45,6 +45,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
     }
 
     humanDump = false;
+    robotDump = false;
     sObjectToDump = "none";
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
@@ -83,7 +84,7 @@ bool bodyReservoir::interruptModule() {
     m_oTriggerPort.interrupt();
     m_oSynchronizedDataPort.interrupt();
 
-    yInfo() << "--Interrupting the synchronized yarp ports module..." ; 
+    yInfo() << "--Interrupting the synchronized yarp ports module...";
 
     return true;
 }
