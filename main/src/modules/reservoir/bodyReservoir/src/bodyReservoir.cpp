@@ -62,6 +62,12 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
+    if (!configureSWS(rf))
+    {
+        yWarning() << " WARNING SWS NOT CONFIGURED";
+    }
+
+
     iCub->say("bodyReservoir is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -74,12 +80,22 @@ bool bodyReservoir::interruptModule() {
     portInfoDumper.interrupt();
     DumperPort.interrupt();
 
+    m_oTriggerPort.interrupt();
+    m_oSynchronizedDataPort.interrupt();
+
+    yInfo() << "--Interrupting the synchronized yarp ports module..." ; 
+
     return true;
 }
 
 bool bodyReservoir::close() {
     iCub->close();
     delete iCub;
+
+    if (!closeSWS())
+    {
+        yWarning() << " WARNING DIDN'T CLOSE SWS";
+    }
 
     rpcPort.interrupt();
     rpcPort.close();
@@ -147,6 +163,27 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
             }
         }
     }
+    else if (command.get(0).asString() == "robotDump"){
+        if (command.size() != 2)
+        {
+            reply.addString("error in bodyReservoir: Botte 'robotDump' misses information (on/off)");
+        }
+        else
+        {
+            if (command.get(1).asString() == "off")
+            {
+                robotDump = false;
+                yInfo() << " stop robotDumping";
+                reply.addString("stop robotDumping");
+            }
+            else if (command.get(1).asString() == "on")
+            {
+                robotDump = true;
+                yInfo() << " start robotDumping";
+                reply.addString("start robotDumping");
+            }
+        }
+    }
     else if (command.get(0).asString() == "objectToDump"){
         if (command.size() != 2)
         {
@@ -187,6 +224,10 @@ bool bodyReservoir::updateModule() {
     if (humanDump)
     {
         DumpHumanObject();
+    }
+    if (robotDump)
+    {
+        updateSWS();
     }
 
     return true;
