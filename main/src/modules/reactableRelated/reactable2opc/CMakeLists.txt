@@ -7,8 +7,8 @@ project(${PROJECTNAME})
 
 add_definitions(-DOSC_HOST_LITTLE_ENDIAN)
 
-file(GLOB folder_source *.cpp *.cc *.c)
-file(GLOB folder_header *.h *.hpp)
+file(GLOB folder_source *.cpp)
+file(GLOB folder_header *.h)
 set(doc_files ${PROJECTNAME}.xml)
 source_group("Source Files" FILES ${folder_source})
 source_group("Header Files" FILES ${folder_header})
