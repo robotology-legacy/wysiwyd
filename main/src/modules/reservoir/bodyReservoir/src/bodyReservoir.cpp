@@ -62,7 +62,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
-    iCub->say("proactive tagging is ready", false);
+    iCub->say("bodyReservoir is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
     return true;
@@ -98,7 +98,7 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
         "help \n" +
         "'point' + object to point \n" +
         "'humanDump' + (on/off) \n" +
-        "'objectToDum' + object \n" +
+        "'objectToDump' + object \n" +
         "'agentName' + object \n" +
         "quit \n";
 
@@ -272,7 +272,7 @@ void bodyReservoir::DumpHumanObject()
 
     if (sObjectToDump != "none")
     {
-        RTObject* ob = iCub->opc->addOrRetrieveEntity<RTObject>(sObjectToDump);
+        Object* ob = iCub->opc->addOrRetrieveEntity<Object>(sObjectToDump);
         bDump.addList() = ob->asBottle();
     }
 
