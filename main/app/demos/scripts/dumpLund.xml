@@ -1,0 +1,84 @@
+
+<application>
+<name>DumpLund</name>
+
+   <!-- real OPC-->
+       <module>
+          <name>objectsPropertiesCollector</name>
+          <parameters>--name OPC --empty --nosave</parameters>
+          <node>localhost</node>
+          <tag>realOPC</tag>
+       </module>
+	
+       <module>
+            <name>iCubGui</name>
+            <parameters>--from guiOPC.ini</parameters>
+          <node>localhost</node>
+            <tag>iCubGui_tagOPC</tag>
+        </module>
+
+       <module>
+          <name>guiUpdater</name>
+          <parameters>--name guiUpdater --OPCname OPC</parameters>
+          <node>localhost</node>
+          <tag>guiUpdaterModuleOPC</tag>
+        </module>
+
+       <module>
+          <name>referenceFrameHandler</name>
+          <node>localhost</node>
+        </module>
+
+        <module>
+          <name>kinectServer</name>
+          <node>localhost</node>
+        </module>
+
+       <module>
+          <name>agentDetector</name>
+		  <parameters>--showImages true</parameters>
+          <node>localhost</node>
+        </module>
+
+       <module>
+          <name>reactable2opc</name>
+		  <node>localhost</node>
+        </module>
+		
+       <module>
+          <name>bodyReservoir</name>
+		  <node>localhost</node>
+        </module>
+		
+       <module>
+          <name>opcPopulater</name>
+		  <node>localhost</node>
+        </module>
+		
+       <module>
+          <name>yarpdatadumper</name>
+		  <parameters>--name dumpLund</parameters>
+		  <node>localhost</node>
+        </module>
+		
+   <!-- connections-->
+
+       <connection>
+            <from>/guiUpdater/gui:o</from>
+            <to>/iCubGui/objects</to>
+            <protocol>tcp</protocol>
+        </connection>
+  
+        <connection>
+          <from>/guiUpdater/guiBase:o</from>
+          <to>/iCubGui/base:i</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+          <from>/bodyReservoir/humanDump</from>
+          <to>/data/dumpLund</to>
+          <protocol>tcp</protocol>
+        </connection>
+
+</application>	
