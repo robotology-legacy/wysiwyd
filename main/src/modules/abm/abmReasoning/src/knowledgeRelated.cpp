@@ -983,9 +983,6 @@ Bottle abmReasoning::getKnowledge()
     listKnownAdverb.clear();
     DeleteKnownLocations();
 
-    RTObject* croco = iCub->opc->addOrRetrieveEntity<RTObject>("croco");
-    croco->m_ego_position;
-
     bAdjectiveKnowledge = requestFromStream("select name, argument, x, y, dx, dy from adjectivespatial");
     //bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
 
