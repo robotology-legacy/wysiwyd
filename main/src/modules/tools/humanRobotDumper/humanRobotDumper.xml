@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+<module>
+
+   <name>humanRobotDumper</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>application for dumping either the robot information of the human partner information</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   </description-long>
+
+   <arguments>
+   </arguments>
+
+   <authors>
+       <author email="greg.pointeau@gmail.com"> Grégoire Pointeau </author>
+   </authors>
+   
+</module>

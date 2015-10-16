@@ -44,15 +44,9 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    humanDump = false;
-    robotDump = false;
-    sObjectToDump = "none";
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
-
-    portInfoDumper.open(("/" + moduleName + "/InfoDump").c_str());
-    DumperPort.open(("/" + moduleName + "/humanDump").c_str());
 
     if (!iCub->getRecogClient())
     {
@@ -61,11 +55,6 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
     if (!iCub->getABMClient())
     {
         yWarning() << "WARNING ABM NOT CONNECTED";
-    }
-
-    if (!configureSWS(rf))
-    {
-        yWarning() << " WARNING SWS NOT CONFIGURED";
     }
 
 
@@ -78,14 +67,8 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
 bool bodyReservoir::interruptModule() {
     rpcPort.interrupt();
-    portInfoDumper.interrupt();
-    DumperPort.interrupt();
-
-    m_oTriggerPort.interrupt();
-    m_oSynchronizedDataPort.interrupt();
 
     yInfo() << "--Interrupting the synchronized yarp ports module...";
-
     return true;
 }
 
@@ -93,18 +76,8 @@ bool bodyReservoir::close() {
     iCub->close();
     delete iCub;
 
-    if (!closeSWS())
-    {
-        yWarning() << " WARNING DIDN'T CLOSE SWS";
-    }
-
     rpcPort.interrupt();
     rpcPort.close();
-    portInfoDumper.interrupt();
-    portInfoDumper.close();
-    DumperPort.interrupt();
-    DumperPort.close();
-
     return true;
 }
 
@@ -114,7 +87,6 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "help \n" +
         "'point' + object to point \n" +
-        "'humanDump' + (on/off) \n" +
         "'objectToDump' + object \n" +
         "'agentName' + object \n" +
         "quit \n";
@@ -143,60 +115,6 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
             reply.addString("error in waveAtAgent, wrong size of input (2 element: 'wave' + agent)");
         }
     }
-    else if (command.get(0).asString() == "humanDump"){
-        if (command.size() != 2)
-        {
-            reply.addString("error in bodyReservoir: Botte 'humanDump' misses information (on/off)");
-        }
-        else
-        {
-            if (command.get(1).asString() == "off")
-            {
-                humanDump = false;
-                yInfo() << " stop humanDumping";
-                reply.addString("stop humanDumping");
-            }
-            else if (command.get(1).asString() == "on")
-            {
-                humanDump = true;
-                yInfo() << " start humanDumping";
-                reply.addString("start humanDumping");
-            }
-        }
-    }
-    else if (command.get(0).asString() == "robotDump"){
-        if (command.size() != 2)
-        {
-            reply.addString("error in bodyReservoir: Botte 'robotDump' misses information (on/off)");
-        }
-        else
-        {
-            if (command.get(1).asString() == "off")
-            {
-                robotDump = false;
-                yInfo() << " stop robotDumping";
-                reply.addString("stop robotDumping");
-            }
-            else if (command.get(1).asString() == "on")
-            {
-                robotDump = true;
-                yInfo() << " start robotDumping";
-                reply.addString("start robotDumping");
-            }
-        }
-    }
-    else if (command.get(0).asString() == "objectToDump"){
-        if (command.size() != 2)
-        {
-            reply.addString("error in bodyReservoir: Botte 'objectToDump' misses information (object name)");
-        }
-        else
-        {
-            sObjectToDump = command.get(1).toString();
-            yInfo() << " object to dump: " + sObjectToDump;
-            reply.addString("object to dump: " + sObjectToDump);
-        }
-    }
     else if (command.get(0).asString() == "agentName"){
         if (command.size() != 2)
         {
@@ -222,15 +140,6 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool bodyReservoir::updateModule() {
 
-    if (humanDump)
-    {
-        DumpHumanObject();
-    }
-    if (robotDump)
-    {
-        updateSWS();
-    }
-
     return true;
 }
 
@@ -243,25 +152,23 @@ Bottle bodyReservoir::pointObject(string sObject)
     (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
     Bottle bHand(sHand);
 
-    Bottle bToDumper,
-        bOutput;
+    Bottle   bOutput;
 
-    bToDumper.addString("pointing");
-    bToDumper.addString(sHand);
-    bToDumper.addInt(1);
-    portInfoDumper.write(bToDumper);
+    list<pair<string, string> > lArgument;
+    lArgument.push_back(pair<string, string>("iCub", "agent"));
+    lArgument.push_back(pair<string, string>("point", "predicate"));
+    lArgument.push_back(pair<string, string>(sObject, "object"));
+    iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, true);
 
     bool bSuccess = iCub->look(sObject);
     Time::delay(0.5);
     bSuccess &= iCub->point(sObject, bHand, true);
 
-    bToDumper.clear();
-    bToDumper.addString("none");
-    bToDumper.addString("none");
-    bToDumper.addInt(0);
-    portInfoDumper.write(bToDumper);
+    lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
+    iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
 
-    bOutput.addString("pointing");
+
+    bOutput.addString("point");
     bOutput.addString(sObject);
     (bSuccess) ? bOutput.addString("success") : bOutput.addString("failed");
 
@@ -275,48 +182,26 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     string sHand;
     (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
 
-    Bottle bToDumper,
-        bOutput;
+    Bottle  bOutput;
 
-    bToDumper.addString("waving");
-    bToDumper.addString(sHand);
-    bToDumper.addInt(1);
-    portInfoDumper.write(bToDumper);
+
+    list<pair<string, string> > lArgument;
+    lArgument.push_back(pair<string, string>("iCub", "agent"));
+    lArgument.push_back(pair<string, string>("wave", "predicate"));
+    lArgument.push_back(pair<string, string>(sAgent, "object"));
+    iCub->getABMClient()->sendActivity("action", "wave", "action", lArgument, true);
+
 
     bool bSuccess = iCub->look(sAgent);
     Time::delay(0.5);
     bSuccess &= iCub->getARE()->waving(true);
 
-    bToDumper.clear();
-    bToDumper.addString("none");
-    bToDumper.addString("none");
-    bToDumper.addInt(0);
-    portInfoDumper.write(bToDumper);
+    lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
+    iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
 
     bOutput.addString("waving");
     bOutput.addString(sAgent);
     (bSuccess) ? bOutput.addString("success") : bOutput.addString("failed");
 
     return bOutput;
-}
-
-
-/*
-*   Dump in the port DumperPort the human skeleton, and the object of the OPC: sObjectToDump
-*
-*/
-void bodyReservoir::DumpHumanObject()
-{
-    Agent* ag = iCub->opc->addOrRetrieveEntity<Agent>(sAgentName);
-
-    Bottle bDump;
-    bDump.addList() = ag->m_body.asBottle();
-
-    if (sObjectToDump != "none")
-    {
-        Object* ob = iCub->opc->addOrRetrieveEntity<Object>(sObjectToDump);
-        bDump.addList() = ob->asBottle();
-    }
-
-    DumperPort.write(bDump);
 }

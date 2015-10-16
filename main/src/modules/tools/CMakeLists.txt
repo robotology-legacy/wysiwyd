@@ -11,3 +11,5 @@ add_subdirectory(qRM)
 add_subdirectory(abmInteraction)
 add_subdirectory(InsermInteractionEngine)
 add_subdirectory(opcPopulater)
+add_subdirectory(humanRobotDumper)
+
