@@ -238,14 +238,17 @@ void humanRobotDump::DumpHumanObject()
             (*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT ||
             (*itEnt)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
         {
-            Object* ob = iCub->opc->addOrRetrieveEntity<Object>((*itEnt)->name());
-            Bottle bObject;
-            bObject.addString(ob->name());
-            bObject.addDouble(ob->m_ego_position[0]);
-            bObject.addDouble(ob->m_ego_position[1]);
-            bObject.addDouble(ob->m_ego_position[2]);
-            bObject.addInt(ob->m_present);
-            bDump.addList() = bObject;
+            if ((*itEnt)->name() != "icub")
+            {
+                Object* ob = iCub->opc->addOrRetrieveEntity<Object>((*itEnt)->name());
+                Bottle bObject;
+                bObject.addString(ob->name());
+                bObject.addDouble(ob->m_ego_position[0]);
+                bObject.addDouble(ob->m_ego_position[1]);
+                bObject.addDouble(ob->m_ego_position[2]);
+                bObject.addInt(ob->m_present);
+                bDump.addList() = bObject;
+            }
         }
     }
 
