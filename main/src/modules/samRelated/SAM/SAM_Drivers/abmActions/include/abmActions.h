@@ -47,11 +47,9 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
-#include <boost/algorithm/string.hpp>
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/knowledge/object.h"
-
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -97,6 +95,7 @@ class abmActions: public RFModule
     string          agentName ;
     string          resume ;
     int             rememberedInstance;
+    int instanceIMG;
 
     public:
         abmActions();
@@ -114,7 +113,6 @@ class abmActions: public RFModule
         void sendSpeech(int);
         void triggerBehaviour(int);
         bool close();
-        string grammarToString(string);
 };
 
 #endif // __ABMACTIONS_H__

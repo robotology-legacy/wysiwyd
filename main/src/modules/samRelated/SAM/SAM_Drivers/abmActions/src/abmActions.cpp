@@ -25,6 +25,7 @@ abmActions::abmActions()
 {
     speechType = 0;
     m_masterName = "abmActions";
+    instanceIMG = 0;
 }
 
 abmActions::~abmActions()
@@ -33,36 +34,14 @@ abmActions::~abmActions()
 
 void abmActions::triggerBehaviour(int index)
 {
-    Bottle &outputBottle = triggerBehaviourPort.prepare();
-    outputBottle.clear();
-    outputBottle.addInt(index+1);
-    triggerBehaviourPort.write();	
 }
 
 void abmActions::sendSpeech(int index)
 {
-    string outputString = outputVocabs.at(index);
-    
-    Bottle &outputBottle = outputPort.prepare();
-    outputBottle.clear();
-    outputBottle.addString(outputString);
-    outputPort.write();	
 }
 
 bool abmActions::matchVocab(string vocab, int *index)
 {    
-    if( boost::iequals(vocab, "!SIL") )
-        return false;
-        
-    for( int i = 0; i < nVocabs; i++ )
-    {
-        if( boost::iequals(vocab, inputVocabs.at(i).c_str()) )
-        {
-            *index = i;
-            return true;
-        }
-    }
-
     return false;
 }
 
@@ -97,11 +76,19 @@ bool abmActions::updateModule()
 
     if (ABMconnected)
     {
-        list<pair<string, string> > lArgument;
+//        list<pair<string, string> > lArgument;
 //        lArgument.push_back(pair<string, string>("Human", "agent"));
 //        lArgument.push_back(pair<string, string>("Action recognition", "about"));
-        iCub->getABMClient()->sendActivity("agent", "Uriel", "name", lArgument, true);
-//        iCub->getABMClient()->sendActivity("action", "put down", "action", lArgument, true);
+//        iCub->getABMClient()->sendActivity("agent", "Uriel", "name", lArgument, true);
+////        iCub->getABMClient()->sendActivity("action", "put down", "action", lArgument, true);
+
+//        ostringstream osArg;
+
+//        instanceIMG++;
+
+//        osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES ";
+//        osArg << "(" << instanceIMG << ", '" << "test1" << "', '" << instanceIMG*10 << "', '" << instanceIMG*20 << "', '" << "/testPort" << "', '" << instanceIMG*1000 << "' ),";
+
     }
     Time::delay(2);
 
@@ -141,6 +128,9 @@ bool abmActions::configure(ResourceFinder &rf)
     agentName = rf.check("agentName", Value("Uriel")).asString().c_str();
     //img_provider_port = rf.check("img_provider_port", Value("/icub/camcalib/left/out/kinematic_structure")).asString().c_str();
 
+
+//    ABMDataBase = new DataBase<PostgreSql>(server, user, password, dataB);
+
     return true;
 }
 
@@ -152,29 +142,6 @@ bool abmActions::interruptModule()
 double abmActions::getPeriod()
 {
     return 0.1;
-}
-
-string abmActions::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    if (!isGrammar)
-    {
-        string sErrorMessage = " Error in qRM::grammarToString. Couldn't open file : " + sPath;
-        sErrorMessage += " .";
-        yInfo() << sErrorMessage;
-        return sErrorMessage;
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
 }
 
 bool abmActions::close()
