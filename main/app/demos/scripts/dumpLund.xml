@@ -30,6 +30,13 @@
   </module>
 
   <module>
+    <name>iCubGui</name>
+    <parameters>--from iCubGui.ini</parameters>
+    <node>localhost</node>
+    <tag>iCubGui_tagOPC</tag>
+  </module>
+
+  <module>
     <name>kinectServer</name>
     <node>localhost</node>
   </module>

@@ -231,11 +231,13 @@ void humanRobotDump::DumpHumanObject()
     bDump.addString(sObjectToDump);
     bDump.addList() = ag->m_body.asBottle();
 
+    iCub->opc->checkout();
     list<Entity*> lEntity = iCub->opc->EntitiesCacheCopy();
     for (list<Entity*>::iterator itEnt = lEntity.begin(); itEnt != lEntity.end(); itEnt++)
     {
         if ((*itEnt)->entity_type() == EFAA_OPC_ENTITY_AGENT ||
-            (*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT)
+            (*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT ||
+            (*itEnt)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
         {
             if ((*itEnt)->name() != "icub")
             {
@@ -249,18 +251,6 @@ void humanRobotDump::DumpHumanObject()
                 bDump.addList() = bObject;
             }
         }
-        if ((*itEnt)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
-        {
-            RTObject* ob = iCub->opc->addOrRetrieveEntity<RTObject>((*itEnt)->name());
-            Bottle bObject;
-            bObject.addString(ob->name());
-            bObject.addDouble(ob->m_ego_position[0]);
-            bObject.addDouble(ob->m_ego_position[1]);
-            bObject.addDouble(ob->m_ego_position[2]);
-            bObject.addInt(ob->m_present);
-            bDump.addList() = bObject;
-        }
-
     }
 
     bDump.addInt(m_iterator);
