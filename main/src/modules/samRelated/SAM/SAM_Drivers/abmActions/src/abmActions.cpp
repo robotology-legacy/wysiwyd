@@ -100,7 +100,7 @@ bool abmActions::updateModule()
         list<pair<string, string> > lArgument;
 //        lArgument.push_back(pair<string, string>("Human", "agent"));
 //        lArgument.push_back(pair<string, string>("Action recognition", "about"));
-        iCub->getABMClient()->sendActivity("action", "put down", "action", lArgument, true);
+        iCub->getABMClient()->sendActivity("agent", "Uriel", "name", lArgument, true);
 //        iCub->getABMClient()->sendActivity("action", "put down", "action", lArgument, true);
     }
     Time::delay(2);
