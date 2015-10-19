@@ -38,8 +38,9 @@ private:
 
     bool humanDump;
     bool robotDump;
-    std::string sObjectToDump;
     std::string sAgentName;
+    std::string sObjectToDump;
+    std::string sActionName;
 
 
     // SWS
