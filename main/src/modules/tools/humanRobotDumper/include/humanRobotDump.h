@@ -57,7 +57,6 @@ private:
     bool m_bRightArmActivated;               /**< ... */
 
     int m_i32Fps;                           /**< fps (define the period for calling updateModule) */
-    int m_iterator;
 
     int m_iterator; /* iterator of action dumped */
 
