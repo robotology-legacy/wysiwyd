@@ -17,8 +17,6 @@ using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
 
-//#include "geometryUtility.h"
-
 
 
 void humanRobotDump::createSWS()
@@ -26,8 +24,7 @@ void humanRobotDump::createSWS()
     m_bHeadActivatedDefault = true;
     m_bLeftArmActivatedDefault = true;
     m_bRightArmActivatedDefault = true;
-    m_sTriggerPortNameDefault = "/syncdata/icubSim/trigger";
-
+    
 
     if (m_bHeadActivated)
     {
@@ -55,31 +52,23 @@ void humanRobotDump::createSWS()
 
 bool humanRobotDump::configureSWS(ResourceFinder &oRf)
 {
+    createSWS();
+
     // gets the module name which will form the stem of all module port names
     m_sModuleName = oRf.check("name", Value("synchronizedYarpPorts"), "Toolkit/Synchronized Yarp Ports Module name (string)").asString();
-    m_sRobotName = oRf.check("robot", Value("icubSim"), "Robot name (string)").asString();
+    m_sRobotName = oRf.check("robot", Value("icub"), "Robot name (string)").asString();
 
     // robot parts to control
     m_bHeadActivated = oRf.check("headActivated", yarp::os::Value(m_bHeadActivatedDefault), "Head activated (int)").asInt() != 0;
     m_bLeftArmActivated = oRf.check("leftArmActivated", yarp::os::Value(m_bLeftArmActivatedDefault), "LeftArm activated (int)").asInt() != 0;
     m_bRightArmActivated = oRf.check("rightArmActivated", yarp::os::Value(m_bRightArmActivatedDefault), "RightArm activated (int)").asInt() != 0;
-    m_sTriggerPortName = oRf.check("triggerPortName", yarp::os::Value(m_sTriggerPortNameDefault), "RightArm activated (int)").asInt() != 0;
+    
     // miscellaneous
     m_i32Fps = oRf.check("fps", yarp::os::Value(10), "Frame per second (int)").asInt();
 
 
-    // init trigger port
-    m_sTriggerPortName = "/sync/" + m_sRobotName + "/trigger";
-    if (!m_oTriggerPort.open(m_sTriggerPortName.c_str()))
-    {
-        std::cerr << "-ERROR: Unable to open trigger port." << std::endl;
-        interruptModule();
-        return false;
-    }
-
-
     // init sync data port
-    m_sSynchronizedDataPortName = "/sync/" + m_sRobotName + "/syncdata";
+    m_sSynchronizedDataPortName = "/humanRobotDump/syncdata";
     if (!m_oSynchronizedDataPort.open(m_sSynchronizedDataPortName.c_str()))
     {
         std::cerr << "-ERROR: Unable to open sync data port." << std::endl;
@@ -200,7 +189,7 @@ bool humanRobotDump::closeSWS()
     }
 
     // closes yarp ports
-    m_oTriggerPort.close();
+	m_oSynchronizedDataPort.interrupt();
     m_oSynchronizedDataPort.close();
 
     std::cout << "--Closing the synchronized yarp ports module..." << std::endl;
@@ -258,21 +247,15 @@ bool humanRobotDump::updateSWS()
     {
         Object* ob = iCub->opc->addOrRetrieveEntity<Object>(sObjectToDump);
         l_vObjectPosition = ob->m_ego_position;
-        for (int l_data = 0; l_data < l_vObjectPosition.size(); l_data++)
+        for (unsigned int l_data = 0; l_data < l_vObjectPosition.size(); l_data++)
         {
             l_syncDataBottle.addDouble(l_vObjectPosition[l_data]);
         }
+	
+	l_syncDataBottle.addString(sObjectToDump);
     }
 
-
-
-    //////TRIGGER
-    // defines bottles
-    Bottle *l_pTrigger = NULL;
-    // reads the trigger port
-    l_pTrigger = m_oTriggerPort.read(false);
-    //l_pTrigger->get(1).asDouble();
-
+    l_syncDataBottle.addInt(m_iterator);
 
     // sends sync data to yarp port
     m_oSynchronizedDataPort.write();

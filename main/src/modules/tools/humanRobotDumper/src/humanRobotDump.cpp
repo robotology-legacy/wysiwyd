@@ -28,7 +28,7 @@ bool humanRobotDump::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     cout << moduleName << ": finding configuration files..." << endl;
-    period = rf.check("period", Value(0.1)).asDouble();
+   
     sAgentName = rf.check("agentName", Value("partner")).asString();
 
     //bool    bEveryThingisGood = true;
@@ -44,6 +44,8 @@ bool humanRobotDump::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
+    m_iterator = 0;
+
     humanDump = false;
     robotDump = false;
     sObjectToDump = "none";
@@ -54,14 +56,6 @@ bool humanRobotDump::configure(yarp::os::ResourceFinder &rf)
     portInfoDumper.open(("/" + moduleName + "/InfoDump").c_str());
     DumperPort.open(("/" + moduleName + "/humanDump").c_str());
 
-    if (!iCub->getRecogClient())
-    {
-        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
-    }
-    if (!iCub->getABMClient())
-    {
-        yWarning() << "WARNING ABM NOT CONNECTED";
-    }
 
     if (!configureSWS(rf))
     {
@@ -81,7 +75,7 @@ bool humanRobotDump::interruptModule() {
     portInfoDumper.interrupt();
     DumperPort.interrupt();
 
-    m_oTriggerPort.interrupt();
+    
     m_oSynchronizedDataPort.interrupt();
 
     yInfo() << "--Interrupting the synchronized yarp ports module...";
@@ -157,6 +151,7 @@ bool humanRobotDump::respond(const Bottle& command, Bottle& reply) {
         {
             if (command.get(1).asString() == "off")
             {
+                m_iterator++;
                 robotDump = false;
                 yInfo() << " stop robotDumping";
                 reply.addString("stop robotDumping");

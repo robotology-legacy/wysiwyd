@@ -31,6 +31,7 @@ private:
     double      period;
 
     yarp::os::Port  rpcPort;
+    yarp::os::Port  portToDumper;
 
     yarp::os::Bottle        pointObject(std::string sObject);
     yarp::os::Bottle        waveAtAgent(std::string sAgent);

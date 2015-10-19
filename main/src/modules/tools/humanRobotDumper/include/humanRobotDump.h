@@ -28,7 +28,7 @@ private:
 
     wysiwyd::wrdac::ICubClient  *iCub;
 
-    double      period;
+    
 
     yarp::os::Port  rpcPort;
     yarp::os::Port  portInfoDumper;     // port for setting parameters for dumper of the robot information
@@ -50,8 +50,7 @@ private:
     bool m_bHeadActivatedDefault;                /**< ... */
     bool m_bLeftArmActivatedDefault;               /**< ... */
     bool m_bRightArmActivatedDefault;               /**< ... */
-    std::string m_sTriggerPortNameDefault;
-
+    
     // body parts activated
     bool m_bHeadActivated;                /**< ... */
     bool m_bLeftArmActivated;               /**< ... */
@@ -59,14 +58,13 @@ private:
 
     int m_i32Fps;                           /**< fps (define the period for calling updateModule) */
 
+    int m_iterator; /* iterator of action dumped */
+
     // Config variables retrieved from the ini file
     std::string m_sModuleName;              /**< name of the mondule (config) */
     std::string m_sRobotName;               /**< name of the robot (config) */
 
-    // trigger yarp port
-    std::string m_sTriggerPortName;     /**< name of the trigger port */
-    yarp::os::BufferedPort<yarp::os::Bottle> m_oTriggerPort; /**< head yarp tracker port  */
-
+    
     // sync yarp data port 
     std::string m_sSynchronizedDataPortName;
     yarp::os::BufferedPort<yarp::os::Bottle> m_oSynchronizedDataPort; /**< head yarp tracker port  */
