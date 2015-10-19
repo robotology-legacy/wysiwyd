@@ -208,6 +208,9 @@ bool humanRobotDump::updateSWS()
     yarp::os::Bottle & l_syncDataBottle = m_oSynchronizedDataPort.prepare();
     l_syncDataBottle.clear();
 
+    l_syncDataBottle.addString(sActionName);
+    l_syncDataBottle.addString(sObjectToDump);
+
     // Retrieves encoder data
     /////// HEAD
     if (m_bHeadActivated)
@@ -264,9 +267,6 @@ bool humanRobotDump::updateSWS()
             }
         }
     }
-
-	l_syncDataBottle.addString(sObjectToDump);
-
 
     l_syncDataBottle.addInt(m_iterator);
 

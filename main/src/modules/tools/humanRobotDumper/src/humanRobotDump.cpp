@@ -109,8 +109,9 @@ bool humanRobotDump::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "help \n" +
-        "'point' + object to point \n" +
-        "'humanDump' + (on/off) \n" +
+        "off \n" +
+        "'humanDump' + action_name \n" +
+        "'robotDump' + action_name \n" +
         "'objectToDump' + object \n" +
         "'agentName' + object \n" +
         "quit \n";
@@ -124,48 +125,29 @@ bool humanRobotDump::respond(const Bottle& command, Bottle& reply) {
         return false;
     }
     else if (command.get(0).asString() == "humanDump"){
-        if (command.size() != 3)
+        if (command.size() != 2)
         {
-            reply.addString("error in humanRobotDump: Botte 'humanDump' misses information (on/off) action_name");
+            reply.addString("error in humanRobotDump: Botte 'humanDump' (action_name)");
         }
         else
         {
-            if (command.get(1).asString() == "off")
-            {
-                m_iterator++;
-                humanDump = false;
-                yInfo() << " stop humanDumping";
-                reply.addString("stop humanDumping");
-            }
-            else if (command.get(1).asString() == "on")
-            {
-                sActionName = command.get(2).asString();
-                humanDump = true;
-                yInfo() << " start humanDumping";
-                reply.addString("start humanDumping");
-            }
+            sActionName = command.get(1).asString();
+            humanDump = true;
+            yInfo() << " start humanDumping";
+            reply.addString("start humanDumping");
         }
     }
     else if (command.get(0).asString() == "robotDump"){
         if (command.size() != 2)
         {
-            reply.addString("error in humanRobotDump: Botte 'robotDump' misses information (on/off)");
+            reply.addString("error in humanRobotDump: Botte 'robotDump' (action_name)");
         }
         else
         {
-            if (command.get(1).asString() == "off")
-            {
-                m_iterator++;
-                robotDump = false;
-                yInfo() << " stop robotDumping";
-                reply.addString("stop robotDumping");
-            }
-            else if (command.get(1).asString() == "on")
-            {
-                robotDump = true;
-                yInfo() << " start robotDumping";
-                reply.addString("start robotDumping");
-            }
+            sActionName = command.get(1).asString();
+            robotDump = true;
+            yInfo() << " start robotDumping";
+            reply.addString("start robotDumping");
         }
     }
     else if (command.get(0).asString() == "objectToDump"){
@@ -191,6 +173,13 @@ bool humanRobotDump::respond(const Bottle& command, Bottle& reply) {
             yInfo() << " agent to dump: " + sAgentName;
             reply.addString("agent to dump: " + sAgentName);
         }
+    }
+    else if (command.get(0).asString() == "off"){
+        robotDump = false;
+        humanDump = false;
+        yInfo() << " stopDumpin";
+        reply.addString("stopDumping");
+        m_iterator++;
     }
     else {
         cout << helpMessage;
