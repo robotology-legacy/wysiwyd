@@ -98,9 +98,10 @@ bool abmActions::updateModule()
     if (ABMconnected)
     {
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("Human", "agent"));
-        lArgument.push_back(pair<string, string>("Action recognition", "about"));
-        iCub->getABMClient()->sendActivity("action", "lifting up", "action", lArgument, true);
+//        lArgument.push_back(pair<string, string>("Human", "agent"));
+//        lArgument.push_back(pair<string, string>("Action recognition", "about"));
+        iCub->getABMClient()->sendActivity("action", "put down", "action", lArgument, true);
+//        iCub->getABMClient()->sendActivity("action", "put down", "action", lArgument, true);
     }
     Time::delay(2);
 
@@ -137,8 +138,8 @@ bool abmActions::configure(ResourceFinder &rf)
     }
 
     rememberedInstance = rf.check("rememberedInstance", Value(1333)).asInt();
-    agentName = rf.check("agentName", Value("Bob")).asString().c_str();
-    img_provider_port = rf.check("img_provider_port", Value("/icub/camcalib/left/out/kinematic_structure")).asString().c_str();
+    agentName = rf.check("agentName", Value("Uriel")).asString().c_str();
+    //img_provider_port = rf.check("img_provider_port", Value("/icub/camcalib/left/out/kinematic_structure")).asString().c_str();
 
     return true;
 }
