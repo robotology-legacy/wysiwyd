@@ -112,7 +112,9 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "help \n" +
         "quit \n" +
-        "protoCommand actionName fingerName [true/false] \n";
+        "protoCommand actionName bodyPartName [true/false] \n" +
+        "primitiveCommand actionName argument [true/false] \n" +
+        "complexCommand actionName argument [true/false] \n" ;
 
     reply.clear();
 
@@ -122,6 +124,7 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         rpcPort.reply(reply);
         return false;
     }
+    //execute a protoCommand (e.g. fold/unfold fingerName)
     else if (command.get(0).asString() == "protoCommand"){  //describeAction : TODO -> protection and stuff
 
         if(command.size() < 2){
@@ -141,6 +144,7 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         }
         reply = protoCommand(sActionName, sBodypartName, maxAngle);
     }  
+    //execute a primitiveCommand (e.g. open/close hand)
     else if (command.get(0).asString() == "primitiveCommand"){  //describeAction : TODO -> protection and stuff
 
         if(command.size() < 2){
@@ -156,6 +160,7 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         string sPrimitiveArg   = command.get(2).asString() ;
         reply = primitiveCommand(sPrimitiveName, sPrimitiveArg);
     }
+    //execute a complexCommand (e.g. show one)
     else if (command.get(0).asString() == "complexCommand"){  //describeAction : TODO -> protection and stuff
 
         if(command.size() < 2){
@@ -171,18 +176,12 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         string sActionArg   = command.get(2).asString() ;
         reply = actionCommand(sActionName, sActionArg);
     }
-    else if (command.get(0).asString() == "learn"){  //describeAction : TODO -> protection and stuff
+    else if (command.get(0).asString() == "learn"){
         reply = learn();
     }
 
-    else if (command.get(0).asString() == "execute"){  //describeAction : TODO -> protection and stuff
+    else if (command.get(0).asString() == "execute"){
         reply = execute();
-    }
-    else if (command.get(0).asString() == "save"){  //describeAction : TODO -> protection and stuff
-        Bottle blop;
-        blop.addString("Blip");
-        saveToIniFile("primitive", "close", "hand", blop);
-        reply = blop;
     }
     else {
         cout << helpMessage;
@@ -544,17 +543,6 @@ bool learnPrimitive::saveToIniFile(string sType, string sName, string sArg, Bott
     } else {
         yInfo() << " Temp file created in " << tempPath ;
     }
-
-    /*if(sType == "primitive"){
-        nameOfAction = "primitiveActionName" ;
-        argOfAction  = "primitiveActionArg" ;
-    } else if (sType == "action") {
-        nameOfAction = "ActionName" ;
-        argOfAction  = "ActionArg" ;
-    } else {
-        yError() << "Error in saveToIniFile : sType = " << sType << " IS NOT a primitive or an action" ;
-        return false;
-    }*/
 
     string sLine;
 
