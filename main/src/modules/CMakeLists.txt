@@ -20,6 +20,7 @@ add_subdirectory(systemHaptic)
 add_subdirectory(systemMotor)
 
 add_subdirectory(tools)
+add_subdirectory(samRelated)
 
 #Add modules with dependencies here
 

@@ -29,4 +29,5 @@ add_subdirectory(systemMotor)
 add_subdirectory(systemVisual)
 add_subdirectory(tools)
 add_subdirectory(visionRelated)
+add_subdirectory(samRelated)
 
