@@ -58,6 +58,7 @@ private:
     bool m_bRightArmActivated;               /**< ... */
 
     int m_i32Fps;                           /**< fps (define the period for calling updateModule) */
+    int m_iterator;
 
     // Config variables retrieved from the ini file
     std::string m_sModuleName;              /**< name of the mondule (config) */
