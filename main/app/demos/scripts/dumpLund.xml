@@ -1,84 +1,116 @@
-
 <application>
-<name>DumpLund</name>
+  <name>Dumper Data</name>
 
-   <!-- real OPC-->
-       <module>
-          <name>objectsPropertiesCollector</name>
-          <parameters>--name OPC --empty --nosave</parameters>
-          <node>localhost</node>
-          <tag>realOPC</tag>
-       </module>
-	
-       <module>
-            <name>iCubGui</name>
-            <parameters>--from iCubGui.ini</parameters>
-          <node>localhost</node>
-            <tag>iCubGui_tagOPC</tag>
-        </module>
 
-       <module>
-          <name>guiUpdater</name>
-          <parameters>--name guiUpdater --OPCname OPC</parameters>
-          <node>localhost</node>
-          <tag>guiUpdaterModuleOPC</tag>
-        </module>
+  <!--OPC-->
+  <module>
+    <name>objectsPropertiesCollector</name>
+    <parameters>--name OPC --empty --nosave</parameters>
+    <node>localhost</node>
+    <tag>opcTag</tag>
+  </module>
 
-       <module>
-          <name>referenceFrameHandler</name>
-          <node>localhost</node>
-        </module>
+  <module>
+    <name>referenceFrameHandler</name>
+    <node>localhost</node>
+    <tag>referenceFrameHandlerTag</tag>
+  </module>
 
-        <module>
-          <name>kinectServer</name>
-          <node>localhost</node>
-        </module>
+  <module>
+    <name>reactable2opc</name>
+    <node>localhost</node>
+    <tag>reactable2opcTag</tag>
+  </module>
 
-       <module>
-          <name>agentDetector</name>
-		  <parameters>--showImages true</parameters>
-          <node>localhost</node>
-        </module>
+  <module>
+    <name>optirun iCubGui</name>
+    <parameters>--from iCubGui.ini</parameters>
+    <node>localhost</node>
+    <tag>iCubGui_tagOPC</tag>
+  </module>
 
-       <module>
-          <name>reactable2opc</name>
-		  <node>localhost</node>
-        </module>
-		
-       <module>
-          <name>bodyReservoir</name>
-		  <node>localhost</node>
-        </module>
-		
-       <module>
-          <name>opcPopulater</name>
-		  <node>localhost</node>
-        </module>
-		
-       <module>
-          <name>yarpdatadumper</name>
-		  <parameters>--name dumpLund</parameters>
-		  <node>localhost</node>
-        </module>
-		
-   <!-- connections-->
+  <module>
+    <name>kinectServer</name>
+    <node>localhost</node>
+  </module>
 
-       <connection>
-            <from>/guiUpdater/gui:o</from>
-            <to>/iCubGui/objects</to>
-            <protocol>tcp</protocol>
-        </connection>
-  
-        <connection>
-          <from>/guiUpdater/guiBase:o</from>
-          <to>/iCubGui/base:i</to>
-          <protocol>tcp</protocol>
-        </connection>
+  <module>
+    <name>agentDetector</name>
+    <parameters>--showImages true</parameters>
+    <node>localhost</node>
+  </module>
 
-        <connection>
-          <from>/bodyReservoir/humanDump</from>
-          <to>/dumpLund</to>
-          <protocol>tcp</protocol>
-        </connection>
+  <module>
+    <name>bodyReservoir</name>
+    <node>localhost</node>
+  </module>
 
-</application>	
+  <module>
+    <name>humanRobotDumper</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>guiUpdater</name>
+    <node>localhost</node>
+    <tag>guiUpdaterTag</tag>
+  </module>
+
+  <module>
+    <name>opcPopulater</name>
+    <node>localhost</node>
+    <tag>opcPopulaterTag</tag>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name dumpHuman</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name dumpRobot</parameters>
+    <node>localhost</node>
+  </module>
+
+  <!-- ********************* CONNECTIONS ********************* -->
+
+
+
+  <connection>
+    <from>/reactable2opc/calibration:rpc</from>
+    <to>/referenceFrameHandler/rpc</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+
+  <connection>
+    <from>/guiUpdater/gui:o</from>
+    <to>/iCubGui/objects</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/guiUpdater/guiBase:o</from>
+    <to>/iCubGui/base:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/humanRobotDump/humanDump</from>
+    <to>/dumpHuman</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/humanRobotDump/robotDump</from>
+    <to>/dumpRobot</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+</application>
+
+
