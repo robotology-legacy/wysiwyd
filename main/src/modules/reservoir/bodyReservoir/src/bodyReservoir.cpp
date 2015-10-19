@@ -48,6 +48,14 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
+    portToDumper.open(("/" + moduleName + "/toDumper").c_str());
+    if (!Network::connect(("/" + moduleName + "/toDumper"), "/humanRobotDump/rpc"))
+    {
+            yWarning() << " CANNOT CONNECT TO DUMPERS";
+    }
+
+
+
     if (!iCub->getRecogClient())
     {
         yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
@@ -160,13 +168,44 @@ Bottle bodyReservoir::pointObject(string sObject)
     lArgument.push_back(pair<string, string>(sObject, "object"));
     iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, true);
 
+    // SEND OBJECT TO DUMP
+    Bottle bToDumper;
+    bToDumper.addString("objectToDump");
+    bToDumper.addString(sObject);
+
+    Bottle bAnswer;
+    portToDumper.write(bToDumper, bAnswer);
+    yInfo() << bAnswer.toString();
+
+    //port envoyer
+
+
+    // SEND FLAG TO DUMPER
+    bToDumper.clear();
+    bToDumper.addString("robotDump");
+    bToDumper.addString("on");
+
+    portToDumper.write(bToDumper, bAnswer);
+    yInfo() << bAnswer.toString();
+
     bool bSuccess = iCub->look(sObject);
-    Time::delay(0.5);
+    Time::delay(2.0);
+
     bSuccess &= iCub->point(sObject, bHand, true);
+
+    Time::delay(3.0);
+    iCub->getARE()->home();
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
     iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
 
+    // SEND FLAG TO DUMPER
+    bToDumper.clear();
+    bToDumper.addString("robotDump");
+    bToDumper.addString("off");
+
+    portToDumper.write(bToDumper, bAnswer);
+    yInfo() << bAnswer.toString();
 
     bOutput.addString("point");
     bOutput.addString(sObject);
