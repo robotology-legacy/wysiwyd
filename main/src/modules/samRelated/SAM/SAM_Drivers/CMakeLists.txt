@@ -5,6 +5,7 @@
 if (WYSIWYD_USE_OpenCV)
     add_subdirectory(visionDriver)
 endif()
-
-add_subdirectory(speechInteraction)
+if(WYSIWYD_USE_Boost)
+    add_subdirectory(speechInteraction)
+endif()
 add_subdirectory(abmActions)
