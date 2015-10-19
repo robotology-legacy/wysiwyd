@@ -49,6 +49,8 @@ bool humanRobotDump::configure(yarp::os::ResourceFinder &rf)
     humanDump = false;
     robotDump = false;
     sObjectToDump = "none";
+    sActionName = "none";
+
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
@@ -122,20 +124,22 @@ bool humanRobotDump::respond(const Bottle& command, Bottle& reply) {
         return false;
     }
     else if (command.get(0).asString() == "humanDump"){
-        if (command.size() != 2)
+        if (command.size() != 3)
         {
-            reply.addString("error in humanRobotDump: Botte 'humanDump' misses information (on/off)");
+            reply.addString("error in humanRobotDump: Botte 'humanDump' misses information (on/off) action_name");
         }
         else
         {
             if (command.get(1).asString() == "off")
             {
+                m_iterator++;
                 humanDump = false;
                 yInfo() << " stop humanDumping";
                 reply.addString("stop humanDumping");
             }
             else if (command.get(1).asString() == "on")
             {
+                sActionName = command.get(2).asString();
                 humanDump = true;
                 yInfo() << " start humanDumping";
                 reply.addString("start humanDumping");
@@ -223,13 +227,29 @@ void humanRobotDump::DumpHumanObject()
     Agent* ag = iCub->opc->addOrRetrieveEntity<Agent>(sAgentName);
 
     Bottle bDump;
+    bDump.addString(sActionName);
+    bDump.addString(sObjectToDump);
     bDump.addList() = ag->m_body.asBottle();
 
-    if (sObjectToDump != "none")
+    list<Entity*> lEntity = iCub->opc->EntitiesCacheCopy();
+    for (list<Entity*>::iterator itEnt = lEntity.begin(); itEnt != lEntity.end(); itEnt++)
     {
-        Object* ob = iCub->opc->addOrRetrieveEntity<Object>(sObjectToDump);
-        bDump.addList() = ob->asBottle();
+        if ((*itEnt)->entity_type() == EFAA_OPC_ENTITY_AGENT ||
+            (*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT ||
+            (*itEnt)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
+        {
+            Object* ob = iCub->opc->addOrRetrieveEntity<Object>((*itEnt)->name());
+            Bottle bObject;
+            bObject.addString(ob->name());
+            bObject.addDouble(ob->m_ego_position[0]);
+            bObject.addDouble(ob->m_ego_position[1]);
+            bObject.addDouble(ob->m_ego_position[2]);
+            bObject.addInt(ob->m_present);
+            bDump.addList() = bObject;
+        }
     }
 
+    bDump.addInt(m_iterator);
+    
     DumperPort.write(bDump);
 }

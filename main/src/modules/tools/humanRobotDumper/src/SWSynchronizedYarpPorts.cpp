@@ -242,18 +242,26 @@ bool humanRobotDump::updateSWS()
         }
     }
 
-
-    if (sObjectToDump != "none")
+    list<Entity*> lEntity = iCub->opc->EntitiesCacheCopy();
+    for (list<Entity*>::iterator itEnt = lEntity.begin(); itEnt != lEntity.end(); itEnt++)
     {
-        Object* ob = iCub->opc->addOrRetrieveEntity<Object>(sObjectToDump);
-        l_vObjectPosition = ob->m_ego_position;
-        for (unsigned int l_data = 0; l_data < l_vObjectPosition.size(); l_data++)
+        if ((*itEnt)->entity_type() == EFAA_OPC_ENTITY_AGENT ||
+            (*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT ||
+            (*itEnt)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT)
         {
-            l_syncDataBottle.addDouble(l_vObjectPosition[l_data]);
+            Object* ob = iCub->opc->addOrRetrieveEntity<Object>((*itEnt)->name());
+            Bottle bObject;
+            bObject.addString(ob->name());
+            bObject.addDouble(ob->m_ego_position[0]);
+            bObject.addDouble(ob->m_ego_position[1]);
+            bObject.addDouble(ob->m_ego_position[2]);
+            bObject.addInt(ob->m_present);
+            l_syncDataBottle.addList() = bObject;
         }
-	
-	l_syncDataBottle.addString(sObjectToDump);
     }
+
+	l_syncDataBottle.addString(sObjectToDump);
+
 
     l_syncDataBottle.addInt(m_iterator);
 
