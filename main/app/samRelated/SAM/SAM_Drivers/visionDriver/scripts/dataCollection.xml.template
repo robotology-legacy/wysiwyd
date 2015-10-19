@@ -1,0 +1,44 @@
+<application>
+  <name>Data Collection</name>
+  <module>
+  <name>visionDriver</name>
+    <parameters></parameters>
+    <node>localhost</node>
+  </module>
+  <module>
+  <name>yarpview</name>
+    <parameters>--name /faceImgView:i</parameters>
+    <node>localhost</node>
+  </module>
+  <module> 
+  <name>yarpdatadumper</name>
+    <parameters>--name /actionsDataDump --type bottle --dir ./dataDump/actionData</parameters>
+    <node>localhost</node>
+  </module>
+  <module> 
+  <name>yarpdatadumper</name>
+    <parameters>--name /facesDataDump --type image --dir ./dataDump/faceData</parameters>
+    <node>localhost</node>
+  </module>
+  <connection>
+    <from>/icub/cam/left</from>
+    <to>/visionDriver/image:i</to>
+    <protocol>udp+recv.bayer+method.nearest+mjpeg</protocol>
+  </connection>
+  <connection>
+    <from>/visionDriver/image:o</from>
+    <to>/faceImgView:i</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/visionDriver/image:o</from>
+    <to>/facesDataDump</to>
+    <protocol>udp</protocol>
+  </connection>
+  <connection>
+    <from>/visionDriver/bodyPartPosition:o</from>
+    <to>/actionsDataDump</to>
+    <protocol>tcp</protocol>
+  </connection>
+  
+</application>
