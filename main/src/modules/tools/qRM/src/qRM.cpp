@@ -111,13 +111,19 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         "exploreEntityByName entity_name \n" +
         "executeSharedPlan  ('action' name_plan 'sharedplan') (<arg 1>  <arg 2>  ...  <arg n>)  (<role 1>  <role 2 >  ... <role n>) \n" +
         "executeAction ('predicate' action_name) ('agent' agent_name) ('object' object_name) ('recipient' adjective_name) \n" +
-        "learnSharedPlan sharedplan_name\n";
+        "learnSharedPlan sharedplan_name\n"+
+        "populateOPC\n";
 
     reply.clear();
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
+    }
+        else if (command.get(0).asString() == "populateABM") {
+        reply.addString("populating ABM");
+        populateABM();
+        return true;
     }
     else if (command.get(0).asString() == "calib")
     {
@@ -1430,4 +1436,109 @@ Bottle qRM::executeAction(Bottle bInput)
 
 
     return bOutput;
+}
+
+
+
+
+/*
+*   Populate the ABM with predifined situations
+*
+*/
+void qRM::populateABM()
+{
+    Object* doudou = iCub->opc->addOrRetrieveEntity<Object>("doudou");
+    doudou->m_ego_position[0] = (-0.35);
+    doudou->m_ego_position[1] = (-0.45);
+    doudou->m_ego_position[2] = 0.0;
+    doudou->m_present = 1;
+    doudou->m_color[0] = Random::uniform(0, 80);
+    doudou->m_color[1] = Random::uniform(80, 180);
+    doudou->m_color[2] = Random::uniform(180, 250);
+    iCub->opc->commit(doudou);
+
+    Agent* larry = iCub->opc->addOrRetrieveEntity<Agent>("larry");
+    larry->m_ego_position[0] = (-0.30);
+    larry->m_ego_position[1] = (-0.40);
+    larry->m_ego_position[2] = 0.30;
+    larry->m_present = 1;
+    larry->m_color[0] = Random::uniform(0, 180);
+    larry->m_color[1] = Random::uniform(0, 80);
+    larry->m_color[2] = Random::uniform(180, 250);
+    iCub->opc->commit(larry);
+
+    Agent* robert = iCub->opc->addOrRetrieveEntity<Agent>("robert");
+    robert->m_ego_position[0] = (-0.30);
+    robert->m_ego_position[1] = (0.40);
+    robert->m_ego_position[2] = 0.30;
+    robert->m_present = 1;
+    robert->m_color[0] = Random::uniform(100, 180);
+    robert->m_color[1] = Random::uniform(80, 180);
+    robert->m_color[2] = Random::uniform(0, 80);
+    iCub->opc->commit(robert);
+
+    Action* have = iCub->opc->addOrRetrieveEntity<Action>("have");
+    yInfo() << " opc populated";
+
+    for (int i = 0; i < 5; i++)
+    {
+        doudou->m_ego_position[0] = (-0.35);
+        doudou->m_ego_position[1] = (-0.45);
+        iCub->opc->commit(doudou);
+
+        yInfo() << " begin action " << i;
+
+        iCub->opc->addRelation(larry, have, doudou);
+
+        // send the result of recognition to the ABM
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("Give me the doudou please", "sentence"));
+        lArgument.push_back(pair<string, string>("give", "predicate"));
+        lArgument.push_back(pair<string, string>("larry", "agent"));
+        lArgument.push_back(pair<string, string>("doudou", "object"));
+        lArgument.push_back(pair<string, string>("robert", "recipient"));
+        lArgument.push_back(pair<string, string>("robert", "speaker"));
+        lArgument.push_back(pair<string, string>("larry", "addressee"));
+        iCub->getABMClient()->sendActivity("action",
+            "sentence",
+            "recog",
+            lArgument,
+            true);
+
+        Time::delay(1.0);
+
+        lArgument.clear();
+
+        lArgument.push_back(pair<string, string>("larry", "agent"));
+        lArgument.push_back(pair<string, string>("give", "predicate"));
+        lArgument.push_back(pair<string, string>("doudou", "object"));
+        lArgument.push_back(pair<string, string>("robert", "recipient"));
+
+        iCub->getABMClient()->sendActivity("action",
+            "give",
+            "qRM",
+            lArgument,
+            true);
+
+        yInfo() << " in delay of action";
+        Time::delay(1 + 3 * Random::uniform());
+
+        doudou->m_ego_position[0] = (-0.35);
+        doudou->m_ego_position[1] = (0.45);
+        iCub->opc->commit(doudou);
+
+        iCub->opc->removeRelation(larry, have, doudou);
+        iCub->opc->addRelation(robert, have, doudou);
+
+        iCub->getABMClient()->sendActivity("action",
+            "give",
+            "qRM",
+            lArgument,
+            true);
+
+        yInfo() << " end action " << i;
+
+        Time::delay(2.);
+    }
+
 }

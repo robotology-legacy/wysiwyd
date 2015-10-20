@@ -20,6 +20,8 @@ private:
 
     string port2abmReasoningName;
 
+    void        populateABM();
+
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
