@@ -747,7 +747,8 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else
         {
-            bError.addString("Command not understood!");
+            bError.addString(helpMessage);
+            yInfo() << "\n" << helpMessage;
             bReply = bError;
         }
         }
