@@ -465,8 +465,34 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 {
     Bottle bError;
     bReply.clear();
-    //yDebug() << "Got something, echo is on";
-    //yDebug() << bCommand.toString();
+    string helpMessage = string(getName().c_str()) +
+        " commands are: \n" +
+        "help \n" +
+        "quit/close \n" +
+        "interrupt \n" +
+        "read \n" +
+        "new \n" +
+        "snapshot \n" +
+        "snapshotSP \n" +
+        "snapshotBE \n" +
+        "load \n" +
+        "connect \n" +
+        "request \n" +
+        "snapshotSP \n" +
+        "insert \n" +
+        "resetKnowledge \n" +
+        "eraseInstance \n" +
+        "getStoringPath \n" +
+        "triggerStreaming \n" +
+        "addImgStreamProvider \n" +
+        "removeImgStreamProvider \n" +
+        "listImgStreamProviders \n" +
+        "processInsertQueue \n" +
+        "saveAugmentedImages \n" +
+        "requestAugmentedImages \n" +
+        "getStreamStatus \n"
+        ;
+
     bError.addString("ERROR");
 
     if (bCommand.get(0).isString())
@@ -714,7 +740,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             else {
                 bReply.addString("nack");
             }
-        }
+            }
         else if (bCommand.get(0) == "getStreamStatus")
         {
             bReply.addString(streamStatus);
@@ -724,15 +750,16 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             bError.addString("Command not understood!");
             bReply = bError;
         }
-    }
+        }
     else
     {
-        bError.addString("wrong input bottle format");
+        bError.addString(helpMessage);
+        yInfo() << "\n" << helpMessage;
         bReply = bError;
     }
 
     return true;
-}
+    }
 
 void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool forSingleInstance, string fullSentence) {
 #ifdef BOOST_AVAILABLE
@@ -745,7 +772,7 @@ void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool 
     storeInfoAllImages(synchroTime, forSingleInstance, fullSentence);
     storeDataStreamAllProviders(synchroTime);
 #endif
-    if(increaseFrameNb) {
+    if (increaseFrameNb) {
         frameNb++;
         increaseFrameNb = false;
     }
@@ -1299,171 +1326,171 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
 // Not used, but can be seen as example how to use the OPC Client
 /*Bottle autobiographicalMemory::populateOPC()
 {
-    // 0. check if connected to the OPC.
-    OPCClient *opcWorld;
-    //Connection to the OPC
-    opcWorld = opcWorldReal;
+// 0. check if connected to the OPC.
+OPCClient *opcWorld;
+//Connection to the OPC
+opcWorld = opcWorldReal;
 
-    Bottle bOutput;
-    if (!opcWorld->isConnected())
-    {
-        bOutput.addString("Error in autobiographicalMemory::populateOPC | OpcClient not connected.");
-        yError() << bOutput.toString();
-        return bOutput;
-    }
+Bottle bOutput;
+if (!opcWorld->isConnected())
+{
+bOutput.addString("Error in autobiographicalMemory::populateOPC | OpcClient not connected.");
+yError() << bOutput.toString();
+return bOutput;
+}
 
-    opcWorld->checkout();
-    opcWorld->update();
+opcWorld->checkout();
+opcWorld->update();
 
-    int incrAgent = 0,
-        incrObject = 0,
-        incrRTO = 0;
+int incrAgent = 0,
+incrObject = 0,
+incrRTO = 0;
 
-    // 1. agent
-    Bottle bReply, bDistinctAgent;
-    bDistinctAgent = requestFromString("SELECT DISTINCT name FROM agent");
+// 1. agent
+Bottle bReply, bDistinctAgent;
+bDistinctAgent = requestFromString("SELECT DISTINCT name FROM agent");
 
-    for (int iDA = 0; iDA < bDistinctAgent.size() && bDistinctAgent.toString() != "NULL"; iDA++)
-    {
-        string sName = bDistinctAgent.get(iDA).toString();
-        ostringstream osAgent;
-        if (opcWorld->getEntity(sName.c_str()) == NULL)
-        {
-            osAgent << "SELECT instance FROM agent WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
-            bReply = requestFromString(osAgent.str());
-            yInfo() << bReply.get(0).toString();
-            int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
+for (int iDA = 0; iDA < bDistinctAgent.size() && bDistinctAgent.toString() != "NULL"; iDA++)
+{
+string sName = bDistinctAgent.get(iDA).toString();
+ostringstream osAgent;
+if (opcWorld->getEntity(sName.c_str()) == NULL)
+{
+osAgent << "SELECT instance FROM agent WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
+bReply = requestFromString(osAgent.str());
+yInfo() << bReply.get(0).toString();
+int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
 
-            osAgent.str("");
-            osAgent << "SELECT color FROM agent WHERE (instance = " << instance << " and name = '" << sName << "')";
+osAgent.str("");
+osAgent << "SELECT color FROM agent WHERE (instance = " << instance << " and name = '" << sName << "')";
 
-            bReply = requestFromString(osAgent.str());
-            vector<int> colorAgent = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
+bReply = requestFromString(osAgent.str());
+vector<int> colorAgent = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-            Agent *TempAgent = opcWorld->addEntity<Agent>(sName.c_str());
+Agent *TempAgent = opcWorld->addEntity<Agent>(sName.c_str());
 
-            TempAgent->m_color.clear();
-            for (vector<int>::iterator it = colorAgent.begin(); it != colorAgent.end(); it++){
-                TempAgent->m_color.push_back(*it);
-                //TempAgent->m_color[0] = get<0>(colorAgent);
-                //TempAgent->m_color[1] = get<1>(colorAgent);
-                //TempAgent->m_color[2] = get<2>(colorAgent);
-            }
-            TempAgent->m_present = false;
+TempAgent->m_color.clear();
+for (vector<int>::iterator it = colorAgent.begin(); it != colorAgent.end(); it++){
+TempAgent->m_color.push_back(*it);
+//TempAgent->m_color[0] = get<0>(colorAgent);
+//TempAgent->m_color[1] = get<1>(colorAgent);
+//TempAgent->m_color[2] = get<2>(colorAgent);
+}
+TempAgent->m_present = false;
 
-            opcWorld->commit(TempAgent);
-            incrAgent++;
-        }
-    }
+opcWorld->commit(TempAgent);
+incrAgent++;
+}
+}
 
-    // 2. RTObjects : 
-    Bottle bDistincRto = requestFromString("SELECT DISTINCT name FROM rtobject");
+// 2. RTObjects :
+Bottle bDistincRto = requestFromString("SELECT DISTINCT name FROM rtobject");
 
-    for (int iDTRO = 0; iDTRO < bDistincRto.size() && bDistincRto.toString() != "NULL"; iDTRO++)
-    {
-        string sName = bDistincRto.get(iDTRO).toString();
-        ostringstream osRto;
-        if (opcWorld->getEntity(sName.c_str()) == NULL)
-        {
-            osRto << "SELECT instance FROM rtobject WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
-            bReply = requestFromString(osRto.str());
-            int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
+for (int iDTRO = 0; iDTRO < bDistincRto.size() && bDistincRto.toString() != "NULL"; iDTRO++)
+{
+string sName = bDistincRto.get(iDTRO).toString();
+ostringstream osRto;
+if (opcWorld->getEntity(sName.c_str()) == NULL)
+{
+osRto << "SELECT instance FROM rtobject WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
+bReply = requestFromString(osRto.str());
+int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
 
-            osRto.str("");
-            osRto << "SELECT color FROM rtobject WHERE (instance = " << instance << " and name = '" << sName << "')";
+osRto.str("");
+osRto << "SELECT color FROM rtobject WHERE (instance = " << instance << " and name = '" << sName << "')";
 
-            bReply = requestFromString(osRto.str());
-            vector<int> colorRto = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
+bReply = requestFromString(osRto.str());
+vector<int> colorRto = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-            RTObject *RTO = opcWorld->addEntity<RTObject>(sName.c_str());
+RTObject *RTO = opcWorld->addEntity<RTObject>(sName.c_str());
 
-            //RTO->m_color[0] = get<0>(colorRto);
-            //RTO->m_color[1] = get<1>(colorRto);
-            //RTO->m_color[2] = get<2>(colorRto);    
-            //RTO->m_present = false;
-            RTO->m_color.clear();
-            for (vector<int>::iterator it = colorRto.begin(); it != colorRto.end(); it++){
-                RTO->m_color.push_back(*it);
-            }
-            RTO->m_present = false;
+//RTO->m_color[0] = get<0>(colorRto);
+//RTO->m_color[1] = get<1>(colorRto);
+//RTO->m_color[2] = get<2>(colorRto);
+//RTO->m_present = false;
+RTO->m_color.clear();
+for (vector<int>::iterator it = colorRto.begin(); it != colorRto.end(); it++){
+RTO->m_color.push_back(*it);
+}
+RTO->m_present = false;
 
-            opcWorld->commit(RTO);
-            incrRTO++;
-        }
-    }
+opcWorld->commit(RTO);
+incrRTO++;
+}
+}
 
-    // 3. Objects : 
-    if (bPutObjectsOPC)
-    {
-        Bottle bDistinctObject = requestFromString("SELECT DISTINCT name FROM object");
+// 3. Objects :
+if (bPutObjectsOPC)
+{
+Bottle bDistinctObject = requestFromString("SELECT DISTINCT name FROM object");
 
-        for (int iDO = 0; iDO < bDistinctObject.size() && bDistinctObject.toString() != "NULL"; iDO++)
-        {
-            string sName = bDistinctObject.get(iDO).toString();
-            ostringstream osObject;
-            if (opcWorld->getEntity(sName.c_str()) == NULL)
-            {
-                osObject << "SELECT instance FROM object WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
-                bReply = requestFromString(osObject.str());
-                int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
+for (int iDO = 0; iDO < bDistinctObject.size() && bDistinctObject.toString() != "NULL"; iDO++)
+{
+string sName = bDistinctObject.get(iDO).toString();
+ostringstream osObject;
+if (opcWorld->getEntity(sName.c_str()) == NULL)
+{
+osObject << "SELECT instance FROM object WHERE name = '" << sName << "' ORDER BY instance DESC LIMIT 1";
+bReply = requestFromString(osObject.str());
+int instance = atoi(bReply.get(0).asList()->get(0).toString().c_str());
 
-                osObject.str("");
-                osObject << "SELECT color FROM object WHERE (instance = " << instance << " and name = '" << sName << "')";
+osObject.str("");
+osObject << "SELECT color FROM object WHERE (instance = " << instance << " and name = '" << sName << "')";
 
-                bReply = requestFromString(osObject.str());
-                vector<int> colorObject = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
+bReply = requestFromString(osObject.str());
+vector<int> colorObject = tupleIntFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-                Object *TempObj = opcWorld->addEntity<Object>(sName.c_str());
-                //TempObj->m_color[0] = get<0>(colorObject);
-                //TempObj->m_color[1] = get<1>(colorObject);
-                //TempObj->m_color[2] = get<2>(colorObject); 
-                TempObj->m_color.clear();
-                for (vector<int>::iterator it = colorObject.begin(); it != colorObject.end(); it++){
-                    TempObj->m_color.push_back(*it);
-                }
+Object *TempObj = opcWorld->addEntity<Object>(sName.c_str());
+//TempObj->m_color[0] = get<0>(colorObject);
+//TempObj->m_color[1] = get<1>(colorObject);
+//TempObj->m_color[2] = get<2>(colorObject);
+TempObj->m_color.clear();
+for (vector<int>::iterator it = colorObject.begin(); it != colorObject.end(); it++){
+TempObj->m_color.push_back(*it);
+}
 
-                osObject.str("");
-                osObject << "SELECT dimension FROM object WHERE (instance = " << instance << " and name = '" << sName << "')";
+osObject.str("");
+osObject << "SELECT dimension FROM object WHERE (instance = " << instance << " and name = '" << sName << "')";
 
-                bReply = requestFromString(osObject.str());
-                vector<double> sizeObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
+bReply = requestFromString(osObject.str());
+vector<double> sizeObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-                //------------------------------------------------- SHOULD BE DIMENSION!!!!!!
-                //TempObj->m_color[0] = get<0>(sizeObject);
-                //TempObj->m_color[1] = get<1>(sizeObject);
-                //TempObj->m_color[2] = get<2>(sizeObject);  
-                TempObj->m_dimensions.clear();
-                for (vector<double>::iterator it = sizeObject.begin(); it != sizeObject.end(); it++){
-                    TempObj->m_color.push_back(*it);
-                }
+//------------------------------------------------- SHOULD BE DIMENSION!!!!!!
+//TempObj->m_color[0] = get<0>(sizeObject);
+//TempObj->m_color[1] = get<1>(sizeObject);
+//TempObj->m_color[2] = get<2>(sizeObject);
+TempObj->m_dimensions.clear();
+for (vector<double>::iterator it = sizeObject.begin(); it != sizeObject.end(); it++){
+TempObj->m_color.push_back(*it);
+}
 
-                osObject.str("");
-                osObject << "SELECT orientation FROM object WHERE (instance = " << instance << " and name = '" << sName << "')";
+osObject.str("");
+osObject << "SELECT orientation FROM object WHERE (instance = " << instance << " and name = '" << sName << "')";
 
-                bReply = requestFromString(osObject.str());
-                vector<double> orientationObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
+bReply = requestFromString(osObject.str());
+vector<double> orientationObject = tupleDoubleFromString(bReply.get(0).asList()->get(0).toString().c_str());
 
-                //TempObj->m_ego_orientation[0] = get<0>(orientationObject);
-                //TempObj->m_ego_orientation[1] = get<1>(orientationObject);
-                //TempObj->m_ego_orientation[2] = get<2>(orientationObject); 
-                TempObj->m_ego_orientation.clear();
-                for (vector<double>::iterator it = orientationObject.begin(); it != orientationObject.end(); it++){
-                    TempObj->m_color.push_back(*it);
-                }
+//TempObj->m_ego_orientation[0] = get<0>(orientationObject);
+//TempObj->m_ego_orientation[1] = get<1>(orientationObject);
+//TempObj->m_ego_orientation[2] = get<2>(orientationObject);
+TempObj->m_ego_orientation.clear();
+for (vector<double>::iterator it = orientationObject.begin(); it != orientationObject.end(); it++){
+TempObj->m_color.push_back(*it);
+}
 
-                TempObj->m_present = false;
+TempObj->m_present = false;
 
-                opcWorld->commit(TempObj);
-                incrObject++;
-            }
-        }
-    }
+opcWorld->commit(TempObj);
+incrObject++;
+}
+}
+}
 
-    ostringstream osOutput;
-    osOutput << endl << incrAgent << " Agent(s) - " << incrObject << " Object(s) - " << incrRTO << " RTObject(s) added in the OPC." << endl;
+ostringstream osOutput;
+osOutput << endl << incrAgent << " Agent(s) - " << incrObject << " Object(s) - " << incrRTO << " RTObject(s) added in the OPC." << endl;
 
-    yInfo() << osOutput.str();
-    bOutput.addString(osOutput.str().c_str());
+yInfo() << osOutput.str();
+bOutput.addString(osOutput.str().c_str());
 
-    return bOutput;
+return bOutput;
 }*/
