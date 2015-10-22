@@ -710,7 +710,7 @@ Bottle abmReasoning::findAllActions(int from)
     //check : simple object query :
     Bottle bTemporal, bOutput;
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main WHERE activitytype = 'action' AND begin = true AND INSTANCE > " << from;
+    osRequest << "SELECT instance FROM main WHERE (activitytype = 'qRM' or activitytype = 'action')AND begin = true AND INSTANCE > " << from;
     Bottle  bMessenger = requestFromStream(osRequest.str().c_str());
     int numberAction = bMessenger.size();
 
@@ -1995,7 +1995,7 @@ plan abmReasoning::actionsToPlan(int idBegin, int idEnd)
 Bottle abmReasoning::discriminateLastAction()
 {
     //bottle bQuery to ask autobiographicalMemory for ABM data the instance of OPC
-    Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'action' AND begin = TRUE ORDER BY instance DESC LIMIT 1"),
+    Bottle bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE (activitytype = 'qRM' or activitytype = 'action') AND begin = TRUE ORDER BY instance DESC LIMIT 1"),
         bQuery;
 
     int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str());
@@ -2768,6 +2768,29 @@ Bottle abmReasoning::addContextualKnowledge(Bottle bInput)
 }
 
 
+bool abmReasoning::createContextualKnowledge(string sName, string sArgument)
+{
+    for (vector<contextualKnowledge>::iterator it_CK = listContextualKnowledge.begin(); it_CK != listContextualKnowledge.end(); it_CK++)
+    {
+        if (it_CK->sName == sName.c_str() && it_CK->sArgument == sArgument.c_str() )
+        {
+            //yInfo() << "\t" << "ContextualKnowledge " << sName << " " << sArgument << " already existing";
+            return false;
+        }
+    }
+
+    contextualKnowledge newCK;
+    newCK.sArgument = sArgument;
+    newCK.sName = sName;
+    newCK.sDependance = "none";
+
+    listContextualKnowledge.push_back(newCK);
+    yInfo() << "\t" << "ContextualKnowledge " << sName << " " << sArgument << " created";
+
+    return true;
+}
+
+
 /*
 *   askGrammar
 *   get a bottle with
@@ -2963,7 +2986,7 @@ Bottle  abmReasoning::askWordKnowledge(Bottle bInput)
 Bottle abmReasoning::askLastAction()
 {
     //extract the instances of the OPC
-    Bottle  bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE activitytype = 'action' AND begin = TRUE ORDER BY instance DESC LIMIT 1");
+    Bottle  bOpcIdBegin = requestFromStream("SELECT instance FROM main WHERE (activitytype = 'qRM' or activitytype = 'action') AND begin = TRUE ORDER BY instance DESC LIMIT 1");
 
     int opcIdBegin = atoi(bOpcIdBegin.get(0).asList()->get(0).toString().c_str());
 
@@ -3251,10 +3274,14 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
     lAdjectives.push_back(bArguments.check("adv1", Value("none")).asString());
     lAdjectives.push_back(bArguments.check("adv2", Value("none")).asString());
     lAdjectives.push_back(bArguments.check("spatial1", Value("none")).asString());
+    lAdjectives.push_back(bArguments.check("recipient", Value("none")).asString());
 
     sName = bArguments.check("action", Value("none")).asString();
     if (sName == "none")
         sName = bArguments.check("action1", Value("none")).asString();
+    if (sName == "none")
+        sName = bArguments.check("predicate", Value("none")).asString();
+
     if (sName == "none")
     {
         ostringstream osGetNameAction;
@@ -3433,7 +3460,7 @@ Bottle abmReasoning::askSentenceFromId(int Id)
         sAgentPrevious, sAgentNext;
 
     osName.str("");
-    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND activitytype = 'action' and main.instance < " << Id << " and begin = 'FALSE' order by instance DESC limit 1";
+    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND (activitytype = 'qRM' or activitytype = 'action') and main.instance < " << Id << " and begin = 'FALSE' order by instance DESC limit 1";
     bTemp = *(requestFromStream(osName.str()).get(0).asList());
 
     sTimePrevious = bTemp.get(0).toString().c_str();
@@ -3443,7 +3470,7 @@ Bottle abmReasoning::askSentenceFromId(int Id)
 
     // 3-
     osName.str("");
-    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND activitytype = 'action' and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1";
+    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND (activitytype = 'qRM' or activitytype = 'action')and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1";
     Bottle bRequest = requestFromStream(osName.str());
     yInfo() << "\t" << "brequest : " << bRequest.toString();
     int iDiffTimefromNext = 10000;
@@ -3491,11 +3518,19 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
         bRelationsBefore,
         bRelationsAfter;
 
+    string sNull = "NULL";
 
     // Get name and argument.
     ostringstream osName;
-    osName << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND contentarg.role = 'object1' AND main.instance = " << Id;
+    osName << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND (contentarg.role = 'object1' OR contentarg.role = 'object') AND main.instance = " << Id;
     bName = requestFromStream(osName.str());
+
+
+    if (bName.toString() == sNull)
+    {
+        bOutput.addString(sNull);
+        return bOutput;
+    }
 
     string sName = (*bName.get(0).asList()).get(0).toString().c_str(),
         sArgument = (*bName.get(0).asList()).get(1).toString().c_str();

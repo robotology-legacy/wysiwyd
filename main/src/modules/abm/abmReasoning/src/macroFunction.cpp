@@ -928,7 +928,7 @@ Bottle abmReasoning::retroReasoning(int from)
         sendRelation(Id);
     }
 
-    yInfo() << "\t" << "retroReasoning Done on " << numberAction << " situations.";
+    yInfo() << "\n" << "retroReasoning Done on " << numberAction << " situations.";
     bOutput.addString("retroReasoning Done");
 
     return bOutput;
@@ -943,316 +943,336 @@ Bottle abmReasoning::level3Reasoning(int from)
     Bottle bOutput;
 
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main WHERE activitytype = 'action' AND begin = true AND INSTANCE > " << from << " ORDER by INSTANCE";
+    osRequest << "SELECT instance FROM main WHERE (activitytype = 'qRM' or activitytype = 'action')AND begin = true AND INSTANCE > " << from << " ORDER by INSTANCE";
     Bottle  bMessenger = requestFromStream(osRequest.str().c_str());
     int numberAction = bMessenger.size();
 
     vector<int> vError;
     yInfo() << "\t" << "found " << numberAction << " action(s)";
+    string sNull = "NULL";
 
     for (int j = 0; j < numberAction; j++)
     {   // begin for each action
-        yInfo() << "\t" << j + 1 << "..";
+        //yInfo() << "\t" << j + 1 << "..";
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
 
         Bottle bAction = askActionForLevel3Reasoning(Id);
 
-        Bottle bName = *bAction.get(0).asList();
-        Bottle bRelationsBefore = *bAction.get(1).asList();
-        Bottle bRelationsAfter = *bAction.get(2).asList();
-
-        string sName = bName.get(0).toString().c_str(),
-            sArgument = bName.get(1).toString().c_str();
-
-        yInfo() << " bName : \t" << bName.toString() << "\t" << " bRelationsBefore : \t" << bRelationsBefore.toString() << "\t" << " bRelationsAfter  : \t" << bRelationsAfter.toString();
-
-        // Before
-        vector<string>  vLocFocusBefore, vLocFocusAfter;       // Vector with the location of the focus object
-        vector< pair <string, string> > vObjectLocBefore,
-            vObjectLocAfter;    // vector with the location of the other objects
-        vector<pair <string, bool> > vObjectBoolBefore,
-            vObjectBoolAfter;       // vector is the object was on the same location
-
-
-        string sNull = "NULL";
-
-        // begin if bRelationBefore is Null
-        if (bRelationsBefore.toString().c_str() != sNull)
+        if (bAction.toString() == sNull)
         {
-            string sObject,
-                sLocation;
-            for (int i = 0; i < bRelationsBefore.size(); i++)
-            {   // begin decomposition bRelationBefore
-                Bottle bTemp = *bRelationsBefore.get(i).asList();
-                sObject = bTemp.get(0).toString().c_str();
-                sLocation = bTemp.get(1).toString().c_str();
-                if (sObject == sArgument)
-                {
-                    vLocFocusBefore.push_back(sLocation);
-                }
-                else
-                {
-                    pair<string, string> pTemp(sObject, sLocation);
-                    vObjectLocBefore.push_back(pTemp);
-                }
-            }   // end decomposition bRelationBefore
+            yWarning() << " level3: error on instance " << Id << ", wrong format in ABM";
+            vError.push_back(Id);
+        }
+        else
+        {
+            Bottle bName = *bAction.get(0).asList();
+            Bottle bRelationsBefore = *bAction.get(1).asList();
+            Bottle bRelationsAfter = *bAction.get(2).asList();
 
-            // for each object create a pair object-bool
-            for (vector<pair<string, string> >::iterator pItLocation = vObjectLocBefore.begin(); pItLocation != vObjectLocBefore.end(); pItLocation++)
-            {   // begin for each object create a pair object-bool
-                bool bFound = false;
-                for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolBefore.begin(); pItBool != vObjectBoolBefore.end(); pItBool++)
-                {
-                    if (pItLocation->first == pItBool->first)
-                    {
-                        bFound = true;
-                        pItBool->second = false;
-                    }
-                }
-                if (!bFound)
-                {   // begin IF the pair doesn't exist yet
-                    pair <string, bool> pTemp(pItLocation->first, false);
-                    vObjectBoolBefore.push_back(pTemp);
-                }   // end IF
-            }   // end for each object create a pair object-bool
+            string sName = bName.get(0).toString().c_str(),
+                sArgument = bName.get(1).toString().c_str();
 
-            // begin for each object-location check
-            for (vector<pair<string, string> >::iterator pItLocation = vObjectLocBefore.begin(); pItLocation != vObjectLocBefore.end(); pItLocation++)
+           // yInfo() << " bName : \t" << bName.toString() << "\t" << " bRelationsBefore : \t" << bRelationsBefore.toString() << "\t" << " bRelationsAfter  : \t" << bRelationsAfter.toString();
+
+            // Before
+            vector<string>  vLocFocusBefore, vLocFocusAfter;       // Vector with the location of the focus object
+            vector< pair <string, string> > vObjectLocBefore,
+                vObjectLocAfter;    // vector with the location of the other objects
+            vector<pair <string, bool> > vObjectBoolBefore,
+                vObjectBoolAfter;       // vector is the object was on the same location
+
+            // begin if bRelationBefore is Null
+            if (bRelationsBefore.toString().c_str() != sNull)
             {
-                // for any location where the object of focus is
-                for (vector<string>::iterator itLocFocus = vLocFocusBefore.begin(); itLocFocus != vLocFocusBefore.end(); itLocFocus++)
-                {
-                    // is it the location is the same that the object of focus
-                    if (pItLocation->second == *itLocFocus)
+                string sObject,
+                    sLocation;
+                for (int i = 0; i < bRelationsBefore.size(); i++)
+                {   // begin decomposition bRelationBefore
+                    Bottle bTemp = *bRelationsBefore.get(i).asList();
+                    sObject = bTemp.get(0).toString().c_str();
+                    sLocation = bTemp.get(1).toString().c_str();
+                    if (sObject == sArgument)
                     {
-                        // search the appropriate pair
-                        for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolBefore.begin(); pItBool != vObjectBoolBefore.end(); pItBool++)
+                        vLocFocusBefore.push_back(sLocation);
+                    }
+                    else
+                    {
+                        pair<string, string> pTemp(sObject, sLocation);
+                        vObjectLocBefore.push_back(pTemp);
+                    }
+                }   // end decomposition bRelationBefore
+
+
+                // for each object create a pair object-bool
+                for (vector<pair<string, string> >::iterator pItLocation = vObjectLocBefore.begin(); pItLocation != vObjectLocBefore.end(); pItLocation++)
+                {   // begin for each object create a pair object-bool
+                    bool bFound = false;
+                    for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolBefore.begin(); pItBool != vObjectBoolBefore.end(); pItBool++)
+                    {
+                        if (pItLocation->first == pItBool->first)
                         {
-                            if (pItLocation->first == pItBool->first)
-                            {
-                                pItBool->second = true;
-                            }
+                            bFound = true;
+                            pItBool->second = false;
                         }
                     }
-                }   // end FOR any location where the object of focus is
-            }   // end FOR each object-location check
-        }   // end IF bRelationBefore is Null
+                    if (!bFound)
+                    {   // begin IF the pair doesn't exist yet
+                        pair <string, bool> pTemp(pItLocation->first, false);
+                        vObjectBoolBefore.push_back(pTemp);
+                    }   // end IF
+                }   // end for each object create a pair object-bool
 
 
-        // After
-
-        if (bRelationsAfter.toString().c_str() != sNull)
-        {   // begin IF bRelationAfter is Null
-            string sObject,
-                sLocation;
-
-            for (int i = 0; i < bRelationsAfter.size(); i++)
-            {   // begin decomposition of bRelationAfter
-                Bottle bTemp = *bRelationsAfter.get(i).asList();
-                sObject = bTemp.get(0).toString().c_str();
-                sLocation = bTemp.get(1).toString().c_str();
-                if (sObject == sArgument)
+                // begin for each object-location check
+                for (vector<pair<string, string> >::iterator pItLocation = vObjectLocBefore.begin(); pItLocation != vObjectLocBefore.end(); pItLocation++)
                 {
-                    vLocFocusAfter.push_back(sLocation);
-                }
-                else
-                {
-                    pair<string, string> pTemp(sObject, sLocation);
-                    vObjectLocAfter.push_back(pTemp);
-                }
-            }   // end FOR : decomposition of bRelationAfter
-
-            // for each object create a pair object-bool
-            for (vector<pair<string, string> >::iterator pItLocation = vObjectLocAfter.begin(); pItLocation != vObjectLocAfter.end(); pItLocation++)
-            {
-                bool bFound = false;
-                for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolAfter.begin(); pItBool != vObjectBoolAfter.end(); pItBool++)
-                {
-                    if (pItLocation->first == pItBool->first)
+                    // for any location where the object of focus is
+                    for (vector<string>::iterator itLocFocus = vLocFocusBefore.begin(); itLocFocus != vLocFocusBefore.end(); itLocFocus++)
                     {
-                        bFound = true;
-                        pItBool->second = false;
-                    }
-                }
-                if (!bFound)
-                {   // begin IF the pair doesn't exist yet
-                    pair <string, bool> pTemp(pItLocation->first, false);
-                    vObjectBoolAfter.push_back(pTemp);
-                }   // end IF
-
-            }   // end FOR each object create a pair object-bool
-
-
-            // FOR each object-location check
-            for (vector<pair<string, string> >::iterator pItLocation = vObjectLocAfter.begin(); pItLocation != vObjectLocAfter.end(); pItLocation++)
-            {
-                for (vector<string>::iterator itLocFocus = vLocFocusAfter.begin(); itLocFocus != vLocFocusAfter.end(); itLocFocus++)
-                {   // begin FOR any location where the object of focus is
-
-                    if (pItLocation->second == *itLocFocus)
-                    {   // begin IF the location is the same that the object of focus
-
-                        for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolAfter.begin(); pItBool != vObjectBoolAfter.end(); pItBool++)
-                        {   // FOR search the appropriate pair
-                            if (pItLocation->first == pItBool->first)
+                        // is it the location is the same that the object of focus
+                        if (pItLocation->second == *itLocFocus)
+                        {
+                            // search the appropriate pair
+                            for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolBefore.begin(); pItBool != vObjectBoolBefore.end(); pItBool++)
                             {
-                                pItBool->second = true;
+                                if (pItLocation->first == pItBool->first)
+                                {
+                                    pItBool->second = true;
+                                }
                             }
-                        }   // end FOR search the appropriate pair
-                    }   // end IF the location is the same that the object of focus
-                }   // end FOR any location where the object of focus is
-            }   // end FOR each object-location check
-        }   // end IF bRelationAfter is Null
+                        }
+                    }   // end FOR any location where the object of focus is
+                }   // end FOR each object-location check
+            }   // end IF bRelationBefore is Null
 
 
-        // create vector before / after
-        vector<tuple<string, bool, bool> > vTObjects;
+            // After
 
-        // BEFORE
-        for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolBefore.begin(); pItBool != vObjectBoolBefore.end(); pItBool++)
-        {
-            tuple<string, bool, bool> tuTemp(pItBool->first, pItBool->second, false);
-            vTObjects.push_back(tuTemp);
-        }
+            if (bRelationsAfter.toString().c_str() != sNull)
+            {   // begin IF bRelationAfter is Null
+                string sObject,
+                    sLocation;
 
-        // AFTER
-        for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolAfter.begin(); pItBool != vObjectBoolAfter.end(); pItBool++)
-        {   //  FOR each object present after
-            bool bFound = false;
+                for (int i = 0; i < bRelationsAfter.size(); i++)
+                {   // begin decomposition of bRelationAfter
+                    Bottle bTemp = *bRelationsAfter.get(i).asList();
+                    sObject = bTemp.get(0).toString().c_str();
+                    sLocation = bTemp.get(1).toString().c_str();
+                    if (sObject == sArgument)
+                    {
+                        vLocFocusAfter.push_back(sLocation);
+                    }
+                    else
+                    {
+                        pair<string, string> pTemp(sObject, sLocation);
+                        vObjectLocAfter.push_back(pTemp);
+                    }
+                }   // end FOR : decomposition of bRelationAfter
 
-            for (vector<tuple<string, bool, bool> >::iterator itTu = vTObjects.begin(); itTu != vTObjects.end(); itTu++)
-            {   // FOR each object present before
+                // for each object create a pair object-bool
+                for (vector<pair<string, string> >::iterator pItLocation = vObjectLocAfter.begin(); pItLocation != vObjectLocAfter.end(); pItLocation++)
+                {
+                    bool bFound = false;
+                    for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolAfter.begin(); pItBool != vObjectBoolAfter.end(); pItBool++)
+                    {
+                        if (pItLocation->first == pItBool->first)
+                        {
+                            bFound = true;
+                            pItBool->second = false;
+                        }
+                    }
+                    if (!bFound)
+                    {   // begin IF the pair doesn't exist yet
+                        pair <string, bool> pTemp(pItLocation->first, false);
+                        vObjectBoolAfter.push_back(pTemp);
+                    }   // end IF
 
-                if (get<0>(*itTu) == pItBool->first)
-                {   // IF match
-                    bFound = true;
-                    get<2>(*itTu) = pItBool->second;
-                }   // end IF match
-            }   // end FOR each object present before
+                }   // end FOR each object create a pair object-bool
 
-            if (!bFound)
+                // FOR each object-location check
+                for (vector<pair<string, string> >::iterator pItLocation = vObjectLocAfter.begin(); pItLocation != vObjectLocAfter.end(); pItLocation++)
+                {
+                    for (vector<string>::iterator itLocFocus = vLocFocusAfter.begin(); itLocFocus != vLocFocusAfter.end(); itLocFocus++)
+                    {   // begin FOR any location where the object of focus is
+
+                        if (pItLocation->second == *itLocFocus)
+                        {   // begin IF the location is the same that the object of focus
+
+                            for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolAfter.begin(); pItBool != vObjectBoolAfter.end(); pItBool++)
+                            {   // FOR search the appropriate pair
+                                if (pItLocation->first == pItBool->first)
+                                {
+                                    pItBool->second = true;
+                                }
+                            }   // end FOR search the appropriate pair
+                        }   // end IF the location is the same that the object of focus
+                    }   // end FOR any location where the object of focus is
+                }   // end FOR each object-location check
+            }   // end IF bRelationAfter is Null
+
+            // create vector before / after
+            vector<tuple<string, bool, bool> > vTObjects;
+
+            // BEFORE
+            for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolBefore.begin(); pItBool != vObjectBoolBefore.end(); pItBool++)
             {
-                tuple<string, bool, bool> tuTemp(pItBool->first, false, pItBool->second);
+                tuple<string, bool, bool> tuTemp(pItBool->first, pItBool->second, false);
                 vTObjects.push_back(tuTemp);
             }
-        }
 
-
-        // updating the contextual knowledge
-        for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
-        {   //begin FOR itCK : listContextualKnowledge
-
-            if (itCK->sName == sName && itCK->sArgument == sArgument)
-            {   // IF CK found
+            // AFTER
+            for (vector<pair<string, bool> >::iterator pItBool = vObjectBoolAfter.begin(); pItBool != vObjectBoolAfter.end(); pItBool++)
+            {   //  FOR each object present after
+                bool bFound = false;
 
                 for (vector<tuple<string, bool, bool> >::iterator itTu = vTObjects.begin(); itTu != vTObjects.end(); itTu++)
-                {   // FOR itTu: vOTobject each object present 
-                    bool bFound = false;
+                {   // FOR each object present before
 
-                    for (map<string, vector <pair <bool, bool> > >::iterator itMap = itCK->mObjectFromTo.begin(); itMap != itCK->mObjectFromTo.end(); itMap++)
-                    {   // FOR each object already in the CK
+                    if (get<0>(*itTu) == pItBool->first)
+                    {   // IF match
+                        bFound = true;
+                        get<2>(*itTu) = pItBool->second;
+                    }   // end IF match
+                }   // end FOR each object present before
 
-                        if (itMap->first == get<0>(*itTu))
-                        {   // IF the object of the CK is the same of the object present
-                            bFound = true;
-                            pair<bool, bool>    pTemp(get<1>(*itTu), get<2>(*itTu));
-                            itMap->second.push_back(pTemp);
-                        }   // endIF the object of the CK is the same of the object present
-                    }   // end FOR each object already in the CK
-
-                    if (!bFound)
-                    {   // IF object wasn't present
-                        pair<bool, bool>    pTemp(get<1>(*itTu), get<2>(*itTu));
-                        itCK->mObjectFromTo[get<0>(*itTu)].push_back(pTemp);
-                    }   // end IF object wasn't present
-                }   // end FOR itTu: vOTobject each object present 
-            }   // end IF CK found
-        }   //end FOR itCK : listContextualKnowledge
-
-
-        // check if Hanoi
-        if (bAction.size() == 4)
-        {   // begin IF has spatial1 and spatial 2
-            Bottle bSpatial = *bAction.get(3).asList();
-
-            yInfo() << "\t" << "bSpatial : " << bSpatial.toString();
-            
-            string sFrom, sTo; // locations from and to of the move
-            // Get the argument FROM and TO
-            for (int i = 0; i < 2; i++)
-            {
-                Bottle bTemp = *bSpatial.get(i).asList();
-                if (bTemp.get(1).toString() == "spatial1")
-                {   //  IF bottle is TO (spatial1)
-                    sTo = bTemp.get(0).toString().c_str();
-                }
-                else
-                {   // If bottle is FROM (spatial2)
-                    sFrom = bTemp.get(0).toString().c_str();
+                if (!bFound)
+                {
+                    tuple<string, bool, bool> tuTemp(pItBool->first, false, pItBool->second);
+                    vTObjects.push_back(tuTemp);
                 }
             }
 
-
-            pair<bool, bool>    pbFROM(false, false),   // if the focus was at the location FROM before and after
-                pbTO(false, false);                 // if the focus was at the location TO before and after
-
-
-            // CHECK IF FOCUS AT LOCATION FROM AND TO
-
-            //before
-            for (vector<string>::iterator itLocFoc = vLocFocusBefore.begin(); itLocFoc != vLocFocusBefore.end(); itLocFoc++)
-            {   // begin FOR each location where the focus was before 
-                if (*itLocFoc == sFrom)
-                {
-                    pbFROM.first = true;
-                }
-
-                if (*itLocFoc == sTo)
-                {
-                    pbTO.first = true;
-                }
-            }   // end FOR each location where the focus was before
-
-
-            //after
-            for (vector<string>::iterator itLocFoc = vLocFocusAfter.begin(); itLocFoc != vLocFocusAfter.end(); itLocFoc++)
-            {   // begin FOR each location where the focus was after
-                if (*itLocFoc == sFrom)
-                {
-                    pbFROM.second = true;
-                }
-
-                if (*itLocFoc == sTo)
-                {
-                    pbTO.second = true;
-                }
-            }   // end FOR each location where the focus was after
-
+//            yInfo() << " before listContextualKnowledge";
+            createContextualKnowledge(sName, sArgument);
             // updating the contextual knowledge
             for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
             {   //begin FOR itCK : listContextualKnowledge
 
                 if (itCK->sName == sName && itCK->sArgument == sArgument)
                 {   // IF CK found
+                    for (vector<tuple<string, bool, bool> >::iterator itTu = vTObjects.begin(); itTu != vTObjects.end(); itTu++)
+                    {   // FOR itTu: vOTobject each object present 
+                        bool bFound = false;
 
-                    // update FROM
-                    itCK->mIntersectLocation["from"].push_back(pbFROM);
-                    // update TO
-                    itCK->mIntersectLocation["to"].push_back(pbTO);
+                        for (map<string, vector <pair <bool, bool> > >::iterator itMap = itCK->mObjectFromTo.begin(); itMap != itCK->mObjectFromTo.end(); itMap++)
+                        {   // FOR each object already in the CK
 
+                            if (itMap->first == get<0>(*itTu))
+                            {   // IF the object of the CK is the same of the object present
+                                bFound = true;
+                                pair<bool, bool>    pTemp(get<1>(*itTu), get<2>(*itTu));
+                                itMap->second.push_back(pTemp);
+                            }   // endIF the object of the CK is the same of the object present
+                        }   // end FOR each object already in the CK
+
+                        if (!bFound)
+                        {   // IF object wasn't present
+                            pair<bool, bool>    pTemp(get<1>(*itTu), get<2>(*itTu));
+                            itCK->mObjectFromTo[get<0>(*itTu)].push_back(pTemp);
+                        }   // end IF object wasn't present
+                    }   // end FOR itTu: vOTobject each object present 
                 }   // end IF CK found
             }   //end FOR itCK : listContextualKnowledge
-        }   // end IF has spatial1 and spatial 2
+
+            // check if Hanoi
+            if (bAction.size() == 4)
+            {   // begin IF has spatial1 and spatial 2
+                Bottle bSpatial = *bAction.get(3).asList();
+
+                string sFrom = "none",
+                    sTo = "none"; // locations from and to of the move
+                // Get the argument FROM and TO
+                for (int i = 0; i < 2; i++)
+                {
+                    if (bSpatial.size() > i)
+                    {
+                        Bottle bTemp = *bSpatial.get(i).asList();
+                        if (bTemp.get(1).toString() == "spatial1")
+                        {   //  IF bottle is TO (spatial1)
+                            sTo = bTemp.get(0).toString().c_str();
+                        }
+                        else
+                        {   // If bottle is FROM (spatial2)
+                            sFrom = bTemp.get(0).toString().c_str();
+                        }
+                    }
+                }
+
+
+                pair<bool, bool>    pbFROM(false, false),   // if the focus was at the location FROM before and after
+                    pbTO(false, false);                 // if the focus was at the location TO before and after
+
+                // CHECK IF FOCUS AT LOCATION FROM AND TO
+
+                //before
+                for (vector<string>::iterator itLocFoc = vLocFocusBefore.begin(); itLocFoc != vLocFocusBefore.end(); itLocFoc++)
+                {   // begin FOR each location where the focus was before 
+                    if (*itLocFoc == sFrom)
+                    {
+                        pbFROM.first = true;
+                    }
+
+                    if (*itLocFoc == sTo)
+                    {
+                        pbTO.first = true;
+                    }
+                }   // end FOR each location where the focus was before
+
+                //after
+                for (vector<string>::iterator itLocFoc = vLocFocusAfter.begin(); itLocFoc != vLocFocusAfter.end(); itLocFoc++)
+                {   // begin FOR each location where the focus was after
+                    if (*itLocFoc == sFrom)
+                    {
+                        pbFROM.second = true;
+                    }
+
+                    if (*itLocFoc == sTo)
+                    {
+                        pbTO.second = true;
+                    }
+                }   // end FOR each location where the focus was after
+
+                // updating the contextual knowledge
+                for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
+                {   //begin FOR itCK : listContextualKnowledge
+
+                    if (itCK->sName == sName && itCK->sArgument == sArgument)
+                    {   // IF CK found
+
+                        // update FROM
+                        itCK->mIntersectLocation["from"].push_back(pbFROM);
+                        // update TO
+                        itCK->mIntersectLocation["to"].push_back(pbTO);
+
+                    }   // end IF CK found
+                }   //end FOR itCK : listContextualKnowledge
+            }   // end IF has spatial1 and spatial 2
+        }
 
     } // end for each action
 
-    yInfo() << "\t " << "level3 finished";
+
+    ostringstream osErrorMessage;
+    osErrorMessage << "\n" << "level3 finished with " << vError.size() << " errors." << endl;
+    if (vError.size() != 0)
+    {
+        osErrorMessage << "Instances errors are ";
+        for (vector<int>::iterator itErr = vError.begin(); itErr != vError.end(); itErr++)
+        {
+            osErrorMessage << ", " << *itErr;
+        }
+        osErrorMessage << ".";
+    }
+    string sErrorMessage = osErrorMessage.str();
+    
+    yInfo() << "\t " << sErrorMessage;
 
     for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
     {
         itCK->updatePresence();
     }
 
+    bOutput.addString(sErrorMessage);
     return bOutput;
 }
 
@@ -1296,6 +1316,61 @@ void abmReasoning::displaySharedPlan()
     }
 }
 
+
+void abmReasoning::displayContextual(string sInput, string sArgument)
+{
+
+    bool bFound = false;
+    for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin();
+        itCK != listContextualKnowledge.end();
+        itCK++)
+    {
+        if (!bFound)
+        {
+            if (itCK->sName == sInput && itCK->sArgument == sArgument)
+            {
+                bFound = true;
+
+                cout << endl << "\t" << sInput << ":" << endl;
+                cout << "\t\t" << "sArgument   is: " << itCK->sArgument << endl;
+                cout << "\t\t" << "sDependance is: " << itCK->sDependance << endl;
+
+                itCK->updateAgentRelated();
+                itCK->updateIntersect();
+                itCK->updatePresence();
+
+                cout << "\t\t" << "Percent Presence: " << itCK->PercentPresence.first << "\t" << itCK->PercentPresence.second << endl;
+                cout << "\t\t" << "Percent Location: " << endl;
+                for (map<string, pair<double, double > >::iterator itMap = itCK->mPercentIntersectLocation.begin();
+                    itMap != itCK->mPercentIntersectLocation.end();
+                    itMap++)
+                {
+                    cout << "\t\t\t" << itMap->first << ": " << itMap->second.first << " ; " << itMap->second.second << endl;
+                }
+                cout << "\t\t" << "Percent Obj from to : " << endl;
+                for (map<string, pair<double, double > >::iterator itMap = itCK->mPercentObjectFromTo.begin();
+                    itMap != itCK->mPercentObjectFromTo.end();
+                    itMap++)
+                {
+                    cout << "\t\t\t" << itMap->first << ": " << itMap->second.first << " ; " << itMap->second.second << endl;
+                }
+                cout << "\t\t" << "Percent Agent : " << endl;
+                for (map<string, double>::iterator itMap = itCK->mPercentAgentRelated.begin();
+                    itMap != itCK->mPercentAgentRelated.end();
+                    itMap++)
+                {
+                    cout << "\t\t\t" << itMap->first << ": " << itMap->second << endl;
+                }
+            }
+        }
+    }
+
+    if (!bFound)
+    {
+        yInfo() << " impossible to find contextualKnowledge " << sInput << ".";
+    }
+
+}
 
 
 /*
@@ -1346,7 +1421,9 @@ Bottle abmReasoning::imagineOPC(int Id)
     mentalOPC->checkout();
 
     // ADD Agent iCub
-    Agent *icub = mentalOPC->addOrRetrieveEntity<Agent>("icub");
+    yInfo(" before icub");
+    Agent *icub = mentalOPC->addEntity<Agent>("icub");
+    yInfo(" after icub");
     icub->m_present = true;
     mentalOPC->commit(icub);
 
@@ -1375,7 +1452,7 @@ Bottle abmReasoning::imagineOPC(int Id)
         bool bPresence = test == sPresence;
         tuple<int, int, int> tColor = abmReasoningFunction::tupleIntFromString(sColor);
 
-        RTObject *RTOtemp = mentalOPC->addEntity<RTObject>(sName);
+        RTObject *RTOtemp = mentalOPC->addOrRetrieveEntity<RTObject>(sName);
 
         RTOtemp->m_ego_position[0] = pCoordinate.first;
         RTOtemp->m_ego_position[1] = pCoordinate.second;

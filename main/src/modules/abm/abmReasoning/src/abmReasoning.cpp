@@ -516,6 +516,26 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addList() = updateKnownLocations();
     }
 
+    else if (bCommand.get(0).asString() == "displayContextual") {
+        bReply.addString("ack");
+        if (bCommand.size() == 3)
+        {
+            displayContextual(bCommand.get(1).toString(), bCommand.get(2).toString ());
+        }
+        else
+        {
+
+            yInfo() << " displaying " << listContextualKnowledge.size() << " contextual knowledge";
+            for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin();
+                itCK != listContextualKnowledge.end();
+                itCK++)
+            {
+                displayContextual(itCK->sName, itCK->sArgument);
+            }
+        }
+    }
+
+
 
     // UPDATE OBJECT LOCATION
 

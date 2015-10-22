@@ -55,6 +55,7 @@ private:
     std::map<std::string, std::tuple<std::string, std::vector<double>, std::vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
     wordKnowledge                    WordKnowledge;
+    bool createContextualKnowledge(std::string sName, std::string sArgument);
 
 
     //PDDL planner variable
@@ -225,6 +226,7 @@ public:
     // display functions
     void displayResult(yarp::os::Bottle bInput);
     void displaySharedPlan();
+    void displayContextual(std::string sName, std::string sArgument);
 
     // OPC related
     yarp::os::Bottle updateOpcObjectLocation(std::string sOPCname);
