@@ -1482,8 +1482,22 @@ void qRM::populateABM()
 
     for (int i = 0; i < 5; i++)
     {
-        doudou->m_ego_position[0] = (-0.35);
-        doudou->m_ego_position[1] = (-0.45);
+        double larry_X =  -0.1 -0.5 * Random::uniform();
+        double larry_Y = -1.2 + 2 * Random::uniform();
+
+        double robert_X = -0.1 - 0.5 * Random::uniform();
+        double robert_Y = -0.7 + 2 * Random::uniform();
+
+        larry->m_ego_position[0] = larry_X;
+        larry->m_ego_position[1] = larry_Y;
+        iCub->opc->commit(larry);
+
+        robert->m_ego_position[0] = robert_X;
+        robert->m_ego_position[1] = robert_Y;
+        iCub->opc->commit(robert);
+
+        doudou->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
+        doudou->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
         iCub->opc->commit(doudou);
 
         yInfo() << " begin action " << i;
@@ -1492,11 +1506,88 @@ void qRM::populateABM()
 
         // send the result of recognition to the ABM
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("Give me the doudou please", "sentence"));
+        lArgument.push_back(pair<string, string>("Give me the doudou slowly please", "sentence"));
         lArgument.push_back(pair<string, string>("give", "predicate"));
         lArgument.push_back(pair<string, string>("larry", "agent"));
         lArgument.push_back(pair<string, string>("doudou", "object"));
+        lArgument.push_back(pair<string, string>("robert", "adj1"));
+        lArgument.push_back(pair<string, string>("slowly", "adj2"));
+        lArgument.push_back(pair<string, string>("robert", "speaker"));
+        lArgument.push_back(pair<string, string>("larry", "addressee"));
+        iCub->getABMClient()->sendActivity("action",
+            "sentence",
+            "recog",
+            lArgument,
+            true);
+
+        Time::delay(1.0);
+
+        lArgument.clear();
+
+        lArgument.push_back(pair<string, string>("larry", "agent"));
+        lArgument.push_back(pair<string, string>("give", "predicate"));
+        lArgument.push_back(pair<string, string>("doudou", "object"));
         lArgument.push_back(pair<string, string>("robert", "recipient"));
+
+        iCub->getABMClient()->sendActivity("action",
+            "give",
+            "action",
+            lArgument,
+            true);
+
+        yInfo() << " in delay of action";
+        Time::delay(7 + 3 * Random::uniform());
+
+        doudou->m_ego_position[0] = robert_X + 0.1 * Random::uniform();
+        doudou->m_ego_position[1] = robert_Y + 0.1 * Random::uniform();
+        iCub->opc->commit(doudou);
+
+        iCub->opc->removeRelation(larry, have, doudou);
+        iCub->opc->addRelation(robert, have, doudou);
+
+        iCub->getABMClient()->sendActivity("action",
+            "give",
+            "action",
+            lArgument,
+            true);
+
+        yInfo() << " end action " << i;
+
+        Time::delay(2.);
+    }
+
+    for (int i = 0; i < 5; i++)
+    {
+        double larry_X = -0.1 - 0.5 * Random::uniform();
+        double larry_Y = -1.2 + 2 * Random::uniform();
+
+        double robert_X = -0.1 - 0.5 * Random::uniform();
+        double robert_Y = -0.7 + 2 * Random::uniform();
+
+        larry->m_ego_position[0] = larry_X;
+        larry->m_ego_position[1] = larry_Y;
+        iCub->opc->commit(larry);
+
+        robert->m_ego_position[0] = robert_X;
+        robert->m_ego_position[1] = robert_Y;
+        iCub->opc->commit(robert);
+
+        doudou->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
+        doudou->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
+        iCub->opc->commit(doudou);
+
+        yInfo() << " begin action " << i;
+
+        iCub->opc->addRelation(larry, have, doudou);
+
+        // send the result of recognition to the ABM
+        list<pair<string, string> > lArgument;
+        lArgument.push_back(pair<string, string>("Give me the doudou slowly please", "sentence"));
+        lArgument.push_back(pair<string, string>("give", "predicate"));
+        lArgument.push_back(pair<string, string>("larry", "agent"));
+        lArgument.push_back(pair<string, string>("doudou", "object"));
+        lArgument.push_back(pair<string, string>("robert", "adj1"));
+        lArgument.push_back(pair<string, string>("slowly", "adj2"));
         lArgument.push_back(pair<string, string>("robert", "speaker"));
         lArgument.push_back(pair<string, string>("larry", "addressee"));
         iCub->getABMClient()->sendActivity("action",
@@ -1521,10 +1612,10 @@ void qRM::populateABM()
             true);
 
         yInfo() << " in delay of action";
-        Time::delay(1 + 3 * Random::uniform());
+        Time::delay(3 + 3 * Random::uniform());
 
-        doudou->m_ego_position[0] = (-0.35);
-        doudou->m_ego_position[1] = (0.45);
+        doudou->m_ego_position[0] = robert_X + 0.1 * Random::uniform();
+        doudou->m_ego_position[1] = robert_Y + 0.1 * Random::uniform();
         iCub->opc->commit(doudou);
 
         iCub->opc->removeRelation(larry, have, doudou);
