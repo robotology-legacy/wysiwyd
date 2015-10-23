@@ -3566,6 +3566,21 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
         bOutput.addList() = bSpatial;
     }
 
+    //get location of objects before
+    osRelation.str("");
+    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id << " AND verb != 'isAtLoc'";
+    bRelationsBefore = requestFromStream(osRelation.str().c_str());
+
+    yInfo() << " other relation before: " << bRelationsBefore.toString();
+
+    //clear things
+    osRelation.str("");
+
+    //get location of objects after
+    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id + 1 << " AND verb != 'isAtLoc'";
+    bRelationsAfter = requestFromStream(osRelation.str().c_str());
+    yInfo() << " other relation after: " << bRelationsAfter.toString();
+    
 
     return bOutput;
 }

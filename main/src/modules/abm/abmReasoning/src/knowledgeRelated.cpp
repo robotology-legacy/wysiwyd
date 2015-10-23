@@ -913,7 +913,6 @@ Bottle abmReasoning::resetKnowledge(int from)
         bMessenger;
 
     yInfo() << "\t" << "starting to reset knowledge";
-
     yInfo() << iCub->getABMClient()->resetKnowledge().toString();
 
     listSpatialKnowledge.clear();
