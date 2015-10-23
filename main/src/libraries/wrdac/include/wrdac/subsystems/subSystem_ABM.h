@@ -97,6 +97,16 @@ namespace wysiwyd{
                 return bReplyRequest;
             }
 
+            yarp::os::Bottle resetKnowledge()
+            {
+                yarp::os::Bottle bReplyRequest;
+                //send the SQL query within a bottle to autobiographicalMemory
+                yarp::os::Bottle bQuery;
+                bQuery.addString("resetKnowledge");
+                portRPC.write(bQuery, bReplyRequest);
+                return bReplyRequest;
+            }
+
             yarp::os::Bottle triggerStreaming(int iCurrentInstance, int iSyncro, int iAugmented)
             {
                 yarp::os::Bottle bSend,
