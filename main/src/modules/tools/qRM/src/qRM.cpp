@@ -1502,6 +1502,8 @@ void qRM::populateABM()
 
         yInfo() << " begin action " << i;
 
+
+        iCub->opc->removeRelation(robert, have, doudou);
         iCub->opc->addRelation(larry, have, doudou);
 
         // send the result of recognition to the ABM
@@ -1536,7 +1538,7 @@ void qRM::populateABM()
             true);
 
         yInfo() << " in delay of action";
-        Time::delay(7 + 3 * Random::uniform());
+        Time::delay(4 + 3 * Random::uniform());
 
         doudou->m_ego_position[0] = robert_X + 0.1 * Random::uniform();
         doudou->m_ego_position[1] = robert_Y + 0.1 * Random::uniform();
@@ -1545,11 +1547,13 @@ void qRM::populateABM()
         iCub->opc->removeRelation(larry, have, doudou);
         iCub->opc->addRelation(robert, have, doudou);
 
+        Time::delay(3);
+
         iCub->getABMClient()->sendActivity("action",
             "give",
             "action",
             lArgument,
-            true);
+            false);
 
         yInfo() << " end action " << i;
 
@@ -1578,6 +1582,7 @@ void qRM::populateABM()
 
         yInfo() << " begin action " << i;
 
+        iCub->opc->removeRelation(robert, have, doudou);
         iCub->opc->addRelation(larry, have, doudou);
 
         // send the result of recognition to the ABM
@@ -1625,7 +1630,7 @@ void qRM::populateABM()
             "give",
             "qRM",
             lArgument,
-            true);
+            false);
 
         yInfo() << " end action " << i;
 
