@@ -111,7 +111,7 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         "exploreEntityByName entity_name \n" +
         "executeSharedPlan  ('action' name_plan 'sharedplan') (<arg 1>  <arg 2>  ...  <arg n>)  (<role 1>  <role 2 >  ... <role n>) \n" +
         "executeAction ('predicate' action_name) ('agent' agent_name) ('object' object_name) ('recipient' adjective_name) \n" +
-        "learnSharedPlan sharedplan_name\n"+
+        "learnSharedPlan sharedplan_name\n" +
         "populateOPC\n";
 
     reply.clear();
@@ -120,7 +120,7 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         reply.addString("quitting");
         return false;
     }
-        else if (command.get(0).asString() == "populateABM") {
+    else if (command.get(0).asString() == "populateABM") {
         reply.addString("populating ABM");
         populateABM();
         return true;
@@ -1022,7 +1022,7 @@ Bottle qRM::executeSharedPlan(Bottle bInput)
 
 
     for (int i = 0; i < bPlan.size(); i++)
-    {         
+    {
         if (bPlan.get(i).isList())
         {
             Bottle bTemp = *bPlan.get(i).asList();
@@ -1071,8 +1071,8 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
         lpArg,
         true);
 
-    string sSentence = "Ok, can you show me how to " +sNameSp;
-    yInfo() << " " << sSentence ;
+    string sSentence = "Ok, can you show me how to " + sNameSp;
+    yInfo() << " " << sSentence;
     iCub->say(sSentence);
 
     bool bSPonGoing = true;
@@ -1081,10 +1081,10 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
         bAnswer,
         bSemantic;
 
-    string sPredicate ;
-    string sAgent     ;
-    string sObject    ;
-    string sRecipient ;
+    string sPredicate;
+    string sAgent;
+    string sObject;
+    string sRecipient;
 
     bool fActionStarted = false;
 
@@ -1128,10 +1128,10 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
 
         /*
         * Human signals the end of the SP
-        */ 
+        */
         if (bAnswer.get(0).asString() == "stop")
         {
-            yInfo() << " in qRM::learnSharedPlan | end of SP."; 
+            yInfo() << " in qRM::learnSharedPlan | end of SP.";
             bSPonGoing = false;
         }
         else
@@ -1148,8 +1148,8 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
             */
 
             sPredicate = bSemantic.check("predicate", Value("none")).asString();
-            sAgent     = bSemantic.check("agent", Value("none")).asString();
-            sObject    = bSemantic.check("object", Value("none")).asString();
+            sAgent = bSemantic.check("agent", Value("none")).asString();
+            sObject = bSemantic.check("object", Value("none")).asString();
             sRecipient = bSemantic.check("recipient", Value("none")).asString();
 
             if (sPredicate == "none")
@@ -1190,9 +1190,9 @@ Bottle qRM::learnSharedPlan(Bottle bInput)
 
                     executeAction(bActionGet);
                 }
-                else 
+                else
                 {
-                    /* 
+                    /*
                     * the Human will do the action
                     */
                     fActionStarted = true;
@@ -1447,75 +1447,91 @@ Bottle qRM::executeAction(Bottle bInput)
 */
 void qRM::populateABM()
 {
-    Object* doudou = iCub->opc->addOrRetrieveEntity<Object>("doudou");
-    doudou->m_ego_position[0] = (-0.35);
-    doudou->m_ego_position[1] = (-0.45);
-    doudou->m_ego_position[2] = 0.0;
-    doudou->m_present = 1;
-    doudou->m_color[0] = Random::uniform(0, 80);
-    doudou->m_color[1] = Random::uniform(80, 180);
-    doudou->m_color[2] = Random::uniform(180, 250);
-    iCub->opc->commit(doudou);
+    vector<string> vObject;
+    vObject.push_back("doudou");
+    vObject.push_back("thing");
+    vObject.push_back("bottle");
+    vObject.push_back("phone");
 
-    Agent* larry = iCub->opc->addOrRetrieveEntity<Agent>("larry");
-    larry->m_ego_position[0] = (-0.30);
-    larry->m_ego_position[1] = (-0.40);
-    larry->m_ego_position[2] = 0.30;
-    larry->m_present = 1;
-    larry->m_color[0] = Random::uniform(0, 180);
-    larry->m_color[1] = Random::uniform(0, 80);
-    larry->m_color[2] = Random::uniform(180, 250);
-    iCub->opc->commit(larry);
 
-    Agent* robert = iCub->opc->addOrRetrieveEntity<Agent>("robert");
-    robert->m_ego_position[0] = (-0.30);
-    robert->m_ego_position[1] = (0.40);
-    robert->m_ego_position[2] = 0.30;
-    robert->m_present = 1;
-    robert->m_color[0] = Random::uniform(100, 180);
-    robert->m_color[1] = Random::uniform(80, 180);
-    robert->m_color[2] = Random::uniform(0, 80);
-    iCub->opc->commit(robert);
+    vector<string> vAgent;
+    vAgent.push_back("larry");
+    vAgent.push_back("robert");
+    vAgent.push_back("john");
+    vAgent.push_back("mike");
+    vAgent.push_back("stuart");
 
-    Action* have = iCub->opc->addOrRetrieveEntity<Action>("have");
-    yInfo() << " opc populated";
+    int iRepetition = 5;
 
-    for (int i = 0; i < 5; i++)
-    {
-        double larry_X =  -0.1 -0.5 * Random::uniform();
-        double larry_Y = -1.2 + 2 * Random::uniform();
 
+    for (int ii = 0; ii < iRepetition; ii++){
+
+        Time::delay(0.3);
+        iCub->opc->clear();
+        Time::delay(0.3);
+        iCub->opc->checkout();
+        Time::delay(0.3);
+
+        string sAg1 = vAgent[Random::uniform(0, vAgent.size() - 1)];
+        string sAg2 = sAg1;
+
+        while (sAg2 == sAg1){
+            sAg2 = vAgent[Random::uniform(0, vAgent.size() - 1)];
+        }
+        string sObj = vObject[Random::uniform(0, vObject.size() - 1)];
+
+        Action* have = iCub->opc->addOrRetrieveEntity<Action>("have");
+
+        yInfo() << "start action with: " << sAg1 << ", " << sAg2 << " and the " << sObj;
+
+        Agent* ag1 = iCub->opc->addOrRetrieveEntity<Agent>(sAg1);
         double robert_X = -0.1 - 0.5 * Random::uniform();
         double robert_Y = -0.7 + 2 * Random::uniform();
+        ag1->m_ego_position[0] = robert_X;
+        ag1->m_ego_position[1] = robert_Y;
+        ag1->m_ego_position[2] = 0.30;
+        ag1->m_present = 1;
+        ag1->m_color[0] = Random::uniform(0, 180);
+        ag1->m_color[1] = Random::uniform(0, 80);
+        ag1->m_color[2] = Random::uniform(180, 250);
+        iCub->opc->commit(ag1);
 
-        larry->m_ego_position[0] = larry_X;
-        larry->m_ego_position[1] = larry_Y;
-        iCub->opc->commit(larry);
+        Agent* ag2 = iCub->opc->addOrRetrieveEntity<Agent>(sAg2);
+        double larry_X = -0.1 - 0.5 * Random::uniform();
+        double larry_Y = -1.2 + 2 * Random::uniform();
+        ag2->m_ego_position[0] = larry_X;
+        ag2->m_ego_position[1] = larry_Y;
+        ag2->m_ego_position[2] = 0.30;
+        ag2->m_present = 1;
+        ag2->m_color[0] = Random::uniform(100, 180);
+        ag2->m_color[1] = Random::uniform(80, 180);
+        ag2->m_color[2] = Random::uniform(0, 80);
+        iCub->opc->commit(ag2);
 
-        robert->m_ego_position[0] = robert_X;
-        robert->m_ego_position[1] = robert_Y;
-        iCub->opc->commit(robert);
+        Object* obj = iCub->opc->addOrRetrieveEntity<Object>(sObj);
+        obj->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
+        obj->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
+        obj->m_ego_position[2] = 0.0;
+        obj->m_present = 1;
+        obj->m_color[0] = Random::uniform(0, 80);
+        obj->m_color[1] = Random::uniform(80, 180);
+        obj->m_color[2] = Random::uniform(180, 250);
+        iCub->opc->commit(obj);
 
-        doudou->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
-        doudou->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
-        iCub->opc->commit(doudou);
+        yInfo() << " begin action " << ii;
 
-        yInfo() << " begin action " << i;
-
-
-        iCub->opc->removeRelation(robert, have, doudou);
-        iCub->opc->addRelation(larry, have, doudou);
+        iCub->opc->addRelation(ag2, have, obj);
 
         // send the result of recognition to the ABM
         list<pair<string, string> > lArgument;
         lArgument.push_back(pair<string, string>("Give me the doudou slowly please", "sentence"));
         lArgument.push_back(pair<string, string>("give", "predicate"));
-        lArgument.push_back(pair<string, string>("larry", "agent"));
-        lArgument.push_back(pair<string, string>("doudou", "object"));
-        lArgument.push_back(pair<string, string>("robert", "adj1"));
+        lArgument.push_back(pair<string, string>(sAg2, "agent"));
+        lArgument.push_back(pair<string, string>(sObj, "object"));
+        lArgument.push_back(pair<string, string>(sAg1, "adj1"));
         lArgument.push_back(pair<string, string>("slowly", "adj2"));
-        lArgument.push_back(pair<string, string>("robert", "speaker"));
-        lArgument.push_back(pair<string, string>("larry", "addressee"));
+        lArgument.push_back(pair<string, string>(sAg1, "speaker"));
+        lArgument.push_back(pair<string, string>(sAg2, "addressee"));
         iCub->getABMClient()->sendActivity("action",
             "sentence",
             "recog",
@@ -1526,10 +1542,10 @@ void qRM::populateABM()
 
         lArgument.clear();
 
-        lArgument.push_back(pair<string, string>("larry", "agent"));
+        lArgument.push_back(pair<string, string>(sAg2, "agent"));
         lArgument.push_back(pair<string, string>("give", "predicate"));
-        lArgument.push_back(pair<string, string>("doudou", "object"));
-        lArgument.push_back(pair<string, string>("robert", "recipient"));
+        lArgument.push_back(pair<string, string>(sObj, "object"));
+        lArgument.push_back(pair<string, string>(sAg1, "recipient"));
 
         iCub->getABMClient()->sendActivity("action",
             "give",
@@ -1538,14 +1554,14 @@ void qRM::populateABM()
             true);
 
         yInfo() << " in delay of action";
-        Time::delay(4 + 3 * Random::uniform());
+        Time::delay(4 + 4 * Random::uniform());
 
-        doudou->m_ego_position[0] = robert_X + 0.1 * Random::uniform();
-        doudou->m_ego_position[1] = robert_Y + 0.1 * Random::uniform();
-        iCub->opc->commit(doudou);
+        obj->m_ego_position[0] = robert_X + 0.1 * Random::uniform();
+        obj->m_ego_position[1] = robert_Y + 0.1 * Random::uniform();
+        iCub->opc->commit(obj);
 
-        iCub->opc->removeRelation(larry, have, doudou);
-        iCub->opc->addRelation(robert, have, doudou);
+        iCub->opc->removeRelation(ag2, have, obj);
+        iCub->opc->addRelation(ag1, have, obj);
 
         Time::delay(3);
 
@@ -1555,46 +1571,78 @@ void qRM::populateABM()
             lArgument,
             false);
 
-        yInfo() << " end action " << i;
+        yInfo() << " end action " << ii;
 
-        Time::delay(2.);
+        Time::delay(1.);
     }
 
-    for (int i = 0; i < 5; i++)
-    {
-        double larry_X = -0.1 - 0.5 * Random::uniform();
-        double larry_Y = -1.2 + 2 * Random::uniform();
+    for (int ii = 0; ii < iRepetition; ii++){
 
+        Time::delay(0.3);
+        iCub->opc->clear();
+        Time::delay(0.3);
+        iCub->opc->checkout();
+        Time::delay(0.3);
+
+        string sAg1 = vAgent[Random::uniform(0, vAgent.size() - 1)];
+        string sAg2 = sAg1;
+
+        while (sAg2 == sAg1){
+            sAg2 = vAgent[Random::uniform(0, vAgent.size() - 1)];
+        }
+        string sObj = vObject[Random::uniform(0, vObject.size() - 1)];
+        Action* have = iCub->opc->addOrRetrieveEntity<Action>("have");
+
+        yInfo() << "start action with: " << sAg1 << ", " << sAg2 << " and the " << sObj;
+
+        Agent* ag1 = iCub->opc->addOrRetrieveEntity<Agent>(sAg1);
         double robert_X = -0.1 - 0.5 * Random::uniform();
         double robert_Y = -0.7 + 2 * Random::uniform();
+        ag1->m_ego_position[0] = robert_X;
+        ag1->m_ego_position[1] = robert_Y;
+        ag1->m_ego_position[2] = 0.30;
+        ag1->m_present = 1;
+        ag1->m_color[0] = Random::uniform(0, 180);
+        ag1->m_color[1] = Random::uniform(0, 80);
+        ag1->m_color[2] = Random::uniform(180, 250);
+        iCub->opc->commit(ag1);
 
-        larry->m_ego_position[0] = larry_X;
-        larry->m_ego_position[1] = larry_Y;
-        iCub->opc->commit(larry);
+        Agent* ag2 = iCub->opc->addOrRetrieveEntity<Agent>(sAg2);
+        double larry_X = -0.1 - 0.5 * Random::uniform();
+        double larry_Y = -1.2 + 2 * Random::uniform();
+        ag2->m_ego_position[0] = larry_X;
+        ag2->m_ego_position[1] = larry_Y;
+        ag2->m_ego_position[2] = 0.30;
+        ag2->m_present = 1;
+        ag2->m_color[0] = Random::uniform(100, 180);
+        ag2->m_color[1] = Random::uniform(80, 180);
+        ag2->m_color[2] = Random::uniform(0, 80);
+        iCub->opc->commit(ag2);
 
-        robert->m_ego_position[0] = robert_X;
-        robert->m_ego_position[1] = robert_Y;
-        iCub->opc->commit(robert);
+        Object* obj = iCub->opc->addOrRetrieveEntity<Object>(sObj);
+        obj->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
+        obj->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
+        obj->m_ego_position[2] = 0.0;
+        obj->m_present = 1;
+        obj->m_color[0] = Random::uniform(0, 80);
+        obj->m_color[1] = Random::uniform(80, 180);
+        obj->m_color[2] = Random::uniform(180, 250);
+        iCub->opc->commit(obj);
 
-        doudou->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
-        doudou->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
-        iCub->opc->commit(doudou);
+        yInfo() << " begin action " << ii;
 
-        yInfo() << " begin action " << i;
-
-        iCub->opc->removeRelation(robert, have, doudou);
-        iCub->opc->addRelation(larry, have, doudou);
+        iCub->opc->addRelation(ag2, have, obj);
 
         // send the result of recognition to the ABM
         list<pair<string, string> > lArgument;
         lArgument.push_back(pair<string, string>("Give me the doudou slowly please", "sentence"));
         lArgument.push_back(pair<string, string>("give", "predicate"));
-        lArgument.push_back(pair<string, string>("larry", "agent"));
-        lArgument.push_back(pair<string, string>("doudou", "object"));
-        lArgument.push_back(pair<string, string>("robert", "adj1"));
-        lArgument.push_back(pair<string, string>("slowly", "adj2"));
-        lArgument.push_back(pair<string, string>("robert", "speaker"));
-        lArgument.push_back(pair<string, string>("larry", "addressee"));
+        lArgument.push_back(pair<string, string>(sAg2, "agent"));
+        lArgument.push_back(pair<string, string>(sObj, "object"));
+        lArgument.push_back(pair<string, string>(sAg1, "adj1"));
+        lArgument.push_back(pair<string, string>("quickly", "adj2"));
+        lArgument.push_back(pair<string, string>(sAg1, "speaker"));
+        lArgument.push_back(pair<string, string>(sAg2, "addressee"));
         iCub->getABMClient()->sendActivity("action",
             "sentence",
             "recog",
@@ -1605,36 +1653,38 @@ void qRM::populateABM()
 
         lArgument.clear();
 
-        lArgument.push_back(pair<string, string>("larry", "agent"));
+        lArgument.push_back(pair<string, string>(sAg2, "agent"));
         lArgument.push_back(pair<string, string>("give", "predicate"));
-        lArgument.push_back(pair<string, string>("doudou", "object"));
-        lArgument.push_back(pair<string, string>("robert", "recipient"));
+        lArgument.push_back(pair<string, string>(sObj, "object"));
+        lArgument.push_back(pair<string, string>(sAg1, "recipient"));
 
         iCub->getABMClient()->sendActivity("action",
             "give",
-            "qRM",
+            "action",
             lArgument,
             true);
 
         yInfo() << " in delay of action";
-        Time::delay(3 + 3 * Random::uniform());
+        Time::delay(1 + 3 * Random::uniform());
 
-        doudou->m_ego_position[0] = robert_X + 0.1 * Random::uniform();
-        doudou->m_ego_position[1] = robert_Y + 0.1 * Random::uniform();
-        iCub->opc->commit(doudou);
+        obj->m_ego_position[0] = robert_X + 0.1 * Random::uniform();
+        obj->m_ego_position[1] = robert_Y + 0.1 * Random::uniform();
+        iCub->opc->commit(obj);
 
-        iCub->opc->removeRelation(larry, have, doudou);
-        iCub->opc->addRelation(robert, have, doudou);
+        iCub->opc->removeRelation(ag2, have, obj);
+        iCub->opc->addRelation(ag1, have, obj);
+
+        Time::delay(3);
 
         iCub->getABMClient()->sendActivity("action",
             "give",
-            "qRM",
+            "action",
             lArgument,
             false);
 
-        yInfo() << " end action " << i;
+        yInfo() << " end action " << ii;
 
-        Time::delay(2.);
+        Time::delay(1.);
     }
 
 }
