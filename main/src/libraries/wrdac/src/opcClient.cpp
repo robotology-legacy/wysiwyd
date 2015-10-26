@@ -178,7 +178,7 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
 
     if (reply.get(1).asList()->get(1).asList()->size() == 0)
     {
-        yError() << "Entity doesn't exist yet. Use addEntity<>() first.";
+        //yError() << "Entity doesn't exist yet. Use addEntity<>() first.";
         return NULL;
     }
 
