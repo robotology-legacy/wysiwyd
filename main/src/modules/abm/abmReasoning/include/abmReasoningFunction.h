@@ -67,8 +67,14 @@ public:
     static std::string TAG_SPEAKER;
     static std::string TAG_ADRESSEE;
     static std::string TAG_SUBJECT;
-    static std::string TAG_AGENT;
     static std::string TAG_NONE;
+    static std::string TAG_NULL;
+    static std::string TAG_ACTION;
+    static std::string TAG_SEPARATOR;
+    static std::string TAG_PREDICATE;
+    static std::string TAG_AGENT;
+    static std::string TAG_OBJECT;
+    static std::string TAG_RECIPIENT;
 
     //DB
     static std::string TAG_DB_ACTION;

@@ -102,8 +102,6 @@ void contextualKnowledge::updateIntersect()
 }
 
 
-
-
 void contextualKnowledge::updateAgentRelated()
 {
 

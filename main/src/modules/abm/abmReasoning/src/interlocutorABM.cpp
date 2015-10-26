@@ -667,8 +667,7 @@ Bottle abmReasoning::findAllComplex(int from)
     bTemporal = requestFromStream(osRequest.str().c_str());
     //yInfo() << "\t" << "bTemporal : " << bTemporal.toString()   ;
 
-    string sNull = "NULL";
-    if (bTemporal.toString().c_str() == sNull)
+    if (bTemporal.toString().c_str() == abmReasoningFunction::TAG_NULL)
     {
         yInfo() << "\t" << "0 temporal found.";
         bOutput.addString("no temporal to load.");
@@ -1161,8 +1160,7 @@ Bottle abmReasoning::findAllBehaviors(int from)
     osRequest << "SELECT instance FROM main WHERE activitytype = 'behavior' AND begin = true AND INSTANCE > " << from;
     Bottle  bMessenger = requestFromStream(osRequest.str().c_str());
 
-    string sNull = "NULL";
-    if (bMessenger.toString().c_str() == sNull)
+    if (bMessenger.toString().c_str() == abmReasoningFunction::TAG_NULL)
     {
         yInfo() << "\t" << "0 behavior found.";
         bOutput.addString("no behavior to load.");
@@ -1227,8 +1225,7 @@ Bottle abmReasoning::findAllSharedPlan(int from)
 
     listPlan.clear();
     listSharedPlan.clear();
-    string sNull = "NULL";
-    if (bMessenger.toString().c_str() == sNull)
+    if (bMessenger.toString().c_str() == abmReasoningFunction::TAG_NULL)
     {
         yInfo() << "\t" << "0 shared plan found.";
         bOutput.addString("no shared plan to load.");
@@ -1540,8 +1537,7 @@ Bottle abmReasoning::findAllInteractions(int from)
     ostringstream osRequest;
     osRequest << "SELECT DISTINCT argument FROM contentarg WHERE subtype IN ( 'object', 'rtobject', 'agent') AND INSTANCE > " << from;
     bDistinctEntity = requestFromStream(osRequest.str().c_str());
-    string sNull = "NULL";
-    if (bDistinctEntity.toString().c_str() == sNull)
+    if (bDistinctEntity.toString().c_str() == abmReasoningFunction::TAG_NULL)
     {
         yInfo() << "\t" << "0 shared plan found.";
         bOutput.addString("no shared plan to load.");
@@ -3110,8 +3106,6 @@ Bottle abmReasoning::askActionFromId(int Id)
     osSpatial2 << "SELECT argument FROM contentarg WHERE (role = 'adv1' OR role = 'adv2') AND instance = " << Id;
     bContent = requestFromStream(osSpatial2.str());
 
-    string sNull = "NULL";
-
     if (bName.get(0).toString() == "hanoi")
     {
         bOutput.clear();
@@ -3143,7 +3137,7 @@ Bottle abmReasoning::askActionFromId(int Id)
         Bottle bRTOpresent = requestFromStream(osRTOpresent.str());
 
 
-        if (bRTOpresent.toString().c_str() != sNull)
+        if (bRTOpresent.toString().c_str() != abmReasoningFunction::TAG_NULL)
         {
             bOutput.addList() = bRTOpresent;
         }
@@ -3153,7 +3147,7 @@ Bottle abmReasoning::askActionFromId(int Id)
     //--5. get the other rtobject present
 
 
-    if (bContent.toString().c_str() == sNull)
+    if (bContent.toString().c_str() == abmReasoningFunction::TAG_NULL)
     {
         return bOutput;
     }
@@ -3167,7 +3161,7 @@ Bottle abmReasoning::askActionFromId(int Id)
 
     string sArgSpatial2 = bContent.get(0).toString();
 
-    if (sArgSpatial2 == sNull){
+    if (sArgSpatial2 == abmReasoningFunction::TAG_NULL){
 
         return bOutput;
     }
@@ -3518,23 +3512,24 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
         bRelationsBefore,
         bRelationsAfter;
 
-    string sNull = "NULL";
-
     // Get name and argument.
     ostringstream osName;
-    osName << "SELECT main.activityname, contentarg.argument FROM main, contentarg WHERE main.instance = contentarg.instance AND (contentarg.role = 'object1' OR contentarg.role = 'object') AND main.instance = " << Id;
+    osName << "SELECT role, argument FROM contentarg WHERE (role = 'object1' OR role = 'object' OR role = 'recipient' OR role = 'agent'OR role = 'predicate') AND instance = " << Id;
     bName = requestFromStream(osName.str());
 
+    yInfo() << "bName is: " << bName.toString();
 
-    if (bName.toString() == sNull)
+
+    if (bName.toString() == abmReasoningFunction::TAG_NULL)
     {
-        bOutput.addString(sNull);
+        bOutput.addString(abmReasoningFunction::TAG_NULL);
         return bOutput;
     }
 
-    string sName = (*bName.get(0).asList()).get(0).toString().c_str(),
-        sArgument = (*bName.get(0).asList()).get(1).toString().c_str();
-
+    string sPredicate = bName.check("predicate", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sAgent = bName.check("agent", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sObject= bName.check("object", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sRecipient= bName.check("recipient", Value(abmReasoningFunction::TAG_NULL)).asString();
 
     ostringstream osRelation;
 
@@ -3551,14 +3546,16 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
     bRelationsAfter = requestFromStream(osRelation.str().c_str());
 
     bName.clear();
-    bName.addString(sName.c_str());
-    bName.addString(sArgument.c_str());
+    bName.addString(sPredicate.c_str());
+    bName.addString(sAgent.c_str());
+    bName.addString(sObject.c_str());
+    bName.addString(sRecipient.c_str());
 
     bOutput.addList() = bName;
     bOutput.addList() = bRelationsBefore;
     bOutput.addList() = bRelationsAfter;
 
-    if (sName == "hanoi")
+    if (sPredicate == "hanoi")
     {
         ostringstream osSpatial;
         osSpatial << "SELECT argument,role FROM contentarg WHERE role IN ('spatial1', 'spatial2') AND instance = " << Id;
@@ -3571,7 +3568,9 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
     osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id << " AND verb != 'isAtLoc'";
     bRelationsBefore = requestFromStream(osRelation.str().c_str());
 
-    yInfo() << " other relation before: " << bRelationsBefore.toString();
+    if (bRelationsBefore.toString() != abmReasoningFunction::TAG_NULL) {
+        yInfo() << " other relation before: " << bRelationsBefore.toString();
+    }
 
     //clear things
     osRelation.str("");
@@ -3579,8 +3578,13 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
     //get location of objects after
     osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id + 1 << " AND verb != 'isAtLoc'";
     bRelationsAfter = requestFromStream(osRelation.str().c_str());
-    yInfo() << " other relation after: " << bRelationsAfter.toString();
-    
+
+    if (bRelationsAfter.toString() != abmReasoningFunction::TAG_NULL) {
+        yInfo() << " other relation after: " << bRelationsAfter.toString();
+    }
+
+    bOutput.addList() = bRelationsBefore;
+    bOutput.addList() = bRelationsAfter;
 
     return bOutput;
 }

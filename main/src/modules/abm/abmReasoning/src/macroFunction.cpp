@@ -949,16 +949,16 @@ Bottle abmReasoning::level3Reasoning(int from)
 
     vector<int> vError;
     yInfo() << "\t" << "found " << numberAction << " action(s)";
-    string sNull = "NULL";
 
     for (int j = 0; j < numberAction; j++)
     {   // begin for each action
         //yInfo() << "\t" << j + 1 << "..";
         int Id = atoi(bMessenger.get(j).asList()->get(0).toString().c_str());
+        cout <<endl << Id << endl;
 
         Bottle bAction = askActionForLevel3Reasoning(Id);
 
-        if (bAction.toString() == sNull)
+        if (bAction.toString() == abmReasoningFunction::TAG_NULL)
         {
             yWarning() << " level3: error on instance " << Id << ", wrong format in ABM";
             vError.push_back(Id);
@@ -969,10 +969,17 @@ Bottle abmReasoning::level3Reasoning(int from)
             Bottle bRelationsBefore = *bAction.get(1).asList();
             Bottle bRelationsAfter = *bAction.get(2).asList();
 
-            string sName = bName.get(0).toString().c_str(),
-                sArgument = bName.get(1).toString().c_str();
+            Bottle bAllRelationsBefore = *bAction.get(3).asList();
+            Bottle bAllRelationsAfter = *bAction.get(4).asList();
 
-           // yInfo() << " bName : \t" << bName.toString() << "\t" << " bRelationsBefore : \t" << bRelationsBefore.toString() << "\t" << " bRelationsAfter  : \t" << bRelationsAfter.toString();
+            string sNameAct = bName.get(0).toString().c_str(),
+                sAgentAct = bName.get(1).toString().c_str(),
+                sObjectAct = bName.get(2).toString().c_str(),
+                sRecipientAct = bName.get(3).toString().c_str();
+
+            yInfo() << "instance is: " << sAgentAct << sNameAct << sObjectAct << sRecipientAct;
+
+            // yInfo() << " bName : \t" << bName.toString() << "\t" << " bRelationsBefore : \t" << bRelationsBefore.toString() << "\t" << " bRelationsAfter  : \t" << bRelationsAfter.toString();
 
             // Before
             vector<string>  vLocFocusBefore, vLocFocusAfter;       // Vector with the location of the focus object
@@ -982,7 +989,7 @@ Bottle abmReasoning::level3Reasoning(int from)
                 vObjectBoolAfter;       // vector is the object was on the same location
 
             // begin if bRelationBefore is Null
-            if (bRelationsBefore.toString().c_str() != sNull)
+            if (bRelationsBefore.toString().c_str() != abmReasoningFunction::TAG_NULL)
             {
                 string sObject,
                     sLocation;
@@ -991,7 +998,7 @@ Bottle abmReasoning::level3Reasoning(int from)
                     Bottle bTemp = *bRelationsBefore.get(i).asList();
                     sObject = bTemp.get(0).toString().c_str();
                     sLocation = bTemp.get(1).toString().c_str();
-                    if (sObject == sArgument)
+                    if (sObject == sObjectAct)
                     {
                         vLocFocusBefore.push_back(sLocation);
                     }
@@ -1047,8 +1054,7 @@ Bottle abmReasoning::level3Reasoning(int from)
 
 
             // After
-
-            if (bRelationsAfter.toString().c_str() != sNull)
+            if (bRelationsAfter.toString().c_str() != abmReasoningFunction::TAG_NULL)
             {   // begin IF bRelationAfter is Null
                 string sObject,
                     sLocation;
@@ -1058,7 +1064,7 @@ Bottle abmReasoning::level3Reasoning(int from)
                     Bottle bTemp = *bRelationsAfter.get(i).asList();
                     sObject = bTemp.get(0).toString().c_str();
                     sLocation = bTemp.get(1).toString().c_str();
-                    if (sObject == sArgument)
+                    if (sObject == sObjectAct)
                     {
                         vLocFocusAfter.push_back(sLocation);
                     }
@@ -1110,6 +1116,172 @@ Bottle abmReasoning::level3Reasoning(int from)
                 }   // end FOR each object-location check
             }   // end IF bRelationAfter is Null
 
+
+            list<string> lRelationBefore;
+            // OTHER RELATIONS BEFORE
+            if (bAllRelationsBefore.toString().c_str() != abmReasoningFunction::TAG_NULL)
+            {   // begin IF bAllRelationAfter is not Null
+
+                // for each relation not locative before the action:
+                for (unsigned int ii = 0; ii < bAllRelationsBefore.size(); ii++)
+                {
+                    Bottle bTmpRelation = *bAllRelationsBefore.get(ii).asList();
+
+                    //if the relation has enought component
+                    if (bTmpRelation.size() >2){
+                        string sAgentRel = bTmpRelation.get(0).toString();
+                        string sActionRel = bTmpRelation.get(1).toString();
+                        string sObjectRel = bTmpRelation.get(2).toString();
+                        string sConcatenateRelation;
+
+                        yInfo() << "relation: " << sAgentRel << "," << sActionRel << "," << sObjectRel;
+
+                        // check if the agent of the action is part of the action arguments
+                        if (sAgentRel == sAgentAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_AGENT;
+                        }
+                        else if (sAgentRel == sNameAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_ACTION;
+                        }
+                        else if (sAgentRel == sObjectAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_OBJECT;
+                        }
+                        else if (sAgentRel == sRecipientAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_RECIPIENT;
+                        }
+                        else{
+                            sConcatenateRelation = sAgentRel;
+                        }
+
+                        // add separator for relation in one string.
+                        sConcatenateRelation += abmReasoningFunction::TAG_SEPARATOR;
+
+
+                        // check if the verb of the action is part of the action arguments
+                        if (sActionRel == sAgentAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_AGENT;
+                        }
+                        else if (sActionRel == sNameAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_ACTION;
+                        }
+                        else if (sActionRel == sObjectAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_OBJECT;
+                        }
+                        else if (sActionRel == sRecipientAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_RECIPIENT;
+                        }
+                        else {
+                            sConcatenateRelation += sActionRel;
+                        }
+
+                        // add separator for relation in one string.
+                        sConcatenateRelation += abmReasoningFunction::TAG_SEPARATOR;
+                        // check if the verb of the action is part of the action arguments
+                        if (sObjectAct == sAgentAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_AGENT;
+                        }
+                        else if (sObjectAct == sNameAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_ACTION;
+                        }
+                        else if (sObjectAct == sObjectAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_OBJECT;
+                        }
+                        else if (sObjectAct == sRecipientAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_RECIPIENT;
+                        }
+                        else {
+                            sConcatenateRelation += sObjectAct;
+                        }
+
+                        //add the relation to the list of relations
+                        lRelationBefore.push_back(sConcatenateRelation);
+                    } //end if the relation has enought component
+                } // END for each relation not locative before the action:
+            } // END OTHER RELATION BEFORE
+
+
+            list<string> lRelationAfter;
+            // OTHER RELATIONS AFTER
+            if (bAllRelationsAfter.toString().c_str() != abmReasoningFunction::TAG_NULL)
+            {   // begin IF bAllRelationAfter is not Null
+
+                // for each relation not locative before the action:
+                for (unsigned int ii = 0; ii < bAllRelationsAfter.size(); ii++)
+                {
+                    Bottle bTmpRelation = *bAllRelationsAfter.get(ii).asList();
+
+                    //if the relation has enought component
+                    if (bTmpRelation.size() >2){
+                        string sAgentRel = bTmpRelation.get(0).toString();
+                        string sActionRel = bTmpRelation.get(1).toString();
+                        string sObjectRel = bTmpRelation.get(2).toString();
+
+                        string sConcatenateRelation;
+
+                        // check if the agent of the action is part of the action arguments
+                        if (sAgentRel == sAgentAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_AGENT;
+                        }
+                        else if (sAgentRel == sNameAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_ACTION;
+                        }
+                        else if (sAgentRel == sObjectAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_OBJECT;
+                        }
+                        else if (sAgentRel == sRecipientAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_RECIPIENT;
+                        }
+                        else{
+                            sConcatenateRelation = sAgentRel;
+                        }
+
+                        // add separator for relation in one string.
+                        sConcatenateRelation += abmReasoningFunction::TAG_SEPARATOR;
+
+
+                        // check if the verb of the action is part of the action arguments
+                        if (sActionRel == sAgentAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_AGENT;
+                        }
+                        else if (sActionRel == sNameAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_ACTION;
+                        }
+                        else if (sActionRel == sObjectAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_OBJECT;
+                        }
+                        else if (sActionRel == sRecipientAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_RECIPIENT;
+                        }
+                        else {
+                            sConcatenateRelation += sActionRel;
+                        }
+
+                        // add separator for relation in one string.
+                        sConcatenateRelation += abmReasoningFunction::TAG_SEPARATOR;
+                        // check if the verb of the action is part of the action arguments
+                        if (sObjectAct == sAgentAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_AGENT;
+                        }
+                        else if (sObjectAct == sNameAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_ACTION;
+                        }
+                        else if (sObjectAct == sObjectAct){
+                            sConcatenateRelation += abmReasoningFunction::TAG_OBJECT;
+                        }
+                        else if (sObjectAct == sRecipientAct){
+                            sConcatenateRelation = abmReasoningFunction::TAG_RECIPIENT;
+                        }
+                        else {
+                            sConcatenateRelation += sObjectAct;
+                        }
+
+                        //add the relation to the list of relations
+                        lRelationAfter.push_back(sConcatenateRelation);
+                    } //end if the relation has enought component
+                } // END for each relation not locative before the action:
+            } // END OTHER RELATIONS AFTER
+
+
             // create vector before / after
             vector<tuple<string, bool, bool> > vTObjects;
 
@@ -1142,17 +1314,66 @@ Bottle abmReasoning::level3Reasoning(int from)
                 }
             }
 
-//            yInfo() << " before listContextualKnowledge";
-            createContextualKnowledge(sName, sArgument);
+            createContextualKnowledge(sNameAct, sObjectAct);
             // updating the contextual knowledge
             for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
             {   //begin FOR itCK : listContextualKnowledge
 
-                if (itCK->sName == sName && itCK->sArgument == sArgument)
+                if (itCK->sName == sNameAct && itCK->sArgument == sObjectAct)
                 {   // IF CK found
+
+                    itCK->iOccurence++;
+                    bool bFound = false;
+                    // add all relations before:
+                    for (list<string>::iterator itS = lRelationBefore.begin();
+                        itS != lRelationBefore.end();
+                        itS++){
+                        bFound = false;
+                        // finding the corresponding relation in the CK
+                        for (vector<pair<string, int> >::iterator itM = itCK->mRelationBefore.begin();
+                            itM != itCK->mRelationBefore.end(); itM++) {
+                            if (!bFound && itM->first == *(itS))
+                            {
+                                itM->second++;
+                                bFound = true;
+                            }
+                        }
+
+                        // if the relation doesn't exist in the CK
+                        if (!bFound){
+                            pair<string, int> tmp(*itS, 1);
+                            itCK->mRelationBefore.push_back(tmp);
+                        }
+                    }// END ADD ALL RELATIONS BEFORE
+                    
+                    bFound = false;
+
+                    // add all relations AFTER:
+                    for (list<string>::iterator itS = lRelationAfter.begin();
+                        itS != lRelationAfter.end();
+                        itS++){
+
+                        bFound = false;
+                        // finding the corresponding relation in the CK
+                        for (vector<pair<string, int> >::iterator itM = itCK->mRelationAfter.begin();
+                            itM != itCK->mRelationAfter.end(); itM++) {
+                            if (!bFound && itM->first == *(itS))
+                            {
+                                itM->second++;
+                                bFound = true;
+                            }
+                        }
+
+                        // if the relation doesn't exist in the CK
+                        if (!bFound){
+                            pair<string, int> tmp(*itS, 1);
+                            itCK->mRelationAfter.push_back(tmp);
+                        }
+                    }// END ADD ALL RELATIONS AFTER
+
                     for (vector<tuple<string, bool, bool> >::iterator itTu = vTObjects.begin(); itTu != vTObjects.end(); itTu++)
                     {   // FOR itTu: vOTobject each object present 
-                        bool bFound = false;
+                        bFound = false;
 
                         for (map<string, vector <pair <bool, bool> > >::iterator itMap = itCK->mObjectFromTo.begin(); itMap != itCK->mObjectFromTo.end(); itMap++)
                         {   // FOR each object already in the CK
@@ -1171,6 +1392,7 @@ Bottle abmReasoning::level3Reasoning(int from)
                             itCK->mObjectFromTo[get<0>(*itTu)].push_back(pTemp);
                         }   // end IF object wasn't present
                     }   // end FOR itTu: vOTobject each object present 
+
                 }   // end IF CK found
             }   //end FOR itCK : listContextualKnowledge
 
@@ -1236,7 +1458,7 @@ Bottle abmReasoning::level3Reasoning(int from)
                 for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
                 {   //begin FOR itCK : listContextualKnowledge
 
-                    if (itCK->sName == sName && itCK->sArgument == sArgument)
+                    if (itCK->sName == sNameAct && itCK->sArgument == sObjectAct)
                     {   // IF CK found
 
                         // update FROM
@@ -1264,7 +1486,7 @@ Bottle abmReasoning::level3Reasoning(int from)
         osErrorMessage << ".";
     }
     string sErrorMessage = osErrorMessage.str();
-    
+
     yInfo() << "\t " << sErrorMessage;
 
     for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
@@ -1357,6 +1579,20 @@ void abmReasoning::displayContextual(string sInput, string sArgument)
                 cout << "\t\t" << "Percent Agent : " << endl;
                 for (map<string, double>::iterator itMap = itCK->mPercentAgentRelated.begin();
                     itMap != itCK->mPercentAgentRelated.end();
+                    itMap++)
+                {
+                    cout << "\t\t\t" << itMap->first << ": " << itMap->second << endl;
+                }
+                cout << "\t\t" << "Global Relation Before: " << endl;
+                for (vector<pair<string, int>>::iterator itMap = itCK->mRelationBefore.begin();
+                    itMap != itCK->mRelationBefore.end();
+                    itMap++)
+                {
+                    cout << "\t\t\t" << itMap->first << ": " << itMap->second << endl;
+                }
+                cout << "\t\t" << "Global Relation After: " << endl;
+                for (vector<pair<string, int>>::iterator itMap = itCK->mRelationAfter.begin();
+                    itMap != itCK->mRelationAfter.end();
                     itMap++)
                 {
                     cout << "\t\t\t" << itMap->first << ": " << itMap->second << endl;
@@ -1531,8 +1767,7 @@ int abmReasoning::getNumberRelation(int instance)
 
     int iOutput = 0;
 
-    string sNull = "NULL";
-    if (bRequest.toString().c_str() != sNull)
+    if (bRequest.toString().c_str() != abmReasoningFunction::TAG_NULL)
     {
         iOutput += atoi(bRequest.get(0).asList()->get(0).toString().c_str());
     }

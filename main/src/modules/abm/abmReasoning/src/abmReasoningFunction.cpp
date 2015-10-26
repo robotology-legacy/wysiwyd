@@ -89,7 +89,13 @@ string abmReasoningFunction::TAG_SPEAKER = "speaker";
 string abmReasoningFunction::TAG_ADRESSEE = "addressee";
 string abmReasoningFunction::TAG_SUBJECT = "subject";
 string abmReasoningFunction::TAG_AGENT = "agent";
-string abmReasoningFunction::TAG_NONE = abmReasoningFunction::TAG_NONE;
+string abmReasoningFunction::TAG_NONE = "none";
+string abmReasoningFunction::TAG_NULL = "NULL";
+string abmReasoningFunction::TAG_PREDICATE= "predicate";
+string abmReasoningFunction::TAG_ACTION = "action";
+string abmReasoningFunction::TAG_OBJECT = "object";
+string abmReasoningFunction::TAG_RECIPIENT = "recipient";
+string abmReasoningFunction::TAG_SEPARATOR = "#";
 
 
 //DB

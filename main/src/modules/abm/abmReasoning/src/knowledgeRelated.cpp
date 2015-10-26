@@ -984,8 +984,7 @@ Bottle abmReasoning::getKnowledge()
     bAdjectiveKnowledge = requestFromStream("select name, argument, x, y, dx, dy from adjectivespatial");
     //bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
 
-    string sNull = "NULL";
-    if (bAdjectiveKnowledge.toString() == sNull)
+    if (bAdjectiveKnowledge.toString() == abmReasoningFunction::TAG_NULL)
     {
         bError.addString("no adjective data to upload");
     }
@@ -1055,8 +1054,8 @@ Bottle abmReasoning::getKnowledge()
     //bSpatialKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM spatialknowledge");
 
 
-    sNull = "NULL";
-    if (bAdjectiveKnowledge.toString() == sNull)
+    abmReasoningFunction::TAG_NULL = "NULL";
+    if (bAdjectiveKnowledge.toString() == abmReasoningFunction::TAG_NULL)
     {
         bError.addString("no adjective data to upload");
     }
@@ -1104,7 +1103,7 @@ Bottle abmReasoning::getKnowledge()
     Bottle bTimeKnowledge = requestFromStream("SELECT DISTINCT temporal FROM timeknowledge");
     string sResult = bTimeKnowledge.toString();
 
-    if (sNull == sResult)
+    if (abmReasoningFunction::TAG_NULL == sResult)
     {
         yInfo() << "\t" << " no temporal data to load";
         bOutput.addString("no temporal data");
@@ -1141,7 +1140,7 @@ Bottle abmReasoning::getKnowledge()
     Bottle  bMainBehavior = requestFromStream("SELECT DISTINCT instance, name, argument FROM behavior");
     sResult = bMainBehavior.toString();
     ostringstream osBehavior;
-    if (sNull == sResult)
+    if (abmReasoningFunction::TAG_NULL == sResult)
     {
     	yInfo() << "\t" << "no behavior data to load";
     	bOutput.addString("no behavior data");
@@ -1194,7 +1193,7 @@ Bottle abmReasoning::getKnowledge()
     Bottle bContextualKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM contextknowledge");
     sResult = bContextualKnowledge.toString();
 
-    if (sNull == sResult)
+    if (abmReasoningFunction::TAG_NULL == sResult)
     {
     	yInfo() << "\t" << " no contextual data to load";
     	bOutput.addString("no contextual data");
@@ -1243,7 +1242,7 @@ Bottle abmReasoning::getKnowledge()
     Bottle  bMainPlan = requestFromStream("SELECT DISTINCT instance, name, manner FROM sharedplan");
     sResult = bMainPlan.toString();
     osBehavior.str("");;
-    if (sNull == sResult)
+    if (abmReasoningFunction::TAG_NULL == sResult)
     {
     	yInfo() << "\t" << "no sharedplan data to load";
     	bOutput.addString("no sharedplan data");
@@ -1313,7 +1312,7 @@ Bottle abmReasoning::getKnowledge()
     bMainInteraction = requestFromStream("SELECT DISTINCT subject FROM interactionknowledge");
     sResult = bMainInteraction.toString();
     osBehavior.str("");
-    if (sNull == sResult)
+    if (abmReasoningFunction::TAG_NULL == sResult)
     {
     	yInfo() << "\t" << "no interaction data to load";
     	bOutput.addString("no interaction data");
