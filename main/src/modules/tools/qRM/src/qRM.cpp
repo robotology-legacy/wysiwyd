@@ -121,8 +121,15 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         return false;
     }
     else if (command.get(0).asString() == "populateABM") {
+        if (command.size() == 2)
+        {
+            populateABM(command.get(1).asInt());
+        }
+        else
+        {
+            populateABM();
+        }
         reply.addString("populating ABM");
-        populateABM();
         return true;
     }
     else if (command.get(0).asString() == "calib")
@@ -1445,7 +1452,7 @@ Bottle qRM::executeAction(Bottle bInput)
 *   Populate the ABM with predifined situations
 *
 */
-void qRM::populateABM()
+void qRM::populateABM(int iRepetition)
 {
     vector<string> vObject;
     vObject.push_back("doudou");
@@ -1460,8 +1467,6 @@ void qRM::populateABM()
     vAgent.push_back("john");
     vAgent.push_back("mike");
     vAgent.push_back("stuart");
-
-    int iRepetition = 5;
 
 
     for (int ii = 0; ii < iRepetition; ii++){
@@ -1524,13 +1529,17 @@ void qRM::populateABM()
 
         // send the result of recognition to the ABM
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("Give me the doudou slowly please", "sentence"));
+        string sentence;
+        sentence = "Give me the " + sObj;
+        sentence += " slowly please.";
+        lArgument.push_back(pair<string, string>(sentence, "sentence"));
         lArgument.push_back(pair<string, string>("give", "predicate"));
         lArgument.push_back(pair<string, string>(sAg2, "agent"));
         lArgument.push_back(pair<string, string>(sObj, "object"));
         lArgument.push_back(pair<string, string>(sAg1, "adj1"));
         lArgument.push_back(pair<string, string>("slowly", "adj2"));
         lArgument.push_back(pair<string, string>(sAg1, "speaker"));
+        lArgument.push_back(pair<string, string>("me", "subject"));
         lArgument.push_back(pair<string, string>(sAg2, "addressee"));
         iCub->getABMClient()->sendActivity("action",
             "sentence",
@@ -1635,13 +1644,17 @@ void qRM::populateABM()
 
         // send the result of recognition to the ABM
         list<pair<string, string> > lArgument;
-        lArgument.push_back(pair<string, string>("Give me the doudou slowly please", "sentence"));
+        string sentence;
+        sentence = "Give me the " + sObj;
+        sentence += " quickly please.";
+        lArgument.push_back(pair<string, string>(sentence, "sentence"));
         lArgument.push_back(pair<string, string>("give", "predicate"));
         lArgument.push_back(pair<string, string>(sAg2, "agent"));
         lArgument.push_back(pair<string, string>(sObj, "object"));
         lArgument.push_back(pair<string, string>(sAg1, "adj1"));
         lArgument.push_back(pair<string, string>("quickly", "adj2"));
         lArgument.push_back(pair<string, string>(sAg1, "speaker"));
+        lArgument.push_back(pair<string, string>("me", "subject"));
         lArgument.push_back(pair<string, string>(sAg2, "addressee"));
         iCub->getABMClient()->sendActivity("action",
             "sentence",
