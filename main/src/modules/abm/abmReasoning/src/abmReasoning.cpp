@@ -475,12 +475,26 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         bReply.addList() = executeActionFromAdv(bCommand);
     }
 
-
     // EXECUTE ACTIVITY
 
     else if (bCommand.get(0).asString() == "executeActivity") {
         bReply.addString("ack");
         bReply.addList() = executeActivity(bCommand);
+    }
+
+    // EXECUTE ACTIVITY
+
+    else if (bCommand.get(0).asString() == "whatIs") {
+        bReply.addString("ack");
+        if (bCommand.size() == 2)
+        {
+            bReply.addList() = whatIs(bCommand.get(1).asString());
+        }
+        else
+        {
+            yWarning("Error in abmReasoning::respond wrong size of input | (whatIs input)");
+            bReply.addString("Error in abmReasoning::respond wrong size of input | (whatIs input)");
+        }
     }
 
 

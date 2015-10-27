@@ -202,10 +202,11 @@ public:
     yarp::os::Bottle addContextualKnowledge(yarp::os::Bottle bInput);
     yarp::os::Bottle addBehavior(behavior beInput);
     yarp::os::Bottle saveKnowledge();
+    yarp::os::Bottle whatIs(std::string sInput);
 
 
     // memory related
-    yarp::os::Bottle getInfoAbout(std::string sName);
+    yarp::os::Bottle getInfoEntity(std::string sName);
 
 
     // RETRO REASONING
@@ -231,7 +232,7 @@ public:
     // OPC related
     yarp::os::Bottle updateOpcObjectLocation(std::string sOPCname);
     yarp::os::Bottle imagineOPC(int Id);
-    yarp::os::Bottle  updateBeliefs(bool bOPC);           // send a command to OPCManager to update the beliefs. true is for the real opc, false for the mental
+    yarp::os::Bottle updateBeliefs(bool bOPC);           // send a command to OPCManager to update the beliefs. true is for the real opc, false for the mental
 
 
     // Functions to send knowledge to the semantic memory

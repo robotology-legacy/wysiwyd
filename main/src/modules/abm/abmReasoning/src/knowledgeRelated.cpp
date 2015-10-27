@@ -666,7 +666,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
         vObjName.push_back(objectName);
     }
     //end objects name
-    myfile << endl ;
+    myfile << endl;
 
     //2.2 get the locations name
     vector <string> vLocName;
@@ -698,7 +698,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     {
         myfile << "(object " << *(it) << ") ";
     }
-    myfile << endl ; //end of line for objects types
+    myfile << endl; //end of line for objects types
 
     //3.1.2 init loc types
     myfile << "\t\t";
@@ -706,7 +706,7 @@ Bottle abmReasoning::printPDDLContextualKnowledgeProblem(Bottle bGoal)
     {
         myfile << "(location " << *(it) << ") ";
     }
-    myfile << endl ; //end of line for (:init
+    myfile << endl; //end of line for (:init
 
     //3.2 ;;init-conditions
     myfile << "\t\t;;init-conditions";
@@ -1142,52 +1142,52 @@ Bottle abmReasoning::getKnowledge()
     ostringstream osBehavior;
     if (abmReasoningFunction::TAG_NULL == sResult)
     {
-    	yInfo() << "\t" << "no behavior data to load";
-    	bOutput.addString("no behavior data");
+        yInfo() << "\t" << "no behavior data to load";
+        bOutput.addString("no behavior data");
     }
     else
     {
-    	for (int i = 0; i < bMainBehavior.size(); i++)
-    	{
-    		if (bMainBehavior.get(i).isList())
-    		{
-    			Bottle bAction = (*bMainBehavior.get(i).asList());
-    			int instance = atoi(bAction.get(0).toString().c_str());
-    			string sName = bAction.get(1).toString().c_str();
-    			string sArg = bAction.get(2).toString().c_str();
-    			behavior newBehavior;
-    			newBehavior.sArgument = sArg;
-    			newBehavior.sName = sName;
-    			osBehavior.str("");
-    			osBehavior << "SELECT DISTINCT occurence FROM behaviordata WHERE instance = " << instance;
-    			Bottle bOccurence = requestFromStream(osBehavior.str().c_str());
-    			vector<int>  vOccurence;
+        for (int i = 0; i < bMainBehavior.size(); i++)
+        {
+            if (bMainBehavior.get(i).isList())
+            {
+                Bottle bAction = (*bMainBehavior.get(i).asList());
+                int instance = atoi(bAction.get(0).toString().c_str());
+                string sName = bAction.get(1).toString().c_str();
+                string sArg = bAction.get(2).toString().c_str();
+                behavior newBehavior;
+                newBehavior.sArgument = sArg;
+                newBehavior.sName = sName;
+                osBehavior.str("");
+                osBehavior << "SELECT DISTINCT occurence FROM behaviordata WHERE instance = " << instance;
+                Bottle bOccurence = requestFromStream(osBehavior.str().c_str());
+                vector<int>  vOccurence;
 
-    			for (int oc = 0; oc < bOccurence.size(); oc++)
-    			{
-    				vOccurence.push_back(atoi(bOccurence.get(oc).asList()->get(0).toString().c_str()));
-    			}
+                for (int oc = 0; oc < bOccurence.size(); oc++)
+                {
+                    vOccurence.push_back(atoi(bOccurence.get(oc).asList()->get(0).toString().c_str()));
+                }
 
-    			for (vector<int>::iterator it_occu = vOccurence.begin(); it_occu != vOccurence.end(); it_occu++)
-    			{
+                for (vector<int>::iterator it_occu = vOccurence.begin(); it_occu != vOccurence.end(); it_occu++)
+                {
 
-    				osBehavior.str("");
-    				osBehavior << "SELECT drive, effect FROM behaviordata WHERE instance = " << instance << " AND occurence = " << *it_occu;
-    				Bottle bBehaviorData = requestFromStream(osBehavior.str().c_str());
+                    osBehavior.str("");
+                    osBehavior << "SELECT drive, effect FROM behaviordata WHERE instance = " << instance << " AND occurence = " << *it_occu;
+                    Bottle bBehaviorData = requestFromStream(osBehavior.str().c_str());
 
-    				vector< pair <string, double> >         vEffect;
-    				for (int j = 0; j < bBehaviorData.size(); j++)
-    				{
-    					// name of the drive, value
-    					pair<string, double>  pTemp((bBehaviorData.get(j).asList())->get(0).toString(), (atof((*bBehaviorData.get(j).asList()).get(1).toString().c_str())));
+                    vector< pair <string, double> >         vEffect;
+                    for (int j = 0; j < bBehaviorData.size(); j++)
+                    {
+                        // name of the drive, value
+                        pair<string, double>  pTemp((bBehaviorData.get(j).asList())->get(0).toString(), (atof((*bBehaviorData.get(j).asList()).get(1).toString().c_str())));
 
-    					vEffect.push_back(pTemp);
-    				}
-    				newBehavior.vEffect.push_back(vEffect);
-    			}
-    			listBehaviors.push_back(newBehavior);
-    		}
-    	}
+                        vEffect.push_back(pTemp);
+                    }
+                    newBehavior.vEffect.push_back(vEffect);
+                }
+                listBehaviors.push_back(newBehavior);
+            }
+        }
     }
 
     Bottle bContextualKnowledge = requestFromStream("SELECT DISTINCT instance, name, argument, dependance FROM contextknowledge");
@@ -1195,45 +1195,45 @@ Bottle abmReasoning::getKnowledge()
 
     if (abmReasoningFunction::TAG_NULL == sResult)
     {
-    	yInfo() << "\t" << " no contextual data to load";
-    	bOutput.addString("no contextual data");
+        yInfo() << "\t" << " no contextual data to load";
+        bOutput.addString("no contextual data");
     }
     else
     {
-    	for (int i = 0; i < bContextualKnowledge.size(); i++)
-    	{
-    		contextualKnowledge ckAction;
+        for (int i = 0; i < bContextualKnowledge.size(); i++)
+        {
+            contextualKnowledge ckAction;
             if (bContextualKnowledge.get(0).isList())
-    		{
-    			Bottle bAction = (*bContextualKnowledge.get(i).asList());
-    			int instance = atoi(bAction.get(0).toString().c_str());
-    			string sName = bAction.get(1).toString().c_str();
-    			string sArg = bAction.get(2).toString().c_str();
-    			string sDependance = bAction.get(3).toString().c_str();
+            {
+                Bottle bAction = (*bContextualKnowledge.get(i).asList());
+                int instance = atoi(bAction.get(0).toString().c_str());
+                string sName = bAction.get(1).toString().c_str();
+                string sArg = bAction.get(2).toString().c_str();
+                string sDependance = bAction.get(3).toString().c_str();
 
-    			ckAction.sArgument = sArg;
-    			ckAction.sName = sName;
-    			ckAction.sDependance = sDependance;
+                ckAction.sArgument = sArg;
+                ckAction.sName = sName;
+                ckAction.sDependance = sDependance;
 
-    			//Presence
+                //Presence
                 ostringstream osContextKnowled;
                 osContextKnowled.str("");
-    			osContextKnowled << "SELECT presencebegin, presenceend FROM contextdata WHERE instance = " << instance;
-    			Bottle bContextualData = requestFromStream(osContextKnowled.str().c_str());
+                osContextKnowled << "SELECT presencebegin, presenceend FROM contextdata WHERE instance = " << instance;
+                Bottle bContextualData = requestFromStream(osContextKnowled.str().c_str());
 
-    			for (int j = 0; j < bContextualData.size(); j++)
-    			{
-    				string before = (*bContextualData.get(j).asList()).get(0).toString().c_str(),
-    					after = (*bContextualData.get(j).asList()).get(1).toString().c_str();
-    				pair <bool, bool > pTemp(before == "t", after == "t");
-    				ckAction.vObjectPresent.push_back(pTemp);
-    			}
+                for (int j = 0; j < bContextualData.size(); j++)
+                {
+                    string before = (*bContextualData.get(j).asList()).get(0).toString().c_str(),
+                        after = (*bContextualData.get(j).asList()).get(1).toString().c_str();
+                    pair <bool, bool > pTemp(before == "t", after == "t");
+                    ckAction.vObjectPresent.push_back(pTemp);
+                }
 
-    			//Loc
-    		}
-    		ckAction.updatePresence();
-    		listContextualKnowledge.push_back(ckAction);
-    	}
+                //Loc
+            }
+            ckAction.updatePresence();
+            listContextualKnowledge.push_back(ckAction);
+        }
     }
 
 
@@ -1244,66 +1244,66 @@ Bottle abmReasoning::getKnowledge()
     osBehavior.str("");;
     if (abmReasoningFunction::TAG_NULL == sResult)
     {
-    	yInfo() << "\t" << "no sharedplan data to load";
-    	bOutput.addString("no sharedplan data");
+        yInfo() << "\t" << "no sharedplan data to load";
+        bOutput.addString("no sharedplan data");
     }
     else
     {
-    	for (int i = 0; i < bMainPlan.size(); i++)
-    	{
-    		plan NewPlan;
+        for (int i = 0; i < bMainPlan.size(); i++)
+        {
+            plan NewPlan;
 
-    		// for each plan
-    		if (bMainPlan.get(i).isList())
-    		{
-    			int instance = atoi(bMainPlan.get(i).asList()->get(0).toString().c_str());
-    			NewPlan.sName = bMainPlan.get(i).asList()->get(1).toString();
-    			NewPlan.sManner = bMainPlan.get(i).asList()->get(2).toString();
+            // for each plan
+            if (bMainPlan.get(i).isList())
+            {
+                int instance = atoi(bMainPlan.get(i).asList()->get(0).toString().c_str());
+                NewPlan.sName = bMainPlan.get(i).asList()->get(1).toString();
+                NewPlan.sManner = bMainPlan.get(i).asList()->get(2).toString();
 
-    			ostringstream osPlanArgument;
-    			osPlanArgument << "SELECT argument, role FROM sharedplanarg WHERE instance = " << instance;
-    			Bottle bRequest = requestFromStream(osPlanArgument.str().c_str());
+                ostringstream osPlanArgument;
+                osPlanArgument << "SELECT argument, role FROM sharedplanarg WHERE instance = " << instance;
+                Bottle bRequest = requestFromStream(osPlanArgument.str().c_str());
 
-    			// get the argument of the plan
-    			for (int arg = 0; arg < bRequest.size(); arg++)
-    			{
-    				pair<string, string> pArgument
-    					(bRequest.get(arg).asList()->get(0).toString(),
-    					bRequest.get(arg).asList()->get(1).toString());
+                // get the argument of the plan
+                for (int arg = 0; arg < bRequest.size(); arg++)
+                {
+                    pair<string, string> pArgument
+                        (bRequest.get(arg).asList()->get(0).toString(),
+                        bRequest.get(arg).asList()->get(1).toString());
 
-    				NewPlan.vArguments.push_back(pArgument);
-    			}
+                    NewPlan.vArguments.push_back(pArgument);
+                }
 
-    			ostringstream osPlanAct,
-    				osActArg;
-    			osPlanAct << "SELECT activitytype, activityname, id FROM sharedplandata WHERE instance = " << instance << "  ORDER BY id ";
-    			bRequest = requestFromStream(osPlanAct.str().c_str());
+                ostringstream osPlanAct,
+                    osActArg;
+                osPlanAct << "SELECT activitytype, activityname, id FROM sharedplandata WHERE instance = " << instance << "  ORDER BY id ";
+                bRequest = requestFromStream(osPlanAct.str().c_str());
 
-    			// get the activities of the plan
-    			for (int act = 0; act < bRequest.size(); act++)
-    			{
-    				NewPlan.vActivitytype.push_back(bRequest.get(act).asList()->get(0).toString().c_str());
-    				NewPlan.vActivityname.push_back(bRequest.get(act).asList()->get(1).toString().c_str());
-    				osActArg.str("");
-    				osActArg << "SELECT argument, role FROM spdataarg WHERE instance = " << instance << " AND id = " << atoi(bRequest.get(act).asList()->get(2).toString().c_str());
-    				Bottle bArgAct = requestFromStream(osActArg.str().c_str());
-    				list <pair <string, string> > lArgAct;
+                // get the activities of the plan
+                for (int act = 0; act < bRequest.size(); act++)
+                {
+                    NewPlan.vActivitytype.push_back(bRequest.get(act).asList()->get(0).toString().c_str());
+                    NewPlan.vActivityname.push_back(bRequest.get(act).asList()->get(1).toString().c_str());
+                    osActArg.str("");
+                    osActArg << "SELECT argument, role FROM spdataarg WHERE instance = " << instance << " AND id = " << atoi(bRequest.get(act).asList()->get(2).toString().c_str());
+                    Bottle bArgAct = requestFromStream(osActArg.str().c_str());
+                    list <pair <string, string> > lArgAct;
 
-    				// get the argument of the current activity
-    				for (int arg = 0; arg < bArgAct.size(); arg++)
-    				{
-    					pair<string, string> pArgRole;
-    					pArgRole.first = bArgAct.get(arg).asList()->get(0).toString();
-    					pArgRole.second = bArgAct.get(arg).asList()->get(1).toString();
-    					lArgAct.push_back(pArgRole);
-    				}
-    				NewPlan.vActivityArguments.push_back(lArgAct);
-    			} // out of the current activity
+                    // get the argument of the current activity
+                    for (int arg = 0; arg < bArgAct.size(); arg++)
+                    {
+                        pair<string, string> pArgRole;
+                        pArgRole.first = bArgAct.get(arg).asList()->get(0).toString();
+                        pArgRole.second = bArgAct.get(arg).asList()->get(1).toString();
+                        lArgAct.push_back(pArgRole);
+                    }
+                    NewPlan.vActivityArguments.push_back(lArgAct);
+                } // out of the current activity
 
-    		}// out of the current plan
+            }// out of the current plan
 
-    		NewPlan = addPlan(NewPlan);
-    	}
+            NewPlan = addPlan(NewPlan);
+        }
     }
 
 
@@ -1314,38 +1314,38 @@ Bottle abmReasoning::getKnowledge()
     osBehavior.str("");
     if (abmReasoningFunction::TAG_NULL == sResult)
     {
-    	yInfo() << "\t" << "no interaction data to load";
-    	bOutput.addString("no interaction data");
+        yInfo() << "\t" << "no interaction data to load";
+        bOutput.addString("no interaction data");
     }
     else
     {
-    	for (int i = 0; i < bMainInteraction.size(); i++)
-    	{
-    		// for each subject
-    		if (bMainInteraction.get(i).isList())
-    		{
-    			string sSubject = bMainInteraction.get(i).asList()->get(0).toString();
+        for (int i = 0; i < bMainInteraction.size(); i++)
+        {
+            // for each subject
+            if (bMainInteraction.get(i).isList())
+            {
+                string sSubject = bMainInteraction.get(i).asList()->get(0).toString();
 
-    			ostringstream osInteraction;
-    			osInteraction << "SELECT * FROM interactionknowledge WHERE subject = '" << sSubject << "'";
-    			Bottle bInteraction = requestFromStream(osInteraction.str().c_str());
-    			knownInteraction TempInt;
-    			TempInt.sSubject = sSubject;
+                ostringstream osInteraction;
+                osInteraction << "SELECT * FROM interactionknowledge WHERE subject = '" << sSubject << "'";
+                Bottle bInteraction = requestFromStream(osInteraction.str().c_str());
+                knownInteraction TempInt;
+                TempInt.sSubject = sSubject;
 
-    			// get the argument of the plan
-    			for (int arg = 0; arg < bInteraction.size(); arg++)
-    			{
-    				tuple<string, int, string, string> tInteraction;
-    				get<0>(tInteraction) = bInteraction.get(arg).asList()->get(1).toString();
-    				get<1>(tInteraction) = atoi(bInteraction.get(arg).asList()->get(2).toString().c_str());
-    				get<2>(tInteraction) = bInteraction.get(arg).asList()->get(3).toString();
-    				get<3>(tInteraction) = bInteraction.get(arg).asList()->get(4).toString();
+                // get the argument of the plan
+                for (int arg = 0; arg < bInteraction.size(); arg++)
+                {
+                    tuple<string, int, string, string> tInteraction;
+                    get<0>(tInteraction) = bInteraction.get(arg).asList()->get(1).toString();
+                    get<1>(tInteraction) = atoi(bInteraction.get(arg).asList()->get(2).toString().c_str());
+                    get<2>(tInteraction) = bInteraction.get(arg).asList()->get(3).toString();
+                    get<3>(tInteraction) = bInteraction.get(arg).asList()->get(4).toString();
 
-    				TempInt.addInteraction(tInteraction);
-    			}
-    			listKnownInteraction.push_back(TempInt);
-    		}
-    	}
+                    TempInt.addInteraction(tInteraction);
+                }
+                listKnownInteraction.push_back(TempInt);
+            }
+        }
     }
 
 
@@ -1353,12 +1353,12 @@ Bottle abmReasoning::getKnowledge()
     checkContextLocation();
     for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
     {
-    	itCK->updatePresence();
+        itCK->updatePresence();
     }
 
 
-    yInfo() << "\t" << " done ! "  ;
-    yInfo() << "\t" << listSpatialKnowledge.size() << " spatialKnowledge(s) - " << listTimeKnowledge.size() << " temporalKnowledge(s) - " << listBehaviors.size() << " behavior(s) - " << listPlan.size() << " sharedplan(s) - " << listContextualKnowledge.size() << " contextualKnowledge(s) - " << listKnownInteraction.size() << " knownInteraction(s)."    ;;
+    yInfo() << "\t" << " done ! ";
+    yInfo() << "\t" << listSpatialKnowledge.size() << " spatialKnowledge(s) - " << listTimeKnowledge.size() << " temporalKnowledge(s) - " << listBehaviors.size() << " behavior(s) - " << listPlan.size() << " sharedplan(s) - " << listContextualKnowledge.size() << " contextualKnowledge(s) - " << listKnownInteraction.size() << " knownInteraction(s).";;
 
     bOutput.addString("knowledge added");
 
@@ -1933,7 +1933,7 @@ Bottle abmReasoning::updateOpcObjectLocation(string sOPCname)
 * Return a list of information about an entity.
 * input : name of the entity
 */
-Bottle abmReasoning::getInfoAbout(string sName)
+Bottle abmReasoning::getInfoEntity(string sName)
 {
     Bottle bMessenger, bOutput;
 
@@ -1969,6 +1969,93 @@ Bottle abmReasoning::getInfoAbout(string sName)
 
 }
 //
+
+
+/*
+* Search in all the knwoledge, information about the input
+*/
+Bottle abmReasoning::whatIs(string sInput)
+{
+    Bottle bReturn;
+
+    cout << endl << "Searching information about: " << sInput << endl;
+
+    // 1. Search in CK
+
+    vector<pair<string, int>> lInputRelBef,
+        lInputRelAft;
+    bool bFound;
+    int iTotOccurences = 0;
+    for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
+    {   //begin FOR itCK : listContextualKnowledge
+        if (itCK->sName == sInput)
+        {
+            itCK->updateAgentRelated();
+            itCK->updateIntersect();
+            itCK->updatePresence();
+
+            iTotOccurences += itCK->iOccurence;
+
+            // for all relations before in the CK
+            for (vector<pair<string, int>>::iterator itVPCK = itCK->mRelationBefore.begin();
+                itVPCK != itCK->mRelationBefore.end();
+                itVPCK++){
+                // search if already in the relation of the input
+                bFound = false;
+                for (vector<pair<string, int>>::iterator itVPInput = lInputRelBef.begin();
+                    itVPInput != lInputRelBef.end();
+                    itVPInput++){
+                    if (!bFound && itVPCK->first == itVPInput->first){
+                        bFound = true;
+                        itVPInput->second += itVPCK->second;
+                    }
+                }
+                if (!bFound){
+                    lInputRelBef.push_back(pair<string, int>(itVPCK->first, itVPCK->second));
+                }
+            }
+
+            // for all relations after in the CK
+            for (vector<pair<string, int>>::iterator itVPCK = itCK->mRelationAfter.begin();
+                itVPCK != itCK->mRelationAfter.end();
+                itVPCK++){
+                // search if already in the relation of the input
+                bFound = false;
+                for (vector<pair<string, int>>::iterator itVPInput = lInputRelAft.begin();
+                    itVPInput != lInputRelAft.end();
+                    itVPInput++){
+                    if (!bFound && itVPCK->first == itVPInput->first){
+                        bFound = true;
+                        itVPInput->second += itVPCK->second;
+                    }
+                }
+                if (!bFound){
+                    lInputRelAft.push_back(pair<string, int>(itVPCK->first, itVPCK->second));
+                }
+            }
+        }
+    }
+
+    // display all relations found:
+    /* BEFORE */
+    for (vector<pair<string, int>>::iterator itVPInput = lInputRelBef.begin();
+        itVPInput != lInputRelBef.end();
+        itVPInput++){
+        cout << "relation before: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*iTotOccurences) << "%" << endl;
+    }
+
+    /* AFTER */
+    for (vector<pair<string, int>>::iterator itVPInput = lInputRelAft.begin();
+        itVPInput != lInputRelAft.end();
+        itVPInput++){
+        cout << "relation after: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*iTotOccurences) << "%" << endl;
+    }
+
+
+
+    return bReturn;
+}
+
 
 
 /*

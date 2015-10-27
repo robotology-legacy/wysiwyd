@@ -1116,7 +1116,7 @@ Bottle abmReasoning::findAllSentence(int from)
     //check : simple object query :
     Bottle bTemporal, bOutput;
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main WHERE activitytype = 'sentence' AND begin = true AND INSTANCE > " << from << " ORDER by instance";
+    osRequest << "SELECT instance FROM main WHERE activitytype = 'sentence' or activityname = 'sentence' AND begin = true AND INSTANCE > " << from << " ORDER by instance";
     Bottle  bMessenger = requestFromStream(osRequest.str().c_str());
     int numberSentence = bMessenger.size();
 
@@ -3408,6 +3408,11 @@ Bottle abmReasoning::askSentenceFromId(int Id)
 
     yInfo() << "\t" << "bContent : " << bContent.toString();
 
+    if (bContent.toString() == abmReasoningFunction::TAG_NULL)
+    {
+        return bContent;
+    }
+
     string sSpeaker,
         sAddressee,
         sSubject,
@@ -3444,8 +3449,8 @@ Bottle abmReasoning::askSentenceFromId(int Id)
 
     if (!fAddressee || !fSpeaker || !fSubject)
     {
-        yInfo() << "\t" << "Error in abmReasoning::FindAllSentence::FindSentenceFromId -  Id = " << Id << ". Lack of information in the sentence.";
-        return bOutput;
+        yWarning() << "\t" << "Error in abmReasoning::FindSentenceFromId - Id = " << Id << ". Lack of information in the sentence.";
+        //return bOutput;
     }
 
     // 2-
@@ -3464,7 +3469,7 @@ Bottle abmReasoning::askSentenceFromId(int Id)
 
     // 3-
     osName.str("");
-    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND contentarg.role = 'agent1' AND (activitytype = 'qRM' or activitytype = 'action')and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1";
+    osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND (contentarg.role = 'agent1' or contentarg.role = 'agent') AND (activitytype = 'qRM' or activitytype = 'action')and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1";
     Bottle bRequest = requestFromStream(osName.str());
     yInfo() << "\t" << "brequest : " << bRequest.toString();
     int iDiffTimefromNext = 10000;
@@ -3492,6 +3497,8 @@ Bottle abmReasoning::askSentenceFromId(int Id)
         bOutput.addString(sAgentNext.c_str());
     else
         bOutput.addString(sAgentPrevious.c_str());
+
+    cout << "\t bOutput: " << bOutput.toString() << endl;
 
     return bOutput;
 }
