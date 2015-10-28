@@ -1539,7 +1539,7 @@ void qRM::populateABM(int iRepetition)
         lArgument.push_back(pair<string, string>(sAg1, "adj1"));
         lArgument.push_back(pair<string, string>("slowly", "adj2"));
         lArgument.push_back(pair<string, string>(sAg1, "speaker"));
-        lArgument.push_back(pair<string, string>("me", "subject"));
+        lArgument.push_back(pair<string, string>("none", "subject"));
         lArgument.push_back(pair<string, string>(sAg2, "addressee"));
         iCub->getABMClient()->sendActivity("action",
             "sentence",
@@ -1654,7 +1654,7 @@ void qRM::populateABM(int iRepetition)
         lArgument.push_back(pair<string, string>(sAg1, "adj1"));
         lArgument.push_back(pair<string, string>("quickly", "adj2"));
         lArgument.push_back(pair<string, string>(sAg1, "speaker"));
-        lArgument.push_back(pair<string, string>("me", "subject"));
+        lArgument.push_back(pair<string, string>("none", "subject"));
         lArgument.push_back(pair<string, string>(sAg2, "addressee"));
         iCub->getABMClient()->sendActivity("action",
             "sentence",
