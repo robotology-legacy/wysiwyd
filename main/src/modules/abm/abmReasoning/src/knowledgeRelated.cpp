@@ -1,4 +1,3 @@
-
 /*
 *
 * Copyright (C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
@@ -1968,7 +1967,6 @@ Bottle abmReasoning::getInfoEntity(string sName)
     return bOutput;
 
 }
-//
 
 
 /*
@@ -1982,19 +1980,21 @@ Bottle abmReasoning::whatIs(string sInput)
 
     // 1. Search in CK
 
-    vector<pair<string, int>> lInputRelBef,
+    map<string, vector<pair<string, int> > >  lInputRelBef,
         lInputRelAft;
+    map<string, int>    mapOccurence;
     bool bFound;
     int iTotOccurences = 0;
     for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
     {   //begin FOR itCK : listContextualKnowledge
+
         if (itCK->sName == sInput)
         {
             itCK->updateAgentRelated();
             itCK->updateIntersect();
             itCK->updatePresence();
 
-            iTotOccurences += itCK->iOccurence;
+            mapOccurence[itCK->sType] += itCK->iOccurence;
 
             // for all relations before in the CK
             for (vector<pair<string, int>>::iterator itVPCK = itCK->mRelationBefore.begin();
@@ -2002,8 +2002,8 @@ Bottle abmReasoning::whatIs(string sInput)
                 itVPCK++){
                 // search if already in the relation of the input
                 bFound = false;
-                for (vector<pair<string, int>>::iterator itVPInput = lInputRelBef.begin();
-                    itVPInput != lInputRelBef.end();
+                for (vector<pair<string, int>>::iterator itVPInput = lInputRelBef[itCK->sType].begin();
+                    itVPInput != lInputRelBef[itCK->sType].end();
                     itVPInput++){
                     if (!bFound && itVPCK->first == itVPInput->first){
                         bFound = true;
@@ -2011,7 +2011,7 @@ Bottle abmReasoning::whatIs(string sInput)
                     }
                 }
                 if (!bFound){
-                    lInputRelBef.push_back(pair<string, int>(itVPCK->first, itVPCK->second));
+                    lInputRelBef[itCK->sType].push_back(pair<string, int>(itVPCK->first, itVPCK->second));
                 }
             }
 
@@ -2021,8 +2021,8 @@ Bottle abmReasoning::whatIs(string sInput)
                 itVPCK++){
                 // search if already in the relation of the input
                 bFound = false;
-                for (vector<pair<string, int>>::iterator itVPInput = lInputRelAft.begin();
-                    itVPInput != lInputRelAft.end();
+                for (vector<pair<string, int>>::iterator itVPInput = lInputRelAft[itCK->sType].begin();
+                    itVPInput != lInputRelAft[itCK->sType].end();
                     itVPInput++){
                     if (!bFound && itVPCK->first == itVPInput->first){
                         bFound = true;
@@ -2030,7 +2030,7 @@ Bottle abmReasoning::whatIs(string sInput)
                     }
                 }
                 if (!bFound){
-                    lInputRelAft.push_back(pair<string, int>(itVPCK->first, itVPCK->second));
+                    lInputRelAft[itCK->sType].push_back(pair<string, int>(itVPCK->first, itVPCK->second));
                 }
             }
         }
@@ -2038,24 +2038,36 @@ Bottle abmReasoning::whatIs(string sInput)
 
     // display all relations found:
     /* BEFORE */
-    for (vector<pair<string, int>>::iterator itVPInput = lInputRelBef.begin();
-        itVPInput != lInputRelBef.end();
-        itVPInput++){
-        cout << "relation before: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*iTotOccurences) << "%" << endl;
+    for (map<string, vector<pair<string, int> > > ::iterator itMap = lInputRelBef.begin();
+        itMap != lInputRelBef.end();
+        itMap++){
+        cout << "When " << sInput << " is a " << itMap->first << ":" << endl;
+        for (vector<pair<string, int>>::iterator itVPInput = itMap->second.begin();
+            itVPInput != itMap->second.end();
+            itVPInput++){
+            if ((100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION){
+                cout << "relation before: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) << "%" << " (" << mapOccurence[itMap->first] << ")" << endl;
+            }
+        }
     }
 
     /* AFTER */
-    for (vector<pair<string, int>>::iterator itVPInput = lInputRelAft.begin();
-        itVPInput != lInputRelAft.end();
-        itVPInput++){
-        cout << "relation after: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*iTotOccurences) << "%" << endl;
+    for (map<string, vector<pair<string, int> > > ::iterator itMap = lInputRelAft.begin();
+        itMap != lInputRelAft.end();
+        itMap++){
+        cout << "When " << sInput << " is a " << itMap->first << ":" << endl;
+        for (vector<pair<string, int>>::iterator itVPInput = itMap->second.begin();
+            itVPInput != itMap->second.end();
+            itVPInput++){
+            if ((100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION){
+                cout << "relation after: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) << "%" << " (" << mapOccurence[itMap->first] << ")" << endl;
+            }
+        }
     }
-
 
 
     return bReturn;
 }
-
 
 
 /*

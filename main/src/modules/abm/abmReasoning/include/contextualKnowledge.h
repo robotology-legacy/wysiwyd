@@ -10,6 +10,7 @@ public:
     std::string                              sName;
     std::string                              sArgument;
     std::string                              sDependance;
+    std::string                              sType; // context of use (sentence, action...)
     int                                        iOccurence;
     std::vector< std::pair <bool, bool> >        vObjectPresent;
     std::pair<double, double >              PercentPresence;                        //  percent of presence before and after action

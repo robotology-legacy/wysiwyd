@@ -59,6 +59,7 @@ public:
     static double THRESHOLD_INTERSECT_INF;
     static double THRESHOLD_PRESENCE;
     static double THRESHOLD_ABSENCE;
+    static double THRESHOLD_CONFIDENCE_RELATION;
 
     //TAGS
     static std::string TAG_LOCATION;
@@ -71,6 +72,7 @@ public:
     static std::string TAG_NULL;
     static std::string TAG_ACTION;
     static std::string TAG_SEPARATOR;
+    static std::string TAG_SENTENCE;
     static std::string TAG_PREDICATE;
     static std::string TAG_AGENT;
     static std::string TAG_OBJECT;
@@ -122,8 +124,8 @@ public:
 
     static std::tuple<int, int, int> tupleIntFromString(std::string sInput);
     static std::tuple<double, double, double> tupleDoubleFromString(std::string sInput);
-  
-    
+
+
     static void studentttest2(/* Real    */ std::vector<double> x,
         /* Real    */ std::vector<double> y,
         double* bothtails,
@@ -1143,7 +1145,7 @@ public:
         int sum = 0;
         if (W != "x" && W != "y" && W != "z")
         {
-            yInfo() << "\t" << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumDiag(std::string) | wrong coordinate ('x', 'y' or 'z')" ;
+            yInfo() << "\t" << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumDiag(std::string) | wrong coordinate ('x', 'y' or 'z')";
         }
         for (int b = 0; b < iSize; b++)
         {
@@ -1169,7 +1171,7 @@ public:
         int sum = 0;
         if (W != "x" && W != "y" && W != "z")
         {
-            yInfo() << "\t" << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumPlan(std::string) | wrong coordinate ('x', 'y' or 'z')" ;
+            yInfo() << "\t" << "Error in abmReasoning::abmReasoningFunction.h::matrix3D::sumPlan(std::string) | wrong coordinate ('x', 'y' or 'z')";
         }
         for (int a = 0; a < iSize; a++)
         {
@@ -1453,7 +1455,7 @@ public:
         // check 
         if (iX == -1 || iZ == -1)
         {
-            yInfo() << "\t" << "Error in abmReasoning::abmReasoningFunction.h::matrix3D_nonCubic::incr(std::string, std::vector<std::string>, std::string) | One of the label is missing" ;
+            yInfo() << "\t" << "Error in abmReasoning::abmReasoningFunction.h::matrix3D_nonCubic::incr(std::string, std::vector<std::string>, std::string) | One of the label is missing";
             return;
         }
 

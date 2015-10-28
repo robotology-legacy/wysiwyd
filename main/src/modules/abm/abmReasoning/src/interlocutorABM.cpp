@@ -1114,7 +1114,7 @@ Bottle abmReasoning::findAllSentence(int from)
     yInfo() << "\t" << "Getting sentence.";
     //int iError = 0;
     //check : simple object query :
-    Bottle bTemporal, bOutput;
+    Bottle  bOutput;
     ostringstream osRequest;
     osRequest << "SELECT instance FROM main WHERE activitytype = 'sentence' or activityname = 'sentence' AND begin = true AND INSTANCE > " << from << " ORDER by instance";
     Bottle  bMessenger = requestFromStream(osRequest.str().c_str());
@@ -2764,11 +2764,13 @@ Bottle abmReasoning::addContextualKnowledge(Bottle bInput)
 }
 
 
-bool abmReasoning::createContextualKnowledge(string sName, string sArgument)
+bool abmReasoning::createContextualKnowledge(string sName, string sArgument, string sKind)
 {
     for (vector<contextualKnowledge>::iterator it_CK = listContextualKnowledge.begin(); it_CK != listContextualKnowledge.end(); it_CK++)
     {
-        if (it_CK->sName == sName.c_str() && it_CK->sArgument == sArgument.c_str() )
+        if (it_CK->sName == sName.c_str()
+            && it_CK->sArgument == sArgument.c_str()
+            && sKind == it_CK->sType)
         {
             //yInfo() << "\t" << "ContextualKnowledge " << sName << " " << sArgument << " already existing";
             return false;
@@ -2779,9 +2781,11 @@ bool abmReasoning::createContextualKnowledge(string sName, string sArgument)
     newCK.sArgument = sArgument;
     newCK.sName = sName;
     newCK.sDependance = "none";
+    newCK.sType = sKind;
+    newCK.iOccurence = 0;
 
     listContextualKnowledge.push_back(newCK);
-    yInfo() << "\t" << "ContextualKnowledge " << sName << " " << sArgument << " created";
+    // yInfo() << "\t" << "ContextualKnowledge " << sName << " " << sArgument << " created";
 
     return true;
 }
@@ -3393,20 +3397,24 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
 Bottle abmReasoning::askSentenceFromId(int Id)
 {
     Bottle  bOutput,    // main output
+        bSentence,  // first part of the return: information about grammar
+        bName,  // information about the corresponding action
+        bRelBef,    // bottle of relation before
+        bRelAft,    // bottle of relations after
         bContent,       // content of the sentence
         bPrevious,      // previous action
         bNext,          // next action
         bTemp;
 
 
-    yInfo() << "\t" << "Treatment of sentence instance : " << Id;
+    //    yInfo() << "\t" << "Treatment of sentence instance : " << Id;
 
     // 1-
     ostringstream osName;
     osName << "SELECT main.time, contentarg.argument, contentarg.role FROM main, contentarg WHERE main.instance = contentarg.instance AND main.instance =" << Id;
     bContent = requestFromStream(osName.str());
 
-    yInfo() << "\t" << "bContent : " << bContent.toString();
+    //    yInfo() << "\t" << "bContent : " << bContent.toString();
 
     if (bContent.toString() == abmReasoningFunction::TAG_NULL)
     {
@@ -3450,7 +3458,9 @@ Bottle abmReasoning::askSentenceFromId(int Id)
     if (!fAddressee || !fSpeaker || !fSubject)
     {
         yWarning() << "\t" << "Error in abmReasoning::FindSentenceFromId - Id = " << Id << ". Lack of information in the sentence.";
-        //return bOutput;
+        bOutput.clear();
+        bOutput.addString(abmReasoningFunction::TAG_NULL);
+        return bOutput;
     }
 
     // 2-
@@ -3471,13 +3481,13 @@ Bottle abmReasoning::askSentenceFromId(int Id)
     osName.str("");
     osName << "select main.time,main.instance, contentarg.argument  from main, contentarg where main.instance = contentarg.instance AND (contentarg.role = 'agent1' or contentarg.role = 'agent') AND (activitytype = 'qRM' or activitytype = 'action')and main.instance > " << Id << " and begin = 'TRUE' order by instance limit 1";
     Bottle bRequest = requestFromStream(osName.str());
-    yInfo() << "\t" << "brequest : " << bRequest.toString();
+    //yInfo() << "\t" << "brequest : " << bRequest.toString();
     int iDiffTimefromNext = 10000;
 
     if (!(bRequest.toString() == "NULL"))
     {
         bTemp = *(bRequest.get(0).asList());
-        yInfo() << "\t" << "bTemp : " << bTemp.toString();
+        //        yInfo() << "\t" << "bTemp : " << bTemp.toString();
 
         sTimeNext = bTemp.get(0).toString().c_str();
         iInstanceNext = atoi(bTemp.get(1).toString().c_str());
@@ -3488,17 +3498,70 @@ Bottle abmReasoning::askSentenceFromId(int Id)
     // 4-
     int iDiffTimefromPrev = abs(abmReasoningFunction::timeDiffSecondFromString(sTimeSentence, sTimePrevious));
 
-    bOutput.addString(sSpeaker.c_str());
-    bOutput.addString(sAddressee.c_str());
-    bOutput.addString(sSubject.c_str());
+    bSentence.addString(sSpeaker.c_str());
+    bSentence.addString(sAddressee.c_str());
+    bSentence.addString(sSubject.c_str());
+
+    int iInstanceAction;
 
     // if next is closer in time
-    if (iDiffTimefromNext < iDiffTimefromPrev)
-        bOutput.addString(sAgentNext.c_str());
-    else
-        bOutput.addString(sAgentPrevious.c_str());
+    if (iDiffTimefromNext < iDiffTimefromPrev)    {
+        iInstanceAction = iInstanceNext;
+        bSentence.addString(sAgentNext.c_str());
+    }
+    else{
+        iInstanceAction = iInstanceNext;
+        bSentence.addString(sAgentPrevious.c_str());
+    }
 
-    cout << "\t bOutput: " << bOutput.toString() << endl;
+    //cout << "\t bSentence: " << bSentence.toString() << endl;
+
+    bOutput.addList() = bSentence;
+
+    // Get name and argument.
+    osName.str("");
+    osName << "SELECT role, argument FROM contentarg WHERE (role = 'object1' OR role = 'object' OR role = 'recipient' OR role = 'agent'OR role = 'predicate') AND instance = " << Id;
+    bName = requestFromStream(osName.str());
+
+    //    yInfo() << "bName is: " << bName.toString();
+
+
+    if (bName.toString() == abmReasoningFunction::TAG_NULL)
+    {
+        bName.addString(abmReasoningFunction::TAG_NULL);
+        bOutput.addList() = bName;
+        return bOutput;
+    }
+
+    string sPredicate = bName.check("predicate", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sAgent = bName.check("agent", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sObject = bName.check("object", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sRecipient = bName.check("recipient", Value(abmReasoningFunction::TAG_NULL)).asString();
+
+    ostringstream osRelation;
+
+    bName.clear();
+    bName.addString(sPredicate.c_str());
+    bName.addString(sAgent.c_str());
+    bName.addString(sObject.c_str());
+    bName.addString(sRecipient.c_str());
+
+    bOutput.addList() = bName;
+
+    //get location of objects before
+    osRelation.str("");
+    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << iInstanceAction << " AND verb != 'isAtLoc'";
+    bRelBef = requestFromStream(osRelation.str().c_str());
+
+    //clear things
+    osRelation.str("");
+
+    //get location of objects after
+    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << iInstanceAction + 1 << " AND verb != 'isAtLoc'";
+    bRelAft = requestFromStream(osRelation.str().c_str());
+
+    bOutput.addList() = bRelBef;
+    bOutput.addList() = bRelAft;
 
     return bOutput;
 }
@@ -3521,11 +3584,8 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
 
     // Get name and argument.
     ostringstream osName;
-    osName << "SELECT role, argument FROM contentarg WHERE (role = 'object1' OR role = 'object' OR role = 'recipient' OR role = 'agent'OR role = 'predicate') AND instance = " << Id;
+    osName << "SELECT role, argument FROM contentarg WHERE (role = 'object1' OR role = 'object' OR role = 'recipient' OR role = 'spatial1' OR role = 'spatial' OR role = 'agent' OR role = 'agent1' OR role = 'predicate' OR role = 'action' OR role = 'adv1' OR role = 'adv2') AND instance = " << Id;
     bName = requestFromStream(osName.str());
-
-    yInfo() << "bName is: " << bName.toString();
-
 
     if (bName.toString() == abmReasoningFunction::TAG_NULL)
     {
@@ -3534,9 +3594,76 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
     }
 
     string sPredicate = bName.check("predicate", Value(abmReasoningFunction::TAG_NULL)).asString();
-    string sAgent = bName.check("agent", Value(abmReasoningFunction::TAG_NULL)).asString();
-    string sObject= bName.check("object", Value(abmReasoningFunction::TAG_NULL)).asString();
-    string sRecipient= bName.check("recipient", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sAgent = bName.check("agent1", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sObject = bName.check("object1", Value(abmReasoningFunction::TAG_NULL)).asString();
+    string sRecipient = bName.check("spatial1", Value(abmReasoningFunction::TAG_NULL)).asString();
+
+    if (sAgent == abmReasoningFunction::TAG_NULL){
+        sAgent = bName.check("agent", Value(abmReasoningFunction::TAG_NULL)).asString();
+    }
+
+    if (sObject == abmReasoningFunction::TAG_NULL){
+        sObject = bName.check("object", Value(abmReasoningFunction::TAG_NULL)).asString();
+    }
+
+    if (sRecipient == abmReasoningFunction::TAG_NULL){
+        sRecipient = bName.check("recipient", Value(abmReasoningFunction::TAG_NULL)).asString();
+    }
+
+    if (sRecipient == abmReasoningFunction::TAG_NULL){
+        sRecipient = bName.check("spatial", Value(abmReasoningFunction::TAG_NULL)).asString();
+    }
+
+    if (sRecipient == abmReasoningFunction::TAG_NULL){
+        string sAdv1 = bName.check("adv1", Value(abmReasoningFunction::TAG_NULL)).asString();
+        string sAdv2 = bName.check("adv2", Value(abmReasoningFunction::TAG_NULL)).asString();
+
+        // IF ONLY ONE IS PRESENT
+        if (sAdv1 == abmReasoningFunction::TAG_NULL && sAdv2 != abmReasoningFunction::TAG_NULL){
+            sRecipient = sAdv2;
+        }
+        if (sAdv2 == abmReasoningFunction::TAG_NULL && sAdv1 != abmReasoningFunction::TAG_NULL){
+            sRecipient = sAdv1;
+        }
+
+
+        bool fAD1 = false,
+            fAD2 = false,
+            isAdv1 = false,
+            isAdv2 = false;
+
+        // IF BOTH ARE PRESENTS:
+        if (sAdv1 != abmReasoningFunction::TAG_NULL && sAdv2 != abmReasoningFunction::TAG_NULL){
+            for (vector<adjKnowledge>::iterator itAK = listKnownAdverb.begin();
+                itAK != listKnownAdverb.end();
+                itAK++){
+                if (!fAD1 && itAK->sLabel == sAdv1){
+                    fAD1 = true;
+                    if (!(itAK->fTimingInfluence)){
+                        isAdv1 = true;
+                    }
+                }
+                if (!fAD2 && itAK->sLabel == sAdv2){
+                    fAD2 = true;
+                    if (!(itAK->fTimingInfluence)){
+                        isAdv2 = true;
+                    }
+                }
+            }
+        }
+
+        if (!(isAdv1 && isAdv2)){
+            if (isAdv1) sRecipient = sAdv1;
+            if (isAdv2) sRecipient = sAdv2;
+        }
+    }
+
+    if (sPredicate == abmReasoningFunction::TAG_NULL){
+        osName.str("");
+        osName << "SELECT activityname FROM main WHERE instance = " << Id;
+        bName = requestFromStream(osName.str());
+        sPredicate = bName.get(0).toString();
+    }
 
     ostringstream osRelation;
 
@@ -3572,23 +3699,17 @@ Bottle abmReasoning::askActionForLevel3Reasoning(int Id)
 
     //get location of objects before
     osRelation.str("");
-    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id << " AND verb != 'isAtLoc'";
+    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id;
     bRelationsBefore = requestFromStream(osRelation.str().c_str());
 
-    if (bRelationsBefore.toString() != abmReasoningFunction::TAG_NULL) {
-        yInfo() << " other relation before: " << bRelationsBefore.toString();
-    }
 
     //clear things
     osRelation.str("");
 
     //get location of objects after
-    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id + 1 << " AND verb != 'isAtLoc'";
+    osRelation << "SELECT subject, verb, object FROM relation WHERE instance = " << Id + 1;
     bRelationsAfter = requestFromStream(osRelation.str().c_str());
 
-    if (bRelationsAfter.toString() != abmReasoningFunction::TAG_NULL) {
-        yInfo() << " other relation after: " << bRelationsAfter.toString();
-    }
 
     bOutput.addList() = bRelationsBefore;
     bOutput.addList() = bRelationsAfter;

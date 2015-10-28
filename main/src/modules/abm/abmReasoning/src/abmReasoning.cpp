@@ -111,6 +111,7 @@ bool abmReasoning::configure(ResourceFinder &rf)
     //         }
     //     }
     // }
+
     return true;
 }
 
@@ -532,19 +533,30 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
 
     else if (bCommand.get(0).asString() == "displayContextual") {
         bReply.addString("ack");
-        if (bCommand.size() == 3)
+        if (bCommand.size() == 4)
         {
-            displayContextual(bCommand.get(1).toString(), bCommand.get(2).toString ());
+            displayContextual(bCommand.get(1).toString(), bCommand.get(2).toString(), bCommand.get(3).toString());
         }
         else
         {
 
             yInfo() << " displaying " << listContextualKnowledge.size() << " contextual knowledge";
+            vector<string> pastCK;
             for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin();
                 itCK != listContextualKnowledge.end();
                 itCK++)
             {
-                displayContextual(itCK->sName, itCK->sArgument);
+                bool passed = false;
+                for (vector<string>::iterator itVS = pastCK.begin();
+                    itVS != pastCK.end();
+                    itVS++){
+                    if (itCK->sName == *itVS) passed = true;
+                }
+                if (!passed){
+                    whatIs(itCK->sName);
+                    pastCK.push_back(itCK->sName);
+                }
+                //                displayContextual(itCK->sName, itCK->sArgument, itCK->sType);
             }
         }
     }

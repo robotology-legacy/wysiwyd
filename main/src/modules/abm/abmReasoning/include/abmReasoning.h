@@ -55,7 +55,7 @@ private:
     std::map<std::string, std::tuple<std::string, std::vector<double>, std::vector<double> > >   mapTemporalLocation;    // relative location
     grammarKnowledge                listGrammarKnowledge;           // list of known subject of sentence
     wordKnowledge                    WordKnowledge;
-    bool createContextualKnowledge(std::string sName, std::string sArgument);
+    bool createContextualKnowledge(std::string sName, std::string sArgument, std::string sKind);
 
 
     //PDDL planner variable
@@ -212,6 +212,8 @@ public:
     // RETRO REASONING
     yarp::os::Bottle  retroReasoning(int from = 0);
     yarp::os::Bottle  level3Reasoning(int from = 0);
+    std::string  level3Sentences(int from = 0);
+    std::string  level3Actions(int from = 0);
 
     //print functions
     yarp::os::Bottle printPDDLContextualKnowledgeDomain();
@@ -227,7 +229,7 @@ public:
     // display functions
     void displayResult(yarp::os::Bottle bInput);
     void displaySharedPlan();
-    void displayContextual(std::string sName, std::string sArgument);
+    void displayContextual(std::string sName, std::string sArgument, std::string sType);
 
     // OPC related
     yarp::os::Bottle updateOpcObjectLocation(std::string sOPCname);

@@ -79,6 +79,7 @@ double abmReasoningFunction::THRESHOLD_INTERSECT_SUP = 0.75;
 double abmReasoningFunction::THRESHOLD_INTERSECT_INF = 0.25;
 double abmReasoningFunction::THRESHOLD_PRESENCE = 0.9;
 double abmReasoningFunction::THRESHOLD_ABSENCE = 0.1;
+double abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION = 75.;
 
 
 //TAGS
@@ -91,7 +92,8 @@ string abmReasoningFunction::TAG_SUBJECT = "subject";
 string abmReasoningFunction::TAG_AGENT = "agent";
 string abmReasoningFunction::TAG_NONE = "none";
 string abmReasoningFunction::TAG_NULL = "NULL";
-string abmReasoningFunction::TAG_PREDICATE= "predicate";
+string abmReasoningFunction::TAG_SENTENCE = "sentence";
+string abmReasoningFunction::TAG_PREDICATE = "predicate";
 string abmReasoningFunction::TAG_ACTION = "action";
 string abmReasoningFunction::TAG_OBJECT = "object";
 string abmReasoningFunction::TAG_RECIPIENT = "recipient";
@@ -174,6 +176,7 @@ abmReasoningFunction::abmReasoningFunction(ResourceFinder &rf)
     THRESHOLD_INTERSECT_INF = (bPDDL.check("THRESHOLD_INTERSECT_INF", Value(0.25)).asDouble());
     THRESHOLD_PRESENCE = (bPDDL.check("THRESHOLD_PRESENCE", Value(0.9)).asDouble());
     THRESHOLD_ABSENCE = (bPDDL.check("THRESHOLD_ABSENCE", Value(0.1)).asDouble());
+    THRESHOLD_ABSENCE = (bPDDL.check("THRESHOLD_CONFIDENCE_RELATION", Value(75.)).asDouble());
 
 
     Bottle &bTag = rf.findGroup("TAGS");
@@ -539,7 +542,7 @@ vector<double> abmReasoningFunction::getCovMatrix(vector<double> vX, vector<doub
 {
     if (vX.size() != vY.size())
     {
-        yInfo() << "\t" << "Error in abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY) : vX and vY size different"  ;
+        yInfo() << "\t" << "Error in abmReasoningFunction::getCovMatrix(vector<double> vX, vector<double> vY) : vX and vY size different";
         vector<double> vOutput;
         return vOutput;
     }
