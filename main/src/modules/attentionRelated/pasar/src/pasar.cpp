@@ -180,7 +180,7 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "pointing") {
         if (command.size() != 2)
         {
-            reply.addString("error in PASAR: Botte 'pointing' misses information (on/off)");
+            reply.addString("error in PASAR: Bottle 'pointing' misses information (on/off)");
         }
         else
         {

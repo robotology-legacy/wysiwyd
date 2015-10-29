@@ -84,7 +84,7 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
     attach(handlerPort);
 
     aState = s_waiting;
-    trackedObject = NULL;
+    trackedObject = "none";
     x_coord = 0.0;
     y_coord = 0.0;
     z_coord = 0.0;
@@ -138,11 +138,11 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString()=="track") {
         autoSwitch = false;
         if (command.get(1).isInt()) {
-            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt()));
+            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt()))->name();
             trackedCoordinates = false;
         }
         else if (command.get(1).isString()) {
-            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asString().c_str()));
+            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asString().c_str()))->name();
             trackedCoordinates = false;
         }
         else {
@@ -163,12 +163,12 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString()=="sleep") {
         autoSwitch = false;
-        trackedObject = NULL;
+        trackedObject = "none";
         reply.addString("ack");
     }
     else if (command.get(0).asString()=="look") {
         autoSwitch = false;
-        trackedObject = NULL;
+        trackedObject = "none";
         trackedCoordinates = false;
 
         Vector xyz(3);
@@ -234,20 +234,23 @@ bool attentionSelectorModule::updateModule() {
                 //    //yDebug() << "push back " << (*it)->name() << *it;
                 //    presentObjects.push_back(dynamic_cast<Object*>(*it));
                 //}
-
+                //yDebug() << "object name is : " << dynamic_cast<Object*>(*it)->name() << " with type " << dynamic_cast<Object*>(*it)->entity_type() ;
+                //yDebug() << "Check " << (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ;
+                //yDebug() << "Position = {" <<  (dynamic_cast<Object*>(*it))->m_ego_position[0] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[1] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[2] << "}" ;
                 // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
-                if (!(dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0  &&  (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0  )
+                if (!((dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0  &&  (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0)  )
                 {
                     if ( ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ||  (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) )
                     {
                         if ((dynamic_cast<Object*>(*it))->m_present )
                         {
-                            //yDebug() << "push back " << (*it)->name() << *it;
-                            presentObjects.push_back(dynamic_cast<Object*>(*it));
+                            //yDebug() << "push back (present) " << (*it)->name() ;
+                            presentObjects.push_back(dynamic_cast<Object*>(*it)->name());
                         }
                         else if ((dynamic_cast<Object*>(*it))->m_saliency > 0.0)
                         {
-                            presentObjects.push_back(dynamic_cast<Object*>(*it));
+                            //yDebug() << "push back (saliency) " << (*it)->name() ;
+                            presentObjects.push_back(dynamic_cast<Object*>(*it)->name());
                         }
                     }
                 }
@@ -276,10 +279,11 @@ bool attentionSelectorModule::updateModule() {
         if (isFixationPointSafe(newTarget))
             igaze->lookAtFixationPoint(newTarget);
     }
-    else if (trackedObject != NULL)
+    else if (trackedObject != "none")
     {
-        yInfo() << "Tracking locked on object " << trackedObject->name() << ".";
-        Vector newTarget = icub->getSelfRelativePosition(trackedObject->m_ego_position);
+        yInfo() << "Tracking locked on object " << trackedObject << ".";
+        Object* oTracked = dynamic_cast<Object*>(opc->getEntity(trackedObject));
+        Vector newTarget = icub->getSelfRelativePosition(oTracked->m_ego_position);
         if (isFixationPointSafe(newTarget))
             igaze->lookAtFixationPoint(newTarget);
     }
@@ -308,22 +312,21 @@ void attentionSelectorModule::exploring() {
     if (presentObjects.size()==0)
     {aState = s_exploring; return;}
 
-    Object* mostSalient = *presentObjects.begin();
-    for(vector<Object*>::iterator it = presentObjects.begin(); it!=presentObjects.end(); it++)
+    for(vector<std::string>::iterator it = presentObjects.begin(); it!=presentObjects.end(); it++)
     {
-        if (maxSalience < (*it)->m_saliency )
+        Object* o = dynamic_cast<Object*>(opc->getEntity(*it));
+        if (maxSalience < o->m_saliency )
         {
-            maxSalience = (*it)->m_saliency;
-            nameTrackedObject = (*it)->name();
-            mostSalient = *it;
+            maxSalience = o->m_saliency;
+            nameTrackedObject = o->name();
         }
         //yDebug()<<(*it)->name()<<"'s saliency is " <<(*it)->m_saliency;
     }
 
     if (nameTrackedObject != "none")
     {
-        yInfo() << "Most salient object is: " << mostSalient->name() << " with saliency=" << mostSalient->m_saliency;
-        trackedObject = mostSalient;
+        yInfo() << "Most salient object is: " << nameTrackedObject << " with saliency=" << maxSalience;
+        trackedObject = nameTrackedObject;
     }
     else
     {
@@ -331,7 +334,7 @@ void attentionSelectorModule::exploring() {
         {
             int rndID = rand()%presentObjects.size();
             trackedObject = presentObjects[rndID];
-            yInfo() << "Now track object " << rndID << trackedObject->name();
+            yInfo() << "Now track object " << rndID << trackedObject;
             timeLastSwitch = Time::now();
         }
     }

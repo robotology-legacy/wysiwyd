@@ -124,9 +124,9 @@ class attentionSelectorModule : public yarp::os::RFModule {
 
     Agent* icub;
     map<string, ObjectModel>  presentObjectsLastStep;
-    vector<Object*>      presentObjects;
+    vector<std::string>      presentObjects;
     AttentionState aState;
-    Object* trackedObject;
+    std::string trackedObject;
     int store_context_id;
     bool autoSwitch;                //Defines if attention autonomously switch between present objects
 

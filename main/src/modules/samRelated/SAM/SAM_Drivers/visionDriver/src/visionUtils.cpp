@@ -458,16 +458,16 @@ std::vector<int> visionUtils::updateHSVAdaptiveSkin(std::vector<Mat> pixelPlanes
 Mat visionUtils::skinDetect(Mat captureframe, Mat3b *skinDetectHSV, Mat *skinMask, std::vector<int> adaptiveHSV, int minPixelSize, int imgBlurPixels, int imgMorphPixels, int singleRegionChoice, bool displayFaces)
 {
 
-if (adaptiveHSV.size()!=6 || adaptiveHSV.empty())
-{
-	adaptiveHSV.clear();
-    adaptiveHSV.push_back(5);
-    adaptiveHSV.push_back(38);
-    adaptiveHSV.push_back(51);
-    adaptiveHSV.push_back(17);
-    adaptiveHSV.push_back(250);
-    adaptiveHSV.push_back(242);
-}
+    if (adaptiveHSV.size()!=6 || adaptiveHSV.empty())
+    {
+        adaptiveHSV.clear();
+        adaptiveHSV.push_back(5);
+        adaptiveHSV.push_back(38);
+        adaptiveHSV.push_back(51);
+        adaptiveHSV.push_back(17);
+        adaptiveHSV.push_back(250);
+        adaptiveHSV.push_back(242);
+    }
 
 
 	//int step = 0;
