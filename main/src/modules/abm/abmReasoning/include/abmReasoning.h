@@ -203,6 +203,7 @@ public:
     yarp::os::Bottle addBehavior(behavior beInput);
     yarp::os::Bottle saveKnowledge();
     yarp::os::Bottle whatIs(std::string sInput);
+    yarp::os::Bottle howTo();
 
 
     // memory related
@@ -214,6 +215,9 @@ public:
     yarp::os::Bottle  level3Reasoning(int from = 0);
     std::string  level3Sentences(int from = 0);
     std::string  level3Actions(int from = 0);
+    yarp::os::Bottle              sendRelation(int Instance); // send the current relation of the mentalOPC to the ABM at the given instance
+    void    setMentalOPC(int instance);
+    int     getNumberRelation(int instance);
 
     //print functions
     yarp::os::Bottle printPDDLContextualKnowledgeDomain();
@@ -245,15 +249,10 @@ public:
     int                 sendPlan(std::vector<plan> listPlan);
     int                 sendContextual(std::vector<contextualKnowledge> listCK);
     int                 sendInteractionKnowledge(std::vector<knownInteraction> listIn);
+    yarp::os::Bottle    saveKnowledge(std::vector<spatialKnowledge> listSK, std::vector<timeKnowledge> listTK, std::vector<behavior> listBehavior, std::vector<plan> listPlan, std::vector<contextualKnowledge> listCK, std::vector<knownInteraction> listInc);
 
 
-    // Retro reasoning
-    yarp::os::Bottle              sendRelation(int Instance); // send the current relation of the mentalOPC to the ABM at the given instance
-    void    setMentalOPC(int instance);
-    int     getNumberRelation(int instance);
-
-    // Knowledge related function
-    yarp::os::Bottle              saveKnowledge(std::vector<spatialKnowledge> listSK, std::vector<timeKnowledge> listTK, std::vector<behavior> listBehavior, std::vector<plan> listPlan, std::vector<contextualKnowledge> listCK, std::vector<knownInteraction> listInc);
+    
 
 
 };

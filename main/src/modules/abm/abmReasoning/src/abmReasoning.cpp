@@ -112,6 +112,8 @@ bool abmReasoning::configure(ResourceFinder &rf)
     //     }
     // }
 
+    level3Reasoning();
+
     return true;
 }
 

@@ -1996,6 +1996,41 @@ Bottle abmReasoning::whatIs(string sInput)
 
             mapOccurence[itCK->sType] += itCK->iOccurence;
 
+            for (map<string, pair<double, double>>::iterator itMP = itCK->mPercentObjectFromTo.begin();
+                itMP != itCK->mPercentObjectFromTo.end();
+                itMP++)
+            {
+                if (itMP->second.first > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
+                    cout << itMP->first << " From " << itMP->second.first << "%" << endl;
+                }
+                if (itMP->second.second > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
+                    cout << itMP->first << " To " << itMP->second.second << "%" << endl;
+                }
+
+            }
+
+            for (map<string, pair<double, double>>::iterator itMP = itCK->mPercentIntersectLocation.begin();
+                itMP != itCK->mPercentIntersectLocation.end();
+                itMP++)
+            {
+                if (itMP->second.first > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
+                    cout << itMP->first << " intersecteced " << itMP->second.first << "%" << endl;
+                }
+                if (itMP->second.second > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
+                    cout << itMP->first << " intersecteced " << itMP->second.second << "%" << endl;
+                }
+
+            }
+
+            if (itCK->PercentPresence.first > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.){
+                cout << itCK->sName << " object present before: " << itCK->PercentPresence.first << endl;
+            }
+
+            if (itCK->PercentPresence.second > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.){
+                cout << itCK->sName << " object present after: " << itCK->PercentPresence.second << endl;
+            }
+
+
             // for all relations before in the CK
             for (vector<pair<string, int>>::iterator itVPCK = itCK->mRelationBefore.begin();
                 itVPCK != itCK->mRelationBefore.end();
@@ -2513,3 +2548,17 @@ Bottle abmReasoning::saveKnowledge(vector<spatialKnowledge> listSK, vector<timeK
     return bOutput;
 }
 
+
+Bottle abmReasoning::howTo()
+{
+    Bottle bOutput;
+
+    string icub = "icub";
+    string have = "have";
+    string giraffe = "giraffe";
+
+
+
+
+    return bOutput;
+}
