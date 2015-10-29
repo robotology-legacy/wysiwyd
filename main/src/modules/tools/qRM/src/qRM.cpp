@@ -120,14 +120,26 @@ bool qRM::respond(const Bottle& command, Bottle& reply) {
         reply.addString("quitting");
         return false;
     }
-    else if (command.get(0).asString() == "populateABM") {
+    else if (command.get(0).asString() == "populateABMGive") {
         if (command.size() == 2)
         {
-            populateABM(command.get(1).asInt());
+            populateABMGive(command.get(1).asInt());
         }
         else
         {
-            populateABM();
+            populateABMGive();
+        }
+        reply.addString("populating ABM");
+        return true;
+    }
+    else if (command.get(0).asString() == "populateABMTake") {
+        if (command.size() == 2)
+        {
+            populateABMTake(command.get(1).asInt());
+        }
+        else
+        {
+            populateABMTake();
         }
         reply.addString("populating ABM");
         return true;
@@ -1452,7 +1464,7 @@ Bottle qRM::executeAction(Bottle bInput)
 *   Populate the ABM with predifined situations
 *
 */
-void qRM::populateABM(int iRepetition)
+void qRM::populateABMGive(int iRepetition)
 {
     vector<string> vObject;
     vObject.push_back("doudou");
@@ -1700,4 +1712,113 @@ void qRM::populateABM(int iRepetition)
         Time::delay(1.);
     }
 
+}
+
+
+
+/*
+*   Populate the ABM with predifined situations
+*
+*/
+void qRM::populateABMTake(int iRepetition)
+{
+    vector<string> vObject;
+    vObject.push_back("doudou");
+    vObject.push_back("thing");
+    vObject.push_back("bottle");
+    vObject.push_back("phone");
+
+
+    vector<string> vAgent;
+    vAgent.push_back("larry");
+    vAgent.push_back("robert");
+    vAgent.push_back("john");
+    vAgent.push_back("mike");
+    vAgent.push_back("stuart");
+
+
+    for (int ii = 0; ii < iRepetition; ii++){
+
+        Time::delay(0.3);
+        iCub->opc->clear();
+        Time::delay(0.3);
+        iCub->opc->checkout();
+        Time::delay(0.3);
+
+        string sAg1 = vAgent[Random::uniform(0, vAgent.size() - 1)];
+        string sObj = vObject[Random::uniform(0, vObject.size() - 1)];
+
+        Action* have = iCub->opc->addOrRetrieveEntity<Action>("have");
+
+        yInfo() << "start action with: " << sAg1 << " and the " << sObj;
+
+        Agent* ag1 = iCub->opc->addOrRetrieveEntity<Agent>(sAg1);
+        double XAG= -0.1 - 0.5 * Random::uniform();
+        double YAG = -0.7 + 2 * Random::uniform();
+        ag1->m_ego_position[0] = XAG;
+        ag1->m_ego_position[1] = YAG;
+        ag1->m_ego_position[2] = 0.30;
+        ag1->m_present = 1;
+        ag1->m_color[0] = Random::uniform(0, 180);
+        ag1->m_color[1] = Random::uniform(0, 80);
+        ag1->m_color[2] = Random::uniform(180, 250);
+        iCub->opc->commit(ag1);
+
+
+
+        double theta = 3.14 * 2 * Random::uniform();
+        double length = 0.3 + 0.2*Random::uniform();
+
+        double xObj = cos(theta) * length + XAG;
+        double yObj = sin(theta) * length + YAG;
+
+        Object* obj = iCub->opc->addOrRetrieveEntity<Object>(sObj);
+        obj->m_ego_position[0] = xObj;
+        obj->m_ego_position[1] = yObj;
+        obj->m_ego_position[2] = 0.0;
+        obj->m_present = 1;
+        obj->m_color[0] = Random::uniform(0, 80);
+        obj->m_color[1] = Random::uniform(80, 180);
+        obj->m_color[2] = Random::uniform(180, 250);
+        iCub->opc->commit(obj);
+
+        yInfo() << " begin action " << ii;
+
+
+        // send the result of recognition to the ABM
+        list<pair<string, string> > lArgument;
+        Time::delay(1.0);
+
+        lArgument.push_back(pair<string, string>(sAg1, "agent"));
+        lArgument.push_back(pair<string, string>("take", "predicate"));
+        lArgument.push_back(pair<string, string>(sObj, "object"));
+        lArgument.push_back(pair<string, string>("none", "recipient"));
+
+        iCub->getABMClient()->sendActivity("action",
+            "take",
+            "action",
+            lArgument,
+            true);
+
+        yInfo() << " in delay of action";
+        Time::delay( 8 * Random::uniform());
+
+        obj->m_ego_position[0] = XAG + 0.1 * Random::uniform();
+        obj->m_ego_position[1] = YAG + 0.1 * Random::uniform();
+        iCub->opc->commit(obj);
+
+        iCub->opc->addRelation(ag1, have, obj);
+
+        Time::delay(2);
+
+        iCub->getABMClient()->sendActivity("action",
+            "take",
+            "action",
+            lArgument,
+            false);
+
+        yInfo() << " end action " << ii;
+
+        Time::delay(1.);
+    }
 }

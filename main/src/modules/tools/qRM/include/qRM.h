@@ -20,7 +20,8 @@ private:
 
     string port2abmReasoningName;
 
-    void        populateABM(int iRepetition=5);
+    void        populateABMTake(int iRepetition = 5);
+    void        populateABMGive(int iRepetition = 5);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
