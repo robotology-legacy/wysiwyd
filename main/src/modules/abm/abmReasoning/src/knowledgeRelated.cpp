@@ -1975,9 +1975,6 @@ Bottle abmReasoning::getInfoEntity(string sName)
 Bottle abmReasoning::whatIs(string sInput)
 {
     Bottle bReturn;
-
-    cout << endl << "Searching information about: " << sInput << endl;
-
     // 1. Search in CK
 
     map<string, vector<pair<string, int> > >  lInputRelBef,
@@ -2001,10 +1998,10 @@ Bottle abmReasoning::whatIs(string sInput)
                 itMP++)
             {
                 if (itMP->second.first > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
-                    cout << itMP->first << " From " << itMP->second.first << "%" << endl;
+                    //cout << itMP->first << " From " << itMP->second.first << "%" << endl;
                 }
                 if (itMP->second.second > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
-                    cout << itMP->first << " To " << itMP->second.second << "%" << endl;
+                    // cout << itMP->first << " To " << itMP->second.second << "%" << endl;
                 }
 
             }
@@ -2014,20 +2011,20 @@ Bottle abmReasoning::whatIs(string sInput)
                 itMP++)
             {
                 if (itMP->second.first > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
-                    cout << itMP->first << " intersecteced " << itMP->second.first << "%" << endl;
+                    //cout << itMP->first << " intersecteced " << itMP->second.first << "%" << endl;
                 }
                 if (itMP->second.second > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.) {
-                    cout << itMP->first << " intersecteced " << itMP->second.second << "%" << endl;
+                    //cout << itMP->first << " intersecteced " << itMP->second.second << "%" << endl;
                 }
 
             }
 
             if (itCK->PercentPresence.first > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.){
-                cout << itCK->sName << " object present before: " << itCK->PercentPresence.first << endl;
+                //cout << itCK->sName << " object present before: " << itCK->PercentPresence.first << endl;
             }
 
             if (itCK->PercentPresence.second > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION / 100.){
-                cout << itCK->sName << " object present after: " << itCK->PercentPresence.second << endl;
+                //cout << itCK->sName << " object present after: " << itCK->PercentPresence.second << endl;
             }
 
 
@@ -2071,17 +2068,25 @@ Bottle abmReasoning::whatIs(string sInput)
         }
     }
 
+    bReturn.addString(sInput);
+    bool bInformation = false;
     // display all relations found:
     /* BEFORE */
     for (map<string, vector<pair<string, int> > > ::iterator itMap = lInputRelBef.begin();
         itMap != lInputRelBef.end();
         itMap++){
-        cout << "When " << sInput << " is a " << itMap->first << ":" << endl;
+        //cout << "When " << sInput << " is a " << itMap->first << ":" << endl;
         for (vector<pair<string, int>>::iterator itVPInput = itMap->second.begin();
             itVPInput != itMap->second.end();
             itVPInput++){
             if ((100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION){
-                cout << "relation before: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) << "%" << " (" << mapOccurence[itMap->first] << ")" << endl;
+                Bottle bTemp;
+                bTemp.addString("before");
+                bTemp.addString(itMap->first);
+                bTemp.addString(itVPInput->first);
+                bReturn.addList() = bTemp;
+                bInformation = true;
+                //               cout << "relation before: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) << "%" << " (" << mapOccurence[itMap->first] << ")" << endl;
             }
         }
     }
@@ -2090,16 +2095,26 @@ Bottle abmReasoning::whatIs(string sInput)
     for (map<string, vector<pair<string, int> > > ::iterator itMap = lInputRelAft.begin();
         itMap != lInputRelAft.end();
         itMap++){
-        cout << "When " << sInput << " is a " << itMap->first << ":" << endl;
+        //cout << "When " << sInput << " is a " << itMap->first << ":" << endl;
         for (vector<pair<string, int>>::iterator itVPInput = itMap->second.begin();
             itVPInput != itMap->second.end();
             itVPInput++){
             if ((100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) > abmReasoningFunction::THRESHOLD_CONFIDENCE_RELATION){
-                cout << "relation after: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) << "%" << " (" << mapOccurence[itMap->first] << ")" << endl;
+                Bottle bTemp;
+                bTemp.addString("after");
+                bTemp.addString(itMap->first);
+                bTemp.addString(itVPInput->first);
+                bReturn.addList() = bTemp;
+                bInformation = true;
+                //           cout << "relation after: " << itVPInput->first << " , " << (100.*itVPInput->second) / (1.*mapOccurence[itMap->first]) << "%" << " (" << mapOccurence[itMap->first] << ")" << endl;
             }
         }
     }
 
+    if (!bInformation){
+        bReturn.clear();
+        bReturn.addString(abmReasoningFunction::TAG_NULL);
+    }
 
     return bReturn;
 }
@@ -2549,14 +2564,129 @@ Bottle abmReasoning::saveKnowledge(vector<spatialKnowledge> listSK, vector<timeK
 }
 
 
-Bottle abmReasoning::howTo()
+Bottle abmReasoning::howTo(string agentGoal, string verbGoal, string objectGoal)
 {
     Bottle bOutput;
+    cout << "-----------------" << endl;
+    cout << "Solving: " << agentGoal << " " << verbGoal << " " << objectGoal << endl;
 
-    string icub = "icub";
-    string have = "have";
-    string giraffe = "giraffe";
+    Bottle bSolutions;
 
+    // Searching in all known CK if one can solve the goal.
+    vector<string> pastCK;
+    for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin();
+        itCK != listContextualKnowledge.end();
+        itCK++)
+    {
+        bool passed = false;
+        for (vector<string>::iterator itVS = pastCK.begin();
+            itVS != pastCK.end();
+            itVS++){
+            if (itCK->sName == *itVS) passed = true;
+        }
+        if (!passed){
+            Bottle bCK = whatIs(itCK->sName);
+            if (bCK.toString() != abmReasoningFunction::TAG_NULL){
+                //  cout << itCK->sName << " has the following  attributes: " << bCK.toString() << endl;
+                // for each condition
+                map<string, vector<Bottle>> mapKindAttribute;
+                for (int ii = 1; ii < bCK.size(); ii++){
+                    // check if is an after consequence:
+                    Bottle bAttribute = *bCK.get(ii).asList();
+                    //                    cout << "bAttribute: " << bAttribute.toString() << endl;
+                    Bottle bTemp;
+                    bTemp.addString(bAttribute.get(0).asString());
+
+                    //                      cout << "is in after" << endl;
+                    string sKind = bAttribute.get(1).asString();
+                    string sAttribute = bAttribute.get(2).toString();
+
+                    string agentAttr,
+                        verbAttr,
+                        objectAttr;
+
+                    //                        cout << "sKind: " << sKind << " , sAttribute: " << sAttribute << endl;
+
+                    string sNameCut = sAttribute;
+                    string delimiter = abmReasoningFunction::TAG_SEPARATOR;
+                    size_t pos = 0;
+                    string token;
+                    int jj = 0;
+                    while ((pos = sAttribute.find(delimiter)) != string::npos) {
+                        token = sAttribute.substr(0, pos);
+                        sAttribute.erase(0, pos + delimiter.length());
+                        sNameCut = token;
+                        switch (jj)
+                        {
+                        case 0:
+                            agentAttr = token;
+                            break;
+                        case 1:
+                            verbAttr = token;
+                            break;
+                        }
+                        jj++;
+                    }
+                    objectAttr = sAttribute;
+                    bTemp.addString(agentAttr);
+                    bTemp.addString(verbAttr);
+                    bTemp.addString(objectAttr);
+
+                    mapKindAttribute[sKind].push_back(bTemp);
+                }
+
+
+                // REORGANISING THE BOTTLES
+
+                for (map<string, vector<Bottle>>::iterator mSVB = mapKindAttribute.begin();
+                    mSVB != mapKindAttribute.end();
+                    mSVB++)
+                {
+                    vector<Bottle> vBotBef,
+                        vBotAft;
+                    for (vector<Bottle>::iterator itVB = mSVB->second.begin();
+                        itVB != mSVB->second.end();
+                        itVB++){
+                        if (itVB->get(0).asString() == "after"){
+                            vBotAft.push_back(*itVB);
+                        }
+                        else if (itVB->get(0).asString() == "before"){
+                            vBotBef.push_back(*itVB);
+                        }
+                    }
+
+                    //CHECK IF THERE IS AN EXISTING CONSEQUENCE:
+
+                    // for each consequence:
+                    bool bCouldWork = false;
+                    for (vector<Bottle>::iterator itVBAf = vBotAft.begin();
+                        itVBAf != vBotAft.end();
+                        itVBAf++){
+                        if (itVBAf->get(2).asString() == verbGoal){
+                            cout << endl << "the " << mSVB->first << " " << itCK->sName << " could work !" << endl;
+                            cout << "I just need to fit: " << agentGoal << " as " << itVBAf->get(1).asString() << ", " << objectGoal << " as " << itVBAf->get(3).asString() << endl;
+                            bCouldWork = true;
+                        }
+                    }
+
+                    // if this CK could work, check for pre conditions:
+                    if (bCouldWork){
+                        if (vBotBef.size() != 0){
+                            cout << "However, I need to fulfil before: " << endl;
+                        }
+                        for (vector<Bottle>::iterator itVBBf = vBotBef.begin();
+                            itVBBf != vBotBef.end();
+                            itVBBf++){
+                            cout << itVBBf->get(1).asString() << " " << itVBBf->get(2).asString() << " " << itVBBf->get(3).asString() << endl;
+
+                        }
+                    }
+                }
+            }
+            pastCK.push_back(itCK->sName);
+        }
+        //                displayContextual(itCK->sName, itCK->sArgument, itCK->sType);
+    }
 
 
 

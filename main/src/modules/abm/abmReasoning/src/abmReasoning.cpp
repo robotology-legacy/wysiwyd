@@ -112,7 +112,9 @@ bool abmReasoning::configure(ResourceFinder &rf)
     //     }
     // }
 
-    level3Reasoning();
+    //level3Reasoning();
+
+    //howTo();
 
     return true;
 }
@@ -497,6 +499,18 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         {
             yWarning("Error in abmReasoning::respond wrong size of input | (whatIs input)");
             bReply.addString("Error in abmReasoning::respond wrong size of input | (whatIs input)");
+        }
+    }
+
+    else if (bCommand.get(0).asString() == "howTo") {
+        bReply.addString("ack");
+        if (bCommand.size() == 4)
+        {
+            bReply.addList() = howTo(bCommand.get(1).asString(), bCommand.get(2).asString(), bCommand.get(3).asString());
+        }
+        else
+        {
+            bReply.addList() = howTo();
         }
     }
 
