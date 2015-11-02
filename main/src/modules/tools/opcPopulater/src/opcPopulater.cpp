@@ -80,9 +80,16 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " setSaliencyEntity";
         (setSaliencyEntity(command)) ? reply.addString("setSaliencyEntity done !") : reply.addString("setSaliencyEntity failed !");
     }
+    else if (command.get(0).asString() == "clear") {
+        yInfo() << " clearing OPC";
+        iCub->opc->clear();
+        iCub->opc->update();
+        reply.addString("clearing OPC");
+    }
     else {
         yInfo() << helpMessage;
         reply.addString("wrong command");
+        reply.addString(helpMessage);
     }
 
     return true;
