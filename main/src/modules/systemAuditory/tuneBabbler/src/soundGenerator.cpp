@@ -8,15 +8,6 @@
 #include <vector>
 
 
-#if WIN32
-// apparently not defined in windows
-double log2(const double x)
-{
-    return (log(x)/log(2.0));
-}
-#endif
-
-
 bool babbler::configure(yarp::os::ResourceFinder &rf)
 {
 

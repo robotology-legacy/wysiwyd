@@ -68,22 +68,22 @@ using namespace cv::gpu;
 class visionDriver: public RFModule
 {
     private:
-	    string imageInPort;
-	    string vectorOutPort;
-	    string imageOutPort;
-	    string hardware;
-	    string format;
+        string imageInPort;
+        string vectorOutPort;
+        string imageOutPort;
+        string hardware;
+        string format;
         string gazeOutPort;
         string faceCascadeFile;
         string bodyCascadeFile;
         string moduleName;
         
-	    int format_int;
-	    int hardware_int;
-	    int isGPUavailable;
-	    int poll;
-	    bool displayFaces;
-	    bool displayBodies;
+        int format_int;
+        int hardware_int;
+        int isGPUavailable;
+        int poll;
+        bool displayFaces;
+        bool displayBodies;
         bool addFrameRate;
         clock_t startTime;
         
@@ -103,37 +103,37 @@ class visionDriver: public RFModule
         bool faceSegFlag;
         bool bodySegFlag;
 
-	    BufferedPort< ImageOf<PixelRgb> > faceTrack;	
-	    BufferedPort< ImageOf<PixelRgb> > imageOut;
+        BufferedPort< ImageOf<PixelRgb> > faceTrack;
+        BufferedPort< ImageOf<PixelRgb> > imageOut;
 
-	    Port gazePort;	//x and y position for gaze controller
+        Port gazePort;  //x and y position for gaze controller
        
         String bodyPartPosName;
         Port bodyPartPosPort;
         
         std::vector<std::vector<cv::Point> > returnContours;
         std::vector<RotatedRect> armRotatedRects;
-	    
-	    bool inOpen;
-	    bool outOpen;
-	    bool imageOutOpen;
+        
+        bool inOpen;
+        bool outOpen;
+        bool imageOutOpen;
 
-	    bool gazeOut;
+        bool gazeOut;
 
-    	int inCount;
+        int inCount;
 
-    	Mat vectFaceArr;
-    	Mat vectBodyArr;
-    	
+        Mat vectFaceArr;
+        Mat vectBodyArr;
+        
         Mat captureFrameBGR;
-        Mat captureFrameFace;		
-        Mat captureFrameBody;		
-	    cv::gpu::GpuMat captureFrameGPU;
+        Mat captureFrameFace;       
+        Mat captureFrameBody;       
+        cv::gpu::GpuMat captureFrameGPU;
         cv::gpu::GpuMat grayscaleFrameGPU;
         cv::gpu::GpuMat objBufFaceGPU;
         cv::gpu::GpuMat objBufBodyGPU;
         
-		int step;
+        int step;
         int maxSize;
         int biggestFace;
         int count;
@@ -143,24 +143,24 @@ class visionDriver: public RFModule
         int bodySize;
 
         int d;
-		bool inStatus;
+        bool inStatus;
         int boxScaleFactor; //Additional pixels for box sizing
-		int neckScaleFactor;// additional neck scale factor for masking the neck region..... basically add pixels south
-    	int pollTime;
+        int neckScaleFactor;// additional neck scale factor for masking the neck region..... basically add pixels south
+        int pollTime;
         int sagittalSplit;  // split person in left and right
         Point bodyCentre; // calc centre of body
-    	
-    	int imgBlurPixels; //blur pixels for gauss smoothing
-		std::vector< cv::Rect > facesOld;
-		std::vector< cv::Rect > bodiesOld;
+        
+        int imgBlurPixels; //blur pixels for gauss smoothing
+        std::vector< cv::Rect > facesOld;
+        std::vector< cv::Rect > bodiesOld;
 
-    	CascadeClassifier_GPU face_cascade;
-    	CascadeClassifier_GPU body_cascade;
-    	
+        CascadeClassifier_GPU face_cascade;
+        CascadeClassifier_GPU body_cascade;
+        
         visionUtils *utilsObj;
        
         // Detect skin using default values for first go then update.......
-		std::vector<int> hsvAdaptiveValues;
+        std::vector<int> hsvAdaptiveValues;
 
         // Arm / hand tracking
         bool firstLeftHandMovement;
