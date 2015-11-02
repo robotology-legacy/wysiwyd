@@ -116,6 +116,48 @@
     <to>/dumpRobot</to>
     <protocol>tcp</protocol>
   </connection>
+  
+   <connection>
+   <from>/icubSim/head/state:o</from>
+   <to>/iCubGui/head:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/inertial</from>
+   <to>/iCubGui/inertial:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/left_arm/state:o</from>
+   <to>/iCubGui/left_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/right_arm/state:o</from>
+   <to>/iCubGui/right_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/left_leg/state:o</from>
+   <to>/iCubGui/left_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/right_leg/state:o</from>
+   <to>/iCubGui/right_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/torso/state:o</from>
+   <to>/iCubGui/torso:i</to>
+   <protocol>udp</protocol>
+   </connection>
 
 
 </application>
