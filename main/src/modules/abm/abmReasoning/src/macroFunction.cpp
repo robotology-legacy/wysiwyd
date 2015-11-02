@@ -1137,7 +1137,7 @@ string abmReasoning::level3Actions(int from)
                 {   // begin IF bAllRelationAfter is not Null
 
                     // for each relation not locative before the action:
-                    for (unsigned int ii = 0; ii < bAllRelationsBefore.size(); ii++)
+                    for (int ii = 0; ii < bAllRelationsBefore.size(); ii++)
                     {
                         Bottle bTmpRelation = *bAllRelationsBefore.get(ii).asList();
 
@@ -1221,7 +1221,7 @@ string abmReasoning::level3Actions(int from)
                 {   // begin IF bAllRelationAfter is not Null
 
                     // for each relation not locative before the action:
-                    for (unsigned int ii = 0; ii < bAllRelationsAfter.size(); ii++)
+                    for (int ii = 0; ii < bAllRelationsAfter.size(); ii++)
                     {
                         Bottle bTmpRelation = *bAllRelationsAfter.get(ii).asList();
 
@@ -1586,7 +1586,7 @@ string abmReasoning::level3Sentences(int from)
                 {   // begin IF bAllRelationAfter is not Null
 
                     // for each relation not locative before the action:
-                    for (unsigned int ii = 0; ii < bAllRelationsBefore.size(); ii++)
+                    for (int ii = 0; ii < bAllRelationsBefore.size(); ii++)
                     {
                         Bottle bTmpRelation = *bAllRelationsBefore.get(ii).asList();
 
@@ -1687,7 +1687,7 @@ string abmReasoning::level3Sentences(int from)
                 {   // begin IF bAllRelationAfter is not Null
 
                     // for each relation not locative before the action:
-                    for (unsigned int ii = 0; ii < bAllRelationsAfter.size(); ii++)
+                    for (int ii = 0; ii < bAllRelationsAfter.size(); ii++)
                     {
                         Bottle bTmpRelation = *bAllRelationsAfter.get(ii).asList();
 

@@ -3464,7 +3464,8 @@ Bottle abmReasoning::askSentenceFromId(int Id)
     }
 
     // 2-
-    int iInstancePrevious, iInstanceNext;
+    int iInstancePrevious =-1,
+        iInstanceNext=-1;
     string sTimePrevious, sTimeNext,
         sAgentPrevious, sAgentNext;
 

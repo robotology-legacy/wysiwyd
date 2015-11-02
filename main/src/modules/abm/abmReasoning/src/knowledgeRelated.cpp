@@ -1981,7 +1981,6 @@ Bottle abmReasoning::whatIs(string sInput)
         lInputRelAft;
     map<string, int>    mapOccurence;
     bool bFound;
-    int iTotOccurences = 0;
     for (vector<contextualKnowledge>::iterator itCK = listContextualKnowledge.begin(); itCK != listContextualKnowledge.end(); itCK++)
     {   //begin FOR itCK : listContextualKnowledge
 
