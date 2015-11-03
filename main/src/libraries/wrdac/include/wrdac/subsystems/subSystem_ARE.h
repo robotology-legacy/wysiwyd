@@ -41,6 +41,9 @@ namespace wysiwyd {
         */
         class SubSystem_ARE : public SubSystem
         {
+            SubSystem_ABM* SubABM;
+            bool ABMconnected;
+
         protected:
             yarp::os::BufferedPort<yarp::os::Bottle> cmdNoWaitPort;
             yarp::os::RpcClient cmdPort;            
@@ -77,8 +80,7 @@ namespace wysiwyd {
 
             /********************************************************************************/
             bool connect()
-            {
-                SubABM = new SubSystem_ABM("from_ARE");
+            {                
                 ABMconnected = (SubABM->Connect());
                 std::cout << ((ABMconnected) ? "ARE connected to ABM" : "ARE didn't connect to ABM") << std::endl;
 
@@ -90,9 +92,6 @@ namespace wysiwyd {
                 return ret;
             }
 
-            bool ABMconnected;
-            SubSystem_ABM* SubABM;
-
         public:
             /**
             * Default constructor.
@@ -100,11 +99,12 @@ namespace wysiwyd {
             */
             SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
             {
+                SubABM = new SubSystem_ABM("from_ARE");
                 cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
                 cmdNoWaitPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd_nowait:io").c_str());
                 rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
                 getPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/get:io").c_str());
-                m_type = SUBSYSTEM_ARE;
+                m_type = SUBSYSTEM_ARE;                
             }
 
             /**
@@ -122,6 +122,8 @@ namespace wysiwyd {
                 cmdNoWaitPort.close();
                 rpcPort.close();
                 getPort.close();
+
+                delete SubABM;
             }
 
             /********************************************************************************/
@@ -544,6 +546,46 @@ namespace wysiwyd {
             }
 
             /**
+            * Look at the specified [target].
+            * @param target Target to look at in cartesian coordinates
+            * @param options Options of ARE commands ("fixate", (block_eyes 
+            *             ver)).
+            * @param shouldWait is the function blocking?
+            * @return true in case of successfull motor command, false
+            *         otherwise.
+            */
+            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                const bool shouldWait = true)
+            {
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "look", "action", lArgument, true);
+                }
+
+                yarp::os::Bottle bCmd;
+                bCmd.addVocab(yarp::os::Vocab::encode("look"));
+                appendCartesianTarget(bCmd, target);
+                bCmd.append(options);
+                bool bReturn = sendCmd(bCmd, shouldWait);
+
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "look", "action", lArgument, false);
+                }
+                return bReturn;
+            }
+
+            /**
             * Enable/disable impedance control.
             * @param sw enable/disable if true/false.
             * @return true in case of successfull request, false otherwise.
@@ -568,6 +610,14 @@ namespace wysiwyd {
                 bCmd.addVocab(yarp::os::Vocab::encode("time"));
                 bCmd.addDouble(execTime);
                 return rpcPort.asPort().write(bCmd);
+            }
+
+            /**
+            * Destructor.
+            */
+            ~SubSystem_ARE()
+            {
+                delete SubABM;
             }
         };
 

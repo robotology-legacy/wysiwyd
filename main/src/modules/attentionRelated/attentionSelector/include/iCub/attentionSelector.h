@@ -36,9 +36,6 @@ The commands it is possible to send are:
 @b auto : turn on the autonomous switch of attention
 @b sleep : turn off the autonomous switch of attention
 @b look (x y z) : sleep + gaze at xyz
-@b waitMotionDone : blocking call until the motion is done (map to iKinGazeCtrl waitMotionDone() )
-@b getFixationPoint : return a bottle filled with the current fixation point (map to iKinGazeCtrl getFixationPoint() )
-@b getHeadPose : return a bottle filled with the current head pose (map to iKinGazeCtrl getHeadPose() )
 
 * \section lib_sec Libraries
 *
@@ -82,18 +79,18 @@ The commands it is possible to send are:
 * 
 */
 
-#include <iostream>
 #include <string>
 #include <vector>
-#include <yarp/sig/all.h>
+
 #include <yarp/os/all.h>
-#include <yarp/dev/all.h>
-#include <yarp/dev/Drivers.h>
+#include <yarp/sig/all.h>
 
 #include <wrdac/clients/opcClient.h>
+#include <wrdac/clients/icubClient.h>
+
 using namespace std;
 using namespace yarp::os;
-using namespace yarp::dev;
+using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 
 #define ACCELERATION_COEFFICIENT 1.0/1.0
@@ -112,51 +109,44 @@ struct ObjectModel
 /**
 * Module in charge of polling the OPC and updating icubGUI
 */
-class attentionSelectorModule : public yarp::os::RFModule {
-    std::string moduleName;
-    std::string opcName;
+class attentionSelectorModule : public RFModule {
+    string moduleName;
+    string opcName;    
 
-    std::string gazePortName;
-    std::string handlerPortName;
-
-    OPCClient *opc;					 //retrieve information from the OPC
-    yarp::os::Port handlerPort;      //a port to handle messages 
+    OPCClient *opc;             //retrieve information from the OPC
+    ICubClient *icub_client;    //it serves to open up the icub client
+    SubSystem_ARE *are;         //command the gaze through ARE subsystem
+    Port handlerPort;           //a port to handle messages 
 
     Agent* icub;
-    map<string, ObjectModel>  presentObjectsLastStep;
-    vector<std::string>      presentObjects;
+    map<string, ObjectModel> presentObjectsLastStep;
+    vector<string>           presentObjects;
     AttentionState aState;
-    std::string trackedObject;
+    string trackedObject;
     int store_context_id;
     bool autoSwitch;                //Defines if attention autonomously switch between present objects
 
-
-    PolyDriver clientGazeCtrl;
-    IGazeControl *igaze;
     double timeLastSwitch;
     double trackSwitchingPeriod;
 
 protected:
     void exploring();
-    bool isFixationPointSafe(yarp::sig::Vector fp);
+    bool isFixationPointSafe(const Vector &fp);
 
     double x_coord;
     double y_coord;
     double z_coord;
-    bool trackedCoordinates ;
+    bool trackedCoordinates;
 
 public:
 
-    bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-    bool interruptModule();                       // interrupt, e.g., the ports 
-    bool close();                                 // close and shut down the module
-    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
+    bool configure(ResourceFinder &rf);             // configure all the module parameters and return true if successful
+    bool interruptModule();                         // interrupt, e.g., the ports 
+    bool close();                                   // close and shut down the module
+    bool respond(const Bottle& command, Bottle& reply);
     double getPeriod(); 
     bool updateModule();
 };
 
-
-#endif // __ATTENTIONSELECTOR_MODULE_H__
-
-//----- end-of-file --- ( next line intentionally left blank ) ------------------
+#endif
 
