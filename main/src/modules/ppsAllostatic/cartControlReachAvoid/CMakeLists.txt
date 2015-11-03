@@ -17,6 +17,6 @@ source_group("Header Files" FILES ${header})
 
 add_executable(cartControlReachAvoid ${header} ${source})
 target_link_libraries(cartControlReachAvoid iKin ctrlLib ${YARP_LIBRARIES})
-set_target_properties(cartControlReachAvoid PROPERTIES FOLDER cartControlReachAvoid)
+set_target_properties(cartControlReachAvoid PROPERTIES FOLDER ppsAllostatic)
 install(TARGETS cartControlReachAvoid DESTINATION bin)
 
