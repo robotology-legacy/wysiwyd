@@ -49,8 +49,8 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
 
-    icub_client=new ICubClient(getName()+"/ARE","icubClient","client_ARE.ini");
-    if (icub_client->connectSubSystems()) {
+    icub_client=new ICubClient(getName(),"icubClient","client_ARE.ini");
+    if (!icub_client->connectSubSystems()) {
         yError() << getName() << ": Unable to connect to ARE";
         delete opc;
         delete icub_client;
