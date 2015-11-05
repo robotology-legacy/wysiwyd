@@ -586,6 +586,45 @@ namespace wysiwyd {
             }
 
             /**
+            * Track the specified [target].
+            * @param target Target to look at in cartesian coordinates
+            * @param options Options of ARE commands ("no_sacc"). 
+            * @param shouldWait is the function blocking? 
+            * @return true in case of successfull motor command, false
+            *         otherwise.
+            */
+            bool track(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                const bool shouldWait = true)
+            {
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "track", "action", lArgument, true);
+                }
+
+                yarp::os::Bottle bCmd;
+                bCmd.addVocab(yarp::os::Vocab::encode("track"));
+                appendCartesianTarget(bCmd, target);
+                bCmd.append(options);
+                bool bReturn = sendCmd(bCmd, shouldWait);
+
+                if (ABMconnected)
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    SubABM->sendActivity("action", "track", "action", lArgument, false);
+                }
+                return bReturn;
+            }
+
+            /**
             * Enable/disable impedance control.
             * @param sw enable/disable if true/false.
             * @return true in case of successfull request, false otherwise.

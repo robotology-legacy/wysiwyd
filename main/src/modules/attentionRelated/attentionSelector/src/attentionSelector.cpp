@@ -130,8 +130,6 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
             x_coord = command.get(1).asDouble();
             y_coord = command.get(2).asDouble();
             z_coord = command.get(3).asDouble();
-
-            yDebug() << "after coordinates";
         }
         aState = s_tracking;
         reply.addString("ack");
@@ -230,17 +228,17 @@ bool attentionSelectorModule::updateModule() {
     if(trackedCoordinates)
     {
         yInfo() << "Tracking coordinates: " << x_coord << " " << y_coord << " " << z_coord << ".";
-        Vector newTarget(3); newTarget[0]=x_coord;newTarget[1]=y_coord;newTarget[2]=z_coord;
+        Vector newTarget(3); newTarget[0]=x_coord; newTarget[1]=y_coord; newTarget[2]=z_coord;
         if (isFixationPointSafe(newTarget))
-            are->look(newTarget);
+            are->track(newTarget);
     }
     else if (trackedObject != "none")
     {
         yInfo() << "Tracking locked on object " << trackedObject << ".";
         Object* oTracked = dynamic_cast<Object*>(opc->getEntity(trackedObject));
-        Vector newTarget = icub->getSelfRelativePosition(oTracked->m_ego_position);
+        Vector newTarget=oTracked->m_ego_position;
         if (isFixationPointSafe(newTarget))
-            are->look(newTarget);
+            are->track(newTarget);
     }
     return true;
 }

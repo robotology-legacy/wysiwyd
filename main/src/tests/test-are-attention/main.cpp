@@ -50,33 +50,30 @@ int main()
     }
 
     // attention starts up in auto mode => stop it
+    yInfo()<<"stopping attention";
     icub.lookStop();
-
-    Object *object=world.addOrRetrieveEntity<Object>("object");
+    
+    Object *object=world.addOrRetrieveEntity<Object>("BEER");    
     object->m_present=true;
     object->m_ego_position[0]=-0.35;
     object->m_ego_position[1]=-0.2;
     object->m_ego_position[2]=-0.1;
+    yInfo()<<"creating a "<<object->name();
     world.commit(object);
 
-    yInfo()<<"homing ... ";
-    icub.home();
-
-    yInfo()<<"looking at the object ... ";
+    yInfo()<<"looking at the "<<object->name();
     icub.look(object->name());
     Time::delay(3.0);
     icub.lookStop();
 
-    yInfo()<<"pointing at the object ... ";
+    yInfo()<<"pointing at the "<<object->name();
     icub.point(object->name());
-
-    yInfo()<<"homing ... ";
-    icub.home();
 
     yInfo()<<"shutting down ... ";
     icub.close();
     world.clear();
     world.close();
+    yInfo()<<"... bye ";
 
     return 0;
 }

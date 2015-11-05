@@ -13,6 +13,7 @@
 
   <module>
     <name>attentionSelector</name>
+    <port timeout="60">/OPC/rpc</port>
     <node>localhost</node>
   </module>
 </application>
