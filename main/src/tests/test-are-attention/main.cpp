@@ -49,6 +49,9 @@ int main()
         return 1;
     }
 
+    // attention starts up in auto mode => stop it
+    icub.lookStop();
+
     Object *object=world.addOrRetrieveEntity<Object>("object");
     object->m_present=true;
     object->m_ego_position[0]=-0.35;

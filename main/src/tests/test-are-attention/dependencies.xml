@@ -1,0 +1,18 @@
+<application>
+  <name>Dependencies for test-are-attention</name>
+
+  <dependencies>
+    <port>/actionsRenderingEngine/cmd:io</port>
+  </dependencies>
+
+  <module>
+    <name>objectsPropertiesCollector</name>
+    <parameters>--name OPC --empty --nosave</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>attentionSelector</name>
+    <node>localhost</node>
+  </module>
+</application>
