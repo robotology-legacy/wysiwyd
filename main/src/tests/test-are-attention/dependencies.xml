@@ -1,10 +1,5 @@
 <application>
   <name>Dependencies for test-are-attention</name>
-
-  <dependencies>
-    <port>/actionsRenderingEngine/cmd:io</port>
-  </dependencies>
-
   <module>
     <name>objectsPropertiesCollector</name>
     <parameters>--name OPC --empty --nosave</parameters>
@@ -12,8 +7,17 @@
   </module>
 
   <module>
+    <name>actionsRenderingEngine</name>
+    <parameters>--from sim/config.ini</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
     <name>attentionSelector</name>
-    <port timeout="60">/OPC/rpc</port>
+    <dependencies>
+      <port timeout="60">/OPC/rpc</port>
+      <port timeout="60">/actionsRenderingEngine/cmd:io</port>
+    </dependencies>
     <node>localhost</node>
   </module>
 </application>

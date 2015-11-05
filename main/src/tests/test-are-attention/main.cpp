@@ -61,6 +61,9 @@ int main()
     yInfo()<<"creating a "<<object->name();
     world.commit(object);
 
+    yInfo()<<"homing ...";
+    icub.home();
+
     yInfo()<<"looking at the "<<object->name();
     icub.look(object->name());
     Time::delay(3.0);
@@ -70,8 +73,8 @@ int main()
     icub.point(object->name());
 
     yInfo()<<"shutting down ... ";
-    icub.close();
     world.clear();
+    icub.close();    
     world.close();
     yInfo()<<"... bye ";
 
