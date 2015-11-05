@@ -596,32 +596,12 @@ namespace wysiwyd {
             bool track(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),
                 const bool shouldWait = true)
             {
-                if (ABMconnected)
-                {
-                    std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
-                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
-                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
-                    SubABM->sendActivity("action", "track", "action", lArgument, true);
-                }
-
+                // track() is meant for streaming => no point in gating the activity continuously
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("track"));
                 appendCartesianTarget(bCmd, target);
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
-
-                if (ABMconnected)
-                {
-                    std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
-                    lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
-                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
-                    lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
-                    SubABM->sendActivity("action", "track", "action", lArgument, false);
-                }
-                return bReturn;
+                return sendCmd(bCmd, shouldWait);
             }
 
             /**
