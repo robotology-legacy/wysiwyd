@@ -16,6 +16,7 @@
  */
 
 #include <math.h>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <yarp/os/Network.h>
@@ -63,7 +64,25 @@ public:
 	void whatVerbs(const Bottle& command, char* output);
 	void readData(const Bottle& command, float* input);
 
-	bool wave();
+	void egoCenterTransformation(float obj[][3], float r_hand[][3], float l_hand[][3], float i_obj[][3], float i_rh[][3], float i_lh[][3]);
+	bool gluInvertMatrix(float m[], float invm[]);
+
+	bool wave(float r_hand[3], float l_hand[3], float prev_rh[3], float prev_lh[3]);
+	bool move(float obj[], float prev_obj[]);
+	bool push(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
+	bool pull(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
+	bool grasp(float obj[], float prev_obj[], float r_hand[], float l_hand[]);
+	//bool have(float obj[], float prev_obj[]);
+	int have();
+	//bool give(float obj[], float prev_obj[]);
+	bool give(float obj[], float prev_obj[], float spine[], float prev_sp[]);
+	//bool take(float obj[], float prev_obj[]);
+	bool take(float obj[], float prev_obj[], float spine[], float prev_sp[]);
+	bool put(float pres_obj[]);
+	bool lift(float pres_obj[], float r_hand[], float l_hand[], float prev_rh[], float prev_lh[]);
+	bool point(float obj[], float prev_obj[],float r_arm[][3], float l_arm[][3]);
+
+	/*bool wave();
 
 	bool move_obj1();
 	bool move_obj2();
@@ -73,16 +92,13 @@ public:
 
 
 	bool take(int* object);
-//	bool put(int* object);
 	int put();
 	bool push(int* object);
 	bool pull(int* object);
 	bool point(int* object);
 
-//	bool lift(int* object);
 	int lift();
-//	bool have(int* object);
-	int have(/*int ra, int obj*/);
+	int have();
 	bool grasp(int* object);
-	bool give(int* object);
+	bool give(int* object);*/
 };
