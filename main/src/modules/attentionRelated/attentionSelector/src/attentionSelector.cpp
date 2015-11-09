@@ -73,7 +73,7 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
 
     autoSwitch = true;
 
-    if (rf.check("noAutoSwitch"));
+    if (rf.check("noAutoSwitch"))
     {
         yInfo() << " autoSwitch set to off";
         autoSwitch = false;
