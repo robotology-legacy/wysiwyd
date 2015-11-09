@@ -21,11 +21,11 @@
     <node>localhost</node>
     <tag>reactable2opcTag</tag>
   </module>
-  
+
   <module>
     <name>attentionSelector</name>
     <node>localhost</node>
-    <tag>attentionSelectorTag</tag>
+    <tag>reactable2opcTag</tag>
   </module>
 
   <module>
@@ -164,18 +164,15 @@
    <to>/iCubGui/torso:i</to>
    <protocol>udp</protocol>
    </connection>
-
+   
    <connection>
-
-   <from>/actionsRenderingEngine/wbd:rpc</from>
-
-   <to> /wholeBodyDynamics/rpc:i</to>
-
-   <protocol>tcp</protocol>
-
+   	<from>/actionsRenderingEngine/wbd:rpc</from>
+   	<to> /wholeBodyDynamics/rpc:i</to>
+   	<protocol>tcp</protocol>
    </connection>
-
+   
 
 </application>
+
 
 

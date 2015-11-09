@@ -35,7 +35,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = true;
-    iCub = new ICubClient(moduleName, "bodyReservoir", "client.ini", isRFVerbose);
+    iCub = new ICubClient(moduleName, "bodyReservoir", "bodyReservoir.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
 
     if (!iCub->connect())
@@ -51,20 +51,21 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
     portToDumper.open(("/" + moduleName + "/toDumper").c_str());
     if (!Network::connect(("/" + moduleName + "/toDumper"), "/humanRobotDump/rpc"))
     {
-            yWarning() << " CANNOT CONNECT TO DUMPERS";
+        yWarning() << " CANNOT CONNECT TO DUMPERS";
     }
-
-
-
     if (!iCub->getRecogClient())
     {
-        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
+        yWarning() << " WARNING SPEECH RECOGNIZER NOT CONNECTED";
     }
+    abm = true;
     if (!iCub->getABMClient())
     {
-        yWarning() << "WARNING ABM NOT CONNECTED";
+        abm = false;
+        yWarning() << " WARNING ABM NOT CONNECTED";
     }
 
+    iCub->lookStop();
+    iCub->home();
 
     iCub->say("bodyReservoir is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -161,12 +162,11 @@ Bottle bodyReservoir::pointObject(string sObject)
     Bottle bHand(sHand);
 
     Bottle   bOutput;
-
     list<pair<string, string> > lArgument;
     lArgument.push_back(pair<string, string>("iCub", "agent"));
     lArgument.push_back(pair<string, string>("point", "predicate"));
     lArgument.push_back(pair<string, string>(sObject, "object"));
-    iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, true);
+    if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, true);
 
     // SEND OBJECT TO DUMP
     Bottle bToDumper;
@@ -189,7 +189,9 @@ Bottle bodyReservoir::pointObject(string sObject)
     yInfo() << bAnswer.toString();
 
     bool bSuccess = iCub->look(sObject);
+
     Time::delay(2.0);
+    iCub->lookStop();
 
     bSuccess &= iCub->point(sObject, bHand, true);
 
@@ -197,7 +199,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     iCub->getARE()->home();
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
-    iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
+    if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
 
     // SEND FLAG TO DUMPER
     bToDumper.clear();
@@ -228,7 +230,7 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     lArgument.push_back(pair<string, string>("iCub", "agent"));
     lArgument.push_back(pair<string, string>("wave", "predicate"));
     lArgument.push_back(pair<string, string>(sAgent, "object"));
-    iCub->getABMClient()->sendActivity("action", "wave", "action", lArgument, true);
+    if (abm) if (abm) iCub->getABMClient()->sendActivity("action", "wave", "action", lArgument, true);
 
 
     bool bSuccess = iCub->look(sAgent);
@@ -236,7 +238,7 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     bSuccess &= iCub->getARE()->waving(true);
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
-    iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
+    if (abm) if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
 
     bOutput.addString("waving");
     bOutput.addString(sAgent);

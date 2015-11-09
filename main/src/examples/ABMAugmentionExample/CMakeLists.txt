@@ -18,7 +18,7 @@ include_directories(${YARP_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
 
-set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples)
+set_target_properties(${PROJECTNAME} PROPERTIES FOLDER Examples)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 

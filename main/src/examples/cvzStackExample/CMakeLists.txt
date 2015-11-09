@@ -23,8 +23,8 @@ include_directories(${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS
 #include_directories(${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header} ${doc_files})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
-									 cvz
-									 ${GTK2_GTK_LIBRARY}
+                                     cvz
+                                     ${GTK2_GTK_LIBRARY}
                                      ${GTK2_GLIB_LIBRARY}
                                      ${GTK2_GDK_LIBRARY}
                                      ${GTK2_GDK_PIXBUF_LIBRARY}

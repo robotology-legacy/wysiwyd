@@ -29,6 +29,7 @@ private:
     wysiwyd::wrdac::ICubClient  *iCub;
 
     double      period;
+    bool abm;
 
     yarp::os::Port  rpcPort;
     yarp::os::Port  portToDumper;
