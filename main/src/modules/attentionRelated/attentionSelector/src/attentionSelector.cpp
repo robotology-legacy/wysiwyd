@@ -1,10 +1,10 @@
 // -*- mode:C++; tab-width:4; c-basic-offset:4; indent-tabs-mode:nil -*-
 
-/* 
+/*
 * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
 * Authors: Stéphane Lallée, moved from EFAA by Maxime Petit
 * email:   stephane.lallee@gmail.com
-* website: http://wysiwyd.upf.edu/ 
+* website: http://wysiwyd.upf.edu/
 * Permission is granted to copy, distribute, and/or modify this program
 * under the terms of the GNU General Public License, version 2 or any
 * later version published by the Free Software Foundation.
@@ -26,15 +26,15 @@ using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 
 /************************************************************************/
-bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {    
+bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
 
-    moduleName            = rf.check("name",
+    moduleName = rf.check("name",
         Value("attentionSelector"),
         "module name (string)").asString();
 
     setName(moduleName.c_str());
 
-    opcName             = rf.check("opcName",
+    opcName = rf.check("opcName",
         Value("OPC"),
         "Opc name (string)").asString();
 
@@ -42,21 +42,21 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
         Value(1.0)).asDouble();
 
 
-    opc=new OPCClient(moduleName.c_str());
+    opc = new OPCClient(moduleName.c_str());
     if (!opc->connect(opcName)) {
         yError() << getName() << ": Unable to connect to OPC";
         delete opc;
         return false;
     }
 
-    icub_client=new ICubClient(getName(),"icubClient","client_ARE.ini");
+    icub_client = new ICubClient(getName(), "icubClient", "client_ARE.ini");
     if (!icub_client->connectSubSystems()) {
         yError() << getName() << ": Unable to connect to ARE";
         delete opc;
         delete icub_client;
         return false;
     }
-    are=icub_client->getARE();
+    are = icub_client->getARE();
 
     string handlerPortName = "/";
     handlerPortName += getName() + "/rpc";
@@ -92,7 +92,7 @@ bool attentionSelectorModule::interruptModule() {
 /************************************************************************/
 bool attentionSelectorModule::close() {
     handlerPort.close();
-    icub_client->close();    
+    icub_client->close();
     opc->close();
     delete icub_client;
     delete opc;
@@ -101,7 +101,7 @@ bool attentionSelectorModule::close() {
 
 /************************************************************************/
 bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
-    string helpMessage =  string(getName().c_str()) +
+    string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "track <string name> : track the object with the given opc name \n" +
         "track <int id> : track the object with the given opc id \n" +
@@ -113,15 +113,15 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
 
     reply.clear();
 
-    if (command.get(0).asString()=="quit") {
+    if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
     }
-    else if (command.get(0).asString()=="help") {
+    else if (command.get(0).asString() == "help") {
         yInfo() << helpMessage;
         reply.addString("ok");
     }
-    else if (command.get(0).asString()=="track") {
+    else if (command.get(0).asString() == "track") {
         autoSwitch = false;
         if (command.get(1).isInt()) {
             trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt()))->name();
@@ -141,16 +141,16 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
         aState = s_tracking;
         reply.addString("ack");
     }
-    else if (command.get(0).asString()=="auto") {
+    else if (command.get(0).asString() == "auto") {
         autoSwitch = true;
         reply.addString("ack");
     }
-    else if (command.get(0).asString()=="sleep") {
+    else if (command.get(0).asString() == "sleep") {
         autoSwitch = false;
         trackedObject = "none";
         reply.addString("ack");
     }
-    else if (command.get(0).asString()=="look") {
+    else if (command.get(0).asString() == "look") {
         autoSwitch = false;
         trackedObject = "none";
         trackedCoordinates = false;
@@ -178,7 +178,7 @@ bool attentionSelectorModule::updateModule() {
     //list<Entity*> entities = opc->EntitiesCacheCopy();
     list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
-    for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
+    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
     {
         if ((*it)->isType(EFAA_OPC_ENTITY_ACTION))
             yWarning() << "Ignoring relation...";
@@ -198,11 +198,11 @@ bool attentionSelectorModule::updateModule() {
                 //yDebug() << "Check " << (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ;
                 //yDebug() << "Position = {" <<  (dynamic_cast<Object*>(*it))->m_ego_position[0] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[1] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[2] << "}" ;
                 // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
-                if (!((dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0  &&  (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0)  )
+                if (!((dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0))
                 {
-                    if ( ( (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ||  (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) )
+                    if (((*it)->isType(EFAA_OPC_ENTITY_OBJECT) || (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)))
                     {
-                        if ((dynamic_cast<Object*>(*it))->m_present )
+                        if ((dynamic_cast<Object*>(*it))->m_present)
                         {
                             //yDebug() << "push back (present) " << (*it)->name() ;
                             presentObjects.push_back(dynamic_cast<Object*>(*it)->name());
@@ -232,10 +232,10 @@ bool attentionSelectorModule::updateModule() {
         exploring();
     }
 
-    if(trackedCoordinates)
+    if (trackedCoordinates)
     {
         yInfo() << "Tracking coordinates: " << x_coord << " " << y_coord << " " << z_coord << ".";
-        Vector newTarget(3); newTarget[0]=x_coord; newTarget[1]=y_coord; newTarget[2]=z_coord;
+        Vector newTarget(3); newTarget[0] = x_coord; newTarget[1] = y_coord; newTarget[2] = z_coord;
         if (isFixationPointSafe(newTarget))
             are->track(newTarget);
     }
@@ -243,7 +243,7 @@ bool attentionSelectorModule::updateModule() {
     {
         yInfo() << "Tracking locked on object " << trackedObject << ".";
         Object* oTracked = dynamic_cast<Object*>(opc->getEntity(trackedObject));
-        Vector newTarget=oTracked->m_ego_position;
+        Vector newTarget = oTracked->m_ego_position;
         if (isFixationPointSafe(newTarget))
             are->track(newTarget);
     }
@@ -252,13 +252,13 @@ bool attentionSelectorModule::updateModule() {
 
 
 /************************************************************************/
-double attentionSelectorModule::getPeriod() {   
+double attentionSelectorModule::getPeriod() {
     return 0.01;
 }
 
 bool attentionSelectorModule::isFixationPointSafe(const Vector &fp)
 {
-    if (fp[0] < -0.015 )
+    if (fp[0] < -0.015)
         return true;
     else
         return false;
@@ -269,13 +269,15 @@ void attentionSelectorModule::exploring() {
 
     double maxSalience = 0;
     string nameTrackedObject = "none";
-    if (presentObjects.size()==0)
-    {aState = s_exploring; return;}
+    if (presentObjects.size() == 0)
+    {
+        aState = s_exploring; return;
+    }
 
-    for(vector<std::string>::iterator it = presentObjects.begin(); it!=presentObjects.end(); it++)
+    for (vector<std::string>::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
     {
         Object* o = dynamic_cast<Object*>(opc->getEntity(*it));
-        if (maxSalience < o->m_saliency )
+        if (maxSalience < o->m_saliency)
         {
             maxSalience = o->m_saliency;
             nameTrackedObject = o->name();
@@ -289,9 +291,9 @@ void attentionSelectorModule::exploring() {
     }
     else
     {
-        if(Time::now()>timeLastSwitch + trackSwitchingPeriod)
+        if (Time::now() > timeLastSwitch + trackSwitchingPeriod)
         {
-            int rndID = rand()%presentObjects.size();
+            int rndID = rand() % presentObjects.size();
             trackedObject = presentObjects[rndID];
             yInfo() << "Now track object " << rndID << trackedObject;
             timeLastSwitch = Time::now();
