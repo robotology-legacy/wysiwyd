@@ -1,0 +1,178 @@
+<application>
+  <name>Dumper Data</name>
+
+
+  <!--OPC-->
+  <module>
+    <name>objectsPropertiesCollector</name>
+    <parameters>--name OPC --empty --nosave</parameters>
+    <node>localhost</node>
+    <tag>opcTag</tag>
+  </module>
+
+  <module>
+    <name>referenceFrameHandler</name>
+    <node>localhost</node>
+    <tag>referenceFrameHandlerTag</tag>
+  </module>
+
+  <module>
+    <name>reactable2opc</name>
+    <node>localhost</node>
+    <tag>reactable2opcTag</tag>
+  </module>
+
+  <module>
+    <name>attentionSelector</name>
+    <node>localhost</node>
+    <tag>reactable2opcTag</tag>
+  </module>
+
+  <module>
+    <name>optirun iCubGui</name>
+    <parameters>--from iCubGui.ini</parameters>
+    <node>localhost</node>
+    <tag>iCubGui_tagOPC</tag>
+  </module>
+
+  <module>
+    <name>iCubGui</name>
+    <parameters>--from iCubGui.ini</parameters>
+    <node>localhost</node>
+    <tag>iCubGui_tagOPC</tag>
+  </module>
+
+  <module>
+    <name>kinectServer</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>agentDetector</name>
+    <parameters>--showImages true</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>bodyReservoir</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>humanRobotDumper</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>guiUpdater</name>
+    <node>localhost</node>
+    <tag>guiUpdaterTag</tag>
+  </module>
+
+  <module>
+    <name>opcPopulater</name>
+    <node>localhost</node>
+    <tag>opcPopulaterTag</tag>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name dumpHuman</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name dumpRobot</parameters>
+    <node>localhost</node>
+  </module>
+
+  <!-- ********************* CONNECTIONS ********************* -->
+
+
+
+  <connection>
+    <from>/reactable2opc/calibration:rpc</from>
+    <to>/referenceFrameHandler/rpc</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+
+  <connection>
+    <from>/guiUpdater/gui:o</from>
+    <to>/iCubGui/objects</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/guiUpdater/guiBase:o</from>
+    <to>/iCubGui/base:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/humanRobotDump/humanDump</from>
+    <to>/dumpHuman</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/humanRobotDump/robotDump</from>
+    <to>/dumpRobot</to>
+    <protocol>tcp</protocol>
+  </connection>
+  
+   <connection>
+   <from>/icubSim/head/state:o</from>
+   <to>/iCubGui/head:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/inertial</from>
+   <to>/iCubGui/inertial:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/left_arm/state:o</from>
+   <to>/iCubGui/left_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/right_arm/state:o</from>
+   <to>/iCubGui/right_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/left_leg/state:o</from>
+   <to>/iCubGui/left_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/right_leg/state:o</from>
+   <to>/iCubGui/right_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icubSim/torso/state:o</from>
+   <to>/iCubGui/torso:i</to>
+   <protocol>udp</protocol>
+   </connection>
+   
+   <connection>
+   	<from>/actionsRenderingEngine/wbd:rpc</from>
+   	<to> /wholeBodyDynamics/rpc:i</to>
+   	<protocol>tcp</protocol>
+   </connection>
+   
+
+</application>
+
+
+

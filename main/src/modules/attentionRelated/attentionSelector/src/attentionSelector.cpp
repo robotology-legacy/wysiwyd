@@ -20,11 +20,10 @@
 
 #include "iCub/attentionSelector.h"
 
-
-using namespace wysiwyd::wrdac;
+using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace std;
+using namespace wysiwyd::wrdac;
 
 /************************************************************************/
 bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {    
@@ -43,46 +42,28 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
         Value(1.0)).asDouble();
 
 
-    opc = new OPCClient(moduleName.c_str());
-    opc->connect(opcName);
-    icub = NULL;
-
-    handlerPortName = "/";
-    handlerPortName +=  getName() + "/rpc";
-
-    if (!handlerPort.open(handlerPortName.c_str())) {
-        yError() << getName() << ": Unable to open port " << handlerPortName;
+    opc=new OPCClient(moduleName.c_str());
+    if (!opc->connect(opcName)) {
+        yError() << getName() << ": Unable to connect to OPC";
+        delete opc;
         return false;
     }
 
-    gazePortName = "/";
-    gazePortName += getName() + "/gaze";
-    Property option;
-    option.put("device","gazecontrollerclient");
-    option.put("remote","/iKinGazeCtrl");
-    option.put("local", gazePortName.c_str());
-
-    igaze=NULL;
-    if (clientGazeCtrl.open(option)) {
-        clientGazeCtrl.view(igaze);
-    }
-    else
-    {
-        yError() << "Invalid gaze polydriver";
+    icub_client=new ICubClient(getName(),"icubClient","client_ARE.ini");
+    if (!icub_client->connectSubSystems()) {
+        yError() << getName() << ": Unable to connect to ARE";
+        delete opc;
+        delete icub_client;
         return false;
     }
-    igaze->storeContext(&store_context_id);
+    are=icub_client->getARE();
 
-    double neckTrajTime = rf.check("neckTrajTime",
-        Value(0.75)).asDouble();
-    igaze->setNeckTrajTime(neckTrajTime);
-
-    double bindNeckPitchMin = rf.check("neckPitchBindMin", Value(-25.0)).asDouble();
-    double bindNeckPitchMax = rf.check("neckPitchBindMax", Value(25.0)).asDouble();
-    igaze->bindNeckPitch(bindNeckPitchMin, bindNeckPitchMax);
-
+    string handlerPortName = "/";
+    handlerPortName += getName() + "/rpc";
+    handlerPort.open(handlerPortName.c_str());
     attach(handlerPort);
 
+    icub = NULL;
     aState = s_waiting;
     trackedObject = "none";
     x_coord = 0.0;
@@ -103,13 +84,11 @@ bool attentionSelectorModule::interruptModule() {
 
 /************************************************************************/
 bool attentionSelectorModule::close() {
-    opc->close();
     handlerPort.close();
-
-    igaze->restoreContext(store_context_id);
-    if (clientGazeCtrl.isValid())
-        clientGazeCtrl.close();
-
+    icub_client->close();    
+    opc->close();
+    delete icub_client;
+    delete opc;
     return true;
 }
 
@@ -151,8 +130,6 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
             x_coord = command.get(1).asDouble();
             y_coord = command.get(2).asDouble();
             z_coord = command.get(3).asDouble();
-
-            yDebug() << "after coordinates";
         }
         aState = s_tracking;
         reply.addString("ack");
@@ -176,32 +153,8 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
         xyz[1] = command.get(2).asDouble();
         xyz[2] = command.get(3).asDouble();
 
-        igaze->lookAtFixationPoint(xyz);
+        are->look(xyz);
         reply.addString("ack");
-    }
-    else if (command.get(0).asString()=="waitMotionDone") {
-        igaze->waitMotionDone();
-        reply.addString("ack");
-    }
-    else if (command.get(0).asString()=="getFixationPoint") {
-        Vector v;
-        igaze->getFixationPoint(v);
-        reply.addString("ack");
-        reply.addDouble(v[0]);
-        reply.addDouble(v[1]);
-        reply.addDouble(v[2]);
-    }
-    else if (command.get(0).asString()=="getHeadPose") {
-        Vector x,o;
-        igaze->getHeadPose(x,o);
-        reply.addString("ack");
-        reply.addDouble(x[0]);
-        reply.addDouble(x[1]);
-        reply.addDouble(x[2]);
-        reply.addDouble(o[0]);
-        reply.addDouble(o[1]);
-        reply.addDouble(o[2]);
-        reply.addDouble(o[3]);
     }
     return true;
 }
@@ -221,7 +174,7 @@ bool attentionSelectorModule::updateModule() {
     for(list<Entity*>::iterator it=entities.begin(); it !=entities.end(); it++)
     {
         if ((*it)->isType(EFAA_OPC_ENTITY_ACTION))
-            cout << "Ignoring relation..." << endl;
+            yWarning() << "Ignoring relation...";
         else
         {
             if ((*it)->name() == "icub")
@@ -275,17 +228,17 @@ bool attentionSelectorModule::updateModule() {
     if(trackedCoordinates)
     {
         yInfo() << "Tracking coordinates: " << x_coord << " " << y_coord << " " << z_coord << ".";
-        Vector newTarget(3); newTarget[0]=x_coord;newTarget[1]=y_coord;newTarget[2]=z_coord;
+        Vector newTarget(3); newTarget[0]=x_coord; newTarget[1]=y_coord; newTarget[2]=z_coord;
         if (isFixationPointSafe(newTarget))
-            igaze->lookAtFixationPoint(newTarget);
+            are->track(newTarget);
     }
     else if (trackedObject != "none")
     {
         yInfo() << "Tracking locked on object " << trackedObject << ".";
         Object* oTracked = dynamic_cast<Object*>(opc->getEntity(trackedObject));
-        Vector newTarget = icub->getSelfRelativePosition(oTracked->m_ego_position);
+        Vector newTarget=oTracked->m_ego_position;
         if (isFixationPointSafe(newTarget))
-            igaze->lookAtFixationPoint(newTarget);
+            are->track(newTarget);
     }
     return true;
 }
@@ -296,7 +249,7 @@ double attentionSelectorModule::getPeriod() {
     return 0.01;
 }
 
-bool attentionSelectorModule::isFixationPointSafe(Vector fp)
+bool attentionSelectorModule::isFixationPointSafe(const Vector &fp)
 {
     if (fp[0] < -0.015 )
         return true;
@@ -320,7 +273,6 @@ void attentionSelectorModule::exploring() {
             maxSalience = o->m_saliency;
             nameTrackedObject = o->name();
         }
-        //yDebug()<<(*it)->name()<<"'s saliency is " <<(*it)->m_saliency;
     }
 
     if (nameTrackedObject != "none")
@@ -339,3 +291,4 @@ void attentionSelectorModule::exploring() {
         }
     }
 }
+
