@@ -122,8 +122,6 @@ namespace wysiwyd {
                 cmdNoWaitPort.close();
                 rpcPort.close();
                 getPort.close();
-
-                delete SubABM;
             }
 
             /********************************************************************************/
