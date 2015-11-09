@@ -35,7 +35,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = true;
-    iCub = new ICubClient(moduleName, "bodyReservoir", "client.ini", isRFVerbose);
+    iCub = new ICubClient(moduleName, "bodyReservoir", "bodyReservoir.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
 
     if (!iCub->connect())
