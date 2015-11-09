@@ -21,6 +21,12 @@
     <node>localhost</node>
     <tag>reactable2opcTag</tag>
   </module>
+  
+  <module>
+    <name>attentionSelector</name>
+    <node>localhost</node>
+    <tag>attentionSelectorTag</tag>
+  </module>
 
   <module>
     <name>optirun iCubGui</name>

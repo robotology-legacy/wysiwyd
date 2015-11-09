@@ -65,7 +65,8 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
-
+    iCub->lookStop();
+    
     iCub->say("bodyReservoir is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -190,6 +191,7 @@ Bottle bodyReservoir::pointObject(string sObject)
 
     bool bSuccess = iCub->look(sObject);
     Time::delay(2.0);
+    iCub->lookStop();
 
     bSuccess &= iCub->point(sObject, bHand, true);
 
