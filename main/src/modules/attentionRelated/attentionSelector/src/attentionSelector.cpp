@@ -70,7 +70,8 @@ bool attentionSelectorModule::configure(yarp::os::ResourceFinder &rf) {
     y_coord = 0.0;
     z_coord = 0.0;
     trackedCoordinates = false;
-    autoSwitch = true;
+
+    autoSwitch = !(rf.check("noAutoSwitch"));
 
     return true;
 }
