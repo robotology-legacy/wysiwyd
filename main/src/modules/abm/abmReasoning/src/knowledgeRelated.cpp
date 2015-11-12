@@ -2562,7 +2562,10 @@ Bottle abmReasoning::saveKnowledge(vector<spatialKnowledge> listSK, vector<timeK
     return bOutput;
 }
 
-
+/*
+*  Find in the action or sentence which satisfie a situation.
+*
+*/
 Bottle abmReasoning::howTo(string agentGoal, string verbGoal, string objectGoal)
 {
     Bottle bOutput;

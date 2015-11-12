@@ -203,7 +203,7 @@ public:
     yarp::os::Bottle addBehavior(behavior beInput);
     yarp::os::Bottle saveKnowledge();
     yarp::os::Bottle whatIs(std::string sInput);
-    yarp::os::Bottle howTo(std::string agentGoal = "icub", std::string verbGoal = "have", std::string objectGoal = "giraffe");
+    yarp::os::Bottle howTo(std::string agentGoal, std::string verbGoal, std::string objectGoal);
 
 
     // memory related

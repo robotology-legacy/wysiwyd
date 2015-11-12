@@ -510,7 +510,8 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         }
         else
         {
-            bReply.addList() = howTo();
+            bReply.addString("Error in abmReasoning::howTo wrong size of input | (howTo sAgent sPredicate sObject)");
+            yWarning("Error in abmReasoning::howTo wrong size of input | (howTo sAgent sPredicate sObject)");
         }
     }
 
