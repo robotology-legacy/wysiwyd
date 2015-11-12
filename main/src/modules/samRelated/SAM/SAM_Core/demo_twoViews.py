@@ -77,7 +77,7 @@ Data = {'Y':Yn,'L':L}
 Q = 4
 
 # Instantiate object
-a=SAM.LFM()
+a=SAM.SAM_Core.LFM()
 
 # Store the events Y.
 # ARG: Y: A N x D matrix, where N is the number of points and D the number
