@@ -20,16 +20,16 @@
 
 bool verbRec::configure(yarp::os::ResourceFinder &rf)
 {
-    	string moduleName = rf.check("name", Value("verbRec")).asString().c_str();
-    	setName(moduleName.c_str());
+        string moduleName = rf.check("name", Value("verbRec")).asString().c_str();
+        setName(moduleName.c_str());
 
-    	yInfo() << moduleName << " : finding configuration files...";
-    	period = rf.check("period", Value(0.1)).asDouble();
+        yInfo() << moduleName << " : finding configuration files...";
+        period = rf.check("period", Value(0.1)).asDouble();
 
-	count=0;
+    count=0;
 
-	for (int i=0; i<11; i++)
-		output[i] = 0;
+    for (int i=0; i<11; i++)
+        output[i] = 0;
 
         /* optional, attach a port to the module
            so that messages received from the port are redirected
@@ -39,299 +39,299 @@ bool verbRec::configure(yarp::os::ResourceFinder &rf)
         Port_out.open(("/" + moduleName + "Out").c_str());
         attach(Port_out);
 
-	Network::connect("/humanRobotDump/humanDump"/*"/input_data"*/,("/" + moduleName + "In").c_str());  // temporary
+    Network::connect("/humanRobotDump/humanDump"/*"/input_data"*/,("/" + moduleName + "In").c_str());  // temporary
 
-	Network::connect(("/" + moduleName + "Out").c_str(), "/output_data");  // temporary Change so that it only opens the output port later. 
+    Network::connect(("/" + moduleName + "Out").c_str(), "/output_data");  // temporary Change so that it only opens the output port later. 
 
         return true;
 }
 
 
 bool verbRec::close() {
-	/* optional, close port explicitly */
-	cout<<"Calling close function\n";
+    /* optional, close port explicitly */
+    cout<<"Calling close function\n";
         Port_in.close();
         Port_out.close();
-	return true;
+    return true;
 }
 
 
 bool verbRec::respond(const Bottle& command, Bottle& reply) {
-	cout<<"Got something, echo is on"<<endl;
+    cout<<"Got something, echo is on"<<endl;
 
         if (command.get(0).asString()=="quit")
             return false;
         else {
-        	reply=command;
+            reply=command;
 
-		// prepare a message
-        	Bottle botWrite; 
-		char out[100];
-		whatVerbs(command, out);
+        // prepare a message
+            Bottle botWrite; 
+        char out[100];
+        whatVerbs(command, out);
 
-		// the agent is waving
-		if (output[0])
-			botWrite.addString("Agent waving");
-		
-		char str[50];
+        // the agent is waving
+        if (output[0])
+            botWrite.addString("Agent waving");
+        
+        char str[50];
 
-		// object 1 moving
-		if (output[1] == 1) {
-			strcpy(str, objectNames[0].c_str());
-			botWrite.addString(strcat(str, " moving"));
-		}
-		// object 2 moving
-		if (output[1] == 2) {
-			strcpy(str, objectNames[1].c_str());
-			botWrite.addString(strcat(str, " moving"));
-		}
-		// object 3 moving		
-		if (output[1] == 3) {
-			strcpy(str, objectNames[2].c_str());
-			botWrite.addString(strcat(str, " moving"));
-		}
-		// object 4 moving		
-		if (output[1] == 4) {
-			strcpy(str, objectNames[3].c_str());
-			botWrite.addString(strcat(str, " moving"));
-		}
+        // object 1 moving
+        if (output[1] == 1) {
+            strcpy(str, objectNames[0].c_str());
+            botWrite.addString(strcat(str, " moving"));
+        }
+        // object 2 moving
+        if (output[1] == 2) {
+            strcpy(str, objectNames[1].c_str());
+            botWrite.addString(strcat(str, " moving"));
+        }
+        // object 3 moving      
+        if (output[1] == 3) {
+            strcpy(str, objectNames[2].c_str());
+            botWrite.addString(strcat(str, " moving"));
+        }
+        // object 4 moving      
+        if (output[1] == 4) {
+            strcpy(str, objectNames[3].c_str());
+            botWrite.addString(strcat(str, " moving"));
+        }
 
-		strcpy(str,"Agent pushes ");
-		// the agent pushes object 1
-		if (output[2] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Agent pushes ");
-		// the agent pushes object 2
-		if (output[2] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Agent pushes ");
-		// the agent pushes object 3
-		if (output[2] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Agent pushes ");
-		// the agent pushes object 4
-		if (output[2] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Agent pushes ");
+        // the agent pushes object 1
+        if (output[2] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Agent pushes ");
+        // the agent pushes object 2
+        if (output[2] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Agent pushes ");
+        // the agent pushes object 3
+        if (output[2] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Agent pushes ");
+        // the agent pushes object 4
+        if (output[2] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-		strcpy(str,"Agent pulls ");
-		// the agent pulls object 1
-		if (output[3] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Agent pulls ");
-		// the agent pulls object 2
-		if (output[3] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Agent pulls ");
-		// the agent pulls object 3
-		if (output[3] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Agent pulls ");
-		// the agent pulls object 4
-		if (output[3] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Agent pulls ");
+        // the agent pulls object 1
+        if (output[3] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Agent pulls ");
+        // the agent pulls object 2
+        if (output[3] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Agent pulls ");
+        // the agent pulls object 3
+        if (output[3] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Agent pulls ");
+        // the agent pulls object 4
+        if (output[3] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-		strcpy(str,"Agent grasps ");
-		// the agent grasps object 1
-		if (output[4] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Agent grasps ");
-		// the agent grasps object 2
-		if (output[4] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Agent grasps ");
-		// the agent grasps object 3
-		if (output[4] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Agent grasps ");
-		// the agent grasps object 4
-		if (output[4] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Agent grasps ");
+        // the agent grasps object 1
+        if (output[4] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Agent grasps ");
+        // the agent grasps object 2
+        if (output[4] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Agent grasps ");
+        // the agent grasps object 3
+        if (output[4] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Agent grasps ");
+        // the agent grasps object 4
+        if (output[4] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-/*		strcpy(str,"Robot has ");
-		// the robot has object 1
-		if (output[5] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Robot has ");
-		// the robot has object 2
-		if (output[5] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Robot has ");
-		// the robot has object 3
-		if (output[5] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Robot has ");
-		// the robot has object 4
-		if (output[5] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));*/
+/*      strcpy(str,"Robot has ");
+        // the robot has object 1
+        if (output[5] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Robot has ");
+        // the robot has object 2
+        if (output[5] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Robot has ");
+        // the robot has object 3
+        if (output[5] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Robot has ");
+        // the robot has object 4
+        if (output[5] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));*/
 
-		// have for Robot/Agent
-		if (output[5]) { // at least one of the agent or the robot has objects
-			char str_a[50];
-			char str_r[50];
-	  		strcpy(str_a,"");	
-	  		strcpy(str_r,"");
-			// the agent has ...
-			if ((output[5] == 1) || (output[5] == 11)) { // the agent has objects
-	  			strcat(str_a,"Agent has ");
-				// ... object 1
-				if (a_has_obj[0]) {
-					strcat(str_a, objectNames[0].c_str());
-					strcat(str_a, " ");
-				}
-				// ... object 2
-				if (a_has_obj[1]) {
-					strcat(str_a, objectNames[1].c_str());
-					strcat(str_a, " ");
-				}
-				// ... object 3
-				if (a_has_obj[2]) {
-					strcat(str_a, objectNames[2].c_str());
-					strcat(str_a, " ");
-				}
-				// ... object 4
-				if (a_has_obj[3]) {
-					strcat(str_a, objectNames[3].c_str());
-					strcat(str_a, " ");
-				}
-			}
-			// the robot has ...
-			if ((output[5] == 10) || (output[5] == 11)) { // the robot has object
-				strcpy(str_r,"Robot has ");	
-				// ... object 1
-				if (r_has_obj[0]) {
-					strcat(str_r, objectNames[0].c_str());
-					strcat(str_r, " ");
-				}
-				// ... object 2
-				if (r_has_obj[1]) {
-					strcat(str_r, objectNames[1].c_str());
-					strcat(str_r, " ");
-				}
-				// ... object 3
-				if (r_has_obj[2]) {
-					strcat(str_r, objectNames[2].c_str());
-					strcat(str_r, " ");
-				}
-				// ... object 4
-				if (r_has_obj[3]) {
-					strcat(str_r, objectNames[3].c_str());
-					strcat(str_r, " ");
-				}
-			}
-			char str2[100];		
-			strcpy(str2,str_a);		
-			botWrite.addString(strcat(str2,str_r));
-		}
+        // have for Robot/Agent
+        if (output[5]) { // at least one of the agent or the robot has objects
+            char str_a[50];
+            char str_r[50];
+            strcpy(str_a,"");   
+            strcpy(str_r,"");
+            // the agent has ...
+            if ((output[5] == 1) || (output[5] == 11)) { // the agent has objects
+                strcat(str_a,"Agent has ");
+                // ... object 1
+                if (a_has_obj[0]) {
+                    strcat(str_a, objectNames[0].c_str());
+                    strcat(str_a, " ");
+                }
+                // ... object 2
+                if (a_has_obj[1]) {
+                    strcat(str_a, objectNames[1].c_str());
+                    strcat(str_a, " ");
+                }
+                // ... object 3
+                if (a_has_obj[2]) {
+                    strcat(str_a, objectNames[2].c_str());
+                    strcat(str_a, " ");
+                }
+                // ... object 4
+                if (a_has_obj[3]) {
+                    strcat(str_a, objectNames[3].c_str());
+                    strcat(str_a, " ");
+                }
+            }
+            // the robot has ...
+            if ((output[5] == 10) || (output[5] == 11)) { // the robot has object
+                strcpy(str_r,"Robot has "); 
+                // ... object 1
+                if (r_has_obj[0]) {
+                    strcat(str_r, objectNames[0].c_str());
+                    strcat(str_r, " ");
+                }
+                // ... object 2
+                if (r_has_obj[1]) {
+                    strcat(str_r, objectNames[1].c_str());
+                    strcat(str_r, " ");
+                }
+                // ... object 3
+                if (r_has_obj[2]) {
+                    strcat(str_r, objectNames[2].c_str());
+                    strcat(str_r, " ");
+                }
+                // ... object 4
+                if (r_has_obj[3]) {
+                    strcat(str_r, objectNames[3].c_str());
+                    strcat(str_r, " ");
+                }
+            }
+            char str2[100];     
+            strcpy(str2,str_a);     
+            botWrite.addString(strcat(str2,str_r));
+        }
 
-		strcpy(str,"Robot or agent gives ");
-		// the robot or agent gives object 1
-		if (output[6] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Robot or agent gives ");
-		// the robot or agent gives object 2
-		if (output[6] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Robot or agent gives ");
-		// the robot or agent gives object 3
-		if (output[6] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Robot or agent gives ");
-		// the robot or agent gives object 4
-		if (output[6] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Robot or agent gives ");
+        // the robot or agent gives object 1
+        if (output[6] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Robot or agent gives ");
+        // the robot or agent gives object 2
+        if (output[6] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Robot or agent gives ");
+        // the robot or agent gives object 3
+        if (output[6] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Robot or agent gives ");
+        // the robot or agent gives object 4
+        if (output[6] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-		strcpy(str,"Robot or agent takes ");
-		// the robot or agent takes object 1
-		if (output[7] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Robot or agent takes ");
-		// the robot or agent takes object 2
-		if (output[7] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Robot or agent takes ");
-		// the robot or agent takes object 3
-		if (output[7] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Robot or agent takes ");
-		// the robot or agent takes object 4
-		if (output[7] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Robot or agent takes ");
+        // the robot or agent takes object 1
+        if (output[7] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Robot or agent takes ");
+        // the robot or agent takes object 2
+        if (output[7] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Robot or agent takes ");
+        // the robot or agent takes object 3
+        if (output[7] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Robot or agent takes ");
+        // the robot or agent takes object 4
+        if (output[7] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-		strcpy(str,"Agent puts ");
-		// the agent puts object 1
-		if (output[8] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Agent puts ");
-		// the agent puts object 2
-		if (output[8] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Agent puts ");
-		// the agent puts object 3
-		if (output[8] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Agent puts ");
-		// the agent puts object 4
-		if (output[8] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Agent puts ");
+        // the agent puts object 1
+        if (output[8] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Agent puts ");
+        // the agent puts object 2
+        if (output[8] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Agent puts ");
+        // the agent puts object 3
+        if (output[8] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Agent puts ");
+        // the agent puts object 4
+        if (output[8] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-		strcpy(str,"Agent lifts ");
-		// the agent lifts object 1
-		if (output[9] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Agent lifts ");
-		// the agent lifts object 2
-		if (output[9] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Agent lifts ");
-		// the agent lifts object 3
-		if (output[9] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Agent lifts ");
-		// the agent lifts object 4
-		if (output[9] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Agent lifts ");
+        // the agent lifts object 1
+        if (output[9] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Agent lifts ");
+        // the agent lifts object 2
+        if (output[9] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Agent lifts ");
+        // the agent lifts object 3
+        if (output[9] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Agent lifts ");
+        // the agent lifts object 4
+        if (output[9] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-		strcpy(str,"Agent points at ");
-		// the agent points at object 1
-		if (output[10] == 1)
-			botWrite.addString(strcat(str, objectNames[0].c_str()));
-		strcpy(str,"Agent points at ");
-		// the agent points at object 2
-		if (output[10] == 2)
-			botWrite.addString(strcat(str, objectNames[1].c_str()));
-		strcpy(str,"Agent points at ");
-		// the agent points at object 3
-		if (output[10] == 3)
-			botWrite.addString(strcat(str, objectNames[2].c_str()));
-		strcpy(str,"Agent points at ");
-		// the agent points at object 4
-		if (output[10] == 4)
-			botWrite.addString(strcat(str, objectNames[3].c_str()));
+        strcpy(str,"Agent points at ");
+        // the agent points at object 1
+        if (output[10] == 1)
+            botWrite.addString(strcat(str, objectNames[0].c_str()));
+        strcpy(str,"Agent points at ");
+        // the agent points at object 2
+        if (output[10] == 2)
+            botWrite.addString(strcat(str, objectNames[1].c_str()));
+        strcpy(str,"Agent points at ");
+        // the agent points at object 3
+        if (output[10] == 3)
+            botWrite.addString(strcat(str, objectNames[2].c_str()));
+        strcpy(str,"Agent points at ");
+        // the agent points at object 4
+        if (output[10] == 4)
+            botWrite.addString(strcat(str, objectNames[3].c_str()));
 
-        	// send the message
-        	Port_out.write(botWrite);	
-	}
+            // send the message
+            Port_out.write(botWrite);   
+    }
         return true;
 }
 
 /* Called periodically every getPeriod() seconds */
 bool verbRec::updateModule() {
-	count++;
+    count++;
         cout<<"["<<count<<"]"<< " updateModule... "<<endl;
         return true;
 }
 
 void verbRec::whatVerbs(const Bottle& command, char* out) {
 
-	// reset output
-	for (int i=0; i<11; i++)
-		output[i] = 0;
+    // reset output
+    for (int i=0; i<11; i++)
+        output[i] = 0;
 
-	readData(command, input);
+    readData(command, input);
 
-	// temporary, compensate calibration
-	/*if (count == 1)
-   	{
+    // temporary, compensate calibration
+    /*if (count == 1)
+    {
         input[2]=input[2]+0.2;
         input[5]=input[5]+0.2;
         input[8]=input[8]+0.2;
@@ -342,13 +342,13 @@ void verbRec::whatVerbs(const Bottle& command, char* out) {
         input[23]=input[23]+0.2;
         input[26]=input[26]+0.2;  }*/
 
-	cout<<"input converted = ";  // temporary
-	for (int i=0; i<47; i++)
-		cout<< input[i] <<" ";  // temporary
-	cout<<endl;  // temporary
-	cout<<endl;  // temporary
+    cout<<"input converted = ";  // temporary
+    for (int i=0; i<47; i++)
+        cout<< input[i] <<" ";  // temporary
+    cout<<endl;  // temporary
+    cout<<endl;  // temporary
 
-	// preprocess input, smoothing etc
+    // preprocess input, smoothing etc
     static float spine[5][3] = { {input[24], input[25], input[26]}, {input[24], input[25], input[26]}, {input[24], input[25], input[26]},
         {input[24], input[25], input[26]}, {input[24], input[25], input[26]} };
     
@@ -470,17 +470,17 @@ void verbRec::whatVerbs(const Bottle& command, char* out) {
     float r_arm[3][3] = {{mrs[0],mrs[1],mrs[2]},{mre[0],mre[1],mre[2]},{mrh[0],mrh[1],mrh[2]}};
     float l_arm[3][3] = {{mls[0],mls[1],mls[2]},{mle[0],mle[1],mle[2]},{mlh[0],mlh[1],mlh[2]}};
 
-	// reset vectors recording what objects the robot and the agent have
-	for (int i=0; i<4; i++) {
-		r_has_obj[i] = 0;
-		a_has_obj[i] = 0;
-	}
+    // reset vectors recording what objects the robot and the agent have
+    for (int i=0; i<4; i++) {
+        r_has_obj[i] = 0;
+        a_has_obj[i] = 0;
+    }
 
 // ************* start recognize verbs **************** //
-    	if (wave(mrh, mlh, prev_rh, prev_lh))
-        	output[0]=1;
+        if (wave(mrh, mlh, prev_rh, prev_lh))
+            output[0]=1;
 
-	output[5] = have();
+    output[5] = (float)have();
 
     /************************** OBJECT(1) **************************/
      if ((pres_obj1[9] == 1) && (pres_obj1[8] == 1)) //Object is on reactable and was on reactable
@@ -663,7 +663,7 @@ void verbRec::whatVerbs(const Bottle& command, char* out) {
         {output[4]=3;}
         
 //        if (have(mObj3, prev_obj3))
-//     	  {a_has_obj[2] = 1;}
+//        {a_has_obj[2] = 1;}
 //        {output[5]=3;}
         
             if (give(mObj3, prev_obj3, msp, prev_sp))
@@ -734,9 +734,9 @@ void verbRec::whatVerbs(const Bottle& command, char* out) {
      if (grasp(mObj4, prev_obj4, mrh, mlh))
      {output[4]=4;}
      
-//     	if (have(mObj4, prev_obj4))
-//     	{a_has_obj[3] = 1;}
-//     	{output[5]=4;}
+//      if (have(mObj4, prev_obj4))
+//      {a_has_obj[3] = 1;}
+//      {output[5]=4;}
      
             if (give(mObj4, prev_obj4, msp, prev_sp))
             {output[6]=4;}
@@ -782,193 +782,193 @@ void verbRec::whatVerbs(const Bottle& command, char* out) {
         prev_sp[1] = msp[1];
         prev_sp[2] = msp[2];
 
-	// have
-/*	bool a_has = false;
-	bool r_has = false;
-	for (int i=0; i<4; i++) {
-		if (r_has_obj[i])
-			r_has = true;
-		if (a_has_obj[i])
-			a_has = true;
-	}
-	if (a_has && !r_has)
-		output[5] = 1;
-	if (!a_has && r_has)
-		output[5] = 10;
-	if (a_has && r_has)
-		output[5] = 11;*/
+    // have
+/*  bool a_has = false;
+    bool r_has = false;
+    for (int i=0; i<4; i++) {
+        if (r_has_obj[i])
+            r_has = true;
+        if (a_has_obj[i])
+            a_has = true;
+    }
+    if (a_has && !r_has)
+        output[5] = 1;
+    if (!a_has && r_has)
+        output[5] = 10;
+    if (a_has && r_has)
+        output[5] = 11;*/
 
 
-/*	if (wave())
-		output[0] = 1;
+/*  if (wave())
+        output[0] = 1;
 
-	int object = 0;
-	if (take(&object)) {
-		if (object == 1)
-			output[1] = 1;
-		if (object == 2)
-			output[1] = 2;
-		if (object == 3)
-			output[1] = 3;
-		else
-			output[1] = 4;
-	}
+    int object = 0;
+    if (take(&object)) {
+        if (object == 1)
+            output[1] = 1;
+        if (object == 2)
+            output[1] = 2;
+        if (object == 3)
+            output[1] = 3;
+        else
+            output[1] = 4;
+    }
 
-	output[2] = put();
+    output[2] = put();
 
-	object = 0;
-	if (push(&object)) {
-		if (object == 1)
-			output[3] = 1;
-		if (object == 2)
-			output[3] = 2;
-		if (object == 3)
-			output[3] = 3;
-		else
-			output[3] = 4;
-	}
-	object = 0;
-	if (pull(&object)) {
-		if (object == 1)
-			output[4] = 1;
-		if (object == 2)
-			output[4] = 2;
-		if (object == 3)
-			output[4] = 3;
-		else
-			output[4] = 4;
-	}
-	object = 0;
-	if (point(&object)) {
-		if (object == 1)
-			output[5] = 1;
-		if (object == 2)
-			output[5] = 2;
-		if (object == 3)
-			output[5] = 3;
-		else
-			output[5] = 4;
-	}
-	object = 0;
-	if (move(&object)) {
-		if (object == 1)
-			output[6] = 1;
-		if (object == 2)
-			output[6] = 2;
-		if (object == 3)
-			output[6] = 3;
-		else
-			output[6] = 4;
-	}
+    object = 0;
+    if (push(&object)) {
+        if (object == 1)
+            output[3] = 1;
+        if (object == 2)
+            output[3] = 2;
+        if (object == 3)
+            output[3] = 3;
+        else
+            output[3] = 4;
+    }
+    object = 0;
+    if (pull(&object)) {
+        if (object == 1)
+            output[4] = 1;
+        if (object == 2)
+            output[4] = 2;
+        if (object == 3)
+            output[4] = 3;
+        else
+            output[4] = 4;
+    }
+    object = 0;
+    if (point(&object)) {
+        if (object == 1)
+            output[5] = 1;
+        if (object == 2)
+            output[5] = 2;
+        if (object == 3)
+            output[5] = 3;
+        else
+            output[5] = 4;
+    }
+    object = 0;
+    if (move(&object)) {
+        if (object == 1)
+            output[6] = 1;
+        if (object == 2)
+            output[6] = 2;
+        if (object == 3)
+            output[6] = 3;
+        else
+            output[6] = 4;
+    }
 
-	output[7] = lift();
-	output[8] = have(); 
+    output[7] = lift();
+    output[8] = have(); 
 
-	object = 0;
-	if (grasp(&object)) {
-		if (object == 1)
-			output[9] = 1;
-		if (object == 2)
-			output[9] = 2;
-		if (object == 3)
-			output[9] = 3;
-		else
-			output[9] = 4;
-	}
-	object = 0;
-	if (give(&object)) {
-		if (object == 1)
-			output[10] = 1;
-		if (object == 2)
-			output[10] = 2;
-		if (object == 3)
-			output[10] = 3;
-		else
-			output[10] = 4;
-	}*/
+    object = 0;
+    if (grasp(&object)) {
+        if (object == 1)
+            output[9] = 1;
+        if (object == 2)
+            output[9] = 2;
+        if (object == 3)
+            output[9] = 3;
+        else
+            output[9] = 4;
+    }
+    object = 0;
+    if (give(&object)) {
+        if (object == 1)
+            output[10] = 1;
+        if (object == 2)
+            output[10] = 2;
+        if (object == 3)
+            output[10] = 3;
+        else
+            output[10] = 4;
+    }*/
 
 // ************* end recognize verbs **************** //
 
-	cout<<"output as a float array = ";  // temporary
-	for (int i=0; i<11; i++)
-		cout<< output[i] <<" ";
-	cout<<endl;  // temporary
-	cout<<endl;  // temporary
+    cout<<"output as a float array = ";  // temporary
+    for (int i=0; i<11; i++)
+        cout<< output[i] <<" ";
+    cout<<endl;  // temporary
+    cout<<endl;  // temporary
 }
 
 void verbRec::readData(const Bottle& command, float* input) {
 
-	Bottle bSkeleton = *command.get(2).asList();
-	Bottle bPartner = *command.get(3).asList();
-	int nbrOfObj = command.size()-5;
+    Bottle bSkeleton = *command.get(2).asList();
+    Bottle bPartner = *command.get(3).asList();
+    int nbrOfObj = command.size()-5;
 
-	for (int i=0; i<47; i++)	// -10000 means no data for the element
-		input[i] = -10000;	
+    for (int i=0; i<47; i++)    // -10000 means no data for the element
+        input[i] = -10000;  
 
-	for (int i=0; i<bSkeleton.size(); i++) {
-		ConstString str = (*bSkeleton.get(i).asList()).get(0).toString();
-		if (str == "elbowLeft") {
-			input[0] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[1] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[2] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "elbowRight") {
-			input[3] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[4] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[5] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "handLeft") {
-			input[6] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[7] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[8] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "handRight") {
-			input[9] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[10] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[11] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "head") {
-			input[12] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[13] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[14] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "shoulderCenter") {
-			input[15] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[16] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[17] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "shoulderLeft") {
-			input[18] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[19] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[20] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "shoulderRight") {
-			input[21] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[22] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[23] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-		if (str == "spine") {
-			input[24] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
-			input[25] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
-			input[26] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
-		}
-	}
+    for (int i=0; i<bSkeleton.size(); i++) {
+        ConstString str = (*bSkeleton.get(i).asList()).get(0).toString();
+        if (str == "elbowLeft") {
+            input[0] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[1] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[2] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "elbowRight") {
+            input[3] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[4] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[5] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "handLeft") {
+            input[6] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[7] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[8] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "handRight") {
+            input[9] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[10] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[11] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "head") {
+            input[12] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[13] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[14] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "shoulderCenter") {
+            input[15] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[16] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[17] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "shoulderLeft") {
+            input[18] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[19] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[20] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "shoulderRight") {
+            input[21] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[22] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[23] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+        if (str == "spine") {
+            input[24] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
+            input[25] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
+            input[26] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(2).toString().c_str());
+        }
+    }
 
-	if (bPartner.get(0).toString() == "partner") {
-		input[27] = (float)atof(bPartner.get(1).toString().c_str());
-		input[28] = (float)atof(bPartner.get(2).toString().c_str());
-		input[29] = (float)atof(bPartner.get(3).toString().c_str());
-		input[30] = (float)atof(bPartner.get(4).toString().c_str());
-	}
+    if (bPartner.get(0).toString() == "partner") {
+        input[27] = (float)atof(bPartner.get(1).toString().c_str());
+        input[28] = (float)atof(bPartner.get(2).toString().c_str());
+        input[29] = (float)atof(bPartner.get(3).toString().c_str());
+        input[30] = (float)atof(bPartner.get(4).toString().c_str());
+    }
 
-	// the number of objects can vary between 0 and 4
-	for (int i=0; i<nbrOfObj; i++) {
-		objectNames[i] = (*command.get(i+4).asList()).get(0).toString();
-		input[31+4*i] = (float)atof((*command.get(i+4).asList()).get(1).toString().c_str());
-		input[32+4*i] = (float)atof((*command.get(i+4).asList()).get(2).toString().c_str());
-		input[33+4*i] = (float)atof((*command.get(i+4).asList()).get(3).toString().c_str());
-		input[34+4*i] = (float)atof((*command.get(i+4).asList()).get(4).toString().c_str());
-	}
+    // the number of objects can vary between 0 and 4
+    for (int i=0; i<nbrOfObj; i++) {
+        objectNames[i] = (*command.get(i+4).asList()).get(0).toString();
+        input[31+4*i] = (float)atof((*command.get(i+4).asList()).get(1).toString().c_str());
+        input[32+4*i] = (float)atof((*command.get(i+4).asList()).get(2).toString().c_str());
+        input[33+4*i] = (float)atof((*command.get(i+4).asList()).get(3).toString().c_str());
+        input[34+4*i] = (float)atof((*command.get(i+4).asList()).get(4).toString().c_str());
+    }
 }
 
 void
@@ -1161,7 +1161,7 @@ bool
 verbRec::wave(float r_hand[3], float l_hand[3], float prev_rh[3], float prev_lh[3])
 {    
     static bool obj_wave = false;
-    static float mov_thr = 0.1;
+    static float mov_thr = 0.1f;
     
     float drh = sqrt(pow((r_hand[0]-prev_rh[0]),2)+pow((r_hand[1]-prev_rh[1]),2)+pow((r_hand[2]-prev_rh[2]),2));
     float dlh = sqrt(pow((l_hand[0]-prev_lh[0]),2)+pow((l_hand[1]-prev_lh[1]),2)+pow((l_hand[2]-prev_lh[2]),2));
@@ -1178,7 +1178,7 @@ bool
 verbRec::move(float obj[], float prev_obj[])
 { 
     static bool  obj_move = false;
-    static float mov_thr = 0.1;
+    static float mov_thr = 0.1f;
     
     float dobj = 100.*sqrt(pow((obj[0]-prev_obj[0]),2)+pow((obj[1]-prev_obj[1]),2)+pow((obj[2]-prev_obj[2]),2));
     
@@ -1194,7 +1194,7 @@ bool
 verbRec::push(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3])
 {    
     static bool obj_push = false;
-    static float dis_thr = 0.1;
+    static float dis_thr = 0.1f;
     
     float i_obj[5][3] = {{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0}};
     float i_rh[5][3]  = {{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0}};
@@ -1239,7 +1239,7 @@ bool
 verbRec::pull(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3])
 {    
     static bool obj_pull = false;
-    static float dis_thr = 0.1;
+    static float dis_thr = 0.1f;
     
     float i_obj[5][3] = {{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0}};
     float i_rh[5][3]  = {{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0}};
@@ -1318,72 +1318,72 @@ verbRec::have(float obj[], float prev_obj[])
 int 
 verbRec::have()
 {
-    	static float dis_thr = 0.5;
-	int ret = 0;
-	
-	for (int i=0; i<4; i++) {
-		r_has_obj[i] = 0;
-		a_has_obj[i] = 0;
-	}
+        static float dis_thr = 0.5;
+    int ret = 0;
     
-    	// robot
-    	if ((input[34] == 1) && (sqrt(pow(input[31],2)+pow(input[32],2)+pow(input[33],2)) < dis_thr) ) {
-		r_has_obj[0] = 1;
-		ret = 10;
-	}
+    for (int i=0; i<4; i++) {
+        r_has_obj[i] = 0;
+        a_has_obj[i] = 0;
+    }
     
-    	if ((input[38] == 1) && (sqrt(pow(input[35],2)+pow(input[36],2)+pow(input[37],2)) < dis_thr) ) {
-		r_has_obj[1] = 1;
-		ret = 10;
-	}
+        // robot
+        if ((input[34] == 1) && (sqrt(pow(input[31],2)+pow(input[32],2)+pow(input[33],2)) < dis_thr) ) {
+        r_has_obj[0] = 1;
+        ret = 10;
+    }
     
-    	if ((input[42] == 1) && (sqrt(pow(input[39],2)+pow(input[40],2)+pow(input[41],2)) < dis_thr) ) {
-		r_has_obj[2] = 1;
-		ret = 10;
-	}    
-    	if ((input[44] == 1) && (sqrt(pow(input[43],2)+pow(input[44],2)+pow(input[45],2)) < dis_thr) ) {
-		r_has_obj[3] = 1;
-		ret = 10;
-	}
+        if ((input[38] == 1) && (sqrt(pow(input[35],2)+pow(input[36],2)+pow(input[37],2)) < dis_thr) ) {
+        r_has_obj[1] = 1;
+        ret = 10;
+    }
     
-     	// agent
-     	float diff_1 = sqrt(pow(input[24]-input[31],2)+pow(input[25]-input[32],2)+pow(input[26]-input[33],2));
-     	if ((input[34] == 1) && (diff_1 < dis_thr) ) {
-		a_has_obj[0] = 1;
-		if (ret<10)
-			ret = 1;
-		else
-			ret = 11;
-     	}
+        if ((input[42] == 1) && (sqrt(pow(input[39],2)+pow(input[40],2)+pow(input[41],2)) < dis_thr) ) {
+        r_has_obj[2] = 1;
+        ret = 10;
+    }    
+        if ((input[44] == 1) && (sqrt(pow(input[43],2)+pow(input[44],2)+pow(input[45],2)) < dis_thr) ) {
+        r_has_obj[3] = 1;
+        ret = 10;
+    }
+    
+        // agent
+        float diff_1 = sqrt(pow(input[24]-input[31],2)+pow(input[25]-input[32],2)+pow(input[26]-input[33],2));
+        if ((input[34] == 1) && (diff_1 < dis_thr) ) {
+        a_has_obj[0] = 1;
+        if (ret<10)
+            ret = 1;
+        else
+            ret = 11;
+        }
      
-     	float diff_2 = sqrt(pow(input[24]-input[35],2)+pow(input[25]-input[36],2)+pow(input[26]-input[37],2));
-     	if ((input[38] == 1) && (diff_2 < dis_thr) ) {
-		a_has_obj[1] = 1;
-		if (ret<10)
-			ret = 1;
-		else
-			ret = 11;
-     	}
+        float diff_2 = sqrt(pow(input[24]-input[35],2)+pow(input[25]-input[36],2)+pow(input[26]-input[37],2));
+        if ((input[38] == 1) && (diff_2 < dis_thr) ) {
+        a_has_obj[1] = 1;
+        if (ret<10)
+            ret = 1;
+        else
+            ret = 11;
+        }
      
-     	float diff_3 = sqrt(pow(input[24]-input[39],2)+pow(input[25]-input[40],2)+pow(input[26]-input[41],2));
-     	if ((input[42] == 1) && (diff_3 < dis_thr) ) {
-		a_has_obj[2] = 1;
-		if (ret<10)
-			ret = 1;
-		else
-			ret = 11;
-     	}
+        float diff_3 = sqrt(pow(input[24]-input[39],2)+pow(input[25]-input[40],2)+pow(input[26]-input[41],2));
+        if ((input[42] == 1) && (diff_3 < dis_thr) ) {
+        a_has_obj[2] = 1;
+        if (ret<10)
+            ret = 1;
+        else
+            ret = 11;
+        }
      
-     	float diff_4 = sqrt(pow(input[24]-input[43],2)+pow(input[25]-input[44],2)+pow(input[26]-input[45],2));
-     	if ((input[44] == 1) && (diff_4 < dis_thr) ) {
-		a_has_obj[3] = 1;
-		if (ret<10)
-			ret = 1;
-		else
-			ret = 11;
-    	}
+        float diff_4 = sqrt(pow(input[24]-input[43],2)+pow(input[25]-input[44],2)+pow(input[26]-input[45],2));
+        if ((input[44] == 1) && (diff_4 < dis_thr) ) {
+        a_has_obj[3] = 1;
+        if (ret<10)
+            ret = 1;
+        else
+            ret = 11;
+        }
 
-    	return ret;
+        return ret;
 }
 
 /*bool
@@ -1492,7 +1492,7 @@ verbRec::put(float pres_obj[])
     int prev_pres_obj = 0;
    
     for (int i=0; i<l_pres; i++)
-        prev_pres_obj += pres_obj[i];
+        prev_pres_obj += (int)pres_obj[i];
     
     
     if ((prev_pres_obj <l_pres) && (pres_obj[l_pres] == 1))
@@ -1514,7 +1514,7 @@ verbRec::lift(float pres_obj[], float r_hand[], float l_hand[], float prev_rh[],
     
     
     for (int i=0; i<l_pres; i++)
-        prev_pres_obj += pres_obj[i];
+        prev_pres_obj += (int)pres_obj[i];
 
     if ( (prev_pres_obj > 0) && (pres_obj[l_pres] == 0) )
         obj_lift = true;
