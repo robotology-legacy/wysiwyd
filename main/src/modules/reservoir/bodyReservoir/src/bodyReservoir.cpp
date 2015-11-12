@@ -27,7 +27,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("bodyReservoir")).asString().c_str();
     setName(moduleName.c_str());
 
-    cout << moduleName << ": finding configuration files..." << endl;
+    yInfo() << moduleName << ": finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
     sAgentName = rf.check("agentName", Value("partner")).asString();
 
@@ -40,7 +40,7 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
     if (!iCub->connect())
     {
-        cout << "iCubClient : Some dependencies are not running..." << endl;
+        yInfo() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
 
@@ -98,6 +98,7 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
         "'point' + object to point \n" +
         "'objectToDump' + object \n" +
         "'agentName' + object \n" +
+        "loopPointing + nbLoop \n" +
         "quit \n";
 
     reply.clear();
@@ -114,6 +115,16 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
         }
         else {
             reply.addString("error in pointObject, wrong size of input (2 element: 'point' + object)");
+        }
+    }
+    else if (command.get(0).asString() == "loopPointing") {
+        if (command.size() == 2) {
+            if (command.get(1).asInt() > 0){
+                reply.addList() = loopPointing(command.get(1).asInt());
+            }
+        }
+        else {
+            reply.addList() = loopPointing();
         }
     }
     else if (command.get(0).asString() == "wave") {
@@ -137,7 +148,7 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
         }
     }
     else {
-        cout << helpMessage;
+        yInfo() << helpMessage;
         reply.addString(helpMessage);
     }
 
@@ -183,7 +194,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     // SEND FLAG TO DUMPER
     bToDumper.clear();
     bToDumper.addString("robotDump");
-    bToDumper.addString("on");
+    bToDumper.addString("point");
 
     portToDumper.write(bToDumper, bAnswer);
     yInfo() << bAnswer.toString();
@@ -197,13 +208,13 @@ Bottle bodyReservoir::pointObject(string sObject)
 
     Time::delay(3.0);
     iCub->getARE()->home();
+    Time::delay(1.0);
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
     if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
 
     // SEND FLAG TO DUMPER
     bToDumper.clear();
-    bToDumper.addString("robotDump");
     bToDumper.addString("off");
 
     portToDumper.write(bToDumper, bAnswer);
@@ -243,6 +254,55 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     bOutput.addString("waving");
     bOutput.addString(sAgent);
     (bSuccess) ? bOutput.addString("success") : bOutput.addString("failed");
+
+    return bOutput;
+}
+
+/*
+* For iNbLoop, the robot will generate 4 objects (up right, up left, bottom right, bottom left) with a bit of noise
+* For each object, the robot will look at it, then point at it, then come back to it original position if bComeBack (true by defatul)
+* Return the status of the actions.
+*/
+Bottle bodyReservoir::loopPointing(int iNbLoop)
+{
+    Bottle bOutput;
+
+    Port  portToOpcPopulater;
+    portToOpcPopulater.open("/bodyReservoir/toPopulater");
+    if (!Network::connect("/bodyReservoir/toPopulater", "/opcPopulater/rpc"))
+    {
+        yWarning() << " CANNOT CONNECT TO OPC POPULATER";
+        bOutput.addString("CANNOT CONNECT TO OPC POPULATER");
+        return bOutput;
+    }
+
+    Bottle bToPopulater,
+        bResultPopulate,
+        bResultPointing;
+    bToPopulater.addString("populateSpecific2");
+
+    vector<string> vTarget;
+    vTarget.push_back("obj_right");
+    vTarget.push_back("agent_right");
+    vTarget.push_back("obj_left");
+    vTarget.push_back("agent_left");
+
+    for (int ii = 0; ii < iNbLoop; ii++)
+    {
+        portToOpcPopulater.write(bToPopulater, bResultPopulate);
+        yInfo() << " result of population: " << bResultPopulate.toString();
+        Time::delay(0.5);
+
+        for (vector<string>::iterator itTar = vTarget.begin(); itTar != vTarget.end(); itTar++)
+        {
+            yInfo() << " pointing " << *itTar << " for loop " << ii + 1 << "/" << iNbLoop;
+            bResultPointing = pointObject(*itTar);
+            if (bResultPointing.get(0).asString() == "failed"){
+                yInfo() << "error in pointing " << *itTar << " " << ii;
+                bOutput.addString("error in pointing " + *itTar + " " + ii);
+            }
+        }
+    }
 
     return bOutput;
 }

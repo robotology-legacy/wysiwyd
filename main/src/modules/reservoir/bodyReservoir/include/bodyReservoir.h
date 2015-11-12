@@ -37,6 +37,8 @@ private:
     yarp::os::Bottle        pointObject(std::string sObject);
     yarp::os::Bottle        waveAtAgent(std::string sAgent);
 
+    yarp::os::Bottle        loopPointing(int iNbLoop = 5);
+
     std::string sAgentName;
 
 public:
