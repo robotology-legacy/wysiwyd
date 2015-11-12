@@ -56,7 +56,7 @@ bool humanRobotDump::configureSWS(ResourceFinder &oRf)
 
     // gets the module name which will form the stem of all module port names
     m_sModuleName = oRf.check("name", Value("synchronizedYarpPorts"), "Toolkit/Synchronized Yarp Ports Module name (string)").asString();
-    m_sRobotName = oRf.check("robot", Value("icub"), "Robot name (string)").asString();
+    m_sRobotName = oRf.check("robot", Value("icubSim"), "Robot name (string)").asString();
 
     // robot parts to control
     m_bHeadActivated = oRf.check("headActivated", yarp::os::Value(m_bHeadActivatedDefault), "Head activated (int)").asInt() != 0;
@@ -68,7 +68,7 @@ bool humanRobotDump::configureSWS(ResourceFinder &oRf)
 
 
     // init sync data port
-    m_sSynchronizedDataPortName = "/humanRobotDump/syncdata";
+    m_sSynchronizedDataPortName = "/humanRobotDump/robotDump";
     if (!m_oSynchronizedDataPort.open(m_sSynchronizedDataPortName.c_str()))
     {
         std::cerr << "-ERROR: Unable to open sync data port." << std::endl;
