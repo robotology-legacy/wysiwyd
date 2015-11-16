@@ -17,15 +17,16 @@
  */
 
 
+#ifdef WIN32
+#include <windows.h>
+#define  BOOST_ALL_NO_LIB
+#else
+#include <sys/time.h>
+#endif
+
 #ifdef BOOST_AVAILABLE
 #include <boost/chrono.hpp>
 #include <boost/thread.hpp>
-#endif
-
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <sys/time.h>
 #endif
 
 #include "autobiographicalMemory.h"
