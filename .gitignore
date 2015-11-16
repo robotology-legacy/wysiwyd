@@ -2,6 +2,7 @@
 /main/build*/
 *kdev*
 *.orig
+*.pyc
 
 WYSIWYD.config
 WYSIWYD.creator
