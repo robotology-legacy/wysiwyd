@@ -57,7 +57,7 @@ verbRec::close()
 bool 
 verbRec::respond(const Bottle& command, Bottle& reply) 
 {
-	cout<<"Got something, echo is on"<<endl;
+//	cout<<"Got something, echo is on"<<endl;
 	reply=command;
 
         // prepare a message
@@ -287,6 +287,7 @@ verbRec::respond(const Bottle& command, Bottle& reply)
         if (output[10] == 4)
             	botWrite.addString(strcat(str, objectNames[3].c_str()));
 
+        yInfo() << "\t\t\t" << botWrite.toString();
 	// send the message
 	Port_out.write(botWrite);   
 
