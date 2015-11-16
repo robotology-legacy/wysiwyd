@@ -32,7 +32,6 @@ private:
     	double period;
     	Port Port_out; // a port to receive input
     	Port Port_in; // a port for output
-    	int count;
 
 	float input[47];
 	float output[11];
@@ -72,33 +71,10 @@ public:
 	bool push(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
 	bool pull(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
 	bool grasp(float obj[], float prev_obj[], float r_hand[], float l_hand[]);
-	//bool have(float obj[], float prev_obj[]);
 	int have();
-	//bool give(float obj[], float prev_obj[]);
 	bool give(float obj[], float prev_obj[], float spine[], float prev_sp[]);
-	//bool take(float obj[], float prev_obj[]);
 	bool take(float obj[], float prev_obj[], float spine[], float prev_sp[]);
 	bool put(float pres_obj[]);
 	bool lift(float pres_obj[], float r_hand[], float l_hand[], float prev_rh[], float prev_lh[]);
-	bool point(float obj[], float prev_obj[],float r_arm[][3], float l_arm[][3]);
-
-	/*bool wave();
-
-	bool move_obj1();
-	bool move_obj2();
-	bool move_obj3();
-	bool move_obj4();
-	bool move(int* object);
-
-
-	bool take(int* object);
-	int put();
-	bool push(int* object);
-	bool pull(int* object);
-	bool point(int* object);
-
-	int lift();
-	int have();
-	bool grasp(int* object);
-	bool give(int* object);*/
+	bool point(float obj[][3], float prev_obj[][3],float r_arm[][3], float l_arm[][3], float prev_rh[], float prev_lh[],float fac[]);
 };
