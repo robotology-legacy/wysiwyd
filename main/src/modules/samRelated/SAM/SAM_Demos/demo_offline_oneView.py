@@ -25,6 +25,7 @@ try:
 except ImportError:
     import SAM
 
+
 """
 Prepare some data. This is NOT needed in the final demo,
 since the data will come from the iCub through the
@@ -35,11 +36,16 @@ in standalone mode.
 Ntr = 100
 Nts = 50
 
+#-- Uncomment for brendan faces data
+#data = pods.datasets.brendan_faces()
+#Y = data['Y']
+#L = np.array(range(Y.shape[0]))
+#L = L[:,None]
+
 #-- Uncomment for oil data
 data = pods.datasets.oil()
 Y = data['X'] # Data
-L = data['Y']
-L_list = data['Y'].argmax(axis=1) # Labels 
+L = data['Y'].argmax(axis=1) # Labels
 
 perm = np.random.permutation(Y.shape[0])
 indTs = perm[0:Nts]
@@ -48,10 +54,9 @@ indTr = perm[Nts:Nts+Ntr]
 indTr.sort()
 Ytest = Y[indTs]
 Ltest = L[indTs]
-L_list_test = L_list[indTs]
 Y = Y[indTr]
 L = L[indTr]
-L_list = L_list[indTr]
+
 
 """
 This needs to go to the code, since it's what happens after data collection
@@ -68,13 +73,12 @@ Ytest-= Ymean
 Ytest /= Ystd
 
 # Build a dictionary. Every element in the dictionary is one modality
-# (one view of the data).
-Data = {'Y':Yn,'L':L}
-
+# (one view of the data). Here we have only one modality.
+Y = {'Y':Yn}
 
 # The dimensionality of the compressed space (how many features does
 # each original point is compressed to)
-Q = 4
+Q = 2
 
 # Instantiate object
 a=SAM.SAM_Core.LFM()
@@ -91,12 +95,12 @@ a=SAM.SAM_Core.LFM()
 # proportionally to the data, since synapses can make more complicated combinations
 # of the existing neurons. The GP is here playing the role of "synapses", by learning
 # non-linear and rich combinations of the inducing points.
-a.store(observed=Data, inputs=None, Q=Q, kernel=None, num_inducing=40)
+a.store(observed=Y, inputs=None, Q=Q, kernel=None, num_inducing=40)
 
 # In this problem each of the observables (each row of Y) also has a label.
 # This can be added through the next line via L, where L is a N x K matrix,
 # where K is the total number of labels. 
-a.add_labels(L_list)
+a.add_labels(L)
 
 # Learn from the data, (analogous to forming synapses)
 a.learn(optimizer='bfgs',max_iters=2000, verbose=True)
@@ -105,15 +109,19 @@ a.learn(optimizer='bfgs',max_iters=2000, verbose=True)
 #  of the memory.
 ret = a.visualise()
 
-# Only for images
-#ret2= a.visualise_interactive(dimensions=(20,28))
+# Only for images: Uncomment if your outputs are images and adjust the dimensions of the image (height, width)
+# ret_in= a.visualise_interactive(dimensions=(20,28))
+
 
 # Pattern completion. In this case, we give a new set of test observables 
 # (i.e. events not experienced before) and we want to infer the internal/compressed
 # representation of those. We can then perform inference in this compressed representation.
 # pred_mean is the point estimates of the inernal representation adn pred_Var is the variance
 # (cenrtainty) with which they were predicted (low variance = high certainty)
-pred_mean, pred_var = a.pattern_completion(Ytest)
-
-# Visualise the predictive point estimates for the test data
-pb.plot(pred_mean[:,0],pred_mean[:,1],'bx')
+predictions = a.pattern_completion(Ytest)
+pred_mean = predictions[0]
+pred_var = predictions[1]
+# Visualise the predictive point estimates for the test data; plot them on top of the memory visualization
+ret2 = a.visualise()
+ret2.plot(pred_mean[:,0],pred_mean[:,1],'xm')
+pb.show()

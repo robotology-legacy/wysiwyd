@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.cm as cm
 import itertools
 import pylab as pb
-from GPy.plotting.matplot_dep import dim_reduction_plots as dredplots
+#from GPy.plotting.matplot_dep import dim_reduction_plots as dredplots
 import cPickle as pickle
 
 # try:
@@ -245,15 +245,16 @@ class LFM(object):
             pred_mean = tmp.X.mean
             pred_variance = tmp.X.variance
         elif self.type == 'gp':
+            tmp = []
             pred_mean, pred_variance = self.model.predict(test_data)
         if (self.type == 'mrd' or self.type == 'bgplvm') and visualiseInfo is not None:
             ax = visualiseInfo['ax']
-            inds0, inds1=dredplots.most_significant_input_dimensions(self.model, None)
+            inds0, inds1=most_significant_input_dimensions(self.model, None)
             pp=ax.plot(pred_mean[:,inds0], pred_mean[:,inds1], 'om', markersize=11, mew=11)
             pb.draw()
         else:
             pp=None
-	    
+        
         return pred_mean, pred_variance, pp, tmp
 
     def _get_inducing(self):
@@ -323,4 +324,22 @@ def load_pruned_model(fileName='m_pruned'):
 
     return SAMObject
 
-
+# Copied from GPy
+def most_significant_input_dimensions(model, which_indices):
+    """
+    Determine which dimensions should be plotted
+    """
+    if which_indices is None:
+        if model.input_dim == 1:
+            input_1 = 0
+            input_2 = None
+        if model.input_dim == 2:
+            input_1, input_2 = 0, 1
+        else:
+            try:
+                input_1, input_2 = np.argsort(model.input_sensitivity())[::-1][:2]
+            except:
+                raise ValueError("cannot automatically determine which dimensions to plot, please pass 'which_indices'")
+    else:
+        input_1, input_2 = which_indices
+    return input_1, input_2

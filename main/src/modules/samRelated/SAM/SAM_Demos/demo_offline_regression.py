@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Andreas Damianou
 
 """ 
-This demo implements a supervised learnin scenario, where observations
+This demo implements a supervised learning scenario, where observations
 are accompanied by inputs. So, we have pairs of inputs-observations,
 eg. note C -> frequency 98 etc. 
 """
