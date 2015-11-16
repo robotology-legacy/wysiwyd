@@ -43,7 +43,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "proactiveTagging", "client.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
 
-    if (!iCub->connect())
+    while (!iCub->connect())
     {
         cout << "iCubClient : Some dependencies are not running..." << endl;
         Time::delay(1.0);
