@@ -16,6 +16,12 @@
 */
 
 //#include "modules/reservoir/lrh/include/lrh.h"
+
+#ifdef WIN32
+#include <windows.h>
+#define  BOOST_ALL_NO_LIB
+#endif
+
 #include "lrh.h"
 
 bool LRH::configure(ResourceFinder &rf) {
