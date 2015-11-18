@@ -19,7 +19,7 @@
 */
 
 /*
-* @ingroup icub_module
+* @ingroup wysiwyd_modules
 *
 * \defgroup modules SAM
 *
