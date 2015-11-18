@@ -6,7 +6,6 @@ set(PROJECTNAME cvzVisualHierarchy)
 
 project(${PROJECTNAME})
 
-find_package(GTK2)
 add_definitions(${GTK2_DEFINITIONS})
 include(YarpIDL)
 

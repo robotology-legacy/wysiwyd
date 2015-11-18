@@ -54,11 +54,7 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/subsystems/subSystem_speech.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wysiwydIDLClients_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
-if(WYSIWYD_USE_IQR)
-   add_library(${PROJECTNAME} SHARED ${folder_header} ${folder_source})
-else()
-   add_library(${PROJECTNAME} ${folder_header} ${folder_source})
-endif()
+add_library(${PROJECTNAME} ${folder_header} ${folder_source})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER wrDAC)
 

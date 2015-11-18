@@ -6,8 +6,6 @@ cmake_minimum_required(VERSION 2.8)
 set(PROJECTNAME abmActions)
 project(${PROJECTNAME})
 
-find_package(YARP REQUIRED)
-
 file(GLOB folder_source src/*.cpp)
 file(GLOB folder_header include/*.h)
 

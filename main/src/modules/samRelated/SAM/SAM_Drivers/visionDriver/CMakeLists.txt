@@ -6,9 +6,6 @@ cmake_minimum_required(VERSION 2.8)
 set(PROJECTNAME visionDriver)
 project(${PROJECTNAME})
 
-find_package(OpenCV REQUIRED)
-find_package(YARP REQUIRED)
-
 file(GLOB folder_source src/*.cpp)
 file(GLOB folder_header include/*.h)
 source_group("Source Files" FILES ${folder_source})
