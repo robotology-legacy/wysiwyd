@@ -16,7 +16,7 @@ source_group("Source Files" FILES ${folder_source})
 source_group("DOC Files"    FILES ${doc_files})
 
 FIND_PACKAGE(PythonLibs 2.7 REQUIRED)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} )
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 #cmake -DPYTHON_INCLUDE=/usr/lib/python2.7 ..
 
