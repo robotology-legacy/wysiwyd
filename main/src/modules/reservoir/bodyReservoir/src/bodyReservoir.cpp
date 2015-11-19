@@ -188,7 +188,13 @@ Bottle bodyReservoir::pointObject(string sObject)
     portToDumper.write(bToDumper, bAnswer);
     yInfo() << bAnswer.toString();
 
-    //port envoyer
+    // SEND SUBACTION
+    bToDumper.clear();
+    bToDumper.addString("subaction");
+    bToDumper.addString("look");
+
+    portToDumper.write(bToDumper, bAnswer);
+    yInfo() << bAnswer.toString();
 
 
     // SEND FLAG TO DUMPER
@@ -205,10 +211,27 @@ Bottle bodyReservoir::pointObject(string sObject)
     iCub->lookStop();
 
     bSuccess &= iCub->point(sObject, bHand, true);
+    // SEND SUBACTION
+    bToDumper.clear();
+    bToDumper.addString("subaction");
+    bToDumper.addString("point");
+
+    portToDumper.write(bToDumper, bAnswer);
+    yInfo() << bAnswer.toString();
+
+
 
     Time::delay(3.0);
+    // SEND SUBACTION
+    bToDumper.clear();
+    bToDumper.addString("subaction");
+    bToDumper.addString("back");
+
+    portToDumper.write(bToDumper, bAnswer);
+    yInfo() << bAnswer.toString();
+
     iCub->getARE()->home();
-    Time::delay(1.0);
+    Time::delay(1.5);
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
     if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
