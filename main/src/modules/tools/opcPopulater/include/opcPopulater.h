@@ -36,6 +36,7 @@ public:
     bool    setSaliencyEntity(Bottle bInput);
 
     bool    populateABM(Bottle bInput);
+    bool    populateABMFromFile(Bottle bInput);
 
 
     //RPC & scenarios

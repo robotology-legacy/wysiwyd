@@ -370,6 +370,16 @@ bool opcPopulater::populateABM(Bottle bInput)
 }
 
 
+
+bool opcPopulater::populateABMFromFile(Bottle bInput)
+{
+
+    return true;
+}
+
+
+
+
 bool opcPopulater::populateSpecific2(){
 
     double errorMargin = 0.1;
