@@ -24,6 +24,7 @@ void humanRobotDump::createSWS()
     m_bHeadActivatedDefault = true;
     m_bLeftArmActivatedDefault = true;
     m_bRightArmActivatedDefault = true;
+    m_bTorsoActivatedDefault = true;
     
 
     if (m_bHeadActivated)
@@ -62,6 +63,7 @@ bool humanRobotDump::configureSWS(ResourceFinder &oRf)
     m_bHeadActivated = oRf.check("headActivated", yarp::os::Value(m_bHeadActivatedDefault), "Head activated (int)").asInt() != 0;
     m_bLeftArmActivated = oRf.check("leftArmActivated", yarp::os::Value(m_bLeftArmActivatedDefault), "LeftArm activated (int)").asInt() != 0;
     m_bRightArmActivated = oRf.check("rightArmActivated", yarp::os::Value(m_bRightArmActivatedDefault), "RightArm activated (int)").asInt() != 0;
+    m_bTorsoActivated = oRf.check("torsoArmActivated", yarp::os::Value(m_bTorsoActivatedDefault), "TorsoArm activated (int)").asInt() != 0;
     
     // miscellaneous
     m_i32Fps = oRf.check("fps", yarp::os::Value(10), "Frame per second (int)").asInt();
@@ -157,6 +159,35 @@ bool humanRobotDump::configureSWS(ResourceFinder &oRf)
         m_pIRightArmPosition->getAxes(&m_i32RightArmJointsNb);
     }
 
+    // Torso init
+    if (m_bTorsoActivated)
+    {
+        // set polydriver options
+        m_oTorsoOptions.put("robot", m_sRobotName.c_str());
+        m_oTorsoOptions.put("device", "remote_controlboard");
+        m_oTorsoOptions.put("local", ("/local/" + m_sRobotName + "/" + "torso").c_str());
+        m_oTorsoOptions.put("name", ("/" + m_sRobotName + "/" + "torso").c_str());
+        m_oTorsoOptions.put("remote", ("/" + m_sRobotName + "/" + "torso").c_str());
+        // init polydriver
+        m_oRobotTorso.open(m_oTorsoOptions);
+        if (!m_oRobotTorso.isValid())
+        {
+            std::cerr << std::endl << "-ERROR: Right Torso is not valid, escape torso initialization. " << std::endl << std::endl;
+            return (m_bInitialized = false);
+        }
+        // initializing controllers
+        if (!m_oRobotTorso.view(m_pITorsoPosition) || !m_oRobotTorso.view(m_pITorsoEncoders) || !m_oRobotTorso.view(m_pITorsoVelocity))
+        {
+            std::cerr << std::endl << "-ERROR: while getting required robot torso interfaces." << std::endl << std::endl;
+            m_oRobotTorso.close();
+            return (m_bInitialized = false);
+        }
+        // retrieve Torso number of joints
+        m_pITorsoPosition->getAxes(&m_i32TorsoJointsNb);
+    }
+
+
+
     return (m_bIsRunning = m_bInitialized = true);
 }
 
@@ -202,6 +233,7 @@ bool humanRobotDump::updateSWS()
     Vector l_vHeadEncoders;
     Vector l_vLeftArmEncoders;
     Vector l_vRightArmEncoders;
+    Vector l_vTorsoEncoders;
     Vector l_vObjectPosition;
 
     // sends sync data to yarp port
@@ -209,40 +241,72 @@ bool humanRobotDump::updateSWS()
     l_syncDataBottle.clear();
 
     l_syncDataBottle.addString(sActionName);
+    l_syncDataBottle.addString(sSubActionName);
     l_syncDataBottle.addString(sObjectToDump);
 
     // Retrieves encoder data
     /////// HEAD
     if (m_bHeadActivated)
     {
+        Bottle bUp,
+            bDown;
+        bUp.addString("head");
         l_vHeadEncoders.resize(m_i32HeadJointsNb);
         m_pIHeadEncoders->getEncoders(l_vHeadEncoders.data());
         for (int l_data = 0; l_data < m_i32HeadJointsNb; l_data++)
         {
-            l_syncDataBottle.addDouble(l_vHeadEncoders[l_data]);
+            bDown.addDouble(l_vHeadEncoders[l_data]);
         }
+        bUp.addList() = bDown;
+        l_syncDataBottle.addList() = bUp;
     }
 
     //LEFT ARM
     if (m_bLeftArmActivated)
     {
+        Bottle bUp,
+            bDown;
+        bUp.addString("left_arm");
         l_vLeftArmEncoders.resize(m_i32LeftArmJointsNb);
         m_pILeftArmEncoders->getEncoders(l_vLeftArmEncoders.data());
         for (int l_data = 0; l_data < m_i32LeftArmJointsNb; l_data++)
         {
-            l_syncDataBottle.addDouble(l_vLeftArmEncoders[l_data]);
+            bDown.addDouble(l_vLeftArmEncoders[l_data]);
         }
+        bUp.addList() = bDown;
+        l_syncDataBottle.addList() = bUp;
     }
 
     //RIGHT ARM
     if (m_bRightArmActivated)
     {
+        Bottle bUp,
+            bDown;
+        bUp.addString("right_arm");
         l_vRightArmEncoders.resize(m_i32RightArmJointsNb);
         m_pIRightArmEncoders->getEncoders(l_vRightArmEncoders.data());
         for (int l_data = 0; l_data < m_i32RightArmJointsNb; l_data++)
         {
-            l_syncDataBottle.addDouble(l_vRightArmEncoders[l_data]);
+            bDown.addDouble(l_vRightArmEncoders[l_data]);
         }
+        bUp.addList() = bDown;
+        l_syncDataBottle.addList() = bUp;
+    }
+
+    //TORSO
+    if (m_bTorsoActivated)
+    {
+        Bottle bUp,
+            bDown;
+        bUp.addString("torso");
+        l_vTorsoEncoders.resize(m_i32RightArmJointsNb);
+        m_pITorsoEncoders->getEncoders(l_vTorsoEncoders.data());
+        for (int l_data = 0; l_data < m_i32TorsoJointsNb; l_data++)
+        {
+            bDown.addDouble(l_vTorsoEncoders[l_data]);
+        }
+        bUp.addList() = bDown;
+        l_syncDataBottle.addList() = bUp;
     }
 
 

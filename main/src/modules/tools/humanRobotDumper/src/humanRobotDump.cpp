@@ -50,6 +50,7 @@ bool humanRobotDump::configure(yarp::os::ResourceFinder &rf)
     robotDump = false;
     sObjectToDump = "none";
     sActionName = "none";
+    sSubActionName = "none";
 
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
@@ -112,6 +113,7 @@ bool humanRobotDump::respond(const Bottle& command, Bottle& reply) {
         "off \n" +
         "'humanDump' + action_name \n" +
         "'robotDump' + action_name \n" +
+        "'subaction' + subaction_name \n" +
         "'objectToDump' + object \n" +
         "'agentName' + object \n" +
         "quit \n";
@@ -160,6 +162,18 @@ bool humanRobotDump::respond(const Bottle& command, Bottle& reply) {
             sObjectToDump = command.get(1).toString();
             yInfo() << " object to dump: " + sObjectToDump;
             reply.addString("object to dump: " + sObjectToDump);
+        }
+    }
+    else if (command.get(0).asString() == "subaction"){
+        if (command.size() != 2)
+        {
+            reply.addString("error in humanRobotDump: Botte 'subaction' misses information (subaction name)");
+        }
+        else
+        {
+            sSubActionName = command.get(1).toString();
+            yInfo() << " subaction: " + sSubActionName;
+            reply.addString("subaction: " + sSubActionName);
         }
     }
     else if (command.get(0).asString() == "agentName"){

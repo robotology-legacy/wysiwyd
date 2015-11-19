@@ -41,6 +41,7 @@ private:
     std::string sAgentName;
     std::string sObjectToDump;
     std::string sActionName;
+    std::string sSubActionName;
 
 
     // SWS
@@ -51,11 +52,13 @@ private:
     bool m_bHeadActivatedDefault;                /**< ... */
     bool m_bLeftArmActivatedDefault;               /**< ... */
     bool m_bRightArmActivatedDefault;               /**< ... */
+    bool m_bTorsoActivatedDefault;               /**< ... */
     
     // body parts activated
     bool m_bHeadActivated;                /**< ... */
     bool m_bLeftArmActivated;               /**< ... */
     bool m_bRightArmActivated;               /**< ... */
+    bool m_bTorsoActivated;               /**< ... */
 
     int m_i32Fps;                           /**< fps (define the period for calling updateModule) */
 
@@ -94,6 +97,14 @@ private:
     yarp::dev::PolyDriver        m_oRobotRightArm;                               /**< robot arm controller */
     yarp::dev::IVelocityControl *m_pIRightArmVelocity;
     int  m_i32RightArmJointsNb;  /**< ... */
+
+    // Right arm control
+    yarp::os::Property m_oTorsoOptions;              /**< robot interfaces for Torso movements */
+    yarp::dev::IEncoders        *m_pITorsoEncoders;                           /**< Torso encoder pointer */
+    yarp::dev::IPositionControl *m_pITorsoPosition;                           /**< Torso position control pointer */
+    yarp::dev::PolyDriver        m_oRobotTorso;                               /**< robot Torso controller */
+    yarp::dev::IVelocityControl *m_pITorsoVelocity;
+    int  m_i32TorsoJointsNb;  /**< ... */
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
