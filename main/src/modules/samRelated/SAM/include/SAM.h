@@ -19,9 +19,8 @@
 */
 
 /*
+* @defgroup SAM
 * @ingroup wysiwyd_modules
-*
-* \defgroup modules SAM
 *
 * A Synthetic Autobiographical Memory for the iCub robot. This module contains the core, which implements the high-level functionality, and the drivers which act as middleware between the perceptual system and the core.
 *
