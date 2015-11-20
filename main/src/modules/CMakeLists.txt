@@ -18,20 +18,16 @@ add_subdirectory(scenarioSpecific)
 add_subdirectory(systemAuditory)
 add_subdirectory(systemHaptic)
 add_subdirectory(systemMotor)
-
 add_subdirectory(tools)
 add_subdirectory(samRelated)
 
 #Add modules with dependencies here
-
-
-
 if(WYSIWYD_USE_OpenCV)
     add_subdirectory(systemVisual)
     add_subdirectory(visionRelated)
 endif()
 
-if(WYSIWYD_USE_OTL AND WYSIWYD_USE_OpenCV)
+if(WYSIWYD_USE_OpenCV)
     add_subdirectory(bodySchema)
 endif()
 

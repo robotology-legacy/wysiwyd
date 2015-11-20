@@ -3,9 +3,9 @@
  
 <module>
 
-   <name>bodySchema</name>
+   <name>sensoryProcessor</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>Body Schema Learner</description>
+   <description>Sensory Processor</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
    
@@ -14,12 +14,13 @@
    </description-long>
 
    <arguments>
-   <param default="bodySchema" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   <param default="sensoryProcessor" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
    <param default="icub" desc="To specify the robot's name">robot</param>
    </arguments>
 
    <authors>
        <author email="m.zambelli13@imperial.ac.uk"> Martina Zambelli </author>
+       <author email="t.fischer@imperial.ac.uk"> Tobias Fischer </author>
    </authors>
 
    <data>
@@ -39,25 +40,5 @@
           </description>
       </input>
    </data>
-   
-
-   
-   
-   
-   <services>
-       <server>
-           <type>bodySchema_IDL</type>
-           <idl>bodySchema.thrift</idl>
-           <port>/bodySchema/rpc</port>
-           <description>Command port</description>
-       </server>
-   </services>
-
-
-
-
-
-
-   
 </module>
 

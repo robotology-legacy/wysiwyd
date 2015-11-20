@@ -56,7 +56,7 @@ using namespace cv;
 
 typedef enum {idle, learning, babblingArm, babblingHand, vvv2015} State;
 
-class bodySchema : public RFModule {
+class modelOTL : public RFModule {
 private:
     string moduleName;
     int isVerbose;

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+
+   <name>modelOTL</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Body Schema Learner</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+   
+   <description-long>
+   A module to learn body schema for the iCub robot.
+   </description-long>
+
+   <arguments>
+   <param default="bodySchema" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
+   <param default="icub" desc="To specify the robot's name">robot</param>
+   </arguments>
+
+   <authors>
+       <author email="m.zambelli13@imperial.ac.uk"> Martina Zambelli </author>
+   </authors>
+
+   <data>
+      <input>
+          <type>yarp::sig::Bottle</type>
+          <port carrier="tcp">/bodySchema/input</port>
+          <!-- required input means the execution of module depends on
+               this input data. Notice that not all the input are required
+               for a module to perform its task (e.g. control input, status
+               request input). -->
+          <required>no</required>
+          <!-- priority forces the execution of module to be delayed
+               until the required data becomes available on the port -->
+          <priority>no</priority>
+          <description>
+              ...
+          </description>
+      </input>
+   </data>
+   
+
+   
+   
+   
+   <services>
+       <server>
+           <type>bodySchema_IDL</type>
+           <idl>bodySchema.thrift</idl>
+           <port>/bodySchema/rpc</port>
+           <description>Command port</description>
+       </server>
+   </services>
+
+
+
+
+
+
+   
+</module>
+

@@ -21,7 +21,7 @@
 */
 
 #include <yarp/os/all.h>
-#include "bodySchema.h"
+#include "sensoryProcessor.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -32,11 +32,11 @@ int main(int argc, char * argv[])
     Network yarp;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("bodySchema");
-    rf.setDefaultConfigFile("bodySchema.ini");
+    rf.setDefaultContext("sensoryProcessor");
+    rf.setDefaultConfigFile("sensoryProcessor.ini");
     rf.configure(argc, argv);
-//    string part = rf.find("part").asString();
-    bodySchema mod;
+
+    SensoryProcessor mod;
     mod.runModule(rf);
     cout << "Bye bye." << endl;
     return 0;

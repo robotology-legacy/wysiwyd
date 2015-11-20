@@ -15,7 +15,7 @@
  * Public License for more details
 */
 
-#include "bodySchema.h"
+#include "modelOTL.h"
 
 #include <cmath>
 #include <signal.h>
@@ -29,7 +29,7 @@ using namespace cv;
 using namespace yarp::os;
 using namespace yarp::sig;
 
-bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
+bool modelOTL::configure(yarp::os::ResourceFinder &rf) {
     bool bEveryThingisGood = true;
 
     moduleName = rf.check("name",Value("bodySchema"),"module name (string)").asString();
@@ -197,7 +197,7 @@ bool bodySchema::configure(yarp::os::ResourceFinder &rf) {
     return bEveryThingisGood;
 }
 
-bool bodySchema::interruptModule() {
+bool modelOTL::interruptModule() {
 
     imgPortIn.interrupt();
     imgPortOut.interrupt();
@@ -212,7 +212,7 @@ bool bodySchema::interruptModule() {
 
 }
 
-bool bodySchema::close() {
+bool modelOTL::close() {
     cout << "Closing module, please wait ... " <<endl;
 
     armDev->close();
@@ -244,7 +244,7 @@ bool bodySchema::close() {
     return true;
 }
 
-bool bodySchema::respond(const Bottle& command, Bottle& reply) {
+bool modelOTL::respond(const Bottle& command, Bottle& reply) {
     string helpMessage =
             "\n + + + + + + + + + + + + + + + + + + + + + + + + + \n"
             "This is " + getName() + " module. With this module, the iCub will perform\n"
@@ -385,7 +385,7 @@ bool bodySchema::respond(const Bottle& command, Bottle& reply) {
     return true;
 }
 
-bool bodySchema::updateModule() {
+bool modelOTL::updateModule() {
     if(shouldQuit && state == idle) {
         return false;
     } else {
@@ -396,7 +396,7 @@ bool bodySchema::updateModule() {
     }
 }
 
-double bodySchema::getPeriod() {
+double modelOTL::getPeriod() {
     return 0.1;
 }
 
@@ -405,7 +405,7 @@ double bodySchema::getPeriod() {
  *
  *
  */
-Bottle bodySchema::dealABM(const Bottle& command, int begin)
+Bottle modelOTL::dealABM(const Bottle& command, int begin)
 {
     yDebug() << "Dealing with ABM";
     if (begin<0 || begin>1)
@@ -454,7 +454,7 @@ Bottle bodySchema::dealABM(const Bottle& command, int begin)
  * Learning while babbling
  * This learns absolute positions
  */
-bool bodySchema::learnAbsPos(State &state)
+bool modelOTL::learnAbsPos(State &state)
 {
     cout << "Learning from babbling; iCub required." << endl;
 
@@ -625,7 +625,7 @@ bool bodySchema::learnAbsPos(State &state)
     return true;
 }
 
-const std::string bodySchema::trail_string()
+const std::string modelOTL::trail_string()
 {
     time_t     now = time(0);
     struct tm  tstruct;
@@ -636,7 +636,7 @@ const std::string bodySchema::trail_string()
     return buf;
 }
 
-bool bodySchema::create_folders()
+bool modelOTL::create_folders()
 {
     string tr = trail_string();
     foldername = "data"+tr+"/";
@@ -653,7 +653,7 @@ bool bodySchema::create_folders()
     return true;
 }
 
-yarp::sig::Vector bodySchema::babblingExecution(double &t, double &AOD)
+yarp::sig::Vector modelOTL::babblingExecution(double &t, double &AOD)
 {
     double w1 = freq1*t;
     double w2 = freq2*t;
@@ -690,7 +690,7 @@ yarp::sig::Vector bodySchema::babblingExecution(double &t, double &AOD)
     return command;
 }
 
-yarp::sig::Vector bodySchema::babblingHandExecution(double &t)
+yarp::sig::Vector modelOTL::babblingHandExecution(double &t)
 {
         double w1 = freq1*t;
         double w2 = freq2*t;
@@ -777,7 +777,7 @@ yarp::sig::Vector bodySchema::babblingHandExecution(double &t)
 
 
 
-bool bodySchema::goStartPos()
+bool modelOTL::goStartPos()
 {
     /* Move head to start position */
     commandHead = encodersHead;
@@ -814,7 +814,7 @@ bool bodySchema::goStartPos()
     return true;
 }
 
-bool bodySchema::writeEncoderData(Point2f &lost_indic,ofstream& fs_enc,ofstream& fs_cmd)
+bool modelOTL::writeEncoderData(Point2f &lost_indic,ofstream& fs_enc,ofstream& fs_cmd)
 {
     bool okEnc = encs->getEncoders(encoders.data());
     if(!okEnc) {
@@ -860,7 +860,7 @@ bool bodySchema::writeEncoderData(Point2f &lost_indic,ofstream& fs_enc,ofstream&
     return true;
 }
 
-bool bodySchema::findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size &winSize)
+bool modelOTL::findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size &winSize)
 {
     if (capseq==1) //or points[0].empty() )
     {
@@ -929,7 +929,7 @@ bool bodySchema::findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size 
     return true;
 }
 
-bool bodySchema::getBabblingImages()
+bool modelOTL::getBabblingImages()
 {
     //    cout << "Start babbling images" << endl;
     cvWaitKey(1000/fps);
@@ -958,7 +958,7 @@ bool bodySchema::getBabblingImages()
     return true;
 }
 
-bool bodySchema::init_oesgp_learner()
+bool modelOTL::init_oesgp_learner()
 {
     //Create our OESGP object
     int activation_function = Reservoir::TANH;
@@ -977,7 +977,7 @@ bool bodySchema::init_oesgp_learner()
     return true;
 }
 
-bool bodySchema::init_iCub(string &part)
+bool modelOTL::init_iCub(string &part)
 {
     /* Create PolyDriver for left arm */
     Property option;
@@ -1122,7 +1122,7 @@ bool bodySchema::init_iCub(string &part)
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  */
 
-bool bodySchema::singleJointBabbling(int j_idx)
+bool modelOTL::singleJointBabbling(int j_idx)
 {
     bool createfolders = create_folders();
     if(!createfolders) {
@@ -1209,7 +1209,7 @@ bool bodySchema::singleJointBabbling(int j_idx)
  * * * * * * * * * */
  
  
-int bodySchema::move_arm()
+int modelOTL::move_arm()
 {
     cout << "robot " << robot << endl;
     arm = "left_arm"; // to move to ini
@@ -1429,7 +1429,7 @@ int bodySchema::move_arm()
     return 0;
 }
 
-void bodySchema::find_image()
+void modelOTL::find_image()
 {
 
     handTarget.resize(3);
