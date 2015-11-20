@@ -39,6 +39,11 @@ private:
 	int r_has_obj[4];
 	int a_has_obj[4];
 
+	int g_timer[2];	// temporary
+	int t_timer[2];	// temporary
+	int p_timer[2];	// temporary
+	int l_timer[2];	// temporary
+
 	ConstString objectNames[4];
 
 public:
@@ -56,6 +61,8 @@ public:
     	{
         	return period;
     	}
+
+	void setTimer(char ch, int obj);	// temporary
 
     	bool updateModule();
     	bool respond(const Bottle& cmd, Bottle& reply);

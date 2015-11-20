@@ -30,12 +30,17 @@ verbRec::configure(yarp::os::ResourceFinder &rf)
 	for (int i=0; i<11; i++)
 	        output[i] = 0;
 
+	g_timer[0] = 0;	g_timer[1] = 0;	// temporary
+	t_timer[0] = 0;	t_timer[1] = 0;	// temporary
+	p_timer[0] = 0;	p_timer[1] = 0;	// temporary
+	l_timer[0] = 0;	l_timer[1] = 0;	// temporary
+
         Port_in.open(("/" + moduleName + "In").c_str());
         attach(Port_in);
         Port_out.open(("/" + moduleName + "Out").c_str());
         attach(Port_out);
 
-	Network::connect("/humanRobotDump/humanDump"/*"/input_data"*/,("/" + moduleName + "In").c_str());  // temporary
+	Network::connect("/humanRobotDump/humanDump",("/" + moduleName + "In").c_str());  // temporary
 	Network::connect(("/" + moduleName + "Out").c_str(), "/output_data");  // temporary Change so that it only opens the output port later. 
 
         return true;
@@ -297,7 +302,7 @@ verbRec::respond(const Bottle& command, Bottle& reply)
 /* Called periodically every getPeriod() seconds */
 bool verbRec::updateModule() 
 {
-        cout/*<<"["<<count<<"]"*/<< " updateModule... "<<endl;
+        cout<< " updateModule... "<<endl;
         return true;
 }
 
@@ -307,6 +312,30 @@ verbRec::whatVerbs(const Bottle& command, char* out)
 	// reset output
     	for (int i=0; i<11; i++)
         	output[i] = 0;
+
+	// temporary
+	if (g_timer[0] > 0) {
+		output[6] = g_timer[1];
+		g_timer[0]--;
+	}
+
+	// temporary
+	if (t_timer[0] > 0) {
+		output[7] = t_timer[1];
+		t_timer[0]--;
+	}
+
+	// temporary
+	if (p_timer[0] > 0) {
+		output[8] = p_timer[1];
+		p_timer[0]--;
+	}
+
+	// temporary
+	if (l_timer[0] > 0) {
+		output[9] = l_timer[1];
+		l_timer[0]--;
+	}
 
     	readData(command, input);
 
@@ -493,17 +522,25 @@ verbRec::whatVerbs(const Bottle& command, char* out)
      		if (grasp(mObj1, prev_obj1, mrh, mlh))
      			output[4]=1;
      
-        	if (give(mObj1, prev_obj1, msp, prev_sp))
+        	if (give(mObj1, prev_obj1, msp, prev_sp)) {
         		output[6]=1;
+			setTimer('g',1);	// temporary
+		}
         
-        	if (take(mObj1, prev_obj1, msp, prev_sp))
+        	if (take(mObj1, prev_obj1, msp, prev_sp)) {
         		output[7]=1;
+			setTimer('t',1);	// temporary
+		}
      
-     		if (put(pres_obj1))
+     		if (put(pres_obj1)) {
      			output[8]=1;
+			setTimer('p',1);	// temporary
+		}
      
-     		if (lift(pres_obj1, mrh, mlh, prev_rh, prev_lh))
+     		if (lift(pres_obj1, mrh, mlh, prev_rh, prev_lh)) {
      			output[9]=1;
+			setTimer('l',1);	// temporary
+		}
      
      		prev_obj1[0] = mObj1[0];
      		prev_obj1[1] = mObj1[1];
@@ -577,17 +614,25 @@ verbRec::whatVerbs(const Bottle& command, char* out)
      		if (grasp(mObj2, prev_obj2, mrh, mlh))
      			output[4]=2;
      
-            	if (give(mObj2, prev_obj2, msp, prev_sp))
+            	if (give(mObj2, prev_obj2, msp, prev_sp)) {
             		output[6]=2;
+			setTimer('g',2);	// temporary
+		}
             
-		if (take(mObj2, prev_obj2, msp, prev_sp))
+		if (take(mObj2, prev_obj2, msp, prev_sp)) {
             		output[7]=2;
+			setTimer('t',2);	// temporary
+		}
      
-     		if (put(pres_obj2))
+     		if (put(pres_obj2)) {
      			output[8]=2;
+			setTimer('p',2);	// temporary
+		}
      
-     		if (lift(pres_obj2, mrh, mlh, prev_rh, prev_lh))
+     		if (lift(pres_obj2, mrh, mlh, prev_rh, prev_lh)) {
      			output[9]=2;
+			setTimer('l',2);	// temporary
+		}
      
      		prev_obj2[0] = mObj2[0];
      		prev_obj2[1] = mObj2[1];
@@ -663,17 +708,25 @@ verbRec::whatVerbs(const Bottle& command, char* out)
         	if (grasp(mObj3, prev_obj3, mrh, mlh))
         		output[4]=3;
         
-            	if (give(mObj3, prev_obj3, msp, prev_sp))
+            	if (give(mObj3, prev_obj3, msp, prev_sp)) {
             		output[6]=3;
+			setTimer('g',3);	// temporary
+		}
             
-            	if (take(mObj3, prev_obj3, msp, prev_sp))
+            	if (take(mObj3, prev_obj3, msp, prev_sp)) {
             		output[7]=3;
+			setTimer('t',3);	// temporary
+		}
         
-        	if (put(pres_obj3))
+        	if (put(pres_obj3)) {
         		output[8]=3;
+			setTimer('p',3);	// temporary
+		}
         
-        	if (lift(pres_obj3, mrh, mlh, prev_rh, prev_lh))
+        	if (lift(pres_obj3, mrh, mlh, prev_rh, prev_lh)) {
         		output[9]=3;
+			setTimer('l',3);	// temporary
+		}
         
         	prev_obj3[0] = mObj3[0];
         	prev_obj3[1] = mObj3[1];
@@ -747,17 +800,25 @@ verbRec::whatVerbs(const Bottle& command, char* out)
      		if (grasp(mObj4, prev_obj4, mrh, mlh))
      			output[4]=4;
      
-            	if (give(mObj4, prev_obj4, msp, prev_sp))
+            	if (give(mObj4, prev_obj4, msp, prev_sp)) {
             		output[6]=4;
+			setTimer('g',4);	// temporary
+		}
             
-            	if (take(mObj4, prev_obj4, msp, prev_sp))
+            	if (take(mObj4, prev_obj4, msp, prev_sp)) {
             		output[7]=4;
+			setTimer('t',4);	// temporary
+		}
      
-     		if (put(pres_obj4))
+     		if (put(pres_obj4)) {
      			output[8]=4;
+			setTimer('p',4);	// temporary
+		}
      
-     		if (lift(pres_obj4, mrh, mlh, prev_rh, prev_lh))
+     		if (lift(pres_obj4, mrh, mlh, prev_rh, prev_lh)) {
      			output[9]=4;
+			setTimer('l',4);	// temporary
+		}
      
      		prev_obj4[0] = mObj4[0];
      		prev_obj4[1] = mObj4[1];
@@ -815,6 +876,29 @@ verbRec::whatVerbs(const Bottle& command, char* out)
         prev_sp[1] = msp[1];
         prev_sp[2] = msp[2];
 }
+
+
+void 
+verbRec::setTimer(char ch, int obj)	// temporary
+{
+	if (ch == 'g') {
+		g_timer[0] = 20;
+		g_timer[1] = obj;
+	}
+	if (ch == 't') {
+		t_timer[0] = 20;
+		t_timer[1] = obj;
+	}
+	if (ch == 'p') {
+		p_timer[0] = 20;
+		p_timer[1] = obj;
+	}
+	if (ch == 'l') {
+		l_timer[0] = 20;
+		l_timer[1] = obj;
+	}
+}
+
 
 void 
 verbRec::readData(const Bottle& command, float* input) 
@@ -1389,8 +1473,7 @@ verbRec::lift(float pres_obj[], float r_hand[], float l_hand[], float prev_rh[],
 bool
 verbRec::point(float obj[][3], float prev_obj[][3],float r_arm[][3], float l_arm[][3], float prev_rh[], float prev_lh[],float fac[])
 {
-    	static bool obj_point = false;
-    	static float dis_thr = 0.2f;
+	static bool obj_point = false;
     
     	///////////// Object Movement
     	float dobj[4] = {0, 0, 0, 0};
@@ -1405,60 +1488,65 @@ verbRec::point(float obj[][3], float prev_obj[][3],float r_arm[][3], float l_arm
     	d_lh = sqrt(pow((l_arm[2][0]-prev_lh[0]),2)+pow((l_arm[2][1]-prev_lh[1]),2)+pow((l_arm[2][2]-prev_lh[2]),2));
     
     	// Normal Values of RIGHT/LEFT hand (shoulder:0, elbow:1, wrist:2), Line connects elbow to wrist
-    	float nr_ew = sqrt(pow((r_arm[1][0]-r_arm[2][0]),2)+pow((r_arm[1][1]-r_arm[2][1]),2)); //+pow((r_arm[1][2]-r_arm[2][2]),2));
-    	float nl_ew = sqrt(pow((l_arm[1][0]-l_arm[2][0]),2)+pow((l_arm[1][1]-l_arm[2][1]),2)); //+pow((l_arm[1][2]-l_arm[2][2]),2));
-    
     	// Normal Vectors of RIGHT/LEFT hand (shoulder:0, elbow:1, wrist:2) , Line connects elbow to wrist
-    	float vr_ew[2] = {(r_arm[1][0]-r_arm[2][0])/nr_ew, (r_arm[1][1]-r_arm[2][1])/nr_ew}; //, (r_arm[1][2]-r_arm[2][2])/nr_ew};
-    	float vl_ew[2] = {(l_arm[1][0]-l_arm[2][0])/nl_ew, (l_arm[1][1]-l_arm[2][1])/nl_ew}; //, (l_arm[1][2]-l_arm[2][2])/nl_ew};
     
     	// Left Hand
-    	float Al =  vl_ew[1];
-    	float Bl = -vl_ew[0];
-    	float Cl =  vl_ew[0]*l_arm[1][1]-vl_ew[1]*l_arm[1][0];
+    	float nl_ew = sqrt(pow((l_arm[1][0]-l_arm[2][0]),2)+pow((l_arm[1][1]-l_arm[2][1]),2)+pow((l_arm[1][2]-l_arm[2][2]),2));
+    	float vl_ew[3] = {(l_arm[1][0]-l_arm[2][0])/nl_ew, (l_arm[1][1]-l_arm[2][1])/nl_ew, (l_arm[1][2]-l_arm[2][2])/nl_ew};
     
-    	float dis_l[4] = {0, 0, 0, 0};
-    	for (int i=0; i<4; i++)
-        	dis_l[i] = abs(Al*obj[i][0]+Bl*obj[i][1]+Cl)/sqrt(pow(Al,2)+pow(Bl,2));
+    	float tl = -l_arm[1][2]/vl_ew[2];
+    	float Xl = vl_ew[0]*tl + l_arm[1][0];
+    	float Yl = vl_ew[1]*tl + l_arm[1][1];
     
-    	float mindis_l = 10;
-    	float fac_l = 0;
+    	float dis_l[2] = {100,0};
     	for (int i=0; i<4; i++) {
-        	if ( (dis_l[i] < mindis_l) && (obj[i][0] != -1000) ) {
-            		mindis_l = dis_l[i];
-            		fac_l = i+1;
-        	}
- 	}
+    		if ( (sqrt(pow(obj[i][0]-Xl,2)+pow(obj[i][1]-Yl,2)) < dis_l[0]) && (dobj[i] == 0) )
+        	{
+            		dis_l[0] = sqrt(pow(obj[i][0]-Xl,2)+pow(obj[i][1]-Yl,2));
+            		dis_l[1] = i; 
+		}
+    	}
     
     	// Right Hand
-    	float Ar =  vr_ew[1];
-    	float Br = -vr_ew[0];
-    	float Cr =  vr_ew[0]*r_arm[1][1]-vr_ew[1]*r_arm[1][0];
+    	float nr_ew = sqrt(pow((r_arm[1][0]-r_arm[2][0]),2)+pow((r_arm[1][1]-r_arm[2][1]),2)+pow((r_arm[1][2]-r_arm[2][2]),2));
+    	float vr_ew[3] = {(r_arm[1][0]-r_arm[2][0])/nr_ew, (r_arm[1][1]-r_arm[2][1])/nr_ew, (r_arm[1][2]-r_arm[2][2])/nr_ew};
     
-    	float dis_r[4] = {0, 0, 0, 0};
-    	for (int i=0; i<4; i++)
-        	dis_r[i] = abs(Ar*obj[i][0]+Br*obj[i][1]+Cr)/sqrt(pow(Ar,2)+pow(Br,2));
+    	float tr = -r_arm[1][2]/vr_ew[2];
+    	float Xr = vr_ew[0]*tr + r_arm[1][0];
+    	float Yr = vr_ew[1]*tr + r_arm[1][1];
     
-    	float mindis_r = 10;
-    	float fac_r = 0;
-    
+    	float dis_r[2] = {100,0};
     	for (int i=0; i<4; i++) {
-        	if ( (dis_r[i] < mindis_r) && (obj[i][0] != -1000) ) {
-            		mindis_r = dis_r[i];
-            		fac_r = i+1;
-        	}
-	}
+        	if ( (sqrt(pow(obj[i][0]-Xr,2)+pow(obj[i][1]-Yr,2)) < dis_r[0]) && (dobj[i] == 0) )
+        	{
+            		dis_r[0] = sqrt(pow(obj[i][0]-Xr,2)+pow(obj[i][1]-Yr,2));
+            		dis_r[1] = i; 
+		}
+    	}
     
-    	if ( (mindis_r < mindis_l) &&  (mindis_r < dis_thr) && (d_rh < 0.001) ) {
-        	fac[0] = fac_r;
-        	obj_point = true;  
-	}
-    	else if ( (mindis_l < mindis_r) &&  (mindis_l < dis_thr) && (d_lh < 0.001) ) {
-        	fac[0] = fac_l;
-        	obj_point = true;  
-	}
+    	/************************ COMPARISON **************************/
+    	obj_point = false;
+    
+    	if ( (r_arm[1][2] > 0) && (r_arm[2][2] > 0) && (d_rh < 0.001f) )
+    	{
+        	if (dis_r[0] < dis_l[0])
+        	{
+            		fac[0] = dis_r[1];
+            		obj_point = true;
+        	}
+    	}
+    
+    	if ( (l_arm[1][2] > 0) && (l_arm[2][2] > 0) && (d_lh < 0.001f) )
+    	{
+        	if (dis_l[0] < dis_r[0])
+        	{
+            		fac[0] = dis_l[1];
+            		obj_point = true;
+        	}
+    	}
+    
+    	if (obj_point)
+        	return true;
     	else
-        	obj_point = false;
-
-    return obj_point;    
+        	return false;
 }
