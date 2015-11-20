@@ -21,9 +21,8 @@
 #define __VISION_DRIVER_H__
 
 /*
-* @ingroup icub_module
-*
-* \defgroup modules visionDriver
+* \defgroup visionDriver
+* @ingroup wysiwyd_modules
 *
 * Detects and tracks a face using OpenCV function and the gaze controller.
 * The input image is from the left eye.

@@ -22,9 +22,9 @@
 #define _FACETRACKER_MODULE_H_
 
 /*
-* @ingroup icub_module
+* \defgroup faceTracker
+* @ingroup wysiwyd_modules
 *
-* \defgroup modules faceTracker
 *
 * Allow to control the gaze using objects names. Provide a random autonomous switch of attention between the present objects.
 

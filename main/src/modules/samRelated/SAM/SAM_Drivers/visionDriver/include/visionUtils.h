@@ -21,9 +21,9 @@
 #define __VISION_UTILS_H__
 
 /*
-* @ingroup icub_module
+* \defgroup visionUtils
+* @ingroup wysiwyd_modules
 *
-* \defgroup modules visionUtils
 *
 * Utility functions for visionDriver.
 *

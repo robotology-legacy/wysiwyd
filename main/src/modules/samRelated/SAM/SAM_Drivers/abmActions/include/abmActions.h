@@ -21,9 +21,9 @@
 #define __ABMACTIONS_H__
 
 /*
-* @ingroup icub_module
+* \defgroup speechInteraction
+* @ingroup wysiwyd_modules
 *
-* \defgroup modules speechInteraction
 *
 * Receives recognised words and triggers the corresponding behaviour
 *
