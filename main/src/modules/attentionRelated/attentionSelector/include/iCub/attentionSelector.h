@@ -21,64 +21,6 @@
 #ifndef _ATTENTIONSELECTOR_MODULE_H_
 #define _ATTENTIONSELECTOR_MODULE_H_
 
-/** 
-*
-* \defgroup attentionSelector
-* @ingroup wysiwyd_modules
-*
-* Allow to control the gaze using objects names. Provide a random autonomous switch of attention between the present objects.
-
-The commands it is possible to send are:
-
-@b track "objectname" track an object based on its name
-@b track id track an object based on its opc ID
-@b track (x y z) : look at a position directly expressed in the robot reference frame
-@b auto : turn on the autonomous switch of attention
-@b sleep : turn off the autonomous switch of attention
-@b look (x y z) : sleep + gaze at xyz
-
-* \section lib_sec Libraries
-*
-* YARP, iCub.
-*
-* \section parameters_sec Parameters
-* 
-* <b>Command-line Parameters</b> 
-* 
-* The following key-value pairs can be specified as command-line parameters by prefixing \c -- to the key 
-* (e.g. \c --from file.ini. The value part can be changed to suit your needs; the default values are shown below. 
-*
-* - \c from \c attentionSelector.ini \n 
-*   specifies the configuration file
-*
-* - \c name \c attentionSelector \n   
-*   specifies the name of the module (used to form the stem of module port names)  
-*
-* <b>Configuration File Parameters </b>
-*
-* The following key-value pairs can be specified as parameters in the configuration file 
-* (they can also be specified as command-line parameters if you so wish). 
-* The value part can be changed to suit your needs; the default values are shown below. 
-*   
-* - \c opcName \c OPC \n    
-*   specifies the opc database name
-* 
-* \section tested_os_sec Tested OS
-*
-* Linux, windows
-*
-* \section example_sec Example Instantiation of the Module
-* 
-* <tt>attentionSelector --name attentionSelector --context
-* attentionSelector --from attentionSelector.ini</tt>
-*
-* \author Stéphane Lallée
-* 
-* Copyright (C) 2014 WYSIWYD Consortium\n
-* CopyPolicy: Released under the terms of the GNU GPL v2.0.\n
-* 
-*/
-
 #include <string>
 #include <vector>
 

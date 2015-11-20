@@ -18,7 +18,7 @@
 * Public License for more details
 */
 
-/*
+/**
 * @defgroup SAM
 * @ingroup wysiwyd_modules
 *
