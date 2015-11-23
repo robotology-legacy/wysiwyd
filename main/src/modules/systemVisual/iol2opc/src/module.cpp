@@ -625,9 +625,9 @@ void IOL2OPCBridge::updateOPC()
 
                         // now get mean color of blob, and fill the OPC object with the information
                         CvScalar meanColor = cvAvg(imgTmp1.getIplImage());
-                        obj->m_color[0] = meanColor.val[0];
-                        obj->m_color[1] = meanColor.val[1];
-                        obj->m_color[2] = meanColor.val[2];
+                        obj->m_color[0] = (int)meanColor.val[0];
+                        obj->m_color[1] = (int)meanColor.val[1];
+                        obj->m_color[2] = (int)meanColor.val[2];
                     }
 
                     it->second.heartBeat();
