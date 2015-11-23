@@ -181,7 +181,13 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
                 if (it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
                     doInsert = true;
 
-                    osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '" << lastReading->get(subtype).asDouble() << "' ),";
+                    osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '";
+                    if(lastReading->get(subtype).isList()) {
+                        osArg << lastReading->get(subtype).toString();
+                    } else {
+                        osArg << lastReading->get(subtype).asDouble();
+                    }
+                    osArg << "' ),";
                 }
             }
         }
