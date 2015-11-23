@@ -90,10 +90,12 @@ Bottle autobiographicalMemory::request(const Bottle& bRequest)
     }
     catch (DataBaseError& e)
     {
-        if (strcmp(e.what(), "This command don't support results") != 0)
+        string sError = "Exception during request: "; sError += e.what();
+        if (strcmp(e.what(), "This command don't support results") != 0) {
             yError() << "Exception during request: " << e.what();
-        string sExcept = "Exception during request: "; sExcept += e.what();
-        bReply.addString(sExcept.c_str());
+            yError() << "Request sent: " << bRequest.get(1).asString().c_str();
+        }
+        bReply.addString(sError.c_str());
     }
     database_mutex.unlock();
 
