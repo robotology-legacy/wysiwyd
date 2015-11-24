@@ -63,8 +63,8 @@ private:
     double freq, amp;
     double train_duration;
 
-    double start_commandHead[5] = {-25.0, -15.0, 0.0, 0.0, -20.0};
-    double start_command[16] = {-40.0, 25.0, 20.0, 85.0, -50.0, 0.0, 8.0, 15.0, 30.0, 4.0, 2.0, 0.0, 7.0, 14.0, 5.0, 14.0};
+    double start_commandHead[5];
+    double start_command[16];
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

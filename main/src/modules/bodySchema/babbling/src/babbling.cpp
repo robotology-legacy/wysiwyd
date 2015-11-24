@@ -46,6 +46,11 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     if ((b_start_commandHead->isNull()) | (b_start_commandHead->size()<5))
     {
         yWarning("Something is wrong in ini file. Default value is used");
+        start_commandHead[0] = -25.0;
+        start_commandHead[1]= -15.0;
+        start_commandHead[2]= 0.0;
+        start_commandHead[3]= 0.0;
+        start_commandHead[4]= -20.0;
     }
     else
     {
@@ -56,6 +61,22 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     if ((b_start_command->isNull()) | (b_start_command->size()<16))
     {
         yWarning("Something is wrong in ini file. Default value is used");
+        start_command[0] = -40.0;
+        start_command[1] = 25.0;
+        start_command[2] = 20.0;
+        start_command[3] = 85.0;
+        start_command[4] = -50.0;
+        start_command[5] = 0.0;
+        start_command[6] = 8.0;
+        start_command[7] = 15.0;
+        start_command[8] = 30.0;
+        start_command[9] = 4.0;
+        start_command[10] = 2.0;
+        start_command[11] = 0.0;
+        start_command[12] = 7.0;
+        start_command[13] = 14.0;
+        start_command[14] = 5.0;
+        start_command[15] = 14.0;
     }
     else
     {
