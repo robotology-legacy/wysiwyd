@@ -15,28 +15,10 @@
  * Public License for more details
 */
 
-#ifndef _BODYSCHEMA_H_
-#define _BODYSCHEMA_H_
+#ifndef _MODELOTL_H_
+#define _MODELOTL_H_
 
 #include <cv.h>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/video/tracking.hpp>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <iostream>
-#include <fstream> 
-#include <sstream>
-#include <string>
-
-#include <vector>
-#include <math.h>
-#include <time.h>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
@@ -45,100 +27,29 @@
 #include <otl.h>
 #include <otl_oesgp.h>
 
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::dev;
-using namespace yarp::sig::draw;
-using namespace wysiwyd::wrdac;
 using namespace OTL;
-using namespace cv;
 
-typedef enum {idle, learning, babblingArm, babblingHand, vvv2015} State;
-
-class modelOTL : public RFModule {
+class ModelOTL : public yarp::os::RFModule {
 private:
-    string moduleName;
-    int isVerbose;
-    bool shouldQuit;
+    std::string moduleName;
 
-    Port handlerPort;// a port to handle messages
+    yarp::os::Port handlerPort;
+    yarp::os::BufferedPort<yarp::os::Bottle> portVelocityOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portPredictionErrors;
+    yarp::os::BufferedPort<yarp::os::Bottle> portInputsfromBabbling;
+    yarp::os::BufferedPort<yarp::os::Bottle> portOutputsfromSensoryProc;
 
-    ofstream encodersData;
-    ofstream velocitiesData;
-    ofstream commandData;
-
-    BufferedPort< ImageOf<PixelRgb> > imgPortIn;
-    BufferedPort< ImageOf<PixelRgb> > imgPortOut;
-    BufferedPort<Bottle> portVelocityOut;
-    BufferedPort<Bottle> portPredictionErrors;
-    RpcClient portToABM;
-    Port portToMatlab;
-    BufferedPort<Bottle> portReadMatlab;
-    BufferedPort<Bottle> portReadSkin;
-    Port portToSFM;
-
-    IPositionControl* pos;
-    IVelocityControl* vel;
-    IEncoders* encs;
-    IControlMode2 *ictrl;
-    IInteractionMode *iint;
-    ITorqueControl *itrq;
-
-    IPositionControl* posHead;
-    IVelocityControl* velHead;
-    IEncoders* encsHead;
-
-    PolyDriver* armDev;
-    PolyDriver* headDev;
-
-    yarp::sig::Vector encoders, cmd, command, new_command, tmpSpeed, tmpAcc;
-    yarp::sig::Vector encodersHead, commandHead;
-    yarp::sig::Vector handTarget, armTarget, fingerTarget;
-
-    string ports[4];
-    string video[2];
-
-    int MAX_COUNT;
-    bool needToInit;
-    string videoName;
-    int fps;
-
-    string part;
-    string robot;
-    string arm;
+    std::string part;
 
     int nInputs;
     int nOutputs;
 
     double initTime;
-    int capseq;
 
+    double train_duration,test_duration;
     bool endTrain;
-    string foldername;
-    string foldernamepoints;
-    string foldernamevideo;
-    string foldernameframes;
-    string fileEncData;
-    string fileCmdData;
 
-    double freq1, freq2, freq3, freq4, cos_freq, ampcos2;
-    double amp[16];
-    double train_duration;
-    double test_duration;
-
-    double start_commandHead[5];
-    double start_command[16];
-
-    int frame_idx;
-    int num_init_points;
-    vector<int> points_idx;
-    Mat gray, prevGray, image;
-    vector<Point2f> points[2];
-    string source_window;
-
-    OESGP oesgp;
-    OESGP oesgp2;
+    OESGP oesgp,oesgp2;
     VectorXd prediction;
     VectorXd prediction_variance;
 
@@ -155,41 +66,19 @@ private:
     double p_epsilon;
     int p_capacity;
     int p_random_seed;
-    
-    double xMeanPrevR, yMeanPrevR, xMeanPrevG, yMeanPrevG, xMeanPrevB, yMeanPrevB;
-
-    State state;
 
 public:
-    bool configure(ResourceFinder &rf); // configure
-    bool interruptModule();        // interrupt, e.g., the ports
-    bool close();               // close and shut down the module
-    bool respond(const Bottle& command, Bottle& reply);
+    bool configure(yarp::os::ResourceFinder &rf);
+    bool interruptModule();
+    bool close();
+    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     double getPeriod();
     bool updateModule();
 
-    bool init_iCub(string &part);
-    Bottle dealABM(const Bottle& command, int begin);
-
 private:
-    const std::string trail_string();
-    bool create_folders();
 
-    yarp::sig::Vector babblingExecution(double &t, double &AOD);
-    yarp::sig::Vector babblingHandExecution(double &t);
-
-    bool learnAbsPos(State &state);
-    bool goStartPos();
+    bool learnOTLModel();
     bool init_oesgp_learner();
-
-    bool writeEncoderData(Point2f &lost_indic,ofstream& fs_enc,ofstream& fs_cmd);
-    bool findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size &winSize);
-    bool getBabblingImages();
-
-    bool singleJointBabbling(int j_idx);
-    
-    int move_arm();
-    void find_image();
 };
 
-#endif // __BODYSCHEMA_H__
+#endif // __MODELOTL_H__
