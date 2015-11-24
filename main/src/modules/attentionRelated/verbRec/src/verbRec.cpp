@@ -361,43 +361,31 @@ verbRec::whatVerbs(const Bottle& command, char* out)
     	static float l_hand[5][3] = { {input[6], input[7], input[8]}, {input[6], input[7], input[8]}, {input[6], input[7], input[8]},
         	{input[6], input[7], input[8]}, {input[6], input[7], input[8]} };
 
-    	static float obj1[5][3] = { {input[31], input[32], input[33]}, {input[31], input[32], input[33]}, {input[31], input[32], input[33]},
-        	{input[31], input[32], input[33]}, {input[31], input[32], input[33]} };
-    
-    	static float obj2[5][3] = { {input[35], input[36], input[37]}, {input[35], input[36], input[37]}, {input[35], input[36], input[37]},
-        	{input[35], input[36], input[37]}, {input[35], input[36], input[37]} };
-    
-    	static float obj3[5][3] = { {input[39], input[40], input[41]}, {input[39], input[40], input[41]}, {input[39], input[40], input[41]},
-        	{input[39], input[40], input[41]}, {input[39], input[40], input[41]} };
-    
-    	static float obj4[5][3] = { {input[43], input[44], input[45]}, {input[43], input[44], input[45]}, {input[43], input[44], input[45]},
-        	{input[43], input[44], input[45]}, {input[43], input[44], input[45]} };
+	static float objs[4][5][3] = {{ {input[31], input[32], input[33]}, {input[31], input[32], input[33]}, {input[31], input[32], input[33]},
+        	{input[31], input[32], input[33]}, {input[31], input[32], input[33]} }, { {input[35], input[36], input[37]}, {input[35], input[36], input[37]}, {input[35], input[36], input[37]},
+        	{input[35], input[36], input[37]}, {input[35], input[36], input[37]} }, { {input[39], input[40], input[41]}, {input[39], input[40], input[41]}, {input[39], input[40], input[41]},
+        	{input[39], input[40], input[41]}, {input[39], input[40], input[41]} }, { {input[43], input[44], input[45]}, {input[43], input[44], input[45]}, {input[43], input[44], input[45]},
+        	{input[43], input[44], input[45]}, {input[43], input[44], input[45]} }};
 
-    	static float prev_obj1[3] = {input[31], input[32], input[33]};
-    	static float prev_obj2[3] = {input[35], input[36], input[37]};
-    	static float prev_obj3[3] = {input[39], input[40], input[41]};
-    	static float prev_obj4[3] = {input[43], input[44], input[45]};
+	static float prev_objs[4][3] = {{input[31], input[32], input[33]}, {input[35], input[36], input[37]}, {input[39], input[40], input[41]}, {input[43], input[44], input[45]}};
     
     	static float prev_sp[3] = {input[24], input[25], input[26]};
     
     	static float prev_rh[3] = {input[9], input[10], input[11]};
     	static float prev_lh[3] = {input[6], input[7], input[8]};
     
-    	static float pres_obj1[10] = {input[34], input[34],input[34], input[34], input[34], input[34], input[34],input[34], input[34], input[34]};
-    	static float pres_obj2[10] = {input[38], input[38],input[38], input[38], input[38], input[38], input[38],input[38], input[38], input[38]};
-    	static float pres_obj3[10] = {input[42], input[42],input[42], input[42], input[42], input[42], input[42],input[42], input[42], input[42]};
-    	static float pres_obj4[10] = {input[46], input[46],input[46], input[46], input[46], input[46], input[46],input[46], input[46], input[46]};
+	static float pres_objs[4][10] = {{input[34], input[34],input[34], input[34], input[34], input[34], input[34],input[34], input[34], input[34]}, {input[38], input[38],input[38], input[38], input[38], input[38], input[38],input[38], input[38], input[38]}, {input[42], input[42],input[42], input[42], input[42], input[42], input[42],input[42], input[42], input[42]}, {input[46], input[46],input[46], input[46], input[46], input[46], input[46],input[46], input[46], input[46]}};
     
     	for (int i=0; i<9; i++) {
-        	pres_obj1[i] = pres_obj1[i+1];
-        	pres_obj2[i] = pres_obj2[i+1];
-        	pres_obj3[i] = pres_obj3[i+1];
-        	pres_obj4[i] = pres_obj4[i+1];
+        	pres_objs[0][i] = pres_objs[0][i+1];
+        	pres_objs[1][i] = pres_objs[1][i+1];
+        	pres_objs[2][i] = pres_objs[2][i+1];
+        	pres_objs[3][i] = pres_objs[3][i+1];
     	}
-    	pres_obj1[9] = input[34];
-    	pres_obj2[9] = input[38];
-    	pres_obj3[9] = input[42];
-    	pres_obj4[9] = input[46];
+    	pres_objs[0][9] = input[34];
+    	pres_objs[1][9] = input[38];
+    	pres_objs[2][9] = input[42];
+    	pres_objs[3][9] = input[46];
     
     	for (int i=0; i<4; i++) {
         	spine[i][0] = spine[i+1][0];            spine[i][1] = spine[i+1][1];            spine[i][2] = spine[i+1][2];
@@ -462,419 +450,120 @@ verbRec::whatVerbs(const Bottle& command, char* out)
     	float r_arm[3][3] = {{mrs[0],mrs[1],mrs[2]},{mre[0],mre[1],mre[2]},{mrh[0],mrh[1],mrh[2]}};
     	float l_arm[3][3] = {{mls[0],mls[1],mls[2]},{mle[0],mle[1],mle[2]},{mlh[0],mlh[1],mlh[2]}};
 
-    	float objects[4][3] = {{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
-    	float prev_objects[4][3] = {{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
+	float mObjs[4][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
     	// reset vectors recording what objects the robot and the agent have
     	for (int i=0; i<4; i++) {
         	r_has_obj[i] = 0;
         	a_has_obj[i] = 0;
     	}
+	bool robot_has = false;
+	bool agent_has = false;
 
 	/************* verb recognition ****************/
         if (wave(mrh, mlh, prev_rh, prev_lh))
             	output[0]=1;
 
-    	output[5] = (float)have();
+    	//output[5] = (float)have();
 
-    	/************************** OBJECT(1) **************************/
-     	if ((pres_obj1[9] == 1) && (pres_obj1[8] == 1)) //Object is on reactable and was on reactable
-     	{
-     		for (int i=0; i<4; i++) {
-     			obj1[i][0] = obj1[i+1][0];
-     			obj1[i][1] = obj1[i+1][1];
-     			obj1[i][2] = obj1[i+1][2];  
-		}
-     
-		obj1[4][0] = input[31];
-		obj1[4][1] = input[32];
-		obj1[4][2] = input[33];
-		     
-		float mObj1[3]={0, 0, 0};
+    	/************************** OBJECT(k+1) **************************/
+	for (int k=0; k<nbrOfObj; k++) {
+
+     		if ((pres_objs[k][9] == 1) && (pres_objs[k][8] == 1)) // object k+1 is and was on reactable
+     		{
+     			for (int i=0; i<4; i++)
+				for (int j=0; j<3; j++)
+     					objs[k][i][j] = objs[k][i+1][j];
+
+			for (int j=0; j<3; j++)
+				objs[k][4][j] = input[4*k+(j+31)];
      		
-		for (int i=0; i<5; i++) {
-     			mObj1[0] += obj1[i][0];
-     			mObj1[1] += obj1[i][1];
-     			mObj1[2] += obj1[i][2]; 
-		}
+			for (int i=0; i<5; i++)
+				for (int j=0; j<3; j++)
+     					mObjs[k][j] += objs[k][i][j];
      
-     		mObj1[0] = mObj1[0]/5;
-     		mObj1[1] = mObj1[1]/5;
-     		mObj1[2] = mObj1[2]/5;
+			for (int j=0; j<3; j++)
+     				mObjs[k][j] = mObjs[k][j]/5;
+     	
+     			if (move(mObjs[k],prev_objs[k]))
+     				output[1]=k+1;
+     
+     			if (push(objs[k], prev_objs[k], r_hand, l_hand))
+     				output[2]=k+1;
+     
+     			if (pull(objs[k], prev_objs[k], r_hand, l_hand))
+     				output[3]=k+1;
+     
+     			if (grasp(mObjs[k], prev_objs[k], mrh, mlh))
+     				output[4]=k+1;
 
-        	objects[0][0] = mObj1[0];
-        	objects[0][1] = mObj1[1];
-        	objects[0][2] = mObj1[2];
+			if (have(mObjs[k], msp)) {	// agent
+				a_has_obj[k] = 1;
+				agent_has = true;
+			}	
+			if (have(mObjs[k], NULL)) {	// robot
+				r_has_obj[k] = 1;
+				robot_has = true;
+     			}
+        		if (give(mObjs[k], prev_objs[k], msp, prev_sp)) {
+        			output[6]=k+1;
+				setTimer('g',k+1);	// temporary
+			}
         
-        	prev_objects[0][0] = prev_obj1[0];
-        	prev_objects[0][1] = prev_obj1[1];
-        	prev_objects[0][2] = prev_obj1[2];
+        		if (take(mObjs[k], prev_objs[k], msp, prev_sp)) {
+        			output[7]=k+1;
+				setTimer('t',k+1);	// temporary
+			}
      
-     		if (move(mObj1,prev_obj1))
-     			output[1]=1;
+     			if (put(pres_objs[k])) {
+     				output[8]=k+1;
+				setTimer('p',k+1);	// temporary
+			}
      
-     		if (push(obj1, prev_obj1, r_hand, l_hand))
-     			output[2]=1;
+     			if (lift(pres_objs[k], mrh, mlh, prev_rh, prev_lh)) {
+     				output[9]=k+1;
+				setTimer('l',k+1);	// temporary
+			}
+			
+			for (int j=0; j<3; j++)
+     				prev_objs[k][j] = mObjs[k][j];
+     		}
      
-     		if (pull(obj1, prev_obj1, r_hand, l_hand))
-     			output[3]=1;
-     
-     		if (grasp(mObj1, prev_obj1, mrh, mlh))
-     			output[4]=1;
-     
-        	if (give(mObj1, prev_obj1, msp, prev_sp)) {
-        		output[6]=1;
-			setTimer('g',1);	// temporary
-		}
-        
-        	if (take(mObj1, prev_obj1, msp, prev_sp)) {
-        		output[7]=1;
-			setTimer('t',1);	// temporary
-		}
-     
-     		if (put(pres_obj1)) {
-     			output[8]=1;
-			setTimer('p',1);	// temporary
-		}
-     
-     		if (lift(pres_obj1, mrh, mlh, prev_rh, prev_lh)) {
-     			output[9]=1;
-			setTimer('l',1);	// temporary
-		}
-     
-     		prev_obj1[0] = mObj1[0];
-     		prev_obj1[1] = mObj1[1];
-     		prev_obj1[2] = mObj1[2];
-     	}
-     
-     	if ((pres_obj1[9] == 1) && (pres_obj1[8] == 0)) //Object is on reactable and was NOT on reactable
-     	{
-     		for (int i=0; i<5; i++) {
-     			obj1[i][0] = input[31];
-     			obj1[i][1] = input[32];
-     			obj1[i][2] = input[33];  
-		}
-     
-     		prev_obj1[0] = input[31];
-     		prev_obj1[1] = input[32];
-     		prev_obj1[2] = input[33];
+     		if ((pres_objs[k][9] == 1) && (pres_objs[k][8] == 0)) // object k+1 is but was NOT on reactable
+     		{
+     			for (int i=0; i<5; i++)
+				for (int j=0; j<3; j++)
+     					objs[k][i][j] = input[4*k+(j+31)];
 
-        	objects[0][0] = input[31];
-        	objects[0][1] = input[32];
-        	objects[0][2] = input[33];
-        
-        	prev_objects[0][0] = input[31];
-        	prev_objects[0][1] = input[32];
-        	prev_objects[0][2] = input[33];
-	}
-     
-     
-	/************************** OBJECT(2) **************************/
-     	if ((pres_obj2[9] == 1) && (pres_obj2[8] == 1))
-     	{
-     		for (int i=0; i<4; i++) {
-     			obj2[i][0] = obj2[i+1][0];
-     			obj2[i][1] = obj2[i+1][1];
-     			obj2[i][2] = obj2[i+1][2];  
+			for (int j=0; j<3; j++) {
+     				prev_objs[k][j] = input[4*k+(j+31)];
+        			mObjs[k][j] = input[4*k+(j+31)];
+			}
 		}
-     
-     		obj2[4][0] = input[35];
-     		obj2[4][1] = input[36];
-     		obj2[4][2] = input[37];
-     
-     		float mObj2[3]={0, 0, 0};
-     		
-		for (int i=0; i<5; i++) {
-     			mObj2[0] += obj2[i][0];
-     			mObj2[1] += obj2[i][1];
-     			mObj2[2] += obj2[i][2]; 
-		}
-     
-     		mObj2[0] = mObj2[0]/5;
-     		mObj2[1] = mObj2[1]/5;
-     		mObj2[2] = mObj2[2]/5;
+	} 
 
-            	objects[1][0] = mObj2[0];
-            	objects[1][1] = mObj2[1];
-            	objects[1][2] = mObj2[2];
-            
-            	prev_objects[1][0] = prev_obj2[0];
-            	prev_objects[1][1] = prev_obj2[1];
-            	prev_objects[1][2] = prev_obj2[2];
-     
-     		if (move(mObj2,prev_obj2))
-     			output[1]=2;
-     
-     		if (push(obj2, prev_obj2, r_hand, l_hand))
-     			output[2]=2;
-     
-     		if (pull(obj2, prev_obj2, r_hand, l_hand))
-     			output[3]=2;
-     
-     		if (grasp(mObj2, prev_obj2, mrh, mlh))
-     			output[4]=2;
-     
-            	if (give(mObj2, prev_obj2, msp, prev_sp)) {
-            		output[6]=2;
-			setTimer('g',2);	// temporary
-		}
-            
-		if (take(mObj2, prev_obj2, msp, prev_sp)) {
-            		output[7]=2;
-			setTimer('t',2);	// temporary
-		}
-     
-     		if (put(pres_obj2)) {
-     			output[8]=2;
-			setTimer('p',2);	// temporary
-		}
-     
-     		if (lift(pres_obj2, mrh, mlh, prev_rh, prev_lh)) {
-     			output[9]=2;
-			setTimer('l',2);	// temporary
-		}
-     
-     		prev_obj2[0] = mObj2[0];
-     		prev_obj2[1] = mObj2[1];
-     		prev_obj2[2] = mObj2[2];
-     	}
-     
-     
-     	if ((pres_obj2[9] == 1) && (pres_obj2[8] == 0))
-     	{
-     		for (int i=0; i<5; i++) {
-     			obj2[i][0] = input[35];
-     			obj2[i][1] = input[36];
-     			obj2[i][2] = input[37];  
-		}
-     
-     		prev_obj2[0] = input[35];
-     		prev_obj2[1] = input[36];
-     		prev_obj2[2] = input[37];
-
-		objects[1][0] = input[35];
-            	objects[1][1] = input[36];
-            	objects[1][2] = input[37];
-            
-            	prev_objects[1][0] = input[35];
-            	prev_objects[1][1] = input[36];
-            	prev_objects[1][2] = input[37];
-     	}
-    
-    
-    	/************************** OBJECT(3) **************************/
-    	if ((pres_obj3[9] == 1) && (pres_obj3[8] == 1))
-    	{
-        	for (int i=0; i<4; i++) {
-            		obj3[i][0] = obj3[i+1][0];
-            		obj3[i][1] = obj3[i+1][1];
-            		obj3[i][2] = obj3[i+1][2];  
-		}
-        
-        	obj3[4][0] = input[39];
-        	obj3[4][1] = input[40];
-        	obj3[4][2] = input[41];
-        
-        	float mObj3[3]={0, 0, 0};
-        
-		for (int i=0; i<5; i++) {
-            		mObj3[0] += obj3[i][0];
-            		mObj3[1] += obj3[i][1];
-            		mObj3[2] += obj3[i][2]; 
-		}
-        
-        	mObj3[0] = mObj3[0]/5;
-        	mObj3[1] = mObj3[1]/5;
-        	mObj3[2] = mObj3[2]/5;
-
-            	objects[2][0] = mObj3[0];
-            	objects[2][1] = mObj3[1];
-            	objects[2][2] = mObj3[2];
-            
-            	prev_objects[2][0] = prev_obj3[0];
-            	prev_objects[2][1] = prev_obj3[1];
-            	prev_objects[2][2] = prev_obj3[2];
-        
-        
-        	if (move(mObj3,prev_obj3))
-        		output[1]=3;
-        
-        	if (push(obj3, prev_obj3, r_hand, l_hand))
-        		output[2]=3;
-        
-        	if (pull(obj3, prev_obj3, r_hand, l_hand))
-        		output[3]=3;
-        
-        	if (grasp(mObj3, prev_obj3, mrh, mlh))
-        		output[4]=3;
-        
-            	if (give(mObj3, prev_obj3, msp, prev_sp)) {
-            		output[6]=3;
-			setTimer('g',3);	// temporary
-		}
-            
-            	if (take(mObj3, prev_obj3, msp, prev_sp)) {
-            		output[7]=3;
-			setTimer('t',3);	// temporary
-		}
-        
-        	if (put(pres_obj3)) {
-        		output[8]=3;
-			setTimer('p',3);	// temporary
-		}
-        
-        	if (lift(pres_obj3, mrh, mlh, prev_rh, prev_lh)) {
-        		output[9]=3;
-			setTimer('l',3);	// temporary
-		}
-        
-        	prev_obj3[0] = mObj3[0];
-        	prev_obj3[1] = mObj3[1];
-        	prev_obj3[2] = mObj3[2];
-    	}
-    
-    	if ((pres_obj3[9] == 1) && (pres_obj3[8] == 0))
-    	{
-        
-        	for (int i=0; i<5; i++) {
-            		obj3[i][0] = input[39];
-            		obj3[i][1] = input[40];
-            		obj3[i][2] = input[41];  
-		}
-        
-        	prev_obj3[0] = input[39];
-        	prev_obj3[1] = input[40];
-        	prev_obj3[2] = input[41];
-
-            	objects[2][0] = input[39];
-            	objects[2][1] = input[40];
-            	objects[2][2] = input[41];
-            
-            	prev_objects[2][0] = input[39];
-            	prev_objects[2][1] = input[40];
-            	prev_objects[2][2] = input[41];
-    	}
-    
-    	/************************** OBJECT(4) **************************/
-     	if ((pres_obj4[9] == 1) && (pres_obj4[8] == 1))
-     	{
-     		for (int i=0; i<4; i++) {
-     			obj4[i][0] = obj4[i+1][0];
-     			obj4[i][1] = obj4[i+1][1];
-     			obj4[i][2] = obj4[i+1][2];  
-		}
-     
-     		obj4[4][0] = input[43];
-     		obj4[4][1] = input[44];
-     		obj4[4][2] = input[45];
-     
-     		float mObj4[3]={0, 0, 0};
-     
-		for (int i=0; i<5; i++) {
-     			mObj4[0] += obj4[i][0];
-     			mObj4[1] += obj4[i][1];
-     			mObj4[2] += obj4[i][2]; 
-		}
-     
-     		mObj4[0] = mObj4[0]/5;
-     		mObj4[1] = mObj4[1]/5;
-     		mObj4[2] = mObj4[2]/5;
-
-            	objects[3][0] = mObj4[0];
-            	objects[3][1] = mObj4[1];
-            	objects[3][2] = mObj4[2];
-            
-            	prev_objects[3][0] = prev_obj4[0];
-            	prev_objects[3][1] = prev_obj4[1];
-            	prev_objects[3][2] = prev_obj4[2];
-     
-     		if (move(mObj4,prev_obj4))
-     			output[1]=4;
-     
-     		if (push(obj4, prev_obj4, r_hand, l_hand))
-     			output[2]=4;
-     
-     		if (pull(obj4, prev_obj4, r_hand, l_hand))
-     			output[3]=4;
-     
-     		if (grasp(mObj4, prev_obj4, mrh, mlh))
-     			output[4]=4;
-     
-            	if (give(mObj4, prev_obj4, msp, prev_sp)) {
-            		output[6]=4;
-			setTimer('g',4);	// temporary
-		}
-            
-            	if (take(mObj4, prev_obj4, msp, prev_sp)) {
-            		output[7]=4;
-			setTimer('t',4);	// temporary
-		}
-     
-     		if (put(pres_obj4)) {
-     			output[8]=4;
-			setTimer('p',4);	// temporary
-		}
-     
-     		if (lift(pres_obj4, mrh, mlh, prev_rh, prev_lh)) {
-     			output[9]=4;
-			setTimer('l',4);	// temporary
-		}
-     
-     		prev_obj4[0] = mObj4[0];
-     		prev_obj4[1] = mObj4[1];
-     		prev_obj4[2] = mObj4[2];
-     	}
-     
-     	if ((pres_obj4[9] == 1) && (pres_obj4[8] == 0))
-     	{
-     		for (int i=0; i<5; i++) {
-     			obj4[i][0] = input[43];
-     			obj4[i][1] = input[44];
-     			obj4[i][2] = input[45];  
-		}
-     
-     		prev_obj4[0] = input[43];
-     		prev_obj4[1] = input[44];
-     		prev_obj4[2] = input[45];
-
-            	objects[3][0] = input[43];
-            	objects[3][1] = input[44];
-            	objects[3][2] = input[45];
-            
-            	prev_objects[3][0] = input[43];
-            	prev_objects[3][1] = input[44];
-            	prev_objects[3][2] = input[45];
-     	}
+	if (agent_has)
+		output[5] = 1;
+	if (robot_has)
+		output[5] = 10;
+	if (agent_has && robot_has)
+		output[5] = 11;
 
         /************** POINT ***************/
-        
-        if (pres_obj1[9] == 0)     //object is not on reactable
-        	objects[0][0] = -1000;
-        
-        else if (pres_obj2[9] == 0)
-        	objects[1][0] = -1000;
-        
-        else if (pres_obj3[9] == 0)
-        	objects[2][0] = -1000;
-        
-        else if(pres_obj4[9] == 0)
-        	objects[3][0] = -1000;
+	for (int k=0; k<4; k++) {        
+        	if (pres_objs[k][9] == 0)     //object k+1 is not on reactable
+        		mObjs[k][0] = -1000;
+	}
         
         float fac[1] = {0};
-        if (point(objects, prev_objects,r_arm,l_arm, prev_rh, prev_lh, fac))
+        if (point(mObjs, prev_objs,r_arm,l_arm, prev_rh, prev_lh, fac))
         	output[10]=fac[0];
     
-    	prev_rh[0] = mrh[0];
-    	prev_rh[1] = mrh[1];
-    	prev_rh[2] = mrh[2];
-    
-    	prev_lh[0] = mlh[0];
-    	prev_lh[1] = mlh[1];
-    	prev_lh[2] = mlh[2];
-
-        prev_sp[0] = msp[0];
-        prev_sp[1] = msp[1];
-        prev_sp[2] = msp[2];
+	for (int j=0; j<3; j++) {
+    		prev_rh[j] = mrh[j];
+    		prev_lh[j] = mlh[j];
+        	prev_sp[j] = msp[j];
+	}
 }
 
 
@@ -905,7 +594,7 @@ verbRec::readData(const Bottle& command, float* input)
 {
     	Bottle bSkeleton = *command.get(2).asList();
     	Bottle bPartner = *command.get(3).asList();
-    	int nbrOfObj = command.size()-5;
+    	nbrOfObj = command.size()-5;
 
     	for (int i=0; i<47; i++)    // -10000 means no data for the element
         	input[i] = -10000;  
@@ -1298,7 +987,7 @@ verbRec::grasp(float obj[], float prev_obj[], float r_hand[], float l_hand[])
     	return obj_grasp;
 }
 
-int 
+/*int 
 verbRec::have()
 {
         static float dis_thr = 0.5f;
@@ -1367,6 +1056,23 @@ verbRec::have()
         }
 
         return ret;
+}*/
+
+bool 
+verbRec::have(float obj[], float spine[])
+{
+        static float dis_thr = 0.5f;
+
+	if (spine == NULL) {	// robot has object
+        	if (sqrt(pow(obj[0],2)+pow(obj[1],2)+pow(obj[2],2)) < dis_thr )
+			return true;
+	}
+    	else {	// agent has object
+        	if (sqrt(pow(spine[0]-obj[0],2)+pow(spine[1]-obj[1],2)+pow(spine[2]-obj[2],2)) < dis_thr )
+			return true;
+	}
+
+	return false;
 }
 
 bool

@@ -46,6 +46,8 @@ private:
 
 	ConstString objectNames[4];
 
+	int nbrOfObj;
+
 public:
     	bool configure(yarp::os::ResourceFinder &rf);
 
@@ -78,7 +80,8 @@ public:
 	bool push(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
 	bool pull(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
 	bool grasp(float obj[], float prev_obj[], float r_hand[], float l_hand[]);
-	int have();
+	//int have();
+	bool have(float obj[], float spine[]);
 	bool give(float obj[], float prev_obj[], float spine[], float prev_sp[]);
 	bool take(float obj[], float prev_obj[], float spine[], float prev_sp[]);
 	bool put(float pres_obj[]);
