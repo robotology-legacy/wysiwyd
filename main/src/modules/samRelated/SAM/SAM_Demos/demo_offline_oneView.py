@@ -44,9 +44,10 @@ Nts = 50
 
 #-- Uncomment for oil data
 data = pods.datasets.oil()
+print("DATAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+print(data)
 Y = data['X'] # Data
 L = data['Y'].argmax(axis=1) # Labels
-
 perm = np.random.permutation(Y.shape[0])
 indTs = perm[0:Nts]
 indTs.sort()
@@ -110,7 +111,7 @@ a.learn(optimizer='bfgs',max_iters=2000, verbose=True)
 ret = a.visualise()
 
 # Only for images: Uncomment if your outputs are images and adjust the dimensions of the image (height, width)
-# ret_in= a.visualise_interactive(dimensions=(20,28))
+#ret_in= a.visualise_interactive(dimensions=(20,28))
 
 
 # Pattern completion. In this case, we give a new set of test observables 
@@ -121,6 +122,10 @@ ret = a.visualise()
 predictions = a.pattern_completion(Ytest)
 pred_mean = predictions[0]
 pred_var = predictions[1]
+
+print("PREDICTIONS ======================>")
+print(predictions)
+
 # Visualise the predictive point estimates for the test data; plot them on top of the memory visualization
 ret2 = a.visualise()
 ret2.plot(pred_mean[:,0],pred_mean[:,1],'xm')

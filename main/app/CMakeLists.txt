@@ -30,4 +30,5 @@ add_subdirectory(systemVisual)
 add_subdirectory(tools)
 add_subdirectory(visionRelated)
 add_subdirectory(samRelated)
+add_subdirectory(sensoryProcessor)
 
