@@ -920,7 +920,11 @@ bool autobiographicalMemory::updateModule() {
                         timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                         //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
-                    bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
+                    if (it->first.find("skeleton:o") != std::string::npos) {
+                        bJoints.addString(bListContData.get(i).asList()->get(3).asString());
+                    } else {
+                        bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
+                    }
                 }
 
                 bCmd.addList() = bJoints;
