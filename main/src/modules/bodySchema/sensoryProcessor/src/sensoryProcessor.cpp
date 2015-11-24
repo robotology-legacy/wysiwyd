@@ -36,7 +36,7 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
     part = rf.check("part",Value("left_arm")).asString();
     robot = rf.check("robot",Value("icubSim")).asString();
     fps = rf.check("fps",Value(30)).asInt(); //30;
-    bool useSFM = rf.check("useSFM",Value(1)).asInt();
+    useSFM = rf.check("useSFM",Value(1)).asInt();
 
     // keep this part if you want to use both cameras
     // if you only want to use want, delete accordingly
