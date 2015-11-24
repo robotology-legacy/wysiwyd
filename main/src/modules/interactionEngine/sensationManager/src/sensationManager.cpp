@@ -21,7 +21,7 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
         string sensation_name = sensationList.get(i).asString();
         // behavior_names.push_back(behavior_name);
         if (sensation_name == "opcSensation") {
-            sensations.push_back(new UnknownObjects());
+            sensations.push_back(new OpcSensation());
         } else if (sensation_name == "test") {
             sensations.push_back(new Test());
         }

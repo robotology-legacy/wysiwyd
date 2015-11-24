@@ -24,4 +24,8 @@ void homeostasisManager::removeDrive(int D)
 	drives.erase(drives.begin()+D);
 }
 
+void homeostasisManager::sleep(int D, double time)
+{
+    drives[D]->sleep(time);
+}
 

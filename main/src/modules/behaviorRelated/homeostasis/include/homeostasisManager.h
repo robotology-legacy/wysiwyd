@@ -27,6 +27,8 @@ public:
 	related to this drive outside here should also be 
 	removed. This is specially useful for temporal 
 	needs or subgoals. */
+
+	void sleep(int D, double time);
 	bool updateDrives(double t);
 	/*Calls the update function for each drive. */
 	

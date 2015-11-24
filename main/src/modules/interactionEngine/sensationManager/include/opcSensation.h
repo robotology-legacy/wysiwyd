@@ -14,7 +14,7 @@ using namespace yarp::sig;
 using namespace yarp::math;
 using namespace wysiwyd::wrdac;
 
-class UnknownObjects: public Sensation
+class OpcSensation: public Sensation
 {
 private:
     ICubClient *iCub;

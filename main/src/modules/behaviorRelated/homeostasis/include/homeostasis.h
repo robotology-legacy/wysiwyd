@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <math.h>
 #include <limits> 
+#include <time.h>
 
 using namespace std;
 
@@ -12,6 +13,9 @@ public:
     std::string name;
     double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax;
     bool gradient;
+    time_t start_sleep;
+    bool is_sleeping;
+    double time_to_sleep;
 
     Drive(std::string d_name, double d_value=0.5, double d_homeo_min=0.25, double d_homeo_max=0.75, double d_decay = 0.05, double d_value_min=numeric_limits<double>::min(), double d_value_max=numeric_limits<double>::max(), bool d_gradient = false)
     {
@@ -21,6 +25,7 @@ public:
         homeostasisMax = d_homeo_max;
         decay = d_decay;
         gradient = d_gradient;
+        is_sleeping = false;
         //todo : check the min/max
         double homeoRange =  homeostasisMax - homeostasisMin;
         if (d_value_min == numeric_limits<double>::min() && d_value_max == numeric_limits<double>::max()){
@@ -91,9 +96,20 @@ public:
 
     }
 
+    void sleep(double t) {
+        start_sleep = time(NULL);
+        is_sleeping = true;
+        time_to_sleep = t;
+    }
+
     void update()
     {
-        if (! ((this->value > valueMax && this->decay<0) || (this->value < valueMin && this->decay>0))) {
+        if (is_sleeping) {
+            if (difftime(time(NULL), start_sleep) > time_to_sleep) {
+                is_sleeping = false;
+            }
+        }
+        else if (! ((this->value > valueMax && this->decay<0) || (this->value < valueMin && this->decay>0))) {
             this->value -= this->decay;           
         }
 

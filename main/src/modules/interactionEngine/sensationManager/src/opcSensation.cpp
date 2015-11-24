@@ -1,7 +1,7 @@
 #include <algorithm>    // std::random_shuffle
 #include "opcSensation.h"
 
-void UnknownObjects::configure()
+void OpcSensation::configure()
 {
     moduleName = "opcSensation";
     bool isRFVerbose = false;
@@ -30,7 +30,7 @@ void UnknownObjects::configure()
 
 }
 
-void UnknownObjects::publish()
+void OpcSensation::publish()
 {
     Bottle res = handleTagging();
 
@@ -46,7 +46,7 @@ void UnknownObjects::publish()
 
 }
 
-Bottle UnknownObjects::handleTagging()
+Bottle OpcSensation::handleTagging()
 {
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();

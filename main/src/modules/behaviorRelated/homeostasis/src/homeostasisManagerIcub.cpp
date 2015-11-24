@@ -16,13 +16,13 @@ bool homeostaticModule::addNewDrive(string driveName, yarp::os::Bottle& grpHomeo
     cout << "H1 " << grpHomeostatic.check((driveName + "-decay"), Value(drv->decay)).asDouble() <<endl; 
     drv->setDecay(grpHomeostatic.check((driveName + "-decay"), Value(drv->decay)).asDouble());
     drv->setValue((drv->homeostasisMax + drv->homeostasisMin) / 2.);
-    drv->setGradient(grpHomeostatic.check((driveName + "-gradient"), Value(drv->gradient)).asBool());
-    cout << "h2 " << drv->decay << endl;
+    drv->setGradient(grpHomeostatic.check((driveName + "-gradient"), Value(drv->gradient)).asInt());
+    cout << "h2 " << drv->gradient << endl;
     //cout << drv->name << " " << drv->homeostasisMin << " " << drv->homeostasisMax << " " << drv->decay << " " <<drv->gradient << endl;
     //cout << d << endl;
     //cout << grpHomeostatic.toString()<<endl;
     manager.addDrive(drv);
-     cout << "h2 " << manager.drives[0]->decay << endl;
+    //cout << "h2 " << manager.drives[0]->gradient << endl;
    
     openPorts(driveName);
 
@@ -168,6 +168,7 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         help += " ['add'] ['botl'] [drive Bottle]                       : Adds a drive to the manager as a Bottle of values of shape \n";
         help += " ['add'] ['new'] [drive name]                          : Adds a default drive to the manager \n";
         help += " ['rm'] [drive name]                                   : removes a drive from the manager \n";
+        help += " ['sleep'] [drive name] [time]                         : prevent drive update for a certain time (in seconds) \n";
         help += " ['names']                                             : returns an ordered list of the drives in the manager \n";
         help += "                                                       : (string name, double value, double homeo_min, double homeo_max, double decay = 0.05, bool gradient = true) \n";
         reply.addString(help);
@@ -267,6 +268,7 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         else if (cmd.get(1).asString()=="new")
         {
             string d_name = cmd.get(2).asString();
+            cout << "adding new drive... " << endl;
             bool b = addNewDrive(d_name);
             if (b)
                 reply.addString("add new drive: ack");
@@ -295,6 +297,19 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         }
         reply.addString("nack");
     }
+    else if (cmd.get(0).asString()=="sleep")
+    {
+        for (unsigned int d = 0; d<manager.drives.size();d++)
+        {
+            if (cmd.get(1).asString() == manager.drives[d]->name)
+            {
+                double time = cmd.get(2).asDouble();
+                manager.sleep(d, time);
+                reply.addString("ack: Drive sleep");
+            }
+        }
+        reply.addString("nack");
+    }    
     else if (cmd.get(0).asString()=="names")
     {
         Bottle nms;
@@ -327,7 +342,7 @@ bool homeostaticModule::updateModule()
         {
             if (inp)
             {
-                cout<< "Input: "<<inp->get(0).asString()<<endl;
+                //cout<< "Input: "<<inp->get(0).asString()<<endl;
                 if (manager.drives[d]->name == "avoidance")
                     {
                         processAvoidance(d,inp);
@@ -358,10 +373,10 @@ bool homeostaticModule::updateModule()
                 aux=1;
                 //aux = 0-aux;
             }
-            cout<<manager.drives[d]->getValue()<<endl;
-            cout << manager.drives[d]->homeostasisMax<<endl;
+            //cout<<manager.drives[d]->getValue()<<endl;
+            //cout << manager.drives[d]->homeostasisMax<<endl;
             out2.addDouble(aux);
-            cout<<out2.get(0).asDouble()<<endl;
+            //cout<<out2.get(0).asDouble()<<endl;
             outputM_ports[d]->write();
         }else{
             yarp::os::Bottle &out1 = outputm_ports[d]->prepare();// = output_ports[d]->prepare();
