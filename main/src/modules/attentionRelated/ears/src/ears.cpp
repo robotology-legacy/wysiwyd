@@ -20,10 +20,14 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
 
-    portToReactive.open(("/" + moduleName + "/reactive:o").c_str());
-    if (!Network::connect(portToReactive.getName().c_str(),"/reactiveLayer/rpc")) {
-        yWarning() << " reactive Layer is not reachable";
+    portToReactive.open("/" + moduleName + "/behavior:o");
+    while (!Network::connect(portToReactive.getName(),"/BehaviorManager/trigger:i ")) {
+        yWarning() << " Behavior is not reachable";
+        yarp::os::Time::delay(0.5);
     }
+
+    portTarget.open("/" + moduleName + "/target:o");
+
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
 
@@ -84,8 +88,8 @@ bool ears::updateModule() {
     if (bListen)
     {
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-            bAnswer, //response from speech recog without transfer information, including raw sentence
-            bSemantic; // semantic information of the content of the recognition
+        bAnswer, //response from speech recog without transfer information, including raw sentence
+        bSemantic; // semantic information of the content of the recognition
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1);
 
         if (bRecognized.get(0).asInt() == 0)
@@ -102,11 +106,9 @@ bool ears::updateModule() {
         cout << bSemantic.toString() << endl;
         string sPredicate = bSemantic.check("predicate", Value("none")).asString();
         string sObject    = bSemantic.check("object", Value("none")).asString();
-
+        target = sObject;
         iCub->opc->update();
         list<Entity*> entities = iCub->opc->EntitiesCacheCopy();
-
-        int iPriority = 1;
 
         vector<Bottle> vListAction;
 
@@ -125,34 +127,22 @@ bool ears::updateModule() {
                 }
             }
         }
-        if (!bFoundObject)
-        {
-            Bottle bCondition;
-            bCondition.addString("need");
-            bCondition.addString("macro");
-            bCondition.addString("search");
-            bCondition.addString(sObject);
-            bCondition.addInt(iPriority);
-            iPriority++;
-            vListAction.push_back(bCondition);
-        }
 
-        Bottle bAction;
-        bAction.addString("need");
-        bAction.addString("primitive");
-        bAction.addString(sPredicate);
-        bAction.addString(sObject);
-        bAction.addInt(iPriority);
+        Bottle &test = portTarget.prepare();;
+        test.clear();
+        test.addString(target);
+        portTarget.write();
+        
+        Bottle bCondition;
+        bCondition.clear();
 
-        vListAction.push_back(bAction);
-        Bottle bRead;
+        bCondition.addString("pointingOrder");
+        bCondition.addString(sObject);
 
-        for (vector<Bottle>::iterator itBo = vListAction.begin() ; itBo != vListAction.end() ; itBo++)
-        {
-            portToReactive.write(*itBo, bRead);
-            Time::delay(.5);
-        }
-    }
+        portToReactive.write(bCondition);
+ 
+        yDebug() << "Sending " + target;
+    } else {yDebug() << "Not bListen";}
 
 
 

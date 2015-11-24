@@ -9,6 +9,8 @@
 set(PROJECTNAME ears)
 project(${PROJECTNAME})
 
+find_package(ICUB)
+
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${YARP_INCLUDE_DIRS}
