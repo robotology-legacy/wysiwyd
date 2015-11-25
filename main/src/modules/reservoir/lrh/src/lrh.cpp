@@ -13,7 +13,7 @@
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details
-*/
+ */
 
 //#include "modules/reservoir/lrh/include/lrh.h"
 
@@ -27,41 +27,41 @@
 bool LRH::configure(ResourceFinder &rf) {
 
     bool	bEveryThingisGood = true;
-    moduleName            = rf.check("name",
-                                     Value("lrh"),
-                                     "module name (string)").asString();
+    moduleName = rf.check("name",
+        Value("lrh"),
+        "module name (string)").asString();
 
-    sKeyWord            = rf.check("keyword", Value("grammar")).toString().c_str();
-    cout<<"**************Context path for grammars: "<<rf.getContextPath()<<endl;
+    sKeyWord = rf.check("keyword", Value("grammar")).toString().c_str();
+    cout << "**************Context path for grammars: " << rf.getContextPath() << endl;
 
     /* Mode Action Performer => Meaning*/
-    scorpusFileAP	 = rf.getContextPath().c_str();
-    scorpusFileAP	+= rf.check("corpusFileAP",  Value("/Corpus/corpus_AP.txt")).toString().c_str();
-    scorpusFileSD 	 = rf.getContextPath().c_str();
-    scorpusFileSD 	+= rf.check("corpusFileSD",  Value("/Corpus/corpus_SD.txt")).toString().c_str();
-    sfileResult 	 = rf.getContextPath().c_str();
-    sfileResult 	+= rf.check("fileResult",  Value("/Corpus/output.txt")).toString().c_str();
+    scorpusFileAP = rf.getContextPath().c_str();
+    scorpusFileAP += rf.check("corpusFileAP", Value("/Corpus/corpus_AP.txt")).toString().c_str();
+    scorpusFileSD = rf.getContextPath().c_str();
+    scorpusFileSD += rf.check("corpusFileSD", Value("/Corpus/corpus_SD.txt")).toString().c_str();
+    sfileResult = rf.getContextPath().c_str();
+    sfileResult += rf.check("fileResult", Value("/Corpus/output.txt")).toString().c_str();
     stemporaryCorpus = rf.getContextPath().c_str();
-    stemporaryCorpus += rf.check("temporaryCorpus",  Value("/Corpus/temporaryCorpus.txt")).toString().c_str();
+    stemporaryCorpus += rf.check("temporaryCorpus", Value("/Corpus/temporaryCorpus.txt")).toString().c_str();
     sreservoirAP = rf.getContextPath().c_str();
-    sreservoirAP      += rf.check("fileAP",  Value("/action_performer_PAOR.py")).toString().c_str();
+    sreservoirAP += rf.check("fileAP", Value("/action_performer_PAOR.py")).toString().c_str();
     cout << "sreservoirAP : " << sreservoirAP << endl;
     sreservoirSD = rf.getContextPath().c_str();
-    sreservoirSD      += rf.check("fileAP",  Value("/spatial_relation.py")).toString().c_str();
-    sclosed_class_wordsAP    = rf.check("closed_class_wordsSD",  Value("after")).toString().c_str();
-    sclosed_class_wordsSD     = rf.check("closed_class_wordsSD",  Value("after")).toString().c_str();
-    smax_nr_ocw     = rf.check("max_nr_ocw",  Value("10")).toString().c_str();
-    smax_nr_actionrelation    = rf.check("max_nr_actionrelation",  Value("4")).toString().c_str();
-    selt_pred     = rf.check("elt_pred",  Value("P A O R V")).toString().c_str();
+    sreservoirSD += rf.check("fileAP", Value("/spatial_relation.py")).toString().c_str();
+    sclosed_class_wordsAP = rf.check("closed_class_wordsSD", Value("after")).toString().c_str();
+    sclosed_class_wordsSD = rf.check("closed_class_wordsSD", Value("after")).toString().c_str();
+    smax_nr_ocw = rf.check("max_nr_ocw", Value("10")).toString().c_str();
+    smax_nr_actionrelation = rf.check("max_nr_actionrelation", Value("4")).toString().c_str();
+    selt_pred = rf.check("elt_pred", Value("P A O R V")).toString().c_str();
 
-    sHand=rf.check("hand",  Value("right")).toString().c_str();
-    offsetGrasp=rf.check("offsetGrasp", Value("0.02")).asDouble();
+    sHand = rf.check("hand", Value("right")).toString().c_str();
+    offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
 
     setName(moduleName.c_str());
 
     // Open handler port
     string sName = getName();
-    handlerPortName = "/"+ sName + "/rpc";
+    handlerPortName = "/" + sName + "/rpc";
 
     if (!handlerPort.open(handlerPortName.c_str())) {
         cout << getName() << ": Unable to open port " << handlerPortName << endl;
@@ -75,19 +75,19 @@ bool LRH::configure(ResourceFinder &rf) {
     //------------------------//
 
     // string ttsSystem = SUBSYSTEM_SPEECH;
-    iCub = new ICubClient(moduleName.c_str(),"lrh","client.ini",true);
+    iCub = new ICubClient(moduleName.c_str(), "lrh", "client.ini", true);
     iCub->opc->isVerbose = false;
 
     char rep = 'n';
-    while (rep!='y'&&!iCub->connect())
+    while (rep != 'y'&&!iCub->connect())
     {
-        cout<<"iCubClient : Some dependencies are not running..."<<endl;
+        cout << "iCubClient : Some dependencies are not running..." << endl;
         break; //to debug
         Time::delay(1.0);
     }
-    cout<<"Connections done"<<endl;
+    cout << "Connections done" << endl;
     iCub->opc->checkout();
-    cout<<"Checkout done"<<endl;
+    cout << "Checkout done" << endl;
 
     //populateOPC();
 
@@ -111,30 +111,30 @@ bool LRH::close() {
 }
 
 bool LRH::respond(const Bottle& command, Bottle& reply) {
-    string helpMessage =  string(getName().c_str()) +
-            " commands are: \n" +
-            "help \n" +
-            "production objectFocus \n" +
-            "meaning sentence \n" +
-            "quit \n";
+    string helpMessage = string(getName().c_str()) +
+        " commands are: \n" +
+        "help \n" +
+        "production objectFocus \n" +
+        "meaning sentence \n" +
+        "quit \n";
 
     reply.clear();
 
-    if (command.get(0).asString()=="quit") {
+    if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
     }
-    else if (command.get(0).asString()=="help") {
+    else if (command.get(0).asString() == "help") {
         cout << helpMessage;
         reply.addString("ok");
     }
-    else if (command.get(0).asString()=="production"  && command.size() == 2) {
+    else if (command.get(0).asString() == "production"  && command.size() == 2) {
         reply.addString("ack");
         reply.addString("OK, send the language production");
         cout << "command.get(1).asString() : " << command.get(1).asString() << endl;
         spatialRelation(command.get(1).asString());
     }
-    else if (command.get(0).asString()=="meaning" && command.size() == 2) {
+    else if (command.get(0).asString() == "meaning" && command.size() == 2) {
         reply.addString("ack");
         reply.addString("OK, send the language comprehension");
         sentenceToMeaning(command.get(1).asString());
@@ -161,19 +161,19 @@ bool LRH::populateOPC(){
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("cube");
 
     Vector dimensionObject(3);
-    dimensionObject[0]=0.065;
-    dimensionObject[1]=0.065;
-    dimensionObject[2]=0.08;
+    dimensionObject[0] = 0.065;
+    dimensionObject[1] = 0.065;
+    dimensionObject[2] = 0.08;
 
     Vector color(3);
-    color[0]=50;
-    color[1]=100;
-    color[2]=50;
+    color[0] = 50;
+    color[1] = 100;
+    color[2] = 50;
 
     Vector x(3);
-    x[0]=-0.38;
-    x[1]=0.2;
-    x[2]=0.0016;
+    x[0] = -0.38;
+    x[1] = 0.2;
+    x[2] = 0.0016;
 
     //vGoal is : -0.350000	 0.200000	 0.001600
     obj1->m_ego_position = x;
@@ -181,39 +181,39 @@ bool LRH::populateOPC(){
     obj1->m_dimensions = dimensionObject;
     obj1->m_color = color;
 
-    color[0]=0;
-    color[1]=100;
-    color[2]=200;
+    color[0] = 0;
+    color[1] = 100;
+    color[2] = 200;
     Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("mouse");
-    x[0]=-0.45;  //y position
-    x[1]=0.0;    //x position
-    x[2]=0.0016; //z position
+    x[0] = -0.45;  //y position
+    x[1] = 0.0;    //x position
+    x[2] = 0.0016; //z position
     //vGoal is : -0.350000	 0.200000	 0.001600
     obj2->m_ego_position = x;
     obj2->m_present = 1;
     obj2->m_dimensions = dimensionObject;
     obj2->m_color = color;
 
-    color[0]=70;
-    color[1]=200;
-    color[2]=80;
+    color[0] = 70;
+    color[1] = 200;
+    color[2] = 80;
     Object* obj3 = iCub->opc->addOrRetrieveEntity<Object>("croco");
-    x[0]=-0.35;
-    x[1]=-0.2;
-    x[2]=0.0016;
+    x[0] = -0.35;
+    x[1] = -0.2;
+    x[2] = 0.0016;
     //vGoal is : -0.350000	 0.200000	 0.001600
     obj3->m_ego_position = x;
     obj3->m_present = 1;
     obj3->m_dimensions = dimensionObject;
     obj3->m_color = color;
 
-    color[0]=70;
-    color[1]=700;
-    color[2]=70;
+    color[0] = 70;
+    color[1] = 700;
+    color[2] = 70;
     Object* obj4 = iCub->opc->addOrRetrieveEntity<Object>("banana");
-    x[0]=-0.1;
-    x[1]=-0.8;
-    x[2]=0.0026;
+    x[0] = -0.1;
+    x[1] = -0.8;
+    x[2] = 0.0026;
     //vGoal is : -0.350000	 0.200000	 0.001600
     obj4->m_ego_position = x;
     obj4->m_present = 1;
@@ -231,7 +231,7 @@ bool LRH::populateOPC(){
 
 // Understanding
 bool LRH::sentenceToMeaning(string sentence){
-    copyPastTrainFile(scorpusFileAP.c_str(),stemporaryCorpus.c_str());
+    copyPastTrainFile(scorpusFileAP.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), sentence);
     callReservoir(sreservoirAP, sclosed_class_wordsAP);
     return true;
@@ -239,7 +239,7 @@ bool LRH::sentenceToMeaning(string sentence){
 
 // Production
 bool LRH::meaningToSentence(string meaning){
-    copyPastTrainFile(scorpusFileSD.c_str(),stemporaryCorpus.c_str());
+    copyPastTrainFile(scorpusFileSD.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), meaning);
     callReservoir(sreservoirSD, sclosed_class_wordsSD);
     return true;
@@ -263,7 +263,7 @@ string LRH::openResult(const char* fileNameIn)
     ifstream in;
     in.open(fileNameIn);
     string str;
-    getline(in,str);
+    getline(in, str);
     cout << str << endl;
     in.close();
 
@@ -274,11 +274,11 @@ int LRH::createTest(const char* filename, string sMeaningSentence)
 {
     cout << filename << "    " << "sMeaningSentence" << endl;
     ofstream file;
-    file.open (filename, ios::app);
-    file << "</train data>" <<endl;
-    file << "<test data>" <<endl;
-    file << sMeaningSentence <<endl;
-    file << "</test data>" <<endl;
+    file.open(filename, ios::app);
+    file << "</train data>" << endl;
+    file << "<test data>" << endl;
+    file << sMeaningSentence << endl;
+    file << "</test data>" << endl;
     file.close();
 
     return true;
@@ -291,9 +291,9 @@ int LRH::copyPastTrainFile(const char* fileNameIn, const char* fileNameOut)
     in.open(fileNameIn);
     out.open(fileNameOut, ios::out | ios::trunc);
     string str;
-    while(getline(in,str))
+    while (getline(in, str))
     {
-        out<<str<<endl;
+        out << str << endl;
     }
     in.close();
     out.close();
@@ -303,21 +303,21 @@ int LRH::copyPastTrainFile(const char* fileNameIn, const char* fileNameOut)
 
 bool LRH::AREactions(vector<string> seq)
 {
-    string sPredicat,sObject,sLocation, sadverbs;
+    string sPredicat, sObject, sLocation, sadverbs;
     float ftime;
     sPredicat = seq[0];
-    sObject   = seq[1];
+    sObject = seq[1];
     sLocation = seq[2];
-    sadverbs  = seq[3];
+    sadverbs = seq[3];
 
     if (sadverbs == "slowly"){
-        ftime=4.0;
+        ftime = 4.0;
     }
     else if (sadverbs == "quickly"){
-        ftime=0.0;
+        ftime = 0.0;
     }
     else{
-        ftime=2.0;
+        ftime = 2.0;
     }
 
     if (sPredicat == "none")
@@ -341,7 +341,7 @@ bool LRH::AREactions(vector<string> seq)
     {
 
         // GRASP BEGIN
-        if (sPredicat == "put" ||  sPredicat == "take" || sPredicat == "grasp")
+        if (sPredicat == "put" || sPredicat == "take" || sPredicat == "grasp")
         {
             Bottle bHand(sHand);
             bHand.addString("still");
@@ -354,19 +354,19 @@ bool LRH::AREactions(vector<string> seq)
             cout << "vGoal is : " << vGoal.toString() << endl;
 
             // DROP ON LOCATION
-            if(sLocation != " ")
+            if (sLocation != " ")
             {
                 Time::delay(ftime);
-                bool grasped=iCub->getARE()->take(value, bHand, false);
-                cout<<(grasped?"grasped!":"missed!")<<endl;
+                bool grasped = iCub->getARE()->take(value, bHand, false);
+                cout << (grasped ? "grasped!" : "missed!") << endl;
 
                 success &= grasped;
                 Time::delay(ftime);
 
-                if(grasped){
+                if (grasped){
                     Bottle opts("over still " + sHand);
-                    bool dropped = iCub->getARE()->dropOn(vGoal,opts, false);
-                    cout<<(dropped?"dropped!":"missed!")<<endl;
+                    bool dropped = iCub->getARE()->dropOn(vGoal, opts, false);
+                    cout << (dropped ? "dropped!" : "missed!") << endl;
                     Time::delay(ftime);
                     iCub->getARE()->home();
                     success &= dropped;
@@ -376,14 +376,14 @@ bool LRH::AREactions(vector<string> seq)
             // DROP WITHOUT LOCATION
             else
             {
-                bool grasped=iCub->getARE()->take(value, bHand, false);
-                cout<<(grasped?"grasped!":"missed!")<<endl;
+                bool grasped = iCub->getARE()->take(value, bHand, false);
+                cout << (grasped ? "grasped!" : "missed!") << endl;
                 Time::delay(ftime);
                 success &= grasped;
 
-                if(grasped)
+                if (grasped)
                 {
-                    iCub->release(value,bHand);
+                    iCub->release(value, bHand);
                 }
                 Time::delay(ftime);
                 iCub->home(bHand.toString());
@@ -392,30 +392,30 @@ bool LRH::AREactions(vector<string> seq)
         }
 
         // PUSH
-        else if(sPredicat == "push")
+        else if (sPredicat == "push")
         {
-            sLocation=="right"? sHand = "left": sHand = "right";
+            sLocation == "right" ? sHand = "left" : sHand = "right";
 
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
             Time::delay(ftime);
             bool pushed = iCub->getARE()->push(value, bHand, false);
-            cout<<(pushed?"pushed!":"missed!")<<endl;
+            cout << (pushed ? "pushed!" : "missed!") << endl;
             Time::delay(ftime);
             success &= pushed;
             iCub->getARE()->home();
         }
 
         // POINT
-        else if(sPredicat == "point")
+        else if (sPredicat == "point")
         {
             Time::delay(ftime);
-            value[1]<0.0?sHand = "left": sHand  = "right";
+            value[1] < 0.0 ? sHand = "left" : sHand = "right";
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
 
             bool pointed = iCub->getARE()->point(value, bHand);
-            cout<<(pointed?"pointed!":"missed!")<<endl;
+            cout << (pointed ? "pointed!" : "missed!") << endl;
 
             success &= pointed;
             Time::delay(ftime);
@@ -430,7 +430,7 @@ bool LRH::AREactions(vector<string> seq)
         success = false;
     }
 
-    cout << "Result of the action: " << (success?"success!":"missed!") << endl;
+    cout << "Result of the action: " << (success ? "success!" : "missed!") << endl;
 
     return success;
 }
@@ -445,13 +445,13 @@ bool LRH::spatialRelation(string sObjectFocus)
     std::vector<Object> PresentRtoBefore;
 
     yDebug() << "before loop into present object";
-    for(std::list<Entity*>::iterator itE = PresentObjects.begin() ; itE != PresentObjects.end(); itE++)
+    for (std::list<Entity*>::iterator itE = PresentObjects.begin(); itE != PresentObjects.end(); itE++)
     {
         if ((*itE)->isType(EFAA_OPC_ENTITY_OBJECT))
         {
             Object rto;
             rto.fromBottle((*itE)->asBottle());
-            if (rto.m_present)PresentRtoBefore.push_back(rto) ;
+            if (rto.m_present)PresentRtoBefore.push_back(rto);
         }
     }
 
@@ -470,13 +470,13 @@ bool LRH::spatialRelation(string sObjectFocus)
     if (sobjectFocusChanged.empty())
     {
         double maxSalience = 0.4;
-        yDebug() << "obj focus is empty" ;
-        for (std::vector<Object>::iterator itRTO = PresentRtoBefore.begin() ; itRTO != PresentRtoBefore.end() ; itRTO++)
+        yDebug() << "obj focus is empty";
+        for (std::vector<Object>::iterator itRTO = PresentRtoBefore.begin(); itRTO != PresentRtoBefore.end(); itRTO++)
         {
-            yDebug() << "loop in present RTO" ;
+            yDebug() << "loop in present RTO";
             if (itRTO->m_saliency > maxSalience)
             {
-                yDebug() << "new max sliency" ;
+                yDebug() << "new max sliency";
                 maxSalience = itRTO->m_saliency;
                 sObjectFocus = itRTO->name();
             }
@@ -491,26 +491,26 @@ bool LRH::spatialRelation(string sObjectFocus)
         sObjectFocus = sobjectFocusChanged;
     }
 
-    cout << "In spatialRelation" <<endl;
+    cout << "In spatialRelation" << endl;
 
-    if (PresentRtoBefore.size()==2)
+    if (PresentRtoBefore.size() == 2)
     {
 
-        yDebug() << "== than 2 obj present" ;
+        yDebug() << "== than 2 obj present";
         double deltaX = 0.0;
         double deltaY = 0.0;
         int iFactor;
         (PresentRtoBefore[0].name() == sObjectFocus) ? iFactor = 1 : iFactor = -1;
-        yDebug() << "weird if done" ;
+        yDebug() << "weird if done";
         deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
         deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
 
         string sLocation;
-        (deltaY>0)? sLocation = "right" : sLocation = "left";
-        yDebug() << "second weird if done" ;
+        (deltaY > 0) ? sLocation = "right" : sLocation = "left";
+        yDebug() << "second weird if done";
         string sRelative;
-        (iFactor==1)? sRelative = (PresentRtoBefore[1].name()) : sRelative =(PresentRtoBefore[0].name());
-        cout << "I understood :" << endl << sObjectFocus << "\t" << sLocation << "\t" << sRelative << endl ;
+        (iFactor == 1) ? sRelative = (PresentRtoBefore[1].name()) : sRelative = (PresentRtoBefore[0].name());
+        cout << "I understood :" << endl << sObjectFocus << "\t" << sLocation << "\t" << sRelative << endl;
         sdataTestSD = sLocation + " " + sObjectFocus + " " + sRelative;
 
     }
@@ -520,27 +520,27 @@ bool LRH::spatialRelation(string sObjectFocus)
     else    // case of 3 objects
     {
         Object rtFocus,
-                rtRelative1,
-                rtRelative2;
+            rtRelative1,
+            rtRelative2;
         bool bFirstRelative = true;
-        for (unsigned int i = 0 ; i < 3 ; i++)
+        for (unsigned int i = 0; i < 3; i++)
         {
-            yDebug() << "in loop because  more than 3 obj" ;
-            if (PresentRtoBefore[i].name() != sObjectFocus )
+            yDebug() << "in loop because  more than 3 obj";
+            if (PresentRtoBefore[i].name() != sObjectFocus)
             {
-                yDebug() << "if 1" ;
-                bFirstRelative? rtRelative1 = PresentRtoBefore[i] : rtRelative2 =PresentRtoBefore[i];
+                yDebug() << "if 1";
+                bFirstRelative ? rtRelative1 = PresentRtoBefore[i] : rtRelative2 = PresentRtoBefore[i];
                 bFirstRelative = false;
             }
             else
             {
-                yDebug() << "else 1" ;
+                yDebug() << "else 1";
                 rtFocus = PresentRtoBefore[i];
             }
         }
 
-        double deltaX1 ; // difference btw focus and relative1
-        double deltaX2 ; // difference btw focus and relative2
+        double deltaX1; // difference btw focus and relative1
+        double deltaX2; // difference btw focus and relative2
 
         deltaX1 = rtRelative1.m_ego_position[1] - rtFocus.m_ego_position[1];
         deltaX2 = rtRelative2.m_ego_position[1] - rtFocus.m_ego_position[1];
@@ -551,17 +551,17 @@ bool LRH::spatialRelation(string sObjectFocus)
         string sRelative1 = rtRelative1.name();
         string sRelative2 = rtRelative2.name();
 
-        (deltaX1>0)? sLocation1 = "right" : sLocation1 = "left";
-        (deltaX2>0)? sLocation2 = "right" : sLocation2 = "left";
+        (deltaX1 > 0) ? sLocation1 = "right" : sLocation1 = "left";
+        (deltaX2 > 0) ? sLocation2 = "right" : sLocation2 = "left";
 
         cout << "I understood : " << sLocation1 << "\t" << sObjectFocus << "\t" << sRelative1 << endl;
         cout << "and          : " << sLocation2 << "\t" << sObjectFocus << "\t" << sRelative2 << endl;
 
-        string sfocusHierarchy =  "<o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>";
+        string sfocusHierarchy = "<o> [A-P-O-_-_-_-_-_-_][A-_-_-P-O-_-_-_-_] <o>";
         sdataTestSD = sLocation1 + " " + sObjectFocus + " " + sRelative1 + "," + sLocation2 + " " + sObjectFocus + " " + sRelative2 + " " + sfocusHierarchy;
 
         // spatial location
-        cout << "sdataTestSD : "  << sdataTestSD << endl;
+        cout << "sdataTestSD : " << sdataTestSD << endl;
         meaningToSentence(sdataTestSD);
         string result = openResult(sfileResult.c_str());
         iCub->say("I have discoverd a new object " + sObjectFocus);
@@ -571,10 +571,10 @@ bool LRH::spatialRelation(string sObjectFocus)
         // distance
         //the objectFocus is closer/further the object1 than the object2
         string sproximity;
-        (deltaX1>deltaX2)? sproximity = "closer" : sproximity = "further";
-        sfocusHierarchy =  "<o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>";
-        sdataTestSD = sproximity + " " + sObjectFocus + " " + sRelative1 + " " + sRelative2 +" " + sfocusHierarchy;
-        cout << "sdataTestSD : "  << sdataTestSD << endl;
+        (deltaX1 > deltaX2) ? sproximity = "closer" : sproximity = "further";
+        sfocusHierarchy = "<o> [A-P-O-R-_-_-_-_-_][_-_-_-_-_-_-_-_-_] <o>";
+        sdataTestSD = sproximity + " " + sObjectFocus + " " + sRelative1 + " " + sRelative2 + " " + sfocusHierarchy;
+        cout << "sdataTestSD : " << sdataTestSD << endl;
         meaningToSentence(sdataTestSD);
         result = openResult(sfileResult.c_str());
         iCub->say("I learned also that");
