@@ -5,5 +5,5 @@
 add_subdirectory(faceTracker)
 add_subdirectory(rekognition)
 add_subdirectory(headPoseEstimator)
-#add_subdirectory(oxford)
+add_subdirectory(sightcorp)
 

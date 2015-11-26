@@ -6,17 +6,35 @@ import time
 import yarp
 from pprint import pprint
 import Image
+import os
+import ConfigParser as cp
 
 import requests
 
+#check ini file
+configFileName = os.environ['WYSIWYD_DIR'] + '/share/wysiwyd/contexts/sightcorp/sightcorp.ini'
+print("Will trying to open the .ini file in ", configFileName)
+
+config = cp.ConfigParser()
+config.readfp(open(configFileName))
+app_key = config.get('API_Security', 'app_key')
+client_id = config.get('API_Security', 'client_id')
+
+print("app_key = ", app_key)
+print("client_id = ", client_id)
+
 # Initialise YARP
 yarp.Network.init()
+
+
 
 # Preparing port to connect to ABM
 abm_port = yarp.RpcClient()
 abm_local = '/sightcorp/abm:o'
 abm_remote = '/autobiographicalMemory/rpc'
 abm_port.open(abm_local)
+
+
 
 # Loop to connect to ABM
 while(not yarp.Network.connect(abm_local, abm_remote)):
@@ -60,8 +78,8 @@ try:
 
 
 	    response_tagging = requests.post( 'http://api.sightcorp.com/api/detect/',
-              data   = { 'app_key'   : 'your app_key',
-                         'client_id' : 'your client_id' },
+              data   = { 'app_key'   : app_key,
+                         'client_id' : client_id },
               files  = { 'img'       : ( storing_label, open( storing_path, 'rb' ) ) } )
 
             print("Result tagging:", response_tagging)
