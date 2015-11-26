@@ -60,8 +60,8 @@ try:
 
 
 	    response_tagging = requests.post( 'http://api.sightcorp.com/api/detect/',
-              data   = { 'app_key'   : '6427ce96fe864477b99b21bf36c39a01',
-                         'client_id' : '4e91c4716a52448f91fcf2977d7cc7eb' },
+              data   = { 'app_key'   : 'your app_key',
+                         'client_id' : 'your client_id' },
               files  = { 'img'       : ( storing_label, open( storing_path, 'rb' ) ) } )
 
             print("Result tagging:", response_tagging)
