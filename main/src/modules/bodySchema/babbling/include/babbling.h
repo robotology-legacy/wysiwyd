@@ -15,8 +15,8 @@
  * Public License for more details
 */
 
-#ifndef _MODELOTL_H_
-#define _MODELOTL_H_
+#ifndef _BABBLING_H_
+#define _BABBLING_H_
 
 #include <cv.h>
 
@@ -24,48 +24,47 @@
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
 #include <wrdac/clients/icubClient.h>
-#include <otl.h>
-#include <otl_oesgp.h>
 
-using namespace OTL;
-
-class ModelOTL : public yarp::os::RFModule {
+class Babbling : public yarp::os::RFModule {
 private:
     std::string moduleName;
 
     yarp::os::Port handlerPort;
+
     yarp::os::BufferedPort<yarp::os::Bottle> portVelocityOut;
-    yarp::os::BufferedPort<yarp::os::Bottle> portPredictionErrors;
-    yarp::os::BufferedPort<yarp::os::Bottle> portInputsfromBabbling;
-    yarp::os::BufferedPort<yarp::os::Bottle> portOutputsfromSensoryProc;
+    yarp::os::Port portToMatlab;
+    yarp::os::BufferedPort<yarp::os::Bottle> portReadMatlab;
+
+    yarp::dev::IPositionControl* posArm;
+    yarp::dev::IVelocityControl* velArm;
+    yarp::dev::IEncoders* encsArm;
+    yarp::dev::IControlMode2 *ictrlArm;
+
+    yarp::dev::IPositionControl* posHead;
+    yarp::dev::IVelocityControl* velHead;
+    yarp::dev::IEncoders* encsHead;
+
+    yarp::dev::PolyDriver* armDev;
+    yarp::dev::PolyDriver* headDev;
+
+    yarp::sig::Vector encodersArm, cmd, command, new_command, tmpSpeed, tmpAcc;
+    yarp::sig::Vector encodersHead, commandHead;
+    yarp::sig::Vector handTarget, armTarget, fingerTarget;
 
     std::string part;
+    std::string robot;
+    std::string arm;
+    std::string cmd_source;
+    int single_joint;
+    int fps;
 
-    int nInputs;
-    int nOutputs;
+    std::string leftCameraPort, rightCameraPort;
 
-    double initTime;
+    double freq, amp;
+    double train_duration;
 
-    double train_duration,test_duration;
-    bool endTrain;
-
-    OESGP oesgp,oesgp2;
-    VectorXd prediction;
-    VectorXd prediction_variance;
-
-    int p_input_dim;
-    int p_output_dim;
-    int p_reservoir_size;
-    double p_input_weight;
-    double p_output_feedback_weight;
-    double p_leak_rate;
-    double p_connectivity;
-    double p_spectral_radius;
-    int p_use_inputs_in_state;
-    double p_noise;
-    double p_epsilon;
-    int p_capacity;
-    int p_random_seed;
+    double start_commandHead[5];
+    double start_command[16];
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -75,10 +74,16 @@ public:
     double getPeriod();
     bool updateModule();
 
+
+
 private:
 
-    bool learnOTLModel();
-    bool init_oesgp_learner();
+    bool init_iCub(std::string &part);
+    bool doBabbling();
+    yarp::sig::Vector babblingCommands(double &t, int j_idx);
+    int babblingCommandsMatlab();
+    bool gotoStartPos();
+
 };
 
-#endif // __MODELOTL_H__
+#endif // _BABBLING_H_

@@ -22,72 +22,22 @@
 #include <vector>
 #include <iostream>
 
-
 using namespace OTL;
 using namespace std;
 using namespace cv;
 using namespace yarp::os;
 using namespace yarp::sig;
 
-bool modelOTL::configure(yarp::os::ResourceFinder &rf) {
+bool ModelOTL::configure(yarp::os::ResourceFinder &rf) {
     bool bEveryThingisGood = true;
 
     moduleName = rf.check("name",Value("bodySchema"),"module name (string)").asString();
-    state = idle;
 
     part = rf.check("part",Value("left_arm")).asString();
-    robot = rf.check("robot",Value("icubSim")).asString();
-    fps = rf.check("fps",Value(30)).asInt(); //30;
-
-    Bottle &start_pos = rf.findGroup("start_position");
-    start_commandHead[0] = start_pos.check("cmdH0", Value(-25.0)).asDouble();
-    start_commandHead[1] = start_pos.check("cmdH1", Value(-15.0)).asDouble();
-    start_commandHead[2] = start_pos.check("cmdH2", Value(0.0)).asDouble();
-    start_commandHead[3] = start_pos.check("cmdH3", Value(0.0)).asDouble();
-    start_commandHead[4] = start_pos.check("cmdH4", Value(-20.0)).asDouble();
-
-    start_command[0] = start_pos.check("cmdL0", Value(-40.0)).asDouble();
-    start_command[1] = start_pos.check("cmdL1", Value(20.0)).asDouble();
-    start_command[2] = start_pos.check("cmdL2", Value(20.0)).asDouble();
-    start_command[3] = start_pos.check("cmdL3", Value(60.0)).asDouble();
-    start_command[4] = start_pos.check("cmdL4", Value(-60.0)).asDouble();
-    start_command[5] = start_pos.check("cmdL5", Value(-10.0)).asDouble();
-    start_command[6] = start_pos.check("cmdL6", Value(10.0)).asDouble();
-    start_command[7] = start_pos.check("cmdL7", Value(18.0)).asDouble();
-    start_command[8] = start_pos.check("cmdL8", Value(30.0)).asDouble();
-    start_command[9] = start_pos.check("cmdL9", Value(4.0)).asDouble();
-    start_command[10] = start_pos.check("cmdL10", Value(2.0)).asDouble();
-    start_command[11] = start_pos.check("cmdL11", Value(4.0)).asDouble();
-    start_command[12] = start_pos.check("cmdL12", Value(7.0)).asDouble();
-    start_command[13] = start_pos.check("cmdL13", Value(14.0)).asDouble();
-    start_command[14] = start_pos.check("cmdL14", Value(5.0)).asDouble();
-    start_command[15] = start_pos.check("cmdL15", Value(33.0)).asDouble();
 
     Bottle &babbl_par = rf.findGroup("babbling_param");
-    freq1 = babbl_par.check("freq1", Value(0.3)).asDouble();
-    freq2 = babbl_par.check("freq2", Value(0.5)).asDouble();
-    freq3 = babbl_par.check("freq3", Value(0.2)).asDouble();
-    freq4 = babbl_par.check("freq4", Value(0.1)).asDouble();
-    cos_freq = babbl_par.check("cos_freq", Value(0.2)).asDouble();
-    amp[0] = babbl_par.check("amp0", Value(6)).asDouble();
-    amp[1] = babbl_par.check("amp1", Value(4)).asDouble();
-    amp[2] = babbl_par.check("amp2", Value(7)).asDouble();
-    amp[3] = babbl_par.check("amp3", Value(6)).asDouble();
-    amp[4] = babbl_par.check("amp4", Value(12)).asDouble();
-    amp[5] = babbl_par.check("amp5", Value(0)).asDouble();
-    amp[6] = babbl_par.check("amp6", Value(0)).asDouble();
-    amp[7] = babbl_par.check("amp7", Value(0)).asDouble();
-    amp[8] = babbl_par.check("amp8", Value(-40)).asDouble();
-    amp[9] = babbl_par.check("amp9", Value(-40)).asDouble();
-    amp[10] = babbl_par.check("amp10", Value(0)).asDouble();
-    amp[11] = babbl_par.check("amp11", Value(-20)).asDouble();
-    amp[12] = babbl_par.check("amp12", Value(-20)).asDouble();
-    amp[13] = babbl_par.check("amp13", Value(-20)).asDouble();
-    amp[14] = babbl_par.check("amp14", Value(-20)).asDouble();
-    amp[15] = babbl_par.check("amp15", Value(-20)).asDouble();
-    ampcos2 = babbl_par.check("ampcos2", Value(0.0)).asDouble();
     train_duration = babbl_par.check("train_duration", Value(20.0)).asDouble();
-    test_duration = babbl_par.check("test_duration", Value(5.0)).asDouble();
+    test_duration = babbl_par.check("test_duration", Value(10.0)).asDouble();
 
     Bottle &oesgp_par = rf.findGroup("oesgp_learner");
     p_input_dim = oesgp_par.check("input_dim", Value(2)).asInt();
@@ -103,27 +53,6 @@ bool modelOTL::configure(yarp::os::ResourceFinder &rf) {
     p_epsilon = oesgp_par.check("epsilon", Value(1e-3)).asDouble();
     p_capacity = oesgp_par.check("capacity", Value(10)).asInt();
     p_random_seed = oesgp_par.check("random_seed", Value(0)).asInt();
-
-    // keep this part if you want to use both cameras
-    // if you only want to use want, delete accordingly
-    if (robot=="icub")
-    {
-        ports[0] = "/"+robot+"/camcalib/left/out";
-        ports[1] = "/"+robot+"/camcalib/right/out";
-    }
-    else //if (robot=='icubSim')
-    {
-        ports[0] = "/"+robot+"/cam/left";
-        ports[1] = "/"+robot+"/cam/right";
-    }
-    ports[2] = "/"+moduleName+"/camleft";
-    ports[3] = "/"+moduleName+"/camright";
-
-    video[0] = "videoL.avi";
-    video[1] = "videoR.avi";
-
-    state = idle;
-    shouldQuit = false;
 
     setName(moduleName.c_str());
 
@@ -143,86 +72,38 @@ bool modelOTL::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
-    if (!portToABM.open("/" + getName() + "/toABM")) {
-        cout << getName() << ": Unable to open port " << "/" + getName() + "/toABM" << endl;
+    if (!portInputsfromBabbling.open("/" + getName() + "/portInputs")) {
+        cout << getName() << ": Unable to open port " << "/" + getName() + "/portInputs" << endl;
         bEveryThingisGood = false;
     }
 
-
-//    if (!portToSFM.open("/" + getName() + "/toSFM")) {
-//        cout << getName() << ": Unable to open port " << "/" + getName() + "/toSFM" << endl;
-//        bEveryThingisGood = false;
-//    }
-
-
-
-
-
-    Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc");
-    if(!Network::isConnected(portToABM.getName(), "/autobiographicalMemory/rpc")){
-        cout << endl << "WARNING : Cannot connect to ABM, storing data into it will not be possible unless manual connection" << endl << endl;
-    } else {
-        cout << "Connected to ABM : Data (especially in Winter) are coming!" << endl;
-    }
-
-
-
-
-    // Initialize iCub and Vision
-    while (!init_iCub(part)) {
-        cout << getName() << ": initialising iCub... please wait... " << endl;
+    if (!portOutputsfromSensoryProc.open("/" + getName() + "/portOutputsfromSensoryProc")) {
+        cout << getName() << ": Unable to open port " << "/" + getName() + "/portOutputsfromSensoryProc" << endl;
         bEveryThingisGood = false;
     }
 
-    cout << "End configuration..." <<endl;
-    cout << "Current state : " << state <<endl;
 
     attach(handlerPort);
-
-    string welcomeMessage =
-            "\n + + + + + + + + + + + + + + + + + + + + + + + + + \n"
-            "This is " + getName() + " module. With this module, the iCub will perform\n"
-            "motor babbling with its left arm, while learning the corresponding\n"
-            "forward model online.\n\n"
-            "Then, in another terminal run `yarp rpc /bodySchema/rpc' to open the bodySchema rpc port.\n"
-            "Launch the `babbling arm' command to perform learning from motor babbling. \n"
-            "The complete list of commands follows: \n"
-            "babbling arm \n"
-            "babbling hand \n"
-            "help \n"
-            "quit \n";
-
-    cout << welcomeMessage;
 
     return bEveryThingisGood;
 }
 
-bool modelOTL::interruptModule() {
+bool ModelOTL::interruptModule() {
 
-    imgPortIn.interrupt();
-    imgPortOut.interrupt();
     portVelocityOut.interrupt();
     portPredictionErrors.interrupt();
-    portToABM.interrupt();
+    portInputsfromBabbling.interrupt();
+    portOutputsfromSensoryProc.interrupt();
     handlerPort.interrupt();
 
-    cout << "Bye!" << endl;
+    yInfo() << "Bye!";
 
     return true;
 
 }
 
-bool modelOTL::close() {
+bool ModelOTL::close() {
     cout << "Closing module, please wait ... " <<endl;
-
-    armDev->close();
-    headDev->close();
-
-    imgPortIn.interrupt();
-    imgPortIn.close();
-
-    imgPortOut.interrupt();
-    imgPortOut.close();
 
     portVelocityOut.interrupt();
     portVelocityOut.close();
@@ -230,325 +111,55 @@ bool modelOTL::close() {
     portPredictionErrors.interrupt();
     portPredictionErrors.close();
 
-    portToABM.interrupt();
-    portToABM.close();
-    
-    portToSFM.close();
-    portReadSkin.close();
+    portInputsfromBabbling.interrupt();
+    portInputsfromBabbling.close();
+
+    portOutputsfromSensoryProc.interrupt();
+    portOutputsfromSensoryProc.close();
 
     handlerPort.interrupt();
     handlerPort.close();
 
-    cout << "Bye!" << endl;
+    yInfo() << "Bye!";
 
     return true;
 }
 
-bool modelOTL::respond(const Bottle& command, Bottle& reply) {
-    string helpMessage =
-            "\n + + + + + + + + + + + + + + + + + + + + + + + + + \n"
-            "This is " + getName() + " module. With this module, the iCub will perform\n"
-            "motor babbling with its left arm, while learning the corresponding\n"
-            "forward model online.\n\n"
-            "Launch the `babbling arm' command to perform learning from\n"
-            "motor babbling. \n\n"
-            "All commands are: \n"
-            "babbling arm \n"
-            "babbling hand \n"
-            "help \n"
-            "quit \n";
-
-    reply.clear();
-
-    if (command.get(0).asString()=="help") {
-        cout << helpMessage;
-        reply.addString(helpMessage);
-    } else if (command.get(0).asString()=="quit") {
-        shouldQuit = true;
-        reply.addString("closing");
-    }
-    else if (command.get(0).asString()=="babbling") {
-        if (state==idle)
-        {
-            if (command.size()==2)
-            {
-
-                if (command.get(1).asString()=="arm")
-                {
-                    state = babblingArm;
-                    cout << "... state : " << state <<endl;
-                    reply = dealABM(command,1);
-
-                    //check ABM reply
-                    if (reply.isNull()) {
-                        cout << "Reply from ABM is null : NOT connected?" << endl;
-                    } else if (reply.get(0).asString()!="ack"){
-                        cout << reply.toString() << endl;
-                    }
-
-                    reply.clear();
-                    learnAbsPos(state); //or learn(), or learnChangePos()
-                    reply = dealABM(command,0);
-
-                    //check ABM reply
-                    if (reply.isNull()) {
-                        cout << "Reply from ABM is null : NOT connected?" << endl;
-                    } else if (reply.get(0).asString()!="ack"){
-                        cout << reply.toString() << endl;
-                    }
-                    cout << "Finish babbling arm..." << endl;
-                    state = idle;
-                    cout << "... state : " << state <<endl;
-                    cout << helpMessage;
-                    reply.addString("ack");
-                }
-                else if (command.get(1).asString()=="hand")
-                {
-                    state = babblingHand;
-                    cout << "... state : " << state <<endl;
-                    reply = dealABM(command,1);
-                    cout << reply.toString() << endl;
-                    reply.clear();
-                    learnAbsPos(state); //or learn(), or learnChangePos()
-                    reply = dealABM(command,0);
-                    cout << reply.toString() << endl;
-
-                    cout << "Finish babbling hand..." << endl;
-                    state = idle;
-                    cout << "... state : " << state <<endl;
-                    cout << helpMessage;
-                    reply.addString("ack");
-                }
-                else
-                    cout << "Argument 2 not appropriate!...Cup of tea?" << endl;
-            }
-            else {
-                cout << "Argument missing!" << endl;
-            }
-
-        }
-        else {
-            reply.addString("nack");
-        }
-    }
-    else if (command.get(0).asString()=="singleJointBabbling") {
-        if (state==idle)
-        {
-            if (command.size()==2)
-            {
-                int joint_index = command.get(1).asInt();
-
-                state = vvv2015;
-                yInfo() << "... state: " << state;
-                Bottle abmReply = dealABM(command,1);
-
-                //check ABM reply
-                if (abmReply.isNull()) {
-                    yWarning() << "Reply from ABM is null NOT connected?";
-                } else if (abmReply.get(0).asString()!="ack"){
-                    yWarning() << "Response from ABM: " << abmReply.toString();
-                }
-
-                abmReply.clear();
-                singleJointBabbling(joint_index);
-                abmReply = dealABM(command,0);
-
-                //check ABM reply
-                if (abmReply.isNull()) {
-                    yWarning() << "Reply from ABM is null NOT connected?";
-                } else if (abmReply.get(0).asString()!="ack"){
-                    yWarning() << "Response from ABM: " << abmReply.toString();
-                }
-
-                yInfo() << "Finish singleJointBabbling";
-                state = idle;
-                yDebug() << "... state : " << state;
-                yInfo() << helpMessage;
-                reply.addString("ack");
-            }
-            else {
-                yError() << "Argument missing! singleJointBabbling jointNumber";
-                reply.addString("nack");
-            }
-        }
-        else {
-            yError() << "Still busy with previous babbling action, try again later.";
-            reply.addString("nack");
-        }
-    }
-    else {
-        yError() << "Unknown command!";
-        yInfo() << helpMessage;
-        reply.addString("nack");
-    }
+bool ModelOTL::respond(const Bottle& command, Bottle& reply) {
+    yInfo() << "Model learning via OESGP";
+    reply.addString("nack");
 
     return true;
 }
 
-bool modelOTL::updateModule() {
-    if(shouldQuit && state == idle) {
-        return false;
-    } else {
-//        joint_index = 11; // 13; // 9; // 15;
-//        VVV2015(joint_index);
-//        close();
-        return true;
-    }
+bool ModelOTL::updateModule() {
+    return true;
 }
 
-double modelOTL::getPeriod() {
+double ModelOTL::getPeriod() {
     return 0.1;
 }
 
 
-/*
- *
- *
- */
-Bottle modelOTL::dealABM(const Bottle& command, int begin)
+bool ModelOTL::learnOTLModel()
 {
-    yDebug() << "Dealing with ABM";
-    if (begin<0 || begin>1)
-    {
-        yError() << "begin parameter must be 1 or 0.";
-        Bottle bError;
-        bError.addString("nack");
-        bError.addString("Error: begin item should be either 1 or 0.");
-        return bError;
-    }
-
-    Bottle bABM, bABMreply;
-    bABM.addString("snapshot");
-    Bottle bSubMain;
-    bSubMain.addString("action");
-    bSubMain.addString(command.get(0).asString());
-    bSubMain.addString("action");
-    Bottle bSubArgument;
-    bSubArgument.addString("arguments");
-    Bottle bSubSubArgument;
-    bSubSubArgument.addString(command.get(1).toString());
-    bSubSubArgument.addString("limb");
-    Bottle bSubSubArgument2;
-    bSubSubArgument2.addString(part);
-    bSubSubArgument2.addString("side");
-    Bottle bSubSubArgument3;
-    bSubSubArgument3.addString(robot);
-    bSubSubArgument3.addString("agent1");
-    Bottle bBegin;
-    bBegin.addString("begin");
-    bBegin.addInt(begin);
-
-    bABM.addList() = bSubMain;
-    bSubArgument.addList() = bSubSubArgument;
-    bSubArgument.addList() = bSubSubArgument2;
-    bSubArgument.addList() = bSubSubArgument3;
-    bABM.addList() = bSubArgument;
-    bABM.addList() = bBegin;
-
-    portToABM.write(bABM,bABMreply);
-
-    return bABMreply;
-}
-
-/*
- * Learning while babbling
- * This learns absolute positions
- */
-bool modelOTL::learnAbsPos(State &state)
-{
-    cout << "Learning from babbling; iCub required." << endl;
-
-    // First go to home position
-    bool homeStart = goStartPos();
-    if(!homeStart) {
-        cout << "I got lost going home!" << endl;
-    }
-
-    while(!Network::isConnected(ports[0], imgPortIn.getName())) {
-        Network::connect(ports[0], imgPortIn.getName());
-        cout << "Waiting for port " << ports[0] << " to connect to " << imgPortIn.getName() << endl;
-        Time::delay(1.0);
-    }
-
-    // this needs to be a configuration option
-    double startTime = yarp::os::Time::now();
-
-    videoName = "video";
-    MAX_COUNT = 150;
-
-    bool createfolders = create_folders();
-    if(!createfolders) {
-        cout << "Error creating folders" << endl;
-    }
-    ofstream fs_enc(fileEncData.c_str());
-    if(!fs_enc) {
-        std::cerr<<"Cannot open the output file 'encData' ."<<std::endl;
-        return 0;
-    }
-    ofstream fs_cmd(fileCmdData.c_str());
-    if(!fs_cmd) {
-        std::cerr<<"Cannot open the output file 'cmdData' ."<<std::endl;
-        return 0;
-    }
-
-    capseq = 1;
-
-    Point2f lost_indic(-1.0f, -1.0f);
-
-    num_init_points = 0;
-
-    source_window = "image";
-    frame_idx = 0;
-
-    TermCriteria termcrit(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,50, 0.3);//75,0.0001);//20, 0.03);//
-    Size subPixWinSize(10,10), winSize(31,31);
-
     init_oesgp_learner();
 
     VectorXd input(1);
     VectorXd output(1);
     VectorXd input_test(1);
 
-    double AOD = rand() / double(RAND_MAX);
     yarp::sig::Vector babCmd;
+    Bottle *inputCmd;
+    Bottle *outputSens;
 
-    for(int i=0; i<16; i++)
-    {
-        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
-    }
-
+    double startTime = yarp::os::Time::now();
     while (Time::now() < startTime + train_duration){
         double t = Time::now() - startTime;
-        cout << endl << " Time: " << t << " / " << train_duration << endl;
+        yInfo() << " Time: " << t << " / " << train_duration ;
 
-
-        if (state == babblingArm) {
-            babCmd = babblingExecution(t,AOD);
-        } else if (state == babblingHand) {
-            babCmd = babblingHandExecution(t);
-        } else {
-            cout << "Error: state not recognised." << endl;
-        }
-
-        input(0) = babCmd[0];
-
-        bool babImg = getBabblingImages();
-        if(!babImg) {
-            cout << "Error getting images while babbling" << endl;
-        }
-        bool findFeat = findFeatures(termcrit, subPixWinSize, winSize);
-        if(!findFeat) {
-            cout << "Error finding features" << endl;
-        }
-
-        //        cout << "Write encoder data" << endl;
-        bool writeEncData = writeEncoderData(lost_indic, fs_enc, fs_cmd);
-        if(!writeEncData) {
-            cout << "Error writing encoder data" << endl;
-        }
-
-        std::swap(points[1], points[0]);
-        cv::swap(prevGray, gray);
+        inputCmd = portInputsfromBabbling.read(true);
+        input(0) = inputCmd->get(0).asDouble();
 
         //update learner
         oesgp.update(input);
@@ -556,20 +167,19 @@ bool modelOTL::learnAbsPos(State &state)
         //predict the next state
         oesgp.predict(prediction, prediction_variance);
 
-        output(0) = encoders[0];
+        outputSens = portOutputsfromSensoryProc.read(true);
+        output(0) = outputSens->get(0).asDouble();
 
         double error[1];
         error[0] = (prediction(0) - output(0));
-        //        cout << "Error: " << error[0] << ", |BV|: " << oesgp.getCurrentSize() <<  endl;
+        yInfo() << "Error: " << error[0] << ", |BV|: " << oesgp.getCurrentSize() ;
 
         //train with the true next state
         oesgp.train(output);
-
-        capseq++;
     }
 
     /* Validation */
-    cout << "Testing saving and loading model " << std::endl;
+    yInfo() << "Testing saving and loading model " ;
 
     oesgp.save("oesgptest");
     oesgp2.load("oesgptest");
@@ -582,11 +192,10 @@ bool modelOTL::learnAbsPos(State &state)
 
     while (Time::now() < startTime_test  + test_duration) {
         double t = Time::now() - startTime_test;
-        cout << endl << " Time: " << t << " / "<< test_duration << endl;
+        yInfo() << " Time: " << t << " / " << test_duration ;
 
-        double AOD = 1;
-        yarp::sig::Vector babCmd_test = babblingExecution(t,AOD);
-        input_test(0) = babCmd_test[0];
+        inputCmd = portInputsfromBabbling.read(true);
+        input_test(0) = inputCmd->get(0).asDouble();
 
         //update
         oesgp2.update(input_test);
@@ -595,7 +204,8 @@ bool modelOTL::learnAbsPos(State &state)
         oesgp2.predict(prediction, prediction_variance);
 
         VectorXd output(1);
-        output(0) = encoders[0];
+        outputSens = portOutputsfromSensoryProc.read(true);
+        output(0) = outputSens->get(0).asDouble();
 
         double error[1], rmse[1];
         error[0] = (prediction(0) - output(0));
@@ -605,360 +215,19 @@ bool modelOTL::learnAbsPos(State &state)
         sum=sum+Sqno;
 
         rmse[0] = sqrt(sum/count); //rmse(output(0),prediction(0));//
-        cout << "Error: " << error[0] << endl;
-        cout << "RMSE: " << rmse[0] << endl;
+        yInfo() << "Error: " << error[0]  ;
+        yInfo() << "RMSE: " << rmse[0]  ;
         Bottle& errB = portPredictionErrors.prepare(); // Get the object
         errB.clear();
         errB.addDouble(rmse[0]);
         portPredictionErrors.write(); // Now send it on its way
     }
 
-    bool homeEnd = goStartPos();
-    if(!homeEnd) {
-        cout << "I got lost going home!" << endl;
-    }
-
-    Network::disconnect(ports[0], imgPortIn.getName());
-
-    destroyWindow(source_window);
-
     return true;
 }
 
-const std::string modelOTL::trail_string()
-{
-    time_t     now = time(0);
-    struct tm  tstruct;
-    char       buf[80];
-    tstruct = *localtime(&now);
-    strftime(buf, sizeof(buf), "%Y-%m-%d-%H-%M", &tstruct);
 
-    return buf;
-}
-
-bool modelOTL::create_folders()
-{
-    string tr = trail_string();
-    foldername = "data"+tr+"/";
-    yarp::os::mkdir(foldername.c_str());
-    foldernamepoints = foldername + "points/";
-    yarp::os::mkdir(foldernamepoints.c_str());
-    foldernamevideo = foldernamepoints + videoName;
-    yarp::os::mkdir(foldernamevideo.c_str());
-    foldernameframes = foldername + "frames";
-    yarp::os::mkdir(foldernameframes.c_str());
-    fileEncData = foldername + "encData.txt";
-    fileCmdData = foldername + "cmdData.txt";
-
-    return true;
-}
-
-yarp::sig::Vector modelOTL::babblingExecution(double &t, double &AOD)
-{
-    double w1 = freq1*t;
-    double w2 = freq2*t;
-    double w3 = freq3*t;
-    double w4 = freq4*t;
-
-
-
-    for (unsigned int l=0; l<command.size(); l++) {
-        command[l]=0;
-    }
-    command[0]=cos(w1 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);//amp0*AOD;//
-    command[1]=cos(w1 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);//amp1*AOD;//
-    command[2]=cos(w1 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);//amp2*AOD;//
-    command[3]=cos(w2 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);//amp3*AOD;//
-    command[6]=cos(w3 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);//amp4*AOD;//
-
-
-
-    //cout << "Sending bottle" << endl;
-    Bottle& inDataB = portVelocityOut.prepare(); // Get the object
-    inDataB.clear();
-    for  (unsigned int l=0; l<command.size(); l++)
-    {
-        inDataB.addDouble(command[l]);
-    }
-    portVelocityOut.write();
-
-    //cout << "Do velocity move" << endl;
-
-    vel->velocityMove(command.data());
-
-    //cout << "Move done" << endl;
-    return command;
-}
-
-yarp::sig::Vector modelOTL::babblingHandExecution(double &t)
-{
-        double w1 = freq1*t;
-        double w2 = freq2*t;
-        double w3 = freq3*t;
-        double w4 = freq4*t;
-
-        for (unsigned int l=0; l<command.size(); l++) {
-            command[l]=0;
-        }
-        command[6]=amp[6]*cos(w3 * 2 * M_PI)+ampcos2*cos(w4 * 2 * M_PI);
-        command[8]=amp[8]*cos(w1 * 2 * M_PI);//-40*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[9]=amp[9]*cos(w1 * 2 * M_PI);//-40*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[11]=amp[11]*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[13]=amp[13]*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[15]=amp[15]*cos(w4 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[12]=amp[12]*cos(w2 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-        command[14]=amp[14]*cos(w2 * 2 * M_PI);//-20*amp*cos(0.05 * t * 2 * M_PI)+0*cos(1*t * 2 * M_PI);
-
-        //cout << "Sending bottle" << endl;
-        Bottle& inDataB = portVelocityOut.prepare(); // Get the object
-        inDataB.clear();
-        for  (unsigned int l=0; l<command.size(); l++)
-        {
-            inDataB.addDouble(command[l]);
-        }
-        portVelocityOut.write();
-
-        //cout << "Do velocity move" << endl;
-
-        vel->velocityMove(command.data());
-
-
-    /*
-     * ****************************************************************************
-    cout << "Set control mode" << endl;
-    for(int i=0; i<16; i++) {
-        ictrl->setControlMode(i,VOCAB_CM_POSITION);
-        pos->setRefSpeed(i, 20);
-    }
-
-    // increase speed for finger joints
-    for(int i=8; i<16; i++) {
-        pos->setRefSpeed(i, 35);
-    }
-    pos->setRefSpeed(15, 45);
-
-    int tmp = (int)round(t/3)%3;
-    for (int i=0; i<=6; i++) {
-        command[i]=start_command[i];
-    }
-    //command[5]=10;
-
-    switch (tmp)
-    {
-    case 0:
-    {
-        command[6]=-2; 	command[7]=35;  command[8]=20; 	command[9]=20; 	command[10]=20; command[11]=20;
-        command[12]=40; command[13]=40; command[14]=60; command[15]=100;
-        break;
-    }
-    case 1:
-    {
-        command[6]=2; 	command[7]=0; 	command[8]=30; 	command[9]=0; 	command[10]=50; command[11]=40;
-        command[12]=60; command[13]=20; command[14]=10; command[15]=225;
-        break;
-    }
-    case 2:
-    {
-        command[6]=5; 	command[7]=10; 	command[8]=25; 	command[9]=10; 	command[10]=15; command[11]=10;
-        command[12]=20; command[13]=30; command[14]=30; command[15]=180;
-        break;
-    }
-    }
-
-    cout << command.toString() << endl;
-
-    pos->positionMove(command.data());
-    * ****************************************************************************
-    */
-
-    return command;
-}
-
-
-
-
-bool modelOTL::goStartPos()
-{
-    /* Move head to start position */
-    commandHead = encodersHead;
-    commandHead[0]=start_commandHead[0];
-    commandHead[1]=start_commandHead[1];
-    commandHead[2]=start_commandHead[2];
-    commandHead[3]=start_commandHead[3];
-    commandHead[4]=start_commandHead[4];
-    posHead->positionMove(commandHead.data());
-
-    /* Go to start position */
-    //cout << "Start position move" << endl;
-
-    //cout << "Set position control mode" << endl;
-    command = encoders;
-    for(int i=0; i<16; i++)
-    {
-        ictrl->setControlMode(i,VOCAB_CM_POSITION);
-        command[i]=start_command[i];
-    }
-    pos->positionMove(command.data());
-
-    bool done_head=false;
-    bool done_arm=false;
-    while (!done_head || !done_arm) {
-        cout << "Wait for position moves to finish" << endl;
-        posHead->checkMotionDone(&done_head);
-        pos->checkMotionDone(&done_arm);
-        Time::delay(0.04);
-    }
-
-    Time::delay(1.0);
-
-    return true;
-}
-
-bool modelOTL::writeEncoderData(Point2f &lost_indic,ofstream& fs_enc,ofstream& fs_cmd)
-{
-    bool okEnc = encs->getEncoders(encoders.data());
-    if(!okEnc) {
-        cerr << "Error receiving encoders" << endl;
-    }
-    else
-    {
-        double time = Time::now();
-        fs_enc << fixed << time << "\t ";
-        fs_cmd << fixed << time << "\t ";
-
-        for (unsigned int kk=0; kk<command.length(); kk++){
-            fs_enc << encoders[kk] <<"\t ";
-            fs_cmd << command[kk] <<"\t ";
-        }
-
-        fs_enc <<"\n ";
-        fs_cmd <<"\n ";
-
-        char of_str_p[300];
-        frame_idx += 1;
-
-        sprintf(of_str_p,"%s/point_seq_%d.txt",foldernamepoints.c_str(),frame_idx);
-        ofstream fs_p(of_str_p);
-        if(!fs_p) {
-            std::cerr<<"Cannot open the output file for 'points' ."<<std::endl;
-            return 1;
-        }
-        int j, k;
-        for(j=k=0 ; j < num_init_points; j++ ) {
-            if(j == points_idx[k])
-            {
-                fs_p << points[1][k] << endl;
-                k++;
-            } else {
-                fs_p << lost_indic << endl;
-            }
-        }
-        fs_p.close();
-    }
-
-    //cout << "Write encoder data done" << endl;
-    return true;
-}
-
-bool modelOTL::findFeatures(TermCriteria &termcrit, Size &subPixWinSize, Size &winSize)
-{
-    if (capseq==1) //or points[0].empty() )
-    {
-        Mat copy;
-        copy = image.clone();
-
-        // automatic initialization
-        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.003, 3, Mat(), 3, 0, 0.04);
-        cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
-        needToInit = false;
-        /// Draw corners detected
-        int radius = 4;
-        for(unsigned int i = 0; i < points[1].size(); i++ ) {
-            circle( copy, points[1][i], radius, Scalar(0,255,0), -1, 8);
-        }
-        namedWindow( source_window, CV_WINDOW_AUTOSIZE );
-        imshow( source_window, copy );
-
-        for(size_t i=0; i<points[1].size(); i++)
-        {
-            points_idx.push_back(i);
-        }
-        num_init_points = points[1].size();
-
-        //cout << "Number of points " << num_init_points << endl;
-    } else {
-        Mat copy;
-        copy = image.clone();
-
-        vector<uchar> status;
-        vector<float> err;
-        if(prevGray.empty())
-            gray.copyTo(prevGray);
-        calcOpticalFlowPyrLK(prevGray, gray, points[0], points[1], status, err, winSize,
-                3, termcrit, 0, 0.001);
-
-        size_t i, k;
-        for( i = k = 0; i < points[1].size(); i++ )
-        {
-            if( !status[i] ) {
-                continue;
-            }
-
-            points_idx[k] = points_idx[i];
-            points[1][k++] = points[1][i];
-
-            circle( copy, points[1][i], 2, Scalar(0,255,0), -1, 8);
-        }
-        points[1].resize(k);
-        points_idx.resize(k);
-
-        imshow( source_window, copy );
-
-        // convert Mat to YARP image
-        Mat toYarp(copy);
-        cvtColor(toYarp, toYarp, CV_BGR2RGB);
-        IplImage* imageIpl = new IplImage(toYarp);
-        ImageOf<PixelRgb> &imageYarp = imgPortOut.prepare();
-        imageYarp.resize(imageIpl->width, imageIpl->height);
-        cvCopyImage(imageIpl, (IplImage *)imageYarp.getIplImage());
-
-        // send YARP image to port
-        imgPortOut.write();
-    }
-
-    return true;
-}
-
-bool modelOTL::getBabblingImages()
-{
-    //    cout << "Start babbling images" << endl;
-    cvWaitKey(1000/fps);
-
-    ImageOf<PixelRgb> *yarpImage = imgPortIn.read();
-    IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
-    cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
-    //    cout << "Conversion done" << endl;
-
-    char framecap[256];
-    sprintf(framecap, "%s/left%05d.tif", foldernameframes.c_str(), capseq);
-    cvSaveImage(framecap, cvImage);
-
-    cvReleaseImage(&cvImage);
-
-    //cout << "Write image done" << endl;
-
-    image = imread( framecap, 1 );
-    if(!image.data) {
-        cout << "Error!!!" << endl;
-        return false;
-    }
-
-    cvtColor( image, gray, CV_BGR2GRAY );
-
-    return true;
-}
-
-bool modelOTL::init_oesgp_learner()
+bool ModelOTL::init_oesgp_learner()
 {
     //Create our OESGP object
     int activation_function = Reservoir::TANH;
@@ -976,612 +245,3 @@ bool modelOTL::init_oesgp_learner()
 
     return true;
 }
-
-bool modelOTL::init_iCub(string &part)
-{
-    /* Create PolyDriver for left arm */
-    Property option;
-
-    string portnameArm = part;//"left_arm";
-    cout << part << endl;
-    option.put("robot", robot.c_str());
-    option.put("device", "remote_controlboard");
-    Value& robotnameArm = option.find("robot");
-
-    string sA("/");
-    sA += robotnameArm.asString();
-    sA += "/";
-    sA += portnameArm.c_str();
-    sA += "/control";
-    option.put("local", sA.c_str());
-
-    sA.clear();
-    sA += "/";
-    sA += robotnameArm.asString();
-    sA += "/";
-    sA += portnameArm.c_str();
-    cout << sA << endl;
-    option.put("remote", sA.c_str());
-
-    cout<<"DEBUG "<< option.toString().c_str() <<endl;
-
-    armDev = new PolyDriver(option);
-    if (!armDev->isValid()) {
-        cout << "Device not available.  Here are the known devices:" << endl;
-        cout << Drivers::factory().toString() << endl;
-        Network::fini();
-        return false;
-    }
-
-    armDev->view(pos);
-    armDev->view(vel);
-    armDev->view(encs);
-    armDev->view(ictrl);
-    armDev->view(iint);
-    armDev->view(itrq);
-
-    if (pos==NULL || encs==NULL || vel==NULL || ictrl==NULL || iint==NULL  || itrq==NULL ){
-        cout << "Cannot get interface to robot device" << endl;
-        armDev->close();
-    }
-
-    if (encs==NULL)
-        cout << "...ENCS NULL..." << encs << endl;
-    cout << "......" << armDev << endl;
-
-    int nj = 0;
-    pos->getAxes(&nj);
-    vel->getAxes(&nj);
-    encs->getAxes(&nj);
-    encoders.resize(nj);
-    cmd.resize(nj);
-
-    cout << "Wait for arm encoders" << endl;
-    while (!encs->getEncoders(encoders.data()))
-    {
-        Time::delay(0.1);
-        cout << "." << endl;
-    }
-    cout << endl << endl;
-
-    cout << "Arm initialized." << endl;
-
-    /* Init. head */
-    string portnameHead = "head";
-    option.put("robot", robot.c_str()); //"icub"); // typically from the command line.
-    option.put("device", "remote_controlboard");
-    Value& robotnameHead = option.find("robot");
-
-    string sH("/");
-    sH += robotnameHead.asString();
-    sH += "/";
-    sH += portnameHead.c_str();
-    sH += "/control";
-    option.put("local", sH.c_str());
-
-    sH.clear();
-    sH += "/";
-    sH += robotnameHead.asString();
-    sH += "/";
-    sH += portnameHead.c_str();
-    option.put("remote", sH.c_str());
-
-    headDev = new PolyDriver(option);
-    if (!headDev->isValid()) {
-        cout << "Device not available.  Here are the known devices:" << endl;
-        cout << Drivers::factory().toString() << endl;
-        Network::fini();
-        return false;
-    }
-
-    headDev->view(posHead);
-    headDev->view(velHead);
-    headDev->view(encsHead);
-    if (posHead==NULL || encsHead==NULL || velHead==NULL ){
-        cout << "Cannot get interface to robot head" << endl;
-        headDev->close();
-    }
-    int jnts = 0;
-
-    posHead->getAxes(&jnts);
-    velHead->getAxes(&jnts);
-    encodersHead.resize(jnts);
-    commandHead.resize(jnts);
-
-    cout << "Wait for encoders (HEAD)" << endl;
-    while (!encsHead->getEncoders(encodersHead.data()))
-    {
-        Time::delay(0.1);
-        cout << ".";
-    }
-    cout << endl;
-
-    cout << "Head initialized." << endl;
-
-    /* Set velocity control for arm */
-    cout << "Set velocity control mode" << endl;
-    for(int i=0; i<=6; i++)
-    {
-        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
-    }
-
-    cout << "> Initialisation done." << endl;
-
-    imgPortIn.open("/" + getName() + "/img:i");
-    imgPortOut.open("/" + getName() + "/featureImg:o");
-
-    Network::connect("/" + getName() + "/featureImg:o", "/yarpview/bodySchema/featureImg:i");
-
-    return true;
-}
-
-
-/*
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * Babbling with a single joint
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- */
-
-bool modelOTL::singleJointBabbling(int j_idx)
-{
-    bool createfolders = create_folders();
-    if(!createfolders) {
-        cout << "Error creating folders" << endl;
-    }
-
-    // First go to home position
-    bool homeStart = goStartPos();
-    if(!homeStart) {
-        yError() << "I got lost going home! Abort!";
-        return false;
-    }
-
-    for(int i=0; i<16; i++)
-    {
-        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
-    }
-
-    while(!Network::isConnected(ports[0], imgPortIn.getName())) {
-        Network::connect(ports[0], imgPortIn.getName());
-        cout << "Waiting for port " << ports[0] << " to connect to " << imgPortIn.getName() << endl;
-        Time::delay(1.0);
-    }
-
-    // this needs to be a configuration option
-    double startTime = yarp::os::Time::now();
-
-    MAX_COUNT = 150;
-
-    capseq = 1;
-
-    num_init_points = 0;
-
-    source_window = "image";
-
-    TermCriteria termcrit(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,50, 0.3);//75,0.0001);//20, 0.03);//
-    Size subPixWinSize(10,10), winSize(31,31);
-
-    while (Time::now() < startTime + train_duration){
-        double t = Time::now() - startTime;
-        cout << endl << " Time: " << t << " / " << train_duration << endl;
-
-        // move the joint j_idx
-        for (unsigned int l=0; l<command.size(); l++) {
-            command[l]=0;
-        }
-        command[j_idx]=amp[j_idx]*cos(cos_freq*t * 2 * M_PI);
-        vel->velocityMove(command.data());
-
-        bool babImg = getBabblingImages();
-        if(!babImg) {
-            yError() << "Error getting images while babbling";
-        }
-        bool findFeat = findFeatures(termcrit, subPixWinSize, winSize);
-        if(!findFeat) {
-            yError() << "Error finding features";
-        }
-
-        std::swap(points[1], points[0]);
-        cv::swap(prevGray, gray);
-
-        capseq++;
-    }
-
-    bool homeEnd = goStartPos();
-    if(!homeEnd) {
-        yError() << "I got lost going home!";
-    }
-
-    Network::disconnect(ports[0], imgPortIn.getName());
-
-    destroyWindow(source_window);
-
-    return true;
-}
-
-
-
-
-
-
-/* * * * * * * * * * 
- * See and touch
- * * * * * * * * * */
- 
- 
-int modelOTL::move_arm()
-{
-    cout << "robot " << robot << endl;
-    arm = "left_arm"; // to move to ini
-    bool useSFM = false; // to move to ini
-
-    if (!portReadSkin.open("/portReadSkin:i")) {
-        cout << ": Unable to open port " << "/portReadSkin:i" << endl;
-    }
-
-    if(useSFM)
-    {
-        if (!portToSFM.open("/toSFM")) {
-            cout << ": Unable to open port " << "/toSFM" << endl;
-        }
-    }
-
-
-
-    while(!Network::connect("/target/out","/target/in")) {
-        Network::connect("/target/out", "/target/in");
-        cout << "Waiting for port /target/out to connect to " << "/target/in" << endl;
-        Time::delay(1.0);
-    }
-
-    if(arm=="right_arm")
-    {
-        while(!Network::isConnected("/"+robot+"/skin/right_hand_comp", portReadSkin.getName())) {
-            Network::connect("/"+robot+"/skin/right_hand_comp", portReadSkin.getName());
-            cout << "Waiting for port " << "/"+robot+"/skin/right_hand_comp" << " to connect to " << portReadSkin.getName() << endl;
-            Time::delay(1.0);
-        }
-    }
-    else
-    {
-        while(!Network::isConnected("/"+robot+"/skin/left_hand_comp", portReadSkin.getName())) {
-            Network::connect("/"+robot+"/skin/left_hand_comp", portReadSkin.getName());
-            cout << "Waiting for port " << "/"+robot+"/skin/left_hand_comp" << " to connect to " << portReadSkin.getName() << endl;
-            Time::delay(1.0);
-        }
-    }
-
-
-    if(useSFM)
-    {
-        while(!Network::isConnected(portToSFM.getName(), "/SFM/rpc")) {
-            Network::connect(portToSFM.getName(), "/SFM/rpc");
-            cout << "Waiting for port " << portToSFM.getName() << " to connect to " << "/SFM/rpc" << endl;
-            Time::delay(1.0);
-        }
-    }
-
-
-    if (!portToMatlab.open("/portToMatlab:o")) {
-        cout << ": Unable to open port " << "/portToMatlab:o" << endl;
-    }
-    if (!portReadMatlab.open("/portReadMatlab:i")) {
-        cout << ": Unable to open port " << "/portReadMatlab:i" << endl;
-    }
-    		
-
-    while(!Network::isConnected(portToMatlab.getName(), "/matlab/read")) {
-        Network::connect(portToMatlab.getName(), "/matlab/read");
-        cout << "Waiting for port " << portToMatlab.getName() << " to connect to " << "/matlab/read" << endl;
-        Time::delay(1.0);
-    }
-
-    while(!Network::isConnected("/matlab/write", portReadMatlab.getName())) {
-        Network::connect("/matlab/write", portReadMatlab.getName());
-        cout << "Waiting for port " << "/matlab/write" << " to connect to " << portReadMatlab.getName() << endl;
-        Time::delay(1.0);
-    }
-
-
-    cout << "Connections ok..." << endl;
-
-
-    for(int i=0; i<=6; i++)
-    {
-        ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
-    }
-    
-
-    Bottle *endMatlab;
-    Bottle *cmdMatlab;
-    Bottle replyFromMatlab;
-    Bottle bToMatlab;
-    Bottle *skinContact;
-    yarp::sig::Vector pressure;
-
-    Bottle bToSFM;
-    Bottle replyFromSFM;
-
-    bool done = false;
-
-
-    int nPr = 1;
-    while(!done)
-    {
-
-        find_image();
-
-        /// get 3D position (SFM)
-        if(useSFM)
-        {
-            bToSFM.clear(); replyFromSFM.clear();
-            bToSFM.addString("Left");
-            bToSFM.addDouble(handTarget[0]);
-            bToSFM.addDouble(handTarget[1]);
-            portToSFM.write(bToSFM,replyFromSFM);
-            cout << replyFromSFM.toString() << endl;
-        }
-
-
-        bToMatlab.clear();replyFromMatlab.clear();
-        bToMatlab.addDouble(handTarget[0]);
-        bToMatlab.addDouble(handTarget[1]);
-        bToMatlab.addDouble(armTarget[0]);
-        bToMatlab.addDouble(armTarget[1]);
-        bToMatlab.addDouble(fingerTarget[0]);
-        bToMatlab.addDouble(fingerTarget[1]);
-        if(useSFM)
-        {
-            bToMatlab.addDouble(replyFromSFM.get(0).asDouble());
-            bToMatlab.addDouble(replyFromSFM.get(1).asDouble());
-            bToMatlab.addDouble(replyFromSFM.get(2).asDouble());
-        }
-        portToMatlab.write(bToMatlab,replyFromMatlab);
-
-
-        /// get contact vector
-        skinContact = portReadSkin.read(true);
-
-        bToMatlab.clear();replyFromMatlab.clear();
-
-        pressure.resize(skinContact->size());
-        for (int i=0; i<skinContact->size(); i++)
-        {
-            pressure[i] = skinContact->get(i).asDouble();
-            bToMatlab.addDouble(pressure[i]);
-        }
-
-        portToMatlab.write(bToMatlab,replyFromMatlab);
-
-
-        /// get proprioceptive info
-        bToMatlab.clear();replyFromMatlab.clear();
-        bool okEnc = encs->getEncoders(encoders.data());
-        bool okEncHead = encsHead->getEncoders(encodersHead.data());
-        if(!okEnc || !okEncHead) {
-            cerr << "Error receiving encoders" << endl;
-        }
-        else
-        {
-            for (unsigned int kk=0; kk<16; kk++){
-                bToMatlab.addDouble(encoders[kk]);
-            }
-            for (unsigned int kk=0; kk<6; kk++){
-                bToMatlab.addDouble(encodersHead[kk]);
-            }
-            portToMatlab.write(bToMatlab,replyFromMatlab);
-        }
-        
-        
-        
-        
-
-        for (unsigned int l=1; l<command.size(); l++)
-            command[l]=0;
-
-        // get the commands from Matlab
-        cmdMatlab = portReadMatlab.read(true) ;
-        command[0] = cmdMatlab->get(0).asDouble();
-        command[1] = cmdMatlab->get(1).asDouble();
-        command[2] = cmdMatlab->get(2).asDouble();
-        command[3] = cmdMatlab->get(3).asDouble();
-        command[4] = cmdMatlab->get(4).asDouble();
-        command[5] = cmdMatlab->get(5).asDouble();
-        command[6] = cmdMatlab->get(6).asDouble();
-        
-
-
-        // Move
-        int j=1;
-        while(j--)
-        {
-            vel->velocityMove(command.data());
-            Time::delay(0.02); 
-        }
-
-
-        // Tell Matlab that motion is done
-        bToMatlab.clear();replyFromMatlab.clear();
-        bToMatlab.addInt(1);
-        portToMatlab.write(bToMatlab,replyFromMatlab);
-
-        endMatlab = portReadMatlab.read(true) ;
-        done = endMatlab->get(0).asInt();
-
-        nPr = nPr +1;
- 
-    }
-
-
-    cout << "Going to tell Matlab that ports will be closed here." << endl;
-    // Tell Matlab that ports will be closed here
-    bToMatlab.clear();replyFromMatlab.clear();
-    bToMatlab.addInt(1);
-    portToMatlab.write(bToMatlab,replyFromMatlab);
-
-
-
-    portToMatlab.close();
-    portReadMatlab.close();
-
-    cout << "Finished and ports to/from Matlab closed." << endl;
-
-    return 0;
-}
-
-void modelOTL::find_image()
-{
-
-    handTarget.resize(3);
-    armTarget.resize(3);
-    fingerTarget.resize(3);
-
-    ImageOf<PixelRgb> *image = imgPortIn.read(true);
-    if (image!=NULL)
-    {
-
-        double xMeanR = 0;
-        double yMeanR = 0;
-        int ctR = 0;
-        double xMeanG = 0;
-        double yMeanG = 0;
-        int ctG = 0;
-        double xMeanB = 0;
-        double yMeanB = 0;
-        int ctB = 0;
-
-        for (int x=0; x<image->width(); x++)
-        {
-            for (int y=0; y<image->height(); y++)
-            {
-                PixelRgb& pixel = image->pixel(x,y);
-                if (pixel.r>pixel.b*1.2+10 && pixel.r>pixel.g*1.2+10)
-                {
-                    xMeanR += x;
-                    yMeanR += y;
-                    ctR++;
-                }
-                if (pixel.g>pixel.b*1.2+10 && pixel.g>pixel.r*1.2+10)
-                {
-                    xMeanG += x;
-                    yMeanG += y;
-                    ctG++;
-                }
-                if (pixel.b>pixel.g*1.2+10 && pixel.b>pixel.r*1.2+10)
-                {
-                    xMeanB += x;
-                    yMeanB += y;
-                    ctB++;
-                }
-            }
-        }
-        if (ctR>0)
-        {
-            xMeanR /= ctR;
-            yMeanR /= ctR;
-        }
-        else
-        {
-            xMeanR = 320/2;
-            yMeanR = 240/2;
-        }
-        if (ctG>0)
-        {
-            xMeanG /= ctG;
-            yMeanG /= ctG;
-        }
-        else
-        {
-            xMeanG = 320/2;
-            yMeanG = 240/2;
-        }
-        if (ctB>0)
-        {
-            xMeanB /= ctB;
-            yMeanB /= ctB;
-        }
-        else
-        {
-            xMeanB = 320/2;
-            yMeanB = 240/2;
-        }
-
-
-        if (ctG>(image->width()/20)*(image->height()/20))
-        {
-            handTarget.resize(3);
-            handTarget[0] = xMeanG;
-            handTarget[1] = yMeanG;
-            handTarget[2] = 1;
-
-            xMeanPrevG=xMeanG; yMeanPrevG=yMeanG;
-
-        }
-        else
-        {
-            handTarget.resize(3);
-            handTarget[0] = xMeanPrevG;
-            handTarget[1] = yMeanPrevG;
-            handTarget[2] = 0;
-
-        }
-        if (ctR>(image->width()/20)*(image->height()/20))
-        {
-            fingerTarget.resize(3);
-            fingerTarget[0] = xMeanR;
-            fingerTarget[1] = yMeanR;
-            fingerTarget[2] = 1;
-
-            xMeanPrevR=xMeanR; yMeanPrevR=yMeanR;
-
-        }
-        else
-        {
-            fingerTarget.resize(3);
-            fingerTarget[0] = xMeanPrevR;
-            fingerTarget[1] = yMeanPrevR;
-            fingerTarget[2] = 0;
-
-        }
-        if (ctB>(image->width()/20)*(image->height()/20))
-        {
-            armTarget.resize(3);
-            armTarget[0] = xMeanB;
-            armTarget[1] = yMeanB;
-            armTarget[2] = 1;
-
-            xMeanPrevB=xMeanB; yMeanPrevB=yMeanB;
-
-        }
-        else
-        {
-            armTarget.resize(3);
-            armTarget[0] = xMeanPrevB;
-            armTarget[1] = yMeanPrevB;
-            armTarget[2] = 0;
-
-        }
-
-    }
-    else
-    {
-        printf(">>>>>>> Image NULL...\n");
-        handTarget.resize(3);
-        handTarget[0] = 320/2;
-        handTarget[1] = 240/2;
-        handTarget[2] = 0;
-        fingerTarget.resize(3);
-        fingerTarget[0] = 320/2;
-        fingerTarget[1] = 240/2;
-        fingerTarget[2] = 0;
-        armTarget.resize(3);
-        armTarget[0] = 320/2;
-        armTarget[1] = 240/2;
-        armTarget[2] = 0;
-
-
-    }
-
-
-}
-

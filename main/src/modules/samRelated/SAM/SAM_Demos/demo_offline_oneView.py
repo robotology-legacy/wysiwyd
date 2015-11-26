@@ -46,7 +46,6 @@ Nts = 50
 data = pods.datasets.oil()
 Y = data['X'] # Data
 L = data['Y'].argmax(axis=1) # Labels
-
 perm = np.random.permutation(Y.shape[0])
 indTs = perm[0:Nts]
 indTs.sort()
@@ -121,7 +120,9 @@ ret = a.visualise()
 predictions = a.pattern_completion(Ytest)
 pred_mean = predictions[0]
 pred_var = predictions[1]
+
 # Visualise the predictive point estimates for the test data; plot them on top of the memory visualization
 ret2 = a.visualise()
 ret2.plot(pred_mean[:,0],pred_mean[:,1],'xm')
 pb.show()
+

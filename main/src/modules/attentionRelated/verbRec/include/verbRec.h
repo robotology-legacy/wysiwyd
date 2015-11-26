@@ -39,10 +39,7 @@ private:
 	int r_has_obj[4];
 	int a_has_obj[4];
 
-	int g_timer[2];	// temporary
-	int t_timer[2];	// temporary
-	int p_timer[2];	// temporary
-	int l_timer[2];	// temporary
+	int timer[4][2];	// temporary
 
 	ConstString objectNames[4];
 
@@ -69,7 +66,7 @@ public:
     	bool updateModule();
     	bool respond(const Bottle& cmd, Bottle& reply);
 
-	void whatVerbs(const Bottle& command, char* output);
+	void actionRec(const Bottle& command);
 	void readData(const Bottle& command, float* input);
 
 	void egoCenterTransformation(float obj[][3], float r_hand[][3], float l_hand[][3], float i_obj[][3], float i_rh[][3], float i_lh[][3]);
@@ -80,11 +77,10 @@ public:
 	bool push(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
 	bool pull(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
 	bool grasp(float obj[], float prev_obj[], float r_hand[], float l_hand[]);
-	//int have();
-	bool have(float obj[], float spine[]);
+	bool have(float obj[], int objNbr, float spine[]);
 	bool give(float obj[], float prev_obj[], float spine[], float prev_sp[]);
 	bool take(float obj[], float prev_obj[], float spine[], float prev_sp[]);
 	bool put(float pres_obj[]);
-	bool lift(float pres_obj[], float r_hand[], float l_hand[], float prev_rh[], float prev_lh[]);
-	bool point(float obj[][3], float prev_obj[][3],float r_arm[][3], float l_arm[][3], float prev_rh[], float prev_lh[],float fac[]);
+	bool lift(float pres_obj[]);
+	bool point(float obj[][3], float prev_obj[][3], float r_arm[][3], float l_arm[][3], float prev_rh[], float prev_lh[],float fac[]);
 };

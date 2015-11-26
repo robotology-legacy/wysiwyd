@@ -21,7 +21,7 @@
 */
 
 #include <yarp/os/all.h>
-#include "modelOTL.h"
+#include "babbling.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -32,11 +32,11 @@ int main(int argc, char * argv[])
     Network yarp;
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("modelOTL");
-    rf.setDefaultConfigFile("modelOTL.ini");
+    rf.setDefaultContext("babbling");
+    rf.setDefaultConfigFile("babbling.ini");
     rf.configure(argc, argv);
 //    string part = rf.find("part").asString();
-    ModelOTL mod;
+    Babbling mod;
     mod.runModule(rf);
     cout << "Bye bye." << endl;
     return 0;

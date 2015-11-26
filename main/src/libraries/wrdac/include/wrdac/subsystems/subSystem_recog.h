@@ -38,7 +38,6 @@ namespace wysiwyd{
             bool ABMconnected;
             virtual bool connect() {
                 // paste master name of 
-                SubABM = new SubSystem_ABM("from_recog");
                 ABMconnected = (SubABM->Connect());
                 yInfo() << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM");
                 return yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
@@ -49,9 +48,10 @@ namespace wysiwyd{
         public:
 
             yarp::os::Port portRPC;
-            SubSystem_Recog(const std::string &masterName) :SubSystem(masterName){
+            SubSystem_Recog(const std::string &masterName) : SubSystem(masterName){
                 portRPC.open(("/" + m_masterName + "/recog:rpc").c_str());
                 m_type = SUBSYSTEM_RECOG;
+                SubABM = new SubSystem_ABM("from_recog");
             }
 
 
