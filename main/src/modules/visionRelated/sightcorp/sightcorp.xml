@@ -2,14 +2,14 @@
 <?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
  
 <module>
-   <name>rekognition</name>
+   <name>sightcorp</name>
    <doxygen-group>wysiwyd_modules</doxygen-group>
-   <description>Using the rekognition (https://rekognition.com/) API to recognize faces and tag objects.</description>
+   <description>Using the sightcorp (http://api.sightcorp.com/) API to recognize emotions expressed by faces.</description>
    <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
    <version>1.0</version>
 
    <description-long>
-       Using the rekognition (https://rekognition.com/) API to recognize faces and tag objects.
+       Using the sightcorp (https://api.sightcorp.com/) API to recognize emotions expressed by faces
    </description-long>
 
    <authors>
