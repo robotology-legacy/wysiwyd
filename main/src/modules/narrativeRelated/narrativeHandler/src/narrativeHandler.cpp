@@ -178,10 +178,10 @@ void narrativeHandler::findStories(int iInstance)
     int ii = 1;
 
     cout << listStories.size() << " stories found" << endl;
-    for (auto itSt = listStories.begin(); itSt != listStories.end(); itSt++)
+    for (std::vector<story>::iterator itSt = listStories.begin(); itSt != listStories.end(); itSt++)
     {
         cout << "Story " << ii << ": ";
-        for (auto itIn = itSt->viInstances.begin(); itIn != itSt->viInstances.end(); itIn++)
+        for (std::vector<int>::iterator itIn = itSt->viInstances.begin(); itIn != itSt->viInstances.end(); itIn++)
         {
             cout << *itIn << " ";
         }
@@ -302,7 +302,7 @@ void narrativeHandler::tellingStory(story st){
     ostringstream osRequest;
     Bottle bMessenger;
     int ii = 0;
-    for (auto it = st.viInstances.begin(); it != st.viInstances.end(); it++){
+    for (std::vector<int>::iterator it = st.viInstances.begin(); it != st.viInstances.end(); it++){
 
         cout << "instance: " << ii << endl;
         osRequest.str("");

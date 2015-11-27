@@ -27,7 +27,6 @@
 class story{
 public:
     std::vector<int>        viInstances;
-
 };
 
 class myTimeStruct{
