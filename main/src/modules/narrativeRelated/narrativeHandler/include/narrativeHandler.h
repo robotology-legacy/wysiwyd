@@ -28,11 +28,13 @@ private:
     double      period;
     bool abm;
 
-    int iThresholdDiffStory; // threshold in millisecond between to action from two different stories.
-
+    double dThresholdDiffStory; // threshold in second between to action from two different stories.
+    int  iThresholdSizeStory; // threshold of the number of instance in a story
     yarp::os::Port  rpcPort;
 
-    std::list<story> listStories;
+    std::vector<story> listStories;
+
+    void tellingStory(story st);
 
 
 public:
@@ -51,7 +53,7 @@ public:
 
     void findStories(int iInstance = 0);
 
-    int timeDiff(myTimeStruct tm1, myTimeStruct tm2);
+    double timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrint = false);
     myTimeStruct string2Time(std::string sTime);
 
     //RPC & scenarios

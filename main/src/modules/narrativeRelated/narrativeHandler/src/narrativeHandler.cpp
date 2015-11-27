@@ -41,7 +41,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    iThresholdDiffStory = rf.check("iThresholdDiffStory", Value(10000)).asInt();
+    dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
+    iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
 
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
@@ -54,12 +55,16 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
     }
 
-    iCub->say("narrativeHandler is ready", false);
+    yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
+    yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
+
+
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
     findStories();
-
+    cout << endl;
+    tellingStory(listStories[listStories.size() - 1]);
 
     return abm;
 }
@@ -112,9 +117,6 @@ bool narrativeHandler::updateModule() {
 
 void narrativeHandler::findStories(int iInstance)
 {
-    bool bFinished = false;
-    bool bIsInStory = false;
-
     story currentStory;
 
     int iCurrentInstance = iInstance;
@@ -127,51 +129,82 @@ void narrativeHandler::findStories(int iInstance)
 
     vector<int> vError;
     yInfo() << "\t" << "found " << numberSentence << " sentence(s)";
-
-    for (int j = 0; j < (numberSentence - 1); j++)
+    double mDiff;
+    for (int j = 1; j < (numberSentence); j++)
     {
-        int Id = atoi(bAllInstances.get(j).asList()->get(0).toString().c_str());
-        int Id2 = atoi(bAllInstances.get(j + 1).asList()->get(0).toString().c_str());
+
+        int Id = atoi(bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
+        int Id2 = atoi(bAllInstances.get(j).asList()->get(0).toString().c_str());
 
         osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance = " << Id;
+        osRequest << "SELECT time, begin FROM main WHERE instance = " << Id;
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        string sT1 = bMessenger.get(0).toString();
+        string sT1 = bMessenger.get(0).asList()->get(0).toString();
 
         osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance = " << Id2;
+        osRequest << "SELECT time, begin FROM main WHERE instance = " << Id2;
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        string sT2 = bMessenger.get(0).toString();
+        string sT2 = bMessenger.get(0).asList()->get(0).toString();
 
         myTimeStruct m1 = string2Time(sT1),
             m2 = string2Time(sT2);
-        
-        int mDiff = timeDiff(m1, m2);
 
+        mDiff = timeDiff(m1, m2);
 
-        cout << "instance " << Id << " " << Id2 << " diff is: " << 0.001*mDiff << endl;
+        if (bMessenger.get(0).asList()->get(1).toString() != "f")
+        {
+            if (mDiff > dThresholdDiffStory){
+                if (currentStory.viInstances.size() > iThresholdSizeStory)
+                {
+                    listStories.push_back(currentStory);
+                }
+                currentStory.viInstances.clear();
+                currentStory.viInstances.push_back(Id2);
+            }
+            else{
+                currentStory.viInstances.push_back(Id2);
+            }
+        }
+        else{
+            currentStory.viInstances.push_back(Id2);
+        }
     }
 
-    //while (!bFinished){
+    if (currentStory.viInstances.size() > iThresholdSizeStory)
+    {
+        listStories.push_back(currentStory);
+    }
 
+    int ii = 1;
 
+    cout << listStories.size() << " stories found" << endl;
+    for (auto itSt = listStories.begin(); itSt != listStories.end(); itSt++)
+    {
+        cout << "Story " << ii << ": ";
+        for (auto itIn = itSt->viInstances.begin(); itIn != itSt->viInstances.end(); itIn++)
+        {
+            cout << *itIn << " ";
+        }
+        cout << endl;
+        osRequest.str("");
+        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itSt->viInstances.begin() << " AND verb != 'isAtLoc'";
+        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        if (bMessenger.toString() != "NULL")   cout << "before: " << bMessenger.toString() << endl;
 
-    //    // if a story is started, check if next snapshot is in the story
-    //    if (bIsInStory){
+        osRequest.str("");
+        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itSt->viInstances[itSt->viInstances.size() - 1] << " AND verb != 'isAtLoc'";
+        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        if (bMessenger.toString() != "NULL")   cout << "after : " << bMessenger.toString() << endl;
 
-    //    }
-    //    else {
-
-    //    
-    //    }
-    //}
-
+        ii++;
+    }
 }
 
-int narrativeHandler::timeDiff(myTimeStruct tm1, myTimeStruct tm2)
+// return the diff between two actions in seconds
+double narrativeHandler::timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrint)
 {
     //  struct tm diffTime;
-    int iYears,
+    long int iYears,
         iMonth,
         iDays,
         iHours,     // number of hours of differences
@@ -180,14 +213,22 @@ int narrativeHandler::timeDiff(myTimeStruct tm1, myTimeStruct tm2)
         iMilliSec;   // number of minutes of differences
 
     iYears = tm2.m_tm.tm_year - tm1.m_tm.tm_year;
+    if (bPrint) cout << " iYears: " << iYears;
     iMonth = iYears * 12 + (tm2.m_tm.tm_mon - tm1.m_tm.tm_mon);
+    if (bPrint) cout << " iMonth: " << iMonth;
     iDays = iMonth * 30 + (tm2.m_tm.tm_mday - tm1.m_tm.tm_mday);
-    iHours = iDays * 24 + (tm2.m_tm.tm_hour - tm2.m_tm.tm_hour);
+    if (bPrint) cout << " iDays: " << iDays;
+    iHours = iDays * 24 + (tm2.m_tm.tm_hour - tm1.m_tm.tm_hour);
+    if (bPrint) cout << " iHours: " << iHours;
     iMinutes = iHours * 60 + (tm2.m_tm.tm_min - tm1.m_tm.tm_min);
+    if (bPrint) cout << " iMinutes: " << iMinutes;
     iSecond = iMinutes * 60 + (tm2.m_tm.tm_sec - tm1.m_tm.tm_sec);
+    if (iSecond > dThresholdDiffStory) return 10000.;
+    if (bPrint) cout << " iSecond: " << iSecond;
     iMilliSec = iSecond * 1000 + (tm2.iMilliSec - tm1.iMilliSec);
+    if (bPrint) cout << " iMilliSec: " << iMilliSec << endl;
 
-    return iMilliSec;
+    return (0.001*iMilliSec);
 }
 
 myTimeStruct  narrativeHandler::string2Time(string sTime)
@@ -248,9 +289,42 @@ myTimeStruct  narrativeHandler::string2Time(string sTime)
     tOutput.tm_mday = atoi(sDay.c_str());
     mktime(&tOutput);
 
-        myTimeStruct mtsOut;
+    myTimeStruct mtsOut;
     mtsOut.m_tm = tOutput;
     (sMS.size() == 2) ? mtsOut.iMilliSec = atoi(sMS.c_str()) * 10 : mtsOut.iMilliSec = atoi(sMS.c_str());
 
     return mtsOut;
+}
+
+
+void narrativeHandler::tellingStory(story st){
+
+    ostringstream osRequest;
+    Bottle bMessenger;
+    int ii = 0;
+    for (auto it = st.viInstances.begin(); it != st.viInstances.end(); it++){
+
+        cout << "instance: " << ii << endl;
+        osRequest.str("");
+        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *it << " AND verb != 'isAtLoc'";
+        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        cout << "Relations: " << bMessenger.toString() << endl;
+
+        osRequest.str("");
+        osRequest << "SELECT activityname, activitytype, begin FROM main WHERE instance = " << *it;
+        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        cout << "activity info: " << bMessenger.toString() << endl;
+
+        osRequest.str("");
+        osRequest << "SELECT argument, role FROM contentarg WHERE instance = " << *it;
+        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        cout << "Arguments: ";
+        for (int i = 0; i < bMessenger.size(); i++)
+        {
+            cout << bMessenger.get(i).toString() << endl;
+        }
+
+        cout << endl;
+        ii++;
+    }
 }

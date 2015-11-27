@@ -25,7 +25,7 @@
 
 
 class story{
-
+public:
     std::vector<int>        viInstances;
 
 };
@@ -33,5 +33,5 @@ class story{
 class myTimeStruct{
 public:
     struct tm m_tm;
-    int iMilliSec;
+    long int iMilliSec;
 };
