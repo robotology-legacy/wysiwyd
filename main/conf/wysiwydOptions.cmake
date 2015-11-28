@@ -28,6 +28,19 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
  
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS_STRING}")
 
+   include(CheckCXXCompilerFlag)
+   CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+   CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+   if(COMPILER_SUPPORTS_CXX11)
+       message(STATUS "Enabled C++11 support for compiler ${CMAKE_CXX_COMPILER}.")
+       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+   elseif(COMPILER_SUPPORTS_CXX0X)
+       message(STATUS "Enabled C++0x support for compiler ${CMAKE_CXX_COMPILER}.")
+       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+   else()
+       message(SEND_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler, and welcome to the modern world.")
+   endif()
+
 endif()
 
 if(NOT CMAKE_CONFIGURATION_TYPES)
