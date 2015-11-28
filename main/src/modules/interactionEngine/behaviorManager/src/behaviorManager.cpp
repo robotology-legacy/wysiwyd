@@ -52,18 +52,21 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     while (rep!='y'&&!iCub->connect())
     {
         cout<<"iCubClient : Some dependencies are not running..."<<endl;
-        //cout<<"Continue? y,n"<<endl;
-        //cin>>rep;
-        break; //to debug
         Time::delay(1.0);
     }
     yDebug() << "2";
 
     //Set the voice
-    string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
-    yDebug() << "3";
+    cout << "3" << endl;
+    cout.flush();
     //if (iCub->getSpeechClient())
-    iCub->getSpeechClient()->SetOptions(ttsOptions);    
+    SubSystem_Speech* sss = iCub->getSpeechClient(); 
+    if (sss) {
+        string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
+        sss->SetOptions(ttsOptions);    
+    } else {
+        yInfo() << "SPEECH not available.";
+    }
     yDebug() << "4";
 
 
