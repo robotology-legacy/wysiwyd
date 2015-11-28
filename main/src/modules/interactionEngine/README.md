@@ -8,8 +8,8 @@ To launch the proactive demo (assuming that the standard modules are running -- 
     proactiveTagging
     homeostasis
     sensationManager
-    allostaticController
     behaviorManager
+    allostaticController
 
 We'll provide soon a proper xml file to make it easier. For the time being it will launch the proactive demo as it was after BCBT. We are currently adding other drives and behaviors (looking at partner, naming known objects ...).
 
