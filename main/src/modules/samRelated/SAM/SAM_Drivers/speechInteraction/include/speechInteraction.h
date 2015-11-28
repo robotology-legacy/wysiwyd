@@ -47,7 +47,6 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
-#include "boost/algorithm/string.hpp"
 #include "wrdac/clients/icubClient.h"
 
 using namespace yarp::os;

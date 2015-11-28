@@ -19,19 +19,14 @@
 
 #ifdef WIN32
 #include <windows.h>
-#define  BOOST_ALL_NO_LIB
 #else
 #include <sys/time.h>
-#endif
-
-#ifdef BOOST_AVAILABLE
-#include <boost/chrono.hpp>
-#include <boost/thread.hpp>
 #endif
 
 #include "autobiographicalMemory.h"
 #include "templates.h"
 #include <limits>
+#include <thread>
 
 using namespace yarp::sig;
 using namespace yarp::os;
@@ -146,12 +141,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
         }
         yarp::os::Time::delay(0.3);
     }
-
-#ifdef BOOST_AVAILABLE
-    yInfo() << "Running ABM with Boost :-)";
-#else
-    yWarning() << "Running ABM without Boost. Recording data will be slower.";
-#endif
 
     yInfo() << "----------------------------------------------";
     yInfo() << "autobiographicalMemory ready ! ";
@@ -764,16 +753,11 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
     }
 
 void autobiographicalMemory::storeImagesAndData(const string &synchroTime, bool forSingleInstance, string fullSentence) {
-#ifdef BOOST_AVAILABLE
-    boost::thread dataStreamThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
-    boost::thread imageThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
+    std::thread dataStreamThread(&autobiographicalMemory::storeDataStreamAllProviders, this, synchroTime);
+    std::thread imageThread(&autobiographicalMemory::storeInfoAllImages, this, synchroTime, forSingleInstance, fullSentence);
     imageThread.join();
     dataStreamThread.join();
-#else
-    // first, store all images; then store data from the other ports
-    storeInfoAllImages(synchroTime, forSingleInstance, fullSentence);
-    storeDataStreamAllProviders(synchroTime);
-#endif
+
     if (increaseFrameNb) {
         frameNb++;
         increaseFrameNb = false;

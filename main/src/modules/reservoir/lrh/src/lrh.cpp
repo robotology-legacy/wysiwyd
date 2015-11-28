@@ -34,25 +34,36 @@ bool LRH::configure(ResourceFinder &rf) {
     sKeyWord = rf.check("keyword", Value("grammar")).toString().c_str();
     cout << "**************Context path for grammars: " << rf.getContextPath() << endl;
 
-    /* Mode Action Performer => Meaning*/
-    scorpusFileAP = rf.getContextPath().c_str();
-    scorpusFileAP += rf.check("corpusFileAP", Value("/Corpus/corpus_AP.txt")).toString().c_str();
+
+
+    /* Mode Scene Describer => sentences */
     scorpusFileSD = rf.getContextPath().c_str();
     scorpusFileSD += rf.check("corpusFileSD", Value("/Corpus/corpus_SD.txt")).toString().c_str();
     sfileResult = rf.getContextPath().c_str();
     sfileResult += rf.check("fileResult", Value("/Corpus/output.txt")).toString().c_str();
     stemporaryCorpus = rf.getContextPath().c_str();
     stemporaryCorpus += rf.check("temporaryCorpus", Value("/Corpus/temporaryCorpus.txt")).toString().c_str();
-    sreservoirAP = rf.getContextPath().c_str();
-    sreservoirAP += rf.check("fileAP", Value("/action_performer_PAOR.py")).toString().c_str();
-    cout << "sreservoirAP : " << sreservoirAP << endl;
     sreservoirSD = rf.getContextPath().c_str();
-    sreservoirSD += rf.check("fileAP", Value("/spatial_relation.py")).toString().c_str();
-    sclosed_class_wordsAP = rf.check("closed_class_wordsSD", Value("after")).toString().c_str();
+    sreservoirSD += rf.check("reservoirSD", Value("/spatial_relation.py")).toString().c_str();
     sclosed_class_wordsSD = rf.check("closed_class_wordsSD", Value("after")).toString().c_str();
-    smax_nr_ocw = rf.check("max_nr_ocw", Value("10")).toString().c_str();
-    smax_nr_actionrelation = rf.check("max_nr_actionrelation", Value("4")).toString().c_str();
-    selt_pred = rf.check("elt_pred", Value("P A O R V")).toString().c_str();
+
+    /* Mode Action Performer => Meaning */
+    sreservoirAP = rf.getContextPath().c_str();
+    sreservoirAP += rf.check("reservoirAP", Value("/action_performer_PAOR.py")).toString().c_str();
+
+    /* Mode Narratif => Sentences */
+    sreservoirNarratif = rf.getContextPath().c_str();
+    sreservoirNarratif += rf.check("reservoirNarrative", Value("/production.py")).toString().c_str();
+    scorpusFile = rf.getContextPath().c_str();
+    scorpusFile += rf.check("corpusFile", Value("/Corpus/corpus_narratif_scenario3_XPAOR.txt")).toString().c_str();
+    sclosed_class_words = rf.check("closed_class_words", Value("after")).toString().c_str();
+
+
+    /* General parameters */
+    smax_nr_ocw = rf.check("imax_nr_ocw", Value("15")).toString().c_str();
+    smax_nr_actionrelation = rf.check("imax_nr_actionrelation", Value("5")).toString().c_str();
+    selt_pred = rf.check("l_elt_pred", Value("P A O R V")).toString().c_str();
+    sNbNeurons = rf.check("iNbNeurons", Value("600")).toString().c_str();
 
     sHand = rf.check("hand", Value("right")).toString().c_str();
     offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
@@ -76,7 +87,7 @@ bool LRH::configure(ResourceFinder &rf) {
 
     // string ttsSystem = SUBSYSTEM_SPEECH;
     iCub = new ICubClient(moduleName.c_str(), "lrh", "client.ini", true);
-    iCub->opc->isVerbose = false;
+
 
     char rep = 'n';
     while (rep != 'y'&&!iCub->connect())
@@ -86,10 +97,6 @@ bool LRH::configure(ResourceFinder &rf) {
         Time::delay(1.0);
     }
     cout << "Connections done" << endl;
-    iCub->opc->checkout();
-    cout << "Checkout done" << endl;
-
-    //populateOPC();
 
     return true;
 }
@@ -114,7 +121,8 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "help \n" +
-        "production objectFocus \n" +
+        "spatial objectFocus \n" +
+        "production meaning \n" +
         "meaning sentence \n" +
         "quit \n";
 
@@ -128,11 +136,17 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
         cout << helpMessage;
         reply.addString("ok");
     }
-    else if (command.get(0).asString() == "production"  && command.size() == 2) {
+    else if (command.get(0).asString() == "spatial"  && command.size() == 2) {
         reply.addString("ack");
         reply.addString("OK, send the language production");
         cout << "command.get(1).asString() : " << command.get(1).asString() << endl;
         spatialRelation(command.get(1).asString());
+    }
+    else if (command.get(0).asString() == "production"  && command.size() == 2) {
+        reply.addString("ack");
+        reply.addString("OK, send the language production");
+        cout << "command.get(1).asString() : " << command.get(1).asString() << endl;
+        production(command.get(1).asString());
     }
     else if (command.get(0).asString() == "meaning" && command.size() == 2) {
         reply.addString("ack");
@@ -231,9 +245,9 @@ bool LRH::populateOPC(){
 
 // Understanding
 bool LRH::sentenceToMeaning(string sentence){
-    copyPastTrainFile(scorpusFileAP.c_str(), stemporaryCorpus.c_str());
+    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), sentence);
-    callReservoir(sreservoirAP, sclosed_class_wordsAP);
+    callReservoir(sreservoirAP, sclosed_class_words);
     return true;
 }
 
@@ -245,11 +259,18 @@ bool LRH::meaningToSentence(string meaning){
     return true;
 }
 
-bool LRH::callReservoir(string fPython, string closed_class_words)
+bool LRH::production(string test) {
+    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
+    createTest(stemporaryCorpus.c_str(), test);
+    callReservoir(sreservoirNarratif, sclosed_class_words);
+    return true;
+}
+
+bool LRH::callReservoir(string pythonFile, string closed_class_words)
 {
-    std::string l_pythonCmd("python " + fPython);
-    std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + closed_class_words + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred;
-    //std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
+    std::string l_pythonCmd("python " + pythonFile);
+    std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + closed_class_words + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred + " " + sNbNeurons;
+    std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
 
     system(l_pythonCall.c_str());
 
@@ -268,6 +289,25 @@ string LRH::openResult(const char* fileNameIn)
     in.close();
 
     return str;
+}
+
+int LRH::createTest(const char* filename, std::list<string> lMeaningsSentences)
+{
+    cout << filename << "    " << "sMeaningSentence" << endl;
+    ofstream file;
+    file.open(filename, ios::app);
+    std::list<string>::iterator it;
+
+    file << "</train data>" << endl;
+    file << "<test data>" << endl;
+    for (it=lMeaningsSentences.begin(); it!=lMeaningsSentences.end(); ++it)
+    {
+        file << *it << endl;
+    }
+    file << "</test data>" << endl;
+    file.close();
+
+    return true;
 }
 
 int LRH::createTest(const char* filename, string sMeaningSentence)
@@ -439,6 +479,11 @@ bool LRH::AREactions(vector<string> seq)
 
 bool LRH::spatialRelation(string sObjectFocus)
 {
+    //iCub->opc->isVerbose = false;
+    //iCub->opc->checkout();
+    //cout << "Checkout done" << endl;
+    //populateOPC();
+
     iCub->opc->update();
     iCub->opc->checkout();
     std::list<Entity*> PresentObjects = iCub->opc->EntitiesCache();
@@ -582,3 +627,6 @@ bool LRH::spatialRelation(string sObjectFocus)
     }
     return true;
 }
+
+
+

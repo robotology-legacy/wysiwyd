@@ -49,17 +49,23 @@ private:
     string sKeyWord;
     string moduleName;
     string handlerPortName;
-    string scorpusFileAP;
+
     string scorpusFileSD;
+    string scorpusFile;
     string sfileResult;
     string stemporaryCorpus;
+
     string sreservoirAP;
     string sreservoirSD;
-    string sclosed_class_wordsAP;
+    string sreservoirNarratif;
+
     string sclosed_class_wordsSD;
+    string sclosed_class_words;
+
     string smax_nr_ocw;
     string smax_nr_actionrelation;
     string selt_pred;
+    string sNbNeurons;
 
     string sdataTestSD;
     string sHand;
@@ -70,15 +76,18 @@ private:
     Port handlerPort;				// a port to handle messages
 
     ICubClient *iCub;
+    wysiwyd::wrdac::OPCClient           *lOPC;
 
-    bool callReservoir(string fPython, string closed_class_words);
+    bool callReservoir(string pythonFile, string closed_class_words);
     int copyPastTrainFile(const char* fileNameIn, const char* fileNameOut);
     int createTest(const char* filename, string sMeaningSentence);
+    int createTest(const char* filename, std::list<string> lMeaningsSentences);
     string openResult(const char* fileNameIn);
     bool populateOPC();
 
     bool AREactions(vector<string> seq);
     bool spatialRelation(string sObjectFocus);
+    bool production(string stest);
 
 public:
     bool configure(ResourceFinder &rf);

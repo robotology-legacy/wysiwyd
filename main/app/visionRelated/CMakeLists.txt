@@ -5,4 +5,5 @@
 add_subdirectory(faceTracker)
 add_subdirectory(rekognition)
 add_subdirectory(headPoseEstimator)
+add_subdirectory(sightcorp)
 

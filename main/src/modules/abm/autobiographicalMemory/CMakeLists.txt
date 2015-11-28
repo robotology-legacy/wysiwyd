@@ -21,11 +21,6 @@ SET(LIBRARIES
     wrdac ${YARP_LIBRARIES} ${PGSQL_LIBRARIES} ${OpenCV_LIBRARIES} ${ACE_LIBRARIES}
 )
 
-IF(WYSIWYD_USE_Boost) #Boost is an optional dependency!
-    SET(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
-    SET(INCLUDE_DIRS ${INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
-ENDIF()
-
 include_directories(${INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${headers} ${sources} ${docs})
 target_link_libraries(${PROJECTNAME} ${LIBRARIES})
