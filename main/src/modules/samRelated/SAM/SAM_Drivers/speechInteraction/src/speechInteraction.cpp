@@ -20,6 +20,15 @@
 
 #include "speechInteraction.h"
 
+// Helper methods
+inline bool caseInsCharCompareN(char a, char b) {
+    return(toupper(a) == toupper(b));
+}
+
+bool caseInsCompare(const string& s1, const string& s2) {
+    return((s1.size() == s2.size()) &&
+        equal(s1.begin(), s1.end(), s2.begin(), caseInsCharCompareN));
+}
 
 speechInteraction::speechInteraction()
 {
@@ -50,12 +59,12 @@ void speechInteraction::sendSpeech(int index)
 
 bool speechInteraction::matchVocab(string vocab, int *index)
 {    
-    if( boost::iequals(vocab, "!SIL") )
+    if( caseInsCompare(vocab, "!SIL") )
         return false;
         
     for( int i = 0; i < nVocabs; i++ )
     {
-        if( boost::iequals(vocab, inputVocabs.at(i).c_str()) )
+        if( caseInsCompare(vocab, inputVocabs.at(i).c_str()) )
         {
             *index = i;
             return true;
