@@ -1,8 +1,19 @@
-#include <algorithm>    // std::random_shuffle
 #include "allostaticController.h"
 
 bool AllostaticController::close()
 {
+    to_homeo_rpc.close();
+    ears_port.close();
+    for (unsigned int i = 0; i < outputm_ports.size(); ++i)
+    {
+        outputm_ports[i]->close();
+        outputM_ports[i]->close();
+    }
+
+    for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
+        it->second.close_ports();
+    }
+
     return true;
 }
 
@@ -11,8 +22,6 @@ int AllostaticController::openPorts(string driveName)
 
     outputm_ports.push_back(new BufferedPort<Bottle>);
     outputM_ports.push_back(new BufferedPort<Bottle>);
-
-
 
 
     string portName = "/" + moduleName + "/" + driveName;
@@ -52,14 +61,6 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
     cout<<moduleName<<": finding configuration files..."<<endl;
     period = rf.check("period",Value(0.1)).asDouble();
 
-    //Create an iCub Client and check that all dependencies are here before starting
-    // bool isRFVerbose = false;
-    // CHECK if needed
-    finding = false;
-    pointing = false;
-
-
-
     configureAllostatic(rf);
 
     cout<<"Configuration done."<<endl;
@@ -72,10 +73,6 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
         yarp::os::Time::delay(0.5);
     }
 
-    physicalInteraction = false;
-    someonePresent = false;
-
-    //iCub->getReactableClient()->SendOSC(yarp::os::Bottle("/event reactable pong start"));
 
     last_time = yarp::os::Time::now();
 
@@ -102,8 +99,6 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         yarp::os::Time::delay(0.2);
     }
 
-
-    //Initialise the iCub allostatic model. Drives for interaction engine will be read from IE default.ini file
     cout << "Initializing drives..."<<endl;
     Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
     drivesList = *grpAllostatic.find("drives").asList();
@@ -132,7 +127,6 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         Bottle rply;
         rply.clear();
         rply.get(0).asString();
-        // cout << cmd.toString() << endl;
         to_homeo_rpc.write(cmd,rply);
 
         AllostaticDrive alloDrive;
@@ -170,8 +164,6 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         drivePriorities.push_back(priority);
 
         //Under effects
-        // StimulusEmotionalResponse responseUnder;
-        // removed: stimuls-response sentences
         string under_port_name = grpAllostatic.check((driveName + "-under-behavior-port"), Value("None")).asString();
         string under_cmd_name = grpAllostatic.check((driveName + "-under-behavior"), Value("None")).asString();
 
@@ -189,17 +181,12 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
                 cout << ".";
                 yarp::os::Time::delay(0.5);
             }
-            //responseUnder.rpc_command.clear();
             alloDrive.behaviorUnderCmd = Bottle(under_cmd_name);//.addString(under_cmd_name);
-            //cout << endl << endl << responseUnder.rpc_command.toString() << endl << endl;
         }else{
             yInfo() << "No port name";            
         }
 
-        // homeostaticUnderEffects[driveName] = responseUnder;
-
         //Over effects
-
         string over_port_name = grpAllostatic.check((driveName + "-under-behavior-port"), Value("None")).asString();
         string over_cmd_name = grpAllostatic.check((driveName + "-over-behavior"), Value("None")).asString();
         if (over_port_name != "None" && over_cmd_name != "None")
@@ -214,7 +201,6 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
                 cout << ".";
                 yarp::os::Time::delay(0.5);
             }
-            //responseOver.rpc_command.clear();
             alloDrive.behaviorOverCmd = Bottle(over_cmd_name);//.addString(over_cmd_name);
         }else{
             yInfo() << "No port name";
@@ -224,61 +210,10 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         allostaticDrives[driveName] = alloDrive;
     }
 
-    // Normalize drive priorities
     if ( ! Normalize(drivePriorities))
         cout << "Error: Drive priorities sum up to 0." << endl;
 
-    // CHECK if needed
     cout << "done." << endl;
-}
-
-bool AllostaticController::createTemporalDrive(string name, double prior)
-{
-    //Add new drive with default configuration
-    cout<<"!!!adding drive"<<endl;
-    Bottle cmd,rpl;
-    cmd.clear();
-    cmd.addString("add");
-    cmd.addString("new");
-    cmd.addString(name);
-    to_homeo_rpc.write(cmd);
-    yarp::os::Time::delay(2.0);
-    drivesList.addString(name);
-    cout << "!!!making drive boolean"<<endl;
-    //Remove decay: it will always be either needed or not
-    cmd.clear();
-    cmd.addString("par");
-    cmd.addString(name);
-    cmd.addString("dec");
-    cmd.addDouble(0.0);
-    cout << cmd.toString()<<endl;
-    to_homeo_rpc.write(cmd);
-    cout << "!!!sending drive out of the CZ"<<endl;
-    yarp::os::Time::delay(2.0);
-    
-    //Set drive out of the boundary
-    cmd.clear();
-    cmd.addString("par");
-    cmd.addString(name);
-    cmd.addString("val");
-    cmd.addDouble(0.01);
-    to_homeo_rpc.write(cmd);
-    yarp::os::Time::delay(2.0);
-
-    //Change priorities
-    cout << "!!!changing priorities"<<endl;
-    double priority = priority_sum*prior;
-    priority_sum += priority;
-    drivePriorities.push_back(priority);
-    Normalize(drivePriorities);
-
-    //temporal drives are only on this vector
-    temporalDrivesList.push_back(name);
-
-
-    //Is everything alright¿?
-    return true;
-
 }
 
 bool AllostaticController::Normalize(vector<double>& vec) {
@@ -307,35 +242,11 @@ bool AllostaticController::updateModule()
     updateAllostatic();
 
     return true;
-
-    //CMF: here we rather want to read data from the Sensation Module and to transmit it to the related drives.
-    // confusion = handleTagging();
-    // cout << "confusion handled "<< endl;
-    // cout << confusion << endl;
-
-    // if (searchList.size()>0){
-    //     cout << "there are elements to search!!!"<<endl;
-    //     finding = handleSearch();
-    // }
-        
-    // if (pointList.size()>0){
-    //     if (finding)
-    //         // Be carfull: both handlePoint (point in response of a human order) and handlePointing (point what you know)
-    //         pointing = handlePoint();
-    //     cout << "there are elements to point!!!"<<endl;
-    // }
-    // //learning = handlePointing();
-    updateAllostatic();
-    //updateEmotions();
-
-
-    return true;
 }
 
-// Return the index of a drive to solve according to priorities and homeostatis levels
-// Return -1 if no drive to be solved
+// Return a DriveOutCZ structure indicating the name and level (UNDER or OVER) of the drive to by humour according to priorities and homeostatis levels
+// name is "None" if no drive to be solved
 DriveOutCZ AllostaticController::chooseDrive() {
-    // to be redone
 
     DriveOutCZ result;
     bool inCZ;
@@ -357,7 +268,6 @@ DriveOutCZ AllostaticController::chooseDrive() {
         else {
             numOutCz ++;
         }
-        // cout << "Drive " << i << ", " << drivesList.get(i).asString() << ". Priority: " << outOfCzPriorities[i] << "." << endl;
     }
     if (! numOutCz) {
         result.name = "None";
@@ -388,7 +298,6 @@ bool AllostaticController::updateAllostatic()
 
 
     DriveOutCZ activeDrive = chooseDrive();
-    
 
     // CMF: Commands to ears should rather be in proactivetagging
     if (activeDrive.name == "None") {
@@ -406,147 +315,20 @@ bool AllostaticController::updateAllostatic()
     }
     else
     {
-        cout << "Drive" << activeDrive.name << " out of CZ. Active: " << allostaticDrives[activeDrive.name].active << endl;
-        //i = activeDrive.idx;
-        
+        yInfo() << "Drive " + activeDrive.name + " out of CZ." ;
                 Bottle cmd;
                 cmd.clear();
                 cmd.addString("listen");
                 cmd.addString("off");
                 ears_port.write(cmd);
     }
-    bool temporal = false;
-    for (unsigned int j = 0;j<temporalDrivesList.size();j++)
-    {
-        if (activeDrive.name==temporalDrivesList[j])
-            {
-                temporal = true;
-            }
-    }
 
     if (allostaticDrives[activeDrive.name].active) {
-        // yInfo() << " [updateAllostatic] Drive " << activeDrive.name << " chosen.";
         allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
     } else {
         yInfo() << "Drive " + activeDrive.name + " is not active";
     }
 
-//     if (activeDrive.level == UNDER)
-//     {
-        
-        
-//         // iCub->say(homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].getRandomSentence());
-//         Bottle cmd;
-//         cmd.clear();
-//         cmd.addString("par");
-//         cmd.addString("tagging");
-//         cmd.addString("val");
-//         cmd.addDouble(0.5);
-//         //rpc_ports[activeDrive.idx]->write(cmd);
-//         to_homeo_rpc.write(cmd);
-
-//         cmd.clear();
-//         cmd.addString("par");
-//         cmd.addString("tagging");
-//         cmd.addString("dec");
-//         cmd.addDouble(0.0);
-//         //rpc_ports[activeDrive.idx]->write(cmd);
-//         to_homeo_rpc.write(cmd);
-
-//         if (homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].active)
-//         {
-//             yInfo() << " [updateAllostatic] Command will be sent";
-//             //yInfo() <<homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].active << homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].rpc_command.toString();
-//             Bottle rply;
-//             rply.clear();
-//             //homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].output_port->write(homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].rpc_command,rply);
-//             homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].send();
-//             cout << homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].rpc_command << endl;
-//             yarp::os::Time::delay(0.1);
-//             yInfo() << "[updateAllostatic] reply from homeostatis : " << rply.toString();
-
-//             //clear as soon as sent
-//             //homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].rpc_command.clear();
-//             yInfo() << "check rpc command is empty : " << homeostaticUnderEffects[drivesList.get(activeDrive.idx).asString()].rpc_command;
-//         }
-        
-
-//         //d->second.value += (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;
-//     }
-
-//     if (activeDrive.level == OVER)
-//     {
-//         cout << "Drive " << activeDrive.idx << " chosen. Over level." << endl;
-// //        iCub->look("partner");
-//         // iCub->say(homeostaticOverEffects[drivesList.get(activeDrive.idx).asString()].getRandomSentence());
-//         Bottle cmd;
-//         cmd.clear();
-//         cmd.addString("par");
-//         cmd.addString(drivesList.get(activeDrive.idx).asString());
-//         cmd.addString("val");
-//         cmd.addDouble(0.5);
-
-//         to_homeo_rpc.write(cmd);
-//         //d->second.value -= (d->second.homeoStasisMax - d->second.homeoStasisMin) / 3.0;;
-//     }
-
     return true;
 }
 
-bool AllostaticController::respond(const Bottle& cmd, Bottle& reply)
-{
-    if (cmd.get(0).asString() == "help" )
-    {   string help = "\n";
-        help += " ['need'] ['macro'] [name] [arguments]   : Assigns a value to a specific parameter \n";
-        reply.addString(help);
-        /*cout << " [par] [drive] [val/min/max/dec] [value]   : Assigns a value to a specific parameter \n"<<
-                " [delta] [drive] [val/min/max/dec] [value] : Adds a value to a specific parameter  \n"<<
-                " [add] [conf] [drive Bottle]               : Adds a drive to the manager as a drive directly read from conf-file  \n"<<
-                " [add] [botl] [drive Bottle]                : Adds a drive to the manager as a Bottle of values of shape \n"<<
-                "                                           : (string name, double value, double homeo_min, double homeo_max, double decay = 0.05, bool gradient = true) \n"<<endl;
-    */
-    }else if (cmd.get(0).asString() == "need")
-    {
-        if (cmd.get(1).asString() == "macro") //macro is for subgoals or general actions
-        {
-            if (cmd.get(2).asString() == "search")
-            {
-                cout << yarp::os::Time::now()<<endl;
-                cout<< "haha! time to work!"<<endl;
-                string o_name = cmd.get(3).asString();
-                //double p = pow(1/cmd.get(4).asDouble() ,5 ) * 100;
-                string d_name = "search";
-                d_name += "_";
-                d_name += o_name;
-                //createTemporalDrive(d_name, p);
-                cout << "searchList size:"<<endl;
-
-                searchList.push_back(o_name);
-                cout << searchList.size() << endl;
-                cout << searchList[0]<<endl;
-                reply.addString("ack");
-
-            }
-        }else if (cmd.get(1).asString() == "primitive")
-        {
-            if (cmd.get(2).asString() == "point")
-            {
-                cout << yarp::os::Time::now()<<endl;
-                string o_name = cmd.get(3).asString();
-                double p = pow(1/cmd.get(4).asDouble() ,5 ) * 100;
-                string d_name = "point";
-                d_name += "_";
-                d_name += o_name;
-                //createTemporalDrive(d_name, p);
-                //searchList.push_back(o_name);
-                //createTemporalDrive(o_name, p);
-                pointList.push_back(o_name);
-                reply.addString("ack");
-
-            }
-        }
-    }
-    reply.addString("nack");
-
-    return true;
-}
