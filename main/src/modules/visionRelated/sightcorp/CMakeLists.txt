@@ -1,0 +1,9 @@
+# Copyright: (C) 2015 WYSIWYD Consortium
+# Authors: Maxime Petit
+# CopyPolicy: Released under the terms of the GNU GPL v2.0.
+
+cmake_minimum_required(VERSION 2.8)
+
+install(PROGRAMS "./sightcorp.py" DESTINATION bin PERMISSIONS WORLD_READ WORLD_EXECUTE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE)
+yarp_install(PROGRAMS "./sightcorp.py" DESTINATION bin PERMISSIONS WORLD_READ WORLD_EXECUTE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE)
+

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="yarpmanifest.xsl"?>
+ 
+<module>
+   <name>sightcorp</name>
+   <doxygen-group>wysiwyd_modules</doxygen-group>
+   <description>Using the sightcorp (http://api.sightcorp.com/) API to recognize emotions expressed by faces.</description>
+   <copypolicy>Released under the terms of the GNU GPL v2.0</copypolicy>
+   <version>1.0</version>
+
+   <description-long>
+       Using the sightcorp (https://api.sightcorp.com/) API to recognize emotions expressed by faces
+   </description-long>
+
+   <authors>
+       <author email="t.fischer@imperial.ac.uk"> Tobias Fischer </author>
+       <author email="m.petit@imperial.ac.uk"> Maxime Petit </author>
+   </authors>
+</module>
+

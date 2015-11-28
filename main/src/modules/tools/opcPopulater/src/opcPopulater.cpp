@@ -30,7 +30,6 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
     iCub->lookStop();
     iCub->home();
 
-    iCub->say("O P C populater is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
@@ -383,6 +382,7 @@ bool opcPopulater::populateABM(Bottle bInput)
 */
 bool opcPopulater::populateABMiCubStory(Bottle bInput)
 {
+    Time::delay(12.);
     // first the Giraffe is close to larry (from left to right)
     iCub->opc->clear();
     iCub->opc->checkout();

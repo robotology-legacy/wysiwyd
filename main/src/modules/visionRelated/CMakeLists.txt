@@ -10,4 +10,6 @@ endif()
 
 if(WYSIWYD_USE_CURL)
     add_subdirectory(rekognition)
+#    add_subdirectory(oxford)
+    add_subdirectory(sightcorp)
 endif()
