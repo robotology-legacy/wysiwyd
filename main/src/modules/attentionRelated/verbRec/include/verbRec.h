@@ -15,13 +15,13 @@
  * Public License for more details
  */
 
-#include <math.h>
 #include <cmath>
+#include <string>
 #include <iostream>
 #include <iomanip>
 #include <yarp/os/Network.h>
 #include <yarp/os/RFModule.h>
-#include "wrdac/clients/icubClient.h"
+#include <wrdac/clients/icubClient.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -41,7 +41,7 @@ private:
 
     int timer[4][2];    // temporary
 
-    ConstString objectNames[4];
+    string objectNames[4];
 
     int nbrOfObj;
 

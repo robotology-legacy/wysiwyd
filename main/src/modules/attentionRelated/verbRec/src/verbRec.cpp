@@ -420,7 +420,7 @@ verbRec::readData(const Bottle& command, float* input)
             input[i] = -10000;  
 
         for (int i=0; i<bSkeleton.size(); i++) {
-            ConstString str = (*bSkeleton.get(i).asList()).get(0).toString();
+            string str = (*bSkeleton.get(i).asList()).get(0).toString().c_str();
             if (str == "elbowLeft") {
                 input[0] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(0).toString().c_str());
                 input[1] = (float)atof((*(*bSkeleton.get(i).asList()).get(1).asList()).get(1).toString().c_str());
