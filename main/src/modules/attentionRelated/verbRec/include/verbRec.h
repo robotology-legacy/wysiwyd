@@ -29,58 +29,58 @@ using namespace wysiwyd::wrdac;
 
 class verbRec : public RFModule {
 private:
-    	double period;
-    	Port Port_out; // a port to receive input
-    	Port Port_in; // a port for output
+        double period;
+        Port Port_out; // a port to receive input
+        Port Port_in; // a port for output
 
-	float input[47];
-	float output[11];
+    float input[47];
+    float output[11];
 
-	int r_has_obj[4];
-	int a_has_obj[4];
+    int r_has_obj[4];
+    int a_has_obj[4];
 
-	int timer[4][2];	// temporary
+    int timer[4][2];    // temporary
 
-	ConstString objectNames[4];
+    ConstString objectNames[4];
 
-	int nbrOfObj;
+    int nbrOfObj;
 
 public:
-    	bool configure(yarp::os::ResourceFinder &rf);
+        bool configure(yarp::os::ResourceFinder &rf);
 
-    	bool interruptModule()
-    	{
-		cout<<"Interrupting the module verbRec, for port cleanup"<<endl;
-        	return true;
-    	}
+        bool interruptModule()
+        {
+        cout<<"Interrupting the module verbRec, for port cleanup"<<endl;
+            return true;
+        }
 
-    	bool close();
+        bool close();
 
-    	double getPeriod()
-    	{
-        	return period;
-    	}
+        double getPeriod()
+        {
+            return period;
+        }
 
-	void setTimer(char ch, int obj);	// temporary
+    void setTimer(char ch, int obj);    // temporary
 
-    	bool updateModule();
-    	bool respond(const Bottle& cmd, Bottle& reply);
+        bool updateModule();
+        bool respond(const Bottle& cmd, Bottle& reply);
 
-	void actionRec(const Bottle& command);
-	void readData(const Bottle& command, float* input);
+    void actionRec(const Bottle& command);
+    void readData(const Bottle& command, float* input);
 
-	void egoCenterTransformation(float obj[][3], float r_hand[][3], float l_hand[][3], float i_obj[][3], float i_rh[][3], float i_lh[][3]);
-	bool gluInvertMatrix(float m[], float invm[]);
+    void egoCenterTransformation(float obj[][3], float r_hand[][3], float l_hand[][3], float i_obj[][3], float i_rh[][3], float i_lh[][3]);
+    bool gluInvertMatrix(float m[], float invm[]);
 
-	bool wave(float r_hand[3], float l_hand[3], float prev_rh[3], float prev_lh[3]);
-	bool move(float obj[], float prev_obj[]);
-	bool push(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
-	bool pull(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
-	bool grasp(float obj[], float prev_obj[], float r_hand[], float l_hand[]);
-	bool have(float obj[], int objNbr, float spine[]);
-	bool give(float obj[], float prev_obj[], float spine[], float prev_sp[]);
-	bool take(float obj[], float prev_obj[], float spine[], float prev_sp[]);
-	bool put(float pres_obj[]);
-	bool lift(float pres_obj[]);
-	bool point(float obj[][3], float prev_obj[][3], float r_arm[][3], float l_arm[][3], float prev_rh[], float prev_lh[],float fac[]);
+    bool wave(float r_hand[3], float l_hand[3], float prev_rh[3], float prev_lh[3]);
+    bool move(float obj[], float prev_obj[]);
+    bool push(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
+    bool pull(float obj[][3], float prev_obj[], float r_hand[][3], float l_hand[][3]);
+    bool grasp(float obj[], float prev_obj[], float r_hand[], float l_hand[]);
+    bool have(float obj[], int objNbr, float spine[]);
+    bool give(float obj[], float prev_obj[], float spine[], float prev_sp[]);
+    bool take(float obj[], float prev_obj[], float spine[], float prev_sp[]);
+    bool put(float pres_obj[]);
+    bool lift(float pres_obj[]);
+    bool point(float obj[][3], float prev_obj[][3], float r_arm[][3], float l_arm[][3], float prev_rh[], float prev_lh[],float fac[]);
 };
