@@ -148,7 +148,7 @@ class SAMDriver_faces:
             print "CANNOT FIND:" + root_data_dir
         else:
             print "PATH FOUND"
-
+        
 	    ## Find and build index of available images.......
         data_file_count=numpy.zeros([len(self.participant_index),len(pose_index)])
         data_file_database={}

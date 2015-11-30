@@ -23,7 +23,12 @@ import os
 import numpy
 import time
 import operator
-import yarp
+try:
+    import yarp
+    yarpRunning = True
+except ImportError:
+    print 'WARNING! Yarp was not found! Switching to offline mode'
+    yarpRunning = False
 
 from ConfigParser import SafeConfigParser
 
@@ -76,15 +81,15 @@ print handList
 print actionList
 print '-------------------'
 
+if yarpRunning:
+    yarp.Network.init()
+    inputInteractionPort = yarp.BufferedPortBottle()
+    inputObjectPort = yarp.BufferedPortBottle()
 
-yarp.Network.init()
-inputInteractionPort = yarp.BufferedPortBottle()
-inputObjectPort = yarp.BufferedPortBottle()
-
-inputInteractionPort.open("/sam/actions/interaction:i");
-inputObjectPort.open("/sam/actions/objects:i");
-choice = yarp.Bottle();
-objectLocation = yarp.Bottle();
+    inputInteractionPort.open("/sam/actions/interaction:i");
+    inputObjectPort.open("/sam/actions/objects:i");
+    choice = yarp.Bottle();
+    objectLocation = yarp.Bottle();
 
 # Creates a SAMpy object
 # YARP ON
@@ -130,12 +135,13 @@ Ntr=500
 # Specification of model type and training parameters
 model_type = 'mrd'
 model_num_inducing = 35
-model_num_iterations = 100 #100
-model_init_iterations = 300 #800
+model_num_iterations = 10#0 #100
+model_init_iterations = 30#0 #800
 fname = modelPath + '/models/mActions_' + model_type + '_exp' + str(experiment_number) #+ '.pickle'
 
 # Enable to save the model and visualise GP nearest neighbour matching
 save_model=True
+economy_save = True # ATTENTION!! This is still BETA!!
 visualise_output=True
 
 #action_index = 1;
@@ -148,11 +154,12 @@ objectFlag = True   # True: objects ----- False: hands
 mySAMpy.readData(root_data_dir,participant_index,hand_index,action_index,action_splitting_index)
 mySAMpy.prepareActionData(model_type, Ntr)
 #mySAMpy.prepareFaceData(model_type, Ntr, pose_selection)
-mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model)
+mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model, economy_save)
 
-while( not(yarp.Network.isConnected("/speechInteraction/behaviour:o","/sam/actions/interaction:i")) ):
-    print "Waiting for connection with behaviour port..."
-    pass
+if yarpRunning:
+    while( not(yarp.Network.isConnected("/speechInteraction/behaviour:o","/sam/actions/interaction:i")) ):
+        print "Waiting for connection with behaviour port..."
+        pass
 
 
 # This is for visualising the mapping of the test face back to the internal memory
@@ -189,11 +196,13 @@ pb.figure(112)
 #pb.show()
 
 while (True):
+    if yarpRunning:
+        testAction, testActionZero, actionFormattedTesting, testTime = mySAMpy.readActionFromRobot()
+        choice = inputInteractionPort.read(True)
+    else:
+        TODO
 
-    testAction, testActionZero, actionFormattedTesting, testTime = mySAMpy.readActionFromRobot()
-    
-    choice = inputInteractionPort.read(True)
-                
+            
     # Send data to model
     pp = mySAMpy.testing(actionFormattedTesting, choice, objectFlag, visualiseInfo)
     l = pp.pop()
@@ -210,6 +219,6 @@ pb.figure(112)
 pb.subplot(numpy.shape(testAction)[1],1,1)                                   
 pb.title('Actions Zeropad') 
 
-
-mySAMpy.closePorts()
+if yarpRunning:
+    mySAMpy.closePorts()
 

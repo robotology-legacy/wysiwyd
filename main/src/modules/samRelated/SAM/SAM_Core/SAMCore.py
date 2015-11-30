@@ -285,7 +285,12 @@ def load_model(fileName='m_serialized.txt'):
     mm = pickle.load(open(fileName,'r'))
     return mm
 
-def save_pruned_model(mm, fileName='m_pruned'):
+def save_pruned_model(mm, fileName='m_pruned', economy=False):
+    """
+    Save a trained model after prunning things that are not needed to be stored.
+    Economy set to True will trigger a (currently BETA) storing which creates much smaller files.
+    See the load_pruned_model discussion on what this means in terms of restrictions.
+    """
     SAMObjPruned=dict()
     SAMObjPruned['type'] = mm.type
     # SAMObjPruned['observed'] = mm.observed # REMOVE
@@ -296,19 +301,40 @@ def save_pruned_model(mm, fileName='m_pruned'):
     SAMObjPruned['N'] = mm.N
     SAMObjPruned['num_inducing'] = mm.num_inducing
     SAMObjPruned['namesList'] = mm.namesList
-    SAMObjPruned['modelPath'] = fileName + '_model.pickle'
-    mm.model.pickle(SAMObjPruned['modelPath'])
+
+    if economy:
+        SAMObjPruned['modelPath'] = fileName + '_model.h5'
+        mm.model.save(SAMObjPruned['modelPath'])
+    else:
+        SAMObjPruned['modelPath'] = fileName + '_model.pickle'
+        mm.model.pickle(SAMObjPruned['modelPath'])
     output = open(fileName+'.pickle', 'wb')
     pickle.dump(SAMObjPruned, output)
     output.close()
 
-def load_pruned_model(fileName='m_pruned'):
+
+def load_pruned_model(fileName='m_pruned', economy=False, m=None):
+    """
+    Load a trained model. If economy is set to True, then a not-None initial model m is needed.
+    This model needs to be created exactly as the one that was saved (so, it is demo specific!) and
+    in this case calling the present function will set its parameters (meaning that you still need to
+    create a model but don't need to optimize it.)
+    """
     SAMObjPruned = pickle.load(open(fileName + '.pickle','rb'))
     SAMObject=LFM()
-    with open(SAMObjPruned['modelPath'], 'rb') as f:
-        print "Loading file: " + str(f)
-        SAMObject.model = pickle.load(f)
-    # TODO: The following is supposed to update the model, but maybe not. Change...
+    if economy:
+        assert m is not None
+        import tables
+        f = tables.open_file(SAMObjPruned['modelPath'],'r')
+        m.param_array[:] = f.root.param_array[:]
+        f.close()
+        m._trigger_params_changed()
+        SAMObject.model = m
+    else:
+        with open(SAMObjPruned['modelPath'], 'rb') as f:
+            print "Loading file: " + str(f)
+            SAMObject.model = pickle.load(f)
+        # TODO: The following is supposed to update the model, but maybe not. Change...
     # LB get error here using MRD
     #SAMObject.model.update_toggle()
     #SAMObject.model.update_toggle()

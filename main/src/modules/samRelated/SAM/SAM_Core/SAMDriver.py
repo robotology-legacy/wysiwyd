@@ -125,13 +125,14 @@ class SAMDriver:
     #
     #Outputs: None
     #""""""""""""""""
-    def training(self, modelNumInducing, modelNumIterations, modelInitIterations, fname, save_model):
+    def training(self, modelNumInducing, modelNumIterations, modelInitIterations, fname, save_model, economy_save):
         self.model_num_inducing = modelNumInducing
         self.model_num_iterations = modelNumIterations
         self.model_init_iterations = modelInitIterations
     
-        if not os.path.isfile(fname + '.pickle'):
-            print "Training..."    
+        if not os.path.isfile(fname + '.pickle') or economy_save:
+            if not os.path.isfile(fname + '.pickle'):
+                print("Training for " +str(modelInitIterations) + "|" + str(modelNumIterations) + " iterations...")    
             if self.X is not None:
                 Q = self.X.shape[1]
             else:
@@ -146,14 +147,19 @@ class SAMDriver:
             # If data are associated with labels (e.g. face identities), associate them with the event collection
             if self.data_labels is not None:
                 self.SAMObject.add_labels(self.data_labels)
-            # Simulate the function of learning from stored memories, e.g. while sleeping (consolidation).
-            self.SAMObject.learn(optimizer='scg',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
-    
-            print "Saving SAMObject"
-            if save_model:
-                SAMCore.save_pruned_model(self.SAMObject, fname)
+            
+            if not os.path.isfile(fname + '.pickle'): 
+                # Simulate the function of learning from stored memories, e.g. while sleeping (consolidation).
+                self.SAMObject.learn(optimizer='scg',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
+                print("Saving SAMObject: " + fname)
+                if save_model:
+                    SAMCore.save_pruned_model(self.SAMObject, fname, economy_save)
+            elif economy_save:
+                print("Loading economy size SAMObject: " + fname)
+                # Load the model from the economy storage
+                SAMCore.load_pruned_model(fname, economy_save, self.SAMObject.model)
         else:
-            print "Loading SAMOBject"
+            print("Loading SAMOBject: " + fname)
             self.SAMObject = SAMCore.load_pruned_model(fname)
 
     def prepareData(self, model='mrd', Ntr = 50):    
