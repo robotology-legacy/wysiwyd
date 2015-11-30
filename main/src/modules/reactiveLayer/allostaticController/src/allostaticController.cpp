@@ -4,7 +4,7 @@ bool AllostaticController::close()
 {
     to_homeo_rpc.close();
     ears_port.close();
-    for (unsigned int i = 0; i < outputm_ports.size(); ++i)
+    for (unsigned int i = 0; i < outputm_ports.size(); i++)
     {
         outputm_ports[i]->close();
         outputM_ports[i]->close();
