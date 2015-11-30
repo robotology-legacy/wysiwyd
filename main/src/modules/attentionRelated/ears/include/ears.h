@@ -11,6 +11,8 @@ private:
     double      period;
     Port        rpc;
     Port        portToReactive;
+    BufferedPort<Bottle>        portTarget;
+    string      target;    
 
     bool bListen;
 

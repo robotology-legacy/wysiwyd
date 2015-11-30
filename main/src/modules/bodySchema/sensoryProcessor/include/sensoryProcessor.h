@@ -39,7 +39,9 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portArmEncodersOut;
     yarp::os::BufferedPort<yarp::os::Bottle> portSkinOut;
     yarp::os::BufferedPort<yarp::os::Bottle> portBodypartsPositionOut;
-    yarp::os::BufferedPort<yarp::os::Bottle> portReadSkin;
+    yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinHand;
+    yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinForearm;
+    yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinArm;
 
     yarp::os::RpcClient portToABM;
     yarp::os::RpcClient portToSFM;
@@ -57,6 +59,7 @@ private:
 
     int MAX_COUNT;
     int fps;
+    bool isBabbling;
 
     std::string part;
     std::string robot;

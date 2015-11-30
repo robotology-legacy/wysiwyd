@@ -1,0 +1,32 @@
+<application>
+  <name>Test of body schema learning</name>
+
+  <module>
+    <name>bodySchema</name>
+    <parameters> </parameters>
+    <tag>bodySchemaLearner</tag>
+  </module>
+
+  <module>
+    <name>yarpscope</name>
+    <parameters>--context bodySchema --xml bodySchemaPlot.xml </parameters>
+    <tag>plotYarpScope</tag>
+  </module>
+
+  
+
+  <connection>
+    <from>/icub/cam/right</from>
+    <to>/bodySchema/portImageInRightName</to>
+    <protocol>tcp</protocol>
+  </connection>
+ 
+  <connection>
+    <from>/icub/cam/left</from>
+    <to>/bodySchema/portImageInLeftName</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+
+</application>

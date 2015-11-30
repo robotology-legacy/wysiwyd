@@ -29,7 +29,7 @@ private:
     bool abm;
 
     double dThresholdDiffStory; // threshold in second between to action from two different stories.
-    int  iThresholdSizeStory; // threshold of the number of instance in a story
+    unsigned int  iThresholdSizeStory; // threshold of the number of instance in a story
     yarp::os::Port  rpcPort;
 
     std::vector<story> listStories;

@@ -1,8 +1,8 @@
-# Copyright: (C) 2014 WYSIWYD Consortium
-# Authors: Stéphane Lallée
+# Copyright: (C) 2015 WYSIWYD Consortium
+# Authors: Clement Moulin-Frier
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(appname reactiveLayer)
-file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
-yarp_install(FILES ${conf} DESTINATION ${WYSIWYD_CONTEXTS_INSTALL_DIR}/${appname})
-
+add_subdirectory(behaviorManager)
+add_subdirectory(sensationManager)
+add_subdirectory(homeostasis)
+add_subdirectory(allostaticController)

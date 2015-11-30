@@ -493,7 +493,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         iCub->say(sQuestion);
     }
     else if (currentEntityType == "object" || currentEntityType == "rtobject") {
-        Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("sNameTarget");
+        Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(sNameTarget);
         string sHand = "right";
         if (obj1->m_ego_position[1] < 0) sHand = "left";
         Bottle bHand(sHand);

@@ -1,0 +1,32 @@
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <yarp/os/all.h>
+#include <yarp/sig/all.h>
+#include <map>
+
+
+#include "behavior.h"
+
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+
+
+
+class PointingOrder: public Behavior
+{
+private:
+    bool finding;
+    bool pointing;
+
+public:
+    void configure();
+    void run();
+
+    bool handlePoint(string target);
+    bool handleSearch(string target);
+
+
+};
+

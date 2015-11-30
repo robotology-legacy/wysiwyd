@@ -31,7 +31,7 @@ using namespace yarp::sig;
 bool ModelOTL::configure(yarp::os::ResourceFinder &rf) {
     bool bEveryThingisGood = true;
 
-    moduleName = rf.check("name",Value("bodySchema"),"module name (string)").asString();
+    moduleName = rf.check("name",Value("modelOTL"),"module name (string)").asString();
 
     part = rf.check("part",Value("left_arm")).asString();
 
