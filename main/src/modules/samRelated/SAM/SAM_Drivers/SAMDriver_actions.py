@@ -841,6 +841,12 @@ class SAMDriver_actions(SAMDriver):
         self.Y=ttt.reshape(ttt.shape[0],ttt.shape[2]*ttt.shape[1]) 
         self.Y=self.Y.T
         #N=self.Y.shape[0]
+
+        """
+        # TODO!!!! Keep these inds  in self.Y (instead of the 720... ) try it... then fit a linear model instead.
+        inds = [np.linspace(360, 419), np.linspace(420, 479), np.linspace(540, 599), np.linspace(600, 659)]
+        """
+
         """
         if pose_selection == -1:
             ttt=numpy.transpose(self.L,(0,1,3,2))
