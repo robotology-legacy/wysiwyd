@@ -29,6 +29,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         // behavior_names.push_back(behavior_name);
         if (behavior_name == "tagging") {
             behaviors.push_back(new Tagging());
+        } else if (behavior_name == "pointing") {
+            behaviors.push_back(new Pointing());
         } else if (behavior_name == "dummy") {
             behaviors.push_back(new Dummy());
 

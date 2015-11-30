@@ -24,6 +24,12 @@ void OpcSensation::configure()
     unknown_obj_port_name = "/" + moduleName + "/unknown_obj:o"; //this goes to behaviors
     unknown_obj_port.open(unknown_obj_port_name);
 
+    show_port_name = "/" + moduleName + "/show:o"; //This goes to homeostasis
+    show_port.open(show_port_name);
+
+    known_obj_port_name = "/" + moduleName + "/known_obj:o"; //this goes to behaviors
+    known_obj_port.open(known_obj_port_name);
+
     // Rand::init();
 
     cout<<"Configuration done."<<endl;
@@ -32,18 +38,31 @@ void OpcSensation::configure()
 
 void OpcSensation::publish()
 {
+    
     Bottle res = handleTagging();
-
+    Bottle res2 = handlePointing();
+    
     yarp::os::Bottle &confus = confusion_port.prepare();
     confus.clear();
     confus.addInt(int(res.get(0).asInt()));
-    confusion_port.write();
 
+    confusion_port.write();
+    
     yarp::os::Bottle &unkn = unknown_obj_port.prepare();
     unkn.clear();
     unkn.append(*res.get(1).asList());
     unknown_obj_port.write();
-
+    
+    yarp::os::Bottle &show = show_port.prepare();
+    show.clear();
+    show.addInt(int(res2.get(0).asInt()));
+    show_port.write();
+    
+    yarp::os::Bottle &kn = known_obj_port.prepare();
+    kn.clear();
+    kn.append(*res2.get(1).asList());
+    known_obj_port.write();
+    
 }
 
 Bottle OpcSensation::handleTagging()
@@ -102,5 +121,48 @@ Bottle OpcSensation::handleTagging()
     return out;
 }
 
+
+Bottle OpcSensation::handlePointing()
+{
+    //iCub->opc->checkout();
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
+    int known_object = 0;
+    int counter = 0;
+    Bottle k_objects;
+    Bottle ob;
+    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    {
+        string sName = (*itEnt)->name();
+        string sNameCut = sName;
+        string original_name = sName;
+        string delimiter = "_";
+        size_t pos = 0;
+        string token;
+        if ((pos = sName.find(delimiter)) != string::npos) {
+            token = sName.substr(0, pos);
+            sName.erase(0, pos + delimiter.length());
+            sNameCut = token;
+        }
+        // check is label is known
+
+        if (sNameCut != "unknown") {
+
+            if ((*itEnt)->entity_type() == "object" )//|| (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            {
+                known_object = true;
+                ob.clear();
+                ob.addString((*itEnt)->entity_type());
+                ob.addString(original_name);
+                k_objects.addList()=ob;
+                
+            }
+        }
+    }
+    //if no unknown object was found, return false
+    Bottle out;
+    out.addInt(int(known_object));
+    out.addList()=k_objects;
+    return out;
+}
 
 
