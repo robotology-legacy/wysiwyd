@@ -62,7 +62,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     //if (iCub->getSpeechClient())
     SubSystem_Speech* sss = iCub->getSpeechClient(); 
     if (sss) {
-        string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCubina 85.0")).asString();
+        string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).asString();
         sss->SetOptions(ttsOptions);    
     } else {
         yInfo() << "SPEECH not available.";
