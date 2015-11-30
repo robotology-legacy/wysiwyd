@@ -279,7 +279,7 @@ void cartControlReachAvoidThread::selectArm()
 }
     
 void cartControlReachAvoidThread::doReach()
-    {
+{
         if (useLeftArm || useRightArm)
         {
             if (state==STATE_REACH)
@@ -342,7 +342,9 @@ void cartControlReachAvoidThread::doReach()
                     torsoAndArmJointDeltas[9]=qdhat[9]-arm[6]; // wrist yaw
                     
                     yDebug("torsoAndArmJointDeltas: %s\n",torsoAndArmJointDeltas.toString().c_str());
-                    qdotReach = minJerkVelCtrl->computeCmd(2.0,torsoAndArmJointDeltas); //2 seconds to reach       
+                    qdotReach = minJerkVelCtrl->computeCmd(2.0,torsoAndArmJointDeltas); //2 seconds to reach  
+                    //the above probably gives only the first command which will eventually be part of a minimum jerk trajectory - 
+                    //- but that will not be instantiated here because we always ask again? 
                     yDebug("qdotReach: %s\n",qdotReach.toString().c_str());
                     
                 }
@@ -404,7 +406,7 @@ void cartControlReachAvoidThread::doReach()
                     //q_dot_avoidance = pimv(J) * x_dot
                     //(maybe also here the weights)
                     // Ask for geoJacobian
-                    Matrix J = chain -> GeoJacobian(); //6 rows, n columns for every avctive DOF (excluding the blocked)
+                    Matrix J = chain -> GeoJacobian(); //6 rows, n columns for every active DOF (excluding the blocked)
                     yDebug("GeoJacobian matrix: %s",J.toString().c_str());
                     Vector xdotAvoid(3,0.0);
                     // velocity vector = speed (10cm/s) * direction of motion (the unitary version of the normal vector)
