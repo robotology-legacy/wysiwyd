@@ -36,7 +36,9 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
     part = rf.check("part",Value("left_arm")).asString();
     robot = rf.check("robot",Value("icubSim")).asString();
     fps = rf.check("fps",Value(30)).asInt(); //30;
-    useSFM = rf.check("useSFM",Value(1)).asInt();
+    useSFM = rf.check("useSFM",Value(0)).asInt();
+    isBabbling = rf.check("isBabbling",Value(0)).asInt();
+
 
     // keep this part if you want to use both cameras
     // if you only want to use want, delete accordingly
@@ -98,10 +100,21 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
-    if (!portReadSkin.open("/" + getName() + "/portReadSkin:i")) {
-        yError() << ": Unable to open port " << "/" << getName() << "portReadSkin:i";
+    if (!portReadSkinHand.open("/" + getName() + "/portReadSkinHand:i")) {
+        yError() << ": Unable to open port " << "/" << getName() << "portReadSkinHand:i";
         bEveryThingisGood = false;
     }
+
+    if (!portReadSkinForearm.open("/" + getName() + "/portReadSkinForearm:i")) {
+        yError() << ": Unable to open port " << "/" << getName() << "portReadSkinForearm:i";
+        bEveryThingisGood = false;
+    }
+
+    if (!portReadSkinArm.open("/" + getName() + "/portReadSkinArm:i")) {
+        yError() << ": Unable to open port " << "/" << getName() << "portReadSkinArm:i";
+        bEveryThingisGood = false;
+    }
+
 
     if(useSFM)
     {
@@ -113,17 +126,37 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
 
     if(part=="right_arm")
     {
-        while(!Network::isConnected("/"+robot+"/skin/right_hand_comp", portReadSkin.getName())) {
-            Network::connect("/"+robot+"/skin/right_hand_comp", portReadSkin.getName());
-            yInfo() << "Waiting for port " << "/"+robot+"/skin/right_hand_comp" << " to connect to " << portReadSkin.getName();
+        while(!Network::isConnected("/"+robot+"/skin/right_hand_comp", portReadSkinHand.getName())) {
+            Network::connect("/"+robot+"/skin/right_hand_comp", portReadSkinHand.getName());
+            yInfo() << "Waiting for port " << "/"+robot+"/skin/right_hand_comp" << " to connect to " << portReadSkinHand.getName();
+            Time::delay(1.0);
+        }
+        while(!Network::isConnected("/"+robot+"/skin/right_forearm_comp", portReadSkinForearm.getName())) {
+            Network::connect("/"+robot+"/skin/right_forearm_comp", portReadSkinForearm.getName());
+            yInfo() << "Waiting for port " << "/"+robot+"/skin/right_forearm_comp" << " to connect to " << portReadSkinForearm.getName();
+            Time::delay(1.0);
+        }
+        while(!Network::isConnected("/"+robot+"/skin/right_arm_comp", portReadSkinArm.getName())) {
+            Network::connect("/"+robot+"/skin/right_arm_comp", portReadSkinArm.getName());
+            yInfo() << "Waiting for port " << "/"+robot+"/skin/right_arm_comp" << " to connect to " << portReadSkinArm.getName();
             Time::delay(1.0);
         }
     }
     else
     {
-        while(!Network::isConnected("/"+robot+"/skin/left_hand_comp", portReadSkin.getName())) {
-            Network::connect("/"+robot+"/skin/left_hand_comp", portReadSkin.getName());
-            yInfo() << "Waiting for port " << "/"+robot+"/skin/left_hand_comp" << " to connect to " << portReadSkin.getName();
+        while(!Network::isConnected("/"+robot+"/skin/left_hand_comp", portReadSkinHand.getName())) {
+            Network::connect("/"+robot+"/skin/left_hand_comp", portReadSkinHand.getName());
+            yInfo() << "Waiting for port " << "/"+robot+"/skin/left_hand_comp" << " to connect to " << portReadSkinHand.getName();
+            Time::delay(1.0);
+        }
+        while(!Network::isConnected("/"+robot+"/skin/left_forearm_comp", portReadSkinForearm.getName())) {
+            Network::connect("/"+robot+"/skin/left_forearm_comp", portReadSkinForearm.getName());
+            yInfo() << "Waiting for port " << "/"+robot+"/skin/right_forearm_comp" << " to connect to " << portReadSkinForearm.getName();
+            Time::delay(1.0);
+        }
+        while(!Network::isConnected("/"+robot+"/skin/left_arm_comp", portReadSkinArm.getName())) {
+            Network::connect("/"+robot+"/skin/left_arm_comp", portReadSkinArm.getName());
+            yInfo() << "Waiting for port " << "/"+robot+"/skin/left_arm_comp" << " to connect to " << portReadSkinArm.getName();
             Time::delay(1.0);
         }
     }
@@ -151,10 +184,20 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
         yInfo() << "Connected to ABM : Data are coming!";
     }
 
-    // Initialize iCub and Vision
-    while (!init_iCub(part)) {
-        yDebug() << getName() << ": initialising iCub... please wait... ";
-        bEveryThingisGood = false;
+    // Initialize iCub only if "babbling" is not running
+    yWarning() << "isBabbling" << isBabbling;
+    Time::delay(3);
+    if(!isBabbling)
+    {
+        while (!init_iCub(part)) {
+            yDebug() << getName() << ": initialising iCub... please wait... ";
+            bEveryThingisGood = false;
+        }
+    }
+    else
+    {
+        yDebug() << "iCub already initialized by babbling module.";
+        yWarning() << "Encoders values will not be read... :( ";
     }
 
     yDebug() << "End configuration...";
@@ -178,7 +221,9 @@ bool SensoryProcessor::interruptModule() {
     portArmEncodersOut.interrupt();
     portBodypartsPositionOut.interrupt();
     portSkinOut.interrupt();
-    portReadSkin.interrupt();
+    portReadSkinHand.interrupt();
+    portReadSkinForearm.interrupt();
+    portReadSkinArm.interrupt();
 
     yInfo() << "Bye!";
 
@@ -218,8 +263,14 @@ bool SensoryProcessor::close() {
     portToSFM.interrupt();
     portToSFM.close();
 
-    portReadSkin.interrupt();
-    portReadSkin.close();
+    portReadSkinHand.interrupt();
+    portReadSkinHand.close();
+
+    portReadSkinForearm.interrupt();
+    portReadSkinForearm.close();
+
+    portReadSkinArm.interrupt();
+    portReadSkinArm.close();
 
     handlerPort.interrupt();
     handlerPort.close();
@@ -309,30 +360,47 @@ bool SensoryProcessor::getMultimodalData()
     portBodypartsPositionOut.write();
 
     // get contact vector
-    Bottle *skinContact;
-    skinContact = portReadSkin.read(true);
+    Bottle *skinContactHand;
+    Bottle *skinContactForearm;
+    Bottle *skinContactArm;
+    skinContactHand = portReadSkinHand.read(true);
+    skinContactForearm = portReadSkinForearm.read(true);
+    skinContactArm = portReadSkinArm.read(true);
 
-    portSkinOut.write(skinContact);
+    Bottle &bSkin = portSkinOut.prepare();
+    bSkin.clear();
+    for (int i=0; i<skinContactHand->size(); i++)
+        bSkin.addDouble(skinContactHand->get(i).asDouble());
+    for (int i=0; i<skinContactForearm->size(); i++)
+        bSkin.addDouble(skinContactForearm->get(i).asDouble());
+    for (int i=0; i<skinContactArm->size(); i++)
+        bSkin.addDouble(skinContactArm->get(i).asDouble());
+    portSkinOut.write();
 
-    /// get proprioceptive info
-    Bottle &bArm = portArmEncodersOut.prepare();
-    Bottle &bHead = portHeadEncodersOut.prepare();
-    bArm.clear(); bHead.clear();
 
-    bool okEncArm = encsArm->getEncoders(encodersArm.data());
-    bool okEncHead = encsHead->getEncoders(encodersHead.data());
-    if(!okEncArm || !okEncHead) {
-        cerr << "Error receiving encoders";
-    } else {
-        for (unsigned int kk=0; kk<16; kk++){
-            bArm.addDouble(encodersArm[kk]);
+    /// get proprioceptive info (only if babbling is not running
+    if(!isBabbling)
+    {
+        Bottle &bArm = portArmEncodersOut.prepare();
+        Bottle &bHead = portHeadEncodersOut.prepare();
+        bArm.clear(); bHead.clear();
+
+        bool okEncArm = encsArm->getEncoders(encodersArm.data());
+        bool okEncHead = encsHead->getEncoders(encodersHead.data());
+        if(!okEncArm || !okEncHead) {
+            cerr << "Error receiving encoders";
+        } else {
+            for (unsigned int kk=0; kk<16; kk++){
+                bArm.addDouble(encodersArm[kk]);
+            }
+            for (unsigned int kk=0; kk<6; kk++){
+                bHead.addDouble(encodersHead[kk]);
+            }
+            portArmEncodersOut.write();
+            portHeadEncodersOut.write();
         }
-        for (unsigned int kk=0; kk<6; kk++){
-            bHead.addDouble(encodersHead[kk]);
-        }
-        portArmEncodersOut.write();
-        portHeadEncodersOut.write();
     }
+
 
     return true;
 }
