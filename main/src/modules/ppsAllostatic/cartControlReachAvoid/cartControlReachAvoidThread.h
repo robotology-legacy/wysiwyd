@@ -132,8 +132,8 @@ protected:
   
     struct avoidanceStruct_t{
         SkinPart skin_part;
-        Vector x;
-        Vector n;
+        Vector x; //position (x,y,z) in the FoR of the respective skin part
+        Vector n; //normal vector at that point
     };
     vector<avoidanceStruct_t> avoidanceVectors;
     

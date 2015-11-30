@@ -14,7 +14,7 @@ include_directories(
 
 # Search for source code.
 file(GLOB sources src/*.cpp src/*.cc src/*.c)
-file(GLOB headers include/iCub/*.h)
+file(GLOB headers include/*.h)
 
 set(docs ${PROJECTNAME}.xml)
 

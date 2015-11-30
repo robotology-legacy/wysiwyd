@@ -95,12 +95,13 @@ fname = modelPath + '/models/' + 'm_' + model_type + '_exp' + str(experiment_num
 
 # Enable to save the model and visualise GP nearest neighbour matching
 save_model=True
+economy_save = True # ATTENTION!! This is still BETA!!
 visualise_output=True
 
 # Reading face data, preparation of data and training of the model
 mySAMpy.readData(root_data_dir, participant_index, pose_index)
 mySAMpy.prepareFaceData(model_type, Ntr, pose_selection)
-mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model)
+mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model, economy_save)
 
 
 # This is for visualising the mapping of the test face back to the internal memory
