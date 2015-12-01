@@ -120,8 +120,7 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
-    Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc");
-    if(!Network::isConnected(portToABM.getName(), "/autobiographicalMemory/rpc")){
+    if(!Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc")){
         yWarning() << "Cannot connect to ABM, storing data into it will not be possible unless manual connection";
     } else {
         yInfo() << "Connected to ABM : Data are coming!";
@@ -628,7 +627,9 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     bABM.addList() = bSubArgument;
     bABM.addList() = bBegin;
 
-    portToABM.write(bABM,bABMreply);
+    if(Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc")) {
+        portToABM.write(bABM,bABMreply);
+    }
 
     return bABMreply;
 }
