@@ -91,7 +91,7 @@ public:
         double aux = (1/(1+exp(-this->value)))-0.5;
         if (aux<0)
             aux=-aux;
-        cout << "sig function: "<< aux << endl;
+        //yDebug() << "sig function: "<< aux;// << endl;
         return this->decay*(aux-1);
 
     }
@@ -114,7 +114,7 @@ public:
         }
 
 
-        //cout<<"real decay: "<<this->sigDecay()<<endl;
+        //yDebug()<<"real decay: "<<this->sigDecay();//<<endl;
         //this->value -= this->sigDecay();
     }
 

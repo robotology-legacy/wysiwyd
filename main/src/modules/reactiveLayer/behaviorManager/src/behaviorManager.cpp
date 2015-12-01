@@ -14,14 +14,14 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 {
     moduleName = rf.check("name",Value("BehaviorManager")).asString();
     setName(moduleName.c_str());
-    cout<<moduleName<<": finding configuration files..."<<endl;
+    yInfo()<<moduleName<<": finding configuration files...";//<<endl;
     period = rf.check("period",Value(0.1)).asDouble();
 
     Bottle grp = rf.findGroup("BEHAVIORS");
     Bottle behaviorList = *grp.find("behaviors").asList();  
 
     rpc_in_port.open("/" + moduleName + "/trigger:i");
-    cout << "RPC_IN : " << rpc_in_port.getName();
+    yInfo() << "RPC_IN : " << rpc_in_port.getName();
     attach(rpc_in_port);
     for (int i = 0; i<behaviorList.size(); i++)
     {
@@ -50,18 +50,13 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
     iCub->opc->isVerbose = false;
     char rep = 'n';
-    yDebug() << "1";
     while (rep!='y'&&!iCub->connect())
     {
-        cout<<"iCubClient : Some dependencies are not running..."<<endl;
+        yInfo()<<"iCubClient : Some dependencies are not running...";//<<endl;
         Time::delay(1.0);
     }
-    yDebug() << "2";
 
     //Set the voice
-    cout << "3" << endl;
-    cout.flush();
-    //if (iCub->getSpeechClient())
     SubSystem_Speech* sss = iCub->getSpeechClient(); 
     if (sss) {
         string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).asString();
@@ -69,7 +64,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     } else {
         yInfo() << "SPEECH not available.";
     }
-    yDebug() << "4";
 
 
     // id = 0;
@@ -97,13 +91,13 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
         if (beh->from_sensation_port_name != "None") {
             while (!Network::connect(beh->from_sensation_port_name, beh->sensation_port_in.getName())) {
-                cout<<"Connecting "<< beh->from_sensation_port_name << " to " <<  beh->sensation_port_in.getName() <<endl;
+                yInfo()<<"Connecting "<< beh->from_sensation_port_name << " to " <<  beh->sensation_port_in.getName();// <<endl;
                 yarp::os::Time::delay(0.5);
             }
         }
         if (beh->external_port_name != "None") {
             while (!Network::connect(beh->rpc_out_port.getName(), beh->external_port_name)) {
-                cout<<"Connecting "<< beh->rpc_out_port.getName() << " to " <<  beh->external_port_name <<endl;
+                yInfo()<<"Connecting "<< beh->rpc_out_port.getName() << " to " <<  beh->external_port_name;// <<endl;
                 yarp::os::Time::delay(0.5);
             }   
         }

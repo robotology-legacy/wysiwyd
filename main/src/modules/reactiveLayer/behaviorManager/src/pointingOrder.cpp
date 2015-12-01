@@ -19,12 +19,12 @@ void PointingOrder::run(Bottle args/*=Bottle()*/) {
     string target = sensation_port_in.read()->get(0).asString();
     yInfo() << target ;
     if (target != "none"){
-        cout << "there are elements to search!!!"<<endl;
+        yInfo() << "there are elements to search!!!";//<<endl;
         finding = handleSearch(target);
         // Be carfull: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         pointing = handlePoint(target);
-        cout << "there are elements to point!!!"<<endl;
-        cout << finding << endl;
+        yInfo() << "there are elements to point!!!";//<<endl;
+        yDebug() << finding;// << endl;
     }
 }
 
@@ -42,7 +42,7 @@ bool PointingOrder::handlePoint(string target)
         string sName = (*itEnt)->name();
         
 
-        // cout << "Checking entity: " << e_name << " to " << sName<<endl;
+        yDebug() << "Checking entity: " << e_name << " to " << sName;//<<endl;
         if (sName == e_name) {
             if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
@@ -50,7 +50,7 @@ bool PointingOrder::handlePoint(string target)
                 Object* o = dynamic_cast<Object*>(*itEnt);
                 if(o && o->m_present) {
                     //pointRPC=true;
-                    cout << "I'd like to point " << e_name <<endl;
+                    yInfo() << "I'd like to point " << e_name;// <<endl;
                     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
                     string sHand = "right";
                     if (obj1->m_ego_position[1]<0) sHand = "left";
@@ -85,12 +85,9 @@ bool PointingOrder::handleSearch(string target)
     {
         string sName = (*itEnt)->name();
         
-        //bool pointRPC = false;
-        
-       // cout << "comparing entity: "<<e_name<<" to " << sName<<endl;
 
         if (sName == e_name) {
-            //cout << "Entity found: "<<e_name<<endl;
+            yDebug() << "Entity found: "<<e_name;//<<endl;
             if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 yInfo() << "I found the entity in the opc: " << sName;
@@ -107,10 +104,10 @@ bool PointingOrder::handleSearch(string target)
         }
     }
     
-    cout << "I need to explore by name!" << endl;
+    yInfo() << "I need to explore by name!";// << endl;
 
             // ask for the object
-    cout << "send rpc to proactiveTagging"<<endl;
+    yInfo() << "send rpc to proactiveTagging";//<<endl;
 
     //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
     Bottle cmd;
@@ -121,7 +118,7 @@ bool PointingOrder::handleSearch(string target)
     cmd.addString("searchingEntity");
     cmd.addString(e_name);
     rpc_out_port.write(cmd,rply);
-    cout << rply.toString() << endl;
+    yDebug() << rply.toString(); //<< endl;
 
     //searchList.pop_back();
     return true;

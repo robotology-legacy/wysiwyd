@@ -100,7 +100,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         yarp::os::Time::delay(0.2);
     }
 
-    cout << "Initializing drives..."<<endl;
+    yInfo() << "Initializing drives...";//<<endl;
     Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
     drivesList = *grpAllostatic.find("drives").asList();
     //iCub->icubAgent->m_drives.clear();
@@ -154,7 +154,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         string sensationPort = grpAllostatic.check((driveName + "-sensation-port"), Value("None")).asString();
         string pn = "/" + moduleName + "/" + driveName + "/sensation:i";
         while(!Network::connect(sensationPort, pn)) {
-            cout<<"Connecting " << sensationPort << " to " << pn << endl;
+            yDebug()<<"Connecting " << sensationPort << " to " << pn;// << endl;
             yarp::os::Time::delay(0.5);
         }
 
@@ -176,10 +176,10 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
             alloDrive.behaviorUnderPort = new Port();
             alloDrive.behaviorUnderPort->open(out_port_name);
-            cout << "trying to connect to " << under_port_name << endl;
+            yDebug() << "trying to connect to " << under_port_name;// << endl;
             while(!Network::connect(out_port_name,under_port_name))
             {
-                cout << ".";
+                
                 yarp::os::Time::delay(0.5);
             }
             alloDrive.behaviorUnderCmd = Bottle(under_cmd_name);//.addString(under_cmd_name);
@@ -196,10 +196,10 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             string out_port_name = "/" + moduleName + "/" + driveName + "/over_action:o";
             alloDrive.behaviorOverPort = new Port();
             alloDrive.behaviorOverPort->open(out_port_name);
-            cout << "trying to connect to " << over_port_name << endl;
+            yDebug() << "trying to connect to " << over_port_name ;//<< endl;
             while(!Network::connect(out_port_name,over_port_name))
             {
-                cout << ".";
+                
                 yarp::os::Time::delay(0.5);
             }
             alloDrive.behaviorOverCmd = Bottle(over_cmd_name);//.addString(over_cmd_name);
@@ -212,9 +212,9 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
     }
 
     if ( ! Normalize(drivePriorities))
-        cout << "Error: Drive priorities sum up to 0." << endl;
+        yDebug() << "Error: Drive priorities sum up to 0.";// << endl;
 
-    cout << "done." << endl;
+    yInfo() << "done.";// << endl;
 }
 
 bool AllostaticController::Normalize(vector<double>& vec) {
@@ -231,7 +231,7 @@ bool AllostaticController::Normalize(vector<double>& vec) {
 bool AllostaticController::updateModule()
 {
     for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
-        // cout << it->second.inputSensationPort->read()->get(0).asInt() << endl;
+        // yDebug() << it->second.inputSensationPort->read()->get(0).asInt();// << endl;
         if (bool(it->second.inputSensationPort->read()->get(0).asInt())) {
             yDebug() << "Sensation ON";
             it->second.update(SENSATION_ON);
@@ -302,7 +302,7 @@ bool AllostaticController::updateAllostatic()
 
     // CMF: Commands to ears should rather be in proactivetagging
     if (activeDrive.name == "None") {
-        cout << "No drive out of CZ." << endl;
+        yInfo() << "No drive out of CZ." ;//<< endl;
         if ((yarp::os::Time::now()-last_time)>2.0)
                 {
                 last_time = yarp::os::Time::now();
