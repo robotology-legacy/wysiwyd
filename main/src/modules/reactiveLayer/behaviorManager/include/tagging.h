@@ -18,7 +18,7 @@ class Tagging: public Behavior
 {
 public:
     void configure();
-    void run();
+    void run(Bottle args=Bottle());
 
 };
 

@@ -152,7 +152,13 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
 
         for(std::vector<Behavior*>::size_type i = 0; i != behaviors.size(); i++) {
             if (cmd.get(0).asString() == behaviors[i]->name) {
-                behaviors[i]->run();
+                Bottle args;
+                args.clear();
+                for (int a = 1; a < cmd.size(); a++)
+                {
+                    args.add(&cmd.get(a));
+                }
+                behaviors[i]->run(args);
             }
         }
 

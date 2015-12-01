@@ -22,7 +22,7 @@ private:
 
 public:
     void configure();
-    void run();
+    void run(Bottle args=Bottle());
 
     bool handlePoint(string target);
     bool handleSearch(string target);

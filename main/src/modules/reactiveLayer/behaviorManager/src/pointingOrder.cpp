@@ -12,7 +12,7 @@ void PointingOrder::configure() {
 
 }
 
-void PointingOrder::run() {
+void PointingOrder::run(Bottle args/*=Bottle()*/) {
     yInfo() << "PointingOrder::run";
 
 

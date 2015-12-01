@@ -63,9 +63,7 @@ public:
         for (int i=0; i<cmds.size(); i++){
             Bottle rply;
             rply.clear();
-            // drivesSensationOn.push_back(*cmds.get(i).asList())
             Bottle cmd = *cmds.get(i).asList();        
-            // yDebug() << cmd.toString();
             homeoPort->write(cmd,rply);
             rplies.addList() = rply;
         }

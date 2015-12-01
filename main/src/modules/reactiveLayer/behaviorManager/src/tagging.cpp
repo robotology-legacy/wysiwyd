@@ -9,7 +9,7 @@ void Tagging::configure() {
 
 };
 
-void Tagging::run() {
+void Tagging::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Tagging::run";
     // Bottle *objects = sensation.get(1).asList();
     iCub->say("I dont know all of these objects");
@@ -20,12 +20,12 @@ void Tagging::run() {
     Bottle cmd;
     Bottle rply;
     cmd.clear();
-    cout << 1 << endl;
+    // cout << 1 << endl;
     cmd.addString("exploreUnknownEntity");
-    cout << sensation->toString()<<endl;//asList()->toString() << endl;
-    cout << 2 << endl;
+    // cout << sensation->toString()<<endl;//asList()->toString() << endl;
+    // cout << 2 << endl;
     cmd.addString(sensation->get(id).asList()->get(0).asString());
-    cout << 3 << endl;
+    // cout << 3 << endl;
     cmd.addString(sensation->get(id).asList()->get(1).asString());
     yInfo() << "Proactively tagging...";
     rpc_out_port.write(cmd, rply);

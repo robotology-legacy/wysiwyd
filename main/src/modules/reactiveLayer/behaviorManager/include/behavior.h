@@ -29,7 +29,7 @@ public:
     // Port rpc_in_port;
     Port rpc_out_port;
     virtual void configure() = 0;
-    virtual void run() = 0;
+    virtual void run(Bottle args=Bottle()) = 0;
     
 };
 
