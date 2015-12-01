@@ -1,0 +1,5 @@
+1 : 2 ----> 5 : 2    Score : 0.50005     Similarity0.0001
+$ 0 : 1 ----> 4 : 1    Score : 0.16675
+2 : 2 ----> 7 : 2    Score : 0.50005     Similarity0.0001
+3 : 2 ----> 0 : 2    Score : 0.500025     Similarity7.5e-05
+4 : 1 ----> 1 : 2    Score : 0.33335     Similarity5e-05

@@ -1,0 +1,8 @@
+0 --------------------------------------
+Average : 0.145833
+Maximum :  deg[0]=1, deg[3]=1, similarity[0][3]=1
+Minimum :  deg[0]=1, deg[2]=3, similarity[0][2]=0.333333
+1 --------------------------------------
+Average : 0.1225
+Maximum :  deg[0]=1, deg[4]=1, similarity[0][4]=1
+Minimum :  deg[0]=1, deg[2]=3, similarity[0][2]=0.333333
