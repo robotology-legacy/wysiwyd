@@ -8,6 +8,7 @@ MODULE REQUIREMENTS
 ===================
 In order to run the module properly, it is required to install the followings:
 - Matlab
+- R
 - OpenCV 2.3.x
 - YARP
 
