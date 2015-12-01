@@ -723,7 +723,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
 
     opcUpdater.setBridge(this);
-    opcUpdater.setRate(rf.check("memory_update_period",Value(60)).asInt());
+    opcUpdater.setRate(rf.check("opc_update_period",Value(60)).asInt());
 
     classifierReporter.setBridge(this);
 
