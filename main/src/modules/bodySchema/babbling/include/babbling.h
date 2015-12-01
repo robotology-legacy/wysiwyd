@@ -45,6 +45,7 @@ private:
     yarp::dev::IPositionControl* posHead;
     yarp::dev::IVelocityControl* velHead;
     yarp::dev::IEncoders* encsHead;
+    yarp::dev::IControlMode2 *ictrlHead;
 
     yarp::dev::PolyDriver* armDev;
     yarp::dev::PolyDriver* headDev;

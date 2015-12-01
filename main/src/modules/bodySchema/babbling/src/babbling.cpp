@@ -188,7 +188,7 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString()=="help") {
         yInfo() << helpMessage;
-        reply.addString("ack");
+        reply.addString(helpMessage);
     }
     else if (command.get(0).asString()=="babbling") {
         if (command.get(1).asString()=="arm")
@@ -257,6 +257,7 @@ bool Babbling::doBabbling()
         while (Time::now() < startTime + train_duration){
 //            yInfo() << Time::now() << "/" << startTime + train_duration;
             double t = Time::now() - startTime;
+            yInfo() << "t = " << t << " / " << train_duration;
                 babblingCommands(t,single_joint);
         }
     }
@@ -307,7 +308,7 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
     }
     else
     {
-        if((part == "left_arm") | (part == "right_arm" ))
+        if((part == "left_arm") || (part == "right_arm" ))
         {
             command[0]=cos(w1 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
             command[1]=cos(w1 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
@@ -315,7 +316,7 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
             command[3]=cos(w2 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
             command[6]=cos(w3 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
         }
-        else if((part == "left_hand") | (part == "right_hand" ))
+        else if((part == "left_hand") || (part == "right_hand" ))
         {
             command[6]=amp*cos(w3 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
             command[8]=amp*cos(w1 * 2 * M_PI);
@@ -334,7 +335,7 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
 
     Bottle& inDataB = portVelocityOut.prepare(); // Get the object
     inDataB.clear();
-    for  (unsigned int l=0; l<command.size(); l++)
+    for(unsigned int l=0; l<command.size(); l++)
     {
         inDataB.addDouble(command[l]);
     }
@@ -397,7 +398,8 @@ int Babbling::babblingCommandsMatlab()
         {
             velArm->velocityMove(command.data());
             Time::delay(0.02);
-        }yInfo() << "> Initialisation done.";
+        }
+        yInfo() << "> Initialisation done.";
 
 
         // Tell Matlab that motion is done
@@ -430,8 +432,10 @@ bool Babbling::gotoStartPos()
 {
     /* Move head to start position */
     commandHead = encodersHead;
-    for (int i=0; i<=4; i++)
+    for (int i=0; i<=4; i++) {
+        ictrlHead->setControlMode(i,VOCAB_CM_POSITION);
         commandHead[i] = start_commandHead[i];
+    }
     posHead->positionMove(commandHead.data());
 
     /* Move arm to start position */
@@ -449,8 +453,10 @@ bool Babbling::gotoStartPos()
         yInfo() << "Wait for position moves to finish" ;
         posHead->checkMotionDone(&done_head);
         posArm->checkMotionDone(&done_arm);
+        yDebug() << "done_head: " << done_head << " done_arm: " << done_arm;
         Time::delay(0.04);
     }
+    yInfo() << "Done.";
 
     Time::delay(1.0);
 
@@ -554,7 +560,8 @@ bool Babbling::init_iCub(string &part)
     headDev->view(posHead);
     headDev->view(velHead);
     headDev->view(encsHead);
-    if (posHead==NULL || encsHead==NULL || velHead==NULL ){
+    headDev->view(ictrlHead);
+    if (posHead==NULL || encsHead==NULL || velHead==NULL || ictrlHead==NULL ){
         cout << "Cannot get interface to robot head" << endl;
         headDev->close();
     }
