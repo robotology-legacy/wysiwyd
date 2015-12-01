@@ -15,6 +15,7 @@
  * Public License for more details
 */
 
+#include <cmath>
 #include <sstream>
 #include <cstdio>
 #include <algorithm>
@@ -175,6 +176,7 @@ bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
             (clickLocation.y!=RET_INVALID));
 }
 
+
 /**********************************************************/
 bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
 {
@@ -196,6 +198,48 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
             x[2]=reply.get(2).asDouble();
             return true;
         }
+    }
+
+    return false;
+}
+
+
+/**********************************************************/
+bool IOL2OPCBridge::get3DPositionAndDimensions(const CvPoint &point,
+                                               Vector &x, Vector &dim)
+{
+    if (rpcGet3D.getOutputCount()>0)
+    {
+        Bottle cmd,reply;
+        cmd.addString("Flood3D");
+        cmd.addInt(point.x);
+        cmd.addInt(point.y);
+        rpcGet3D.write(cmd,reply);
+
+        x.resize(3);
+        dim.resize(3);
+
+        // find mean and standard deviation
+        double N=reply.size()/5.0;
+        for (int i=0; i<reply.size(); i+=5)
+        {
+            x[0]+=reply.get(i+2).asDouble();
+            x[1]+=reply.get(i+3).asDouble();
+            x[2]+=reply.get(i+4).asDouble();
+
+            dim[0]+=reply.get(i+2).asDouble()*reply.get(i+2).asDouble();
+            dim[1]+=reply.get(i+3).asDouble()*reply.get(i+3).asDouble();
+            dim[2]+=reply.get(i+4).asDouble()*reply.get(i+4).asDouble();
+        }
+        
+        x/=N;
+
+        dim=dim*(1.0/N)-x*x;
+        dim[0]=4.0*sqrt(dim[0]);
+        dim[1]=4.0*sqrt(dim[1]);
+        dim[2]=4.0*sqrt(dim[2]);
+
+        return true;
     }
 
     return false;
@@ -596,11 +640,14 @@ void IOL2OPCBridge::updateOPC()
                 if (it!=db.end())
                 {
                     // find 3d position
-                    Vector x;
-                    if (get3DPosition(cog,x))
+                    Vector x,dim;
+                    if (get3DPositionAndDimensions(cog,x,dim))
                     {
+                        Vector filtered=it->second.filt(cat(x,dim));
+
                         Object *obj=opc->addOrRetrieveEntity<Object>(object);
-                        obj->m_ego_position=it->second.filt(x);
+                        obj->m_ego_position=filtered.subVector(0,2);
+                        obj->m_dimensions=filtered.subVector(3,5);
                         obj->m_present=true;
                         it->second.opc_id = obj->opc_id();
 
