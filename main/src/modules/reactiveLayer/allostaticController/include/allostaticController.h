@@ -110,7 +110,6 @@ private:
     Bottle drivesList;
     
     Port to_homeo_rpc;
-    Port ears_port;
     string moduleName;
     string homeo_name;
 

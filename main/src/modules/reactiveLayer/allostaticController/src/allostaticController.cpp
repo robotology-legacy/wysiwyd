@@ -3,7 +3,6 @@
 bool AllostaticController::close()
 {
     to_homeo_rpc.close();
-    ears_port.close();
     for (unsigned int i = 0; i < outputm_ports.size(); i++)
     {
         outputm_ports[i]->close();
@@ -64,20 +63,10 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
 
     configureAllostatic(rf);
 
-    yInfo()<<"Configuration done.";//<<endl;
-
-    // rpc.open ( ("/"+moduleName+"/rpc"));
-    // attach(rpc);
-    ears_port.open("/" + moduleName + "/ears:o");
-    while (!Network::connect(ears_port.getName(), "/ears/rpc")) {
-        yDebug()<<"Setting up ears connection from "<< ears_port.getName() <<" to /ears/rpc";// <<endl;
-        yarp::os::Time::delay(0.5);
-    }
-
 
     last_time = yarp::os::Time::now();
 
-    yInfo("Init done");
+    yInfo()<<"Configuration done.";
 
 
     return true;
@@ -300,28 +289,13 @@ bool AllostaticController::updateAllostatic()
 
     DriveOutCZ activeDrive = chooseDrive();
 
-    // CMF: Commands to ears should rather be in proactivetagging
     if (activeDrive.name == "None") {
-        yInfo() << "No drive out of CZ." ;//<< endl;
-        if ((yarp::os::Time::now()-last_time)>2.0)
-                {
-                last_time = yarp::os::Time::now();
-                Bottle cmd;
-                cmd.clear();
-                cmd.addString("listen");
-                cmd.addString("on");
-                ears_port.write(cmd);
-            }
+        yInfo() << "No drive out of CZ." ;
         return true;
     }
     else
     {
         yInfo() << "Drive " + activeDrive.name + " out of CZ." ;
-                Bottle cmd;
-                cmd.clear();
-                cmd.addString("listen");
-                cmd.addString("off");
-                ears_port.write(cmd);
     }
 
     if (allostaticDrives[activeDrive.name].active) {
