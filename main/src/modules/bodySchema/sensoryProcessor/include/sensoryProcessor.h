@@ -59,7 +59,6 @@ private:
 
     int MAX_COUNT;
     int fps;
-    bool isBabbling;
 
     std::string part;
     std::string robot;

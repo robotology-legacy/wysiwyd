@@ -221,6 +221,21 @@ bool Babbling::doBabbling()
         ictrlArm->setControlMode(i,VOCAB_CM_VELOCITY);
     }
 
+    Bottle reply;
+    Bottle abmCommand;
+    abmCommand.addString("babbling");
+    abmCommand.addString("arm");
+    reply = dealABM(abmCommand,1);
+
+    //check ABM reply
+    if (reply.isNull()) {
+        cout << "Reply from ABM is null : NOT connected?" << endl;
+    } else if (reply.get(0).asString()!="ack"){
+        cout << reply.toString() << endl;
+    }
+
+    reply.clear();
+
     if (cmd_source == "C")
     {
         double startTime = yarp::os::Time::now();
@@ -234,6 +249,16 @@ bool Babbling::doBabbling()
     {
         babblingCommandsMatlab();
     }
+
+    reply = dealABM(abmCommand,0);
+
+    //check ABM reply
+    if (reply.isNull()) {
+        cout << "Reply from ABM is null : NOT connected?" << endl;
+    } else if (reply.get(0).asString()!="ack"){
+        cout << reply.toString() << endl;
+    }
+
 
     bool homeEnd = gotoStartPos();
     if(!homeEnd) {
@@ -428,7 +453,7 @@ bool Babbling::init_iCub(string &part)
     option.put("device", "remote_controlboard");
     Value& robotnameArm = option.find("robot");
 
-    string sA("/");
+    string sA("/babbling/");
     sA += robotnameArm.asString();
     sA += "/";
     sA += portnameArm.c_str();
@@ -489,7 +514,7 @@ bool Babbling::init_iCub(string &part)
     option.put("device", "remote_controlboard");
     Value& robotnameHead = option.find("robot");
 
-    string sH("/");
+    string sH("/babbling/");
     sH += robotnameHead.asString();
     sH += "/";
     sH += portnameHead.c_str();
@@ -544,4 +569,50 @@ bool Babbling::init_iCub(string &part)
     yInfo() << "> Initialisation done.";
 
     return true;
+}
+
+
+Bottle Babbling::dealABM(const Bottle& command, int begin)
+{
+    yDebug() << "Dealing with ABM";
+    if (begin<0 || begin>1)
+    {
+        yError() << "begin parameter must be 1 or 0.";
+        Bottle bError;
+        bError.addString("nack");
+        bError.addString("Error: begin item should be either 1 or 0.");
+        return bError;
+    }
+
+    Bottle bABM, bABMreply;
+    bABM.addString("snapshot");
+    Bottle bSubMain;
+    bSubMain.addString("action");
+    bSubMain.addString(command.get(0).asString());
+    bSubMain.addString("action");
+    Bottle bSubArgument;
+    bSubArgument.addString("arguments");
+    Bottle bSubSubArgument;
+    bSubSubArgument.addString(command.get(1).toString());
+    bSubSubArgument.addString("limb");
+    Bottle bSubSubArgument2;
+    bSubSubArgument2.addString(part);
+    bSubSubArgument2.addString("side");
+    Bottle bSubSubArgument3;
+    bSubSubArgument3.addString(robot);
+    bSubSubArgument3.addString("agent1");
+    Bottle bBegin;
+    bBegin.addString("begin");
+    bBegin.addInt(begin);
+
+    bABM.addList() = bSubMain;
+    bSubArgument.addList() = bSubSubArgument;
+    bSubArgument.addList() = bSubSubArgument2;
+    bSubArgument.addList() = bSubSubArgument3;
+    bABM.addList() = bSubArgument;
+    bABM.addList() = bBegin;
+
+    portToABM.write(bABM,bABMreply);
+
+    return bABMreply;
 }
