@@ -176,11 +176,15 @@ namespace wysiwyd{
             * @param custom The options as a string
             */
             void SetOptions(const std::string &custom) {
-                yarp::os::Bottle param;
-                param.addString("set");
-                param.addString("opt");
-                param.addString(custom.c_str());
-                ttsRpc.write(param);
+                if(custom!="iCub") {
+                    yarp::os::Bottle param;
+                    param.addString("set");
+                    param.addString("opt");
+                    param.addString(custom.c_str());
+                    ttsRpc.write(param);
+                } else {
+                    yWarning() << "SetOptions called with none for iSpeak";
+                }
             }
 
             /**
