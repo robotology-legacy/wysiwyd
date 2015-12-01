@@ -131,7 +131,7 @@ namespace cvz {
                     {
                         yarp::sig::ImageOf<yarp::sig::PixelRgb> probe = mmcmPtr->getReceptiveFieldRepresentation(0, 0, 0, mod->second);
                         singlelW += probe.width();
-                        singleH = std::max(singleH, probe.height());
+                        singleH = max(singleH, probe.height());
                     }
                     int totalW = singlelW * (mmcmPtr->W() * mmcmPtr->L()); //We display the potential layers next to each other
                     int totalH = singleH * mmcmPtr->H();
