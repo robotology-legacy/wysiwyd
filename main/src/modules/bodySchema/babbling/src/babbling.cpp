@@ -300,6 +300,7 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
         if(j_idx < 16 && j_idx>=0)
         {
             command[j_idx]=amp*cos(freq*t * 2 * M_PI);
+            //yInfo() << command[j_idx] << " joint " << j_idx;
         }
         else
         {
@@ -342,6 +343,9 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
     portVelocityOut.write();
 
     velArm->velocityMove(command.data());
+    // This delay is needed!!!
+    yarp::os::Time::delay(0.05);
+
     return command;
 }
 
@@ -430,6 +434,11 @@ int Babbling::babblingCommandsMatlab()
 
 bool Babbling::gotoStartPos()
 {
+    velHead->stop();
+    velArm->stop();
+
+    yarp::os::Time::delay(2.0);
+
     /* Move head to start position */
     commandHead = encodersHead;
     for (int i=0; i<=4; i++) {
@@ -440,10 +449,33 @@ bool Babbling::gotoStartPos()
 
     /* Move arm to start position */
     command = encodersArm;
+    bool successAll = false;
+    while(!successAll) {
+        successAll = true;
+
+        for(int i=0; i<16; i++)
+        {
+            bool successIndividual = ictrlArm->setControlMode(i, VOCAB_CM_POSITION);
+            yDebug() << "Set joint " << i << " in position mode successful: " << successIndividual;
+            command[i]=start_command[i];
+            if(!successIndividual) {
+                successAll = false;
+            }
+        }
+    }
     for(int i=0; i<16; i++)
     {
-        ictrlArm->setControlMode(i,VOCAB_CM_POSITION);
-        command[i]=start_command[i];
+        int m;
+        ictrlArm->getControlMode(i, &m);
+        if(m==VOCAB_CM_POSITION) {
+            yDebug() << i << " position";
+        } else if(m==VOCAB_CM_VELOCITY) {
+            yDebug() << i << " velocity";
+        } else if(m==VOCAB_CM_HW_FAULT) {
+            yDebug() << i << " HW fault";
+        } else {
+            yDebug() << i << " ???";
+        }
     }
     posArm->positionMove(command.data());
 
@@ -455,6 +487,20 @@ bool Babbling::gotoStartPos()
         posArm->checkMotionDone(&done_arm);
         yDebug() << "done_head: " << done_head << " done_arm: " << done_arm;
         Time::delay(0.04);
+        for(int i=0; i<16; i++)
+        {
+            int m;
+            ictrlArm->getControlMode(i, &m);
+            if(m==VOCAB_CM_POSITION) {
+                yDebug() << i << " position";
+            } else if(m==VOCAB_CM_VELOCITY) {
+                yDebug() << i << " velocity";
+            } else if(m==VOCAB_CM_HW_FAULT) {
+                yDebug() << i << " HW fault";
+            } else {
+                yDebug() << i << " ???";
+            }
+        }
     }
     yInfo() << "Done.";
 
@@ -583,7 +629,7 @@ bool Babbling::init_iCub(string &part)
 
     /* Set velocity control for arm */
     yInfo() << "Set velocity control mode";
-    for(int i=0; i<=6; i++)
+    for(int i=0; i<16; i++)
     {
         ictrlArm->setControlMode(i,VOCAB_CM_VELOCITY);
     }
