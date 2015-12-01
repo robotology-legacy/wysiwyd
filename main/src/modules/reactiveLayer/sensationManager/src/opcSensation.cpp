@@ -40,12 +40,10 @@ void OpcSensation::publish()
 {
     
     Bottle res = handleTagging();
-    Bottle res2 = handlePointing();
     
     yarp::os::Bottle &confus = confusion_port.prepare();
     confus.clear();
     confus.addInt(int(res.get(0).asInt()));
-
     confusion_port.write();
     
     yarp::os::Bottle &unkn = unknown_obj_port.prepare();
@@ -53,6 +51,10 @@ void OpcSensation::publish()
     unkn.append(*res.get(1).asList());
     unknown_obj_port.write();
     
+    // Actually, this hanfle pointing should be included into the handleTagging 
+    // for iterating over the OPC only onece and extracting whatever is needed
+    Bottle res2 = handlePointing();
+
     yarp::os::Bottle &show = show_port.prepare();
     show.clear();
     show.addInt(int(res2.get(0).asInt()));
@@ -124,10 +126,12 @@ Bottle OpcSensation::handleTagging()
 
 Bottle OpcSensation::handlePointing()
 {
-    //iCub->opc->checkout();
+    // Actually, this hanfle pointing should be included into the handleTagging 
+    // for iterating over the OPC only onece and extracting whatever is needed
+    iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
     int known_object = 0;
-    int counter = 0;
+    //int counter = 0;
     Bottle k_objects;
     Bottle ob;
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
