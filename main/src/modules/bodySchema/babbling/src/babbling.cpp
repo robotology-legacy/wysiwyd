@@ -115,6 +115,18 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
+    if (!portToABM.open("/" + getName() + "/toABM")) {
+        yError() << getName() << ": Unable to open port " << "/" + getName() + "/toABM";
+        bEveryThingisGood = false;
+    }
+
+    Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc");
+    if(!Network::isConnected(portToABM.getName(), "/autobiographicalMemory/rpc")){
+        yWarning() << "Cannot connect to ABM, storing data into it will not be possible unless manual connection";
+    } else {
+        yInfo() << "Connected to ABM : Data are coming!";
+    }
+
 
     // Initialize iCub and Vision
     while (!init_iCub(part)) {
@@ -133,6 +145,7 @@ bool Babbling::interruptModule() {
 
     portVelocityOut.interrupt();
     handlerPort.interrupt();
+    portToABM.interrupt();
 
     yInfo() << "Bye!";
 
@@ -151,6 +164,9 @@ bool Babbling::close() {
 
     handlerPort.interrupt();
     handlerPort.close();
+
+    portToABM.interrupt();
+    portToABM.close();
 
     yInfo() << "Bye!";
 
