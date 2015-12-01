@@ -205,31 +205,34 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
 
 
 /**********************************************************/
-bool IOL2OPCBridge::get3DPositionAndDimensions(const CvPoint &point,
+bool IOL2OPCBridge::get3DPositionAndDimensions(const Bottle &item,
                                                Vector &x, Vector &dim)
 {
     if (rpcGet3D.getOutputCount()>0)
     {
         Bottle cmd,reply;
-        cmd.addString("Flood3D");
-        cmd.addInt(point.x);
-        cmd.addInt(point.y);
+        cmd.addString("Rect");
+        cmd.addInt((int)item.get(0).asDouble());
+        cmd.addInt((int)item.get(1).asDouble());
+        cmd.addInt((int)item.get(2).asDouble()-(int)item.get(0).asDouble());
+        cmd.addInt((int)item.get(3).asDouble()-(int)item.get(1).asDouble());
+        cmd.addInt(2);
         rpcGet3D.write(cmd,reply);
 
         x.resize(3);
         dim.resize(3);
 
         // find mean and standard deviation
-        double N=reply.size()/5.0;
-        for (int i=0; i<reply.size(); i+=5)
+        double N=reply.size()/3.0;
+        for (int i=0; i<reply.size(); i+=3)
         {
-            x[0]+=reply.get(i+2).asDouble();
-            x[1]+=reply.get(i+3).asDouble();
-            x[2]+=reply.get(i+4).asDouble();
+            x[0]+=reply.get(i+0).asDouble();
+            x[1]+=reply.get(i+1).asDouble();
+            x[2]+=reply.get(i+2).asDouble();
 
-            dim[0]+=reply.get(i+2).asDouble()*reply.get(i+2).asDouble();
-            dim[1]+=reply.get(i+3).asDouble()*reply.get(i+3).asDouble();
-            dim[2]+=reply.get(i+4).asDouble()*reply.get(i+4).asDouble();
+            dim[0]+=reply.get(i+0).asDouble()*reply.get(i+0).asDouble();
+            dim[1]+=reply.get(i+1).asDouble()*reply.get(i+1).asDouble();
+            dim[2]+=reply.get(i+2).asDouble()*reply.get(i+2).asDouble();
         }
         
         x/=N;
@@ -641,7 +644,7 @@ void IOL2OPCBridge::updateOPC()
                 {
                     // find 3d position
                     Vector x,dim;
-                    if (get3DPositionAndDimensions(cog,x,dim))
+                    if (get3DPositionAndDimensions(*item,x,dim))
                     {
                         Vector filtered=it->second.filt(cat(x,dim));
 

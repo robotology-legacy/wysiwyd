@@ -145,7 +145,7 @@ protected:
     Bottle  getBlobs();
     CvPoint getBlobCOG(const Bottle &blobs, const int i);
     bool    get3DPosition(const CvPoint &point, Vector &x);
-    bool    get3DPositionAndDimensions(const CvPoint &point, Vector &x, Vector &dim);
+    bool    get3DPositionAndDimensions(const Bottle &item, Vector &x, Vector &dim);
     bool    getClickPosition(CvPoint &pos);
     void    acquireImage();
     void    drawBlobs(const Bottle &blobs, const int i, const Bottle &scores);
