@@ -15,6 +15,8 @@
  * Public License for more details
 */
 
+#include <cmath>
+#include <limits>
 #include <sstream>
 #include <cstdio>
 #include <algorithm>
@@ -175,6 +177,7 @@ bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
             (clickLocation.y!=RET_INVALID));
 }
 
+
 /**********************************************************/
 bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
 {
@@ -196,6 +199,52 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
             x[2]=reply.get(2).asDouble();
             return true;
         }
+    }
+
+    return false;
+}
+
+
+/**********************************************************/
+bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
+                                               Vector &x,
+                                               Vector &dim)
+{
+    if (rpcGet3D.getOutputCount()>0)
+    {
+        Bottle cmd,reply;
+        cmd.addString("Rect");
+        cmd.addInt(bbox.x);
+        cmd.addInt(bbox.y);
+        cmd.addInt(bbox.width);
+        cmd.addInt(bbox.height);
+        cmd.addInt(2);
+        rpcGet3D.write(cmd,reply);
+
+        x.resize(3);
+        dim.resize(3);
+
+        // find mean and standard deviation
+        double N=reply.size()/3.0;
+        for (int i=0; i<reply.size(); i+=3)
+        {
+            x[0]+=reply.get(i+0).asDouble();
+            x[1]+=reply.get(i+1).asDouble();
+            x[2]+=reply.get(i+2).asDouble();
+
+            dim[0]+=reply.get(i+0).asDouble()*reply.get(i+0).asDouble();
+            dim[1]+=reply.get(i+1).asDouble()*reply.get(i+1).asDouble();
+            dim[2]+=reply.get(i+2).asDouble()*reply.get(i+2).asDouble();
+        }
+        
+        x/=N;
+
+        dim=dim*(1.0/N)-x*x;
+        dim[0]=4.0*sqrt(dim[0]);
+        dim[1]=4.0*sqrt(dim[1]);
+        dim[2]=4.0*sqrt(dim[2]);
+
+        return true;
     }
 
     return false;
@@ -409,7 +458,7 @@ int IOL2OPCBridge::findClosestBlob(const Bottle &blobs,
                                    const CvPoint &loc)
 {
     int ret=RET_INVALID;
-    double min_d2=1e9;
+    double min_d2=std::numeric_limits<double>::max();
 
     for (int i=0; i<blobs.size(); i++)
     {
@@ -436,7 +485,8 @@ int IOL2OPCBridge::findClosestBlob(const Bottle &blobs,
 int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const Vector &loc)
 {
     int ret=RET_INVALID;
-    double curMinDist=1e9;
+    double curMinDist=std::numeric_limits<double>::max();
+    
     for (int i=0; i<blobs.size(); i++)
     {
         CvPoint cog=getBlobCOG(blobs,i);
@@ -592,42 +642,46 @@ void IOL2OPCBridge::updateOPC()
                 if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
                     continue;
 
+                // compute the bounding box
+                CvPoint tl,br;
+                tl.x=(int)item->get(0).asDouble();
+                tl.y=(int)item->get(1).asDouble();
+                br.x=(int)item->get(2).asDouble();
+                br.y=(int)item->get(3).asDouble();
+                CvPoint sz;
+                sz.x=br.x-tl.x;
+                sz.y=br.y-tl.y;
+                CvRect bbox=cvRect(tl.x,tl.y,sz.x,sz.y);
+
                 map<string,IOLObject>::iterator it=db.find(object);
                 if (it!=db.end())
                 {
                     // find 3d position
-                    Vector x;
-                    if (get3DPosition(cog,x))
+                    Vector x,dim;
+                    if (get3DPositionAndDimensions(bbox,x,dim))
                     {
+                        Vector filtered=it->second.filt(cat(x,dim));
+
                         Object *obj=opc->addOrRetrieveEntity<Object>(object);
-                        obj->m_ego_position=it->second.filt(x);
+                        obj->m_ego_position=filtered.subVector(0,2);
+                        obj->m_dimensions=filtered.subVector(3,5);
                         obj->m_present=true;
                         it->second.opc_id = obj->opc_id();
 
-                        // Extract color information from blob:
-                        // find dimensions of object in 2D space (top-left, bottom-right)
-                        CvPoint tl, br;
-                        tl.x=(int)item->get(0).asDouble();
-                        tl.y=(int)item->get(1).asDouble();
-                        br.x=(int)item->get(2).asDouble();
-                        br.y=(int)item->get(3).asDouble();
-
-                        CvPoint sz; // get size of blob
-                        sz.x=br.x-tl.x;
-                        sz.y=br.y-tl.y;
-
+                        // Extract color information from blob
                         // create temporary image, and copy blob in there
                         ImageOf<PixelBgr> imgTmp1;
                         imgTmp1.resize(sz.x,sz.y);
-                        cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),cvRect(tl.x,tl.y,sz.x,sz.y));
+                        cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),bbox);
                         cvCopy(imgRtLoc.getIplImage(),imgTmp1.getIplImage());
                         cvResetImageROI((IplImage*)imgRtLoc.getIplImage());
 
                         // now get mean color of blob, and fill the OPC object with the information
+                        // be careful: computation done in BGR => save in RGB for displaying purpose
                         CvScalar meanColor = cvAvg(imgTmp1.getIplImage());
-                        obj->m_color[0] = (int)meanColor.val[0];
+                        obj->m_color[0] = (int)meanColor.val[2];
                         obj->m_color[1] = (int)meanColor.val[1];
-                        obj->m_color[2] = (int)meanColor.val[2];
+                        obj->m_color[2] = (int)meanColor.val[0];
                     }
 
                     it->second.heartBeat();
