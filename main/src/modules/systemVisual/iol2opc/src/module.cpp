@@ -205,17 +205,18 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
 
 
 /**********************************************************/
-bool IOL2OPCBridge::get3DPositionAndDimensions(const Bottle &item,
-                                               Vector &x, Vector &dim)
+bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
+                                               Vector &x,
+                                               Vector &dim)
 {
     if (rpcGet3D.getOutputCount()>0)
     {
         Bottle cmd,reply;
         cmd.addString("Rect");
-        cmd.addInt((int)item.get(0).asDouble());
-        cmd.addInt((int)item.get(1).asDouble());
-        cmd.addInt((int)item.get(2).asDouble()-(int)item.get(0).asDouble());
-        cmd.addInt((int)item.get(3).asDouble()-(int)item.get(1).asDouble());
+        cmd.addInt(bbox.x);
+        cmd.addInt(bbox.y);
+        cmd.addInt(bbox.width);
+        cmd.addInt(bbox.height);
         cmd.addInt(2);
         rpcGet3D.write(cmd,reply);
 
@@ -639,12 +640,23 @@ void IOL2OPCBridge::updateOPC()
                 if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
                     continue;
 
+                // compute the bounding box
+                CvPoint tl,br;
+                tl.x=(int)item->get(0).asDouble();
+                tl.y=(int)item->get(1).asDouble();
+                br.x=(int)item->get(2).asDouble();
+                br.y=(int)item->get(3).asDouble();
+                CvPoint sz;
+                sz.x=br.x-tl.x;
+                sz.y=br.y-tl.y;
+                CvRect bbox=cvRect(tl.x,tl.y,sz.x,sz.y);
+
                 map<string,IOLObject>::iterator it=db.find(object);
                 if (it!=db.end())
                 {
                     // find 3d position
                     Vector x,dim;
-                    if (get3DPositionAndDimensions(*item,x,dim))
+                    if (get3DPositionAndDimensions(bbox,x,dim))
                     {
                         Vector filtered=it->second.filt(cat(x,dim));
 
@@ -654,22 +666,11 @@ void IOL2OPCBridge::updateOPC()
                         obj->m_present=true;
                         it->second.opc_id = obj->opc_id();
 
-                        // Extract color information from blob:
-                        // find dimensions of object in 2D space (top-left, bottom-right)
-                        CvPoint tl, br;
-                        tl.x=(int)item->get(0).asDouble();
-                        tl.y=(int)item->get(1).asDouble();
-                        br.x=(int)item->get(2).asDouble();
-                        br.y=(int)item->get(3).asDouble();
-
-                        CvPoint sz; // get size of blob
-                        sz.x=br.x-tl.x;
-                        sz.y=br.y-tl.y;
-
+                        // Extract color information from blob
                         // create temporary image, and copy blob in there
                         ImageOf<PixelBgr> imgTmp1;
                         imgTmp1.resize(sz.x,sz.y);
-                        cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),cvRect(tl.x,tl.y,sz.x,sz.y));
+                        cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),bbox);
                         cvCopy(imgRtLoc.getIplImage(),imgTmp1.getIplImage());
                         cvResetImageROI((IplImage*)imgRtLoc.getIplImage());
 
