@@ -31,7 +31,7 @@ namespace cvz {
                     double dY = std::abs(y1 - y2);
                     double tdX = std::abs(x1 + (1.0 - x2));
                     double tdY = std::abs(y1 + (1.0 - y2));
-					d = sqrt(pow(min(dX, tdX), 2.0) + pow(min(dY, tdY), 2.0));
+					d = sqrt(pow(std::min(dX, tdX), 2.0) + pow(std::min(dY, tdY), 2.0));
 					return d;
 				}
 
@@ -371,7 +371,7 @@ namespace cvz {
                     for (std::list<IplImage*>::iterator it = modImgs.begin(); it != modImgs.end(); it++)
                     {
                         totalW += (*it)->width;
-                        totalH = max(totalH, (*it)->height);
+                        totalH = std::max(totalH, (*it)->height);
                     }
 
                     //2. Create the image
