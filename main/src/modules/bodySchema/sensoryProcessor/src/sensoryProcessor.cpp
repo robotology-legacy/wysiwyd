@@ -37,7 +37,6 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
     robot = rf.check("robot",Value("icubSim")).asString();
     fps = rf.check("fps",Value(30)).asInt(); //30;
     useSFM = rf.check("useSFM",Value(0)).asInt();
-    isBabbling = rf.check("isBabbling",Value(0)).asInt();
 
 
     // keep this part if you want to use both cameras
@@ -184,21 +183,12 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
         yInfo() << "Connected to ABM : Data are coming!";
     }
 
-    // Initialize iCub only if "babbling" is not running
-    yWarning() << "isBabbling" << isBabbling;
-    Time::delay(3);
-    if(!isBabbling)
-    {
-        while (!init_iCub(part)) {
-            yDebug() << getName() << ": initialising iCub... please wait... ";
-            bEveryThingisGood = false;
-        }
+    // Initialize iCub
+    while (!init_iCub(part)) {
+        yDebug() << getName() << ": initialising iCub... please wait... ";
+        bEveryThingisGood = false;
     }
-    else
-    {
-        yDebug() << "iCub already initialized by babbling module.";
-        yWarning() << "Encoders values will not be read... :( ";
-    }
+
 
     yDebug() << "End configuration...";
 
@@ -378,28 +368,26 @@ bool SensoryProcessor::getMultimodalData()
     portSkinOut.write();
 
 
-    /// get proprioceptive info (only if babbling is not running
-    if(!isBabbling)
-    {
-        Bottle &bArm = portArmEncodersOut.prepare();
-        Bottle &bHead = portHeadEncodersOut.prepare();
-        bArm.clear(); bHead.clear();
 
-        bool okEncArm = encsArm->getEncoders(encodersArm.data());
-        bool okEncHead = encsHead->getEncoders(encodersHead.data());
-        if(!okEncArm || !okEncHead) {
-            cerr << "Error receiving encoders";
-        } else {
-            for (unsigned int kk=0; kk<16; kk++){
-                bArm.addDouble(encodersArm[kk]);
-            }
-            for (unsigned int kk=0; kk<6; kk++){
-                bHead.addDouble(encodersHead[kk]);
-            }
-            portArmEncodersOut.write();
-            portHeadEncodersOut.write();
+    Bottle &bArm = portArmEncodersOut.prepare();
+    Bottle &bHead = portHeadEncodersOut.prepare();
+    bArm.clear(); bHead.clear();
+
+    bool okEncArm = encsArm->getEncoders(encodersArm.data());
+    bool okEncHead = encsHead->getEncoders(encodersHead.data());
+    if(!okEncArm || !okEncHead) {
+        cerr << "Error receiving encoders";
+    } else {
+        for (unsigned int kk=0; kk<16; kk++){
+            bArm.addDouble(encodersArm[kk]);
         }
+        for (unsigned int kk=0; kk<6; kk++){
+            bHead.addDouble(encodersHead[kk]);
+        }
+        portArmEncodersOut.write();
+        portHeadEncodersOut.write();
     }
+
 
 
     return true;
@@ -478,7 +466,7 @@ bool SensoryProcessor::init_iCub(string &part)
     option.put("device", "remote_controlboard");
     Value& robotnameArm = option.find("robot");
 
-    string sA("/");
+    string sA("/sensoryProcessor/");
     sA += robotnameArm.asString();
     sA += "/";
     sA += portnameArm.c_str();
@@ -526,7 +514,7 @@ bool SensoryProcessor::init_iCub(string &part)
     option.put("device", "remote_controlboard");
     Value& robotnameHead = option.find("robot");
 
-    string sH("/");
+    string sH("/sensoryProcessor/");
     sH += robotnameHead.asString();
     sH += "/";
     sH += portnameHead.c_str();
