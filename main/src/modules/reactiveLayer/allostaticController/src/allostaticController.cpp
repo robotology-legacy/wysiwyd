@@ -29,25 +29,26 @@ int AllostaticController::openPorts(string driveName)
 
     if (!outputm_ports.back()->open(pn))
     {
-        yDebug() << getName() << ": Unable to open port " << pn << endl;
+        yDebug() << getName() << ": Unable to open port " << pn;// << endl;
     }
     string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
     yarp::os::Time::delay(0.1);
     while(!Network::connect(targetPortName,pn)){
-        yInfo() <<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;
+        yInfo() <<"Setting up homeostatic connections... "<< targetPortName << " " << pn ;//<<endl;
         yarp::os::Time::delay(0.5);
     }
     pn = portName + "/max:i";
-    YInfo() << "Configuring port " << pn << " ..." << endl;
+    yInfo() << "Configuring port " << pn << " ...";// << endl;
     yarp::os::Time::delay(0.1);
     if (!outputM_ports.back()->open(pn))
     {
-        yDebug() << getName() << ": Unable to open port " << pn << endl;
+        yDebug() << getName() << ": Unable to open port " << pn ;//<< endl;
     }
     yarp::os::Time::delay(0.1);
     targetPortName = "/" + homeo_name + "/" + driveName + "/max:o";
     while(!Network::connect(targetPortName, pn))
-    {yInfo()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;yarp::os::Time::delay(0.5);}
+    {yDebug()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn;//endl;
+    yarp::os::Time::delay(0.5);}
 
 
     return 42;
@@ -58,18 +59,18 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
     moduleName = rf.check("name",Value("AllostaticController")).asString();
     setName(moduleName.c_str());
 
-    yInfo()<<moduleName<<": finding configuration files..."<<endl;
+    yDebug()<<moduleName<<": finding configuration files...";//<<endl;
     period = rf.check("period",Value(0.1)).asDouble();
 
     configureAllostatic(rf);
 
-    yInfo()<<"Configuration done."<<endl;
+    yInfo()<<"Configuration done.";//<<endl;
 
     // rpc.open ( ("/"+moduleName+"/rpc"));
     // attach(rpc);
     ears_port.open("/" + moduleName + "/ears:o");
     while (!Network::connect(ears_port.getName(), "/ears/rpc")) {
-        cout<<"Setting up ears connection from "<< ears_port.getName() <<" to /ears/rpc" <<endl;
+        yDebug()<<"Setting up ears connection from "<< ears_port.getName() <<" to /ears/rpc";// <<endl;
         yarp::os::Time::delay(0.5);
     }
 
@@ -94,8 +95,8 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
 
     while(!Network::connect(to_h_rpc_name,homeo_rpc_name))
     {
-        cout<<"Trying to connect to homeostasis..."<<endl;
-        cout << "from " << to_h_rpc_name << " to " << homeo_rpc_name << endl;
+        yDebug()<<"Trying to connect to homeostasis...";//<<endl;
+        yDebug() << "from " << to_h_rpc_name << " to " << homeo_rpc_name;// << endl;
         yarp::os::Time::delay(0.2);
     }
 
