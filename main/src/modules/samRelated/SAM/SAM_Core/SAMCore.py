@@ -1,3 +1,22 @@
+#""""""""""""""""""""""""""""""""""""""""""""""
+#The University of Sheffield
+#WYSIWYD Project
+#
+#The core of the Synthetic Autobiographical Memory (SAM) system.
+#The core is built upon Latent Feature Models (LFMs) and implements
+#cognitive memory properties, such as recall, pattern completion, compression etc.
+#
+#The Core is accompanied by peripherals, currently implemented as Drivers.
+#Drivers facilitate the communication of sensory modalities and the Core.
+#See Driver.py for this.
+#
+#Created:  2015
+#
+#@authors: Andreas Damianou
+#
+#""""""""""""""""""""""""""""""""""""""""""""""
+
+
 import GPy
 import numpy as np
 import matplotlib.cm as cm
@@ -257,6 +276,21 @@ class LFM(object):
         
         return pred_mean, pred_variance, pp, tmp
 
+
+    def fantasy_memory(self, X, view=0):
+        """
+        The opposite of pattern completion. Instead of finding a memory from an output, here we find an output from a
+        (possibly fantasy) memory. Here, fantasy memory is a memory not existing in the training set, found by interpolating
+        or sampling in the memory space.
+        """
+        if self.type == 'mrd':
+            pred_mean, pred_variance = self.model.bgplvms[view].predict(X)
+        elif self.type == 'bgplvm':
+            pred_mean, pred_variance = self.model.predict(X)
+        elif self.type == 'gp':
+            pred_mean, pred_variance = self.model.predict(X)
+        return pred_mean, pred_variance
+
     def _get_inducing(self):
         # TODO
         pass
@@ -358,7 +392,7 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
 # Copied from GPy
 def most_significant_input_dimensions(model, which_indices):
     """
-    Determine which dimensions should be plotted
+    Determine which dimensions should be plotted based on the relevance weights.
     """
     if which_indices is None:
         if model.input_dim == 1:
@@ -376,7 +410,19 @@ def most_significant_input_dimensions(model, which_indices):
     return input_1, input_2
 
 
-def latent_cluster_estimate(SAMObject, n_components=10, X=None, plot=True, alpha=10, covariance_type='diag'):
+def latent_cluster_estimate(SAMObject, n_components=10, X=None, plot=True, alpha=10, covariance_type='diag',which_indices=(0,1)):
+    """
+    Use Dirichlet Process GMMs to cluster the latent space by automatically estimating an effective number of clusters.
+    ARG SAMObject: The SAMObject to operate on.
+    ARG n_components: The number of DPGMM commponents to use (ie max number of clusters). Some components will switch off.
+    ARG X: If None, we'll use the SAMObject's latent space, otherwise the provided one.
+    ARG plot: Whether to plot the result or not.
+    ARG alpha: The parameter for the stick-breaking process. In theory, large alpha encourages more clusters, although in practice I haven't seen such behaviour.
+    ARG covariance_type: See DPGMM from scikit-learn.
+    ARG which_indices: If plotting, which indices to plot.
+    RETURN Y_: The cluster assignments for each component in the latent space. This is not (0,1,...,n_clusters), but instead it is
+               (0,1,...,n_components), so that switched off components will not appear in Y_.
+    """
     from sklearn import mixture
 
     if X is None:
@@ -400,9 +446,9 @@ def latent_cluster_estimate(SAMObject, n_components=10, X=None, plot=True, alpha
         for i, (mean, covar, color,marker) in enumerate(zip(dpgmm.means_, dpgmm._get_covars(), color_iter,marker_iter)):
             # as the method will not use every component it has access to
             # unless it needs it, we shouldn't plot the redundant components.
-            if not np.any(Y_ == i):
-                continue
-            pb.scatter(X[Y_ == i, 0], X[Y_ == i, 1], 20, color=color,marker=marker)
+            #if not np.any(Y_ == i):
+            #    continue
+            pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=color,marker=marker)
 
         pb.legend(np.unique(Y_))
         pb.show()
@@ -412,8 +458,16 @@ def latent_cluster_estimate(SAMObject, n_components=10, X=None, plot=True, alpha
 
 
 
-def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True):
-
+def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True,which_indices=(0,1)):
+    """
+    Use Anglomerative clustering to cluster the latent space by having a given number of clusters.
+    ARG SAMObject: The SAMObject to operate on.
+    ARG n_clusters: The number of clusters to find.
+    ARG X: If None, we'll use the SAMObject's latent space, otherwise the provided one.
+    ARG plot: Whether to plot the result or not.
+    ARG which_indices: If plotting, which indices to plot.
+    RETURN Y_: The cluster assignments for each component in the latent space. 
+    """
     from sklearn.cluster import AgglomerativeClustering
 
     if X is None:
@@ -429,22 +483,164 @@ def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True):
     #ward = AgglomerativeClustering(n_clusters=8,linkage='ward',compute_full_tree=True).fit(X)
     Y_ = ward.labels_
 
-    color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
-    myperm = np.random.permutation(color_iter.shape[0])
-    color_iter = color_iter[myperm, :]
-    marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
-    splot = pb.subplot(1, 1, 1)
+    if plot:
+        color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
+        myperm = np.random.permutation(color_iter.shape[0])
+        color_iter = color_iter[myperm, :]
+        marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
+        splot = pb.subplot(1, 1, 1)
 
-    for i, (color,marker) in enumerate(zip(color_iter,marker_iter)):
-        # as the method will not use every component it has access to unless it needs it, we shouldn't plot the redundant components.
-        if not np.any(Y_ == i):
-            continue
-        pb.scatter(X[Y_ == i, 0], X[Y_ == i, 1], 20, color=color,marker=marker)
-        if i >= n_clusters:
-            break
+        for i, (color,marker) in enumerate(zip(color_iter,marker_iter)):
+            # as the method will not use every component it has access to unless it needs it, we shouldn't plot the redundant components.
+            #if not np.any(Y_ == i):
+            #    continue
+            pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=color,marker=marker)
+            if i >= n_clusters:
+                break
 
-    pb.legend(np.unique(Y_))
-    pb.show()
-    pb.draw()
-    pb.show()
+        pb.legend(np.unique(Y_))
+        pb.show()
+        pb.draw()
+        pb.show()
+    return Y_
 
+
+def util_plot_cov_ellipse(pos, cov, volume=.5, ax=None, fc='none', ec=[0,0,0], a=1, lw=2, which_indices=(0,1)):
+    """
+    SEE: http://www.nhsilbert.net/source/2014/06/bivariate-normal-ellipse-plotting-in-python/
+    #
+    Plots an ellipse enclosing *volume* based on the specified covariance
+    matrix (*cov*) and location (*pos*). Additional keyword arguments are passed on to the 
+    ellipse patch artist.
+
+    Parameters
+    ----------
+        cov : The 2x2 covariance matrix to base the ellipse on
+        pos : The location of the center of the ellipse. Expects a 2-element
+            sequence of [x0, y0].
+        volume : The volume inside the ellipse; defaults to 0.5
+        ax : The axis that the ellipse will be plotted on. Defaults to the 
+            current axis.
+    """
+
+    import numpy as np
+    from scipy.stats import chi2
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Ellipse
+
+    if ax is None:
+        ax = plt.gca()
+
+    vals, vecs = np.linalg.eigh(cov)
+    order = vals.argsort()[::-1]
+    vals=vals[order]
+    vecs=vecs[:,order]
+    angle = np.degrees(np.arctan2(*vecs[:,0][::-1]))
+
+    kwrg = {'facecolor':fc, 'edgecolor':ec, 'alpha':a, 'linewidth':lw}
+
+    # Width and height are "full" widths, not radius
+    width, height = 2 * np.sqrt(chi2.ppf(volume,2)) * np.sqrt(vals)
+    posOrder = [which_indices[0],which_indices[1]]
+    ellip = Ellipse(xy=pos[posOrder], width=width, height=height, angle=angle, **kwrg)
+    ax.add_artist(ellip)
+
+    plt.draw()
+    plt.show()
+    plt.draw()
+    plt.plot(pos[which_indices[0]],pos[which_indices[1]],'k+',markersize=15,mew=2)
+
+
+#def util_plot_cov_ellipse(mean,covar,ax=None):
+#     from matplotlib.patches import Ellipse
+#     import matplotlib as mpl
+#     import matplotlib.pyplot as plt
+
+#     import numpy as np
+
+#     v, w = np.linalg.eigh(covar)
+#     #order = v.argsort()[::-1]
+#     #v=v[order]
+#     #w=w[:,order]
+#     u = w[0] / np.linalg.norm(w[0])
+
+#     if ax is None:
+#         ax = plt.gca()
+
+#     # Plot an ellipse to show the Gaussian component
+#     angle = np.arctan(u[1] / u[0])
+#     angle = 180 * angle / np.pi  # convert to degrees
+#     ell = mpl.patches.Ellipse(mean, v[0], v[1], 180 + angle, color=color)
+#     ell.set_clip_box(splot.bbox)
+#     ell.set_alpha(0.5)
+#     ax.add_artist(ell)
+#     plt.draw()
+#     plt.show()
+#     plt.draw()
+
+#     ---
+#     theta = np.degrees(np.arctan2(*vecs[:,0][::-1]))
+
+#     kwrg = {'facecolor':fc, 'edgecolor':ec, 'alpha':a, 'linewidth':lw}
+
+#     # Width and height are "full" widths, not radius
+#     width, height = 2 * np.sqrt(chi2.ppf(volume,2)) * np.sqrt(vals)
+#     ellip = Ellipse(xy=pos, width=width, height=height, angle=theta, **kwrg)
+
+
+
+def latent_cluster_centers(SAMObject, X=None, labels=None, center='gaussian', plot=True, which_indices=(0,1), randSeed=None, ax=None):
+    """
+    Find centers for the clusters identified in param. labels for the latent space. Centers can be a gaussian density (so, mean and covar.)
+    or (not implemented yet) mean and median, as controlled by the param. center.
+    """
+    from sklearn import mixture
+
+    assert(labels is not None)
+
+    if X is None:
+        X = SAMObject._get_latent()
+
+    cluster_labels = np.unique(labels)
+    K = len(cluster_labels)
+    Q = X.shape[1]
+
+    cntr = np.zeros((K,Q))*np.nan
+    if center == 'gaussian':
+        covars = np.zeros((K,Q,Q))*np.nan
+    else:
+        covars = Nonee
+
+    for i in range(K):
+        if center == 'gaussian':
+            g = mixture.GMM(covariance_type='full', init_params='wmc', min_covar=0.001,
+                    n_components=1, n_init=1, n_iter=300, params='wmc',
+                    random_state=randSeed, thresh=None, tol=0.001, verbose=0)
+            g.fit(X[labels==cluster_labels[i],:]) 
+            cntr[i,:] = g.means_
+            covars[i] = g.covars_
+        elif center == 'median':
+            raise NotImplementedError("This is not implemented yet")
+        elif center == 'mean':
+            raise NotImplementedError("This is not implemented yet")
+        else:
+            print('Not known center type')
+            raise
+
+    if plot:
+        color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
+        myperm = np.random.permutation(color_iter.shape[0])
+        color_iter = color_iter[myperm, :]
+        marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
+        splot = pb.subplot(1, 1, 1)
+
+        for i, (color,marker) in enumerate(zip(color_iter,marker_iter)):
+            pb.scatter(X[labels==cluster_labels[i], which_indices[0]], X[labels==cluster_labels[i], which_indices[1]], s=40, color=color,marker=marker)
+
+            if i == K-1:
+                break
+        if ax is None:
+            ax = pb.gca()
+        for i in range(K):
+            util_plot_cov_ellipse(cntr[i,:],covars[i],ax=ax,which_indices=which_indices)
+    return cntr, covars

@@ -152,7 +152,7 @@ objectFlag = True   # True: objects ----- False: hands
 # @@@@@@@@@ LOAD DATA AND TRAIN MODEL IF IT DOESNT EXIST @@@@@@@@@@@@@
 # Reading face data, preparation of data and training of the model
 mySAMpy.readData(root_data_dir,participant_index,hand_index,action_index,action_splitting_index)
-mySAMpy.prepareActionData(model_type, Ntr)
+mySAMpy.prepareActionData(model_type, Ntr,randSeed=experiment_number)
 #mySAMpy.prepareFaceData(model_type, Ntr, pose_selection)
 mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model, economy_save)
 

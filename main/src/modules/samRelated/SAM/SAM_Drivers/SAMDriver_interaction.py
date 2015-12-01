@@ -283,7 +283,7 @@ class SAMDriver_interaction(SAMDriver):
 #
 #Outputs: None
 #""""""""""""""""
-    def prepareData(self, model='mrd', Ntr = 50, pose_selection = 0):    
+    def prepareData(self, model='mrd', Ntr = 50, pose_selection = 0, randSeed=0):    
         #""--- Now Y has 4 dimensions: 
         #1. Pixels
         #2. Images
@@ -325,7 +325,7 @@ class SAMDriver_interaction(SAMDriver):
         self.L=self.L.T
         self.L=self.L[:,:1]
 
-        SAMDriver.prepareData(self, model, Ntr)
+        SAMDriver.prepareData(self, model, Ntr, randSeed=randSeed)
 
 
 

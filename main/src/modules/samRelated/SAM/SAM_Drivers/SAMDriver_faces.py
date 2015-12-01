@@ -34,6 +34,7 @@ import operator
 #     from .. import SAM
 # except ImportError:
 #     import SAM
+from SAM.SAM_Core import SAMDriver
 
 
 
@@ -41,7 +42,7 @@ import operator
 #Class developed for the implementation of the face recognition task in real-time mode.
 #""""""""""""""""
 
-class SAMDriver_faces:
+class SAMDriver_faces(SAMDriver):
 
 #""""""""""""""""
 #Initilization of the SAM class
@@ -237,7 +238,7 @@ class SAMDriver_faces:
 #
 #Outputs: None
 #""""""""""""""""
-    def prepareFaceData(self, model='mrd', Ntr = 50, pose_selection = 0):    
+    def prepareFaceData(self, model='mrd', Ntr = 50, pose_selection = 0, randSeed=0):    
         #""--- Now Y has 4 dimensions: 
         #1. Pixels
         #2. Images
@@ -279,47 +280,8 @@ class SAMDriver_faces:
         self.L=self.L.T
         self.L=self.L[:,:1]
 
-        Nts=self.Y.shape[0]-Ntr
-   
-        perm = numpy.random.permutation(self.Y.shape[0])
-        indTs = perm[0:Nts]
-        indTs.sort()
-        indTr = perm[Nts:Nts+Ntr]
-        indTr.sort()
-        self.Ytest = self.Y[indTs]
-        self.Ltest = self.L[indTs]
-        self.Y = self.Y[indTr]
-        self.L = self.L[indTr]
-    
-        # Center data to zero mean and 1 std
-        self.Ymean = self.Y.mean()
-        self.Yn = self.Y - self.Ymean
-        self.Ystd = self.Yn.std()
-        self.Yn /= self.Ystd
-        # Normalise test data similarly to training data
-        self.Ytestn = self.Ytest - self.Ymean
-        self.Ytestn /= self.Ystd
-
-        # As above but for the labels
-        self.Lmean = self.L.mean()
-        self.Ln = self.L - self.Lmean
-        self.Lstd = self.Ln.std()
-        self.Ln /= self.Lstd
-        self.Ltestn = self.Ltest - self.Lmean
-        self.Ltestn /= self.Lstd
-
-        if model == 'mrd':    
-            self.X=None     
-            self.Y = {'Y':self.Yn,'L':self.L}
-            self.data_labels = self.L.copy()
-        elif model == 'gp':
-            self.X=self.Y.copy()
-            self.Y = {'L':self.Ln.copy()+0.08*numpy.random.randn(self.Ln.shape[0],self.Ln.shape[1])}
-            self.data_labels = None
-        elif model == 'bgplvm':
-            self.X=None     
-            self.Y = {'Y':self.Yn}
-            self.data_labels = self.L.copy()
+        #Call super class to finish preparation
+        self.prepareData(model=model, Ntr = Ntr, randSeed=randSeed)
 
 
 #""""""""""""""""

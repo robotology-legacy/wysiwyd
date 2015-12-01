@@ -1,3 +1,18 @@
+#""""""""""""""""""""""""""""""""""""""""""""""
+#The University of Sheffield
+#WYSIWYD Project
+#
+#The superclass of all Drivers. Every driver written for
+#SAM must inherit from this class and extend it with any
+#specific functionality.
+#
+#See also: SAMDriver_faces.py, SAMDriver_actions.py
+#
+#Created on 26 May 2015
+#
+#@authors: Andreas Damianou, Uriel Martinez, Luke Boorman
+#
+#""""""""""""""""""""""""""""""""""""""""""""""
 
 from SAM.SAM_Core import SAMCore
 import matplotlib.pyplot as plt
@@ -162,10 +177,10 @@ class SAMDriver:
             print("Loading SAMOBject: " + fname)
             self.SAMObject = SAMCore.load_pruned_model(fname)
 
-    def prepareData(self, model='mrd', Ntr = 50):    
+    def prepareData(self, model='mrd', Ntr = 50, randSeed=0):    
 
         Nts=self.Y.shape[0]-Ntr
-   
+        numpy.random.seed(randSeed)
         perm = numpy.random.permutation(self.Y.shape[0])
         indTs = perm[0:Nts]
         indTs.sort()
