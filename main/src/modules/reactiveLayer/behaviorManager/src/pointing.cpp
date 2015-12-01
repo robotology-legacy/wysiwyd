@@ -9,7 +9,7 @@ void Pointing::configure() {
 
 };
 
-void Pointing::run() {
+void Pointing::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
     int id = 0;
