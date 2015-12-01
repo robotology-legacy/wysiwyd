@@ -29,25 +29,25 @@ int AllostaticController::openPorts(string driveName)
 
     if (!outputm_ports.back()->open(pn))
     {
-        cout << getName() << ": Unable to open port " << pn << endl;
+        yDebug() << getName() << ": Unable to open port " << pn << endl;
     }
     string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
     yarp::os::Time::delay(0.1);
     while(!Network::connect(targetPortName,pn)){
-        cout<<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;
+        yInfo() <<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;
         yarp::os::Time::delay(0.5);
     }
     pn = portName + "/max:i";
-    cout << "Configuring port " << pn << " ..." << endl;
+    YInfo() << "Configuring port " << pn << " ..." << endl;
     yarp::os::Time::delay(0.1);
     if (!outputM_ports.back()->open(pn))
     {
-        cout << getName() << ": Unable to open port " << pn << endl;
+        yDebug() << getName() << ": Unable to open port " << pn << endl;
     }
     yarp::os::Time::delay(0.1);
     targetPortName = "/" + homeo_name + "/" + driveName + "/max:o";
     while(!Network::connect(targetPortName, pn))
-    {cout<<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;yarp::os::Time::delay(0.5);}
+    {yInfo()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn <<endl;yarp::os::Time::delay(0.5);}
 
 
     return 42;
@@ -58,12 +58,12 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
     moduleName = rf.check("name",Value("AllostaticController")).asString();
     setName(moduleName.c_str());
 
-    cout<<moduleName<<": finding configuration files..."<<endl;
+    yInfo()<<moduleName<<": finding configuration files..."<<endl;
     period = rf.check("period",Value(0.1)).asDouble();
 
     configureAllostatic(rf);
 
-    cout<<"Configuration done."<<endl;
+    yInfo()<<"Configuration done."<<endl;
 
     // rpc.open ( ("/"+moduleName+"/rpc"));
     // attach(rpc);
