@@ -135,8 +135,8 @@ Ntr=500
 # Specification of model type and training parameters
 model_type = 'mrd'
 model_num_inducing = 35
-model_num_iterations = 10#0 #100
-model_init_iterations = 30#0 #800
+model_num_iterations = 100 #100
+model_init_iterations = 300 #800
 fname = modelPath + '/models/mActions_' + model_type + '_exp' + str(experiment_number) #+ '.pickle'
 
 # Enable to save the model and visualise GP nearest neighbour matching

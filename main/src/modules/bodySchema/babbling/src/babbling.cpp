@@ -158,9 +158,44 @@ bool Babbling::close() {
 }
 
 bool Babbling::respond(const Bottle& command, Bottle& reply) {
-    yInfo() << "Babbling desired limb...";
-    doBabbling();
-    reply.addString("nack");
+    string helpMessage =  string(getName().c_str()) +
+            " commands are: \n" +
+            "babbling arm: motor commands sent to all the arm joints \n" +
+            "babbling joint <int joint_number>: motor commands sent to joint_number only \n" +
+            "help \n" +
+            "quit \n" ;
+
+    reply.clear();
+
+    if (command.get(0).asString()=="quit") {
+        reply.addString("quitting");
+        return false;
+    }
+    else if (command.get(0).asString()=="help") {
+        yInfo() << helpMessage;
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString()=="babbling") {
+        if (command.get(1).asString()=="arm")
+        {
+            single_joint = -1;
+            yInfo() << "Babbling the arm...";
+            doBabbling();
+            reply.addString("ack");
+        }
+        else if (command.get(1).asString()=="joint")
+        {
+            single_joint = command.get(2).asInt();
+            yInfo() << "Babbling joint " << single_joint << "...";
+            doBabbling();
+            reply.addString("ack");
+        }
+        else
+        {
+            yInfo() << "Command not found\n" << helpMessage;
+            reply.addString("nck");
+        }
+    }
 
     return true;
 }
@@ -190,6 +225,7 @@ bool Babbling::doBabbling()
     {
         double startTime = yarp::os::Time::now();
         while (Time::now() < startTime + train_duration){
+//            yInfo() << Time::now() << "/" << startTime + train_duration;
             double t = Time::now() - startTime;
                 babblingCommands(t,single_joint);
         }
@@ -312,13 +348,8 @@ int Babbling::babblingCommandsMatlab()
 
         // get the commands from Matlab
         cmdMatlab = portReadMatlab.read(true) ;
-        command[0] = cmdMatlab->get(0).asDouble();
-        command[1] = cmdMatlab->get(1).asDouble();
-        command[2] = cmdMatlab->get(2).asDouble();
-        command[3] = cmdMatlab->get(3).asDouble();
-        command[4] = cmdMatlab->get(4).asDouble();
-        command[5] = cmdMatlab->get(5).asDouble();
-        command[6] = cmdMatlab->get(6).asDouble();
+        for (int i=0; i<=6; i++)
+            command[i] = cmdMatlab->get(i).asDouble();
 
         // Move
         int j=1;
@@ -359,11 +390,8 @@ bool Babbling::gotoStartPos()
 {
     /* Move head to start position */
     commandHead = encodersHead;
-    commandHead[0]=start_commandHead[0];
-    commandHead[1]=start_commandHead[1];
-    commandHead[2]=start_commandHead[2];
-    commandHead[3]=start_commandHead[3];
-    commandHead[4]=start_commandHead[4];
+    for (int i=0; i<=4; i++)
+        commandHead[i] = start_commandHead[i];
     posHead->positionMove(commandHead.data());
 
     /* Move arm to start position */

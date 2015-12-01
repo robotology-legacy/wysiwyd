@@ -10,6 +10,7 @@
 #include "dummy.h"
 #include "tagging.h"
 #include "pointingOrder.h"
+#include "pointing.h"
 
 using namespace std;
 using namespace yarp::os;

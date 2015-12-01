@@ -262,8 +262,13 @@ class LFM(object):
         pass
 
     def _get_latent(self):
-        # TODO
-        pass
+        if self.type == 'bgplvm':
+            return self.model.X.mean
+        elif self.type == 'mrd':
+            return self.model.bgplvms[0].X.mean
+        else:
+            print('No latent space for this type of model.')
+            return None
 
 
 
@@ -369,3 +374,77 @@ def most_significant_input_dimensions(model, which_indices):
     else:
         input_1, input_2 = which_indices
     return input_1, input_2
+
+
+def latent_cluster_estimate(SAMObject, n_components=10, X=None, plot=True, alpha=10, covariance_type='diag'):
+    from sklearn import mixture
+
+    if X is None:
+        X = SAMObject._get_latent()
+    # Fit a Dirichlet process mixture of Gaussians using five components
+    dpgmm = mixture.DPGMM(n_components=n_components, covariance_type=covariance_type, n_iter=5000,alpha=alpha)
+    dpgmm.fit(X)
+    Y_ = dpgmm.predict(X)
+
+    if plot:
+        from scipy import linalg
+        import matplotlib as mpl
+        import itertools
+
+        color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
+        myperm = np.random.permutation(color_iter.shape[0])
+        color_iter = color_iter[myperm, :]
+        marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
+        splot = pb.subplot(1, 1, 1)
+
+        for i, (mean, covar, color,marker) in enumerate(zip(dpgmm.means_, dpgmm._get_covars(), color_iter,marker_iter)):
+            # as the method will not use every component it has access to
+            # unless it needs it, we shouldn't plot the redundant components.
+            if not np.any(Y_ == i):
+                continue
+            pb.scatter(X[Y_ == i, 0], X[Y_ == i, 1], 20, color=color,marker=marker)
+
+        pb.legend(np.unique(Y_))
+        pb.show()
+        pb.draw()
+        pb.show()
+    return Y_
+
+
+
+def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True):
+
+    from sklearn.cluster import AgglomerativeClustering
+
+    if X is None:
+        X = SAMObject._get_latent()
+
+    # Define the structure A of the data. Here a 10 nearest neighbors
+    from sklearn.neighbors import kneighbors_graph
+    connectivity = kneighbors_graph(X, n_neighbors=10, include_self=False)
+
+    # Compute clustering
+    print("Compute structured hierarchical clustering...")
+    ward = AgglomerativeClustering(n_clusters=n_clusters, connectivity=connectivity,linkage='ward',compute_full_tree=True).fit(X)
+    #ward = AgglomerativeClustering(n_clusters=8,linkage='ward',compute_full_tree=True).fit(X)
+    Y_ = ward.labels_
+
+    color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
+    myperm = np.random.permutation(color_iter.shape[0])
+    color_iter = color_iter[myperm, :]
+    marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
+    splot = pb.subplot(1, 1, 1)
+
+    for i, (color,marker) in enumerate(zip(color_iter,marker_iter)):
+        # as the method will not use every component it has access to unless it needs it, we shouldn't plot the redundant components.
+        if not np.any(Y_ == i):
+            continue
+        pb.scatter(X[Y_ == i, 0], X[Y_ == i, 1], 20, color=color,marker=marker)
+        if i >= n_clusters:
+            break
+
+    pb.legend(np.unique(Y_))
+    pb.show()
+    pb.draw()
+    pb.show()
+

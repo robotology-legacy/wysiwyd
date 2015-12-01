@@ -2,9 +2,10 @@
 # Authors: Martina Zambelli
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(appname bodySchema)
-file(GLOB conf ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.*)
-file(GLOB template ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template)
+if(WYSIWYD_USE_OTL)
+    add_subdirectory(modelOTL)
+endif(WYSIWYD_USE_OTL)
 
-yarp_install(FILES ${conf} DESTINATION ${WYSIWYD_CONTEXTS_INSTALL_DIR}/${appname})
-yarp_install(FILES ${template} DESTINATION ${WYSIWYD_APPLICATIONS_TEMPLATES_INSTALL_DIR})
+add_subdirectory(babbling)
+add_subdirectory(sensoryProcessor)
+
