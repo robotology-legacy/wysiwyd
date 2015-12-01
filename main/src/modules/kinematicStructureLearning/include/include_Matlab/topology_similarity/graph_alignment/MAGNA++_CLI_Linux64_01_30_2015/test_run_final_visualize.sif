@@ -1,0 +1,5 @@
+g2-c=g1-b i g2-b=g1-a
+g2-f=g1-c i g2-c=g1-b
+g2-e=g1-d i g2-f=g1-c
+g2-d=g1-e i g2-e=g1-d
+g2-a=g1-g i g2-f=g1-c

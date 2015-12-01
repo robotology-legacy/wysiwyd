@@ -52,12 +52,15 @@ namespace Bridge {
 class IOLObject
 {
 protected:
+    MedianFilter filter;
+    bool init_filter;
     double presenceTmo;
     double timer;
 
 public:
     /**********************************************************/
-    IOLObject(const double _presenceTmo=0.0) :
+    IOLObject(const int filter_order=1, const double _presenceTmo=0.0) :
+              filter(filter_order), init_filter(true),
               presenceTmo(_presenceTmo)
     {
         heartBeat();
@@ -68,6 +71,19 @@ public:
 
     /**********************************************************/
     bool isDead() const { return (Time::now()-timer>=presenceTmo); }
+
+    /**********************************************************/
+    Vector filt(const Vector &x)
+    {
+        if (init_filter)
+        {
+            filter.init(x);
+            init_filter=false;
+            return x;
+        }
+        else
+            return filter.filt(x);
+    }
 
     int opc_id;
 };
@@ -93,6 +109,7 @@ protected:
 
     RtLocalization rtLocalization;
     OpcUpdater opcUpdater;
+    int opcMedianFilterOrder;
     ClassifierReporter classifierReporter;
 
     ImageOf<PixelBgr> imgRtLoc;

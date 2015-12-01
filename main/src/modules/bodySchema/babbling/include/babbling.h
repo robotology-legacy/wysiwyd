@@ -35,6 +35,8 @@ private:
     yarp::os::Port portToMatlab;
     yarp::os::BufferedPort<yarp::os::Bottle> portReadMatlab;
 
+    yarp::os::RpcClient portToABM;
+
     yarp::dev::IPositionControl* posArm;
     yarp::dev::IVelocityControl* velArm;
     yarp::dev::IEncoders* encsArm;
@@ -83,6 +85,7 @@ private:
     yarp::sig::Vector babblingCommands(double &t, int j_idx);
     int babblingCommandsMatlab();
     bool gotoStartPos();
+    yarp::os::Bottle dealABM(const yarp::os::Bottle& command, int begin);
 
 };
 

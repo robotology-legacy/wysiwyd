@@ -119,10 +119,10 @@ void narrativeHandler::findStories(int iInstance)
 {
     story currentStory;
 
-    int iCurrentInstance = iInstance;
+//    int iCurrentInstance = iInstance;
 
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main ORDER by instance";
+    osRequest << "SELECT instance FROM main ORDER by instance WHERE instance > " << iInstance;
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
     Bottle bMessenger;
     int numberSentence = bAllInstances.size();

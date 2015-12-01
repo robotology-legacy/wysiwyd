@@ -1,0 +1,6 @@
+g2-a g1-b
+g2-b g1-g
+g2-c g1-f
+g2-d g1-e
+g2-e g1-d
+g2-f g1-c
