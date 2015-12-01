@@ -40,16 +40,23 @@ namespace wysiwyd{
                 // paste master name of 
                 ABMconnected = (SubABM->Connect());
                 yInfo() << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM");
+                if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
+                    yInfo() << "Recog connected to ears";
+                }  else {
+                    yWarning() << "Recog didn't connect to ears";
+                }
                 return yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
             }
             SubSystem_ABM* SubABM;
             std::string speakerName_;
+            yarp::os::Port ears_port;
 
         public:
 
             yarp::os::Port portRPC;
             SubSystem_Recog(const std::string &masterName) : SubSystem(masterName){
                 portRPC.open(("/" + m_masterName + "/recog:rpc").c_str());
+                ears_port.open("/" + m_masterName + "/ears:o");
                 m_type = SUBSYSTEM_RECOG;
                 SubABM = new SubSystem_ABM("from_recog");
             }
@@ -58,6 +65,8 @@ namespace wysiwyd{
             virtual void Close() {
                 portRPC.interrupt();
                 portRPC.close();
+                ears_port.interrupt();
+                ears_port.close();
                 SubABM->Close();
             };
 
@@ -72,6 +81,19 @@ namespace wysiwyd{
                 return true;
             }
 
+            void listen(bool on) {
+                if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
+                    yarp::os::Bottle cmd;
+                    cmd.clear();
+                    cmd.addString("listen");
+                    if (on) {
+                        cmd.addString("on");
+                    } else {
+                        cmd.addString("off");
+                    }
+                    ears_port.write(cmd);                 
+                }
+            }
 
             /**
             * From one grxml grammar, return the sentence recognized for one timeout
@@ -86,6 +108,9 @@ namespace wysiwyd{
                     yWarning(" recog not connected");
                     return bReply;
                 }
+                // turn on the main grammar through ears
+                listen(false);  
+
                 yarp::os::Bottle bMessenger;
                 yarp::os::Bottle bReply;
                 bMessenger.addString("recog");
@@ -93,6 +118,8 @@ namespace wysiwyd{
                 bMessenger.addString(sInput);
                 portRPC.write(bMessenger, bReply);
                 return bReply;
+                // turn off the main grammar through ears
+                listen(true);                 
             }
 
             /**
@@ -121,9 +148,19 @@ namespace wysiwyd{
 
                 int loop;
                 (iLoop == -1) ? loop = -3 : loop = 0;
+                
+                // listen off
+
                 while (!fGetaReply && loop < iLoop)
                 {
+                    // turn on the main grammar through ears
+                    listen(false);  
+                    
+                    // send the message
                     portRPC.write(bMessenger, bReply);
+
+                    // turn on the main grammar through ears
+                    listen(true);  
 
                     yInfo() << " Reply from Speech Recog : " << bReply.toString();
 
