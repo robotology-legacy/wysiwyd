@@ -21,7 +21,7 @@ using namespace yarp::math;
 
 
 
-class homeostaticModule: public RFModule
+class HomeostaticModule: public RFModule
 {
 private:
 
@@ -33,7 +33,7 @@ private:
     vector< yarp::os::BufferedPort<Bottle> * > input_ports;
     vector< yarp::os::BufferedPort<Bottle> * > outputM_ports;
     vector< yarp::os::BufferedPort<Bottle> * > outputm_ports;
-    homeostasisManager manager;
+    HomeostasisManager* manager;
 
 	//Reflexes
 
