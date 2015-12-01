@@ -9,7 +9,6 @@ bool BehaviorManager::close()
     return true;
 }
 
-
 bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 {
     moduleName = rf.check("name",Value("BehaviorManager")).asString();

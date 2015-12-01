@@ -1,5 +1,5 @@
-# Copyright: (C) 2014 WYSIWYD Consortium
-# Authors: Grégoire Pointeau
+# Copyright: (C) 2015 WYSIWYD Consortium
+# Authors: Clement Moulin-Frier
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(PROJECTNAME behaviorManager)

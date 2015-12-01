@@ -384,8 +384,10 @@ bool HomeostaticModule::updateModule()
             out2.clear();
             yDebug() <<"Drive value: " << manager->drives[d]->value;
             yDebug() <<"Drive decay: " << manager->drives[d]->decay;
-            yDebug() <<"Drive homeostasisMin: " << manager->drives[0]->homeostasisMin;
-            yDebug() <<"Drive homeostasisMax: " << manager->drives[0]->homeostasisMax;
+            yDebug() <<"Drive homeostasisMin: " << manager->drives[d]->homeostasisMin;
+            yDebug() <<"Drive homeostasisMax: " << manager->drives[d]->homeostasisMax;
+            yDebug() <<"Drive gradient: " << manager->drives[d]->gradient;
+            yDebug() <<"Drive period: " << manager->drives[d]->period;
             out2.addDouble(+manager->drives[d]->getValue()-manager->drives[d]->homeostasisMax);
             yDebug()<<out1.get(0).asDouble();
             outputM_ports[d]->write();
