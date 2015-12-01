@@ -600,7 +600,7 @@ void IOL2OPCBridge::updateOPC()
                     if (get3DPosition(cog,x))
                     {
                         Object *obj=opc->addOrRetrieveEntity<Object>(object);
-                        obj->m_ego_position=x;
+                        obj->m_ego_position=it->second.filt(x);
                         obj->m_present=true;
                         it->second.opc_id = obj->opc_id();
 
@@ -724,6 +724,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     opcUpdater.setBridge(this);
     opcUpdater.setRate(rf.check("opc_update_period",Value(60)).asInt());
+    opcMedianFilterOrder=rf.check("opc_median_window",Value(5)).asInt();
 
     classifierReporter.setBridge(this);
 
@@ -825,11 +826,11 @@ bool IOL2OPCBridge::updateModule()
         {
             if (Bottle *names=reply.get(1).asList())
                 for (int i=0; i<names->size(); i++)
-                    db[names->get(i).asString().c_str()]=IOLObject(presence_timeout);
+                    db[names->get(i).asString().c_str()]=IOLObject(opcMedianFilterOrder,presence_timeout);
 
             yInfo("Turning localization on");
             state=Bridge::localization;
-            onlyKnownObjects = IOLObject(10.0);
+            onlyKnownObjects = IOLObject(opcMedianFilterOrder,10.0);
         }
     }
     // highlight selected blob
@@ -885,7 +886,7 @@ bool IOL2OPCBridge::updateModule()
                 if (object==OBJECT_UNKNOWN)
                 {
                     Object* obj=opc->addEntity<Object>("unknown_object");
-                    db[obj->name()]=IOLObject(presence_timeout);
+                    db[obj->name()]=IOLObject(opcMedianFilterOrder,presence_timeout);
                     train(obj->name(),blobs,j);
                     onlyKnownObjects.heartBeat();
                     break;
@@ -933,7 +934,7 @@ bool IOL2OPCBridge::train_object(const string &name)
         // add a new object in the database
         // if not already existing
         if (db.find(name)==db.end())
-            db[name]=IOLObject(presence_timeout);
+            db[name]=IOLObject(opcMedianFilterOrder,presence_timeout);
 
         return true;
     }
