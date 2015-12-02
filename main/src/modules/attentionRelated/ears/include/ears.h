@@ -10,7 +10,7 @@ private:
     ICubClient *iCub;
     double      period;
     Port        rpc;
-    Port        portToReactive;
+    Port        portToBehavior;
     BufferedPort<Bottle>        portTarget;
     string      target;    
 

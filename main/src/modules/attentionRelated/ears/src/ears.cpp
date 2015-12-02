@@ -20,8 +20,8 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
 
-    portToReactive.open("/" + moduleName + "/behavior:o");
-    while (!Network::connect(portToReactive.getName(),"/BehaviorManager/trigger:i ")) {
+    portToBehavior.open("/" + moduleName + "/behavior:o");
+    while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i ")) {
         yWarning() << " Behavior is not reachable";
         yarp::os::Time::delay(0.5);
     }
@@ -31,7 +31,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
 
-    bListen = false;
+    bListen = true;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
     
@@ -41,8 +41,10 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 
 bool ears::close() {
     iCub->close();
+    rpc.interrupt();
     rpc.close();
-    portToReactive.close();
+    portToBehavior.interrupt();
+    portToBehavior.close();
     delete iCub;
 
     return true;
@@ -62,6 +64,7 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "listen")
     {
+        // yInfo() << 
         if (command.size() == 2)
         {
             if (command.get(1).asString() == "on")
@@ -87,10 +90,12 @@ bool ears::updateModule() {
 
     if (bListen)
     {
+        yDebug() << "bListen";
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
+        bListen=true;
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -98,8 +103,14 @@ bool ears::updateModule() {
             return true;
         }
 
+
         bAnswer = *bRecognized.get(1).asList();
 
+        if (bAnswer.get(0).asString() == "stop")
+        {
+            yInfo() << " in abmHandler::node1 | stop called";
+            return true;
+        }
         // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
         bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
@@ -139,7 +150,7 @@ bool ears::updateModule() {
         bCondition.addString("pointingOrder");
         bCondition.addString(sObject);
 
-        portToReactive.write(bCondition);
+        portToBehavior.write(bCondition);
  
         yDebug() << "Sending " + target;
     } else {yDebug() << "Not bListen";}
