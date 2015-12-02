@@ -332,7 +332,8 @@ class SAMDriver_interaction(SAMDriver):
         self.L=self.L.T
         self.L=self.L[:,:1]
 
-        SAMDriver.prepareData(self, model, Ntr, randSeed=randSeed)
+        ret = SAMDriver.prepareData(self, model, Ntr, randSeed=randSeed)
+        return ret
 
 
 

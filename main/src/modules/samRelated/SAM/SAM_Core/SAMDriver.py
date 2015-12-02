@@ -186,9 +186,13 @@ class SAMDriver:
         indTs.sort()
         indTr = perm[Nts:Nts+Ntr]
         indTr.sort()
+        YtestAll = self.Y[indTs].copy() ##
         self.Ytest = self.Y[indTs]
+        LtestAll = self.L[indTs].copy()##
         self.Ltest = self.L[indTs]
+        Yall = self.Y[indTr].copy()##
         self.Y = self.Y[indTr]
+        Lall = self.L[indTr].copy()##
         self.L = self.L[indTr]
     
         # Center data to zero mean and 1 std
@@ -220,6 +224,7 @@ class SAMDriver:
             self.X=None     
             self.Y = {'Y':self.Yn}
             self.data_labels = self.L.copy()
+        return Yall, Lall, YtestAll, LtestAll
 
     def testing(self, testInstance, choice, visualiseInfo=None):
         raise NotImplementedError("this needs to be implemented to use the model class")

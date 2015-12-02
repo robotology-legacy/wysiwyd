@@ -291,6 +291,44 @@ class LFM(object):
             pred_mean, pred_variance = self.model.predict(X)
         return pred_mean, pred_variance
 
+##############################  TMP   ##############################################################
+    def familiarity(self, Ytest, ytrmean = None, ytrstd=None, sigma2=None):
+        #def my_logpdf(y, ymean, yvar):
+        #    import numpy as np
+        #    N = y.shape[0]
+        #    ln_det_cov = N * np.log(yvar)
+        #    return -0.5 * (np.sum((y - ymean) ** 2 / yvar) + ln_det_cov + N * np.log(2. * np.pi))
+        #from scipy.stats import multivariate_normal
+        #var = multivariate_normal(mean=[0,0], cov=[[1,0],[0,1]])
+        #var.pdf([1,0])
+        from scipy.stats import lognorm
+
+        assert(self.type == 'bgplvm')
+
+        import numpy as np
+        N = Ytest.shape[0]
+        if ytrmean is not None:
+            Ytest -= ytrmean
+            Ytest /= ytrstd
+
+        qx, mm = self.model.infer_newX(Ytest)
+        #ymean, yvar = model._raw_predict(qx)
+        ymean, yvar = self.model.predict(qx)
+
+        ll = np.zeros(N)
+        for j in range(N):
+            #ll[j] = my_logpdf(Ytest[j], ymean[j], yvar[j])
+            #ll[j] = multivariate_normal(mean=ymean[j], cov=np.diag(yvar[j])).pdf(Ytest[j])
+            ll[j] = lognorm.pdf(Ytest[j], s=1, loc=ymean[j], scale=yvar[j]).mean()
+        loglike = ll.mean()
+
+        return loglike
+##############################  TMP   ##############################################################
+
+
+
+
+
     def _get_inducing(self):
         # TODO
         pass
