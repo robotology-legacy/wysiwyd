@@ -61,6 +61,7 @@ private:
     std::string cmd_source;
     int single_joint;
     int fps;
+    std::string part_babbling;
 
     std::string leftCameraPort, rightCameraPort;
 

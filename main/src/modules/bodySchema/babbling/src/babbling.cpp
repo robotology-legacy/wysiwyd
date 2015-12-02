@@ -199,6 +199,7 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
         if (command.get(1).asString()=="arm")
         {
             single_joint = -1;
+            part_babbling = command.get(1).asString();
             yInfo() << "Babbling the arm...";
             doBabbling();
             reply.addString("ack");
@@ -206,14 +207,31 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
         else if (command.get(1).asString()=="joint")
         {
             single_joint = command.get(2).asInt();
-            yInfo() << "Babbling joint " << single_joint << "...";
+            if(single_joint < 16 && single_joint>=0)
+            {
+                yInfo() << "Babbling joint " << single_joint << "...";
+                doBabbling();
+                reply.addString("ack");
+            }
+            else
+            {
+                yError("Invalid joint number.");
+                reply.addString("nack");
+            }
+
+        }
+        else if (command.get(1).asString()=="hand")
+        {
+            single_joint = -1;
+            part_babbling = command.get(1).asString();
+            yInfo() << "Babbling the hand...";
             doBabbling();
             reply.addString("ack");
         }
         else
         {
             yInfo() << "Command not found\n" << helpMessage;
-            reply.addString("nck");
+            reply.addString("nack");
         }
     }
 
@@ -299,25 +317,17 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
 
     if(j_idx != -1)
     {
-        if(j_idx < 16 && j_idx>=0)
-        {
-
-            bool okEncArm = encsArm->getEncoders(encodersArm.data());
-            if(!okEncArm) {
-                cerr << "Error receiving encoders";
-                command[j_idx] = 0;
-            } else {
-                command[j_idx] = 10 * (ref_command[j_idx] - encodersArm[j_idx]);
-            }
-        }
-        else
-        {
-            yError("Invalid joint number.");
+        bool okEncArm = encsArm->getEncoders(encodersArm.data());
+        if(!okEncArm) {
+            cerr << "Error receiving encoders";
+            command[j_idx] = 0;
+        } else {
+            command[j_idx] = 10 * (ref_command[j_idx] - encodersArm[j_idx]);
         }
     }
     else
     {
-        if((part == "left_arm") || (part == "right_arm" ))
+        if(part_babbling == "arm")
         {
             bool okEncArm = encsArm->getEncoders(encodersArm.data());
             if(!okEncArm) {
@@ -326,11 +336,14 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
                     command[l] = 0;
             } else {
                 for (unsigned int l=0; l<7; l++)
-                    command[l] = 50 * (ref_command[l] - encodersArm[l]);
+                {
+//                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
+                    command[l] = 10 * (ref_command[l] - encodersArm[l]);
+                }
             }
 
         }
-        else if((part == "left_hand") || (part == "right_hand" ))
+        else if(part_babbling == "hand")
         {
             bool okEncArm = encsArm->getEncoders(encodersArm.data());
             if(!okEncArm) {
@@ -339,7 +352,10 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
                     command[l] = 0;
             } else {
                 for (unsigned int l=7; l<command.size(); l++)
-                    command[l] = 50 * (ref_command[l] - encodersArm[l]);
+                {
+//                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
+                    command[l] = 10 * (ref_command[l] - encodersArm[l]);
+                }
             }
         }
         else
