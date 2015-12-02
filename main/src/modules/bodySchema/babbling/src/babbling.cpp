@@ -84,6 +84,7 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
             start_command[i] = b_start_command->get(i).asDouble();
     }
 
+
     Bottle &babbl_par = rf.findGroup("babbling_param");
     freq = babbl_par.check("freq", Value(0.2)).asDouble();
     amp = babbl_par.check("amp", Value(5)).asDouble();
@@ -132,6 +133,10 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
         cout << getName() << ": initialising iCub... please wait... " << endl;
         bEveryThingisGood = false;
     }
+
+    for (int l=0; l<16; l++)
+        ref_command[l] = 0;
+
 
     yDebug() << "End configuration...";
 
@@ -257,8 +262,9 @@ bool Babbling::doBabbling()
         while (Time::now() < startTime + train_duration){
 //            yInfo() << Time::now() << "/" << startTime + train_duration;
             double t = Time::now() - startTime;
-            yInfo() << "t = " << t << " / " << train_duration;
-                babblingCommands(t,single_joint);
+            yInfo() << "t = " << t << "/ " << train_duration;
+
+            babblingCommands(t,single_joint);
         }
     }
     else
@@ -267,7 +273,6 @@ bool Babbling::doBabbling()
     }
 
     reply = dealABM(abmCommand,0);
-
     //check ABM reply
     if (reply.isNull()) {
         cout << "Reply from ABM is null : NOT connected?" << endl;
@@ -286,21 +291,24 @@ bool Babbling::doBabbling()
 
 yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
 {
-    double w1 = freq*t;
-    double w2 = (freq+0.1)*t;
-    double w3 = (freq+0.5)*t;
-    double w4 = (freq+0.3)*t;
-
-    for (unsigned int l=0; l<command.size(); l++) {
+    for (unsigned int l=0; l<command.size(); l++)
         command[l]=0;
-    }
+
+    for (unsigned int l=0; l<16; l++)
+        ref_command[l]=start_command[l] + amp*sin(freq*t * 2 * M_PI);
 
     if(j_idx != -1)
     {
         if(j_idx < 16 && j_idx>=0)
         {
-            command[j_idx]=amp*cos(freq*t * 2 * M_PI);
-            //yInfo() << command[j_idx] << " joint " << j_idx;
+
+            bool okEncArm = encsArm->getEncoders(encodersArm.data());
+            if(!okEncArm) {
+                cerr << "Error receiving encoders";
+                command[j_idx] = 0;
+            } else {
+                command[j_idx] = 10 * (ref_command[j_idx] - encodersArm[j_idx]);
+            }
         }
         else
         {
@@ -311,22 +319,28 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
     {
         if((part == "left_arm") || (part == "right_arm" ))
         {
-            command[0]=cos(w1 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
-            command[1]=cos(w1 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
-            command[2]=cos(w1 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
-            command[3]=cos(w2 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
-            command[6]=cos(w3 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
+            bool okEncArm = encsArm->getEncoders(encodersArm.data());
+            if(!okEncArm) {
+                cerr << "Error receiving encoders";
+                for (unsigned int l=0; l<7; l++)
+                    command[l] = 0;
+            } else {
+                for (unsigned int l=0; l<7; l++)
+                    command[l] = 50 * (ref_command[l] - encodersArm[l]);
+            }
+
         }
         else if((part == "left_hand") || (part == "right_hand" ))
         {
-            command[6]=amp*cos(w3 * 2 * M_PI)+amp*cos(w4 * 2 * M_PI);
-            command[8]=amp*cos(w1 * 2 * M_PI);
-            command[9]=amp*cos(w1 * 2 * M_PI);
-            command[11]=amp*cos(w4 * 2 * M_PI);
-            command[13]=amp*cos(w4 * 2 * M_PI);
-            command[15]=amp*cos(w4 * 2 * M_PI);
-            command[12]=amp*cos(w2 * 2 * M_PI);
-            command[14]=amp*cos(w2 * 2 * M_PI);
+            bool okEncArm = encsArm->getEncoders(encodersArm.data());
+            if(!okEncArm) {
+                cerr << "Error receiving encoders";
+                for (unsigned int l=7; l<command.size(); l++)
+                    command[l] = 0;
+            } else {
+                for (unsigned int l=7; l<command.size(); l++)
+                    command[l] = 50 * (ref_command[l] - encodersArm[l]);
+            }
         }
         else
         {
@@ -502,7 +516,7 @@ bool Babbling::gotoStartPos()
             }
         }
     }
-    yInfo() << "Done.";
+    yInfo() << "Done." ;
 
     Time::delay(1.0);
 
@@ -549,6 +563,17 @@ bool Babbling::init_iCub(string &part)
     armDev->view(velArm);
     armDev->view(encsArm);
     armDev->view(ictrlArm);
+    armDev->view(ictrlLimArm);
+
+    double minLimArm[16];
+    double maxLimArm[16];
+    for (int l=0; l<16; l++)
+        ictrlLimArm->getLimits(l,&minLimArm[l],&maxLimArm[l]);
+//    for (int l=7; l<16; l++)
+//        start_command[l] = (maxLimArm[l]-minLimArm[l])/2;
+    for (int l=0; l<16; l++)
+        yInfo() << "Joint " << l << ": limits = [" << minLimArm[l] << "," << maxLimArm[l] << "]. start_commad = " << start_command[l];
+
 
     if (posArm==NULL || encsArm==NULL || velArm==NULL || ictrlArm==NULL ){
         cout << "Cannot get interface to robot device" << endl;

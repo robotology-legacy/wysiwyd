@@ -41,6 +41,7 @@ private:
     yarp::dev::IVelocityControl* velArm;
     yarp::dev::IEncoders* encsArm;
     yarp::dev::IControlMode2 *ictrlArm;
+    yarp::dev::IControlLimits *ictrlLimArm;
 
     yarp::dev::IPositionControl* posHead;
     yarp::dev::IVelocityControl* velHead;
@@ -68,6 +69,7 @@ private:
 
     double start_commandHead[5];
     double start_command[16];
+    double ref_command[16];
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
