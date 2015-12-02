@@ -21,7 +21,12 @@ import os
 import numpy
 import time
 import operator
-import yarp
+try:
+    import yarp
+    yarpRunning = True
+except ImportError:
+    print 'WARNING! Yarp was not found! Switching to offline mode'
+    yarpRunning = False
 
 from ConfigParser import SafeConfigParser
 
@@ -71,10 +76,11 @@ print '-------------------'
 
 
 # Creates and opens ports for interaction with speech module
-yarp.Network.init()
-inputInteractionPort = yarp.BufferedPortBottle()
-inputInteractionPort.open("/sam/face/interaction:i");
-choice = yarp.Bottle();
+if yarpRunning:
+    yarp.Network.init()
+    inputInteractionPort = yarp.BufferedPortBottle()
+    inputInteractionPort.open("/sam/face/interaction:i");
+    choice = yarp.Bottle();
 
 # Creates a SAMpy object
 mySAMpy = SAMDriver_interaction(True, imgH = 400, imgW = 400, imgHNew = 200, imgWNew = 200,inputImagePort="/visionDriver/image:o")
@@ -107,16 +113,19 @@ fname = modelPath + '/models/' + 'mActions_' + model_type + '_exp' + str(experim
 
 # Enable to save the model and visualise GP nearest neighbour matching
 save_model=True
+economy_save = True # ATTENTION!! This is still BETA!!
 visualise_output=True
 
 # Reading face data, preparation of data and training of the model
 mySAMpy.readData(root_data_dir, participant_index, pose_index)
-mySAMpy.prepareData(model_type, Ntr, pose_selection, randSeed=randSeed)
-mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model)
+mySAMpy.prepareData(model_type, Ntr, pose_selection, randSeed=experiment_number)
+mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model, economy_save)
 
-while( not(yarp.Network.isConnected("/speechInteraction/behaviour:o","/sam/face/interaction:i")) ):
-    print "Waiting for connection with behaviour port..."
-    pass
+
+if yarpRunning:
+    while( not(yarp.Network.isConnected("/speechInteraction/behaviour:o","/sam/face/interaction:i")) ):
+        print "Waiting for connection with behaviour port..."
+        pass
 
 
 # This is for visualising the mapping of the test face back to the internal memory
@@ -143,11 +152,12 @@ else:
 
 
 while( True ):
-    pass
-
-    try:        
-        choice = inputInteractionPort.read(True)
-        testFace = mySAMpy.readImageFromCamera()
+    try: 
+        if yarpRunning:       
+            choice = inputInteractionPort.read(True)
+            testFace = mySAMpy.readImageFromCamera()
+        else:
+            TODO
         pp = mySAMpy.testing(testFace, choice, visualiseInfo)
         #time.sleep(0.5)
         l = pp.pop()

@@ -20,7 +20,11 @@ import sys
 #import pickle
 import numpy
 import os
-import yarp
+try:
+    import yarp
+    isYarpRunningGlobal = True
+except ImportError:
+    isYarpRunningGlobal = False
 import cv2
 import GPy
 import time
@@ -53,6 +57,9 @@ class SAMDriver_interaction(SAMDriver):
 #""""""""""""""""
     def __init__(self, isYarpRunning = False, imgH = 200, imgW = 200, imgHNew = 200, imgWNew = 200, inputImagePort="/visionDriver/image:o"):
         # Call parent class init
+        if not isYarpRunningGlobal:
+            # if I can't find Yarp, I'll overwrite the given flag
+            isYarpRunning = False
         SAMDriver.__init__(self, isYarpRunning)
 
         # Extra stuff needed for the specific driver
