@@ -252,6 +252,20 @@ public:
     Entity *getEntity(int id, bool forceUpdate = false);
 
     /**
+    * Removes an entity based on its name. 
+    * @param name The name of the entity to remove. 
+    * @return true/false iff succeeded/failed. 
+    */
+    bool removeEntity(const std::string &name);
+
+    /**
+    * Removes an entity based on its id.
+    * @param id The ID of the entity to retrieve. 
+    * @return true/false iff succeeded/failed. 
+    */
+    bool removeEntity(int id);
+
+    /**
     * Poll the OPC for all entities and relations and store them locally.
     * @param updateCache If this option is turned on the local cache will be wiped
     */

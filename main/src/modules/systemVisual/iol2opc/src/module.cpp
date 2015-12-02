@@ -1024,17 +1024,7 @@ bool IOL2OPCBridge::remove_object(const string &name)
     if (it!=db.end())
         db.erase(it);
 
-    if (Entity *en=opc->getEntity(it->second.opc_id))
-    {
-        if (Object *obj=dynamic_cast<Object*>(en))
-        {
-            obj->m_present=false;
-            opc->commit(obj);
-            return true;
-        }
-    }
-
-    return false;
+    return opc->removeEntity(it->second.opc_id);
 }
 
 
@@ -1058,11 +1048,9 @@ bool IOL2OPCBridge::remove_all()
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
     for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
-        dynamic_cast<Object*>(opc->getEntity(it->second.opc_id))->m_present=false;
+        opc->removeEntity(it->second.opc_id);
 
-    opc->commit();
     db.clear();
-
     return true;
 }
 
