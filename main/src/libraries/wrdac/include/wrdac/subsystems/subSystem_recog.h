@@ -79,6 +79,13 @@ namespace wysiwyd{
             */
             yarp::os::Bottle recogFromGrammar(std::string &sInput)
             {
+                if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
+                    yarp::os::Bottle bReply;
+                    bReply.addInt(0);
+                    bReply.addString("recog not connected");
+                    yWarning(" recog not connected");
+                    return bReply;
+                }
                 yarp::os::Bottle bMessenger;
                 yarp::os::Bottle bReply;
                 bMessenger.addString("recog");
@@ -94,6 +101,13 @@ namespace wysiwyd{
             */
             yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50)
             {
+                if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
+                    yarp::os::Bottle bReply;
+                    bReply.addInt(0);
+                    bReply.addString("recog not connected");
+                    yWarning(" recog not connected");
+                    return bReply;
+                }
                 std::ostringstream osError;
                 bool fGetaReply = false;
                 yarp::os::Bottle bMessenger, //to be send TO speech recog
