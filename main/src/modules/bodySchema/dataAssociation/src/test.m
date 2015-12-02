@@ -17,7 +17,10 @@
 
 
 
+joint_data = joints(:,1:7);
+% d_joint_data = joint_data(2:end,:) - joint_data(1:end-1,:);
 
+%%
 
 name_idx = ones(539,1)*-1;
 name_idx(80:110) = 3;
@@ -28,8 +31,6 @@ name_idx(395:410) = 3;
 name_idx(450:475) = 1;
 name_idx(520:535) = 1;
 
-joint_data = joints(:,1:7);
-d_joint_data = joint_data(2:end,:) - joint_data(1:end-1,:);
 
 joint_moving_idx = ones(539,1)*-1;
 joint_moving_idx(80:110) = 6;

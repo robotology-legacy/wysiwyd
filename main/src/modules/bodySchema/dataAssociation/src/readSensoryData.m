@@ -62,8 +62,8 @@ disp('Connected!')
 bJoints = yarp.Bottle;
 bTouch = yarp.Bottle;
 
-fileIDjoints = fopen('joints.txt','a+');
-fileIDtouch = fopen('touch.txt','a+'); 
+fileIDjoints = fopen('jointsICUB.txt','a+');
+fileIDtouch = fopen('touchICUB.txt','a+'); 
 
 h=figure('doublebuffer','on', ...
        'CurrentCharacter','a');
@@ -108,6 +108,6 @@ portReadJoints.close;
 
 %% Read txt files
 
-joints = importdata('joints.txt');
-touch = importdata('touch.txt');
+joints = importdata('jointsICUB.txt');
+touch = importdata('touchICUB.txt');
 
