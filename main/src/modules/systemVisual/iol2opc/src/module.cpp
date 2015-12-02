@@ -241,9 +241,9 @@ bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
         x/=N;
 
         dim=dim*(1.0/N)-x*x;
-        dim[0]=4.0*sqrt(dim[0]);
-        dim[1]=4.0*sqrt(dim[1]);
-        dim[2]=4.0*sqrt(dim[2]);
+        dim[0]=2.0*sqrt(dim[0]);
+        dim[1]=2.0*sqrt(dim[1]);
+        dim[2]=2.0*sqrt(dim[2]);
 
         return true;
     }
