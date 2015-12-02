@@ -25,8 +25,13 @@ public:
         external_port_name = "None";
         from_sensation_port_name = "None";        
     }
+
     void run(Bottle args=Bottle()) {
         yDebug() << "Dummmy::run";
+    }
+
+    void close_extra_ports() {
+        ;
     }
 
 };

@@ -19,6 +19,8 @@ class Pointing: public Behavior
 public:
     void configure();
     void run(Bottle args=Bottle());
-
+    void close_extra_ports() {
+        ;
+    }
 };
 

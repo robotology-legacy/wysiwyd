@@ -27,6 +27,8 @@ public:
     bool handlePoint(string target);
     bool handleSearch(string target);
 
-
+    void close_extra_ports() {
+        ;
+    }
 };
 

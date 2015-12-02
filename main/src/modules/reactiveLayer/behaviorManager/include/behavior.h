@@ -26,10 +26,20 @@ public:
 
     string name, from_sensation_port_name, external_port_name;
     BufferedPort<Bottle> sensation_port_in;
-    // Port rpc_in_port;
     Port rpc_out_port;
+
     virtual void configure() = 0;
     virtual void run(Bottle args=Bottle()) = 0;
+    virtual void close_extra_ports() = 0;
+    
+    void close_ports() {
+        close_extra_ports();
+        sensation_port_in.interrupt();
+        sensation_port_in.close();
+        rpc_out_port.interrupt();
+        rpc_out_port.close();
+
+    }
     
 };
 

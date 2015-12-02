@@ -34,7 +34,6 @@ private:
 
 
     vector<Behavior*> behaviors;
-    // vector<Port*> to_homeo_rpc;
 
     string moduleName;
 
@@ -44,15 +43,6 @@ private:
 
     ICubClient *iCub;
 
-    // Port trigger_port;
-    
-    // vector<TriggerCallback*> trigger_under_ports;
-    // vector<TriggerCallback*> trigger_over_ports;
-    // vector<Port*> rpc_out_ports;
-
-    // vector<BufferedPort<Bottle>*> sensation_input_ports;
-
-    // vector<string> behavior_names;
     int behavior_to_trigger;
 public:
    bool configure(yarp::os::ResourceFinder &rf);
