@@ -249,6 +249,56 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     return newE;
 }
 
+bool OPCClient::removeEntity(const string &name)
+{
+    if (Entity *e=getEntity(name,true))
+    {
+        Bottle cmd,reply;
+        cmd.addVocab(Vocab::encode("del"));
+        Bottle &payLoad=cmd.addList().addList();
+        payLoad.addString("id");
+        payLoad.addInt(e->opc_id()); 
+
+        if (write(cmd,reply,isVerbose))
+        {
+            if (reply.get(0).asVocab()==VOCAB3('a','c','k'))
+            {
+                entitiesByID.erase(e->opc_id());
+                return true;
+            }
+            else
+                yError()<<"Unable to talk correctly to OPC";
+        }
+    }
+
+    return false;
+}
+
+bool OPCClient::removeEntity(int id)
+{
+    if (Entity *e=getEntity(id,true))
+    {
+        Bottle cmd,reply;
+        cmd.addVocab(Vocab::encode("del"));
+        Bottle &payLoad=cmd.addList().addList();
+        payLoad.addString("id");
+        payLoad.addInt(e->opc_id()); 
+
+        if (write(cmd,reply,isVerbose))
+        {
+            if (reply.get(0).asVocab()==VOCAB3('a','c','k'))
+            {
+                entitiesByID.erase(e->opc_id());
+                return true;
+            }
+            else
+                yError()<<"Unable to talk correctly to OPC";
+        }
+    }
+
+    return false;
+}
+
 //Returns the OPCid of a relation on the server side
 int OPCClient::getRelationID(
         Entity* subject,
