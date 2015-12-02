@@ -3,7 +3,14 @@
 
 bool BehaviorManager::close()
 {
+    rpc_in_port.interrupt();
+    rpc_in_port.close();
     iCub->close();
+
+    for(auto beh : behaviors) {
+        beh->close_ports();
+    }
+
     delete iCub;
 
     return true;
@@ -14,7 +21,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     moduleName = rf.check("name",Value("BehaviorManager")).asString();
     setName(moduleName.c_str());
     yInfo()<<moduleName<<": finding configuration files...";//<<endl;
-    period = rf.check("period",Value(0.1)).asDouble();
+    period = rf.check("period",Value(1.0)).asDouble();
 
     Bottle grp = rf.findGroup("BEHAVIORS");
     Bottle behaviorList = *grp.find("behaviors").asList();  
@@ -25,7 +32,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     for (int i = 0; i<behaviorList.size(); i++)
     {
         string behavior_name = behaviorList.get(i).asString();
-        // behavior_names.push_back(behavior_name);
         if (behavior_name == "tagging") {
             behaviors.push_back(new Tagging());
         } else if (behavior_name == "pointing") {
@@ -47,11 +53,11 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
-    iCub->opc->isVerbose = false;
+    iCub->opc->isVerbose = true;
     char rep = 'n';
     while (rep!='y'&&!iCub->connect())
     {
-        yInfo()<<"iCubClient : Some dependencies are not running...";//<<endl;
+        yInfo()<<"iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
 
@@ -66,27 +72,10 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
 
     // id = 0;
-    for(std::vector<Behavior*>::iterator it = behaviors.begin(); it != behaviors.end(); ++it) {
-        Behavior* beh = *it;
+    for(auto beh : behaviors) {
         beh->configure();
         beh->openPorts(moduleName);
         beh->iCub = iCub;
-        // attach(beh->rpc_in_port);
-        // trigger_port.open("/" + moduleName + "/trigger" + ":i");
-
-        // trigger_under_ports.push_back(new TriggerCallback(&behavior_to_trigger, id));
-        // trigger_under_ports.useCallback();
-        // trigger_under_ports.back()->open("/" + moduleName +"/triggers_under/" + beh->name +":i"<);
-        
-        // trigger_over_ports.push_back(new TriggerCallback(&behavior_to_trigger, id));
-        // trigger_over_ports.useCallback();
-        // trigger_over_ports.back()->open("/" + moduleName +"/triggers_over/" + beh->name +":i");
-
-        // sensation_input_ports.push_back(new BufferedPort<Bottle>());
-        // sensation_input_ports.back()->open("/" + moduleName +"/sensations/" + beh->name +":i");
-
-        // rpc_out_ports.push_back(new Port());
-        // rpc_out_ports.back()->open("/" + moduleName +"/rpc_out/" + beh->name +":i");
 
         if (beh->from_sensation_port_name != "None") {
             while (!Network::connect(beh->from_sensation_port_name, beh->sensation_port_in.getName())) {
@@ -114,23 +103,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
 bool BehaviorManager::updateModule()
 {
-    // for(i=0; i < behaviors.size(); i++) {
-    //     Bottle *run =trigger_under_ports[i]->read(false):
-    //     if (run != NULL) {
-    //         Bottle *sensation = sensation_input_ports[behavior_to_trigger]->read();
-    //         Bottle cmd = behaviors[behavior_to_trigger]->run(*sensation);
-    //         Bottle rply;
-    //         rpc_out_ports[behavior_to_trigger]->write(cmd, rply);
-
-    //     }
-    // }
-
-    // if (behavior_to_trigger != -1) {
-
-    // }
     return true;
-
-
 }
 
 
@@ -142,25 +115,24 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     {   string help = "\n";
         help += " ['behavior_name']  : Triggers corresponding behavior \n";
         reply.addString(help);
-    }else
+    }
+    else
     {
-
-        for(std::vector<Behavior*>::size_type i = 0; i != behaviors.size(); i++) {
-            if (cmd.get(0).asString() == behaviors[i]->name) {
-                Bottle args;
-                args.clear();
-                for (int a = 1; a < cmd.size(); a++)
-                {
-                    args.add(&cmd.get(a));
-                }
-                behaviors[i]->run(args);
+        for(auto beh : behaviors) {
+            if (cmd.get(0).asString() == beh->name) {
+        //         Bottle args;
+        //         args.clear();
+        //         for (int a = 1; a < cmd.size(); a++)
+        //         {
+        //             args.add(&cmd.get(a));
+        //         }
+                beh->run(/*args*/);
             }
         }
-
-        reply.addString("ack");
     }
     // strange:
-    reply.addString("nack");
-
+    reply.clear();
+    reply.addString("ack");
+    yDebug() << "End of BehaviorManager::respond";
     return true;
 }
