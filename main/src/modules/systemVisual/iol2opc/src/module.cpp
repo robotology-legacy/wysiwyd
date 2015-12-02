@@ -197,7 +197,8 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
             x[0]=reply.get(0).asDouble();
             x[1]=reply.get(1).asDouble();
             x[2]=reply.get(2).asDouble();
-            return true;
+
+            return (norm(x)>0.0);
         }
     }
 
