@@ -128,7 +128,8 @@ bool visionDriver::updateModule()
 		    cv::gpu::equalizeHist(grayscaleFrameGPU,grayscaleFrameGPU);
 		    // Face and Body
 		    noFaces = face_cascade.detectMultiScale(grayscaleFrameGPU,objBufFaceGPU,1.2,5,Size(30,30));
-		    noBodies = body_cascade.detectMultiScale(grayscaleFrameGPU,objBufBodyGPU,1.2,5,Size(150,150));
+		    //noBodies = body_cascade.detectMultiScale(grayscaleFrameGPU,objBufBodyGPU,1.2,5,Size(150,150));
+            noBodies = 0;            
 
 			// Check if face found
 		    if(noFaces != 0)

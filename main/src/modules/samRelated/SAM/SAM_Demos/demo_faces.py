@@ -183,7 +183,7 @@ if model_type == 'bgplvm':
     (cntr, covars) = SAM.SAM_Core.latent_cluster_centers(mySAMpy.SAMObject, None, labels, 'gaussian', True, (1,0), experiment_number,None)
     Nsamp = 6
     c=1
-    pb.figure()
+    figFaces = pb.figure()
     for i in range(K):
         for j in range(Nsamp):
             splot = plt.subplot(K, Nsamp, 0 + c)
@@ -192,7 +192,8 @@ if model_type == 'bgplvm':
             ff = numpy.reshape(sample_y, (imgHNew,imgWNew))
             plt.imshow(ff, cmap=plt.cm.Greys_r)
             c+=1
-
+	figFaces.canvas.draw()
+	figFaces.canvas.flush_events()
         print('> Who is this person? (TODO, add answer and take response...)')
         name=raw_input()
         pb.title(name)
@@ -218,9 +219,11 @@ if model_type == 'bgplvm':
 while( True ):
     try:
         if yarpRunning:
+	    print "Reading from Camera"
             testFace = mySAMpy.readImageFromCamera()
         else:
-            TODO
+            pass
+            #TODO mysampy.ytestn
         print "Face data shape 0 " + str(testFace.shape[0]) + " Face data shape 1 " + str(testFace.shape[1])
         #subplt_input.imshow(testFace, cmap=plt.cm.Greys_r)
         mySAMpy.testing(testFace, visualiseInfo)

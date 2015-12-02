@@ -360,8 +360,9 @@ class SAMDriver_faces(SAMDriver):
 #    - imageFlatten_testing: image from iCub eyes in row format for testing by the SAM model
 #""""""""""""""""
     def readImageFromCamera(self):
-        #print "Waiting for connection with imageDataInputPort..."
-        while( not(yarp.Network.isConnected(self.inputImagePort,"/sam/imageData:i")) ):
+        print "Waiting for connection with imageDataInputPort..."
+        while( not(yarp.Network.isConnected(self.inputImagePort,"/sam/face/imageData:i")) ):
+	    #time.sleep(0.5);
             print "Waiting for connection with imageDataInputPort..."
             pass
     
