@@ -13,6 +13,7 @@ public:
 
     virtual void configure() = 0;
     virtual void publish() = 0;
+    virtual void close_ports() = 0;
 
 // protected:
 //     string manager_name;

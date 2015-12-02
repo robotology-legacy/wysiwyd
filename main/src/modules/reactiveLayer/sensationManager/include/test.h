@@ -26,5 +26,8 @@ private:
 public:
     void configure();
     void publish();
+    void close_ports() {
+        ;
+    }
 
 };

@@ -29,14 +29,12 @@ private:
     double period;
 
 public:
-   bool configure(yarp::os::ResourceFinder &rf);
+    bool configure(yarp::os::ResourceFinder &rf);
 
     bool interruptModule()
     {
         return true;
     }
-
-    bool close();
 
     double getPeriod()
     {
@@ -44,6 +42,8 @@ public:
     }
 
     bool updateModule();
+
+    bool close();
 
 };
 

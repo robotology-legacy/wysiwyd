@@ -1,6 +1,22 @@
 #include <algorithm>    // std::random_shuffle
 #include "opcSensation.h"
 
+
+void OpcSensation::close_ports() {
+    
+    unknown_obj_port.interrupt();
+    unknown_obj_port.close();
+
+    confusion_port.interrupt();
+    confusion_port.close();
+
+    known_obj_port.interrupt();
+    known_obj_port.close();
+
+    show_port.interrupt();    
+    show_port.close();
+}
+
 void OpcSensation::configure()
 {
     moduleName = "opcSensation";
