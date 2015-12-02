@@ -126,7 +126,7 @@ namespace wysiwyd{
             *   From one grxml grammar, return the first sentence non-empty recognized
             *   can last for several timeout (by default 50
             */
-            yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50)
+            yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50, bool isEars = false)
             {
                 if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
                     yarp::os::Bottle bReply;
@@ -154,13 +154,14 @@ namespace wysiwyd{
                 while (!fGetaReply && loop < iLoop)
                 {
                     // turn on the main grammar through ears
-                    listen(false);  
+                    if (!isEars) 
+                        listen(false);  
                     
                     // send the message
                     portRPC.write(bMessenger, bReply);
 
                     // turn on the main grammar through ears
-                    listen(true);  
+                      
 
                     yInfo() << " Reply from Speech Recog : " << bReply.toString();
 
@@ -170,6 +171,7 @@ namespace wysiwyd{
                         osError << "Check grammar";
                         bOutput.addString(osError.str());
                         yError() << " " << osError.str();
+                        listen(true);
                         return bOutput;
                     }
 
@@ -179,6 +181,7 @@ namespace wysiwyd{
                         osError << "Grammar not recognized";
                         bOutput.addString(osError.str());
                         yInfo() << " " << osError.str();
+                        listen(true);
                         return bOutput;
                     }
 
@@ -223,7 +226,7 @@ namespace wysiwyd{
                     bOutput.addString(osError.str());
                     yError() << " " << osError.str();
                 }
-
+                listen(true);
                 return bOutput;
             }
 
