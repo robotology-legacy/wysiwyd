@@ -35,11 +35,17 @@ public:
     Bottle sensationOnCmd, sensationOffCmd, triggerCmd;
 
     bool close_ports() {
-        if (behaviorUnderPort)
+        if (behaviorUnderPort) {
+            behaviorUnderPort->interrupt();
             behaviorUnderPort->close();
-        if (behaviorOverPort)
+        }
+        if (behaviorOverPort) {
+            behaviorOverPort->interrupt();
             behaviorOverPort->close();
+        }
+        homeoPort->interrupt();
         homeoPort->close();
+        inputSensationPort->interrupt();
         inputSensationPort->close();
         return true;
     }

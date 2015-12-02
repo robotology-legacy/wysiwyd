@@ -2,13 +2,19 @@
 
 bool AllostaticController::close()
 {
+    yDebug() << "Closing port to homeo rpc";
+    to_homeo_rpc.interrupt();
     to_homeo_rpc.close();
     for (unsigned int i = 0; i < outputm_ports.size(); i++)
     {
+        // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
+        outputm_ports[i]->interrupt();        
         outputm_ports[i]->close();
+        outputM_ports[i]->interrupt();        
         outputM_ports[i]->close();
     }
 
+    yDebug() << "Closing AllostaticDrive ports";
     for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
         it->second.close_ports();
     }
@@ -59,7 +65,7 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     yDebug()<<moduleName<<": finding configuration files...";//<<endl;
-    period = rf.check("period",Value(0.1)).asDouble();
+    period = rf.check("period",Value(0.5)).asDouble();
 
     configureAllostatic(rf);
 
@@ -225,6 +231,7 @@ bool AllostaticController::updateModule()
             yDebug() << "Sensation ON";
             it->second.update(SENSATION_ON);
         } else {
+            yDebug() << "Sensation OFF";
             it->second.update(SENSATION_OFF);
         }
     }
@@ -289,6 +296,8 @@ bool AllostaticController::updateAllostatic()
 
     DriveOutCZ activeDrive = chooseDrive();
 
+    yInfo() << "Drive " + activeDrive.name + " chosen";
+
     if (activeDrive.name == "None") {
         yInfo() << "No drive out of CZ." ;
         return true;
@@ -299,6 +308,7 @@ bool AllostaticController::updateAllostatic()
     }
 
     if (allostaticDrives[activeDrive.name].active) {
+        yInfo() << "Trigerring " + activeDrive.name;
         allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
     } else {
         yInfo() << "Drive " + activeDrive.name + " is not active";
