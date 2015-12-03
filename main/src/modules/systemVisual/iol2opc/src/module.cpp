@@ -1054,6 +1054,7 @@ bool IOL2OPCBridge::remove_all()
     return true;
 }
 
+
 /**********************************************************/
 bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
 {
@@ -1094,3 +1095,4 @@ bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
 
     return true;
 }
+
