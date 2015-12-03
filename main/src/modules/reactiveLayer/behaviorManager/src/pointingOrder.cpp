@@ -30,6 +30,7 @@ void PointingOrder::run(Bottle args/*=Bottle()*/) {
 
 bool PointingOrder::handlePoint(string target)
 {
+    iCub->say("I will point the " + target);
     // Point an object (from human order). Independent of proactivetagging
     iCub->opc->checkout();
     yInfo() << " [handlePoint] : opc checkout";
@@ -37,6 +38,8 @@ bool PointingOrder::handlePoint(string target)
     string e_name = target;
     // point RPC useless
     //bool pointRPC = false;
+
+
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
     {
         string sName = (*itEnt)->name();
@@ -46,6 +49,7 @@ bool PointingOrder::handlePoint(string target)
         if (sName == e_name) {
             if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
+                iCub->say("The " + target + " is still in front of me");
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(*itEnt);
                 if(o && o->m_present) {
@@ -54,7 +58,8 @@ bool PointingOrder::handlePoint(string target)
                     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
                     string sHand = "right";
                     if (obj1->m_ego_position[1]<0) sHand = "left";
-                        Bottle bHand(sHand);
+                    Bottle bHand(sHand);
+                    iCub->say("I'm going to point the " + target);
                     iCub->point(e_name, bHand);
                     iCub->say("oh! this is a " + e_name);
                     yarp::os::Time::delay(2.0);
