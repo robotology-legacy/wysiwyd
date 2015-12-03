@@ -107,6 +107,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
     {
         cmd.clear();
         string driveName = drivesList.get(d).asString();
+        yInfo() << ("Initializing drive " + driveName);
 
         cmd.addString("add");
         cmd.addString("conf");
@@ -202,6 +203,9 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             yInfo() << "No port name";
         }
 
+
+
+
         alloDrive.active = active;
         allostaticDrives[driveName] = alloDrive;
     }
@@ -260,7 +264,7 @@ DriveOutCZ AllostaticController::chooseDrive() {
         max_diff.push_back(outputM_ports[i]->read()->get(0).asDouble());
         inCZ = min_diff.back() <= 0 && max_diff.back() <= 0;
         if (inCZ) {
-            outOfCzPriorities[i] = 0.1;
+            outOfCzPriorities[i] = 0.;
         }
         else {
             numOutCz ++;

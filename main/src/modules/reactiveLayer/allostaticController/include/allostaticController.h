@@ -61,7 +61,8 @@ public:
                 cmds = sensationOffCmd;
                 break;
             default:
-                yDebug() << "mode not implemented";
+                yDebug() << "Update mode not implemented";
+                yDebug() << to_string(mode);
                 break;
         }
         Bottle rplies;
@@ -90,7 +91,8 @@ public:
                 port = behaviorOverPort;
                 break;   
             default:
-                yDebug() << "mode not implemented";
+                yDebug() << "Trigger mode not implemented";
+                yDebug() << to_string(mode);
                 break;
         }
         
