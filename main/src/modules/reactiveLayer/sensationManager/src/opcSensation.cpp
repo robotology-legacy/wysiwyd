@@ -108,7 +108,7 @@ Bottle OpcSensation::handleTagging()
         // check if label is known
 
         if (sNameCut == "unknown") {
-            if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(*itEnt);
@@ -123,7 +123,18 @@ Bottle OpcSensation::handleTagging()
                     //Could also send saliency
                 }
             } else if((*itEnt)->entity_type() == "bodypart") {
-                ;//unknown_obj = true;
+                yInfo() << "I found an unknown entity: " << sName;
+                Object* o = dynamic_cast<Object*>(*itEnt);
+                if(o) {
+                    unknown_obj = true;
+                    //Output is a list of objects entity + objects name [the arguments for tagging]
+                    // o->m_saliency = unknownObjectSaliency;
+                    ob.clear();
+                    ob.addString((*itEnt)->entity_type());
+                    ob.addString(original_name);
+                    u_objects.addList()=ob;
+                    //Could also send saliency
+                }
             }
         } else {
             if ((*itEnt)->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1 || dynamic_cast<Bodypart*>(*itEnt)->m_kinStruct_instance == -1))
