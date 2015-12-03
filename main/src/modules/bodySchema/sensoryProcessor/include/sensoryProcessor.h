@@ -43,7 +43,6 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinForearm;
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinArm;
 
-    yarp::os::RpcClient portToABM;
     yarp::os::RpcClient portToSFM;
 
     yarp::dev::IEncoders* encsArm;
