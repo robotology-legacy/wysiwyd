@@ -148,7 +148,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         "help \n" +
         "quit \n"
         "exploreUnknownEntity entity_type entity_name \n" +
-        "exploreEntityByName entity_name \n" +
+        "searchingEntity entity_name \n" +
         "exploreKinematicByName entity_name bodypart [true/false] \n" +
         "exploreKinematicByJoint joint bodypart [true/false] \n";
 
@@ -497,7 +497,9 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         string sHand = "right";
         if (obj1->m_ego_position[1] < 0) sHand = "left";
         Bottle bHand(sHand);
+        yDebug() << "Going to point " << sNameTarget << " with my " << sHand << " hand";
         iCub->point(sNameTarget, bHand);
+        yDebug() << "pointing done";
     }
     else if (currentEntityType == "agent") {
         iCub->getARE()->waving(true);
@@ -516,6 +518,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         sName = bName.get(0).asString();
     }
 
+    yDebug() << "Going home";
     iCub->home();
 
     string sReply;
@@ -707,8 +710,10 @@ Bottle proactiveTagging::searchingEntity(Bottle bInput)
             // change name
             Entity* TARGET = iCub->opc->getEntity(sNameBestEntity);
             TARGET->changeName(sNameTarget);
+            iCub->opc->commit(TARGET);
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
+            iCub->say("Now I know the" + sNameTarget);
             if (TARGET->entity_type() == "object") {
                 SubSystem_IOL2OPC* iol2opcClient = iCub->getIOL2OPCClient();
                 if (iol2opcClient != NULL) {
