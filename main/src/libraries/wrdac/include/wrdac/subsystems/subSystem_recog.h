@@ -172,7 +172,7 @@ namespace wysiwyd{
                         osError << "Check grammar";
                         bOutput.addString(osError.str());
                         yError() << " " << osError.str();
-                        listen(true);
+                        if (!isEars) listen(true);
                         return bOutput;
                     }
 
@@ -182,7 +182,7 @@ namespace wysiwyd{
                         osError << "Grammar not recognized";
                         bOutput.addString(osError.str());
                         yInfo() << " " << osError.str();
-                        listen(true);
+                        if (!isEars) listen(true);
                         return bOutput;
                     }
 
@@ -227,7 +227,7 @@ namespace wysiwyd{
                     bOutput.addString(osError.str());
                     yError() << " " << osError.str();
                 }
-                listen(true);
+                if (!isEars) listen(true);
                 return bOutput;
             }
 
