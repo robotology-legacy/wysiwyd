@@ -716,6 +716,12 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     Bottle bSubSubArgument;
     bSubSubArgument.addString(command.get(1).toString());
     bSubSubArgument.addString("limb");
+    if(command.size()==3)
+    {
+        Bottle bSubSubArgument;
+        bSubSubArgument.addInt(command.get(2).asInt());
+        bSubSubArgument.addString("index");
+    }
     Bottle bSubSubArgument2;
     bSubSubArgument2.addString(part);
     bSubSubArgument2.addString("side");
@@ -732,6 +738,7 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     bSubArgument.addList() = bSubSubArgument3;
     bABM.addList() = bSubArgument;
     bABM.addList() = bBegin;
+    yInfo() << "Bottle to ABM: " << bABM.toString();
 
     if(Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc")) {
         portToABM.write(bABM,bABMreply);
