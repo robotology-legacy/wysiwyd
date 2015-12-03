@@ -30,7 +30,6 @@ void PointingOrder::run(Bottle args/*=Bottle()*/) {
 
 bool PointingOrder::handlePoint(string target)
 {
-    iCub->say("I will point the " + target);
     // Point an object (from human order). Independent of proactivetagging
     iCub->opc->checkout();
     yInfo() << " [handlePoint] : opc checkout";
