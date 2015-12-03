@@ -134,10 +134,15 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         cmds = grpAllostatic.check((driveName + "-sensation-off"), Value("None"));
         alloDrive.sensationOffCmd = *cmds.asList();
 
-        cmds = grpAllostatic.check((driveName + "-trigger"), Value("None"));
+        cmds = grpAllostatic.check((driveName + "-before-trigger"), Value("None"));
         if (!(cmds.isString() && cmds.asString() == "None")) {
-            alloDrive.triggerCmd = *cmds.asList();
+            alloDrive.beforeTriggerCmd = *cmds.asList();
         }
+
+        cmds = grpAllostatic.check((driveName + "-after-trigger"), Value("None"));
+        if (!(cmds.isString() && cmds.asString() == "None")) {
+            alloDrive.afterTriggerCmd = *cmds.asList();
+        }        
 
         alloDrive.homeoPort = &to_homeo_rpc;
 

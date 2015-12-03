@@ -32,7 +32,7 @@ public:
     BufferedPort<Bottle> *inputSensationPort;
     Bottle behaviorUnderCmd;
     Bottle behaviorOverCmd;
-    Bottle sensationOnCmd, sensationOffCmd, triggerCmd;
+    Bottle sensationOnCmd, sensationOffCmd, beforeTriggerCmd, afterTriggerCmd;
 
     bool close_ports() {
         if (behaviorUnderPort) {
@@ -79,7 +79,22 @@ public:
 
     void triggerBehavior(OutCZ mode)
     {
-        Bottle cmd, rply;
+
+        Bottle cmd, rply, rplies;
+        // before trigger command
+        if ( ! beforeTriggerCmd.isNull()) {
+            cmd.clear();
+            rply.clear();
+            rplies.clear();
+            for (int i=0; i<beforeTriggerCmd.size(); i++){
+                rply.clear();
+                Bottle cmd = *beforeTriggerCmd.get(i).asList();   
+                yDebug() << cmd.toString();     
+                homeoPort->write(cmd,rply);
+                rplies.addList() = rply;
+            }        
+        }
+
         Port* port = NULL;
         switch (mode) {
             case UNDER:
@@ -98,12 +113,16 @@ public:
         
         yInfo() << "Drive " + name + " to be triggered via " << port->getName();
         port->write(cmd, rply);
-        if ( ! triggerCmd.isNull()) {
-            Bottle rplies;
+
+        // after trigger command
+        if ( ! afterTriggerCmd.isNull()) {
+            cmd.clear();
+            rply.clear();
             rplies.clear();
-            for (int i=0; i<triggerCmd.size(); i++){
+            for (int i=0; i<afterTriggerCmd.size(); i++){
                 rply.clear();
-                Bottle cmd = *triggerCmd.get(i).asList();        
+                Bottle cmd = *afterTriggerCmd.get(i).asList();   
+                yDebug() << cmd.toString();     
                 homeoPort->write(cmd,rply);
                 rplies.addList() = rply;
             }        
