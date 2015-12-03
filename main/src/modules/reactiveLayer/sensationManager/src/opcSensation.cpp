@@ -110,7 +110,7 @@ Bottle OpcSensation::handleTagging()
         if (sNameCut == "unknown") {
             if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
-                // yInfo() << "I found an unknown entity: " << sName;
+                yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(*itEnt);
                 if(o && o->m_present) {
                     unknown_obj = true;
