@@ -1,4 +1,4 @@
-﻿<GRAMMAR	LANGID="409">
+﻿<GRAMMAR	LANGID="809">
 
   <DEFINE>
     <ID	NAME="predicate"	VAL="2"/>
@@ -35,7 +35,12 @@
   
     <RULE NAME="object" DYNAMIC="TRUE">
     <L>
-      <P>glasses</P>
+      <P>ladybug</P>
+      <P>carrots</P>
+      <P>joystick</P>
+      <P>mug</P>
+      <P>pig</P>
+      <P>bottle</P>
     </L>
   </RULE>
 
