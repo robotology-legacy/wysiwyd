@@ -323,6 +323,10 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
             command[j_idx] = 0;
         } else {
             command[j_idx] = 10 * (ref_command[j_idx] - encodersArm[j_idx]);
+            if(command[j_idx] > 50)
+                command[j_idx] = 50;
+            if(command[j_idx] < -50)
+                command[j_idx] = -50;
         }
     }
     else
@@ -339,6 +343,10 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
                 {
 //                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
                     command[l] = 10 * (ref_command[l] - encodersArm[l]);
+                    if(command[j_idx] > 20)
+                        command[j_idx] = 20;
+                    if(command[j_idx] < -20)
+                        command[j_idx] = -20;
                 }
             }
 
@@ -355,6 +363,10 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
                 {
 //                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
                     command[l] = 10 * (ref_command[l] - encodersArm[l]);
+                    if(command[j_idx] > 20)
+                        command[j_idx] = 20;
+                    if(command[j_idx] < -20)
+                        command[j_idx] = -20;
                 }
             }
         }
