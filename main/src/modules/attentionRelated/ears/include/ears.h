@@ -14,7 +14,8 @@ private:
     BufferedPort<Bottle>        portTarget;
     string      target;    
 
-    bool bListen;
+    bool bShouldListen;
+    bool bIsListening;
 
     std::string      grammarToString(std::string sPath);
     std::string      MainGrammar;

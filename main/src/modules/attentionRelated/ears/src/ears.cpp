@@ -31,7 +31,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
 
-    bListen = true;
+    bShouldListen = true;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
     
@@ -69,11 +69,23 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
         {
             if (command.get(1).asString() == "on")
             {
-                bListen = true;
+                bShouldListen = true;
+                while(!bIsListening) {
+                    yarp::os::Time::delay(0.05);
+                }
+                reply.addString("ack");
             }
             else if (command.get(1).asString() == "off")
             {
-                bListen = false;
+                bShouldListen = false;
+                while(bIsListening) {
+                    yarp::os::Time::delay(0.05);
+                }
+                reply.addString("ack");
+            }
+            else {
+                reply.addString("nack");
+                reply.addString("Send either listen on or listen off");
             }
         }
     }
@@ -88,14 +100,16 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool ears::updateModule() {
 
-    if (bListen)
+    if (bShouldListen)
     {
+        bIsListening = true;
+
         yDebug() << "bListen";
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
-        bListen=true;
+        bShouldListen=true;
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -153,10 +167,10 @@ bool ears::updateModule() {
         portToBehavior.write(bCondition);
  
         yDebug() << "Sending " + target;
-    } else {yDebug() << "Not bListen";}
-
-
-
+    } else {
+        yDebug() << "Not bListen";
+        bIsListening = false;
+    }
 
     return true;
 }

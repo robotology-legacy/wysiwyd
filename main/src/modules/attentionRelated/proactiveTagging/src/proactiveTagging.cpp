@@ -367,6 +367,7 @@ Bottle proactiveTagging::recogName(string entityType)
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
 
+    yDebug() << "Going to load grammar.";
     //Load the Speech Recognition with grammar according to entityType
     if (entityType == "agent"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
@@ -383,6 +384,7 @@ Bottle proactiveTagging::recogName(string entityType)
         bOutput.addString("Entity Type not managed");
         return bOutput;
     }
+    yDebug() << "Response from recogClient: " << bRecognized.toString();
 
     if (bRecognized.get(0).asInt() == 0)
     {

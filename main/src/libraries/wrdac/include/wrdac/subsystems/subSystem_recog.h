@@ -90,7 +90,9 @@ namespace wysiwyd{
                     } else {
                         cmd.addString("off");
                     }
+                    yDebug() << "Listen sending command " << cmd.toString();
                     ears_port.write(cmd, reply);                 
+                    yDebug() << "Listen got reply" << reply.toString();
                 }
             }
 
