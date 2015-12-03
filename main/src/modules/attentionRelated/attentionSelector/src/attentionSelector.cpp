@@ -105,13 +105,12 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "track <string name> : track the object with the given opc name \n" +
         "track <int id> : track the object with the given opc id \n" +
-        "track <double x> <double y> <double z> : track with the object coordinates\n" +
+        "track <double x> <double y> <double z> : track with the object coordinates \n" +
         "auto : switch attention between present objects \n" +
-        "sleep : pauses the head control until next command" +
+        "sleep : pauses the head control until next command \n" +
+        "stat : returns \"auto\",\"quiet\",\"<object_name_to_track>\" \n" +
         "help \n" +
         "quit \n";
-
-    reply.clear();
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
@@ -119,7 +118,8 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "help") {
         yInfo() << helpMessage;
-        reply.addString("ok");
+        reply.addString("ack");
+        return true;
     }
     else if (command.get(0).asString() == "track") {
         autoSwitch = false;
@@ -140,15 +140,18 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
         }
         aState = s_tracking;
         reply.addString("ack");
+        return true;
     }
     else if (command.get(0).asString() == "auto") {
         autoSwitch = true;
         reply.addString("ack");
+        return true;
     }
     else if (command.get(0).asString() == "sleep") {
         autoSwitch = false;
         trackedObject = "none";
         reply.addString("ack");
+        return true;
     }
     else if (command.get(0).asString() == "look") {
         autoSwitch = false;
@@ -162,7 +165,20 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
 
         are->look(xyz);
         reply.addString("ack");
+        return true;
     }
+    else if (command.get(0).asString() == "stat") {
+        reply.addString("ack");
+        if (autoSwitch)
+            reply.addString("auto");
+        else if (trackedObject!="none")
+            reply.addString(trackedObject.c_str());
+        else
+            reply.addString("quiet");
+        return true;
+    }
+
+    reply.addString("nack");
     return true;
 }
 
