@@ -175,7 +175,8 @@ else error('s must have 3 columns or be square'); end;
 if length(p)==1 p=p*ones(N,1); end;
 
 % Append self-similarities (preferences) to s-matrix
-tmps=[repmat([1:N]',[1,2]),p]; s=[s;tmps];
+tmps=[repmat([1:N]',[1,2]),p]; 
+s=[s;tmps];
 M=size(s,1);
 
 % In case user did not remove degeneracies from the input similarities,

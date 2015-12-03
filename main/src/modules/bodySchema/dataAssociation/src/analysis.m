@@ -29,9 +29,10 @@ addpath(genpath('../include/AffinityPropagation'))
 joints = joints(2:end,:) - joints(1:end-1,:);
 touch = touch(1:end-1,:);
 % touch = touch/255;
-touch = mat2gray(randn(size(touch)));
+%touch = mat2gray(randn(size(touch)));
 
-T = touch'*touch;
+% joint_data = joints(:,1:7);
+T = (touch'*touch);
 
 
 %% Clustering on T
