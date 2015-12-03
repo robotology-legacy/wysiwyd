@@ -46,7 +46,8 @@ Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
     bOutput.clear();
 
     //3. prepare second Bottle to move the single joint
-    bSingleJoint.addString("singleJointBabbling");
+    bSingleJoint.addString("babbling");
+    bSingleJoint.addString("joint");
     bSingleJoint.addInt(joint);
 
     //4. send single joint moving bottle

@@ -59,7 +59,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     //out to BodySchema
     portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str());
-    string bodySchemaRpc = rf.check("bodySchemaRpc", Value("/bodySchema/rpc")).asString().c_str();
+    string bodySchemaRpc = rf.check("bodySchemaRpc", Value("/babbling/rpc")).asString().c_str();
 
     if (!Network::connect(portToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
         yWarning() << " BODY SCHEMA NOT CONNECTED: selfTagging will not work";
