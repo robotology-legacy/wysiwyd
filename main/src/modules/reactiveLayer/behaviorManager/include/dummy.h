@@ -23,7 +23,7 @@ private:
 
     void run(Bottle args=Bottle()) {
         yDebug() << "Dummmy::run start " + name;
-        Time::delay(2);
+        Time::delay(10);
         yDebug() << "Dummmy::run stop " + name;
     }
     int id;

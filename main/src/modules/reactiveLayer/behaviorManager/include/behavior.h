@@ -41,7 +41,7 @@ public:
             iCub->say("I begin behavior " + name);
             run(args);
             iCub->say("I stop behavior " + name);
-            Time::delay(3.0);
+            // Time::delay(0.0);
             mut->unlock();
         }
     }
