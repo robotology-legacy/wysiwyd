@@ -83,15 +83,14 @@ namespace wysiwyd{
 
             void listen(bool on) {
                 if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
-                    yarp::os::Bottle cmd;
-                    cmd.clear();
+                    yarp::os::Bottle cmd, reply;
                     cmd.addString("listen");
                     if (on) {
                         cmd.addString("on");
                     } else {
                         cmd.addString("off");
                     }
-                    ears_port.write(cmd);                 
+                    ears_port.write(cmd, reply);                 
                 }
             }
 
@@ -109,7 +108,7 @@ namespace wysiwyd{
                     return bReply;
                 }
                 // turn on the main grammar through ears
-                listen(false);  
+                listen(false);
 
                 yarp::os::Bottle bMessenger;
                 yarp::os::Bottle bReply;
@@ -117,9 +116,11 @@ namespace wysiwyd{
                 bMessenger.addString("grammarXML");
                 bMessenger.addString(sInput);
                 portRPC.write(bMessenger, bReply);
+
+                listen(true);
+
                 return bReply;
                 // turn off the main grammar through ears
-                listen(true);                 
             }
 
             /**
