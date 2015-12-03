@@ -52,6 +52,7 @@ bool ears::close() {
 
 
 bool ears::respond(const Bottle& command, Bottle& reply) {
+    LockGuard lg(mutex);
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "quit \n";
@@ -70,17 +71,11 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
             if (command.get(1).asString() == "on")
             {
                 bShouldListen = true;
-                while(!bIsListening) {
-                    yarp::os::Time::delay(0.05);
-                }
                 reply.addString("ack");
             }
             else if (command.get(1).asString() == "off")
             {
                 bShouldListen = false;
-                while(bIsListening) {
-                    yarp::os::Time::delay(0.05);
-                }
                 reply.addString("ack");
             }
             else {
@@ -99,17 +94,15 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool ears::updateModule() {
-
+    LockGuard lg(mutex);
     if (bShouldListen)
     {
-        bIsListening = true;
-
         yDebug() << "bListen";
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
-        bShouldListen=true;
+        //bShouldListen=true;
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -169,7 +162,6 @@ bool ears::updateModule() {
         yDebug() << "Sending " + target;
     } else {
         yDebug() << "Not bListen";
-        bIsListening = false;
     }
 
     return true;
