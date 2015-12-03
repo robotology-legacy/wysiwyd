@@ -108,7 +108,7 @@ Bottle OpcSensation::handleTagging()
         // check if label is known
 
         if (sNameCut == "unknown") {
-            if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "bodypart")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 // yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(*itEnt);
@@ -127,7 +127,11 @@ Bottle OpcSensation::handleTagging()
             }
         } else {
             if ((*itEnt)->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1 || dynamic_cast<Bodypart*>(*itEnt)->m_kinStruct_instance == -1))
-                {}//unknown_obj = true;
+                {
+
+                    ;
+
+                }//unknown_obj = true;
         }
     }
     //if no unknown object was found, return false
