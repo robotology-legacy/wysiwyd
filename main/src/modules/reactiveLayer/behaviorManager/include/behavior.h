@@ -11,7 +11,15 @@ using namespace wysiwyd::wrdac;
 
 class Behavior
 {
+private:
+    Mutex* mut;
+
+    virtual void run(Bottle args=Bottle()) = 0;
 public:
+
+    Behavior(Mutex* _mut) {
+        mut = _mut;
+    };
 
     void openPorts(string port_name_prefix="") {
         if (from_sensation_port_name != "None") {
@@ -28,10 +36,19 @@ public:
     BufferedPort<Bottle> sensation_port_in;
     Port rpc_out_port;
 
+    void trigger(Bottle args=Bottle()) {
+        if (mut->tryLock()) {
+            iCub->say("I begin behavior " + name);
+            run(args);
+            iCub->say("I stop behavior " + name);
+            Time::delay(3.0);
+            mut->unlock();
+        }
+    }
+
     virtual void configure() = 0;
-    virtual void run(Bottle args=Bottle()) = 0;
     virtual void close_extra_ports() = 0;
-    
+
     void close_ports() {
         close_extra_ports();
         sensation_port_in.interrupt();

@@ -16,9 +16,15 @@ using namespace yarp::sig;
 
 class Tagging: public Behavior
 {
-public:
-    void configure();
+private:
     void run(Bottle args=Bottle());
+    
+public:
+    Tagging(Mutex* mut): Behavior(mut) {
+        ;
+    }
+       
+    void configure();
 
     void close_extra_ports() {
         ;

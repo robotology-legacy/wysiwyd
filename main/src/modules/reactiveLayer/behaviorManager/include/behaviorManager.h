@@ -44,6 +44,8 @@ private:
     ICubClient *iCub;
 
     int behavior_to_trigger;
+
+    Mutex mut;
 public:
    bool configure(yarp::os::ResourceFinder &rf);
 

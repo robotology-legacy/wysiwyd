@@ -33,14 +33,15 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     {
         string behavior_name = behaviorList.get(i).asString();
         if (behavior_name == "tagging") {
-            behaviors.push_back(new Tagging());
+            behaviors.push_back(new Tagging(&mut));
         } else if (behavior_name == "pointing") {
-            behaviors.push_back(new Pointing());
+            behaviors.push_back(new Pointing(&mut));
         } else if (behavior_name == "dummy") {
-            behaviors.push_back(new Dummy());
-
+            behaviors.push_back(new Dummy(&mut));
+        } else if (behavior_name == "dummy2") {
+            behaviors.push_back(new Dummy(&mut));
         } else if (behavior_name == "pointingOrder") {
-            behaviors.push_back(new PointingOrder());
+            behaviors.push_back(new PointingOrder(&mut));
 
         }
             // other behaviors here
@@ -54,8 +55,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
     iCub->opc->isVerbose = true;
-    char rep = 'n';
-    while (rep!='y'&&!iCub->connect())
+    // char rep = 'n';
+    if (!iCub->connect())
     {
         yInfo()<<"iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
@@ -126,11 +127,10 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
         //         {
         //             args.add(&cmd.get(a));
         //         }
-                beh->run(/*args*/);
+                beh->trigger(/*args*/);
             }
         }
     }
-    // strange:
     reply.clear();
     reply.addString("ack");
     yDebug() << "End of BehaviorManager::respond";
