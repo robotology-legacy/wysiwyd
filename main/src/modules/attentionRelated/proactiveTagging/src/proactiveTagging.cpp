@@ -398,7 +398,7 @@ Bottle proactiveTagging::recogName(string entityType)
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
     string sSentence = bAnswer.get(0).asString();
-    iCub->say(sSentence);
+    iCub->say("I've understood " + sSentence);
 
     if (bAnswer.get(0).asString() == "stop")
     {

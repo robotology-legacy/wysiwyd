@@ -49,7 +49,6 @@ bool PointingOrder::handlePoint(string target)
         if (sName == e_name) {
             if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
-                iCub->say("The " + target + " is still in front of me");
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(*itEnt);
                 if(o && o->m_present) {
