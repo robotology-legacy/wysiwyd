@@ -334,6 +334,7 @@ string proactiveTagging::askManner(string agent, string verb, string object)
 
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
     bSemantic = *bAnswer.get(1).asList();
+    
 
 
     if (bAnswer.get(0).asString() == "stop")
@@ -393,6 +394,9 @@ Bottle proactiveTagging::recogName(string entityType)
 
     bAnswer = *bRecognized.get(1).asList();
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
+
+    string sSentence = bAnswer.get(0).asString();
+    iCub->say(sSentence);
 
     if (bAnswer.get(0).asString() == "stop")
     {
