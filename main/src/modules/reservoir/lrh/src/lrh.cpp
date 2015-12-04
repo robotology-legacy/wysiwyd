@@ -397,7 +397,7 @@ bool LRH::AREactions(vector<string> seq)
             if (sLocation != " ")
             {
                 Time::delay(ftime);
-                bool grasped = iCub->getARE()->take(value, bHand, false);
+                bool grasped = iCub->getARE()->take(value, bHand);
                 cout << (grasped ? "grasped!" : "missed!") << endl;
 
                 success &= grasped;
@@ -405,7 +405,7 @@ bool LRH::AREactions(vector<string> seq)
 
                 if (grasped){
                     Bottle opts("over still " + sHand);
-                    bool dropped = iCub->getARE()->dropOn(vGoal, opts, false);
+                    bool dropped = iCub->getARE()->dropOn(vGoal, opts);
                     cout << (dropped ? "dropped!" : "missed!") << endl;
                     Time::delay(ftime);
                     iCub->getARE()->home();
@@ -416,7 +416,7 @@ bool LRH::AREactions(vector<string> seq)
             // DROP WITHOUT LOCATION
             else
             {
-                bool grasped = iCub->getARE()->take(value, bHand, false);
+                bool grasped = iCub->getARE()->take(value, bHand);
                 cout << (grasped ? "grasped!" : "missed!") << endl;
                 Time::delay(ftime);
                 success &= grasped;
@@ -439,7 +439,7 @@ bool LRH::AREactions(vector<string> seq)
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
             Time::delay(ftime);
-            bool pushed = iCub->getARE()->push(value, bHand, false);
+            bool pushed = iCub->getARE()->push(value, bHand);
             cout << (pushed ? "pushed!" : "missed!") << endl;
             Time::delay(ftime);
             success &= pushed;
