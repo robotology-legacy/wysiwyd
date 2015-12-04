@@ -22,8 +22,10 @@
 #include <string>
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
+
 #include "wrdac/subsystems/subSystem.h"
-#include "wrdac/knowledge/object.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_attention.h"
 
 #define SUBSYSTEM_ARE       "ARE"
 
@@ -44,6 +46,9 @@ namespace wysiwyd {
             SubSystem_ABM* SubABM;
             bool ABMconnected;
 
+            SubSystem_Attention* SubATT;
+            bool ATTconnected;
+
         protected:
             yarp::os::BufferedPort<yarp::os::Bottle> cmdNoWaitPort;
             yarp::os::RpcClient cmdPort;            
@@ -60,29 +65,41 @@ namespace wysiwyd {
             }
 
             /********************************************************************************/
-            bool sendCmd(yarp::os::Bottle &cmd, const bool shouldWait = true)
+            bool sendCmd(yarp::os::Bottle &cmd, const bool disableATT=false)
             {
-                if (shouldWait)
+                bool ret=false;
+
+                std::string status;
+                if (ATTconnected && disableATT)
                 {
-                    yarp::os::Bottle bReply;
-                    if (cmdPort.write(cmd, bReply))
-                        return (bReply.get(0).asVocab() == yarp::os::Vocab::encode("ack"));
-                }
-                else
-                {
-                    cmdNoWaitPort.prepare()=cmd;
-                    cmdNoWaitPort.writeStrict();
-                    return true;
+                    SubATT->getStatus(status);
+                    if (status!="quiet")
+                        SubATT->stop(); 
                 }
 
-                return false;
+                yarp::os::Bottle bReply;
+                if (cmdPort.write(cmd,bReply))
+                    ret=(bReply.get(0).asVocab()==yarp::os::Vocab::encode("ack"));
+
+                if (ATTconnected && disableATT)
+                {
+                    if (status=="auto")
+                        SubATT->enableAutoMode();
+                    else if (status!="quiet")
+                        SubATT->track(status);
+                }
+
+                return ret;
             }
 
             /********************************************************************************/
             bool connect()
             {                
-                ABMconnected = (SubABM->Connect());
-                std::cout << ((ABMconnected) ? "ARE connected to ABM" : "ARE didn't connect to ABM") << std::endl;
+                ABMconnected = SubABM->Connect();
+                std::cout << (ABMconnected ? "ARE connected to ABM" : "ARE didn't connect to ABM") << std::endl;
+
+                ATTconnected = SubATT->Connect();
+                std::cout << (ATTconnected ? "ARE connected to Attention" : "ARE didn't connect to Attention") << std::endl;
 
                 bool ret = true;
                 ret &= yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
@@ -100,6 +117,8 @@ namespace wysiwyd {
             SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
             {
                 SubABM = new SubSystem_ABM("from_ARE");
+                SubATT = new SubSystem_Attention("from_ARE");
+
                 cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
                 cmdNoWaitPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd_nowait:io").c_str());
                 rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
@@ -116,7 +135,9 @@ namespace wysiwyd {
                 cmdNoWaitPort.interrupt();
                 rpcPort.interrupt();
                 getPort.interrupt();
+
                 SubABM->Close();
+                SubATT->Close();
 
                 cmdPort.close();
                 cmdNoWaitPort.close();
@@ -166,11 +187,10 @@ namespace wysiwyd {
             * Put the specified part ih home position.
             * @param part the part to be homed ("gaze", "head", "arms",
             *             "fingers", "all"; "all" by default).
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool home(const std::string &part = "all", const bool shouldWait = true)
+            bool home(const std::string &part = "all")
             {
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("home"));
@@ -184,7 +204,7 @@ namespace wysiwyd {
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     SubABM->sendActivity("action", "home", "action", lArgument, true);
                 }
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
                 if (ABMconnected)
@@ -208,12 +228,10 @@ namespace wysiwyd {
             * @param target Target to grasp in cartesian coordinates
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                const bool shouldWait = true)
+            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
@@ -230,7 +248,7 @@ namespace wysiwyd {
                 bCmd.addVocab(yarp::os::Vocab::encode("take"));
                 appendCartesianTarget(bCmd, target);
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
                 if (ABMconnected)
@@ -255,12 +273,10 @@ namespace wysiwyd {
             * @param target Target to grasp in cartesian coordinates
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                const bool shouldWait = true)
+            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
@@ -277,7 +293,7 @@ namespace wysiwyd {
                 bCmd.addVocab(yarp::os::Vocab::encode("push"));
                 appendCartesianTarget(bCmd, target);
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -300,12 +316,10 @@ namespace wysiwyd {
             * @param target Target to grasp in cartesian coordinates
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                const bool shouldWait = true)
+            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
@@ -322,7 +336,7 @@ namespace wysiwyd {
                 bCmd.addVocab(yarp::os::Vocab::encode("point"));
                 appendCartesianTarget(bCmd, target);
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -344,11 +358,10 @@ namespace wysiwyd {
             * random position.
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool drop(const yarp::os::Bottle &options = yarp::os::Bottle(), const bool shouldWait = true)
+            bool drop(const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 if (ABMconnected)
                 {
@@ -362,7 +375,7 @@ namespace wysiwyd {
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("drop"));
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -384,12 +397,10 @@ namespace wysiwyd {
             * @param target Target where to drop in cartesian coordinates
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool dropOn(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                const bool shouldWait = true)
+            bool dropOn(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
@@ -407,7 +418,7 @@ namespace wysiwyd {
                 bCmd.addString("over");
                 appendCartesianTarget(bCmd, target);
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -429,11 +440,10 @@ namespace wysiwyd {
             * purpose of visual exploration.
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool observe(const yarp::os::Bottle &options = yarp::os::Bottle(), const bool shouldWait = true)
+            bool observe(const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 if (ABMconnected)
                 {
@@ -447,7 +457,7 @@ namespace wysiwyd {
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("observe"));
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -469,11 +479,10 @@ namespace wysiwyd {
             * object.
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool expect(const yarp::os::Bottle &options = yarp::os::Bottle(), const bool shouldWait = true)
+            bool expect(const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 if (ABMconnected)
                 {
@@ -487,7 +496,7 @@ namespace wysiwyd {
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("expect"));
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -510,11 +519,10 @@ namespace wysiwyd {
             * taken.
             * @param options Options of ARE commands ("no_head", "no_gaze",
             *             "no_sacc", "still", "left", "right").
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool give(const yarp::os::Bottle &options = yarp::os::Bottle(), const bool shouldWait = true)
+            bool give(const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 if (ABMconnected)
                 {
@@ -528,7 +536,7 @@ namespace wysiwyd {
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("give"));
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -581,12 +589,10 @@ namespace wysiwyd {
             * @param target Target to look at in cartesian coordinates
             * @param options Options of ARE commands ("fixate", (block_eyes 
             *             ver)).
-            * @param shouldWait is the function blocking?
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                const bool shouldWait = true)
+            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 if (ABMconnected)
                 {
@@ -602,7 +608,7 @@ namespace wysiwyd {
                 bCmd.addVocab(yarp::os::Vocab::encode("look"));
                 appendCartesianTarget(bCmd, target);
                 bCmd.append(options);
-                bool bReturn = sendCmd(bCmd, shouldWait);
+                bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
@@ -623,19 +629,17 @@ namespace wysiwyd {
             * Track the specified [target].
             * @param target Target to look at in cartesian coordinates
             * @param options Options of ARE commands ("no_sacc"). 
-            * @param shouldWait is the function blocking? 
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool track(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),
-                const bool shouldWait = true)
+            bool track(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle())
             {
                 // track() is meant for streaming => no point in gating the activity continuously
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("track"));
                 appendCartesianTarget(bCmd, target);
                 bCmd.append(options);
-                return sendCmd(bCmd, shouldWait);
+                return sendCmd(bCmd);
             }
 
             /**
@@ -671,9 +675,9 @@ namespace wysiwyd {
             ~SubSystem_ARE()
             {
                 delete SubABM;
+                delete SubATT;
             }
         };
-
     }
 }
 

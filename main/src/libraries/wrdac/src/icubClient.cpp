@@ -448,7 +448,7 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
 }
 
 
-bool ICubClient::point(const string &oLocation, const Bottle &options, bool shouldWait)
+bool ICubClient::point(const string &oLocation, const Bottle &options)
 {
     Entity *target=opc->getEntity(oLocation,true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
@@ -464,11 +464,11 @@ bool ICubClient::point(const string &oLocation, const Bottle &options, bool shou
         return false;
     }
 
-    return point(oTarget->m_ego_position,options, shouldWait);
+    return point(oTarget->m_ego_position,options);
 }
 
 
-bool ICubClient::point(const Vector &target, const Bottle &options, bool shouldWait)
+bool ICubClient::point(const Vector &target, const Bottle &options)
 {
     SubSystem_ARE *are=getARE();
     if (are==NULL)
@@ -479,7 +479,7 @@ bool ICubClient::point(const Vector &target, const Bottle &options, bool shouldW
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->point(target,opt, shouldWait);
+    return are->point(target,opt);
 }
 
 
@@ -490,11 +490,8 @@ bool ICubClient::look(const string &target)
         cout<<"Impossible, attention is not running..."<<endl;
         return false;
     }
-    Bottle cmd, reply;
-    cmd.addString("track");
-    cmd.addString(target.c_str());
-    ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
-    return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
+
+    return ((SubSystem_Attention*)subSystems["attention"])->track(target);
 }
 
 
@@ -505,10 +502,8 @@ bool ICubClient::lookAround()
         cout<<"Impossible, attention is not running..."<<endl;
         return false;
     }
-    Bottle cmd, reply;
-    cmd.addString("auto");
-    ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
-    return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
+
+    return ((SubSystem_Attention*)subSystems["attention"])->enableAutoMode();
 }
 
 
@@ -519,10 +514,8 @@ bool ICubClient::lookStop()
         cout<<"Impossible, attention is not running..."<<endl;
         return false;
     }
-    Bottle cmd, reply;
-    cmd.addString("sleep");
-    ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
-    return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
+
+    return ((SubSystem_Attention*)subSystems["attention"])->stop();
 }
 
 

@@ -210,7 +210,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     Time::delay(2.0);
     iCub->lookStop();
 
-    bSuccess &= iCub->point(sObject, bHand, true);
+    bSuccess &= iCub->point(sObject, bHand);
     // SEND SUBACTION
     bToDumper.clear();
     bToDumper.addString("subaction");

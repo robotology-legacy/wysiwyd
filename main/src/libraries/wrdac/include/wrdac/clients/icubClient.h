@@ -314,7 +314,7 @@ public:
     * @return true in case of success release, false otherwise 
     *         (Entity non existing, impossible to reach, etc.).
     */ 
-    bool point(const std::string &oLocation, const yarp::os::Bottle &options=yarp::os::Bottle(), bool shouldWait = true);
+    bool point(const std::string &oLocation, const yarp::os::Bottle &options=yarp::os::Bottle());
 
     /**
     * Point at a specified location.
@@ -326,7 +326,7 @@ public:
     * @return true in case of success release, false otherwise 
     *         (Entity non existing, impossible to reach, etc.).
     */ 
-    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(), bool shouldWait = true);
+    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle());
 
     /**
     * Start tracking a given entity
