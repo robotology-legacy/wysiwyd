@@ -12,8 +12,12 @@ void Pointing::configure() {
 void Pointing::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
-    string obj_name = sensation->get(0).asList()->get(1).asString();
+    int id = 0;  // should be random here
+    string obj_name = sensation->get(id).asList()->get(1).asString();
     
+    iCub->say("I could point the " + obj_name);
+    Time::delay(2.0);
+    return;
     // yInfo() << "About to point the " + obj_name;
     // return;
 
