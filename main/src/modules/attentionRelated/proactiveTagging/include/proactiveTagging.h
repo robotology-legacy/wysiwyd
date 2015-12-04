@@ -24,10 +24,16 @@ private:
 
     double      period;
 
+    std::string bodySchemaRpc;
+    std::string SAMRpc;
+    std::string LRHRpc;
+    std::string touchDetectorRpc;
+
     std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
     yarp::os::Port   portToBodySchema;
-yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
+    yarp::os::Port   portToSAM;
+    yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
     yarp::os::Port   portToPasar;
     yarp::os::Port   portToLRH;
     yarp::os::BufferedPort<yarp::os::Bottle>   portFromTouchDetector;
