@@ -36,17 +36,17 @@ switch videoName
         %-----------------------
         disp('Loading image sequences ...');
         
-        [filename, pathname, filterindex] = uigetfile(...
+        [video_filename, pathname, filterindex] = uigetfile(...
             {'*.avi;*.mpg;*.mpeg','Video Files (*.avi,*.mpg,*.mpeg)';
             '*.*',  'All Files (*.*)'}, ...
             'Select a video file');
-        disp([pathname,filename]);
-        videoObj = VideoReader([pathname,filename]);
+        disp([pathname,video_filename]);
+        videoObj = VideoReader([pathname,video_filename]);
         nFrames = videoObj.NumberOfFrames;
         width = videoObj.Width;
         height = videoObj.Height;
         
-        feature_point_save_path = [pwd,'/points/',filename(1:end-4)];
+        feature_point_save_path = [pwd,'/points/',video_filename(1:end-4)];
         [SUCCESS,MESSAGE,MESSAGEID] = mkdir(feature_point_save_path);
         
     case 'YARP'
@@ -57,15 +57,15 @@ switch videoName
         
         pause(1)
         
-        filename = 'video.avi';
+        video_filename = 'video.avi';
         pathname = 'ABM_images/';
-        disp([pathname,filename]);
-        videoObj = VideoReader([pathname,filename]);
+        disp([pathname,video_filename]);
+        videoObj = VideoReader([pathname,video_filename]);
         nFrames = videoObj.NumberOfFrames;
         width = videoObj.Width;
         height = videoObj.Height;
         
-        feature_point_save_path = [pwd,'/points/',filename(1:end-4)];
+        feature_point_save_path = [pwd,'/points/',video_filename(1:end-4)];
         [SUCCESS,MESSAGE,MESSAGEID] = mkdir(feature_point_save_path);
         
     case 'images'
@@ -79,13 +79,13 @@ switch videoName
         disp('Loading image sequences ...');
         
         pathname = [pwd,'/data/'];
-        filename = 'video.avi';
-        videoObj = VideoReader([pathname,filename]);
+        video_filename = 'video.avi';
+        videoObj = VideoReader([pathname,video_filename]);
         nFrames = videoObj.NumberOfFrames;
         width = videoObj.Width;
         height = videoObj.Height;
         
-        feature_point_save_path = [pwd,'/points/',filename(1:end-4)];
+        feature_point_save_path = [pwd,'/points/',video_filename(1:end-4)];
         [SUCCESS,MESSAGE,MESSAGEID] = mkdir(feature_point_save_path);
         
 end
