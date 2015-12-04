@@ -57,7 +57,7 @@ bool PointingOrder::handlePoint(string target)
                     string sHand = "right";
                     if (obj1->m_ego_position[1]<0) sHand = "left";
                     Bottle bHand(sHand);
-                    iCub->say("I'm going to point the " + target);
+                    //iCub->say("I'm going to point the " + target);
                     iCub->point(e_name, bHand);
                     iCub->say("oh! this is a " + e_name);
                     yarp::os::Time::delay(2.0);
@@ -87,8 +87,6 @@ bool PointingOrder::handleSearch(string target)
     for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
     {
         string sName = (*itEnt)->name();
-        
-
         if (sName == e_name) {
             yDebug() << "Entity found: "<<e_name;//<<endl;
             if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")

@@ -25,9 +25,6 @@ using namespace yarp::math;
 //     Bottle rpc_command;
 // };
 
-
-
-
 class BehaviorManager: public RFModule
 {
 private:

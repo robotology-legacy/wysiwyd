@@ -19,7 +19,7 @@ public:
 
     Behavior(Mutex* _mut) {
         mut = _mut;
-    };
+    }
 
     void openPorts(string port_name_prefix="") {
         if (from_sensation_port_name != "None") {
@@ -38,9 +38,7 @@ public:
 
     void trigger(Bottle args=Bottle()) {
         if (mut->tryLock()) {
-            iCub->say("I begin behavior " + name);
             run(args);
-            iCub->say("I stop behavior " + name);
             // Time::delay(0.0);
             mut->unlock();
         }
@@ -55,7 +53,6 @@ public:
         sensation_port_in.close();
         rpc_out_port.interrupt();
         rpc_out_port.close();
-
     }
     
 };

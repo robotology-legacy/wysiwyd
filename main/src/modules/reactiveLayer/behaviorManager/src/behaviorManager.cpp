@@ -71,7 +71,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         yInfo() << "SPEECH not available.";
     }
 
-
     // id = 0;
     for(auto beh : behaviors) {
         beh->configure();
