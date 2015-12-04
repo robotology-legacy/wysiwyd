@@ -179,6 +179,7 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
 
     if (bInput.get(1).toString() == "agent")
     {
+        sName = "partner";
         Agent* agent = iCub->opc->addEntity<Agent>(sName);
         agent->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.5;
         agent->m_ego_position[1] = (2) * (Random::uniform()) - 1;
