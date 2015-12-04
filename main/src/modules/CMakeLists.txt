@@ -6,7 +6,6 @@
 add_subdirectory(abm)
 add_subdirectory(adaptiveLayer)
 add_subdirectory(attentionRelated)
-add_subdirectory(behaviorRelated)
 add_subdirectory(reactiveLayer)
 add_subdirectory(learnPrimitive)
 add_subdirectory(navigationRelated)
