@@ -446,7 +446,7 @@ void PasarModule::saliencyPointing()
 
     opc->update();
     Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
-    if (!(ag->m_present)) return;
+    if (!ag || !ag->m_present) return;
 
     Vector vec = ag->m_body.m_parts["handRight"];
 
@@ -536,7 +536,7 @@ void PasarModule::saliencyWaving()
 
     opc->update();
     Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
-    if (!(ag->m_present)) 
+    if (!ag || !ag->m_present)
     {
         presentRightHand.first = presentRightHand.second;
         presentLeftHand.first = presentLeftHand.second;
