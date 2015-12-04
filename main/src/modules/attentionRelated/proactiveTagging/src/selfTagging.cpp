@@ -51,6 +51,9 @@ Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
     bSingleJoint.addInt(joint);
 
     //4. send single joint moving bottle
+    if (!Network::connect(portToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
+        yWarning() << " bodySchema NOT CONNECTED: selfTagging will not work";
+    }
     if(portToBodySchema.getOutputCount()>0)
         portToBodySchema.write(bSingleJoint, bOutput);
     yDebug() << "Reply from bodySchema:" << bOutput.toString();
@@ -271,7 +274,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName, true));
 
     //2.Ask human to touch
-    string sAsking = " Can you please touch my " + sName ;
+    string sAsking = "I know how to move my " + sName + ", but how does it feel to be touched? Can you touch my " + sName + ", please.";
     yInfo() << " sAsking: " << sAsking;
     iCub->say(sAsking);
 
