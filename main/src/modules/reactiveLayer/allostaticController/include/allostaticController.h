@@ -141,7 +141,6 @@ private:
     string homeo_name;
 
     double period;
-    double last_time;
 
 	map<string, AllostaticDrive> allostaticDrives;
 

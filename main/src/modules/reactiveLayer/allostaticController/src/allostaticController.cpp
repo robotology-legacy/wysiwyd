@@ -5,18 +5,22 @@ bool AllostaticController::close()
     yDebug() << "Closing port to homeo rpc";
     to_homeo_rpc.interrupt();
     to_homeo_rpc.close();
-    for (unsigned int i = 0; i < outputm_ports.size(); i++)
+    for (auto& outputm_port : outputm_ports)
     {
         // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
-        outputm_ports[i]->interrupt();        
-        outputm_ports[i]->close();
-        outputM_ports[i]->interrupt();        
-        outputM_ports[i]->close();
+        outputm_port->interrupt();
+        outputm_port->close();
+    }
+
+    for(auto& outputM_port : outputM_ports)
+    {
+        outputM_port->interrupt();
+        outputM_port->close();
     }
 
     yDebug() << "Closing AllostaticDrive ports";
-    for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
-        it->second.close_ports();
+    for(auto& allostaticDrive : allostaticDrives) {
+        allostaticDrive.second.close_ports();
     }
 
     return true;
@@ -28,7 +32,6 @@ int AllostaticController::openPorts(string driveName)
     outputm_ports.push_back(new BufferedPort<Bottle>);
     outputM_ports.push_back(new BufferedPort<Bottle>);
 
-
     string portName = "/" + moduleName + "/" + driveName;
     string pn = portName + "/min:i";
 
@@ -38,7 +41,7 @@ int AllostaticController::openPorts(string driveName)
     }
     string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
     yarp::os::Time::delay(0.1);
-    while(!Network::connect(targetPortName,pn)){
+    while(!Network::connect(targetPortName,pn)) {
         yInfo() <<"Setting up homeostatic connections... "<< targetPortName << " " << pn ;//<<endl;
         yarp::os::Time::delay(0.5);
     }
@@ -52,9 +55,10 @@ int AllostaticController::openPorts(string driveName)
     yarp::os::Time::delay(0.1);
     targetPortName = "/" + homeo_name + "/" + driveName + "/max:o";
     while(!Network::connect(targetPortName, pn))
-    {yDebug()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn;//endl;
-    yarp::os::Time::delay(0.5);}
-
+    {
+        yDebug()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn;//endl;
+        yarp::os::Time::delay(0.5);
+    }
 
     return 42;
 }
@@ -69,11 +73,7 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
 
     configureAllostatic(rf);
 
-
-    last_time = yarp::os::Time::now();
-
     yInfo()<<"Configuration done.";
-
 
     return true;
 }
@@ -204,18 +204,15 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
                 yarp::os::Time::delay(0.5);
             }
             alloDrive.behaviorOverCmd = Bottle(over_cmd_name);//.addString(over_cmd_name);
-        }else{
+        } else {
             yInfo() << "No port name";
         }
-
-
-
 
         alloDrive.active = active;
         allostaticDrives[driveName] = alloDrive;
     }
 
-    if ( ! Normalize(drivePriorities))
+    if (! Normalize(drivePriorities))
         yDebug() << "Error: Drive priorities sum up to 0.";// << endl;
 
     yInfo() << "done.";// << endl;
@@ -301,8 +298,6 @@ DriveOutCZ AllostaticController::chooseDrive() {
 
 bool AllostaticController::updateAllostatic()
 {
-
-
     DriveOutCZ activeDrive = chooseDrive();
 
     yInfo() << "Drive " + activeDrive.name + " chosen";
@@ -325,4 +320,3 @@ bool AllostaticController::updateAllostatic()
 
     return true;
 }
-
