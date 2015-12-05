@@ -42,7 +42,6 @@ Bottle proactiveTagging::describeBabbling(string sJointName, int joint) {
     iCub->say(sQuestion);
     iCub->opc->checkout();
 
-    Bottle bHand("left");
     yInfo() << "Sending command : Babbling " << sJointName ;
 
     //iCub->point(sNameTarget, bHand, false); //false for shouldWait = False : will continue to the looping describe
@@ -54,7 +53,6 @@ Bottle proactiveTagging::describeBabbling(string sJointName, int joint) {
 
     portNoWaitToBodySchema.prepare() = bSingleJoint ;
     portNoWaitToBodySchema.writeStrict() ;
-
 
     //------------------------------------------------- Loop Speech Recog -------------------------------------------
 

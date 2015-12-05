@@ -140,13 +140,17 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
     Bottle bListEntChanged;
-    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++) //go through all entity
+    for (auto& entity: lEntities) //go through all entity
     {
-        yInfo() << "Checking if entity " << (*itEnt)->name() << " has entitytype = bodypart : ----> " << (*itEnt)->entity_type() ; 
-        if ((*itEnt)->entity_type() == "bodypart")                                             //check bodypart entity
+        yInfo() << "Checking if entity " << entity->name() << " has entitytype = bodypart : ----> " << entity->entity_type() ;
+        if (entity->entity_type() == "bodypart")                                             //check bodypart entity
         {
             //pb with the casting: BPtemp is empty
-            Bodypart* BPtemp = dynamic_cast<Bodypart*>(*itEnt);
+            Bodypart* BPtemp = dynamic_cast<Bodypart*>(entity);
+            if(!BTtemp) {
+                yError() << "Could not cast to Bodypart";
+                continue;
+            }
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
@@ -272,6 +276,9 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     //1. search through opc for the bodypart entity
     iCub->opc->checkout();
     Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName, true));
+    if(!BPentity) {
+        yError() << "Could not cast to bodypart";
+    }
 
     //2.Ask human to touch
     string sAsking = "I know how to move my " + sName + ", but how does it feel to be touched? Can you touch my " + sName + ", please.";
@@ -299,6 +306,6 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     yInfo() << " sThank: " << sThank;
     iCub->say(sThank);
 
-    return bOutput ;
+    return bOutput;
 }
 

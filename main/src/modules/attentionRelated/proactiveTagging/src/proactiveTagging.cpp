@@ -103,10 +103,12 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     if (!iCub->getRecogClient())
     {
+        iCub->say("Proactive Tagging warning speech recognizer not connected");
         yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
     }
     if (!iCub->getABMClient())
     {
+        iCub->say("Proactive Tagging warning ABM not connected");
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
@@ -320,7 +322,6 @@ void proactiveTagging::checkRelations()
         cout << itRel->complement_place() << endl;
         cout << itRel->complement_time() << endl;
     }
-
 }
 
 
@@ -332,7 +333,6 @@ string proactiveTagging::askManner(string agent, string verb, string object)
     osSentenceToSay << "Do you know how " << agent << " " << verb << " the " << object << " ?";
 
     iCub->say(osSentenceToSay.str());
-
 
     Bottle bOutput;
 
@@ -356,8 +356,6 @@ string proactiveTagging::askManner(string agent, string verb, string object)
 
     // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
     bSemantic = *bAnswer.get(1).asList();
-    
-
 
     if (bAnswer.get(0).asString() == "stop")
     {
@@ -367,7 +365,6 @@ string proactiveTagging::askManner(string agent, string verb, string object)
         cout << osError.str() << endl;
         return "stop";
     }
-
 
     string sManner = bSemantic.check("manner", Value("none")).asString();
     cout << "answer is : " << sManner << endl;
@@ -455,10 +452,9 @@ Bottle proactiveTagging::recogName(string entityType)
 * input: exploreUnknownEntity entityType entityName (eg: exploreUnknownEntity agent unknown_25)
 * ask through speech the name of an unknwon entity
 */
-Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
+Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
 {
     Bottle bOutput;
-
     if (bInput.size() != 3)
     {
         yInfo() << " proactiveTagging::exploreEntity | Problem in input size.";
@@ -466,11 +462,13 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         return bOutput;
     }
 
+    iCub->opc->checkout();
+
     string currentEntityType = bInput.get(1).toString();
     string sNameTarget = bInput.get(2).toString();
 
     yInfo() << " EntityType : " << currentEntityType;
-    double timeDelay = 1.;
+    double timeDelay = 1.0;
 
     //Check if name is known or not. if yes, and body part : ask tactile
 
@@ -517,15 +515,14 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
             Vector vGoal = TARGET->m_ego_position;
             iCub->getARE()->look(vGoal);
         }
-        sQuestion = " Hum, what is this object ?";
+        sQuestion = " Hum, what is this object?";
     }
     else if (currentEntityType == "bodypart") {
         sQuestion = " Watch please, I will move a part of my body";
-        yInfo() << " sQuestion: " << sQuestion;
     }
     else {
         yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Entity Type not managed";
-        bOutput.addString("error");
+        bOutput.addString("nack");
         bOutput.addString("Entity Type not managed");
         return bOutput;
     }
@@ -533,11 +530,16 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     //TODO : choose between say and TTS. say put stuff in ABM, TTS?
     yInfo() << sQuestion;
     iCub->say(sQuestion);
-    iCub->opc->checkout();
 
     //Act to determine the entity to be named, according to entityType (e.g. bodypart is sending a command to move the joint, ...)
     if (currentEntityType == "bodypart") {
         Bodypart* BPtemp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sNameTarget));
+        if(!BPtemp) {
+            bOutput.addString("nack");
+            bOutput.addString("Could not cast to Bodypart");
+            iCub->say(bOutput.toString());
+            return bOutput;
+        }
         yInfo() << "Cast okay : name BP = " << BPtemp->name();
         int joint = BPtemp->m_joint_number;
         string sBodyPartType = BPtemp->m_part;
@@ -558,7 +560,14 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         iCub->say(sQuestion);
     }
     else if (currentEntityType == "object" || currentEntityType == "rtobject") {
-        Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(sNameTarget);
+        Object* obj1 = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
+        if(!obj1) {
+            bOutput.addString("nack");
+            bOutput.addString("Could not cast to object");
+            iCub->say(bOutput.toString());
+            return bOutput;
+        }
+
         string sHand = "right";
         if (obj1->m_ego_position[1] < 0) sHand = "left";
         Bottle bHand(sHand);
@@ -571,7 +580,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     string sName;
 
     //if error, bName = (error errorDescription) -> return it
-    if (bName.get(0).asString() == "error"){
+    if (bName.get(0).asString() == "error") {
         return bName;
     }
     else {
@@ -593,7 +602,6 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
         }
         else {
             yError() << "Could not connect to IOL2OPC subsystem";
-            sReply = " I get it, this is a " + sName;
         }
         //sReply = " I get it, this is a " + sName;
         Bottle bToLRH, bFromLRH;
@@ -616,8 +624,6 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
     yDebug() << "Going home";
     iCub->home();
 
-    iCub->opc->update();
-
     bOutput.addString("success");
     bOutput.addString(currentEntityType);
 
@@ -630,7 +636,7 @@ Bottle proactiveTagging::exploreUnknownEntity(Bottle bInput)
 * First element is: error - warning - success
 * Second element is: information about the action
 */
-Bottle proactiveTagging::searchingEntity(Bottle bInput)
+Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 {
     Bottle bOutput;
 
@@ -650,9 +656,9 @@ Bottle proactiveTagging::searchingEntity(Bottle bInput)
         iCub->opc->checkout();
         list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
 
-        for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+        for (auto& entity : lEntities)
         {
-            if ((*itEnt)->name() == sNameTarget)
+            if (entity->name() == sNameTarget)
             {
                 yInfo() << " Entity " << sNameTarget << " is already known.";
                 bOutput.addString("warning");
@@ -684,11 +690,16 @@ Bottle proactiveTagging::searchingEntity(Bottle bInput)
     Bottle bToPasar;
     bToPasar.addString("pointing");
     bToPasar.addString("on");
-    portToPasar.write(bToPasar);
+    if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
+        yError() << "Could not connect to pasar";
+        iCub->say("Could not connect to pasar");
+    } else {
+        portToPasar.write(bToPasar);
+    }
 
     bool bFound = false;
 
-    Time::delay(2.);
+    Time::delay(2.0);
 
     // start detecting unknown objects
     while (!bFound)
@@ -701,9 +712,9 @@ Bottle proactiveTagging::searchingEntity(Bottle bInput)
         string sNameBestEntity = "none";
         string sTypeBestEntity = "none";
 
-        for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+        for (auto& entity : lEntities)
         {
-            string sName = (*itEnt)->name();
+            string sName = entity->name();
             string sNameCut = sName;
             string delimiter = "_";
             size_t pos = 0;
@@ -717,9 +728,13 @@ Bottle proactiveTagging::searchingEntity(Bottle bInput)
 
             if (sNameCut == "unknown")
             {
-                if ((*itEnt)->entity_type() == "object" || (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+                if (entity->entity_type() == "object" || entity->entity_type() == "agent" || entity->entity_type() == "rtobject")
                 {
-                    Object* temp = dynamic_cast<Object*>(*itEnt);
+                    Object* temp = dynamic_cast<Object*>(entity);
+                    if(!temp) {
+                        yError() << "Could not cast " << entity->name() << " to an object";
+                        iCub->say("Could not cast " + entity->name() + " to an object");
+                    }
                     if (temp->m_saliency > highestSaliency)
                     {
                         if (secondSaliency != 0.0)
@@ -794,7 +809,12 @@ Bottle proactiveTagging::searchingEntity(Bottle bInput)
     bToPasar.clear();
     bToPasar.addString("pointing");
     bToPasar.addString("off");
-    portToPasar.write(bToPasar);
+    if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
+        yError() << "Could not connect to pasar";
+        iCub->say("Could not connect to pasar");
+    } else {
+        portToPasar.write(bToPasar);
+    }
 
     iCub->home();
 

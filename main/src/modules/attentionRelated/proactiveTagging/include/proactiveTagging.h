@@ -57,8 +57,8 @@ private:
     void configureOPC(yarp::os::ResourceFinder &rf);
 
     //objectTagging
-    yarp::os::Bottle  exploreUnknownEntity(yarp::os::Bottle bInput);
-    yarp::os::Bottle  searchingEntity(yarp::os::Bottle bInput);
+    yarp::os::Bottle  exploreUnknownEntity(const yarp::os::Bottle &bInput);
+    yarp::os::Bottle  searchingEntity(const yarp::os::Bottle &bInput);
 
 
     //selfTagging.cpp
