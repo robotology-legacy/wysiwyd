@@ -132,7 +132,7 @@ bool ears::updateModule() {
         string sPredicate = bSemantic.check("predicate", Value("none")).asString();
         string sObject    = bSemantic.check("object", Value("none")).asString();
         target = sObject;
-        iCub->opc->update();
+        iCub->opc->checkout();
         list<Entity*> entities = iCub->opc->EntitiesCacheCopy();
 
         vector<Bottle> vListAction;
