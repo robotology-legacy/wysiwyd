@@ -40,6 +40,5 @@ public:
         unknown_entities_port.close();
         confusion_port.interrupt();
         confusion_port.close();        
-    };
-
+    }
 };

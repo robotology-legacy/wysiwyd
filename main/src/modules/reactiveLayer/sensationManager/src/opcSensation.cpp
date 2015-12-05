@@ -96,9 +96,9 @@ Bottle OpcSensation::handleUnknownEntities()
     Bottle partners;
     Bottle body_parts;
 
-    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    for (auto& entity : lEntities)
     {
-        string sName = (*itEnt)->name();
+        string sName = entity->name();
         string sNameCut = sName;
         string original_name = sName;
         string delimiter = "_";
@@ -112,57 +112,57 @@ Bottle OpcSensation::handleUnknownEntities()
         // check if label is known
 
         if (sNameCut == "unknown") {
-            if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 // yInfo() << "I found an unknown entity: " << sName;
-                Object* o = dynamic_cast<Object*>(*itEnt);
+                Object* o = dynamic_cast<Object*>(entity);
                 if(o && o->m_present) {
                     unknown_obj = true;
                     //Output is a list of objects entity + objects name [the arguments for tagging]
                     // o->m_saliency = unknownObjectSaliency;
                     ob.clear();
-                    ob.addString((*itEnt)->entity_type());
+                    ob.addString(entity->entity_type());
                     ob.addString(original_name);
                     u_entities.addList()=ob;
                     //Could also send saliency
                 }
             } 
-            else if((*itEnt)->entity_type() == "bodypart") {
+            else if(entity->entity_type() == "bodypart") {
                     unknown_obj = true;
                     //Output is a list of objects entity + objects name [the arguments for tagging]
                     // o->m_saliency = unknownObjectSaliency;
                     body_parts.clear();
-                    body_parts.addString((*itEnt)->entity_type());
+                    body_parts.addString(entity->entity_type());
                     body_parts.addString(original_name);
                     u_entities.addList()=body_parts;
             }
         } 
 
-        else if (sNameCut == "partner" && (*itEnt)->entity_type() == "agent") {
+        else if (sNameCut == "partner" && entity->entity_type() == "agent") {
             yInfo() << "I found an unknown partner: " << sName;
-            Agent* a = dynamic_cast<Agent*>(*itEnt);
+            Agent* a = dynamic_cast<Agent*>(entity);
             if(a && a->m_present) {
                 unknown_obj = true;
                 //Output is a list of objects entity + objects name [the arguments for tagging]
                 // o->m_saliency = unknownObjectSaliency;
                 partners.clear();
-                partners.addString((*itEnt)->entity_type());
+                partners.addString(entity->entity_type());
                 partners.addString(original_name);
                 u_entities.addList()=partners;
                 //Could also send saliency
             }
         } 
         else {
-            if ((*itEnt)->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(*itEnt)->m_tactile_number == -1 || dynamic_cast<Bodypart*>(*itEnt)->m_kinStruct_instance == -1))
-                {
-                    unknown_obj = true;
-                    //Output is a list of objects entity + objects name [the arguments for tagging]
-                    // o->m_saliency = unknownObjectSaliency;
-                    body_parts.clear();
-                    body_parts.addString((*itEnt)->entity_type());
-                    body_parts.addString(original_name);
-                    u_entities.addList()=body_parts;                    
-                }//unknown_obj = true;
+            if (entity->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(entity)->m_tactile_number == -1 || dynamic_cast<Bodypart*>(entity)->m_kinStruct_instance == -1))
+            {
+                unknown_obj = true;
+                //Output is a list of objects entity + objects name [the arguments for tagging]
+                // o->m_saliency = unknownObjectSaliency;
+                body_parts.clear();
+                body_parts.addString(entity->entity_type());
+                body_parts.addString(original_name);
+                u_entities.addList()=body_parts;
+            }//unknown_obj = true;
         }
     }
     //if no unknown object was found, return false

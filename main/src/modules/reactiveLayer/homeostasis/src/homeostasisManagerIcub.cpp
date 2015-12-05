@@ -1,15 +1,9 @@
 #include "homeostasisManagerIcub.h"
 #include <cmath>
 
-
-
-
 bool HomeostaticModule::addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic)
-{
-
-    
+{    
     Drive* drv = new Drive(driveName, period);
-
 
     drv->setHomeostasisMin(grpHomeostatic.check((driveName + "-homeostasisMin"), Value(drv->homeostasisMin)).asDouble());
     drv->setHomeostasisMax(grpHomeostatic.check((driveName + "-homeostasisMax"), Value(drv->homeostasisMax)).asDouble());
@@ -72,7 +66,6 @@ int HomeostaticModule::openPorts(string driveName)
     {
         yInfo() << getName() << ": Unable to open port " << pn ;
     }
-    
 
     pn = portName + "/max:o";
     yInfo() << "Configuring port " << " : "<< pn << " ..." ;
@@ -108,7 +101,6 @@ int HomeostaticModule::openPorts(string driveName)
 
 bool HomeostaticModule::configure(yarp::os::ResourceFinder &rf)
 {
-    
     moduleName = rf.check("name",Value("homeostasis")).asString().c_str();
     setName(moduleName.c_str());
 
@@ -137,7 +129,6 @@ bool HomeostaticModule::configure(yarp::os::ResourceFinder &rf)
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
 
-	
 	yInfo()<<"Configuration done.";
     return true;
 }
@@ -422,7 +413,7 @@ bool HomeostaticModule::processAvoidance(int d, Bottle* avoidanceBottle)
 
 bool HomeostaticModule::close()
 {
-    for (unsigned int d=0;d<manager->drives.size();d++)
+    for (unsigned int d=0; d<manager->drives.size(); d++)
     {
         input_ports[d]->interrupt();
         input_ports[d]->close();

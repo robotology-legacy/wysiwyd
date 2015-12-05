@@ -7,14 +7,11 @@ void PointingOrder::configure() {
     from_sensation_port_name = "/ears/target:o";
     
     finding=false;
-    pointing=false;    
-
-
+    pointing=false;
 }
 
 void PointingOrder::run(Bottle args/*=Bottle()*/) {
     yInfo() << "PointingOrder::run";
-
 
     string target = sensation_port_in.read()->get(0).asString();
     yInfo() << target ;
@@ -38,18 +35,16 @@ bool PointingOrder::handlePoint(string target)
     // point RPC useless
     //bool pointRPC = false;
 
-
-    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    for (auto& entity : lEntities)
     {
-        string sName = (*itEnt)->name();
-        
+        string sName = entity->name();
 
         yDebug() << "Checking entity: " << e_name << " to " << sName;//<<endl;
         if (sName == e_name) {
-            if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 yInfo() << "I already knew that the object was in the opc: " << sName;
-                Object* o = dynamic_cast<Object*>(*itEnt);
+                Object* o = dynamic_cast<Object*>(entity);
                 if(o && o->m_present) {
                     //pointRPC=true;
                     yInfo() << "I'd like to point " << e_name;// <<endl;
@@ -84,22 +79,22 @@ bool PointingOrder::handleSearch(string target)
 
     string e_name = target;
 
-    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    for (auto& entity: lEntities)
     {
-        string sName = (*itEnt)->name();
+        string sName = entity->name();
         if (sName == e_name) {
             yDebug() << "Entity found: "<<e_name;//<<endl;
-            if ((*itEnt)->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 yInfo() << "I found the entity in the opc: " << sName;
-                Object* o = dynamic_cast<Object*>(*itEnt);
+                Object* o = dynamic_cast<Object*>(entity);
                 yInfo() << "I found the entity in the opc: " << sName;
                 if(o && o->m_present) {
                     //searchList.pop_back();
                     // return, so "if(tagRPC)" ... is never executed
                     return true;
                 }
-            }else{
+            } else {
                 tagRPC = true;
             }
         }

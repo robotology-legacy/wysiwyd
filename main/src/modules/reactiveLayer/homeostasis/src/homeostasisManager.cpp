@@ -1,8 +1,6 @@
 #include "homeostasisManager.h"
 #include <cmath>
 
-
-
 bool HomeostasisManager::updateDrives(double t)
 {
     for (unsigned int i = 0; i < drives.size(); i++)
@@ -11,8 +9,6 @@ bool HomeostasisManager::updateDrives(double t)
     }
     return true;
 }
-
-
 
 void HomeostasisManager::addDrive(Drive* D)
 {

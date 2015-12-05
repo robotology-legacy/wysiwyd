@@ -19,8 +19,6 @@ using namespace wysiwyd::wrdac;
 class SensationManager: public RFModule
 {
 private:
-
-
     vector<Sensation*> sensations;
     // vector<Port*> to_homeo_rpc;
 

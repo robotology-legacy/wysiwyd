@@ -5,9 +5,7 @@ void Pointing::configure() {
     name = "pointing";
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/opcSensation/known_obj:o";
-
-
-};
+}
 
 void Pointing::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Pointing::run";

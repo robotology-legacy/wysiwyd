@@ -7,7 +7,7 @@ bool BehaviorManager::close()
     rpc_in_port.close();
     iCub->close();
 
-    for(auto beh : behaviors) {
+    for(auto& beh : behaviors) {
         beh->close_ports();
     }
 
@@ -42,10 +42,9 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new Dummy(&mut));
         } else if (behavior_name == "pointingOrder") {
             behaviors.push_back(new PointingOrder(&mut));
-
         }
             // other behaviors here
-        else{
+        else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
             return false;
         }
@@ -54,7 +53,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
-    iCub->opc->isVerbose = true;
     // char rep = 'n';
     if (!iCub->connect())
     {
@@ -62,17 +60,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    //Set the voice
-    SubSystem_Speech* sss = iCub->getSpeechClient(); 
-    if (sss) {
-        string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).asString();
-        sss->SetOptions(ttsOptions);    
-    } else {
-        yInfo() << "SPEECH not available.";
-    }
-
     // id = 0;
-    for(auto beh : behaviors) {
+    for(auto& beh : behaviors) {
         beh->configure();
         beh->openPorts(moduleName);
         beh->iCub = iCub;
@@ -109,7 +98,7 @@ bool BehaviorManager::updateModule()
 
 bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
 {
-    yDebug() << "RPC received  in BM";
+    yDebug() << "RPC received in BM";
     yDebug() << cmd.toString();
     if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
@@ -118,7 +107,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     }
     else
     {
-        for(auto beh : behaviors) {
+        for(auto& beh : behaviors) {
             if (cmd.get(0).asString() == beh->name) {
         //         Bottle args;
         //         args.clear();

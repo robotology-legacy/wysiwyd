@@ -5,9 +5,7 @@ void Tagging::configure() {
     name = "tagging";
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/opcSensation/unknown_entities:o";
-
-
-};
+}
 
 void Tagging::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Tagging::run";
@@ -25,5 +23,4 @@ void Tagging::run(Bottle args/*=Bottle()*/) {
     cmd.addString(sensation->get(id).asList()->get(1).asString());
     yInfo() << "Proactively tagging...";
     rpc_out_port.write(cmd, rply);
-
 }
