@@ -28,10 +28,10 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 
-class GuiUpdaterModule: public RFModule
+class GuiUpdater: public RFModule
 {
 private:
-    OPCClient *w;
+    OPCClient *opc;
     Agent* iCub;
     Port handlerPort;      //a port to handle messages 
     Port toGui;

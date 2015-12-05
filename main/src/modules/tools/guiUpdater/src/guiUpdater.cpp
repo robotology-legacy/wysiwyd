@@ -15,8 +15,6 @@
  * Public License for more details
 */
 
-#include <world.h>
-
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/dev/all.h>
@@ -25,6 +23,8 @@
 #include <map>
 #include <list>
 
+#include "guiUpdater.h"
+
 using namespace std;
 using namespace yarp;
 using namespace yarp::sig;
@@ -32,10 +32,8 @@ using namespace yarp::os;
 using namespace yarp::dev;
 
 
-bool GuiUpdaterModule::configure(yarp::os::ResourceFinder &rf)
+bool GuiUpdater::configure(yarp::os::ResourceFinder &rf)
 {
-    iCub = NULL;
-
     string moduleName      = rf.check("name",
                                       Value("guiUpdater"),
                                       "module name (string)").asString().c_str();
@@ -49,9 +47,12 @@ bool GuiUpdaterModule::configure(yarp::os::ResourceFinder &rf)
     displaySkeleton = rf.check("displaySkeletons");
     cout<<"Display skeleton status: "<<displaySkeleton<<endl;
 
-    w = new OPCClient(getName().c_str());
-    w->connect(opcName);
-    w->isVerbose = false;
+    opc = new OPCClient(getName().c_str());
+    opc->connect(opcName);
+    opc->isVerbose = false;
+    if(opc->isConnected()) {
+        iCub = opc->addOrRetrieveEntity<Agent>("icub");
+    }
 
     //GUI Port
     string guiPortName = "/";
@@ -76,20 +77,20 @@ bool GuiUpdaterModule::configure(yarp::os::ResourceFinder &rf)
     return true ;
 }
 
-bool GuiUpdaterModule::interruptModule()
+bool GuiUpdater::interruptModule()
 {
-    w->interrupt();
+    opc->interrupt();
     toGui.interrupt();
     toGuiBase.interrupt();
     handlerPort.interrupt();
     return true;
 }
 
-bool GuiUpdaterModule::close()
+bool GuiUpdater::close()
 {
-    if(w) {
-        w->close();
-        delete w;
+    if(opc) {
+        opc->close();
+        delete opc;
     }
     if(iCub) {
         delete iCub;
@@ -104,7 +105,7 @@ bool GuiUpdaterModule::close()
     return true;
 }
 
-bool GuiUpdaterModule::respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
+bool GuiUpdater::respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
 {  
     string helpMessage =  string(getName().c_str()) +
             " commands are: \n" +
@@ -130,20 +131,20 @@ bool GuiUpdaterModule::respond(const yarp::os::Bottle& command, yarp::os::Bottle
     return true;
 }
 
-double GuiUpdaterModule::getPeriod()
+double GuiUpdater::getPeriod()
 {
     return 0.1;
 }
 
-bool GuiUpdaterModule::updateModule()
+bool GuiUpdater::updateModule()
 {
-    if (w->isConnected())
+    if (opc->isConnected())
     {
         //Retrieve every entities
-        w->checkout();
+        opc->checkout();
 
         //Just add the iCub in case it's not there
-        iCub = w->addOrRetrieveEntity<Agent>("icub");
+        iCub = opc->addOrRetrieveEntity<Agent>("icub");
 
         //cout<<"iCub Position: \t"<<iCub->m_ego_position.toString(3,3)<<endl
         //    <<"iCub Orientation: \t"<<iCub->m_ego_orientation.toString(3,3)<<endl;
@@ -153,7 +154,7 @@ bool GuiUpdaterModule::updateModule()
         addDrives(iCub);
 
         //Display the objects
-        list<Entity*> entities = w->EntitiesCacheCopy();
+        list<Entity*> entities = opc->EntitiesCacheCopy();
         if (oldEntities.size() != entities.size()) {
             resetGUI();
         } else {
@@ -170,11 +171,15 @@ bool GuiUpdaterModule::updateModule()
         }
         oldEntities = entities;
 
-        for(list<Entity*>::iterator e = entities.begin(); e != entities.end() ; e++)
+        for(auto& entity : entities)
         {
-            if( isDisplayable(*e) )
+            if( isDisplayable(entity) )
             {
-                Object* o = dynamic_cast<Object*>(*e);
+                Object* o = dynamic_cast<Object*>(entity);
+                if(!o) {
+                    yError() << "Could not cast " << entity->name();
+                    continue;
+                }
 
                 ostringstream guiTag;
                 guiTag<< o->name() <<"("<<o->opc_id()<<")";
@@ -203,12 +208,12 @@ bool GuiUpdaterModule::updateModule()
     return true;
 }
 
-bool GuiUpdaterModule::isDisplayable(Entity* entity)
+bool GuiUpdater::isDisplayable(Entity* entity)
 {
     return entity->isType(EFAA_OPC_ENTITY_OBJECT);
 }
 
-void GuiUpdaterModule::deleteObject(const string &opcTag, Object* o)
+void GuiUpdater::deleteObject(const string &opcTag, Object* o)
 {
     Bottle cmd;
     cmd.addString("delete");
@@ -221,9 +226,7 @@ void GuiUpdaterModule::deleteObject(const string &opcTag, Object* o)
     {
         int i = 0;
         Agent* a = dynamic_cast<Agent*>(o);
-        for(map<string,Vector>::iterator part=a->m_body.m_parts.begin();
-            part != a->m_body.m_parts.end();
-            part++)
+        for(auto& part : a->m_body.m_parts)
         {
             ostringstream opcTagPart;
             opcTagPart<<o->opc_id() << "_" << i;
@@ -239,10 +242,10 @@ void GuiUpdaterModule::deleteObject(const string &opcTag, Object* o)
     if (o != NULL && o->entity_type() == EFAA_OPC_ENTITY_AGENT)
     {
         Agent* a = dynamic_cast<Agent*>(o);
-        for(map<string,Drive>::iterator drive = a->m_drives.begin(); drive != a->m_drives.end(); drive++)
+        for(auto& drive : a->m_drives)
         {
             ostringstream opcTagDrive;
-            opcTagDrive<<a->name()<<"_"<<drive->second.name;
+            opcTagDrive<<a->name()<<"_"<<drive.second.name;
             cmd.clear();
             cmd.addString("delete");
             cmd.addString(opcTagDrive.str().c_str());
@@ -251,18 +254,16 @@ void GuiUpdaterModule::deleteObject(const string &opcTag, Object* o)
     }
 }
 
-void GuiUpdaterModule::addAgent(Agent* o, const string &opcTag)
+void GuiUpdater::addAgent(Agent* o, const string &opcTag)
 {
     addDrives( o );
     if (displaySkeleton)
     {
         int i=0;
-        for(map<string,Vector>::iterator part=o->m_body.m_parts.begin();
-            part != o->m_body.m_parts.end();
-            part++)
+        for(auto& part : o->m_body.m_parts)
         {
             //Get the position of the object in the current reference frame of the robot (not the initial one)
-            Vector inCurrentRootReference = iCub->getSelfRelativePosition(part->second);
+            Vector inCurrentRootReference = iCub->getSelfRelativePosition(part.second);
             //cout<<o->name()<<" init Root: \t \t"<<o->m_ego_position.toString(3,3)<<endl
             //    <<o->name()<<" current Root: \t \t"<<inCurrentRootReference.toString(3,3)<<endl;
 
@@ -318,7 +319,7 @@ void GuiUpdaterModule::addAgent(Agent* o, const string &opcTag)
     }
 }
 
-void GuiUpdaterModule::addObject(Object* o, const string &opcTag)
+void GuiUpdater::addObject(Object* o, const string &opcTag)
 {
     //Get the position of the object in the current reference frame of the robot (not the initial one)
     Vector inCurrentRootReference = iCub->getSelfRelativePosition(o->m_ego_position);
@@ -345,7 +346,7 @@ void GuiUpdaterModule::addObject(Object* o, const string &opcTag)
     toGui.write(cmd);
 }
 
-void GuiUpdaterModule::moveBase(Agent* a)
+void GuiUpdater::moveBase(Agent* a)
 {
     Bottle cmd;
     cmd.addDouble(a->m_ego_orientation[0]); //in opc we store rotation around x,y,z, which seems different of the iCubGUI
@@ -357,7 +358,7 @@ void GuiUpdaterModule::moveBase(Agent* a)
     toGuiBase.write(cmd);
 }
 
-void GuiUpdaterModule::addDrives(Agent* a)
+void GuiUpdater::addDrives(Agent* a)
 {
     Vector driveDimension(3);
     driveDimension[0] = 10;
@@ -396,7 +397,7 @@ void GuiUpdaterModule::addDrives(Agent* a)
     }
 }
 
-void GuiUpdaterModule::resetGUI()
+void GuiUpdater::resetGUI()
 {
     Bottle cmd,reply;
     cmd.clear();
@@ -405,7 +406,7 @@ void GuiUpdaterModule::resetGUI()
     toGui.write(cmd);
 }
 
-Vector GuiUpdaterModule::getDriveColor(const Drive &d)
+Vector GuiUpdater::getDriveColor(const Drive &d)
 {
     Vector color(3);
     double x = d.value;
