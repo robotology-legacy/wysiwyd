@@ -3,6 +3,7 @@
 *kdev*
 *.orig
 *.pyc
+CMakeLists.txt.user
 
 WYSIWYD.config
 WYSIWYD.creator
