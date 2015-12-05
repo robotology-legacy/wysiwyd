@@ -18,7 +18,7 @@
 * Public License for more details
 */
 
-#include "iCub/attentionSelector.h"
+#include "attentionSelector.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -194,16 +194,16 @@ bool attentionSelectorModule::updateModule() {
     //list<Entity*> entities = opc->EntitiesCacheCopy();
     list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
-    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    for (auto& entity : entities)
     {
-        if ((*it)->isType(EFAA_OPC_ENTITY_ACTION))
-            yWarning() << "Ignoring relation...";
+        if (entity->isType(EFAA_OPC_ENTITY_ACTION)) {
+            yDebug() << "Ignoring relation...";
+        }
         else
         {
-            if ((*it)->name() == "icub")
-                icub = dynamic_cast<Agent*>(*it);
-            else
-            {
+            if (entity->name() == "icub") {
+                icub = dynamic_cast<Agent*>(entity);
+            } else {
                 ////!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
                 //if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
                 //{
@@ -214,19 +214,19 @@ bool attentionSelectorModule::updateModule() {
                 //yDebug() << "Check " << (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ;
                 //yDebug() << "Position = {" <<  (dynamic_cast<Object*>(*it))->m_ego_position[0] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[1] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[2] << "}" ;
                 // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
-                if (!((dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0))
+                if ((entity->isType(EFAA_OPC_ENTITY_OBJECT) || entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT)))
                 {
-                    if (((*it)->isType(EFAA_OPC_ENTITY_OBJECT) || (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)))
+                    if (!( dynamic_cast<Object*>(entity)->m_ego_position[0] == 0.0 && dynamic_cast<Object*>(entity)->m_ego_position[1] == 0.0 && dynamic_cast<Object*>(entity)->m_ego_position[2] == 0.0))
                     {
-                        if ((dynamic_cast<Object*>(*it))->m_present)
+                        if ((dynamic_cast<Object*>(entity))->m_present)
                         {
                             //yDebug() << "push back (present) " << (*it)->name() ;
-                            presentObjects.push_back(dynamic_cast<Object*>(*it)->name());
+                            presentObjects.push_back(dynamic_cast<Object*>(entity)->name());
                         }
-                        else if ((dynamic_cast<Object*>(*it))->m_saliency > 0.0)
+                        else if ((dynamic_cast<Object*>(entity))->m_saliency > 0.0)
                         {
                             //yDebug() << "push back (saliency) " << (*it)->name() ;
-                            presentObjects.push_back(dynamic_cast<Object*>(*it)->name());
+                            presentObjects.push_back(dynamic_cast<Object*>(entity)->name());
                         }
                     }
                 }
@@ -290,10 +290,10 @@ void attentionSelectorModule::exploring() {
         aState = s_exploring; return;
     }
 
-    for (vector<std::string>::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (auto& presentObject : presentObjects)
     {
-        Object* o = dynamic_cast<Object*>(opc->getEntity(*it));
-        if (maxSalience < o->m_saliency)
+        Object* o = dynamic_cast<Object*>(opc->getEntity(presentObject));
+        if (o && maxSalience < o->m_saliency)
         {
             maxSalience = o->m_saliency;
             nameTrackedObject = o->name();
