@@ -219,8 +219,7 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
 /***************************************************************************/
 bool PasarModule::updateModule()
 {
-
-    opc->update();
+    opc->checkout();
     entities = opc->EntitiesCache();
 
     presentObjects.clear();
@@ -422,8 +421,6 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 */
 void PasarModule::saliencyPointing()
 {
-
-    opc->update();
     Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
     if (!ag || !ag->m_present) return;
 
@@ -437,7 +434,6 @@ void PasarModule::saliencyPointing()
 
     double closest = 10e5;
     string objectPointed = "none";
-
 
     for (map<string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
     {
@@ -512,7 +508,6 @@ void PasarModule::saliencyWaving()
 {
     yInfo() << "is Waving: " << isWaving;
 
-    opc->update();
     Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
     if (!ag || !ag->m_present)
     {
