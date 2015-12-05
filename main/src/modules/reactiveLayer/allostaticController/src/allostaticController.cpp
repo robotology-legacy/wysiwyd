@@ -28,7 +28,6 @@ bool AllostaticController::close()
 
 int AllostaticController::openPorts(string driveName)
 {
-
     outputm_ports.push_back(new BufferedPort<Bottle>);
     outputM_ports.push_back(new BufferedPort<Bottle>);
 
