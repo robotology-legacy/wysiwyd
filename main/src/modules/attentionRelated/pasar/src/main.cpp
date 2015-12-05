@@ -16,9 +16,11 @@
  */
 
 
-#include "iCub/pasar.h" 
-#include <yarp/dev/Drivers.h>
+#include <yarp/os/all.h>
 #include <time.h>
+
+#include "pasar.h"
+
 
 using namespace yarp::os;
 using namespace yarp::sig;

@@ -68,13 +68,8 @@ class PasarModule : public yarp::os::RFModule {
     pair<bool, bool> presentRightHand;
     pair<bool, bool> presentLeftHand;
 
-    BufferedPort<ImageOf<PixelMono> > saliencyInput;
-    BufferedPort<ImageOf<PixelRgb> >  saliencyOutput;
-    ImageOf<PixelRgb>				  imageOut;
-
     bool    isSkeletonIn;
 
-    Agent* icub;
     map<string, ObjectModel>  presentObjectsLastStep;
     map<string, pair<double, double> > presentLastSpeed;
     map<string, pair<double, double> > presentCurrentSpeed;
