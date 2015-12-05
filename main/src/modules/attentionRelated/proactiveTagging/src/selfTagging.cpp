@@ -147,7 +147,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
         {
             //pb with the casting: BPtemp is empty
             Bodypart* BPtemp = dynamic_cast<Bodypart*>(entity);
-            if(!BTtemp) {
+            if(!BPtemp) {
                 yError() << "Could not cast to Bodypart";
                 continue;
             }
