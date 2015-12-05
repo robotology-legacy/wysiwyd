@@ -13,12 +13,14 @@ source_group("Source Files" FILES ${sources})
 source_group("Header Files" FILES ${headers})
 source_group("DOC Files"    FILES ${docs})
 
+find_package( Threads )
+
 SET(INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${PGSQL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${ACE_INCLUDE_DIR}
 )
 
 SET(LIBRARIES
-    wrdac ${YARP_LIBRARIES} ${PGSQL_LIBRARIES} ${OpenCV_LIBRARIES} ${ACE_LIBRARIES}
+    ${ACE_LIBRARIES} ${YARP_LIBRARIES} ${PGSQL_LIBRARIES} ${OpenCV_LIBRARIES} wrdac ${CMAKE_THREAD_LIBS_INIT}
 )
 
 include_directories(${INCLUDE_DIRS})

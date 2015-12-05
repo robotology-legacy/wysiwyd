@@ -861,7 +861,7 @@ bool autobiographicalMemory::updateModule() {
                 fullPath << storingPath << "/" << storingTmpSuffix << "/" << relative_path << augmented_time;
 
                 try {
-                    BufferedPort<ImageOf<PixelRgb> >* port = mapImgStreamPortOut.at(concatenated_port);
+                    auto* port = mapImgStreamPortOut.at(concatenated_port);
                     Bottle env;
                     env.addInt(imgInstance);
                     env.addString(portname);
@@ -883,16 +883,16 @@ bool autobiographicalMemory::updateModule() {
             }
         }
 
-        for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it)
+        for (const auto& dataStreamPortOut : mapDataStreamPortOut)
         {
             // Find which data stream to send
-            Bottle bListContData = getStreamWithinEpoch(long(updateTimeDifference), "proprioceptivedata", it->first);
+            Bottle bListContData = getStreamWithinEpoch(long(updateTimeDifference), "proprioceptivedata", dataStreamPortOut.first);
 
             if (bListContData.toString() != "NULL") {
-                Bottle &bCmd = it->second->prepare();
+                Bottle &bCmd = dataStreamPortOut.second->prepare();
                 bCmd.clear();
                 // for joints, begin with the command to set the position
-                if (it->first.find("state:o") != std::string::npos) {
+                if (dataStreamPortOut.first.find("state:o") != std::string::npos) {
                     bCmd.fromString("[set] [poss]");
                 }
 
@@ -904,7 +904,7 @@ bool autobiographicalMemory::updateModule() {
                         timeLastImageSentCurrentIteration = atol(bListContData.get(i).asList()->get(4).asString().c_str());
                         //yDebug() << "Set new timeLastImageSentCurrentIteration " << timeLastImageSentCurrentIteration;
                     }
-                    if (it->first.find("skeleton:o") != std::string::npos) {
+                    if (dataStreamPortOut.first.find("skeleton:o") != std::string::npos) {
                         bJoints.addString(bListContData.get(i).asList()->get(3).asString());
                     } else {
                         bJoints.addDouble(atof(bListContData.get(i).asList()->get(3).asString().c_str()));
@@ -914,9 +914,9 @@ bool autobiographicalMemory::updateModule() {
                 bCmd.addList() = bJoints;
 
                 // Send concatenated bottles to ports
-                yInfo() << "Write port: " << it->second->getName();
-                yInfo() << it->second->prepare().toString();
-                it->second->writeStrict();
+                yInfo() << "Write port: " << dataStreamPortOut.second->getName();
+                yInfo() << dataStreamPortOut.second->prepare().toString();
+                dataStreamPortOut.second->writeStrict();
             }
         }
 
@@ -938,20 +938,20 @@ bool autobiographicalMemory::updateModule() {
         if (done) {
             //Close ports which were opened in openSendContDataPorts / openStreamImgPorts
             yInfo() << "streamStatus = end, closing ports";
-            for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamPortOut.begin(); it != mapImgStreamPortOut.end(); ++it) {
-                it->second->waitForWrite();
-                it->second->interrupt();
-                it->second->close();
-                if (!it->second->isClosed()) {
-                    yError() << "Error, port " << it->first << " could not be closed";
+            for (auto const& imgStreamPortOut : mapImgStreamPortOut) {
+                imgStreamPortOut.second->waitForWrite();
+                imgStreamPortOut.second->interrupt();
+                imgStreamPortOut.second->close();
+                if (!imgStreamPortOut.second->isClosed()) {
+                    yError() << "Error, port " << imgStreamPortOut.first << " could not be closed";
                 }
             }
-            for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamPortOut.begin(); it != mapDataStreamPortOut.end(); ++it) {
-                it->second->waitForWrite();
-                it->second->interrupt();
-                it->second->close();
-                if (!it->second->isClosed()) {
-                    yError() << "Error, port " << it->first << " could not be closed";
+            for (auto const& dataStreamPortOut : mapDataStreamPortOut) {
+                dataStreamPortOut.second->waitForWrite();
+                dataStreamPortOut.second->interrupt();
+                dataStreamPortOut.second->close();
+                if (!dataStreamPortOut.second->isClosed()) {
+                    yError() << "Error, port " << dataStreamPortOut.first << " could not be closed";
                 }
             }
 

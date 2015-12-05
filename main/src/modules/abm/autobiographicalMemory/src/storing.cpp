@@ -71,13 +71,13 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
     bool allGood = true;
 
     //go through the ImgReceiver ports
-    for (std::map<string, BufferedPort<ImageOf<PixelRgb> >*>::const_iterator it = mapImgStreamInput.begin(); it != mapImgStreamInput.end(); ++it)
+    for (const auto& imgStreamInput : mapImgStreamInput)
     {
         //concatenation of the path to store
         stringstream imgInstanceString; imgInstanceString << imgInstance;
 
         stringstream imgName;
-        string port = it->first;
+        string port = imgStreamInput.first;
         replace(port.begin(), port.end(), '/', '_');
         if (forSingleInstance) {
             if (fullSentence == ""){
@@ -102,10 +102,10 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
         string imagePath = storingPath + "/" + relativeImagePath;
 
-        if (saveImageFromPort(imagePath, it->first, it->second)) {
+        if (saveImageFromPort(imagePath, imgStreamInput.first, imgStreamInput.second)) {
             //yDebug() << "Store image " << imagePath << " in database.";
             //create SQL entry, register the cam image in specific folder
-            if (storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, it->first)) {
+            if (storeInfoSingleImage(imgInstance, frameNb, relativeImagePath, synchroTime, imgStreamInput.first)) {
                 increaseFrameNb = true;
             } else {
                 yError() << "[storeInfoAllImages] Something went wrong storing image " << relativeImagePath;
@@ -171,17 +171,17 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
 
     osArg << "INSERT INTO proprioceptivedata(instance, subtype, frame_number, time, label_port, value) VALUES ";
 
-    for (std::map<string, BufferedPort<Bottle>*>::const_iterator it = mapDataStreamInput.begin(); it != mapDataStreamInput.end(); ++it)
+    for (const auto& dataStreamInput : mapDataStreamInput)
     {
-        Bottle* lastReading = it->second->read(false); // (false) such that we do not wait until data arrives at port
+        Bottle* lastReading = dataStreamInput.second->read(false); // (false) such that we do not wait until data arrives at port
 
         if (lastReading != NULL) { // only proceed if we got something
             for (int subtype = 0; subtype < lastReading->size(); subtype++) {
                 // go ahead if it is NOT a port related to skin OR it is a skin port and the value is bigger than 5.0
-                if (it->first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
+                if (dataStreamInput.first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
                     doInsert = true;
 
-                    osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << it->first << "', '";
+                    osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << dataStreamInput.first << "', '";
                     if(lastReading->get(subtype).isList()) {
                         osArg << lastReading->get(subtype).toString();
                     } else {
