@@ -40,12 +40,19 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 
 
 bool ears::close() {
-    iCub->close();
-    rpc.interrupt();
-    rpc.close();
+    if(iCub) {
+        iCub->close();
+        delete iCub;
+    }
+
     portToBehavior.interrupt();
     portToBehavior.close();
-    delete iCub;
+
+    portTarget.interrupt();
+    portTarget.close();
+
+    rpc.interrupt();
+    rpc.close();
 
     return true;
 }
@@ -131,14 +138,14 @@ bool ears::updateModule() {
         vector<Bottle> vListAction;
 
         bool bFoundObject = false;
-        for (list<Entity*>::iterator itEnt = entities.begin() ; itEnt != entities.end() ; itEnt++)
+        for (auto& entity : entities)
         {
-            if ((*itEnt)->name() == sObject)
+            if (entity->name() == sObject)
             {
-                if ((*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT || (*itEnt)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT || (*itEnt)->entity_type() == EFAA_OPC_ENTITY_AGENT)
+                if (entity->entity_type() == EFAA_OPC_ENTITY_OBJECT || entity->entity_type() == EFAA_OPC_ENTITY_RTOBJECT || entity->entity_type() == EFAA_OPC_ENTITY_AGENT)
                 {
-                    Object *obj = dynamic_cast<Object*>(*itEnt);
-                    if (obj->m_present)
+                    Object *obj = dynamic_cast<Object*>(entity);
+                    if (obj && obj->m_present)
                     {
                         bFoundObject = true;
                     }
