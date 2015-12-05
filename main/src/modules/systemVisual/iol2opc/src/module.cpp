@@ -618,6 +618,7 @@ void IOL2OPCBridge::updateOPC()
     {
         // grab resources
         LockGuard lg(mutexResources);
+        opc->checkout();
 
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
