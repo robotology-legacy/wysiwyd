@@ -52,7 +52,7 @@ for frm_idx = 1:num_frames
 end
 
 %% New Nodes & Joints
-numNode = 12;
+numNode = 11;
 numFrame = num_frames;
 
 nodeLoc = zeros(3, numNode, numFrame);
@@ -87,7 +87,7 @@ for frm_idx = 1 : numFrame
     nodeLoc(:,10,frm_idx) = joint_center_Kinect{8,6}(:,frm_idx)';
     nodeLoc(:,11,frm_idx) = joint_center_Kinect{13,6}(:,frm_idx)';
     
-    nodeLoc(:,12,frm_idx) = joints{frm_idx}(16,:)';  % CoM
+%     nodeLoc(:,12,frm_idx) = joints{frm_idx}(16,:)';  % CoM
 end
 
 joint_center = cell(numNode, numNode);

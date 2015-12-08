@@ -33,18 +33,9 @@ mkdir('ABM/Q');
 %creating ports
 port2ABM_query_P = Port;          %port for ABM of 1st data
 
-if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
-    portIncoming_P = BufferedPortImageRgb;
-%     portIncoming_P = Port;
-elseif strcmp(data_source_P,'kinect')
-%     portIncoming_P = Bottle;
-    portIncoming_P = Port;
-end
-
 %first close the port just in case
 %(this is to try to prevent matlab from beuing unresponsive)
 port2ABM_query_P.close;
-portIncoming_P.close;
 
 %open the ports
 disp('_____opening ports...');
@@ -53,17 +44,7 @@ disp('_____opened port /matlab/kinematicStructure/1st_data_read');
 pause(0.5);
 disp('_____done.');
 
-disp('_____opening ports...');
-portIncoming_P.open('/matlab/kinematicStructure/1st_datain');
-disp('_____opened port /matlab/kinematicStructure/1st_datain');
-pause(0.5);
-disp('_____done.');
-% portIncoming_P.setStrict();
-% portIncoming_Q.setStrict();
-
 disp('Going to open port /matlab/kinematicStructure/1st_data_read');
-disp('Going to open port /matlab/kinematicStructure/1st_datain');
-
 connection_check = 0;
 while(~connection_check)
     Network.connect('/matlab/kinematicStructure/1st_data_read', '/autobiographicalMemory/rpc');
@@ -71,17 +52,36 @@ while(~connection_check)
     pause(0.5)
     disp('waiting for connection...');
 end
-disp('1st Port Connected!')
+disp('1st Port is connected to ABM!')
 
 %%
 %====================================
 % Receive Data & Save Images
 %====================================
 % get number of frames: "getImagesInfo"
+if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
+    portIncoming_P = BufferedPortImageRgb;
+%     portIncoming_P = Port;
+elseif strcmp(data_source_P,'kinect')
+%     portIncoming_P = Bottle;
+    portIncoming_P = Port;
+end
+
+portIncoming_P.close;
+
+disp('_____opening ports...');
+portIncoming_P.open('/matlab/kinematicStructure/1st_datain');
+disp('_____opened port /matlab/kinematicStructure/1st_datain');
+pause(0.5);
+disp('_____done.');
+
+disp('Going to open port /matlab/kinematicStructure/1st_datain');
+
+
 b_write_P = yarp.Bottle;
 b_response_P = yarp.Bottle;
 
-command_P = ['triggerStreaming ', num2str(instance_num_P), ' ("includeAugmented" 0) ("realtime" 0)'];
+command_P = ['triggerStreaming ', num2str(instance_num_P), ' ("includeAugmented" 0) ("realtime" 1) ("speedMultiplier" 0.1)'];
 b_write_P.fromString(command_P);
 disp(b_write_P);
 port2ABM_query_P.write(b_write_P,b_response_P);
@@ -118,13 +118,14 @@ for i=0:b_provide_P.size()-1
     end
 end
 
+disp(final_portname_P);
 disp(num2str(num_images_P));
 
 connection_check = 0;
 while(~connection_check)
     Network.connect(final_portname_P, '/matlab/kinematicStructure/1st_datain');
     connection_check = Network.isConnected(final_portname_P, '/matlab/kinematicStructure/1st_datain');
-    pause(0.5)
+%     pause(0.5)
     disp('waiting for connection...');
 end
 disp('1st Port Connected!')
@@ -144,71 +145,57 @@ last_frame_idx_P = num_images_P;
 if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')    
     for i=0:num_images_P-2
         disp(['receive image ', num2str(i),'/',num2str(num_images_P)]);
-        disp('1');
         yarpData_P = yarp.ImageRgb;
-        disp('2');
         yarpData_P = portIncoming_P.read();
-        disp('3');
         
         if(i+1 >= start_frame_idx_P && i < last_frame_idx_P)
-            disp('4');
             % save images
             filename = [sprintf('%04d',i) '.png'];
             save_path = ['ABM/P/',filename];
-            disp('5');
             
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
-                disp('got it..');
+%                 disp('got it..');
                 h=yarpData_P.height;
                 w=yarpData_P.width;
                 pixSize=yarpData_P.getPixelSize();
-                disp('6');
                 tool=YarpImageHelper(h, w);
-                disp('7');
                 IN = tool.getRawImg(yarpData_P); %use leo pape image patch
-                disp('8');
                 TEST = reshape(IN, [h w pixSize]); %need to reshape the matrix from 1D to h w pixelSize
-                disp('9');
                 matlabImage=uint8(zeros(h, w, pixSize)); %create an empty image with the correct dimentions
-                disp('10');
                 r = cast(TEST(:,:,1),'uint8');  % need to cast the image from int16 to uint8
                 g = cast(TEST(:,:,2),'uint8');
                 b = cast(TEST(:,:,3),'uint8');
-                disp('11');
                 matlabImage(:,:,1)= r; % copy the image to the previoulsy create matrix
                 matlabImage(:,:,2)= g;
                 matlabImage(:,:,3)= b;
-                disp('12');
             else
                 disp('incorrect image');
             end
-            disp('13');
             imwrite(matlabImage,save_path);
-            disp('14');
             env = yarp.Bottle;
-            disp('15');
             portIncoming_P.getEnvelope(env);
-            disp('16');
             bDataMeta_P_buf{i+1,1} = env.toString();
+            pause(0.1);
         end
     end
     %------------------------------------------
     % for kinect
 elseif strcmp(data_source_P,'kinect')
     fileID = fopen('ABM/P/joints.txt','w');
-%     joint_save_path = ['ABM/P/',kinect_joint_filename];    
     yarpData_P = yarp.Bottle;
-    yarpData_P = portIncoming_P.read();    
+    portIncoming_P.read(yarpData_P);
     
-    for i=0:num_frames_P-2
+    for i=0:floor(num_images_P/16)-2
         disp(['receive data of frame ', num2str(i)]);
         if(i+1 >= start_frame_idx_P && i < last_frame_idx_P)
             % save data           
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
-                for body_idx = 1:16
-                    x = str2num(char(yarpData_P.get(body_idx).asList().get(1).asFloat()));
-                    y = str2num(char(yarpData_P.get(body_idx).asList().get(2).asFloat()));
-                    z = str2num(char(yarpData_P.get(body_idx).asList().get(3).asFloat()));
+                for body_idx = 0:15
+                    buf = char(yarpData_P.get(0).asList().get(body_idx).toString());
+                    readData = str2double(strsplit(' ',buf));
+                    x = readData(2);
+                    y = readData(3);
+                    z = readData(4);
                     fprintf(fileID, '%d\t %d\t %6.6f\t %6.6f\t %6.6f\n', i+1, body_idx, x, y, z);
                 end
             else
@@ -271,18 +258,9 @@ portIncoming_P.close;
 %creating ports
 port2ABM_query_Q = Port;          %port for ABM of 2nd data
 
-if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
-    portIncoming_Q = BufferedPortImageRgb;
-%     portIncoming_Q = Port;
-elseif strcmp(data_source_Q,'kinect')
-%     portIncoming_Q = Bottle;
-    portIncoming_Q = Port;
-end
-
 %first close the port just in case
 %(this is to try to prevent matlab from beuing unresponsive)
 port2ABM_query_Q.close;
-portIncoming_Q.close;
 
 %open the ports
 disp('_____opening ports...');
@@ -291,16 +269,7 @@ disp('_____opened port /matlab/kinematicStructure/2nd_data_read');
 pause(0.5);
 disp('_____done.');
 
-disp('_____opening ports...');
-portIncoming_Q.open('/matlab/kinematicStructure/2nd_datain');
-disp('_____opened port /matlab/kinematicStructure/2nd_datain');
-pause(0.5);
-disp('_____done.');
-% portIncoming_Q.setStrict();
-
 disp('Going to open port /matlab/kinematicStructure/2nd_data_read');
-disp('Going to open port /matlab/kinematicStructure/2nd_datain');
-
 connection_check = 0;
 while(~connection_check)
     Network.connect('/matlab/kinematicStructure/2nd_data_read', '/autobiographicalMemory/rpc');
@@ -308,21 +277,39 @@ while(~connection_check)
     pause(0.5)
     disp('waiting for connection...');
 end
-disp('2nd Port Connected!')
+disp('2nd Port is connected to ABM!')
 
 %%
 %====================================
 % Receive Data & Save Images
 %====================================
 % get number of frames: "getImagesInfo"
+if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
+    portIncoming_Q = BufferedPortImageRgb;
+%     portIncoming_Q = Port;
+elseif strcmp(data_source_Q,'kinect')
+%     portIncoming_Q = Bottle;
+    portIncoming_Q = Port;
+end
+
+portIncoming_Q.close;
+
+disp('_____opening ports...');
+portIncoming_Q.open('/matlab/kinematicStructure/2nd_datain');
+disp('_____opened port /matlab/kinematicStructure/2nd_datain');
+pause(0.5);
+disp('_____done.');
+
+disp('Going to open port /matlab/kinematicStructure/2nd_datain');
+
 b_write_Q = yarp.Bottle;
 b_response_Q = yarp.Bottle;
 
-command_Q = ['triggerStreaming ', num2str(instance_num_Q), ' ("includeAugmented" 0) ("realtime" 1)'];
+command_Q = ['triggerStreaming ', num2str(instance_num_Q), ' ("includeAugmented" 0) ("realtime" 1) ("speedMultiplier" 0.1)'];
 b_write_Q.fromString(command_Q);
 disp(b_write_Q);
 port2ABM_query_Q.write(b_write_Q,b_response_Q);
-pause(3);
+% pause(3);
 disp(b_response_Q.toString);
 
 b_provide_Q = yarp.Bottle;
@@ -355,6 +342,7 @@ for i=0:b_provide_Q.size()-1
     end
 end
 
+disp(final_portname_P);
 disp(num2str(num_images_Q));
 
 connection_check = 0;
@@ -380,7 +368,7 @@ last_frame_idx_Q = num_images_Q;
 % for camcalib/left or camcalib/right
 if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')    
     for i=0:num_images_Q-2
-        disp(['receive image ', num2str(i)]);
+        disp(['receive image ', num2str(i),'/',num2str(num_images_Q)]);
         yarpData_Q = yarp.ImageRgb;
         yarpData_Q = portIncoming_Q.read();
         
@@ -419,19 +407,20 @@ if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
     % for kinect
 elseif strcmp(data_source_Q,'kinect')
     fileID = fopen('ABM/Q/joints.txt','w');
-%     joint_save_path = ['ABM/Q/',kinect_joint_filename];    
     yarpData_Q = yarp.Bottle;
-    yarpData_Q = portIncoming_Q.read();    
+    portIncoming_Q.read(yarpData_Q);    
     
-    for i=0:num_frames_Q-2
+    for i=0:floor(num_images_Q/16)-2
         disp(['receive data of frame ', num2str(i)]);
         if(i+1 >= start_frame_idx_Q && i < last_frame_idx_Q)
             % save data           
             if (sum(size(yarpData_Q)) ~= 0) %check size of bottle
-                for body_idx = 1:16
-                    x = str2num(char(yarpData_Q.get(body_idx).asList().get(1).asFloat()));
-                    y = str2num(char(yarpData_Q.get(body_idx).asList().get(2).asFloat()));
-                    z = str2num(char(yarpData_Q.get(body_idx).asList().get(3).asFloat()));
+                for body_idx = 0:15
+                    buf = char(yarpData_Q.get(0).asList().get(body_idx).toString());
+                    readData = str2double(strsplit(' ',buf));
+                    x = readData(2);
+                    y = readData(3);
+                    z = readData(4);
                     fprintf(fileID, '%d\t %d\t %6.6f\t %6.6f\t %6.6f\n', i+1, body_idx, x, y, z);
                 end
             else
@@ -448,7 +437,6 @@ end
 
 % save buf data
 save('ABM/Q/DataMeta.mat','bDataMeta_Q_buf');
-
 
 %%
 %====================================
@@ -484,4 +472,3 @@ end
 %====================================
 port2ABM_query_Q.close;
 portIncoming_Q.close;
-

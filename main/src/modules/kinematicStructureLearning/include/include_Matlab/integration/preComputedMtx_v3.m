@@ -36,8 +36,10 @@ switch(method)
                     for frm_idx = 1:nFrm
                         out_struct = struct('vi_jnt_ij',[],'vj_jnt_ij',[],'ang_ij',[],'rotm_z',[]);
                         % angle between i-j
-                        out_struct.vi_jnt_ij = KineStruct.seg_center(:,i,frm_idx) - jnt{i,j}(:,frm_idx);
-                        out_struct.vj_jnt_ij = KineStruct.seg_center(:,j,frm_idx) - jnt{i,j}(:,frm_idx);
+%                         out_struct.vi_jnt_ij = KineStruct.seg_center(:,i,frm_idx) - jnt{i,j}(:,frm_idx);
+%                         out_struct.vj_jnt_ij = KineStruct.seg_center(:,j,frm_idx) - jnt{i,j}(:,frm_idx);
+                        out_struct.vi_jnt_ij = KineStruct.seg_center(1:2,i,frm_idx) - jnt{i,j}(1:2,frm_idx);
+                        out_struct.vj_jnt_ij = KineStruct.seg_center(1:2,j,frm_idx) - jnt{i,j}(1:2,frm_idx);
                         
                         out_struct.ang_ij = atan2( det([out_struct.vi_jnt_ij,out_struct.vj_jnt_ij]) , dot(out_struct.vi_jnt_ij,out_struct.vj_jnt_ij) );
                         out_struct.rotm_z = rotz(out_struct.ang_ij);
