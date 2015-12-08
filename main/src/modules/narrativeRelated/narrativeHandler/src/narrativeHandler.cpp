@@ -119,10 +119,10 @@ void narrativeHandler::findStories(int iInstance)
 {
     story currentStory;
 
-//    int iCurrentInstance = iInstance;
+    //    int iCurrentInstance = iInstance;
 
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main ORDER by instance WHERE instance > " << iInstance;
+    osRequest << "SELECT instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
     Bottle bMessenger;
     int numberSentence = bAllInstances.size();
@@ -300,31 +300,116 @@ myTimeStruct  narrativeHandler::string2Time(string sTime)
 void narrativeHandler::tellingStory(story st){
 
     ostringstream osRequest;
-    Bottle bMessenger;
+    Bottle bMessenger,
+        bRelations,
+        bActivity,
+        bArguments;
     int ii = 0;
+
+    string previous_activitytype = "none";
+    string current_activitytype = "none";
+    string previous_activityname = "none";
+    string current_activityname = "none";
+    bool previous_begin = false;
+    bool current_begin = false;
+
+    string P = "none",
+        A = "none",
+        O = "none",
+        R = "none",
+        status = "success";
+
+
+
     for (std::vector<int>::iterator it = st.viInstances.begin(); it != st.viInstances.end(); it++){
 
         cout << "instance: " << ii << endl;
         osRequest.str("");
         osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *it << " AND verb != 'isAtLoc'";
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        cout << "Relations: " << bMessenger.toString() << endl;
+        bRelations = iCub->getABMClient()->requestFromString(osRequest.str());
+        //cout << "Relations: " << bMessenger.toString() << endl;
 
         osRequest.str("");
         osRequest << "SELECT activityname, activitytype, begin FROM main WHERE instance = " << *it;
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        cout << "activity info: " << bMessenger.toString() << endl;
+        bActivity = iCub->getABMClient()->requestFromString(osRequest.str());
+        //        cout << "activity info: " << bActivity.toString() << endl;
 
         osRequest.str("");
         osRequest << "SELECT argument, role FROM contentarg WHERE instance = " << *it;
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        cout << "Arguments: ";
-        for (int i = 0; i < bMessenger.size(); i++)
-        {
-            cout << bMessenger.get(i).toString() << endl;
+        bArguments = iCub->getABMClient()->requestFromString(osRequest.str());
+        //      cout << "Arguments: ";
+
+        cout << "step " << 0 << endl;
+
+        // initial situation
+        if (ii == 0){
+            cout << "\t\t\t" << "At the beggining, ";
+            for (int jj = 0; jj < bRelations.size(); jj++){
+                if (jj != 0){
+                    cout << " and ";
+                }
+                cout << bRelations.get(jj).toString();
+            }
+            cout << endl;
+        }
+        // end initial situation
+
+        previous_activitytype = current_activitytype;
+        current_activitytype = (bActivity.get(0).asList())->get(1).toString();
+
+        previous_activityname = current_activityname;
+        current_activityname = (bActivity.get(0).asList())->get(0).toString();
+
+        previous_begin = current_begin;
+        current_begin = (bActivity.get(0).asList())->get(2).toString() == "t";
+
+        P = "none";
+        A = "none";
+        O = "none";
+        R = "none";
+        status = "success";
+
+        for (int kk = 0; kk < bArguments.size(); kk++){
+            Bottle bTemp = *bArguments.get(kk).asList();
+            if (bTemp.get(1).toString() == "predicate") P = bTemp.get(0).toString();
+            if (bTemp.get(1).toString() == "agent")     A = bTemp.get(0).toString();
+            if (bTemp.get(1).toString() == "object")    O = bTemp.get(0).toString();
+            if (bTemp.get(1).toString() == "recipient") R = bTemp.get(0).toString();
+            if (bTemp.get(1).toString() == "status") status = bTemp.get(0).toString();
+
         }
 
-        cout << endl;
+        // if it is an ACTION
+        if (current_activitytype == "action"){
+
+            // if the action begin
+            if (current_begin){
+
+                // if the previous instance wasn't already an action
+                if (current_activitytype != previous_activitytype){
+                    cout << "\t\t\t" << A << " tries to " << P << " the " << O << endl;
+                }
+            }
+            // the action ends
+            else{
+                // if previous instance was not a beggining of action
+                if (previous_begin || previous_activitytype != "action"){
+                    if (status == "failed"){
+                        cout << "\t\t\t" << "But it failed." << endl;
+                    }
+                    else {
+                        cout << "\t\t\t" << "And it worked." << endl;
+                    }
+                }
+
+            }
+        }
+        else {
+            cout << "current_activityname = "<< current_activityname << "   current_activitytype = "<< current_activitytype << endl;
+        }
+
         ii++;
     }
+
 }
+
