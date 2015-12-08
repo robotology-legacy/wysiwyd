@@ -2,8 +2,7 @@
 # Authors: Stephane Lallee
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME wrdac)
-project(${PROJECTNAME})
+project(wrdac)
 
 set(folder_source src/action.cpp
                   src/adjective.cpp
@@ -54,15 +53,19 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/subsystems/subSystem_speech.h)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wysiwydIDLClients_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
-add_library(${PROJECTNAME} ${folder_header} ${folder_source})
+
+add_library(${PROJECT_NAME} ${folder_header} ${folder_source})
+
+if(MSVC)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC _USE_MATH_DEFINES)
+endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER wrDAC)
+set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
+target_link_libraries(${PROJECT_NAME} ${YARP_LIBRARIES} wysiwydIDLClients)
 
-set_target_properties(${PROJECTNAME} PROPERTIES DEBUG_POSTFIX "d")
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} wysiwydIDLClients)
-
-icub_export_library(${PROJECTNAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${wysiwydIDLClients_INCLUDE_DIRS}
-                                   DESTINATION include/${PROJECTNAME}
-                                   FILES_WITH_PATH ${folder_header}
-                                   PATH_TO_EXCLUDE include/wrdac)
+icub_export_library(${PROJECT_NAME} INTERNAL_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${wysiwydIDLClients_INCLUDE_DIRS}
+                                    DESTINATION include/${PROJECT_NAME}
+                                    FILES_WITH_PATH ${folder_header}
+                                    PATH_TO_EXCLUDE include/wrdac)
 
