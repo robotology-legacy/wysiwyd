@@ -23,7 +23,7 @@ int main(int argc, char * argv[])
     humanRobotDump mod;
     yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("humanRobotDump");
+    rf.setDefaultContext("humanRobotDumper");
     rf.setDefaultConfigFile("humanRobotDump.ini");
     rf.configure(argc, argv);
     mod.runModule(rf);
