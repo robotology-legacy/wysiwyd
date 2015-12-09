@@ -27,6 +27,23 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " WARNING ABM NOT CONNECTED";
     }
 
+
+    Bottle &bRFInfo = rf.findGroup("populateSpecific2");
+
+    X_obj = bRFInfo.check("X_obj", Value(-0.4)).asDouble();
+    Y_obj = bRFInfo.check("Y_obj", Value(0.4)).asDouble();
+    Z_obj = bRFInfo.check("Z_obj", Value(0.0)).asDouble();
+    X_ag = bRFInfo.check("X_ag", Value(-0.4)).asDouble();
+    Y_ag = bRFInfo.check("Y_ag", Value(0.4)).asDouble();
+    Z_ag = bRFInfo.check("Z_ag", Value(0.3)).asDouble();
+
+    cout << "X_obj " << X_obj << endl;
+    cout << "Y_obj " << Y_obj << endl;
+    cout << "Z_obj " << Z_obj << endl;
+    cout << "X_ag " << X_ag << endl;
+    cout << "Y_ag " << Y_ag << endl;
+    cout << "Z_ag " << Z_ag << endl;
+
     iCub->lookStop();
     iCub->home();
 
@@ -617,21 +634,12 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
 bool opcPopulater::populateSpecific2(){
 
     double errorMargin = 0.1;
-
-    double distanceXObject = -0.3;
-    double distanceYObject = 0.4;
-    double distanceZObject = 0.0;
-
-    double distanceXAgent = -0.3;
-    double distanceYAgent = 0.4;
-    double distanceZAgent = 0.3;
-
     iCub->opc->clear();
 
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("obj_left");
-    obj1->m_ego_position[0] = distanceXObject + errorMargin * (Random::uniform() - 0.5);
-    obj1->m_ego_position[1] = -1.* distanceYObject + errorMargin * (Random::uniform() - 0.5);
-    obj1->m_ego_position[2] = distanceZObject + errorMargin * (Random::uniform() - 0.5);
+    obj1->m_ego_position[0] = X_obj + errorMargin * (Random::uniform() - 0.5);
+    obj1->m_ego_position[1] = -1.* Y_obj + errorMargin * (Random::uniform() - 0.5);
+    obj1->m_ego_position[2] = Z_obj + errorMargin * (Random::uniform() - 0.5);
     obj1->m_present = 1;
     obj1->m_color[0] = Random::uniform(0, 80);
     obj1->m_color[1] = Random::uniform(80, 180);
@@ -639,9 +647,9 @@ bool opcPopulater::populateSpecific2(){
     iCub->opc->commit(obj1);
 
     Agent* obj2 = iCub->opc->addOrRetrieveEntity<Agent>("agent_left");
-    obj2->m_ego_position[0] = distanceXAgent + errorMargin * (Random::uniform() - 0.5);
-    obj2->m_ego_position[1] = -1.* distanceYAgent + errorMargin * (Random::uniform() - 0.5);
-    obj2->m_ego_position[2] = distanceZAgent + errorMargin * (Random::uniform() - 0.5);
+    obj2->m_ego_position[0] = X_ag + errorMargin * (Random::uniform() - 0.5);
+    obj2->m_ego_position[1] = -1.* Y_ag + errorMargin * (Random::uniform() - 0.5);
+    obj2->m_ego_position[2] = Z_ag + errorMargin * (Random::uniform() - 0.5);
     obj2->m_present = 1;
     obj2->m_color[0] = Random::uniform(0, 180);
     obj2->m_color[1] = Random::uniform(0, 80);
@@ -649,9 +657,9 @@ bool opcPopulater::populateSpecific2(){
     iCub->opc->commit(obj2);
 
     Agent* obj3 = iCub->opc->addOrRetrieveEntity<Agent>("agent_right");
-    obj3->m_ego_position[0] = distanceXAgent + errorMargin * (Random::uniform() - 0.5);
-    obj3->m_ego_position[1] = distanceYAgent + errorMargin * (Random::uniform() - 0.5);
-    obj3->m_ego_position[2] = distanceZAgent + errorMargin * (Random::uniform() - 0.5);
+    obj3->m_ego_position[0] = X_ag + errorMargin * (Random::uniform() - 0.5);
+    obj3->m_ego_position[1] = Y_ag + errorMargin * (Random::uniform() - 0.5);
+    obj3->m_ego_position[2] = Z_ag + errorMargin * (Random::uniform() - 0.5);
     obj3->m_present = 1;
     obj3->m_color[0] = Random::uniform(100, 180);
     obj3->m_color[1] = Random::uniform(80, 180);
@@ -660,9 +668,9 @@ bool opcPopulater::populateSpecific2(){
 
 
     Object* obj4 = iCub->opc->addOrRetrieveEntity<Object>("obj_right");
-    obj4->m_ego_position[0] = distanceXObject + errorMargin * (Random::uniform() - 0.5);
-    obj4->m_ego_position[1] = distanceYObject + errorMargin * (Random::uniform() - 0.5);
-    obj4->m_ego_position[2] = distanceZObject + errorMargin * (Random::uniform() - 0.5);
+    obj4->m_ego_position[0] = X_obj + errorMargin * (Random::uniform() - 0.5);
+    obj4->m_ego_position[1] = Y_obj + errorMargin * (Random::uniform() - 0.5);
+    obj4->m_ego_position[2] = Z_obj + errorMargin * (Random::uniform() - 0.5);
     obj4->m_present = 1;
     obj4->m_color[0] = Random::uniform(100, 180);
     obj4->m_color[1] = Random::uniform(0, 80);

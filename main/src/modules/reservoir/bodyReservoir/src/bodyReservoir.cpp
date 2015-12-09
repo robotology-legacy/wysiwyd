@@ -44,7 +44,12 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    //rpc port
+    Bottle &bRFInfo = rf.findGroup("lookPointing");
+
+    delayLook = bRFInfo.check("delayLook", Value(0.5)).asDouble();
+    delayPoint = bRFInfo.check("delayPoint", Value(0.4)).asDouble();
+    delayHome = bRFInfo.check("delayHome", Value(0.0)).asDouble();
+
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
@@ -167,6 +172,11 @@ bool bodyReservoir::updateModule() {
 Bottle bodyReservoir::pointObject(string sObject)
 {
 
+    if (!Network::connect(("/bodyReservoir/toDumper"), "/humanRobotDump/rpc"))
+    {
+        yWarning() << " CANNOT CONNECT TO DUMPERS";
+    }
+
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     string sHand;
     (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
@@ -207,7 +217,7 @@ Bottle bodyReservoir::pointObject(string sObject)
 
     bool bSuccess = iCub->look(sObject);
 
-    Time::delay(2.0);
+    Time::delay(delayLook);
     iCub->lookStop();
 
     bSuccess &= iCub->point(sObject, bHand);
@@ -219,9 +229,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     portToDumper.write(bToDumper, bAnswer);
     yInfo() << bAnswer.toString();
 
-
-
-    Time::delay(3.0);
+    Time::delay(delayPoint);
     // SEND SUBACTION
     bToDumper.clear();
     bToDumper.addString("subaction");
@@ -231,7 +239,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     yInfo() << bAnswer.toString();
 
     iCub->getARE()->home();
-    Time::delay(1.5);
+    Time::delay(delayHome);
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
     if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
@@ -289,7 +297,6 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
 Bottle bodyReservoir::loopPointing(int iNbLoop)
 {
     Bottle bOutput;
-
     Port  portToOpcPopulater;
     portToOpcPopulater.open("/bodyReservoir/toPopulater");
     if (!Network::connect("/bodyReservoir/toPopulater", "/opcPopulater/rpc"))

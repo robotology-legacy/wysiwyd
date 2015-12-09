@@ -12,6 +12,12 @@ private:
     double      period;
     Port        rpc;
 
+    double X_obj;
+    double Y_obj;
+    double Z_obj;
+    double X_ag;
+    double Y_ag;
+    double Z_ag;
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
