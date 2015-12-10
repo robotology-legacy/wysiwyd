@@ -36,6 +36,7 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
     X_ag = bRFInfo.check("X_ag", Value(-0.4)).asDouble();
     Y_ag = bRFInfo.check("Y_ag", Value(0.4)).asDouble();
     Z_ag = bRFInfo.check("Z_ag", Value(0.3)).asDouble();
+    noise = bRFInfo.check("noise", Value(0.0)).asDouble();
 
     cout << "X_obj " << X_obj << endl;
     cout << "Y_obj " << Y_obj << endl;
@@ -43,6 +44,7 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
     cout << "X_ag " << X_ag << endl;
     cout << "Y_ag " << Y_ag << endl;
     cout << "Z_ag " << Z_ag << endl;
+    cout << "noise " << noise << endl;
 
     iCub->lookStop();
     iCub->home();
@@ -633,10 +635,10 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
 
 bool opcPopulater::populateSpecific2(){
 
-    double errorMargin = 0.1;
+    double errorMargin = noise;
     iCub->opc->clear();
 
-    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("obj_left");
+    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("bottom_left");
     obj1->m_ego_position[0] = X_obj + errorMargin * (Random::uniform() - 0.5);
     obj1->m_ego_position[1] = -1.* Y_obj + errorMargin * (Random::uniform() - 0.5);
     obj1->m_ego_position[2] = Z_obj + errorMargin * (Random::uniform() - 0.5);
@@ -646,7 +648,7 @@ bool opcPopulater::populateSpecific2(){
     obj1->m_color[2] = Random::uniform(180, 250);
     iCub->opc->commit(obj1);
 
-    Agent* obj2 = iCub->opc->addOrRetrieveEntity<Agent>("agent_left");
+    Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("top_left");
     obj2->m_ego_position[0] = X_ag + errorMargin * (Random::uniform() - 0.5);
     obj2->m_ego_position[1] = -1.* Y_ag + errorMargin * (Random::uniform() - 0.5);
     obj2->m_ego_position[2] = Z_ag + errorMargin * (Random::uniform() - 0.5);
@@ -656,7 +658,7 @@ bool opcPopulater::populateSpecific2(){
     obj2->m_color[2] = Random::uniform(180, 250);
     iCub->opc->commit(obj2);
 
-    Agent* obj3 = iCub->opc->addOrRetrieveEntity<Agent>("agent_right");
+    Object* obj3 = iCub->opc->addOrRetrieveEntity<Object>("top_right");
     obj3->m_ego_position[0] = X_ag + errorMargin * (Random::uniform() - 0.5);
     obj3->m_ego_position[1] = Y_ag + errorMargin * (Random::uniform() - 0.5);
     obj3->m_ego_position[2] = Z_ag + errorMargin * (Random::uniform() - 0.5);
@@ -667,7 +669,7 @@ bool opcPopulater::populateSpecific2(){
     iCub->opc->commit(obj3);
 
 
-    Object* obj4 = iCub->opc->addOrRetrieveEntity<Object>("obj_right");
+    Object* obj4 = iCub->opc->addOrRetrieveEntity<Object>("bottom_right");
     obj4->m_ego_position[0] = X_obj + errorMargin * (Random::uniform() - 0.5);
     obj4->m_ego_position[1] = Y_obj + errorMargin * (Random::uniform() - 0.5);
     obj4->m_ego_position[2] = Z_obj + errorMargin * (Random::uniform() - 0.5);

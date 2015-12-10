@@ -18,6 +18,9 @@ private:
     double X_ag;
     double Y_ag;
     double Z_ag;
+    double noise;
+
+
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
