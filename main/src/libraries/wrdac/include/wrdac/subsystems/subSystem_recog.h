@@ -58,7 +58,7 @@ namespace wysiwyd{
                 portRPC.open(("/" + m_masterName + "/recog:rpc").c_str());
                 ears_port.open("/" + m_masterName + "/ears:o");
                 m_type = SUBSYSTEM_RECOG;
-                SubABM = new SubSystem_ABM("from_recog");
+                SubABM = new SubSystem_ABM(m_masterName+"/from_recog");
             }
 
 

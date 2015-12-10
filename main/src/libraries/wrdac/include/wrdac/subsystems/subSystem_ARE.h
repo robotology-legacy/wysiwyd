@@ -116,8 +116,8 @@ namespace wysiwyd {
             */
             SubSystem_ARE(const std::string &masterName) : SubSystem(masterName)
             {
-                SubABM = new SubSystem_ABM("from_ARE");
-                SubATT = new SubSystem_Attention("from_ARE");
+                SubABM = new SubSystem_ABM(m_masterName+"/from_ARE");
+                SubATT = new SubSystem_Attention(m_masterName+"/from_ARE");
 
                 cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
                 cmdNoWaitPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd_nowait:io").c_str());

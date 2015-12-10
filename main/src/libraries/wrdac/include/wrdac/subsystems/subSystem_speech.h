@@ -56,7 +56,7 @@ namespace wysiwyd{
                 stt.open(("/" + m_masterName + "/stt:i").c_str());
                 sttRpc.open(("/" + m_masterName + "/stt:rpc").c_str());
                 m_type = SUBSYSTEM_SPEECH;
-                SubABM = new SubSystem_ABM("from_speech");
+                SubABM = new SubSystem_ABM(m_masterName+"/from_speech");
             }
             virtual bool connect()
             {
