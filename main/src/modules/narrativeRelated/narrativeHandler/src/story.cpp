@@ -8,16 +8,15 @@ using namespace std;
 
 void story::createNarration()
 {
-    int ii = 0;
     bool VERBOSE = false;
 
     vector<string>  vsOutput;
 
     ostringstream  osCurrent;
 
-    Bottle bPreviousRelation;
+    //Bottle bPreviousRelation;
 
-    for (int ii = 0; ii != vEvents.size(); ii++){
+    for (unsigned int ii = 0; ii != vEvents.size(); ii++){
 
         osCurrent.str("");
         if (VERBOSE) cout << ii << "...";

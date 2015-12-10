@@ -421,7 +421,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
         ZNathan = 0.6,
         distanceNat_Gir = 0.2;
 
-    int iRepetition = 5;
+    //int iRepetition = 5;
     double dDelay = 2.5;
     double dThresholdDelay = 1.5;
 
