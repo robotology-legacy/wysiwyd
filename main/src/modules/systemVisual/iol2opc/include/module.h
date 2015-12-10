@@ -170,6 +170,8 @@ public:
     bool    remove_object(const string &name);
     bool    remove_all();
     bool    change_name(const string &old_name, const string &new_name);
+    void    pause();
+    void    resume();
 };
 
 #endif

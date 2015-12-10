@@ -1097,3 +1097,12 @@ bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
     return true;
 }
 
+void IOL2OPCBridge::pause()
+{
+    mutexResources.lock();
+}
+
+void IOL2OPCBridge::resume()
+{
+    mutexResources.unlock();
+}
