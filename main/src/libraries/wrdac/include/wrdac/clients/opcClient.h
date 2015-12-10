@@ -32,6 +32,8 @@ namespace wysiwyd{namespace wrdac{
 */
 class OPCClient
 {
+    friend class ICubClient;
+
 private:
     yarp::os::Port opc;
     yarp::os::BufferedPort<yarp::os::Bottle> opcBroadcast;
@@ -47,6 +49,11 @@ private:
             Entity* complement_place = NULL,
             Entity* complement_time = NULL,
             Entity* complement_manner = NULL);
+
+    /**
+    * Change the name of an entity and send messages to relevant subsystems
+    */
+    bool changeName(Entity *e, std::string newName);
 
 public: 
     bool                    isVerbose;

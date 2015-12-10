@@ -17,6 +17,8 @@ bool AgentDetector::configure(ResourceFinder &rf)
     dTimingLastApparition = clock();
 
     //Open the OPC Client
+    partner_default_name=rf.check("partner_default_name",Value("partner")).asString().c_str();
+
     string opcName=rf.check("opc",Value("OPC")).asString().c_str();
     opc = new OPCClient(name);
     dSince = 0.0;
@@ -25,7 +27,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
         cout<<"Waiting connection to OPC..."<<endl;
         Time::delay(1.0);
     }
-    partner = opc->addOrRetrieveEntity<Agent>("partner");
+    partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
     partner->m_present = false;
     opc->commit(partner);
 //    opc->addOrRetrieveEntity<Action>("named");
@@ -211,11 +213,26 @@ bool AgentDetector::close()
 
 bool AgentDetector::respond(const Bottle& cmd, Bottle& reply)
 {
-    if (cmd.get(0).asString() == "train" )
-    {
+    if (cmd.get(0).asString() == "train" ) {
         reply.addString("ack");
         cout<<"Received a training order"<<endl;
         currentTrainingFace = cmd.get(1).asString();
+    }
+    else if (cmd.get(0).asString() == "change_partner_name" ) {
+        if(cmd.get(1).isString()) {
+            reply.addString("ack");
+            partner_default_name=cmd.get(1).asString();
+        } else {
+            reply.addString("nack");
+        }
+    }
+    else if (cmd.get(0).asString() == "pause" ) {
+        m.lock();
+        reply.addString("ack");
+    }
+    else if (cmd.get(0).asString() == "resume" ) {
+        m.unlock();
+        reply.addString("ack");
     }
     else
     {
@@ -231,7 +248,12 @@ double AgentDetector::getPeriod()
 
 bool AgentDetector::updateModule()
 {
+    LockGuard lg(m);
+
+    opc->checkout();
+
     icub = opc->addOrRetrieveEntity<Agent>("icub");
+    partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
 
     bool isRefreshed = client.getDepthAndPlayers(depth,players);
     client.getRgb(rgb);
@@ -413,16 +435,16 @@ bool AgentDetector::updateModule()
                         reallyTracked = true; break;
                     }
                 }
-                if ( reallyTracked)
+                if (reallyTracked)
                 {
                     dSince = (clock() - dTimingLastApparition) / (double) CLOCKS_PER_SEC;
                     //yInfo() << " is REALLY tracked";
-                    string playerName = "partner";
+                    string playerName = partner_default_name;
 
                     //If the skeleton is tracked we dont identify
                     if (identities.find(p->ID) != identities.end())
                     {
-                        playerName = identities[p->ID]->name();
+                        playerName = identities[p->ID];
                     }
                     else
                     {   
@@ -435,8 +457,8 @@ bool AgentDetector::updateModule()
 
                         //if (useFaceRecognition)
                         playerName = getIdentity(*p);
-
                     }
+
 
                     //We interact with OPC only if the calibration is done
                     if (localIsCalibrated)
@@ -455,12 +477,15 @@ bool AgentDetector::updateModule()
 
                             //Agent* specificAgent = opc->addEntity<Agent>(playerName);
                             Agent* specificAgent = opc->addOrRetrieveEntity<Agent>(playerName);
+                            if(partner == nullptr) {
+                                yError() << "SHIT specificAgent";
+                            }
 
-                            identities[p->ID] = specificAgent;
+                            identities[p->ID] = specificAgent->name();
                             specificAgent->m_present = true;
                             yInfo() << " specific agent is commited";
-
                             opc->commit(specificAgent);
+                            yInfo() << " specific agent is commited done";
                         }
 
 //                        Relation r(partner->name(),"named",playerName);
@@ -585,7 +610,7 @@ string AgentDetector::getIdentity(Player p)
     //If this tracked ID has already been identified we don't try again
     if (identities.find(p.ID) != identities.end() )
     {
-        return identities[p.ID]->name();
+        return identities[p.ID];
     }
     if (useFaceRecognition)
     {
@@ -606,7 +631,7 @@ string AgentDetector::getIdentity(Player p)
         if (skeletonPatterns.size()>0)
         {
             double bestVal = DBL_MAX;
-            string bestName = "unknown";
+            string bestName = partner_default_name;
 
             Vector currentPattern = getSkeletonPattern(p);
             for(map<string, Vector>::iterator patternIt = skeletonPatterns.begin(); patternIt != skeletonPatterns.end();patternIt++)
@@ -628,11 +653,11 @@ string AgentDetector::getIdentity(Player p)
         }
         else
         {
-            return "unknown";
+            return partner_default_name;
         }
 
     }
-    return "unknown";
+    return partner_default_name;
 }
 
 Vector AgentDetector::transform2IR(Vector v)

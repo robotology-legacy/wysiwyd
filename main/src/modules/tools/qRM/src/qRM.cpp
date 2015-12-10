@@ -681,7 +681,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
         string sName = bSemantic.check("agent", Value("unknown")).asString();
 
         Agent* agentToChange = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameTarget));
-        agentToChange->changeName(sName);
+        iCub->changeName(agentToChange,sName);
         iCub->opc->commit(agentToChange);
 
         yInfo() << " Well, Nice to meet you " << sName;
@@ -733,8 +733,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
         string sName = bSemantic.check("object", Value("unknown")).asString();
 
         Object* objectToChange = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
-        objectToChange->changeName(sName);
-
+        iCub->changeName(objectToChange,sName);
         iCub->opc->commit(objectToChange);
         yInfo() << " I get it, this is a " << sName;
         iCub->say(" I get it, this is a " + sName);
@@ -782,7 +781,7 @@ Bottle qRM::exploreUnknownEntity(Bottle bInput)
         string sName = bSemantic.check("object", Value("unknown")).asString();
 
         RTObject* objectToChange = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameTarget));
-        objectToChange->changeName(sName);
+        iCub->changeName(objectToChange,sName);
         iCub->opc->commit(objectToChange);
 
         yInfo() << " So this is a " << sName;
@@ -978,21 +977,8 @@ Bottle qRM::exploreEntityByName(Bottle bInput)
         if (bFound)
         {
             // change name
-            if (sTypeBestEntity == "agent")
-            {
-                Agent* TARGET = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameBestEntity));
-                TARGET->changeName(sNameTarget);
-            }
-            if (sTypeBestEntity == "object")
-            {
-                Object* TARGET = dynamic_cast<Object*>(iCub->opc->getEntity(sNameBestEntity));
-                TARGET->changeName(sNameTarget);
-            }
-            if (sTypeBestEntity == "rtobject")
-            {
-                RTObject* TARGET = dynamic_cast<RTObject*>(iCub->opc->getEntity(sNameBestEntity));
-                TARGET->changeName(sNameTarget);
-            }
+            Entity* e = iCub->opc->getEntity(sNameBestEntity);
+            iCub->changeName(e, sNameBestEntity);
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
         }

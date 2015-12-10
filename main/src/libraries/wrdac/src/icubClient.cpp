@@ -95,6 +95,10 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_RECOG] = new SubSystem_Recog(fullName);
             else if (currentSS == SUBSYSTEM_IOL2OPC)
                 subSystems[SUBSYSTEM_IOL2OPC] = new SubSystem_IOL2OPC(fullName);
+            else if (currentSS == SUBSYSTEM_AGENTDETECTOR)
+                subSystems[SUBSYSTEM_AGENTDETECTOR] = new SubSystem_agentDetector(fullName);
+            else
+                yError() << "Unknown subsystem!";
         }
     }
 
@@ -237,6 +241,39 @@ void ICubClient::updateAgent()
     opc->Entities(EFAA_OPC_ENTITY_TAG, "==", EFAA_OPC_ENTITY_ACTION);
 }
 
+bool ICubClient::changeName(Entity *e, std::string newName) {
+    if(e->entity_type()=="agent") {
+        if (subSystems.find("agentDetector") == subSystems.end()) {
+            yWarning() << "Could not change name of default partner of agentDetector";
+            return false;
+        }
+        else {
+            dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->pause();
+
+            opc->changeName(e, newName);
+            dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName);
+
+            dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->resume();
+        }
+    } else if(e->entity_type()=="object") {
+        if (subSystems.find("iol2opc") == subSystems.end()) {
+            yWarning() << "Could not change name in iol2opc";
+            return false;
+        }
+        else {
+            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->pause();
+
+            string oldName = e->name();
+            opc->changeName(e, newName);
+            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName);
+
+            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->resume();
+        }
+    } else {
+        opc->changeName(e, newName);
+    }
+    return true;
+}
 
 void ICubClient::commitAgent()
 {       

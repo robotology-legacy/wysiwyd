@@ -22,6 +22,7 @@
 #define SUBSYSTEM               "abstract"
 #include "subSystem.h"
 #include "subSystem_ABM.h"
+#include "subSystem_agentDetector.h"
 #include "subSystem_ARE.h"
 #include "subSystem_attention.h"
 #include "subSystem_facialExpression.h"

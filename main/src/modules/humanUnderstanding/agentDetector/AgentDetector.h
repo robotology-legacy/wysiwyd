@@ -35,6 +35,7 @@ protected:
     Player joint;
     deque<Player> joints;
     Matrix players;
+    string partner_default_name;
 
     //OPC/RFH related
     OPCClient* opc;
@@ -54,13 +55,15 @@ protected:
     Port faceRecognizerModule;
     BufferedPort<Bottle> faceRecognizerModuleResults;
     Agent* partner;
-    map<int, Agent*> identities;
+    map<int, string> identities;
     string currentTrainingFace;
 	map<string, Vector> skeletonPatterns;
     double dSince;
 
     unsigned long dTimingLastApparition;        // time struct of the last appartition of an agent
     double dThresholdDisparition;           // timing maximal of non-reconnaissance of a agent, after thath we consider the agent as absent
+
+    Mutex m;
 
 public:
 

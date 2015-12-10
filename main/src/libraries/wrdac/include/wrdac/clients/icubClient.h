@@ -351,6 +351,8 @@ public:
     bool say(const std::string &text, bool shouldWait= true, bool emotionalIfPossible = false,
              const std::string &overrideVoice = "default");
 
+    bool changeName(Entity *e, std::string newName);
+
     /**
     * Ask the robot to perform speech recognition of a given sentence/grammar
     * @param timeout Timeout. If -1 the robot will wait until a sentence is recognized.

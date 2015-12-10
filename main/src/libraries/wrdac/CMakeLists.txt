@@ -41,6 +41,7 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/subsystems/all.h                       
                   include/wrdac/subsystems/subSystem.h                 
                   include/wrdac/subsystems/subSystem_ABM.h             
+                  include/wrdac/subsystems/subSystem_agentDetector.h
                   include/wrdac/subsystems/subSystem_ARE.h             
                   include/wrdac/subsystems/subSystem_attention.h       
                   include/wrdac/subsystems/subSystem_facialExpression.h
