@@ -45,7 +45,6 @@ private:
     double delayPoint;
     double delayHome;
 
-
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
