@@ -494,7 +494,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
             string sNameSAM = bReplySam.get(0).asString();
             if(sNameSAM != "nack" && sNameSAM != "partner" && sNameSAM != "") {
                 yDebug() << "Changing name from " << TARGET->name() << " to " << sNameSAM;
-                TARGET->changeName(sNameSAM);
+                iCub->changeName(TARGET,sNameSAM);
                 iCub->opc->commit(TARGET);
 
                 iCub->say("Nice to see you " + sNameSAM);
@@ -589,20 +589,13 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
 
     string sReply;
     Entity* e = iCub->opc->getEntity(sNameTarget);
-    e->changeName(sName);
+    iCub->changeName(e,sName);
     iCub->opc->commit(e);
 
     if (currentEntityType == "agent") {
         sReply = " Nice to meet you " + sName;
     }
     else if (currentEntityType == "object") {
-        SubSystem_IOL2OPC* iol2opcClient = iCub->getIOL2OPCClient();
-        if (iol2opcClient != NULL) {
-            iol2opcClient->changeName(sNameTarget, sName);
-        }
-        else {
-            yError() << "Could not connect to IOL2OPC subsystem";
-        }
         //sReply = " I get it, this is a " + sName;
         Bottle bToLRH, bFromLRH;
         bToLRH.addString("production");
@@ -789,20 +782,11 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                 iCub->getARE()->look(vGoal);
             }
 
-            TARGET->changeName(sNameTarget);
+            iCub->changeName(TARGET,sNameTarget);
             iCub->opc->commit(TARGET);
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
             iCub->say("Now I know the" + sNameTarget);
-            if (TARGET->entity_type() == "object") {
-                SubSystem_IOL2OPC* iol2opcClient = iCub->getIOL2OPCClient();
-                if (iol2opcClient != NULL) {
-                    iol2opcClient->changeName(sNameBestEntity, sNameTarget);
-                }
-                else {
-                    yError() << "Could not connect to IOL2OPC subsystem";
-                }
-            }
         }
     }
 
