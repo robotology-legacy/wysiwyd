@@ -37,7 +37,7 @@ public:
 
     yarp::os::Bottle bRelations;
 
-    std::vector<std::pair<std::string, std::string>>  vArgument;
+    std::vector<std::pair<std::string, std::string> >  vArgument;
     bool begin;
 
     evtStory(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle bRelations);
