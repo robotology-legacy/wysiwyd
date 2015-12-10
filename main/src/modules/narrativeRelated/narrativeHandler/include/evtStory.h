@@ -15,26 +15,31 @@
  * Public License for more details
  */
 
+#include "wrdac/clients/icubClient.h"
 
-#include <evtStory.h>
+// STD
+#include <vector>
+#include <string>
+#include <sstream>
+#include <time.h>
 
-class myTimeStruct{
+
+class evtStory{
 public:
-    struct tm m_tm;
-    long int iMilliSec;
-};
+    int instance;
+    std::string activity_name;
+    std::string activity_type;
 
+    std::string predicate;
+    std::string agent;
+    std::string object;
+    std::string recipient;
 
-class story{
-public:
+    yarp::os::Bottle bRelations;
 
-    yarp::os::Bottle unfoldGoal(std::string);
+    std::vector<std::pair<std::string, std::string>>  vArgument;
+    bool begin;
 
-    std::vector<std::string>    sentenceStory;
+    evtStory(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle bRelations);
 
-    void createNarration();
-    void displayNarration();
-
-    std::vector<int>        viInstances;
-    std::vector<evtStory>   vEvents;
 };

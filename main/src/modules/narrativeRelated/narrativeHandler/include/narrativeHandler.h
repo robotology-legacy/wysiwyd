@@ -35,6 +35,9 @@ private:
     std::vector<story> listStories;
 
     void tellingStory(story st);
+    void initializeStories();
+
+    yarp::os::Bottle unfoldGoal(std::string goal);
 
 
 public:

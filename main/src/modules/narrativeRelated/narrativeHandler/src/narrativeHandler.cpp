@@ -64,7 +64,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     findStories();
     cout << endl;
-    tellingStory(listStories[listStories.size() - 1]);
+    initializeStories();
+
+    //for (auto it = listStories.begin(); it != listStories.end(); it++){
+    //    tellingStory(*it);
+    //}
 
     return abm;
 }
@@ -317,13 +321,18 @@ void narrativeHandler::tellingStory(story st){
         A = "none",
         O = "none",
         R = "none",
-        status = "success";
+        reason = "none",
+        status = "success",
+        adv1 = "none",
+        adv2 = "none";
 
+    Bottle bPreviousRelation;
 
+    cout << "--------------------------------------------------------------" << endl;
 
     for (std::vector<int>::iterator it = st.viInstances.begin(); it != st.viInstances.end(); it++){
 
-        cout << "instance: " << ii << endl;
+        cout << ii << endl;
         osRequest.str("");
         osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *it << " AND verb != 'isAtLoc'";
         bRelations = iCub->getABMClient()->requestFromString(osRequest.str());
@@ -338,8 +347,6 @@ void narrativeHandler::tellingStory(story st){
         osRequest << "SELECT argument, role FROM contentarg WHERE instance = " << *it;
         bArguments = iCub->getABMClient()->requestFromString(osRequest.str());
         //      cout << "Arguments: ";
-
-        cout << "step " << 0 << endl;
 
         // initial situation
         if (ii == 0){
@@ -368,26 +375,53 @@ void narrativeHandler::tellingStory(story st){
         O = "none";
         R = "none";
         status = "success";
+        adv1 = "none";
+        adv2 = "none";
 
         for (int kk = 0; kk < bArguments.size(); kk++){
             Bottle bTemp = *bArguments.get(kk).asList();
-            if (bTemp.get(1).toString() == "predicate") P = bTemp.get(0).toString();
-            if (bTemp.get(1).toString() == "agent")     A = bTemp.get(0).toString();
-            if (bTemp.get(1).toString() == "object")    O = bTemp.get(0).toString();
-            if (bTemp.get(1).toString() == "recipient") R = bTemp.get(0).toString();
-            if (bTemp.get(1).toString() == "status") status = bTemp.get(0).toString();
+
+            if (bTemp.get(1).toString() == "predicate"
+                || bTemp.get(1).toString() == "action"
+                || bTemp.get(1).toString() == "action2"
+                || bTemp.get(1).toString() == "action3"
+                || bTemp.get(1).toString() == "verb1"
+                || bTemp.get(1).toString() == "verb2"
+                || bTemp.get(1).toString() == "verb3") P = bTemp.get(0).toString();
+            else if (bTemp.get(1).toString() == "agent"
+                || bTemp.get(1).toString() == "agent1"
+                || bTemp.get(1).toString() == "agent2")     A = bTemp.get(0).toString();
+            else if (bTemp.get(1).toString() == "object"
+                || bTemp.get(1).toString() == "object1"
+                || bTemp.get(1).toString() == "object2")    O = bTemp.get(0).toString();
+            else if (bTemp.get(1).toString() == "recipient"
+                || bTemp.get(1).toString() == "spatial"
+                || bTemp.get(1).toString() == "spatial1"
+                || bTemp.get(1).toString() == "spatial2") R = bTemp.get(0).toString();
+            else if (bTemp.get(1).toString() == "status") status = bTemp.get(0).toString();
+            else if (bTemp.get(1).toString() == "reason") reason = bTemp.get(0).toString();
+            else if (bTemp.get(1).toString() == "adv1") reason = bTemp.get(0).toString();
+            else if (bTemp.get(1).toString() == "adv2") reason = bTemp.get(0).toString();
 
         }
 
         // if it is an ACTION
         if (current_activitytype == "action"){
 
+            if (P == "none"){
+                P = current_activityname;
+            }
             // if the action begin
             if (current_begin){
 
                 // if the previous instance wasn't already an action
-                if (current_activitytype != previous_activitytype){
-                    cout << "\t\t\t" << A << " tries to " << P << " the " << O << endl;
+                if (current_activitytype != previous_activitytype || previous_begin != current_begin){
+                    cout << "\t\t\t" << A << " tries to " << P << " the " << O;
+                    if (R != "none")  cout << " " << R;
+                    if (adv1 != "none")  cout << " " << adv1;
+                    if (adv2 != "none")  cout << " " << adv2;
+
+                    cout << endl;
                 }
             }
             // the action ends
@@ -395,21 +429,249 @@ void narrativeHandler::tellingStory(story st){
                 // if previous instance was not a beggining of action
                 if (previous_begin || previous_activitytype != "action"){
                     if (status == "failed"){
-                        cout << "\t\t\t" << "But it failed." << endl;
+                        cout << "\t\t\t" << "But it failed";
+                        if (reason != "none"){
+                            cout << " because " << reason;
+                        }
+                        cout << "." << endl;
+
                     }
                     else {
                         cout << "\t\t\t" << "And it worked." << endl;
                     }
                 }
+                else{
+                    for (int kk = 0; kk < bArguments.size(); kk++){
+                        Bottle bTemp = *bArguments.get(kk).asList();
+                        if (bTemp.get(1).toString() == "reason") cout << "\t\t\t" << "Because " << bTemp.get(0).toString() << endl;
+                    }
+                }
 
             }
         }
+        else if (current_activityname == "sentence") {
+            string speaker = "none",
+                addressee = "none",
+                sentence = "none";
+            for (int kk = 0; kk < bArguments.size(); kk++){
+                Bottle bTemp = *bArguments.get(kk).asList();
+                if (bTemp.get(1).toString() == "speaker") speaker = bTemp.get(0).toString();
+                else if (bTemp.get(1).toString() == "addressee")     addressee = bTemp.get(0).toString();
+                else if (bTemp.get(1).toString() == "sentence")    sentence = bTemp.get(0).toString();
+            }
+
+            cout << "\t\t\t" << speaker << " says to " << addressee << ": " << sentence << endl;
+        }
+        // if not actino or sentence
+        else if (current_activitytype == "reasoning"){
+            for (int kk = 0; kk < bArguments.size(); kk++){
+                Bottle bTemp = *bArguments.get(kk).asList();
+                cout << bTemp.toString() << endl;
+            }
+            // if the action begin
+            if (current_begin){
+
+                // if the previous instance wasn't already an action
+                if (current_activitytype != previous_activitytype || previous_begin != current_begin){
+                    cout << "\t\t\t" << A << " tries to " << current_activityname << endl;
+
+                    for (int kk = 0; kk < bArguments.size(); kk++){
+                        Bottle bTemp = *bArguments.get(kk).asList();
+                        if (bTemp.get(1).toString() == "goal"){
+                            Bottle bUnfolded = unfoldGoal(bTemp.get(0).toString());
+                            cout << "\t\t\t" << "The goal was that: " << bUnfolded.find("agent").toString() << " tries to " << bUnfolded.find("predicate").toString() << " the " << bUnfolded.find("object").toString();
+                            if (bUnfolded.find("recipient").toString() != "")  cout << " " << bUnfolded.find("recipient").toString();
+                            cout << endl;
+                        }
+                    }
+                }
+            }
+            // the action ends
+            else{
+                // if previous instance was not a beggining of action
+                if (previous_begin || previous_activitytype != "action"){
+                    if (status == "failed"){
+                        cout << "\t\t\t" << "But it failed";
+                        if (reason != "none"){
+                            cout << " because " << reason;
+                        }
+                        cout << "." << endl;
+
+                    }
+                    else {
+                        cout << "\t\t\t" << "And it worked." << endl;
+                    }
+                }
+                else{
+                    for (int kk = 0; kk < bArguments.size(); kk++){
+                        Bottle bTemp = *bArguments.get(kk).asList();
+                        if (bTemp.get(1).toString() == "reason") cout << "\t\t\t" << "Because " << bTemp.get(0).toString() << endl;
+                    }
+                    if (reason != "none"){
+                        cout << " because " << reason;
+                    }
+                    cout << "." << endl;
+                }
+            }
+        }
         else {
-            cout << "current_activityname = "<< current_activityname << "   current_activitytype = "<< current_activitytype << endl;
+            for (int kk = 0; kk < bArguments.size(); kk++){
+                Bottle bTemp = *bArguments.get(kk).asList();
+                //                cout << bTemp.toString() << endl;
+            }
+            // if the action begin
+            if (current_begin){
+
+                // if the previous instance wasn't already an action
+                if (current_activitytype != previous_activitytype || previous_begin != current_begin){
+                    cout << "\t\t\t" << A << " tries to " << current_activityname << endl;
+                }
+            }
+            // the action ends
+            else{
+                // if previous instance was not a beggining of action
+                if (previous_begin || previous_activitytype != "action"){
+                    if (status == "failed"){
+                        cout << "\t\t\t" << "But it failed";
+                        if (reason != "none"){
+                            cout << " because " << reason;
+                        }
+                        cout << "." << endl;
+
+                    }
+                    else {
+                        cout << "\t\t\t" << "And it worked." << endl;
+                    }
+                }
+                else{
+                    for (int kk = 0; kk < bArguments.size(); kk++){
+                        Bottle bTemp = *bArguments.get(kk).asList();
+                        if (bTemp.get(1).toString() == "reason") cout << "\t\t\t" << "Because " << bTemp.get(0).toString() << endl;
+                    }
+                    if (reason != "none"){
+                        cout << " because " << reason;
+                    }
+                    cout << "." << endl;
+                }
+            }
         }
 
+
+        // final situation
+        if (ii != st.viInstances.size() && ii != 0){
+
+            if (bRelations != bPreviousRelation)
+            {
+                if (bRelations.toString() != "NULL"){
+                    cout << "\t\t\t" << "And now, ";
+                    for (int jj = 0; jj < bRelations.size(); jj++){
+                        if (jj != 0){
+                            cout << " and ";
+                        }
+                        cout << bRelations.get(jj).toString();
+                    }
+                    cout << endl;
+                }
+            }
+        }
+        bPreviousRelation = bRelations;
+
         ii++;
+
+
+        // final situation
+        if (ii == st.viInstances.size()){
+            cout << "\t\t\t" << "In the end, ";
+            for (int jj = 0; jj < bRelations.size(); jj++){
+                if (jj != 0){
+                    cout << " and ";
+                }
+                cout << bRelations.get(jj).toString();
+            }
+            cout << endl;
+        }
     }
+
+    cout << endl << endl;
 
 }
 
+
+Bottle narrativeHandler::unfoldGoal(string goal)
+{
+    bool bVerbose = false;
+    Bottle bOutput;
+
+    if (bVerbose) cout << endl << "Starting to unfold: " << goal << endl;
+
+    bool isRole = true;
+    bool bIsFirst = true;
+    istringstream iss(goal);
+    Bottle bTemp;
+    do
+    {
+        string sub;
+        iss >> sub;
+        if (sub[0] == '(') sub = sub.erase(0, 1);
+        if (sub[sub.size() - 1] == ')')   sub = sub.erase(sub.size() - 1);
+        if (bVerbose) cout << "Substring: " << sub << endl;
+        if (isRole){
+            if (!bIsFirst) bOutput.addList() = bTemp;
+            bTemp.clear();
+            bTemp.addString(sub);
+        }
+        else{
+            bTemp.addString(sub);
+        }
+        bIsFirst = false;
+        isRole = !isRole;
+
+    } while (iss);
+
+    if (bVerbose) cout << "bOutput: " << bOutput.toString() << endl;
+
+    if (bVerbose) cout << "find is: " << bOutput.find("predicate").toString() << endl;
+
+    return bOutput;
+}
+
+
+void narrativeHandler::initializeStories()
+{
+    for (auto itSt = listStories.begin(); itSt != listStories.end(); itSt++){
+
+        itSt->vEvents.clear();
+
+        for (auto itInst = itSt->viInstances.begin(); itInst != itSt->viInstances.end(); itInst++){
+
+
+            ostringstream osRequest;
+
+            osRequest.str("");
+            osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itInst << " AND verb != 'isAtLoc'";
+            Bottle bRelations = iCub->getABMClient()->requestFromString(osRequest.str());
+            //cout << "Relations: " << bMessenger.toString() << endl;
+
+            osRequest.str("");
+            osRequest << "SELECT activityname, activitytype, begin FROM main WHERE instance = " << *itInst;
+            Bottle bActivity = iCub->getABMClient()->requestFromString(osRequest.str());
+            //        cout << "activity info: " << bActivity.toString() << endl;
+
+            osRequest.str("");
+            osRequest << "SELECT argument, role FROM contentarg WHERE instance = " << *itInst;
+            Bottle bArguments = iCub->getABMClient()->requestFromString(osRequest.str());
+
+
+            itSt->vEvents.push_back(evtStory(*itInst, bActivity, bArguments, bRelations));
+        }
+
+        cout << "story initialized" << endl;
+
+        itSt->displayNarration();
+
+        cout << endl << endl;
+
+    }
+
+
+}
