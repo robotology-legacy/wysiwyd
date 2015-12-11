@@ -191,7 +191,6 @@ bool attentionSelectorModule::updateModule() {
             return true;
 
     opc->checkout();
-    //list<Entity*> entities = opc->EntitiesCacheCopy();
     list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
     for (auto& entity : entities)

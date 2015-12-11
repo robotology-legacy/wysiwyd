@@ -39,7 +39,7 @@ void signal_handler(int signal)
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
     Network yarp;
     if (!yarp.checkNetwork())
@@ -47,6 +47,9 @@ int main()
         yError()<<"YARP network seems unavailable!";
         return 1;
     }
+
+    ResourceFinder rf;
+    rf.configure(argc,argv);
 
     OPCClient world("test_cartesian_sim/opc");
     if (!world.connect("OPC"))
@@ -117,6 +120,9 @@ int main()
     vObject.push_back(obj4);
     icub.opc->commit();
     // populate OPC: end
+
+    if (rf.check("populate-only"))
+        return 0; 
 
     // catch ctrl-c sequence
     std::signal(SIGINT,signal_handler);
