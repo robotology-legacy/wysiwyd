@@ -15,6 +15,7 @@
 * Public License for more details
 */
 
+#include <csignal>
 #include <vector>
 #include <string>
 
@@ -26,6 +27,17 @@ using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
+
+namespace
+{
+    volatile std::sig_atomic_t gSignalStatus;
+}
+
+void signal_handler(int signal)
+{
+    gSignalStatus=signal;
+}
+
 
 int main()
 {
@@ -52,10 +64,6 @@ int main()
         return 1;
     }
 
-    // attention starts up in auto mode => stop it
-    yInfo()<<"stopping attention";
-    icub.lookStop();
-   
     double X_obj = -0.4;
     double Y_obj = 0.5;
     double Z_obj = 0.1;
@@ -63,13 +71,7 @@ int main()
     double Y_ag = 0.5;
     double Z_ag = 0.5;
 
-    double delayLook = 2.;
-    double delayPoint = 1.;
-    double delayHome = 1.5;
-
-    int iLoop = 5;
-
-    //POPULATE OPC:
+    // populate OPC: begin
     icub.opc->clear();
 
     Object* obj1 = icub.opc->addOrRetrieveEntity<Object>("bottom_left");
@@ -80,7 +82,6 @@ int main()
     obj1->m_color[0] = Random::uniform(0, 80);
     obj1->m_color[1] = Random::uniform(80, 180);
     obj1->m_color[2] = Random::uniform(180, 250);
-    icub.opc->commit(obj1);
 
     Object* obj2 = icub.opc->addOrRetrieveEntity<Object>("top_left");
     obj2->m_ego_position[0] = X_ag;
@@ -90,7 +91,6 @@ int main()
     obj2->m_color[0] = Random::uniform(0, 180);
     obj2->m_color[1] = Random::uniform(0, 80);
     obj2->m_color[2] = Random::uniform(180, 250);
-    icub.opc->commit(obj2);
 
     Object* obj3 = icub.opc->addOrRetrieveEntity<Object>("top_right");
     obj3->m_ego_position[0] = X_ag;
@@ -100,7 +100,6 @@ int main()
     obj3->m_color[0] = Random::uniform(100, 180);
     obj3->m_color[1] = Random::uniform(80, 180);
     obj3->m_color[2] = Random::uniform(0, 80);
-    icub.opc->commit(obj3);
 
     Object* obj4 = icub.opc->addOrRetrieveEntity<Object>("bottom_right");
     obj4->m_ego_position[0] = X_obj;
@@ -109,43 +108,62 @@ int main()
     obj4->m_present = 1;
     obj4->m_color[0] = Random::uniform(100, 180);
     obj4->m_color[1] = Random::uniform(0, 80);
-    obj4->m_color[2] = Random::uniform(180, 250);
-    icub.opc->commit(obj4);
+    obj4->m_color[2] = Random::uniform(180, 250);    
 
-    vector<string>  vObject;
-    vObject.push_back("bottom_right");
-    vObject.push_back("bottom_left");
-    vObject.push_back("top_right");
-    vObject.push_back("top_left");
+    vector<Object*> vObject;
+    vObject.push_back(obj1);
+    vObject.push_back(obj2);
+    vObject.push_back(obj3);
+    vObject.push_back(obj4);
+    icub.opc->commit();
+    // populate OPC: end
 
-    // END POPULATING OPC
+    // catch ctrl-c sequence
+    std::signal(SIGINT,signal_handler);
 
-    //  BEGINNING LOOP POINTING
-    for (int ii = 0; ii < iLoop; ii++)
+    // loop pointing
+    for (int i = 0; i < 5; i++)
     {
-        for (auto itOb = vObject.begin(); itOb != vObject.end(); itOb++)
+        for (vector<Object*>::iterator itOb = vObject.begin(); itOb != vObject.end(); itOb++)
         {
-            Object* obj1 = icub.opc->addOrRetrieveEntity<Object>(*itOb);
-            string sHand;
-            (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
-            Bottle bHand(sHand);
+            string obj_name=(*itOb)->name();
+            string obj_pos=(*itOb)->m_ego_position.toString().c_str();
 
-            yInfo() << *itOb << ": " << obj1->m_ego_position.toString();
+            yInfo() << "Object " << obj_name << " in position (" << obj_pos << ")";
 
-            bool bSuccess = icub.look(*itOb);
-            yInfo() << "\t\t\t" << "IN DELAY LOOK";
+            if (gSignalStatus==SIGINT)
+            {
+                yWarning("SIGINT detected: closing ...");
+                break;
+            }
 
-            Time::delay(delayLook);
-            icub.lookStop();
+            yInfo() << "\t\t" << "looking at it for a while ...";
+            icub.look(obj_name);
+            Time::delay(2.0);
 
-            bSuccess &= icub.point(*itOb, bHand);
-            yInfo() << "\t\t\t" << "IN DELAY POINT";
-            Time::delay(delayPoint);
+            if (gSignalStatus==SIGINT)
+            {
+                yWarning("SIGINT detected: closing ...");
+                break;
+            }
 
-            icub.getARE()->home();
-            yInfo() << "\t\t\t" << "IN DELAY HOME";
-            Time::delay(delayHome);
+            yInfo() << "\t\t" << "pointing initiated";
+            icub.point(obj_name);
+            yInfo() << "\t\t" << "pointing complete";
+
+            if (gSignalStatus==SIGINT)
+            {
+                yWarning("SIGINT detected: closing ...");
+                break;
+            }
+
+            yInfo() << "\t\t" << "homing initiated";
+            icub.home();
+            yInfo() << "\t\t" << "homing complete";
         }
+
+        if (gSignalStatus==SIGINT)
+            break;
     }
 
     return 0;
