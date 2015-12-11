@@ -1,5 +1,5 @@
 # Copyright: (C) 2014 WYSIWYD Consortium
-# Authors: Ugo Pattacini
+# Authors: Gregoire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 project(test-cartesian-sim)

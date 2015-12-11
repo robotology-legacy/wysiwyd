@@ -1,7 +1,7 @@
 /*
 * Copyright(C) 2015 WYSIWYD Consortium, European Commission FP7 Project ICT - 612139
-* Authors: Ugo Pattacini
-* email : ugo.pattacini@iit.it
+* Authors: Gregoire Pointeau
+* email : gregoire.pointeau@inserm.fr
 * Permission is granted to copy, distribute, and / or modify this program
 * under the terms of the GNU General Public License, version 2 or any
 * later version published by the Free Software Foundation.
@@ -15,15 +15,17 @@
 * Public License for more details
 */
 
+#include <vector>
+#include <string>
+
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <wrdac/clients/icubClient.h>
 
+using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace yarp::math;
 using namespace wysiwyd::wrdac;
-using namespace std;
 
 int main()
 {
@@ -34,7 +36,7 @@ int main()
         return 1;
     }
 
-    OPCClient world("test_are_attention/opc");
+    OPCClient world("test_cartesian_sim/opc");
     if (!world.connect("OPC"))
     {
         yError()<<"OPC seems unavailabe!";
@@ -42,7 +44,7 @@ int main()
     }
     world.clear();
 
-    ICubClient icub("test_are_attention","icubClient","test_are_attention.ini");
+    ICubClient icub("test_cartesian_sim","icubClient","test_cartesian_sim.ini");
     if (!icub.connect())
     {
         yError()<<"One or more functionalities seem unavailabe!";
@@ -60,7 +62,6 @@ int main()
     double X_ag = -0.4;
     double Y_ag = 0.5;
     double Z_ag = 0.5;
-
 
     double delayLook = 2.;
     double delayPoint = 1.;
@@ -101,7 +102,6 @@ int main()
     obj3->m_color[2] = Random::uniform(0, 80);
     icub.opc->commit(obj3);
 
-
     Object* obj4 = icub.opc->addOrRetrieveEntity<Object>("bottom_right");
     obj4->m_ego_position[0] = X_obj;
     obj4->m_ego_position[1] = Y_obj;
@@ -112,46 +112,42 @@ int main()
     obj4->m_color[2] = Random::uniform(180, 250);
     icub.opc->commit(obj4);
 
-
     vector<string>  vObject;
     vObject.push_back("bottom_right");
     vObject.push_back("bottom_left");
     vObject.push_back("top_right");
     vObject.push_back("top_left");
 
-
     // END POPULATING OPC
 
     //  BEGINNING LOOP POINTING
-    for (int ii = 0; ii < iLoop; ii++){
-        for (auto itOb = vObject.begin(); itOb != vObject.end(); itOb++){
-
+    for (int ii = 0; ii < iLoop; ii++)
+    {
+        for (auto itOb = vObject.begin(); itOb != vObject.end(); itOb++)
+        {
             Object* obj1 = icub.opc->addOrRetrieveEntity<Object>(*itOb);
             string sHand;
             (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
             Bottle bHand(sHand);
 
-            cout << *itOb << ": " << obj1->m_ego_position.toString() << endl;
-
+            yInfo() << *itOb << ": " << obj1->m_ego_position.toString();
 
             bool bSuccess = icub.look(*itOb);
-            cout << "\t\t\t" << "IN DELAY LOOK" << endl;
+            yInfo() << "\t\t\t" << "IN DELAY LOOK";
 
             Time::delay(delayLook);
             icub.lookStop();
 
             bSuccess &= icub.point(*itOb, bHand);
-            cout << "\t\t\t" << "IN DELAY POINT" << endl;
+            yInfo() << "\t\t\t" << "IN DELAY POINT";
             Time::delay(delayPoint);
 
-
             icub.getARE()->home();
-            cout << "\t\t\t" << "IN DELAY HOME" << endl;
+            yInfo() << "\t\t\t" << "IN DELAY HOME";
             Time::delay(delayHome);
-
         }
-
     }
+
     return 0;
 }
 

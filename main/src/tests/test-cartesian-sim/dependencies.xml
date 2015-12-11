@@ -1,5 +1,5 @@
 <application>
-  <name>Dependencies for test-are-attention</name>
+  <name>Dependencies for test-cartesian-sim</name>
   <module>
     <name>objectsPropertiesCollector</name>
     <parameters>--name OPC --empty --nosave</parameters>
