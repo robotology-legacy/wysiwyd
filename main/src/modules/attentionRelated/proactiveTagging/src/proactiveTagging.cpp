@@ -557,7 +557,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         sQuestion = " How do you call this part of my body?";
         yInfo() << sQuestion;
         //iCub->getSpeechClient()->TTS(sQuestion, false);
-        iCub->say(sQuestion);
+        iCub->say(sQuestion, false);
     }
     else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         Object* obj1 = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
