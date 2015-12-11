@@ -127,9 +127,9 @@ int main()
         for (vector<Object*>::iterator itOb = vObject.begin(); itOb != vObject.end(); itOb++)
         {
             string obj_name=(*itOb)->name();
-            string obj_pos=(*itOb)->m_ego_position.toString().c_str();
+            string obj_pos=(*itOb)->m_ego_position.toString(3,3).c_str();
 
-            yInfo() << "Object " << obj_name << " in position (" << obj_pos << ")";
+            yInfo() << "Object " << obj_name << " is in position (" << obj_pos << ") [m]";
 
             if (gSignalStatus==SIGINT)
             {
