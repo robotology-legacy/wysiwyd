@@ -22,11 +22,26 @@ class myTimeStruct{
 public:
     struct tm m_tm;
     long int iMilliSec;
+
+    std::string toString(){
+        std::ostringstream osOut;
+        osOut << m_tm.tm_mday << "/"
+            << m_tm.tm_mon+1 << "/"
+            << m_tm.tm_year << " "
+            << m_tm.tm_hour << ":"
+            << m_tm.tm_min << ":"
+            << m_tm.tm_sec;
+        return osOut.str();
+    }
 };
 
 
 class story{
 public:
+
+    myTimeStruct    timeBegin;
+    myTimeStruct    timeEnd;
+
 
     yarp::os::Bottle unfoldGoal(std::string);
 

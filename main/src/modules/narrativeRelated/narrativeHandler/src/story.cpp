@@ -16,6 +16,10 @@ void story::createNarration()
 
     //Bottle bPreviousRelation;
 
+    osCurrent << "story: " << timeBegin.toString() << " to " << timeEnd.toString() << endl;
+
+    vsOutput.push_back(osCurrent.str());
+
     for (unsigned int ii = 0; ii != vEvents.size(); ii++){
 
         osCurrent.str("");
@@ -321,7 +325,6 @@ Bottle story::unfoldGoal(string goal)
 
     return bOutput;
 }
-
 
 
 void story::displayNarration()

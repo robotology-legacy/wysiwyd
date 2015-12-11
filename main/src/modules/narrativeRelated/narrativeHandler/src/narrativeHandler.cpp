@@ -131,6 +131,9 @@ void narrativeHandler::findStories(int iInstance)
     Bottle bMessenger;
     int numberSentence = bAllInstances.size();
 
+    myTimeStruct timeBegin;
+    myTimeStruct timeEnd;
+
     vector<int> vError;
     yInfo() << "\t" << "found " << numberSentence << " sentence(s)";
     double mDiff;
@@ -332,7 +335,7 @@ void narrativeHandler::tellingStory(story st){
 
     for (std::vector<int>::iterator it = st.viInstances.begin(); it != st.viInstances.end(); it++){
 
-        cout << ii << endl;
+        cout << ii << " " <<  st.timeBegin.toString() << " to " << st.timeEnd.toString() << endl;
         osRequest.str("");
         osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *it << " AND verb != 'isAtLoc'";
         bRelations = iCub->getABMClient()->requestFromString(osRequest.str());
@@ -641,6 +644,16 @@ void narrativeHandler::initializeStories()
     for (auto itSt = listStories.begin(); itSt != listStories.end(); itSt++){
 
         itSt->vEvents.clear();
+        ostringstream osRequest;
+        osRequest.str("");
+        osRequest << "SELECT time FROM main WHERE instance = " << *(itSt->viInstances.begin());
+        Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        itSt->timeBegin = string2Time(bMessenger.toString());
+
+        osRequest.str("");
+        osRequest << "SELECT time FROM main WHERE instance = " << itSt->viInstances[itSt->viInstances.size()-1];
+        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        itSt->timeEnd = string2Time(bMessenger.toString());
 
         for (auto itInst = itSt->viInstances.begin(); itInst != itSt->viInstances.end(); itInst++){
 
