@@ -43,13 +43,13 @@ namespace wysiwyd {
         */
         class SubSystem_ARE : public SubSystem
         {
+        protected:
             SubSystem_ABM* SubABM;
             bool ABMconnected;
 
             SubSystem_Attention* SubATT;
             bool ATTconnected;
-
-        protected:
+        
             yarp::os::RpcClient cmdPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
