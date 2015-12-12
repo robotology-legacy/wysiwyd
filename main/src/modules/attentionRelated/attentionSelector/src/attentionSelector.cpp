@@ -124,22 +124,37 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "track") {
         autoSwitch = false;
         if (command.get(1).isInt()) {
-            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt()))->name();
-            trackedCoordinates = false;
+            if (Object *obj=dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt())))
+            {
+                trackedObject=obj->name();
+                trackedCoordinates=false;
+            }
+            else
+                trackedObject="none";
         }
         else if (command.get(1).isString()) {
-            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asString().c_str()))->name();
-            trackedCoordinates = false;
+            if (Object *obj=dynamic_cast<Object*>(opc->getEntity(command.get(1).asString().c_str())))
+            {
+                trackedObject=obj->name(); 
+                trackedCoordinates=false;
+            }
+            else
+                trackedObject="none";
         }
-        else {
-            trackedCoordinates = true;
-
+        else {            
             x_coord = command.get(1).asDouble();
             y_coord = command.get(2).asDouble();
             z_coord = command.get(3).asDouble();
+            trackedCoordinates = true;
         }
-        aState = s_tracking;
-        reply.addString("ack");
+
+        if ((trackedObject!="none") || trackedCoordinates)
+        {
+            aState=s_tracking; 
+            reply.addString("ack");
+        }
+        else
+            reply.addString("nack");
         return true;
     }
     else if (command.get(0).asString() == "auto") {
@@ -239,13 +254,9 @@ bool attentionSelectorModule::updateModule() {
         icub = opc->addOrRetrieveEntity<Agent>("icub");
 
     if (presentObjects.size() <= 0)
-    {
         yWarning() << "Unable to get any lookable entity from OPC";
-    }
     else if (autoSwitch)
-    {
         exploring();
-    }
 
     if (trackedCoordinates)
     {
@@ -255,12 +266,14 @@ bool attentionSelectorModule::updateModule() {
             are->track(newTarget);
     }
     else if (trackedObject != "none")
-    {
-        yInfo() << "Tracking locked on object " << trackedObject << ".";
-        Object* oTracked = dynamic_cast<Object*>(opc->getEntity(trackedObject));
-        Vector newTarget = oTracked->m_ego_position;
-        if (isFixationPointSafe(newTarget))
-            are->track(newTarget);
+    {        
+        if (Object *oTracked=dynamic_cast<Object*>(opc->getEntity(trackedObject)))
+        {
+            yInfo() << "Tracking locked on object " << trackedObject << ".";
+            Vector newTarget = oTracked->m_ego_position;
+            if (isFixationPointSafe(newTarget))
+                are->track(newTarget);
+        }
     }
     return true;
 }
