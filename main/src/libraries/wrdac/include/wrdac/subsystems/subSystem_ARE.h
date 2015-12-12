@@ -50,8 +50,7 @@ namespace wysiwyd {
             bool ATTconnected;
 
         protected:
-            yarp::os::BufferedPort<yarp::os::Bottle> cmdNoWaitPort;
-            yarp::os::RpcClient cmdPort;            
+            yarp::os::RpcClient cmdPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
 
@@ -103,7 +102,6 @@ namespace wysiwyd {
 
                 bool ret = true;
                 ret &= yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
-                ret &= yarp::os::Network::connect(cmdNoWaitPort.getName(),"/actionsRenderingEngine/cmd:io");
                 ret &= yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
                 ret &= yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
                 return ret;
@@ -120,7 +118,6 @@ namespace wysiwyd {
                 SubATT = new SubSystem_Attention(m_masterName+"/from_ARE");
 
                 cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
-                cmdNoWaitPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd_nowait:io").c_str());
                 rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
                 getPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/get:io").c_str());
                 m_type = SUBSYSTEM_ARE;                
@@ -132,7 +129,6 @@ namespace wysiwyd {
             void Close()
             {
                 cmdPort.interrupt();
-                cmdNoWaitPort.interrupt();
                 rpcPort.interrupt();
                 getPort.interrupt();
 
@@ -140,7 +136,6 @@ namespace wysiwyd {
                 SubATT->Close();
 
                 cmdPort.close();
-                cmdNoWaitPort.close();
                 rpcPort.close();
                 getPort.close();
             }
