@@ -62,5 +62,5 @@ public:
     std::vector<int>        viInstances;
     std::vector<evtStory>   vEvents;
 
-    void story::addInstance(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
+    void addInstance(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
 };

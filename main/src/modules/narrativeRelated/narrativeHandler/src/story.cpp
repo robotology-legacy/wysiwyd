@@ -16,7 +16,7 @@ void story::createNarration()
 
     //Bottle bPreviousRelation;
 
-    osCurrent << "story: " << timeBegin.toString() << " to " << timeEnd.toString() << endl;
+    osCurrent << "story: " << timeBegin.toString() << " (" << viInstances[0] << ")  to " << timeEnd.toString() << " (" << viInstances[viInstances.size() - 1] << ")" << endl;
 
     vsOutput.push_back(osCurrent.str());
 
