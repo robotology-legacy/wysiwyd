@@ -30,16 +30,22 @@ public:
     std::string activity_name;
     std::string activity_type;
 
+    std::vector<std::pair< std::string, double> >  mFocus;
+
     std::string predicate;
     std::string agent;
     std::string object;
     std::string recipient;
+
+    bool isIn(std::vector<std::string> vec, std::string str);
+
 
     yarp::os::Bottle bRelations;
 
     std::vector<std::pair<std::string, std::string> >  vArgument;
     bool begin;
 
-    evtStory(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle bRelations);
+    std::vector<std::string> initialize(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle bRelations);
 
 };
+

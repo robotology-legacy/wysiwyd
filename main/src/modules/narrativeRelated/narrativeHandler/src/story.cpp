@@ -336,4 +336,42 @@ void story::displayNarration()
     for (auto itSt = sentenceStory.begin(); itSt != sentenceStory.end(); itSt++){
         cout << *itSt;
     }
+
+    cout << "OCW are: ";
+    for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
+        cout << *itS << "  ";
+    }
+
+    cout << endl;
 }
+
+
+void story::addOCW(string OCW){
+    if (OCW == "none")    return;
+
+    for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
+        if (*itS == OCW){
+            return;
+        }
+    }
+    vOCW.push_back(OCW);
+}
+
+
+void story::addInstance(int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
+    
+    vector<string>    _instanceOCW;
+    
+    evtStory evt;
+
+    _instanceOCW = evt.initialize(_instance, bActivity, bArguments, _bRelations);
+
+    vEvents.push_back(evt);
+
+    for (auto itS = _instanceOCW.begin(); itS != _instanceOCW.end(); itS++){
+        addOCW(*itS);
+    }
+
+}
+
+

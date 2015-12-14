@@ -39,9 +39,18 @@ public:
 class story{
 public:
 
+    void inizializeOCW();
+    void addOCW(std::string _OCW);
+    void updateMapScore();
+
+
+    std::vector<std::string>     vOCW;
+
+    std::map<std::string, std::vector<double> > mapScore;
+    std::vector<std::tuple<double, double, double, double> > vtPAOR;
+
     myTimeStruct    timeBegin;
     myTimeStruct    timeEnd;
-
 
     yarp::os::Bottle unfoldGoal(std::string);
 
@@ -52,4 +61,6 @@ public:
 
     std::vector<int>        viInstances;
     std::vector<evtStory>   vEvents;
+
+    void story::addInstance(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
 };

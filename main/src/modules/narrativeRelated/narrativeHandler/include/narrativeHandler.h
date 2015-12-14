@@ -38,6 +38,7 @@ private:
     void initializeStories();
 
     yarp::os::Bottle unfoldGoal(std::string goal);
+    void updateScoreStory(story &st);
 
 
 public:

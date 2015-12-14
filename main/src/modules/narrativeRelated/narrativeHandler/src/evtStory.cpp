@@ -6,9 +6,19 @@ using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
 
-evtStory::evtStory(int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
+vector<string> evtStory::initialize(int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
     instance = _instance;
     bRelations = _bRelations;
+    vector<string>   vOCW;
+
+    vector<string> vPredicate{ "predicate", "action", "action1", "action2", "action3", "verb", "verb1", "verb2", "verb3" };
+    vector<string> vAgent{ "agent", "agent1", "agent2", "agent3" };
+    vector<string> vObject{ "object", "object1", "object2", "object2" };
+
+    vector<string>  vNoPAOR{"subsystem", "provider"};
+
+
+    vector<pair<string, double> >   vFocus;
 
     activity_type = (bActivity.get(0).asList())->get(1).toString();
     activity_name = (bActivity.get(0).asList())->get(0).toString();
@@ -22,8 +32,10 @@ evtStory::evtStory(int _instance, Bottle bActivity, Bottle bArguments, Bottle _b
 
     begin = (bActivity.get(0).asList())->get(2).toString() == "t";
 
+    bool bComeFromProvider = false;
+
     for (int kk = 0; kk < bArguments.size(); kk++){
-        if(bArguments.get(kk).isList()) {
+        if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
 
             if (bTemp.get(1).toString() == "predicate"
@@ -47,6 +59,9 @@ evtStory::evtStory(int _instance, Bottle bActivity, Bottle bArguments, Bottle _b
                 pair<string, string> ptemp(bTemp.get(1).toString(), bTemp.get(0).toString());
                 vArgument.push_back(ptemp);
             }
+            vOCW.push_back(bTemp.get(0).asString());
+
+            if (bTemp.get(1).toString() == "subsystem") bComeFromProvider = true;
         }
     }
 
@@ -55,5 +70,22 @@ evtStory::evtStory(int _instance, Bottle bActivity, Bottle bArguments, Bottle _b
             predicate = activity_name;
         }
     }
+
+    mFocus = vFocus;
+
+    if (bComeFromProvider) vOCW.clear();
+
+    return vOCW;
+
 }
 
+
+
+bool evtStory::isIn(vector<string> vec, string str){
+    bool out = false;
+
+    for (auto itS = vec.begin(); itS != vec.end(); itS++){
+        out |= (*itS == str);
+    }
+    return out;
+}
