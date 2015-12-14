@@ -346,32 +346,19 @@ void story::displayNarration()
 }
 
 
-void story::addOCW(string OCW){
-    if (OCW == "none")    return;
+void story::addOCW(vector<string> inputOCW){
 
-    for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
-        if (*itS == OCW){
-            return;
+    for (auto itIn = inputOCW.begin(); itIn != inputOCW.end(); itIn++){
+        bool found = false;
+        if (*itIn != "none"){
+
+            for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
+                if (*itS == *itIn){
+                    found = true;
+                }
+            }
+            if (!found) vOCW.push_back(*itIn);
         }
     }
-    vOCW.push_back(OCW);
-}
-
-
-void story::addInstance(int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
-    
-    vector<string>    _instanceOCW;
-    
-    evtStory evt;
-
-    _instanceOCW = evt.initialize(_instance, bActivity, bArguments, _bRelations);
-
-    vEvents.push_back(evt);
-
-    for (auto itS = _instanceOCW.begin(); itS != _instanceOCW.end(); itS++){
-        addOCW(*itS);
-    }
 
 }
-
-

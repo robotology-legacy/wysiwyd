@@ -26,7 +26,7 @@ public:
     std::string toString(){
         std::ostringstream osOut;
         osOut << m_tm.tm_mday << "/"
-            << m_tm.tm_mon+1 << "/"
+            << m_tm.tm_mon + 1 << "/"
             << m_tm.tm_year << " "
             << m_tm.tm_hour << ":"
             << m_tm.tm_min << ":"
@@ -40,7 +40,7 @@ class story{
 public:
 
     void inizializeOCW();
-    void addOCW(std::string _OCW);
+    void addOCW(std::vector<std::string> _OCW);
     void updateMapScore();
 
 
@@ -62,5 +62,4 @@ public:
     std::vector<int>        viInstances;
     std::vector<evtStory>   vEvents;
 
-    void addInstance(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
 };

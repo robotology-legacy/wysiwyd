@@ -352,7 +352,7 @@ void narrativeHandler::initializeStories()
         itSt->timeBegin = string2Time(bMessenger.toString());
 
         osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance = " << itSt->viInstances[itSt->viInstances.size()-1];
+        osRequest << "SELECT time FROM main WHERE instance = " << itSt->viInstances[itSt->viInstances.size() - 1];
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
         itSt->timeEnd = string2Time(bMessenger.toString());
 
@@ -375,8 +375,11 @@ void narrativeHandler::initializeStories()
             osRequest << "SELECT argument, role FROM contentarg WHERE instance = " << *itInst;
             Bottle bArguments = iCub->getABMClient()->requestFromString(osRequest.str());
 
+            evtStory evtTemp;
+            vector<string> tempOCW = initializeEVT(evtTemp, *itInst, bActivity, bArguments, bRelations);
 
-            itSt->addInstance(*itInst, bActivity, bArguments, bRelations);
+            itSt->vEvents.push_back(evtTemp);
+            itSt->addOCW(tempOCW);
         }
 
         cout << "story initialized" << endl;
@@ -413,3 +416,64 @@ void narrativeHandler::updateScoreStory(story &st){
 
 
 
+
+vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
+    evt.instance = _instance;
+    evt.bRelations = _bRelations;
+    vector<string>   vOCW;
+
+    vector<string> vPredicate{ "predicate", "action", "action1", "action2", "action3", "verb", "verb1", "verb2", "verb3" };
+    vector<string> vAgent{ "agent", "agent1", "agent2", "agent3" };
+    vector<string> vObject{ "object", "object1", "object2", "object2" };
+    vector<string> vRecipient{ "recipient", "spatial", "spatial1", "spatial2", "spatial3" };
+
+    vector<string>  vNoPAOR{ "subsystem", "provider", "vector", "sentence" };
+
+    evt.activity_type = (bActivity.get(0).asList())->get(1).toString();
+    evt.activity_name = (bActivity.get(0).asList())->get(0).toString();
+
+    if (evt.activity_type == ""){
+        yWarning() << " in narrativeHandler::evtStory::evtStory no activity_type.";
+    }
+    if (evt.activity_name == ""){
+        yWarning() << " in narrativeHandler::evtStory::evtStory no activity_type.";
+    }
+
+    evt.begin = (bActivity.get(0).asList())->get(2).toString() == "t";
+
+    for (unsigned int kk = 0; kk < bArguments.size(); kk++){
+        if (bArguments.get(kk).isList()) {
+            Bottle bTemp = *bArguments.get(kk).asList();
+
+            if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
+            else if (evt.isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
+            else if (evt.isIn(vObject, bTemp.get(1).toString()))    evt.object = bTemp.get(0).toString();
+            else if (evt.isIn(vRecipient, bTemp.get(1).toString())) evt.recipient = bTemp.get(0).toString();
+            else {
+                pair<string, string> ptemp(bTemp.get(1).toString(), bTemp.get(0).toString());
+                evt.vArgument.push_back(ptemp);
+            }
+
+            if (!evt.isIn(vNoPAOR, bTemp.get(1).toString())) vOCW.push_back(bTemp.get(0).asString());
+        }
+    }
+
+    if (_bRelations.toString() != "NULL"){
+        for (unsigned int kk = 0; kk < _bRelations.size(); kk++){
+            Bottle bTemp = *_bRelations.get(kk).asList();
+            for (unsigned int jj = 0; jj != bTemp.size(); jj++){
+                vOCW.push_back(bTemp.get(jj).toString());
+            }
+        }
+    }
+
+    if (evt.activity_type == "action"){
+        if (evt.predicate == "none" || evt.predicate == ""){
+            evt.predicate = evt.activity_name;
+            vOCW.push_back(evt.predicate);
+        }
+    }
+
+    return vOCW;
+
+}

@@ -168,15 +168,16 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
             string sHand;
             (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
             Bottle bHand(sHand);
+            bool bSuccess;
 
             cout << ob << ": " << obj1->m_ego_position.toString() << " with hand: " << sHand << endl;
             if (command.get(1).toString() == "point"){
-                bool bSuccess = iCub->point(ob, bHand);
+                bSuccess = iCub->point(ob, bHand);
             }
             else if (command.get(1).toString() == "look"){
-                bool bSuccess = iCub->look(ob);
+                bSuccess = iCub->look(ob);
             }
-            reply.addString("ok done");
+            bSuccess ? reply.addString("ok done") : reply.addString("failed");
         }
     }
     else {
