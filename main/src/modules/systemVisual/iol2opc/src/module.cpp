@@ -189,16 +189,20 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
         cmd.addInt(point.y);
         yInfo("Sending get3D query: %s",cmd.toString().c_str());
         rpcGet3D.write(cmd,reply);
-        yInfo("Received blob cartesian coordinates: %s",reply.toString().c_str());
+        if(!reply.isNull()) {
+            yInfo("Received blob cartesian coordinates: %s",reply.toString().c_str());
 
-        if (reply.size()>=3)
-        {
-            x.resize(3);
-            x[0]=reply.get(0).asDouble();
-            x[1]=reply.get(1).asDouble();
-            x[2]=reply.get(2).asDouble();
+            if (reply.size()>=3)
+            {
+                x.resize(3);
+                x[0]=reply.get(0).asDouble();
+                x[1]=reply.get(1).asDouble();
+                x[2]=reply.get(2).asDouble();
 
-            return (norm(x)>0.0);
+                return (norm(x)>0.0);
+            }
+        } else {
+            yError() << "Did not get reply from SFM";
         }
     }
 
