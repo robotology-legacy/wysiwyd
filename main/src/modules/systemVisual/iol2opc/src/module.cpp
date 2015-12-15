@@ -226,7 +226,9 @@ bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
         cmd.addInt(bbox.width);
         cmd.addInt(bbox.height);
         cmd.addInt(2);
+        mutexResourcesSFM.lock();
         rpcGet3D.write(cmd,reply);
+        mutexResourcesSFM.unlock();
 
         x.resize(3);
         dim.resize(3);
