@@ -115,6 +115,7 @@ protected:
     ImageOf<PixelBgr> imgRtLoc;
     Mutex mutexResources;
     Mutex mutexResourcesOpc;
+    Mutex mutexResourcesSFM;
 
     double period;
     double presence_timeout;

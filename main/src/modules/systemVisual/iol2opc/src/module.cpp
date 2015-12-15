@@ -188,7 +188,9 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
         cmd.addInt(point.x);
         cmd.addInt(point.y);
         yInfo("Sending get3D query: %s",cmd.toString().c_str());
+        mutexResourcesSFM.lock();
         rpcGet3D.write(cmd,reply);
+        mutexResourcesSFM.unlock();
         if(!reply.isNull()) {
             yInfo("Received blob cartesian coordinates: %s",reply.toString().c_str());
 
