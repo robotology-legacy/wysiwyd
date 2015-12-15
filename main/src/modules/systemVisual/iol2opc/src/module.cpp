@@ -731,6 +731,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
         yError("OPC doesn't seem to be running!");
         return false;
     }
+    opc->checkout();
 
     imgIn.open(("/"+name+"/img:i").c_str());
     blobExtractor.open(("/"+name+"/blobs:i").c_str());
@@ -949,7 +950,12 @@ bool IOL2OPCBridge::updateModule()
 
                 if (object==OBJECT_UNKNOWN)
                 {
+                    mutexResources.lock();
+                    opc->checkout();
                     Object* obj=opc->addEntity<Object>("unknown_object");
+                    opc->commit(obj);
+                    mutexResources.unlock();
+
                     db[obj->name()]=IOLObject(opcMedianFilterOrder,presence_timeout);
                     train(obj->name(),blobs,j);
                     onlyKnownObjects.heartBeat();
@@ -1033,6 +1039,7 @@ bool IOL2OPCBridge::remove_object(const string &name)
     if (it!=db.end())
         db.erase(it);
 
+    opc->checkout();
     return opc->removeEntity(it->second.opc_id);
 }
 
@@ -1056,6 +1063,7 @@ bool IOL2OPCBridge::remove_all()
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
+    opc->checkout();
     for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
         opc->removeEntity(it->second.opc_id);
 
