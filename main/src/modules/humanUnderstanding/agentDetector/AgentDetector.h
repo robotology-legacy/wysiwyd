@@ -44,7 +44,6 @@ protected:
     bool isMounted;
     bool isCalibrated;
     Matrix kinect2icub;
-    Agent* icub;
     Matrix icub2ir;
     int pointsCount;
     static bool clicked;

@@ -27,6 +27,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
         cout<<"Waiting connection to OPC..."<<endl;
         Time::delay(1.0);
     }
+    opc->checkout();
     partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
     partner->m_present = false;
     opc->commit(partner);
@@ -208,6 +209,8 @@ bool AgentDetector::close()
     cvReleaseImage(&rgbTmp);
     opc->close();
     rfh.close();
+    delete opc;
+
     return true;
 }
 
@@ -249,11 +252,6 @@ double AgentDetector::getPeriod()
 bool AgentDetector::updateModule()
 {
     LockGuard lg(m);
-
-    opc->checkout();
-
-    icub = opc->addOrRetrieveEntity<Agent>("icub");
-    partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
 
     bool isRefreshed = client.getDepthAndPlayers(depth,players);
     client.getRgb(rgb);
@@ -361,6 +359,7 @@ bool AgentDetector::updateModule()
             bCond.addList() = bRTObject;
             bCond.addString("&&");
             bCond.addList() = bPresent;
+            opc->checkout();
             opc->isVerbose = true;
             list<Entity*> presentObjects = opc->Entities(bCond);
             opc->isVerbose = false;
@@ -464,9 +463,10 @@ bool AgentDetector::updateModule()
                     if (localIsCalibrated)
                     {
                         //Retrieve this player in OPC or create if does not exist
+                        opc->checkout();
+                        partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
                         partner->m_present = true;
                         //yInfo() << " is localIsCalibrated";
-
                             
                         // reset the timing.
                         dTimingLastApparition = clock();
@@ -477,15 +477,15 @@ bool AgentDetector::updateModule()
 
                             //Agent* specificAgent = opc->addEntity<Agent>(playerName);
                             Agent* specificAgent = opc->addOrRetrieveEntity<Agent>(playerName);
-                            if(partner == nullptr) {
+                            if(specificAgent == nullptr) {
                                 yError() << "SHIT specificAgent";
+                            } else {
+                                identities[p->ID] = specificAgent->name();
+                                specificAgent->m_present = true;
+                                yInfo() << " specific agent is commited";
+                                opc->commit(specificAgent);
+                                yInfo() << " specific agent is commited done";
                             }
-
-                            identities[p->ID] = specificAgent->name();
-                            specificAgent->m_present = true;
-                            yInfo() << " specific agent is commited";
-                            opc->commit(specificAgent);
-                            yInfo() << " specific agent is commited done";
                         }
 
 //                        Relation r(partner->name(),"named",playerName);
@@ -525,6 +525,7 @@ bool AgentDetector::updateModule()
                             }
                             partner->m_body.m_parts[jnt->first] = irPos;
                         }
+                        opc->commit(partner);
 //                        cout << skeleton.toString()<< endl;
                         outputSkeletonPort.write();
                         //opc->commit(agent);
@@ -537,8 +538,10 @@ bool AgentDetector::updateModule()
         {
             if (dSince > dThresholdDisparition)
             {
+                opc->checkout();
+                partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
                 partner->m_present = false;
-
+                opc->commit(partner);
             }
             else
             {
@@ -546,7 +549,6 @@ bool AgentDetector::updateModule()
                 //yInfo() << " agent dissapeared but not for too long.";
             }
         }
-        opc->commit();
     }
     return true;
 }
@@ -662,6 +664,7 @@ string AgentDetector::getIdentity(Player p)
 
 Vector AgentDetector::transform2IR(Vector v)
 {
+    Agent* icub = opc->addOrRetrieveEntity<Agent>("icub");
     Vector Xs = icub->m_ego_position;
     double phi = icub->m_ego_orientation[2] * M_PI / 180.0;
     //cout<<"Robot position = "<<Xs.toString(3,3)<< " Orientation = "<<phi<<endl;
