@@ -14,6 +14,8 @@ void story::createNarration()
 
     ostringstream  osCurrent;
 
+    tuple<string, string, string, string>  PAOR;
+
     //Bottle bPreviousRelation;
 
     osCurrent << "story: " << timeBegin.toString() << " (" << viInstances[0] << ")  to " << timeEnd.toString() << " (" << viInstances[viInstances.size() - 1] << ")" << endl;
@@ -332,6 +334,14 @@ void story::displayNarration()
     createNarration();
 
     cout << "begin display narration:" << endl;
+
+    for (auto itSt = vEvents.begin(); itSt != vEvents.end(); itSt++){
+        cout << "\t A:" << itSt->agent;
+        cout << "\t P:" << itSt->predicate ;
+        cout << "\t O:" << itSt->object ;
+        cout << "\t R:" << itSt->recipient<<endl;
+
+    }
 
     for (auto itSt = sentenceStory.begin(); itSt != sentenceStory.end(); itSt++){
         cout << *itSt;

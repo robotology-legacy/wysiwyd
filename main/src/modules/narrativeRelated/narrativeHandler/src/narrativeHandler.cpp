@@ -441,7 +441,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
     evt.begin = (bActivity.get(0).asList())->get(2).toString() == "t";
 
-    for (unsigned int kk = 0; kk < bArguments.size(); kk++){
+    for (int kk = 0; kk < bArguments.size(); kk++){
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
 
@@ -458,10 +458,23 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         }
     }
 
+    if (evt.activity_name == "sentence"){
+        evt.predicate = "say";
+        for (int kk = 0; kk < bArguments.size(); kk++){
+            if (bArguments.get(kk).isList()) {
+                Bottle bTemp = *bArguments.get(kk).asList();
+                if (bTemp.get(1).toString() == "speaker") evt.agent = bTemp.get(0).toString();
+                else if (bTemp.get(1).toString() == "addressee") evt.recipient = bTemp.get(0).toString();
+                else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
+            }
+        }
+            }
+
+
     if (_bRelations.toString() != "NULL"){
-        for (unsigned int kk = 0; kk < _bRelations.size(); kk++){
+        for (int kk = 0; kk < _bRelations.size(); kk++){
             Bottle bTemp = *_bRelations.get(kk).asList();
-            for (unsigned int jj = 0; jj != bTemp.size(); jj++){
+            for (int jj = 0; jj != bTemp.size(); jj++){
                 vOCW.push_back(bTemp.get(jj).toString());
             }
         }
