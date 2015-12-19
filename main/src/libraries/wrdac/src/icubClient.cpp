@@ -522,21 +522,29 @@ bool ICubClient::point(const Vector &target, const Bottle &options)
 
 bool ICubClient::look(const string &target)
 {        
-    if (subSystems.find("attention") == subSystems.end())
+    if (subSystems.find("attention")!=subSystems.end())
+        return ((SubSystem_Attention*)subSystems["attention"])->track(target);
+
+    if (SubSystem_ARE *are=getARE())
     {
-        cout<<"Impossible, attention is not running..."<<endl;
+        if (Object *oTarget=dynamic_cast<Object*>(opc->getEntity(target)))
+            if (oTarget->m_present)
+                return are->look(oTarget->m_ego_position);
+
+        cerr<<"[iCubClient] Called look() on an unavailable target: \""<<target<<"\""<<endl;
         return false;
     }
 
-    return ((SubSystem_Attention*)subSystems["attention"])->track(target);
+    cerr<<"Error, neither Attention nor ARE are running..."<<endl;
+    return false;
 }
 
 
 bool ICubClient::lookAround()
 {        
-    if (subSystems.find("attention") == subSystems.end())
+    if (subSystems.find("attention")==subSystems.end())
     {
-        cout<<"Impossible, attention is not running..."<<endl;
+        cerr<<"Error, Attention is not running..."<<endl;
         return false;
     }
 
@@ -546,9 +554,9 @@ bool ICubClient::lookAround()
 
 bool ICubClient::lookStop()
 {        
-    if (subSystems.find("attention") == subSystems.end())
+    if (subSystems.find("attention")==subSystems.end())
     {
-        cout<<"Impossible, attention is not running..."<<endl;
+        cerr<<"Error, Attention is not running..."<<endl;
         return false;
     }
 
