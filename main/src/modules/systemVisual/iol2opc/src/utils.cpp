@@ -95,10 +95,12 @@ void ClassifierReporter::setBridge(IOL2OPCBridge *bridge)
 void ClassifierReporter::report(const PortInfo &info)
 {
     if ((bridge!=NULL) && info.created && !info.incoming)
+    {
         if (bridge->state==Bridge::idle)
         {
             yInfo("Connected to the classifier");
             bridge->state=Bridge::load_database; 
         }
+    }
 }
 

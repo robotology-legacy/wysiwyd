@@ -117,6 +117,7 @@ protected:
     Mutex mutexResourcesOpc;
     Mutex mutexResourcesSFM;
 
+    bool empty;
     double period;
     double presence_timeout;
     map<string,IOLObject> db;

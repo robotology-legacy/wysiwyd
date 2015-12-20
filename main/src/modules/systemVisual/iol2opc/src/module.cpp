@@ -724,6 +724,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 {
     string name=rf.check("name",Value("iol2opc")).asString().c_str();
     period=rf.check("period",Value(0.1)).asDouble();
+    empty=rf.check("empty");
 
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
@@ -745,7 +746,6 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
-
 
     skim_blobs_x_bounds.resize(2);
     skim_blobs_x_bounds[0]=-0.50;
@@ -861,8 +861,7 @@ bool IOL2OPCBridge::close()
     delete opc;
 
     // dispose filters used for scores histogram
-    for (map<string,Filter*>::iterator it=histFiltersPool.begin();
-         it!=histFiltersPool.end(); it++)
+    for (map<string,Filter*>::iterator it=histFiltersPool.begin(); it!=histFiltersPool.end(); it++)
         delete it->second;
 
     return true;
@@ -893,9 +892,12 @@ bool IOL2OPCBridge::updateModule()
                 for (int i=0; i<names->size(); i++)
                     db[names->get(i).asString().c_str()]=IOLObject(opcMedianFilterOrder,presence_timeout);
 
+            if (empty)
+                remove_all();
+
             yInfo("Turning localization on");
             state=Bridge::localization;
-            onlyKnownObjects = IOLObject(opcMedianFilterOrder,10.0);
+            onlyKnownObjects=IOLObject(opcMedianFilterOrder,10.0);
         }
     }
     // highlight selected blob
@@ -933,7 +935,8 @@ bool IOL2OPCBridge::updateModule()
             imgSelBlobOut.write();
         }
 
-        if(onlyKnownObjects.isDead()) {
+        if (onlyKnownObjects.isDead())
+        {
             // grab resources
             mutexResourcesOpc.lock();
             Bottle blobs=opcBlobs;
@@ -1073,7 +1076,8 @@ bool IOL2OPCBridge::remove_all()
 
 
 /**********************************************************/
-bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
+bool IOL2OPCBridge::change_name(const string &old_name,
+                                const string &new_name)
 {
     if (!opc->isConnected())
     {
@@ -1092,7 +1096,8 @@ bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
-    if(replyClassifier.get(0).asString()=="nack") {
+    if (replyClassifier.get(0).asString()=="nack")
+    {
         yError("Classifier did not allow name change.");
         yError("Is there already an object with this name in the classifier database?");
         return false;
@@ -1100,8 +1105,9 @@ bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
     else
     {
         yInfo("Name change successful, reloading local cache");
-        const map<string,IOLObject>::iterator it = db.find(old_name);
-        if (it != db.end()) {
+        const map<string,IOLObject>::iterator it=db.find(old_name);
+        if (it!=db.end())
+        {
             // Swap value from oldKey to newKey, note that a default constructed value
             // is created by operator[] if 'm' does not contain newKey.
             std::swap(db[new_name], it->second);
@@ -1113,12 +1119,18 @@ bool IOL2OPCBridge::change_name(const string &old_name, const string &new_name)
     return true;
 }
 
+
+/**********************************************************/
 void IOL2OPCBridge::pause()
 {
     mutexResources.lock();
 }
 
+
+/**********************************************************/
 void IOL2OPCBridge::resume()
 {
     mutexResources.unlock();
 }
+
+
