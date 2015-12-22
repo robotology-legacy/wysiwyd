@@ -357,6 +357,7 @@ void cartControlReachAvoidThread::doReach()
                     skinPart gives FoR, which is link after the point - move to first joint/link before the point
                     express point in last proximal joint; create extra link - rototranslation    
                */
+                //TODO - so far takes only first avoidanceVector
                 if (!avoidanceVectors.empty()){            
                        
                     // Instantiate new chain iCub::iKin::iKinChain from iCub::iKin::iCubArm                
@@ -384,12 +385,12 @@ void cartControlReachAvoidThread::doReach()
                     //unsigned int dof = chain -> getDOF(); //should be 10 by default (3 + 7, with torso)
                     // if the skin part is a hand, no need to block any joints
                     if ((avoidanceVectors[0].skin_part == SKIN_LEFT_FOREARM) ||  (avoidanceVectors[0].skin_part == SKIN_RIGHT_FOREARM)){
-                        chain->blockLink(10); chain->blockLink(9);//wrist joints
-                        yDebug("obstacle threatening skin part %s, blocking links 9 and 10 (wrist)",SkinPart_s[avoidanceVectors[0].skin_part].c_str());
+                        chain->blockLink(9); chain->blockLink(8);//wrist joints
+                        yDebug("obstacle threatening skin part %s, blocking links 9 and 10 (wrist; indexes 8,9)",SkinPart_s[avoidanceVectors[0].skin_part].c_str());
                     }
                     else if  ((avoidanceVectors[0].skin_part == SKIN_LEFT_UPPER_ARM) ||  (avoidanceVectors[0].skin_part == SKIN_RIGHT_UPPER_ARM)){
-                        chain->blockLink(10); chain->blockLink(9);chain->blockLink(8);chain->blockLink(7); //wrist joints + elbow joints
-                        yDebug("obstacle threatening skin part %s, blocking links 7,8,9 and 10 (wrist+elbow)",SkinPart_s[avoidanceVectors[0].skin_part].c_str());
+                        chain->blockLink(9); chain->blockLink(8);chain->blockLink(7);chain->blockLink(6); //wrist joints + elbow joints
+                        yDebug("obstacle threatening skin part %s, blocking links 7-10 (wrist+elbow; indexes 6-9)",SkinPart_s[avoidanceVectors[0].skin_part].c_str());
                     }
                     //or:
                     //for (int i = dof; i > Skin_2_Link(avoidanceVectors[0].skin_part)+torsoAxes+1; --i)
