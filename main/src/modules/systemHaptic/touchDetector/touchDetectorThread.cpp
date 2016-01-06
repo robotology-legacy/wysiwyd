@@ -19,6 +19,7 @@
 #include <string>
 #include <sstream>
 
+#include <yarp/os/Value.h>
 #include <yarp/os/Property.h>
 
 #include "touchDetectorThread.h"
