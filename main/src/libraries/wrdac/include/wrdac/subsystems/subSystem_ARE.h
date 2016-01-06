@@ -93,7 +93,7 @@ namespace wysiwyd {
 
             /********************************************************************************/
             bool connect()
-            {                
+            {
                 ABMconnected = SubABM->Connect();
                 std::cout << (ABMconnected ? "ARE connected to ABM" : "ARE didn't connect to ABM") << std::endl;
 

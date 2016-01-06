@@ -476,10 +476,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     string sQuestion;
     if (currentEntityType == "agent") {
         Agent* TARGET = dynamic_cast<Agent*>(iCub->opc->getEntity(sNameTarget));
-        if(TARGET->m_present) {
-            Vector vGoal = TARGET->m_ego_position;
-            iCub->getARE()->look(vGoal);
-        }
+        iCub->look(TARGET->name());
 
         if (!Network::connect(portToSAM.getName().c_str(), SAMRpc.c_str())) {
             yWarning() << " SAM NOT CONNECTED: selfTagging will not work";
@@ -511,10 +508,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     }
     else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         Object* TARGET = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
-        if(TARGET->m_present) {
-            Vector vGoal = TARGET->m_ego_position;
-            iCub->getARE()->look(vGoal);
-        }
+        iCub->look(TARGET->name());
         sQuestion = " Hum, what is this object?";
     }
     else if (currentEntityType == "bodypart") {
@@ -562,17 +556,15 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     else if (currentEntityType == "object" || currentEntityType == "rtobject") {
         Object* obj1 = dynamic_cast<Object*>(iCub->opc->getEntity(sNameTarget));
         if(!obj1) {
+            yError() << "Could not cast " << sNameTarget << " to object";
             bOutput.addString("nack");
             bOutput.addString("Could not cast to object");
             iCub->say(bOutput.toString());
             return bOutput;
         }
 
-        string sHand = "right";
-        if (obj1->m_ego_position[1] < 0) sHand = "left";
-        Bottle bHand(sHand);
-        yDebug() << "Going to point " << sNameTarget << " with my " << sHand << " hand";
-        iCub->point(sNameTarget, bHand);
+        yDebug() << "Going to point " << sNameTarget;
+        iCub->point(sNameTarget);
         yDebug() << "pointing done";
     }
 
@@ -777,10 +769,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         {
             // change name
             Object* TARGET = dynamic_cast<Object*>(iCub->opc->getEntity(sNameBestEntity));
-            if(TARGET->m_present) {
-                Vector vGoal = TARGET->m_ego_position;
-                iCub->getARE()->look(vGoal);
-            }
+            iCub->look(TARGET->name());
 
             iCub->changeName(TARGET,sNameTarget);
             iCub->opc->commit(TARGET);
