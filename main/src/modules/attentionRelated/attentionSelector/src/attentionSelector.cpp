@@ -118,7 +118,7 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "help") {
         yInfo() << helpMessage;
-        reply.addString("ack");
+        reply.addString(helpMessage);
         return true;
     }
     else if (command.get(0).asString() == "track") {
