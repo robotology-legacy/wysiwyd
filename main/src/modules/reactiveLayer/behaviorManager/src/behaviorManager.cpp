@@ -42,6 +42,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new Dummy(&mut));
         } else if (behavior_name == "pointingOrder") {
             behaviors.push_back(new PointingOrder(&mut));
+        }  else if (behavior_name == "touchingOrder") {
+            behaviors.push_back(new TouchingOrder(&mut));
         }
             // other behaviors here
         else {

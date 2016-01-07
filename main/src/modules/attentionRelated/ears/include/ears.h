@@ -12,7 +12,6 @@ private:
     Port        rpc;
     Port        portToBehavior;
     BufferedPort<Bottle>        portTarget;
-    string      target;    
 
     bool bShouldListen;
 

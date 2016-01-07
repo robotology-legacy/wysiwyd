@@ -9,6 +9,7 @@
 
 #include "dummy.h"
 #include "tagging.h"
+#include "touchingOrder.h"
 #include "pointingOrder.h"
 #include "pointing.h"
 

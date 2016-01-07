@@ -28,7 +28,6 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 
     portTarget.open("/" + moduleName + "/target:o");
 
-
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
 
     bShouldListen = true;
@@ -117,7 +116,6 @@ bool ears::updateModule() {
             return true;
         }
 
-
         bAnswer = *bRecognized.get(1).asList();
 
         if (bAnswer.get(0).asString() == "stop")
@@ -131,42 +129,32 @@ bool ears::updateModule() {
         cout << bSemantic.toString() << endl;
         string sPredicate = bSemantic.check("predicate", Value("none")).asString();
         string sObject    = bSemantic.check("object", Value("none")).asString();
-        target = sObject;
-        iCub->opc->checkout();
-        list<Entity*> entities = iCub->opc->EntitiesCacheCopy();
 
-        vector<Bottle> vListAction;
-
-        bool bFoundObject = false;
-        for (auto& entity : entities)
-        {
-            if (entity->name() == sObject)
-            {
-                if (entity->entity_type() == EFAA_OPC_ENTITY_OBJECT || entity->entity_type() == EFAA_OPC_ENTITY_RTOBJECT || entity->entity_type() == EFAA_OPC_ENTITY_AGENT)
-                {
-                    Object *obj = dynamic_cast<Object*>(entity);
-                    if (obj && obj->m_present)
-                    {
-                        bFoundObject = true;
-                    }
-                }
-            }
+        string sObjectType, sCommand;
+        if(sPredicate == "point") {
+            sCommand = "pointingOrder";
+            sObjectType = "object";
+        } else if(sPredicate == "touch") {
+            sCommand = "touchingOrder";
+            sObjectType = "bodypart";
+        } else {
+            yError() << "[ears] Unknown predicate";
         }
 
-        Bottle &test = portTarget.prepare();;
-        test.clear();
-        test.addString(target);
+        Bottle &bToTarget = portTarget.prepare();
+        bToTarget.clear();
+        bToTarget.addString(sObjectType);
+        bToTarget.addString(sObject);
         portTarget.write();
-        
-        Bottle bCondition;
-        bCondition.clear();
 
-        bCondition.addString("pointingOrder");
+        Bottle bCondition;
+        bCondition.addString(sCommand);
+        bCondition.addString(sObjectType);
         bCondition.addString(sObject);
 
         portToBehavior.write(bCondition);
  
-        yDebug() << "Sending " + target;
+        yDebug() << "Sending " + sObject;
     } else {
         yDebug() << "Not bListen";
     }

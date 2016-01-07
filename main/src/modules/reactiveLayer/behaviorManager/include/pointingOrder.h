@@ -28,8 +28,8 @@ public:
       
     void configure();
 
-    bool handlePoint(string target);
-    bool handleSearch(string target);
+    bool handlePoint(string type, string target);
+    bool handleSearch(string type, string target);
 
     void close_extra_ports() {
         ;

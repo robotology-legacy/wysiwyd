@@ -172,7 +172,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         "help \n" +
         "quit \n"
         "exploreUnknownEntity entity_type entity_name \n" +
-        "searchingEntity entity_name \n" +
+        "searchingEntity entity_type entity_name \n" +
         "exploreKinematicByName entity_name bodypart [true/false] \n" +
         "exploreKinematicByJoint joint bodypart [true/false] \n";
 
@@ -625,14 +625,16 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 {
     Bottle bOutput;
 
-    if (bInput.size() != 2)
+    if (bInput.size() != 3)
     {
         yInfo() << " proactiveTagging::searchingEntity | Problem in input size.";
+        bOutput.addString("error");
         bOutput.addString("Problem in input size");
         return bOutput;
     }
 
-    string sNameTarget = bInput.get(1).toString();
+    string sTypeTarget = bInput.get(1).toString();
+    string sNameTarget = bInput.get(2).toString();
     yInfo() << " Entity to find: " << sNameTarget;
 
     // check if the entity is already present in the OPC
@@ -661,25 +663,26 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         return bOutput;
     }
 
-
     // if there is several objects unknown (or at least one)
-    string sSentence = "I don't known which of these objects is a " + sNameTarget;
+    string sSentence;
+    if(sTypeTarget == "object") {
+        sSentence = "I don't known which of these objects is a " + sNameTarget + ". Can you show me the " + sNameTarget;
+    } else if (sTypeTarget == "bodypart") {
+        sSentence = "I don't known my " + sNameTarget + ". Can you please touch my " + sNameTarget;
+    }
     iCub->say(sSentence);
     yInfo() << " " << sSentence;
 
-    sSentence = "Can you show me the " + sNameTarget;
-    iCub->say(sSentence);
-    yInfo() << " " << sSentence;
-
-
-    Bottle bToPasar;
-    bToPasar.addString("pointing");
-    bToPasar.addString("on");
-    if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
-        yError() << "Could not connect to pasar";
-        iCub->say("Could not connect to pasar");
-    } else {
-        portToPasar.write(bToPasar);
+    if(sTypeTarget == "object") {
+        Bottle bToPasar;
+        bToPasar.addString("pointing");
+        bToPasar.addString("on");
+        if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
+            yError() << "Could not connect to pasar";
+            iCub->say("Could not connect to pasar");
+        } else {
+            portToPasar.write(bToPasar);
+        }
     }
 
     bool bFound = false;
@@ -713,7 +716,8 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
             if (sNameCut == "unknown")
             {
-                if (entity->entity_type() == "object" || entity->entity_type() == "agent" || entity->entity_type() == "rtobject")
+                if ((sTypeTarget == "object" && (entity->entity_type() == "object" || entity->entity_type() == "rtobject")) ||
+                    (sTypeTarget == "bodypart" && (entity->entity_type() == "bodypart")))
                 {
                     Object* temp = dynamic_cast<Object*>(entity);
                     if(!temp) {
@@ -769,7 +773,9 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         {
             // change name
             Object* TARGET = dynamic_cast<Object*>(iCub->opc->getEntity(sNameBestEntity));
-            iCub->look(TARGET->name());
+            if(sTypeTarget == "object") {
+                iCub->look(TARGET->name());
+            }
 
             iCub->changeName(TARGET,sNameTarget);
             iCub->opc->commit(TARGET);
@@ -779,14 +785,16 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         }
     }
 
-    bToPasar.clear();
-    bToPasar.addString("pointing");
-    bToPasar.addString("off");
-    if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
-        yError() << "Could not connect to pasar";
-        iCub->say("Could not connect to pasar");
-    } else {
-        portToPasar.write(bToPasar);
+    if(sTypeTarget == "object") {
+        Bottle bToPasar;
+        bToPasar.addString("pointing");
+        bToPasar.addString("off");
+        if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
+            yError() << "Could not connect to pasar";
+            iCub->say("Could not connect to pasar");
+        } else {
+            portToPasar.write(bToPasar);
+        }
     }
 
     iCub->home();
