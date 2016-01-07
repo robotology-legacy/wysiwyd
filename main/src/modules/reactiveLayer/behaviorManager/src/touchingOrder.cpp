@@ -48,7 +48,7 @@ bool TouchingOrder::handleTouch(string type, string target)
         if(e->entity_type() == "bodypart") {
             iCub->say("I am going to move my " + target);
             Bodypart* b = dynamic_cast<Bodypart*>(e);
-            //TODO: iCub->moveJoint(b->m_joint_number)
+            iCub->babbling(b->m_joint_number);
         }
     }
 

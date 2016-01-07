@@ -536,17 +536,9 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         }
         yInfo() << "Cast okay : name BP = " << BPtemp->name();
         int joint = BPtemp->m_joint_number;
-        string sBodyPartType = BPtemp->m_part;
         //send rpc command to bodySchema to move the corresponding part
         yInfo() << "Start bodySchema";
-        Bottle bReplyFromBodySchema = moveJoint(joint, sBodyPartType);
-
-        if (bReplyFromBodySchema.get(0).asString() == "nack"){
-            yError() << " error in proactiveTagging::exploreUnknownEntity | for " << currentEntityType << " | Joint has not moved or ABM cannot stores images";
-            bOutput.addString("error");
-            bOutput.addString("Joint has not moved or ABM cannot stores images");
-            return bOutput;
-        }
+        iCub->babbling(joint);
 
         sQuestion = " How do you call this part of my body?";
         yInfo() << sQuestion;

@@ -1,8 +1,10 @@
 ﻿<GRAMMAR	LANGID="809">
 
   <DEFINE>
-    <ID	NAME="predicate"	VAL="2"/>
+    <ID	NAME="predicateObject"	VAL="2"/>
     <ID	NAME="object"	VAL="3"/>
+    <ID	NAME="predicateBodypart"	VAL="4"/>
+    <ID	NAME="bodypart"	VAL="5"/>
   </DEFINE>
 
 
@@ -11,9 +13,9 @@
   </RULE>
 
 
-  <RULE	NAME="SENTENCE"	TOPLEVEL="ACTIVE"	EXPORT="1">
+  <RULE	NAME="SENTENCEOBJECT"	TOPLEVEL="ACTIVE"	EXPORT="1">
 <!--    <RULEREF	NAME="agent"/>  -->
-    <RULEREF	NAME="predicate"/>
+    <RULEREF	NAME="predicateObject"/>
     <O>
       <L>
         <P>the</P>
@@ -24,11 +26,29 @@
     <RULEREF	NAME="object"/>
   </RULE>
 
+  <RULE	NAME="SENTENCEBODYPART"	TOPLEVEL="ACTIVE"	EXPORT="1">
+<!--    <RULEREF	NAME="agent"/>  -->
+    <RULEREF	NAME="predicateBodypart"/>
+    <O>
+      <L>
+        <P>the</P>
+        <P>your</P>
+      </L>
+    </O>
+    <RULEREF	NAME="bodypart"/>
+  </RULE>
 
 
-  <RULE NAME="predicate" DYNAMIC="TRUE">
+
+  <RULE NAME="predicateObject" DYNAMIC="TRUE">
     <L>
       <P>point</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="predicateBodypart" DYNAMIC="TRUE">
+    <L>
+      <P>touch</P>
     </L>
   </RULE>
 
@@ -42,6 +62,21 @@
       <P>pig</P>
       <P>bottle</P>
     </L>
+
+    <RULE NAME="bodypart" DYNAMIC="TRUE">
+    <L>
+      <P>hand</P>
+      <P>thumb</P>
+      <P>index</P>
+      <P>middle</P>
+      <P>ring</P>
+      <P>pinky</P>
+    </L>
+    <O>
+      <L>
+        <P>finger</P>
+      </L>
+    </O>
   </RULE>
 
   

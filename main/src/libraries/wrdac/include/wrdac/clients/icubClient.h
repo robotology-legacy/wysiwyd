@@ -345,6 +345,22 @@ public:
     bool lookStop();
 
     /**
+    * Babbling a single joint
+    * @param jointNumber contains the int corresponding to an arm joint
+    * @return true in case of success release, false otherwise
+    */
+    bool babbling(int &jointNumber);
+
+    /**
+    * Babbling a single joint using the name of a corresponding bodypart
+    * @param bpName contains the string with the name of the bodypart
+    * @return true in case of success release, false otherwise
+    *         (bodypart non existing, no joint number assigned, etc.).
+    */
+    bool babbling(const std::string &bpName);
+
+
+    /**
     * Ask the robot to perform speech synthesis of a given sentence
     * @param text to be said.
     */ 

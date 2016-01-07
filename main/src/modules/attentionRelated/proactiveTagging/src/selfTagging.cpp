@@ -23,57 +23,6 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 /*
-* Send a rpc command to BodySchema to move a single joint
-* input: joint number to be moved + body part type (e.g. left_arm, right_arm, ...)
-* ask through speech the name of an unknwon bodypart entity
-*/
-Bottle proactiveTagging::moveJoint(int joint, string sBodyPart) {
-    Bottle bBodyPart, bSingleJoint, bOutput;
-
-    //TODO : bodySchema should be able to change bodyPart on the fly. Or provide the bodyPart activated to allow or not moving
-
-    //1. prepare first Bottle to change bodyPart
-    //bBodyPart.addString("XXX");
-    //bBodyPart.addString(sBodyPart);
-    //2. Send bodyPart
-    //portToBodySchema.write(bBodyPart, bOutput);
-
-    /*TODO : check reply
-    if(bOutput.get(0).asString() == "nack"){
-        return bOutput ;
-    }*/
-
-    bOutput.clear();
-
-    //3. prepare second Bottle to move the single joint
-    bSingleJoint.addString("babbling");
-    bSingleJoint.addString("joint");
-    bSingleJoint.addInt(joint);
-
-    //4. send single joint moving bottle
-    if (!Network::connect(portToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
-        yWarning() << " bodySchema NOT CONNECTED: selfTagging will not work";
-    }
-    if(portToBodySchema.getOutputCount()>0)
-        portToBodySchema.write(bSingleJoint, bOutput);
-    yDebug() << "Reply from bodySchema:" << bOutput.toString();
-
-    //check if bodySchema was fine
-    if(bOutput.get(0).asString() == "nack"){
-        return bOutput;
-    }
-
-    /*bOutput.clear();
-    Bottle bABMRpc ;
-    bABMRpc.addString("processInsertQueue");
-    bOutput = iCub->getABMClient()->rpcCommand(bABMRpc);*/
-
-    //bOutput == "nack" if something goes wrong, "ack" otherwise
-
-    return bOutput;
-}
-
-/*
 * Send a rpc command to ABM to obtain the kinematicStructure of part of the body (assuming it has already been named)
 * Send a rpc command to kinematicStructure if no kinematicStructure were provided
 * input: name of the bodypart to be moved (e.g. index, thumb, ...) + body part type (e.g. left_arm, right_arm, ...)

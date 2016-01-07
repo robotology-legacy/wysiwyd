@@ -97,6 +97,8 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_IOL2OPC] = new SubSystem_IOL2OPC(fullName);
             else if (currentSS == SUBSYSTEM_AGENTDETECTOR)
                 subSystems[SUBSYSTEM_AGENTDETECTOR] = new SubSystem_agentDetector(fullName);
+            else if (currentSS == SUBSYSTEM_BABBLING)
+                subSystems[SUBSYSTEM_BABBLING] = new SubSystem_babbling(fullName);
             else
                 yError() << "Unknown subsystem!";
         }
@@ -561,6 +563,42 @@ bool ICubClient::lookStop()
     }
 
     return ((SubSystem_Attention*)subSystems["attention"])->stop();
+}
+
+bool ICubClient::babbling(const string &bpName)
+{
+    //check the subsystem is running
+    if (subSystems.find("babbling")!=subSystems.end()){
+
+        //extract the bodypart with the name
+        Entity *target=opc->getEntity(bpName,true);
+        if (!target->isType(EFAA_OPC_ENTITY_BODYPART))
+        {
+            cerr<<"[iCubClient] Called babbling() on a unallowed entity: \""<<bpName<<"\""<<endl;
+            return false;
+        }
+
+        Bodypart *bp=dynamic_cast<Bodypart*>(target);
+        int jointNumber = bp->m_joint_number;
+        if(jointNumber == -1){
+            cerr<<"[iCubClient] Called babbling() on "<<bpName<<" which have no joint number linked to it\""<<endl;
+            return false;
+        }
+
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+    }
+
+    cerr<<"Error, babbling is not running..."<<endl;
+    return false;
+}
+
+bool ICubClient::babbling(int &jointNumber)
+{
+    if (subSystems.find("babbling")!=subSystems.end())
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+
+    cerr<<"Error, babbling is not running..."<<endl;
+    return false;
 }
 
 

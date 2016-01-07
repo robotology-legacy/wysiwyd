@@ -62,7 +62,6 @@ private:
 
 
     //selfTagging.cpp
-    yarp::os::Bottle moveJoint(int joint, std::string sBodypartType);
     yarp::os::Bottle assignKinematicStructureByName(std::string sName, std::string sBodyPartType, bool forcingKS = false);
     yarp::os::Bottle assignKinematicStructureByJoint(int joint, std::string sBodyPartType, bool forcingKS = false);
     yarp::os::Bottle checkForKinematicStructure(int instance, bool forcingKS = false);
