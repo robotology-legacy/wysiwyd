@@ -127,14 +127,17 @@ bool ears::updateModule() {
 
         bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
         cout << bSemantic.toString() << endl;
-        string sPredicate = bSemantic.check("predicate", Value("none")).asString();
-        string sObject    = bSemantic.check("object", Value("none")).asString();
+        string sObject;
+        string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
+        //string sPredicate = bSemantic.check("predicate", Value("none")).asString();
 
         string sObjectType, sCommand;
-        if(sPredicate == "point") {
+        if(sQuestionKind == "SENTENCEOBJECT") {
+            sObject = bSemantic.check("object", Value("none")).asString();
             sCommand = "pointingOrder";
             sObjectType = "object";
-        } else if(sPredicate == "touch") {
+        } else if(sQuestionKind == "SENTENCEBODYPART") {
+            sObject = bSemantic.check("bodypart", Value("none")).asString();
             sCommand = "touchingOrder";
             sObjectType = "bodypart";
         } else {
@@ -154,7 +157,7 @@ bool ears::updateModule() {
 
         portToBehavior.write(bCondition);
  
-        yDebug() << "Sending " + sObject;
+        yDebug() << "Sending " + bCondition.toString();
     } else {
         yDebug() << "Not bListen";
     }
