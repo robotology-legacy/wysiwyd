@@ -30,7 +30,7 @@ void story::createNarration()
         // initial situation
         if (ii == 0){
             if (vEvents[ii].bRelations.toString() != "NULL"){
-                osCurrent << "\t\t\t" << "At the beggining, ";
+                osCurrent << "\t\t\t" << "At the beginning, ";
                 for (int jj = 0; jj < vEvents[ii].bRelations.size(); jj++){
                     if (jj != 0){
                         osCurrent << " and ";

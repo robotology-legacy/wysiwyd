@@ -299,7 +299,7 @@ bool humanRobotDump::updateSWS()
         Bottle bUp,
             bDown;
         bUp.addString("torso");
-        l_vTorsoEncoders.resize(m_i32RightArmJointsNb);
+        l_vTorsoEncoders.resize(m_i32TorsoJointsNb);
         m_pITorsoEncoders->getEncoders(l_vTorsoEncoders.data());
         for (int l_data = 0; l_data < m_i32TorsoJointsNb; l_data++)
         {
