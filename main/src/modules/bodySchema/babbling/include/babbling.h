@@ -37,21 +37,28 @@ private:
 
     yarp::os::RpcClient portToABM;
 
-    yarp::dev::IPositionControl* posArm;
-    yarp::dev::IVelocityControl* velArm;
-    yarp::dev::IEncoders* encsArm;
-    yarp::dev::IControlMode2 *ictrlArm;
-    yarp::dev::IControlLimits *ictrlLimArm;
+    yarp::dev::IPositionControl* posLeftArm;
+    yarp::dev::IVelocityControl* velLeftArm;
+    yarp::dev::IEncoders* encsLeftArm;
+    yarp::dev::IControlMode2 *ictrlLeftArm;
+    yarp::dev::IControlLimits *ictrlLimLeftArm;
+
+    yarp::dev::IPositionControl* posRightArm;
+    yarp::dev::IVelocityControl* velRightArm;
+    yarp::dev::IEncoders* encsRightArm;
+    yarp::dev::IControlMode2 *ictrlRightArm;
+    yarp::dev::IControlLimits *ictrlLimRightArm;
 
     yarp::dev::IPositionControl* posHead;
     yarp::dev::IVelocityControl* velHead;
     yarp::dev::IEncoders* encsHead;
     yarp::dev::IControlMode2 *ictrlHead;
 
-    yarp::dev::PolyDriver* armDev;
+    yarp::dev::PolyDriver* leftArmDev;
+    yarp::dev::PolyDriver* rightArmDev;
     yarp::dev::PolyDriver* headDev;
 
-    yarp::sig::Vector encodersArm, cmd, command, new_command, tmpSpeed, tmpAcc;
+    yarp::sig::Vector encodersLeftArm, encodersRightArm, cmd, command, new_command, tmpSpeed, tmpAcc;
     yarp::sig::Vector encodersHead, commandHead;
     yarp::sig::Vector handTarget, armTarget, fingerTarget;
 
