@@ -19,6 +19,7 @@
 */
 
 #include "attentionSelector.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 using namespace std;
 using namespace yarp::os;

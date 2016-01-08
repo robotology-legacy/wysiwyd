@@ -16,6 +16,7 @@
 */
 
 #include "learnPrimitive.h"
+#include "wrdac/subsystems/subSystem_recog.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;

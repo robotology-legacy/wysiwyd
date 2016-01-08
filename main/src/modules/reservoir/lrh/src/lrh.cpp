@@ -23,6 +23,7 @@
 #endif
 
 #include "lrh.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 bool LRH::configure(ResourceFinder &rf) {
 

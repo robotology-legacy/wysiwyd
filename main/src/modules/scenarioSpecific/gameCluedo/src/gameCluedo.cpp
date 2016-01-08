@@ -1,9 +1,8 @@
 #include "gameCluedo.h"
-
+#include "wrdac/subsystems/subSystem_speech.h"
 
 using namespace std;
 using namespace yarp::os;
-using namespace yarp::math;
 using namespace wysiwyd::wrdac;
 
 bool GameCluedo::configure(yarp::os::ResourceFinder &rf)

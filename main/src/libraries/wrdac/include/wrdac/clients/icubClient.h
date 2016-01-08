@@ -25,8 +25,8 @@
 
 #include <yarp/os/Network.h>
 
-#include <wrdac/clients/opcClient.h>
-#include <wrdac/subsystems/all.h>
+#include "wrdac/clients/opcClient.h"
+#include "wrdac/subsystems/all.h"
 #include "animation.h"
 
 namespace wysiwyd{namespace wrdac{
@@ -87,81 +87,15 @@ public:
     }
 
     SubSystem*  getSubSystem(const std::string &name){return subSystems[name];}
-
-    SubSystem_Expression* getExpressionClient()
-    {         
-        if (subSystems.find(SUBSYSTEM_EXPRESSION) == subSystems.end())
-            return NULL;
-        else
-            return ((SubSystem_Expression*) subSystems[SUBSYSTEM_EXPRESSION]);
-    } 
-
-    SubSystem_Reactable* getReactableClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_REACTABLE) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_Reactable*) subSystems[SUBSYSTEM_REACTABLE];
-    } 
-
-    SubSystem_iKart* getIkartClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_IKART) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_iKart*) subSystems[SUBSYSTEM_IKART];
-    }
-
-    SubSystem_ABM* getABMClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_ABM) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
-    }
-    SubSystem_IOL2OPC* getIOL2OPCClient()
-    {
-        if (subSystems.find(SUBSYSTEM_IOL2OPC) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_IOL2OPC*) subSystems[SUBSYSTEM_IOL2OPC];
-    }
-
-    SubSystem_Recog* getRecogClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_RECOG) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_Recog*) subSystems[SUBSYSTEM_RECOG];
-    }
-    SubSystem_SlidingController* getSlidingController()
-    {         
-        if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
-    }
-
-    SubSystem_ARE* getARE()
-    {
-        if (subSystems.find(SUBSYSTEM_ARE) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_ARE*)subSystems[SUBSYSTEM_ARE];
-    }
-
-    SubSystem_Speech* getSpeechClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
-        {
-            if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
-                return NULL;
-            else
-                return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
-        }
-        else
-            return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
-    }
+    SubSystem_Expression* getExpressionClient();
+    SubSystem_Reactable* getReactableClient() ;
+    SubSystem_iKart* getIkartClient();
+    SubSystem_ABM* getABMClient();
+    SubSystem_IOL2OPC* getIOL2OPCClient();
+    SubSystem_Recog* getRecogClient();
+    SubSystem_SlidingController* getSlidingController();
+    SubSystem_ARE* getARE();
+    SubSystem_Speech* getSpeechClient() ;
 
     OPCClient*                  opc;
     Agent*                      icubAgent;

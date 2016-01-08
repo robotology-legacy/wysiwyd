@@ -16,6 +16,8 @@
 */
 
 #include "bodyReservoir.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;

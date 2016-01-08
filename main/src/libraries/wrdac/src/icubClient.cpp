@@ -16,14 +16,26 @@
  * Public License for more details
  */
 
-#include <wrdac/clients/icubClient.h>
+#include "wrdac/clients/icubClient.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_agentDetector.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
+#include "wrdac/subsystems/subSystem_attention.h"
+#include "wrdac/subsystems/subSystem_babbling.h"
+#include "wrdac/subsystems/subSystem_facialExpression.h"
+#include "wrdac/subsystems/subSystem_iol2opc.h"
+#include "wrdac/subsystems/subSystem_iKart.h"
+#include "wrdac/subsystems/subSystem_postures.h"
+#include "wrdac/subsystems/subSystem_reactable.h"
+#include "wrdac/subsystems/subSystem_speech.h"
+#include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_slidingCtrl.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
 using namespace wysiwyd::wrdac;
-
 
 ICubClient::ICubClient(const std::string &moduleName, const std::string &context, const std::string &clientConfigFile, bool isRFVerbose)
 {
@@ -781,3 +793,79 @@ bool ICubClient::isTargetInRange(const Vector &target) const
     return isIn;
 }   
 
+SubSystem_Expression* ICubClient::getExpressionClient()
+{
+    if (subSystems.find(SUBSYSTEM_EXPRESSION) == subSystems.end())
+        return NULL;
+    else
+        return ((SubSystem_Expression*) subSystems[SUBSYSTEM_EXPRESSION]);
+}
+
+SubSystem_Reactable* ICubClient::getReactableClient()
+{
+    if (subSystems.find(SUBSYSTEM_REACTABLE) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_Reactable*) subSystems[SUBSYSTEM_REACTABLE];
+}
+
+SubSystem_iKart* ICubClient::getIkartClient()
+{
+    if (subSystems.find(SUBSYSTEM_IKART) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_iKart*) subSystems[SUBSYSTEM_IKART];
+}
+
+SubSystem_ABM* ICubClient::getABMClient()
+{
+    if (subSystems.find(SUBSYSTEM_ABM) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
+}
+
+SubSystem_IOL2OPC* ICubClient::getIOL2OPCClient()
+{
+    if (subSystems.find(SUBSYSTEM_IOL2OPC) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_IOL2OPC*) subSystems[SUBSYSTEM_IOL2OPC];
+}
+
+SubSystem_Recog* ICubClient::getRecogClient()
+{
+    if (subSystems.find(SUBSYSTEM_RECOG) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_Recog*) subSystems[SUBSYSTEM_RECOG];
+}
+
+SubSystem_SlidingController* ICubClient::getSlidingController()
+{
+    if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
+}
+
+SubSystem_ARE* ICubClient::getARE()
+{
+    if (subSystems.find(SUBSYSTEM_ARE) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_ARE*)subSystems[SUBSYSTEM_ARE];
+}
+
+SubSystem_Speech* ICubClient::getSpeechClient()
+{
+    if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
+    {
+        if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
+            return NULL;
+        else
+            return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
+    }
+    else
+        return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
+}

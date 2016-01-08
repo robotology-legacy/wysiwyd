@@ -18,7 +18,7 @@
 */
 
 #include <abmReasoning.h>
-
+#include "wrdac/subsystems/subSystem_ABM.h"
 
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;

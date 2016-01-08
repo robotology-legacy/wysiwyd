@@ -1,5 +1,9 @@
 #include "qRM.h"
-
+#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_slidingCtrl.h"
+#include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
+#include "wrdac/subsystems/subSystem_speech.h"
 
 /*
 *  Get the context path of a .grxml grammar, and return it as a string

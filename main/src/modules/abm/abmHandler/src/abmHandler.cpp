@@ -16,7 +16,9 @@
 */
 
 #include <abmHandler.h>
-
+#include "wrdac/subsystems/subSystem_speech.h"
+#include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
 
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;

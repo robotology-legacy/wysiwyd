@@ -1,4 +1,5 @@
 #include "ears.h"
+#include "wrdac/subsystems/subSystem_recog.h"
 
 bool ears::configure(yarp::os::ResourceFinder &rf)
 {

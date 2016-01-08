@@ -22,6 +22,8 @@
 #define SUBSYSTEM_RECOG        "recog"
 
 #include "wrdac/subsystems/subSystem.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
+
 #include <iostream>
 
 namespace wysiwyd{

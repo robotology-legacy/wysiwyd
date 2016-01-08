@@ -16,6 +16,7 @@
 */
 
 #include "narrativeHandler.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;

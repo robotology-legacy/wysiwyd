@@ -5,6 +5,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/math/SVD.h>
 #include "wrdac/clients/icubClient.h"
+#include "wrdac/subsystems/subSystem_iKart.h"
 #include <map>
 #include "interpersonalDistanceRegulator_IDL.h"
 
