@@ -11,15 +11,17 @@ class Drive
 {
 public:
     std::string name;
+    double period;
     double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax;
     bool gradient;
     time_t start_sleep;
     bool is_sleeping;
     double time_to_sleep;
 
-    Drive(std::string d_name, double d_value=0.5, double d_homeo_min=0.25, double d_homeo_max=0.75, double d_decay = 0.05, double d_value_min=numeric_limits<double>::min(), double d_value_max=numeric_limits<double>::max(), bool d_gradient = false)
+    Drive(std::string d_name, double _period, double d_value=0.5, double d_homeo_min=0.25, double d_homeo_max=0.75, double d_decay = 0.05, double d_value_min=numeric_limits<double>::min(), double d_value_max=numeric_limits<double>::max(), bool d_gradient = false)
     {
         name = d_name;
+        period = _period;
         value = d_value;
         homeostasisMin = d_homeo_min;
         homeostasisMax = d_homeo_max;
@@ -86,15 +88,15 @@ public:
         this->decay += d_decay;
     }
 
-    double sigDecay()
-    {
-        double aux = (1/(1+exp(-this->value)))-0.5;
-        if (aux<0)
-            aux=-aux;
-        //yDebug() << "sig function: "<< aux;// << endl;
-        return this->decay*(aux-1);
+    // double sigDecay()
+    // {
+    //     double aux = (1/(1+exp(-this->value)))-0.5;
+    //     if (aux<0)
+    //         aux=-aux;
+    //     //yDebug() << "sig function: "<< aux;// << endl;
+    //     return this->decay*(aux-1);
 
-    }
+    // }
 
     void sleep(double t) {
         start_sleep = time(NULL);
@@ -110,7 +112,7 @@ public:
             }
         }
         else if (! ((this->value > valueMax && this->decay<0) || (this->value < valueMin && this->decay>0))) {
-            this->value -= this->decay;           
+            this->value -= (this->decay * period);           
         }
 
 

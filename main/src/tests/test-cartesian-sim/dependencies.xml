@@ -1,0 +1,23 @@
+<application>
+  <name>Dependencies for test-cartesian-sim</name>
+  <module>
+    <name>objectsPropertiesCollector</name>
+    <parameters>--name OPC --empty --nosave</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>actionsRenderingEngine</name>
+    <parameters>--from sim/config.ini</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>attentionSelector</name>
+    <dependencies>
+      <port timeout="60">/OPC/rpc</port>
+      <port timeout="60">/actionsRenderingEngine/cmd:io</port>
+    </dependencies>
+    <node>localhost</node>
+  </module>
+</application>

@@ -9,11 +9,18 @@ using namespace std;
 
 
 
-class homeostasisManager
+class HomeostasisManager
 {
+
+// private:
+// 	double period;
 
 
 public:
+	// HomeostasisManager(double _period): period(_period) {
+	// 	;
+	// }
+
 	std::vector<Drive*> drives;
 
     //homeostasisManager(int n);

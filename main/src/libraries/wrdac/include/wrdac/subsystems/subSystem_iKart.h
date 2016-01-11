@@ -22,14 +22,17 @@
 #undef min
 #undef max
 
-#include "wrdac/subsystems/subSystem.h"
+#include <cmath>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+
 #include <yarp/os/Network.h>
 #include <yarp/sig/all.h>
 #include <yarp/math/Math.h>
 #include <yarp/math/SVD.h>
-#include <iostream>
-#include <iterator>
-#include <algorithm>
+
+#include "wrdac/subsystems/subSystem.h"
 
 namespace wysiwyd{namespace wrdac{
 

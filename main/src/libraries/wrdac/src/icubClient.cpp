@@ -16,14 +16,26 @@
  * Public License for more details
  */
 
-#include <wrdac/clients/icubClient.h>
+#include "wrdac/clients/icubClient.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_agentDetector.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
+#include "wrdac/subsystems/subSystem_attention.h"
+#include "wrdac/subsystems/subSystem_babbling.h"
+#include "wrdac/subsystems/subSystem_facialExpression.h"
+#include "wrdac/subsystems/subSystem_iol2opc.h"
+#include "wrdac/subsystems/subSystem_iKart.h"
+#include "wrdac/subsystems/subSystem_postures.h"
+#include "wrdac/subsystems/subSystem_reactable.h"
+#include "wrdac/subsystems/subSystem_speech.h"
+#include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_slidingCtrl.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::dev;
 using namespace wysiwyd::wrdac;
-
 
 ICubClient::ICubClient(const std::string &moduleName, const std::string &context, const std::string &clientConfigFile, bool isRFVerbose)
 {
@@ -95,6 +107,12 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_RECOG] = new SubSystem_Recog(fullName);
             else if (currentSS == SUBSYSTEM_IOL2OPC)
                 subSystems[SUBSYSTEM_IOL2OPC] = new SubSystem_IOL2OPC(fullName);
+            else if (currentSS == SUBSYSTEM_AGENTDETECTOR)
+                subSystems[SUBSYSTEM_AGENTDETECTOR] = new SubSystem_agentDetector(fullName);
+            else if (currentSS == SUBSYSTEM_BABBLING)
+                subSystems[SUBSYSTEM_BABBLING] = new SubSystem_babbling(fullName);
+            else
+                yError() << "Unknown subsystem!";
         }
     }
 
@@ -237,6 +255,43 @@ void ICubClient::updateAgent()
     opc->Entities(EFAA_OPC_ENTITY_TAG, "==", EFAA_OPC_ENTITY_ACTION);
 }
 
+bool ICubClient::changeName(Entity *e, std::string newName) {
+    if(e->entity_type()=="agent") {
+        if (subSystems.find("agentDetector") == subSystems.end()) {
+            say("Could not change name of default partner of agentDetector");
+            yWarning() << "Could not change name of default partner of agentDetector";
+            opc->changeName(e, newName);
+            return false;
+        }
+        else {
+            dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->pause();
+
+            opc->changeName(e, newName);
+            dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName);
+
+            dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->resume();
+        }
+    } else if(e->entity_type()=="object") {
+        if (subSystems.find("iol2opc") == subSystems.end()) {
+            say("Could not change name in iol2opc");
+            yWarning() << "Could not change name in iol2opc";
+            opc->changeName(e, newName);
+            return false;
+        }
+        else {
+            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->pause();
+
+            string oldName = e->name();
+            opc->changeName(e, newName);
+            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName);
+
+            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->resume();
+        }
+    } else {
+        opc->changeName(e, newName);
+    }
+    return true;
+}
 
 void ICubClient::commitAgent()
 {       
@@ -448,7 +503,7 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
 }
 
 
-bool ICubClient::point(const string &oLocation, const Bottle &options, bool shouldWait)
+bool ICubClient::point(const string &oLocation, const Bottle &options)
 {
     Entity *target=opc->getEntity(oLocation,true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
@@ -464,11 +519,11 @@ bool ICubClient::point(const string &oLocation, const Bottle &options, bool shou
         return false;
     }
 
-    return point(oTarget->m_ego_position,options, shouldWait);
+    return point(oTarget->m_ego_position,options);
 }
 
 
-bool ICubClient::point(const Vector &target, const Bottle &options, bool shouldWait)
+bool ICubClient::point(const Vector &target, const Bottle &options)
 {
     SubSystem_ARE *are=getARE();
     if (are==NULL)
@@ -479,50 +534,87 @@ bool ICubClient::point(const Vector &target, const Bottle &options, bool shouldW
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->point(target,opt, shouldWait);
+    return are->point(target,opt);
 }
 
 
 bool ICubClient::look(const string &target)
 {        
-    if (subSystems.find("attention") == subSystems.end())
+    if (subSystems.find("attention")!=subSystems.end())
+        return ((SubSystem_Attention*)subSystems["attention"])->track(target);
+
+    if (SubSystem_ARE *are=getARE())
     {
-        cout<<"Impossible, attention is not running..."<<endl;
+        if (Object *oTarget=dynamic_cast<Object*>(opc->getEntity(target)))
+            if (oTarget->m_present)
+                return are->look(oTarget->m_ego_position);
+
+        cerr<<"[iCubClient] Called look() on an unavailable target: \""<<target<<"\""<<endl;
         return false;
     }
-    Bottle cmd, reply;
-    cmd.addString("track");
-    cmd.addString(target.c_str());
-    ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
-    return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
+
+    cerr<<"Error, neither Attention nor ARE are running..."<<endl;
+    return false;
 }
 
 
 bool ICubClient::lookAround()
 {        
-    if (subSystems.find("attention") == subSystems.end())
+    if (subSystems.find("attention")==subSystems.end())
     {
-        cout<<"Impossible, attention is not running..."<<endl;
+        cerr<<"Error, Attention is not running..."<<endl;
         return false;
     }
-    Bottle cmd, reply;
-    cmd.addString("auto");
-    ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
-    return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
+
+    return ((SubSystem_Attention*)subSystems["attention"])->enableAutoMode();
 }
 
 
 bool ICubClient::lookStop()
 {        
-    if (subSystems.find("attention") == subSystems.end())
+    if (subSystems.find("attention")==subSystems.end())
     {
-        cout<<"Impossible, attention is not running..."<<endl;
+        cerr<<"Error, Attention is not running..."<<endl;
         return false;
     }
-    Bottle cmd, reply;
-    cmd.addString("sleep");
-    ((SubSystem_Attention*) subSystems["attention"])->attentionSelector.write(cmd,reply);
-    return (reply.get(0).asVocab() == VOCAB3('a','c','k'));
+
+    return ((SubSystem_Attention*)subSystems["attention"])->stop();
+}
+
+bool ICubClient::babbling(const string &bpName)
+{
+    //check the subsystem is running
+    if (subSystems.find("babbling")!=subSystems.end()){
+
+        //extract the bodypart with the name
+        Entity *target=opc->getEntity(bpName,true);
+        if (!target->isType(EFAA_OPC_ENTITY_BODYPART))
+        {
+            cerr<<"[iCubClient] Called babbling() on a unallowed entity: \""<<bpName<<"\""<<endl;
+            return false;
+        }
+
+        Bodypart *bp=dynamic_cast<Bodypart*>(target);
+        int jointNumber = bp->m_joint_number;
+        if(jointNumber == -1){
+            cerr<<"[iCubClient] Called babbling() on "<<bpName<<" which have no joint number linked to it\""<<endl;
+            return false;
+        }
+
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+    }
+
+    cerr<<"Error, babbling is not running..."<<endl;
+    return false;
+}
+
+bool ICubClient::babbling(int &jointNumber)
+{
+    if (subSystems.find("babbling")!=subSystems.end())
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+
+    cerr<<"Error, babbling is not running..."<<endl;
+    return false;
 }
 
 
@@ -705,3 +797,79 @@ bool ICubClient::isTargetInRange(const Vector &target) const
     return isIn;
 }   
 
+SubSystem_Expression* ICubClient::getExpressionClient()
+{
+    if (subSystems.find(SUBSYSTEM_EXPRESSION) == subSystems.end())
+        return NULL;
+    else
+        return ((SubSystem_Expression*) subSystems[SUBSYSTEM_EXPRESSION]);
+}
+
+SubSystem_Reactable* ICubClient::getReactableClient()
+{
+    if (subSystems.find(SUBSYSTEM_REACTABLE) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_Reactable*) subSystems[SUBSYSTEM_REACTABLE];
+}
+
+SubSystem_iKart* ICubClient::getIkartClient()
+{
+    if (subSystems.find(SUBSYSTEM_IKART) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_iKart*) subSystems[SUBSYSTEM_IKART];
+}
+
+SubSystem_ABM* ICubClient::getABMClient()
+{
+    if (subSystems.find(SUBSYSTEM_ABM) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
+}
+
+SubSystem_IOL2OPC* ICubClient::getIOL2OPCClient()
+{
+    if (subSystems.find(SUBSYSTEM_IOL2OPC) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_IOL2OPC*) subSystems[SUBSYSTEM_IOL2OPC];
+}
+
+SubSystem_Recog* ICubClient::getRecogClient()
+{
+    if (subSystems.find(SUBSYSTEM_RECOG) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_Recog*) subSystems[SUBSYSTEM_RECOG];
+}
+
+SubSystem_SlidingController* ICubClient::getSlidingController()
+{
+    if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
+}
+
+SubSystem_ARE* ICubClient::getARE()
+{
+    if (subSystems.find(SUBSYSTEM_ARE) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_ARE*)subSystems[SUBSYSTEM_ARE];
+}
+
+SubSystem_Speech* ICubClient::getSpeechClient()
+{
+    if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
+    {
+        if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
+            return NULL;
+        else
+            return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
+    }
+    else
+        return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
+}

@@ -94,11 +94,6 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
-    if (!portToABM.open("/" + getName() + "/toABM")) {
-        yError() << getName() << ": Unable to open port " << "/" + getName() + "/toABM";
-        bEveryThingisGood = false;
-    }
-
     if (!portReadSkinHand.open("/" + getName() + "/portReadSkinHand:i")) {
         yError() << ": Unable to open port " << "/" << getName() << "portReadSkinHand:i";
         bEveryThingisGood = false;
@@ -176,13 +171,6 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
 
     yInfo() << "Connections ok...";
 
-    Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc");
-    if(!Network::isConnected(portToABM.getName(), "/autobiographicalMemory/rpc")){
-        yWarning() << "Cannot connect to ABM, storing data into it will not be possible unless manual connection";
-    } else {
-        yInfo() << "Connected to ABM : Data are coming!";
-    }
-
     // Initialize iCub
     while (!init_iCub(part)) {
         yDebug() << getName() << ": initialising iCub... please wait... ";
@@ -204,7 +192,6 @@ bool SensoryProcessor::interruptModule() {
     imgPortIn.interrupt();
     featureImgPortOut.interrupt();
     portToSFM.interrupt();
-    portToABM.interrupt();
     handlerPort.interrupt();
     portHandPositionOut.interrupt();
     portHeadEncodersOut.interrupt();
@@ -246,9 +233,6 @@ bool SensoryProcessor::close() {
 
     portArmEncodersOut.interrupt();
     portArmEncodersOut.close();
-
-    portToABM.interrupt();
-    portToABM.close();
     
     portToSFM.interrupt();
     portToSFM.close();

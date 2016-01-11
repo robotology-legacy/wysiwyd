@@ -23,6 +23,7 @@
 #define SUBSYSTEM_SPEECH_ESPEAK "speech_espeak"
 
 #include "wrdac/subsystems/subSystem.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
 #include "wrdac/functions.h"
 #include <iostream>
 #include <iterator>
@@ -56,7 +57,7 @@ namespace wysiwyd{
                 stt.open(("/" + m_masterName + "/stt:i").c_str());
                 sttRpc.open(("/" + m_masterName + "/stt:rpc").c_str());
                 m_type = SUBSYSTEM_SPEECH;
-                SubABM = new SubSystem_ABM("from_speech");
+                SubABM = new SubSystem_ABM(m_masterName+"/from_speech");
             }
             virtual bool connect()
             {

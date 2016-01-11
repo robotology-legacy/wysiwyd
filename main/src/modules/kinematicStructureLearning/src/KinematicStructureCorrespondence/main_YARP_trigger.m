@@ -18,7 +18,7 @@
 % Triggering this module through YARP
 % ==========================================================================
 
-clc
+% clc
 close all
 clear all
 
@@ -134,12 +134,13 @@ while(~shouldClose)
             % ---- saving feature values
             %=========================================================
             submodule_video_loading_feature_extraction;
+            video_filename = video_filename;
             
             %%
             %=========================================================
             % converting feature data to y
             %=========================================================
-            [y, W, frames, points] = submodule_cvuKltRead([pwd,'/points/',filename(1:end-4),'/point_seq_%d.txt'], 1, nFrames, 'workspace', points_total);
+            [y, W, frames, points] = submodule_cvuKltRead([pwd,'/points/',video_filename(1:end-4),'/point_seq_%d.txt'], 1, nFrames, 'workspace', points_total);
             
             %             %%
             %             %=========================================================
@@ -155,6 +156,7 @@ while(~shouldClose)
             %=========================================================
             disp('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
             submodule_motion_segmentation;
+            
             %%
             %=========================================================
             % output display
@@ -213,7 +215,8 @@ while(~shouldClose)
             %=========================================================
             disp('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
             disp(['Loading data from ABM']);
-            wrapper_YARP_ABM_retrieve_for_Correspondence;
+%             wrapper_YARP_ABM_retrieve_for_Correspondence;
+            wrapper_YARP_ABM_retrieve_for_Correspondence_PortByPort;
             
             %%
             %=========================================================
@@ -227,6 +230,7 @@ while(~shouldClose)
                 idx = 'P';
                 cdata_P = featureExtractionYARP(idx);
                 [y_P, W_P, frames_P, points_P] = submodule_cvuKltRead([pwd,'/points/',cdata_P.filename(1:end-4),'/point_seq_%d.txt'], 1, cdata_P.nFrames, 'workspace', cdata_P.points_total);
+                numOfSegments_P = 3;
                 KineStruct_P = genKineStruct(y_P, numOfSegments_P, cdata_P, ctrl_param);
             elseif strcmp(data_source_P,'kinect')
                 idx = 'P';
@@ -237,6 +241,7 @@ while(~shouldClose)
                 idx = 'Q';
                 cdata_Q = featureExtractionYARP(idx);
                 [y_Q, W_Q, frames_Q, points_Q] = submodule_cvuKltRead([pwd,'/points/',cdata_Q.filename(1:end-4),'/point_seq_%d.txt'], 1, cdata_Q.nFrames, 'workspace', cdata_Q.points_total);
+                numOfSegments_Q = 0;
                 KineStruct_Q = genKineStruct(y_Q, numOfSegments_Q, cdata_Q, ctrl_param);
             elseif strcmp(data_source_Q,'kinect')
                 idx = 'Q';
@@ -253,7 +258,7 @@ while(~shouldClose)
             %=========================================================
             %(1:HGM / 2:TM / 3:RRWHM / 4:BCAGM / 5:BCAGM+MP / 6:BCAGM+IPFP / 7:MPM / 8:RRWM / 9:IPFP / 10:SM)
             HGM_method = 3;
-            %%
+            
             if HGM_method <= 3
                 problem = createSimilarity_RRWHM_relative(KineStruct_P, KineStruct_Q);
             elseif HGM_method == 4 || HGM_method == 5 || HGM_method == 6
@@ -265,10 +270,11 @@ while(~shouldClose)
             % Hypergraph Matching
             %=========================================================
             setAlg;
-            % Alg(HGM_method).bOrder = [1 0 0];   % 1st
-            % Alg(HGM_method).bOrder = [0 1 0];   % 2nd
-            % Alg(HGM_method).bOrder = [0 0 1];   % 3rd
-            % Alg(HGM_method).bOrder = [1 1 1];   % all
+%             Alg(HGM_method).bOrder = [1 0 0];   % 1st
+%             Alg(HGM_method).bOrder = [0 1 0];   % 2nd
+%             Alg(HGM_method).bOrder = [0 0 1];   % 3rd
+            Alg(HGM_method).bOrder = [1 0 1];   % 1st & 3rd
+%             Alg(HGM_method).bOrder = [1 1 1];   % all
             
             X = hyperGraphMatching(problem, HGM_method, Alg);
             
@@ -278,14 +284,14 @@ while(~shouldClose)
             %=========================================================
             % Draw Matching Result
             %=========================================================
-            img_output = genMatchImages(cdata_P, cdata_Q, KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, 'PROPOSED_RRWHM');
+            img_output = genMatchImages(cdata_P, KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, 'PROPOSED_RRWHM');
             
             %%
             %=========================================================            
             % output display
             % YARP ABM save
             %=========================================================            
-            wrapper_YARP_ABM_save_for_Correspondence;
+%             wrapper_YARP_ABM_save_for_Correspondence;
             
             bReply.addString('ack');
             bReply.addString(['Finding Kinematic Structure Correspondences between ABM #', instance_num_P, ' and ABM #', instance_num_Q,' is completed!']);
@@ -307,3 +313,12 @@ end
 %%
 % Module close
 portTrigger.close;
+
+%====================================
+% Close Ports
+%====================================
+port2ABM_query_P.close;
+
+port2ABM_query_Q.close;
+portIncoming_P.close;
+portIncoming_Q.close;

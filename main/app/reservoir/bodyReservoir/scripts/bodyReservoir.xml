@@ -1,0 +1,75 @@
+<application>
+  <name>Dumper Data</name>
+
+  <module>
+    <name>objectsPropertiesCollector</name>
+    <parameters>--name OPC --empty --nosave</parameters>
+    <node>localhost</node>
+    <tag>opcTag</tag>
+  </module>
+
+  <module>
+    <name>actionsRenderingEngine</name>
+    <parameters>--from sim/config.ini</parameters>
+    <node>localhost</node>
+    <tag>ARE</tag>
+  </module>
+
+  <module>
+    <name>attentionSelector</name>
+    <node>localhost</node>
+    <tag>attentionSelectorTag</tag>
+  </module>
+
+  <module>
+    <name>opcPopulater</name>
+    <node>localhost</node>
+    <tag>opcPopulaterTag</tag>
+  </module>
+
+  <module>
+    <name>bodyReservoir</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>humanRobotDumper</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name dumpHuman</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name dumpRobot</parameters>
+    <node>localhost</node>
+  </module>
+
+  <!-- ********************* CONNECTIONS ********************* -->
+
+  <connection>
+    <from>/humanRobotDump/humanDump</from>
+    <to>/dumpHuman</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/humanRobotDump/robotDump</from>
+    <to>/dumpRobot</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/actionsRenderingEngine/wbd:rpc</from>
+    <to> /wholeBodyDynamics/rpc:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+
+</application>
+
+

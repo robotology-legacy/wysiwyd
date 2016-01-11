@@ -16,6 +16,8 @@
 */
 
 #include "bodyReservoir.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -44,7 +46,12 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    //rpc port
+    Bottle &bRFInfo = rf.findGroup("lookPointing");
+
+    delayLook = bRFInfo.check("delayLook", Value(2.)).asDouble();
+    delayPoint = bRFInfo.check("delayPoint", Value(1.)).asDouble();
+    delayHome = bRFInfo.check("delayHome", Value(1.5)).asDouble();
+
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
@@ -66,6 +73,10 @@ bool bodyReservoir::configure(yarp::os::ResourceFinder &rf)
 
     iCub->lookStop();
     iCub->home();
+
+    cout << "delayLook " << delayLook << endl;
+    cout << "delayPoint " << delayPoint << endl;
+    cout << "delayHome " << delayHome << endl;
 
     iCub->say("bodyReservoir is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -147,6 +158,30 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
             reply.addString("agent to dump: " + sAgentName);
         }
     }
+    else if (command.get(0).asString() == "action"){
+        if (command.size() != 3)
+        {
+            reply.addString("error in bodyReservoir: Botte 'action' misses information action_name object");
+        }
+        else
+        {
+            string ob = command.get(2).toString();
+            Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(ob);
+            string sHand;
+            (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
+            Bottle bHand(sHand);
+            bool bSuccess;
+
+            cout << ob << ": " << obj1->m_ego_position.toString() << " with hand: " << sHand << endl;
+            if (command.get(1).toString() == "point"){
+                bSuccess = iCub->point(ob, bHand);
+            }
+            else if (command.get(1).toString() == "look"){
+                bSuccess = iCub->look(ob);
+            }
+            bSuccess ? reply.addString("ok done") : reply.addString("failed");
+        }
+    }
     else {
         yInfo() << helpMessage;
         reply.addString(helpMessage);
@@ -167,10 +202,17 @@ bool bodyReservoir::updateModule() {
 Bottle bodyReservoir::pointObject(string sObject)
 {
 
+    if (!Network::connect(("/bodyReservoir/toDumper"), "/humanRobotDump/rpc"))
+    {
+        yWarning() << " CANNOT CONNECT TO DUMPERS";
+    }
+
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(sObject);
     string sHand;
     (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
     Bottle bHand(sHand);
+
+    cout << sObject << ": " << obj1->m_ego_position.toString() << endl;
 
     Bottle   bOutput;
     list<pair<string, string> > lArgument;
@@ -206,11 +248,12 @@ Bottle bodyReservoir::pointObject(string sObject)
     yInfo() << bAnswer.toString();
 
     bool bSuccess = iCub->look(sObject);
+    cout << "\t\t\t" << "IN DELAY LOOK" << endl;
 
-    Time::delay(2.0);
+    Time::delay(delayLook);
     iCub->lookStop();
 
-    bSuccess &= iCub->point(sObject, bHand, true);
+    bSuccess &= iCub->point(sObject, bHand);
     // SEND SUBACTION
     bToDumper.clear();
     bToDumper.addString("subaction");
@@ -219,9 +262,9 @@ Bottle bodyReservoir::pointObject(string sObject)
     portToDumper.write(bToDumper, bAnswer);
     yInfo() << bAnswer.toString();
 
+    cout << "\t\t\t" << "IN DELAY POINT" << endl;
 
-
-    Time::delay(3.0);
+    Time::delay(delayPoint);
     // SEND SUBACTION
     bToDumper.clear();
     bToDumper.addString("subaction");
@@ -231,7 +274,9 @@ Bottle bodyReservoir::pointObject(string sObject)
     yInfo() << bAnswer.toString();
 
     iCub->getARE()->home();
-    Time::delay(1.5);
+    cout << "\t\t\t" << "IN DELAY HOME" << endl;
+
+    Time::delay(delayHome);
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
     if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
@@ -289,7 +334,6 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
 Bottle bodyReservoir::loopPointing(int iNbLoop)
 {
     Bottle bOutput;
-
     Port  portToOpcPopulater;
     portToOpcPopulater.open("/bodyReservoir/toPopulater");
     if (!Network::connect("/bodyReservoir/toPopulater", "/opcPopulater/rpc"))
@@ -305,10 +349,10 @@ Bottle bodyReservoir::loopPointing(int iNbLoop)
     bToPopulater.addString("populateSpecific2");
 
     vector<string> vTarget;
-    vTarget.push_back("obj_right");
-    vTarget.push_back("agent_right");
-    vTarget.push_back("obj_left");
-    vTarget.push_back("agent_left");
+    vTarget.push_back("bottom_right");
+    vTarget.push_back("top_right");
+    vTarget.push_back("bottom_left");
+    vTarget.push_back("top_left");
 
     for (int ii = 0; ii < iNbLoop; ii++)
     {

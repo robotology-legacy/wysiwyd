@@ -19,6 +19,7 @@
 
 
 #include "speechInteraction.h"
+#include "wrdac/subsystems/subSystem_recog.h"
 
 // Helper methods
 inline bool caseInsCharCompareN(char a, char b) {

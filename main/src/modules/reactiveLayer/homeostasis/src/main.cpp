@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
 {
     srand(time(NULL));
     Network::init();
-    homeostaticModule mod;
+    HomeostaticModule mod;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("homeostasis");

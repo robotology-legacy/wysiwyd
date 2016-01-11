@@ -19,6 +19,7 @@
 
 
 #include "abmActions.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
 
 
 abmActions::abmActions()

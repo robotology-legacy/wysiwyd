@@ -11,7 +11,6 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace yarp::math;
 using namespace wysiwyd::wrdac;
 
 class Test: public Sensation
@@ -26,5 +25,8 @@ private:
 public:
     void configure();
     void publish();
+    void close_ports() {
+        ;
+    }
 
 };

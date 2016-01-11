@@ -34,6 +34,7 @@
 #define EFAA_OPC_ENTITY_TAG                 ("entity")
 #define EFAA_OPC_ENTITY_OBJECT              ("object")
 #define EFAA_OPC_ENTITY_RTOBJECT            ("rtobject")
+#define EFAA_OPC_ENTITY_BODYPART            ("bodypart")
 #define EFAA_OPC_ENTITY_AGENT               ("agent")
 #define EFAA_OPC_ENTITY_ADJECTIVE           ("adjective")
 #define EFAA_OPC_ENTITY_ACTION              ("action")

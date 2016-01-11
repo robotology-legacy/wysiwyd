@@ -32,14 +32,20 @@ public:
     BufferedPort<Bottle> *inputSensationPort;
     Bottle behaviorUnderCmd;
     Bottle behaviorOverCmd;
-    Bottle sensationOnCmd, sensationOffCmd, triggerCmd;
+    Bottle sensationOnCmd, sensationOffCmd, beforeTriggerCmd, afterTriggerCmd;
 
     bool close_ports() {
-        if (behaviorUnderPort)
+        if (behaviorUnderPort) {
+            behaviorUnderPort->interrupt();
             behaviorUnderPort->close();
-        if (behaviorOverPort)
+        }
+        if (behaviorOverPort) {
+            behaviorOverPort->interrupt();
             behaviorOverPort->close();
+        }
+        homeoPort->interrupt();
         homeoPort->close();
+        inputSensationPort->interrupt();
         inputSensationPort->close();
         return true;
     }
@@ -55,7 +61,8 @@ public:
                 cmds = sensationOffCmd;
                 break;
             default:
-                yDebug() << "mode not implemented";
+                yDebug() << "Update mode not implemented";
+                yDebug() << to_string(mode);
                 break;
         }
         Bottle rplies;
@@ -72,7 +79,22 @@ public:
 
     void triggerBehavior(OutCZ mode)
     {
-        Bottle cmd, rply;
+
+        Bottle cmd, rply, rplies;
+        // before trigger command
+        if ( ! beforeTriggerCmd.isNull()) {
+            cmd.clear();
+            rply.clear();
+            rplies.clear();
+            for (int i=0; i<beforeTriggerCmd.size(); i++){
+                rply.clear();
+                Bottle cmd = *beforeTriggerCmd.get(i).asList();   
+                yDebug() << cmd.toString();     
+                homeoPort->write(cmd,rply);
+                rplies.addList() = rply;
+            }        
+        }
+
         Port* port = NULL;
         switch (mode) {
             case UNDER:
@@ -84,18 +106,23 @@ public:
                 port = behaviorOverPort;
                 break;   
             default:
-                yDebug() << "mode not implemented";
+                yDebug() << "Trigger mode not implemented";
+                yDebug() << to_string(mode);
                 break;
         }
         
         yInfo() << "Drive " + name + " to be triggered via " << port->getName();
         port->write(cmd, rply);
-        if ( ! triggerCmd.isNull()) {
-            Bottle rplies;
+
+        // after trigger command
+        if ( ! afterTriggerCmd.isNull()) {
+            cmd.clear();
+            rply.clear();
             rplies.clear();
-            for (int i=0; i<triggerCmd.size(); i++){
+            for (int i=0; i<afterTriggerCmd.size(); i++){
                 rply.clear();
-                Bottle cmd = *triggerCmd.get(i).asList();        
+                Bottle cmd = *afterTriggerCmd.get(i).asList();   
+                yDebug() << cmd.toString();     
                 homeoPort->write(cmd,rply);
                 rplies.addList() = rply;
             }        
@@ -110,12 +137,10 @@ private:
     Bottle drivesList;
     
     Port to_homeo_rpc;
-    Port ears_port;
     string moduleName;
     string homeo_name;
 
     double period;
-    double last_time;
 
 	map<string, AllostaticDrive> allostaticDrives;
 

@@ -9,29 +9,37 @@
   </dependencies>
   <!--Memory-->
   <module>
-    <name>objectsPropertiesCollector</name>
-    <parameters>--name OPC --empty --nosave</parameters>
-    <node>icuboracle</node>
-    <tag>opcTag</tag>
-  </module>
-  <module>
     <name>autobiographicalMemory</name>
     <parameters />
     <node>deepthought</node>
     <tag>ABM</tag>
   </module>
+  <module>
+    <name>touchDetector</name>
+    <parameters></parameters>
+    <node>icuboracle</node>
+    <tag>touchDetectorTag</tag>
+  </module>
   <!--GUI-->
   <module>
-    <name>iCubGui</name>
-    <parameters>--from guiOPC.ini --xpos 3000 --ypos 0 --width 600 --height 600</parameters>
-    <node>prl-13</node>
-    <tag>iCubGui_tagOPC</tag>
+    <name>referenceFrameHandler</name>
+    <parameters></parameters>
+    <node>icuboracle</node>
+    <tag>referenceFrameHandlerTag</tag>
   </module>
   <module>
-    <name>guiUpdater</name>
-    <node>obsidian</node>
-    <tag>guiUpdaterTag</tag>
+    <name>agentDetector</name>
+    <parameters />
+    <node>icuboracle</node>
+    <tag>agentDetectorTag</tag>
   </module>
+  <module>
+    <name>pasar</name>
+    <parameters />
+    <node>icuboracle</node>
+    <tag>pasarTag</tag>
+  </module>
+
   <!--iCub action/speech-->
   <module>
     <name>speechRecognizer</name>
@@ -40,10 +48,10 @@
     <tag>speechRecoTag</tag>
   </module>
   <module>
-    <name>bodySchema</name>
+    <name>babbling</name>
     <parameters>--robot icub</parameters>
-    <node>arancia</node>
-    <tag>bodySchemaTag</tag>
+    <node>deepthought</node>
+    <tag>babblingTag</tag>
   </module>
   <module>
     <name>actionsRenderingEngine</name>
@@ -52,23 +60,23 @@
     <tag>ARETag</tag>
   </module>
   <module>
-    <name>lrh</name>
+    <name>attentionSelector</name>
     <parameters></parameters>
     <node>icuboracle</node>
-    <tag>LRHTag</tag>
+    <tag>attentionSelector</tag>
   </module>
   <module>
-    <name>touchDetector</name>
+    <name>ears</name>
     <parameters></parameters>
     <node>icuboracle</node>
-    <tag>touchDetectorTag</tag>
+    <tag>earsTag</tag>
   </module>
   <!--Drives-->
   <module>
-    <name>homeostasis</name>
-    <parameters />
+    <name>sensationManager</name>
+    <parameters></parameters>
     <node>icuboracle</node>
-    <tag>homeostasisTag</tag>
+    <tag>sensationManagerTag</tag>
   </module>
   <module>
     <name>proactiveTagging</name>
@@ -77,11 +85,24 @@
     <tag>proactiveTaggingTag</tag>
   </module>
   <module>
-    <name>reactiveLayer</name>
-    <parameters />
+    <name>behaviorManager</name>
+    <parameters></parameters>
     <node>icuboracle</node>
-    <tag>reactiveLayerTag</tag>
+    <tag>behaviorManagerTag</tag>
   </module>
+  <module>
+    <name>homeostasis</name>
+    <parameters></parameters>
+    <node>icuboracle</node>
+    <tag>homeostasisTag</tag>
+  </module>
+  <module>
+    <name>lrh</name>
+    <parameters></parameters>
+    <node>icuboracle</node>
+    <tag>LRHTag</tag>
+  </module>
+
   <!--proactiveTagging-->
   <module>
     <name>kinematicStructure</name>
@@ -89,77 +110,34 @@
     <node>hjchang</node>
     <tag>ksTag</tag>
   </module>
+  <module>
+    <name>allostaticController</name>
+    <parameters></parameters>
+    <node>icuboracle</node>
+    <tag>allostaticContollerTag</tag>
+  </module>
   <!--yarpview-->
   <module>
     <name>yarpview</name>
     <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out --x 2370 --y 0 --p 50 --w 640 --h 480</parameters>
-    <node>prl-13</node>
+    <node>copper</node>
     <tag>yarpview_camRight</tag>
   </module>
   <module>
     <name>yarpview</name>
     <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/right/out --x 1700 --y 0 --p 50 --w 640 --h 480</parameters>
-    <node>prl-13</node>
+    <node>copper</node>
     <tag>yarpview_camLeft</tag>
   </module>
   <module>
     <name>yarpview</name>
     <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out/kinematic_structure --x 2370 --y 500 --p 50 --w 640 --h 480</parameters>
-    <node>prl-13</node>
+    <node>copper</node>
     <tag>yarpview_augmentRight</tag>
   </module>
 
-  <connection>
-    <from>/guiUpdater/gui:o</from>
-    <to>/guiOPC/objects</to>
-    <protocol>tcp</protocol>
-  </connection>
-  <connection>
-    <from>/guiUpdater/guiBase:o</from>
-    <to>/guiOPC/base:i</to>
-    <protocol>tcp</protocol>
-  </connection>
+
   <!-- GUI OPC ICUB BODY-->
-  <connection>
-    <from>/wholeBodyDynamics/contacts:o</from>
-    <to>/guiOPC/forces</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/armSkinMan/skin_events:o</from>
-    <to>/guiOPC/forces</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/icub/head/state:o</from>
-    <to>/guiOPC/head:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/icub/inertial</from>
-    <to>/guiOPC/inertial:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/icub/left_arm/state:o</from>
-    <to>/guiOPC/left_arm:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/icub/right_arm/state:o</from>
-    <to>/guiOPC/right_arm:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/icub/torso/state:o</from>
-    <to>/guiOPC/torso:i</to>
-    <protocol>udp</protocol>
-  </connection>
-  <connection>
-    <from>/bodySchema/featureImg:o</from>
-    <to>/yarpview/bodySchema/featureImg:i</to>
-    <protocol>udp</protocol>
-  </connection>
 
   <!-- TouchDetector -->
   <connection>
@@ -196,6 +174,11 @@
     <from>/icub/skin/right_hand_comp</from>
     <to>/touchDetector/right_hand:i</to>
     <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/touchDetector/touch:o</from>
+    <to>/proactiveTagging/fromTouch:i</to>
+    <protocol>tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list</protocol>
   </connection>
 
 </application>

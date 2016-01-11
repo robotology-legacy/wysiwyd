@@ -16,9 +16,17 @@ using namespace yarp::sig;
 
 class Pointing: public Behavior
 {
-public:
-    void configure();
+private:
     void run(Bottle args=Bottle());
-
+    
+public:
+    Pointing(Mutex* mut): Behavior(mut) {
+        ;
+    }
+        
+    void configure();
+    void close_extra_ports() {
+        ;
+    }
 };
 

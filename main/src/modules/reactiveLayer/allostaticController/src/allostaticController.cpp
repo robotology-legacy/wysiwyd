@@ -2,16 +2,25 @@
 
 bool AllostaticController::close()
 {
+    yDebug() << "Closing port to homeo rpc";
+    to_homeo_rpc.interrupt();
     to_homeo_rpc.close();
-    ears_port.close();
-    for (unsigned int i = 0; i < outputm_ports.size(); i++)
+    for (auto& outputm_port : outputm_ports)
     {
-        outputm_ports[i]->close();
-        outputM_ports[i]->close();
+        // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
+        outputm_port->interrupt();
+        outputm_port->close();
     }
 
-    for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
-        it->second.close_ports();
+    for(auto& outputM_port : outputM_ports)
+    {
+        outputM_port->interrupt();
+        outputM_port->close();
+    }
+
+    yDebug() << "Closing AllostaticDrive ports";
+    for(auto& allostaticDrive : allostaticDrives) {
+        allostaticDrive.second.close_ports();
     }
 
     return true;
@@ -19,10 +28,8 @@ bool AllostaticController::close()
 
 int AllostaticController::openPorts(string driveName)
 {
-
     outputm_ports.push_back(new BufferedPort<Bottle>);
     outputM_ports.push_back(new BufferedPort<Bottle>);
-
 
     string portName = "/" + moduleName + "/" + driveName;
     string pn = portName + "/min:i";
@@ -33,7 +40,7 @@ int AllostaticController::openPorts(string driveName)
     }
     string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
     yarp::os::Time::delay(0.1);
-    while(!Network::connect(targetPortName,pn)){
+    while(!Network::connect(targetPortName,pn)) {
         yInfo() <<"Setting up homeostatic connections... "<< targetPortName << " " << pn ;//<<endl;
         yarp::os::Time::delay(0.5);
     }
@@ -47,9 +54,10 @@ int AllostaticController::openPorts(string driveName)
     yarp::os::Time::delay(0.1);
     targetPortName = "/" + homeo_name + "/" + driveName + "/max:o";
     while(!Network::connect(targetPortName, pn))
-    {yDebug()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn;//endl;
-    yarp::os::Time::delay(0.5);}
-
+    {
+        yDebug()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn;//endl;
+        yarp::os::Time::delay(0.5);
+    }
 
     return 42;
 }
@@ -60,25 +68,11 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     yDebug()<<moduleName<<": finding configuration files...";//<<endl;
-    period = rf.check("period",Value(0.1)).asDouble();
+    period = rf.check("period",Value(0.5)).asDouble();
 
     configureAllostatic(rf);
 
-    yInfo()<<"Configuration done.";//<<endl;
-
-    // rpc.open ( ("/"+moduleName+"/rpc"));
-    // attach(rpc);
-    ears_port.open("/" + moduleName + "/ears:o");
-    while (!Network::connect(ears_port.getName(), "/ears/rpc")) {
-        yDebug()<<"Setting up ears connection from "<< ears_port.getName() <<" to /ears/rpc";// <<endl;
-        yarp::os::Time::delay(0.5);
-    }
-
-
-    last_time = yarp::os::Time::now();
-
-    yInfo("Init done");
-
+    yInfo()<<"Configuration done.";
 
     return true;
 }
@@ -112,6 +106,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
     {
         cmd.clear();
         string driveName = drivesList.get(d).asString();
+        yInfo() << ("Initializing drive " + driveName);
 
         cmd.addString("add");
         cmd.addString("conf");
@@ -138,10 +133,15 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         cmds = grpAllostatic.check((driveName + "-sensation-off"), Value("None"));
         alloDrive.sensationOffCmd = *cmds.asList();
 
-        cmds = grpAllostatic.check((driveName + "-trigger"), Value("None"));
+        cmds = grpAllostatic.check((driveName + "-before-trigger"), Value("None"));
         if (!(cmds.isString() && cmds.asString() == "None")) {
-            alloDrive.triggerCmd = *cmds.asList();
+            alloDrive.beforeTriggerCmd = *cmds.asList();
         }
+
+        cmds = grpAllostatic.check((driveName + "-after-trigger"), Value("None"));
+        if (!(cmds.isString() && cmds.asString() == "None")) {
+            alloDrive.afterTriggerCmd = *cmds.asList();
+        }        
 
         alloDrive.homeoPort = &to_homeo_rpc;
 
@@ -203,7 +203,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
                 yarp::os::Time::delay(0.5);
             }
             alloDrive.behaviorOverCmd = Bottle(over_cmd_name);//.addString(over_cmd_name);
-        }else{
+        } else {
             yInfo() << "No port name";
         }
 
@@ -211,7 +211,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         allostaticDrives[driveName] = alloDrive;
     }
 
-    if ( ! Normalize(drivePriorities))
+    if (! Normalize(drivePriorities))
         yDebug() << "Error: Drive priorities sum up to 0.";// << endl;
 
     yInfo() << "done.";// << endl;
@@ -236,6 +236,7 @@ bool AllostaticController::updateModule()
             yDebug() << "Sensation ON";
             it->second.update(SENSATION_ON);
         } else {
+            yDebug() << "Sensation OFF";
             it->second.update(SENSATION_OFF);
         }
     }
@@ -264,7 +265,7 @@ DriveOutCZ AllostaticController::chooseDrive() {
         max_diff.push_back(outputM_ports[i]->read()->get(0).asDouble());
         inCZ = min_diff.back() <= 0 && max_diff.back() <= 0;
         if (inCZ) {
-            outOfCzPriorities[i] = 0.1;
+            outOfCzPriorities[i] = 0.;
         }
         else {
             numOutCz ++;
@@ -296,35 +297,21 @@ DriveOutCZ AllostaticController::chooseDrive() {
 
 bool AllostaticController::updateAllostatic()
 {
-
-
     DriveOutCZ activeDrive = chooseDrive();
 
-    // CMF: Commands to ears should rather be in proactivetagging
+    yInfo() << "Drive " + activeDrive.name + " chosen";
+
     if (activeDrive.name == "None") {
-        yInfo() << "No drive out of CZ." ;//<< endl;
-        if ((yarp::os::Time::now()-last_time)>2.0)
-                {
-                last_time = yarp::os::Time::now();
-                Bottle cmd;
-                cmd.clear();
-                cmd.addString("listen");
-                cmd.addString("on");
-                ears_port.write(cmd);
-            }
+        yInfo() << "No drive out of CZ." ;
         return true;
     }
     else
     {
         yInfo() << "Drive " + activeDrive.name + " out of CZ." ;
-                Bottle cmd;
-                cmd.clear();
-                cmd.addString("listen");
-                cmd.addString("off");
-                ears_port.write(cmd);
     }
 
     if (allostaticDrives[activeDrive.name].active) {
+        yInfo() << "Trigerring " + activeDrive.name;
         allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
     } else {
         yInfo() << "Drive " + activeDrive.name + " is not active";
@@ -332,4 +319,3 @@ bool AllostaticController::updateAllostatic()
 
     return true;
 }
-

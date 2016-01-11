@@ -16,7 +16,7 @@ writeKineStruct(KineStruct_P, KineStruct_Q);
 
 system('R -f ../../include/include_Matlab/topology_similarity/Incremmental_Topologically_constrained_subisomorphism_old2.r');
 nodeSimilarity = readNodeSimilarity('../../include/include_Matlab/topology_similarity/matrix-correspondance-with-removal.output');
-% nodeSimilarity = readNodeSimilarity('./topology/matrix-correspondance-no-removal.output');
+% nodeSimilarity = readNodeSimilarity('../../include/include_Matlab/topology_similarity/matrix-correspondance-no-removal.output');
 nodeSimilarity = reshape(nodeSimilarity, [KineStruct_P.num_seg,KineStruct_Q.num_seg])';
 nodeSimilarity = nodeSimilarity';
 nodeSimilarity = nodeSimilarity / max(max(nodeSimilarity));

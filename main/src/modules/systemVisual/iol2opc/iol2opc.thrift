@@ -42,4 +42,14 @@ service iol2opc_IDL
    * @return true/false on success/failure.
    */
    bool change_name(1:string old_name, 2:string new_name);
+
+   /**
+   * Pause module
+   */
+   void pause();
+
+   /**
+   * Resume module
+   */
+   void resume();
 }

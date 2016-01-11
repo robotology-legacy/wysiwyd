@@ -17,7 +17,7 @@
 * Public License for more details
 */
 
-#include "iCub/pasar.h"
+#include "pasar.h"
 
 
 using namespace wysiwyd::wrdac;
@@ -92,16 +92,6 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 
     opc->checkout();
 
-    icub = opc->addOrRetrieveEntity<Agent>("icub");
-
-
-
-    if (!saliencyInput.open(("/" + moduleName + "/saliency:i").c_str())) {
-        cout << getName() << ": Unable to open port saliency:i" << endl;
-        return false;
-    }
-
-
     if (!Network::connect("/agentDetector/skeleton:o", ("/" + moduleName + "/skeleton:i").c_str()))
     {
         isSkeletonIn = false;
@@ -118,12 +108,6 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     yInfo() << " pointing: "  << isPointing;
     yInfo() << " waving: " << isWaving;
 
-
-    if (!saliencyOutput.open(("/" + moduleName + "/saliency:o").c_str())) {
-        cout << getName() << ": Unable to open port saliency:o" << endl;
-        return false;
-    }
-
     if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
         cout << getName() << ": Unable to open port rpc" << endl;
         return false;
@@ -139,17 +123,14 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 bool PasarModule::interruptModule() {
     opc->interrupt();
     handlerPort.interrupt();
-    saliencyInput.interrupt();
-    saliencyOutput.interrupt();
     return true;
 }
 
 /************************************************************************/
 bool PasarModule::close() {
     opc->close();
+    handlerPort.interrupt();
     handlerPort.close();
-    saliencyInput.close();
-    saliencyOutput.close();
     return true;
 }
 
@@ -238,43 +219,40 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
 /***************************************************************************/
 bool PasarModule::updateModule()
 {
-
-    opc->update();
+    opc->checkout();
     entities = opc->EntitiesCache();
 
     presentObjects.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
-    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    for (auto &entity : entities)
     {
-        if ((*it)->name() != "icub")
+        if (entity->name() != "icub")
         {
             //!!! ONLY OBJECTS, RT_OBJECT and AGENTS ARE TRACKED !!!
 
-            if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) || (*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+            if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
             {            
-
-                if ((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT))
+                if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT))
                 {
-                    RTObject * rto = dynamic_cast<RTObject*>(*it);
-                    presentObjects[(*it)->name()].o.fromBottle(rto->asBottle());
-                    presentObjects[(*it)->name()].o.m_saliency = rto->m_saliency;
+                    RTObject * rto = dynamic_cast<RTObject*>(entity);
+                    presentObjects[entity->name()].o.fromBottle(rto->asBottle());
+                    presentObjects[entity->name()].o.m_saliency = rto->m_saliency;
+                }
+
+                if (entity->isType(EFAA_OPC_ENTITY_OBJECT))
+                {
+                    Object * ob = dynamic_cast<Object*>(entity);
+                    presentObjects[entity->name()].o.fromBottle(ob->asBottle());
+                    presentObjects[entity->name()].o.m_saliency = ob->m_saliency;
 
                 }
 
-                if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
+                if (entity->isType(EFAA_OPC_ENTITY_AGENT))
                 {
-                    Object * ob = dynamic_cast<Object*>(*it);
-                    presentObjects[(*it)->name()].o.fromBottle(ob->asBottle());
-                    presentObjects[(*it)->name()].o.m_saliency = ob->m_saliency;
-
-                }
-
-                if ((*it)->isType(EFAA_OPC_ENTITY_AGENT))
-                {
-                    Agent *ag = dynamic_cast<Agent*>(*it);
-                    presentObjects[(*it)->name()].o.fromBottle(ag->asBottle());
-                    presentObjects[(*it)->name()].o.m_saliency = ag->m_saliency;
+                    Agent *ag = dynamic_cast<Agent*>(entity);
+                    presentObjects[entity->name()].o.fromBottle(ag->asBottle());
+                    presentObjects[entity->name()].o.m_saliency = ag->m_saliency;
                 }
             }
         }
@@ -301,8 +279,8 @@ bool PasarModule::updateModule()
         saliencyLeakyIntegration();
 
         //Get the most salient object and track it
-        map< string, ObjectModel >::iterator mostSalientObject = presentObjects.begin();
-        for (map< string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+        auto mostSalientObject = presentObjects.begin();
+        for (auto it = presentObjects.begin(); it != presentObjects.end(); it++)
         {
             //  cout<<"Saliency ("<<it->second.o.name()<<") = "<<it->second.o.m_saliency<<endl;
             if (it->second.o.m_saliency > mostSalientObject->second.o.m_saliency)
@@ -443,10 +421,8 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 */
 void PasarModule::saliencyPointing()
 {
-
-    opc->update();
     Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
-    if (!(ag->m_present)) return;
+    if (!ag || !ag->m_present) return;
 
     Vector vec = ag->m_body.m_parts["handRight"];
 
@@ -458,7 +434,6 @@ void PasarModule::saliencyPointing()
 
     double closest = 10e5;
     string objectPointed = "none";
-
 
     for (map<string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
     {
@@ -481,7 +456,6 @@ void PasarModule::saliencyPointing()
             }
         }
     }
-
 
     //for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
     //{
@@ -534,9 +508,8 @@ void PasarModule::saliencyWaving()
 {
     yInfo() << "is Waving: " << isWaving;
 
-    opc->update();
     Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
-    if (!(ag->m_present)) 
+    if (!ag || !ag->m_present)
     {
         presentRightHand.first = presentRightHand.second;
         presentLeftHand.first = presentLeftHand.second;

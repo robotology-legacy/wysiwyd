@@ -1,70 +1,131 @@
-
 <application>
-<name>WYSIWYD IOL2OPC with CAFFE</name>
+<name>WYSIWYD IOL lbpExtract</name>
 
         <dependencies>
                 <port>/icub/camcalib/left/out</port>
                 <port>/SFM/rpc</port>
         </dependencies>
+  	<!--Memory-->
+ 	<module>
+	    <name>objectsPropertiesCollector</name>
+	    <parameters>--name OPC --empty --nosave</parameters>
+	    <node>icuboracle</node>
+	    <tag>opcTag</tag>
+	</module>
+	<!--GUI-->
+	<module>
+	    <name>iCubGui</name>
+	    <parameters>--from guiOPC.ini --xpos 2800 --ypos 0 --width 650 --height 530</parameters>
+	    <node>copper</node>
+	    <tag>iCubGui_tagOPC</tag>
+	</module>
+	<module>
+	    <name>guiUpdater</name>
+	    <node>obsidian</node>
+	    <tag>guiUpdaterTag</tag>
+	</module>
 
         <module>
                 <name>lbpExtract</name>
-                <node>node-vision</node>
+                <parameters>--numIteration 1 --minArcLength 100</parameters>
+                <node>deepthought</node>
         </module>
          <module>
                 <name>caffeCoder</name>
                 <parameters></parameters>
-                <node>node-cuda1</node>
+                <node>deepthought</node>
         </module>
          <module>
                 <name>linearClassifierModule</name>
                 <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase --WeightedSVM 1</parameters>
-                <node>node-classification</node>
+                <node>deepthought</node>
         </module>
          <module>
                 <name>himrepClassifier</name>
-                <node>node-classification</node>
+                <node>deepthought</node>
         </module>
         <module>
                 <name>iol2opc</name>
                 <parameters>--from config.ini</parameters>
-                <node>node-console</node>
+                <node>deepthought</node>
                 <dependencies>
+                    <port>/SFM/rpc</port>
+                    <port>/himrepClassifier/rpc</port>
                     <port>/OPC/rpc</port>
                 </dependencies>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/lbpExtracted/view --x 0 --y 0 --p 50 --compact</parameters>
-                <node>node-console</node>
+                <parameters>--name /iolViewer/lbpExtracted/view --x 1420 --y 0 --p 50 --compact</parameters>
+                <node>copper</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/lbpSegmented/view --x 320 --y 0 --p 50 --compact</parameters>
-                <node>node-console</node>
+                <parameters>--name /iolViewer/lbpSegmented/view --x 1730 --y 0 --p 50 --compact</parameters>
+                <node>copper</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/objectSelector/view --x 0 --y 740 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
-                <node>node-console</node>
+                <parameters>--name /iolViewer/objectSelector/view --x 1420 --y 370 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
+                <node>copper</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/iol2opc/view/localizer --x 320 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
-                <node>node-console</node>
+                <parameters>--name /iolViewer/iol2opc/view/localizer --x 1730 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
+                <node>copper</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/iol2opc/view/histogram --x 640 --y 220 --w 600 --h 600 --p 50 --compact</parameters>
-                <node>node-console</node>
+                <parameters>--name /iolViewer/iol2opc/view/histogram --x 2030 --y 0 --w 600 --h 570 --p 50 --compact</parameters>
+                <node>copper</node>
         </module>
 
-        <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/disparity --x 0 --y 220 --p 50 --compact</parameters>
-                <node>node-console</node>
-        </module>
 
+	  <connection>
+	    <from>/wholeBodyDynamics/contacts:o</from>
+	    <to>/iCubGui/forces</to>
+	    <protocol>udp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/armSkinMan/skin_events:o</from>
+	    <to>/iCubGui/forces</to>
+	    <protocol>udp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/icub/head/state:o</from>
+	    <to>/iCubGui/head:i</to>
+	    <protocol>udp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/icub/inertial</from>
+	    <to>/iCubGui/inertial:i</to>
+	    <protocol>udp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/icub/left_arm/state:o</from>
+	    <to>/iCubGui/left_arm:i</to>
+	    <protocol>udp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/icub/right_arm/state:o</from>
+	    <to>/iCubGui/right_arm:i</to>
+	    <protocol>udp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/icub/torso/state:o</from>
+	    <to>/iCubGui/torso:i</to>
+	    <protocol>udp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/guiUpdater/gui:o</from>
+	    <to>/iCubGui/objects</to>
+	    <protocol>tcp</protocol>
+	  </connection>
+	  <connection>
+	    <from>/guiUpdater/guiBase:o</from>
+	    <to>/iCubGui/base:i</to>
+	    <protocol>tcp</protocol>
+	  </connection>
         <connection>
                 <from>/icub/camcalib/left/out</from>
                 <to>/lbpExtract/image:i</to>
@@ -88,7 +149,7 @@
         <connection>
                 <output>/himrepClassifier/img:o</output>
                 <input>/caffeCoder/img:i</input>
-                <protocol>tcp</protocol>
+                <protocol>udp</protocol>
         </connection>
         <connection>
                 <output>/caffeCoder/code:o</output>
@@ -108,7 +169,7 @@
         <connection>
                 <output>/caffeCoder/img:o</output>
                 <input>/himrepClassifier/SIFTimg:i</input>
-                <protocol>tcp</protocol>
+                <protocol>udp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgLoc:o</from>
@@ -143,7 +204,7 @@
         <connection>
                 <from>/iol2opc/imgClassifier:o</from>
                 <to>/himrepClassifier/img:i</to>
-                <protocol>tcp</protocol>
+                <protocol>udp</protocol>
         </connection>
         <connection>
                 <from>/lbpExtract/blobs:o</from>
@@ -159,10 +220,5 @@
                 <from>/icub/camcalib/left/out</from>
                 <to>/iol2opc/img:i</to>
                 <protocol>udp</protocol>
-        </connection>
-        <connection>
-            <from>/SFM/disp:o</from>
-            <to>/iolViewer/disparity</to>
-            <protocol>udp</protocol>
         </connection>
 </application>

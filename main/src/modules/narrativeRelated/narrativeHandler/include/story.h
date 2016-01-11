@@ -15,22 +15,51 @@
  * Public License for more details
  */
 
-#include "wrdac/clients/icubClient.h"
 
-// STD
-#include <vector>
-#include <string>
-#include <sstream>
-#include <time.h>
-
-
-class story{
-public:
-    std::vector<int>        viInstances;
-};
+#include <evtStory.h>
 
 class myTimeStruct{
 public:
     struct tm m_tm;
     long int iMilliSec;
+
+    std::string toString(){
+        std::ostringstream osOut;
+        osOut << m_tm.tm_mday << "/"
+            << m_tm.tm_mon + 1 << "/"
+            << m_tm.tm_year << " "
+            << m_tm.tm_hour << ":"
+            << m_tm.tm_min << ":"
+            << m_tm.tm_sec;
+        return osOut.str();
+    }
+};
+
+
+class story{
+public:
+
+    void inizializeOCW();
+    void addOCW(std::vector<std::string> _OCW);
+    void updateMapScore();
+
+
+    std::vector<std::string>     vOCW;
+
+    std::map<std::string, std::vector<double> > mapScore;
+    std::vector<std::tuple<double, double, double, double> > vtPAOR;
+
+    myTimeStruct    timeBegin;
+    myTimeStruct    timeEnd;
+
+    yarp::os::Bottle unfoldGoal(std::string);
+
+    std::vector<std::string>    sentenceStory;
+
+    void createNarration();
+    void displayNarration();
+
+    std::vector<int>        viInstances;
+    std::vector<evtStory>   vEvents;
+
 };

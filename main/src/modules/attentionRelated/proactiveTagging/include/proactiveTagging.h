@@ -16,6 +16,7 @@
 */
 
 #include "wrdac/clients/icubClient.h"
+#include "wrdac/subsystems/subSystem_recog.h"
 
 class proactiveTagging : public yarp::os::RFModule {
 private:
@@ -24,10 +25,16 @@ private:
 
     double      period;
 
+    std::string bodySchemaRpc;
+    std::string SAMRpc;
+    std::string LRHRpc;
+    std::string touchDetectorRpc;
+
     std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
     yarp::os::Port   portToBodySchema;
-yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
+    yarp::os::Port   portToSAM;
+    yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
     yarp::os::Port   portToPasar;
     yarp::os::Port   portToLRH;
     yarp::os::BufferedPort<yarp::os::Bottle>   portFromTouchDetector;
@@ -51,12 +58,11 @@ yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
     void configureOPC(yarp::os::ResourceFinder &rf);
 
     //objectTagging
-    yarp::os::Bottle  exploreUnknownEntity(yarp::os::Bottle bInput);
-    yarp::os::Bottle  searchingEntity(yarp::os::Bottle bInput);
+    yarp::os::Bottle  exploreUnknownEntity(const yarp::os::Bottle &bInput);
+    yarp::os::Bottle  searchingEntity(const yarp::os::Bottle &bInput);
 
 
     //selfTagging.cpp
-    yarp::os::Bottle moveJoint(int joint, std::string sBodypartType);
     yarp::os::Bottle assignKinematicStructureByName(std::string sName, std::string sBodyPartType, bool forcingKS = false);
     yarp::os::Bottle assignKinematicStructureByJoint(int joint, std::string sBodyPartType, bool forcingKS = false);
     yarp::os::Bottle checkForKinematicStructure(int instance, bool forcingKS = false);

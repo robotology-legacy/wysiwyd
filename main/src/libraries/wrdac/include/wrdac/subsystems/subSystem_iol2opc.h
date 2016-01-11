@@ -60,6 +60,18 @@ public:
 
         return bResp.get(0).asBool();
     }
+
+    void pause() {
+        yarp::os::Bottle bReq, bResp;
+        bReq.addString("pause");
+        portRPC.write(bReq, bResp);
+    }
+
+    void resume() {
+        yarp::os::Bottle bReq, bResp;
+        bReq.addString("resume");
+        portRPC.write(bReq, bResp);
+    }
 };
 }
 }//Namespace

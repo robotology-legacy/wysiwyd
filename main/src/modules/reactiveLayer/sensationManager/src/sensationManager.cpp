@@ -1,8 +1,10 @@
 #include "sensationManager.h"
 
 
-bool SensationManager::close()
-{
+bool SensationManager::close() {
+    for(auto sens : sensations) {
+        sens->close_ports();
+    }
     return true;
 }
 

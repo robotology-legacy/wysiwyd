@@ -33,14 +33,18 @@ port2ABM_query_Q = Port;          %port for ABM of 2nd data
 
 if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
     portIncoming_P = BufferedPortImageRgb;
+%     portIncoming_P = Port;
 elseif strcmp(data_source_P,'kinect')
-    portIncoming_P = Bottle;
+%     portIncoming_P = Bottle;
+    portIncoming_P = Port;
 end
 
 if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
     portIncoming_Q = BufferedPortImageRgb;
+%     portIncoming_Q = Port;
 elseif strcmp(data_source_Q,'kinect')
-    portIncoming_Q = Bottle;
+%     portIncoming_Q = Bottle;
+    portIncoming_Q = Port;
 end
 
 %first close the port just in case
@@ -66,8 +70,8 @@ disp('_____opened port /matlab/kinematicStructure/1st_datain');
 disp('_____opened port /matlab/kinematicStructure/2nd_datain');
 pause(0.5);
 disp('_____done.');
-portIncoming_P.setStrict();
-portIncoming_Q.setStrict();
+% portIncoming_P.setStrict();
+% portIncoming_Q.setStrict();
 
 disp('Going to open port /matlab/kinematicStructure/1st_data_read');
 disp('Going to open port /matlab/kinematicStructure/2nd_data_read');
@@ -102,21 +106,32 @@ b_write_Q = yarp.Bottle;
 b_response_P = yarp.Bottle;
 b_response_Q = yarp.Bottle;
 
-command_P = ['triggerStreaming ', num2str(instance_num_P), ' ("includeAugmented" 0) ("realtime" 0)'];
-command_Q = ['triggerStreaming ', num2str(instance_num_Q), ' ("includeAugmented" 0) ("realtime" 0)'];
+command_P = ['triggerStreaming ', num2str(instance_num_P), ' ("includeAugmented" 0) ("realtime" 1)'];
+command_Q = ['triggerStreaming ', num2str(instance_num_Q), ' ("includeAugmented" 0) ("realtime" 1)'];
 b_write_P.fromString(command_P);
 b_write_Q.fromString(command_Q);
 disp(b_write_P);
 disp(b_write_Q);
 port2ABM_query_P.write(b_write_P,b_response_P);
+pause(3);
 port2ABM_query_Q.write(b_write_Q,b_response_Q);
+pause(3);
 disp(b_response_P.toString);
 disp(b_response_Q.toString);
 
 b_provide_P = yarp.Bottle;
 b_provide_Q = yarp.Bottle;
-b_provide_P = b_response_P.get(2).asList();
-b_provide_Q = b_response_Q.get(2).asList();
+
+if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
+    b_provide_P = b_response_P.get(2).asList();
+elseif strcmp(data_source_P,'kinect')
+    b_provide_P = b_response_P.get(3).asList();
+end
+if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
+    b_provide_Q = b_response_Q.get(2).asList();
+elseif strcmp(data_source_Q,'kinect')
+    b_provide_Q = b_response_Q.get(3).asList();
+end
 
 disp(b_provide_P.toString);
 disp(b_provide_Q.toString);
@@ -128,14 +143,14 @@ for i=0:b_provide_P.size()-1
     
     % for camcalib/left or camcalib/right
     if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
-        if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',camera_selection_P,'/out'])
+        if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',data_source_P,'/out'])
             num_images_P = b_provide_P.get(i).asList().get(1).asInt();
             final_portname_P = char_buf;
         end
         % for kinect
     elseif strcmp(data_source_P,'kinect')
         if strcmp(char_buf(1:end), '/autobiographicalMemory/agentDetector/skeleton:o')
-            num_frames_P = b_provide_P.get(i).asList().get(1).asInt();
+            num_images_P = b_provide_P.get(i).asList().get(1).asInt();
             final_portname_P = char_buf;
         end
     end
@@ -148,14 +163,14 @@ for i=0:b_provide_Q.size()-1
     
     % for camcalib/left or camcalib/right
     if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
-        if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',camera_selection_Q,'/out'])
+        if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',data_source_Q,'/out'])
             num_images_Q = b_provide_Q.get(i).asList().get(1).asInt();
             final_portname_Q = char_buf;
         end
         % for kinect
     elseif strcmp(data_source_Q,'kinect')
         if strcmp(char_buf(1:end), '/autobiographicalMemory/agentDetector/skeleton:o')
-            num_frames_Q = b_provide_Q.get(i).asList().get(1).asInt();
+            num_images_Q = b_provide_Q.get(i).asList().get(1).asInt();
             final_portname_Q = char_buf;
         end
     end
@@ -164,8 +179,26 @@ end
 disp(num2str(num_images_P));
 disp(num2str(num_images_Q));
 
-Network.connect(final_portname_P, '/matlab/kinematicStructure/1st_datain');
-Network.connect(final_portname_Q, '/matlab/kinematicStructure/2nd_datain');
+% disp('final_portname_P: ', char(final_portname_P));
+% disp('final_portname_Q: ', char(final_portname_Q));
+
+connection_check = 0;
+while(~connection_check)
+    Network.connect(final_portname_P, '/matlab/kinematicStructure/1st_datain');
+    connection_check = Network.isConnected(final_portname_P, '/matlab/kinematicStructure/1st_datain');
+    pause(0.5)
+    disp('waiting for connection...');
+end
+disp('1st Port Connected!')
+
+connection_check = 0;
+while(~connection_check)
+    Network.connect(final_portname_Q, '/matlab/kinematicStructure/2nd_datain');
+    connection_check = Network.isConnected(final_portname_Q, '/matlab/kinematicStructure/2nd_datain');
+    pause(0.5)
+    disp('waiting for connection...');
+end
+disp('1st Port Connected!')
 
 %%
 disp('================================');
@@ -179,10 +212,12 @@ last_frame_idx_P = num_images_P;
 
 %------------------------------------------
 % for camcalib/left or camcalib/right
+yarpData_P = yarp.ImageRgb;
+disp('listening to port ', yarpData_P.getName())
 if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')    
     for i=0:num_images_P-2
-        disp(['receive image ', num2str(i)]);
-        yarpData_P = yarp.ImageRgb;
+        disp(['receive image ', num2str(i),'/',num2str(num_images_P)]);
+
         yarpData_P = portIncoming_P.read();
         
         if(i+1 >= start_frame_idx_P & i < last_frame_idx_P)
@@ -191,7 +226,7 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
             save_path = ['ABM/P/',filename];
             
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
-                %disp('got it..');
+                disp('got it..');
                 h=yarpData_P.height;
                 w=yarpData_P.width;
                 pixSize=yarpData_P.getPixelSize();
@@ -333,14 +368,6 @@ end
 % save buf data
 save('ABM/Q/DataMeta.mat','bDataMeta_Q_buf');
 
-%%
-%====================================
-% Close Ports
-%====================================
-port2ABM_query_P.close;
-port2ABM_query_Q.close;
-portIncoming_P.close;
-portIncoming_Q.close;
 
 %%
 %====================================
@@ -393,3 +420,12 @@ if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
     % for kinect
 elseif strcmp(data_source_Q,'kinect')
 end
+
+%%
+%====================================
+% Close Ports
+%====================================
+port2ABM_query_P.close;
+port2ABM_query_Q.close;
+portIncoming_P.close;
+portIncoming_Q.close;

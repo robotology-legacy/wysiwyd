@@ -1,4 +1,5 @@
 #include "ears.h"
+#include "wrdac/subsystems/subSystem_recog.h"
 
 bool ears::configure(yarp::os::ResourceFinder &rf)
 {
@@ -20,18 +21,17 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
 
-    portToReactive.open("/" + moduleName + "/behavior:o");
-    while (!Network::connect(portToReactive.getName(),"/BehaviorManager/trigger:i ")) {
+    portToBehavior.open("/" + moduleName + "/behavior:o");
+    while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i ")) {
         yWarning() << " Behavior is not reachable";
         yarp::os::Time::delay(0.5);
     }
 
     portTarget.open("/" + moduleName + "/target:o");
 
-
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
 
-    bListen = false;
+    bShouldListen = true;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
     
@@ -40,16 +40,26 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 
 
 bool ears::close() {
-    iCub->close();
+    if(iCub) {
+        iCub->close();
+        delete iCub;
+    }
+
+    portToBehavior.interrupt();
+    portToBehavior.close();
+
+    portTarget.interrupt();
+    portTarget.close();
+
+    rpc.interrupt();
     rpc.close();
-    portToReactive.close();
-    delete iCub;
 
     return true;
 }
 
 
 bool ears::respond(const Bottle& command, Bottle& reply) {
+    LockGuard lg(mutex);
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "quit \n";
@@ -62,15 +72,22 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "listen")
     {
+        // yInfo() << 
         if (command.size() == 2)
         {
             if (command.get(1).asString() == "on")
             {
-                bListen = true;
+                bShouldListen = true;
+                reply.addString("ack");
             }
             else if (command.get(1).asString() == "off")
             {
-                bListen = false;
+                bShouldListen = false;
+                reply.addString("ack");
+            }
+            else {
+                reply.addString("nack");
+                reply.addString("Send either listen on or listen off");
             }
         }
     }
@@ -84,13 +101,15 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool ears::updateModule() {
-
-    if (bListen)
+    LockGuard lg(mutex);
+    if (bShouldListen)
     {
+        yDebug() << "bListen";
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
+        //bShouldListen=true;
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -100,52 +119,49 @@ bool ears::updateModule() {
 
         bAnswer = *bRecognized.get(1).asList();
 
+        if (bAnswer.get(0).asString() == "stop")
+        {
+            yInfo() << " in abmHandler::node1 | stop called";
+            return true;
+        }
         // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
         bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
         cout << bSemantic.toString() << endl;
-        string sPredicate = bSemantic.check("predicate", Value("none")).asString();
-        string sObject    = bSemantic.check("object", Value("none")).asString();
-        target = sObject;
-        iCub->opc->update();
-        list<Entity*> entities = iCub->opc->EntitiesCacheCopy();
+        string sObject;
+        string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
+        //string sPredicate = bSemantic.check("predicate", Value("none")).asString();
 
-        vector<Bottle> vListAction;
-
-        bool bFoundObject = false;
-        for (list<Entity*>::iterator itEnt = entities.begin() ; itEnt != entities.end() ; itEnt++)
-        {
-            if ((*itEnt)->name() == sObject)
-            {
-                if ((*itEnt)->entity_type() == EFAA_OPC_ENTITY_OBJECT || (*itEnt)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT || (*itEnt)->entity_type() == EFAA_OPC_ENTITY_AGENT)
-                {
-                    Object *obj = dynamic_cast<Object*>(*itEnt);
-                    if (obj->m_present)
-                    {
-                        bFoundObject = true;
-                    }
-                }
-            }
+        string sObjectType, sCommand;
+        if(sQuestionKind == "SENTENCEOBJECT") {
+            sObject = bSemantic.check("object", Value("none")).asString();
+            sCommand = "pointingOrder";
+            sObjectType = "object";
+        } else if(sQuestionKind == "SENTENCEBODYPART") {
+            sObject = bSemantic.check("bodypart", Value("none")).asString();
+            sCommand = "touchingOrder";
+            sObjectType = "bodypart";
+        } else {
+            yError() << "[ears] Unknown predicate";
         }
 
-        Bottle &test = portTarget.prepare();;
-        test.clear();
-        test.addString(target);
+        Bottle &bToTarget = portTarget.prepare();
+        bToTarget.clear();
+        bToTarget.addString(sObjectType);
+        bToTarget.addString(sObject);
         portTarget.write();
-        
-        Bottle bCondition;
-        bCondition.clear();
 
-        bCondition.addString("pointingOrder");
+        Bottle bCondition;
+        bCondition.addString(sCommand);
+        bCondition.addString(sObjectType);
         bCondition.addString(sObject);
 
-        portToReactive.write(bCondition);
+        portToBehavior.write(bCondition);
  
-        yDebug() << "Sending " + target;
-    } else {yDebug() << "Not bListen";}
-
-
-
+        yDebug() << "Sending " + bCondition.toString();
+    } else {
+        yDebug() << "Not bListen";
+    }
 
     return true;
 }

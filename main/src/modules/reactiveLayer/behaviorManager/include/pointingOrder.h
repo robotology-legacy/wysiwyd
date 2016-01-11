@@ -19,14 +19,20 @@ class PointingOrder: public Behavior
 private:
     bool finding;
     bool pointing;
-
-public:
-    void configure();
     void run(Bottle args=Bottle());
 
-    bool handlePoint(string target);
-    bool handleSearch(string target);
+public:
+    PointingOrder(Mutex* mut): Behavior(mut) {
+        ;
+    }
+      
+    void configure();
 
+    bool handlePoint(string type, string target);
+    bool handleSearch(string type, string target);
 
+    void close_extra_ports() {
+        ;
+    }
 };
 

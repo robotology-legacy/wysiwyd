@@ -7,21 +7,14 @@
 #include <map>
 #include <vector>
 
-
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
 
-
 #include "homeostasisManager.h"
 
-
-
-
-
-
-class homeostaticModule: public RFModule
+class HomeostaticModule: public RFModule
 {
 private:
 
@@ -33,7 +26,7 @@ private:
     vector< yarp::os::BufferedPort<Bottle> * > input_ports;
     vector< yarp::os::BufferedPort<Bottle> * > outputM_ports;
     vector< yarp::os::BufferedPort<Bottle> * > outputm_ports;
-    homeostasisManager manager;
+    HomeostasisManager* manager;
 
 	//Reflexes
 

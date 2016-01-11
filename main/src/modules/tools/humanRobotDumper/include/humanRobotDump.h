@@ -120,7 +120,7 @@ public:
 
     double getPeriod()
     {
-        return 1/m_i32Fps;
+        return 1./m_i32Fps;
     }
 
     bool updateModule();

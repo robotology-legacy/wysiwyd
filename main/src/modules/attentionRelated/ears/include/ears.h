@@ -10,14 +10,15 @@ private:
     ICubClient *iCub;
     double      period;
     Port        rpc;
-    Port        portToReactive;
+    Port        portToBehavior;
     BufferedPort<Bottle>        portTarget;
-    string      target;    
 
-    bool bListen;
+    bool bShouldListen;
 
     std::string      grammarToString(std::string sPath);
     std::string      MainGrammar;
+
+    yarp::os::Mutex mutex;
 
 
 public:

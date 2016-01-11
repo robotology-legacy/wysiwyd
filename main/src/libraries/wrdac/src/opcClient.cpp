@@ -1134,3 +1134,15 @@ string OPCClient::print()
     return s;
 }
 
+bool OPCClient::changeName(Entity *e, std::string newName)
+{
+    for(auto& entity : entitiesByID)
+    {
+        if(entity.second->name() == newName) {
+            yError() << "Entity with name " << newName << " is already existing.";
+            return false;
+        }
+    }
+    e->changeName(newName);
+    return true;
+}

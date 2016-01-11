@@ -20,18 +20,25 @@
 #define __EFAA_SUBSYSTEM_ALL_H__
 
 #define SUBSYSTEM               "abstract"
+
 #include "subSystem.h"
-#include "subSystem_ABM.h"
-#include "subSystem_ARE.h"
-#include "subSystem_attention.h"
-#include "subSystem_facialExpression.h"
-#include "subSystem_iol2opc.h"
-#include "subSystem_iKart.h"
-#include "subSystem_postures.h"
-#include "subSystem_reactable.h"
-#include "subSystem_speech.h"
-#include "subSystem_recog.h"
-#include "subSystem_slidingCtrl.h"
+
+namespace wysiwyd{
+    namespace wrdac{
+        class SubSystem_ABM;
+        class SubSystem_agentDetector;
+        class SubSystem_ARE;
+        class SubSystem_Attention;
+        class SubSystem_babbling;
+        class SubSystem_Expression;
+        class SubSystem_iKart;
+        class SubSystem_IOL2OPC;
+        class SubSystem_Postures;
+        class SubSystem_Reactable;
+        class SubSystem_Speech;
+        class SubSystem_Recog;
+        class SubSystem_SlidingController;
+    }
+}
+
 #endif
-
-

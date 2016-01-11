@@ -25,8 +25,8 @@
 
 #include <yarp/os/Network.h>
 
-#include <wrdac/clients/opcClient.h>
-#include <wrdac/subsystems/all.h>
+#include "wrdac/clients/opcClient.h"
+#include "wrdac/subsystems/all.h"
 #include "animation.h"
 
 namespace wysiwyd{namespace wrdac{
@@ -87,81 +87,15 @@ public:
     }
 
     SubSystem*  getSubSystem(const std::string &name){return subSystems[name];}
-
-    SubSystem_Expression* getExpressionClient()
-    {         
-        if (subSystems.find(SUBSYSTEM_EXPRESSION) == subSystems.end())
-            return NULL;
-        else
-            return ((SubSystem_Expression*) subSystems[SUBSYSTEM_EXPRESSION]);
-    } 
-
-    SubSystem_Reactable* getReactableClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_REACTABLE) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_Reactable*) subSystems[SUBSYSTEM_REACTABLE];
-    } 
-
-    SubSystem_iKart* getIkartClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_IKART) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_iKart*) subSystems[SUBSYSTEM_IKART];
-    }
-
-    SubSystem_ABM* getABMClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_ABM) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_ABM*) subSystems[SUBSYSTEM_ABM];
-    }
-    SubSystem_IOL2OPC* getIOL2OPCClient()
-    {
-        if (subSystems.find(SUBSYSTEM_IOL2OPC) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_IOL2OPC*) subSystems[SUBSYSTEM_IOL2OPC];
-    }
-
-    SubSystem_Recog* getRecogClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_RECOG) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_Recog*) subSystems[SUBSYSTEM_RECOG];
-    }
-    SubSystem_SlidingController* getSlidingController()
-    {         
-        if (subSystems.find(SUBSYSTEM_SLIDING_CONTROLLER) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_SlidingController*)subSystems[SUBSYSTEM_SLIDING_CONTROLLER];
-    }
-
-    SubSystem_ARE* getARE()
-    {
-        if (subSystems.find(SUBSYSTEM_ARE) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_ARE*)subSystems[SUBSYSTEM_ARE];
-    }
-
-    SubSystem_Speech* getSpeechClient() 
-    {         
-        if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
-        {
-            if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
-                return NULL;
-            else
-                return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
-        }
-        else
-            return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
-    }
+    SubSystem_Expression* getExpressionClient();
+    SubSystem_Reactable* getReactableClient() ;
+    SubSystem_iKart* getIkartClient();
+    SubSystem_ABM* getABMClient();
+    SubSystem_IOL2OPC* getIOL2OPCClient();
+    SubSystem_Recog* getRecogClient();
+    SubSystem_SlidingController* getSlidingController();
+    SubSystem_ARE* getARE();
+    SubSystem_Speech* getSpeechClient() ;
 
     OPCClient*                  opc;
     Agent*                      icubAgent;
@@ -314,7 +248,7 @@ public:
     * @return true in case of success release, false otherwise 
     *         (Entity non existing, impossible to reach, etc.).
     */ 
-    bool point(const std::string &oLocation, const yarp::os::Bottle &options=yarp::os::Bottle(), bool shouldWait = true);
+    bool point(const std::string &oLocation, const yarp::os::Bottle &options=yarp::os::Bottle());
 
     /**
     * Point at a specified location.
@@ -326,7 +260,7 @@ public:
     * @return true in case of success release, false otherwise 
     *         (Entity non existing, impossible to reach, etc.).
     */ 
-    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle(), bool shouldWait = true);
+    bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options=yarp::os::Bottle());
 
     /**
     * Start tracking a given entity
@@ -345,11 +279,29 @@ public:
     bool lookStop();
 
     /**
+    * Babbling a single joint
+    * @param jointNumber contains the int corresponding to an arm joint
+    * @return true in case of success release, false otherwise
+    */
+    bool babbling(int &jointNumber);
+
+    /**
+    * Babbling a single joint using the name of a corresponding bodypart
+    * @param bpName contains the string with the name of the bodypart
+    * @return true in case of success release, false otherwise
+    *         (bodypart non existing, no joint number assigned, etc.).
+    */
+    bool babbling(const std::string &bpName);
+
+
+    /**
     * Ask the robot to perform speech synthesis of a given sentence
     * @param text to be said.
     */ 
     bool say(const std::string &text, bool shouldWait= true, bool emotionalIfPossible = false,
              const std::string &overrideVoice = "default");
+
+    bool changeName(Entity *e, std::string newName);
 
     /**
     * Ask the robot to perform speech recognition of a given sentence/grammar

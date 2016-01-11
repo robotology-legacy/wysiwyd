@@ -1,5 +1,6 @@
 #include "abmInteraction.h"
-
+#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_recog.h"
 
 /*
 *   Get the context path of a .grxml grammar, and return it as a string

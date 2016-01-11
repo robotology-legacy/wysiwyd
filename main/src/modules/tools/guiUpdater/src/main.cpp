@@ -15,7 +15,7 @@
  * Public License for more details
 */
 
-#include "world.h" 
+#include "guiUpdater.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -27,7 +27,7 @@ int main(int argc, char * argv[]) {
    Network yarp;
 
    /* create your module */
-   GuiUpdaterModule world; 
+   GuiUpdater g;
 
    /* prepare and configure the resource finder */
    ResourceFinder rf;
@@ -35,7 +35,7 @@ int main(int argc, char * argv[]) {
    rf.configure(argc, argv);
  
    /* run the module: runModule() calls configure first and, if successful, it then runs */
-   world.runModule(rf);
+   g.runModule(rf);
 
    return 0;
 }

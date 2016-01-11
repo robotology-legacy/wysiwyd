@@ -35,6 +35,12 @@ private:
     std::vector<story> listStories;
 
     void tellingStory(story st);
+    void initializeStories();
+
+    yarp::os::Bottle unfoldGoal(std::string goal);
+    void updateScoreStory(story &st);
+    std::vector<std::string> initializeEVT(evtStory &evt, int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
+
 
 
 public:

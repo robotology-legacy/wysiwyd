@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-
+#include <yarp/os/Value.h>
 #include <yarp/os/Vocab.h>
 #include <wrdac/functions.h>
 

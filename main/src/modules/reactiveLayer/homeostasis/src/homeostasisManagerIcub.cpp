@@ -1,15 +1,9 @@
 #include "homeostasisManagerIcub.h"
 #include <cmath>
 
-
-
-
-bool homeostaticModule::addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic)
-{
-
-    
-    Drive* drv = new Drive(driveName);
-
+bool HomeostaticModule::addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic)
+{    
+    Drive* drv = new Drive(driveName, period);
 
     drv->setHomeostasisMin(grpHomeostatic.check((driveName + "-homeostasisMin"), Value(drv->homeostasisMin)).asDouble());
     drv->setHomeostasisMax(grpHomeostatic.check((driveName + "-homeostasisMax"), Value(drv->homeostasisMax)).asDouble());
@@ -21,18 +15,18 @@ bool homeostaticModule::addNewDrive(string driveName, yarp::os::Bottle& grpHomeo
     //cout << drv->name << " " << drv->homeostasisMin << " " << drv->homeostasisMax << " " << drv->decay << " " <<drv->gradient ;
     //cout << d ;
     //cout << grpHomeostatic.toString();
-    manager.addDrive(drv);
-    //cout << "h2 " << manager.drives[0]->gradient ;
+    manager->addDrive(drv);
+    //cout << "h2 " << manager->drives[0]->gradient ;
    
     openPorts(driveName);
 
     return true;
 }
-bool homeostaticModule::addNewDrive(string driveName)
+bool HomeostaticModule::addNewDrive(string driveName)
 {
 
     cout << "adding a default drive..." ;
-    Drive* drv = new Drive(driveName);
+    Drive* drv = new Drive(driveName, period);
 
 
     drv->setHomeostasisMin(drv->homeostasisMin);
@@ -41,7 +35,7 @@ bool homeostaticModule::addNewDrive(string driveName)
     drv->setValue((drv->homeostasisMax + drv->homeostasisMin) / 2.);
     drv->setGradient(false);
     
-    manager.addDrive(drv);
+    manager->addDrive(drv);
     
     yDebug() << "default drive added. Opening ports...";//;
     openPorts(driveName);
@@ -50,7 +44,7 @@ bool homeostaticModule::addNewDrive(string driveName)
     return true;
 }
 
-int homeostaticModule::openPorts(string driveName)
+int HomeostaticModule::openPorts(string driveName)
 {
     //Create Ports
     string portName = "/" + moduleName + "/" + driveName;
@@ -72,7 +66,6 @@ int homeostaticModule::openPorts(string driveName)
     {
         yInfo() << getName() << ": Unable to open port " << pn ;
     }
-    
 
     pn = portName + "/max:o";
     yInfo() << "Configuring port " << " : "<< pn << " ..." ;
@@ -83,7 +76,7 @@ int homeostaticModule::openPorts(string driveName)
 
     return 42;
 }
-/*bool homeostaticModule::addNewDrive(string driveName, yarp::os::Value grpHomeostatic,int d)
+/*bool HomeostaticModule::addNewDrive(string driveName, yarp::os::Value grpHomeostatic,int d)
 {
     Drive drv = Drive();
     drv.setName(driveName);
@@ -92,7 +85,7 @@ int homeostaticModule::openPorts(string driveName)
     drv.setDecay(grpHomeostatic.check((driveName + "-decay").c_str(), Value(0.05)).asDouble());
     drv.setValue((drv.homeostasisMax + drv.homeostasisMin) / 2.0);
     drv.setGradient(grpHomeostatic.check((driveName + "-gradient").c_str()));
-    manager.addDrive(&drv,d);
+    manager->addDrive(&drv,d);
     //Create Ports
     string portName = "/" + moduleName + "/" + driveName;
     if (!input_ports[d].open((portName+":i").c_str())) 
@@ -106,15 +99,15 @@ int homeostaticModule::openPorts(string driveName)
     return true;
 }*/
 
-bool homeostaticModule::configure(yarp::os::ResourceFinder &rf)
+bool HomeostaticModule::configure(yarp::os::ResourceFinder &rf)
 {
-    manager = homeostasisManager();
-    
     moduleName = rf.check("name",Value("homeostasis")).asString().c_str();
     setName(moduleName.c_str());
 
     yInfo()<<moduleName<<": finding configuration files...";
     period = rf.check("period",Value(0.1)).asDouble();
+
+    manager = new HomeostasisManager();
 
     yInfo() << "Initializing drives";
     Bottle grpHomeostatic = rf.findGroup("HOMEOSTATIC");
@@ -136,15 +129,14 @@ bool homeostaticModule::configure(yarp::os::ResourceFinder &rf)
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
 
-	
 	yInfo()<<"Configuration done.";
     return true;
 }
 
-bool homeostaticModule::removeDrive(int d)
+bool HomeostaticModule::removeDrive(int d)
 {
     //Remove drive
-    manager.removeDrive(d);
+    manager->removeDrive(d);
     //close ports
     input_ports[d]->close();
     outputm_ports[d]->close();
@@ -157,7 +149,7 @@ bool homeostaticModule::removeDrive(int d)
 }
 
 
-bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
+bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
 {
 	if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
@@ -180,25 +172,25 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     }    
     else if (cmd.get(0).asString() == "par" )
     {
-        for (unsigned int d = 0; d<manager.drives.size();d++)
+        for (unsigned int d = 0; d<manager->drives.size();d++)
         {
-            if (cmd.get(1).asString() == manager.drives[d]->name)
+            if (cmd.get(1).asString() == manager->drives[d]->name)
             {
                 if (cmd.get(2).asString()=="val")
                 {
-                    manager.drives[d]->setValue(cmd.get(3).asDouble());
+                    manager->drives[d]->setValue(cmd.get(3).asDouble());
                 }
                 else if (cmd.get(2).asString()=="min")
                 {
-                    manager.drives[d]->setHomeostasisMin(cmd.get(3).asDouble());
+                    manager->drives[d]->setHomeostasisMin(cmd.get(3).asDouble());
                 }
                 else if (cmd.get(2).asString()=="max")
                 {
-                    manager.drives[d]->setHomeostasisMax(cmd.get(3).asDouble());
+                    manager->drives[d]->setHomeostasisMax(cmd.get(3).asDouble());
                 }
                 else if (cmd.get(2).asString()=="dec")
                 {
-                    manager.drives[d]->setDecay(cmd.get(3).asDouble());
+                    manager->drives[d]->setDecay(cmd.get(3).asDouble());
                 }
                 else
                 {
@@ -214,25 +206,25 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     }
     else if (cmd.get(0).asString() == "delta" )
     {
-        for (unsigned int d = 0; d<manager.drives.size();d++)
+        for (unsigned int d = 0; d<manager->drives.size();d++)
         {
-            if (cmd.get(1).asString() == manager.drives[d]->name)
+            if (cmd.get(1).asString() == manager->drives[d]->name)
             {
                 if (cmd.get(2).asString()=="val")
                 {
-                    manager.drives[d]->deltaValue(cmd.get(3).asDouble());
+                    manager->drives[d]->deltaValue(cmd.get(3).asDouble());
                 }
                 else if (cmd.get(2)=="min")
                 {
-                    manager.drives[d]->deltaHomeostasisMin(cmd.get(3).asDouble());
+                    manager->drives[d]->deltaHomeostasisMin(cmd.get(3).asDouble());
                 }
                 else if (cmd.get(2)=="max")
                 {
-                    manager.drives[d]->deltaHomeostasisMax(cmd.get(3).asDouble());
+                    manager->drives[d]->deltaHomeostasisMax(cmd.get(3).asDouble());
                 }
                 else if (cmd.get(2)=="dec")
                 {
-                    manager.drives[d]->deltaDecay(cmd.get(3).asDouble());
+                    manager->drives[d]->deltaDecay(cmd.get(3).asDouble());
                 }
                 else
                 {
@@ -260,7 +252,7 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         else if (cmd.get(1).asString()=="botl")
         {
             Drive d = bDrive(cmd.get(2).asList());
-            manager.addDrive(&d);
+            manager->addDrive(&d);
             openPorts(d.name);
             reply.addString("add drive from bottle: ack");
         }
@@ -282,9 +274,9 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     }
     else if (cmd.get(0).asString()=="rm")
     {
-        for (unsigned int d = 0; d<manager.drives.size();d++)
+        for (unsigned int d = 0; d<manager->drives.size();d++)
         {
-            if (cmd.get(1).asString() == manager.drives[d]->name)
+            if (cmd.get(1).asString() == manager->drives[d]->name)
             {
                 bool b = removeDrive(d);
                 if (b)
@@ -298,12 +290,12 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     }
     else if (cmd.get(0).asString()=="sleep")
     {
-        for (unsigned int d = 0; d<manager.drives.size();d++)
+        for (unsigned int d = 0; d<manager->drives.size();d++)
         {
-            if (cmd.get(1).asString() == manager.drives[d]->name)
+            if (cmd.get(1).asString() == manager->drives[d]->name)
             {
                 double time = cmd.get(2).asDouble();
-                manager.sleep(d, time);
+                manager->sleep(d, time);
                 reply.addString("ack: Drive sleep");
             }
         }
@@ -313,9 +305,9 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     {
         Bottle nms;
         nms.clear();
-        for (unsigned int i=0;i<manager.drives.size();i++)
+        for (unsigned int i=0;i<manager->drives.size();i++)
         {
-            nms.addString(manager.drives[i]->name);
+            nms.addString(manager->drives[i]->name);
         }
         reply.addList()=nms;
     }
@@ -326,45 +318,45 @@ bool homeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     return true;
 }
 
-bool homeostaticModule::updateModule()
+bool HomeostaticModule::updateModule()
 {
-    for(unsigned int d = 0; d<manager.drives.size();d++)
+    for(unsigned int d = 0; d<manager->drives.size();d++)
     {
-        yInfo() << "Going by drive #"<<d << " with name "<< manager.drives[d]->name ;
+        yInfo() << "Going by drive #"<<d << " with name "<< manager->drives[d]->name ;
         
         //yarp::os::Bottle* inp = input_ports[d]->read();
         yarp::os::Bottle* inp;
         inp = input_ports[d]->read(false);
         //cout << inp ;
         
-        if(manager.drives[d]->gradient == true)
+        if(manager->drives[d]->gradient == true)
         {
             if (inp)
             {
                 //cout<< "Input: "<<inp->get(0).asString();
-                if (manager.drives[d]->name == "avoidance")
+                if (manager->drives[d]->name == "avoidance")
                     {
                         processAvoidance(d,inp);
                     }
                 else
                 {
-                    manager.drives[d]->setValue(inp->get(0).asDouble());
+                    manager->drives[d]->setValue(inp->get(0).asDouble());
                 }
             }else{
-                //manager.drives[d]->setValue(inp->get(0).asDouble());
+                //manager->drives[d]->setValue(inp->get(0).asDouble());
             }
         }
-        manager.drives[d]->update();
+        manager->drives[d]->update();
 
-        if (manager.drives[d]->name == "avoidance")
+        if (manager->drives[d]->name == "avoidance")
         {
             yarp::os::Bottle &out1 = outputm_ports[d]->prepare();// = output_ports[d]->prepare();
             out1.clear();
-            out1.addDouble(-manager.drives[d]->getValue()+manager.drives[d]->homeostasisMin);
+            out1.addDouble(-manager->drives[d]->getValue()+manager->drives[d]->homeostasisMin);
             outputm_ports[d]->write();
             yarp::os::Bottle &out2 = outputM_ports[d]->prepare();
             out2.clear();
-            double aux = +manager.drives[d]->getValue()-manager.drives[d]->homeostasisMax;
+            double aux = +manager->drives[d]->getValue()-manager->drives[d]->homeostasisMax;
             if (aux<0)
             {
                 aux=0;
@@ -377,15 +369,17 @@ bool homeostaticModule::updateModule()
         }else{
             yarp::os::Bottle &out1 = outputm_ports[d]->prepare();// = output_ports[d]->prepare();
             out1.clear();
-            out1.addDouble(-manager.drives[d]->getValue()+manager.drives[d]->homeostasisMin);
+            out1.addDouble(-manager->drives[d]->getValue()+manager->drives[d]->homeostasisMin);
             outputm_ports[d]->write();
             yarp::os::Bottle &out2 = outputM_ports[d]->prepare();
             out2.clear();
-            yDebug() <<"Drive value: " << manager.drives[d]->value;
-            yDebug() <<"Drive decay: " << manager.drives[d]->decay;
-            yDebug() <<"Drive homeostasisMin: " << manager.drives[0]->homeostasisMin;
-            yDebug() <<"Drive homeostasisMax: " << manager.drives[0]->homeostasisMax;
-            out2.addDouble(+manager.drives[d]->getValue()-manager.drives[d]->homeostasisMax);
+            yDebug() <<"Drive value: " << manager->drives[d]->value;
+            yDebug() <<"Drive decay: " << manager->drives[d]->decay;
+            yDebug() <<"Drive homeostasisMin: " << manager->drives[d]->homeostasisMin;
+            yDebug() <<"Drive homeostasisMax: " << manager->drives[d]->homeostasisMax;
+            yDebug() <<"Drive gradient: " << manager->drives[d]->gradient;
+            yDebug() <<"Drive period: " << manager->drives[d]->period;
+            out2.addDouble(+manager->drives[d]->getValue()-manager->drives[d]->homeostasisMax);
             yDebug()<<out1.get(0).asDouble();
             outputM_ports[d]->write();
         }
@@ -397,7 +391,7 @@ bool homeostaticModule::updateModule()
 }
 
 //Hardcoded function. This must go outside!!!
-bool homeostaticModule::processAvoidance(int d, Bottle* avoidanceBottle)
+bool HomeostaticModule::processAvoidance(int d, Bottle* avoidanceBottle)
 {
     // double intensity=0;
     // for (int i =0;i<avoidanceBottle->size();i++)
@@ -412,14 +406,14 @@ bool homeostaticModule::processAvoidance(int d, Bottle* avoidanceBottle)
     //         intensity += aux->get(7).asDouble();
     //     }
     // }
-    // manager.drives[d]->setValue(intensity);
+    // manager->drives[d]->setValue(intensity);
     return true;
 
 }
 
-bool homeostaticModule::close()
+bool HomeostaticModule::close()
 {
-    for (unsigned int d=0;d<manager.drives.size();d++)
+    for (unsigned int d=0; d<manager->drives.size(); d++)
     {
         input_ports[d]->interrupt();
         input_ports[d]->close();

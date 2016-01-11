@@ -11,7 +11,6 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace yarp::math;
 using namespace wysiwyd::wrdac;
 
 
@@ -19,8 +18,6 @@ using namespace wysiwyd::wrdac;
 class SensationManager: public RFModule
 {
 private:
-
-
     vector<Sensation*> sensations;
     // vector<Port*> to_homeo_rpc;
 
@@ -29,14 +26,12 @@ private:
     double period;
 
 public:
-   bool configure(yarp::os::ResourceFinder &rf);
+    bool configure(yarp::os::ResourceFinder &rf);
 
     bool interruptModule()
     {
         return true;
     }
-
-    bool close();
 
     double getPeriod()
     {
@@ -44,6 +39,8 @@ public:
     }
 
     bool updateModule();
+
+    bool close();
 
 };
 

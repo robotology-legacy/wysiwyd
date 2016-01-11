@@ -55,7 +55,7 @@ class SAMDriver_interaction(SAMDriver):
 #
 #Outputs: None
 #""""""""""""""""
-    def __init__(self, isYarpRunning = False, imgH = 200, imgW = 200, imgHNew = 200, imgWNew = 200, inputImagePort="/visionDriver/image:o"):
+    def __init__(self, isYarpRunning = False, imgH = 200, imgW = 200, imgHNew = 200, imgWNew = 200, inputImagePort="/visionDriver/image:o", openPorts=True):
         # Call parent class init
         if not isYarpRunningGlobal:
             # if I can't find Yarp, I'll overwrite the given flag
@@ -73,7 +73,7 @@ class SAMDriver_interaction(SAMDriver):
 
         self.participant_index = None
 
-        if( isYarpRunning == True ):
+        if( isYarpRunning == True and openPorts == True):
             yarp.Network.init()
             self.createPorts()
             self.openPorts()
@@ -350,9 +350,11 @@ class SAMDriver_interaction(SAMDriver):
             time.sleep(0.5);
             print "Waiting for connection with imageDataInputPort..."
             pass
-    
+        numIters = 0
+        flagImageReceived = False
         while(True):
             try:
+                numIters = numIters + 1
                 self.newImage = self.imageDataInputPort.read(False)
             except KeyboardInterrupt:
                 print 'Interrupted'
@@ -362,6 +364,7 @@ class SAMDriver_interaction(SAMDriver):
                     os._exit(0)
 
             if not( self.newImage == None ):
+                flagImageReceived = True
                 self.yarpImage.copy(self.newImage)
 
                 imageArrayOld=cv2.resize(self.imageArray,(self.imgHeightNew,self.imgWidthNew))
@@ -381,7 +384,13 @@ class SAMDriver_interaction(SAMDriver):
                 
                 break
 
-        return imageFlatten_testing
+            if(numIters > 50):
+                flagImageReceived = False
+                break
+        if(flagImageReceived):
+            self.imageFlatten_testing = imageFlatten_testing
+
+        return flagImageReceived
 
 
 

@@ -23,8 +23,8 @@
 * @brief main code.
 */
 
-#include "iCub/attentionSelector.h" 
-#include <yarp/dev/Drivers.h>
+#include "attentionSelector.h"
+#include <yarp/os/all.h>
 #include <time.h>
 
 using namespace yarp::os;

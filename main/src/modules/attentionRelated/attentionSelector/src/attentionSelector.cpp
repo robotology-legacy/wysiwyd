@@ -18,7 +18,8 @@
 * Public License for more details
 */
 
-#include "iCub/attentionSelector.h"
+#include "attentionSelector.h"
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -105,13 +106,12 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "track <string name> : track the object with the given opc name \n" +
         "track <int id> : track the object with the given opc id \n" +
-        "track <double x> <double y> <double z> : track with the object coordinates\n" +
+        "track <double x> <double y> <double z> : track with the object coordinates \n" +
         "auto : switch attention between present objects \n" +
-        "sleep : pauses the head control until next command" +
+        "sleep : pauses the head control until next command \n" +
+        "stat : returns \"auto\",\"quiet\",\"<object_name_to_track>\" \n" +
         "help \n" +
         "quit \n";
-
-    reply.clear();
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
@@ -119,36 +119,55 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "help") {
         yInfo() << helpMessage;
-        reply.addString("ok");
+        reply.addString(helpMessage);
+        return true;
     }
     else if (command.get(0).asString() == "track") {
         autoSwitch = false;
         if (command.get(1).isInt()) {
-            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt()))->name();
-            trackedCoordinates = false;
+            if (Object *obj=dynamic_cast<Object*>(opc->getEntity(command.get(1).asInt())))
+            {
+                trackedObject=obj->name();
+                trackedCoordinates=false;
+            }
+            else
+                trackedObject="none";
         }
         else if (command.get(1).isString()) {
-            trackedObject = dynamic_cast<Object*>(opc->getEntity(command.get(1).asString().c_str()))->name();
-            trackedCoordinates = false;
+            if (Object *obj=dynamic_cast<Object*>(opc->getEntity(command.get(1).asString().c_str())))
+            {
+                trackedObject=obj->name(); 
+                trackedCoordinates=false;
+            }
+            else
+                trackedObject="none";
         }
-        else {
-            trackedCoordinates = true;
-
+        else {            
             x_coord = command.get(1).asDouble();
             y_coord = command.get(2).asDouble();
             z_coord = command.get(3).asDouble();
+            trackedCoordinates = true;
         }
-        aState = s_tracking;
-        reply.addString("ack");
+
+        if ((trackedObject!="none") || trackedCoordinates)
+        {
+            aState=s_tracking; 
+            reply.addString("ack");
+        }
+        else
+            reply.addString("nack");
+        return true;
     }
     else if (command.get(0).asString() == "auto") {
         autoSwitch = true;
         reply.addString("ack");
+        return true;
     }
     else if (command.get(0).asString() == "sleep") {
         autoSwitch = false;
         trackedObject = "none";
         reply.addString("ack");
+        return true;
     }
     else if (command.get(0).asString() == "look") {
         autoSwitch = false;
@@ -162,7 +181,20 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
 
         are->look(xyz);
         reply.addString("ack");
+        return true;
     }
+    else if (command.get(0).asString() == "stat") {
+        reply.addString("ack");
+        if (autoSwitch)
+            reply.addString("auto");
+        else if (trackedObject!="none")
+            reply.addString(trackedObject.c_str());
+        else
+            reply.addString("quiet");
+        return true;
+    }
+
+    reply.addString("nack");
     return true;
 }
 
@@ -175,19 +207,18 @@ bool attentionSelectorModule::updateModule() {
             return true;
 
     opc->checkout();
-    //list<Entity*> entities = opc->EntitiesCacheCopy();
     list<Entity*> entities = opc->EntitiesCache();
     presentObjects.clear();
-    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+    for (auto& entity : entities)
     {
-        if ((*it)->isType(EFAA_OPC_ENTITY_ACTION))
-            yWarning() << "Ignoring relation...";
+        if (entity->isType(EFAA_OPC_ENTITY_ACTION)) {
+            yDebug() << "Ignoring relation...";
+        }
         else
         {
-            if ((*it)->name() == "icub")
-                icub = dynamic_cast<Agent*>(*it);
-            else
-            {
+            if (entity->name() == "icub") {
+                icub = dynamic_cast<Agent*>(entity);
+            } else {
                 ////!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
                 //if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
                 //{
@@ -198,19 +229,19 @@ bool attentionSelectorModule::updateModule() {
                 //yDebug() << "Check " << (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ;
                 //yDebug() << "Position = {" <<  (dynamic_cast<Object*>(*it))->m_ego_position[0] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[1] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[2] << "}" ;
                 // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
-                if (!((dynamic_cast<Object*>(*it))->m_ego_position[0] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[1] == 0.0 && (dynamic_cast<Object*>(*it))->m_ego_position[2] == 0.0))
+                if ((entity->isType(EFAA_OPC_ENTITY_OBJECT) || entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT)))
                 {
-                    if (((*it)->isType(EFAA_OPC_ENTITY_OBJECT) || (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)))
+                    if (!( dynamic_cast<Object*>(entity)->m_ego_position[0] == 0.0 && dynamic_cast<Object*>(entity)->m_ego_position[1] == 0.0 && dynamic_cast<Object*>(entity)->m_ego_position[2] == 0.0))
                     {
-                        if ((dynamic_cast<Object*>(*it))->m_present)
+                        if ((dynamic_cast<Object*>(entity))->m_present)
                         {
                             //yDebug() << "push back (present) " << (*it)->name() ;
-                            presentObjects.push_back(dynamic_cast<Object*>(*it)->name());
+                            presentObjects.push_back(dynamic_cast<Object*>(entity)->name());
                         }
-                        else if ((dynamic_cast<Object*>(*it))->m_saliency > 0.0)
+                        else if ((dynamic_cast<Object*>(entity))->m_saliency > 0.0)
                         {
                             //yDebug() << "push back (saliency) " << (*it)->name() ;
-                            presentObjects.push_back(dynamic_cast<Object*>(*it)->name());
+                            presentObjects.push_back(dynamic_cast<Object*>(entity)->name());
                         }
                     }
                 }
@@ -224,13 +255,9 @@ bool attentionSelectorModule::updateModule() {
         icub = opc->addOrRetrieveEntity<Agent>("icub");
 
     if (presentObjects.size() <= 0)
-    {
         yWarning() << "Unable to get any lookable entity from OPC";
-    }
     else if (autoSwitch)
-    {
         exploring();
-    }
 
     if (trackedCoordinates)
     {
@@ -240,12 +267,14 @@ bool attentionSelectorModule::updateModule() {
             are->track(newTarget);
     }
     else if (trackedObject != "none")
-    {
-        yInfo() << "Tracking locked on object " << trackedObject << ".";
-        Object* oTracked = dynamic_cast<Object*>(opc->getEntity(trackedObject));
-        Vector newTarget = oTracked->m_ego_position;
-        if (isFixationPointSafe(newTarget))
-            are->track(newTarget);
+    {        
+        if (Object *oTracked=dynamic_cast<Object*>(opc->getEntity(trackedObject)))
+        {
+            yInfo() << "Tracking locked on object " << trackedObject << ".";
+            Vector newTarget = oTracked->m_ego_position;
+            if (isFixationPointSafe(newTarget))
+                are->track(newTarget);
+        }
     }
     return true;
 }
@@ -274,10 +303,10 @@ void attentionSelectorModule::exploring() {
         aState = s_exploring; return;
     }
 
-    for (vector<std::string>::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (auto& presentObject : presentObjects)
     {
-        Object* o = dynamic_cast<Object*>(opc->getEntity(*it));
-        if (maxSalience < o->m_saliency)
+        Object* o = dynamic_cast<Object*>(opc->getEntity(presentObject));
+        if (o && maxSalience < o->m_saliency)
         {
             maxSalience = o->m_saliency;
             nameTrackedObject = o->name();

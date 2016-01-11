@@ -115,7 +115,9 @@ protected:
     ImageOf<PixelBgr> imgRtLoc;
     Mutex mutexResources;
     Mutex mutexResourcesOpc;
+    Mutex mutexResourcesSFM;
 
+    bool empty;
     double period;
     double presence_timeout;
     map<string,IOLObject> db;
@@ -170,6 +172,8 @@ public:
     bool    remove_object(const string &name);
     bool    remove_all();
     bool    change_name(const string &old_name, const string &new_name);
+    void    pause();
+    void    resume();
 };
 
 #endif

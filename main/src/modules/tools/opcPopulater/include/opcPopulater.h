@@ -12,6 +12,15 @@ private:
     double      period;
     Port        rpc;
 
+    double X_obj;
+    double Y_obj;
+    double Z_obj;
+    double X_ag;
+    double Y_ag;
+    double Z_ag;
+    double noise;
+
+
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
@@ -37,6 +46,7 @@ public:
 
     bool    populateABM(Bottle bInput);
     bool    populateABMiCubStory(Bottle bInput);
+    bool    populateABMiCubStoryFull(Bottle bInput);
 
 
     //RPC & scenarios

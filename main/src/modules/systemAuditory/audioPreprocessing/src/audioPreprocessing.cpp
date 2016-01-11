@@ -13,15 +13,6 @@
 #include <vector>
 
 
-#if WIN32
-// apparently not defined in windows
-double log2(const double x)
-{
-    return (log(x)/log(2.0));
-}
-#endif
-
-
 bool CFFT::configure(yarp::os::ResourceFinder &rf)
 {
     L = 4096;
@@ -55,7 +46,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
     // Check buffer size as a power of 2
     int L = rf.check("BufferSize", Value(4096)).asInt();
-    if ( (10*(int)log2((double)L)%10) != 0)
+    if ( (10*(int)(log((double)L)/log(2.0))%10) != 0)
     {
         cout << getName() << ": ERROR! Buffer size must be a power of 2! Please, change the value (Default: 4096) "<<endl;
                 bEveryThingisGood &= false;

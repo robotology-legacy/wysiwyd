@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <vector>
+#include <yarp/math/Math.h>
 using namespace yarp::math;
 
 
