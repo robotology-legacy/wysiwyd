@@ -23,8 +23,7 @@
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 
-#include <cv.h>
-
+#include <opencv2/opencv.hpp>
 
 using namespace std;
 using namespace yarp::os;

@@ -40,33 +40,36 @@
 //#define GetCurrentDir _getcwd
 //#include <stdio.h>              /* defines FILENAME_MAX */
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
+#include <string>
+#include <vector>
+#include <map>
+
+#include <opencv2/opencv.hpp>
+
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 
+using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::sig::file;
-using namespace std;
 
 class Player : public RFModule
 {
     BufferedPort<ImageOf<PixelRgb> > portImg;
     Port portCategoryTag;
-	Port portCategoryVector;
-	Port portTick;
-	bool waitForTickReply;
+    Port portCategoryVector;
+    Port portTick;
+    bool waitForTickReply;
     map< string, vector< IplImage* > > buffer;
-	double period;
+    double period;
 
 public:
 
     bool configure(yarp::os::ResourceFinder &rf)
     {
-		period = rf.check("period", Value(0.1)).asDouble();
-		waitForTickReply = rf.check("tickSynchro");
+        period = rf.check("period", Value(0.1)).asDouble();
+        waitForTickReply = rf.check("tickSynchro");
         string name = rf.check("name", Value("caltechDatasetPlayer")).asString();
         string dsPath = rf.check("dataPath", Value(rf.findPath("default.ini").c_str())).asString();
         dsPath.erase(dsPath.end() - 11, dsPath.end());
@@ -126,14 +129,14 @@ public:
                 cvReleaseImage(&tmpImg);
                 cntCategory++;
             }
-			cout << endl<< "Category : " << category << " has " << cntCategory << " items" << endl;
+            cout << endl<< "Category : " << category << " has " << cntCategory << " items" << endl;
         }
         cout << "Total items : " << buffer.size() << endl;
 
         portImg.open("/" + name + "/image:o");
         portCategoryTag.open("/" + name + "/categoryTag:o");
         portCategoryVector.open("/" + name + "/categoryVector:o");
-		portTick.open("/" + name + "/tick:rpc");
+        portTick.open("/" + name + "/tick:rpc");
         return true;
     }
 
@@ -166,12 +169,12 @@ public:
             botVect.addInt( countIt==(int)i );
         portCategoryVector.write(botVect);
 
-		Bottle bTick,bReply;
-		bTick.addString("tick");
-		if (waitForTickReply)
-			portTick.write(bTick, bReply);
-		else
-			portTick.write(bTick);
+        Bottle bTick,bReply;
+        bTick.addString("tick");
+        if (waitForTickReply)
+            portTick.write(bTick, bReply);
+        else
+            portTick.write(bTick);
 
         return true;
     }
@@ -182,20 +185,20 @@ public:
         portImg.close();
         portCategoryTag.close();
         portCategoryVector.close();
-		portTick.close();
+        portTick.close();
 
         //Release images
         for (map<string, vector< IplImage*> >::iterator it = buffer.begin(); it != buffer.end(); it++)
-			for (unsigned int i = 0; i < it->second.size(); i++)
+            for (unsigned int i = 0; i < it->second.size(); i++)
                 cvReleaseImage(&it->second[i]);
 
         return true;
     }
 
-	double getPeriod()
-	{
-		return period;
-	}
+    double getPeriod()
+    {
+        return period;
+    }
 };
 
 

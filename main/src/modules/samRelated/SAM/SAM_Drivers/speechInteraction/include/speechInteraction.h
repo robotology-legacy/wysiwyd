@@ -35,18 +35,17 @@
 */
 
 
-#include <opencv/cv.h>
-#include <opencv/cvaux.h>
-#include <opencv/highgui.h>
+#include <ctime>
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <ctime>
-#include <iostream>
-#include <math.h>
-#include <algorithm>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include "wrdac/clients/icubClient.h"
 
 using namespace yarp::os;

@@ -22,7 +22,7 @@
 #include <deque>
 #include <map>
 
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>

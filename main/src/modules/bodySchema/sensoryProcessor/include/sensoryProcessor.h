@@ -18,11 +18,12 @@
 #ifndef _SENSORYPROCESSOR_H_
 #define _SENSORYPROCESSOR_H_
 
-#include <cv.h>
+#include <opencv2/opencv.hpp>
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
+
 #include <wrdac/clients/icubClient.h>
 
 class SensoryProcessor : public yarp::os::RFModule {

@@ -124,7 +124,7 @@ void CRMainEstimation::estimate() {
         }
         cvSetData(depthCV,buf,depth_width*2);
     }
-    Mat depth(depthCV, true);
+    Mat depth=cvarrToMat(depthCV,true);
     if(depth.cols != depth_width || depth.rows != depth_height) {
         cerr << "Wrong image format : " << depth.cols << " x " << depth.rows << endl;
         return;
@@ -170,18 +170,18 @@ void CRMainEstimation::estimate() {
     g_clusters.clear();
 
     //do the actual estimation
-    g_Estimate->estimate( 	g_im3D,
-                            g_means,
-                            g_clusters,
-                            g_votes,
-                            g_stride,
-                            g_maxv,
-                            g_prob_th,
-                            g_larger_radius_ratio,
-                            g_smaller_radius_ratio,
-                            false,
-                            g_th
-                            );
+    g_Estimate->estimate( g_im3D,
+                          g_means,
+                          g_clusters,
+                          g_votes,
+                          g_stride,
+                          g_maxv,
+                          g_prob_th,
+                          g_larger_radius_ratio,
+                          g_smaller_radius_ratio,
+                          false,
+                          g_th
+                        );
 
     g_means_last = g_means;
 
