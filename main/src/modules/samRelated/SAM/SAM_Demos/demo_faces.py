@@ -192,8 +192,8 @@ if model_type == 'bgplvm':
             ff = numpy.reshape(sample_y, (imgHNew,imgWNew))
             plt.imshow(ff, cmap=plt.cm.Greys_r)
             c+=1
-	figFaces.canvas.draw()
-	figFaces.canvas.flush_events()
+	    figFaces.canvas.draw()
+	    figFaces.canvas.flush_events()
         print('> Who is this person? (TODO, add answer and take response...)')
         name=raw_input()
         pb.title(name)

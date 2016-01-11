@@ -24,6 +24,8 @@ import itertools
 import pylab as pb
 #from GPy.plotting.matplot_dep import dim_reduction_plots as dredplots
 import cPickle as pickle
+from scipy.spatial import distance
+import operator
 
 # try:
 #     from mpi4py import MPI
@@ -178,18 +180,23 @@ class LFM(object):
         
         self.model.optimize(optimizer, messages=verbose, max_iters=max_iters)
 
-    def visualise(self):
+    def visualise(self, which_indices=None, plot_scales=True):
         """
         Show the internal representation of the memory
         """
+        #if self.type == 'bgplvm' and which_indices is None:
+        #    which_indices = most_significant_input_dimensions(self.model,None)
+        #if self.type == 'mrd' and which_indices is None:
+        #    # Assume that labels modality is always the last one!!
+        #    which_indices = most_significant_input_dimensions(self.model.bgplvms[-1],None)
         if self.type == 'bgplvm' or self.type == 'mrd':
             if self.model.data_labels is not None:
-                ret = self.model.plot_latent(labels=self.model.data_labels)
+                ret = self.model.plot_latent(labels=self.model.data_labels,which_indices=which_indices)
             else:
-                ret = self.model.plot_latent()
+                ret = self.model.plot_latent(which_indices=which_indices)
         elif self.type == 'gp':
             ret = self.model.plot()
-        if self.type == 'mrd':
+        if self.type == 'mrd' and plot_scales:
             ret2 = self.model.plot_scales()
 
         #if self.type == 'mrd':
@@ -276,6 +283,31 @@ class LFM(object):
         
         return pred_mean, pred_variance, pp, tmp
 
+    def pattern_completion_inference(self, y, target_modality=-1):
+        """
+        This is a wrapper around pattern completion where:
+        1) First, we do normal pattern completion, where given an output y, out map to the memory space to get a test memory x*.
+        2) Now the test memory x* is compared with stored memories. This allows us to infer the label of x*. If the labels
+           are given in another modality (by default in the last one), then we return the label from that modality (careful, 
+            the encoding might be 1-of-K, e.g. -1 1 -1 -> 2 and also noise might exist).
+           Instead, if the labels are not given in another modality (completely unsupervised learning), then we just return
+           the index to the most similar training memory.
+        """
+        # Returns the predictive mean, the predictive variance and the axis (pp) of the latent space backwards mapping.            
+        ret = self.pattern_completion(y)
+        mm = ret[0]
+        post = ret[3]        
+        # find nearest neighbour of mm and model.X
+        dists = np.zeros((self.model.X.shape[0],1))
+
+        for j in range(dists.shape[0]):
+            dists[j,:] = distance.euclidean(self.model.X.mean[j,:], mm[0].values)
+        nn, min_value = min(enumerate(dists), key=operator.itemgetter(1))
+        if self.type == 'mrd':
+            ret = self.model.bgplvms[target_modality].Y[nn,:]
+        elif self.type == 'bgplvm':
+            ret = nn #self.model.data_labels[nn]
+        return ret
 
     def fantasy_memory(self, X, view=0):
         """
@@ -523,8 +555,18 @@ def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True,which_indices=(0,
 
     if plot:
         color_iter = colors = cm.rainbow(np.linspace(0, 1, 20))
-        myperm = np.random.permutation(color_iter.shape[0])
-        color_iter = color_iter[myperm, :]
+
+        #---- a silly way to get maximal separation in colors for the n_cluster first elements... move to separate function
+        index_all = np.linspace(0,19,20).astype(int)
+        space = np.floor(color_iter.shape[0]/float(n_clusters)).astype(int)
+        index_first = index_all[::space][:n_clusters]
+        index_rest = np.array(list(set(index_all)-set(index_first)))
+        myperm = np.random.permutation(index_rest.shape[0])
+        index_rest = index_rest[myperm]
+        inds = np.hstack((index_first, index_rest))
+
+        color_iter = color_iter[inds,:]
+
         marker_iter = itertools.cycle((',', '+', '.', 'o', '*','v','x','>')) 
         splot = pb.subplot(1, 1, 1)
 
@@ -532,7 +574,12 @@ def latent_cluster(SAMObject, n_clusters=10, X=None, plot=True,which_indices=(0,
             # as the method will not use every component it has access to unless it needs it, we shouldn't plot the redundant components.
             #if not np.any(Y_ == i):
             #    continue
-            pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=color,marker=marker)
+            ###### tmp
+            #cc = ['b','g','r']
+            #mm = ['<','^','>']
+            #pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=cc[i],marker=mm[i]) 
+            #######
+            pb.scatter(X[Y_ == i, which_indices[0]], X[Y_ == i, which_indices[1]], s=40, color=color,marker=marker) #UNCOMMENT
             if i >= n_clusters:
                 break
 

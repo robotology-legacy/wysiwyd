@@ -25,6 +25,8 @@ try:
 except ImportError:
     import SAM
 
+np.random.seed(default_seed)
+
 """
 Prepare some data. This is NOT needed in the final demo,
 since the data will come from the iCub through the
@@ -32,7 +34,7 @@ drivers. So, the next section is to just test the code
 in standalone mode.
 """
 
-Ntr = 100
+Ntr = 200
 Nts = 50
 
 #-- Uncomment for oil data
@@ -51,6 +53,7 @@ Ltest = L[indTs]
 L_list_test = L_list[indTs]
 Y = Y[indTr]
 L = L[indTr]
+L += np.random.randn(*L.shape)*0.001 # Add a bit of noise to training label data for numerical stability
 L_list = L_list[indTr]
 
 """
@@ -99,11 +102,15 @@ a.store(observed=Data, inputs=None, Q=Q, kernel=None, num_inducing=40)
 a.add_labels(L_list)
 
 # Learn from the data, (analogous to forming synapses)
-a.learn(optimizer='bfgs',max_iters=2000, verbose=True)
+a.learn(optimizer='bfgs',max_iters=1000, verbose=True)
 
 # This is an important function: It visualises the internal state/representation
 #  of the memory.
 ret = a.visualise()
+ret.set_title('Memory space visualisation (Training)'); pb.draw()
+
+ret1 = a.visualise(which_indices=SAM.SAM_Core.most_significant_input_dimensions(a.model.bgplvms[-1],None),plot_scales=False)
+ret1.set_title('Memory space for the label-specific significant dimensions'); pb.draw()
 
 # Only for images
 #ret_in= a.visualise_interactive(dimensions=(20,28))
@@ -118,6 +125,13 @@ pred_mean = predictions[0]
 pred_var = predictions[1]
 
 # Visualise the predictive point estimates for the test data; plot them on top of the memory visualization
-ret2 = a.visualise()
+ret2 = a.visualise(plot_scales=False)
 ret2.plot(pred_mean[:,0],pred_mean[:,1],'xm')
+ret2.set_title('Mapping test data onto the memory space as magenda x''s'); pb.draw()
+
 pb.show()
+
+# Example of pattern completion inference:
+index_to_test = 10 # try different ones
+pred_label = a.pattern_completion_inference(Ytest[index_to_test,:][None,:]).values
+print("I predict label " + str(np.round(pred_label).argmax()) + " and correct label is: " + str(Ltest[index_to_test,:].argmax()))

@@ -25,6 +25,7 @@ try:
 except ImportError:
     import SAM
 
+np.random.seed(default_seed)
 
 """
 Prepare some data. This is NOT needed in the final demo,
@@ -126,3 +127,7 @@ ret2 = a.visualise()
 ret2.plot(pred_mean[:,0],pred_mean[:,1],'xm')
 pb.show()
 
+# Example of pattern completion inference:
+index_to_test = 10 # try different ones
+pred_index = a.pattern_completion_inference(Ytest[index_to_test,:][None,:])
+print("The given test instance is most similar to training id: " + str(pred_index) + " which has label: " + str(a.model.data_labels[pred_index]) + "(although this was not given to the model). True label is: " + str(Ltest[index_to_test]))
