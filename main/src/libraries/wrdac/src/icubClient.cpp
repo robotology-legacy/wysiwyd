@@ -258,7 +258,9 @@ void ICubClient::updateAgent()
 bool ICubClient::changeName(Entity *e, std::string newName) {
     if(e->entity_type()=="agent") {
         if (subSystems.find("agentDetector") == subSystems.end()) {
+            say("Could not change name of default partner of agentDetector");
             yWarning() << "Could not change name of default partner of agentDetector";
+            opc->changeName(e, newName);
             return false;
         }
         else {
@@ -271,7 +273,9 @@ bool ICubClient::changeName(Entity *e, std::string newName) {
         }
     } else if(e->entity_type()=="object") {
         if (subSystems.find("iol2opc") == subSystems.end()) {
+            say("Could not change name in iol2opc");
             yWarning() << "Could not change name in iol2opc";
+            opc->changeName(e, newName);
             return false;
         }
         else {
