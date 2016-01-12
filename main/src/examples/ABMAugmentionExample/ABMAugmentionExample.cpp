@@ -16,20 +16,21 @@
  * Public License for more details
 */
 
-#include <stdio.h>
+#include <cstdio>
 
-#include <cv.h>
 #include <opencv2/opencv.hpp>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
+
 #include "ABMAugmentionExample.h"
 
 using namespace std;
+using namespace cv;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
-using namespace cv;
+
 
 bool ABMAugmentionExample::configure(yarp::os::ResourceFinder &rf) {
     setName(rf.check("name", Value("ABMAugmentionExample"), "module name (string)").asString().c_str());
@@ -169,9 +170,12 @@ void ABMAugmentionExample::augmentImages() {
     int color_b = yarp::os::Random::uniform(0, 255);
 
     for(size_t i = 0; i<vRawImages.size(); i++) {
-        IplImage *rawImageIpl = cvCreateImage(cvSize(vRawImages[i].width(), vRawImages[i].height()), IPL_DEPTH_8U, 3);
-        cvCvtColor((IplImage*)vRawImages[i].getIplImage(), rawImageIpl, CV_RGB2BGR);
-        Mat myImage(rawImageIpl);
+        ImageOf<PixelBgr> img2;
+        img2.resize(vRawImages[i]);
+
+        Mat img1_mat=cvarrToMat((IplImage*)vRawImages[i].getIplImage());
+        Mat myImage=cvarrToMat((IplImage*)img2.getIplImage());
+        cvtColor( img1_mat, myImage, CV_RGB2BGR );
 
         // here, do Canny edge detection as example
         Mat myImage_gray;
@@ -187,22 +191,16 @@ void ABMAugmentionExample::augmentImages() {
         //imshow("Canny", augmented);
         //waitKey(50);
 
-        // convert back to IplImage
-        IplImage augmentedImageIpl = augmented;
-        // end your stuff
-        // from IplImage to yarp image
-        cvCvtColor(&augmentedImageIpl, &augmentedImageIpl, CV_BGR2RGB);
         ImageOf<PixelRgb> augmentedImageYarp;
-        augmentedImageYarp.resize(augmentedImageIpl.width, augmentedImageIpl.height);
-        cvCopyImage(&augmentedImageIpl, (IplImage *)augmentedImageYarp.getIplImage());
+        augmentedImageYarp.resize(vRawImages[i]);
+        Mat img3_mat=cvarrToMat((IplImage*)augmentedImageYarp.getIplImage());
+        cvtColor( augmented, img3_mat, CV_BGR2RGB );
 
         yarp::sig::draw::addCircle(augmentedImageYarp,PixelRgb(color_r,color_g,color_b),
-                              augmentedImageYarp.width()/2,augmentedImageYarp.height()/2,
-                              augmentedImageYarp.height()/4);
+                                   augmentedImageYarp.width()/2,augmentedImageYarp.height()/2,
+                                   augmentedImageYarp.height()/4);
 
         vAugmentedImages.push_back(augmentedImageYarp);
-
-        cvReleaseImage(&rawImageIpl);
     }
 }
 

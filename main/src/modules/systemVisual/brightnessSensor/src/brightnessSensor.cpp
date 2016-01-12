@@ -1,18 +1,20 @@
-#include "brightnessSensor.h"
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
-#include <yarp/sig/all.h>
-#include <math.h>
-#include <stdlib.h>
+#include <opencv2/opencv.hpp>
+
+#include <cmath>
+#include <cstdlib>
 #include <vector>
 #include <iostream>
-#include <yarp/os/all.h>
 
+#include <yarp/os/all.h>
+#include <yarp/sig/all.h>
+
+#include "brightnessSensor.h"
+
+using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace std;
+
 
 bool brightnessSensor::connect(const std::string &targetPort = "/icub/face/emotions/in")
      {

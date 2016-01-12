@@ -15,13 +15,14 @@
  * Public License for more details
 */
 
-#include "sensoryProcessor.h"
-
-#include <vector>
-#include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/video/tracking.hpp>
+
+#include <vector>
+#include <iostream>
+
+#include "sensoryProcessor.h"
 
 using namespace std;
 using namespace cv;
@@ -282,10 +283,14 @@ bool SensoryProcessor::getMultimodalData()
     Size subPixWinSize(10,10), winSize(31,31);
 
     ImageOf<PixelRgb> *yarpImage = imgPortIn.read();
-    IplImage *cvImage = cvCreateImage(cvSize(yarpImage->width(), yarpImage->height()), IPL_DEPTH_8U, 3);
-    cvCvtColor((IplImage*)yarpImage->getIplImage(), cvImage, CV_RGB2BGR);
+    ImageOf<PixelBgr> tmp; tmp.resize(*yarpImage);
 
-    image = cvImage;
+    Mat cvImage1=cvarrToMat((IplImage*)yarpImage->getIplImage());
+    Mat cvImage2=cvarrToMat((IplImage*)tmp.getIplImage());
+
+    cvtColor(cvImage1,cvImage2,CV_RGB2BGR);
+
+    image = cvImage2;
     if(!image.data) {
         yError() << "Error could not read image data!!!";
         return false;
@@ -426,12 +431,10 @@ bool SensoryProcessor::findFeatures(TermCriteria &termcrit, Size &subPixWinSize,
         points_idx.resize(k);
 
         // convert Mat to YARP image
-        Mat toYarp(copy);
-        cvtColor(toYarp, toYarp, CV_BGR2RGB);
-        IplImage* imageIpl = new IplImage(toYarp);
-        ImageOf<PixelRgb> &imageYarp = featureImgPortOut.prepare();
-        imageYarp.resize(imageIpl->width, imageIpl->height);
-        cvCopyImage(imageIpl, (IplImage *)imageYarp.getIplImage());
+        ImageOf<PixelRgb> &imageYarp=featureImgPortOut.prepare();
+        imageYarp.resize(copy.cols,copy.rows);
+        Mat toYarp=cvarrToMat((IplImage*)imageYarp.getIplImage());
+        cvtColor(copy,toYarp,CV_BGR2RGB);
 
         // send YARP image to port
         featureImgPortOut.write();

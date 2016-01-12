@@ -55,11 +55,11 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
 
-	// ==================================================================
+    // ==================================================================
     // image port open
-    imagePortLeft.open("/facetracking/image/left/in");	// give the left port a name
+    imagePortLeft.open("/facetracking/image/left/in");  // give the left port a name
 
-	// ==================================================================
+    // ==================================================================
     // robot
     // ==================================================================
     while(!Network::connect("/icub/camcalib/left/out", "/facetracking/image/left/in"))
@@ -95,54 +95,54 @@ bool faceTrackerModule::configure(yarp::os::ResourceFinder &rf) {
     jnts = 0;
     pos->getAxes(&jnts);
 
-	setpoints.resize(jnts);
-	cur_encoders.resize(jnts);
-	prev_encoders.resize(jnts);
+    setpoints.resize(jnts);
+    cur_encoders.resize(jnts);
+    prev_encoders.resize(jnts);
 
-	/* prepare command */
-	for(int i=0;i<jnts;i++)
-	{
-		setpoints[i] = 0;
-	}
+    /* prepare command */
+    for(int i=0;i<jnts;i++)
+    {
+        setpoints[i] = 0;
+    }
 
     for(int i=0; i<jnts; i++)
     {
         ictrl->setControlMode(i,VOCAB_CM_VELOCITY);
     }
 
-	// ==================================================================
-	//// create a opencv window
-	cv::namedWindow("cvImage_Left",CV_WINDOW_NORMAL);
+    // ==================================================================
+    //// create a opencv window
+    cv::namedWindow("cvImage_Left",CV_WINDOW_NORMAL);
 
-	// ==================================================================
-	// face detection configuration
+    // ==================================================================
+    // face detection configuration
     face_classifier_left.load(xmlPath);
 
     attach(handlerPort);                  // attach to port
 
-	// ==================================================================
+    // ==================================================================
     // Parameters
-	counter = 0;
-	x_buf = 0;
-	y_buf = 0;
+    counter = 0;
+    x_buf = 0;
+    y_buf = 0;
 
-	mode = 0; // 0: going to a set position, 1: face searching, 2: face tracking, 3: face stuck,
-	setpos_counter = 0;
-	panning_counter = 0;
-	stuck_counter = 0;
-	tracking_counter = 0;
+    mode = 0; // 0: going to a set position, 1: face searching, 2: face tracking, 3: face stuck,
+    setpos_counter = 0;
+    panning_counter = 0;
+    stuck_counter = 0;
+    tracking_counter = 0;
 
     // ==================================================================
-	// random motion
-	tilt_target = 0;
-	pan_target = 0;
+    // random motion
+    tilt_target = 0;
+    pan_target = 0;
 
-	seed = 10000;
-	srand(seed);
-	pan_max = 80;
-	tilt_max = 20;
+    seed = 10000;
+    srand(seed);
+    pan_max = 80;
+    tilt_max = 20;
 
-	cvIplImageLeft = NULL;
+    cvIplImageLeft = NULL;
 
 
 
@@ -164,7 +164,7 @@ bool faceTrackerModule::close() {
     handlerPort.close();
 
     cvReleaseImage(&cvIplImageLeft);
-	robotHead->close();
+    robotHead->close();
 
     return true;
 }
@@ -216,16 +216,16 @@ bool faceTrackerModule::updateModule() {
     }
     cvCvtColor((IplImage*)yarpImageLeft->getIplImage(), cvIplImageLeft, CV_RGB2BGR);
 
-    cv::Mat cvMatImageLeft(cvIplImageLeft);
+    cv::Mat cvMatImageLeft=cv::cvarrToMat(cvIplImageLeft);
 
     //vector< cv::Mat > vImg;
     //cv::Mat rImg;
     //vImg.push_back(cvMatImageLeft);
 
-    if(yarpImageLeft!=NULL)	// check we actually got something
+    if(yarpImageLeft!=NULL) // check we actually got something
     {
         // resize images
-        cv::resize(cvMatImageLeft, cvMatImageLeft, cv::Size(320, 240), 0,0,CV_INTER_NN);	//downsample 1/2x
+        cv::resize(cvMatImageLeft, cvMatImageLeft, cv::Size(320, 240), 0,0,CV_INTER_NN);    //downsample 1/2x
 
         // convert captured frame to gray scale & equalize
         cv::Mat cvMatGrayImageLeft;
@@ -240,7 +240,7 @@ bool faceTrackerModule::updateModule() {
 
         face_classifier_left.detectMultiScale(cvMatGrayImageLeft, faces_left,
             1.1, // increase search scale by 10% each pass
-            3, 	 // merge groups of three detections
+            3,   // merge groups of three detections
             CV_HAAR_DO_CANNY_PRUNING, //CV_HAAR_FIND_BIGGEST_OBJECT, //|CV_HAAR_SCALE_IMAGE, CV_HAAR_DO_CANNY_PRUNING
             cv::Size(30,30),
             cv::Size(50,50));
@@ -268,7 +268,7 @@ bool faceTrackerModule::updateModule() {
         // Mode
         prev_encoders = cur_encoders;
         enc->getEncoders(cur_encoders.data());
-//			cout << "Encoder: " << cur_encoders[0] << " " << cur_encoders[1] << " "<< cur_encoders[2] << '\n';
+//          cout << "Encoder: " << cur_encoders[0] << " " << cur_encoders[1] << " "<< cur_encoders[2] << '\n';
 
         ///////////////////////////
         // To set position mode
@@ -280,11 +280,11 @@ bool faceTrackerModule::updateModule() {
             {
                 //cout << setpos_counter << endl;
 
-                setpoints[0] = (0-cur_encoders[0])*0.3;	// common tilt of head
-                setpoints[1] = (0-cur_encoders[1])*0.3;	// common roll of head
-                setpoints[2] = (0-cur_encoders[2])*0.3;	// common pan of head
-                setpoints[3] = (0-cur_encoders[3])*0.3;	// common tilt of eyes
-                setpoints[4] = (0-cur_encoders[4])*0.3;	// common pan of eyes
+                setpoints[0] = (0-cur_encoders[0])*0.3; // common tilt of head
+                setpoints[1] = (0-cur_encoders[1])*0.3; // common roll of head
+                setpoints[2] = (0-cur_encoders[2])*0.3; // common pan of head
+                setpoints[3] = (0-cur_encoders[3])*0.3; // common tilt of eyes
+                setpoints[4] = (0-cur_encoders[4])*0.3; // common pan of eyes
 
                 setpos_counter++;
             }
@@ -320,11 +320,11 @@ bool faceTrackerModule::updateModule() {
                 //printf("Face searching mode!\n");
                 //cout << panning_target << endl;
 
-                setpoints[0] = (tilt_target-cur_encoders[0])*0.3;	// common tilt of head
-                setpoints[1] = (0-cur_encoders[1])*0.3;	// common roll of head
-                setpoints[2] = (pan_target-cur_encoders[2])*0.3;	// common pan of head
-                setpoints[3] = (0-cur_encoders[3])*0.3;	// common tilt of eyes
-                setpoints[4] = (0-cur_encoders[4])*0.3;	// common pan of eyes
+                setpoints[0] = (tilt_target-cur_encoders[0])*0.3;   // common tilt of head
+                setpoints[1] = (0-cur_encoders[1])*0.3; // common roll of head
+                setpoints[2] = (pan_target-cur_encoders[2])*0.3;    // common pan of head
+                setpoints[3] = (0-cur_encoders[3])*0.3; // common tilt of eyes
+                setpoints[4] = (0-cur_encoders[4])*0.3; // common pan of eyes
 
                 if ((abs(tilt_target - cur_encoders[0]) < 1) && (abs(pan_target - cur_encoders[2]) < 1))
                 {
@@ -354,7 +354,7 @@ bool faceTrackerModule::updateModule() {
                 x -= 320/2;
                 y -= 240/2;
 
-                double vx = x*0.3;	// Not to move too fast
+                double vx = x*0.3;  // Not to move too fast
                 double vy = y*0.3;
 
                 /* prepare command */
@@ -363,10 +363,10 @@ bool faceTrackerModule::updateModule() {
                     setpoints[i] = 0;
                 }
 
-                setpoints[0] = vy;	// common tilt of head
-                setpoints[2] = vx;	// common pan of head
-                setpoints[3] = vy;	// common tilt of eyes
-                setpoints[4] = -vx;	// common pan of eyes
+                setpoints[0] = vy;  // common tilt of head
+                setpoints[2] = vx;  // common pan of head
+                setpoints[3] = vy;  // common tilt of eyes
+                setpoints[4] = -vx; // common pan of eyes
 
                 x_buf = x;
                 y_buf = y;
@@ -377,7 +377,7 @@ bool faceTrackerModule::updateModule() {
             else if (faces_left.size() == 0 && counter < 10)
             {
                 //cout << counter << endl;
-                double vx = x_buf*0.3;	// Not to move too fast
+                double vx = x_buf*0.3;  // Not to move too fast
                 double vy = y_buf*0.3;
 
                 /* prepare command */
@@ -386,10 +386,10 @@ bool faceTrackerModule::updateModule() {
                     setpoints[i] = 0;
                 }
 
-                setpoints[0] = vy;	// common tilt of head
-                setpoints[2] = vx;	// common pan of head
-                setpoints[3] = vy;	// common tilt of eyes
-                setpoints[4] = -vx;	// common pan of eyes
+                setpoints[0] = vy;  // common tilt of head
+                setpoints[2] = vx;  // common pan of head
+                setpoints[3] = vy;  // common tilt of eyes
+                setpoints[4] = -vx; // common pan of eyes
 
                 counter++;
             }
@@ -402,7 +402,7 @@ bool faceTrackerModule::updateModule() {
                 setpoints[3] = 0;
                 setpoints[4] = 0;
 
-		        Time::delay(0.3);
+                Time::delay(0.3);
 
                 stuck_counter++;
 

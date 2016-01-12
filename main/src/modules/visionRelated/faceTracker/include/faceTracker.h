@@ -55,17 +55,7 @@
 
 #include <cmath>
 
-//#include <opencv/cv.h>
-//#include <opencv/cvaux.h>
-//#include <opencv/highgui.h>
-//#include <opencv2/highgui/highgui.hpp>
-//#include <opencv2/stitching/stitcher.hpp>
-
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
-//#include <highgui/highgui.hpp>
-//#include <stitching/stitcher.hpp>
+#include <opencv2/opencv.hpp>
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>

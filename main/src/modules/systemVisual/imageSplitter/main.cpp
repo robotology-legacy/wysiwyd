@@ -17,15 +17,14 @@
 
 #include <iostream>
 
-#include <cv.h>
-#include <cvaux.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
+
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 
+using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace std;
 
 class Retina
 {
@@ -55,7 +54,7 @@ public:
     {
         for (unsigned int x = 0; x < ports.size(); x++)
         {
-			for (unsigned int y = 0; y < ports[x].size(); y++)
+            for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 cvNamedWindow(ports[x][y]->getName().c_str(), CV_WINDOW_AUTOSIZE);
                 cvMoveWindow(ports[x][y]->getName().c_str(), xpos + 300 * x, ypos + 300 * y);
@@ -70,14 +69,14 @@ public:
             img = cvCreateImage(cvSize(wholeImage->roi->width, wholeImage->roi->height), wholeImage->depth, wholeImage->nChannels);
         else
             img = cvCreateImage(cvSize(wholeImage->width, wholeImage->height), wholeImage->depth, wholeImage->nChannels);
-        cvCopyImage(wholeImage, img);
+        cvCopy(wholeImage, img);
         cvCvtColor(img, img, CV_BGR2RGB);
         int rectW = img->width / ports.size();
         int rectH = img->height / ports[0].size();
         
-		for (unsigned int x = 0; x < ports.size(); x++)
+        for (unsigned int x = 0; x < ports.size(); x++)
         {
-			for (unsigned int y = 0; y < ports[x].size(); y++)
+            for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 cvSetImageROI(img, cvRect(x*rectW, y*rectH, rectW, rectH));
                 ImageOf<PixelRgb> &imgYarp = ports[x][y]->prepare();
@@ -92,9 +91,9 @@ public:
         cvReleaseImage(&img);
 
         //write all at once to avoid diagonal delay
-		for (unsigned int x = 0; x < ports.size(); x++)
+        for (unsigned int x = 0; x < ports.size(); x++)
         {
-			for (unsigned int y = 0; y < ports[x].size(); y++)
+            for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 ports[x][y]->write(true);
             }
@@ -103,9 +102,9 @@ public:
     
     bool close()
     {
-		for (unsigned int x = 0; x < ports.size(); x++)
+        for (unsigned int x = 0; x < ports.size(); x++)
         {
-			for (unsigned int y = 0; y < ports[x].size(); y++)
+            for (unsigned int y = 0; y < ports[x].size(); y++)
             {
                 ports[x][y]->interrupt();
                 ports[x][y]->close();
@@ -165,7 +164,7 @@ public:
             
             //Create the input for the fovea
             IplImage* foveaImg = cvCreateImage(cvSize(cvImg->width, cvImg->height), cvImg->depth, cvImg->nChannels);
-            cvCopyImage(cvImg, foveaImg);
+            cvCopy(cvImg, foveaImg);
             cvSetImageROI(foveaImg, cvRect(
                 foveaImg->width / 2 - (int)((foveaRatio*foveaImg->width)/2.0),
                 foveaImg->height / 2 - (int)((foveaRatio*foveaImg->height)/2.0),

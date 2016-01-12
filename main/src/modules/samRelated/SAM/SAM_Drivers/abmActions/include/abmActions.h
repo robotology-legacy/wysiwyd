@@ -35,28 +35,29 @@
 */
 
 
-#include <opencv/cv.h>
-#include <opencv/cvaux.h>
-#include <opencv/highgui.h>
+#include <ctime>
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+
+#include <opencv2/opencv.hpp>
+
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
-#include <ctime>
-#include <iostream>
-#include <math.h>
-#include <algorithm>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/knowledge/object.h"
 
+using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::sig::draw;
 using namespace yarp::sig::file;
 using namespace yarp::dev;
-using namespace std;
 using namespace wysiwyd::wrdac;
 
 
