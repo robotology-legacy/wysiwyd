@@ -87,7 +87,7 @@ private:
 
     bool AREactions(vector<string> seq);
     bool spatialRelation(string sObjectFocus);
-    bool production(string stest);
+    string production(string stest);
 
 public:
     bool configure(ResourceFinder &rf);
@@ -97,8 +97,8 @@ public:
     double getPeriod();
     bool updateModule();
 
-    bool meaningToSentence(string meaning);
-    bool sentenceToMeaning(string sentence);
+    string meaningToSentence(string meaning);
+    string sentenceToMeaning(string sentence);
 };
 
 
