@@ -94,8 +94,9 @@ public:
     SubSystem_IOL2OPC* getIOL2OPCClient();
     SubSystem_Recog* getRecogClient();
     SubSystem_SlidingController* getSlidingController();
-    SubSystem_ARE* getARE();
-    SubSystem_Speech* getSpeechClient() ;
+	SubSystem_ARE* getARE();
+	SubSystem_LRH* getLRH();
+	SubSystem_Speech* getSpeechClient();
 
     OPCClient*                  opc;
     Agent*                      icubAgent;

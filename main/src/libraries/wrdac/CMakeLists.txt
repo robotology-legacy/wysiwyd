@@ -51,6 +51,7 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/subsystems/subSystem_postures.h        
                   include/wrdac/subsystems/subSystem_reactable.h       
                   include/wrdac/subsystems/subSystem_recog.h           
+                  include/wrdac/subsystems/subSystem_LRH.h           
                   include/wrdac/subsystems/subSystem_slidingCtrl.h     
                   include/wrdac/subsystems/subSystem_speech.h)
 

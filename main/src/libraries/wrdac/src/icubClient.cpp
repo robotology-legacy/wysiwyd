@@ -29,6 +29,7 @@
 #include "wrdac/subsystems/subSystem_reactable.h"
 #include "wrdac/subsystems/subSystem_speech.h"
 #include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_LRH.h"
 #include "wrdac/subsystems/subSystem_slidingCtrl.h"
 
 using namespace std;
@@ -104,8 +105,10 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
             else if (currentSS == SUBSYSTEM_ARE)
                 subSystems[SUBSYSTEM_ARE] = new SubSystem_ARE(fullName);
 			else if (currentSS == SUBSYSTEM_RECOG)
-                subSystems[SUBSYSTEM_RECOG] = new SubSystem_Recog(fullName);
-            else if (currentSS == SUBSYSTEM_IOL2OPC)
+				subSystems[SUBSYSTEM_RECOG] = new SubSystem_Recog(fullName);
+			else if (currentSS == SUBSYSTEM_LRH)
+				subSystems[SUBSYSTEM_LRH] = new SubSystem_LRH(fullName);
+			else if (currentSS == SUBSYSTEM_IOL2OPC)
                 subSystems[SUBSYSTEM_IOL2OPC] = new SubSystem_IOL2OPC(fullName);
             else if (currentSS == SUBSYSTEM_AGENTDETECTOR)
                 subSystems[SUBSYSTEM_AGENTDETECTOR] = new SubSystem_agentDetector(fullName);
@@ -863,13 +866,21 @@ SubSystem_ARE* ICubClient::getARE()
 
 SubSystem_Speech* ICubClient::getSpeechClient()
 {
-    if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
-    {
-        if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
-            return NULL;
-        else
-            return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH_ESPEAK];
-    }
-    else
-        return (SubSystem_Speech*) subSystems[SUBSYSTEM_SPEECH];
+	if (subSystems.find(SUBSYSTEM_SPEECH) == subSystems.end())
+	{
+		if (subSystems.find(SUBSYSTEM_SPEECH_ESPEAK) == subSystems.end())
+			return NULL;
+		else
+			return (SubSystem_Speech*)subSystems[SUBSYSTEM_SPEECH_ESPEAK];
+	}
+	else
+		return (SubSystem_Speech*)subSystems[SUBSYSTEM_SPEECH];
+}
+
+SubSystem_LRH* ICubClient::getLRH()
+{
+	if (subSystems.find(SUBSYSTEM_LRH) == subSystems.end())
+		return NULL;
+	else
+		return (SubSystem_LRH*)subSystems[SUBSYSTEM_LRH];
 }

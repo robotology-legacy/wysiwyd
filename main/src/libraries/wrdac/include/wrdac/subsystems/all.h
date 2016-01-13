@@ -37,6 +37,7 @@ namespace wysiwyd{
         class SubSystem_Reactable;
         class SubSystem_Speech;
         class SubSystem_Recog;
+        class SubSystem_LRH;
         class SubSystem_SlidingController;
     }
 }
