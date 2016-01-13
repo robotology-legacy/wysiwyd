@@ -16,7 +16,7 @@
 */
 
 #include "narrativeHandler.h"
-#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_LRH.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -49,12 +49,17 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-    abm = true;
-    if (!iCub->getABMClient())
-    {
-        abm = false;
-        yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
-    }
+	abm = true;
+	if (!iCub->getABMClient())
+	{
+		abm = false;
+		yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+	}
+	
+	if (!iCub->getLRH())
+	{
+		yWarning() << " WARNING LRH NOT CONNECTED";
+	}
 
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
