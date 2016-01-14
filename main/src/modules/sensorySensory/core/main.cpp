@@ -572,7 +572,7 @@ public:
         attach(rpc);
 
         return true;
-	}
+    }
 
     bool printActivity()
     {
@@ -587,8 +587,8 @@ public:
     }
 
 
-	bool updateModule()
-	{
+    bool updateModule()
+    {
 
 
         Bottle* input_bottle = portFromCoclea.read();
@@ -618,11 +618,11 @@ public:
         }
 
 
-		return true;
-	}
+        return true;
+    }
 
-	bool close()
-	{
+    bool close()
+    {
         Mean = neural_model->getMean();
         SDev = neural_model->getSDev();
         saveNormals();
@@ -635,29 +635,29 @@ public:
         rpc.close();
         portFromCoclea.close();
         return true;
-	}
+    }
 };
 
 int main(int argc, char * argv[])
 {
-	Network yarp;
-	if (!Network::checkNetwork())
-	{
-		cout << "yarp network is not available!" << endl;
-		return 0;
-	}
+    Network yarp;
+    if (!Network::checkNetwork())
+    {
+        cout << "yarp network is not available!" << endl;
+        return 0;
+    }
 
-	ResourceFinder rf;
-	rf.setVerbose(true);
+    ResourceFinder rf;
+    rf.setVerbose(true);
     rf.setDefaultContext("cvz");
     rf.setDefaultConfigFile(DEFAULT_CONFIG_FILE); //overridden by --from parameter
-	rf.configure(argc, argv);
+    rf.configure(argc, argv);
 
     NNmodel cvzCore;
-	if (cvzCore.configure(rf))
-		cvzCore.runModule();
-	else
-		cout << "Unable to configure the cvz module." << endl;
+    if (cvzCore.configure(rf))
+        cvzCore.runModule();
+    else
+        cout << "Unable to configure the cvz module." << endl;
 
-	return 0;
+    return 0;
 }

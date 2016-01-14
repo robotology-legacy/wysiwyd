@@ -39,12 +39,12 @@ public:
     yarp::sig::Vector  m_rt_position;
 
     virtual bool    isType(std::string _entityType)
-		{
-			if (_entityType == EFAA_OPC_ENTITY_RTOBJECT)
-				return true;
-			else
-				return this->Object::isType(_entityType);
-		}   
+        {
+            if (_entityType == EFAA_OPC_ENTITY_RTOBJECT)
+                return true;
+            else
+                return this->Object::isType(_entityType);
+        }   
     virtual yarp::os::Bottle asBottle();
     virtual bool             fromBottle(yarp::os::Bottle b);
     virtual std::string      toString();

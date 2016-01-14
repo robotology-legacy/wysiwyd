@@ -26,8 +26,8 @@ using namespace std;
 
 using namespace TUIO;
 
-Matrix	    H2ICUB;
-Matrix		H2RT;
+Matrix      H2ICUB;
+Matrix      H2RT;
 
 class DataPort : public BufferedPort<Bottle> {
     UdpTransmitSocket* osc;
@@ -142,22 +142,22 @@ public:
 
 class Reactable2OPC : public TuioListener {
 
-    OscThread	*oscThreadReceiver;
+    OscThread   *oscThreadReceiver;
     UdpTransmitSocket *oscEmitter;
-    DataPort*	  yarp2osc;
+    DataPort*     yarp2osc;
 
-    OPCClient			*w;
-    Port	  			portCalibration;
-    map<int, string> 	idMap;
-    map<int, string> 	idMapCur;
-    map<int, Vector> 	idOffsets;
+    OPCClient           *w;
+    Port                portCalibration;
+    map<int, string>    idMap;
+    map<int, string>    idMapCur;
+    map<int, Vector>    idOffsets;
 
-    bool		isCalibrated;
-    int			YaxisFactor;
-    int			XaxisFactor;
+    bool        isCalibrated;
+    int         YaxisFactor;
+    int         XaxisFactor;
 
 public:
-    int	OSC_INPUT_TABLE_PORT;
+    int OSC_INPUT_TABLE_PORT;
 
     Reactable2OPC();
     ~Reactable2OPC();

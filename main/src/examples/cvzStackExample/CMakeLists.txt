@@ -30,7 +30,7 @@ target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${GTK2_GDK_PIXBUF_LIBRARY}
                                      ${GTK2_GOBJECT_LIBRARY}
                                      ${GTK2_GTHREAD_LIBRARY})
-									 
+                                     
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER Examples)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})

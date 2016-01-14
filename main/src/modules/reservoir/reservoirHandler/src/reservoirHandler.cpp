@@ -36,55 +36,55 @@ reservoirHandler::~reservoirHandler()
 
 bool reservoirHandler::configure(ResourceFinder &rf) {
 
-    bool	bEveryThingisGood = true;
-    bool	bOptionnalModule  = true;
+    bool    bEveryThingisGood = true;
+    bool    bOptionnalModule  = true;
     moduleName            = rf.check("name",
                                      Value("reservoirHandler"),
                                      "module name (string)").asString();
 
     sKeyWord            = rf.check("keyword", Value("grammar")).toString().c_str();
     cout<<"**************Context path for grammars: "<<rf.getContextPath()<<endl;
-    nameGrammarNodeType	 = rf.getContextPath().c_str();
-    nameGrammarNodeType	+= rf.check("nameGrammarNodeType",  Value("/nameGrammarNodeType.xml")).toString().c_str();
-    nameGrammarNodeModality	 = rf.getContextPath().c_str();
-    nameGrammarNodeModality	+= rf.check("nameGrammarNodeModality",  Value("/nameGrammarNodeModality.xml")).toString().c_str();
-    nameGrammarNodeTrainAP	 = rf.getContextPath().c_str();
-    nameGrammarNodeTrainAP	+= rf.check("nameGrammarNodeTrainAP",  Value("/nameGrammarNodeTrainAP.xml")).toString().c_str();
-    nameGrammarNodeTestAP	 = rf.getContextPath().c_str();
-    nameGrammarNodeTestAP	+= rf.check("nameGrammarNodeTestAP",  Value("/nameGrammarNodeTestAP.xml")).toString().c_str();
-    nameGrammarNodeTrainSD	 = rf.getContextPath().c_str();
-    nameGrammarNodeTrainSD	+= rf.check("nameGrammarNodeTrainSD",  Value("/nameGrammarNodeTrainSD.xml")).toString().c_str();
-    nameGrammarYesNo	 = rf.getContextPath().c_str();
-    nameGrammarYesNo	+= rf.check("nameGrammarYesNo",  Value("/nameGrammarYesNo.xml")).toString().c_str();
-    nameGrammarNodeInteraction	 = rf.getContextPath().c_str();
-    nameGrammarNodeInteraction	+= rf.check("nameGrammarNodeInteraction",  Value("/nameGrammarNodeInteraction.xml")).toString().c_str();
+    nameGrammarNodeType  = rf.getContextPath().c_str();
+    nameGrammarNodeType += rf.check("nameGrammarNodeType",  Value("/nameGrammarNodeType.xml")).toString().c_str();
+    nameGrammarNodeModality  = rf.getContextPath().c_str();
+    nameGrammarNodeModality += rf.check("nameGrammarNodeModality",  Value("/nameGrammarNodeModality.xml")).toString().c_str();
+    nameGrammarNodeTrainAP   = rf.getContextPath().c_str();
+    nameGrammarNodeTrainAP  += rf.check("nameGrammarNodeTrainAP",  Value("/nameGrammarNodeTrainAP.xml")).toString().c_str();
+    nameGrammarNodeTestAP    = rf.getContextPath().c_str();
+    nameGrammarNodeTestAP   += rf.check("nameGrammarNodeTestAP",  Value("/nameGrammarNodeTestAP.xml")).toString().c_str();
+    nameGrammarNodeTrainSD   = rf.getContextPath().c_str();
+    nameGrammarNodeTrainSD  += rf.check("nameGrammarNodeTrainSD",  Value("/nameGrammarNodeTrainSD.xml")).toString().c_str();
+    nameGrammarYesNo     = rf.getContextPath().c_str();
+    nameGrammarYesNo    += rf.check("nameGrammarYesNo",  Value("/nameGrammarYesNo.xml")).toString().c_str();
+    nameGrammarNodeInteraction   = rf.getContextPath().c_str();
+    nameGrammarNodeInteraction  += rf.check("nameGrammarNodeInteraction",  Value("/nameGrammarNodeInteraction.xml")).toString().c_str();
 
-    fvector	= rf.getContextPath().c_str();
+    fvector = rf.getContextPath().c_str();
     fvector += rf.check("vectorFile",  Value("/vector.txt")).toString().c_str();
 
     cout << fvector << "        " << endl;
-    pythonPath	 = rf.getContextPath().c_str();
+    pythonPath   = rf.getContextPath().c_str();
     cout << "rf.getContextPath().c_str() : " << rf.getContextPath().c_str() << endl;
-    pythonPath 	+= rf.check("pythonPath",  Value("/RAD/src/iCub_language")).toString().c_str();
+    pythonPath  += rf.check("pythonPath",  Value("/RAD/src/iCub_language")).toString().c_str();
     cout << "pythonPath : " << pythonPath << endl;
 
     /* Mode Action Performer => Meaning*/
-    fileAPimputS	 = rf.getContextPath().c_str();
-    fileAPimputS	+= rf.check("APimputS",  Value("/AP_input_S.txt")).toString().c_str();
-    fileAPoutputM 	 = rf.getContextPath().c_str();
-    fileAPoutputM 	+= rf.check("APoutputM",  Value("/AP_output_M.txt")).toString().c_str();
-    fileXavierTrainAP 	 = rf.getContextPath().c_str();
-    fileXavierTrainAP 	+= rf.check("xavierTrainAP",  Value("/xavier_trainAP.txt")).toString().c_str();
+    fileAPimputS     = rf.getContextPath().c_str();
+    fileAPimputS    += rf.check("APimputS",  Value("/AP_input_S.txt")).toString().c_str();
+    fileAPoutputM    = rf.getContextPath().c_str();
+    fileAPoutputM   += rf.check("APoutputM",  Value("/AP_output_M.txt")).toString().c_str();
+    fileXavierTrainAP    = rf.getContextPath().c_str();
+    fileXavierTrainAP   += rf.check("xavierTrainAP",  Value("/xavier_trainAP.txt")).toString().c_str();
 
     fileAP      = rf.check("fileAP",  Value("action_performer.py")).toString().c_str();
 
     /* Mode Scene Describer => Produce*/
-    fileSRinputM 	 = rf.getContextPath().c_str();
-    fileSRinputM 	+= rf.check("SRinputM.txt",  Value("/SR_input_M.txt")).toString().c_str();
-    fileSRoutputS 	 = rf.getContextPath().c_str();
-    fileSRoutputS 	+= rf.check("SRoutputS",  Value("/SR_output_S.txt")).toString().c_str();
-    fileXavierTrain 	 = rf.getContextPath().c_str();
-    fileXavierTrain 	+= rf.check("xavierTrain",  Value("/xavier_train.txt")).toString().c_str();
+    fileSRinputM     = rf.getContextPath().c_str();
+    fileSRinputM    += rf.check("SRinputM.txt",  Value("/SR_input_M.txt")).toString().c_str();
+    fileSRoutputS    = rf.getContextPath().c_str();
+    fileSRoutputS   += rf.check("SRoutputS",  Value("/SR_output_S.txt")).toString().c_str();
+    fileXavierTrain      = rf.getContextPath().c_str();
+    fileXavierTrain     += rf.check("xavierTrain",  Value("/xavier_train.txt")).toString().c_str();
 
     fileSD      = rf.check("fileSD",  Value("spatial_relation.py")).toString().c_str();
 
@@ -134,7 +134,7 @@ bool reservoirHandler::configure(ResourceFinder &rf) {
     attach(handlerPort);                  // attach to port
 
     //------------------------//
-    //		iCub Client
+    //      iCub Client
     //------------------------//
 
     // string ttsSystem = SUBSYSTEM_SPEECH;
@@ -208,7 +208,7 @@ bool reservoirHandler::populateOPC(){
     x[1]=0.2;
     x[2]=0.0016;
 
-    //vGoal is : -0.350000	 0.200000	 0.001600
+    //vGoal is : -0.350000   0.200000    0.001600
     obj1->m_ego_position = x;
     obj1->m_present = 1;
     obj1->m_dimensions = dimensionObject;
@@ -221,7 +221,7 @@ bool reservoirHandler::populateOPC(){
     x[0]=-0.45;  //y position
     x[1]=0.0;    //x position
     x[2]=0.0016; //z position
-    //vGoal is : -0.350000	 0.200000	 0.001600
+    //vGoal is : -0.350000   0.200000    0.001600
     obj2->m_ego_position = x;
     obj2->m_present = 1;
     obj2->m_dimensions = dimensionObject;
@@ -234,7 +234,7 @@ bool reservoirHandler::populateOPC(){
     x[0]=-0.35;
     x[1]=-0.2;
     x[2]=0.0016;
-    //vGoal is : -0.350000	 0.200000	 0.001600
+    //vGoal is : -0.350000   0.200000    0.001600
     obj3->m_ego_position = x;
     obj3->m_present = 1;
     obj3->m_dimensions = dimensionObject;
@@ -299,7 +299,7 @@ double reservoirHandler::getPeriod() {
 }
 
 /*
-*	Get the context path of a .grxml grammar, and return it as a string
+*   Get the context path of a .grxml grammar, and return it as a string
 *
 */
 string reservoirHandler::grammarToString(string sPath)
@@ -324,13 +324,13 @@ string reservoirHandler::grammarToString(string sPath)
 }
 
 /* Node 1: general question
-*	produce or understand
+*   produce or understand
 */
 bool reservoirHandler::nodeType()
 {
     sCurrentNode = "nodeType";
     sCurrentGrammarFile = nameGrammarNodeType;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
 
@@ -452,7 +452,7 @@ bool reservoirHandler::nodeModality()
 {
     sCurrentNode = "nodeModality";
     sCurrentGrammarFile = nameGrammarNodeModality;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
 
     Bottle bOutput;
@@ -657,7 +657,7 @@ bool reservoirHandler::nodeTrainAP()
 {
     sCurrentNode = "nodeModality";
     sCurrentGrammarFile = nameGrammarNodeModality;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
 
     Bottle bOutput;
@@ -759,7 +759,7 @@ bool reservoirHandler::nodeTestAP()
 {
     sCurrentNode = "nodeTestAP";
     sCurrentGrammarFile = nameGrammarNodeTestAP;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
 
     Bottle bOutput;
@@ -939,7 +939,7 @@ bool reservoirHandler::nodeTestSD()
 {
     sCurrentNode = "nodeTestSD";
     sCurrentGrammarFile = nameGrammarNodeTrainSD;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
 
@@ -1721,7 +1721,7 @@ int reservoirHandler::languageNodeInteraction()
 {
     sCurrentNode = "languageNodeInteraction";
     sCurrentGrammarFile = nameGrammarNodeInteraction;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in  LanguageActionAnalysis | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
 
@@ -1830,7 +1830,7 @@ bool reservoirHandler::languageNodeInteractionSD()
 {
     sCurrentNode = "languageNodeInteractionSD";
     sCurrentGrammarFile = nameGrammarNodeInteraction;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in  LanguageActionAnalysis | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
 
@@ -2090,7 +2090,7 @@ bool reservoirHandler::nodeYesNoInteraction()
 {
     sCurrentNode = "nodeYesNoInteraction";
     sCurrentGrammarFile = nameGrammarYesNo;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
 
@@ -2153,7 +2153,7 @@ bool reservoirHandler::nodeYesNo()
 {
     sCurrentNode = "nodeYesNo";
     sCurrentGrammarFile = nameGrammarYesNo;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in reservoirHandler | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
 

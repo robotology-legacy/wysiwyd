@@ -17,7 +17,7 @@ void HomeostasisManager::addDrive(Drive* D)
 
 void HomeostasisManager::removeDrive(int D)
 {
-	drives.erase(drives.begin()+D);
+    drives.erase(drives.begin()+D);
 }
 
 void HomeostasisManager::sleep(int D, double time)

@@ -43,7 +43,7 @@ struct Drive
         value = d_value;
         homeoStasisMin = d_homeo_min;
         homeoStasisMax = d_homeo_max;
-		decay = d_decay;
+        decay = d_decay;
     }
 
     Drive()
@@ -52,7 +52,7 @@ struct Drive
         value = 0.5;
         homeoStasisMin = 0.0;
         homeoStasisMax = 1.0;
-		decay = 0.05;
+        decay = 0.05;
     }
 
     Drive(const Drive &b)
@@ -61,7 +61,7 @@ struct Drive
         value = b.value;
         homeoStasisMin = b.homeoStasisMin;
         homeoStasisMax = b.homeoStasisMax;
-		decay = b.decay;
+        decay = b.decay;
     }
 
     yarp::os::Bottle asBottle()
@@ -122,12 +122,12 @@ struct Body
             m_parts[EFAA_OPC_BODY_PART_TYPE_HAND_L].resize(3,0.0);
             m_parts[EFAA_OPC_BODY_PART_TYPE_ELBOW_R].resize(3,0.0);
             m_parts[EFAA_OPC_BODY_PART_TYPE_ELBOW_L].resize(3,0.0);
-			//m_parts[EFAA_OPC_BODY_PART_TYPE_LEFT_HIP].resize(3,0.0);
-			//m_parts[EFAA_OPC_BODY_PART_TYPE_LEFT_KNEE].resize(3,0.0);
-			//m_parts[EFAA_OPC_BODY_PART_TYPE_LEFT_FOOT].resize(3,0.0);
-			//m_parts[EFAA_OPC_BODY_PART_TYPE_RIGHT_HIP].resize(3,0.0);
-			//m_parts[EFAA_OPC_BODY_PART_TYPE_RIGHT_KNEE].resize(3,0.0);
-			//m_parts[EFAA_OPC_BODY_PART_TYPE_RIGHT_FOOT].resize(3,0.0);
+            //m_parts[EFAA_OPC_BODY_PART_TYPE_LEFT_HIP].resize(3,0.0);
+            //m_parts[EFAA_OPC_BODY_PART_TYPE_LEFT_KNEE].resize(3,0.0);
+            //m_parts[EFAA_OPC_BODY_PART_TYPE_LEFT_FOOT].resize(3,0.0);
+            //m_parts[EFAA_OPC_BODY_PART_TYPE_RIGHT_HIP].resize(3,0.0);
+            //m_parts[EFAA_OPC_BODY_PART_TYPE_RIGHT_KNEE].resize(3,0.0);
+            //m_parts[EFAA_OPC_BODY_PART_TYPE_RIGHT_FOOT].resize(3,0.0);
     }
 
     yarp::os::Bottle asBottle()
@@ -181,11 +181,11 @@ public:
             
     virtual bool    isType(std::string _entityType)
         {
-			if (_entityType == EFAA_OPC_ENTITY_AGENT)
-				return true;
-			else
-				return this->Object::isType(_entityType);
-		}
+            if (_entityType == EFAA_OPC_ENTITY_AGENT)
+                return true;
+            else
+                return this->Object::isType(_entityType);
+        }
 
     virtual yarp::os::Bottle asBottle();
     virtual bool             fromBottle(yarp::os::Bottle b);

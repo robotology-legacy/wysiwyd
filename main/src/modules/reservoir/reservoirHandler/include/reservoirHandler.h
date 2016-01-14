@@ -75,14 +75,14 @@ private:
     double ZRTObjects;
 
 
-    Port handlerPort;				// a port to handle messages
-    Port Port2SpeechRecog;		// a port to send grammar to the speech recog
-    Port Port2iSpeak;		// a port to send grammar to the speech recog
+    Port handlerPort;               // a port to handle messages
+    Port Port2SpeechRecog;      // a port to send grammar to the speech recog
+    Port Port2iSpeak;       // a port to send grammar to the speech recog
 
     bool isAwake;
     ICubClient *iCub;
 
-    int iCurrentInstance;					// instance of the current request
+    int iCurrentInstance;                   // instance of the current request
     int inbsentence;
     string sCurrentActivity;
     string sCurrentType;
@@ -132,7 +132,7 @@ private:
     bool launchSpatialRelation();
 
     bool callReservoir(string fPython);
-    string	grammarToString(string sPath);
+    string  grammarToString(string sPath);
 
     int copyTrainData(const char* fileNameIn, const char* fileNameOut);
     int copyPastFile(const char* in, const char* fileNameOut);

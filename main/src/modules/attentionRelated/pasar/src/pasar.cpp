@@ -47,7 +47,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.5)).asDouble();
     pTopDownAccelerationCoef = rf.check("parameterTopDownAccelerationCoef",
         Value(0.1)).asDouble();
-    //pLeakyIntegrationA		=  rf.check("parameterLeakyIntegrationA", 
+    //pLeakyIntegrationA        =  rf.check("parameterLeakyIntegrationA", 
     //    Value(0.9)).asDouble(); 
     pTopDownInhibitionReturn = rf.check("parameterInhibitionReturn",
         Value(0.05)).asDouble();

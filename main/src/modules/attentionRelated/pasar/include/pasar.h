@@ -55,7 +55,7 @@ class PasarModule : public yarp::os::RFModule {
     double thresholdSaliency;
     double dBurstOfPointing;
 
-    OPCClient *opc;					 //retrieve information from the OPC
+    OPCClient *opc;                  //retrieve information from the OPC
     yarp::os::Port handlerPort;      //a port to handle messages 
 
     list<Entity*> entities;

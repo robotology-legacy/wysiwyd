@@ -30,22 +30,22 @@ visionUtils::~visionUtils()
 
 void visionUtils::convertCvToYarp(cv::Mat MatImage, ImageOf<PixelRgb> & yarpImage)
 {
-	IplImage* IPLfromMat = new IplImage(MatImage);
+    IplImage* IPLfromMat = new IplImage(MatImage);
 
-	yarpImage.resize(IPLfromMat->width,IPLfromMat->height);
+    yarpImage.resize(IPLfromMat->width,IPLfromMat->height);
 
-	IplImage * iplYarpImage = (IplImage*)yarpImage.getIplImage();
+    IplImage * iplYarpImage = (IplImage*)yarpImage.getIplImage();
 
-	if (IPL_ORIGIN_TL == IPLfromMat->origin){
-			cvCopy(IPLfromMat, iplYarpImage, 0);
-	}
-	else{
-			cvFlip(IPLfromMat, iplYarpImage, 0);
-	}
+    if (IPL_ORIGIN_TL == IPLfromMat->origin){
+            cvCopy(IPLfromMat, iplYarpImage, 0);
+    }
+    else{
+            cvFlip(IPLfromMat, iplYarpImage, 0);
+    }
 
-	if (IPLfromMat->channelSeq[0]=='B') {
-			cvCvtColor(iplYarpImage, iplYarpImage, CV_BGR2RGB);
-	}
+    if (IPLfromMat->channelSeq[0]=='B') {
+            cvCvtColor(iplYarpImage, iplYarpImage, CV_BGR2RGB);
+    }
 }
 
 Rect visionUtils::checkRoiInImage(Mat src, Rect roi)
@@ -223,15 +223,15 @@ Mat visionUtils::skeletonDetect(Mat threshImage, int imgBlurPixels, bool display
  
     Mat element = getStructuringElement(MORPH_CROSS, Size(3, 3));
  
-    bool done;		
+    bool done;      
     do
     {
-	    erode(threshImage, eroded, element);
-	    dilate(eroded, temp, element);
-	    subtract(threshImage, temp, temp);
-	    bitwise_or(skel, temp, skel);
-	    eroded.copyTo(threshImage);
-	    done = (countNonZero(threshImage) == 0);
+        erode(threshImage, eroded, element);
+        dilate(eroded, temp, element);
+        subtract(threshImage, temp, temp);
+        bitwise_or(skel, temp, skel);
+        eroded.copyTo(threshImage);
+        done = (countNonZero(threshImage) == 0);
     } while (!done);
     if (displayFaces) imshow("Skel raw",skel);
     // Blur to reduce noise
@@ -305,8 +305,8 @@ vector<Rect> visionUtils::segmentLineBoxFit(Mat img0, int minPixelSize, int maxS
         for (int j = 1; j < maxIterations+1; j++)
         {
             int i = contours.size()-j;
-	        if (contourArea(Mat(contours[i]))>minPixelSize)
-	        {
+            if (contourArea(Mat(contours[i]))>minPixelSize)
+            {
                 // Fit rotated rect to contour
                 tempRotatedBoundingBox.push_back(minAreaRect( Mat(contours[i]) ));
                 
@@ -315,18 +315,18 @@ vector<Rect> visionUtils::segmentLineBoxFit(Mat img0, int minPixelSize, int maxS
                 rectCentre.y=rectCentre.y-padPixels;
                 tempRotatedBoundingBox[contourCount].center=rectCentre;
                 
-		        // Find line limits....
-		        boundingBox.push_back(boundingRect(Mat(contours[i])));
-		        
-		        // Remove edge padding effects....
-		        boundingBox[contourCount].x=boundingBox[contourCount].x-padPixels;
-		        boundingBox[contourCount].y=boundingBox[contourCount].y-padPixels;
-		        boundingBox[contourCount]=checkRoiInImage(img0, boundingBox[contourCount]);
-		        
-		        contourCount++;
-		        
-		        tempReturnContours.push_back(contours[i]);
-	        }
+                // Find line limits....
+                boundingBox.push_back(boundingRect(Mat(contours[i])));
+                
+                // Remove edge padding effects....
+                boundingBox[contourCount].x=boundingBox[contourCount].x-padPixels;
+                boundingBox[contourCount].y=boundingBox[contourCount].y-padPixels;
+                boundingBox[contourCount]=checkRoiInImage(img0, boundingBox[contourCount]);
+                
+                contourCount++;
+                
+                tempReturnContours.push_back(contours[i]);
+            }
         }
         // Return contours
         returnContours->resize(tempReturnContours.size());
@@ -340,9 +340,9 @@ vector<Rect> visionUtils::segmentLineBoxFit(Mat img0, int minPixelSize, int maxS
         // To Remove border added at start...    
         *returnMask=mask(tempRect);
         // show the images
-        if (displayFaces)	imshow("Seg line utils: Img in", img0);
-        if (displayFaces)	imshow("Seg line utils: Mask", *returnMask);
-        if (displayFaces)	imshow("Seg line utils: Output", img1);
+        if (displayFaces)   imshow("Seg line utils: Img in", img0);
+        if (displayFaces)   imshow("Seg line utils: Mask", *returnMask);
+        if (displayFaces)   imshow("Seg line utils: Output", img1);
     }
     return boundingBox;
 }
@@ -470,107 +470,107 @@ Mat visionUtils::skinDetect(Mat captureframe, Mat3b *skinDetectHSV, Mat *skinMas
     }
 
 
-	//int step = 0;
-	Mat3b frameTemp;
-	Mat3b frame;
-	// Forcing resize to 640x480 -> all thresholds / pixel filters configured for this size.....
-	// Note returned to original size at end...
+    //int step = 0;
+    Mat3b frameTemp;
+    Mat3b frame;
+    // Forcing resize to 640x480 -> all thresholds / pixel filters configured for this size.....
+    // Note returned to original size at end...
     Size s = captureframe.size();
-	resize(captureframe,captureframe,Size(640,480));
+    resize(captureframe,captureframe,Size(640,480));
 
-	
-	
-	if (useGPU)
-	{
-	
-	    gpu::GpuMat imgGPU, imgGPUHSV;
-	    imgGPU.upload(captureframe);
-	    gpu::cvtColor(imgGPU, imgGPUHSV, CV_BGR2HSV);
-	    gpu::GaussianBlur(imgGPUHSV, imgGPUHSV, Size(imgBlurPixels,imgBlurPixels), 1, 1);
-        imgGPUHSV.download(frameTemp);	
-	}
-	else
-	{
-	    cvtColor(captureframe, frameTemp, CV_BGR2HSV);
-	    GaussianBlur(frameTemp, frameTemp, Size(imgBlurPixels,imgBlurPixels), 1, 1);
-	}
-	
-	// Potential FASTER VERSION using inRange
+    
+    
+    if (useGPU)
+    {
+    
+        gpu::GpuMat imgGPU, imgGPUHSV;
+        imgGPU.upload(captureframe);
+        gpu::cvtColor(imgGPU, imgGPUHSV, CV_BGR2HSV);
+        gpu::GaussianBlur(imgGPUHSV, imgGPUHSV, Size(imgBlurPixels,imgBlurPixels), 1, 1);
+        imgGPUHSV.download(frameTemp);  
+    }
+    else
+    {
+        cvtColor(captureframe, frameTemp, CV_BGR2HSV);
+        GaussianBlur(frameTemp, frameTemp, Size(imgBlurPixels,imgBlurPixels), 1, 1);
+    }
+    
+    // Potential FASTER VERSION using inRange
     Mat frameThreshold = Mat::zeros(frameTemp.rows,frameTemp.cols, CV_8UC1);
-	Mat hsvMin = (Mat_<int>(1,3) << adaptiveHSV[0], adaptiveHSV[1],adaptiveHSV[2] );
-	Mat hsvMax = (Mat_<int>(1,3) << adaptiveHSV[3], adaptiveHSV[4],adaptiveHSV[5] );
-	inRange(frameTemp,hsvMin ,hsvMax, frameThreshold);
-	frameTemp.copyTo(frame,frameThreshold);
-    	
-	/* BGR CONVERSION AND THRESHOLD */
-	Mat1b frame_gray;
-	
-	// send HSV to skinDetectHSV for return
-	*skinDetectHSV=frame.clone();
-	
-	cvtColor(frame, frame_gray, CV_BGR2GRAY);
-				
-				
-	// Adaptive thresholding technique
-	// 1. Threshold data to find main areas of skin
-	adaptiveThreshold(frame_gray,frame_gray,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY_INV,9,1);
-	
-	
-	if (useGPU)
-	{
-	    gpu::GpuMat imgGPU;
-	    imgGPU.upload(frame_gray);
-	    // 2. Fill in thresholded areas
-	    gpu::morphologyEx(imgGPU, imgGPU, CV_MOP_CLOSE, Mat1b(imgMorphPixels,imgMorphPixels,1), Point(-1, -1), 2);
-	    gpu::GaussianBlur(imgGPU, imgGPU, Size(imgBlurPixels,imgBlurPixels), 1, 1);
-	    imgGPU.download(frame_gray);
-	
-	}
-	else
-	{
+    Mat hsvMin = (Mat_<int>(1,3) << adaptiveHSV[0], adaptiveHSV[1],adaptiveHSV[2] );
+    Mat hsvMax = (Mat_<int>(1,3) << adaptiveHSV[3], adaptiveHSV[4],adaptiveHSV[5] );
+    inRange(frameTemp,hsvMin ,hsvMax, frameThreshold);
+    frameTemp.copyTo(frame,frameThreshold);
+        
+    /* BGR CONVERSION AND THRESHOLD */
+    Mat1b frame_gray;
+    
+    // send HSV to skinDetectHSV for return
+    *skinDetectHSV=frame.clone();
+    
+    cvtColor(frame, frame_gray, CV_BGR2GRAY);
+                
+                
+    // Adaptive thresholding technique
+    // 1. Threshold data to find main areas of skin
+    adaptiveThreshold(frame_gray,frame_gray,255,ADAPTIVE_THRESH_GAUSSIAN_C,THRESH_BINARY_INV,9,1);
+    
+    
+    if (useGPU)
+    {
+        gpu::GpuMat imgGPU;
+        imgGPU.upload(frame_gray);
+        // 2. Fill in thresholded areas
+        gpu::morphologyEx(imgGPU, imgGPU, CV_MOP_CLOSE, Mat1b(imgMorphPixels,imgMorphPixels,1), Point(-1, -1), 2);
+        gpu::GaussianBlur(imgGPU, imgGPU, Size(imgBlurPixels,imgBlurPixels), 1, 1);
+        imgGPU.download(frame_gray);
+    
+    }
+    else
+    {
         // 2. Fill in thresholded areas
         morphologyEx(frame_gray, frame_gray, CV_MOP_CLOSE, Mat1b(imgMorphPixels,imgMorphPixels,1), Point(-1, -1), 2);
         GaussianBlur(frame_gray, frame_gray, Size(imgBlurPixels,imgBlurPixels), 1, 1);
         // Select single largest region from image, if singleRegionChoice is selected (1)
-	}
-	
+    }
+    
 
-	if (singleRegionChoice)
-	{
-		*skinMask = cannySegmentation(frame_gray, -1, displayFaces);
-	}
-	else // Detect each separate block and remove blobs smaller than a few pixels
-	{
-		*skinMask = cannySegmentation(frame_gray, minPixelSize, displayFaces);
-	}
+    if (singleRegionChoice)
+    {
+        *skinMask = cannySegmentation(frame_gray, -1, displayFaces);
+    }
+    else // Detect each separate block and remove blobs smaller than a few pixels
+    {
+        *skinMask = cannySegmentation(frame_gray, minPixelSize, displayFaces);
+    }
 
-	// Just return skin
-	Mat frame_skin;
-	captureframe.copyTo(frame_skin,*skinMask);  // Copy captureframe data to frame_skin, using mask from frame_ttt
-	// Resize image to original before return
-	resize(frame_skin,frame_skin,s);
-	
-	if (displayFaces)
-	{	
-	imshow("Skin HSV (B)",frame);
-	imshow("Adaptive_threshold (D1)",frame_gray);
-	imshow("Skin segmented",frame_skin);
-	}
-	
-	return frame_skin;	
-	waitKey(1);
+    // Just return skin
+    Mat frame_skin;
+    captureframe.copyTo(frame_skin,*skinMask);  // Copy captureframe data to frame_skin, using mask from frame_ttt
+    // Resize image to original before return
+    resize(frame_skin,frame_skin,s);
+    
+    if (displayFaces)
+    {   
+    imshow("Skin HSV (B)",frame);
+    imshow("Adaptive_threshold (D1)",frame_gray);
+    imshow("Skin segmented",frame_skin);
+    }
+    
+    return frame_skin;  
+    waitKey(1);
 }
 
 Mat visionUtils::cannySegmentation(Mat img0, int minPixelSize, bool displayFaces)
 {
-	// Segments items in gray image (img0)
-	// minPixelSize=
-	// -1, returns largest region only
-	// pixels, threshold for removing smaller regions, with less than minPixelSize pixels
-	// 0, returns all detected segments
-	
-	
-    // LB: Zero pad image to remove edge effects when getting regions....	
+    // Segments items in gray image (img0)
+    // minPixelSize=
+    // -1, returns largest region only
+    // pixels, threshold for removing smaller regions, with less than minPixelSize pixels
+    // 0, returns all detected segments
+    
+    
+    // LB: Zero pad image to remove edge effects when getting regions....   
     int padPixels=20;
     // Rect border added at start...
     Rect tempRect;
@@ -605,23 +605,23 @@ Mat visionUtils::cannySegmentation(Mat img0, int minPixelSize, bool displayFaces
 
     vector<double> areas(contours.size());
 
-	if (minPixelSize==-1)
-	{ // Case of taking largest region
-		for(int i = 0; i < (int)contours.size(); i++)
-			areas[i] = contourArea(Mat(contours[i]));
-		double max;
-		Point maxPosition;
-		minMaxLoc(Mat(areas),0,&max,0,&maxPosition);
-		drawContours(mask, contours, maxPosition.y, Scalar(1), CV_FILLED);
-	}
-	else
-	{ // Case for using minimum pixel size
-		for (int i = 0; i < (int)contours.size(); i++)
-		{
-			if (contourArea(Mat(contours[i]))>minPixelSize)
-			drawContours(mask, contours, i, Scalar(1), CV_FILLED);
-		}
-	}
+    if (minPixelSize==-1)
+    { // Case of taking largest region
+        for(int i = 0; i < (int)contours.size(); i++)
+            areas[i] = contourArea(Mat(contours[i]));
+        double max;
+        Point maxPosition;
+        minMaxLoc(Mat(areas),0,&max,0,&maxPosition);
+        drawContours(mask, contours, maxPosition.y, Scalar(1), CV_FILLED);
+    }
+    else
+    { // Case for using minimum pixel size
+        for (int i = 0; i < (int)contours.size(); i++)
+        {
+            if (contourArea(Mat(contours[i]))>minPixelSize)
+            drawContours(mask, contours, i, Scalar(1), CV_FILLED);
+        }
+    }
     // normalize so imwrite(...)/imshow(...) shows the mask correctly!
     normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
     
@@ -629,9 +629,9 @@ Mat visionUtils::cannySegmentation(Mat img0, int minPixelSize, bool displayFaces
     returnMask=mask(tempRect);
     
     // show the images
-    if (displayFaces)	imshow("Canny: Img in", img0);
-    if (displayFaces)	imshow("Canny: Mask", returnMask);
-    if (displayFaces)	imshow("Canny: Output", img1);
+    if (displayFaces)   imshow("Canny: Img in", img0);
+    if (displayFaces)   imshow("Canny: Mask", returnMask);
+    if (displayFaces)   imshow("Canny: Output", img1);
     
     return returnMask;
 }
@@ -724,7 +724,7 @@ vector<Point2f> visionUtils::updateArmMiddlePoint(Point2f previousPoint, Point2f
                     temp_mag = magnitude;
                     indices[j].x = tempCurrentPoints.at(i).x;
                     indices[j].y = tempCurrentPoints.at(i).y;
-		    indexToRemove = i;
+            indexToRemove = i;
                 }
             }
             tempCurrentPoints.erase(tempCurrentPoints.begin()+indexToRemove);

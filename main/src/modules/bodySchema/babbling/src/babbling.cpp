@@ -639,8 +639,8 @@ bool Babbling::gotoStartPos()
         commandHead[i] = start_commandHead[i];
     }
     if(part=="right_arm"){
-    	commandHead[2] = -2*start_commandHead[2];
-    	
+        commandHead[2] = -2*start_commandHead[2];
+        
     }
     posHead->positionMove(commandHead.data());
 

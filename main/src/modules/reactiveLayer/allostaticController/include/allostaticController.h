@@ -142,7 +142,7 @@ private:
 
     double period;
 
-	map<string, AllostaticDrive> allostaticDrives;
+    map<string, AllostaticDrive> allostaticDrives;
 
 
     vector<double> drivePriorities;
@@ -152,7 +152,7 @@ private:
     vector< yarp::os::BufferedPort<Bottle>* > outputm_ports;
 
     //Configuration
-	void configureAllostatic(yarp::os::ResourceFinder &rf);
+    void configureAllostatic(yarp::os::ResourceFinder &rf);
 
     int openPorts(string driveName);
 public:
@@ -172,8 +172,8 @@ public:
 
     bool updateModule();
 
-	//Update the drives accordingly to the stimuli
-	bool updateAllostatic();
+    //Update the drives accordingly to the stimuli
+    bool updateAllostatic();
 
     bool Normalize(vector<double>& vec);
 

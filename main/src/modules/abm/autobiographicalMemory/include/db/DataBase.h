@@ -50,7 +50,7 @@ public:
         return _dataBaseEngine.lo_import_pgsql(filename);
     }
 
-    int	lo_export(unsigned int lobjId, const char *filename)
+    int lo_export(unsigned int lobjId, const char *filename)
     {
         return _dataBaseEngine.lo_export_pgsql(lobjId, filename);
     }
@@ -70,7 +70,7 @@ public:
     }
 
 private:
-    T		_dataBaseEngine;
-    bool	_connected;
+    T       _dataBaseEngine;
+    bool    _connected;
 
 }; // DataBase

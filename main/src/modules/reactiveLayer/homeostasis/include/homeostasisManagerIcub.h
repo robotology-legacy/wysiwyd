@@ -28,7 +28,7 @@ private:
     vector< yarp::os::BufferedPort<Bottle> * > outputm_ports;
     HomeostasisManager* manager;
 
-	//Reflexes
+    //Reflexes
 
     Port    rpc;
 
@@ -36,8 +36,8 @@ private:
     bool addNewDrive(string driveName);
     bool removeDrive(int d);
     //bool addNewDrive(string driveName, yarp::os::Value grpHomeostatic, int d);
-	//void configureTactile(yarp::os::ResourceFinder &rf);
-	//void configureSalutation(yarp::os::ResourceFinder &rf);
+    //void configureTactile(yarp::os::ResourceFinder &rf);
+    //void configureSalutation(yarp::os::ResourceFinder &rf);
 
 public:
 
@@ -66,10 +66,10 @@ public:
     }
     bool updateModule();
 
-	bool updateAllostatic();
+    bool updateAllostatic();
 
     bool processAvoidance(int d, Bottle* avoidanceBottle);
 
-	//RPC & scenarios
-	bool respond(const Bottle& cmd, Bottle& reply);
+    //RPC & scenarios
+    bool respond(const Bottle& cmd, Bottle& reply);
 };

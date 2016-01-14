@@ -315,16 +315,16 @@ void dotrim(T *inp, int nrow, int ncol, unsigned char *skel) {
 
   for (j = 0; j < ncol; j++) {
     for (i = 0; i < nrow; i++) {
-	skel[i+j*nrow] = (unsigned char)(inp[i+j*nrow]);
+    skel[i+j*nrow] = (unsigned char)(inp[i+j*nrow]);
     }
   }
   for (j = 0; j < ncol; j++) {
     for (i = 0; i < nrow; i++) {
       if (skel[i+j*nrow]) {
-	hood = neighborhood(skel,i,j,nrow,ncol);
-	skel[i+j*nrow] = (connected_nbrs[hood] > 1)||(nbr_branches[hood]==1);
+    hood = neighborhood(skel,i,j,nrow,ncol);
+    skel[i+j*nrow] = (connected_nbrs[hood] > 1)||(nbr_branches[hood]==1);
       } else {
-	skel[i+j*nrow] = 0;
+    skel[i+j*nrow] = 0;
       }
     }
   }
@@ -343,7 +343,7 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   unsigned char *skel;
   double *north, *northeast, *east, *southeast, *exy, *jxy;
   mxArray *cell;
-	
+    
   // check for proper number of arguments
   errCheck(nrhs == 1,"Exactly one input argument required.");
   errCheck(nlhs <= 3,"Too many output arguments.");
@@ -384,15 +384,15 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     for (i = 0; i < nrow; i++) {
       p = i+j*nrow;
       if (skel[p]) {
-	hood = neighborhood(skel,i,j,nrow,ncol);
-	north[p] = isN[hood];
-	northeast[p] = isNE[hood];
-	east[p] = isE[hood];
-	southeast[p] = isSE[hood];
-	//mexPrintf("Point (%d,%d):  Hood %d -> %d, %d, %d, %d.\n",
-	//	  i,j,hood,isN[hood],isNE[hood],isE[hood],isSE[hood]);
+    hood = neighborhood(skel,i,j,nrow,ncol);
+    north[p] = isN[hood];
+    northeast[p] = isNE[hood];
+    east[p] = isE[hood];
+    southeast[p] = isSE[hood];
+    //mexPrintf("Point (%d,%d):  Hood %d -> %d, %d, %d, %d.\n",
+    //    i,j,hood,isN[hood],isNE[hood],isE[hood],isSE[hood]);
       } else {
-	north[p] = northeast[p] = east[p] = southeast[p] = 0;
+    north[p] = northeast[p] = east[p] = southeast[p] = 0;
       }
     }
   }
@@ -405,22 +405,22 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     nbar = 0;
     for (j = 0; j < ncol; j++) {
       for (i = 0; i < nrow; i++) {
-	if (skel[i+j*nrow]) {
-	  hood = neighborhood(skel,i,j,nrow,ncol);
-	  switch (nbr_branches[hood]) {
-	  case 0:
-	  case 1:
-	    nend++;
-	    break;
-	  case 2:
-	    nbar++;
-	    break;
-	  case 3:
-	  case 4:
-	    njunc++;
-	    break;
-	  }
-	}
+    if (skel[i+j*nrow]) {
+      hood = neighborhood(skel,i,j,nrow,ncol);
+      switch (nbr_branches[hood]) {
+      case 0:
+      case 1:
+        nend++;
+        break;
+      case 2:
+        nbar++;
+        break;
+      case 3:
+      case 4:
+        njunc++;
+        break;
+      }
+    }
       }
     }
     //mexPrintf("Counted.\n");
@@ -430,14 +430,14 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     iend = 0;
     for (j = 0; j < ncol; j++) {
       for (i = 0; i < nrow; i++) {
-	if (skel[i+j*nrow]) {
-	  hood = neighborhood(skel,i,j,nrow,ncol);
-	  if (nbr_branches[hood] < 2) {
-	    exy[iend+1] = i+1;
-	    exy[iend] = j+1;
-	    iend += 2;
-	  }
-	}
+    if (skel[i+j*nrow]) {
+      hood = neighborhood(skel,i,j,nrow,ncol);
+      if (nbr_branches[hood] < 2) {
+        exy[iend+1] = i+1;
+        exy[iend] = j+1;
+        iend += 2;
+      }
+    }
       }
     }
   }
@@ -447,14 +447,14 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     ijunc = 0;
     for (j = 0; j < ncol; j++) {
       for (i = 0; i < nrow; i++) {
-	if (skel[i+j*nrow]) {
-	  hood = neighborhood(skel,i,j,nrow,ncol);
-	  if (nbr_branches[hood] > 2) {
-	    jxy[ijunc+1] = i+1;
-	    jxy[ijunc] = j+1;
-	    ijunc += 2;
-	  }
-	}
+    if (skel[i+j*nrow]) {
+      hood = neighborhood(skel,i,j,nrow,ncol);
+      if (nbr_branches[hood] > 2) {
+        jxy[ijunc+1] = i+1;
+        jxy[ijunc] = j+1;
+        ijunc += 2;
+      }
+    }
       }
     }  
   }

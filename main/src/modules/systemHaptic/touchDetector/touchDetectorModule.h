@@ -27,41 +27,41 @@
 
 class TouchDetectorModule: public yarp::os::RFModule
 {
-	public:
-		bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
-	   	bool interruptModule();                       // interrupt, e.g., the ports 
-	   	bool close();                                 // close and shut down the module
-	   	bool respond();
-	   	bool updateModule();
-	   
-   	protected:
-	   	/* module parameters */
-	   	int period;
-	   	int threshold;
-		std::string moduleName;
-		std::string torsoPortName;
-		std::string leftArmPortName;
-		std::string rightArmPortName;
-		std::string leftForearmPortName;
-		std::string rightForearmPortName;
-		std::string leftHandPortName;
-		std::string rightHandPortName;
-		std::string touchPortName;
-		std::string clustersConfFilepath;
+    public:
+        bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
+        bool interruptModule();                       // interrupt, e.g., the ports 
+        bool close();                                 // close and shut down the module
+        bool respond();
+        bool updateModule();
+       
+    protected:
+        /* module parameters */
+        int period;
+        int threshold;
+        std::string moduleName;
+        std::string torsoPortName;
+        std::string leftArmPortName;
+        std::string rightArmPortName;
+        std::string leftForearmPortName;
+        std::string rightForearmPortName;
+        std::string leftHandPortName;
+        std::string rightHandPortName;
+        std::string touchPortName;
+        std::string clustersConfFilepath;
 
-		/* class variables */
-		yarp::os::BufferedPort<yarp::os::Bottle> torsoPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> leftArmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> rightArmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> leftForearmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> rightForearmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> leftHandPort;
-	 	yarp::os::BufferedPort<yarp::os::Bottle> rightHandPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> touchPort;
-	   	TouchDetectorThread	*thread;
-	   	
-	   	void initializeParameters(yarp::os::ResourceFinder &rf);
-		bool openPorts();
+        /* class variables */
+        yarp::os::BufferedPort<yarp::os::Bottle> torsoPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> leftArmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> rightArmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> leftForearmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> rightForearmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> leftHandPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> rightHandPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> touchPort;
+        TouchDetectorThread *thread;
+        
+        void initializeParameters(yarp::os::ResourceFinder &rf);
+        bool openPorts();
 };
 
 #endif

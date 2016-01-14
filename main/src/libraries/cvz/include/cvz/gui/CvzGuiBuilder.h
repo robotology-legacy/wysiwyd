@@ -10,20 +10,20 @@
 
 
 namespace cvz {
-	namespace gui {
+    namespace gui {
 
 
 class CvzGuiBuilder
 {
 public:
-	static std::string helpMessage()
-	{
-		std::string s = "CvzGuiBuilder knows the following types : \n";
-		s += core::TYPE_ICVZ;
-		s += " (Convergence Zone Interface)" + '\n';
-		s += core::TYPE_MMCM;
-		s += " (Multi Modal Convergence Map)" + '\n';
-		s += core::TYPE_MLP;
+    static std::string helpMessage()
+    {
+        std::string s = "CvzGuiBuilder knows the following types : \n";
+        s += core::TYPE_ICVZ;
+        s += " (Convergence Zone Interface)" + '\n';
+        s += core::TYPE_MMCM;
+        s += " (Multi Modal Convergence Map)" + '\n';
+        s += core::TYPE_MLP;
         s += " (Multiple Layered Perceptron)" + '\n';
         s += core::TYPE_ESOM;
         s += " (Evolving Self Organizing Map)" + '\n';
@@ -31,16 +31,16 @@ public:
         s += " (Dummy Template)" + '\n';
         s += core::TYPE_NN;
         s += " (Neural Model Test)" + '\n';
-		return s;
-	}
+        return s;
+    }
 
-	static bool allocate(cvz::gui::GuiICvz** ptr, const std::string &type, core::IConvergenceZone* ptrCvz)
-	{
-		if (type == cvz::core::TYPE_ICVZ)
-			(*ptr) = new cvz::gui::GuiICvz(ptrCvz);
-		else if (type == cvz::core::TYPE_MMCM)
-			(*ptr) = new cvz::gui::GuiMMCM(ptrCvz);
-		else if (type == cvz::core::TYPE_MLP)
+    static bool allocate(cvz::gui::GuiICvz** ptr, const std::string &type, core::IConvergenceZone* ptrCvz)
+    {
+        if (type == cvz::core::TYPE_ICVZ)
+            (*ptr) = new cvz::gui::GuiICvz(ptrCvz);
+        else if (type == cvz::core::TYPE_MMCM)
+            (*ptr) = new cvz::gui::GuiMMCM(ptrCvz);
+        else if (type == cvz::core::TYPE_MLP)
             (*ptr) = new cvz::gui::GuiICvz(ptrCvz);
         else if (type == cvz::core::TYPE_ESOM)
             (*ptr) = new cvz::gui::GuiESOM(ptrCvz);
@@ -48,10 +48,10 @@ public:
             (*ptr) = new cvz::gui::GuiTemplate(ptrCvz);
         else if (type == cvz::core::TYPE_NN)
             (*ptr) = new cvz::gui::GuiNN(ptrCvz);
-		else
-			return false;
-		return true;
-	}
+        else
+            return false;
+        return true;
+    }
 };
 }
 }

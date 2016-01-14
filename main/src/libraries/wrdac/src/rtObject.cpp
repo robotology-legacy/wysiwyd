@@ -29,15 +29,15 @@ RTObject::RTObject():Object()
 {    
     m_entity_type = EFAA_OPC_ENTITY_RTOBJECT;
     m_rt_position.resize(3,0.0);
-	m_present = true;
+    m_present = true;
 }
 
 
 RTObject::RTObject(const RTObject &b):Object(b)
 {
-	this->m_entity_type = b.m_entity_type;
-	this->m_rt_position = b.m_rt_position;
-	this->m_present = true;
+    this->m_entity_type = b.m_entity_type;
+    this->m_rt_position = b.m_rt_position;
+    this->m_present = true;
 }
 
 Bottle RTObject::asBottle()

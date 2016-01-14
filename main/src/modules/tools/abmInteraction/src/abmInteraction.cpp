@@ -97,7 +97,7 @@ bool abmInteraction::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "bRecognized " << bRecognized.toString();
     cout << bRecognized.get(1).toString() << endl;
     bRecognized.clear();
-    }	*/
+    }   */
     //end testing
 
     return true;

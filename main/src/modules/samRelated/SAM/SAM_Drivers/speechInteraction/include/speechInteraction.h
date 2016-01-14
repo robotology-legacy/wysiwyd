@@ -64,15 +64,15 @@ class speechInteraction: public RFModule
         vector<string> inputVocabs;
         vector<string> outputVocabs;
         
-	    BufferedPort<Bottle> outputPort;
-	    BufferedPort<Bottle> inputPort;
-	    BufferedPort<Bottle> triggerBehaviourPort;
+        BufferedPort<Bottle> outputPort;
+        BufferedPort<Bottle> inputPort;
+        BufferedPort<Bottle> triggerBehaviourPort;
         Port rpc;
         string GrammarAskNamePerson;
         string moduleName;
 
-	    string inputPortName;	   	    
-	    string outputPortName;	   	    
+        string inputPortName;           
+        string outputPortName;          
         string triggerBehaviourPortName;
         bool outputOpen;
         bool inputOpen;

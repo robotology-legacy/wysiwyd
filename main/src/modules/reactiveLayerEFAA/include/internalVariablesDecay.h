@@ -79,11 +79,11 @@ public:
                 d->second = max(0.0, min(1.0, d->second));
             }
 
-            /*			cout<<"EMOTIONS : "<<endl;
+            /*          cout<<"EMOTIONS : "<<endl;
             for(map<string,double>::iterator d=currentAgent->m_emotions_intrinsic.begin(); d != currentAgent->m_emotions_intrinsic.end(); d++)
             {
             cout<<'\t'<<d->first<<'\t'<<d->second<<endl;
-            }*/		
+            }*/     
         }
         opc->commit();
     }

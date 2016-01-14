@@ -32,7 +32,7 @@ Action::Action():Entity()
 
 Action::Action(const Action &b):Entity(b)
 {
-	this->initialDescription = b.initialDescription;
+    this->initialDescription = b.initialDescription;
     this->subActions = b.subActions;
     this->estimatedDriveEffects = b.estimatedDriveEffects;
 }

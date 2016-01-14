@@ -28,57 +28,57 @@
 
 class TouchDetectorThread : public yarp::os::RateThread
 {
-	public:
-		TouchDetectorThread(yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPort, int period, std::string *clustersConfFilepath, int threshold);   
-		void run(); 
-		bool threadInit();
-	   
-	protected:
-		static const int noCluster;
-		static const int nbBodyParts;
-		static const char* bodyParts[7];
-		static const int nbTaxels[7];
-		
-		int	nbClusters;
-		int threshold;
-		std::string	*clustersConfFilepath;
-		std::vector<int> taxels2Clusters[7];
-		
-		/* ports */
-		yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort;
-		yarp::os::BufferedPort<yarp::os::Bottle> *touchPort;
-		
-		bool readTaxelsMapping(const char* filename);
-		void parseMappingLine(std::string line, int &bodyPart, int &firstTaxel, int &lastTaxel);
-		int getBodyPartId(std::string bodyPartName);
-		void updateMapping(int bodyPart, int firstTaxel, int lastTaxel, int cluster);
-		void countActivations(int bodyPart, yarp::os::Bottle *data, std::vector<int> &activations);
-		void processPort(int portNum, yarp::os::BufferedPort<yarp::os::Bottle> *port, std::vector<int> &activations);
+    public:
+        TouchDetectorThread(yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPort, int period, std::string *clustersConfFilepath, int threshold);   
+        void run(); 
+        bool threadInit();
+       
+    protected:
+        static const int noCluster;
+        static const int nbBodyParts;
+        static const char* bodyParts[7];
+        static const int nbTaxels[7];
+        
+        int nbClusters;
+        int threshold;
+        std::string *clustersConfFilepath;
+        std::vector<int> taxels2Clusters[7];
+        
+        /* ports */
+        yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *touchPort;
+        
+        bool readTaxelsMapping(const char* filename);
+        void parseMappingLine(std::string line, int &bodyPart, int &firstTaxel, int &lastTaxel);
+        int getBodyPartId(std::string bodyPartName);
+        void updateMapping(int bodyPart, int firstTaxel, int lastTaxel, int cluster);
+        void countActivations(int bodyPart, yarp::os::Bottle *data, std::vector<int> &activations);
+        void processPort(int portNum, yarp::os::BufferedPort<yarp::os::Bottle> *port, std::vector<int> &activations);
 };
 
 class ParsingException: public std::exception
 {
-	public:
-		int line;
-		
-		ParsingException();
-		virtual const char* what() const throw();
+    public:
+        int line;
+        
+        ParsingException();
+        virtual const char* what() const throw();
 };
 
 class BadFormatException: public std::exception
 {
-	public:
-		const char* expectedType;
-		const char* portName;
-		
-		BadFormatException();
-		virtual const char* what() const throw();
+    public:
+        const char* expectedType;
+        const char* portName;
+        
+        BadFormatException();
+        virtual const char* what() const throw();
 };
 
 #endif

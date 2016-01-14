@@ -11,7 +11,7 @@
  * http://www.ml.uni-saarland.de/people/nguyen.htm 
  * 
  * History
- * 	- last update: 28.04.2015
+ *  - last update: 28.04.2015
  **/
 #ifndef MATH_UTIL_H
 #define MATH_UTIL_H 1
@@ -48,36 +48,36 @@ inline double pNorm(const double* a, int n, double p) {
 }
 
 inline double innerProd(const double* a, const double* b, int n) {
-	double s = 0;
-	FOR(i, n) {
-		s += a[i]*b[i];
-	}
-	return s;
+    double s = 0;
+    FOR(i, n) {
+        s += a[i]*b[i];
+    }
+    return s;
 }
 
 inline void normalize(double* x, int n) {
-	double s = 0;
-	FOR(i, n) s += x[i];
-	FOR(i, n) x[i] /= s;
+    double s = 0;
+    FOR(i, n) s += x[i];
+    FOR(i, n) x[i] /= s;
 }
 
 inline void discritize(const double* X, int n1, int n2, double* Y) {
-	double** matrix = array_to_matrix(X, n1, n2);
-	hungarian_problem_t hunger;
-	hungarian_init(&hunger, matrix, n1, n2, HUNGARIAN_MODE_MAXIMIZE_UTIL) ;
-	hungarian_solve(&hunger);
-	FOR(i, n1) {
-		FOR(j, n2) Y[i*n2+j] = (hunger.assignment[i][j] > 0) ?1: 0;
-	}
-	hungarian_free(&hunger);
-	if (matrix != NULL) {
-		FOR(i, n1) {
-			if (matrix[i] != NULL) {
-				free(matrix[i]);
-			}
-		}
-		free(matrix);
-	}
+    double** matrix = array_to_matrix(X, n1, n2);
+    hungarian_problem_t hunger;
+    hungarian_init(&hunger, matrix, n1, n2, HUNGARIAN_MODE_MAXIMIZE_UTIL) ;
+    hungarian_solve(&hunger);
+    FOR(i, n1) {
+        FOR(j, n2) Y[i*n2+j] = (hunger.assignment[i][j] > 0) ?1: 0;
+    }
+    hungarian_free(&hunger);
+    if (matrix != NULL) {
+        FOR(i, n1) {
+            if (matrix[i] != NULL) {
+                free(matrix[i]);
+            }
+        }
+        free(matrix);
+    }
 }
 
 #endif

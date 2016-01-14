@@ -194,8 +194,8 @@ void adjKnowledge::determineSpatialInfluence()
 
 // Check the effect of each adjverb.
 // if spatial:
-//	//	if absolute: return (absolute X Y)
-//	//	if relative: return (relative DX DY)
+//  //  if absolute: return (absolute X Y)
+//  //  if relative: return (relative DX DY)
 // if temporal: return (delay Delay)
 Bottle adjKnowledge::getEffect(string sAction, bool bPrint)
 {

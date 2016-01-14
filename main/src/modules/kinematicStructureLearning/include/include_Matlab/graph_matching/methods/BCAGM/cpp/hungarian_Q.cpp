@@ -127,7 +127,7 @@ int hungarian_init(hungarian_problem_t* p, double** cost_matrix, int rows, int c
       p->assignment[i][j] = 0;
 
       if (max_cost < p->cost[i][j])
-	max_cost = p->cost[i][j];
+    max_cost = p->cost[i][j];
     }
   }
 
@@ -135,7 +135,7 @@ int hungarian_init(hungarian_problem_t* p, double** cost_matrix, int rows, int c
   if (mode == HUNGARIAN_MODE_MAXIMIZE_UTIL) {
     for(i=0; i<p->num_rows; i++) {
       for(j=0; j<p->num_cols; j++) {
-	p->cost[i][j] =  max_cost - p->cost[i][j];
+    p->cost[i][j] =  max_cost - p->cost[i][j];
       }
     }
   }
@@ -224,12 +224,12 @@ void hungarian_solve(hungarian_problem_t* p)
     {
       s=p->cost[0][l];
       for (k=1;k<m;k++) 
-	if (p->cost[k][l]<s)
-	  s=p->cost[k][l];
+    if (p->cost[k][l]<s)
+      s=p->cost[k][l];
       cost+=s;
       if (s!=0)
-	for (k=0;k<m;k++)
-	  p->cost[k][l]-=s;
+    for (k=0;k<m;k++)
+      p->cost[k][l]-=s;
     }
   // End subtract column minima in order to start with lots of zeroes 12
 
@@ -246,21 +246,21 @@ void hungarian_solve(hungarian_problem_t* p)
     {
       s=p->cost[k][0];
       for (l=1;l<n;l++)
-	if (p->cost[k][l]<s)
-	  s=p->cost[k][l];
+    if (p->cost[k][l]<s)
+      s=p->cost[k][l];
       row_dec[k]=s;
       for (l=0;l<n;l++)
-	if (s==p->cost[k][l] && row_mate[l]<0)
-	  {
-	    col_mate[k]=l;
-	    row_mate[l]=k;
-	    if (verbose)
-	      fprintf(stderr, "matching col %d==row %d\n",l,k);
-	    goto row_done;
-	  }
+    if (s==p->cost[k][l] && row_mate[l]<0)
+      {
+        col_mate[k]=l;
+        row_mate[l]=k;
+        if (verbose)
+          fprintf(stderr, "matching col %d==row %d\n",l,k);
+        goto row_done;
+      }
       col_mate[k]= -1;
       if (verbose)
-	fprintf(stderr, "node %d: unmatched row %d\n",t,k);
+    fprintf(stderr, "node %d: unmatched row %d\n",t,k);
       unchosen_row[t++]=k;
     row_done:
       ;
@@ -274,119 +274,119 @@ void hungarian_solve(hungarian_problem_t* p)
   while (1)
     {
       if (verbose)
-	fprintf(stderr, "Matched %d rows.\n",m-t);
+    fprintf(stderr, "Matched %d rows.\n",m-t);
       q=0;
       while (1)
-	{
-	  while (q<t)
-	    {
-	      // Begin explore node q of the forest 19
-	      {
-		k=unchosen_row[q];
-		s=row_dec[k];
-		for (l=0;l<n;l++)
-		  if (slack[l])
-		    {
-		      double del;
-		      del=p->cost[k][l]-s+col_inc[l];
-		      if (del<slack[l])
-			{
-			  if (del==0)
-			    {
-			      if (row_mate[l]<0)
-				goto breakthru;
-			      slack[l]=0;
-			      parent_row[l]=k;
-			      if (verbose)
-				fprintf(stderr, "node %d: row %d==col %d--row %d\n",
-				       t,row_mate[l],l,k);
-			      unchosen_row[t++]=row_mate[l];
-			    }
-			  else
-			    {
-			      slack[l]=del;
-			      slack_row[l]=k;
-			    }
-			}
-		    }
-	      }
-	      // End explore node q of the forest 19
-	      q++;
-	    }
+    {
+      while (q<t)
+        {
+          // Begin explore node q of the forest 19
+          {
+        k=unchosen_row[q];
+        s=row_dec[k];
+        for (l=0;l<n;l++)
+          if (slack[l])
+            {
+              double del;
+              del=p->cost[k][l]-s+col_inc[l];
+              if (del<slack[l])
+            {
+              if (del==0)
+                {
+                  if (row_mate[l]<0)
+                goto breakthru;
+                  slack[l]=0;
+                  parent_row[l]=k;
+                  if (verbose)
+                fprintf(stderr, "node %d: row %d==col %d--row %d\n",
+                       t,row_mate[l],l,k);
+                  unchosen_row[t++]=row_mate[l];
+                }
+              else
+                {
+                  slack[l]=del;
+                  slack_row[l]=k;
+                }
+            }
+            }
+          }
+          // End explore node q of the forest 19
+          q++;
+        }
  
-	  // Begin introduce a new zero into the matrix 21
-	  s=INF;
-	  for (l=0;l<n;l++)
-	    if (slack[l] && slack[l]<s)
-	      s=slack[l];
-	  for (q=0;q<t;q++)
-	    row_dec[unchosen_row[q]]+=s;
-	  for (l=0;l<n;l++)
-	    if (slack[l])
-	      {
-		slack[l]-=s;
-		if (slack[l]==0)
-		  {
-		    // Begin look at a new zero 22
-		    k=slack_row[l];
-		    if (verbose)
-		      fprintf(stderr, 
-			     "Decreasing uncovered elements by %d produces zero at [%d,%d]\n",
-			     s,k,l);
-		    if (row_mate[l]<0)
-		      {
-			for (j=l+1;j<n;j++)
-			  if (slack[j]==0)
-			    col_inc[j]+=s;
-			goto breakthru;
-		      }
-		    else
-		      {
-			parent_row[l]=k;
-			if (verbose)
-			  fprintf(stderr, "node %d: row %d==col %d--row %d\n",t,row_mate[l],l,k);
-			unchosen_row[t++]=row_mate[l];
-		      }
-		    // End look at a new zero 22
-		  }
-	      }
-	    else
-	      col_inc[l]+=s;
-	  // End introduce a new zero into the matrix 21
-	}
+      // Begin introduce a new zero into the matrix 21
+      s=INF;
+      for (l=0;l<n;l++)
+        if (slack[l] && slack[l]<s)
+          s=slack[l];
+      for (q=0;q<t;q++)
+        row_dec[unchosen_row[q]]+=s;
+      for (l=0;l<n;l++)
+        if (slack[l])
+          {
+        slack[l]-=s;
+        if (slack[l]==0)
+          {
+            // Begin look at a new zero 22
+            k=slack_row[l];
+            if (verbose)
+              fprintf(stderr, 
+                 "Decreasing uncovered elements by %d produces zero at [%d,%d]\n",
+                 s,k,l);
+            if (row_mate[l]<0)
+              {
+            for (j=l+1;j<n;j++)
+              if (slack[j]==0)
+                col_inc[j]+=s;
+            goto breakthru;
+              }
+            else
+              {
+            parent_row[l]=k;
+            if (verbose)
+              fprintf(stderr, "node %d: row %d==col %d--row %d\n",t,row_mate[l],l,k);
+            unchosen_row[t++]=row_mate[l];
+              }
+            // End look at a new zero 22
+          }
+          }
+        else
+          col_inc[l]+=s;
+      // End introduce a new zero into the matrix 21
+    }
     breakthru:
       // Begin update the matching 20
       if (verbose)
-	fprintf(stderr, "Breakthrough at node %d of %d!\n",q,t);
+    fprintf(stderr, "Breakthrough at node %d of %d!\n",q,t);
       while (1)
-	{
-	  j=col_mate[k];
-	  col_mate[k]=l;
-	  row_mate[l]=k;
-	  if (verbose)
-	    fprintf(stderr, "rematching col %d==row %d\n",l,k);
-	  if (j<0)
-	    break;
-	  k=parent_row[j];
-	  l=j;
-	}
+    {
+      j=col_mate[k];
+      col_mate[k]=l;
+      row_mate[l]=k;
+      if (verbose)
+        fprintf(stderr, "rematching col %d==row %d\n",l,k);
+      if (j<0)
+        break;
+      k=parent_row[j];
+      l=j;
+    }
       // End update the matching 20
       if (--unmatched==0)
-	goto done;
+    goto done;
       // Begin get ready for another stage 17
       t=0;
       for (l=0;l<n;l++)
-	{
-	  parent_row[l]= -1;
-	  slack[l]=INF;
-	}
+    {
+      parent_row[l]= -1;
+      slack[l]=INF;
+    }
       for (k=0;k<m;k++)
-	if (col_mate[k]<0)
-	  {
-	    if (verbose)
-	      fprintf(stderr, "node %d: unmatched row %d\n",t,k);
-	    unchosen_row[t++]=k;
-	  }
+    if (col_mate[k]<0)
+      {
+        if (verbose)
+          fprintf(stderr, "node %d: unmatched row %d\n",t,k);
+        unchosen_row[t++]=k;
+      }
       // End get ready for another stage 17
     }
  done:
@@ -395,22 +395,22 @@ void hungarian_solve(hungarian_problem_t* p)
   for (k=0;k<m;k++)
     for (l=0;l<n;l++)
       if (p->cost[k][l]<row_dec[k]-col_inc[l]) {
-		//exit(0);
-	}
+        //exit(0);
+    }
 
   for (k=0;k<m;k++)
     {
       l=col_mate[k];
       if (l<0 || p->cost[k][l]!=row_dec[k]-col_inc[l]) {
-		//exit(0);
-	}
+        //exit(0);
+    }
     }
   k=0;
   for (l=0;l<n;l++)
     if (col_inc[l])
       k++;
   if (k>m) {
-	 //exit(0);
+     //exit(0);
   }
   // End doublecheck the solution 23
   // End Hungarian algorithm 18
@@ -423,10 +423,10 @@ void hungarian_solve(hungarian_problem_t* p)
   for (k=0;k<m;++k)
     {
       for (l=0;l<n;++l)
-	{
-	  /*TRACE("%d ",p->cost[k][l]-row_dec[k]+col_inc[l]);*/
-	  p->cost[k][l]=p->cost[k][l]-row_dec[k]+col_inc[l];
-	}
+    {
+      /*TRACE("%d ",p->cost[k][l]-row_dec[k]+col_inc[l]);*/
+      p->cost[k][l]=p->cost[k][l]-row_dec[k]+col_inc[l];
+    }
       /*TRACE("\n");*/
     }
   for (i=0;i<m;i++)

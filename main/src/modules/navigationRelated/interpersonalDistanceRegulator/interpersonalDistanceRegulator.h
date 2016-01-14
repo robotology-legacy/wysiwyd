@@ -18,46 +18,46 @@ using namespace wysiwyd::wrdac;
 class InterpersonalDistanceRegulator: public RFModule, public interpersonalDistanceRegulator_IDL
 {
 public:
-	//Thrift methods
-	virtual bool pause() { isPaused = true; return true; }
-	virtual bool resume() { isPaused = false; return true; }
-	virtual bool quit() { isQuitting = true; return true; }
+    //Thrift methods
+    virtual bool pause() { isPaused = true; return true; }
+    virtual bool resume() { isPaused = false; return true; }
+    virtual bool quit() { isQuitting = true; return true; }
 
 private:
 
-	bool isPaused, isQuitting;
+    bool isPaused, isQuitting;
 
-	//Clients
-	SubSystem_iKart* ikart;
-	OPCClient* opc;
+    //Clients
+    SubSystem_iKart* ikart;
+    OPCClient* opc;
 
-	//Parameters
-	double preferedDistanceToPeople;
-	double fwdSpeed, backwdSpeed, turningSpeed;
+    //Parameters
+    double preferedDistanceToPeople;
+    double fwdSpeed, backwdSpeed, turningSpeed;
 
-	//Module related
-	Agent*	partner;
+    //Module related
+    Agent*  partner;
     double period;
     Port    rpc;
 
 public:
-	bool configure(yarp::os::ResourceFinder &rf);
-	bool updateModule();
-	bool respond(const Bottle& cmd, Bottle& reply);
+    bool configure(yarp::os::ResourceFinder &rf);
+    bool updateModule();
+    bool respond(const Bottle& cmd, Bottle& reply);
 
     bool interruptModule()
-	{
-		opc->interrupt();
+    {
+        opc->interrupt();
 
         return true;
     }
 
     bool close()
     {
-		opc->close();
-		ikart->Close();
-		delete ikart;
-		delete opc;
+        opc->close();
+        ikart->Close();
+        delete ikart;
+        delete opc;
         return true;
     }
 

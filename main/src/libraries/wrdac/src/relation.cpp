@@ -52,15 +52,15 @@ Relation::Relation(
             )
 {
     m_opcId = -1;
-	if (subject)
-		m_subject = subject->name();
-	else
-		m_subject = "none";
+    if (subject)
+        m_subject = subject->name();
+    else
+        m_subject = "none";
 
-	if (verb)
-		m_verb = verb->name();
-	else
-		m_verb = "none";
+    if (verb)
+        m_verb = verb->name();
+    else
+        m_verb = "none";
 
     if (object)
         m_object = object->name();
@@ -96,13 +96,13 @@ Bottle Relation::asBottle(bool ignoreID)
     bSub.addString(EFAA_OPC_ENTITY_RELATION);
     b.addList()=bSub;
 
-	if (!ignoreID)
-	{
-		bSub.clear();
-		bSub.addString("id");
-		bSub.addInt(m_opcId);
-		b.addList()=bSub;
-	}
+    if (!ignoreID)
+    {
+        bSub.clear();
+        bSub.addString("id");
+        bSub.addInt(m_opcId);
+        b.addList()=bSub;
+    }
     bSub.clear();
     bSub.addString("rSubject");
     bSub.addString(m_subject.c_str());
@@ -148,29 +148,29 @@ Bottle Relation::asLightBottle(bool ignoreID)
     b.addList()=bSub;
     bSub.clear();
     bSub.addString("rObject");
-	bSub.addString(m_object.c_str());
-	b.addList()=bSub;
-	if (m_complement_place != "none")
-	{
-		bSub.clear();
-		bSub.addString("rCompPlace");
-		bSub.addString(m_complement_place.c_str());
-		b.addList()=bSub;
-	}
-	if (m_complement_time != "none")
-	{
-		bSub.clear();
-		bSub.addString("rCompTime");
-		bSub.addString(m_complement_time.c_str());
-		b.addList()=bSub;
-	}
-	if (m_complement_manner != "none")
-	{
-		bSub.clear();
-		bSub.addString("rCompManner");
-		bSub.addString(m_complement_manner.c_str());
-		b.addList()=bSub;
-	}
+    bSub.addString(m_object.c_str());
+    b.addList()=bSub;
+    if (m_complement_place != "none")
+    {
+        bSub.clear();
+        bSub.addString("rCompPlace");
+        bSub.addString(m_complement_place.c_str());
+        b.addList()=bSub;
+    }
+    if (m_complement_time != "none")
+    {
+        bSub.clear();
+        bSub.addString("rCompTime");
+        bSub.addString(m_complement_time.c_str());
+        b.addList()=bSub;
+    }
+    if (m_complement_manner != "none")
+    {
+        bSub.clear();
+        bSub.addString("rCompManner");
+        bSub.addString(m_complement_manner.c_str());
+        b.addList()=bSub;
+    }
     return b;
 }
 

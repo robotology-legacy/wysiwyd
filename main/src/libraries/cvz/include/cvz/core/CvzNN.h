@@ -118,7 +118,7 @@ namespace cvz {
             int W() { return width; }
             int L() { return layers; }
 
-			//Those are setup at start time. Are you sure you want to be able to modify them during simulation ?
+            //Those are setup at start time. Are you sure you want to be able to modify them during simulation ?
             //void sL(int l) { layers = l; }
             //void sH(int h) { height = h; }
             //void sW(int w) { width = w; }
@@ -180,19 +180,19 @@ namespace cvz {
 
                 /*double maxActivity = NN->activity[xWin][yWin][zWin];
                 double minActivity = activity[xLoose][yLoose][zLoose];*/
-				img.resize(width, height);
+                img.resize(width, height);
 
-				if (width*height != size)
-				{
-					std::cerr << "getNetworkActivity: incongruency between w,h and size" << std::endl;
-				}
+                if (width*height != size)
+                {
+                    std::cerr << "getNetworkActivity: incongruency between w,h and size" << std::endl;
+                }
                 //unsigned int k = 0;
                 std::cout << "width: "<<width<<std::endl;
                 for (int x = 0; x < width; x++)
                 {
                     for (int y = 0; y < height; y++)
                     {
-						double normalisedValue = getActivity(x, y);
+                        double normalisedValue = getActivity(x, y);
                         img.pixel(x, y) = helpers::double2RGB( normalisedValue);
                     }
                 }
@@ -590,13 +590,13 @@ namespace cvz {
 
                 //yarp::os::Bottle* input_bottle = portFromCoclea.read();
 
-				//Here you are assuming that you network only has one input modality...
+                //Here you are assuming that you network only has one input modality...
                 std::vector<double> input_vector = modalitiesBottomUp["coclea"]->GetValueReal();
-				if (input_vector.size() != input_size)
+                if (input_vector.size() != input_size)
                 {
-					std::cout << "input different than " << input_size << "!!" << std::endl;
-					std::cout << "input size for modality " << modalitiesBottomUp["coclea"]->Name() << std::endl;
-					std::cout << "input size" << modalitiesBottomUp["coclea"]->Size() << std::endl;
+                    std::cout << "input different than " << input_size << "!!" << std::endl;
+                    std::cout << "input size for modality " << modalitiesBottomUp["coclea"]->Name() << std::endl;
+                    std::cout << "input size" << modalitiesBottomUp["coclea"]->Size() << std::endl;
                     //std::cout << "content of bottle" << input_bottle->toString() << std::endl;
                     //std::cout << "test" << input_bottle->get(1).asDouble() << std::endl;
 
@@ -608,16 +608,16 @@ namespace cvz {
                 //NN->normalizeAndSelect();
                 NN->normalizeAndSelect("max");
 
-				yarp::os::Bottle &botActivity = portActivity.prepare();
-				botActivity.clear();
+                yarp::os::Bottle &botActivity = portActivity.prepare();
+                botActivity.clear();
                 botActivity.addInt(testing_frequency);
                 botActivity.addInt(0);
 
                 for (int i=0;i<size;i++)
 
                 {
-					botActivity.addDouble((NN->activity)->at(i+input_size));
-				}
+                    botActivity.addDouble((NN->activity)->at(i+input_size));
+                }
 
                 portActivity.write();
                 //update Weights from LR!!!

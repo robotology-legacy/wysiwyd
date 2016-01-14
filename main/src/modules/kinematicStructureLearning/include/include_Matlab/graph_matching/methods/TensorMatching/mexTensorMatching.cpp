@@ -11,7 +11,7 @@
 #include "mexTensorMatching.h"
 
 void mexFunction( int nlhs, mxArray *plhs[], 
-		  int nrhs, const mxArray*prhs[] )
+          int nrhs, const mxArray*prhs[] )
 { 
   enum{ Xi , indH1i , valH1i , indH2i , valH2i , indH3i , valH3i , nIteri, sparsei, stoci};
   enum{ Xouti , scoreOuti};

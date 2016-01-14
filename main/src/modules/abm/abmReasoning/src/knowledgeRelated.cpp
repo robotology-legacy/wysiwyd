@@ -1014,7 +1014,7 @@ Bottle abmReasoning::getKnowledge()
                 }
                 if (!bFound)
                 {
-                    adjKnowledge	newADJ;
+                    adjKnowledge    newADJ;
                     newADJ.sLabel = sName;
                     newADJ.mActionAbsolut[sArgument].push_back(pXY);
                     newADJ.vdGnlXY.push_back(pXY);
@@ -1038,7 +1038,7 @@ Bottle abmReasoning::getKnowledge()
                 }
                 if (!bFound)
                 {
-                    adjKnowledge	newADJ;
+                    adjKnowledge    newADJ;
                     newADJ.sLabel = sName;
                     newADJ.mActionDelta[sArgument].push_back(pXY);
                     newADJ.vdGnlDelta.push_back(pXY);
@@ -1084,7 +1084,7 @@ Bottle abmReasoning::getKnowledge()
                 }
                 if (!bFound)
                 {
-                    adjKnowledge	newADJ;
+                    adjKnowledge    newADJ;
                     newADJ.sLabel = sName;
                     newADJ.mActionTiming[sArgument].push_back((atof(bInstance.get(2).toString().c_str())));
                     newADJ.vdGnlTiming.push_back((atof(bInstance.get(2).toString().c_str())));

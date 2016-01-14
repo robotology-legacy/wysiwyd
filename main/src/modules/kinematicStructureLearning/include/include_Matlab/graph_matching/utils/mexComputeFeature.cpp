@@ -8,7 +8,7 @@
 #include "mexComputeFeature.h"
 
 void mexFunction( int nlhs, mxArray *plhs[], 
-		  int nrhs, const mxArray*prhs[] )
+          int nrhs, const mxArray*prhs[] )
 { 
   enum{ P1i , P2i , t1i , typei };
   enum{ feat1i , feat2i };

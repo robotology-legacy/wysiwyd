@@ -12,7 +12,7 @@ bool OscThread::threadInit()
     s = new UdpListeningReceiveSocket(
                 IpEndpointName( IpEndpointName::ANY_ADDRESS, port ),
                 this );
-    isCalibrated	 = false;
+    isCalibrated     = false;
     oscFwding.open("/reactable2opc/osc:o");
     return true;
 }

@@ -27,7 +27,7 @@
 
 bool LRH::configure(ResourceFinder &rf) {
 
-    bool	bEveryThingisGood = true;
+    bool    bEveryThingisGood = true;
     moduleName = rf.check("name",
         Value("lrh"),
         "module name (string)").asString();
@@ -83,7 +83,7 @@ bool LRH::configure(ResourceFinder &rf) {
     attach(handlerPort);                  // attach to port
 
     //------------------------//
-    //		iCub Client
+    //      iCub Client
     //------------------------//
 
     // string ttsSystem = SUBSYSTEM_SPEECH;
@@ -195,7 +195,7 @@ bool LRH::populateOPC(){
     x[1] = 0.2;
     x[2] = 0.0016;
 
-    //vGoal is : -0.350000	 0.200000	 0.001600
+    //vGoal is : -0.350000   0.200000    0.001600
     obj1->m_ego_position = x;
     obj1->m_present = 1;
     obj1->m_dimensions = dimensionObject;
@@ -208,7 +208,7 @@ bool LRH::populateOPC(){
     x[0] = -0.45;  //y position
     x[1] = 0.0;    //x position
     x[2] = 0.0016; //z position
-    //vGoal is : -0.350000	 0.200000	 0.001600
+    //vGoal is : -0.350000   0.200000    0.001600
     obj2->m_ego_position = x;
     obj2->m_present = 1;
     obj2->m_dimensions = dimensionObject;
@@ -221,7 +221,7 @@ bool LRH::populateOPC(){
     x[0] = -0.35;
     x[1] = -0.2;
     x[2] = 0.0016;
-    //vGoal is : -0.350000	 0.200000	 0.001600
+    //vGoal is : -0.350000   0.200000    0.001600
     obj3->m_ego_position = x;
     obj3->m_present = 1;
     obj3->m_dimensions = dimensionObject;
@@ -234,7 +234,7 @@ bool LRH::populateOPC(){
     x[0] = -0.1;
     x[1] = -0.8;
     x[2] = 0.0026;
-    //vGoal is : -0.350000	 0.200000	 0.001600
+    //vGoal is : -0.350000   0.200000    0.001600
     obj4->m_ego_position = x;
     obj4->m_present = 1;
     obj4->m_dimensions = dimensionObject;
