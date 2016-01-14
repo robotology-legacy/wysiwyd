@@ -27,90 +27,90 @@
 #include <iostream>
 
 namespace wysiwyd{
-	namespace wrdac{
+    namespace wrdac{
 
-		/**
-		* \ingroup wrdac_clients
-		*
-		* Abstract subSystem for speech recognizer
-		*/
-		class SubSystem_LRH : public SubSystem
-		{
-		protected:
-			bool ABMconnected;
-			virtual bool connect() {
-				// paste master name of 
-				ABMconnected = (SubABM->Connect());
-				yInfo() << ((ABMconnected) ? "LRH connected to ABM" : "LRH didn't connect to ABM");
-				return yarp::os::Network::connect(portRPC.getName(), "/lrh/rpc");
-			}
-			SubSystem_ABM* SubABM;
+        /**
+        * \ingroup wrdac_clients
+        *
+        * Abstract subSystem for speech recognizer
+        */
+        class SubSystem_LRH : public SubSystem
+        {
+        protected:
+            bool ABMconnected;
+            virtual bool connect() {
+                // paste master name of 
+                ABMconnected = (SubABM->Connect());
+                yInfo() << ((ABMconnected) ? "LRH connected to ABM" : "LRH didn't connect to ABM");
+                return yarp::os::Network::connect(portRPC.getName(), "/lrh/rpc");
+            }
+            SubSystem_ABM* SubABM;
 
-		public:
+        public:
 
-			yarp::os::Port portRPC;
-			SubSystem_LRH(const std::string &masterName) : SubSystem(masterName){
-				portRPC.open(("/" + m_masterName + "/lrh:rpc").c_str());
-				m_type = SUBSYSTEM_LRH;
-				SubABM = new SubSystem_ABM(m_masterName + "/from_lrh");
-			}
-
-
-			virtual void Close() {
-				portRPC.interrupt();
-				portRPC.close();
-				SubABM->Close();
-			};
+            yarp::os::Port portRPC;
+            SubSystem_LRH(const std::string &masterName) : SubSystem(masterName){
+                portRPC.open(("/" + m_masterName + "/lrh:rpc").c_str());
+                m_type = SUBSYSTEM_LRH;
+                SubABM = new SubSystem_ABM(m_masterName + "/from_lrh");
+            }
 
 
-			std::string meaningToSentence(std::string sInput)
-			{
-				yarp::os::Bottle bMessenger,
-					bReturn;
-				bMessenger.addString("production");
-				bMessenger.addString(sInput);
+            virtual void Close() {
+                portRPC.interrupt();
+                portRPC.close();
+                SubABM->Close();
+            };
 
-				if (connect()){
-					portRPC.write(bMessenger, bReturn);
-					if (bReturn.size() == 2){
-						return bReturn.get(1).asString();
-					}
-					else{
-						yInfo() << "in subsystem lrh, error in meaningToSentence.";
-						return "none";
-					}
-				}
-				else {
-					yInfo() << "in subsystem lrh, LRH not connected: bypassing.";
-					return "none";
-				}
-			}
 
-			std::string SentenceToMeaning(std::string sInput)
-			{
-				yarp::os::Bottle bMessenger,
-					bReturn;
-				bMessenger.addString("meaning");
-				bMessenger.addString(sInput);
+            std::string meaningToSentence(std::string sInput)
+            {
+                yarp::os::Bottle bMessenger,
+                    bReturn;
+                bMessenger.addString("production");
+                bMessenger.addString(sInput);
 
-				if (connect()){
-					portRPC.write(bMessenger, bReturn);
-					if (bReturn.size() == 2){
-						return bReturn.get(1).asString();
-					}
-					else{
-						yInfo() << "in subsystem lrh, error in sentenceToMeaning.";
-						return "none";
-					}
-				}
-				else {
-					yInfo() << "in subsystem lrh, LRH not connected: bypassing.";
-					return "none";
-				}
-			}
+                if (connect()){
+                    portRPC.write(bMessenger, bReturn);
+                    if (bReturn.size() == 2){
+                        return bReturn.get(1).asString();
+                    }
+                    else{
+                        yInfo() << "in subsystem lrh, error in meaningToSentence.";
+                        return "none";
+                    }
+                }
+                else {
+                    yInfo() << "in subsystem lrh, LRH not connected: bypassing.";
+                    return "none";
+                }
+            }
 
-		};
-	}
+            std::string SentenceToMeaning(std::string sInput)
+            {
+                yarp::os::Bottle bMessenger,
+                    bReturn;
+                bMessenger.addString("meaning");
+                bMessenger.addString(sInput);
+
+                if (connect()){
+                    portRPC.write(bMessenger, bReturn);
+                    if (bReturn.size() == 2){
+                        return bReturn.get(1).asString();
+                    }
+                    else{
+                        yInfo() << "in subsystem lrh, error in sentenceToMeaning.";
+                        return "none";
+                    }
+                }
+                else {
+                    yInfo() << "in subsystem lrh, LRH not connected: bypassing.";
+                    return "none";
+                }
+            }
+
+        };
+    }
 }
 //Namespace
 #endif

@@ -49,17 +49,17 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-	abm = true;
-	if (!iCub->getABMClient())
-	{
-		abm = false;
-		yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
-	}
-	
-	if (!iCub->getLRH())
-	{
-		yWarning() << " WARNING LRH NOT CONNECTED";
-	}
+    abm = true;
+    if (!iCub->getABMClient())
+    {
+        abm = false;
+        yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+    }
+
+    if (!iCub->getLRH())
+    {
+        yWarning() << " WARNING LRH NOT CONNECTED";
+    }
 
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
@@ -474,7 +474,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
                 else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
             }
         }
-            }
+    }
 
 
     if (_bRelations.toString() != "NULL"){

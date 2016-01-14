@@ -100,7 +100,7 @@ bool LRH::configure(ResourceFinder &rf) {
     cout << "Connections done" << endl;
 
 
-	yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
     return true;
@@ -139,7 +139,7 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "help") {
         cout << helpMessage;
-		reply.addString(helpMessage);
+        reply.addString(helpMessage);
     }
     else if (command.get(0).asString() == "spatial"  && command.size() == 2) {
         reply.addString("ack");
@@ -156,9 +156,9 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ack");
         reply.addString(sentenceToMeaning(command.get(1).asString()));
     }
-	else {
-		reply.addString(helpMessage);
-	}
+    else {
+        reply.addString(helpMessage);
+    }
 
     yInfo("sending reply from rpc");
     handlerPort.reply(reply);
@@ -254,10 +254,10 @@ string LRH::sentenceToMeaning(string sentence){
     copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), sentence);
     callReservoir(sreservoirAP, sclosed_class_words);
-	string sOutput = openResult(sfileResult.c_str());
-	yInfo() << "result is: " << sOutput;
+    string sOutput = openResult(sfileResult.c_str());
+    yInfo() << "result is: " << sOutput;
 
-	return sOutput;
+    return sOutput;
 }
 
 // Production
@@ -265,20 +265,20 @@ string LRH::meaningToSentence(string meaning){
     copyPastTrainFile(scorpusFileSD.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), meaning);
     callReservoir(sreservoirSD, sclosed_class_wordsSD);
-	string sOutput = openResult(sfileResult.c_str());
-	yInfo() << "result is: " << sOutput;
+    string sOutput = openResult(sfileResult.c_str());
+    yInfo() << "result is: " << sOutput;
 
-	return sOutput;
+    return sOutput;
 }
 
 string LRH::production(string test) {
     copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), test);
-	callReservoir(sreservoirNarratif, sclosed_class_words);
-	string sOutput = openResult(sfileResult.c_str());
-	yInfo() << "result is: " << sOutput;
+    callReservoir(sreservoirNarratif, sclosed_class_words);
+    string sOutput = openResult(sfileResult.c_str());
+    yInfo() << "result is: " << sOutput;
 
-	return sOutput;
+    return sOutput;
 }
 
 bool LRH::callReservoir(string pythonFile, string closed_class_words)
@@ -315,7 +315,7 @@ int LRH::createTest(const char* filename, std::list<string> lMeaningsSentences)
 
     file << "</train data>" << endl;
     file << "<test data>" << endl;
-    for (it=lMeaningsSentences.begin(); it!=lMeaningsSentences.end(); ++it)
+    for (it = lMeaningsSentences.begin(); it != lMeaningsSentences.end(); ++it)
     {
         file << *it << endl;
     }
