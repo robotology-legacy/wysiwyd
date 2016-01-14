@@ -34,10 +34,10 @@ Agent::Agent():Object()
 
 Agent::Agent(const Agent &b):Object(b)
 {
-	this->m_belief = b.m_belief;
-	this->m_emotions_intrinsic = b.m_emotions_intrinsic;
-	this->m_drives= b.m_drives;
-	this->m_body = b.m_body;
+    this->m_belief = b.m_belief;
+    this->m_emotions_intrinsic = b.m_emotions_intrinsic;
+    this->m_drives= b.m_drives;
+    this->m_body = b.m_body;
 }
 
 Bottle Agent::asBottle()
@@ -54,27 +54,27 @@ Bottle Agent::asBottle()
     }
     b.addList() = bSub;
 
-	Bottle bSubEmotions;
-	bSubEmotions.addString("emotions");
-	Bottle& bSubEmoList = bSubEmotions.addList();
+    Bottle bSubEmotions;
+    bSubEmotions.addString("emotions");
+    Bottle& bSubEmoList = bSubEmotions.addList();
     for(map<string, double>::iterator it = m_emotions_intrinsic.begin(); it != m_emotions_intrinsic.end(); it++)
     {
-		Bottle& bSubEmo = bSubEmoList.addList();
-		bSubEmo.addString(it->first.c_str());
-		bSubEmo.addDouble(it->second);
+        Bottle& bSubEmo = bSubEmoList.addList();
+        bSubEmo.addString(it->first.c_str());
+        bSubEmo.addDouble(it->second);
     }
-	b.addList() = bSubEmotions;
+    b.addList() = bSubEmotions;
 
-	Bottle bSubDrives,bSubSub;
-	bSubDrives.addString("drives");
-	for(map<string, Drive>::iterator it = m_drives.begin(); it != m_drives.end(); it++)
-	{
-		bSubSub.addList() = it->second.asBottle();
-	}
-	bSubDrives.addList() = bSubSub;
-	b.addList() = bSubDrives;
-	          
-	Bottle bSubBody;
+    Bottle bSubDrives,bSubSub;
+    bSubDrives.addString("drives");
+    for(map<string, Drive>::iterator it = m_drives.begin(); it != m_drives.end(); it++)
+    {
+        bSubSub.addList() = it->second.asBottle();
+    }
+    bSubDrives.addList() = bSubSub;
+    b.addList() = bSubDrives;
+              
+    Bottle bSubBody;
     bSubBody.addString("body");
     bSubBody.addList().copy(m_body.asBottle());
     b.addList() = bSubBody;  
@@ -99,30 +99,30 @@ bool Agent::fromBottle(Bottle b)
         m_belief.push_back(r);
     }
 
-	m_emotions_intrinsic.clear();
+    m_emotions_intrinsic.clear();
     Bottle* emotions = b.find("emotions").asList();
     for(int i=0; i<emotions->size() ; i++)
     {
         Bottle* bEmo = emotions->get(i).asList();
-		string emotionName = bEmo->get(0).asString().c_str();
-		double emotionValue = bEmo->get(1).asDouble();
-		m_emotions_intrinsic[emotionName.c_str()] = emotionValue;
+        string emotionName = bEmo->get(0).asString().c_str();
+        double emotionValue = bEmo->get(1).asDouble();
+        m_emotions_intrinsic[emotionName.c_str()] = emotionValue;
     }
 
-	m_drives.clear();
+    m_drives.clear();
     Bottle* drivesProperty = b.find("drives").asList();
-	string drivesDebug = drivesProperty->toString().c_str();
+    string drivesDebug = drivesProperty->toString().c_str();
     for(int i=0; i<drivesProperty->size() ; i++)
     {
-			Bottle* bD = drivesProperty->get(i).asList();
-			string drivesDebug1 = bD->toString().c_str();
-			Drive currentDrive;
-			currentDrive.fromBottle(*bD);
-			m_drives[currentDrive.name] = currentDrive;
+            Bottle* bD = drivesProperty->get(i).asList();
+            string drivesDebug1 = bD->toString().c_str();
+            Drive currentDrive;
+            currentDrive.fromBottle(*bD);
+            m_drives[currentDrive.name] = currentDrive;
 
     }
-	           
-	Bottle* bodyProperty = b.find("body").asList();
+               
+    Bottle* bodyProperty = b.find("body").asList();
     m_body.fromBottle(*bodyProperty);
 
     return true;
@@ -139,14 +139,14 @@ string Agent::toString()
         oss<< it->toString() <<endl;
     }
 
-	oss<<"Emotions:"<<endl;
-	   for(map<string,double>::iterator it = m_emotions_intrinsic.begin(); it != m_emotions_intrinsic.end(); it++)
+    oss<<"Emotions:"<<endl;
+       for(map<string,double>::iterator it = m_emotions_intrinsic.begin(); it != m_emotions_intrinsic.end(); it++)
     {
         oss<< '\t'<<it->first <<" : "<<it->second<<endl;
     }
 
-	oss<<"Drives:"<<endl;
-	for(map<string,Drive>::iterator it = m_drives.begin(); it != m_drives.end(); it++)
+    oss<<"Drives:"<<endl;
+    for(map<string,Drive>::iterator it = m_drives.begin(); it != m_drives.end(); it++)
     {
         oss<< '\t'<<it->first <<" : "<<it->second.name<<"("<<it->second.value<<")"<<endl;
     }
@@ -155,41 +155,41 @@ string Agent::toString()
 
 bool Agent::addBelief(Relation r)
 {
-	//Check if this relation is already present
-	list<Relation>::iterator it = find(m_belief.begin(),m_belief.end(),r);
-	if (it != m_belief.end())
-	{
-		//cout<<"Agent "+name()+" already believes that " + r.toString();
-		return false;
-	}
+    //Check if this relation is already present
+    list<Relation>::iterator it = find(m_belief.begin(),m_belief.end(),r);
+    if (it != m_belief.end())
+    {
+        //cout<<"Agent "+name()+" already believes that " + r.toString();
+        return false;
+    }
 
-	m_belief.push_back(r);
-	//cout<<"Agent "+name()+" now believes that " + r.toString();
-	return true;
+    m_belief.push_back(r);
+    //cout<<"Agent "+name()+" now believes that " + r.toString();
+    return true;
 }
 
 bool Agent::removeBelief(Relation r)
 {
-	//Check if this relation is already present
-	list<Relation>::iterator it = find(m_belief.begin(),m_belief.end(),r);
-	if (it != m_belief.end())
-	{
-		m_belief.erase(it);
-		//cout<<"Agent "+name()+" do not believes anymore that " + r.toString();
-		return true;
-	}
-	//cout<<"Agent "+name()+" didn not believe that " + r.toString();
-	return false;
+    //Check if this relation is already present
+    list<Relation>::iterator it = find(m_belief.begin(),m_belief.end(),r);
+    if (it != m_belief.end())
+    {
+        m_belief.erase(it);
+        //cout<<"Agent "+name()+" do not believes anymore that " + r.toString();
+        return true;
+    }
+    //cout<<"Agent "+name()+" didn not believe that " + r.toString();
+    return false;
 }
 
 bool Agent::checkBelief(Relation r)
 {
-	return (find(m_belief.begin(),m_belief.end(),r) != m_belief.end());
+    return (find(m_belief.begin(),m_belief.end(),r) != m_belief.end());
 }
 
 const std::list<Relation> &Agent::beliefs()
 {
-	return m_belief;
+    return m_belief;
 }
 
 

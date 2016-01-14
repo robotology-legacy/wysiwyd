@@ -33,8 +33,8 @@ Adjective::Adjective():Entity()
 
 Adjective::Adjective(const Adjective &b):Entity(b)
 {
-	this->m_entity_type = EFAA_OPC_ENTITY_ADJECTIVE;
-	this->m_quality = b.m_quality;
+    this->m_entity_type = EFAA_OPC_ENTITY_ADJECTIVE;
+    this->m_quality = b.m_quality;
 }
         
 Bottle Adjective::asBottle()

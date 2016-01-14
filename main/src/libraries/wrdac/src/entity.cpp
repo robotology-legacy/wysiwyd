@@ -39,9 +39,9 @@ Entity::Entity()
 
 Entity::Entity(const Entity &b)
 {
-	this->m_name = b.m_name;
-	this->m_entity_type = b.m_entity_type;
-	this->m_opc_id = b.m_opc_id;
+    this->m_name = b.m_name;
+    this->m_entity_type = b.m_entity_type;
+    this->m_opc_id = b.m_opc_id;
 }
 
 Bottle Entity::asBottle()
@@ -57,18 +57,18 @@ Bottle Entity::asBottle()
     bEntity.addString("entity");
     bEntity.addString(m_entity_type.c_str());
     b.addList() = bEntity;
-		
-	Bottle bProperties;
-	bProperties.addString("intrinsic_properties");
-	Bottle& bPropertiesGlob = bProperties.addList();
-	for(map<string, string>::iterator prop = m_properties.begin(); prop != m_properties.end(); prop++)
-	{
-		Bottle bPropertiesValues;
-		bPropertiesValues.addString(prop->first.c_str());
-		bPropertiesValues.addString(prop->second.c_str());
-		bPropertiesGlob.addList() = bPropertiesValues;
-	}
-	b.addList() = bProperties;
+        
+    Bottle bProperties;
+    bProperties.addString("intrinsic_properties");
+    Bottle& bPropertiesGlob = bProperties.addList();
+    for(map<string, string>::iterator prop = m_properties.begin(); prop != m_properties.end(); prop++)
+    {
+        Bottle bPropertiesValues;
+        bPropertiesValues.addString(prop->first.c_str());
+        bPropertiesValues.addString(prop->second.c_str());
+        bPropertiesGlob.addList() = bPropertiesValues;
+    }
+    b.addList() = bProperties;
     return b;
 }
 
@@ -83,9 +83,9 @@ Bottle Entity::asBottleOnlyModifiedProperties()
         Value currentValue = current_entity.find(currentTag.c_str());
         Value originalValue = m_original_entity.find(currentTag.c_str()); 
      
-	//std::cout<<"Debug: tag:"<<currentTag<<std::endl;
-	//std::cout<<"Debug: cValue:"<<currentValue.toString()<<std::endl;
-	//std::cout<<"Debug: oValue:"<<originalValue.toString()<<std::endl;
+    //std::cout<<"Debug: tag:"<<currentTag<<std::endl;
+    //std::cout<<"Debug: cValue:"<<currentValue.toString()<<std::endl;
+    //std::cout<<"Debug: oValue:"<<originalValue.toString()<<std::endl;
         if (currentValue.toString() != originalValue.toString())
         {
             Bottle bSub;
@@ -103,18 +103,18 @@ bool Entity::fromBottle(Bottle b)
     if (!b.check("name") || !b.check("entity"))
         return false;
 
-//	m_opc_id = b->find("id").asInt();
+//  m_opc_id = b->find("id").asInt();
     m_name = b.find("name").asString().c_str();
     m_entity_type = b.find("entity").asString().c_str();
-		
-	Bottle* bProperties = b.find("intrinsic_properties").asList();
-	
-	for(int i=0; i< bProperties->size() ; i++)
-	{
-		std::string pTag = bProperties->get(i).asList()->get(0).asString().c_str();
-		std::string pVal = bProperties->get(i).asList()->get(1).asString().c_str();
-		m_properties[pTag] = pVal;
-	}
+        
+    Bottle* bProperties = b.find("intrinsic_properties").asList();
+    
+    for(int i=0; i< bProperties->size() ; i++)
+    {
+        std::string pTag = bProperties->get(i).asList()->get(0).asString().c_str();
+        std::string pVal = bProperties->get(i).asList()->get(1).asString().c_str();
+        m_properties[pTag] = pVal;
+    }
 
     return true;
 }
@@ -127,30 +127,30 @@ string Entity::toString()
     oss <<"ID : "    <<    m_opc_id<<endl;
     oss <<"Type : "    <<    m_entity_type<<endl;
     oss <<"Intrinsic properties: "<<endl;
-	for(map<string, string>::iterator prop = m_properties.begin(); prop != m_properties.end(); prop++)
-	{
-		oss<<'\t'<<prop->first.c_str()<<" : "<<prop->second.c_str()<<endl;
+    for(map<string, string>::iterator prop = m_properties.begin(); prop != m_properties.end(); prop++)
+    {
+        oss<<'\t'<<prop->first.c_str()<<" : "<<prop->second.c_str()<<endl;
 
-	}
+    }
     return oss.str();
 }
 
 
 bool Entity::operator==(const Entity &b)
 {
-	return (this->m_opc_id == b.m_opc_id);
+    return (this->m_opc_id == b.m_opc_id);
 }
 
 
 bool Entity::operator<(const Entity &b)
 {
-	return (this->m_opc_id < b.m_opc_id );
+    return (this->m_opc_id < b.m_opc_id );
 }
 
 
 bool Entity::operator>(const Entity &b)
 {
-	return (this->m_opc_id > b.m_opc_id );
+    return (this->m_opc_id > b.m_opc_id );
 }
 
 

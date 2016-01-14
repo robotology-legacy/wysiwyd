@@ -220,7 +220,7 @@ bool humanRobotDump::closeSWS()
     }
 
     // closes yarp ports
-	m_oSynchronizedDataPort.interrupt();
+    m_oSynchronizedDataPort.interrupt();
     m_oSynchronizedDataPort.close();
 
     std::cout << "--Closing the synchronized yarp ports module..." << std::endl;

@@ -422,7 +422,7 @@ bool abmReasoning::respond(const yarp::os::Bottle& bCommand, yarp::os::Bottle& b
         else
         {
             bReply.addList() = resetKnowledge();
-            //	bReply.addList() = retroReasoning();
+            //  bReply.addList() = retroReasoning();
         }
     }
     // RETRO REASONING

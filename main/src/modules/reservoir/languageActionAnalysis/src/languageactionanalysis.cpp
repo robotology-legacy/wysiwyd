@@ -20,18 +20,18 @@
 
 
 bool LanguageActionAnalysis::configure(ResourceFinder &rf){
-    bool	bEveryThingisGood = true;
-    bool	bOptionnalModule  = true;
+    bool    bEveryThingisGood = true;
+    bool    bOptionnalModule  = true;
 
     moduleName    = rf.check("name",
                 Value("languageActionAnalysis"),
                                      "module name (string)").asString();
     sKeyWord      = rf.check("keyword", Value("grammar")).toString().c_str();
 
-    nameGrammarNode	 = rf.getContextPath().c_str();
-    nameGrammarNode	+= rf.check("nameGrammarNode",  Value("/nameGrammarNode.xml")).toString().c_str();
+    nameGrammarNode  = rf.getContextPath().c_str();
+    nameGrammarNode += rf.check("nameGrammarNode",  Value("/nameGrammarNode.xml")).toString().c_str();
 
-    fvector	= rf.getContextPath().c_str();
+    fvector = rf.getContextPath().c_str();
     fvector += rf.check("vectorFile",  Value("vector.txt")).toString().c_str();
 
     cout << fvector << "        " << endl;
@@ -66,7 +66,7 @@ bool LanguageActionAnalysis::configure(ResourceFinder &rf){
     attach(handlerPort);                  // attach to port
 
     //------------------------//
-    //		iCub Client
+    //      iCub Client
     //------------------------//
 
     string ttsSystem = SUBSYSTEM_SPEECH;
@@ -370,7 +370,7 @@ int LanguageActionAnalysis::languageNode()
 
     sCurrentNode = "nodeQuestion";
     sCurrentGrammarFile = nameGrammarNode;
-    ostringstream osError;			// Error message
+    ostringstream osError;          // Error message
     osError << "Error in  LanguageActionAnalysis | "<< sCurrentNode << " :: ";
     cout << endl << "In " << sCurrentNode << endl << endl;
 

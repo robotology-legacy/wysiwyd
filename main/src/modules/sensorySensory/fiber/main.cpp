@@ -7,16 +7,16 @@ using namespace yarp::os;
 
 class CvzFiberModule :public RFModule
 {
-	cvz::core::CvzFiber* fiber;
+    cvz::core::CvzFiber* fiber;
 
 public:
-	bool configure(yarp::os::ResourceFinder &rf)
-	{
-		fiber = new cvz::core::CvzFiber();
-		yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
+    bool configure(yarp::os::ResourceFinder &rf)
+    {
+        fiber = new cvz::core::CvzFiber();
+        yarp::os::Property prop; prop.fromConfigFile(rf.findFile("from"));
         attachTerminal();
-		return fiber->configure(prop);
-	}
+        return fiber->configure(prop);
+    }
 
     bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply)
     {
@@ -99,39 +99,39 @@ public:
         return 0.01;
     }
 
-	bool updateModule()
-	{
-		fiber->cycle();
-		return true;
-	}
+    bool updateModule()
+    {
+        fiber->cycle();
+        return true;
+    }
 
-	bool close()
-	{
-		delete fiber;
-		return true;
-	}
+    bool close()
+    {
+        delete fiber;
+        return true;
+    }
 };
 
 int main(int argc, char * argv[])
 {
-	Network yarp;
-	if (!Network::checkNetwork())
-	{
-		cout << "yarp network is not available!" << endl;
-		return 0;
-	}
+    Network yarp;
+    if (!Network::checkNetwork())
+    {
+        cout << "yarp network is not available!" << endl;
+        return 0;
+    }
 
-	ResourceFinder rf;
-	rf.setVerbose(true);
-	rf.setDefaultContext("cvz");
-	rf.setDefaultConfigFile("defaultFiber.ini"); //overridden by --from parameter
-	rf.configure(argc, argv);
+    ResourceFinder rf;
+    rf.setVerbose(true);
+    rf.setDefaultContext("cvz");
+    rf.setDefaultConfigFile("defaultFiber.ini"); //overridden by --from parameter
+    rf.configure(argc, argv);
 
-	CvzFiberModule cvzFiber;
-	if (cvzFiber.configure(rf))
-		cvzFiber.runModule();
-	else
-		cout << "Unable to configure the cvz fiber module." << endl;
+    CvzFiberModule cvzFiber;
+    if (cvzFiber.configure(rf))
+        cvzFiber.runModule();
+    else
+        cout << "Unable to configure the cvz fiber module." << endl;
 
-	return 0;
+    return 0;
 }

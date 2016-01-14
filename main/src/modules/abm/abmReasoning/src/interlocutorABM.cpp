@@ -923,14 +923,14 @@ Bottle abmReasoning::findAllActionsV2(int from)
 
                 Bottle bArgument = *bAction.get(1).asList();
 
-                //			yInfo() << "\t"   << bAction.toString()  ;
+                //          yInfo() << "\t"   << bAction.toString()  ;
 
-                list<string>	lAdjectives;
+                list<string>    lAdjectives;
                 lAdjectives.push_back(bArgument.check("adv1", Value("none")).asString());
                 lAdjectives.push_back(bArgument.check("adv2", Value("none")).asString());
 
-                string	sXY = bAction.get(2).toString().c_str();
-                string	sEND = bAction.get(3).toString().c_str();
+                string  sXY = bAction.get(2).toString().c_str();
+                string  sEND = bAction.get(3).toString().c_str();
 
                 bool ObjectPresentBefore = bAction.get(4).asInt() == 1;
                 bool ObjectPresentAfter = bAction.get(5).asInt() == 1;
@@ -2190,7 +2190,7 @@ void abmReasoning::determineTimingInfluence(adjKnowledge &adjInput, bool bPrint)
 {
     // get timing data all in one
 
-    vector<double>	otherTiming;
+    vector<double>  otherTiming;
 
     for (vector<adjKnowledge>::iterator it = listKnownAdverb.begin(); it != listKnownAdverb.end(); it++)
     {
@@ -2312,7 +2312,7 @@ Bottle abmReasoning::addAdverbKnowledge(string sLabel, string sTag, double dTimi
 
     if (!bFound)
     {
-        adjKnowledge	newADJ;
+        adjKnowledge    newADJ;
         newADJ.sLabel = sLabel;
 
         newADJ.mActionTiming[sTag].push_back(dTiming);
@@ -3229,13 +3229,13 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
         bError,
         bTime;
 
-    string sTimeBegin,	//timing beginning of action
-        sTimeEnd,		//timing end of action
-        sObject,		// name of the object of focus
-        sName,			// name of the action (verb)
-        sAgent;			// agent of the action
+    string sTimeBegin,  //timing beginning of action
+        sTimeEnd,       //timing end of action
+        sObject,        // name of the object of focus
+        sName,          // name of the action (verb)
+        sAgent;         // agent of the action
 
-    list<string>	lAdjectives;
+    list<string>    lAdjectives;
 
     ostringstream osError;
     osError << "Error in instance: " << Id << ". wrong data in ELM.";
@@ -3246,13 +3246,13 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
     ostringstream osTime;
     osTime << "SELECT time FROM main WHERE instance = " << Id;
     bContent = requestFromStream(osTime.str());
-    if (bContent.toString() == "NULL")	return bError;
+    if (bContent.toString() == "NULL")  return bError;
     sTimeBegin = (*bContent.get(0).asList()).get(0).toString();
 
     osTime.str("");
     osTime << "SELECT time FROM main WHERE instance = " << Id + 1;
     bContent = requestFromStream(osTime.str());
-    if (bContent.toString() == "NULL")	return bError;
+    if (bContent.toString() == "NULL")  return bError;
     sTimeEnd = (*bContent.get(0).asList()).get(0).toString();
 
     double dTiming = abmReasoningFunction::timeDiffSecondFromString(sTimeBegin, sTimeEnd);
@@ -3285,7 +3285,7 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
         ostringstream osGetNameAction;
         osGetNameAction << "SELECT (activityname) FROM main WHERE instance = " << Id;
         Bottle bGetNameAction = requestFromStream(osGetNameAction.str().c_str());
-        if (bGetNameAction.toString() == "NULL")	return bError;
+        if (bGetNameAction.toString() == "NULL")    return bError;
         sName = (*bGetNameAction.get(0).asList()).get(0).toString();
     }
 
@@ -3327,7 +3327,7 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
     ostringstream osEntity;
     osEntity << "SELECT opcid FROM entity WHERE instance = " << Id << " AND name = '" << sObject << "'";
     bIdArgBegin = requestFromStream(osEntity.str().c_str());
-    if (bIdArgBegin.toString() == "NULL")	return bError;
+    if (bIdArgBegin.toString() == "NULL")   return bError;
     int idArg = atoi(bIdArgBegin.get(0).asList()->get(0).toString().c_str());
     //yInfo() << "\t" << "Argument Id Begin id : " << idArg  ;
 
@@ -3339,7 +3339,7 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
     //-- 2. select the subtype of the argument in order to extract it accordingly
     osEntity << "SELECT subtype FROM contentopc WHERE instance = " << Id << " AND opcid = " << idArg;
     bSubTypeArgBegin = requestFromStream(osEntity.str().c_str());
-    if (bSubTypeArgBegin.toString() == "NULL")	return bError;
+    if (bSubTypeArgBegin.toString() == "NULL")  return bError;
     string subtypeArg = bSubTypeArgBegin.get(0).asList()->get(0).toString().c_str();
 
 
@@ -3352,7 +3352,7 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
     osEntity.str("");
     osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id << " AND " << subtypeArg << ".opcid = " << idArg;
     bPosArgBegin = requestFromStream(osEntity.str().c_str());
-    if (bPosArgBegin.toString() == "NULL")	return bError;
+    if (bPosArgBegin.toString() == "NULL")  return bError;
     string posArgBegin = bPosArgBegin.get(0).asList()->get(0).toString().c_str();
 
     (bPosArgBegin.get(0).asList()->get(1).toString().c_str() == test) ? ObjectPresentBefore = 1 : ObjectPresentBefore = 0;
@@ -3364,7 +3364,7 @@ Bottle abmReasoning::askActionFromIdV2(int Id)
     //-- 4. extract the x, y of the object at the end of the activity and the presence and absence
     osEntity << "SELECT " << subtypeArg << ".position, " << subtypeArg << ".presence FROM " << subtypeArg << " WHERE " << subtypeArg << ".instance = " << Id + 1 << " AND " << subtypeArg << ".opcid = " << idArg;
     bPosArgEnd = requestFromStream(osEntity.str().c_str());
-    if (bPosArgEnd.toString() == "NULL")	return bError;
+    if (bPosArgEnd.toString() == "NULL")    return bError;
     string posArgEnd = bPosArgEnd.get(0).asList()->get(0).toString().c_str();
 
     (bPosArgEnd.get(0).asList()->get(1).toString().c_str() == test) ? ObjectPresentAfter = 1 : ObjectPresentAfter = 0;

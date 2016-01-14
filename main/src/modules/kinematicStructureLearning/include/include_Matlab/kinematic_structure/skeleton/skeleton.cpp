@@ -158,7 +158,7 @@ inline int joint_neighborhood(T *arr, int i, int j, int nrow, int ncol) {
 
 template <class T> void
 compute_skeleton_gradient(T *img, int nrow, int ncol, int nlhs, 
-			  mxArray **plhs) {
+              mxArray **plhs) {
   int i, j, ei, ej, inear;
   int ijunc, iedge, iseq, lastdir, mind, minjunc, pspan;
   int jnrow = nrow+1, jncol = ncol+1;
@@ -174,7 +174,7 @@ compute_skeleton_gradient(T *img, int nrow, int ncol, int nlhs,
     for (i = 0; i < jnrow; i++) {
       jhood = joint_neighborhood(img,i,j,nrow,ncol);
       if ((jhood != 0)&&(jhood != 15)) {
-	njunc++;
+    njunc++;
       }
     }
   }
@@ -205,74 +205,74 @@ compute_skeleton_gradient(T *img, int nrow, int ncol, int nlhs,
       //mexPrintf("(%d,%d) neighborhood:  %d.\n",i,j,jhood);
       mxAssert(i+j*jnrow>=0&&i+j*jnrow<jnrow*jncol,"Out of bounds.");
       if ((jhood != 0)&&(jhood != 15)&&(jhood != 5)&&(jhood != 10)
-	  &&!seenj[i+j*jnrow]) {
-	// found new edge; traverse it
-	iseq = 0;
-	ei = i;
-	ej = j;
-	lastdir = North;
-	//mexPrintf("Beginning traverse.\n");
-	while (!seenj[ei+ej*jnrow]||(jhood==5)||(jhood==10)) {
-	  //mexPrintf("Traversing at (%d,%d).\n",ei,ej);
+      &&!seenj[i+j*jnrow]) {
+    // found new edge; traverse it
+    iseq = 0;
+    ei = i;
+    ej = j;
+    lastdir = North;
+    //mexPrintf("Beginning traverse.\n");
+    while (!seenj[ei+ej*jnrow]||(jhood==5)||(jhood==10)) {
+      //mexPrintf("Traversing at (%d,%d).\n",ei,ej);
 
-	  if (!seenj[ei+ej*jnrow]) {
-	    // register this junction
-	    mxAssert((ijunc>=0)&&(ijunc<njunc),"Junction index error.");
-	    jx[ijunc] = ej;
-	    jy[ijunc] = ei;
-	    edgej[ijunc] = nedge;
-	    seqj[ijunc] = iseq;
-	    iseq++;
-	    ijunc++;
-	    seenj[ei+ej*jnrow] = true;
-	  }
+      if (!seenj[ei+ej*jnrow]) {
+        // register this junction
+        mxAssert((ijunc>=0)&&(ijunc<njunc),"Junction index error.");
+        jx[ijunc] = ej;
+        jy[ijunc] = ei;
+        edgej[ijunc] = nedge;
+        seqj[ijunc] = iseq;
+        iseq++;
+        ijunc++;
+        seenj[ei+ej*jnrow] = true;
+      }
 
-	  // traverse clockwise
-	  switch (dircode[jhood]) {
-	  case North:
-	    ei--;
-	    lastdir = North;
-	    break;
-	  case South:
-	    ei++;
-	    lastdir = South;
-	    break;
-	  case East:
-	    ej++;
-	    lastdir = East;
-	    break;
-	  case West:
-	    ej--;
-	    lastdir = West;
-	    break;
-	  case None:
-	    switch (lastdir) {
-	    case East:  // go North
-	      ei--;
-	      lastdir = North;
-	      break;
-	    case West:  // go South
-	      ei++;
-	      lastdir = South;
-	      break;
-	    case South:  // go East
-	      ej++;
-	      lastdir = East;
-	      break;
-	    case North:  // go West
-	      ej--;
-	      lastdir = West;
-	      break;
-	    }
-	    break;
-	  }
-	  mxAssert((ei>=0)&&(ej>=0)&&(ei<jnrow)&&(ej<jncol),"Traversed out.");
-	  jhood = joint_neighborhood(img,ei,ej,nrow,ncol);
-	  //mexPrintf("Traversal direction:  %d; new neighborhood:  %d.\n",
-	  //    lastdir,jhood);
-	}
-	nedge++;
-	}
+      // traverse clockwise
+      switch (dircode[jhood]) {
+      case North:
+        ei--;
+        lastdir = North;
+        break;
+      case South:
+        ei++;
+        lastdir = South;
+        break;
+      case East:
+        ej++;
+        lastdir = East;
+        break;
+      case West:
+        ej--;
+        lastdir = West;
+        break;
+      case None:
+        switch (lastdir) {
+        case East:  // go North
+          ei--;
+          lastdir = North;
+          break;
+        case West:  // go South
+          ei++;
+          lastdir = South;
+          break;
+        case South:  // go East
+          ej++;
+          lastdir = East;
+          break;
+        case North:  // go West
+          ej--;
+          lastdir = West;
+          break;
+        }
+        break;
+      }
+      mxAssert((ei>=0)&&(ej>=0)&&(ei<jnrow)&&(ej<jncol),"Traversed out.");
+      jhood = joint_neighborhood(img,ei,ej,nrow,ncol);
+      //mexPrintf("Traversal direction:  %d; new neighborhood:  %d.\n",
+      //    lastdir,jhood);
+    }
+    nedge++;
+    }
     }
   }
   mxAssert(njunc == ijunc,"Junction miscount.");
@@ -297,88 +297,88 @@ compute_skeleton_gradient(T *img, int nrow, int ncol, int nlhs,
   for (j = 0; j < ncol; j++) {
     for (i = 0; i < nrow; i++) {
       if (img[i+j*nrow]) {
-	// compute distance to all junction points
-	// keeping track of minimum
-	mind = SQR(jnrow+jncol);
-	minjunc = -1;
-	for (ijunc = 0; ijunc < njunc; ijunc++) {
-	  dNE[ijunc] = SQR(i-jy[ijunc])+SQR(j-jx[ijunc]);
-	  dNW[ijunc] = SQR(i-jy[ijunc])+SQR(j+1-jx[ijunc]);
-	  dSE[ijunc] = SQR(i+1-jy[ijunc])+SQR(j-jx[ijunc]);
-	  dSW[ijunc] = SQR(i+1-jy[ijunc])+SQR(j+1-jx[ijunc]);
-	  if (dNE[ijunc] < mind) {
-	    mind = dNE[ijunc];
-	    minjunc = ijunc;
-	  }
-	  if (dNW[ijunc] < mind) {
-	    mind = dNW[ijunc];
-	    minjunc = ijunc;
-	  }
-	  if (dSE[ijunc] < mind) {
-	    mind = dSE[ijunc];
-	    minjunc = ijunc;
-	  }
-	  if (dSW[ijunc] < mind) {
-	    mind = dSW[ijunc];
-	    minjunc = ijunc;
-	  }
-	}
-	//mexPrintf("Point (%d,%d):  junction %d.\n",i,j,minjunc);
-	mxAssert((minjunc >=0)&&(minjunc<njunc),"Bad minimum junction.");
-	mxAssert((edgej[minjunc] >=0)&&(edgej[minjunc]<nedge),
-		 "Bad minimum junction edge.");
+    // compute distance to all junction points
+    // keeping track of minimum
+    mind = SQR(jnrow+jncol);
+    minjunc = -1;
+    for (ijunc = 0; ijunc < njunc; ijunc++) {
+      dNE[ijunc] = SQR(i-jy[ijunc])+SQR(j-jx[ijunc]);
+      dNW[ijunc] = SQR(i-jy[ijunc])+SQR(j+1-jx[ijunc]);
+      dSE[ijunc] = SQR(i+1-jy[ijunc])+SQR(j-jx[ijunc]);
+      dSW[ijunc] = SQR(i+1-jy[ijunc])+SQR(j+1-jx[ijunc]);
+      if (dNE[ijunc] < mind) {
+        mind = dNE[ijunc];
+        minjunc = ijunc;
+      }
+      if (dNW[ijunc] < mind) {
+        mind = dNW[ijunc];
+        minjunc = ijunc;
+      }
+      if (dSE[ijunc] < mind) {
+        mind = dSE[ijunc];
+        minjunc = ijunc;
+      }
+      if (dSW[ijunc] < mind) {
+        mind = dSW[ijunc];
+        minjunc = ijunc;
+      }
+    }
+    //mexPrintf("Point (%d,%d):  junction %d.\n",i,j,minjunc);
+    mxAssert((minjunc >=0)&&(minjunc<njunc),"Bad minimum junction.");
+    mxAssert((edgej[minjunc] >=0)&&(edgej[minjunc]<nedge),
+         "Bad minimum junction edge.");
 
-	// store radius if desired
-	if (nlhs > 1) {
-	  rad[i+j*nrow] = mind;
-	}
+    // store radius if desired
+    if (nlhs > 1) {
+      rad[i+j*nrow] = mind;
+    }
 
-	// find all other junction points at minimal distance
-	nnear = pspan = 0;
-	for (ijunc = 0; ijunc < njunc; ijunc++) {
-	  if ((dNE[ijunc] <= dNE[minjunc])||(dNW[ijunc] <= dNW[minjunc])||
-	      (dSE[ijunc] <= dSE[minjunc])||(dSW[ijunc] <= dSW[minjunc])) {
-	    // we have a candidate junction
-	    if (edgej[ijunc] != edgej[minjunc]) {
-	      pspan = -1;
-	      break;
-	    } else {
-	      nearj[nnear] = seqj[ijunc];
-	      nnear++;
-	    }
-	  }
-	}
+    // find all other junction points at minimal distance
+    nnear = pspan = 0;
+    for (ijunc = 0; ijunc < njunc; ijunc++) {
+      if ((dNE[ijunc] <= dNE[minjunc])||(dNW[ijunc] <= dNW[minjunc])||
+          (dSE[ijunc] <= dSE[minjunc])||(dSW[ijunc] <= dSW[minjunc])) {
+        // we have a candidate junction
+        if (edgej[ijunc] != edgej[minjunc]) {
+          pspan = -1;
+          break;
+        } else {
+          nearj[nnear] = seqj[ijunc];
+          nnear++;
+        }
+      }
+    }
 
-	if (pspan >= 0){
-	  // compute perimeter span -- find largest gap and take remainder
-	  quicksort(nearj,nnear);
-	  //mexPrintf("Positions:  ");
-	  //for (inear = 0; inear < nnear; inear++) {
-	  //  mexPrintf("%d ",nearj[inear]);
-	  //}
-	  pspan = nearj[0]-nearj[nnear-1]+edgelen[edgej[minjunc]];
-	  //mexPrintf("\nDifferences:  %d ",pspan);
-	  for (inear = 1; inear < nnear; inear++) {
-	    if (pspan < nearj[inear]-nearj[inear-1]) {
-	      pspan = nearj[inear]-nearj[inear-1];
-	    }
-	    //mexPrintf("%d ",nearj[inear]-nearj[inear-1]);
-	  }
-	  //mexPrintf(" => Result:  %d (from %d; ep = %d).\n",
-	  //    edgelen[edgej[minjunc]]-pspan,pspan,
-	  //    edgelen[edgej[minjunc]]);
-	  pspan = edgelen[edgej[minjunc]]-pspan;
-	  skg[i+j*nrow] = pspan;
-	} else {
-	  skg[i+j*nrow] = mxGetInf();
-	}
+    if (pspan >= 0){
+      // compute perimeter span -- find largest gap and take remainder
+      quicksort(nearj,nnear);
+      //mexPrintf("Positions:  ");
+      //for (inear = 0; inear < nnear; inear++) {
+      //  mexPrintf("%d ",nearj[inear]);
+      //}
+      pspan = nearj[0]-nearj[nnear-1]+edgelen[edgej[minjunc]];
+      //mexPrintf("\nDifferences:  %d ",pspan);
+      for (inear = 1; inear < nnear; inear++) {
+        if (pspan < nearj[inear]-nearj[inear-1]) {
+          pspan = nearj[inear]-nearj[inear-1];
+        }
+        //mexPrintf("%d ",nearj[inear]-nearj[inear-1]);
+      }
+      //mexPrintf(" => Result:  %d (from %d; ep = %d).\n",
+      //    edgelen[edgej[minjunc]]-pspan,pspan,
+      //    edgelen[edgej[minjunc]]);
+      pspan = edgelen[edgej[minjunc]]-pspan;
+      skg[i+j*nrow] = pspan;
+    } else {
+      skg[i+j*nrow] = mxGetInf();
+    }
 
-	//mexPrintf("Final span:  %g.\n",pspan);
+    //mexPrintf("Final span:  %g.\n",pspan);
       } else {
-	skg[i+j*nrow] = 0;
-	if (nlhs > 1) {
-	  rad[i+j*nrow] = 0;
-	}
+    skg[i+j*nrow] = 0;
+    if (nlhs > 1) {
+      rad[i+j*nrow] = 0;
+    }
       }
     }
   }
@@ -415,7 +415,7 @@ mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
   // check format of arguments
   errCheck(mxIsUint8(prhs[0])||mxIsLogical(prhs[0])||mxIsDouble(prhs[0]),
-	   "Input must be double binary image.");
+       "Input must be double binary image.");
   nrow = mxGetM(prhs[0]);
   ncol = mxGetN(prhs[0]);
   img = mxGetPr(prhs[0]);

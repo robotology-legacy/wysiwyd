@@ -89,7 +89,7 @@ bool GameCluedo::updateModule()
     {
         cout << "Waiting for a question from user." << endl;
         iCub->getSpeechClient()->STTflush();
-        //We just wait for other's question				
+        //We just wait for other's question             
         while (!handleSpeech(false, NULL, Undefined))
         {
             yarp::os::Time::delay(0.1);

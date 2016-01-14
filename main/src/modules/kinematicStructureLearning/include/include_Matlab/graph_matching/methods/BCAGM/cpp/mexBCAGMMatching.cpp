@@ -44,9 +44,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     plhs[nItero] = mxCreateDoubleScalar(0);
     double* nIter = mxGetPr(plhs[nItero]);
     
-    bcagm(	indH1, valH1, Nt1, 
-		    indH2, valH2, Nt2,
-		    indH3, valH3, Nt3,
-		    X0, N1, N2, *maxIter, Xout, objs, nIter);
+    bcagm(  indH1, valH1, Nt1, 
+            indH2, valH2, Nt2,
+            indH3, valH3, Nt3,
+            X0, N1, N2, *maxIter, Xout, objs, nIter);
 }
 

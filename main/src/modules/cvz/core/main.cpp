@@ -8,79 +8,79 @@ using namespace yarp::os;
 
 class CvzModule :public RFModule
 {
-	cvz::core::ThreadedCvz * thread;
-	cvz::gui::GuiICvz* gui;
-	cvz::gui::GuiThread* guiThread;
+    cvz::core::ThreadedCvz * thread;
+    cvz::gui::GuiICvz* gui;
+    cvz::gui::GuiThread* guiThread;
 
 public:
-	bool configure(yarp::os::ResourceFinder &rf)
-	{
-		thread = NULL;
-		gui = NULL;
-		guiThread = NULL;
+    bool configure(yarp::os::ResourceFinder &rf)
+    {
+        thread = NULL;
+        gui = NULL;
+        guiThread = NULL;
 
-		std::string cvzType = rf.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString();
+        std::string cvzType = rf.check("type", yarp::os::Value(cvz::core::TYPE_ICVZ)).asString();
 
-		yarp::os::Property prop(rf.toString().c_str());// prop.fromConfigFile(rf.findFile("from"));
+        yarp::os::Property prop(rf.toString().c_str());// prop.fromConfigFile(rf.findFile("from"));
 
-		thread = new cvz::core::ThreadedCvz(prop, rf.check("period", yarp::os::Value(100)).asInt());
-		bool success = thread->start();
+        thread = new cvz::core::ThreadedCvz(prop, rf.check("period", yarp::os::Value(100)).asInt());
+        bool success = thread->start();
 
-		if (success && rf.check("displayGui"))
-		{
-			if (cvz::gui::CvzGuiBuilder::allocate(&gui, cvzType, thread->cvz))
-			{
-				gui->start();
-				guiThread = new cvz::gui::GuiThread(gui, 10);
-				guiThread->start();
-			}
-			else
-				cout << "This cvz type (" << cvzType << ") is not handled by the GUI builder." << endl;
-		}
-		return success;
-	}
+        if (success && rf.check("displayGui"))
+        {
+            if (cvz::gui::CvzGuiBuilder::allocate(&gui, cvzType, thread->cvz))
+            {
+                gui->start();
+                guiThread = new cvz::gui::GuiThread(gui, 10);
+                guiThread->start();
+            }
+            else
+                cout << "This cvz type (" << cvzType << ") is not handled by the GUI builder." << endl;
+        }
+        return success;
+    }
 
-	bool updateModule()
-	{
-		return true;
-	}
+    bool updateModule()
+    {
+        return true;
+    }
 
-	bool close()
-	{
-		if (gui != NULL)
-		{
-			guiThread->stop();
-			delete guiThread;
-			gui->stop();
-			delete gui;
-		}
+    bool close()
+    {
+        if (gui != NULL)
+        {
+            guiThread->stop();
+            delete guiThread;
+            gui->stop();
+            delete gui;
+        }
 
-		thread->stop();
-		delete thread;
-		return true;
-	}
+        thread->stop();
+        delete thread;
+        return true;
+    }
 };
 
 int main(int argc, char * argv[])
 {
-	Network yarp;
-	if (!Network::checkNetwork())
-	{
-		cout << "yarp network is not available!" << endl;
-		return 0;
-	}
+    Network yarp;
+    if (!Network::checkNetwork())
+    {
+        cout << "yarp network is not available!" << endl;
+        return 0;
+    }
 
-	ResourceFinder rf;
-	rf.setVerbose(true);
-	rf.setDefaultContext("cvz");
-	rf.setDefaultConfigFile("default.ini"); //overridden by --from parameter
-	rf.configure(argc, argv);
+    ResourceFinder rf;
+    rf.setVerbose(true);
+    rf.setDefaultContext("cvz");
+    rf.setDefaultConfigFile("default.ini"); //overridden by --from parameter
+    rf.configure(argc, argv);
 
-	CvzModule cvzCore;
-	if (cvzCore.configure(rf))
-		cvzCore.runModule();
-	else
-		cout << "Unable to configure the cvz module." << endl;
+    CvzModule cvzCore;
+    if (cvzCore.configure(rf))
+        cvzCore.runModule();
+    else
+        cout << "Unable to configure the cvz module." << endl;
 
-	return 0;
+    return 0;
 }

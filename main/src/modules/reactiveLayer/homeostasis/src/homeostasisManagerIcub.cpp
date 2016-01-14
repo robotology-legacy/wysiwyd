@@ -129,7 +129,7 @@ bool HomeostaticModule::configure(yarp::os::ResourceFinder &rf)
     rpc.open ( ("/"+moduleName+"/rpc").c_str());
     attach(rpc);
 
-	yInfo()<<"Configuration done.";
+    yInfo()<<"Configuration done.";
     return true;
 }
 
@@ -151,7 +151,7 @@ bool HomeostaticModule::removeDrive(int d)
 
 bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
 {
-	if (cmd.get(0).asString() == "help" )
+    if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
         help += " ['par'] ['drive'] ['val'/'min'/'max'/'dec'] [value]   : Assigns a value to a specific parameter \n";
         help += " ['delta'] ['drive'] ['val'/'min'/'max'/'dec'] [value] : Adds a value to a specific parameter  \n";

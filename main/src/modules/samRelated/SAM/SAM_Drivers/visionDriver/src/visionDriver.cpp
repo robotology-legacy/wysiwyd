@@ -24,14 +24,14 @@
 visionDriver::visionDriver()
 {
     imgBlurPixels=7; //gauss smoothing pixels
-	faceSize = 400;
+    faceSize = 400;
     bodySize = faceSize;
     boxScaleFactor = 20; // Expand face and body detected regions by this amount in pixels
-	// LB additional neck scale factor for masking the neck region..... basically add pixels south
-	neckScaleFactor = 40; // pixels south...
+    // LB additional neck scale factor for masking the neck region..... basically add pixels south
+    neckScaleFactor = 40; // pixels south...
 
-	displayFaces = false;//true;
-	displayBodies = false; //true;
+    displayFaces = false;//true;
+    displayBodies = false; //true;
     utilsObj = new visionUtils();
     
     
@@ -53,17 +53,17 @@ visionDriver::visionDriver()
     previous_right_hand_position.y = 0;
     
     // Detect skin using default values for first go.......
-	hsvAdaptiveValues.clear();
-	
-	// Compare point distances for tracking the same point....
-	calibratedLeftPoints = false;
-	calibratedRightPoints = false;
-	storedFace = false;
-	firstMiddlePointReady = false;
-	
-	windowSize = 5;
-		
-	namedWindow("Face / Body / Arms",WINDOW_NORMAL);	
+    hsvAdaptiveValues.clear();
+    
+    // Compare point distances for tracking the same point....
+    calibratedLeftPoints = false;
+    calibratedRightPoints = false;
+    storedFace = false;
+    firstMiddlePointReady = false;
+    
+    windowSize = 5;
+        
+    namedWindow("Face / Body / Arms",WINDOW_NORMAL);    
 }
 
 visionDriver::~visionDriver()
@@ -82,67 +82,67 @@ bool visionDriver::updateModule()
 
     if(inCount == 0) // || outCount == 0)
     {
-	    cout << "Awaiting input and output connections" << endl;
+        cout << "Awaiting input and output connections" << endl;
     }
     else
     {
-	    ImageOf<PixelRgb> *yarpImage = faceTrack.read();
-	    if (yarpImage!=NULL) 
-	    {
+        ImageOf<PixelRgb> *yarpImage = faceTrack.read();
+        if (yarpImage!=NULL) 
+        {
             // PROCESS NEW IMAGE
-		    //Alternative way of creating an openCV compatible image
-		    //Takes approx twice as much time as uncomented implementation
-		    //Also generates IplImage instead of the more useable format Mat
-		    count = 0;
-		    step = yarpImage->getRowSize() + yarpImage->getPadding();
-		    Mat captureFrameRaw(yarpImage->height(),yarpImage->width(),CV_8UC3,yarpImage->getRawImage(),step);
+            //Alternative way of creating an openCV compatible image
+            //Takes approx twice as much time as uncomented implementation
+            //Also generates IplImage instead of the more useable format Mat
+            count = 0;
+            step = yarpImage->getRowSize() + yarpImage->getPadding();
+            Mat captureFrameRaw(yarpImage->height(),yarpImage->width(),CV_8UC3,yarpImage->getRawImage(),step);
             
             // resize input image from iCub cameras to 640x480
-		    resize(captureFrameRaw,captureFrameRaw,Size(640,480));
+            resize(captureFrameRaw,captureFrameRaw,Size(640,480));
 
-		    cvtColor(captureFrameRaw,captureFrameBGR,CV_RGB2BGR);
+            cvtColor(captureFrameRaw,captureFrameBGR,CV_RGB2BGR);
 
             int height = captureFrameRaw.rows;
             //int width = captureFrameRaw.cols;
 
-	        // Init bodyPartLocations vector if anything found... later sent out via yarp
-	        for (int i = 0; i<12;i++) bodyPartLocations[i]=0.0; // 0 is no position found....
-	        bodyPosFound=false; // set flag off -> set to true when body part position found
+            // Init bodyPartLocations vector if anything found... later sent out via yarp
+            for (int i = 0; i<12;i++) bodyPartLocations[i]=0.0; // 0 is no position found....
+            bodyPosFound=false; // set flag off -> set to true when body part position found
 
-	        captureFrameFace=captureFrameBGR.clone();
+            captureFrameFace=captureFrameBGR.clone();
 
-	        Mat skinImage;
-			Mat skinMaskDefault;
-			Mat3b skinHSV;
-			// Detect skin using default values.......
-			std::vector<int> hsvDefault;
-			// LB: this will always use the default values, to prevent runaway adaption!
+            Mat skinImage;
+            Mat skinMaskDefault;
+            Mat3b skinHSV;
+            // Detect skin using default values.......
+            std::vector<int> hsvDefault;
+            // LB: this will always use the default values, to prevent runaway adaption!
             skinImage = utilsObj->skinDetect(captureFrameBGR, &skinHSV, &skinMaskDefault, hsvDefault, 400,7, 3, 0, displayFaces);
 
-	        
-		    // SET FACE AND BODY DETECTION cascades
-		    // Haar cascades on GPU	
-		    // Haar cascades on GPU	
-		    captureFrameGPU.upload(captureFrameBGR);
-		    cv::gpu::cvtColor(captureFrameGPU,grayscaleFrameGPU,CV_BGR2GRAY);
-		    cv::gpu::equalizeHist(grayscaleFrameGPU,grayscaleFrameGPU);
-		    // Face and Body
-		    noFaces = face_cascade.detectMultiScale(grayscaleFrameGPU,objBufFaceGPU,1.2,5,Size(30,30));
-		    //noBodies = body_cascade.detectMultiScale(grayscaleFrameGPU,objBufBodyGPU,1.2,5,Size(150,150));
+            
+            // SET FACE AND BODY DETECTION cascades
+            // Haar cascades on GPU 
+            // Haar cascades on GPU 
+            captureFrameGPU.upload(captureFrameBGR);
+            cv::gpu::cvtColor(captureFrameGPU,grayscaleFrameGPU,CV_BGR2GRAY);
+            cv::gpu::equalizeHist(grayscaleFrameGPU,grayscaleFrameGPU);
+            // Face and Body
+            noFaces = face_cascade.detectMultiScale(grayscaleFrameGPU,objBufFaceGPU,1.2,5,Size(30,30));
+            //noBodies = body_cascade.detectMultiScale(grayscaleFrameGPU,objBufBodyGPU,1.2,5,Size(150,150));
             noBodies = 0;            
 
-			// Check if face found
-		    if(noFaces != 0)
-		    {
-			    noFaces = 1;
+            // Check if face found
+            if(noFaces != 0)
+            {
+                noFaces = 1;
 
-			    Mat3b face_HSV;
-			    Mat allFaces;
+                Mat3b face_HSV;
+                Mat allFaces;
                 Mat allFacesSkin;
                 // Get face cascadde info back from GPU
-			    objBufFaceGPU.colRange(0,noFaces).download(vectFaceArr);
+                objBufFaceGPU.colRange(0,noFaces).download(vectFaceArr);
 
-				ImageOf<PixelRgb>& faceImages = imageOut.prepare();
+                ImageOf<PixelRgb>& faceImages = imageOut.prepare();
                 int i = 0;
 
                     Rect* facesOld = vectFaceArr.ptr<Rect>();
@@ -157,59 +157,59 @@ bool visionDriver::updateModule()
                         // WARNING -> MIGHT produce distortions -> could reject image instead...
                         facesOld[i]=utilsObj->checkRoiInImage(captureFrameRaw, facesOld[i]); // LB: seg fault (need to pass rect inside of vector...)
                     }
-					// Add extra pixels to bottom to remove neck skin region...
-					if (neckScaleFactor !=0)
-					{
-						facesOld[i].height=facesOld[i].height+neckScaleFactor;
-						facesOld[i]=utilsObj->checkRoiInImage(captureFrameRaw, facesOld[i]); // LB: seg fault (need to pass rect inside of vector...)
-					}
+                    // Add extra pixels to bottom to remove neck skin region...
+                    if (neckScaleFactor !=0)
+                    {
+                        facesOld[i].height=facesOld[i].height+neckScaleFactor;
+                        facesOld[i]=utilsObj->checkRoiInImage(captureFrameRaw, facesOld[i]); // LB: seg fault (need to pass rect inside of vector...)
+                    }
 
-					//required for rectangle faces in full image view
-					Point pt1(facesOld[i].x + facesOld[i].width, facesOld[i].y + facesOld[i].height);
-					Point pt2(facesOld[i].x, facesOld[i].y);
-					rectangle(captureFrameFace,pt1,pt2,Scalar(0,255,0),1,8,0); 	
-					
-				    // Add values to body part pos vector (Face x(0),y(1),z(2))
+                    //required for rectangle faces in full image view
+                    Point pt1(facesOld[i].x + facesOld[i].width, facesOld[i].y + facesOld[i].height);
+                    Point pt2(facesOld[i].x, facesOld[i].y);
+                    rectangle(captureFrameFace,pt1,pt2,Scalar(0,255,0),1,8,0);  
+                    
+                    // Add values to body part pos vector (Face x(0),y(1),z(2))
                     bodyPartLocations[0]=int(facesOld[i].x+(facesOld[i].width/2));// Face  x
                     bodyPartLocations[1]=int(facesOld[i].y+(facesOld[i].height/2));// Face y
                     bodyPartLocations[2]=1.0;// Face z -> ++++++++++++++++++ SET AT DEFAULT 1 for NOW NEED TO UPDATE LATER...... STEREOVISION
-                    bodyPosFound=true; // position found -> set flag to on	
-					
-					// Text face onto picture
-					captureFrameFace=addText("Face", captureFrameFace, pt1, Scalar(0,255,0));
-					
-					// Send position of face in image to iKinGazeCtrl
-					Bottle posGazeOutput;
-					posGazeOutput.clear();
-					posGazeOutput.addString("left");
-					posGazeOutput.addDouble((int) bodyPartLocations[0]);
-					posGazeOutput.addDouble((int) bodyPartLocations[1]);
-					posGazeOutput.addDouble(1.0);
-					gazePort.write(posGazeOutput);	
-					
-					storedFacePositions[0] = bodyPartLocations[0];
-					storedFacePositions[1] = bodyPartLocations[1];
-					storedFacePositions[2] = bodyPartLocations[2];
-					storedFace = true;
-					
-				if(facesOld[i].area() != 0)
-				{
-				        // Standard image facedetector, take original image
-				        // Take face from original data
-					    allFaces = captureFrameBGR.operator()(facesOld[i]).clone();
-					    resize(allFaces,allFaces,Size(faceSize,faceSize));
-					    // LB processed skin segmented data
-					    allFacesSkin = skinImage.operator()(facesOld[i]).clone();
-					    resize(allFacesSkin,allFacesSkin,Size(faceSize,faceSize));
-					    
-					    // Take skinHSV (returned from skin detector) and uses face extracted rect.....
+                    bodyPosFound=true; // position found -> set flag to on  
+                    
+                    // Text face onto picture
+                    captureFrameFace=addText("Face", captureFrameFace, pt1, Scalar(0,255,0));
+                    
+                    // Send position of face in image to iKinGazeCtrl
+                    Bottle posGazeOutput;
+                    posGazeOutput.clear();
+                    posGazeOutput.addString("left");
+                    posGazeOutput.addDouble((int) bodyPartLocations[0]);
+                    posGazeOutput.addDouble((int) bodyPartLocations[1]);
+                    posGazeOutput.addDouble(1.0);
+                    gazePort.write(posGazeOutput);  
+                    
+                    storedFacePositions[0] = bodyPartLocations[0];
+                    storedFacePositions[1] = bodyPartLocations[1];
+                    storedFacePositions[2] = bodyPartLocations[2];
+                    storedFace = true;
+                    
+                if(facesOld[i].area() != 0)
+                {
+                        // Standard image facedetector, take original image
+                        // Take face from original data
+                        allFaces = captureFrameBGR.operator()(facesOld[i]).clone();
+                        resize(allFaces,allFaces,Size(faceSize,faceSize));
+                        // LB processed skin segmented data
+                        allFacesSkin = skinImage.operator()(facesOld[i]).clone();
+                        resize(allFacesSkin,allFacesSkin,Size(faceSize,faceSize));
+                        
+                        // Take skinHSV (returned from skin detector) and uses face extracted rect.....
                         face_HSV = skinHSV.operator()(facesOld[i]).clone();
-					    currentFaceRect = facesOld[0];
-				    if( displayFaces )
-				    {
-					    imshow("faces",allFaces);
-					    imshow("faces Skin",allFacesSkin);
-				    }
+                        currentFaceRect = facesOld[0];
+                    if( displayFaces )
+                    {
+                        imshow("faces",allFaces);
+                        imshow("faces Skin",allFacesSkin);
+                    }
 
                     // LB: Segment out just face....                    
                     Mat1b faceSegMask;
@@ -251,29 +251,29 @@ bool visionDriver::updateModule()
                         cout << " Face segmentation unsuccessful" << endl;
                     } 
                 }                          
-			}
-			else
-			{
-			    if( storedFace == true )
-			    {
-					bodyPartLocations[0] = storedFacePositions[0];
-					bodyPartLocations[1] = storedFacePositions[1];
-					bodyPartLocations[2] = storedFacePositions[2];
-			    }
-			}
-		    
+            }
+            else
+            {
+                if( storedFace == true )
+                {
+                    bodyPartLocations[0] = storedFacePositions[0];
+                    bodyPartLocations[1] = storedFacePositions[1];
+                    bodyPartLocations[2] = storedFacePositions[2];
+                }
+            }
+            
             // BODY TRACK
-		    if(noBodies != 0)
-		    {
-			    captureFrameBody=captureFrameBGR.clone();
-			    noBodies = 1;
+            if(noBodies != 0)
+            {
+                captureFrameBody=captureFrameBGR.clone();
+                noBodies = 1;
 
-			    Mat allBodies;
+                Mat allBodies;
                 Mat allBodiesSkin;
                 
-			    objBufBodyGPU.colRange(0,noBodies).download(vectBodyArr);
+                objBufBodyGPU.colRange(0,noBodies).download(vectBodyArr);
 
-				Rect* bodiesOld = vectBodyArr.ptr<Rect>();
+                Rect* bodiesOld = vectBodyArr.ptr<Rect>();
 
                 int i = 0;
                 
@@ -284,64 +284,64 @@ bool visionDriver::updateModule()
                     bodiesOld[i]=utilsObj->checkRoiInImage(captureFrameRaw, bodiesOld[i]); // LB: seg fault (need to pass rect inside of vector...)
                 }
                 
-				// Body split using centre of body region found...
-				sagittalSplit = int(bodiesOld[i].x+(bodiesOld[i].width/2));
-				
-				if( displayBodies )
-				{		
-				    //Draw rectangle for body and line down centre
-				    Point pt1(bodiesOld[i].x + bodiesOld[i].width, bodiesOld[i].y + bodiesOld[i].height);
-				    Point pt2(bodiesOld[i].x, bodiesOld[i].y);
-				    rectangle(captureFrameBody,pt1,pt2,Scalar(0,255,0),1,8,0);			
-				    line(captureFrameBody,Point(sagittalSplit,0),Point(sagittalSplit,height),Scalar(0,0,255),1,8,0);						
+                // Body split using centre of body region found...
+                sagittalSplit = int(bodiesOld[i].x+(bodiesOld[i].width/2));
+                
+                if( displayBodies )
+                {       
+                    //Draw rectangle for body and line down centre
+                    Point pt1(bodiesOld[i].x + bodiesOld[i].width, bodiesOld[i].y + bodiesOld[i].height);
+                    Point pt2(bodiesOld[i].x, bodiesOld[i].y);
+                    rectangle(captureFrameBody,pt1,pt2,Scalar(0,255,0),1,8,0);          
+                    line(captureFrameBody,Point(sagittalSplit,0),Point(sagittalSplit,height),Scalar(0,0,255),1,8,0);                        
                     imshow("Body seg",captureFrameBody);
-                }				
-				
+                }               
+                
 
-				// if not reject segmentation....
-				if (sagittalSplit > skinMaskDefault.cols*0.85 || sagittalSplit < skinMaskDefault.cols*0.15)
-				{
-				    cout << " Sagittal split line is too near edge -> rejecting body detection" << endl;
-				    bodySegFlag=false;
-				}
-				else
-				{
-				    bodySegFlag=true;
-				    // Add values to body part pos vector (right arm x(3),y(4),z(5))
+                // if not reject segmentation....
+                if (sagittalSplit > skinMaskDefault.cols*0.85 || sagittalSplit < skinMaskDefault.cols*0.15)
+                {
+                    cout << " Sagittal split line is too near edge -> rejecting body detection" << endl;
+                    bodySegFlag=false;
+                }
+                else
+                {
+                    bodySegFlag=true;
+                    // Add values to body part pos vector (right arm x(3),y(4),z(5))
                     bodyPartLocations[3]=int(bodiesOld[i].x+(bodiesOld[i].width/2));// Body  x
                     bodyPartLocations[4]=int(bodiesOld[i].y+(bodiesOld[i].height/2));// Body y
                     bodyPartLocations[5]=1.0;// Body z -> ++++++++++++++++++ SET AT DEFAULT 1 for NOW NEED TO UPDATE LATER...... STEREOVISION
-                    bodyPosFound=true; // position found -> set flag to on		
+                    bodyPosFound=true; // position found -> set flag to on      
                     
                     storedBodyPositions[0] = bodyPartLocations[3];
                     storedBodyPositions[1] = bodyPartLocations[4];
                     storedBodyPositions[2] = bodyPartLocations[5];
                     
                     storedBody = true;
-				}
-				
-					if(bodiesOld[i].area() != 0)
-					{
-					    // Standard image facedetector, take original image
-						allBodies = captureFrameBGR.operator()(bodiesOld[i]).clone();
-						resize(allBodies,allBodies,Size(bodySize,bodySize));
-						// LB processed skin segmented data
-						allBodiesSkin = skinImage.operator()(bodiesOld[i]).clone();
-						resize(allBodiesSkin,allBodiesSkin,Size(bodySize,bodySize));
-						
-					}
+                }
+                
+                    if(bodiesOld[i].area() != 0)
+                    {
+                        // Standard image facedetector, take original image
+                        allBodies = captureFrameBGR.operator()(bodiesOld[i]).clone();
+                        resize(allBodies,allBodies,Size(bodySize,bodySize));
+                        // LB processed skin segmented data
+                        allBodiesSkin = skinImage.operator()(bodiesOld[i]).clone();
+                        resize(allBodiesSkin,allBodiesSkin,Size(bodySize,bodySize));
                         
-			}
-			else
-			{
-			    if( storedBody == true )
-			    {
+                    }
+                        
+            }
+            else
+            {
+                if( storedBody == true )
+                {
                     bodyPartLocations[3] = storedBodyPositions[0];
                     bodyPartLocations[4] = storedBodyPositions[1];
                     bodyPartLocations[5] = storedBodyPositions[2];
-			    }
-			}
-			
+                }
+            }
+            
         // LB: Body segmentation to find arms for action detection
         
             if (!faceSegMaskInv.empty() && faceSegFlag && bodySegFlag)
@@ -352,43 +352,43 @@ bool visionDriver::updateModule()
 
                 skinMask = skinMaskDefault.clone();
                 
-			    Mat rectMaskFaceOnly = Mat::zeros( skinMask.size(), CV_8UC1 );
-			    Mat skinMaskNoFace;
-			    Mat faceSegTemp;
-				resize(faceSegMaskInv,faceSegTemp,Size(currentFaceRect.width,currentFaceRect.height));
-			    faceSegTemp.copyTo(rectMaskFaceOnly(currentFaceRect) );
-			    bitwise_not(rectMaskFaceOnly,rectMaskFaceOnly);
-		        bitwise_and(rectMaskFaceOnly,skinMask,skinMaskNoFace);
-		        if( displayBodies )
-		        {
-			        imshow("Rectangle mask face",rectMaskFaceOnly);
-                    imshow("skinmask no face :)",skinMaskNoFace);	
+                Mat rectMaskFaceOnly = Mat::zeros( skinMask.size(), CV_8UC1 );
+                Mat skinMaskNoFace;
+                Mat faceSegTemp;
+                resize(faceSegMaskInv,faceSegTemp,Size(currentFaceRect.width,currentFaceRect.height));
+                faceSegTemp.copyTo(rectMaskFaceOnly(currentFaceRect) );
+                bitwise_not(rectMaskFaceOnly,rectMaskFaceOnly);
+                bitwise_and(rectMaskFaceOnly,skinMask,skinMaskNoFace);
+                if( displayBodies )
+                {
+                    imshow("Rectangle mask face",rectMaskFaceOnly);
+                    imshow("skinmask no face :)",skinMaskNoFace);   
                 }
                 
-			    Mat skelMat;
-		        vector<Rect> boundingBox = utilsObj->segmentLineBoxFit(skinMaskNoFace, 1000, 2, &skelMat, &returnContours, &armRotatedRects, displayFaces);
-		        		        
-		        
-			    //check atleast two bounding boxes found for left and right arms... > has to find both arms!
-			    if (boundingBox.size()>1)
-			    {
+                Mat skelMat;
+                vector<Rect> boundingBox = utilsObj->segmentLineBoxFit(skinMaskNoFace, 1000, 2, &skelMat, &returnContours, &armRotatedRects, displayFaces);
+                                
+                
+                //check atleast two bounding boxes found for left and right arms... > has to find both arms!
+                if (boundingBox.size()>1)
+                {
                     int leftArmInd=0;
                     int rightArmInd=0;
                     int testInXMost=0;
                     int testInXLeast=captureFrameFace.cols;
-			        // Find boxes for left and right arms..... could be improved to cope with x-over the centre line of person!
-			        
-			        for (int i = 0; i<(int)boundingBox.size(); i++)
-			        {
-			            if (boundingBox[i].x<testInXLeast){
-			            testInXLeast=boundingBox[i].x;
-			            rightArmInd=i;
-			            }
-			            
-			            if (boundingBox[i].x>testInXMost){
-			            testInXMost=boundingBox[i].x;
-			            leftArmInd=i;
-			            }			        
+                    // Find boxes for left and right arms..... could be improved to cope with x-over the centre line of person!
+                    
+                    for (int i = 0; i<(int)boundingBox.size(); i++)
+                    {
+                        if (boundingBox[i].x<testInXLeast){
+                        testInXLeast=boundingBox[i].x;
+                        rightArmInd=i;
+                        }
+                        
+                        if (boundingBox[i].x>testInXMost){
+                        testInXMost=boundingBox[i].x;
+                        leftArmInd=i;
+                        }                   
                      }
                     // Check both boundingBoxes aren't the same for left and right 
                     if (rightArmInd!=leftArmInd)
@@ -431,16 +431,16 @@ bool visionDriver::updateModule()
                         
              
                         circle(captureFrameFace, leftArmMiddlePoint.at(2), 10, Scalar(255,0,255), 3);    //middle point
-				        Point pt1(boundingBox[leftArmInd].x + boundingBox[leftArmInd].width, boundingBox[leftArmInd].y + boundingBox[leftArmInd].height);
-				        utilsObj->drawRotatedRect(captureFrameFace, armRotatedRects[leftArmInd], Scalar(255,0,0));
-				        captureFrameFace=addText("Left arm", captureFrameFace, pt1, Scalar(0,0,255));
-			            
-			            // Right ARM
-		            	//Draw right arm rectangles
-				        Point pt3(boundingBox[rightArmInd].x + boundingBox[rightArmInd].width, boundingBox[rightArmInd].y + boundingBox[rightArmInd].height);
-				        utilsObj->drawRotatedRect(captureFrameFace, armRotatedRects[rightArmInd], Scalar(255,0,0));
-				        captureFrameFace=addText("Right arm", captureFrameFace, pt3, Scalar(0,0,255));			    
-			            
+                        Point pt1(boundingBox[leftArmInd].x + boundingBox[leftArmInd].width, boundingBox[leftArmInd].y + boundingBox[leftArmInd].height);
+                        utilsObj->drawRotatedRect(captureFrameFace, armRotatedRects[leftArmInd], Scalar(255,0,0));
+                        captureFrameFace=addText("Left arm", captureFrameFace, pt1, Scalar(0,0,255));
+                        
+                        // Right ARM
+                        //Draw right arm rectangles
+                        Point pt3(boundingBox[rightArmInd].x + boundingBox[rightArmInd].width, boundingBox[rightArmInd].y + boundingBox[rightArmInd].height);
+                        utilsObj->drawRotatedRect(captureFrameFace, armRotatedRects[rightArmInd], Scalar(255,0,0));
+                        captureFrameFace=addText("Right arm", captureFrameFace, pt3, Scalar(0,0,255));              
+                        
                       
                         // @@@@@@@@@@@@@@@@@@@@@@ Are the hands moving @@@@@@@@@@@@@@@@@@@@@
                         //Set number of pixels to detect hand movement....
@@ -508,23 +508,23 @@ bool visionDriver::updateModule()
                         bodyPartLocations[9]=relRightXPosition;// Right hand  x
                         bodyPartLocations[10]=relRightYPosition;// Right hand  y
                         bodyPartLocations[11]=1.0;// Right hand  z -> ++++++++++++++++++ SET AT DEFAULT 1 for NOW NEED TO UPDATE LATER...... STEREOVISION
-                        bodyPosFound=true; // position found -> set flag to on												
+                        bodyPosFound=true; // position found -> set flag to on                                              
                                                  
                         previous_right_hand_position = right_hand_position;                          
                     }
                     else
-		            {
-    		            calibratedLeftPoints = false;
-		                calibratedRightPoints = false;
-		                firstMiddlePointReady = false;
-			        }
-			    }
-			    else
-		        {
-		            calibratedLeftPoints = false;
-		            calibratedRightPoints = false;
+                    {
+                        calibratedLeftPoints = false;
+                        calibratedRightPoints = false;
+                        firstMiddlePointReady = false;
+                    }
+                }
+                else
+                {
+                    calibratedLeftPoints = false;
+                    calibratedRightPoints = false;
                     firstMiddlePointReady = false;
-			    }
+                }
 
                 // Main display here..... ALways on -> shows Face / Body and arms with hand locations detected
                 if (addFrameRate)
@@ -534,25 +534,25 @@ bool visionDriver::updateModule()
                     std::stringstream ss(stringstream::in | stringstream::out);
                     ss << setprecision(2) << frameRate <<  " fps";
                     std::string str = ss.str();   
-                    captureFrameFace=addText(str, captureFrameFace, Point2f(200,15), Scalar(0,0,255));		
+                    captureFrameFace=addText(str, captureFrameFace, Point2f(200,15), Scalar(0,0,255));      
                 }
                 
                 imshow("Face / Body / Arms", captureFrameFace);
 
-				// Send found body pos values out over YARP
-				// If any body part position has been found -> face, body, left hand, right hand
-				if (bodyPosFound)
-				{
-				    Bottle bodyPartPosOutput;
-				    bodyPartPosOutput.clear();
-			        for (int i = 0;i<12;i++)
-				        bodyPartPosOutput.addDouble(bodyPartLocations[i]); 
-				    bodyPartPosPort.write(bodyPartPosOutput);
-				}
-				
+                // Send found body pos values out over YARP
+                // If any body part position has been found -> face, body, left hand, right hand
+                if (bodyPosFound)
+                {
+                    Bottle bodyPartPosOutput;
+                    bodyPartPosOutput.clear();
+                    for (int i = 0;i<12;i++)
+                        bodyPartPosOutput.addDouble(bodyPartLocations[i]); 
+                    bodyPartPosPort.write(bodyPartPosOutput);
+                }
+                
             }
-					    
-	    }
+                        
+        }
     }
     waitKey(1);
     return true;
@@ -605,58 +605,58 @@ bool visionDriver::configure(ResourceFinder &rf)
 
     isGPUavailable = getCudaEnabledDeviceCount();
 
-	if (isGPUavailable == 0)
-	{
-		cout << "No GPU found or the library is compiled without GPU support" << endl;
-		cout << "Proceeding on CPU" << endl;
-		cout << "Detecting largest face in view only for performance" << endl;
-		hardware_int = 0;
+    if (isGPUavailable == 0)
+    {
+        cout << "No GPU found or the library is compiled without GPU support" << endl;
+        cout << "Proceeding on CPU" << endl;
+        cout << "Detecting largest face in view only for performance" << endl;
+        hardware_int = 0;
 
         return false;
-	}
-	else
-	{
-		hardware_int = 1;
-		cv::gpu::getDevice();
-		cout << "Proceeding on GPU" << endl;
-	}
+    }
+    else
+    {
+        hardware_int = 1;
+        cv::gpu::getDevice();
+        cout << "Proceeding on GPU" << endl;
+    }
 
-	inOpen = faceTrack.open(imageInPort.c_str());
-	imageOutOpen = imageOut.open(imageOutPort.c_str());
+    inOpen = faceTrack.open(imageInPort.c_str());
+    imageOutOpen = imageOut.open(imageOutPort.c_str());
 
-	gazeOut = gazePort.open(gazeOutPort.c_str());
-	
-	bodyPartPosPort.open(bodyPartPosName.c_str());
+    gazeOut = gazePort.open(gazeOutPort.c_str());
+    
+    bodyPartPosPort.open(bodyPartPosName.c_str());
 
-	if(!inOpen | !imageOutOpen | !gazeOut )
-	{
-		cout << "Could not open ports. Exiting" << endl;
-		return false;
-	}
+    if(!inOpen | !imageOutOpen | !gazeOut )
+    {
+        cout << "Could not open ports. Exiting" << endl;
+        return false;
+    }
 
-	inCount = faceTrack.getInputCount();
+    inCount = faceTrack.getInputCount();
 
     // Init dyn variables
     sagittalSplit = 0;  // split person in left and right 
     bodyCentre.x=0;
     bodyCentre.y=0; 
     
-	step = 0;
+    step = 0;
     count = 0;
         
-	inStatus = true;
+    inStatus = true;
 
-	if( displayFaces )
-	{
-		namedWindow("faces",1);
-		namedWindow("wholeImage",1);
-		waitKey(1);
-	}		
-	
-	face_cascade.load(faceCascadeFile.c_str());
-	body_cascade.load(bodyCascadeFile.c_str());
-	
-	return true;
+    if( displayFaces )
+    {
+        namedWindow("faces",1);
+        namedWindow("wholeImage",1);
+        waitKey(1);
+    }       
+    
+    face_cascade.load(faceCascadeFile.c_str());
+    body_cascade.load(bodyCascadeFile.c_str());
+    
+    return true;
 }
 
 bool visionDriver::interruptModule()

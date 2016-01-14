@@ -192,7 +192,7 @@ Bottle abmReasoning::executeActionFromAdv(Bottle bInput)
 
     for (list<string>::iterator itArg = listArgument.begin(); itArg != listArgument.end(); itArg++)
     {
-        bool	 bFound = false;
+        bool     bFound = false;
 
         // search for correpondant adverb
         for (vector<adjKnowledge>::iterator itAdvFromList = listKnownAdverb.begin(); itAdvFromList != listKnownAdverb.end(); itAdvFromList++)
