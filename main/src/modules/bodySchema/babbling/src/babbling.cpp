@@ -33,7 +33,7 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
 
     moduleName = rf.check("name",Value("babbling"),"module name (string)").asString();
 
-//    part = rf.check("part",Value("left_arm")).asString();
+    //    part = rf.check("part",Value("left_arm")).asString();
     robot = rf.check("robot",Value("icubSim")).asString();
     fps = rf.check("fps",Value(30)).asInt(); //30;
     cmd_source = rf.check("cmd_source",Value("C")).asString();
@@ -181,20 +181,26 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
 
     string helpMessage =  string(getName().c_str()) +
             " commands are: \n " +
-            "babbling arm: motor commands sent to all the arm joints \n " +
-            "babbling joint <int joint_number>: motor commands sent to joint_number only \n " +
+            "babbling arm <left/right>: motor commands sent to all the arm joints \n " +
+            "babbling joint <int joint_number> <left/right>: motor commands sent to joint_number only \n " +
+            "home: move the robot to home position \n " +
             "help \n " +
             "quit \n" ;
 
     reply.clear();
 
     if (command.get(0).asString()=="quit") {
-        reply.addString("quitting");
+        reply.addString("Quitting");
         return false;
     }
     else if (command.get(0).asString()=="help") {
         yInfo() << helpMessage;
         reply.addString(helpMessage);
+    }
+    else if (command.get(0).asString()=="home") {
+        reply.addString("Moving to home position...");
+        gotoHomePos();
+        reply.addString("ack");
     }
     else if (command.get(0).asString()=="babbling") {
         if (command.get(1).asString()=="arm")
@@ -202,16 +208,9 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
             single_joint = -1;
             part_babbling = command.get(1).asString();
 
-            if (command.get(2).asString()=="left")
+            if (command.get(2).asString()=="left" || command.get(2).asString()=="right")
             {
-                part = "left_arm";
-                yInfo() << "Babbling "+command.get(2).asString()+" arm...";
-                doBabbling();
-                reply.addString("ack");
-            }
-            else if (command.get(2).asString()=="right")
-            {
-                part = "right_arm";
+                part = command.get(2).asString() + "_arm";
                 yInfo() << "Babbling "+command.get(2).asString()+" arm...";
                 doBabbling();
                 reply.addString("ack");
@@ -230,16 +229,9 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
             if(single_joint < 16 && single_joint>=0)
             {
 
-                if (command.get(3).asString()=="left")
+                if (command.get(3).asString()=="left" || command.get(3).asString()=="right")
                 {
-                    part = "left_arm";
-                    yInfo() << "Babbling joint " << single_joint << "...";
-                    doBabbling();
-                    reply.addString("ack");
-                }
-                else if (command.get(3).asString()=="right")
-                {
-                    part = "right_arm";
+                    part = command.get(3).asString() + "_arm";
                     yInfo() << "Babbling joint " << single_joint << "...";
                     doBabbling();
                     reply.addString("ack");
@@ -264,16 +256,9 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
             single_joint = -1;
             part_babbling = command.get(1).asString();
 
-            if (command.get(2).asString()=="left")
+            if (command.get(2).asString()=="left" || command.get(2).asString()=="right")
             {
-                part = "left_arm";
-                yInfo() << "Babbling "+command.get(2).asString()+" hand...";
-                doBabbling();
-                reply.addString("ack");
-            }
-            else if (command.get(2).asString()=="right")
-            {
-                part = "right_arm";
+                part = command.get(2).asString() + "_arm";
                 yInfo() << "Babbling "+command.get(2).asString()+" hand...";
                 doBabbling();
                 reply.addString("ack");
@@ -346,7 +331,7 @@ bool Babbling::doBabbling()
     {
         double startTime = yarp::os::Time::now();
         while (Time::now() < startTime + train_duration){
-//            yInfo() << Time::now() << "/" << startTime + train_duration;
+            //            yInfo() << Time::now() << "/" << startTime + train_duration;
             double t = Time::now() - startTime;
             yInfo() << "t = " << t << "/ " << train_duration;
 
@@ -383,146 +368,110 @@ yarp::sig::Vector Babbling::babblingCommands(double &t, int j_idx)
     for (unsigned int l=0; l<16; l++)
         ref_command[l]=start_command[l] + amp*sin(freq*t * 2 * M_PI);
 
-    if(j_idx != -1)
+    yarp::sig::Vector encodersUsed;
+    if(part=="right_arm" || part=="left_arm")
     {
-        if(part=="right_arm"){
-            bool okEncArm = encsRightArm->getEncoders(encodersRightArm.data());
-            if(!okEncArm) {
-                cerr << "Error receiving encoders";
-                command[j_idx] = 0;
-            } else {
-                command[j_idx] = 10 * (ref_command[j_idx] - encodersRightArm[j_idx]);
-                if(command[j_idx] > 50)
-                    command[j_idx] = 50;
-                if(command[j_idx] < -50)
-                    command[j_idx] = -50;
-            }
-        } else if(part=="left_arm"){
-            bool okEncArm = encsLeftArm->getEncoders(encodersLeftArm.data());
-            if(!okEncArm) {
-                cerr << "Error receiving encoders";
-                command[j_idx] = 0;
-            } else {
-                command[j_idx] = 10 * (ref_command[j_idx] - encodersLeftArm[j_idx]);
-                if(command[j_idx] > 50)
-                    command[j_idx] = 50;
-                if(command[j_idx] < -50)
-                    command[j_idx] = -50;
-            }
-        }
-    }
-    else
-    {
-        if(part_babbling == "arm")
+        if(part=="right_arm")
+            encodersUsed = encodersRightArm;
+        else
+            encodersUsed = encodersLeftArm;
+
+
+        if(j_idx != -1)
         {
-            if(part=="right_arm"){
-                bool okEncArm = encsRightArm->getEncoders(encodersRightArm.data());
-                if(!okEncArm) {
-                    cerr << "Error receiving encoders";
-                    for (unsigned int l=0; l<7; l++)
-                        command[l] = 0;
-                } else {
-                    for (unsigned int l=0; l<7; l++)
-                    {
-                        //                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
-                        command[l] = 10 * (ref_command[l] - encodersRightArm[l]);
-                        if(command[j_idx] > 20)
-                            command[j_idx] = 20;
-                        if(command[j_idx] < -20)
-                            command[j_idx] = -20;
-                    }
-                }
-            } else if (part=="left_arm"){
-
-                bool okEncArm = encsLeftArm->getEncoders(encodersLeftArm.data());
-                if(!okEncArm) {
-                    cerr << "Error receiving encoders";
-                    for (unsigned int l=0; l<7; l++)
-                        command[l] = 0;
-                } else {
-                    for (unsigned int l=0; l<7; l++)
-                    {
-                        //                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
-                        command[l] = 10 * (ref_command[l] - encodersLeftArm[l]);
-                        if(command[j_idx] > 20)
-                            command[j_idx] = 20;
-                        if(command[j_idx] < -20)
-                            command[j_idx] = -20;
-                    }
-                }
-            }
-
-
-        }
-        else if(part_babbling == "hand")
-        {
-
+            bool okEncArm = false;
             if(part=="right_arm")
-            {
-                bool okEncArm = encsRightArm->getEncoders(encodersRightArm.data());
-                if(!okEncArm) {
-                    cerr << "Error receiving encoders";
-                    for (unsigned int l=7; l<command.size(); l++)
-                        command[l] = 0;
-                } else {
-                    for (unsigned int l=7; l<command.size(); l++)
-                    {
-    //                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
-                        command[l] = 10 * (ref_command[l] - encodersRightArm[l]);
-                        if(command[j_idx] > 20)
-                            command[j_idx] = 20;
-                        if(command[j_idx] < -20)
-                            command[j_idx] = -20;
-                    }
-                }
-            }
-            else if(part=="left_arm")
-            {
-                bool okEncArm = encsLeftArm->getEncoders(encodersLeftArm.data());
-                if(!okEncArm) {
-                    cerr << "Error receiving encoders";
-                    for (unsigned int l=7; l<command.size(); l++)
-                        command[l] = 0;
-                } else {
-                    for (unsigned int l=7; l<command.size(); l++)
-                    {
-    //                    yWarning() << "error=" << ref_command[l] - encodersArm[l];
-                        command[l] = 10 * (ref_command[l] - encodersLeftArm[l]);
-                        if(command[j_idx] > 20)
-                            command[j_idx] = 20;
-                        if(command[j_idx] < -20)
-                            command[j_idx] = -20;
-                    }
-                }
-            }
+                okEncArm = encsRightArm->getEncoders(encodersUsed.data());
+            else
+                okEncArm = encsLeftArm->getEncoders(encodersUsed.data());
 
+            if(!okEncArm) {
+                cerr << "Error receiving encoders";
+                command[j_idx] = 0;
+            } else {
+                command[j_idx] = 10 * (ref_command[j_idx] - encodersUsed[j_idx]);
+                if(command[j_idx] > 50)
+                    command[j_idx] = 50;
+                if(command[j_idx] < -50)
+                    command[j_idx] = -50;
+            }
         }
         else
         {
-            yError("Can't babble the required body part.");
+            if(part_babbling == "arm")
+            {
+                bool okEncArm = false;
+                if(part=="right_arm")
+                    okEncArm = encsRightArm->getEncoders(encodersUsed.data());
+                else
+                    okEncArm = encsLeftArm->getEncoders(encodersUsed.data());
+                if(!okEncArm) {
+                    cerr << "Error receiving encoders";
+                    for (unsigned int l=0; l<7; l++)
+                        command[l] = 0;
+                } else {
+                    for (unsigned int l=0; l<7; l++)
+                    {
+                        command[l] = 10 * (ref_command[l] - encodersUsed[l]);
+                        if(command[j_idx] > 20)
+                            command[j_idx] = 20;
+                        if(command[j_idx] < -20)
+                            command[j_idx] = -20;
+                    }
+                }
+            }
+            else if(part_babbling == "hand")
+            {
+                bool okEncArm = false;
+                if(part=="right_arm")
+                    okEncArm = encsRightArm->getEncoders(encodersUsed.data());
+                else
+                    okEncArm = encsLeftArm->getEncoders(encodersUsed.data());
+                if(!okEncArm) {
+                    cerr << "Error receiving encoders";
+                    for (unsigned int l=7; l<command.size(); l++)
+                        command[l] = 0;
+                } else {
+                    for (unsigned int l=7; l<command.size(); l++)
+                    {
+                        command[l] = 10 * (ref_command[l] - encodersUsed[l]);
+                        if(command[j_idx] > 20)
+                            command[j_idx] = 20;
+                        if(command[j_idx] < -20)
+                            command[j_idx] = -20;
+                    }
+                }
+            }
+            else
+            {
+                yError("Can't babble the required body part.");
+            }
         }
-    }
 
-    Bottle& inDataB = portVelocityOut.prepare(); // Get the object
-    inDataB.clear();
-    for(unsigned int l=0; l<command.size(); l++)
-    {
-        inDataB.addDouble(command[l]);
-    }
-    portVelocityOut.write();
+        Bottle& inDataB = portVelocityOut.prepare(); // Get the object
+        inDataB.clear();
+        for(unsigned int l=0; l<command.size(); l++)
+        {
+            inDataB.addDouble(command[l]);
+        }
+        portVelocityOut.write();
 
-    if(part=="right_arm"){
-        velRightArm->velocityMove(command.data());
-    }
-    else if(part=="left_arm"){
-        velLeftArm->velocityMove(command.data());
+        if(part=="right_arm"){
+            velRightArm->velocityMove(command.data());
+        }
+        else if(part=="left_arm"){
+            velLeftArm->velocityMove(command.data());
+        }
+        else{
+            yError() << "Don't know which part to move to do babbling." ;
+        }
+
+        // This delay is needed!!!
+        yarp::os::Time::delay(0.05);
+
     }
     else
-        yError() << "Don't know which part to move to do babbling." ;
-
-
-    // This delay is needed!!!
-    yarp::os::Time::delay(0.05);
+        yError() << "Which arm?";
 
     return command;
 }
@@ -566,13 +515,13 @@ int Babbling::babblingCommandsMatlab()
     int nPr = 1;
     while(!done)
     {
-    
+
         // Tell Matlab that motion is ready to be done
         bToMatlab.clear();replyFromMatlab.clear();
         bToMatlab.addInt(1);
         portToMatlab.write(bToMatlab,replyFromMatlab);
-    
-    
+
+
         for (unsigned int l=1; l<command.size(); l++)
             command[l]=0;
 
@@ -580,7 +529,7 @@ int Babbling::babblingCommandsMatlab()
         cmdMatlab = portReadMatlab.read(true) ;
         for (int i=0; i<6; i++)
             command[i] = cmdMatlab->get(i).asDouble();
-        
+
         // Move
         int j=1;
         while(j--)
@@ -596,7 +545,7 @@ int Babbling::babblingCommandsMatlab()
 
             Time::delay(0.00002);
         }
-        
+
 
         // Tell Matlab that motion is done
         bToMatlab.clear();replyFromMatlab.clear();
@@ -605,7 +554,7 @@ int Babbling::babblingCommandsMatlab()
 
         endMatlab = portReadMatlab.read(true) ;
         done = endMatlab->get(0).asInt();
-        
+
         nPr = nPr +1;
     }
 
@@ -640,22 +589,29 @@ bool Babbling::gotoStartPos()
     }
     if(part=="right_arm"){
         commandHead[2] = -2*start_commandHead[2];
-        
     }
     posHead->positionMove(commandHead.data());
 
     /* Move arm to start position */
 
-    if(part=="left_arm")
+    if(part=="left_arm" || part=="right_arm")
     {
-        command = encodersLeftArm;
+        if(part=="left_arm")
+            command = encodersLeftArm;
+        else
+            command = encodersRightArm;
+
         bool successAll = false;
         while(!successAll) {
             successAll = true;
-
+            bool successIndividual = false;
             for(int i=0; i<16; i++)
             {
-                bool successIndividual = ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
+                if(part=="left_arm")
+                    successIndividual = ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
+                else
+                    successIndividual = ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
+
                 yDebug() << "Set joint " << i << " in position mode successful: " << successIndividual;
                 command[i]=start_command[i];
                 if(!successIndividual) {
@@ -663,60 +619,113 @@ bool Babbling::gotoStartPos()
                 }
             }
         }
-        posLeftArm->positionMove(command.data());
-    }
-    else if(part=="right_arm")
-    {
-        command = encodersRightArm;
-        bool successAll = false;
-        while(!successAll) {
-            successAll = true;
+        if(part=="left_arm")
+            posLeftArm->positionMove(command.data());
+        else
+            posRightArm->positionMove(command.data());
 
-            for(int i=0; i<16; i++)
-            {
-                bool successIndividual = ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
-                yDebug() << "Set joint " << i << " in position mode successful: " << successIndividual;
-                command[i]=start_command[i];
-                if(!successIndividual) {
-                    successAll = false;
-                }
-            }
+
+
+        bool done_head=false;
+        bool done_arm=false;
+        while (!done_head || !done_arm) {
+            yInfo() << "Wait for position moves to finish" ;
+            posHead->checkMotionDone(&done_head);
+            if(part=="left_arm")
+                posLeftArm->checkMotionDone(&done_arm);
+            else
+                posRightArm->checkMotionDone(&done_arm);
+            //        yDebug() << "done_head: " << done_head << " done_arm: " << done_arm;
+            Time::delay(0.04);
+            //        for(int i=0; i<16; i++)
+            //        {
+            //            int m;
+            //            ictrlLeftArm->getControlMode(i, &m);
+            //            if(m==VOCAB_CM_POSITION) {
+            //                yDebug() << i << " position";
+            //            } else if(m==VOCAB_CM_VELOCITY) {
+            //                yDebug() << i << " velocity";
+            //            } else if(m==VOCAB_CM_HW_FAULT) {
+            //                yDebug() << i << " HW fault";
+            //            } else {
+            //                yDebug() << i << " ???";
+            //            }
+            //        }
         }
-        posRightArm->positionMove(command.data());
+        yInfo() << "Done." ;
+
+        Time::delay(1.0);
     }
     else
         yError() << "Don't know which part to move to start position." ;
 
 
-    bool done_head=false;
-    bool done_arm=false;
-    while (!done_head || !done_arm) {
-        yInfo() << "Wait for position moves to finish" ;
-        posHead->checkMotionDone(&done_head);
-        posLeftArm->checkMotionDone(&done_arm);
-//        yDebug() << "done_head: " << done_head << " done_arm: " << done_arm;
-        Time::delay(0.04);
-//        for(int i=0; i<16; i++)
-//        {
-//            int m;
-//            ictrlLeftArm->getControlMode(i, &m);
-//            if(m==VOCAB_CM_POSITION) {
-//                yDebug() << i << " position";
-//            } else if(m==VOCAB_CM_VELOCITY) {
-//                yDebug() << i << " velocity";
-//            } else if(m==VOCAB_CM_HW_FAULT) {
-//                yDebug() << i << " HW fault";
-//            } else {
-//                yDebug() << i << " ???";
-//            }
-//        }
+    return true;
+}
+
+
+bool Babbling::gotoHomePos()
+{
+    velHead->stop();
+    velLeftArm->stop();
+    velRightArm->stop();
+
+    yarp::os::Time::delay(2.0);
+
+    /* Move head to home position */
+    commandHead = encodersHead;
+    for (int i=0; i<=4; i++) {
+        ictrlHead->setControlMode(i,VOCAB_CM_POSITION);
+        commandHead[i] = 0;
     }
-    yInfo() << "Done." ;
+    posHead->positionMove(commandHead.data());
+
+    bool done_head=false;
+    while (!done_head)
+    {
+        yInfo() << "Wait for head position moves to finish" ;
+        posHead->checkMotionDone(&done_head);
+        Time::delay(0.04);
+    }
+    yInfo() << "Done head." ;
+
+
+
+    /* Move arms to home position */
+
+    for(int i=0; i<16; i++)
+    {
+        ictrlRightArm->setControlMode(i, VOCAB_CM_POSITION);
+        ictrlLeftArm->setControlMode(i, VOCAB_CM_POSITION);
+    }
+    command[0] = -25;   command[1] = 20;    command[2] = 0;     command[3] = 50;
+    command[4] = 0;     command[5] = 0;     command[6] = 0;     command[7] = 60;
+    command[8] = 20;    command[9] = 20;    command[10] = 20;   command[11] = 10;
+    command[12] = 10;   command[13] = 10;   command[14] = 10;   command[15] = 10;
+
+    posLeftArm->positionMove(command.data());
+    bool done_arm_l=false;
+    while (!done_arm_l) {
+        yInfo() << "Wait for left arm position moves to finish" ;
+        posLeftArm->checkMotionDone(&done_arm_l);
+        Time::delay(0.04);
+    }
+    yInfo() << "Done left arm." ;
+
+    posRightArm->positionMove(command.data());
+    bool done_arm_r=false;
+    while (!done_arm_r) {
+        yInfo() << "Wait for right arm position moves to finish" ;
+        posRightArm->checkMotionDone(&done_arm_r);
+        Time::delay(0.04);
+    }
+    yInfo() << "Done right arm." ;
 
     Time::delay(1.0);
 
     return true;
 }
+
 
 bool Babbling::init_iCub(string &part)
 {
@@ -764,8 +773,8 @@ bool Babbling::init_iCub(string &part)
     double maxLimArm[16];
     for (int l=0; l<16; l++)
         ictrlLimLeftArm->getLimits(l,&minLimArm[l],&maxLimArm[l]);
-//    for (int l=7; l<16; l++)
-//        start_command[l] = (maxLimArm[l]-minLimArm[l])/2;
+    //    for (int l=7; l<16; l++)
+    //        start_command[l] = (maxLimArm[l]-minLimArm[l])/2;
     for (int l=0; l<16; l++)
         yInfo() << "Joint " << l << ": limits = [" << minLimArm[l] << "," << maxLimArm[l] << "]. start_commad = " << start_command[l];
 
@@ -837,8 +846,8 @@ bool Babbling::init_iCub(string &part)
 
     for (int l=0; l<16; l++)
         ictrlLimRightArm->getLimits(l,&minLimArm[l],&maxLimArm[l]);
-//    for (int l=7; l<16; l++)
-//        start_command[l] = (maxLimArm[l]-minLimArm[l])/2;
+    //    for (int l=7; l<16; l++)
+    //        start_command[l] = (maxLimArm[l]-minLimArm[l])/2;
     for (int l=0; l<16; l++)
         yInfo() << "Joint " << l << ": limits = [" << minLimArm[l] << "," << maxLimArm[l] << "]. start_commad = " << start_command[l];
 

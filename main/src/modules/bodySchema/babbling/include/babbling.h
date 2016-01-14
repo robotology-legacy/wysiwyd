@@ -97,6 +97,7 @@ private:
     yarp::sig::Vector babblingCommands(double &t, int j_idx);
     int babblingCommandsMatlab();
     bool gotoStartPos();
+    bool gotoHomePos();
     yarp::os::Bottle dealABM(const yarp::os::Bottle& command, int begin);
 
 };
