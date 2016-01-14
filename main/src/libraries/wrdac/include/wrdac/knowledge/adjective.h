@@ -37,11 +37,11 @@ namespace wysiwyd{namespace wrdac{
                         
         virtual bool    isType(std::string _entityType)
         {
-			if (_entityType == EFAA_OPC_ENTITY_ADJECTIVE)
-				return true;
-			else
-				return this->Entity::isType(_entityType);
-		}
+            if (_entityType == EFAA_OPC_ENTITY_ADJECTIVE)
+                return true;
+            else
+                return this->Entity::isType(_entityType);
+        }
 
         virtual yarp::os::Bottle asBottle();
         virtual bool             fromBottle(yarp::os::Bottle b);

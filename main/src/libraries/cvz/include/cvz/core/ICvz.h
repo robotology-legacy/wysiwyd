@@ -80,19 +80,19 @@ namespace cvz {
                     }
                 }
                 bFull.clear();
-				bFull.read(outOfGroupProps);
-				debug = bFull.toString();
+                bFull.read(outOfGroupProps);
+                debug = bFull.toString();
 
                 yarp::os::Bottle& bParamsFixed = prop.findGroup("Parameters_StartTime");
-				if (!bParamsFixed.isNull())
-				{
-					bParamsFixed.append(bFull);
-					bParamsFixed.write(parametersStartTime);
-				}
-				else
-				{
-					bFull.write(parametersStartTime);
-				}
+                if (!bParamsFixed.isNull())
+                {
+                    bParamsFixed.append(bFull);
+                    bParamsFixed.write(parametersStartTime);
+                }
+                else
+                {
+                    bFull.write(parametersStartTime);
+                }
 
                 //Add the required parameters if they are not specified
                 if (!parametersStartTime.check("name"))

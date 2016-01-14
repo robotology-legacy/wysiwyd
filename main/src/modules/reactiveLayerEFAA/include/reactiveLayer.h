@@ -32,25 +32,25 @@ private:
     double salutationLifetime, lastResponseTime;
     double faceUpdatePeriod, lastFaceUpdate;
 
-	InternalVariablesDecay* decayThread;
+    InternalVariablesDecay* decayThread;
 
-	//Drive triggers
-	bool physicalInteraction;
-	bool someonePresent;
+    //Drive triggers
+    bool physicalInteraction;
+    bool someonePresent;
 
-	//Reflexes
-	map<string, StimulusEmotionalResponse> salutationEffects;
-	map<string, StimulusEmotionalResponse> tactileEffects;
-	map<string, StimulusEmotionalResponse> homeostaticOverEffects;
-	map<string, StimulusEmotionalResponse> homeostaticUnderEffects;
+    //Reflexes
+    map<string, StimulusEmotionalResponse> salutationEffects;
+    map<string, StimulusEmotionalResponse> tactileEffects;
+    map<string, StimulusEmotionalResponse> homeostaticOverEffects;
+    map<string, StimulusEmotionalResponse> homeostaticUnderEffects;
 
     Port    rpc;
 
     //Configuration
-	void configureOPC(yarp::os::ResourceFinder &rf);
-	void configureAllostatic(yarp::os::ResourceFinder &rf);
-	void configureTactile(yarp::os::ResourceFinder &rf);
-	void configureSalutation(yarp::os::ResourceFinder &rf);
+    void configureOPC(yarp::os::ResourceFinder &rf);
+    void configureAllostatic(yarp::os::ResourceFinder &rf);
+    void configureTactile(yarp::os::ResourceFinder &rf);
+    void configureSalutation(yarp::os::ResourceFinder &rf);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -74,8 +74,8 @@ public:
 
     bool updateModule();
 
-	//Check for newcomers and salute them if required
-	bool handleSalutation(bool& someoneIsPresent);
+    //Check for newcomers and salute them if required
+    bool handleSalutation(bool& someoneIsPresent);
 
     //Retrieve and treat the tactile information input
     bool handleTactile();
@@ -83,12 +83,12 @@ public:
     //Retrieve and treat the gesture information input
     bool handleGesture();
 
-	//Update the drives accordingly to the stimuli
-	bool updateAllostatic();
+    //Update the drives accordingly to the stimuli
+    bool updateAllostatic();
 
-	//Express emotions
-	bool updateEmotions();
+    //Express emotions
+    bool updateEmotions();
 
-	//RPC & scenarios
-	bool respond(const Bottle& cmd, Bottle& reply);
+    //RPC & scenarios
+    bool respond(const Bottle& cmd, Bottle& reply);
 };

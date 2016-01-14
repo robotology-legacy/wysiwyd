@@ -143,7 +143,7 @@ public:
         return res;
     }
 
-    int	lo_export_pgsql(unsigned int lobjId, const char *filename) {
+    int lo_export_pgsql(unsigned int lobjId, const char *filename) {
         _resultPtr = PQexec(_connectionHandlerPtr, "BEGIN");
         if (PQresultStatus(_resultPtr) != PGRES_COMMAND_OK) {
             throw DataBaseError("BEGIN command failed: " + std::string(PQerrorMessage(_connectionHandlerPtr)));
@@ -170,9 +170,9 @@ protected:
 
 
 private:
-    ExecStatusType	_status;
-    bool			_hasResult;
-    PGresult*		_resultPtr;
-    PGconn*			_connectionHandlerPtr;
+    ExecStatusType  _status;
+    bool            _hasResult;
+    PGresult*       _resultPtr;
+    PGconn*         _connectionHandlerPtr;
 
 }; // PostgreSql

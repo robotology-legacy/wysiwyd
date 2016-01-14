@@ -48,10 +48,10 @@ typedef struct {
  *  the  cost matrices (missing lines or columns are filled with 0).
  *  It returns the size of the quadratic(!) assignment matrix. **/
 int hungarian_init(hungarian_problem_t* p, 
-		   double** cost_matrix, 
-		   int rows, 
-		   int cols, 
-		   int mode);
+           double** cost_matrix, 
+           int rows, 
+           int cols, 
+           int mode);
   
 /** Free the memory allocated by init. **/
 void hungarian_free(hungarian_problem_t* p);

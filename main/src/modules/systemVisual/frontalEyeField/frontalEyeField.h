@@ -39,22 +39,22 @@ class LeakyIntegrator
 {
 public:
 
-	double x;
-	double leak;
-	double inputFactor;
+    double x;
+    double leak;
+    double inputFactor;
 
-	LeakyIntegrator()
-	{
-		x = 0.0;
-		leak = 0.0;
-		inputFactor = 1000.0;
-	}
+    LeakyIntegrator()
+    {
+        x = 0.0;
+        leak = 0.0;
+        inputFactor = 1000.0;
+    }
 
-	void update(double input)
-	{
-		x = input;// -leak*x + inputFactor*input;
-		//x = min(max(0.0, x), 1.0);
-	}
+    void update(double input)
+    {
+        x = input;// -leak*x + inputFactor*input;
+        //x = min(max(0.0, x), 1.0);
+    }
 };
 
 class FrontalEyeField : public yarp::os::RFModule 
@@ -65,16 +65,16 @@ private:
     std::string gazePortName;
 
     PolyDriver clientGazeCtrl;
-	IGazeControl *igaze;
-	int store_context_id;
-	int cameraUsed;
-	double timeNextSaccade;
-	vector < vector<BufferedPort<Bottle> * > >  retinaInput;
-	vector < vector< LeakyIntegrator > > errorMap;
-	cvz::core::ThreadedCvz* mmcmErrorPrediction;
-	int retinaW, retinaH;
+    IGazeControl *igaze;
+    int store_context_id;
+    int cameraUsed;
+    double timeNextSaccade;
+    vector < vector<BufferedPort<Bottle> * > >  retinaInput;
+    vector < vector< LeakyIntegrator > > errorMap;
+    cvz::core::ThreadedCvz* mmcmErrorPrediction;
+    int retinaW, retinaH;
 
-	double tau;
+    double tau;
 
 public:
 
@@ -84,8 +84,8 @@ public:
     double getPeriod(); 
     bool updateModule();
 
-	void connectErrorInput(std::string splitterPrefix, std::string splitterSuffix);
-	void resetErrorMap();
+    void connectErrorInput(std::string splitterPrefix, std::string splitterSuffix);
+    void resetErrorMap();
 };
 
 #endif

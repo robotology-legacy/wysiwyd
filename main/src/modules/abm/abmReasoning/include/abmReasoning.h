@@ -89,7 +89,7 @@ private:
 
 
 public:
-    void			determineTimingInfluence(adjKnowledge &adjInput, bool bPrint = false);
+    void            determineTimingInfluence(adjKnowledge &adjInput, bool bPrint = false);
 
     abmReasoning(yarp::os::ResourceFinder &rf);
     ~abmReasoning();

@@ -56,7 +56,7 @@ protected:
     Agent* partner;
     map<int, string> identities;
     string currentTrainingFace;
-	map<string, Vector> skeletonPatterns;
+    map<string, Vector> skeletonPatterns;
     double dSince;
 
     unsigned long dTimingLastApparition;        // time struct of the last appartition of an agent
@@ -84,21 +84,21 @@ public:
 
     Vector transform2IR(Vector v);
 
-	Vector getSkeletonPattern(Player p);
+    Vector getSkeletonPattern(Player p);
 
     static void click_callback( int event, int x, int y, int flags, void* param ){
-	    //IplImage* image = (IplImage*) param;
+        //IplImage* image = (IplImage*) param;
 
-	    switch( event ){
+        switch( event ){
 
-		    case CV_EVENT_LBUTTONDOWN:
+            case CV_EVENT_LBUTTONDOWN:
                 cout<<"Got a click."<<endl;
                 AgentDetector::clickX = (float)x;
                 AgentDetector::clickY = (float)y;
                 AgentDetector::clicked = true;
-			    break;
+                break;
 
             default: break;
-	    }
+        }
     }
 };

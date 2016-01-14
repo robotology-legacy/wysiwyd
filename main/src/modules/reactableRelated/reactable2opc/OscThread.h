@@ -26,10 +26,10 @@ class OscThread: public yarp::os::Thread, public osc::OscPacketListener
     Port oscFwding;
 
 public:
-    Matrix			H2ICUB;
-    bool			isCalibrated;
-    int			YaxisFactor;
-    int			XaxisFactor;
+    Matrix          H2ICUB;
+    bool            isCalibrated;
+    int         YaxisFactor;
+    int         XaxisFactor;
 
     OscThread(OPCClient * _opc, int _port = 7000);
     void forceBreak();

@@ -31,8 +31,8 @@
 * Face tracking module for iCub head and gaze using OpenCV2.X functions
 
 * Using the face detection functions of OpenCV, the iCub is detecting faces every frame. Then, it tries to located the biggest face in the middle of the view by moving head and eye simultaneously.
-	- Image sequences from left eye are used for tracking (not both eyes).
-	- There are five modes for the tracking internally: 'set position mode', 'panning mode', 'face tracking mode, 'smooth stopping mode' and 'face searching mode'.
+    - Image sequences from left eye are used for tracking (not both eyes).
+    - There are five modes for the tracking internally: 'set position mode', 'panning mode', 'face tracking mode, 'smooth stopping mode' and 'face searching mode'.
 *
 * \author Hyung Jin Chang
 *
@@ -83,55 +83,55 @@ class faceTrackerModule : public yarp::os::RFModule {
     std::string faceTrackerPortName;
     std::string handlerPortName;
 
-    OPCClient *opc;					 //retrieve information from the OPC
+    OPCClient *opc;                  //retrieve information from the OPC
     yarp::os::Port handlerPort;      //a port to handle messages
 
     Agent* icub;
 
-    BufferedPort<ImageOf<PixelRgb> > imagePortLeft; 	// make a port for reading left images
-    //BufferedPort<ImageOf<PixelRgb> > imagePortRight; 	// make a port for reading right images
+    BufferedPort<ImageOf<PixelRgb> > imagePortLeft;     // make a port for reading left images
+    //BufferedPort<ImageOf<PixelRgb> > imagePortRight;  // make a port for reading right images
 
     // ==================================================================
-	// robot
-	IPositionControl *pos;
-	IVelocityControl *vel;
-	IEncoders *enc;
+    // robot
+    IPositionControl *pos;
+    IVelocityControl *vel;
+    IEncoders *enc;
 
     PolyDriver *robotHead;
 
-	Vector setpoints;
-	Vector cur_encoders;
-	Vector prev_encoders;
+    Vector setpoints;
+    Vector cur_encoders;
+    Vector prev_encoders;
 
     IControlMode2 *ictrl;
 
 protected:
     //void exploring();
 
-	int counter;
-	double x_buf;
-	double y_buf;
+    int counter;
+    double x_buf;
+    double y_buf;
 
-	int mode; // 0: going to a set position, 1: face searching, 2: face tracking, 3: face stuck,
-	int setpos_counter;
-	int panning_counter;
-	int stuck_counter;
-	int tracking_counter;
+    int mode; // 0: going to a set position, 1: face searching, 2: face tracking, 3: face stuck,
+    int setpos_counter;
+    int panning_counter;
+    int stuck_counter;
+    int tracking_counter;
 
-	// ------------------------------
-	// random motion
-	int tilt_target;
-	int pan_target;
+    // ------------------------------
+    // random motion
+    int tilt_target;
+    int pan_target;
 
-	double pan_r, tilt_r;
-	int seed;
-	int pan_max;
-	int tilt_max;
+    double pan_r, tilt_r;
+    int seed;
+    int pan_max;
+    int tilt_max;
 
     int jnts;
 
     cv::CascadeClassifier face_classifier_left;
-	IplImage *cvIplImageLeft;
+    IplImage *cvIplImageLeft;
 
 public:
 

@@ -23,15 +23,15 @@
 #include <map>
 
 namespace Json {
-	class Value;
+    class Value;
 }  // namespace
 
 namespace rekognition_api {
 
 bool APICall(const std::string& api_addr_base,
-						 const std::map<std::string,
-						 std::string>& query_config,
-						 Json::Value* response);
+                         const std::map<std::string,
+                         std::string>& query_config,
+                         Json::Value* response);
 
 }  // namespace rekognition_api
 #endif // RESTAPI_H_

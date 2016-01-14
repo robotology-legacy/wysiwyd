@@ -53,14 +53,14 @@ private:
     string sagent;
     int iquestion;
 
-    Port handlerPort;				// a port to handle messages
-    Port Port2SpeechRecog;		// a port to send grammar to the speech recog
-    Port Port2iSpeak;		// a port to send grammar to the speech recog
+    Port handlerPort;               // a port to handle messages
+    Port Port2SpeechRecog;      // a port to send grammar to the speech recog
+    Port Port2iSpeak;       // a port to send grammar to the speech recog
 
     bool isAwake;
     ICubClient *iCub;
 
-    int iCurrentInstance;					// instance of the current request
+    int iCurrentInstance;                   // instance of the current request
     int inbsentence;
     string sCurrentNode;
     string sCurrentGrammarFile;
@@ -72,7 +72,7 @@ private:
     bool mainNode();
     bool grammarNode();
     list<int> nbCaracters(string ssequence);
-    string	grammarToString(string sPath);
+    string  grammarToString(string sPath);
 
 public:
     LanguageActionAnalysis(ResourceFinder &rf);

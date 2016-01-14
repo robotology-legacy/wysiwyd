@@ -15,11 +15,11 @@ namespace rekognition_api {
 
 class Base64Codec {
 public:
-	Base64Codec();
-	virtual ~Base64Codec();
+    Base64Codec();
+    virtual ~Base64Codec();
 
-	bool Encode(const std::string& input, std::string* output);
-	bool Decode(const std::string& input, std::string* output);
+    bool Encode(const std::string& input, std::string* output);
+    bool Decode(const std::string& input, std::string* output);
 };
 
 } // namespace rekognition_api

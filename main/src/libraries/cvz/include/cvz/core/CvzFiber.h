@@ -24,63 +24,63 @@ namespace cvz {
                 {
 
                 }
-				double getDistance(double x1, double y1, double x2, double y2)
-				{
-					double d = 0.0;
+                double getDistance(double x1, double y1, double x2, double y2)
+                {
+                    double d = 0.0;
                     double dX = std::abs(x1 - x2);
                     double dY = std::abs(y1 - y2);
                     double tdX = std::abs(x1 + (1.0 - x2));
                     double tdY = std::abs(y1 + (1.0 - y2));
-					d = sqrt(pow(std::min(dX, tdX), 2.0) + pow(std::min(dY, tdY), 2.0));
-					return d;
-				}
+                    d = sqrt(pow(std::min(dX, tdX), 2.0) + pow(std::min(dY, tdY), 2.0));
+                    return d;
+                }
 
-				int countInputModalities(const int &sizePrevious, const int &size, const double &radius)
-				{
+                int countInputModalities(const int &sizePrevious, const int &size, const double &radius)
+                {
 
-					double spacing = 1.0 / (double)(1.0 + size);
-					double spacingPrevious = 1.0 / (double)(1.0 + sizePrevious);
+                    double spacing = 1.0 / (double)(1.0 + size);
+                    double spacingPrevious = 1.0 / (double)(1.0 + sizePrevious);
 
-					//Count incoming
-					int input = 0;
-					for (int aX = 1; aX <= sizePrevious; aX++)
-					{
-						for (int aY = 1; aY <= sizePrevious; aY++)
-						{
-							double ab = getDistance(aX*spacingPrevious, aY*spacingPrevious, spacing, spacing);
-							if (ab <= radius)
-							{
-								input++;
-							}
-						}
-					}
-					return input;
-				}
+                    //Count incoming
+                    int input = 0;
+                    for (int aX = 1; aX <= sizePrevious; aX++)
+                    {
+                        for (int aY = 1; aY <= sizePrevious; aY++)
+                        {
+                            double ab = getDistance(aX*spacingPrevious, aY*spacingPrevious, spacing, spacing);
+                            if (ab <= radius)
+                            {
+                                input++;
+                            }
+                        }
+                    }
+                    return input;
+                }
 
-				int countOutputModalities(const int &size, const int &sizeNext, const double &radius)
-				{
+                int countOutputModalities(const int &size, const int &sizeNext, const double &radius)
+                {
 
-					double spacingNext = 1.0 / (double)(1.0 + sizeNext);
-					double spacing = 1.0 / (double)(1.0 + size);
+                    double spacingNext = 1.0 / (double)(1.0 + sizeNext);
+                    double spacing = 1.0 / (double)(1.0 + size);
 
-					//Count outgoing
-					int output = 0;
-					for (int bX = 1; bX <= sizeNext; bX++)
-					{
-						for (int bY = 1; bY <= sizeNext; bY++)
-						{
-							double ab = getDistance(spacing, spacing, bX*spacingNext, bY*spacingNext);
-							if (ab <= radius)
-							{
-								output++;
-							}
-						}
-					}
-					return output;
-				}
+                    //Count outgoing
+                    int output = 0;
+                    for (int bX = 1; bX <= sizeNext; bX++)
+                    {
+                        for (int bY = 1; bY <= sizeNext; bY++)
+                        {
+                            double ab = getDistance(spacing, spacing, bX*spacingNext, bY*spacingNext);
+                            if (ab <= radius)
+                            {
+                                output++;
+                            }
+                        }
+                    }
+                    return output;
+                }
                 bool configure(yarp::os::Property &prop)
                 {
-					double arborisationRadius = prop.check("arborisationRadius", 0.75).asDouble();
+                    double arborisationRadius = prop.check("arborisationRadius", 0.75).asDouble();
                     yarp::os::Bottle* layersStructure = prop.find("layersStructure").asList();
 
                     //The size comes in the form :
@@ -92,93 +92,93 @@ namespace cvz {
                     //for a 3 layered fiber with a 2x2, a single and a 5x5 sheets of cvz using their respective config file
                     //
                     int layersCount = layersStructure->size();
-					std::cout << "Creating a fiber of " << layersCount << " layers " << layersStructure->toString() << " with an arborisationRadius of " << arborisationRadius<< std::endl;
+                    std::cout << "Creating a fiber of " << layersCount << " layers " << layersStructure->toString() << " with an arborisationRadius of " << arborisationRadius<< std::endl;
                     layers.resize(layersCount);
 
-					for (int l = 0; l < layersCount; l++)
-					{
-						int sqrSize = layersStructure->get(l).asList()->get(0).asInt();
-						yarp::os::Bottle* mapStructure = layersStructure->get(l).asList()->get(1).asList();
-						yarp::os::Property p;
-						if (mapStructure != NULL)
-							mapStructure->write(p);
-						else
-						{
-							std::cout << "[CvzFiber] Warning: no map structure provided for layer " << l << std::endl;
-						}
+                    for (int l = 0; l < layersCount; l++)
+                    {
+                        int sqrSize = layersStructure->get(l).asList()->get(0).asInt();
+                        yarp::os::Bottle* mapStructure = layersStructure->get(l).asList()->get(1).asList();
+                        yarp::os::Property p;
+                        if (mapStructure != NULL)
+                            mapStructure->write(p);
+                        else
+                        {
+                            std::cout << "[CvzFiber] Warning: no map structure provided for layer " << l << std::endl;
+                        }
 
-						//Deal with the layer map names
-						std::string nameRoot = p.check("name", yarp::os::Value("default")).asString();
-						p.unput("name");
-						std::stringstream nameTotal;
-						nameTotal << nameRoot << "_" << l;
-						p.put("name", nameTotal.str());
+                        //Deal with the layer map names
+                        std::string nameRoot = p.check("name", yarp::os::Value("default")).asString();
+                        p.unput("name");
+                        std::stringstream nameTotal;
+                        nameTotal << nameRoot << "_" << l;
+                        p.put("name", nameTotal.str());
 
-						int modalityCounter = 0;
-						//Automatic generation of the input modalities
+                        int modalityCounter = 0;
+                        //Automatic generation of the input modalities
 
-						int inputModalitiesCount = 0;
-						int outputModalitiesCount = 0;
-						int previousSqrSize = 0;
-						int nextSize = 0;
-						if (l != 0)
-						{
-							previousSqrSize = layersStructure->get(l - 1).asList()->get(0).asInt();
-							inputModalitiesCount = countInputModalities(previousSqrSize, sqrSize, arborisationRadius);
-						}
-						if (l != (int)layers.size() - 1)
-						{
-							nextSize = layersStructure->get(l + 1).asList()->get(0).asInt();
-							outputModalitiesCount = countOutputModalities(sqrSize, nextSize, arborisationRadius);
-						}
+                        int inputModalitiesCount = 0;
+                        int outputModalitiesCount = 0;
+                        int previousSqrSize = 0;
+                        int nextSize = 0;
+                        if (l != 0)
+                        {
+                            previousSqrSize = layersStructure->get(l - 1).asList()->get(0).asInt();
+                            inputModalitiesCount = countInputModalities(previousSqrSize, sqrSize, arborisationRadius);
+                        }
+                        if (l != (int)layers.size() - 1)
+                        {
+                            nextSize = layersStructure->get(l + 1).asList()->get(0).asInt();
+                            outputModalitiesCount = countOutputModalities(sqrSize, nextSize, arborisationRadius);
+                        }
 
-						//Input
-						if (l != 0)
-						{
-							for (int iMod = 0; iMod < inputModalitiesCount; iMod++)
-							{
-								std::stringstream ssModGroup;
-								ssModGroup << "modality_" << modalityCounter;
-								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-								std::stringstream ssModName;
-								ssModName << "input_" << iMod;
-								pMod.put("name", ssModName.str());
-								pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
-								modalityCounter++;
-							}
-						}
-						else
-						{
-							std::string debugFck = prop.toString();
-							yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
-							if (inputModalityPrototype)
-							{
-								std::stringstream ssModGroup;
-								ssModGroup << "modality_" << modalityCounter;
-								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-								inputModalityPrototype->write(pMod);
-								modalityCounter++;
-							}
-						}
+                        //Input
+                        if (l != 0)
+                        {
+                            for (int iMod = 0; iMod < inputModalitiesCount; iMod++)
+                            {
+                                std::stringstream ssModGroup;
+                                ssModGroup << "modality_" << modalityCounter;
+                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+                                std::stringstream ssModName;
+                                ssModName << "input_" << iMod;
+                                pMod.put("name", ssModName.str());
+                                pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
+                                modalityCounter++;
+                            }
+                        }
+                        else
+                        {
+                            std::string debugFck = prop.toString();
+                            yarp::os::Bottle* inputModalityPrototype = prop.find("inputModalityPrototype").asList();
+                            if (inputModalityPrototype)
+                            {
+                                std::stringstream ssModGroup;
+                                ssModGroup << "modality_" << modalityCounter;
+                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+                                inputModalityPrototype->write(pMod);
+                                modalityCounter++;
+                            }
+                        }
 
-						//Output
-						if (l != (int)layers.size() - 1)
-						{
-							for (int iMod = 0; iMod < outputModalitiesCount; iMod++)
-							{
-								std::stringstream ssModGroup;
-								ssModGroup << "modality_" << modalityCounter;
-								yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
-								std::stringstream ssModName;
-								ssModName << "output_" << iMod;
-								pMod.put("name", ssModName.str());
-								pMod.put("isTopDown", yarp::os::Value(1));
-								pMod.put("learningRate", yarp::os::Value(0.0));
-								pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
-								modalityCounter++;
-							}
-						}
-						else
+                        //Output
+                        if (l != (int)layers.size() - 1)
+                        {
+                            for (int iMod = 0; iMod < outputModalitiesCount; iMod++)
+                            {
+                                std::stringstream ssModGroup;
+                                ssModGroup << "modality_" << modalityCounter;
+                                yarp::os::Property &pMod = p.addGroup(ssModGroup.str());
+                                std::stringstream ssModName;
+                                ssModName << "output_" << iMod;
+                                pMod.put("name", ssModName.str());
+                                pMod.put("isTopDown", yarp::os::Value(1));
+                                pMod.put("learningRate", yarp::os::Value(0.0));
+                                pMod.put("size", MAGIC_NUMBER_INTERNAL_MODALITY_SIZE);
+                                modalityCounter++;
+                            }
+                        }
+                        else
                         {
                             yarp::os::Bottle* outputModalityPrototype = prop.find("outputModalityPrototype").asList();
                             if (outputModalityPrototype)
@@ -200,7 +200,7 @@ namespace cvz {
                     }
 
                     //Compute the connectivity pattern
-					createConnections(arborisationRadius);
+                    createConnections(arborisationRadius);
 
                     //Autoconnect to the input prototype to a matrix of ports (e.g output of ImageSplitter)
                     std::string autoConnectStem = prop.check("autoConnectInputStem",yarp::os::Value("")).asString();
@@ -302,8 +302,8 @@ namespace cvz {
                             int srcSheetSize = layers[l].size();
                             int destSheetSize = layers[l + 1].size();
 
-							double spacingA = 1.0 / (double)(1.0 + srcSheetSize);
-							double spacingB = 1.0 / (double)(1.0 + destSheetSize);
+                            double spacingA = 1.0 / (double)(1.0 + srcSheetSize);
+                            double spacingB = 1.0 / (double)(1.0 + destSheetSize);
 
                             for (size_t x1 = 0; x1 < layers[l].size(); x1++)
                             {
@@ -315,10 +315,10 @@ namespace cvz {
                                         for (size_t y2 = 0; y2 < layers[l+1][x2].size(); y2++)
                                         {
                                             IConvergenceZone* destCvz = layers[l+1][x2][y2];
-											
-											double ab = getDistance((1+x1)*spacingA, (1+y1)*spacingA, (1+x2)*spacingB, (1+y2)*spacingB);
-											if (ab <= radius)
-												connectFreeModalities(srcCvz, destCvz, usedModalities);
+                                            
+                                            double ab = getDistance((1+x1)*spacingA, (1+y1)*spacingA, (1+x2)*spacingB, (1+y2)*spacingB);
+                                            if (ab <= radius)
+                                                connectFreeModalities(srcCvz, destCvz, usedModalities);
                                         }
                                     }
                                 }

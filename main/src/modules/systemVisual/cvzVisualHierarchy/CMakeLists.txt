@@ -22,15 +22,15 @@ source_group("IDL Files"    FILES ${idl_files})
 include_directories(${YARP_INCLUDE_DIRS} ${cvz_INCLUDE_DIRS} ${GTK2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 add_executable(${PROJECTNAME} ${folder_source} ${folder_header} ${doc_files})
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} 
-									 cvz
-									 ${OpenCV_LIBRARIES}
-									 ${GTK2_GTK_LIBRARY}
+                                     cvz
+                                     ${OpenCV_LIBRARIES}
+                                     ${GTK2_GTK_LIBRARY}
                                      ${GTK2_GLIB_LIBRARY}
                                      ${GTK2_GDK_LIBRARY}
                                      ${GTK2_GDK_PIXBUF_LIBRARY}
                                      ${GTK2_GOBJECT_LIBRARY}
                                      ${GTK2_GTHREAD_LIBRARY})
-									 
+                                     
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER systemVisual)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})

@@ -73,7 +73,7 @@ private:
 
     string sobjectFocusChanged;
 
-    Port handlerPort;				// a port to handle messages
+    Port handlerPort;               // a port to handle messages
 
     ICubClient *iCub;
     wysiwyd::wrdac::OPCClient           *lOPC;

@@ -75,10 +75,10 @@ inline const LeafNode* CRTree::regressionIntegral(const std::vector< cv::Mat >& 
 
         const cv::Mat ptC = patch[ pnode[9] ];
 
-        int xa1 = roi.x + pnode[1];		int xa2 = xa1 + pnode[5];
-        int ya1 = roi.y + pnode[2];		int ya2 = ya1 + pnode[6];
-        int xb1 = roi.x + pnode[3];		int xb2 = xb1 + pnode[7];
-        int yb1 = roi.y + pnode[4];		int yb2 = yb1 + pnode[8];
+        int xa1 = roi.x + pnode[1];     int xa2 = xa1 + pnode[5];
+        int ya1 = roi.y + pnode[2];     int ya2 = ya1 + pnode[6];
+        int xb1 = roi.x + pnode[3];     int xb2 = xb1 + pnode[7];
+        int yb1 = roi.y + pnode[4];     int yb2 = yb1 + pnode[8];
 
         double mz1 = ( ptC.at<double>(ya1,xa1) +
                        ptC.at<double>(ya2,xa2) -

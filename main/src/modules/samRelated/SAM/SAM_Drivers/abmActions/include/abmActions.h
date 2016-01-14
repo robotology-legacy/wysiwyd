@@ -71,9 +71,9 @@ class abmActions: public RFModule
         vector<string> inputVocabs;
         vector<string> outputVocabs;
         
-	    BufferedPort<Bottle> outputPort;
-	    BufferedPort<Bottle> inputPort;
-	    BufferedPort<Bottle> triggerBehaviourPort;
+        BufferedPort<Bottle> outputPort;
+        BufferedPort<Bottle> inputPort;
+        BufferedPort<Bottle> triggerBehaviourPort;
 
     std::string m_masterName;
 
@@ -83,8 +83,8 @@ class abmActions: public RFModule
         string GrammarAskNamePerson;
         string moduleName;
 
-	    string inputPortName;	   	    
-	    string outputPortName;	   	    
+        string inputPortName;           
+        string outputPortName;          
         string triggerBehaviourPortName;
         bool outputOpen;
         bool inputOpen;
