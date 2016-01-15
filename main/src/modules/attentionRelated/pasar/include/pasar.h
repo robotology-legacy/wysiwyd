@@ -37,6 +37,22 @@ struct ObjectModel
     int restingSteps;
 };
 
+
+struct EntityModel
+{
+    Object o;
+    double speed;
+    double acceleration;
+    double lastTimeSeen;
+
+    EntityModel(){
+        speed = 0.0;
+        acceleration = 0.0;
+        lastTimeSeen = 0.0;
+    }
+
+};
+
 /**
 * Module in charge of polling the OPC and updating icubGUI
 */
@@ -70,10 +86,12 @@ class PasarModule : public yarp::os::RFModule {
 
     bool    isSkeletonIn;
 
-    map<string, ObjectModel>  presentObjectsLastStep;
-    map<string, pair<double, double> > presentLastSpeed;
-    map<string, pair<double, double> > presentCurrentSpeed;
-    map<string, ObjectModel>  presentObjects;
+    map<int, ObjectModel>  presentObjectsLastStep;
+    map<int, pair<double, double> > presentLastSpeed;
+    map<int, pair<double, double> > presentCurrentSpeed;
+    map<int, ObjectModel>  presentObjects;
+
+    map<int, EntityModel>  mLastTimeSeen;
 
     std::string trackedObject;
 
@@ -89,6 +107,8 @@ protected:
     void saliencyLeakyIntegration();
     void saliencyPointing();
     void saliencyWaving();
+    void initializeMapTiming();
+    void updateMapTiming();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful

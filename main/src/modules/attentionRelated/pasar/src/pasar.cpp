@@ -82,11 +82,11 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0)).asInt() == 1;
     //Ports
 
-    opcName=rf.check("opc",Value("OPC")).asString().c_str();
+    opcName = rf.check("opc", Value("OPC")).asString().c_str();
     opc = new OPCClient(moduleName);
     while (!opc->connect(opcName))
     {
-        cout<<"Waiting connection to OPC..."<<endl;
+        cout << "Waiting connection to OPC..." << endl;
         Time::delay(1.0);
     }
 
@@ -105,7 +105,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     isPointing = rf.find("isPointing").asInt() == 1;
     isWaving = rf.find("isWaving").asInt() == 1;
 
-    yInfo() << " pointing: "  << isPointing;
+    yInfo() << " pointing: " << isPointing;
     yInfo() << " waving: " << isWaving;
 
     if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
@@ -116,6 +116,9 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     attach(handlerPort);                  // attach to port
     trackedObject = "";
     presentObjectsLastStep.clear();
+
+
+    initializeMapTiming();
     return true;
 }
 
@@ -144,8 +147,8 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
         "auto : switch attention between present objects \n" +
         "sleep : pauses the head control until next command\n" +
         "help \n" +
-        "pointing on/off:  launch or stop pointing\n"+
-        "waving on/off:  launch or stop waving\n"+
+        "pointing on/off:  launch or stop pointing\n" +
+        "waving on/off:  launch or stop waving\n" +
         "quit \n";
 
     reply.clear();
@@ -225,6 +228,11 @@ bool PasarModule::updateModule()
     presentObjects.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
+
+
+    double now = Time::now();
+
+
     for (auto &entity : entities)
     {
         if (entity->name() != "icub")
@@ -232,27 +240,29 @@ bool PasarModule::updateModule()
             //!!! ONLY OBJECTS, RT_OBJECT and AGENTS ARE TRACKED !!!
 
             if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
-            {            
+            {
                 if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT))
                 {
                     RTObject * rto = dynamic_cast<RTObject*>(entity);
-                    presentObjects[entity->name()].o.fromBottle(rto->asBottle());
-                    presentObjects[entity->name()].o.m_saliency = rto->m_saliency;
+                    presentObjects[entity->opc_id()].o.fromBottle(rto->asBottle());
+                    presentObjects[entity->opc_id()].o.m_saliency = rto->m_saliency;
+
                 }
 
                 if (entity->isType(EFAA_OPC_ENTITY_OBJECT))
                 {
                     Object * ob = dynamic_cast<Object*>(entity);
-                    presentObjects[entity->name()].o.fromBottle(ob->asBottle());
-                    presentObjects[entity->name()].o.m_saliency = ob->m_saliency;
+                    presentObjects[entity->opc_id()].o.fromBottle(ob->asBottle());
+                    presentObjects[entity->opc_id()].o.m_saliency = ob->m_saliency;
 
                 }
 
                 if (entity->isType(EFAA_OPC_ENTITY_AGENT))
                 {
                     Agent *ag = dynamic_cast<Agent*>(entity);
-                    presentObjects[entity->name()].o.fromBottle(ag->asBottle());
-                    presentObjects[entity->name()].o.m_saliency = ag->m_saliency;
+                    presentObjects[entity->opc_id()].o.fromBottle(ag->asBottle());
+                    presentObjects[entity->opc_id()].o.m_saliency = ag->m_saliency;
+
                 }
             }
         }
@@ -267,14 +277,6 @@ bool PasarModule::updateModule()
         if (isPointing) saliencyPointing();
         if (isWaving)   saliencyWaving();
 
-        //Normalize
-        //saliencyNormalize();
-
-        //Inhinbition of return
-        //                if(trackedObject!= "")
-        //                    presentObjects[trackedObject].o.m_saliency = max(0.0, presentObjects[trackedObject].o.m_saliency - pTopDownInhibitionReturn);
-
-
         //Leaky integrate
         saliencyLeakyIntegration();
 
@@ -287,20 +289,20 @@ bool PasarModule::updateModule()
                 mostSalientObject = it;
         }
 
-        trackedObject = mostSalientObject->first;
+        trackedObject = mostSalientObject->second.o.name();
 
-        if (presentObjects[trackedObject].o.m_saliency > 0.0)
+        if (presentObjects[mostSalientObject->first].o.m_saliency > 0.0)
         {
-            cout << "Tracking : " << trackedObject << " Salience : " << presentObjects[trackedObject].o.m_saliency << endl;
+            cout << "Tracking : " << trackedObject << " Salience : " << presentObjects[mostSalientObject->first].o.m_saliency << endl;
         }
 
 
         //Update the OPC values
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
-            if (presentObjects.find((*it)->name()) != presentObjects.end())
+            if (presentObjects.find((*it)->opc_id()) != presentObjects.end())
             {
-                (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->name()].o.m_saliency;
+                (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->opc_id()].o.m_saliency;
             }
         }
         opc->commit();
@@ -321,39 +323,40 @@ void PasarModule::saliencyTopDown() {
     //cout<<"TopDown Saliency"<<endl;
 
     //Add up the top down saliency
-    for (map<string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (auto &it : presentObjects)
     {
-        if (presentObjectsLastStep.find(it->first) != presentObjectsLastStep.end() && it->first != "cursor_0" && it->first != "icub")
+        if (presentObjectsLastStep.find(it.first) != presentObjectsLastStep.end() && it.second.o.name() != "cursor_0" && it.second.o.name() != "icub")
         {
             //Objects appears/disappears
             bool appeared, disappeared;
-            appeared = it->second.o.m_present && !presentObjectsLastStep[it->first].o.m_present;
-            disappeared = !it->second.o.m_present && presentObjectsLastStep[it->first].o.m_present;
+
+            appeared = it.second.o.m_present && !presentObjectsLastStep[it.first].o.m_present;
+            disappeared = !it.second.o.m_present && presentObjectsLastStep[it.first].o.m_present;
 
             //instantaneous speed/acceleration
-            Vector lastPos = presentObjectsLastStep[it->first].o.m_ego_position;
-            Vector currentPos = it->second.o.m_ego_position;
-            presentCurrentSpeed[it->first] = pair<double, double>(lastPos[0] - currentPos[0], lastPos[1] - currentPos[1]);
+            Vector lastPos = presentObjectsLastStep[it.first].o.m_ego_position;
+            Vector currentPos = it.second.o.m_ego_position;
+            presentCurrentSpeed[it.first] = pair<double, double>(lastPos[0] - currentPos[0], lastPos[1] - currentPos[1]);
 
-            double acceleration = sqrt(pow(presentCurrentSpeed[it->first].first - presentLastSpeed[it->first].first, 2.) + pow(presentCurrentSpeed[it->first].second - presentLastSpeed[it->first].second, 2.));
+            double acceleration = sqrt(pow(presentCurrentSpeed[it.first].first - presentLastSpeed[it.first].first, 2.) + pow(presentCurrentSpeed[it.first].second - presentLastSpeed[it.first].second, 2.));
 
-            presentObjects[it->first].acceleration = acceleration;
+            presentObjects[it.first].acceleration = acceleration;
 
             //Use the world model (CONCEPTS <=> RELATIONS) to modulate the saliency
             if (appeared)
             {
-                it->second.o.m_saliency += pTopDownAppearanceBurst;
+                it.second.o.m_saliency += pTopDownAppearanceBurst;
             }
 
             if (disappeared)
             {
-                it->second.o.m_saliency += pTopDownDisappearanceBurst;
+                it.second.o.m_saliency += pTopDownDisappearanceBurst;
             }
 
             if (acceleration > thresholdMovementAccel)
             {
-                it->second.o.m_saliency += pTopDownAccelerationCoef;
-                yInfo() << " moving object:" << it->second.o.name() << " salience : " << it->second.o.m_saliency << " acceleration: " << acceleration;
+                it.second.o.m_saliency += pTopDownAccelerationCoef;
+                yInfo() << " moving object:" << it.second.o.name() << " salience : " << it.second.o.m_saliency << " acceleration: " << acceleration;
             }
         }
     }
@@ -364,9 +367,9 @@ void PasarModule::saliencyNormalize() {
     //cout<<"Normalizing Saliency"<<endl;
 
     //Get the max
-    map< string, ObjectModel >::iterator mostSalientObject = presentObjects.begin();
+    map< int, ObjectModel >::iterator mostSalientObject = presentObjects.begin();
 
-    for (map< string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (map< int, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
     {
         if (it->second.o.m_saliency > mostSalientObject->second.o.m_saliency)
             mostSalientObject = it;
@@ -375,7 +378,7 @@ void PasarModule::saliencyNormalize() {
     //Normalize
     double maxS = mostSalientObject->second.o.m_saliency;
     if (maxS == 0) maxS = 1.;
-    for (map< string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (map< int, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
     {
         it->second.o.m_saliency /= maxS;
     }
@@ -389,14 +392,14 @@ void PasarModule::saliencyNormalize() {
 void PasarModule::saliencyLeakyIntegration() {
     //cout<<"Leaky integration"<<endl;
     //cout<<"Membrane Activity : "<<endl;
-    for (map< string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (auto &it : presentObjects)
     {
-        if (it->first != "")
+        if (it.second.o.name() != "")
         {
-            it->second.o.m_saliency *= pExponentialDecrease;
+            it.second.o.m_saliency *= pExponentialDecrease;
         }
-        if (it->second.o.m_saliency < thresholdSaliency)
-            it->second.o.m_saliency = 0.0;
+        if (it.second.o.m_saliency < thresholdSaliency)
+            it.second.o.m_saliency = 0.0;
     }
 }
 
@@ -435,61 +438,38 @@ void PasarModule::saliencyPointing()
     double closest = 10e5;
     string objectPointed = "none";
 
-    for (map<string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (auto &it : presentObjects)
     {
-        if (it->first != "partner")
+        if (it.second.o.name() != "partner")
         {
             double distance;
 
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
 
             distance = sqrt(
-                (x-it->second.o.m_ego_position[0])*(x-it->second.o.m_ego_position[0])+
-                (y-it->second.o.m_ego_position[1])*(y-it->second.o.m_ego_position[1])+
-                (z-it->second.o.m_ego_position[2])*(z-it->second.o.m_ego_position[2])
+                (x - it.second.o.m_ego_position[0])*(x - it.second.o.m_ego_position[0]) +
+                (y - it.second.o.m_ego_position[1])*(y - it.second.o.m_ego_position[1]) +
+                (z - it.second.o.m_ego_position[2])*(z - it.second.o.m_ego_position[2])
                 );
             //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
             if (distance < closest)
             {
                 closest = distance;
-                objectPointed = it->first;
+                objectPointed = it.second.o.name();
             }
         }
     }
 
-    //for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
-    //{
-    //    double distance;
-    //    if ((*it)->name() != "partner")
-    //    {
 
-    //        //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-    //        if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT))
-    //        {
-    //            Object * rto = dynamic_cast<Object*>(*it);
-    //            distance = sqrt(
-    //                (x-rto->m_ego_position[0])*(x-rto->m_ego_position[0])+
-    //                (y-rto->m_ego_position[1])*(y-rto->m_ego_position[1])+
-    //                (z-rto->m_ego_position[2])*(z-rto->m_ego_position[2])
-    //                );
-    //            //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
-    //            if (distance < closest)
-    //            {
-    //                closest = distance;
-    //                objectPointed = rto->name();
-    //            }
-    //        }
-    //    }
-    //}
 
     if (objectPointed != "none")
     {
         yInfo() << " pointed object is: \t" << objectPointed;
-        for (map<string, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+        for (auto &it : presentObjects)
         {
-            if (it->first == objectPointed)
+            if (it.second.o.name() == objectPointed)
             {
-                it->second.o.m_saliency += dBurstOfPointing;
+                it.second.o.m_saliency += dBurstOfPointing;
             }
         }
     }
@@ -559,8 +539,8 @@ void PasarModule::saliencyWaving()
     accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
 
     // get the norm of the accel vector
-    double dAccelLeft = sqrt(accelLeft[0]*accelLeft[0] + accelLeft[1]*accelLeft[1] + accelLeft[2]*accelLeft[2]);
-    double dAccelRight = sqrt(accelRight[0]*accelRight[0] + accelRight[1]*accelRight[1] + accelRight[2]*accelRight[2]);
+    double dAccelLeft = sqrt(accelLeft[0] * accelLeft[0] + accelLeft[1] * accelLeft[1] + accelLeft[2] * accelLeft[2]);
+    double dAccelRight = sqrt(accelRight[0] * accelRight[0] + accelRight[1] * accelRight[1] + accelRight[2] * accelRight[2]);
 
 
     yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
@@ -594,4 +574,29 @@ void PasarModule::saliencyWaving()
 
     presentRightHand.second = true;
     presentLeftHand.second = true;
+}
+
+
+
+void PasarModule::initializeMapTiming()
+{
+    opc->checkout();
+    entities = opc->EntitiesCache();
+    double now = yarp::os::Time::now();
+    mLastTimeSeen.clear();
+
+    for (auto &entity : entities){
+
+        if (entity->name() != "icub")
+        {
+            //!!! ONLY OBJECTS, RT_OBJECT and AGENTS ARE TRACKED !!!
+
+            if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
+            {
+                Object * ob = dynamic_cast<Object*>(entity);
+                mLastTimeSeen[entity->opc_id()].o = *ob;
+                mLastTimeSeen[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
+            }
+        }
+    }
 }
