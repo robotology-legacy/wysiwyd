@@ -487,10 +487,25 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 */
 void PasarModule::saliencyPointing()
 {
-    Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
-    if (!ag || !ag->m_present) return;
 
-    Vector vec = ag->m_body.m_parts["handRight"];
+    bool wasPresent = false;
+    Agent *ag;
+    // founding the agent:
+    Vector vec;
+    for (auto &it : presentObjects){
+        if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
+            && it.second.present
+            && (it.second.o.name() != "iCub")){
+            ag = dynamic_cast<Agent*>(&it.second.o);
+            Vector vec = ag->m_body.m_parts["handRight"];
+            wasPresent = true;
+        }
+    }
+
+    if (!wasPresent){
+        yInfo() << " in PASAR:saliencyPointing no human agent present";
+        return;
+    }
 
     //    yInfo() << " righthand is:" << vec.toString();
 
@@ -503,7 +518,7 @@ void PasarModule::saliencyPointing()
 
     for (auto &it : presentObjects)
     {
-        if (it.second.o.name() != "partner")
+        if (it.second.o.name() != ag->name())
         {
             double distance;
 
@@ -549,9 +564,27 @@ void PasarModule::saliencyPointing()
 */
 void PasarModule::saliencyWaving()
 {
-    yInfo() << "is Waving: " << isWaving;
 
-    Agent *ag = opc->addOrRetrieveEntity<Agent>("partner");
+    bool wasPresent = false;
+    Agent *ag;
+    // founding the agent:
+    Vector vec;
+    for (auto &it : presentObjects){
+        if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
+            && it.second.present
+            && (it.second.o.name() != "iCub")){
+            ag = dynamic_cast<Agent*>(&it.second.o);
+            Vector vec = ag->m_body.m_parts["handRight"];
+            wasPresent = true;
+        }
+    }
+
+    if (!wasPresent){
+        yInfo() << " in PASAR:saliencyWaving no human agent present";
+        return;
+    }
+
+
     if (!ag || !ag->m_present)
     {
         presentRightHand.first = presentRightHand.second;
