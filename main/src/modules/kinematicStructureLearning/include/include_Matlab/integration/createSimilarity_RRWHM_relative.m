@@ -21,6 +21,33 @@ nodeSimilarity = reshape(nodeSimilarity, [KineStruct_P.num_seg,KineStruct_Q.num_
 nodeSimilarity = nodeSimilarity';
 nodeSimilarity = nodeSimilarity / max(max(nodeSimilarity));
 
+%% End Joint & Intermediate Joint
+structure_buf_P = [KineStruct_P.structure_i;KineStruct_P.structure_j];
+structure_buf_Q = [KineStruct_Q.structure_i;KineStruct_Q.structure_j];
+
+num_connection_P = histcounts(structure_buf_P, KineStruct_P.num_seg);
+num_estimated_connection_P = checkConnection(KineStruct_P, 'P')
+num_connection_P = num_connection_P + num_estimated_connection_P
+num_connection_Q = histcounts(structure_buf_Q, KineStruct_Q.num_seg);
+
+end_joint_P = (num_connection_P == 1);
+end_joint_Q = (num_connection_Q == 1);
+
+% nodeSimilarity_buf = nodeSimilarity;
+for id_i1 = 1:nP1
+    for id_i2 = 1:nP2
+%         nodeSimilarity_buf(id_i1,id_i2) = end_joint_P(id_i1)*end_joint_Q(id_i2);
+%         nodeSimilarity(id_i1,id_i2) = end_joint_P(id_i1)*end_joint_Q(id_i2);
+%         if num_connection_P(id_i1) == num_connection_Q(id_i2)
+%             nodeSimilarity(id_i1,id_i2) = 1;
+%         end
+        nodeSimilarity(id_i1,id_i2) = exp(-abs(num_connection_P(id_i1)-num_connection_Q(id_i2))) * nodeSimilarity(id_i1,id_i2);
+    end
+end
+
+% nodeSimilarity = nodeSimilarity + nodeSimilarity_buf;
+
+%%
 temp_idx = 1;
 for id_i1 = 1:nP1
     for id_i2 = 1:nP2

@@ -37,8 +37,8 @@ control_params;
 % YARP port
 %=========================================================
 LoadYarp;
-import yarp.Port;
-import yarp.RpcServer;
+import yarp.Port
+import yarp.RpcServer
 import yarp.BufferedPortImageRgb
 import yarp.Bottle
 import yarp.Time
@@ -270,10 +270,10 @@ while(~shouldClose)
             % Hypergraph Matching
             %=========================================================
             setAlg;
-%             Alg(HGM_method).bOrder = [1 0 0];   % 1st
+            Alg(HGM_method).bOrder = [1 0 0];   % 1st
 %             Alg(HGM_method).bOrder = [0 1 0];   % 2nd
 %             Alg(HGM_method).bOrder = [0 0 1];   % 3rd
-            Alg(HGM_method).bOrder = [1 0 1];   % 1st & 3rd
+%             Alg(HGM_method).bOrder = [1 0 1];   % 1st & 3rd
 %             Alg(HGM_method).bOrder = [1 1 1];   % all
             
             X = hyperGraphMatching(problem, HGM_method, Alg);

@@ -68,7 +68,7 @@ if (strcmp(data_source_P,'left') || strcmp(data_source_P,'right'))
     for i=1:KineStruct_P.num_seg
         hold on
         plot(KineStruct_P.y(1,KineStruct_P.seg_idx{i},frm_idx_P) * ratio_width_P, KineStruct_P.y(2,KineStruct_P.seg_idx{i},frm_idx_P) * ratio_height_P,marker_idx(mod(i,12)+1),'Color', color_idx(mod(i,6)+1),'MarkerSize',10, 'LineWidth',3);
-        %     text(KineStruct_P.seg_center(1,i,frm_idx_P) * ratio_width_P + 6, KineStruct_P.seg_center(2,i,frm_idx_P) * ratio_height_P - 6, num2str(i), 'Color', 'r');
+%             text(KineStruct_P.seg_center(1,i,frm_idx_P) * ratio_width_P + 10, KineStruct_P.seg_center(2,i,frm_idx_P) * ratio_height_P - 10, num2str(i), 'Color', 'r');
     end
 end
 

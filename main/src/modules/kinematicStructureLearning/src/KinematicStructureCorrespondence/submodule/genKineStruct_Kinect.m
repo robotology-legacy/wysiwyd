@@ -52,7 +52,7 @@ for frm_idx = 1:num_frames
 end
 
 %% New Nodes & Joints
-numNode = 11;
+numNode = 13;
 numFrame = num_frames;
 
 nodeLoc = zeros(3, numNode, numFrame);
@@ -73,21 +73,31 @@ for i = 1:num_seg
     end
 end
 
+buf = zeros(3,numFrame);
 for frm_idx = 1 : numFrame
     nodeLoc(:,1,frm_idx) = joints{frm_idx}(9,:)';
     nodeLoc(:,2,frm_idx) = joints{frm_idx}(4,:)';
-    nodeLoc(:,7,frm_idx) = joints{frm_idx}(1,:)';
-    nodeLoc(:,4,frm_idx) = joints{frm_idx}(10,:)';
-    nodeLoc(:,6,frm_idx) = joints{frm_idx}(11,:)';
+    nodeLoc(:,9,frm_idx) = joints{frm_idx}(1,:)';
+    nodeLoc(:,5,frm_idx) = joints{frm_idx}(10,:)';
+    nodeLoc(:,8,frm_idx) = joints{frm_idx}(11,:)';
     
     nodeLoc(:,3,frm_idx) = joint_center_Kinect{14,2}(:,frm_idx)';
-    nodeLoc(:,5,frm_idx) = joint_center_Kinect{15,3}(:,frm_idx)';
-    nodeLoc(:,8,frm_idx) = joint_center_Kinect{7,5}(:,frm_idx)';
-    nodeLoc(:,9,frm_idx) = joint_center_Kinect{12,5}(:,frm_idx)';
-    nodeLoc(:,10,frm_idx) = joint_center_Kinect{8,6}(:,frm_idx)';
-    nodeLoc(:,11,frm_idx) = joint_center_Kinect{13,6}(:,frm_idx)';
+    nodeLoc(:,6,frm_idx) = joint_center_Kinect{15,3}(:,frm_idx)';
+    nodeLoc(:,10,frm_idx) = joint_center_Kinect{7,5}(:,frm_idx)';
+    nodeLoc(:,11,frm_idx) = joint_center_Kinect{12,5}(:,frm_idx)';
+    nodeLoc(:,12,frm_idx) = joint_center_Kinect{8,6}(:,frm_idx)';
+    nodeLoc(:,13,frm_idx) = joint_center_Kinect{13,6}(:,frm_idx)';
     
-%     nodeLoc(:,12,frm_idx) = joints{frm_idx}(16,:)';  % CoM
+    i = 14; j = 10;
+    buf(1,frm_idx) = joints{frm_idx}(i,1)*2/3 + joints{frm_idx}(j,1)/3;
+    buf(2,frm_idx) = joints{frm_idx}(i,2)*2/3 + joints{frm_idx}(j,2)/3;
+    buf(3,frm_idx) = joints{frm_idx}(i,3)*2/3 + joints{frm_idx}(j,3)/3;        
+    nodeLoc(:,4,frm_idx) = buf(:,frm_idx)';    
+    i = 15; j = 11;
+    buf(1,frm_idx) = joints{frm_idx}(i,1)*2/3 + joints{frm_idx}(j,1)/3;
+    buf(2,frm_idx) = joints{frm_idx}(i,2)*2/3 + joints{frm_idx}(j,2)/3;
+    buf(3,frm_idx) = joints{frm_idx}(i,3)*2/3 + joints{frm_idx}(j,3)/3;        
+    nodeLoc(:,7,frm_idx) = buf(:,frm_idx)';   
 end
 
 joint_center = cell(numNode, numNode);
@@ -108,21 +118,21 @@ end
 
 %% Joint assignment by hand
 idx_list = [2,  3,  2  ;...
-    3,  2,  2  ;...
-    3,  4,  14   ;...
-    4,  3,  14   ;...
-    2,  5,  3   ;...
-    5,  2,  3   ;...
-    5,  6,  15   ;...
-    6,  5,  15   ;...
-    7,  8,  7  ;...
-    8,  7,  7  ;...
-    8,  9,  5  ;...
-    9,  8,  5  ;...
-    7,  10, 8   ;...
-    10, 7,  8   ;...
-    10, 11, 6   ;...
-    11, 10, 6   ];
+            3,  2,  2  ;...
+            3,  4,  14   ;...
+            4,  3,  14   ;...
+            2,  6,  3   ;...
+            6,  2,  3   ;...
+            6,  7,  15   ;...
+            7,  6,  15   ;...
+            9,  10,  7  ;...
+            10,  9,  7  ;...
+            10,  11,  5  ;...
+            11,  10,  5  ;...
+            9,  12, 8   ;...
+            12, 9,  8   ;...
+            12, 13, 6   ;...
+            13, 12, 6   ];
 
 for idx = 1:16
     i = idx_list(idx,1);
@@ -143,13 +153,15 @@ connection = zeros(numNode, numNode);
 connection(1,2) = 1;
 connection(2,3) = 1;
 connection(3,4) = 1;
-connection(2,5) = 1;
-connection(5,6) = 1;
-connection(2,7) = 1;
+connection(4,5) = 1;
+connection(2,6) = 1;
+connection(6,7) = 1;
 connection(7,8) = 1;
-connection(8,9) = 1;
-connection(7,10) = 1;
+connection(2,9) = 1;
+connection(9,10) = 1;
 connection(10,11) = 1;
+connection(9,12) = 1;
+connection(12,13) = 1;
 
 ST = sparse(connection);
 [idx_i, idx_j, value] = find(ST);
