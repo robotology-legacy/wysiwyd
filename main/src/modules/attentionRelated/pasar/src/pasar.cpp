@@ -18,6 +18,7 @@
 */
 
 #include "pasar.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
 
 
 using namespace wysiwyd::wrdac;
@@ -42,9 +43,9 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 
     //Parameters
     pTopDownAppearanceBurst = rf.check("parameterTopDownAppearanceBurst",
-        Value(0.5)).asDouble();
+        Value(3.)).asDouble();
     pTopDownDisappearanceBurst = rf.check("parameterTopDownDisappearanceBurst",
-        Value(0.5)).asDouble();
+        Value(2.)).asDouble();
     pTopDownAccelerationCoef = rf.check("parameterTopDownAccelerationCoef",
         Value(0.1)).asDouble();
     //pLeakyIntegrationA        =  rf.check("parameterLeakyIntegrationA", 
@@ -57,6 +58,8 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.2)).asDouble();
     dBurstOfPointing = rf.check("pBurstOfPointing",
         Value(0.2)).asDouble();
+    dthresholdAppear = rf.check("thresholdAppear", Value(1.)).asDouble();
+    dthresholdDisappear = rf.check("thresholdDisappear", Value(2.)).asDouble();
 
     //check for decrease
     if (pExponentialDecrease >= 1 || pExponentialDecrease <= 0.0)   pExponentialDecrease = 0.95;
@@ -92,6 +95,25 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 
     opc->checkout();
 
+
+    bool isRFVerbose = true;
+    iCub = new ICubClient(moduleName, "pasar", "pasar.ini", isRFVerbose);
+    iCub->opc->isVerbose &= true;
+
+    if (!iCub->connect())
+    {
+        yInfo() << "iCubClient : Some dependencies are not running...";
+        Time::delay(1.0);
+    }
+
+    abm = true;
+    if (!iCub->getABMClient())
+    {
+        abm = false;
+        yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+    }
+
+
     if (!Network::connect("/agentDetector/skeleton:o", ("/" + moduleName + "/skeleton:i").c_str()))
     {
         isSkeletonIn = false;
@@ -116,9 +138,12 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     attach(handlerPort);                  // attach to port
     trackedObject = "";
     presentObjectsLastStep.clear();
-
-
+    initTime = yarp::os::Time::now();
     initializeMapTiming();
+
+    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+
+
     return true;
 }
 
@@ -230,7 +255,7 @@ bool PasarModule::updateModule()
     presentCurrentSpeed.clear();
 
 
-    double now = Time::now();
+    double now = Time::now() - initTime;
 
 
     for (auto &entity : entities)
@@ -321,7 +346,7 @@ bool PasarModule::updateModule()
 /************************************************************************/
 void PasarModule::saliencyTopDown() {
     //cout<<"TopDown Saliency"<<endl;
-
+    double now = yarp::os::Time::now() - initTime;
     //Add up the top down saliency
     for (auto &it : presentObjects)
     {
@@ -330,8 +355,21 @@ void PasarModule::saliencyTopDown() {
             //Objects appears/disappears
             bool appeared, disappeared;
 
-            appeared = it.second.o.m_present && !presentObjectsLastStep[it.first].o.m_present;
-            disappeared = !it.second.o.m_present && presentObjectsLastStep[it.first].o.m_present;
+
+            //            yInfo() << "\t\t entity: " << it.second.o.name() << " last seen: " << it.second.lastTimeSeen << " now: " << now << "  diff is: " << now - it.second.lastTimeSeen;
+
+
+            // If the object is absent:
+            // if the lastTimeSeen was more than a threshold, the object dissapeared
+            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (!it.second.o.m_present) && it.second.present;
+
+            // If the object is present:
+            // if the lastTimeSeen was more than a threshold, the object appeared
+            appeared = (now - it.second.lastTimeSeen > dthresholdAppear) && (it.second.o.m_present) && !it.second.present;
+
+            if (it.second.o.m_present) it.second.lastTimeSeen = now;
+
+
 
             //instantaneous speed/acceleration
             Vector lastPos = presentObjectsLastStep[it.first].o.m_ego_position;
@@ -346,11 +384,36 @@ void PasarModule::saliencyTopDown() {
             if (appeared)
             {
                 it.second.o.m_saliency += pTopDownAppearanceBurst;
+                it.second.present = true;
+                yInfo() << "\t\t APPEARANCE OF: " << it.second.o.name();
+
+                if (iCub->getABMClient()->Connect())
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "appear"));
+                    iCub->getABMClient()->sendActivity("event",
+                        "appearance",
+                        "pasar",
+                        lArgument,
+                        true);
+                }
             }
 
             if (disappeared)
             {
                 it.second.o.m_saliency += pTopDownDisappearanceBurst;
+                it.second.present = false;
+                yInfo() << "\t\t DISAPPEARANCE OF: " << it.second.o.name();
+                if (iCub->getABMClient()->Connect())
+                {
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "disappear"));
+                    iCub->getABMClient()->sendActivity("event",
+                        "disappearance",
+                        "pasar",
+                        lArgument,
+                        true);
+                }
             }
 
             if (acceleration > thresholdMovementAccel)
@@ -582,8 +645,8 @@ void PasarModule::initializeMapTiming()
 {
     opc->checkout();
     entities = opc->EntitiesCache();
-    double now = yarp::os::Time::now();
-    mLastTimeSeen.clear();
+    double now = yarp::os::Time::now() - initTime;
+    presentObjects.clear();
 
     for (auto &entity : entities){
 
@@ -594,8 +657,9 @@ void PasarModule::initializeMapTiming()
             if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
             {
                 Object * ob = dynamic_cast<Object*>(entity);
-                mLastTimeSeen[entity->opc_id()].o = *ob;
-                mLastTimeSeen[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
+                presentObjects[entity->opc_id()].o = *ob;
+                presentObjects[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
+                presentObjects[entity->opc_id()].present = ob->m_present;
             }
         }
     }

@@ -35,23 +35,10 @@ struct ObjectModel
     double speed;
     double acceleration;
     int restingSteps;
-};
-
-
-struct EntityModel
-{
-    Object o;
-    double speed;
-    double acceleration;
     double lastTimeSeen;
-
-    EntityModel(){
-        speed = 0.0;
-        acceleration = 0.0;
-        lastTimeSeen = 0.0;
-    }
-
+    bool present;
 };
+
 
 /**
 * Module in charge of polling the OPC and updating icubGUI
@@ -69,9 +56,14 @@ class PasarModule : public yarp::os::RFModule {
     double thresholdMovementAccel;          // minimum acceleration detect
     double thresholdWaving;                 // minimum waving detected
     double thresholdSaliency;
+    double dthresholdAppear;
+    double dthresholdDisappear;
     double dBurstOfPointing;
 
     OPCClient *opc;                  //retrieve information from the OPC
+    ICubClient  *iCub;
+    bool abm;
+
     yarp::os::Port handlerPort;      //a port to handle messages 
 
     list<Entity*> entities;
@@ -91,7 +83,6 @@ class PasarModule : public yarp::os::RFModule {
     map<int, pair<double, double> > presentCurrentSpeed;
     map<int, ObjectModel>  presentObjects;
 
-    map<int, EntityModel>  mLastTimeSeen;
 
     std::string trackedObject;
 
@@ -99,6 +90,7 @@ class PasarModule : public yarp::os::RFModule {
     bool isPointing; // if the human is pointing
     bool isWaving; // check if the human is waving
     int store_context_id;
+    double initTime;
 
 protected:
     bool isFixationPointSafe(yarp::sig::Vector fp);
