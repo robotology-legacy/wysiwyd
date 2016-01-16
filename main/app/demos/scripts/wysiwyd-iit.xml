@@ -14,7 +14,7 @@
 
         <module>
 			<name>agentDetector</name>
-            <parameters>--showImage true --showMode depth+skeleton --x-depth 1700 --y-depth 720 --x-skeleton 2020 --y-skeleton 720</parameters>
+            <parameters>--showImage true --showMode depth+skeleton --x-depth 2020 --y-depth 720 --x-skeleton 2340 --y-skeleton 720</parameters>
 			<node>icub15</node>
             <dependencies>
                 <port timeout="10">/kinectServer/rpc</port>
@@ -95,12 +95,12 @@
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/objectSelector/view --x 1700 --y 370 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
+                <parameters>--name /iolViewer/objectSelector/view --x 2020 --y 370 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
                 <node>icub15</node>
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/iol2opc/view/localizer --x 2020 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
+                <parameters>--name /iolViewer/iol2opc/view/localizer --x 1700 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
                 <node>icub15</node>
         </module>
         <module>
@@ -110,7 +110,12 @@
         </module>
         <module>
                 <name>yarpview</name>
-                <parameters>--name /iolViewer/disp --x 2340 --y 720 --p 50 --compact</parameters>
+                <parameters>--name /iolViewer/iol2opc/view/track --x 1700 --y 720 --p 50 --compact</parameters>
+                <node>icub15</node>
+        </module>
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/disp --x 2660 --y 720 --p 50 --compact</parameters>
                 <node>icub15</node>
         </module>
 
@@ -207,6 +212,11 @@
         <connection>
                 <from>/iolViewer/iol2opc/view/localizer:o</from>
                 <to>/iol2opc/histObjLocation:i</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/imgTrack:o</from>
+                <to>/iolViewer/iol2opc/view/track</to>
                 <protocol>tcp</protocol>
         </connection>
         <connection>
