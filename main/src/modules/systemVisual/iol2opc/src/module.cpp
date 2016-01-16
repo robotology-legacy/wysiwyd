@@ -632,10 +632,6 @@ void IOL2OPCBridge::updateOPC()
         Bottle scores=opcScores;
         mutexResourcesOpc.unlock();        
 
-        // cycle over objects to handle tracking
-        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
-            it->second.tracker_update(imgLatch);
-
         // check detected objects
         for (int j=0; j<blobs.size(); j++)
         {
@@ -663,15 +659,18 @@ void IOL2OPCBridge::updateOPC()
                     tl.y=(int)item->get(1).asDouble();
                     br.x=(int)item->get(2).asDouble();
                     br.y=(int)item->get(3).asDouble();
-                    CvPoint sz=cvPoint(br.x-tl.x,br.y-tl.y);
-                    CvRect bbox=cvRect(tl.x,tl.y,sz.x,sz.y);                    
-                    it->second.tracker_init(imgLatch,bbox);
+                    it->second.tracker_init(imgLatch,
+                                            cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
                     it->second.heartBeat();
                 }
             }
             else
                 unknownObjectInScene=true;
         }
+
+        // cycle over objects to handle tracking
+        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+            it->second.tracker_update(imgLatch);
 
         CvFont font;
         cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX,0.5,0.5,0,1);                
@@ -692,30 +691,28 @@ void IOL2OPCBridge::updateOPC()
             CvRect bbox;
             if (it->second.is_tracking(bbox))
             {
-                it->second.heartBeat();
-
                 // find 3d position
                 Vector x,dim;
                 if (get3DPositionAndDimensions(bbox,x,dim))
                 {
                     Vector filtered=it->second.filt(cat(x,dim));
 
+                    it->second.opc_id=obj->opc_id();
                     obj->m_ego_position=filtered.subVector(0,2);
                     obj->m_dimensions=filtered.subVector(3,5);
-                    obj->m_present=true;
-                    it->second.opc_id=obj->opc_id();
+                    obj->m_present=true;                    
 
                     // Extract color information from blob
                     // create temporary image, and copy blob in there
-                    ImageOf<PixelBgr> imgTmp1;
-                    imgTmp1.resize(bbox.width,bbox.height);
+                    ImageOf<PixelBgr> imgTmp;
+                    imgTmp.resize(bbox.width,bbox.height);
                     cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),bbox);
-                    cvCopy(imgRtLoc.getIplImage(),imgTmp1.getIplImage());
+                    cvCopy(imgRtLoc.getIplImage(),imgTmp.getIplImage());
                     cvResetImageROI((IplImage*)imgRtLoc.getIplImage());
 
                     // now get mean color of blob, and fill the OPC object with the information
                     // be careful: computation done in BGR => save in RGB for displaying purpose
-                    CvScalar meanColor=cvAvg(imgTmp1.getIplImage());
+                    CvScalar meanColor=cvAvg(imgTmp.getIplImage());
                     obj->m_color[0]=(int)meanColor.val[2];
                     obj->m_color[1]=(int)meanColor.val[1];
                     obj->m_color[2]=(int)meanColor.val[0];
@@ -977,7 +974,6 @@ bool IOL2OPCBridge::updateModule()
 
                 // find the blob name (or unknown)
                 string object=findName(scores,tag.str());
-
                 if (object==OBJECT_UNKNOWN)
                 {
                     mutexResources.lock();

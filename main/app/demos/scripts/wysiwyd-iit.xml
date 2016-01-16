@@ -7,15 +7,15 @@
         </dependencies>
 
         <module>
-			<name>kinectServer</name>
+            <name>kinectServer</name>
             <parameters></parameters>
-			<node>icub-win1</node>
+            <node>icub-win1</node>
         </module>
 
         <module>
-			<name>agentDetector</name>
+            <name>agentDetector</name>
             <parameters>--showImage true --showMode depth+skeleton --x-depth 2020 --y-depth 720 --x-skeleton 2340 --y-skeleton 720</parameters>
-			<node>icub15</node>
+            <node>icub15</node>
             <dependencies>
                 <port timeout="10">/kinectServer/rpc</port>
                 <port timeout="10">/OPC/rpc</port>
@@ -24,18 +24,18 @@
         </module>
 
         <module>
-			<name>referenceFrameHandler</name>
+            <name>referenceFrameHandler</name>
             <parameters></parameters>
-			<node>icub15</node>
+            <node>icub15</node>
             <dependencies>
                 <port timeout="10">/OPC/rpc</port>
             </dependencies>
         </module>
 
         <module>
-			<name>SFM</name>
+            <name>SFM</name>
             <parameters></parameters>
-			<node>icub15</node>
+            <node>icub15</node>
         </module>
 
        <module>
@@ -202,12 +202,12 @@
         <connection>
                 <from>/iol2opc/imgLoc:o</from>
                 <to>/iolViewer/iol2opc/view/localizer</to>
-                <protocol>tcp</protocol>
+                <protocol>udp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgHistogram:o</from>
                 <to>/iolViewer/iol2opc/view/histogram</to>
-                <protocol>tcp</protocol>
+                <protocol>udp</protocol>
         </connection>
         <connection>
                 <from>/iolViewer/iol2opc/view/localizer:o</from>
@@ -217,7 +217,7 @@
         <connection>
                 <from>/iol2opc/imgTrack:o</from>
                 <to>/iolViewer/iol2opc/view/track</to>
-                <protocol>tcp</protocol>
+                <protocol>udp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgSel:o</from>
@@ -254,12 +254,12 @@
                 <to>/iol2opc/img:i</to>
                 <protocol>udp</protocol>
         </connection>
-		<connection>
+        <connection>
             <from>/icub/camcalib/right/out</from>
             <to>/SFM/right:i</to>
             <protocol>tcp</protocol>
         </connection>
-		<connection>
+        <connection>
             <from>/icub/camcalib/left/out</from>
             <to>/SFM/left:i</to>
             <protocol>tcp</protocol>
