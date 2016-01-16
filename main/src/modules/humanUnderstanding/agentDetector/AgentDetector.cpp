@@ -134,6 +134,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
                 {
                     int x_rgb=rf.check("x-rgb",Value(xPos)).asInt();
                     int y_rgb=rf.check("y-rgb",Value(yPos)).asInt();
+                    yInfo("\"rgb\" image selected in (%d,%d)",x_rgb,y_rgb);
 
                     cvNamedWindow("rgb",CV_WINDOW_AUTOSIZE);
                     cvMoveWindow("rgb",x_rgb,y_rgb);
@@ -142,6 +143,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
                 {
                     int x_depth=rf.check("x-depth",Value(xPos+300)).asInt();
                     int y_depth=rf.check("y-depth",Value(yPos)).asInt();
+                    yInfo("\"depth\" image selected in (%d,%d)",x_depth,y_depth);
 
                     cvNamedWindow("depth",CV_WINDOW_AUTOSIZE);
                     cvMoveWindow("depth",x_depth,y_depth);
@@ -152,6 +154,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
                 {
                     int x_skeleton=rf.check("x-skeleton",Value(xPos)).asInt();
                     int y_skeleton=rf.check("y-skeleton",Value(yPos+300)).asInt();
+                    yInfo("\"skeleton\" image selected in (%d,%d)",x_skeleton,y_skeleton);
 
                     cvNamedWindow("skeleton",CV_WINDOW_AUTOSIZE);
                     cvMoveWindow("skeleton",x_skeleton,y_skeleton);
@@ -160,6 +163,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
                 {
                     int x_players=rf.check("x-players",Value(xPos+300)).asInt();
                     int y_players=rf.check("y-players",Value(yPos+300)).asInt();
+                    yInfo("\"players\" image selected in (%d,%d)",x_players,y_players);
 
                     cvNamedWindow("players",CV_WINDOW_AUTOSIZE);
                     cvMoveWindow("players",x_players,y_players);
@@ -378,6 +382,8 @@ bool AgentDetector::updateModule()
                     yError("unrecognized show mode!");
             }
         }
+
+        cvWaitKey(1);
     }
 
     //Send the players information to the OPC
