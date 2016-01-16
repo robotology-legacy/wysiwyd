@@ -79,8 +79,8 @@ public:
     IOLObject(const int filter_order=1, const double presenceTmo_=0.0,
               const double trackerTmo_=0.0) :
               filter(filter_order), init_filter(true),
-              presenceTmo(presenceTmo_), trackerTmo(trackerTmo_),
-              tracking(false), trackerTimer(0.0), trackerResult(cv::Rect2d(0,0,0,0))
+              presenceTmo(presenceTmo_), tracking(false), trackerTmo(trackerTmo_),
+              trackerTimer(0.0), trackerResult(cv::Rect2d(0,0,0,0))
     {
         heartBeat();
     }
