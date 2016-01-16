@@ -359,7 +359,7 @@ namespace cvz {
                         {
                             yarp::sig::ImageOf<yarp::sig::PixelRgb> imgrf = map->getReceptiveFieldRepresentation(x, y, z, itBot->second);
                             modalityRF = cvCreateImage(cvSize(imgrf.width(), imgrf.height()), 8, 3);
-                            cvCopyImage(imgrf.getIplImage(), modalityRF);
+                            cvCopy(imgrf.getIplImage(), modalityRF);
                         }
                         modImgs.push_back(modalityRF);
                     }
@@ -382,7 +382,7 @@ namespace cvz {
                     for (std::list<IplImage*>::iterator it = modImgs.begin(); it != modImgs.end(); it++)
                     {
                         cvSetImageROI(fullImg, cvRect(xOffset, 0, (*it)->width, (*it)->height));
-                        cvCopyImage((*it), fullImg);
+                        cvCopy((*it), fullImg);
                         cvResetImageROI(fullImg);
                         xOffset += (*it)->width;
                         cvReleaseImage(&(*it));
@@ -432,7 +432,7 @@ namespace cvz {
                                             tmpForZ = cvCreateImage(cvSize(rf->width*map->L(), rf->height), 8, 3);
 
                                         cvSetImageROI(tmpForZ, cvRect(z*rf->width, 0, rf->width, rf->height));
-                                        cvCopyImage(rf, tmpForZ);
+                                        cvCopy(rf, tmpForZ);
                                         cvResetImageROI(tmpForZ);
                                         cvReleaseImage(&rf);
                                     }
@@ -455,7 +455,7 @@ namespace cvz {
                                 for (int y = 0; y < map->H(); y++)
                                 {
                                     cvSetImageROI(fullImg, cvRect(x*subparts[x][y]->width, y*subparts[x][y]->height, subparts[x][y]->width, subparts[x][y]->height));
-                                    cvCopyImage(subparts[x][y], fullImg);
+                                    cvCopy(subparts[x][y], fullImg);
                                     cvResetImageROI(fullImg);
                                     cvReleaseImage(&subparts[x][y]);
                                 }
@@ -481,7 +481,7 @@ namespace cvz {
                         for (int yMap = 0; yMap < layers[layer].Height(); yMap++)
                         {
                             cvSetImageROI(fullLayerImage, cvRect(xMap*subpartsFullLayer[xMap][yMap]->width, yMap*subpartsFullLayer[xMap][yMap]->height, subpartsFullLayer[xMap][yMap]->width, subpartsFullLayer[xMap][yMap]->height));
-                            cvCopyImage(subpartsFullLayer[xMap][yMap], fullLayerImage);
+                            cvCopy(subpartsFullLayer[xMap][yMap], fullLayerImage);
                             cvResetImageROI(fullLayerImage);
                             cvReleaseImage(&subpartsFullLayer[xMap][yMap]);
                         }

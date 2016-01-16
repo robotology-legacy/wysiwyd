@@ -152,7 +152,7 @@ namespace cvz {
                                     yarp::sig::ImageOf<yarp::sig::PixelRgb> thumbnail = mmcmPtr->getReceptiveFieldRepresentation(x, y, z, mod->second);
                                      
                                     cvSetImageROI(fullImg, cvRect(xOffset, yOffset, thumbnail.width(), thumbnail.height()));
-                                    cvCopyImage(thumbnail.getIplImage(), fullImg);
+                                    cvCopy(thumbnail.getIplImage(), fullImg);
                                     cvResetImageROI(fullImg);
 
                                     xOffset += thumbnail.width();
@@ -185,7 +185,7 @@ namespace cvz {
                         {
                             IplImage* thumbnail = getReceptiveField(x, y);
                             cvSetImageROI(fullImg, cvRect(x*probe->width, y*probe->height, probe->width, probe->height));
-                            cvCopyImage(thumbnail, fullImg);
+                            cvCopy(thumbnail, fullImg);
                             cvResetImageROI(fullImg);
                             cvReleaseImage(&thumbnail);
                         }

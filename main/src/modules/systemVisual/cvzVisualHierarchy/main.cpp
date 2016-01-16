@@ -1,8 +1,8 @@
 #include "cvz/core/all.h"
 #include "cvz/gui/all.h"
-#include <cv.h>
-#include <cvaux.h>
-#include "highgui.h"
+
+#include <opencv2/opencv.hpp>
+
 #include <yarp/os/all.h>
 
 using namespace std;
@@ -81,7 +81,7 @@ private:
                             {
                                 yarp::sig::ImageOf<yarp::sig::PixelRgb> thumbnail = retinaUsed[i][j]->getReceptiveFieldRepresentation(x, y, z, mod->second);
                                 cvSetImageROI(fullImg, cvRect(x*probe.width() + z*probe.width(), y*probe.height(), probe.width(), probe.height()));
-                                cvCopyImage(thumbnail.getIplImage(), fullImg);
+                                cvCopy(thumbnail.getIplImage(), fullImg);
                                 cvResetImageROI(fullImg);
                             }
                         }
@@ -125,7 +125,7 @@ private:
 
                 yarp::sig::ImageOf<yarp::sig::PixelRgb> px = retinaUsed[x][y]->getReceptiveFieldRepresentation(bmuX, bmuY, bmuZ, retinaUsed[x][y]->modalitiesBottomUp.begin()->second);
                 cvSetImageROI(fullRFSingleNeuron, cvRect(x*probe.width(), y*probe.height(), probe.width(), probe.height()));
-                cvCopyImage(px.getIplImage(), fullRFSingleNeuron);
+                cvCopy(px.getIplImage(), fullRFSingleNeuron);
                 cvResetImageROI(fullRFSingleNeuron);
             }
         }
@@ -155,7 +155,7 @@ private:
                 {
                     IplImage*fullRFSingleNeuron = getV1RFSingleNeuron(lgnUsed, retinaUsed, v1x, v1y, v1z);
                     cvSetImageROI(fullRF, cvRect((v1x + v1z)*(border + fullRFSingleNeuron->width), v1y*(border+fullRFSingleNeuron->height), fullRFSingleNeuron->width, fullRFSingleNeuron->height));
-                    cvCopyImage(fullRFSingleNeuron, fullRF);
+                    cvCopy(fullRFSingleNeuron, fullRF);
                     cvResetImageROI(fullRF);
                     cvReleaseImage(&fullRFSingleNeuron);
                 }
@@ -201,7 +201,7 @@ private:
                     IplImage* px = getV1RFSingleNeuron(v1Retina, retina, bmuX, bmuY, bmuZ);;
 
                     cvSetImageROI(fullRF, cvRect((v2x + v2z)*(border + px->width), v2y*(border + px->height), px->width, px->height));
-                    cvCopyImage(px, fullRF);
+                    cvCopy(px, fullRF);
                     cvResetImageROI(fullRF);
                     cvReleaseImage(&px);
                 }
@@ -243,7 +243,7 @@ private:
                     IplImage* px = getV1RFSingleNeuron(v1Fovea, fovea, bmuX, bmuY, bmuZ);;
 
                     cvSetImageROI(fullRF, cvRect((v2x + v2z)*(border + px->width), v2y*(border + px->height), px->width, px->height));
-                    cvCopyImage(px, fullRF);
+                    cvCopy(px, fullRF);
                     cvResetImageROI(fullRF);
                     cvReleaseImage(&px);
                 }

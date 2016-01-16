@@ -19,15 +19,14 @@
 #ifndef _AUTOBIOGRAPHICALMEMORY_
 #define _AUTOBIOGRAPHICALMEMORY_
 
-#include <stdio.h>
+#include <cstdio>
 #include <map>
 #include <vector>
 
 #include <yarp/os/all.h>
 
 #include <db/PostgreSQL.h>
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
 
 #ifdef __linux__
 #include <sys/stat.h>

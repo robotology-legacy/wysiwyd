@@ -320,7 +320,7 @@ bool autobiographicalMemory::writeImageToPort(const string &fullPath, BufferedPo
     cvCvtColor(img, img, CV_BGR2RGB);
     ImageOf<PixelRgb> &temp = imgPort->prepare();
     temp.resize(img->width, img->height);
-    cvCopyImage(img, (IplImage *)temp.getIplImage());
+    cvCopy(img, (IplImage *)temp.getIplImage());
 
     //send the image
     imgPort->writeStrict();

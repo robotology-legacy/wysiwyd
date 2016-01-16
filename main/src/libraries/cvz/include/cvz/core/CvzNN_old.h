@@ -3,18 +3,19 @@
 
 #include <map>
 #include <string>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <vector>
-#include <yarp/os/all.h>
-#include <yarp/sig/all.h>
 #include <sstream>
 #include <iostream>
 #include <fstream>
 #include <queue>
 #include <float.h>
 
-#include <cv.h>
-#include <stdio.h> // for replacing files
+#include <opencv2/opencv.hpp>
+
+#include <yarp/os/all.h>
+#include <yarp/sig/all.h>
 
 #include "ICvz.h"
 #include "cvzMmcm_IDL.h"

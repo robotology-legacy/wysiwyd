@@ -13,9 +13,7 @@
 #include "cvz/helpers/helpers.h"
 
 //OpenCV
-#include <cv.h>
-#include <cvaux.h>
-#include "highgui.h"
+#include <opencv2/opencv.hpp>
 
 namespace cvz {
     namespace core {

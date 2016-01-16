@@ -19,12 +19,12 @@ bool perspectiveTaking::sendImagesToPorts() {
     IplImage* partnerPersp_ipl = new IplImage(partnerPersp);
     ImageOf<PixelRgb> &partnerPers_yarp = partnerPerspImgPort.prepare();
     partnerPers_yarp.resize(partnerPersp_ipl->width, partnerPersp_ipl->height);
-    cvCopyImage(partnerPersp_ipl, (IplImage *)partnerPers_yarp.getIplImage());
+    cvCopy(partnerPersp_ipl, (IplImage *)partnerPers_yarp.getIplImage());
 
     IplImage* selfPersp_ipl = new IplImage(selfPersp);
     ImageOf<PixelRgb> &selfPers_yarp = selfPerspImgPort.prepare();
     selfPers_yarp.resize(selfPersp_ipl->width, selfPersp_ipl->height);
-    cvCopyImage(selfPersp_ipl, (IplImage *)selfPers_yarp.getIplImage());
+    cvCopy(selfPersp_ipl, (IplImage *)selfPers_yarp.getIplImage());
 
     //send the images
     selfPerspImgPort.write();

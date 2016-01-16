@@ -629,7 +629,7 @@ namespace cvz {
                             int yOffset = y*singleH;
                             yarp::sig::ImageOf<yarp::sig::PixelRgb> thumbnail = getReceptiveFieldRepresentation(x, y, z, modalityToPlot);
                             cvSetImageROI(fullImg, cvRect(xOffset, yOffset, thumbnail.width(), thumbnail.height()));
-                            cvCopyImage(thumbnail.getIplImage(), fullImg);
+                            cvCopy(thumbnail.getIplImage(), fullImg);
                             cvResetImageROI(fullImg);
                             xOffset += thumbnail.width();
                         }
