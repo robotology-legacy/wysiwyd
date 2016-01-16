@@ -25,7 +25,7 @@ source_group("Source Files" FILES ${folder_source})
 source_group("IDL Files"    FILES ${idl_files})
 
 if(WYSIWYD_IOL2OPC_WITH_TRACKING)
-    add_definitions(-DTRACKING)
+    add_definitions(-DIOL2OPC_TRACKING)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/include

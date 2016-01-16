@@ -22,12 +22,17 @@
 #include <deque>
 #include <map>
 
-#include <opencv2/opencv.hpp>
-
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
+#include <yarp/math/Math.h>
+#include <yarp/math/Rand.h>
 #include <iCub/ctrl/filters.h>
 #include <wrdac/clients/opcClient.h>
+
+#include <opencv2/opencv.hpp>
+#ifdef IOL2OPC_TRACKING
+    #include <opencv2/tracking.hpp>
+#endif
 
 #include "utils.h"
 #include "iol2opc_IDL.h"
@@ -38,6 +43,7 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace iCub::ctrl;
 using namespace wysiwyd::wrdac;
 
@@ -55,22 +61,41 @@ protected:
     MedianFilter filter;
     bool init_filter;
     double presenceTmo;
-    double timer;
+    double presenceTimer;
+
+    bool tracking;
+    double trackerTmo;
+    double trackerTimer;    
+    cv::Rect2d trackerResult;
+
+#ifdef IOL2OPC_TRACKING
+    cv::Ptr<cv::Tracker> tracker;
+#endif
 
 public:
+    int opc_id;
+
     /**********************************************************/
-    IOLObject(const int filter_order=1, const double _presenceTmo=0.0) :
+    IOLObject(const int filter_order=1, const double presenceTmo_=0.0,
+              const double trackerTmo_=0.0) :
               filter(filter_order), init_filter(true),
-              presenceTmo(_presenceTmo)
+              presenceTmo(presenceTmo_), trackerTmo(trackerTmo_),
+              tracking(false), trackerTimer(0.0), trackerResult(cv::Rect2d(0,0,0,0))
     {
         heartBeat();
     }
 
     /**********************************************************/
-    void heartBeat() { timer=Time::now(); }
+    void heartBeat()
+    {
+        presenceTimer=Time::now();
+    }
 
     /**********************************************************/
-    bool isDead() const { return (Time::now()-timer>=presenceTmo); }
+    bool isDead() const
+    {
+        return (Time::now()-presenceTimer>=presenceTmo);
+    }
 
     /**********************************************************/
     Vector filt(const Vector &x)
@@ -85,7 +110,43 @@ public:
             return filter.filt(x);
     }
 
-    int opc_id;
+    /**********************************************************/
+    void tracker_init(const Image& img, const CvRect& bbox)
+    {
+        trackerResult=cv::Rect2d(bbox.x,bbox.y,bbox.width,bbox.height);
+
+    #ifdef IOL2OPC_TRACKING
+        cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
+
+        tracker=cv::Tracker::create("BOOSTING");
+        tracker->init(frame,trackerResult);
+
+        trackerTimer=Time::now();
+    #endif
+
+        tracking=true;
+    }
+
+    /**********************************************************/
+    void tracker_update(const Image& img)
+    {
+    #ifdef IOL2OPC_TRACKING
+        tracking=(Time::now()-trackerTimer<trackerTmo);
+        if (tracking)
+        {
+            cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
+            tracker->update(frame,trackerResult);
+        }
+    #endif
+    }
+
+    /**********************************************************/
+    bool is_tracking(CvRect& bbox) const
+    {
+        bbox=cvRect((int)trackerResult.x,(int)trackerResult.y,
+                    (int)trackerResult.width,(int)trackerResult.height);
+        return tracking;
+    }
 };
 
 
@@ -103,6 +164,7 @@ protected:
     BufferedPort<Bottle>             getClickPort;
     BufferedPort<ImageOf<PixelBgr> > imgIn;
     BufferedPort<ImageOf<PixelBgr> > imgRtLocOut;
+    BufferedPort<ImageOf<PixelBgr> > imgTrackOut;
     BufferedPort<ImageOf<PixelBgr> > imgSelBlobOut;
     BufferedPort<ImageOf<PixelBgr> > imgHistogram;
     Port imgClassifier;
@@ -120,6 +182,7 @@ protected:
     bool empty;
     double period;
     double presence_timeout;
+    double tracker_timeout;
     map<string,IOLObject> db;
     Bridge::State state;
     IOLObject onlyKnownObjects;
