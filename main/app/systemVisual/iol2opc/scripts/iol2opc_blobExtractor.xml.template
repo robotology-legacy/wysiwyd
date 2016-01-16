@@ -1,6 +1,6 @@
 
 <application>
-<name>WYSIWYD IOL</name>
+<name>WYSIWYD IOL blobExtractor</name>
 
         <dependencies>
                 <port>/icub/camcalib/left/out</port>
@@ -23,7 +23,7 @@
         </module>
          <module>
                 <name>linearClassifierModule</name>
-                <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOLOPCDatabase --WeightedSVM 1</parameters>
+                <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase --WeightedSVM 1</parameters>
                 <node>deepthought</node>
         </module>
          <module>

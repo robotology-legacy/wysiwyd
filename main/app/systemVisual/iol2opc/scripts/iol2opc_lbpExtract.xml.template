@@ -1,33 +1,33 @@
 <application>
-<name>WYSIWYD IOL lbpExtract</name>
+<name>WYSIWYD IOL</name>
 
         <dependencies>
                 <port>/icub/camcalib/left/out</port>
                 <port>/SFM/rpc</port>
         </dependencies>
-  	<!--Memory-->
- 	<module>
-	    <name>objectsPropertiesCollector</name>
-	    <parameters>--name OPC --empty --nosave</parameters>
-	    <node>icuboracle</node>
-	    <tag>opcTag</tag>
-	</module>
-	<!--GUI-->
-	<module>
-	    <name>iCubGui</name>
-	    <parameters>--from guiOPC.ini --xpos 2800 --ypos 0 --width 650 --height 530</parameters>
-	    <node>copper</node>
-	    <tag>iCubGui_tagOPC</tag>
-	</module>
-	<module>
-	    <name>guiUpdater</name>
-	    <node>obsidian</node>
-	    <tag>guiUpdaterTag</tag>
-	</module>
+   <!--Memory-->
+   <module>
+       <name>objectsPropertiesCollector</name>
+       <parameters>--name OPC --empty --nosave</parameters>
+       <node>icuboracle</node>
+       <tag>opcTag</tag>
+   </module>
+   <!--GUI-->
+   <module>
+       <name>iCubGui</name>
+       <parameters>--from guiOPC.ini --xpos 2800 --ypos 0 --width 650 --height 530</parameters>
+       <node>copper</node>
+       <tag>iCubGui_tagOPC</tag>
+   </module>
+   <module>
+       <name>guiUpdater</name>
+       <node>obsidian</node>
+       <tag>guiUpdaterTag</tag>
+   </module>
 
         <module>
                 <name>lbpExtract</name>
-                <parameters>--numIteration 1 --minArcLength 100</parameters>
+                <parameters></parameters>
                 <node>deepthought</node>
         </module>
          <module>
@@ -81,51 +81,51 @@
         </module>
 
 
-	  <connection>
-	    <from>/wholeBodyDynamics/contacts:o</from>
-	    <to>/iCubGui/forces</to>
-	    <protocol>udp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/armSkinMan/skin_events:o</from>
-	    <to>/iCubGui/forces</to>
-	    <protocol>udp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/icub/head/state:o</from>
-	    <to>/iCubGui/head:i</to>
-	    <protocol>udp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/icub/inertial</from>
-	    <to>/iCubGui/inertial:i</to>
-	    <protocol>udp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/icub/left_arm/state:o</from>
-	    <to>/iCubGui/left_arm:i</to>
-	    <protocol>udp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/icub/right_arm/state:o</from>
-	    <to>/iCubGui/right_arm:i</to>
-	    <protocol>udp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/icub/torso/state:o</from>
-	    <to>/iCubGui/torso:i</to>
-	    <protocol>udp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/guiUpdater/gui:o</from>
-	    <to>/iCubGui/objects</to>
-	    <protocol>tcp</protocol>
-	  </connection>
-	  <connection>
-	    <from>/guiUpdater/guiBase:o</from>
-	    <to>/iCubGui/base:i</to>
-	    <protocol>tcp</protocol>
-	  </connection>
+     <connection>
+       <from>/wholeBodyDynamics/contacts:o</from>
+       <to>/iCubGui/forces</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/armSkinMan/skin_events:o</from>
+       <to>/iCubGui/forces</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/head/state:o</from>
+       <to>/iCubGui/head:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/inertial</from>
+       <to>/iCubGui/inertial:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/left_arm/state:o</from>
+       <to>/iCubGui/left_arm:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/right_arm/state:o</from>
+       <to>/iCubGui/right_arm:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/torso/state:o</from>
+       <to>/iCubGui/torso:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/guiUpdater/gui:o</from>
+       <to>/iCubGui/objects</to>
+       <protocol>tcp</protocol>
+     </connection>
+     <connection>
+       <from>/guiUpdater/guiBase:o</from>
+       <to>/iCubGui/base:i</to>
+       <protocol>tcp</protocol>
+     </connection>
         <connection>
                 <from>/icub/camcalib/left/out</from>
                 <to>/lbpExtract/image:i</to>
@@ -149,7 +149,7 @@
         <connection>
                 <output>/himrepClassifier/img:o</output>
                 <input>/caffeCoder/img:i</input>
-                <protocol>udp</protocol>
+                <protocol>tcp</protocol>
         </connection>
         <connection>
                 <output>/caffeCoder/code:o</output>
@@ -169,7 +169,7 @@
         <connection>
                 <output>/caffeCoder/img:o</output>
                 <input>/himrepClassifier/SIFTimg:i</input>
-                <protocol>udp</protocol>
+                <protocol>tcp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgLoc:o</from>
@@ -204,7 +204,7 @@
         <connection>
                 <from>/iol2opc/imgClassifier:o</from>
                 <to>/himrepClassifier/img:i</to>
-                <protocol>udp</protocol>
+                <protocol>tcp</protocol>
         </connection>
         <connection>
                 <from>/lbpExtract/blobs:o</from>
