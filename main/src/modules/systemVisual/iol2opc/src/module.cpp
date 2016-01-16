@@ -666,6 +666,7 @@ void IOL2OPCBridge::updateOPC()
                     CvPoint sz=cvPoint(br.x-tl.x,br.y-tl.y);
                     CvRect bbox=cvRect(tl.x,tl.y,sz.x,sz.y);                    
                     it->second.tracker_init(imgLatch,bbox);
+                    it->second.heartBeat();
                 }
             }
             else
