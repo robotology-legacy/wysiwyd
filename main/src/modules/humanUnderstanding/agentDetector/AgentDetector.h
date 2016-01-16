@@ -31,6 +31,7 @@ protected:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > skeletonPort;
         
     bool showImages;
+    string showMode;
     bool handleMultiplePlayers;
     Player joint;
     deque<Player> joints;
@@ -63,6 +64,8 @@ protected:
     double dThresholdDisparition;           // timing maximal of non-reconnaissance of a agent, after thath we consider the agent as absent
 
     Mutex m;
+    
+    bool showImageParser(string &mode, string &submode);
 
 public:
 

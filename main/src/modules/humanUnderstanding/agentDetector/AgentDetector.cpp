@@ -3,6 +3,25 @@ bool AgentDetector::clicked = false;
 float AgentDetector::clickX = 0;
 float AgentDetector::clickY = 0;
 
+
+bool AgentDetector::showImageParser(string &mode, string &submode)
+{
+    submode=mode;
+    size_t found=mode.find_first_of('+');
+    if ((found>0) && (found!=string::npos))
+    {
+        submode=mode.substr(0,found);
+        if (found+1<mode.length())
+            mode=mode.substr(found+1,mode.length()-found);
+        else
+            mode.clear();
+    }
+    else
+        mode.clear();    
+
+    return !submode.empty();
+}
+
 bool AgentDetector::configure(ResourceFinder &rf)
 {
     int verbosity=rf.check("verbosity",Value(0)).asInt();
@@ -11,6 +30,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     handleMultiplePlayers = rf.check("multiplePlayers");
     isMounted = !rf.check("isFixed");
     string show=rf.check("showImages",Value("false")).asString().c_str();
+    showMode=rf.check("showMode",Value("rgb+depth+skeleton+players")).asString().c_str();
     dThresholdDisparition = rf.check("dThresholdDisparition",Value("3.0")).asDouble();
 
     // initialise timing in case of misrecognition
@@ -67,8 +87,6 @@ bool AgentDetector::configure(ResourceFinder &rf)
     skeletonName += "/skeleton:o";
     outputSkeletonPort.open(skeletonName.c_str());
 
-
-
     depthPort.open( ("/"+clientName+"/depthPort:o").c_str());
     imagePort.open(("/"+clientName+"/imagePort:o").c_str());
     playersPort.open(("/"+clientName+"/playersPort:o").c_str());
@@ -106,17 +124,51 @@ bool AgentDetector::configure(ResourceFinder &rf)
 
     if (showImages)
     {
-        cvNamedWindow("rgb",CV_WINDOW_AUTOSIZE);
-        cvMoveWindow("rgb", xPos, yPos);
-        cvNamedWindow("depth",CV_WINDOW_AUTOSIZE);
-        cvMoveWindow("depth", xPos + 300, yPos);
-        cvNamedWindow("skeleton", CV_WINDOW_AUTOSIZE);
-        cvMoveWindow("skeleton", xPos, yPos + 300);
-        cvNamedWindow("players", CV_WINDOW_AUTOSIZE);
-        cvMoveWindow("players", xPos + 300, yPos + 300);
-        cvSetMouseCallback( "depth", AgentDetector::click_callback, (void*) depthToDisplay.getIplImage());
-    }
+        string mode=showMode;
+        string submode;
+        while (!mode.empty())
+        {
+            if (showImageParser(mode,submode))
+            {            
+                if (submode=="rgb")
+                {
+                    int x_rgb=rf.check("x-rgb",Value(xPos)).asInt();
+                    int y_rgb=rf.check("y-rgb",Value(yPos)).asInt();
 
+                    cvNamedWindow("rgb",CV_WINDOW_AUTOSIZE);
+                    cvMoveWindow("rgb",x_rgb,y_rgb);
+                }
+                else if (submode=="depth")
+                {
+                    int x_depth=rf.check("x-depth",Value(xPos+300)).asInt();
+                    int y_depth=rf.check("y-depth",Value(yPos)).asInt();
+
+                    cvNamedWindow("depth",CV_WINDOW_AUTOSIZE);
+                    cvMoveWindow("depth",x_depth,y_depth);
+                    cvSetMouseCallback("depth",AgentDetector::click_callback,
+                                       (void*)depthToDisplay.getIplImage());
+                }
+                else if (submode=="skeleton")
+                {
+                    int x_skeleton=rf.check("x-skeleton",Value(xPos)).asInt();
+                    int y_skeleton=rf.check("y-skeleton",Value(yPos+300)).asInt();
+
+                    cvNamedWindow("skeleton",CV_WINDOW_AUTOSIZE);
+                    cvMoveWindow("skeleton",x_skeleton,y_skeleton);
+                }
+                else if (submode=="players")
+                {
+                    int x_players=rf.check("x-players",Value(xPos+300)).asInt();
+                    int y_players=rf.check("y-players",Value(yPos+300)).asInt();
+
+                    cvNamedWindow("players",CV_WINDOW_AUTOSIZE);
+                    cvMoveWindow("players",x_players,y_players);
+                }
+                else
+                    yError("unrecognized show mode!");
+            }
+        }
+    }
 
     //Initialise Face Recognizer
     if (useFaceRecognition)
@@ -304,16 +356,28 @@ bool AgentDetector::updateModule()
     }
 
     if (showImages)
-    {
+    {        
         cvConvertScale((IplImage*)depthToDisplay.getIplImage(),depthTmp,1.0/255);
-        cvShowImage("depth",depthTmp);
-        cvShowImage("players",(IplImage*)playersImage.getIplImage());
-        cvShowImage("skeleton",(IplImage*)skeletonImage.getIplImage());
-
-        cvWaitKey(1);
-
         cvCvtColor((IplImage*)rgb.getIplImage(),rgbTmp,CV_BGR2RGB);
-        cvShowImage("rgb",rgbTmp);
+
+        string mode=showMode;
+        string submode;
+        while (!mode.empty())
+        {
+            if (showImageParser(mode,submode))
+            {            
+                if (submode=="rgb")
+                    cvShowImage("rgb",rgbTmp);
+                else if (submode=="depth")
+                    cvShowImage("depth",depthTmp);
+                else if (submode=="skeleton")
+                    cvShowImage("skeleton",(IplImage*)skeletonImage.getIplImage());
+                else if (submode=="players")
+                    cvShowImage("players",(IplImage*)playersImage.getIplImage());
+                else
+                    yError("unrecognized show mode!");
+            }
+        }
     }
 
     //Send the players information to the OPC
