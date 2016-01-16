@@ -1,0 +1,262 @@
+<application>
+<name>WYSIWYD IIT</name>
+
+        <dependencies>
+            <port>/icub/camcalib/left/out</port>
+            <port>/icub/camcalib/right/out</port>
+        </dependencies>
+
+        <module>
+			<name>kinectServer</name>
+            <parameters></parameters>
+			<node>icub-win1</node>
+        </module>
+
+        <module>
+			<name>agentDetector</name>
+            <parameters>--showImage true --showMode depth+skeleton --x-depth 1700 --y-depth 720 --x-skeleton 2020 --y-skeleton 720</parameters>
+			<node>icub15</node>
+            <dependencies>
+                <port timeout="10">/kinectServer/rpc</port>
+                <port timeout="10">/OPC/rpc</port>
+                <port timeout="10">/referenceFrameHandler/rpc</port>
+            </dependencies>
+        </module>
+
+        <module>
+			<name>referenceFrameHandler</name>
+            <parameters></parameters>
+			<node>icub15</node>
+            <dependencies>
+                <port timeout="10">/OPC/rpc</port>
+            </dependencies>
+        </module>
+
+        <module>
+			<name>SFM</name>
+            <parameters></parameters>
+			<node>icub15</node>
+        </module>
+
+       <module>
+           <name>objectsPropertiesCollector</name>
+           <parameters>--name OPC --empty --nosave</parameters>
+           <node>icub15</node>
+       </module>
+
+       <module>
+           <name>iCubGui</name>
+           <parameters>--xpos 3000 --ypos 0 --width 500 --height 530</parameters>
+           <node>icub15</node>
+       </module>
+       <module>
+           <name>guiUpdater</name>
+           <node>icub-b1</node>
+       </module>
+
+        <module>
+                <name>lbpExtract</name>
+                <parameters></parameters>
+                <node>icub15</node>
+        </module>
+         <module>
+                <name>caffeCoder</name>
+                <parameters></parameters>
+                <node>icub-tesla</node>
+        </module>
+         <module>
+                <name>linearClassifierModule</name>
+                <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase --WeightedSVM 1</parameters>
+                <node>icub-b1</node>
+        </module>
+         <module>
+                <name>himrepClassifier</name>
+                <node>icub15</node>
+        </module>
+        <module>
+                <name>iol2opc</name>
+                <parameters>--from config.ini</parameters>
+                <node>icub-b2</node>
+                <dependencies>
+                    <port timeout="10">/SFM/rpc</port>
+                    <port timeout="10">/himrepClassifier/rpc</port>
+                    <port timeout="10">/OPC/rpc</port>
+                </dependencies>
+        </module>
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/lbpExtracted/view --x 1700 --y 0 --p 50 --compact</parameters>
+                <node>icub15</node>
+        </module>
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/lbpSegmented/view --x 2020 --y 0 --p 50 --compact</parameters>
+                <node>icub15</node>
+        </module>
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/objectSelector/view --x 1700 --y 370 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
+                <node>icub15</node>
+        </module>
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/iol2opc/view/localizer --x 2020 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
+                <node>icub15</node>
+        </module>
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/iol2opc/view/histogram --x 2340 --y 0 --w 600 --h 570 --p 50 --compact</parameters>
+                <node>icub15</node>
+        </module>
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /iolViewer/disp --x 2340 --y 720 --p 50 --compact</parameters>
+                <node>icub15</node>
+        </module>
+
+     <connection>
+       <from>/icub/head/state:o</from>
+       <to>/iCubGui/head:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/inertial</from>
+       <to>/iCubGui/inertial:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/left_arm/state:o</from>
+       <to>/iCubGui/left_arm:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/right_arm/state:o</from>
+       <to>/iCubGui/right_arm:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/icub/torso/state:o</from>
+       <to>/iCubGui/torso:i</to>
+       <protocol>udp</protocol>
+     </connection>
+     <connection>
+       <from>/guiUpdater/gui:o</from>
+       <to>/iCubGui/objects</to>
+       <protocol>tcp</protocol>
+     </connection>
+     <connection>
+       <from>/guiUpdater/guiBase:o</from>
+       <to>/iCubGui/base:i</to>
+       <protocol>tcp</protocol>
+     </connection>
+        <connection>
+                <from>/icub/camcalib/left/out</from>
+                <to>/lbpExtract/image:i</to>
+                <protocol>udp</protocol>
+        </connection>
+        <connection>
+                <from>/lbpExtract/extractedlbp:o</from>
+                <to>/iolViewer/lbpExtracted/view</to>
+                <protocol>udp</protocol>
+        </connection>
+        <connection>
+                <from>/lbpExtract/segmentedlbp:o</from>
+                <to>/iolViewer/lbpSegmented/view</to>
+                <protocol>udp</protocol>
+        </connection>
+        <connection>
+                <output>/himrepClassifier/classify:rpc</output>
+                <input>/linearClassifier/rpc</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/himrepClassifier/img:o</output>
+                <input>/caffeCoder/img:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/caffeCoder/code:o</output>
+                <input>/himrepClassifier/features:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/himrepClassifier/features:o</output>
+                <input>/linearClassifier/features:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/linearClassifier/scores:o</output>
+                <input>/himrepClassifier/scores:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <output>/caffeCoder/img:o</output>
+                <input>/himrepClassifier/SIFTimg:i</input>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/imgLoc:o</from>
+                <to>/iolViewer/iol2opc/view/localizer</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/imgHistogram:o</from>
+                <to>/iolViewer/iol2opc/view/histogram</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iolViewer/iol2opc/view/localizer:o</from>
+                <to>/iol2opc/histObjLocation:i</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/imgSel:o</from>
+                <to>/iolViewer/objectSelector/view</to>
+                <protocol>udp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/objectSelector/click:o</from>
+                <to>/iol2opc/getClick:i</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/get3d:rpc</from>
+                <to>/SFM/rpc</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/imgClassifier:o</from>
+                <to>/himrepClassifier/img:i</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/lbpExtract/blobs:o</from>
+                <to>/iol2opc/blobs:i</to>
+                <protocol>udp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/classify:rpc</from>
+                <to>/himrepClassifier/rpc</to>
+                <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/icub/camcalib/left/out</from>
+                <to>/iol2opc/img:i</to>
+                <protocol>udp</protocol>
+        </connection>
+		<connection>
+            <from>/icub/camcalib/right/out</from>
+            <to>/SFM/right:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+		<connection>
+            <from>/icub/camcalib/left/out</from>
+            <to>/SFM/left:i</to>
+            <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/SFM/disp:o</from>
+                <to>/iolViewer/disp</to>
+                <protocol>udp</protocol>
+        </connection>
+</application>
