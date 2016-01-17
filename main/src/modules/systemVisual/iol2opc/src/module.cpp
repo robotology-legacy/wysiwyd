@@ -818,6 +818,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
+    tracker_type=rf.check("tracker_type",Value("BOOSTING")).asString().c_str();
     tracker_timeout=std::max(0.0,rf.check("tracker_timeout",Value(5.0)).asDouble());
 
     imgRtLoc.resize(320,240);
@@ -916,7 +917,8 @@ bool IOL2OPCBridge::updateModule()
         {
             if (Bottle *names=reply.get(1).asList())
                 for (int i=0; i<names->size(); i++)
-                    db[names->get(i).asString().c_str()]=IOLObject(opcMedianFilterOrder,presence_timeout,tracker_timeout);
+                    db[names->get(i).asString().c_str()]=IOLObject(opcMedianFilterOrder,presence_timeout,
+                                                                   tracker_type,tracker_timeout);
 
             if (empty)
                 remove_all();
@@ -984,7 +986,8 @@ bool IOL2OPCBridge::updateModule()
                     opc->commit(obj);
                     mutexResources.unlock();
 
-                    db[obj->name()]=IOLObject(opcMedianFilterOrder,presence_timeout,tracker_timeout);
+                    db[obj->name()]=IOLObject(opcMedianFilterOrder,presence_timeout,
+                                              tracker_type,tracker_timeout);
                     train(obj->name(),blobs,j);
                     onlyKnownObjects.heartBeat();
                     break;
@@ -1032,7 +1035,8 @@ bool IOL2OPCBridge::train_object(const string &name)
         // add a new object in the database
         // if not already existing
         if (db.find(name)==db.end())
-            db[name]=IOLObject(opcMedianFilterOrder,presence_timeout,tracker_timeout);
+            db[name]=IOLObject(opcMedianFilterOrder,presence_timeout,
+                               tracker_type,tracker_timeout);
 
         return true;
     }

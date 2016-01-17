@@ -64,8 +64,9 @@ protected:
     double presenceTmo;
     double presenceTimer;
 
-    enum { idle, init, tracking};
+    enum { idle, init, tracking };
 
+    string trackerType;
     int trackerState;
     double trackerTmo;
     double trackerTimer;    
@@ -80,11 +81,12 @@ public:
 
     /**********************************************************/
     IOLObject(const int filter_order=1, const double presenceTmo_=0.0,
-              const double trackerTmo_=0.0) :
+              const string &trackerType_="BOOSTING", const double trackerTmo_=0.0) :
               filterPos(filter_order), filterDim(10*filter_order),
               init_filters(true), presenceTmo(presenceTmo_),
-              trackerState(idle), trackerTmo(trackerTmo_),
-              trackerTimer(0.0), trackerResult(cv::Rect2d(0,0,0,0))
+              trackerType(trackerType_), trackerState(idle),
+              trackerTmo(trackerTmo_), trackerTimer(0.0),
+              trackerResult(cv::Rect2d(0,0,0,0))
     {
         heartBeat();
     }
@@ -128,7 +130,7 @@ public:
 
     #ifdef IOL2OPC_TRACKING
         cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
-        tracker=cv::Tracker::create("BOOSTING");
+        tracker=cv::Tracker::create(trackerType);
         tracker->init(frame,trackerResult);
         trackerTimer=Time::now();
     #endif
@@ -197,6 +199,7 @@ protected:
     bool empty;
     double period;
     double presence_timeout;
+    string tracker_type;
     double tracker_timeout;
     map<string,IOLObject> db;
     Bridge::State state;
