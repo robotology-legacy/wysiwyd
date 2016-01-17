@@ -630,7 +630,7 @@ void IOL2OPCBridge::updateOPC()
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
         Bottle scores=opcScores;
-        mutexResourcesOpc.unlock();        
+        mutexResourcesOpc.unlock();
 
         // check detected objects
         for (int j=0; j<blobs.size(); j++)
@@ -695,11 +695,13 @@ void IOL2OPCBridge::updateOPC()
                 Vector x,dim;
                 if (get3DPositionAndDimensions(bbox,x,dim))
                 {
-                    Vector filtered=it->second.filt(cat(x,dim));
+                    Vector x_filtered,dim_filtered;
+                    it->second.filt(x,x_filtered,
+                                    dim,dim_filtered);
 
                     it->second.opc_id=obj->opc_id();
-                    obj->m_ego_position=filtered.subVector(0,2);
-                    obj->m_dimensions=filtered.subVector(3,5);
+                    obj->m_ego_position=x_filtered;
+                    obj->m_dimensions=dim_filtered;
                     obj->m_present=true;                    
 
                     // Extract color information from blob

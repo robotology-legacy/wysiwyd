@@ -58,8 +58,9 @@ namespace Bridge {
 class IOLObject
 {
 protected:
-    MedianFilter filter;
-    bool init_filter;
+    MedianFilter filterPos;
+    MedianFilter filterDim;
+    bool init_filters;
     double presenceTmo;
     double presenceTimer;
 
@@ -80,10 +81,10 @@ public:
     /**********************************************************/
     IOLObject(const int filter_order=1, const double presenceTmo_=0.0,
               const double trackerTmo_=0.0) :
-              filter(filter_order), init_filter(true),
-              presenceTmo(presenceTmo_), trackerState(idle),
-              trackerTmo(trackerTmo_), trackerTimer(0.0),
-              trackerResult(cv::Rect2d(0,0,0,0))
+              filterPos(filter_order), filterDim(10*filter_order),
+              init_filters(true), presenceTmo(presenceTmo_),
+              trackerState(idle), trackerTmo(trackerTmo_),
+              trackerTimer(0.0), trackerResult(cv::Rect2d(0,0,0,0))
     {
         heartBeat();
     }
@@ -104,16 +105,20 @@ public:
     }
 
     /**********************************************************/
-    Vector filt(const Vector &x)
+    void filt(const Vector &x, Vector &xFilt,
+              const Vector &d, Vector &dFilt)
     {
-        if (init_filter)
+        if (init_filters)
         {
-            filter.init(x);
-            init_filter=false;
-            return x;
+            filterPos.init(x); xFilt=x;
+            filterDim.init(d); dFilt=d;
+            init_filters=false;
         }
         else
-            return filter.filt(x);
+        {
+            xFilt=filterPos.filt(x);
+            dFilt=filterDim.filt(d);
+        }
     }
 
     /**********************************************************/
