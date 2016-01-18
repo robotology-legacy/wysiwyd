@@ -41,6 +41,8 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
        message(SEND_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler, and welcome to the modern world.")
    endif()
 
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
 
 if(NOT CMAKE_CONFIGURATION_TYPES)
