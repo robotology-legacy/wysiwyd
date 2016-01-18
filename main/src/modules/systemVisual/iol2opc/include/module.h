@@ -64,7 +64,7 @@ protected:
     double presenceTmo;
     double presenceTimer;
 
-    enum { idle, init, tracking };
+    enum { init, no_need, tracking, end };
 
     string trackerType;
     int trackerState;
@@ -84,7 +84,7 @@ public:
               const string &trackerType_="BOOSTING", const double trackerTmo_=0.0) :
               filterPos(filter_order), filterDim(10*filter_order),
               init_filters(true), presenceTmo(presenceTmo_),
-              trackerType(trackerType_), trackerState(idle),
+              trackerType(trackerType_), trackerState(init),
               trackerTmo(trackerTmo_), trackerTimer(0.0),
               trackerResult(cv::Rect2d(0,0,0,0))
     {
@@ -100,10 +100,7 @@ public:
     /**********************************************************/
     bool isDead()
     {
-        bool dead=(Time::now()-presenceTimer>=presenceTmo);
-        if (dead)
-            trackerState=idle;
-        return dead;
+        return (Time::now()-presenceTimer>=presenceTmo);
     }
 
     /**********************************************************/
@@ -124,36 +121,41 @@ public:
     }
 
     /**********************************************************/
-    void tracker_init(const ImageOf<PixelBgr>& img, const CvRect& bbox)
+    void prepare()
     {
-        trackerResult=cv::Rect2d(bbox.x,bbox.y,bbox.width,bbox.height);
-
-    #ifdef IOL2OPC_TRACKING
-        cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
-        tracker=cv::Tracker::create(trackerType);
-        tracker->init(frame,trackerResult);
-        trackerTimer=Time::now();
-    #endif
-
-        trackerState=init;
+        if ((trackerState!=tracking) && (trackerState!=end))
+            trackerState=init;
     }
 
     /**********************************************************/
-    void tracker_update(const ImageOf<PixelBgr>& img)
+    void latchBBox(const CvRect& bbox)
+    {
+        trackerResult=cv::Rect2d(bbox.x,bbox.y,bbox.width,bbox.height);
+        trackerState=no_need;
+    }
+
+    /**********************************************************/
+    void track(const ImageOf<PixelBgr>& img)
     {
     #ifdef IOL2OPC_TRACKING
+        cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
         if (trackerState==init)
+        {
+            tracker=cv::Tracker::create(trackerType);
+            tracker->init(frame,trackerResult);
+            trackerTimer=Time::now();
             trackerState=tracking;
+        }
         else if (trackerState==tracking)
         {
             if (Time::now()-trackerTimer<trackerTmo)
-            {
-                cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
                 tracker->update(frame,trackerResult);
-            }
             else
-                trackerState=idle;
+                trackerState=end;
         }
+    #else
+        if (trackerState==init)
+            trackerState=end;
     #endif
     }
 
@@ -162,7 +164,7 @@ public:
     {
         bbox=cvRect((int)trackerResult.x,(int)trackerResult.y,
                     (int)trackerResult.width,(int)trackerResult.height);
-        return (trackerState!=idle);
+        return (trackerState!=end);
     }
 };
 

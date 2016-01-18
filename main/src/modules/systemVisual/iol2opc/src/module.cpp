@@ -635,6 +635,10 @@ void IOL2OPCBridge::updateOPC()
         Bottle scores=opcScores;
         mutexResourcesOpc.unlock();
 
+        // reset internal tracking state
+        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+            it->second.prepare();
+
         // check detected objects
         for (int j=0; j<blobs.size(); j++)
         {
@@ -662,7 +666,7 @@ void IOL2OPCBridge::updateOPC()
                     tl.y=(int)item->get(1).asDouble();
                     br.x=(int)item->get(2).asDouble();
                     br.y=(int)item->get(3).asDouble();
-                    it->second.tracker_init(imgLatch,cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
+                    it->second.latchBBox(cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
                     it->second.heartBeat();
                 }
             }
@@ -672,7 +676,7 @@ void IOL2OPCBridge::updateOPC()
 
         // cycle over objects to handle tracking
         for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
-            it->second.tracker_update(imgLatch);
+            it->second.track(imgLatch);
 
         CvFont font;
         cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX,0.5,0.5,0,1);                
