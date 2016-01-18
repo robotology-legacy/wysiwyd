@@ -45,6 +45,7 @@ namespace wysiwyd{
 
         public:
             SubSystem(const std::string &masterName) { m_isRunning = false; m_masterName = masterName; m_type = SUBSYSTEM; }
+            virtual ~SubSystem() {};
             bool isRunning() const { return m_isRunning; }
             bool Connect() { return (m_isRunning = connect()); }
             virtual void Close() = 0;
