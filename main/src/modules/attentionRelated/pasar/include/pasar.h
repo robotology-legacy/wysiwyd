@@ -60,6 +60,12 @@ class PasarModule : public yarp::os::RFModule {
     double dthresholdDisappear;
     double dBurstOfPointing;
 
+    double lastTimeWaving;
+    double lastTimePointing;
+
+    bool recordWave;
+    bool recordPoint;
+
     OPCClient *opc;                  //retrieve information from the OPC
     ICubClient  *iCub;
     bool abm;

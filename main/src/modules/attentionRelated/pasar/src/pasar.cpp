@@ -127,6 +127,8 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     isPointing = rf.find("isPointing").asInt() == 1;
     isWaving = rf.find("isWaving").asInt() == 1;
 
+    //isPointing = true;
+
     yInfo() << " pointing: " << isPointing;
     yInfo() << " waving: " << isWaving;
 
@@ -362,10 +364,16 @@ void PasarModule::saliencyTopDown() {
             // If the object is absent:
             // if the lastTimeSeen was more than a threshold, the object dissapeared
             disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (!it.second.o.m_present) && it.second.present;
+            if (disappeared){
+                cout << "DISAPPEARED since: " << now - it.second.lastTimeSeen << endl;
+            }
 
             // If the object is present:
             // if the lastTimeSeen was more than a threshold, the object appeared
             appeared = (now - it.second.lastTimeSeen > dthresholdAppear) && (it.second.o.m_present) && !it.second.present;
+            if (appeared){
+                cout << "APPEARED since: " << now - it.second.lastTimeSeen << endl;
+            }
 
             if (it.second.o.m_present) it.second.lastTimeSeen = now;
 
@@ -487,6 +495,7 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 */
 void PasarModule::saliencyPointing()
 {
+    cout << "0; ";
 
     bool wasPresent = false;
     Agent *ag;
@@ -495,17 +504,28 @@ void PasarModule::saliencyPointing()
     for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
             && it.second.present
-            && (it.second.o.name() != "iCub")){
-            ag = dynamic_cast<Agent*>(&it.second.o);
+            && (it.second.o.name() != "iCub")
+            && (it.second.o.name() != "icub")){
+            ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
             Vector vec = ag->m_body.m_parts["handRight"];
             wasPresent = true;
         }
     }
 
+    cout << "1; " ;
+
+
     if (!wasPresent){
         yInfo() << " in PASAR:saliencyPointing no human agent present";
         return;
     }
+
+    double now = Time::now() - initTime;
+    if (now - lastTimePointing > dthresholdDisappear){
+        recordPoint = false;
+    }
+
+    cout << "2; ";
 
     //    yInfo() << " righthand is:" << vec.toString();
 
@@ -518,7 +538,7 @@ void PasarModule::saliencyPointing()
 
     for (auto &it : OPCEntities)
     {
-        if (it.second.o.name() != ag->name())
+        if (it.second.o.name() != ag->name() && it.second.present)
         {
             double distance;
 
@@ -538,6 +558,7 @@ void PasarModule::saliencyPointing()
         }
     }
 
+    cout << "3; ";
 
 
     if (objectPointed != "none")
@@ -548,6 +569,21 @@ void PasarModule::saliencyPointing()
             if (it.second.o.name() == objectPointed)
             {
                 it.second.o.m_saliency += dBurstOfPointing;
+
+
+                if (!recordPoint && iCub->getABMClient()->Connect())
+                {
+                    yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "pointed"));
+                    iCub->getABMClient()->sendActivity("action",
+                        "point",
+                        "pasar",
+                        lArgument,
+                        true);
+                    recordPoint = true;
+                }
+                lastTimePointing = now;
             }
         }
     }
@@ -564,7 +600,6 @@ void PasarModule::saliencyPointing()
 */
 void PasarModule::saliencyWaving()
 {
-
     bool wasPresent = false;
     Agent *ag;
     // founding the agent:
@@ -572,8 +607,9 @@ void PasarModule::saliencyWaving()
     for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
             && it.second.present
-            && (it.second.o.name() != "iCub")){
-            ag = dynamic_cast<Agent*>(&it.second.o);
+            && (it.second.o.name() != "iCub")
+            && (it.second.o.name() != "icub")){
+            ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
             Vector vec = ag->m_body.m_parts["handRight"];
             wasPresent = true;
         }
@@ -583,7 +619,6 @@ void PasarModule::saliencyWaving()
         yInfo() << " in PASAR:saliencyWaving no human agent present";
         return;
     }
-
 
     if (!ag || !ag->m_present)
     {
@@ -595,7 +630,6 @@ void PasarModule::saliencyWaving()
 
         return;
     }
-
 
     Vector vecRight = ag->m_body.m_parts["handRight"];
     Vector vecLeft = ag->m_body.m_parts["handLeft"];
@@ -641,13 +675,35 @@ void PasarModule::saliencyWaving()
 
     yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
 
+    double now = yarp::os::Time::now() - initTime;
+    if (now - lastTimeWaving > dthresholdDisappear){
+        recordWave = false;
+    }
+
     // if the acceleration is made on 3 consecutive frames
     if (presentRightHand.first && presentRightHand.second)
     {
         if (dAccelRight > thresholdWaving)
         {
+            cout << "5, ";
+
             ag->m_saliency += pTopDownWaving;
             yInfo() << "\t\t\t\t\tagent is waving right hand";
+
+
+            if (!recordWave && iCub->getABMClient()->Connect())
+            {
+                yInfo() << "\t\t START WAVING";
+                std::list<std::pair<std::string, std::string> > lArgument;
+                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
+                iCub->getABMClient()->sendActivity("action",
+                    "wave",
+                    "pasar",
+                    lArgument,
+                    true);
+                recordWave = true;
+            }
+            lastTimeWaving = now;
         }
         rightHandt2 = rightHandt1;
         rightHandt1 = vecRight;
@@ -658,7 +714,22 @@ void PasarModule::saliencyWaving()
         if (dAccelLeft > thresholdWaving)
         {
             ag->m_saliency += pTopDownWaving;
-            yInfo() << "\t\tagent is waving left hand";
+            yInfo() << "\t\t\t\t\tagent is waving left hand";
+
+            if (!recordWave && iCub->getABMClient()->Connect())
+            {
+                yInfo() << "\t\t START WAVING";
+
+                std::list<std::pair<std::string, std::string> > lArgument;
+                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
+                iCub->getABMClient()->sendActivity("action",
+                    "wave",
+                    "pasar",
+                    lArgument,
+                    true);
+                recordWave = true;
+            }
+            lastTimeWaving = now;
         }
         leftHandt2 = leftHandt1;
         leftHandt1 = vecLeft;
@@ -676,10 +747,18 @@ void PasarModule::saliencyWaving()
 
 void PasarModule::initializeMapTiming()
 {
+
+    recordWave = false;
+    recordPoint = false;
+
     opc->checkout();
     entities = opc->EntitiesCache();
     double now = yarp::os::Time::now() - initTime;
     OPCEntities.clear();
+
+    lastTimePointing = now - 10;
+    lastTimeWaving = now - 10;
+
 
     for (auto &entity : entities){
 
