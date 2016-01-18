@@ -74,7 +74,8 @@ ret = a.visualise()
 In the supervised setting, pattern completion consists of giving new inputs
 and producing new outputs
 """
-pred_mean, pred_var = a.pattern_completion(Xtest) # a.model.predict(Xtest)
+tmp = a.pattern_completion(Xtest) # a.model.predict(Xtest)
+pred_mean, pred_var = tmp[0],tmp[1]
 pb.figure()
 pb.plot(Xtest, Ytest, 'r-x')
 pb.plot(Xtest, pred_mean, 'b-x')
@@ -83,4 +84,4 @@ pb.title('Pattern Completion given Novel Inputs')
 pb.legend(('True Location', 'Predicted Location'))
 
 sse = ((Ytest - pred_mean)**2).sum()
-print('Sum of squares error on test data: ' + str(sse))
+print('# Sum of squares error on test data: ' + str(sse))

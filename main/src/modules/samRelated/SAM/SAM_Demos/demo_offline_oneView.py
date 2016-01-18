@@ -130,4 +130,5 @@ pb.show()
 # Example of pattern completion inference:
 index_to_test = 10 # try different ones
 pred_index = a.pattern_completion_inference(Ytest[index_to_test,:][None,:])
-print("The given test instance is most similar to training id: " + str(pred_index) + " which has label: " + str(a.model.data_labels[pred_index]) + "(although this was not given to the model). True label is: " + str(Ltest[index_to_test]))
+print('')
+print("# The given test instance is most similar to training id: " + str(pred_index) + " which has label: " + str(a.model.data_labels[pred_index]) + "(although this was not given to the model). True label is: " + str(Ltest[index_to_test]))
