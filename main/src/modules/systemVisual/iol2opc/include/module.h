@@ -64,7 +64,7 @@ protected:
     double presenceTmo;
     double presenceTimer;
 
-    enum { init, no_need, tracking, end };
+    enum { idle, init, no_need, tracking };
 
     string trackerType;
     int trackerState;
@@ -84,7 +84,7 @@ public:
               const string &trackerType_="BOOSTING", const double trackerTmo_=0.0) :
               filterPos(filter_order), filterDim(10*filter_order),
               init_filters(true), presenceTmo(presenceTmo_),
-              trackerType(trackerType_), trackerState(init),
+              trackerType(trackerType_), trackerState(idle),
               trackerTmo(trackerTmo_), trackerTimer(0.0),
               trackerResult(cv::Rect2d(0,0,0,0))
     {
@@ -100,7 +100,10 @@ public:
     /**********************************************************/
     bool isDead()
     {
-        return (Time::now()-presenceTimer>=presenceTmo);
+        bool dead=(Time::now()-presenceTimer>=presenceTmo);
+        if (dead)
+            trackerState=idle;
+        return dead;
     }
 
     /**********************************************************/
@@ -123,7 +126,7 @@ public:
     /**********************************************************/
     void prepare()
     {
-        if ((trackerState!=tracking) && (trackerState!=end))
+        if (trackerState==no_need)
             trackerState=init;
     }
 
@@ -149,13 +152,16 @@ public:
         else if (trackerState==tracking)
         {
             if (Time::now()-trackerTimer<trackerTmo)
+            {
                 tracker->update(frame,trackerResult);
+                heartBeat();
+            }
             else
-                trackerState=end;
+                trackerState=idle;
         }
     #else
         if (trackerState==init)
-            trackerState=end;
+            trackerState=idle;
     #endif
     }
 
@@ -164,7 +170,7 @@ public:
     {
         bbox=cvRect((int)trackerResult.x,(int)trackerResult.y,
                     (int)trackerResult.width,(int)trackerResult.height);
-        return (trackerState!=end);
+        return (trackerState!=idle);
     }
 };
 

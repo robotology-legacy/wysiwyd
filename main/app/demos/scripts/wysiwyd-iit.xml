@@ -27,7 +27,7 @@
         <module>
             <name>referenceFrameHandler</name>
             <parameters></parameters>
-            <node>icub15</node>
+            <node>icub-cuda</node>
             <dependencies>
                 <port timeout="10">/OPC/rpc</port>
             </dependencies>
@@ -36,88 +36,88 @@
         <module>
             <name>SFM</name>
             <parameters></parameters>
-            <node>icub15</node>
+            <node>icub-cuda</node>
         </module>
 
-       <module>
+        <module>
            <name>objectsPropertiesCollector</name>
            <parameters>--name OPC --empty --nosave</parameters>
            <node>icub15</node>
-       </module>
+        </module>
 
-       <module>
+        <module>
            <name>iCubGui</name>
            <parameters>--xpos 3000 --ypos 0 --width 500 --height 530</parameters>
            <node>icub15</node>
-       </module>
-       <module>
+        </module>
+        <module>
            <name>guiUpdater</name>
-           <node>icub-b1</node>
-       </module>
+           <node>icub-cuda</node>
+        </module>
 
         <module>
-                <name>lbpExtract</name>
-                <parameters></parameters>
-                <node>icub15</node>
-        </module>
-         <module>
-                <name>caffeCoder</name>
-                <parameters></parameters>
-                <node>icub-tesla</node>
-        </module>
-         <module>
-                <name>linearClassifierModule</name>
-                <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase --WeightedSVM 1</parameters>
-                <node>icub-b1</node>
-        </module>
-         <module>
-                <name>himrepClassifier</name>
-                <node>icub15</node>
+           <name>lbpExtract</name>
+           <parameters></parameters>
+           <node>icub15</node>
         </module>
         <module>
-                <name>iol2opc</name>
-                <parameters>--from config.ini</parameters>
-                <node>icub-b2</node>
-                <dependencies>
-                    <port timeout="10">/SFM/rpc</port>
-                    <port timeout="10">/himrepClassifier/rpc</port>
-                    <port timeout="10">/OPC/rpc</port>
-                </dependencies>
+           <name>caffeCoder</name>
+           <parameters></parameters>
+           <node>icub-tesla</node>
         </module>
         <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/lbpExtracted/view --x 1700 --y 0 --p 50 --compact</parameters>
-                <node>icub15</node>
+           <name>linearClassifierModule</name>
+           <parameters> --BufferSize 1 --CSVM 1.0 --databaseFolder IOL2OPCDatabase --WeightedSVM 1</parameters>
+           <node>icub-cuda</node>
         </module>
         <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/lbpSegmented/view --x 2020 --y 0 --p 50 --compact</parameters>
-                <node>icub15</node>
+            <name>himrepClassifier</name>
+            <node>icub15</node>
         </module>
         <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/objectSelector/view --x 2020 --y 370 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
-                <node>icub15</node>
+            <name>iol2opc</name>
+            <parameters>--from config.ini</parameters>
+            <node>icub15</node>
+            <dependencies>
+                <port timeout="10">/SFM/rpc</port>
+                <port timeout="10">/himrepClassifier/rpc</port>
+                <port timeout="10">/OPC/rpc</port>
+            </dependencies>
         </module>
         <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/iol2opc/view/localizer --x 1700 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
-                <node>icub15</node>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/lbpExtracted/view --x 1700 --y 0 --p 50 --compact</parameters>
+            <node>icub15</node>
         </module>
         <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/iol2opc/view/histogram --x 2340 --y 0 --w 600 --h 570 --p 50 --compact</parameters>
-                <node>icub15</node>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/lbpSegmented/view --x 2020 --y 0 --p 50 --compact</parameters>
+            <node>icub15</node>
         </module>
         <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/iol2opc/view/track --x 1700 --y 720 --p 50 --compact</parameters>
-                <node>icub15</node>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/objectSelector/view --x 2020 --y 370 --p 50 --compact --out /iol2opc/objectSelector/click:o</parameters>
+            <node>icub15</node>
         </module>
         <module>
-                <name>yarpview</name>
-                <parameters>--name /iolViewer/disp --x 2660 --y 720 --p 50 --compact</parameters>
-                <node>icub15</node>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/iol2opc/view/localizer --x 1700 --y 370 --out /iolViewer/iol2opc/view/localizer:o --p 50 --compact</parameters>
+            <node>icub15</node>
+        </module>
+        <module>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/iol2opc/view/histogram --x 2340 --y 0 --w 600 --h 570 --p 50 --compact</parameters>
+            <node>icub15</node>
+        </module>
+        <module>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/iol2opc/view/track --x 1700 --y 720 --p 50 --compact</parameters>
+            <node>icub15</node>
+        </module>
+        <module>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/disp --x 2660 --y 720 --p 50 --compact</parameters>
+            <node>icub15</node>
         </module>
 
      <connection>
