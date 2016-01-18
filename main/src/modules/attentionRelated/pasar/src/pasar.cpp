@@ -250,7 +250,7 @@ bool PasarModule::updateModule()
     opc->checkout();
     entities = opc->EntitiesCache();
 
-    presentObjects.clear();
+    OPCEntities.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
 
@@ -269,31 +269,31 @@ bool PasarModule::updateModule()
                 if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT))
                 {
                     RTObject * rto = dynamic_cast<RTObject*>(entity);
-                    presentObjects[entity->opc_id()].o.fromBottle(rto->asBottle());
-                    presentObjects[entity->opc_id()].o.m_saliency = rto->m_saliency;
+                    OPCEntities[entity->opc_id()].o.fromBottle(rto->asBottle());
+                    OPCEntities[entity->opc_id()].o.m_saliency = rto->m_saliency;
 
                 }
 
                 if (entity->isType(EFAA_OPC_ENTITY_OBJECT))
                 {
                     Object * ob = dynamic_cast<Object*>(entity);
-                    presentObjects[entity->opc_id()].o.fromBottle(ob->asBottle());
-                    presentObjects[entity->opc_id()].o.m_saliency = ob->m_saliency;
+                    OPCEntities[entity->opc_id()].o.fromBottle(ob->asBottle());
+                    OPCEntities[entity->opc_id()].o.m_saliency = ob->m_saliency;
 
                 }
 
                 if (entity->isType(EFAA_OPC_ENTITY_AGENT))
                 {
                     Agent *ag = dynamic_cast<Agent*>(entity);
-                    presentObjects[entity->opc_id()].o.fromBottle(ag->asBottle());
-                    presentObjects[entity->opc_id()].o.m_saliency = ag->m_saliency;
+                    OPCEntities[entity->opc_id()].o.fromBottle(ag->asBottle());
+                    OPCEntities[entity->opc_id()].o.m_saliency = ag->m_saliency;
 
                 }
             }
         }
     }
-    //if (presentObjects[ (*it)->name() ].o.m_saliency > 0)
-    //    cout<<" salience : " << (*it)->name() << " " << presentObjects[ (*it)->name() ].o.m_saliency << endl;
+    //if (OPCEntities[ (*it)->name() ].o.m_saliency > 0)
+    //    cout<<" salience : " << (*it)->name() << " " << OPCEntities[ (*it)->name() ].o.m_saliency << endl;
 
     if (presentObjectsLastStep.size() > 0)
     {
@@ -306,8 +306,8 @@ bool PasarModule::updateModule()
         saliencyLeakyIntegration();
 
         //Get the most salient object and track it
-        auto mostSalientObject = presentObjects.begin();
-        for (auto it = presentObjects.begin(); it != presentObjects.end(); it++)
+        auto mostSalientObject = OPCEntities.begin();
+        for (auto it = OPCEntities.begin(); it != OPCEntities.end(); it++)
         {
             //  cout<<"Saliency ("<<it->second.o.name()<<") = "<<it->second.o.m_saliency<<endl;
             if (it->second.o.m_saliency > mostSalientObject->second.o.m_saliency)
@@ -316,23 +316,23 @@ bool PasarModule::updateModule()
 
         trackedObject = mostSalientObject->second.o.name();
 
-        if (presentObjects[mostSalientObject->first].o.m_saliency > 0.0)
+        if (OPCEntities[mostSalientObject->first].o.m_saliency > 0.0)
         {
-            cout << "Tracking : " << trackedObject << " Salience : " << presentObjects[mostSalientObject->first].o.m_saliency << endl;
+            cout << "Tracking : " << trackedObject << " Salience : " << OPCEntities[mostSalientObject->first].o.m_saliency << endl;
         }
 
 
         //Update the OPC values
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
-            if (presentObjects.find((*it)->opc_id()) != presentObjects.end())
+            if (OPCEntities.find((*it)->opc_id()) != OPCEntities.end())
             {
-                (dynamic_cast<Object*>(*it))->m_saliency = presentObjects[(*it)->opc_id()].o.m_saliency;
+                (dynamic_cast<Object*>(*it))->m_saliency = OPCEntities[(*it)->opc_id()].o.m_saliency;
             }
         }
         opc->commit();
     }
-    presentObjectsLastStep = presentObjects;
+    presentObjectsLastStep = OPCEntities;
 
     return true;
 }
@@ -348,7 +348,7 @@ void PasarModule::saliencyTopDown() {
     //cout<<"TopDown Saliency"<<endl;
     double now = yarp::os::Time::now() - initTime;
     //Add up the top down saliency
-    for (auto &it : presentObjects)
+    for (auto &it : OPCEntities)
     {
         if (presentObjectsLastStep.find(it.first) != presentObjectsLastStep.end() && it.second.o.name() != "cursor_0" && it.second.o.name() != "icub")
         {
@@ -378,7 +378,7 @@ void PasarModule::saliencyTopDown() {
 
             double acceleration = sqrt(pow(presentCurrentSpeed[it.first].first - presentLastSpeed[it.first].first, 2.) + pow(presentCurrentSpeed[it.first].second - presentLastSpeed[it.first].second, 2.));
 
-            presentObjects[it.first].acceleration = acceleration;
+            OPCEntities[it.first].acceleration = acceleration;
 
             //Use the world model (CONCEPTS <=> RELATIONS) to modulate the saliency
             if (appeared)
@@ -430,9 +430,9 @@ void PasarModule::saliencyNormalize() {
     //cout<<"Normalizing Saliency"<<endl;
 
     //Get the max
-    map< int, ObjectModel >::iterator mostSalientObject = presentObjects.begin();
+    map< int, ObjectModel >::iterator mostSalientObject = OPCEntities.begin();
 
-    for (map< int, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (map< int, ObjectModel >::iterator it = OPCEntities.begin(); it != OPCEntities.end(); it++)
     {
         if (it->second.o.m_saliency > mostSalientObject->second.o.m_saliency)
             mostSalientObject = it;
@@ -441,7 +441,7 @@ void PasarModule::saliencyNormalize() {
     //Normalize
     double maxS = mostSalientObject->second.o.m_saliency;
     if (maxS == 0) maxS = 1.;
-    for (map< int, ObjectModel >::iterator it = presentObjects.begin(); it != presentObjects.end(); it++)
+    for (map< int, ObjectModel >::iterator it = OPCEntities.begin(); it != OPCEntities.end(); it++)
     {
         it->second.o.m_saliency /= maxS;
     }
@@ -455,7 +455,7 @@ void PasarModule::saliencyNormalize() {
 void PasarModule::saliencyLeakyIntegration() {
     //cout<<"Leaky integration"<<endl;
     //cout<<"Membrane Activity : "<<endl;
-    for (auto &it : presentObjects)
+    for (auto &it : OPCEntities)
     {
         if (it.second.o.name() != "")
         {
@@ -492,7 +492,7 @@ void PasarModule::saliencyPointing()
     Agent *ag;
     // founding the agent:
     Vector vec;
-    for (auto &it : presentObjects){
+    for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
             && it.second.present
             && (it.second.o.name() != "iCub")){
@@ -516,7 +516,7 @@ void PasarModule::saliencyPointing()
     double closest = 10e5;
     string objectPointed = "none";
 
-    for (auto &it : presentObjects)
+    for (auto &it : OPCEntities)
     {
         if (it.second.o.name() != ag->name())
         {
@@ -543,7 +543,7 @@ void PasarModule::saliencyPointing()
     if (objectPointed != "none")
     {
         yInfo() << " pointed object is: \t" << objectPointed;
-        for (auto &it : presentObjects)
+        for (auto &it : OPCEntities)
         {
             if (it.second.o.name() == objectPointed)
             {
@@ -569,7 +569,7 @@ void PasarModule::saliencyWaving()
     Agent *ag;
     // founding the agent:
     Vector vec;
-    for (auto &it : presentObjects){
+    for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
             && it.second.present
             && (it.second.o.name() != "iCub")){
@@ -679,7 +679,7 @@ void PasarModule::initializeMapTiming()
     opc->checkout();
     entities = opc->EntitiesCache();
     double now = yarp::os::Time::now() - initTime;
-    presentObjects.clear();
+    OPCEntities.clear();
 
     for (auto &entity : entities){
 
@@ -690,9 +690,9 @@ void PasarModule::initializeMapTiming()
             if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
             {
                 Object * ob = dynamic_cast<Object*>(entity);
-                presentObjects[entity->opc_id()].o = *ob;
-                presentObjects[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
-                presentObjects[entity->opc_id()].present = ob->m_present;
+                OPCEntities[entity->opc_id()].o = *ob;
+                OPCEntities[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
+                OPCEntities[entity->opc_id()].present = ob->m_present;
             }
         }
     }

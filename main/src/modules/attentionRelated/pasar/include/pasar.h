@@ -81,7 +81,7 @@ class PasarModule : public yarp::os::RFModule {
     map<int, ObjectModel>  presentObjectsLastStep;
     map<int, pair<double, double> > presentLastSpeed;
     map<int, pair<double, double> > presentCurrentSpeed;
-    map<int, ObjectModel>  presentObjects;
+    map<int, ObjectModel>  OPCEntities;
 
 
     std::string trackedObject;
