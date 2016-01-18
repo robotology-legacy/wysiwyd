@@ -158,6 +158,12 @@ public:
             reply.addVocab(ack);
             return true;
         }
+        else if (cmd==Vocab::encode("get"))
+        {
+            reply.addVocab(ack);
+            reply.addInt(gate);
+            return true;
+        }
         else
             return RFModule::respond(command,reply);
     }
