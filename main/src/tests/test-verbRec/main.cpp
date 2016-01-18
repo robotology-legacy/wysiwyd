@@ -70,11 +70,11 @@ public:
     /*******************************************************/
     bool updateModule()
     {
-        Bottle &cmd=dumpPort.prepare();
-        cmd.clear();
+        Bottle &bDump=dumpPort.prepare();
+        bDump.clear();
 
-        cmd.addString(actionTag);
-        cmd.addString(objectTag);
+        bDump.addString(actionTag);
+        bDump.addString(objectTag);
 
         opc.checkout();        
 
@@ -83,8 +83,8 @@ public:
         {
             if (Agent *agent=dynamic_cast<Agent*>(e))
             {
-                cmd.addList()=agent->m_body.asBottle();
-                Bottle &bAgent=cmd.addList();
+                bDump.addList()=agent->m_body.asBottle();
+                Bottle &bAgent=bDump.addList();
                 bAgent.addString(agent->name());
                 bAgent.addDouble(agent->m_ego_position[0]);
                 bAgent.addDouble(agent->m_ego_position[1]);
@@ -103,7 +103,7 @@ public:
             {
                 if (Object *object=dynamic_cast<Object*>(*itEnt))
                 {
-                    Bottle &bObject=cmd.addList();
+                    Bottle &bObject=bDump.addList();
                     bObject.addString(object->name());
                     bObject.addDouble(object->m_ego_position[0]);
                     bObject.addDouble(object->m_ego_position[1]);
@@ -114,17 +114,18 @@ public:
         }
 
         // iterator
-        cmd.addInt(0);
+        bDump.addInt(0);
 
         // query verbRec
         if (verbPort.getOutputCount()>0)
         {
+            Bottle cmd=bDump;
             Bottle reply;
             verbPort.write(cmd,reply);
-            cmd.append(reply);
+            bDump.append(reply);
         }
 
-        yInfo()<<cmd.toString();
+        yInfo()<<bDump.toString();
         dumpPort.writeStrict();        
 
         return true;
