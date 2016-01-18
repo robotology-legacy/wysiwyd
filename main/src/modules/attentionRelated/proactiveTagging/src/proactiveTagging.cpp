@@ -563,7 +563,8 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     string sName;
 
     //if error, bName = (error errorDescription) -> return it
-    if (bName.get(0).asString() == "error") {
+    if (bName.get(0).asString() == "error" || bName.get(0).asString() == "unknown") {
+        iCub->say("You told me the object name is error, and I don't believe you.");
         return bName;
     }
     else {
