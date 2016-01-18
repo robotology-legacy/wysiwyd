@@ -288,7 +288,10 @@ bool LRH::callReservoir(string pythonFile, string closed_class_words)
     std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + closed_class_words + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred + " " + sNbNeurons;
     std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
 
-    system(l_pythonCall.c_str());
+    int result = system(l_pythonCall.c_str());
+    if(!WIFEXITED(result)) {
+        yError() << "Something went wrong when calling python!";
+    }
 
     return true;
 }

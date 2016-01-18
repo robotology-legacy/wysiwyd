@@ -573,7 +573,7 @@ void PasarModule::saliencyWaving()
             && it.second.present
             && (it.second.o.name() != "iCub")){
             ag = dynamic_cast<Agent*>(&it.second.o);
-            Vector vec = ag->m_body.m_parts["handRight"];
+            //Vector vec = ag->m_body.m_parts["handRight"];
             wasPresent = true;
         }
     }
@@ -593,82 +593,81 @@ void PasarModule::saliencyWaving()
         presentLeftHand.second = false;
 
         return;
-    }
+    } else {
+        Vector vecRight = ag->m_body.m_parts["handRight"];
+        Vector vecLeft = ag->m_body.m_parts["handLeft"];
+
+        Vector speedRightt1(3);
+        Vector speedRightt2(3);
+
+        Vector speedLeftt1(3);
+        Vector speedLeftt2(3);
+
+        Vector accelRight(3);
+        Vector accelLeft(3);
 
 
-    Vector vecRight = ag->m_body.m_parts["handRight"];
-    Vector vecLeft = ag->m_body.m_parts["handLeft"];
+        speedRightt2[0] = (rightHandt1[0] - rightHandt2[0]);
+        speedRightt2[1] = (rightHandt1[1] - rightHandt2[1]);
+        speedRightt2[2] = (rightHandt1[2] - rightHandt2[2]);
 
-    Vector speedRightt1(3);
-    Vector speedRightt2(3);
+        speedRightt1[0] = (vecRight[0] - rightHandt1[0]);
+        speedRightt1[1] = (vecRight[1] - rightHandt1[1]);
+        speedRightt1[2] = (vecRight[2] - rightHandt1[2]);
 
-    Vector speedLeftt1(3);
-    Vector speedLeftt2(3);
+        speedLeftt1[0] = (vecLeft[0] - leftHandt1[0]);
+        speedLeftt1[1] = (vecLeft[1] - leftHandt1[1]);
+        speedLeftt1[2] = (vecLeft[2] - leftHandt1[2]);
 
-    Vector accelRight(3);
-    Vector accelLeft(3);
+        speedLeftt2[0] = (leftHandt1[0] - leftHandt2[0]);
+        speedLeftt2[1] = (leftHandt1[1] - leftHandt2[1]);
+        speedLeftt2[2] = (leftHandt1[2] - leftHandt2[2]);
 
+        accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
+        accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
+        accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
 
-    speedRightt2[0] = (rightHandt1[0] - rightHandt2[0]);
-    speedRightt2[1] = (rightHandt1[1] - rightHandt2[1]);
-    speedRightt2[2] = (rightHandt1[2] - rightHandt2[2]);
+        accelLeft[0] = (speedLeftt1[0] - speedLeftt2[0]);
+        accelLeft[1] = (speedLeftt1[1] - speedLeftt2[1]);
+        accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
 
-    speedRightt1[0] = (vecRight[0] - rightHandt1[0]);
-    speedRightt1[1] = (vecRight[1] - rightHandt1[1]);
-    speedRightt1[2] = (vecRight[2] - rightHandt1[2]);
-
-    speedLeftt1[0] = (vecLeft[0] - leftHandt1[0]);
-    speedLeftt1[1] = (vecLeft[1] - leftHandt1[1]);
-    speedLeftt1[2] = (vecLeft[2] - leftHandt1[2]);
-
-    speedLeftt2[0] = (leftHandt1[0] - leftHandt2[0]);
-    speedLeftt2[1] = (leftHandt1[1] - leftHandt2[1]);
-    speedLeftt2[2] = (leftHandt1[2] - leftHandt2[2]);
-
-    accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
-    accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
-    accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
-
-    accelLeft[0] = (speedLeftt1[0] - speedLeftt2[0]);
-    accelLeft[1] = (speedLeftt1[1] - speedLeftt2[1]);
-    accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
-
-    // get the norm of the accel vector
-    double dAccelLeft = sqrt(accelLeft[0] * accelLeft[0] + accelLeft[1] * accelLeft[1] + accelLeft[2] * accelLeft[2]);
-    double dAccelRight = sqrt(accelRight[0] * accelRight[0] + accelRight[1] * accelRight[1] + accelRight[2] * accelRight[2]);
+        // get the norm of the accel vector
+        double dAccelLeft = sqrt(accelLeft[0] * accelLeft[0] + accelLeft[1] * accelLeft[1] + accelLeft[2] * accelLeft[2]);
+        double dAccelRight = sqrt(accelRight[0] * accelRight[0] + accelRight[1] * accelRight[1] + accelRight[2] * accelRight[2]);
 
 
-    yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
+        yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
 
-    // if the acceleration is made on 3 consecutive frames
-    if (presentRightHand.first && presentRightHand.second)
-    {
-        if (dAccelRight > thresholdWaving)
+        // if the acceleration is made on 3 consecutive frames
+        if (presentRightHand.first && presentRightHand.second)
         {
-            ag->m_saliency += pTopDownWaving;
-            yInfo() << "\t\t\t\t\tagent is waving right hand";
+            if (dAccelRight > thresholdWaving)
+            {
+                ag->m_saliency += pTopDownWaving;
+                yInfo() << "\t\t\t\t\tagent is waving right hand";
+            }
+            rightHandt2 = rightHandt1;
+            rightHandt1 = vecRight;
         }
-        rightHandt2 = rightHandt1;
-        rightHandt1 = vecRight;
-    }
 
-    if (presentLeftHand.first && presentLeftHand.second)
-    {
-        if (dAccelLeft > thresholdWaving)
+        if (presentLeftHand.first && presentLeftHand.second)
         {
-            ag->m_saliency += pTopDownWaving;
-            yInfo() << "\t\tagent is waving left hand";
+            if (dAccelLeft > thresholdWaving)
+            {
+                ag->m_saliency += pTopDownWaving;
+                yInfo() << "\t\tagent is waving left hand";
+            }
+            leftHandt2 = leftHandt1;
+            leftHandt1 = vecLeft;
         }
-        leftHandt2 = leftHandt1;
-        leftHandt1 = vecLeft;
+        opc->commit();
+
+        presentRightHand.first = presentRightHand.second;
+        presentLeftHand.first = presentLeftHand.second;
+
+        presentRightHand.second = true;
+        presentLeftHand.second = true;
     }
-    opc->commit();
-
-    presentRightHand.first = presentRightHand.second;
-    presentLeftHand.first = presentLeftHand.second;
-
-    presentRightHand.second = true;
-    presentLeftHand.second = true;
 }
 
 
