@@ -200,7 +200,14 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                     else {
                         cArgRole = "unknown";
                     }
-                    if (bShouldSend){
+                    if (bShouldSend) {
+                        string find = "'";
+                        string replace = "''";
+                        for(string::size_type i = 0; (i = cArgArgument.find(find, i)) != string::npos;)
+                        {
+                            cArgArgument.replace(i, find.length(), replace);
+                            i += replace.length();
+                        }
                         osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
                     }
                     else{
