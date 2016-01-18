@@ -67,6 +67,8 @@ public:
     bool updateModule()
     {
         Bottle &bDump=dumpPort.prepare();
+        bDump.clear();
+
         bDump.addString(actionTag);
         bDump.addString(objectTag);
 
@@ -107,8 +109,12 @@ public:
             }
         }
 
-        bDump.addInt(0);    // iterator
+        // iterator
+        bDump.addInt(0);
+
         dumpPort.writeStrict();
+        yInfo()<<bDump.toString();
+
         return true;
     }
 
