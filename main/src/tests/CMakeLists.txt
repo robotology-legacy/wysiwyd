@@ -4,3 +4,4 @@
 
 add_subdirectory(test-are-attention)
 add_subdirectory(test-cartesian-sim)
+add_subdirectory(test-verbRec)
