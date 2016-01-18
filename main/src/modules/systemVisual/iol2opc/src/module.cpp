@@ -109,6 +109,7 @@ Bottle IOL2OPCBridge::getBlobs()
 
     if (Bottle *pBlobs=blobExtractor.read(false))
     {
+        lastBlobsArrivalTime=Time::now();
         lastBlobs=skimBlobs(*pBlobs);
         yInfo("Received blobs list: %s",lastBlobs.toString().c_str());
 
@@ -116,8 +117,10 @@ Bottle IOL2OPCBridge::getBlobs()
         {
             if (lastBlobs.get(0).asVocab()==Vocab::encode("empty"))
                 lastBlobs.clear();
-        }
+        }        
     }
+    else if (Time::now()-lastBlobsArrivalTime>rtLocalizationPeriod)
+        lastBlobs.clear();
 
     // release resources
     mutexResources.unlock();
@@ -808,7 +811,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histObjLocation[2]=-0.1;
 
     rtLocalization.setBridge(this);
-    rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
+    int rtLocalizationPeriod_=rf.check("rt_localization_period",Value(30)).asInt();
+    rtLocalization.setRate(rtLocalizationPeriod_);
+    rtLocalizationPeriod=rtLocalizationPeriod_*0.001;
 
     opcUpdater.setBridge(this);
     opcUpdater.setRate(rf.check("opc_update_period",Value(60)).asInt());
@@ -835,6 +840,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     attach(rpcPort);
 
+    lastBlobsArrivalTime=0.0;
     rtLocalization.start();
     opcUpdater.start();
 
