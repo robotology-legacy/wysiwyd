@@ -391,7 +391,7 @@ void PasarModule::saliencyTopDown() {
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "appear"));
-                    iCub->getABMClient()->sendActivity("event",
+                    iCub->getABMClient()->sendActivity("action",
                         "appearance",
                         "pasar",
                         lArgument,
@@ -408,7 +408,7 @@ void PasarModule::saliencyTopDown() {
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "disappear"));
-                    iCub->getABMClient()->sendActivity("event",
+                    iCub->getABMClient()->sendActivity("action",
                         "disappearance",
                         "pasar",
                         lArgument,
