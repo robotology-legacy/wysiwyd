@@ -56,54 +56,55 @@ verbRec::close()
 bool 
 verbRec::respond(const Bottle& command, Bottle& reply) 
 {
-        // prepare a message
-        Bottle botWrite; 
+    // parse commands
+    actionRec(command);
 
-        actionRec(command);
+    // prepare a message
+    Bottle botWrite;
 
-        // have for Robot/Agent
-        if (output[5]) { // at least one of the agent or the robot has objects
-                char str_a[50];
-                char str_r[50];
-                strcpy(str_a,"");   
-                strcpy(str_r,"");
+    // have for Robot/Agent
+    if (output[5]) { // at least one of the agent or the robot has objects
+            char str_a[50];
+            char str_r[50];
+            strcpy(str_a,"");   
+            strcpy(str_r,"");
 
-        // the agent has at least one object ...
-        for (int i=0; i< nbrOfObj; i++)
-            if (a_has_obj[i]) {
-                strcat(str_a,"Agent has ");
-                break;
-            }
-                // the agent has the objects ...
-        for (int i=0; i< nbrOfObj; i++)
-                    if (a_has_obj[i]) {
-                        strcat(str_a, objectNames[i].c_str());
-                            strcat(str_a, " ");
-                    }
+    // the agent has at least one object ...
+    for (int i=0; i< nbrOfObj; i++)
+        if (a_has_obj[i]) {
+            strcat(str_a,"Agent has ");
+            break;
+        }
+            // the agent has the objects ...
+    for (int i=0; i< nbrOfObj; i++)
+                if (a_has_obj[i]) {
+                    strcat(str_a, objectNames[i].c_str());
+                        strcat(str_a, " ");
+                }
 
-        // the robot has at least one object ...
-        for (int i=0; i< nbrOfObj; i++)
-            if (r_has_obj[i]) {
-                strcat(str_r,"Robot has ");
-                break;
-            }
-                // the robot has the objects ...
-        for (int i=0; i< nbrOfObj; i++)
-                    if (r_has_obj[i]) {
-                        strcat(str_r, objectNames[i].c_str());
-                            strcat(str_r, " ");
-                    }
+    // the robot has at least one object ...
+    for (int i=0; i< nbrOfObj; i++)
+        if (r_has_obj[i]) {
+            strcat(str_r,"Robot has ");
+            break;
+        }
+            // the robot has the objects ...
+    for (int i=0; i< nbrOfObj; i++)
+                if (r_has_obj[i]) {
+                    strcat(str_r, objectNames[i].c_str());
+                        strcat(str_r, " ");
+                }
 
-                char str2[100];     
-                strcpy(str2,str_a);     
-                botWrite.addString(strcat(str2,str_r));
-        }        
+            char str2[100];     
+            strcpy(str2,str_a);     
+            botWrite.addString(strcat(str2,str_r));
+    }        
 
     // the agent is waving
-        if (output[0])
-            botWrite.addString("Agent waving");
-        
-        char str[50];
+    if (output[0])
+        botWrite.addString("Agent waving");
+    
+    char str[50];
 
     for (int i=0; i<nbrOfObj; i++) {
         if (output[1] == i+1) { // object i+1 moving
@@ -136,18 +137,22 @@ verbRec::respond(const Bottle& command, Bottle& reply)
                 botWrite.addString(strcat(str, objectNames[i].c_str()));
     }
 
-        yInfo() << "\t\t\t" << botWrite.toString();
+    if (botWrite.size()==0)
+        botWrite.addString("empty");
 
-        // send the message
-        reply=botWrite;
-        return true;
+    yInfo()<<botWrite.toString();
+
+    // send the message
+    reply=botWrite;
+
+    return true;
 }
 
 /* Called periodically every getPeriod() seconds */
 bool verbRec::updateModule() 
 {
-        cout<< " updateModule... "<<endl;
-        return true;
+    yInfo()<< " updateModule... ";
+    return true;
 }
 
 void 
