@@ -21,29 +21,24 @@
 bool 
 verbRec::configure(yarp::os::ResourceFinder &rf)
 {
-        string moduleName = rf.check("name", Value("verbRec")).asString().c_str();
-        setName(moduleName.c_str());
+    string moduleName = rf.check("name", Value("verbRec")).asString().c_str();
+    setName(moduleName.c_str());
 
-        yInfo() << moduleName << " : finding configuration files...";
-        period = rf.check("period", Value(0.1)).asDouble();
+    yInfo() << moduleName << " : finding configuration files...";
+    period = rf.check("period", Value(0.1)).asDouble();
 
     for (int i=0; i<11; i++)
-            output[i] = 0;
+        output[i] = 0;
 
     //temporary
     for (int i=0; i<4; i++)
         for (int j=0; j<2; j++)
             timer[i][j] = 0;
 
-        Port_in.open(("/" + moduleName + "In").c_str());
-        attach(Port_in);
-        Port_out.open(("/" + moduleName + "Out").c_str());
-        attach(Port_out);
+    Port_rpc.open(("/" + moduleName + "/rpc").c_str());
+    attach(Port_rpc);
 
-    Network::connect("/humanRobotDump/humanDump",("/" + moduleName + "In").c_str());  // temporary
-    Network::connect(("/" + moduleName + "Out").c_str(), "/output_data");  // temporary Change so that it only opens the output port later. 
-
-        return true;
+    return true;
 }
 
 
@@ -51,9 +46,8 @@ bool
 verbRec::close() 
 {
     /* optional, close port explicitly */
-        cout<<"Calling close function\n";
-        Port_in.close();
-        Port_out.close();
+    cout<<"Calling close function\n";
+    Port_rpc.close();
         
     return true;
 }
@@ -62,10 +56,8 @@ verbRec::close()
 bool 
 verbRec::respond(const Bottle& command, Bottle& reply) 
 {
-    reply=command;
-
         // prepare a message
-    Bottle botWrite; 
+        Bottle botWrite; 
 
         actionRec(command);
 
@@ -145,9 +137,9 @@ verbRec::respond(const Bottle& command, Bottle& reply)
     }
 
         yInfo() << "\t\t\t" << botWrite.toString();
-    // send the message
-    Port_out.write(botWrite);   
 
+        // send the message
+        reply=botWrite;
         return true;
 }
 

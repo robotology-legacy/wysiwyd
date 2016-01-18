@@ -30,11 +30,13 @@ using namespace wysiwyd::wrdac;
 class Recorder : public RFModule
 {
     BufferedPort<Bottle> dumpPort;
+    RpcClient verbPort;
     OPCClient opc;
 
     string agentName;
     string actionTag;
     string objectTag;
+    double period;
 
 public:
     /*******************************************************/
@@ -46,6 +48,7 @@ public:
         agentName=rf.check("agent-name",Value("partner")).asString();
         actionTag=rf.check("action-tag",Value("none")).asString();
         objectTag=rf.check("object-tag",Value("none")).asString();
+        period=rf.check("period",Value(0.1)).asDouble();
 
         if (!opc.connect("OPC"))
         {
@@ -54,23 +57,24 @@ public:
         }
 
         dumpPort.open("/test_verbRec/dump:o");
+        verbPort.open("/test_verbRec/verb:rpc");
         return true;
     }
 
     /*******************************************************/
     double getPeriod()
     {
-        return 0.1;
+        return period;
     }
 
     /*******************************************************/
     bool updateModule()
     {
-        Bottle &bDump=dumpPort.prepare();
-        bDump.clear();
+        Bottle &cmd=dumpPort.prepare();
+        cmd.clear();
 
-        bDump.addString(actionTag);
-        bDump.addString(objectTag);
+        cmd.addString(actionTag);
+        cmd.addString(objectTag);
 
         opc.checkout();        
 
@@ -79,8 +83,8 @@ public:
         {
             if (Agent *agent=dynamic_cast<Agent*>(e))
             {
-                bDump.addList()=agent->m_body.asBottle();
-                Bottle &bAgent=bDump.addList();
+                cmd.addList()=agent->m_body.asBottle();
+                Bottle &bAgent=cmd.addList();
                 bAgent.addString(agent->name());
                 bAgent.addDouble(agent->m_ego_position[0]);
                 bAgent.addDouble(agent->m_ego_position[1]);
@@ -99,7 +103,7 @@ public:
             {
                 if (Object *object=dynamic_cast<Object*>(*itEnt))
                 {
-                    Bottle &bObject=bDump.addList();
+                    Bottle &bObject=cmd.addList();
                     bObject.addString(object->name());
                     bObject.addDouble(object->m_ego_position[0]);
                     bObject.addDouble(object->m_ego_position[1]);
@@ -110,10 +114,18 @@ public:
         }
 
         // iterator
-        bDump.addInt(0);
+        cmd.addInt(0);
 
-        dumpPort.writeStrict();
-        yInfo()<<bDump.toString();
+        // query verbRec
+        if (verbPort.getOutputCount()>0)
+        {
+            Bottle reply;
+            verbPort.write(cmd,reply);
+            cmd.append(reply);
+        }
+
+        yInfo()<<cmd.toString();
+        dumpPort.writeStrict();        
 
         return true;
     }
@@ -121,6 +133,7 @@ public:
     /*******************************************************/
     bool close()
     {
+        verbPort.close();
         dumpPort.close();
         opc.close();
         return true;
