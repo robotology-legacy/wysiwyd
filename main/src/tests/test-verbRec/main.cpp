@@ -31,12 +31,15 @@ class Recorder : public RFModule
 {
     BufferedPort<Bottle> dumpPort;
     RpcClient verbPort;
+    RpcServer rpcPort;
     OPCClient opc;
+    Mutex mutex;
 
     string agentName;
     string actionTag;
     string objectTag;
     double period;
+    int gate;
 
 public:
     /*******************************************************/
@@ -58,6 +61,10 @@ public:
 
         dumpPort.open("/test_verbRec/dump:o");
         verbPort.open("/test_verbRec/verb:rpc");
+        rpcPort.open("/test_verbRec/rpc");
+        attach(rpcPort);
+
+        gate=0;
         return true;
     }
 
@@ -70,6 +77,8 @@ public:
     /*******************************************************/
     bool updateModule()
     {
+        LockGuard lg(mutex);
+
         Bottle &bDump=dumpPort.prepare();
         bDump.clear();
 
@@ -113,8 +122,7 @@ public:
             }
         }
 
-        // iterator
-        bDump.addInt(0);
+        bDump.addInt(gate);
 
         // query verbRec
         if (verbPort.getOutputCount()>0)
@@ -126,14 +134,38 @@ public:
         }
 
         yInfo()<<bDump.toString();
-        dumpPort.writeStrict();        
+        dumpPort.writeStrict();
 
         return true;
     }
 
     /*******************************************************/
+    bool respond(const Bottle &command, Bottle &reply)
+    {
+        LockGuard lg(mutex);
+        int cmd=command.get(0).asVocab();
+        int ack=Vocab::encode("ack");
+
+        if (cmd==Vocab::encode("start"))
+        {
+            gate=1;
+            reply.addVocab(ack);
+            return true;
+        }
+        else if (cmd==Vocab::encode("stop"))
+        {
+            gate=0;
+            reply.addVocab(ack);
+            return true;
+        }
+        else
+            return RFModule::respond(command,reply);
+    }
+
+    /*******************************************************/
     bool close()
     {
+        rpcPort.close();
         verbPort.close();
         dumpPort.close();
         opc.close();
