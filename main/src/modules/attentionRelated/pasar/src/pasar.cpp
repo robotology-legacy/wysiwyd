@@ -257,7 +257,7 @@ bool PasarModule::updateModule()
     presentCurrentSpeed.clear();
 
 
-    double now = Time::now() - initTime;
+    //double now = Time::now() - initTime;
 
 
     for (auto &entity : entities)
@@ -512,7 +512,7 @@ void PasarModule::saliencyPointing()
         }
     }
 
-    cout << "1; " ;
+    cout << "1; ";
 
 
     if (!wasPresent){
@@ -603,14 +603,13 @@ void PasarModule::saliencyWaving()
     bool wasPresent = false;
     Agent *ag;
     // founding the agent:
-    Vector vec;
     for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
             && it.second.present
             && (it.second.o.name() != "iCub")
             && (it.second.o.name() != "icub")){
             ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
-            Vector vec = ag->m_body.m_parts["handRight"];
+            //Vector vec = ag->m_body.m_parts["handRight"];
             wasPresent = true;
         }
     }
@@ -630,117 +629,128 @@ void PasarModule::saliencyWaving()
 
         return;
     }
+    else {
+        Vector vecRight = ag->m_body.m_parts["handRight"];
+        Vector vecLeft = ag->m_body.m_parts["handLeft"];
 
-    Vector vecRight = ag->m_body.m_parts["handRight"];
-    Vector vecLeft = ag->m_body.m_parts["handLeft"];
+        Vector speedRightt1(3);
+        Vector speedRightt2(3);
 
-    Vector speedRightt1(3);
-    Vector speedRightt2(3);
+        Vector speedLeftt1(3);
+        Vector speedLeftt2(3);
 
-    Vector speedLeftt1(3);
-    Vector speedLeftt2(3);
-
-    Vector accelRight(3);
-    Vector accelLeft(3);
-
-
-    speedRightt2[0] = (rightHandt1[0] - rightHandt2[0]);
-    speedRightt2[1] = (rightHandt1[1] - rightHandt2[1]);
-    speedRightt2[2] = (rightHandt1[2] - rightHandt2[2]);
-
-    speedRightt1[0] = (vecRight[0] - rightHandt1[0]);
-    speedRightt1[1] = (vecRight[1] - rightHandt1[1]);
-    speedRightt1[2] = (vecRight[2] - rightHandt1[2]);
-
-    speedLeftt1[0] = (vecLeft[0] - leftHandt1[0]);
-    speedLeftt1[1] = (vecLeft[1] - leftHandt1[1]);
-    speedLeftt1[2] = (vecLeft[2] - leftHandt1[2]);
-
-    speedLeftt2[0] = (leftHandt1[0] - leftHandt2[0]);
-    speedLeftt2[1] = (leftHandt1[1] - leftHandt2[1]);
-    speedLeftt2[2] = (leftHandt1[2] - leftHandt2[2]);
-
-    accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
-    accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
-    accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
-
-    accelLeft[0] = (speedLeftt1[0] - speedLeftt2[0]);
-    accelLeft[1] = (speedLeftt1[1] - speedLeftt2[1]);
-    accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
-
-    // get the norm of the accel vector
-    double dAccelLeft = sqrt(accelLeft[0] * accelLeft[0] + accelLeft[1] * accelLeft[1] + accelLeft[2] * accelLeft[2]);
-    double dAccelRight = sqrt(accelRight[0] * accelRight[0] + accelRight[1] * accelRight[1] + accelRight[2] * accelRight[2]);
+        Vector accelRight(3);
+        Vector accelLeft(3);
 
 
-    yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
+        speedRightt2[0] = (rightHandt1[0] - rightHandt2[0]);
+        speedRightt2[1] = (rightHandt1[1] - rightHandt2[1]);
+        speedRightt2[2] = (rightHandt1[2] - rightHandt2[2]);
 
-    double now = yarp::os::Time::now() - initTime;
-    if (now - lastTimeWaving > dthresholdDisappear){
-        recordWave = false;
-    }
+        speedRightt1[0] = (vecRight[0] - rightHandt1[0]);
+        speedRightt1[1] = (vecRight[1] - rightHandt1[1]);
+        speedRightt1[2] = (vecRight[2] - rightHandt1[2]);
 
-    // if the acceleration is made on 3 consecutive frames
-    if (presentRightHand.first && presentRightHand.second)
-    {
-        if (dAccelRight > thresholdWaving)
-        {
-            cout << "5, ";
+        speedLeftt1[0] = (vecLeft[0] - leftHandt1[0]);
+        speedLeftt1[1] = (vecLeft[1] - leftHandt1[1]);
+        speedLeftt1[2] = (vecLeft[2] - leftHandt1[2]);
 
-            ag->m_saliency += pTopDownWaving;
-            yInfo() << "\t\t\t\t\tagent is waving right hand";
+        speedLeftt2[0] = (leftHandt1[0] - leftHandt2[0]);
+        speedLeftt2[1] = (leftHandt1[1] - leftHandt2[1]);
+        speedLeftt2[2] = (leftHandt1[2] - leftHandt2[2]);
+
+        accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
+        accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
+        accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
+
+        accelLeft[0] = (speedLeftt1[0] - speedLeftt2[0]);
+        accelLeft[1] = (speedLeftt1[1] - speedLeftt2[1]);
+        accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
+
+        // get the norm of the accel vector
+        double dAccelLeft = sqrt(accelLeft[0] * accelLeft[0] + accelLeft[1] * accelLeft[1] + accelLeft[2] * accelLeft[2]);
+        double dAccelRight = sqrt(accelRight[0] * accelRight[0] + accelRight[1] * accelRight[1] + accelRight[2] * accelRight[2]);
 
 
-            if (!recordWave && iCub->getABMClient()->Connect())
-            {
-                yInfo() << "\t\t START WAVING";
-                std::list<std::pair<std::string, std::string> > lArgument;
-                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
-                iCub->getABMClient()->sendActivity("action",
-                    "wave",
-                    "pasar",
-                    lArgument,
-                    true);
-                recordWave = true;
-            }
-            lastTimeWaving = now;
+        yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
+
+
+        yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
+
+        double now = yarp::os::Time::now() - initTime;
+        if (now - lastTimeWaving > dthresholdDisappear){
+            recordWave = false;
         }
-        rightHandt2 = rightHandt1;
-        rightHandt1 = vecRight;
-    }
 
-    if (presentLeftHand.first && presentLeftHand.second)
-    {
-        if (dAccelLeft > thresholdWaving)
+        // if the acceleration is made on 3 consecutive frames
+        if (presentRightHand.first && presentRightHand.second)
         {
-            ag->m_saliency += pTopDownWaving;
-            yInfo() << "\t\t\t\t\tagent is waving left hand";
-
-            if (!recordWave && iCub->getABMClient()->Connect())
+            if (dAccelRight > thresholdWaving)
             {
-                yInfo() << "\t\t START WAVING";
+                if (dAccelRight > thresholdWaving)
+                {
+                    ag->m_saliency += pTopDownWaving;
+                    yInfo() << "\t\t\t\t\tagent is waving right hand";
+                }
+                rightHandt2 = rightHandt1;
+                rightHandt1 = vecRight;
+                cout << "5, ";
 
-                std::list<std::pair<std::string, std::string> > lArgument;
-                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
-                iCub->getABMClient()->sendActivity("action",
-                    "wave",
-                    "pasar",
-                    lArgument,
-                    true);
-                recordWave = true;
+                ag->m_saliency += pTopDownWaving;
+                yInfo() << "\t\t\t\t\tagent is waving right hand";
+
+
+                if (!recordWave && iCub->getABMClient()->Connect())
+                {
+                    yInfo() << "\t\t START WAVING";
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
+                    iCub->getABMClient()->sendActivity("action",
+                        "wave",
+                        "pasar",
+                        lArgument,
+                        true);
+                    recordWave = true;
+                }
+                lastTimeWaving = now;
             }
-            lastTimeWaving = now;
+
+            if (presentLeftHand.first && presentLeftHand.second)
+            {
+                ag->m_saliency += pTopDownWaving;
+                yInfo() << "\t\t\t\t\tagent is waving left hand";
+
+                if (!recordWave && iCub->getABMClient()->Connect())
+                {
+                    yInfo() << "\t\t START WAVING";
+
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
+                    iCub->getABMClient()->sendActivity("action",
+                        "wave",
+                        "pasar",
+                        lArgument,
+                        true);
+                    recordWave = true;
+                }
+                lastTimeWaving = now;
+                if (dAccelLeft > thresholdWaving)
+                {
+                    ag->m_saliency += pTopDownWaving;
+                    yInfo() << "\t\tagent is waving left hand";
+                }
+                leftHandt2 = leftHandt1;
+                leftHandt1 = vecLeft;
+            }
+            opc->commit();
+
+            presentRightHand.first = presentRightHand.second;
+            presentLeftHand.first = presentLeftHand.second;
+
+            presentRightHand.second = true;
+            presentLeftHand.second = true;
         }
-        leftHandt2 = leftHandt1;
-        leftHandt1 = vecLeft;
     }
-    opc->commit();
-
-    presentRightHand.first = presentRightHand.second;
-    presentLeftHand.first = presentLeftHand.second;
-
-    presentRightHand.second = true;
-    presentLeftHand.second = true;
 }
 
 
