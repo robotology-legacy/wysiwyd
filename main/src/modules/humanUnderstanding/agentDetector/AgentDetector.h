@@ -1,8 +1,11 @@
+#include <ctime>
+#include <string>
+#include <map>
+
 #include <yarp/os/RFModule.h>
 #include <yarp/math/Math.h>
 #include <kinectWrapper/kinectWrapper_client.h>
 #include <wrdac/helpers.h>
-#include <time.h>
 
 using namespace std;
 using namespace yarp::os;

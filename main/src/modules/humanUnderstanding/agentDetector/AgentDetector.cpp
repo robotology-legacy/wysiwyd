@@ -1,4 +1,7 @@
+
+#include <vector>
 #include "AgentDetector.h"
+
 bool AgentDetector::clicked = false;
 float AgentDetector::clickX = 0;
 float AgentDetector::clickY = 0;
@@ -124,6 +127,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
 
     if (showImages)
     {
+        vector<bool> alreadyOpen(4,false); 
         string mode=showMode;
         string submode;
         while (!mode.empty())
@@ -132,41 +136,65 @@ bool AgentDetector::configure(ResourceFinder &rf)
             {            
                 if (submode=="rgb")
                 {
-                    int x_rgb=rf.check("x-rgb",Value(xPos)).asInt();
-                    int y_rgb=rf.check("y-rgb",Value(yPos)).asInt();
-                    yInfo("\"rgb\" image selected in (%d,%d)",x_rgb,y_rgb);
+                    if (!alreadyOpen[0])
+                    {
+                        int x_rgb=rf.check("x-rgb",Value(xPos)).asInt(); 
+                        int y_rgb=rf.check("y-rgb",Value(yPos)).asInt();
+                        yInfo("\"rgb\" window selected in (%d,%d)",x_rgb,y_rgb);
 
-                    cvNamedWindow("rgb",CV_WINDOW_AUTOSIZE);
-                    cvMoveWindow("rgb",x_rgb,y_rgb);
+                        cvNamedWindow("rgb",CV_WINDOW_AUTOSIZE);
+                        cvMoveWindow("rgb",x_rgb,y_rgb);
+                        alreadyOpen[0]=true;
+                    }
+                    else
+                        yWarning("\"rgb\" window already open");
                 }
                 else if (submode=="depth")
                 {
-                    int x_depth=rf.check("x-depth",Value(xPos+300)).asInt();
-                    int y_depth=rf.check("y-depth",Value(yPos)).asInt();
-                    yInfo("\"depth\" image selected in (%d,%d)",x_depth,y_depth);
+                    if (!alreadyOpen[1])
+                    {
+                        int x_depth=rf.check("x-depth",Value(xPos+300)).asInt();
+                        int y_depth=rf.check("y-depth",Value(yPos)).asInt();
+                        yInfo("\"depth\" window selected in (%d,%d)",x_depth,y_depth);
 
-                    cvNamedWindow("depth",CV_WINDOW_AUTOSIZE);
-                    cvMoveWindow("depth",x_depth,y_depth);
-                    cvSetMouseCallback("depth",AgentDetector::click_callback,
-                                       (void*)depthToDisplay.getIplImage());
+                        cvNamedWindow("depth",CV_WINDOW_AUTOSIZE);
+                        cvMoveWindow("depth",x_depth,y_depth);
+                        cvSetMouseCallback("depth",AgentDetector::click_callback,
+                                           (void*)depthToDisplay.getIplImage());
+                        alreadyOpen[1]=true;
+                    }
+                    else
+                        yWarning("\"depth\" window already open");
                 }
                 else if (submode=="skeleton")
                 {
-                    int x_skeleton=rf.check("x-skeleton",Value(xPos)).asInt();
-                    int y_skeleton=rf.check("y-skeleton",Value(yPos+300)).asInt();
-                    yInfo("\"skeleton\" image selected in (%d,%d)",x_skeleton,y_skeleton);
+                    if (!alreadyOpen[2])
+                    {
+                        int x_skeleton=rf.check("x-skeleton",Value(xPos)).asInt(); 
+                        int y_skeleton=rf.check("y-skeleton",Value(yPos+300)).asInt();
+                        yInfo("\"skeleton\" window selected in (%d,%d)",x_skeleton,y_skeleton);
 
-                    cvNamedWindow("skeleton",CV_WINDOW_AUTOSIZE);
-                    cvMoveWindow("skeleton",x_skeleton,y_skeleton);
+                        cvNamedWindow("skeleton",CV_WINDOW_AUTOSIZE);
+                        cvMoveWindow("skeleton",x_skeleton,y_skeleton);
+                        alreadyOpen[2]=true;
+                    }
+                    else
+                        yWarning("\"skeleton\" window already open");
                 }
                 else if (submode=="players")
                 {
-                    int x_players=rf.check("x-players",Value(xPos+300)).asInt();
-                    int y_players=rf.check("y-players",Value(yPos+300)).asInt();
-                    yInfo("\"players\" image selected in (%d,%d)",x_players,y_players);
+                    if (!alreadyOpen[3])
+                    {
+                        int x_players=rf.check("x-players",Value(xPos+300)).asInt();
+                        int y_players=rf.check("y-players",Value(yPos+300)).asInt();
+                        yInfo("\"players\" window selected in (%d,%d)",x_players,y_players);
 
-                    cvNamedWindow("players",CV_WINDOW_AUTOSIZE);
-                    cvMoveWindow("players",x_players,y_players);
+                        cvNamedWindow("players",CV_WINDOW_AUTOSIZE);
+                        cvMoveWindow("players",x_players,y_players);
+                        alreadyOpen[3]=true;
+                    }
+                    else
+                        yWarning("\"players\" window already open");
                 }
                 else
                     yError("unrecognized show mode!");
