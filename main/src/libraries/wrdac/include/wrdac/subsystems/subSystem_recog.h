@@ -229,7 +229,7 @@ namespace wysiwyd{
                     bOutput.addInt(0);
                     osError << "no vocal input";
                     bOutput.addString(osError.str());
-                    yError() << " " << osError.str();
+                    yDebug() << " " << osError.str();
                 }
                 if (!isEars) listen(true);
                 return bOutput;
