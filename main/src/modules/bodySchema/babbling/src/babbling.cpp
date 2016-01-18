@@ -215,10 +215,20 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
                 doBabbling();
                 reply.addString("ack");
             }
-            else
+            /*else
             {
                 yError("Invalid babbling part: specify LEFT or RIGHT after 'arm'.");
                 reply.addString("nack");
+            }*/
+            else {
+                //TODO : default vlaue in conf file
+                string default_arm = "left";
+                yWarning() <<"No side of arm specified: take the default value ->  " << default_arm;
+
+                part = default_arm + "_arm";
+                yInfo() << "Babbling " + default_arm + " arm...";
+                doBabbling();
+                reply.addString("ack");
             }
 
 

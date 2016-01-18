@@ -92,7 +92,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " PASAR NOT CONNECTED: will not engage pointing";
     }
 
-
     //in from TouchDetector
     portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str());
     touchDetectorRpc = rf.check("touchDetectorOut", Value("/touchDetector/touch:o")).asString().c_str();
