@@ -814,7 +814,7 @@ public:
             z = z / x;
             x = x + 1;
         }
-        while ((x < 2))
+        while (x < 2)
         {
             if ((x < 0.000000001))
             {
@@ -824,7 +824,7 @@ public:
             z = z / x;
             x = x + 1.0;
         }
-        if ((x == 2))
+        if (x == 2)
         {
             result = z;
             return result;
@@ -907,7 +907,7 @@ public:
         *sgngam = 1;
         logpi = 1.14472988584940017414;
         ls2pi = 0.91893853320467274178;
-        if ((x < -34.0))
+        if (x < -34.0)
         {
             q = -x;
             w = lngamma(q, &tmp);
@@ -931,24 +931,24 @@ public:
             result = logpi - log(z) - w;
             return result;
         }
-        if ((x < 13))
+        if (x < 13)
         {
             z = 1;
             p = 0;
             u = x;
-            while ((u >= 3))
+            while (u >= 3)
             {
                 p = p - 1;
                 u = x + p;
                 z = z*u;
             }
-            while ((u < 2))
+            while (u < 2)
             {
                 z = z / u;
                 p = p + 1;
                 u = x + p;
             }
-            if ((z < 0))
+            if (z < 0)
             {
                 *sgngam = -1;
                 z = -z;
@@ -957,7 +957,7 @@ public:
             {
                 *sgngam = 1;
             }
-            if ((u == 2))
+            if (u == 2)
             {
                 result = log(z);
                 return result;
@@ -982,13 +982,13 @@ public:
             return result;
         }
         q = (x - 0.5)*log(x) - x + ls2pi;
-        if ((x > 100000000))
+        if (x > 100000000)
         {
             result = q;
             return result;
         }
         p = 1 / (x*x);
-        if ((x >= 1000.0))
+        if (x >= 1000.0)
         {
             q = q + ((7.9365079365079365079365*0.0001*p - 2.7777777777777777777778*0.001)*p + 0.0833333333333333333333) / x;
         }
