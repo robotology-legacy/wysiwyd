@@ -124,7 +124,7 @@ public:
     }
 
     /**********************************************************/
-    void tracker_init(const Image& img, const CvRect& bbox)
+    void tracker_init(const ImageOf<PixelBgr>& img, const CvRect& bbox)
     {
         trackerResult=cv::Rect2d(bbox.x,bbox.y,bbox.width,bbox.height);
 
@@ -139,7 +139,7 @@ public:
     }
 
     /**********************************************************/
-    void tracker_update(const Image& img)
+    void tracker_update(const ImageOf<PixelBgr>& img)
     {
     #ifdef IOL2OPC_TRACKING
         if (trackerState==init)

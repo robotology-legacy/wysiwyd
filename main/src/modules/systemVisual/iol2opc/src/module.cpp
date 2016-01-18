@@ -628,7 +628,7 @@ void IOL2OPCBridge::updateOPC()
 
         // latch image
         ImageOf<PixelBgr> &imgLatch=imgTrackOut.prepare();
-        imgLatch=this->imgRtLoc;
+        imgLatch=imgRtLoc;
 
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
@@ -662,8 +662,7 @@ void IOL2OPCBridge::updateOPC()
                     tl.y=(int)item->get(1).asDouble();
                     br.x=(int)item->get(2).asDouble();
                     br.y=(int)item->get(3).asDouble();
-                    it->second.tracker_init(imgLatch,
-                                            cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
+                    it->second.tracker_init(imgLatch,cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
                     it->second.heartBeat();
                 }
             }
