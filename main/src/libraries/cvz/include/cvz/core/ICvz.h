@@ -39,6 +39,8 @@ namespace cvz {
             yarp::os::Property parametersStartTime;
 
         public:
+            IConvergenceZone() {}
+            virtual ~IConvergenceZone() {}
             yarp::os::RpcServer rpcPort;
             yarp::os::Port  parametersPortOut;
 
@@ -55,7 +57,7 @@ namespace cvz {
             void modulePause() { std::cout << "Paused." << std::endl; isPaused = true; }            
 
 
-            virtual std::string getType() { return cvz::core::TYPE_ICVZ; };
+            virtual std::string getType() { return cvz::core::TYPE_ICVZ; }
 
             std::map<std::string, IModality*> modalitiesBottomUp;
             std::map<std::string, IModality*> modalitiesTopDown;

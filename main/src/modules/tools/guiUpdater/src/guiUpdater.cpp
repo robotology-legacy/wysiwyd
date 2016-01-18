@@ -224,9 +224,8 @@ void GuiUpdater::deleteObject(const string &opcTag, Object* o)
 
     if (o != NULL && o->entity_type() == EFAA_OPC_ENTITY_AGENT && displaySkeleton)
     {
-        int i = 0;
         Agent* a = dynamic_cast<Agent*>(o);
-        for(auto& part : a->m_body.m_parts)
+        for(unsigned int i=0; i < a->m_body.m_parts.size(); i++)
         {
             ostringstream opcTagPart;
             opcTagPart<<o->opc_id() << "_" << i;
@@ -234,7 +233,6 @@ void GuiUpdater::deleteObject(const string &opcTag, Object* o)
             cmd.addString("delete");
             cmd.addString(opcTagPart.str().c_str());
             toGui.write(cmd);
-            i++;
         }
     }
 

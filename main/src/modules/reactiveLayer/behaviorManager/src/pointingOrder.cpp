@@ -76,7 +76,6 @@ bool PointingOrder::handleSearch(string type, string target)
     iCub->opc->checkout();
     yInfo() << " [handleSearch] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
-    bool tagRPC = false;
 
     string e_name = target;
 
@@ -95,7 +94,7 @@ bool PointingOrder::handleSearch(string type, string target)
                     return true;
                 }
             } else {
-                tagRPC = true;
+                //tagRPC = true;
             }
         }
     }

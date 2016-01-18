@@ -44,6 +44,11 @@ Entity::Entity(const Entity &b)
     this->m_opc_id = b.m_opc_id;
 }
 
+Entity::~Entity()
+{
+
+}
+
 Bottle Entity::asBottle()
 {
     Bottle b;

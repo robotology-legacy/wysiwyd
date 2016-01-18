@@ -166,7 +166,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
             const char *cplace = "none";
             const char *ctime = "none";
             const char *cmanner = "none";
-            double timeLife = 5.0;
+            double timeLife;
             if (arg != m.ArgumentsEnd())
                 cobj = (arg++)->AsString();
             if (arg != m.ArgumentsEnd())

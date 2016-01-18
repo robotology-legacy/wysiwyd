@@ -350,9 +350,6 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    int port = 3333;
-    if (argc >= 2) port = atoi(argv[1]);
-
     Network yarp;
     if (!yarp.checkNetwork())
         return false;

@@ -133,8 +133,6 @@ public:
         double* righttail)
     {
         int i;
-        double x0;
-        double y0;
         double xmean;
         double ymean;
         double stat;
@@ -161,7 +159,6 @@ public:
         * Mean
         */
         xmean = 0;
-        x0 = x[0];
         for (i = 0; i <= n - 1; i++)
         {
 
@@ -172,7 +169,6 @@ public:
 
         ymean = 0;
 
-        y0 = y[0];
         for (i = 0; i <= m - 1; i++)
         {
             ymean = ymean + y[i];

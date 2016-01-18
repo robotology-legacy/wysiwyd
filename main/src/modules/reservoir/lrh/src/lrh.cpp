@@ -78,6 +78,7 @@ bool LRH::configure(ResourceFinder &rf) {
     if (!handlerPort.open(handlerPortName.c_str())) {
         cout << getName() << ": Unable to open port " << handlerPortName << endl;
         bEveryThingisGood = false;
+        return bEveryThingisGood;
     }
 
     attach(handlerPort);                  // attach to port
@@ -557,16 +558,16 @@ bool LRH::spatialRelation(string sObjectFocus)
     {
 
         yDebug() << "== than 2 obj present";
-        double deltaX = 0.0;
-        double deltaY = 0.0;
+        //double deltaX = 0.0;
+        //double deltaY = 0.0;
         int iFactor;
         (PresentRtoBefore[0].name() == sObjectFocus) ? iFactor = 1 : iFactor = -1;
         yDebug() << "weird if done";
-        deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
-        deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
+        //deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
+        //deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
 
         string sLocation;
-        (deltaY > 0) ? sLocation = "right" : sLocation = "left";
+        //(deltaY > 0) ? sLocation = "right" : sLocation = "left";
         yDebug() << "second weird if done";
         string sRelative;
         (iFactor == 1) ? sRelative = (PresentRtoBefore[1].name()) : sRelative = (PresentRtoBefore[0].name());

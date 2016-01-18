@@ -181,7 +181,6 @@ void CRForestEstimator::estimate( const Mat & im3D,
     for(unsigned int l=0;l<votes.size();++l){
 
         bool found = false;
-        float best_dist = FLT_MAX;
         unsigned int best_cluster = 0;
 
         //for each cluster
@@ -195,7 +194,7 @@ void CRForestEstimator::estimate( const Mat & im3D,
             if( norm < large_radius ){
 
                 best_cluster = c;
-                best_dist=norm;
+                //best_dist=norm;
                 found = true;
 
                 //add (pointer to) vote to the closest cluster (well, actually, the first cluster found within the distance)

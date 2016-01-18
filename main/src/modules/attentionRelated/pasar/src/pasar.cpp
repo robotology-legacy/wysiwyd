@@ -255,7 +255,7 @@ bool PasarModule::updateModule()
     presentCurrentSpeed.clear();
 
 
-    double now = Time::now() - initTime;
+    //double now = Time::now() - initTime;
 
 
     for (auto &entity : entities)
@@ -568,7 +568,6 @@ void PasarModule::saliencyWaving()
     bool wasPresent = false;
     Agent *ag;
     // founding the agent:
-    Vector vec;
     for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
             && it.second.present

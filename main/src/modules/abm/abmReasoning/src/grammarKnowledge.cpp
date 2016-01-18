@@ -582,7 +582,7 @@ pair<string, double> grammarKnowledge::findSpeaker(string Y, string Z, string P)
 
 pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
 {
-    int iPropertiesTakenIntoAccount;
+    //int iPropertiesTakenIntoAccount;
     pair<string, double>    pReturn;
     vector<pair<string, double> >   vScore;
 
@@ -617,7 +617,7 @@ pair<string, double> grammarKnowledge::findSubject(string X, string Y, string Z)
         scoreProp   tPZ(0, 0, 0, 0);
 
         double scoreTest = 0;
-        iPropertiesTakenIntoAccount = 0;
+        //iPropertiesTakenIntoAccount = 0;
         matrix3D    currentMatrix = itPronom->m3Data;
         int iSumCurrentMatrix = currentMatrix.getSum();
 

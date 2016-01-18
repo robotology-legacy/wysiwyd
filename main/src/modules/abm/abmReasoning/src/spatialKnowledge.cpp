@@ -93,7 +93,6 @@ void spatialKnowledge::determineInfluence()
         covMatrixD = abmReasoningFunction::getCovMatrix(vDX, vDY);
 
 
-    double sigmaD;
     double sumdX = 0, sumdY = 0;
     for (unsigned int i = 0; i < vDX.size(); i++)
     {
@@ -101,7 +100,7 @@ void spatialKnowledge::determineInfluence()
         sumdY += vDY[i];
     }
 
-    sigmaD = sqrt(sumdX*sumdX + sumdY*sumdY);
+    //sigmaD = sqrt(sumdX*sumdX + sumdY*sumdY);
 
     //double deter_CovA = (covMatrixA[0] * covMatrixA[3])-(covMatrixA[1] * covMatrixA[2]);
     double deter_CovB = (covMatrixB[0] * covMatrixB[3]) - (covMatrixB[1] * covMatrixB[2]);
@@ -204,13 +203,12 @@ pair <double, double> spatialKnowledge::coordRelative(double Xo, double Yo, doub
 
     double X,   // X relative Coordinate
         Y,      // Y relative coordinate
-        R,      // Distance from agent to object
         A,      // temporaty for atan2 calculation
         B,      // temporaty for atan2 calculation
         Pi = atan(1.) * 4,
         Theta;  // angle of the Human relative to the table
 
-    R = sqrt((Xh - Xo)*(Xh - Xo) + (Yh - Yo)*(Yh - Yo));
+    //R = sqrt((Xh - Xo)*(Xh - Xo) + (Yh - Yo)*(Yh - Yo));
 
     A = Xh - abmReasoningFunction::X_center;
     B = Yh - abmReasoningFunction::Y_center;

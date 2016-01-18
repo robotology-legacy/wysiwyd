@@ -49,20 +49,19 @@ namespace wysiwyd{namespace wrdac{
         std::string         m_name;
         std::map<std::string, std::string > m_properties;
 
-    //The entity status when the class is updated by the OPCClient
-    yarp::os::Bottle        m_original_entity;
-    yarp::os::Bottle        asBottleOnlyModifiedProperties();
+        //The entity status when the class is updated by the OPCClient
+        yarp::os::Bottle        m_original_entity;
+        yarp::os::Bottle        asBottleOnlyModifiedProperties();
 
     protected:
         std::string         m_entity_type;
         void                changeName(std::string sName);
 
     public:
-                            Entity();
-                            Entity(const Entity &b);
-                            Entity(yarp::os::Bottle &b);
-        
-
+        Entity();
+        Entity(const Entity &b);
+        Entity(yarp::os::Bottle &b);
+        virtual ~Entity();
 
         /**
         * Test if an entity is inheriting a given type

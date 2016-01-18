@@ -203,8 +203,8 @@ double faceTrackerModule::getPeriod() {
 /***************************************************************************/
 bool faceTrackerModule::updateModule() {
 
-    unsigned long AAtime=0, BBtime=0; //check processing time
-    AAtime = cv::getTickCount(); //check processing time
+    //unsigned long AAtime=0, BBtime=0; //check processing time
+    //AAtime = cv::getTickCount(); //check processing time
 
     ImageOf<PixelRgb> *yarpImageLeft = imagePortLeft.read();
     //printf("Copying YARP image to an OpenCV/IPL image\n");
@@ -432,7 +432,7 @@ bool faceTrackerModule::updateModule() {
 
     }
 
-    BBtime = cv::getTickCount(); //check processing time
+    //BBtime = cv::getTickCount(); //check processing time
 
     cv::waitKey(1);
 
