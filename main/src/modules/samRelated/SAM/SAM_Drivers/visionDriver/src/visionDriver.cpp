@@ -98,9 +98,9 @@ bool visionDriver::updateModule()
             Mat captureFrameRaw(yarpImage->height(),yarpImage->width(),CV_8UC3,yarpImage->getRawImage(),step);
             
             // resize input image from iCub cameras to 640x480
-            resize(captureFrameRaw,captureFrameRaw,Size(640,480));
+            cv::resize(captureFrameRaw,captureFrameRaw,Size(640,480));
 
-            cvtColor(captureFrameRaw,captureFrameBGR,CV_RGB2BGR);
+            cv::cvtColor(captureFrameRaw,captureFrameBGR,CV_RGB2BGR);
 
             int height = captureFrameRaw.rows;
             //int width = captureFrameRaw.cols;
@@ -124,11 +124,19 @@ bool visionDriver::updateModule()
             // Haar cascades on GPU 
             // Haar cascades on GPU 
             captureFrameGPU.upload(captureFrameBGR);
+#if CV_MAJOR_VERSION == 2
             cv::gpu::cvtColor(captureFrameGPU,grayscaleFrameGPU,CV_BGR2GRAY);
             cv::gpu::equalizeHist(grayscaleFrameGPU,grayscaleFrameGPU);
             // Face and Body
             noFaces = face_cascade.detectMultiScale(grayscaleFrameGPU,objBufFaceGPU,1.2,5,Size(30,30));
             //noBodies = body_cascade.detectMultiScale(grayscaleFrameGPU,objBufBodyGPU,1.2,5,Size(150,150));
+#elif CV_MAJOR_VERSION == 3
+            cv::cuda::cvtColor(captureFrameGPU,grayscaleFrameGPU,CV_BGR2GRAY);
+            cv::cuda::equalizeHist(grayscaleFrameGPU,grayscaleFrameGPU);
+            // Face and Body
+            noFaces = face_cascade->detectMultiScale(grayscaleFrameGPU,objBufFaceGPU,1.2,5,Size(30,30));
+            //noBodies = body_cascade->detectMultiScale(grayscaleFrameGPU,objBufBodyGPU,1.2,5,Size(150,150));
+#endif
             noBodies = 0;            
 
             // Check if face found
@@ -197,10 +205,10 @@ bool visionDriver::updateModule()
                         // Standard image facedetector, take original image
                         // Take face from original data
                         allFaces = captureFrameBGR.operator()(facesOld[i]).clone();
-                        resize(allFaces,allFaces,Size(faceSize,faceSize));
+                        cv::resize(allFaces,allFaces,Size(faceSize,faceSize));
                         // LB processed skin segmented data
                         allFacesSkin = skinImage.operator()(facesOld[i]).clone();
-                        resize(allFacesSkin,allFacesSkin,Size(faceSize,faceSize));
+                        cv::resize(allFacesSkin,allFacesSkin,Size(faceSize,faceSize));
                         
                         // Take skinHSV (returned from skin detector) and uses face extracted rect.....
                         face_HSV = skinHSV.operator()(facesOld[i]).clone();
@@ -219,7 +227,7 @@ bool visionDriver::updateModule()
                     if (!faceSegmented.empty())
                     {
                         // Resize to standard
-                        resize(faceSegmented,faceSegmented,Size(faceSize,faceSize));
+                        cv::resize(faceSegmented,faceSegmented,Size(faceSize,faceSize));
                         // Send segmented face to yarp output... e.g. SAM face recog
                         utilsObj->convertCvToYarp(faceSegmented,faceImages);
                         imageOut.write();
@@ -324,10 +332,10 @@ bool visionDriver::updateModule()
                     {
                         // Standard image facedetector, take original image
                         allBodies = captureFrameBGR.operator()(bodiesOld[i]).clone();
-                        resize(allBodies,allBodies,Size(bodySize,bodySize));
+                        cv::resize(allBodies,allBodies,Size(bodySize,bodySize));
                         // LB processed skin segmented data
                         allBodiesSkin = skinImage.operator()(bodiesOld[i]).clone();
-                        resize(allBodiesSkin,allBodiesSkin,Size(bodySize,bodySize));
+                        cv::resize(allBodiesSkin,allBodiesSkin,Size(bodySize,bodySize));
                         
                     }
                         
@@ -355,10 +363,10 @@ bool visionDriver::updateModule()
                 Mat rectMaskFaceOnly = Mat::zeros( skinMask.size(), CV_8UC1 );
                 Mat skinMaskNoFace;
                 Mat faceSegTemp;
-                resize(faceSegMaskInv,faceSegTemp,Size(currentFaceRect.width,currentFaceRect.height));
+                cv::resize(faceSegMaskInv,faceSegTemp,Size(currentFaceRect.width,currentFaceRect.height));
                 faceSegTemp.copyTo(rectMaskFaceOnly(currentFaceRect) );
-                bitwise_not(rectMaskFaceOnly,rectMaskFaceOnly);
-                bitwise_and(rectMaskFaceOnly,skinMask,skinMaskNoFace);
+                cv::bitwise_not(rectMaskFaceOnly,rectMaskFaceOnly);
+                cv::bitwise_and(rectMaskFaceOnly,skinMask,skinMaskNoFace);
                 if( displayBodies )
                 {
                     imshow("Rectangle mask face",rectMaskFaceOnly);
@@ -617,7 +625,11 @@ bool visionDriver::configure(ResourceFinder &rf)
     else
     {
         hardware_int = 1;
+#if CV_MAJOR_VERSION == 2
         cv::gpu::getDevice();
+#elif CV_MAJOR_VERSION == 3
+        cv::cuda::getDevice();
+#endif
         cout << "Proceeding on GPU" << endl;
     }
 
@@ -653,8 +665,14 @@ bool visionDriver::configure(ResourceFinder &rf)
         waitKey(1);
     }       
     
+#if CV_MAJOR_VERSION == 2
     face_cascade.load(faceCascadeFile.c_str());
     body_cascade.load(bodyCascadeFile.c_str());
+#elif CV_MAJOR_VERSION == 3
+    face_cascade = cuda::CascadeClassifier::create(faceCascadeFile.c_str());
+    body_cascade = cuda::CascadeClassifier::create(bodyCascadeFile.c_str());
+#endif
+
     
     return true;
 }

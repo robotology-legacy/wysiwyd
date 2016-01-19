@@ -34,19 +34,31 @@
 *
 */
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/version.hpp>
+
+#if CV_MAJOR_VERSION == 2
 #include <opencv/cv.h>
 #include <opencv/cvaux.h>
 #include <opencv/highgui.h>
-#include <yarp/sig/all.h>
-#include <yarp/os/all.h>
-#include <yarp/dev/all.h>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <ctime>
 #include <opencv2/gpu/gpu.hpp>
 #include <opencv2/gpu/gpumat.hpp>
+#elif CV_MAJOR_VERSION == 3
+#include <opencv2/cudaarithm.hpp>
+#include <opencv2/cudaobjdetect.hpp>
+#include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudawarping.hpp>
+#endif
+
+#include <yarp/sig/all.h>
+#include <yarp/os/all.h>
+#include <yarp/dev/all.h>
+#include <ctime>
 #include <iostream>
+#include <iomanip>
 #include <math.h>
 #include <algorithm>
 
@@ -59,8 +71,12 @@ using namespace yarp::sig::file;
 using namespace cv;
 using namespace yarp::dev;
 using namespace std;
-using namespace cv::gpu;
 
+#if CV_MAJOR_VERSION == 2
+using namespace cv::gpu;
+#elif CV_MAJOR_VERSION == 3
+using namespace cv::cuda;
+#endif
 
 #define faceLimit 20
 
@@ -126,12 +142,12 @@ class visionDriver: public RFModule
         
         Mat captureFrameBGR;
         Mat captureFrameFace;       
-        Mat captureFrameBody;       
-        cv::gpu::GpuMat captureFrameGPU;
-        cv::gpu::GpuMat grayscaleFrameGPU;
-        cv::gpu::GpuMat objBufFaceGPU;
-        cv::gpu::GpuMat objBufBodyGPU;
-        
+        Mat captureFrameBody;
+        GpuMat captureFrameGPU;
+        GpuMat grayscaleFrameGPU;
+        GpuMat objBufFaceGPU;
+        GpuMat objBufBodyGPU;
+
         int step;
         int maxSize;
         int biggestFace;
@@ -153,8 +169,14 @@ class visionDriver: public RFModule
         std::vector< cv::Rect > facesOld;
         std::vector< cv::Rect > bodiesOld;
 
+#if CV_MAJOR_VERSION == 2
         CascadeClassifier_GPU face_cascade;
         CascadeClassifier_GPU body_cascade;
+#elif CV_MAJOR_VERSION == 3
+        Ptr<cuda::CascadeClassifier> face_cascade;
+        Ptr<cuda::CascadeClassifier> body_cascade;
+#endif
+
         
         visionUtils *utilsObj;
        

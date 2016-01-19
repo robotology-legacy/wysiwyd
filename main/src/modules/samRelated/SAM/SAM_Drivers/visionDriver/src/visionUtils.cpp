@@ -98,8 +98,8 @@ Mat visionUtils::segmentFace(Mat srcImage, Mat maskImage, bool displayFaces, Mat
     }
   
     /// Convert image to gray and blur it
-    cvtColor( maskImage, src_gray, CV_BGR2GRAY );
-    blur( src_gray, src_gray, Size(3,3) );
+    cv::cvtColor( maskImage, src_gray, CV_BGR2GRAY );
+    cv::blur( src_gray, src_gray, Size(3,3) );
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
 
@@ -193,7 +193,7 @@ Mat visionUtils::segmentFace(Mat srcImage, Mat maskImage, bool displayFaces, Mat
         
         // Make face blocking mask (face pix = 0)
         Mat skinSegMaskInvTemp = Mat::zeros( srcImage.size(), CV_8UC1 );
-        bitwise_not(skinSegMaskInvTemp,*skinSegMaskInv,skinSegMask);
+        cv::bitwise_not(skinSegMaskInvTemp,*skinSegMaskInv,skinSegMask);
 
         if (displayFaces)
         {   // Take boxed region of face from original image data
@@ -215,7 +215,7 @@ Mat visionUtils::segmentFace(Mat srcImage, Mat maskImage, bool displayFaces, Mat
 Mat visionUtils::skeletonDetect(Mat threshImage, int imgBlurPixels, bool displayFaces)
 {
     // Finds skeleton of white objects in black image, using erode / dilate morph operations
-    threshold(threshImage, threshImage, 127, 255, THRESH_BINARY);
+    cv::threshold(threshImage, threshImage, 127, 255, THRESH_BINARY);
     if (displayFaces) imshow("Skel in",threshImage);
     Mat skel(threshImage.size(), CV_8UC1, Scalar(0));
     Mat temp;
@@ -226,12 +226,12 @@ Mat visionUtils::skeletonDetect(Mat threshImage, int imgBlurPixels, bool display
     bool done;      
     do
     {
-        erode(threshImage, eroded, element);
-        dilate(eroded, temp, element);
-        subtract(threshImage, temp, temp);
-        bitwise_or(skel, temp, skel);
+        cv::erode(threshImage, eroded, element);
+        cv::dilate(eroded, temp, element);
+        cv::subtract(threshImage, temp, temp);
+        cv::bitwise_or(skel, temp, skel);
         eroded.copyTo(threshImage);
-        done = (countNonZero(threshImage) == 0);
+        done = (cv::countNonZero(threshImage) == 0);
     } while (!done);
     if (displayFaces) imshow("Skel raw",skel);
     // Blur to reduce noise
@@ -336,7 +336,7 @@ vector<Rect> visionUtils::segmentLineBoxFit(Mat img0, int minPixelSize, int maxS
         *rotatedBoundingBox = tempRotatedBoundingBox;        
         
         // normalize so imwrite(...)/imshow(...) shows the mask correctly!
-        normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
+        cv::normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
         // To Remove border added at start...    
         *returnMask=mask(tempRect);
         // show the images
@@ -394,9 +394,9 @@ int visionUtils::drawHist(std::vector<Mat> pixelPlanes, int histBlurPixels)//( i
     }
 
     /// Normalize the result to [ 0, histImage.rows ]
-    normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-    normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-    normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+    cv::normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+    cv::normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
+    cv::normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
 
     /// Draw for each channel
     for( int i = 1; i < histSize; i++ )
@@ -476,22 +476,21 @@ Mat visionUtils::skinDetect(Mat captureframe, Mat3b *skinDetectHSV, Mat *skinMas
     // Forcing resize to 640x480 -> all thresholds / pixel filters configured for this size.....
     // Note returned to original size at end...
     Size s = captureframe.size();
-    resize(captureframe,captureframe,Size(640,480));
+    cv::resize(captureframe,captureframe,Size(640,480));
 
     
     
     if (useGPU)
     {
-    
-        gpu::GpuMat imgGPU, imgGPUHSV;
+        GpuMat imgGPU, imgGPUHSV;
         imgGPU.upload(captureframe);
-        gpu::cvtColor(imgGPU, imgGPUHSV, CV_BGR2HSV);
-        gpu::GaussianBlur(imgGPUHSV, imgGPUHSV, Size(imgBlurPixels,imgBlurPixels), 1, 1);
+        cv::cvtColor(imgGPU, imgGPUHSV, CV_BGR2HSV);
+        GaussianBlur(imgGPUHSV, imgGPUHSV, Size(imgBlurPixels,imgBlurPixels), 1, 1);
         imgGPUHSV.download(frameTemp);  
     }
     else
     {
-        cvtColor(captureframe, frameTemp, CV_BGR2HSV);
+        cv::cvtColor(captureframe, frameTemp, CV_BGR2HSV);
         GaussianBlur(frameTemp, frameTemp, Size(imgBlurPixels,imgBlurPixels), 1, 1);
     }
     
@@ -508,7 +507,7 @@ Mat visionUtils::skinDetect(Mat captureframe, Mat3b *skinDetectHSV, Mat *skinMas
     // send HSV to skinDetectHSV for return
     *skinDetectHSV=frame.clone();
     
-    cvtColor(frame, frame_gray, CV_BGR2GRAY);
+    cv::cvtColor(frame, frame_gray, CV_BGR2GRAY);
                 
                 
     // Adaptive thresholding technique
@@ -518,13 +517,18 @@ Mat visionUtils::skinDetect(Mat captureframe, Mat3b *skinDetectHSV, Mat *skinMas
     
     if (useGPU)
     {
-        gpu::GpuMat imgGPU;
+        GpuMat imgGPU;
         imgGPU.upload(frame_gray);
         // 2. Fill in thresholded areas
+#if CV_MAJOR_VERSION == 2
         gpu::morphologyEx(imgGPU, imgGPU, CV_MOP_CLOSE, Mat1b(imgMorphPixels,imgMorphPixels,1), Point(-1, -1), 2);
         gpu::GaussianBlur(imgGPU, imgGPU, Size(imgBlurPixels,imgBlurPixels), 1, 1);
+#elif CV_MAJOR_VERSION == 3
+        cuda::morphologyEx(imgGPU, imgGPU, CV_MOP_CLOSE, Mat1b(imgMorphPixels,imgMorphPixels,1), Point(-1, -1), 2);
+        cuda::GaussianBlur(imgGPU, imgGPU, Size(imgBlurPixels,imgBlurPixels), 1, 1);
+#endif
+
         imgGPU.download(frame_gray);
-    
     }
     else
     {
@@ -548,7 +552,7 @@ Mat visionUtils::skinDetect(Mat captureframe, Mat3b *skinDetectHSV, Mat *skinMas
     Mat frame_skin;
     captureframe.copyTo(frame_skin,*skinMask);  // Copy captureframe data to frame_skin, using mask from frame_ttt
     // Resize image to original before return
-    resize(frame_skin,frame_skin,s);
+    cv::resize(frame_skin,frame_skin,s);
     
     if (displayFaces)
     {   
@@ -585,9 +589,13 @@ Mat visionUtils::cannySegmentation(Mat img0, int minPixelSize, bool displayFaces
     
     if (useGPU)// converted to GPU -> NOT tested to speed up here!
     {
-        gpu::GpuMat imgGPU;
+        GpuMat imgGPU;
         imgGPU.upload(img1);
+#if CV_MAJOR_VERSION == 2
         gpu::Canny(imgGPU, imgGPU, 100, 200, 3); //100, 200, 3);
+#elif CV_MAJOR_VERSION == 3
+        cuda::Canny(imgGPU, imgGPU, 100, 200, 3); //100, 200, 3);
+#endif
         imgGPU.download(img1);
     }
     else
@@ -611,7 +619,7 @@ Mat visionUtils::cannySegmentation(Mat img0, int minPixelSize, bool displayFaces
             areas[i] = contourArea(Mat(contours[i]));
         double max;
         Point maxPosition;
-        minMaxLoc(Mat(areas),0,&max,0,&maxPosition);
+        cv::minMaxLoc(Mat(areas),0,&max,0,&maxPosition);
         drawContours(mask, contours, maxPosition.y, Scalar(1), CV_FILLED);
     }
     else
@@ -623,7 +631,7 @@ Mat visionUtils::cannySegmentation(Mat img0, int minPixelSize, bool displayFaces
         }
     }
     // normalize so imwrite(...)/imshow(...) shows the mask correctly!
-    normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
+    cv::normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
     
     Mat returnMask;
     returnMask=mask(tempRect);

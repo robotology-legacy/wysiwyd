@@ -35,18 +35,30 @@
 */
 
 
-#include <opencv/cv.h>
-#include <opencv/cvaux.h>
-#include <opencv/highgui.h>
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/version.hpp>
+
+#if CV_MAJOR_VERSION == 2
+#include <opencv/cv.h>
+#include <opencv/cvaux.h>
+#include <opencv/highgui.h>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <ctime>
 #include <opencv2/gpu/gpu.hpp>
 #include <opencv2/gpu/gpumat.hpp>
+#elif CV_MAJOR_VERSION == 3
+#include <opencv2/cudaarithm.hpp>
+#include <opencv2/cudaobjdetect.hpp>
+#include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudawarping.hpp>
+#endif
+
+#include <ctime>
 #include <iostream>
 #include <math.h>
 #include <algorithm>
@@ -59,7 +71,12 @@ using namespace yarp::sig::file;
 using namespace cv;
 using namespace yarp::dev;
 using namespace std;
+
+#if CV_MAJOR_VERSION == 2
 using namespace cv::gpu;
+#elif CV_MAJOR_VERSION == 3
+using namespace cv::cuda;
+#endif
 
 
 class visionUtils
