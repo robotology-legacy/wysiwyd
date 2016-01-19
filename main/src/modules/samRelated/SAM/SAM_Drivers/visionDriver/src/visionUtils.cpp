@@ -837,7 +837,7 @@ void visionUtils::initKalmanFilterParameters(Point2f previousPoint)
     KF.transitionMatrix = *(Mat_<float>(4, 4) << 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
 #elif CV_MAJOR_VERSION == 3
     // TODO: Not sure whether this is correct
-    KF.transitionMatrix *= (Mat_<float>(4, 4) << 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
+    KF.transitionMatrix = (Mat_<float>(4, 4) << 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
 #endif
 
     measurement.create(2,1);
