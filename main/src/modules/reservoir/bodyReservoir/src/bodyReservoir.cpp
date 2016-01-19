@@ -309,7 +309,7 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     lArgument.push_back(pair<string, string>("iCub", "agent"));
     lArgument.push_back(pair<string, string>("wave", "predicate"));
     lArgument.push_back(pair<string, string>(sAgent, "object"));
-    if (abm) if (abm) iCub->getABMClient()->sendActivity("action", "wave", "action", lArgument, true);
+    if (abm) iCub->getABMClient()->sendActivity("action", "wave", "action", lArgument, true);
 
 
     bool bSuccess = iCub->look(sAgent);
@@ -317,7 +317,7 @@ Bottle bodyReservoir::waveAtAgent(string sAgent)
     bSuccess &= iCub->getARE()->waving(true);
 
     lArgument.push_back(pair<string, string>((bSuccess ? "success" : "failed"), "status"));
-    if (abm) if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
+    if (abm) iCub->getABMClient()->sendActivity("action", "point", "action", lArgument, false);
 
     bOutput.addString("waving");
     bOutput.addString(sAgent);
