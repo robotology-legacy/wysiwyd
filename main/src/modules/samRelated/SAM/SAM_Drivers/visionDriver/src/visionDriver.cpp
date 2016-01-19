@@ -134,7 +134,14 @@ bool visionDriver::updateModule()
             cv::cuda::cvtColor(captureFrameGPU,grayscaleFrameGPU,CV_BGR2GRAY);
             cv::cuda::equalizeHist(grayscaleFrameGPU,grayscaleFrameGPU);
             // Face and Body
-            noFaces = face_cascade->detectMultiScale(grayscaleFrameGPU,objBufFaceGPU,1.2,5,Size(30,30));
+            // TODO: Check if correct
+            face_cascade->setScaleFactor(1.2);
+            face_cascade->setMinNeighbors(5);
+            face_cascade->setMinObjectSize(Size(30,30));
+            face_cascade->detectMultiScale(grayscaleFrameGPU,objBufFaceGPU);
+            vector<cv::Rect> objBufFace;
+            face_cascade->convert( objBufFaceGPU, objBufFace );
+            noFaces = objBufFace.size();
             //noBodies = body_cascade->detectMultiScale(grayscaleFrameGPU,objBufBodyGPU,1.2,5,Size(150,150));
 #endif
             noBodies = 0;            

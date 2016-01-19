@@ -524,8 +524,12 @@ Mat visionUtils::skinDetect(Mat captureframe, Mat3b *skinDetectHSV, Mat *skinMas
         gpu::morphologyEx(imgGPU, imgGPU, CV_MOP_CLOSE, Mat1b(imgMorphPixels,imgMorphPixels,1), Point(-1, -1), 2);
         gpu::GaussianBlur(imgGPU, imgGPU, Size(imgBlurPixels,imgBlurPixels), 1, 1);
 #elif CV_MAJOR_VERSION == 3
-        cuda::morphologyEx(imgGPU, imgGPU, CV_MOP_CLOSE, Mat1b(imgMorphPixels,imgMorphPixels,1), Point(-1, -1), 2);
-        cuda::GaussianBlur(imgGPU, imgGPU, Size(imgBlurPixels,imgBlurPixels), 1, 1);
+        //TODO: Check if that's correct
+        Mat element = getStructuringElement(MORPH_RECT, Size(imgMorphPixels, imgMorphPixels), Point(-1, -1));
+        Ptr<cuda::Filter> closeFilter = cuda::createMorphologyFilter(MORPH_CLOSE, imgGPU.type(), element, Point(-1, -1), 2);
+        closeFilter->apply(imgGPU, imgGPU);
+        cv::Ptr<cv::cuda::Filter> gaussianFilter = cv::cuda::createGaussianFilter(imgGPU.type(), imgGPU.type(), Size(imgMorphPixels, imgMorphPixels), 1, 1);
+        gaussianFilter->apply(imgGPU, imgGPU);
 #endif
 
         imgGPU.download(frame_gray);
@@ -594,7 +598,8 @@ Mat visionUtils::cannySegmentation(Mat img0, int minPixelSize, bool displayFaces
 #if CV_MAJOR_VERSION == 2
         gpu::Canny(imgGPU, imgGPU, 100, 200, 3); //100, 200, 3);
 #elif CV_MAJOR_VERSION == 3
-        cuda::Canny(imgGPU, imgGPU, 100, 200, 3); //100, 200, 3);
+        cv::Ptr<cv::cuda::CannyEdgeDetector> canny = cv::cuda::createCannyEdgeDetector(100, 200, 3);
+        canny->detect(imgGPU, imgGPU);
 #endif
         imgGPU.download(img1);
     }
@@ -828,8 +833,13 @@ vector<Point2f> visionUtils::getPredictedHandPosition(Point2f currentPoint, int 
 void visionUtils::initKalmanFilterParameters(Point2f previousPoint)
 {
     KF.init(4, 2, 0);
+#if CV_MAJOR_VERSION == 2
     KF.transitionMatrix = *(Mat_<float>(4, 4) << 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
-    
+#elif CV_MAJOR_VERSION == 3
+    // TODO: Not sure whether this is correct
+    KF.transitionMatrix *= (Mat_<float>(4, 4) << 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
+#endif
+
     measurement.create(2,1);
     measurement.setTo(Scalar(0));
     
