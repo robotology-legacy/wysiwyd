@@ -75,7 +75,7 @@ protected:
     cv::Rect2d trackerResult;
     cv::Ptr<cv::Tracker> tracker;
 #else
-    cv::CvRect trackerResult;
+    CvRect trackerResult;
 #endif
 
 public:
