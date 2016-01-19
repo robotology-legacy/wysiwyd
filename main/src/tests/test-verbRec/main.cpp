@@ -49,8 +49,6 @@ public:
     bool configure(ResourceFinder &rf)
     {
         agentName=rf.check("agent-name",Value("partner")).asString();
-        actionTag=rf.check("action-tag",Value("none")).asString();
-        objectTag=rf.check("object-tag",Value("none")).asString();
         period=rf.check("period",Value(0.1)).asDouble();
 
         if (!opc.connect("OPC"))
@@ -64,7 +62,10 @@ public:
         rpcPort.open("/test_verbRec/rpc");
         attach(rpcPort);
 
+        actionTag="none";
+        objectTag="none";
         gate=0;
+
         return true;
     }
 
@@ -145,15 +146,31 @@ public:
         LockGuard lg(mutex);
         int cmd=command.get(0).asVocab();
         int ack=Vocab::encode("ack");
+        int nack=Vocab::encode("nack");
 
         if (cmd==Vocab::encode("start"))
         {
-            gate=1;
-            reply.addVocab(ack);
+            if (command.size()>=3)
+            {
+                actionTag=command.get(1).asString();
+                objectTag=command.get(2).asString();
+                gate=1;
+                if (command.size()>=4)
+                {
+                    int g=command.get(3).asInt();
+                    if (g>0)
+                        gate=g;
+                }
+                reply.addVocab(ack);
+            }
+            else
+                reply.addVocab(nack);
             return true;
         }
         else if (cmd==Vocab::encode("stop"))
         {
+            actionTag="none";
+            objectTag="none";
             gate=0;
             reply.addVocab(ack);
             return true;
@@ -161,6 +178,8 @@ public:
         else if (cmd==Vocab::encode("get"))
         {
             reply.addVocab(ack);
+            reply.addString(actionTag);
+            reply.addString(objectTag);
             reply.addInt(gate);
             return true;
         }
