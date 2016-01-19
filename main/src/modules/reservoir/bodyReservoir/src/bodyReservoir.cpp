@@ -170,7 +170,7 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
             string sHand;
             (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
             Bottle bHand(sHand);
-            bool bSuccess;
+            bool bSuccess = false;
 
             cout << ob << ": " << obj1->m_ego_position.toString() << " with hand: " << sHand << endl;
             if (command.get(1).toString() == "point"){
