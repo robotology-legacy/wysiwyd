@@ -51,6 +51,7 @@
 #include <opencv2/cudaobjdetect.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudawarping.hpp>
+#include <opencv2/cudafilters.hpp>
 #endif
 
 #include <yarp/sig/all.h>
