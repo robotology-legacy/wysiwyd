@@ -70,10 +70,12 @@ protected:
     int trackerState;
     double trackerTmo;
     double trackerTimer;    
-    cv::Rect2d trackerResult;
 
 #ifdef IOL2OPC_TRACKING
+    cv::Rect2d trackerResult;
     cv::Ptr<cv::Tracker> tracker;
+#else
+    cv::CvRect trackerResult;
 #endif
 
 public:
@@ -85,9 +87,10 @@ public:
               filterPos(filter_order), filterDim(10*filter_order),
               init_filters(true), presenceTmo(presenceTmo_),
               trackerType(trackerType_), trackerState(idle),
-              trackerTmo(trackerTmo_), trackerTimer(0.0),
-              trackerResult(cv::Rect2d(0,0,0,0))
+              trackerTmo(trackerTmo_), trackerTimer(0.0)              
     {
+        trackerResult.x=trackerResult.y=0;
+        trackerResult.width=trackerResult.height=0;
         heartBeat();
     }
 
@@ -133,12 +136,15 @@ public:
     /**********************************************************/
     void latchBBox(const CvRect& bbox)
     {
-        trackerResult=cv::Rect2d(bbox.x,bbox.y,bbox.width,bbox.height);
+        trackerResult.x=bbox.x;
+        trackerResult.y=bbox.y;
+        trackerResult.width=bbox.width;
+        trackerResult.height=bbox.height;
         trackerState=no_need;
     }
 
     /**********************************************************/
-    void track(const ImageOf<PixelBgr>& img)
+    void track(const Image& img)
     {
     #ifdef IOL2OPC_TRACKING
         cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
