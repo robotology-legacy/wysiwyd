@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from time import sleep
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -51,7 +53,7 @@ if __name__ == '__main__':
     drive_value_ports = [yarp.BufferedPortBottle() for _ in drives] 
     for i, d in enumerate(drives):
         drive_value_ports[i].open("/" + module_name +"/" + d + ":i") 
-        print yarp.Network.connect("/homeostasis/" + d + "/max:o", drive_value_ports[i].getName())
+        yarp.Network.connect("/homeostasis/" + d + "/max:o", drive_value_ports[i].getName())
 
     # time window size (= win_size * 0.1s)
     win_size = 200
@@ -84,7 +86,6 @@ if __name__ == '__main__':
                 drive_values_as_list[0][i][-1] = res
             v_line[0].set_data(range(win_size), drive_values_as_list[0][i])
             min_line[0].set_data((0, win_size), (homeo_mins[i], homeo_mins[i]))
-            print homeo_maxs[i]
             max_line[0].set_data((0, win_size), (homeo_maxs[i], homeo_maxs[i]))
         return value_lines
 
