@@ -29,9 +29,8 @@ using namespace wysiwyd::wrdac;
 
 class verbRec : public RFModule {
 private:
-        double period;
-        Port Port_out; // a port to receive input
-        Port Port_in; // a port for output
+    double period;
+    Port Port_rpc;
 
     float input[47];
     float output[11];

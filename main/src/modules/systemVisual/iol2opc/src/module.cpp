@@ -22,13 +22,7 @@
 #include <algorithm>
 #include <set>
 
-#include <yarp/math/Math.h>
-#include <yarp/math/Rand.h>
-
 #include "module.h"
-
-using namespace std;
-using namespace yarp::math;
 
 
 /**********************************************************/
@@ -115,6 +109,7 @@ Bottle IOL2OPCBridge::getBlobs()
 
     if (Bottle *pBlobs=blobExtractor.read(false))
     {
+        lastBlobsArrivalTime=Time::now();
         lastBlobs=skimBlobs(*pBlobs);
         yInfo("Received blobs list: %s",lastBlobs.toString().c_str());
 
@@ -122,8 +117,10 @@ Bottle IOL2OPCBridge::getBlobs()
         {
             if (lastBlobs.get(0).asVocab()==Vocab::encode("empty"))
                 lastBlobs.clear();
-        }
+        }        
     }
+    else if (Time::now()-lastBlobsArrivalTime>rtLocalizationPeriod)
+        lastBlobs.clear();
 
     // release resources
     mutexResources.unlock();
@@ -626,14 +623,23 @@ void IOL2OPCBridge::updateOPC()
     {
         // grab resources
         LockGuard lg(mutexResources);
+        bool unknownObjectInScene=false;
         opc->checkout();
+
+        // latch image
+        ImageOf<PixelBgr> &imgLatch=imgTrackOut.prepare();
+        imgLatch=imgRtLoc;
 
         mutexResourcesOpc.lock();
         Bottle blobs=opcBlobs;
         Bottle scores=opcScores;
         mutexResourcesOpc.unlock();
 
-        bool unknownObjectInScene = false;
+        // reset internal tracking state
+        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+            it->second.prepare();
+
+        // check detected objects
         for (int j=0; j<blobs.size(); j++)
         {
             Bottle *item=blobs.get(j).asList();
@@ -645,76 +651,110 @@ void IOL2OPCBridge::updateOPC()
 
             // find the blob name (or unknown)
             string object=findName(scores,tag.str());
-
             if (object!=OBJECT_UNKNOWN)
             {
-                CvPoint cog=getBlobCOG(blobs,j);
-                if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
-                    continue;
-
-                // compute the bounding box
-                CvPoint tl,br;
-                tl.x=(int)item->get(0).asDouble();
-                tl.y=(int)item->get(1).asDouble();
-                br.x=(int)item->get(2).asDouble();
-                br.y=(int)item->get(3).asDouble();
-                CvPoint sz;
-                sz.x=br.x-tl.x;
-                sz.y=br.y-tl.y;
-                CvRect bbox=cvRect(tl.x,tl.y,sz.x,sz.y);
-
                 map<string,IOLObject>::iterator it=db.find(object);
                 if (it!=db.end())
                 {
-                    // find 3d position
-                    Vector x,dim;
-                    if (get3DPositionAndDimensions(bbox,x,dim))
+                    CvPoint cog=getBlobCOG(blobs,j);
+                    if ((cog.x==RET_INVALID) || (cog.y==RET_INVALID))
+                        continue;
+
+                    // compute the bounding box
+                    CvPoint tl,br;
+                    tl.x=(int)item->get(0).asDouble();
+                    tl.y=(int)item->get(1).asDouble();
+                    br.x=(int)item->get(2).asDouble();
+                    br.y=(int)item->get(3).asDouble();
+                    it->second.latchBBox(cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
+                    it->second.heartBeat();
+                }
+            }
+            else
+                unknownObjectInScene=true;
+        }
+
+        // cycle over objects to handle tracking
+        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+            it->second.track(imgLatch);
+
+        CvFont font;
+        cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX,0.5,0.5,0,1);                
+
+        // perform operations
+        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+        {
+            string object=it->first;
+            Object *obj=opc->addOrRetrieveEntity<Object>(object);
+
+            // garbage collection
+            if (it->second.isDead())
+            {
+                obj->m_present=false;
+                continue;
+            }
+
+            CvRect bbox;
+            if (it->second.is_tracking(bbox))
+            {
+                // find 3d position
+                Vector x,dim;
+                if (get3DPositionAndDimensions(bbox,x,dim))
+                {
+                    Vector x_filtered,dim_filtered;
+                    it->second.filt(x,x_filtered,
+                                    dim,dim_filtered);
+
+                    it->second.opc_id=obj->opc_id();
+                    obj->m_ego_position=x_filtered;
+                    obj->m_dimensions=dim_filtered;
+                    obj->m_present=true;
+
+                    // threshold bbox
+                    CvPoint tl=cvPoint(bbox.x,bbox.y);
+                    CvPoint br=cvPoint(tl.x+bbox.width,tl.y+bbox.height);
+                    tl.x=std::min(imgRtLoc.width(),std::max(tl.x,0));
+                    tl.y=std::min(imgRtLoc.height(),std::max(tl.y,0));
+                    br.x=std::min(imgRtLoc.width(),std::max(br.x,0));
+                    br.y=std::min(imgRtLoc.height(),std::max(br.y,0));
+
+                    bbox=cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+                    if ((bbox.width>0) && (bbox.height>0))
                     {
-                        Vector filtered=it->second.filt(cat(x,dim));
-
-                        Object *obj=opc->addOrRetrieveEntity<Object>(object);
-                        obj->m_ego_position=filtered.subVector(0,2);
-                        obj->m_dimensions=filtered.subVector(3,5);
-                        obj->m_present=true;
-                        it->second.opc_id = obj->opc_id();
-
                         // Extract color information from blob
                         // create temporary image, and copy blob in there
-                        ImageOf<PixelBgr> imgTmp1;
-                        imgTmp1.resize(sz.x,sz.y);
-                        cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),bbox);
-                        cvCopy(imgRtLoc.getIplImage(),imgTmp1.getIplImage());
-                        cvResetImageROI((IplImage*)imgRtLoc.getIplImage());
+                        ImageOf<PixelBgr> imgTmp;
+                        imgTmp.resize(bbox.width,bbox.height);
+                        cvSetImageROI((IplImage*)imgLatch.getIplImage(),bbox);
+                        cvCopy(imgLatch.getIplImage(),imgTmp.getIplImage());
+                        cvResetImageROI((IplImage*)imgLatch.getIplImage());
 
                         // now get mean color of blob, and fill the OPC object with the information
                         // be careful: computation done in BGR => save in RGB for displaying purpose
-                        CvScalar meanColor = cvAvg(imgTmp1.getIplImage());
-                        obj->m_color[0] = (int)meanColor.val[2];
-                        obj->m_color[1] = (int)meanColor.val[1];
-                        obj->m_color[2] = (int)meanColor.val[0];
+                        CvScalar meanColor=cvAvg(imgTmp.getIplImage());
+                        obj->m_color[0]=(int)meanColor.val[2];
+                        obj->m_color[1]=(int)meanColor.val[1];
+                        obj->m_color[2]=(int)meanColor.val[0];
+
+                        cvRectangle(imgLatch.getIplImage(),cvPoint(bbox.x,bbox.y),
+                                    cvPoint(bbox.x+bbox.width,bbox.y+bbox.height),cvScalar(255,0,0),2);
+
+                        cvPutText(imgLatch.getIplImage(),object.c_str(),
+                                  cvPoint(bbox.x,bbox.y-5),&font,cvScalar(255,0,0));
                     }
-
-                    it->second.heartBeat();
                 }
-            } else {
-                unknownObjectInScene = true;
             }
         }
 
-        // garbage collection
-        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++) {
-            if (it->second.isDead()) {
-                Object *obj = dynamic_cast<Object*>(opc->getEntity(it->second.opc_id));
-                if(obj)
-                    obj->m_present=false;
-            }
-        }
+        if (!unknownObjectInScene)
+            onlyKnownObjects.heartBeat();
 
         opc->commit();
 
-        if(!unknownObjectInScene) {
-            onlyKnownObjects.heartBeat();
-        }
+        if (imgTrackOut.getOutputCount()>0)
+            imgTrackOut.write();
+        else
+            imgTrackOut.unprepare();
     }
 }
 
@@ -737,6 +777,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     imgIn.open(("/"+name+"/img:i").c_str());
     blobExtractor.open(("/"+name+"/blobs:i").c_str());
     imgRtLocOut.open(("/"+name+"/imgLoc:o").c_str());
+    imgTrackOut.open(("/"+name+"/imgTrack:o").c_str());
     imgSelBlobOut.open(("/"+name+"/imgSel:o").c_str());
     imgClassifier.open(("/"+name+"/imgClassifier:o").c_str());
     imgHistogram.open(("/"+name+"/imgHistogram:o").c_str());
@@ -785,7 +826,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histObjLocation[2]=-0.1;
 
     rtLocalization.setBridge(this);
-    rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
+    int rtLocalizationPeriod_=rf.check("rt_localization_period",Value(30)).asInt();
+    rtLocalization.setRate(rtLocalizationPeriod_);
+    rtLocalizationPeriod=rtLocalizationPeriod_*0.001;
 
     opcUpdater.setBridge(this);
     opcUpdater.setRate(rf.check("opc_update_period",Value(60)).asInt());
@@ -795,6 +838,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
+    tracker_type=rf.check("tracker_type",Value("BOOSTING")).asString().c_str();
+    tracker_timeout=std::max(0.0,rf.check("tracker_timeout",Value(5.0)).asDouble());
 
     imgRtLoc.resize(320,240);
     imgRtLoc.zero();
@@ -810,6 +855,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     attach(rpcPort);
 
+    lastBlobsArrivalTime=0.0;
     rtLocalization.start();
     opcUpdater.start();
 
@@ -824,6 +870,7 @@ bool IOL2OPCBridge::interruptModule()
 {
     imgIn.interrupt();
     imgRtLocOut.interrupt();
+    imgTrackOut.interrupt();
     imgSelBlobOut.interrupt();
     imgClassifier.interrupt();
     imgHistogram.interrupt();
@@ -847,6 +894,7 @@ bool IOL2OPCBridge::close()
 {
     imgIn.close();
     imgRtLocOut.close();
+    imgTrackOut.close();
     imgSelBlobOut.close();
     imgClassifier.close();
     imgHistogram.close();
@@ -890,7 +938,8 @@ bool IOL2OPCBridge::updateModule()
         {
             if (Bottle *names=reply.get(1).asList())
                 for (int i=0; i<names->size(); i++)
-                    db[names->get(i).asString().c_str()]=IOLObject(opcMedianFilterOrder,presence_timeout);
+                    db[names->get(i).asString().c_str()]=IOLObject(opcMedianFilterOrder,presence_timeout,
+                                                                   tracker_type,tracker_timeout);
 
             if (empty)
                 remove_all();
@@ -950,7 +999,6 @@ bool IOL2OPCBridge::updateModule()
 
                 // find the blob name (or unknown)
                 string object=findName(scores,tag.str());
-
                 if (object==OBJECT_UNKNOWN)
                 {
                     mutexResources.lock();
@@ -959,7 +1007,8 @@ bool IOL2OPCBridge::updateModule()
                     opc->commit(obj);
                     mutexResources.unlock();
 
-                    db[obj->name()]=IOLObject(opcMedianFilterOrder,presence_timeout);
+                    db[obj->name()]=IOLObject(opcMedianFilterOrder,presence_timeout,
+                                              tracker_type,tracker_timeout);
                     train(obj->name(),blobs,j);
                     onlyKnownObjects.heartBeat();
                     break;
@@ -1007,7 +1056,8 @@ bool IOL2OPCBridge::train_object(const string &name)
         // add a new object in the database
         // if not already existing
         if (db.find(name)==db.end())
-            db[name]=IOLObject(opcMedianFilterOrder,presence_timeout);
+            db[name]=IOLObject(opcMedianFilterOrder,presence_timeout,
+                               tracker_type,tracker_timeout);
 
         return true;
     }

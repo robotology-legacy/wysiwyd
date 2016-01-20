@@ -22,12 +22,17 @@
 #include <deque>
 #include <map>
 
-#include <opencv2/opencv.hpp>
-
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
+#include <yarp/math/Math.h>
+#include <yarp/math/Rand.h>
 #include <iCub/ctrl/filters.h>
 #include <wrdac/clients/opcClient.h>
+
+#include <opencv2/opencv.hpp>
+#ifdef IOL2OPC_TRACKING
+    #include <opencv2/tracking.hpp>
+#endif
 
 #include "utils.h"
 #include "iol2opc_IDL.h"
@@ -38,6 +43,7 @@
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace iCub::ctrl;
 using namespace wysiwyd::wrdac;
 
@@ -52,40 +58,126 @@ namespace Bridge {
 class IOLObject
 {
 protected:
-    MedianFilter filter;
-    bool init_filter;
+    MedianFilter filterPos;
+    MedianFilter filterDim;
+    bool init_filters;
     double presenceTmo;
-    double timer;
+    double presenceTimer;
+
+    enum { idle, init, no_need, tracking };
+
+    string trackerType;
+    int trackerState;
+    double trackerTmo;
+    double trackerTimer;    
+
+#ifdef IOL2OPC_TRACKING
+    cv::Rect2d trackerResult;
+    cv::Ptr<cv::Tracker> tracker;
+#else
+    CvRect trackerResult;
+#endif
 
 public:
+    int opc_id;
+
     /**********************************************************/
-    IOLObject(const int filter_order=1, const double _presenceTmo=0.0) :
-              filter(filter_order), init_filter(true),
-              presenceTmo(_presenceTmo)
+    IOLObject(const int filter_order=1, const double presenceTmo_=0.0,
+              const string &trackerType_="BOOSTING", const double trackerTmo_=0.0) :
+              filterPos(filter_order), filterDim(10*filter_order),
+              init_filters(true), presenceTmo(presenceTmo_),
+              trackerType(trackerType_), trackerState(idle),
+              trackerTmo(trackerTmo_), trackerTimer(0.0)              
     {
+        trackerResult.x=trackerResult.y=0;
+        trackerResult.width=trackerResult.height=0;
         heartBeat();
     }
 
     /**********************************************************/
-    void heartBeat() { timer=Time::now(); }
-
-    /**********************************************************/
-    bool isDead() const { return (Time::now()-timer>=presenceTmo); }
-
-    /**********************************************************/
-    Vector filt(const Vector &x)
+    void heartBeat()
     {
-        if (init_filter)
-        {
-            filter.init(x);
-            init_filter=false;
-            return x;
-        }
-        else
-            return filter.filt(x);
+        presenceTimer=Time::now();
     }
 
-    int opc_id;
+    /**********************************************************/
+    bool isDead()
+    {
+        bool dead=(Time::now()-presenceTimer>=presenceTmo);
+        if (dead)
+            trackerState=idle;
+        return dead;
+    }
+
+    /**********************************************************/
+    void filt(const Vector &x, Vector &xFilt,
+              const Vector &d, Vector &dFilt)
+    {
+        if (init_filters)
+        {
+            filterPos.init(x); xFilt=x;
+            filterDim.init(d); dFilt=d;
+            init_filters=false;
+        }
+        else
+        {
+            xFilt=filterPos.filt(x);
+            dFilt=filterDim.filt(d);
+        }
+    }
+
+    /**********************************************************/
+    void prepare()
+    {
+        if (trackerState==no_need)
+            trackerState=init;
+    }
+
+    /**********************************************************/
+    void latchBBox(const CvRect& bbox)
+    {
+        trackerResult.x=bbox.x;
+        trackerResult.y=bbox.y;
+        trackerResult.width=bbox.width;
+        trackerResult.height=bbox.height;
+        trackerState=no_need;
+    }
+
+    /**********************************************************/
+    void track(const Image& img)
+    {
+    #ifdef IOL2OPC_TRACKING
+        cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
+        if (trackerState==init)
+        {
+            tracker=cv::Tracker::create(trackerType);
+            tracker->init(frame,trackerResult);
+            trackerTimer=Time::now();
+            trackerState=tracking;
+        }
+        else if (trackerState==tracking)
+        {
+            if (Time::now()-trackerTimer<trackerTmo)
+            {
+                tracker->update(frame,trackerResult);
+                heartBeat();
+            }
+            else
+                trackerState=idle;
+        }
+    #else
+        if (trackerState==init)
+            trackerState=idle;
+    #endif
+    }
+
+    /**********************************************************/
+    bool is_tracking(CvRect& bbox) const
+    {
+        bbox=cvRect((int)trackerResult.x,(int)trackerResult.y,
+                    (int)trackerResult.width,(int)trackerResult.height);
+        return (trackerState!=idle);
+    }
 };
 
 
@@ -103,10 +195,12 @@ protected:
     BufferedPort<Bottle>             getClickPort;
     BufferedPort<ImageOf<PixelBgr> > imgIn;
     BufferedPort<ImageOf<PixelBgr> > imgRtLocOut;
+    BufferedPort<ImageOf<PixelBgr> > imgTrackOut;
     BufferedPort<ImageOf<PixelBgr> > imgSelBlobOut;
     BufferedPort<ImageOf<PixelBgr> > imgHistogram;
     Port imgClassifier;
 
+    double rtLocalizationPeriod;
     RtLocalization rtLocalization;
     OpcUpdater opcUpdater;
     int opcMedianFilterOrder;
@@ -120,6 +214,8 @@ protected:
     bool empty;
     double period;
     double presence_timeout;
+    string tracker_type;
+    double tracker_timeout;
     map<string,IOLObject> db;
     Bridge::State state;
     IOLObject onlyKnownObjects;
@@ -128,6 +224,7 @@ protected:
     int histFilterLength;
     deque<CvScalar> histColorsCode;
 
+    double lastBlobsArrivalTime;
     Bottle lastBlobs;
     Bottle opcBlobs;
     Bottle opcScores;

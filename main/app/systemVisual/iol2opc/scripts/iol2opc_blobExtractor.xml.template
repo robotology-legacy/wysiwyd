@@ -63,6 +63,11 @@
                 <parameters>--name /iolViewer/iol2opc/view/histogram --x 2340 --y 50 --w 600 --h 600 --p 50 --compact</parameters>
                 <node>copper</node>
         </module>
+        <module>
+            <name>yarpview</name>
+            <parameters>--name /iolViewer/iol2opc/view/track --x 1730 --y 720 --p 50 --compact</parameters>
+            <node>copper</node>
+        </module>
 
         <connection>
                 <from>/icub/camcalib/left/out</from>
@@ -128,6 +133,11 @@
                 <from>/iolViewer/iol2opc/view/localizer:o</from>
                 <to>/iol2opc/histObjLocation:i</to>
                 <protocol>tcp</protocol>
+        </connection>
+        <connection>
+                <from>/iol2opc/imgTrack:o</from>
+                <to>/iolViewer/iol2opc/view/track</to>
+                <protocol>udp</protocol>
         </connection>
         <connection>
                 <from>/iol2opc/imgSel:o</from>

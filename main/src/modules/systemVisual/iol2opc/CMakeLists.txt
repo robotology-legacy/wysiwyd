@@ -2,27 +2,31 @@
 # Authors: Ugo Pattacini, Tobias Fischer
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(PROJECTNAME iol2opc)
-project(${PROJECTNAME})
+project(iol2opc)
+set(WYSIWYD_IOL2OPC_WITH_TRACKING FALSE CACHE BOOL "Enable iol2opc with tracking (requires VERSION(OpenCV) > 2.x.y)")
 
 include(YarpIDL)
 
 set(folder_header include/utils.h
                   include/module.h
-                  ${IDL_GENERATED_CODE_DIR}/include/${PROJECTNAME}_IDL.h)
+                  ${IDL_GENERATED_CODE_DIR}/include/${PROJECT_NAME}_IDL.h)
 
 set(folder_source src/utils.cpp
                   src/module.cpp
                   src/main.cpp
-                  ${IDL_GENERATED_CODE_DIR}/src/${PROJECTNAME}_IDL.cpp)
+                  ${IDL_GENERATED_CODE_DIR}/src/${PROJECT_NAME}_IDL.cpp)
 
-set(idl_files ${PROJECTNAME}.thrift)
+set(idl_files ${PROJECT_NAME}.thrift)
 
 yarp_idl_to_dir(${idl_files} ${IDL_GENERATED_CODE_DIR})
 
 source_group("Header Files" FILES ${folder_header})
 source_group("Source Files" FILES ${folder_source})
 source_group("IDL Files"    FILES ${idl_files})
+
+if(WYSIWYD_IOL2OPC_WITH_TRACKING)
+    add_definitions(-DIOL2OPC_TRACKING)
+endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${IDL_GENERATED_CODE_DIR}/include
@@ -31,10 +35,8 @@ include_directories(${PROJECT_SOURCE_DIR}/include
                     ${YARP_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS})
 
-add_executable(${PROJECTNAME} ${idl_files} ${folder_header} ${folder_source})
-target_link_libraries(${PROJECTNAME} ${OpenCV_LIBRARIES} ctrlLib ${YARP_LIBRARIES} wrdac)
+add_executable(${PROJECT_NAME} ${idl_files} ${folder_header} ${folder_source})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES} ctrlLib ${YARP_LIBRARIES} wrdac)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER systemVisual)
-install(TARGETS ${PROJECTNAME} DESTINATION bin)
-
-
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)

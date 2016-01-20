@@ -1,0 +1,34 @@
+<application>
+  <name>WYSIWYD Test verbRec</name>
+
+  <module>
+    <name>test-verbRec</name>
+    <parameters></parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>verbRec</name>
+    <parameters></parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name /verbRec/log</parameters>
+    <node>localhost</node>
+  </module>
+
+  <connection>
+      <from>/test_verbRec/verb:rpc</from>
+      <to>/verbRec/rpc</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/test_verbRec/dump:o</from>
+      <to>/verbRec/log</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+</application>
