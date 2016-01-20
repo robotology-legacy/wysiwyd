@@ -55,6 +55,7 @@ class PasarModule : public yarp::os::RFModule {
     double pTopDownWaving;                  // increase of saliency if waving
     double thresholdMovementAccel;          // minimum acceleration detect
     double thresholdWaving;                 // minimum waving detected
+    double thresholdPointing;                 // minimum waving detected
     double thresholdSaliency;
     double dthresholdAppear;
     double dthresholdDisappear;
@@ -63,10 +64,8 @@ class PasarModule : public yarp::os::RFModule {
     double lastTimeWaving;
     double lastTimePointing;
 
-    bool recordWave;
-    bool recordPoint;
-
-    OPCClient *opc;                  //retrieve information from the OPC
+    bool checkWaving;
+    bool checkPointing;
     ICubClient  *iCub;
     bool abm;
 
@@ -94,7 +93,7 @@ class PasarModule : public yarp::os::RFModule {
 
     bool isControllingMotors;
     bool isPointing; // if the human is pointing
-    bool isWaving; // check if the human is waving
+    bool isWaving; // if if the human is waving
     int store_context_id;
     double initTime;
 
@@ -103,8 +102,8 @@ protected:
     void saliencyTopDown();
     void saliencyNormalize();
     void saliencyLeakyIntegration();
-    void saliencyPointing();
-    void saliencyWaving();
+    bool saliencyPointing();
+    bool saliencyWaving();
     void initializeMapTiming();
     void updateMapTiming();
 

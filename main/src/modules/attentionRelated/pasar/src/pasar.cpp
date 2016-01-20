@@ -60,6 +60,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         Value(0.2)).asDouble();
     dthresholdAppear = rf.check("thresholdAppear", Value(1.)).asDouble();
     dthresholdDisappear = rf.check("thresholdDisappear", Value(2.)).asDouble();
+    thresholdPointing = rf.check("thresholdDistancePointing", Value(.5)).asDouble();
 
     //check for decrease
     if (pExponentialDecrease >= 1 || pExponentialDecrease <= 0.0)   pExponentialDecrease = 0.95;
@@ -84,16 +85,6 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     isControllingMotors = rf.check("motorControl",
         Value(0)).asInt() == 1;
     //Ports
-
-    opcName = rf.check("opc", Value("OPC")).asString().c_str();
-    opc = new OPCClient(moduleName);
-    while (!opc->connect(opcName))
-    {
-        cout << "Waiting connection to OPC..." << endl;
-        Time::delay(1.0);
-    }
-
-    opc->checkout();
 
 
     bool isRFVerbose = true;
@@ -124,13 +115,14 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         isSkeletonIn = true;
     }
 
-    isPointing = rf.find("isPointing").asInt() == 1;
-    isWaving = rf.find("isWaving").asInt() == 1;
+    checkPointing = rf.find("isPointing").asInt() == 1;
+    checkWaving = rf.find("isWaving").asInt() == 1;
 
-    //isPointing = true;
+    isPointing = false;
+    isWaving = false;
 
-    yInfo() << " pointing: " << isPointing;
-    yInfo() << " waving: " << isWaving;
+    yInfo() << " pointing: " << checkPointing;
+    yInfo() << " waving: " << checkWaving;
 
     if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
         cout << getName() << ": Unable to open port rpc" << endl;
@@ -143,6 +135,11 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     initTime = yarp::os::Time::now();
     initializeMapTiming();
 
+    for (auto &it : OPCEntities)
+    {
+        cout << "start: checking entity: " << it.second.o.name() << " opcPresence: " << it.second.o.m_present << ", pasar presence: " << it.second.present << endl;
+    }
+
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
@@ -151,14 +148,14 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 
 /************************************************************************/
 bool PasarModule::interruptModule() {
-    opc->interrupt();
+    iCub->opc->interrupt();
     handlerPort.interrupt();
     return true;
 }
 
 /************************************************************************/
 bool PasarModule::close() {
-    opc->close();
+    iCub->opc->close();
     handlerPort.interrupt();
     handlerPort.close();
     return true;
@@ -197,13 +194,13 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
         {
             if (command.get(1).asString() == "off")
             {
-                isPointing = false;
+                checkPointing = false;
                 yInfo() << " stop pointing";
                 reply.addString("stop pointing");
             }
             else if (command.get(1).asString() == "on")
             {
-                isPointing = true;
+                checkPointing = true;
                 yInfo() << " start pointing";
                 reply.addString("start pointing");
             }
@@ -212,19 +209,19 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "waving") {
         if (command.size() != 2)
         {
-            reply.addString("error in PASAR: Botte 'waving' misses information (on/off)");
+            reply.addString("error in PASAR: Bottle 'waving' misses information (on/off)");
         }
         else
         {
             if (command.get(1).asString() == "off")
             {
-                isWaving = false;
+                checkWaving = false;
                 yInfo() << " stop waving";
                 reply.addString("stop waving");
             }
             else if (command.get(1).asString() == "on")
             {
-                isWaving = true;
+                checkWaving = true;
                 yInfo() << " start waving";
                 reply.addString("start waving");
             }
@@ -249,60 +246,40 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
 /***************************************************************************/
 bool PasarModule::updateModule()
 {
-    opc->checkout();
-    entities = opc->EntitiesCache();
+    iCub->opc->checkout();
+    entities = iCub->opc->EntitiesCache();
 
-    OPCEntities.clear();
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
 
-
-    //double now = Time::now() - initTime;
-
+    double now = Time::now() - initTime;
 
     for (auto &entity : entities)
     {
         if (entity->name() != "icub")
         {
-            //!!! ONLY OBJECTS, RT_OBJECT and AGENTS ARE TRACKED !!!
-
             if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT) || entity->isType(EFAA_OPC_ENTITY_OBJECT))
             {
-                if (entity->isType(EFAA_OPC_ENTITY_RTOBJECT))
-                {
-                    RTObject * rto = dynamic_cast<RTObject*>(entity);
-                    OPCEntities[entity->opc_id()].o.fromBottle(rto->asBottle());
-                    OPCEntities[entity->opc_id()].o.m_saliency = rto->m_saliency;
-
-                }
-
-                if (entity->isType(EFAA_OPC_ENTITY_OBJECT))
-                {
-                    Object * ob = dynamic_cast<Object*>(entity);
-                    OPCEntities[entity->opc_id()].o.fromBottle(ob->asBottle());
-                    OPCEntities[entity->opc_id()].o.m_saliency = ob->m_saliency;
-
-                }
-
-                if (entity->isType(EFAA_OPC_ENTITY_AGENT))
-                {
-                    Agent *ag = dynamic_cast<Agent*>(entity);
-                    OPCEntities[entity->opc_id()].o.fromBottle(ag->asBottle());
-                    OPCEntities[entity->opc_id()].o.m_saliency = ag->m_saliency;
-
-                }
+                Object * ob = dynamic_cast<Object*>(entity);
+                OPCEntities[entity->opc_id()].o = *ob;
             }
         }
     }
-    //if (OPCEntities[ (*it)->name() ].o.m_saliency > 0)
-    //    cout<<" salience : " << (*it)->name() << " " << OPCEntities[ (*it)->name() ].o.m_saliency << endl;
+
+
 
     if (presentObjectsLastStep.size() > 0)
     {
         //Compute top down saliency (concept based)
         saliencyTopDown();
-        if (isPointing) saliencyPointing();
-        if (isWaving)   saliencyWaving();
+        if (checkPointing) saliencyPointing();
+
+
+        if (checkWaving){
+            bool isWavingNow = saliencyWaving();
+            bool startWaving = (now - lastTimeWaving > dthresholdAppear) && !isWaving && isWavingNow;
+
+        }
 
         //Leaky integrate
         saliencyLeakyIntegration();
@@ -332,8 +309,12 @@ bool PasarModule::updateModule()
                 (dynamic_cast<Object*>(*it))->m_saliency = OPCEntities[(*it)->opc_id()].o.m_saliency;
             }
         }
-        opc->commit();
+        iCub->opc->commit();
     }
+    else{
+        yInfo(" no object present in the OPC");
+    }
+
     presentObjectsLastStep = OPCEntities;
 
     return true;
@@ -347,19 +328,16 @@ bool PasarModule::updateModule()
 */
 /************************************************************************/
 void PasarModule::saliencyTopDown() {
-    //cout<<"TopDown Saliency"<<endl;
     double now = yarp::os::Time::now() - initTime;
     //Add up the top down saliency
     for (auto &it : OPCEntities)
     {
+
         if (presentObjectsLastStep.find(it.first) != presentObjectsLastStep.end() && it.second.o.name() != "cursor_0" && it.second.o.name() != "icub")
         {
+
             //Objects appears/disappears
             bool appeared, disappeared;
-
-
-            //            yInfo() << "\t\t entity: " << it.second.o.name() << " last seen: " << it.second.lastTimeSeen << " now: " << now << "  diff is: " << now - it.second.lastTimeSeen;
-
 
             // If the object is absent:
             // if the lastTimeSeen was more than a threshold, the object dissapeared
@@ -377,8 +355,6 @@ void PasarModule::saliencyTopDown() {
 
             if (it.second.o.m_present) it.second.lastTimeSeen = now;
 
-
-
             //instantaneous speed/acceleration
             Vector lastPos = presentObjectsLastStep[it.first].o.m_ego_position;
             Vector currentPos = it.second.o.m_ego_position;
@@ -392,8 +368,8 @@ void PasarModule::saliencyTopDown() {
             if (appeared)
             {
                 it.second.o.m_saliency += pTopDownAppearanceBurst;
-                it.second.present = true;
                 yInfo() << "\t\t APPEARANCE OF: " << it.second.o.name();
+                it.second.present = true;
 
                 if (iCub->getABMClient()->Connect())
                 {
@@ -410,8 +386,9 @@ void PasarModule::saliencyTopDown() {
             if (disappeared)
             {
                 it.second.o.m_saliency += pTopDownDisappearanceBurst;
-                it.second.present = false;
                 yInfo() << "\t\t DISAPPEARANCE OF: " << it.second.o.name();
+                it.second.present = false;
+
                 if (iCub->getABMClient()->Connect())
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
@@ -493,9 +470,10 @@ bool PasarModule::isFixationPointSafe(Vector fp)
 * increase the salience of the closest object from the right hand
 *
 */
-void PasarModule::saliencyPointing()
+bool PasarModule::saliencyPointing()
 {
-    cout << "0; ";
+    bool startPointing = false;
+    bool stopPointing = false;
 
     bool wasPresent = false;
     Agent *ag;
@@ -507,98 +485,100 @@ void PasarModule::saliencyPointing()
             && (it.second.o.name() != "iCub")
             && (it.second.o.name() != "icub")){
             ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
-            Vector vec = ag->m_body.m_parts["handRight"];
+            vec = ag->m_body.m_parts["handRight"];
             wasPresent = true;
         }
     }
 
-    cout << "1; ";
-
 
     if (!wasPresent){
         yInfo() << " in PASAR:saliencyPointing no human agent present";
-        return;
+        return false;
     }
 
     double now = Time::now() - initTime;
-    if (now - lastTimePointing > dthresholdDisappear){
-        recordPoint = false;
-    }
-
-    cout << "2; ";
-
-    //    yInfo() << " righthand is:" << vec.toString();
 
     double x = vec[0];
     double y = vec[1];
     double z = vec[2];
 
-    double closest = 10e5;
+    double closest = thresholdPointing;
     string objectPointed = "none";
-
+    bool pointingNow = false;
     for (auto &it : OPCEntities)
     {
         if (it.second.o.name() != ag->name() && it.second.present)
         {
             double distance;
 
-            //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-
             distance = sqrt(
                 (x - it.second.o.m_ego_position[0])*(x - it.second.o.m_ego_position[0]) +
                 (y - it.second.o.m_ego_position[1])*(y - it.second.o.m_ego_position[1]) +
                 (z - it.second.o.m_ego_position[2])*(z - it.second.o.m_ego_position[2])
                 );
-            //                yInfo() << " distance from " << (*it)->name() << " is " << distance;
+
             if (distance < closest)
             {
                 closest = distance;
                 objectPointed = it.second.o.name();
+                pointingNow = true;
             }
         }
     }
 
-    cout << "3; ";
+    stopPointing = (now - lastTimePointing > dthresholdDisappear) && isPointing && !pointingNow;
+    startPointing = (now - lastTimePointing > dthresholdAppear) && !isPointing && pointingNow;
 
+    if (stopPointing){
+        cout << "\t\t STOP POINTING " << endl;
+        isPointing = false;
+        if (iCub->getABMClient()->Connect())
+        {
+            //                yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
+            std::list<std::pair<std::string, std::string> > lArgument;
+            iCub->getABMClient()->sendActivity("action",
+                "point",
+                "pasar",
+                lArgument,
+                false);
+        }
+    }
 
-    if (objectPointed != "none")
-    {
-        yInfo() << " pointed object is: \t" << objectPointed;
+    if (startPointing){
+        cout << "\t\t POINTING START " << objectPointed << endl;
+        isPointing = true;
+        if (iCub->getABMClient()->Connect())
+        {
+            //                yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
+            std::list<std::pair<std::string, std::string> > lArgument;
+            lArgument.push_back(std::pair<std::string, std::string>(objectPointed, "pointed"));
+            iCub->getABMClient()->sendActivity("action",
+                "point",
+                "pasar",
+                lArgument,
+                true);
+        }
+    }
+    if (pointingNow){
+        lastTimePointing = now;
+        //      yInfo() << " pointed object is: \t" << objectPointed;
         for (auto &it : OPCEntities)
         {
             if (it.second.o.name() == objectPointed)
             {
                 it.second.o.m_saliency += dBurstOfPointing;
-
-
-                if (!recordPoint && iCub->getABMClient()->Connect())
-                {
-                    yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
-                    std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "pointed"));
-                    iCub->getABMClient()->sendActivity("action",
-                        "point",
-                        "pasar",
-                        lArgument,
-                        true);
-                    recordPoint = true;
-                }
-                lastTimePointing = now;
             }
         }
     }
-    else
-    {
-        yInfo() << " pasar: no object pointed";
-    }
+    return pointingNow;
 }
 
 
 /*
 *  Increase the saliency of the agent waving
-*
+*  return true is the agent is wavingNow
 */
-void PasarModule::saliencyWaving()
+bool PasarModule::saliencyWaving()
 {
     bool wasPresent = false;
     Agent *ag;
@@ -616,8 +596,11 @@ void PasarModule::saliencyWaving()
 
     if (!wasPresent){
         yInfo() << " in PASAR:saliencyWaving no human agent present";
-        return;
+        return false;
     }
+    double dAccelLeft;
+    double dAccelRight;
+    bool wavingNow = false;
 
     if (!ag || !ag->m_present)
     {
@@ -627,7 +610,7 @@ void PasarModule::saliencyWaving()
         presentRightHand.second = false;
         presentLeftHand.second = false;
 
-        return;
+        return false;
     }
     else {
         Vector vecRight = ag->m_body.m_parts["handRight"];
@@ -651,6 +634,10 @@ void PasarModule::saliencyWaving()
         speedRightt1[1] = (vecRight[1] - rightHandt1[1]);
         speedRightt1[2] = (vecRight[2] - rightHandt1[2]);
 
+        accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
+        accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
+        accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
+
         speedLeftt1[0] = (vecLeft[0] - leftHandt1[0]);
         speedLeftt1[1] = (vecLeft[1] - leftHandt1[1]);
         speedLeftt1[2] = (vecLeft[2] - leftHandt1[2]);
@@ -659,116 +646,102 @@ void PasarModule::saliencyWaving()
         speedLeftt2[1] = (leftHandt1[1] - leftHandt2[1]);
         speedLeftt2[2] = (leftHandt1[2] - leftHandt2[2]);
 
-        accelRight[0] = (speedRightt1[0] - speedRightt2[0]);
-        accelRight[1] = (speedRightt1[1] - speedRightt2[1]);
-        accelRight[2] = (speedRightt1[2] - speedRightt2[2]);
-
         accelLeft[0] = (speedLeftt1[0] - speedLeftt2[0]);
         accelLeft[1] = (speedLeftt1[1] - speedLeftt2[1]);
         accelLeft[2] = (speedLeftt1[2] - speedLeftt2[2]);
 
         // get the norm of the accel vector
-        double dAccelLeft = sqrt(accelLeft[0] * accelLeft[0] + accelLeft[1] * accelLeft[1] + accelLeft[2] * accelLeft[2]);
-        double dAccelRight = sqrt(accelRight[0] * accelRight[0] + accelRight[1] * accelRight[1] + accelRight[2] * accelRight[2]);
+        dAccelLeft = sqrt(accelLeft[0] * accelLeft[0] + accelLeft[1] * accelLeft[1] + accelLeft[2] * accelLeft[2]);
+        dAccelRight = sqrt(accelRight[0] * accelRight[0] + accelRight[1] * accelRight[1] + accelRight[2] * accelRight[2]);
 
+        rightHandt2 = rightHandt1;
+        rightHandt1 = vecRight;
 
-        yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
-
-
-        yInfo() << " right hand waving: " << dAccelRight << "\t left hand waving: " << dAccelLeft;
+        leftHandt2 = leftHandt1;
+        leftHandt1 = vecLeft;
 
         double now = yarp::os::Time::now() - initTime;
-        if (now - lastTimeWaving > dthresholdDisappear){
-            recordWave = false;
-        }
-
+        wavingNow = false;
+        bool waveRight = false;
+        bool waveLeft = false;
         // if the acceleration is made on 3 consecutive frames
-        if (presentRightHand.first && presentRightHand.second)
-        {
-            if (dAccelRight > thresholdWaving)
-            {
-                if (dAccelRight > thresholdWaving)
-                {
-                    ag->m_saliency += pTopDownWaving;
-                    yInfo() << "\t\t\t\t\tagent is waving right hand";
-                }
-                rightHandt2 = rightHandt1;
-                rightHandt1 = vecRight;
-                cout << "5, ";
-
-                ag->m_saliency += pTopDownWaving;
-                yInfo() << "\t\t\t\t\tagent is waving right hand";
-
-
-                if (!recordWave && iCub->getABMClient()->Connect())
-                {
-                    yInfo() << "\t\t START WAVING";
-                    std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
-                    iCub->getABMClient()->sendActivity("action",
-                        "wave",
-                        "pasar",
-                        lArgument,
-                        true);
-                    recordWave = true;
-                }
-                lastTimeWaving = now;
-            }
-
-            if (presentLeftHand.first && presentLeftHand.second)
-            {
-                ag->m_saliency += pTopDownWaving;
-                yInfo() << "\t\t\t\t\tagent is waving left hand";
-
-                if (!recordWave && iCub->getABMClient()->Connect())
-                {
-                    yInfo() << "\t\t START WAVING";
-
-                    std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
-                    iCub->getABMClient()->sendActivity("action",
-                        "wave",
-                        "pasar",
-                        lArgument,
-                        true);
-                    recordWave = true;
-                }
-                lastTimeWaving = now;
-                if (dAccelLeft > thresholdWaving)
-                {
-                    ag->m_saliency += pTopDownWaving;
-                    yInfo() << "\t\tagent is waving left hand";
-                }
-                leftHandt2 = leftHandt1;
-                leftHandt1 = vecLeft;
-            }
-            opc->commit();
-
-            presentRightHand.first = presentRightHand.second;
-            presentLeftHand.first = presentLeftHand.second;
-
-            presentRightHand.second = true;
-            presentLeftHand.second = true;
+        if (dAccelRight > thresholdWaving && presentRightHand.first && presentRightHand.second){
+            yInfo() << "\tagent is waving right hand lastTime was: " << now - lastTimeWaving;
+            wavingNow = true;
+            waveRight = true;
         }
+        if (dAccelLeft > thresholdWaving && presentLeftHand.first && presentLeftHand.second){
+            yInfo() << "\tagent is waving left hand lastTime was: " << now - lastTimeWaving;
+            wavingNow |= true;
+            waveLeft = true;
+        }
+
+        bool startWaving = (now - lastTimeWaving > dthresholdAppear) && !isWaving && wavingNow;
+        bool stopWaving = (now - lastTimeWaving > dthresholdDisappear) && isWaving && !wavingNow;
+
+
+        if (startWaving){
+            isWaving = true;
+            yInfo() << "\t\t START WAVING";
+            if (iCub->getABMClient()->Connect())
+            {
+                std::list<std::pair<std::string, std::string> > lArgument;
+                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
+                if (waveRight)                    lArgument.push_back(std::pair<std::string, std::string>("right", "hand"));
+                if (waveLeft) lArgument.push_back(std::pair<std::string, std::string>("left", "hand"));
+                iCub->getABMClient()->sendActivity("action",
+                    "wave",
+                    "pasar",
+                    lArgument,
+                    true);
+            }
+        }
+        if (stopWaving){
+            isWaving = false;
+            yInfo() << "\t\t STOP  WAVING";
+            if (iCub->getABMClient()->Connect())
+            {
+                std::list<std::pair<std::string, std::string> > lArgument;
+                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
+                iCub->getABMClient()->sendActivity("action",
+                    "wave",
+                    "pasar",
+                    lArgument,
+                    false);
+            }
+        }
+
+        if (wavingNow){
+            ag->m_saliency += pTopDownWaving;
+            lastTimeWaving = now;
+        }
+        iCub->opc->commit();
+
+        presentRightHand.first = presentRightHand.second;
+        presentLeftHand.first = presentLeftHand.second;
+
+        presentRightHand.second = true;
+        presentLeftHand.second = true;
     }
+    return wavingNow;
 }
+
 
 
 
 void PasarModule::initializeMapTiming()
 {
 
-    recordWave = false;
-    recordPoint = false;
+    isWaving = false;
+    isPointing = false;
 
-    opc->checkout();
-    entities = opc->EntitiesCache();
+    iCub->opc->checkout();
+    entities = iCub->opc->EntitiesCache();
     double now = yarp::os::Time::now() - initTime;
     OPCEntities.clear();
 
     lastTimePointing = now - 10;
     lastTimeWaving = now - 10;
-
 
     for (auto &entity : entities){
 
@@ -782,6 +755,7 @@ void PasarModule::initializeMapTiming()
                 OPCEntities[entity->opc_id()].o = *ob;
                 OPCEntities[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
                 OPCEntities[entity->opc_id()].present = ob->m_present;
+
             }
         }
     }
