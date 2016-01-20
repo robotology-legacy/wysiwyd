@@ -131,7 +131,9 @@ public:
             Bottle cmd=bDump;
             Bottle reply;
             verbPort.write(cmd,reply);
-            bDump.append(reply);
+            Bottle &response=bDump.addList();
+            response.addString("response");
+            response.append(reply);
         }
 
         yInfo()<<bDump.toString();
