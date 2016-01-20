@@ -25,7 +25,6 @@ verbRec::configure(yarp::os::ResourceFinder &rf)
     setName(moduleName.c_str());
 
     yInfo() << moduleName << " : finding configuration files...";
-    period = rf.check("period", Value(0.1)).asDouble();
 
     for (int i=0; i<11; i++)
         output[i] = 0;
@@ -35,6 +34,8 @@ verbRec::configure(yarp::os::ResourceFinder &rf)
         for (int j=0; j<2; j++)
             timer[i][j] = 0;
 
+    Port_in.open(("/" + moduleName + "/in").c_str());
+    Port_out.open(("/" + moduleName + "/out").c_str());
     Port_rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(Port_rpc);
 
@@ -48,17 +49,16 @@ verbRec::close()
     /* optional, close port explicitly */
     cout<<"Calling close function\n";
     Port_rpc.close();
+    Port_out.close();
+    Port_in.close();
         
     return true;
 }
 
 
-bool 
-verbRec::respond(const Bottle& command, Bottle& reply) 
+Bottle
+verbRec::prepareResponse()
 {
-    // parse commands
-    actionRec(command);
-
     // prepare a message
     Bottle botWrite;
 
@@ -103,7 +103,7 @@ verbRec::respond(const Bottle& command, Bottle& reply)
     // the agent is waving
     if (output[0])
         botWrite.addString("Agent waving");
-    
+
     char str[50];
 
     for (int i=0; i<nbrOfObj; i++) {
@@ -140,18 +140,38 @@ verbRec::respond(const Bottle& command, Bottle& reply)
     if (botWrite.size()==0)
         botWrite.addString("empty");
 
-    yInfo()<<botWrite.toString();
+    return botWrite;
+}
 
-    // send the message
-    reply=botWrite;
+
+bool 
+verbRec::respond(const Bottle& command, Bottle& reply) 
+{
+    // grab resources
+    LockGuard lg(mutex);
+
+    yInfo()<<"received request: "<<command.toString().c_str(); 
+    actionRec(command);
+    reply=prepareResponse();
+    yInfo()<<"sending response: "<<reply.toString().c_str();
 
     return true;
 }
 
-/* Called periodically every getPeriod() seconds */
-bool verbRec::updateModule() 
+bool verbRec::updateModule()
 {
-    yInfo()<< " updateModule... ";
+    if (Bottle *in=Port_in.read())  // blocking call
+    {
+        // grab resources
+        LockGuard lg(mutex);
+
+        yInfo()<<"received request: "<<in->toString().c_str(); 
+        Bottle &out=Port_out.prepare();
+        out=prepareResponse();
+        yInfo()<<"sending response: "<<out.toString().c_str();
+        Port_out.writeStrict();
+    }
+
     return true;
 }
 

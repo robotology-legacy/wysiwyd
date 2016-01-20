@@ -19,8 +19,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
-#include <yarp/os/Network.h>
-#include <yarp/os/RFModule.h>
+#include <yarp/os/all.h>
 #include <wrdac/clients/icubClient.h>
 
 using namespace std;
@@ -29,8 +28,10 @@ using namespace wysiwyd::wrdac;
 
 class verbRec : public RFModule {
 private:
-    double period;
-    Port Port_rpc;
+    Mutex mutex;
+    BufferedPort<Bottle> Port_in;
+    BufferedPort<Bottle> Port_out;
+    RpcServer Port_rpc;
 
     float input[47];
     float output[11];
@@ -45,28 +46,35 @@ private:
     int nbrOfObj;
 
 public:
-        bool configure(yarp::os::ResourceFinder &rf);
+    bool configure(yarp::os::ResourceFinder &rf);
 
-        bool interruptModule()
-        {
-        cout<<"Interrupting the module verbRec, for port cleanup"<<endl;
-            return true;
-        }
+    bool interruptModule()
+    {
+    cout<<"Interrupting the module verbRec, for port cleanup"<<endl;
+        return true;
+    }
 
-        bool close();
+    bool close();
 
-        double getPeriod()
-        {
-            return period;
-        }
+    double getPeriod()
+    {
+        return 0.0; // for sync reasons
+    }
+
+    bool interrupModule()
+    {
+        Port_in.interrupt();
+        return true;
+    }
 
     void setTimer(char ch, int obj);    // temporary
 
-        bool updateModule();
-        bool respond(const Bottle& cmd, Bottle& reply);
+    bool updateModule();
+    bool respond(const Bottle& cmd, Bottle& reply);
 
-    void actionRec(const Bottle& command);
+    void actionRec(const Bottle& command);    
     void readData(const Bottle& command, float* input);
+    Bottle prepareResponse();
 
     void egoCenterTransformation(float obj[][3], float r_hand[][3], float l_hand[][3], float i_obj[][3], float i_rh[][3], float i_lh[][3]);
     bool gluInvertMatrix(float m[], float invm[]);
