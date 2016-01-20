@@ -3,6 +3,7 @@
 
 bool HomeostaticModule::addNewDrive(string driveName, yarp::os::Bottle& grpHomeostatic)
 {    
+    yDebug() << "Add drive " + driveName;
     Drive* drv = new Drive(driveName, period);
 
     drv->setHomeostasisMin(grpHomeostatic.check((driveName + "-homeostasisMin"), Value(drv->homeostasisMin)).asDouble());
@@ -311,6 +312,25 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         }
         reply.addList()=nms;
     }
+    else if (cmd.get(0).asString() == "ask")
+    {
+        for (auto drive: manager->drives)
+        {
+            if (cmd.get(1).asString() == drive->name)
+            {
+                if (cmd.get(2).asString() == "min") {
+                    reply.addDouble(drive->homeostasisMin);
+                } else if (cmd.get(2).asString() == "max") {
+                    reply.addDouble(drive->homeostasisMax);
+                } else {
+                    reply.addString("nack");
+                }
+            }
+        }
+        if (reply.size() == 0) {
+            reply.addString("nack");
+        }
+    }    
     else
     {
         reply.addString("nack");
