@@ -708,29 +708,41 @@ void IOL2OPCBridge::updateOPC()
                     it->second.opc_id=obj->opc_id();
                     obj->m_ego_position=x_filtered;
                     obj->m_dimensions=dim_filtered;
-                    obj->m_present=true;                    
+                    obj->m_present=true;
 
-                    // Extract color information from blob
-                    // create temporary image, and copy blob in there
-                    ImageOf<PixelBgr> imgTmp;
-                    imgTmp.resize(bbox.width,bbox.height);
-                    cvSetImageROI((IplImage*)imgRtLoc.getIplImage(),bbox);
-                    cvCopy(imgRtLoc.getIplImage(),imgTmp.getIplImage());
-                    cvResetImageROI((IplImage*)imgRtLoc.getIplImage());
+                    // threshold bbox
+                    CvPoint tl=cvPoint(bbox.x,bbox.y);
+                    CvPoint br=cvPoint(tl.x+bbox.width,tl.y+bbox.height);
+                    tl.x=std::min(imgRtLoc.width(),std::max(tl.x,0));
+                    tl.y=std::min(imgRtLoc.height(),std::max(tl.y,0));
+                    br.x=std::min(imgRtLoc.width(),std::max(br.x,0));
+                    br.y=std::min(imgRtLoc.height(),std::max(br.y,0));
 
-                    // now get mean color of blob, and fill the OPC object with the information
-                    // be careful: computation done in BGR => save in RGB for displaying purpose
-                    CvScalar meanColor=cvAvg(imgTmp.getIplImage());
-                    obj->m_color[0]=(int)meanColor.val[2];
-                    obj->m_color[1]=(int)meanColor.val[1];
-                    obj->m_color[2]=(int)meanColor.val[0];
+                    bbox=cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+                    if ((bbox.width>0) && (bbox.height>0))
+                    {
+                        // Extract color information from blob
+                        // create temporary image, and copy blob in there
+                        ImageOf<PixelBgr> imgTmp;
+                        imgTmp.resize(bbox.width,bbox.height);
+                        cvSetImageROI((IplImage*)imgLatch.getIplImage(),bbox);
+                        cvCopy(imgLatch.getIplImage(),imgTmp.getIplImage());
+                        cvResetImageROI((IplImage*)imgLatch.getIplImage());
+
+                        // now get mean color of blob, and fill the OPC object with the information
+                        // be careful: computation done in BGR => save in RGB for displaying purpose
+                        CvScalar meanColor=cvAvg(imgTmp.getIplImage());
+                        obj->m_color[0]=(int)meanColor.val[2];
+                        obj->m_color[1]=(int)meanColor.val[1];
+                        obj->m_color[2]=(int)meanColor.val[0];
+
+                        cvRectangle(imgLatch.getIplImage(),cvPoint(bbox.x,bbox.y),
+                                    cvPoint(bbox.x+bbox.width,bbox.y+bbox.height),cvScalar(255,0,0),2);
+
+                        cvPutText(imgLatch.getIplImage(),object.c_str(),
+                                  cvPoint(bbox.x,bbox.y-5),&font,cvScalar(255,0,0));
+                    }
                 }
-
-                cvRectangle(imgLatch.getIplImage(),cvPoint(bbox.x,bbox.y),
-                            cvPoint(bbox.x+bbox.width,bbox.y+bbox.height),cvScalar(255,0,0),2);
-
-                cvPutText(imgLatch.getIplImage(),object.c_str(),
-                          cvPoint(bbox.x,bbox.y-5),&font,cvScalar(255,0,0));
             }
         }
 
