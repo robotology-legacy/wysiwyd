@@ -95,7 +95,7 @@ namespace wysiwyd {
                         options.addString(hand.c_str());
                     }
                     else
-                        hand=lastlyUsedHand;
+                        hand=handToUse;
                 }
 
                 // apply depth2kin correction
