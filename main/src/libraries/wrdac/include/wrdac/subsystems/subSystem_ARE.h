@@ -79,7 +79,10 @@ namespace wysiwyd {
                     {
                         std::string item=val.asString();
                         if ((item=="left") || (item=="right"))
+                        {
                             hand=item;
+                            break;
+                        }
                     }
                 }
 
