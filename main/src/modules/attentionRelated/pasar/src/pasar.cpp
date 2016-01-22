@@ -273,13 +273,7 @@ bool PasarModule::updateModule()
         //Compute top down saliency (concept based)
         saliencyTopDown();
         if (checkPointing) saliencyPointing();
-
-
-        if (checkWaving){
-            bool isWavingNow = saliencyWaving();
-            bool startWaving = (now - lastTimeWaving > dthresholdAppear) && !isWaving && isWavingNow;
-
-        }
+        if (checkWaving) saliencyWaving();
 
         //Leaky integrate
         saliencyLeakyIntegration();
