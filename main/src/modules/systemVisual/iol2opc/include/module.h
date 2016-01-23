@@ -157,11 +157,17 @@ public:
         }
         else if (trackerState==tracking)
         {
-            if (Time::now()-trackerTimer<trackerTmo)
-            {
-                tracker->update(frame,trackerResult);
+            tracker->update(frame,trackerResult);
+
+            CvPoint tl=cvPoint((int)trackerResult.x,(int)trackerResult.y);
+            CvPoint br=cvPoint(tl.x+(int)trackerResult.width,
+                               tl.y+(int)trackerResult.height);
+
+            bool closeBorder=(tl.x<5) || (br.x>frame.cols-5) ||
+                             (tl.y<5) || (br.y>frame.rows-5);
+
+            if ((Time::now()-trackerTimer<trackerTmo) && !closeBorder)
                 heartBeat();
-            }
             else
                 trackerState=idle;
         }
