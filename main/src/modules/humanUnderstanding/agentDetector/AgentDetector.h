@@ -55,6 +55,7 @@ protected:
     Matrix kinect2icub;
     Matrix icub2ir;
     
+    int pointsCnt;
     static clickType clicked;
     static float clickX, clickY;
 

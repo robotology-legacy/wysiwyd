@@ -228,6 +228,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     rpc.open(rpcName.c_str());
     attach(rpc);
 
+    pointsCnt=0;
     return true;
 }
 
@@ -442,14 +443,10 @@ bool AgentDetector::updateModule()
             opc->isVerbose=true;
             list<Entity*> presentObjects=opc->Entities(bCond);
             opc->isVerbose=false;
-            if (presentObjects.size()!=1)
-            {
-                cout<<"There should be 1 and only 1 object on the table"<<endl;
-            }
-            else
+            
+            if (presentObjects.size()==1)
             {
                 Object* o=(Object*)(presentObjects.front());
-                //Prepare the bottle to be sent to RFH
                 Bottle botRPH, botRPHRep;
                 botRPH.addString("add");
                 botRPH.addString("kinect");
@@ -465,23 +462,31 @@ bool AgentDetector::updateModule()
                 rfh.write(botRPH,botRPHRep);
                 cout<<"Sent to RFH: "<<botRPH.toString().c_str()<<endl;
                 cout<<"Got from RFH: "<<botRPHRep.toString().c_str()<<endl;
+
+                pointsCnt++;
             }
+            else
+                yWarning("There should be 1 and only 1 object on the table");
         }
         else if (AgentDetector::clicked==clicked_right)
         {
             AgentDetector::clicked=idle;
+            if (pointsCnt>=3)
+            {
+                Bottle calibBottle,calibReply; 
+                calibBottle.addString("cal");
+                calibBottle.addString("kinect");
+                rfh.write(calibBottle,calibReply);
+                cout<<"Calibrated ! "<<calibReply.toString().c_str()<<endl;
 
-            Bottle calibBottle,calibReply;
-            calibBottle.addString("cal");
-            calibBottle.addString("kinect");
-            rfh.write(calibBottle,calibReply);
-            cout<<"Calibrated ! "<<calibReply.toString().c_str()<<endl;
-
-            calibBottle.clear();
-            calibBottle.addString("save");
-            rfh.write(calibBottle,calibReply);
-            cout<<"Saved to file ! "<<calibReply.toString().c_str()<<endl;
-            checkCalibration();
+                calibBottle.clear();
+                calibBottle.addString("save");
+                rfh.write(calibBottle,calibReply);
+                cout<<"Saved to file ! "<<calibReply.toString().c_str()<<endl;
+                checkCalibration();
+            }
+            else
+                yWarning("Unable to calibrate with less than 3 points pairs collected");
         }
     }
 
