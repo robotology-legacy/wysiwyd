@@ -10,11 +10,10 @@
   <version>1.0</version>
 
   <description-long>
-    Module based on \ref kinectClient "Kinect Wrapper Client" that track and recognize people. This module receives information from the Kinect wrapper, performs facial identification and convert joints
-to the iCub referential.
+    Module based on \ref kinectClient "Kinect Wrapper Client" that track and recognize people.
+    This module receives information from the Kinect wrapper, performs facial identification and convert joints to the iCub referential.
 
-It requires the \ref kinectServer an OPC and RFH running.
-
+    It requires the \ref kinectServer an OPC and RFH running.
   </description-long>
 
   <arguments>

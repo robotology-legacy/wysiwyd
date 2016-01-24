@@ -14,6 +14,11 @@ using namespace yarp::math;
 using namespace kinectWrapper;
 using namespace wysiwyd::wrdac;
 
+typedef enum {
+    idle,
+    clicked_left,
+    clicked_right } clickType;
+
 class AgentDetector: public RFModule
 {
 protected:
@@ -49,8 +54,8 @@ protected:
     bool isCalibrated;
     Matrix kinect2icub;
     Matrix icub2ir;
-    int pointsCount;
-    static bool clicked;
+    
+    static clickType clicked;
     static float clickX, clickY;
 
     //Agent Identity related
@@ -92,19 +97,21 @@ public:
 
     Vector getSkeletonPattern(Player p);
 
-    static void click_callback( int event, int x, int y, int flags, void* param ){
-        //IplImage* image = (IplImage*) param;
-
-        switch( event ){
-
-            case CV_EVENT_LBUTTONDOWN:
-                cout<<"Got a click."<<endl;
-                AgentDetector::clickX = (float)x;
-                AgentDetector::clickY = (float)y;
-                AgentDetector::clicked = true;
-                break;
-
-            default: break;
+    static void click_callback(int event, int x, int y, int flags, void* param)
+    {
+        switch (event)
+        {
+        case CV_EVENT_LBUTTONDOWN:
+            cout<<"Got a left-click."<<endl;
+            AgentDetector::clickX=(float)x;
+            AgentDetector::clickY=(float)y;
+            AgentDetector::clicked=clicked_left;
+            break;
+        case CV_EVENT_RBUTTONDOWN:
+            cout<<"Got a right-click."<<endl;
+            AgentDetector::clicked=clicked_right;
+            break;
         }
     }
 };
+
