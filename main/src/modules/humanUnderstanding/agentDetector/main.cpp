@@ -16,48 +16,6 @@
  * Public License for more details
  */
 
-/**
-\defgroup agentDetector agentDetector
-
-@ingroup efaa_modules
-
-Module based on \ref kinectClient "Kinect Wrapper Client" that track and recognize people.
-
-\section intro_sec Description
-This module receive information from the Kinect wrapper, performs facial identification and convert joints
-to the iCub referential.
-
-It requires the \ref kinectServer an OPC and RFH running.
-
-\section lib_sec Libraries
-- YARP libraries.
-- \ref kinect "KinectWrapper" library.
-
-\section parameters_sec Parameters
---verbosity \e verbosity
-- specify the verbosity level of the client print-outs.
-
---carrier \e carrier
-- specify the protocol used to connect to the server ports.
-
---remote \e remote
-- specify the kinectServer name to connect to.
-
---opc \e opc
-- specify the OPC name to connect to.
-
---rfh \e rfh
-- specify the RFH name to connect to.
-
---name \e name
-- specify the kinectClient stem-name.
-
-\section tested_os_sec Tested OS
-Windows, Linux
-
-\author Stéphane Lallée
-*/
-
 #include <yarp/os/Network.h>
 #include "AgentDetector.h"
 using namespace yarp::os;
