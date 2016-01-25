@@ -67,15 +67,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-
     findStories();
     cout << endl;
     initializeStories();
-
-    //for (auto it = listStories.begin(); it != listStories.end(); it++){
-    //    tellingStory(*it);
-    //}
-
+    
     return false;
 }
 
@@ -378,7 +373,7 @@ void narrativeHandler::initializeStories()
             //        cout << "activity info: " << bActivity.toString() << endl;
 
             osRequest.str("");
-            osRequest << "SELECT argument, role FROM contentarg WHERE instance = " << *itInst;
+            osRequest << "SELECT argument, role, subtype FROM contentarg WHERE instance = " << *itInst;
             Bottle bArguments = iCub->getABMClient()->requestFromString(osRequest.str());
 
             evtStory evtTemp;
@@ -452,15 +447,20 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             Bottle bTemp = *bArguments.get(kk).asList();
 
             if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
+            else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
+            else if (evt.isIn(vAgent, bTemp.get(2).toString())) evt.agent = bTemp.get(0).toString();
             else if (evt.isIn(vObject, bTemp.get(1).toString()))    evt.object = bTemp.get(0).toString();
+            else if (evt.isIn(vObject, bTemp.get(2).toString()))    evt.object = bTemp.get(0).toString();
             else if (evt.isIn(vRecipient, bTemp.get(1).toString())) evt.recipient = bTemp.get(0).toString();
+            else if (evt.isIn(vRecipient, bTemp.get(2).toString())) evt.recipient = bTemp.get(0).toString();
             else {
                 pair<string, string> ptemp(bTemp.get(1).toString(), bTemp.get(0).toString());
                 evt.vArgument.push_back(ptemp);
             }
 
             if (!evt.isIn(vNoPAOR, bTemp.get(1).toString())) vOCW.push_back(bTemp.get(0).asString());
+            else if (!evt.isIn(vNoPAOR, bTemp.get(2).toString())) vOCW.push_back(bTemp.get(0).asString());
         }
     }
 
