@@ -259,6 +259,7 @@ string LRH::sentenceToMeaning(string sentence){
     callReservoir(sreservoirAP, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
 
+    // forward meaning to SAM
     if (Network::connect(PortToSam.getName(), nameSamInputPort)){
         Bottle bToSam;
         bToSam.addString("from_lrh");
@@ -278,6 +279,7 @@ string LRH::meaningToSentence(string meaning){
     callReservoir(sreservoirSD, sclosed_class_wordsSD);
     string sOutput = openResult(sfileResult.c_str());
 
+    // forward meaning to SAM
     if (Network::connect(PortToSam.getName(), nameSamInputPort)){
         Bottle bToSam;
         bToSam.addString("from_lrh");
@@ -296,6 +298,7 @@ string LRH::production(string test) {
     callReservoir(sreservoirNarratif, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
 
+    // forward meaning to SAM
     if (Network::connect(PortToSam.getName(), nameSamInputPort)){
         Bottle bToSam;
         bToSam.addString("from_lrh");

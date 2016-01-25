@@ -252,8 +252,6 @@ bool PasarModule::updateModule()
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
 
-    double now = Time::now() - initTime;
-
     for (auto &entity : entities)
     {
         if (entity->name() != "icub")
@@ -265,8 +263,6 @@ bool PasarModule::updateModule()
             }
         }
     }
-
-
 
     if (presentObjectsLastStep.size() > 0)
     {
@@ -368,7 +364,8 @@ void PasarModule::saliencyTopDown() {
                 if (iCub->getABMClient()->Connect())
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "appear"));
+                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "agent"));
+                    lArgument.push_back(std::pair<std::string, std::string>("appear", "predicate"));
                     iCub->getABMClient()->sendActivity("action",
                         "appearance",
                         "pasar",
@@ -386,7 +383,8 @@ void PasarModule::saliencyTopDown() {
                 if (iCub->getABMClient()->Connect())
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "disappear"));
+                    lArgument.push_back(std::pair<std::string, std::string>(it.second.o.name(), "agent"));
+                    lArgument.push_back(std::pair<std::string, std::string>("disappear", "predicate"));
                     iCub->getABMClient()->sendActivity("action",
                         "disappearance",
                         "pasar",
@@ -530,6 +528,8 @@ bool PasarModule::saliencyPointing()
         {
             //                yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
             std::list<std::pair<std::string, std::string> > lArgument;
+            lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "agent"));
+            lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
             iCub->getABMClient()->sendActivity("action",
                 "point",
                 "pasar",
@@ -545,7 +545,9 @@ bool PasarModule::saliencyPointing()
         {
             //                yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
             std::list<std::pair<std::string, std::string> > lArgument;
-            lArgument.push_back(std::pair<std::string, std::string>(objectPointed, "pointed"));
+            lArgument.push_back(std::pair<std::string, std::string>(objectPointed, "object"));
+            lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "agent"));
+            lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
             iCub->getABMClient()->sendActivity("action",
                 "point",
                 "pasar",
@@ -680,9 +682,10 @@ bool PasarModule::saliencyWaving()
             if (iCub->getABMClient()->Connect())
             {
                 std::list<std::pair<std::string, std::string> > lArgument;
-                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
-                if (waveRight)                    lArgument.push_back(std::pair<std::string, std::string>("right", "hand"));
-                if (waveLeft) lArgument.push_back(std::pair<std::string, std::string>("left", "hand"));
+                if (waveRight)                    lArgument.push_back(std::pair<std::string, std::string>("right hand", "object"));
+                if (waveLeft) lArgument.push_back(std::pair<std::string, std::string>("left hand", "object"));
+                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "agent"));
+                lArgument.push_back(std::pair<std::string, std::string>("wave", "predicate"));
                 iCub->getABMClient()->sendActivity("action",
                     "wave",
                     "pasar",
@@ -696,7 +699,8 @@ bool PasarModule::saliencyWaving()
             if (iCub->getABMClient()->Connect())
             {
                 std::list<std::pair<std::string, std::string> > lArgument;
-                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "waving"));
+                lArgument.push_back(std::pair<std::string, std::string>(ag->name(), "agent"));
+                lArgument.push_back(std::pair<std::string, std::string>("wave", "predicate"));
                 iCub->getABMClient()->sendActivity("action",
                     "wave",
                     "pasar",
