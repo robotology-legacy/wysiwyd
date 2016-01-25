@@ -69,11 +69,14 @@ bool LRH::configure(ResourceFinder &rf) {
     sHand = rf.check("hand", Value("right")).toString().c_str();
     offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
 
+    nameSamInputPort = rf.check("nameSamInputPort", Value("/SAM/rpc")).toString().c_str();
+
     setName(moduleName.c_str());
 
     // Open handler port
     string sName = getName();
     handlerPortName = "/" + sName + "/rpc";
+    PortToSam.open("/" + getName() + "/toSam");
 
     if (!handlerPort.open(handlerPortName.c_str())) {
         cout << getName() << ": Unable to open port " << handlerPortName << endl;
@@ -255,6 +258,14 @@ string LRH::sentenceToMeaning(string sentence){
     createTest(stemporaryCorpus.c_str(), sentence);
     callReservoir(sreservoirAP, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
+
+    if (Network::connect(PortToSam.getName(), nameSamInputPort)){
+        Bottle bToSam;
+        bToSam.addString("from_lrh");
+        bToSam.addString(sOutput);
+        PortToSam.write(bToSam);
+    }
+
     yInfo() << "result is: " << sOutput;
 
     return sOutput;
@@ -266,6 +277,14 @@ string LRH::meaningToSentence(string meaning){
     createTest(stemporaryCorpus.c_str(), meaning);
     callReservoir(sreservoirSD, sclosed_class_wordsSD);
     string sOutput = openResult(sfileResult.c_str());
+
+    if (Network::connect(PortToSam.getName(), nameSamInputPort)){
+        Bottle bToSam;
+        bToSam.addString("from_lrh");
+        bToSam.addString(meaning);
+        PortToSam.write(bToSam);
+    }
+
     yInfo() << "result is: " << sOutput;
 
     return sOutput;
@@ -276,6 +295,14 @@ string LRH::production(string test) {
     createTest(stemporaryCorpus.c_str(), test);
     callReservoir(sreservoirNarratif, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
+
+    if (Network::connect(PortToSam.getName(), nameSamInputPort)){
+        Bottle bToSam;
+        bToSam.addString("from_lrh");
+        bToSam.addString(test);
+        PortToSam.write(bToSam);
+    }
+
     yInfo() << "result is: " << sOutput;
 
     return sOutput;

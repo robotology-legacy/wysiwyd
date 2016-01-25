@@ -74,6 +74,8 @@ private:
     string sobjectFocusChanged;
 
     Port handlerPort;               // a port to handle messages
+    Port PortToSam;               // a port to forward PAOR structure to SAM
+    string nameSamInputPort;
 
     ICubClient *iCub;
     wysiwyd::wrdac::OPCClient           *lOPC;
