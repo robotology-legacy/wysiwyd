@@ -1154,15 +1154,22 @@ bool IOL2OPCBridge::change_name(const string &old_name,
         return false;
     }
     else if (new_name!=old_name)
-    {        
-        const map<string,IOLObject>::iterator it=db.find(old_name);
-        if (it!=db.end())
+    {   
+        const map<string,IOLObject>::iterator it_new=db.find(new_name);
+        if (it_new!=db.end())
+        {
+            yError("\"%s\" is already existing in the database",new_name.c_str());
+            return false;
+        }
+
+        const map<string,IOLObject>::iterator it_old=db.find(old_name);
+        if (it_old!=db.end())
         {
             db[new_name]=IOLObject(opcMedianFilterOrder,presence_timeout,
                                    tracker_type,tracker_timeout);
             opc->checkout();
-            opc->removeEntity(it->second.opc_id);
-            db.erase(it);
+            opc->removeEntity(it_old->second.opc_id);
+            db.erase(it_old);
             yInfo("Name change successful: reloading local cache");
         }
         else
