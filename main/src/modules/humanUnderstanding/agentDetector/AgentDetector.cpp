@@ -27,6 +27,7 @@ bool AgentDetector::showImageParser(string &mode, string &submode)
 
 bool AgentDetector::configure(ResourceFinder &rf)
 {
+    period = rf.check("period",Value("0.03")).asDouble();
     int verbosity=rf.check("verbosity",Value(0)).asInt();
     string name=rf.check("name",Value("agentDetector")).asString().c_str();
     useFaceRecognition = rf.check("useFaceRecognition");
@@ -34,7 +35,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     isMounted = !rf.check("isFixed");
     string show=rf.check("showImages",Value("false")).asString().c_str();
     showMode=rf.check("showMode",Value("rgb+depth+skeleton+players")).asString().c_str();
-    dThresholdDisparition = rf.check("dThresholdDisparition",Value("3.0")).asDouble();
+    dThresholdDisparition = rf.check("dThresholdDisparition",Value("3.0")).asDouble();    
 
     // initialise timing in case of misrecognition
     dTimingLastApparition = clock();
@@ -315,7 +316,7 @@ bool AgentDetector::respond(const Bottle& cmd, Bottle& reply)
 
 double AgentDetector::getPeriod()
 {
-    return 0.01;
+    return period;
 }
 
 bool AgentDetector::updateModule()

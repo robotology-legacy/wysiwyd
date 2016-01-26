@@ -20,9 +20,10 @@
     <param default="agentDetector" desc="To specify the module's name; all the open ports will be tagged with the prefix /name">name</param>
     <param default="agentDetector.ini" desc="To specify the configuration file">from</param>
     <param default="visualSystem" desc="To specify the default context where config files are loader">context</param>
+    <param default="0.03" desc="period of acquisition in seconds">period</param>
     <param default="OPC" desc="To specify the specifies the opc database name, where data are readed">opc</param>
     <param default="true" desc="to have GUI with depth, images, joints, ...">showImages</param>
-    <param default="rgb+depth+skeleton+players" desc="to select which images to show, as a sum of available types: rgb, depth, skeleton, players">showMode</param>
+    <param default="rgb+depth+skeleton+players" desc="to select which images to show, as a sum of available types: rgb, depth, skeleton, players">showMode</param>    
     <param default="10" desc="x position of the images as a group">x</param>
     <param default="10" desc="y position of the images as a group">y</param>
     <param desc="x position of the rgb image">x-rgb</param>
