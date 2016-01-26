@@ -1153,18 +1153,28 @@ bool IOL2OPCBridge::change_name(const string &old_name,
         yError("Is there already an object with this name in the classifier database?");
         return false;
     }
-    else
-    {
-        yInfo("Name change successful, reloading local cache");
+    else if (new_name!=old_name)
+    {        
         const map<string,IOLObject>::iterator it=db.find(old_name);
         if (it!=db.end())
         {
-            // Swap value from oldKey to newKey, note that a default constructed value
-            // is created by operator[] if 'm' does not contain newKey.
-            std::swap(db[new_name], it->second);
-            // Erase old key-value from map
+            db[new_name]=IOLObject(opcMedianFilterOrder,presence_timeout,
+                                   tracker_type,tracker_timeout);
+            opc->checkout();
+            opc->removeEntity(it->second.opc_id);
             db.erase(it);
+            yInfo("Name change successful: reloading local cache");
         }
+        else
+        {
+            yError("\"%s\" not present in the database",old_name.c_str());
+            return false;
+        }
+    }
+    else
+    {
+        yWarning("matching names: no operations performed");
+        return true;
     }
 
     return true;
