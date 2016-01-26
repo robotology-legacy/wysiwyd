@@ -623,7 +623,6 @@ void IOL2OPCBridge::updateOPC()
     {
         // grab resources
         LockGuard lg(mutexResources);
-        bool unknownObjectInScene=false;
         opc->checkout();
 
         // latch image
@@ -640,6 +639,7 @@ void IOL2OPCBridge::updateOPC()
             it->second.prepare();
 
         // check detected objects
+        bool unknownObjectInScene=true;
         for (int j=0; j<blobs.size(); j++)
         {
             Bottle *item=blobs.get(j).asList();
@@ -669,9 +669,9 @@ void IOL2OPCBridge::updateOPC()
                     it->second.latchBBox(cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
                     it->second.heartBeat();
                 }
+
+                unknownObjectInScene=false;
             }
-            else
-                unknownObjectInScene=true;
         }
 
         // cycle over objects to handle tracking
@@ -1009,11 +1009,12 @@ bool IOL2OPCBridge::updateModule()
 
                     db[obj->name()]=IOLObject(opcMedianFilterOrder,presence_timeout,
                                               tracker_type,tracker_timeout);
-                    train(obj->name(),blobs,j);
-                    onlyKnownObjects.heartBeat();
+                    train(obj->name(),blobs,j);                    
                     break;
                 }
             }
+
+            onlyKnownObjects.heartBeat();
         }
     }
 
