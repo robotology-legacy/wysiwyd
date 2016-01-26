@@ -27,7 +27,7 @@ bool AgentDetector::showImageParser(string &mode, string &submode)
 
 bool AgentDetector::configure(ResourceFinder &rf)
 {
-    period = rf.check("period",Value("0.03")).asDouble();
+    period = rf.check("period",Value(0.03)).asDouble();
     int verbosity=rf.check("verbosity",Value(0)).asInt();
     string name=rf.check("name",Value("agentDetector")).asString().c_str();
     useFaceRecognition = rf.check("useFaceRecognition");
