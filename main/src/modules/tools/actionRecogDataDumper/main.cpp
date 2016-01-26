@@ -103,7 +103,7 @@ public:
     {
         LockGuard lg(mutex);
 
-        double timestamp;
+        double timeStamp;
 
         // kinect rgb image
         ImageOf<PixelRgb> &rgb=kinectImgPort.prepare();
@@ -117,7 +117,7 @@ public:
             kinectImgPort.unprepare();
 
         // kinect depth image
-        ImageOf<kinectDepthPort> &detph=kinectDepthPort.prepare();
+        ImageOf<PixelMono16> &depth=kinectDepthPort.prepare();
         if (kinect.getDepth(depth,&timeStamp))
         {
             depthStamp.update(timeStamp);
