@@ -51,7 +51,7 @@ public:
         portRPC.close();
     }
 
-    bool changeName(std::string old_name, std::string new_name) {
+    bool changeName(const std::string &old_name, const std::string &new_name) {
         yarp::os::Bottle bReq, bResp;
         bReq.addString("change_name");
         bReq.addString(old_name);
