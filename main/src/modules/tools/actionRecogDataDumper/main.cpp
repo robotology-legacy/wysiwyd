@@ -70,7 +70,7 @@ public:
 
         Property options;        
         options.put("remote",kinectServer.c_str());
-        options.put("local","/actionRecogDataDumper/kinect_client");
+        options.put("local","actionRecogDataDumper/kinect_client");
         options.put("carrier","udp");
         if (!kinect.open(options))
         {

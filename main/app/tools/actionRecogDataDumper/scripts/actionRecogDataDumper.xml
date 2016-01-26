@@ -45,7 +45,7 @@
   </module>
 
   <connection>
-      <from>/actionRecogDataDumper/dump:o</from>
+      <from>/actionRecogDataDumper/data/dump:o</from>
       <to>/actionRecogDataDumper/log/data</to>
       <protocol>tcp</protocol>
   </connection>
