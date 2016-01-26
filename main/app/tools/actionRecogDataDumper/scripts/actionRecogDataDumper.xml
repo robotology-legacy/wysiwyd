@@ -4,7 +4,8 @@
   <dependencies>
       <port>/icub/camcalib/left/out</port>
       <port>/icub/camcalib/right/out</port>
-      <port>/kinectServer/rpc</port>
+      <port>/agentDetector/kinect/imagePort:o</port>
+      <port>/agentDetector/kinect/depthPort:o</port>
       <port>/OPC/rpc</port>
   </dependencies>
 
@@ -47,31 +48,31 @@
   <connection>
       <from>/actionRecogDataDumper/data/dump:o</from>
       <to>/actionRecogDataDumper/log/data</to>
-      <protocol>tcp</protocol>
+      <protocol>udp</protocol>
   </connection>
 
   <connection>
-      <from>/actionRecogDataDumper/kinect/img:o</from>
+      <from>/agentDetector/kinect/imagePort:o</from>
       <to>/actionRecogDataDumper/log/kinect/rgb</to>
-      <protocol>tcp</protocol>
+      <protocol>udp</protocol>
   </connection>
 
   <connection>
-      <from>/actionRecogDataDumper/kinect/depth:o</from>
+      <from>/agentDetector/kinect/depthPort:o</from>
       <to>/actionRecogDataDumper/log/kinect/depth</to>
-      <protocol>tcp</protocol>
+      <protocol>udp</protocol>
   </connection>
 
   <connection>
       <from>/icub/camcalib/left/out</from>
       <to>/actionRecogDataDumper/log/camera/left</to>
-      <protocol>tcp</protocol>
+      <protocol>udp</protocol>
   </connection>
 
   <connection>
       <from>/icub/camcalib/right/out</from>
       <to>/actionRecogDataDumper/log/camera/right</to>
-      <protocol>tcp</protocol>
+      <protocol>udp</protocol>
   </connection>
 
 </application>

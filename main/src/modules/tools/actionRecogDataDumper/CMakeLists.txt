@@ -3,9 +3,9 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 project(actionRecogDataDumper)
-include_directories(${wrdac_INCLUDE_DIRS} ${kinectWrapper_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
+include_directories(${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
 add_executable(${PROJECT_NAME} main.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER tools)
-target_link_libraries(${PROJECT_NAME} wrdac kinectWrapper ${YARP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} wrdac ${YARP_LIBRARIES})
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 

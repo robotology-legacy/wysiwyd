@@ -20,28 +20,21 @@
 
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
-#include <kinectWrapper/kinectWrapper_client.h>
 #include <wrdac/clients/icubClient.h>
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
-using namespace kinectWrapper;
 using namespace wysiwyd::wrdac;
 
 
 /*******************************************************/
 class Recorder : public RFModule
-{    
-    BufferedPort<ImageOf<PixelRgb> > kinectImgPort;
-    BufferedPort<ImageOf<PixelMono16> > kinectDepthPort;
-    Stamp imgStamp;
-    Stamp depthStamp;
-
+{
+    Stamp dumpStamp;
     BufferedPort<Bottle> dumpPort;
     RpcServer rpcPort;
 
-    KinectWrapperClient kinect;    
     OPCClient opc;
     Mutex mutex;
 
@@ -60,7 +53,6 @@ public:
     {
         agentName=rf.check("agent-name",Value("partner")).asString();
         period=rf.check("period",Value(0.05)).asDouble();
-        string kinectServer=rf.check("kinect-server",Value("kinectServer")).asString();
 
         if (!opc.connect("OPC"))
         {
@@ -68,19 +60,6 @@ public:
             return false;
         }
 
-        Property options;        
-        options.put("remote",kinectServer.c_str());
-        options.put("local","actionRecogDataDumper/kinect_client");
-        options.put("carrier","udp");
-        if (!kinect.open(options))
-        {
-            yError()<<"kinect data seem unavailabe!";
-            opc.close();
-            return false;
-        }
-
-        kinectImgPort.open("/actionRecogDataDumper/kinect/img:o");
-        kinectDepthPort.open("/actionRecogDataDumper/kinect/depth:o");
         dumpPort.open("/actionRecogDataDumper/data/dump:o");
         rpcPort.open("/actionRecogDataDumper/rpc");
         attach(rpcPort);
@@ -103,30 +82,7 @@ public:
     {
         LockGuard lg(mutex);
 
-        double timeStamp;
-
-        // kinect rgb image
-        ImageOf<PixelRgb> &rgb=kinectImgPort.prepare();
-        if (kinect.getRgb(rgb,&timeStamp))
-        {
-            imgStamp.update(timeStamp);
-            kinectImgPort.setEnvelope(imgStamp);
-            kinectImgPort.writeStrict();
-        }
-        else
-            kinectImgPort.unprepare();
-
-        // kinect depth image
-        ImageOf<PixelMono16> &depth=kinectDepthPort.prepare();
-        if (kinect.getDepth(depth,&timeStamp))
-        {
-            depthStamp.update(timeStamp);
-            kinectDepthPort.setEnvelope(depthStamp);
-            kinectDepthPort.writeStrict();
-        }
-        else
-            kinectDepthPort.unprepare();
-
+        double dumpTime=Time::now();
         Bottle &bDump=dumpPort.prepare();
         bDump.clear();
 
@@ -170,10 +126,13 @@ public:
             }
         }
 
-        bDump.addInt(gate);
+        bDump.addInt(gate);        
+
+        dumpStamp.update(dumpTime);
+        dumpPort.setEnvelope(dumpStamp);
+        dumpPort.writeStrict();
 
         yInfo()<<bDump.toString();
-        dumpPort.writeStrict();
 
         return true;
     }
@@ -230,10 +189,7 @@ public:
     {
         rpcPort.close();
         dumpPort.close();
-        kinectImgPort.close();
-        kinectDepthPort.close();
-        kinect.close();
-        opc.close();        
+        opc.close();
         return true;
     }
 };

@@ -12,9 +12,5 @@ add_subdirectory(abmInteraction)
 add_subdirectory(InsermInteractionEngine)
 add_subdirectory(opcPopulater)
 add_subdirectory(humanRobotDumper)
-
-if(WYSIWYD_USE_kinectWrapper)
-   add_subdirectory(actionRecogDataDumper)
-endif()
-
+add_subdirectory(actionRecogDataDumper)
 
