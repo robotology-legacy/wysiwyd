@@ -1134,7 +1134,7 @@ string OPCClient::print()
     return s;
 }
 
-bool OPCClient::changeName(Entity *e, std::string newName)
+bool OPCClient::changeName(Entity *e, const std::string &newName)
 {
     for(auto& entity : entitiesByID)
     {

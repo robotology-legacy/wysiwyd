@@ -258,7 +258,7 @@ void ICubClient::updateAgent()
     opc->Entities(EFAA_OPC_ENTITY_TAG, "==", EFAA_OPC_ENTITY_ACTION);
 }
 
-bool ICubClient::changeName(Entity *e, std::string newName) {
+bool ICubClient::changeName(Entity *e, const std::string &newName) {
     if (e->entity_type() == "agent") {
         if (subSystems.find("agentDetector") == subSystems.end()) {
             say("Could not change name of default partner of agentDetector");

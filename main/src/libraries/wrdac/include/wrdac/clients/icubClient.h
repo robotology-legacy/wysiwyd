@@ -303,7 +303,7 @@ namespace wysiwyd{
             bool say(const std::string &text, bool shouldWait = true, bool emotionalIfPossible = false,
                 const std::string &overrideVoice = "default");
 
-            bool changeName(Entity *e, std::string newName);
+            bool changeName(Entity *e, const std::string &newName);
 
             /**
             * Ask the robot to perform speech recognition of a given sentence/grammar

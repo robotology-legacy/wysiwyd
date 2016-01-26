@@ -53,7 +53,7 @@ private:
     /**
     * Change the name of an entity and send messages to relevant subsystems
     */
-    bool changeName(Entity *e, std::string newName);
+    bool changeName(Entity *e, const std::string &newName);
 
 public: 
     bool                    isVerbose;
