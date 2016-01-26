@@ -84,7 +84,7 @@ namespace wysiwyd{
             }
 
             void listen(bool on) {
-                if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
+                if (yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")) {
                     yarp::os::Bottle cmd, reply;
                     cmd.addString("listen");
                     if (on) {
@@ -104,7 +104,8 @@ namespace wysiwyd{
             */
             yarp::os::Bottle recogFromGrammar(std::string &sInput)
             {
-                if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
+                if (!yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
+                    yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
                     yarp::os::Bottle bReply;
                     bReply.addInt(0);
                     bReply.addString("recog not connected");
@@ -133,7 +134,8 @@ namespace wysiwyd{
             */
             yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50, bool isEars = false)
             {
-                if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
+                if (!yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
+                    yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
                     yarp::os::Bottle bReply;
                     bReply.addInt(0);
                     bReply.addString("recog not connected");
@@ -178,9 +180,7 @@ namespace wysiwyd{
                         yError() << " " << osError.str();
                         if (!isEars) listen(true);
                         return bOutput;
-                    }
-
-                    if (bReply.get(0).toString() == "0")
+                    }else if (bReply.get(0).toString() == "0")
                     {
                         bOutput.addInt(0);
                         osError << "Grammar not recognized";
@@ -188,35 +188,43 @@ namespace wysiwyd{
                         yInfo() << " " << osError.str();
                         if (!isEars) listen(true);
                         return bOutput;
-                    }
-
-                    bAnswer = *bReply.get(1).asList();
-
-                    if (bAnswer.toString() != "" && !bAnswer.isNull())
+                    }else if (bReply.get(0).toString()=="ACK")
                     {
-                        fGetaReply = true;
-                        bOutput.addInt(1);
-                        bOutput.addList() = bAnswer;
-
-
-                        // send the result of recognition to the ABM
-                        if (ABMconnected)
+                        if (bReply.get(1).toString() == "-1")
                         {
-                            std::list<std::pair<std::string, std::string> > lArgument;
-                            lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
-                            lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
-                            lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
-                            //add speaker name. name should be sent through fonction before
-                            if(speakerName_.empty()){
-                                speakerName_ = "partner";
-                                yWarning() << " [subSystem_Recog] " << "name of the speaker has been assigned to the default value : " << speakerName_ ;
+                            yInfo()<< "Only found Garbage...";
+                            yDebug()<< "Check Why this happens";
+                        }else{
+                            yInfo()<< "Sentence Acknowledged";
+                            bAnswer = *bReply.get(1).asList();
+
+                            if (bAnswer.toString() != "" && !bAnswer.isNull())
+                            {
+                                fGetaReply = true;
+                                bOutput.addInt(1);
+                                bOutput.addList() = bAnswer;
+
+
+                                // send the result of recognition to the ABM
+                                if (ABMconnected)
+                                {
+                                    std::list<std::pair<std::string, std::string> > lArgument;
+                                    lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
+                                    lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
+                                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                                    //add speaker name. name should be sent through fonction before
+                                    if(speakerName_.empty()){
+                                        speakerName_ = "partner";
+                                        yWarning() << " [subSystem_Recog] " << "name of the speaker has been assigned to the default value : " << speakerName_ ;
+                                    }
+                                    lArgument.push_back(std::pair<std::string, std::string>(speakerName_, "speaker"));
+                                    SubABM->sendActivity("action",
+                                        "sentence",
+                                        "recog",
+                                        lArgument,
+                                        true);
+                                }
                             }
-                            lArgument.push_back(std::pair<std::string, std::string>(speakerName_, "speaker"));
-                            SubABM->sendActivity("action",
-                                "sentence",
-                                "recog",
-                                lArgument,
-                                true);
                         }
 
                     }
