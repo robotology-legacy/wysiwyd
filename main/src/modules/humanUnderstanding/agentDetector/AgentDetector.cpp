@@ -2,9 +2,9 @@
 #include <vector>
 #include "AgentDetector.h"
 
-bool AgentDetector::clicked = false;
-float AgentDetector::clickX = 0;
-float AgentDetector::clickY = 0;
+clickType AgentDetector::clicked=idle;
+float AgentDetector::clickX=0.0F;
+float AgentDetector::clickY=0.0F;
 
 
 bool AgentDetector::showImageParser(string &mode, string &submode)
@@ -54,8 +54,6 @@ bool AgentDetector::configure(ResourceFinder &rf)
     partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
     partner->m_present = false;
     opc->commit(partner);
-//    opc->addOrRetrieveEntity<Action>("named");
-
 
     //Retrieve the calibration matrix from RFH
     string rfhName=rf.check("rfh",Value("referenceFrameHandler")).asString().c_str();
@@ -73,14 +71,12 @@ bool AgentDetector::configure(ResourceFinder &rf)
         cout<<"Waiting connection to RFH..."<<endl;
         Time::delay(1.0);
     }
-    isCalibrated = false;
-    isCalibrated = checkCalibration();
+    isCalibrated=checkCalibration();
 
     if(!isCalibrated){
         yWarning() << " ========================= KINECT NEED TO BE CALIBRATED ============================" ;
     }
 
-    pointsCount = 0;
     string clientName = name;
     clientName += "/kinect";
 
@@ -232,6 +228,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     rpc.open(rpcName.c_str());
     attach(rpc);
 
+    pointsCnt=0;
     return true;
 }
 
@@ -242,37 +239,25 @@ bool AgentDetector::checkCalibration()
 
     if (rfh.getOutputCount()>0)
     {
-        //Get the kinect2icub
-        Bottle bCmd;
-        bCmd.clear();
+        Bottle bCmd,reply;
         bCmd.addString("mat");
         bCmd.addString("kinect");
         bCmd.addString("icub");
+        rfh.write(bCmd,reply);
 
-        Bottle reply;
-        reply.clear();
-        rfh.write(bCmd, reply);
-        if (reply.get(0) == "nack")
+        if (reply.get(0)!="nack")
         {
-            //yWarning() <<"Transformation matrix not retrieved";
-            return false;
-        }
-        else
-        {
-            Bottle* bMat = reply.get(1).asList();
-            kinect2icub.resize(4,4);
-            for(int i=0; i<4; i++)
+            if (Bottle *bMat=reply.get(1).asList())
             {
-                for(int j=0; j<4; j++)
-                {
-                    kinect2icub(i,j)=bMat->get(4*i+j).asDouble();
-                }
+                kinect2icub.resize(4,4);
+                for (int i=0; i<4; i++)
+                    for (int j=0; j<4; j++)
+                        kinect2icub(i,j)=bMat->get(4*i+j).asDouble();
+                return isCalibrated=true;
             }
-            //yInfo()<<"Transformation matrix retrieved"<<endl<<kinect2icub.toString(3,3).c_str();
-            isCalibrated = true;
-            return true;
         }
     }
+
     return false;
 }
 
@@ -415,15 +400,15 @@ bool AgentDetector::updateModule()
     }
 
     //Send the players information to the OPC
-    bool localIsCalibrated = checkCalibration();
+    bool localIsCalibrated=checkCalibration();
 
     //Allow click calibration
     if (!localIsCalibrated)
     {
-        //yInfo() << " not calib";
-        if (AgentDetector::clicked)
+        if (AgentDetector::clicked==clicked_left)
         {
-            AgentDetector::clicked = false;
+            AgentDetector::clicked=idle;
+
             //Get the clicked point coordinate in Kinect space
             Vector clickedPoint(3);
             cout<<"Processing a click on ("<<AgentDetector::clickX<<" "<<AgentDetector::clickY<<") --> ";
@@ -433,9 +418,6 @@ bool AgentDetector::updateModule()
             Bottle bCond;
             Bottle bObject;
             Bottle bRTObject;
-
-            //(entity ==  object or entity == rtobject) && isPresent == 1. But OPC does not handle nested condition so
-            //(entity == object) && (isPresent == 1) || (entity == rtobject) && (isPresent == 1)
 
             bObject.addString(EFAA_OPC_ENTITY_TAG);
             bObject.addString("==");
@@ -450,34 +432,30 @@ bool AgentDetector::updateModule()
             bPresent.addString("==");
             bPresent.addInt(1);
 
-            bCond.addList() = bObject;
+            bCond.addList()=bObject;
             bCond.addString("&&");
-            bCond.addList() = bPresent;
+            bCond.addList()=bPresent;
             bCond.addString("||");
-            bCond.addList() = bRTObject;
+            bCond.addList()=bRTObject;
             bCond.addString("&&");
-            bCond.addList() = bPresent;
+            bCond.addList()=bPresent;
             opc->checkout();
-            opc->isVerbose = true;
-            list<Entity*> presentObjects = opc->Entities(bCond);
-            opc->isVerbose = false;
-            if (presentObjects.size() != 1)
+            opc->isVerbose=true;
+            list<Entity*> presentObjects=opc->Entities(bCond);
+            opc->isVerbose=false;
+            
+            if (presentObjects.size()==1)
             {
-                cout<<"There should be 1 and only 1 object on the table"<<endl;
-            }
-            else
-            {
-                Object* o = (Object*) (presentObjects.front());
-                //Prepare the bottle to be sent to RFH
+                Object* o=(Object*)(presentObjects.front());
                 Bottle botRPH, botRPHRep;
                 botRPH.addString("add");
                 botRPH.addString("kinect");
-                Bottle &cooKinect = botRPH.addList();
+                Bottle &cooKinect=botRPH.addList();
                 cooKinect.addDouble(clickedPoint[0]);
                 cooKinect.addDouble(clickedPoint[1]);
                 cooKinect.addDouble(clickedPoint[2]);
 
-                Bottle &cooiCub = botRPH.addList();
+                Bottle &cooiCub=botRPH.addList();
                 cooiCub.addDouble(o->m_ego_position[0]);
                 cooiCub.addDouble(o->m_ego_position[1]);
                 cooiCub.addDouble(o->m_ego_position[2]);
@@ -485,22 +463,30 @@ bool AgentDetector::updateModule()
                 cout<<"Sent to RFH: "<<botRPH.toString().c_str()<<endl;
                 cout<<"Got from RFH: "<<botRPHRep.toString().c_str()<<endl;
 
-                pointsCount++;
-                if(pointsCount >= 3 )
-                {
-                    Bottle calibBottle, calibReply;
-                    calibBottle.addString("cal");
-                    calibBottle.addString("kinect");
-                    rfh.write(calibBottle,calibReply);
-                    cout<<"Calibrated ! "<<calibReply.toString().c_str()<<endl;
-
-                    calibBottle.clear();
-                    calibBottle.addString("save");
-                    rfh.write(calibBottle,calibReply);
-                    cout<<"Saved to file ! "<<calibReply.toString().c_str()<<endl;
-                    checkCalibration();
-                }
+                pointsCnt++;
             }
+            else
+                yWarning("There should be 1 and only 1 object on the table");
+        }
+        else if (AgentDetector::clicked==clicked_right)
+        {
+            AgentDetector::clicked=idle;
+            if (pointsCnt>=3)
+            {
+                Bottle calibBottle,calibReply; 
+                calibBottle.addString("cal");
+                calibBottle.addString("kinect");
+                rfh.write(calibBottle,calibReply);
+                cout<<"Calibrated ! "<<calibReply.toString().c_str()<<endl;
+
+                calibBottle.clear();
+                calibBottle.addString("save");
+                rfh.write(calibBottle,calibReply);
+                cout<<"Saved to file ! "<<calibReply.toString().c_str()<<endl;
+                checkCalibration();
+            }
+            else
+                yWarning("Unable to calibrate with less than 3 points pairs collected");
         }
     }
 
@@ -556,7 +542,6 @@ bool AgentDetector::updateModule()
                         playerName = getIdentity(*p);
                     }
 
-
                     //We interact with OPC only if the calibration is done
                     if (localIsCalibrated)
                     {
@@ -564,8 +549,7 @@ bool AgentDetector::updateModule()
                         opc->checkout();
                         partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
                         partner->m_present = true;
-                        //yInfo() << " is localIsCalibrated";
-                            
+
                         // reset the timing.
                         dTimingLastApparition = clock();
                         
