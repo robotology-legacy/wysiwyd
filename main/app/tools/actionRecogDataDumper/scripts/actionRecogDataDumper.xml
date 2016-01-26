@@ -1,0 +1,78 @@
+<application>
+  <name>WYSIWYD Action Recognition Data Dumper</name>
+
+  <dependencies>
+      <port>/icub/camcalib/left/out</port>
+      <port>/icub/camcalib/right/out</port>
+      <port>/kinectServer/rpc</port>
+      <port>/OPC/rpc</port>
+  </dependencies>
+
+  <module>
+    <name>actionRecogDataDumper</name>
+    <parameters></parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name /actionRecogDataDumper/log/data --rxTime</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name /actionRecogDataDumper/log/kinect/rgb --type image --rxTime</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name /actionRecogDataDumper/log/kinect/depth --type image --rxTime</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name /actionRecogDataDumper/log/camera/left --type image --rxTime</parameters>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>yarpdatadumper</name>
+    <parameters>--name /actionRecogDataDumper/log/camera/right --type image --rxTime</parameters>
+    <node>localhost</node>
+  </module>
+
+  <connection>
+      <from>/actionRecogDataDumper/dump:o</from>
+      <to>/actionRecogDataDumper/log/data</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/actionRecogDataDumper/kinect/img:o</from>
+      <to>/actionRecogDataDumper/log/kinect/rgb</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/actionRecogDataDumper/kinect/depth:o</from>
+      <to>/actionRecogDataDumper/log/kinect/depth</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/icub/camcalib/left/out</from>
+      <to>/actionRecogDataDumper/log/camera/left</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+      <from>/icub/camcalib/right/out</from>
+      <to>/actionRecogDataDumper/log/camera/right</to>
+      <protocol>tcp</protocol>
+  </connection>
+
+</application>
+

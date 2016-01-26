@@ -1,4 +1,4 @@
-# Copyright: (C) 2014 WYSIWYD Consortium
+﻿# Copyright: (C) 2014 WYSIWYD Consortium
 # Authors: Grégoire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
@@ -10,3 +10,4 @@ add_subdirectory(qRM)
 add_subdirectory(abmInteraction)
 add_subdirectory(opcPopulater)
 add_subdirectory(humanRobotDumper)
+add_subdirectory(actionRecogDataDumper)
