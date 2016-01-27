@@ -119,7 +119,7 @@ Bottle IOL2OPCBridge::getBlobs()
                 lastBlobs.clear();
         }        
     }
-    else if (Time::now()-lastBlobsArrivalTime>rtLocalizationPeriod)
+    else if (Time::now()-lastBlobsArrivalTime>10.0*rtLocalizationPeriod)
         lastBlobs.clear();
 
     // release resources
