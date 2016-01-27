@@ -286,7 +286,6 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->pause();
 
             string oldName = e->name();
-            opc->changeName(e, newName);
             dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName);
 
             dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->resume();
