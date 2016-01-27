@@ -43,7 +43,7 @@
   <!--iCub action/speech-->
   <module>
     <name>speechRecognizer</name>
-    <parameters />
+    <parameters>--noLegacy</parameters>
     <node>winNode</node>
     <tag>speechRecoTag</tag>
   </module>
