@@ -98,6 +98,8 @@ namespace wysiwyd{
                     yDebug() << "Listen sending command " << cmd.toString();
                     ears_port.write(cmd, reply);                 
                     yDebug() << "Listen got reply" << reply.toString();
+                }else{
+                    yWarning()<< "No connection to ears available...";
                 }
             }
 
