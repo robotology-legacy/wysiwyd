@@ -84,6 +84,9 @@ namespace wysiwyd{
             }
 
             void listen(bool on) {
+                if (!yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")){
+                    yarp::os::Network::connect(ears_port.getName(), "/ears/rpc");
+                }
                 if (yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")) {
                     yarp::os::Bottle cmd, reply;
                     cmd.addString("listen");
@@ -105,12 +108,13 @@ namespace wysiwyd{
             yarp::os::Bottle recogFromGrammar(std::string &sInput)
             {
                 if (!yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
-                    yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
-                    yarp::os::Bottle bReply;
-                    bReply.addInt(0);
-                    bReply.addString("recog not connected");
-                    yWarning(" recog not connected");
-                    return bReply;
+                    if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
+                        yarp::os::Bottle bReply;
+                        bReply.addInt(0);
+                        bReply.addString("recog not connected");
+                        yWarning(" recog not connected");
+                        return bReply;
+                    }
                 }
                 // turn on the main grammar through ears
                 listen(false);
@@ -135,12 +139,13 @@ namespace wysiwyd{
             yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50, bool isEars = false)
             {
                 if (!yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
-                    yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
-                    yarp::os::Bottle bReply;
-                    bReply.addInt(0);
-                    bReply.addString("recog not connected");
-                    yWarning(" recog not connected");
-                    return bReply;
+                    if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
+                        yarp::os::Bottle bReply;
+                        bReply.addInt(0);
+                        bReply.addString("recog not connected");
+                        yWarning(" recog not connected");
+                        return bReply;
+                    }
                 }
                 std::ostringstream osError;
                 bool fGetaReply = false;
