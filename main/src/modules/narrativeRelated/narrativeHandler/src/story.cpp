@@ -22,20 +22,20 @@ void story::createNarration()
 
     vsOutput.push_back(osCurrent.str());
 
-    for (unsigned int ii = 0; ii != vEvents.size(); ii++){
+    for (unsigned int currentElement = 0; currentElement != vEvents.size(); currentElement++){
 
         osCurrent.str("");
-        if (VERBOSE) cout << ii << "...";
+        if (VERBOSE) cout << currentElement << "...";
 
         // initial situation
-        if (ii == 0){
-            if (vEvents[ii].bRelations.toString() != "NULL"){
+        if (currentElement == 0){
+            if (vEvents[currentElement].bRelations.toString() != "NULL"){
                 osCurrent << "\t\t\t" << "At the beginning, ";
-                for (int jj = 0; jj < vEvents[ii].bRelations.size(); jj++){
+                for (int jj = 0; jj < vEvents[currentElement].bRelations.size(); jj++){
                     if (jj != 0){
                         osCurrent << " and ";
                     }
-                    osCurrent << vEvents[ii].bRelations.get(jj).toString();
+                    osCurrent << vEvents[currentElement].bRelations.get(jj).toString();
                 }
                 osCurrent << endl;
             }
@@ -43,24 +43,24 @@ void story::createNarration()
         // end initial situation
 
         // if it is an ACTION
-        if (vEvents[ii].activity_type == "action"){
+        if (vEvents[currentElement].activity_type == "action"){
             // if the action begin
-            if (vEvents[ii].begin){
+            if (vEvents[currentElement].begin){
 
-                if (ii == 0){
-                    osCurrent << "\t\t\t" << vEvents[ii].agent << " tries to " << vEvents[ii].predicate << " the " << vEvents[ii].object;
-                    if (vEvents[ii].recipient != "none" && vEvents[ii].recipient != "")  osCurrent << " " << vEvents[ii].recipient;
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                if (currentElement == 0){
+                    osCurrent << "\t\t\t" << vEvents[currentElement].agent << " tries to " << vEvents[currentElement].predicate << " the " << vEvents[currentElement].object;
+                    if (vEvents[currentElement].recipient != "none" && vEvents[currentElement].recipient != "")  osCurrent << " " << vEvents[currentElement].recipient;
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "adv1" || iarg->first == "adv2") osCurrent << " " << iarg->second;
                     }
                     osCurrent << endl;
                 }
                 else{
                     // if the previous instance wasn't already an action
-                    if (vEvents[ii].activity_type != vEvents[ii - 1].activity_type || vEvents[ii].begin != vEvents[ii - 1].begin){
-                        osCurrent << "\t\t\t" << vEvents[ii].agent << " tries to " << vEvents[ii].predicate << " the " << vEvents[ii].object;
-                        if (vEvents[ii].recipient != "none" && vEvents[ii].recipient != "")  osCurrent << " " << vEvents[ii].recipient;
-                        for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    if (vEvents[currentElement].activity_type != vEvents[currentElement - 1].activity_type || vEvents[currentElement].begin != vEvents[currentElement - 1].begin){
+                        osCurrent << "\t\t\t" << vEvents[currentElement].agent << " tries to " << vEvents[currentElement].predicate << " the " << vEvents[currentElement].object;
+                        if (vEvents[currentElement].recipient != "none" && vEvents[currentElement].recipient != "")  osCurrent << " " << vEvents[currentElement].recipient;
+                        for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                             if (iarg->first == "adv1" || iarg->first == "adv2") osCurrent << " " << iarg->second;
                         }
                         osCurrent << endl;
@@ -69,9 +69,9 @@ void story::createNarration()
             }
             // the action ends
             else{
-                if (ii == 0){
+                if (currentElement == 0){
                     bool bStatusFound = false;
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "status" && iarg->second == "failed"){
                             osCurrent << "\t\t\t" << "But it failed." << endl;
                             bStatusFound = true;
@@ -80,7 +80,7 @@ void story::createNarration()
                     if (!bStatusFound){
                         osCurrent << "\t\t\t" << "And it worked." << endl;
                     }
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "reason"){
                             osCurrent << " because " << iarg->second << "." << endl;
                         }
@@ -88,13 +88,13 @@ void story::createNarration()
                 }
                 else{
                     if (VERBOSE) cout << endl;
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (VERBOSE) cout << iarg->first << " " << iarg->second << " - " << endl;
                     }
                     // if previous instance was not a beggining of action
-                    if (vEvents[ii - 1].begin || vEvents[ii - 1].activity_type != "action"){
+                    if (vEvents[currentElement - 1].begin || vEvents[currentElement - 1].activity_type != "action"){
                         bool bStatusFound = false;
-                        for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                        for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                             if (iarg->first == "status" && iarg->second == "failed"){
                                 osCurrent << "\t\t\t" << "But it failed." << endl;
                                 bStatusFound = true;
@@ -104,7 +104,7 @@ void story::createNarration()
                             osCurrent << "\t\t\t" << "And it worked." << endl;
                         }
                     }
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "reason"){
                             osCurrent << "\t\t\t" << "Because " << iarg->second << "." << endl;
                         }
@@ -112,31 +112,34 @@ void story::createNarration()
                 }
             }
         }
-        else if (vEvents[ii].activity_name == "sentence") {
+        else if (vEvents[currentElement].activity_name == "sentence") {
             string speaker = "none",
                 addressee = "none",
                 sentence = "none";
-            for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
-                if (iarg->first == "speaker") speaker = iarg->second;
-                else if (iarg->first == "addressee")     addressee = iarg->second;
-                else if (iarg->first == "sentence")    sentence = iarg->second;
+            cout << " is sentence: ";
+                for (auto& iarg : vEvents[currentElement].vArgument){
+                    cout << iarg.second << " ";
+                    if (iarg.first == "speaker") speaker = iarg.second;
+                    else if (iarg.first == "addressee")     addressee = iarg.second;
+                    else if (iarg.first == "sentence")    sentence = iarg.second;
             }
+                cout << endl;
 
             osCurrent << "\t\t\t" << speaker << " says to " << addressee << ": " << sentence << endl;
         }
         // if not actino or sentence
-        else if (vEvents[ii].activity_type == "reasoning"){
-            /* for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+        else if (vEvents[currentElement].activity_type == "reasoning"){
+            /* for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                  osCurrent << iarg->second << " ";
                  }*/
             // if the action begin
-            if (vEvents[ii].begin){
+            if (vEvents[currentElement].begin){
 
                 // if the previous instance wasn't already an action
                 //if (current_activitytype != previous_activitytype || previous_begin != current_begin){
-                osCurrent << "\t\t\t" << vEvents[ii].agent << " tries to " << vEvents[ii].activity_name << endl;
+                osCurrent << "\t\t\t" << vEvents[currentElement].agent << " tries to " << vEvents[currentElement].activity_name << endl;
 
-                for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                     if (iarg->first == "goal"){
                         Bottle bUnfolded = unfoldGoal(iarg->second);
                         osCurrent << "\t\t\t" << "The goal was that: " << bUnfolded.find("agent").toString() << " tries to " << bUnfolded.find("predicate").toString() << " the " << bUnfolded.find("object").toString();
@@ -147,9 +150,9 @@ void story::createNarration()
             }
             // the action ends
             else{
-                if (ii == 0){
+                if (currentElement == 0){
                     bool bStatusFound = false;
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "status" && iarg->second == "failed"){
                             osCurrent << "\t\t\t" << "But it failed";
                             bStatusFound = true;
@@ -158,16 +161,16 @@ void story::createNarration()
                     if (!bStatusFound){
                         osCurrent << "\t\t\t" << "And it worked." << endl;
                     }
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "reason"){
                             osCurrent << " because " << iarg->second;
                         }
                     }
                     osCurrent << "." << endl;
                 }
-                else if (vEvents[ii - 1].begin || vEvents[ii - 1].activity_type != "action"){// if previous instance was not a beggining of action
+                else if (vEvents[currentElement - 1].begin || vEvents[currentElement - 1].activity_type != "action"){// if previous instance was not a beggining of action
                     bool bStatusFound = false;
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "status" && iarg->second == "failed"){
                             osCurrent << "\t\t\t" << "But it failed." << endl;
                             bStatusFound = true;
@@ -176,14 +179,14 @@ void story::createNarration()
                     if (!bStatusFound){
                         osCurrent << "\t\t\t" << "And it worked." << endl;
                     }
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "reason"){
                             osCurrent << " because " << iarg->second << "." << endl;
                         }
                     }
                 }
                 else{
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "reason"){
                             osCurrent << " because " << iarg->second << "." << endl;;
                         }
@@ -193,26 +196,32 @@ void story::createNarration()
         }
         // nor action/reasoning/sentence
         else {
-            //for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+            //for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
             //    osCurrent << iarg->first << " " << iarg->second << "; ";
             //    //                osCurrent << bTemp.toString() << endl;
             //}
             //osCurrent << endl;
             // if the action begin
-            if (vEvents[ii].begin){
-                if (ii == 0){
-                    osCurrent << "\t\t\t" << vEvents[ii].agent << " tries to " << vEvents[ii].activity_name << endl;
+            if (vEvents[currentElement].begin){
+                if (currentElement == 0){
+                    osCurrent << "\t\t\t" << vEvents[currentElement].agent << " tries to " << vEvents[currentElement].activity_name;
+                    if (vEvents[currentElement].object != "") osCurrent << " the " << vEvents[currentElement].object;
+                    if (vEvents[currentElement].recipient != "") osCurrent << " the " << vEvents[currentElement].recipient;
+                    osCurrent << endl;
                 }
                 // if the previous instance wasn't already an action
-                else if (vEvents[ii].activity_type != vEvents[ii - 1].activity_type || vEvents[ii].begin != vEvents[ii - 1].begin){
-                    osCurrent << "\t\t\t" << vEvents[ii].agent << " tries to " << vEvents[ii].activity_name << endl;
+                else if (vEvents[currentElement].activity_type != vEvents[currentElement - 1].activity_type || vEvents[currentElement].begin != vEvents[currentElement - 1].begin){
+                    osCurrent << "\t\t\t" << vEvents[currentElement].agent << " tries to " << vEvents[currentElement].activity_name;
+                    if (vEvents[currentElement].object != "") osCurrent << " the " << vEvents[currentElement].object;
+                    if (vEvents[currentElement].recipient != "") osCurrent << " the " << vEvents[currentElement].recipient;
+                    osCurrent << endl;
                 }
             }
             // the action ends
             else {
-                if (ii == 0){
+                if (currentElement == 0){
                     bool bStatusFound = false;
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "status" && iarg->second == "failed"){
                             osCurrent << "\t\t\t" << "But it failed";
                             bStatusFound = true;
@@ -221,15 +230,15 @@ void story::createNarration()
                     if (!bStatusFound){
                         osCurrent << "\t\t\t" << "And it worked." << endl;
                     }
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "reason"){
                             osCurrent << " because " << iarg->second << "." << endl;
                         }
                     }
                 }
-                else if (vEvents[ii - 1].begin || vEvents[ii - 1].activity_type != "action"){// if previous instance was not a beggining of action
+                else if (vEvents[currentElement - 1].begin || vEvents[currentElement - 1].activity_type != "action"){// if previous instance was not a beggining of action
                     bool bStatusFound = false;
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "status" && iarg->second == "failed"){
                             osCurrent << "\t\t\t" << "But it failed";
                             bStatusFound = true;
@@ -238,7 +247,7 @@ void story::createNarration()
                     if (!bStatusFound){
                         osCurrent << "\t\t\t" << "And it worked." << endl;
                     }
-                    for (auto iarg = vEvents[ii].vArgument.begin(); iarg != vEvents[ii].vArgument.end(); iarg++){
+                    for (auto iarg = vEvents[currentElement].vArgument.begin(); iarg != vEvents[currentElement].vArgument.end(); iarg++){
                         if (iarg->first == "reason"){
                             osCurrent << " because " << iarg->second << "." << endl;
                         }
@@ -249,17 +258,17 @@ void story::createNarration()
 
 
         // changes in the relations:
-        if (ii != vEvents.size() && ii != 0){
+        if (currentElement != vEvents.size() && currentElement != 0){
 
-            if (vEvents[ii].bRelations != vEvents[ii - 1].bRelations)
+            if (vEvents[currentElement].bRelations != vEvents[currentElement - 1].bRelations)
             {
-                if (vEvents[ii].bRelations.toString() != "NULL"){
+                if (vEvents[currentElement].bRelations.toString() != "NULL"){
                     osCurrent << "\t\t\t" << "And now, ";
-                    for (int jj = 0; jj < vEvents[ii].bRelations.size(); jj++){
+                    for (int jj = 0; jj < vEvents[currentElement].bRelations.size(); jj++){
                         if (jj != 0){
                             osCurrent << " and ";
                         }
-                        osCurrent << vEvents[ii].bRelations.get(jj).toString();
+                        osCurrent << vEvents[currentElement].bRelations.get(jj).toString();
                     }
                     osCurrent << endl;
                 }
@@ -267,13 +276,13 @@ void story::createNarration()
         }
 
         // final situation
-        if (ii == vEvents.size() - 1){
+        if (currentElement == vEvents.size() - 1){
             osCurrent << "\t\t\t" << "In the end, ";
-            for (int jj = 0; jj < vEvents[ii].bRelations.size(); jj++){
+            for (int jj = 0; jj < vEvents[currentElement].bRelations.size(); jj++){
                 if (jj != 0){
                     osCurrent << " and ";
                 }
-                osCurrent << vEvents[ii].bRelations.get(jj).toString();
+                osCurrent << vEvents[currentElement].bRelations.get(jj).toString();
             }
             osCurrent << "." << endl;
         }
@@ -337,10 +346,9 @@ void story::displayNarration()
 
     for (auto itSt = vEvents.begin(); itSt != vEvents.end(); itSt++){
         cout << "\t A:" << itSt->agent;
-        cout << "\t P:" << itSt->predicate ;
-        cout << "\t O:" << itSt->object ;
-        cout << "\t R:" << itSt->recipient<<endl;
-
+        cout << "\t P:" << itSt->predicate;
+        cout << "\t O:" << itSt->object;
+        cout << "\t R:" << itSt->recipient << endl;
     }
 
     for (auto itSt = sentenceStory.begin(); itSt != sentenceStory.end(); itSt++){

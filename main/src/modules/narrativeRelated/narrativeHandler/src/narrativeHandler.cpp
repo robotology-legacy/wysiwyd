@@ -70,7 +70,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     findStories();
     cout << endl;
     initializeStories();
-    
+
     return false;
 }
 
@@ -387,6 +387,37 @@ void narrativeHandler::initializeStories()
 
         itSt->displayNarration();
 
+        cout << "with lrh: " << endl;
+
+        bool lrh = false;
+
+        if (lrh){
+            for (auto& evt : itSt->vEvents){
+                bool bO = false;
+                bool bR = false;
+                string meaning;
+                meaning = ", ";
+                meaning += evt.agent + " " + evt.predicate + " ";
+                if (evt.object != ""){
+                    meaning += evt.object + " ";
+                    bO = true;
+                }
+                if (evt.recipient != "") {
+                    meaning += evt.recipient + " ";
+                    bR = true;
+                }
+
+                meaning += "<o> [_-_-_-_-_-_-_-_][A-P-";
+                bO ? meaning += "O-" : "_-";
+                bR ? meaning += "R-" : "_-";
+                meaning += "_-_-_-_][_-_-_-_-_-_-_-_] <o>";
+
+                string sentence = iCub->getLRH()->meaningToSentence(meaning);
+
+                cout << sentence << endl;
+            }
+        }
+
         cout << endl << endl;
 
     }
@@ -445,6 +476,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
     for (int kk = 0; kk < bArguments.size(); kk++){
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
+            cout << "unknown argument is: " << bTemp.get(1).toString() << " " << bTemp.get(0).toString() << " " << bTemp.get(2).toString() << endl;
 
             if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
@@ -464,17 +496,17 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         }
     }
 
-    if (evt.activity_name == "sentence"){
-        evt.predicate = "say";
-        for (int kk = 0; kk < bArguments.size(); kk++){
-            if (bArguments.get(kk).isList()) {
-                Bottle bTemp = *bArguments.get(kk).asList();
-                if (bTemp.get(1).toString() == "speaker") evt.agent = bTemp.get(0).toString();
-                else if (bTemp.get(1).toString() == "addressee") evt.recipient = bTemp.get(0).toString();
-                else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
-            }
-        }
-    }
+    //if (evt.activity_name == "sentence"){
+    //    evt.predicate = "say";
+    //    for (int kk = 0; kk < bArguments.size(); kk++){
+    //        if (bArguments.get(kk).isList()) {
+    //            Bottle bTemp = *bArguments.get(kk).asList();
+    //            if (bTemp.get(1).toString() == "speaker") evt.agent = bTemp.get(0).toString();
+    //            else if (bTemp.get(1).toString() == "addressee") evt.recipient = bTemp.get(0).toString();
+    //            else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
+    //        }
+    //    }
+    //}
 
 
     if (_bRelations.toString() != "NULL"){
