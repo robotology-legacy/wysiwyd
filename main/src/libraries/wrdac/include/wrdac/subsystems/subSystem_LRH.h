@@ -37,22 +37,24 @@ namespace wysiwyd{
         class SubSystem_LRH : public SubSystem
         {
         protected:
-            bool ABMconnected;
             virtual bool connect() {
                 // paste master name of 
-                ABMconnected = (SubABM->Connect());
-                yInfo() << ((ABMconnected) ? "LRH connected to ABM" : "LRH didn't connect to ABM");
                 return yarp::os::Network::connect(portRPC.getName(), "/lrh/rpc");
             }
             SubSystem_ABM* SubABM;
+            bool ABMconnected() {
+                bool b = SubABM->Connect();
+                yInfo() << (b ? "LRH connected to ABM" : "LRH didn't connect to ABM");
+                return b;
+            }
 
         public:
 
             yarp::os::Port portRPC;
             SubSystem_LRH(const std::string &masterName) : SubSystem(masterName){
-                portRPC.open(("/" + m_masterName + "/lrh:rpc").c_str());
+                portRPC.open(("/" + m_masterName + "/lrh:o").c_str());
                 m_type = SUBSYSTEM_LRH;
-                SubABM = new SubSystem_ABM(m_masterName + "/from_lrh");
+                SubABM = new SubSystem_ABM(m_masterName + "/lrh");
             }
 
 
@@ -73,6 +75,13 @@ namespace wysiwyd{
                 if (connect()){
                     portRPC.write(bMessenger, bReturn);
                     if (bReturn.size() == 2){
+                        if (ABMconnected()){
+                            std::list<std::pair<std::string, std::string> > lArgument;
+                            lArgument.push_back(std::pair<std::string, std::string>(sInput, "meaning"));
+                            lArgument.push_back(std::pair<std::string, std::string>(bReturn.get(1).toString(), "sentence"));
+                            lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                            SubABM->sendActivity("action", "production", "lrh", lArgument, true);
+                        }
                         return bReturn.get(1).asString();
                     }
                     else{
@@ -96,6 +105,13 @@ namespace wysiwyd{
                 if (connect()){
                     portRPC.write(bMessenger, bReturn);
                     if (bReturn.size() == 2){
+                        if (ABMconnected()){
+                            std::list<std::pair<std::string, std::string> > lArgument;
+                            lArgument.push_back(std::pair<std::string, std::string>(sInput, "sentence"));
+                            lArgument.push_back(std::pair<std::string, std::string>(bReturn.get(1).toString(), "meaning"));
+                            lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                            SubABM->sendActivity("action", "comprehension", "lrh", lArgument, true);
+                        }
                         return bReturn.get(1).asString();
                     }
                     else{

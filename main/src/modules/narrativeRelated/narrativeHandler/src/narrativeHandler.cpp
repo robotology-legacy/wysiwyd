@@ -389,7 +389,7 @@ void narrativeHandler::initializeStories()
 
         cout << "with lrh: " << endl;
 
-        bool lrh = true;
+        bool lrh = false;
 
         if (lrh){
             for (auto& evt : itSt->vEvents){

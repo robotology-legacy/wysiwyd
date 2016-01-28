@@ -1,5 +1,5 @@
 #include "opcPopulater.h"
-#include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/subsystems/subSystem_LRH.h"
 #include "wrdac/subsystems/subSystem_ARE.h"
 
 bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
@@ -27,6 +27,10 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " WARNING ABM NOT CONNECTED";
     }
 
+    if (!iCub->getLRH())
+    {
+        yWarning() << " WARNING LRH NOT CONNECTED";
+    }
 
     Bottle &bRFInfo = rf.findGroup("populateSpecific2");
 
@@ -84,11 +88,11 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "populateSpecific1") {
         yInfo() << " populateSpecific1";
-        (populateSpecific1(command)) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
+        (populateEntityRandom(command)) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
     }
     else if (command.get(0).asString() == "populateSpecific2") {
         yInfo() << " populateSpecific2";
-        (populateSpecific2()) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
+        (populateSpecific()) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
     }
     else if (command.get(0).asString() == "populateABM") {
         yInfo() << " populateABM";
@@ -127,7 +131,7 @@ bool opcPopulater::updateModule() {
 }
 
 
-bool opcPopulater::populateSpecific1(Bottle bInput){
+bool opcPopulater::populateEntityRandom(Bottle bInput){
 
     if (bInput.size() != 3)
     {
@@ -325,19 +329,19 @@ bool opcPopulater::populateABM(Bottle bInput)
         bTempLarry.addString("populateSpecific1");
         bTempLarry.addString("agent");
         bTempLarry.addString("Larry");
-        populateSpecific1(bTempLarry);
+        populateEntityRandom(bTempLarry);
 
         Bottle bTempRobert;
         bTempRobert.addString("populateSpecific1");
         bTempRobert.addString("agent");
         bTempRobert.addString("Robert");
-        populateSpecific1(bTempRobert);
+        populateEntityRandom(bTempRobert);
 
         Bottle bTempGiraffe;
         bTempGiraffe.addString("populateSpecific1");
         bTempGiraffe.addString("object");
         bTempGiraffe.addString("giraffe");
-        populateSpecific1(bTempGiraffe);
+        populateEntityRandom(bTempGiraffe);
 
         iCub->opc->checkout();
 
@@ -633,7 +637,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
 
 
 
-bool opcPopulater::populateSpecific2(){
+bool opcPopulater::populateSpecific(){
 
     double errorMargin = noise;
     iCub->opc->clear();
@@ -787,8 +791,15 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
             lArgument,
             true);
     }
+
+    string sentence = "I wanted to get the giraffe";
+    iCub->getLRH()->SentenceToMeaning(sentence);
+
     yInfo() << " start grasping";
     bool finished = iCub->getARE()->take(Giraffe->m_ego_position);
+
+    sentence = "But I failed to grasp it";
+    iCub->getLRH()->SentenceToMeaning(sentence);
 
     if (iCub->getABMClient()->Connect())
     {
@@ -807,6 +818,9 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
     }
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    sentence = "Because it was out of reach";
+    iCub->getLRH()->SentenceToMeaning(sentence);
 
     yInfo() << " searching for an action";
     if (iCub->getABMClient()->Connect())
@@ -878,12 +892,19 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
             false);
     }
 
+    sentence = "So I found a different action";
+    iCub->getLRH()->SentenceToMeaning(sentence);
+
+    sentence = "If I could ask you to give it to me";
+    iCub->getLRH()->SentenceToMeaning(sentence);
+
+    sentence = "Then you would give it to me";
+    iCub->getLRH()->SentenceToMeaning(sentence);
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" iCub ask the giraffe");
 
     list<pair<string, string> > lArgument;
-    string sentence;
     sentence = "Give me the giraffe please";
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
@@ -898,6 +919,10 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
         "recog",
         lArgument,
         true);
+
+
+    sentence = "So I asked you to give it to me";
+    iCub->getLRH()->SentenceToMeaning(sentence);
 
 
     Time::delay(dDelay*Random::uniform());
@@ -934,6 +959,12 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
         "action",
         lArgument,
         false);
+
+    sentence = "And you gave it to me";
+    iCub->getLRH()->SentenceToMeaning(sentence);
+
+    sentence = "Now I have the giraffe";
+    iCub->getLRH()->SentenceToMeaning(sentence);
 
 
     return true;

@@ -38,8 +38,8 @@ public:
 
 
     bool updateModule();
-    bool    populateSpecific1(Bottle bInput);
-    bool    populateSpecific2();
+    bool    populateEntityRandom(Bottle bInput);
+    bool    populateSpecific();
 
     bool    addUnknownEntity(Bottle bInput);
     bool    setSaliencyEntity(Bottle bInput);
