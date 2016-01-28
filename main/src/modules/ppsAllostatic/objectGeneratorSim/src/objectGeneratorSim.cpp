@@ -38,7 +38,7 @@ bool objectGeneratorSim::configure(yarp::os::ResourceFinder &rf)
     string port2icubsim = "/" + moduleName + "/sim:o";
     if (!portSim.open(port2icubsim.c_str())) {
         cout << getName() << ": Unable to open port " << port2icubsim << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }    
 
     // create an output port
@@ -46,20 +46,20 @@ bool objectGeneratorSim::configure(yarp::os::ResourceFinder &rf)
 
     if (!portOutput.open(port2output.c_str())) {
         cout << getName() << ": Unable to open port " << port2output << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
     std::string port2outputT = "/" + moduleName + moduleOutputTarget;
 
     if (!portOutputTarget.open(port2outputT.c_str())) {
         cout << getName() << ": Unable to open port " << port2outputT << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
     std::string port2input = "/" + moduleName + moduleInput;
 
     if (!portInput.open(port2input.c_str())) {
         cout << getName() << ": Unable to open port " << port2input << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
     std::string port2world = "/icubSim/world";
     while (!Network::connect(port2icubsim, port2world.c_str()))

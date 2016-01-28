@@ -46,7 +46,7 @@ bool brightnessSensor::configure(yarp::os::ResourceFinder &rf)
     Port2camRightName += getName() + "/camRight:i";
     if (!Port2camRight.open(Port2camRightName.c_str())) {
         cout << getName() << ": Unable to open port " << Port2camRightName << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
     // create one input port for brightness
@@ -57,7 +57,7 @@ bool brightnessSensor::configure(yarp::os::ResourceFinder &rf)
 
     if (!Port2outBrightness.open(Port2outBrightnessName.c_str())) {
         cout << getName() << ": Unable to open port " << Port2outBrightnessName << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
     while (!Network::connect("/icub/cam/right", Port2camRightName))

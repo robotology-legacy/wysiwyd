@@ -13,7 +13,7 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "opcPopulater", "client.ini", isRFVerbose);
-    iCub->opc->isVerbose &= false;
+    iCub->opc->isVerbose = false;
     if (!iCub->connect())
     {
         yInfo() << " iCubClient : Some dependencies are not running...";

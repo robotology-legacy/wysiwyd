@@ -78,7 +78,6 @@ private:
     string nameSamInputPort;
 
     ICubClient *iCub;
-    wysiwyd::wrdac::OPCClient           *lOPC;
 
     bool callReservoir(string pythonFile, string closed_class_words);
     int copyPastTrainFile(const char* fileNameIn, const char* fileNameOut);

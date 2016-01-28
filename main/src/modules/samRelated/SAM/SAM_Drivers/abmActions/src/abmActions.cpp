@@ -109,7 +109,7 @@ bool abmActions::configure(ResourceFinder &rf)
 
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "abmActions", "client.ini", isRFVerbose);
-    iCub->opc->isVerbose &= false;
+    iCub->opc->isVerbose = false;
     if (!iCub->connect())
     {
         cout << "iCubClient : Some dpeendencies are not running..." << endl;

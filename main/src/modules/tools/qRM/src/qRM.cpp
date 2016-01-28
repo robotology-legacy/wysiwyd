@@ -63,7 +63,7 @@ bool qRM::configure(yarp::os::ResourceFinder &rf)
 
     if (!Port2abmReasoning.open(port2abmReasoningName.c_str())) {
         yInfo() << getName() << " : Unable to open port " << port2abmReasoningName;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
     bEveryThingisGood &= Network::connect(port2abmReasoningName.c_str(), "/abmReasoning/rpc");
 

@@ -389,7 +389,7 @@ void narrativeHandler::initializeStories()
 
         cout << "with lrh: " << endl;
 
-        bool lrh = false;
+        bool lrh = true;
 
         if (lrh){
             for (auto& evt : itSt->vEvents){
@@ -413,7 +413,7 @@ void narrativeHandler::initializeStories()
                 meaning += "_-_-_-_][_-_-_-_-_-_-_-_] <o>";
 
                 string sentence = iCub->getLRH()->meaningToSentence(meaning);
-
+                
                 cout << sentence << endl;
             }
         }
@@ -476,7 +476,6 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
     for (int kk = 0; kk < bArguments.size(); kk++){
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
-            cout << "unknown argument is: " << bTemp.get(1).toString() << " " << bTemp.get(0).toString() << " " << bTemp.get(2).toString() << endl;
 
             if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();

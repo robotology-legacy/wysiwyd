@@ -49,7 +49,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     if ( (10*(int)(log((double)L)/log(2.0))%10) != 0)
     {
         cout << getName() << ": ERROR! Buffer size must be a power of 2! Please, change the value (Default: 4096) "<<endl;
-                bEveryThingisGood &= false;
+                bEveryThingisGood = false;
     }
 
     // create one input port from audio
@@ -59,7 +59,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
     if (!portInput.open(port2audioName.c_str())) {
         cout << getName() << ": Unable to open port " << port2audioName << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
 
@@ -69,7 +69,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
     if (!portOutputFreq.open(port2outputNameFreq.c_str())) {
         cout << getName() << ": Unable to open port " << port2outputNameFreq << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
 
@@ -79,7 +79,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
     if (!portSpectrumOutput.open(port2outputNameSpectrum.c_str())) {
         cout << getName() << ": Unable to open port " << port2outputNameSpectrum << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
     port2outputNameBool = "/";
@@ -87,7 +87,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
     if (!portSpectBoolOutput.open(port2outputNameBool.c_str())) {
         cout << getName() << ": Unable to open port " << port2outputNameBool << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
     // create an output port for gap
@@ -96,7 +96,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
 
     if (!portOutputGap.open(port2outputNameGap.c_str())) {
         cout << getName() << ": Unable to open port " << port2outputNameGap << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
     // connect input port to audio

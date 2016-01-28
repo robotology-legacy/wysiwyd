@@ -40,7 +40,7 @@ bool IIE::configure(yarp::os::ResourceFinder &rf)
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "iie", "client.ini", isRFVerbose);
 
-    iCub->opc->isVerbose &= false;
+    iCub->opc->isVerbose = false;
     if (!iCub->connect())
     {
         yInfo() << " iCubClient : Some dependencies are not running...";
@@ -58,7 +58,7 @@ bool IIE::configure(yarp::os::ResourceFinder &rf)
 
     if (!Port2Supervisor.open(Port2SupervisorName.c_str())) {
         cout << getName() << ": Unable to open port " << Port2SupervisorName << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
     bEveryThingisGood &= Network::connect(Port2SupervisorName.c_str(), "/qRM/rpc");
 

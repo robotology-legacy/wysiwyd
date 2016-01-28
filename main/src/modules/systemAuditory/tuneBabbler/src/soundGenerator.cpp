@@ -32,7 +32,7 @@ bool babbler::configure(yarp::os::ResourceFinder &rf)
     if (!portOutput.open(port2output.c_str())) {
         cout << getName() << ": Unable to open port " << port2output << endl;
         cout << "The microphone might be turned on" << endl;
-        bEveryThingisGood &= false;
+        bEveryThingisGood = false;
     }
 
     cout << moduleName << ": finding configuration files..." << endl;

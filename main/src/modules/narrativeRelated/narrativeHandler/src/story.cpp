@@ -116,14 +116,11 @@ void story::createNarration()
             string speaker = "none",
                 addressee = "none",
                 sentence = "none";
-            cout << " is sentence: ";
-                for (auto& iarg : vEvents[currentElement].vArgument){
-                    cout << iarg.second << " ";
-                    if (iarg.first == "speaker") speaker = iarg.second;
-                    else if (iarg.first == "addressee")     addressee = iarg.second;
-                    else if (iarg.first == "sentence")    sentence = iarg.second;
+            for (auto& iarg : vEvents[currentElement].vArgument){
+                if (iarg.first == "speaker") speaker = iarg.second;
+                else if (iarg.first == "addressee")     addressee = iarg.second;
+                else if (iarg.first == "sentence")    sentence = iarg.second;
             }
-                cout << endl;
 
             osCurrent << "\t\t\t" << speaker << " says to " << addressee << ": " << sentence << endl;
         }
