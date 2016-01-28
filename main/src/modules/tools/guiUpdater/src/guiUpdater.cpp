@@ -226,10 +226,10 @@ void GuiUpdater::deleteObject(const string &opcTag, Object* o)
     {
         int i = 0;
         Agent* a = dynamic_cast<Agent*>(o);
-        for(auto& part : a->m_body.m_parts)
+        while (i < a->m_body.m_parts.size())
         {
             ostringstream opcTagPart;
-            opcTagPart<<o->opc_id() << "_" << i;
+            opcTagPart << o->opc_id() << "_" << i;
             cmd.clear();
             cmd.addString("delete");
             cmd.addString(opcTagPart.str().c_str());
