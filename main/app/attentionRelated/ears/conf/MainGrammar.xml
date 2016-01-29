@@ -62,7 +62,7 @@
       <P>pig</P>
       <P>bottle</P>
     </L>
-
+    </RULE>
     <RULE NAME="bodypart" DYNAMIC="TRUE">
     <L>
       <P>hand</P>
