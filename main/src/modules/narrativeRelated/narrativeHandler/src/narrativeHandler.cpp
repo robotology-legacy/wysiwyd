@@ -44,6 +44,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
+    int iMinInstance = rf.check("instanceStart", Value(0)).asInt();
+    lrh = rf.find("lrh").asInt() == 1;
 
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
@@ -56,10 +58,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
     }
 
-    if (!iCub->getLRH())
-    {
-        yWarning() << " WARNING LRH NOT CONNECTED";
-    }
+    (!iCub->getLRH()) ? yWarning(" WARNING LRH NOT CONNECTED") : iCub->getLRH()->bForwardABM = rf.find("forwardABM").asInt() == 1;
+
 
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
@@ -67,7 +67,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    findStories();
+    findStories(iMinInstance);
     cout << endl;
     initializeStories();
 
@@ -343,21 +343,21 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 
 void narrativeHandler::initializeStories()
 {
-    for (auto itSt = listStories.begin(); itSt != listStories.end(); itSt++){
+    for (auto itSt : listStories){
 
-        itSt->vEvents.clear();
+        itSt.vEvents.clear();
         ostringstream osRequest;
         osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance = " << *(itSt->viInstances.begin());
+        osRequest << "SELECT time FROM main WHERE instance = " << *(itSt.viInstances.begin());
         Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        itSt->timeBegin = string2Time(bMessenger.toString());
+        itSt.timeBegin = string2Time(bMessenger.toString());
 
         osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance = " << itSt->viInstances[itSt->viInstances.size() - 1];
+        osRequest << "SELECT time FROM main WHERE instance = " << itSt.viInstances[itSt.viInstances.size() - 1];
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        itSt->timeEnd = string2Time(bMessenger.toString());
+        itSt.timeEnd = string2Time(bMessenger.toString());
 
-        for (auto itInst = itSt->viInstances.begin(); itInst != itSt->viInstances.end(); itInst++){
+        for (auto itInst = itSt.viInstances.begin(); itInst != itSt.viInstances.end(); itInst++){
 
 
             ostringstream osRequest;
@@ -379,20 +379,18 @@ void narrativeHandler::initializeStories()
             evtStory evtTemp;
             vector<string> tempOCW = initializeEVT(evtTemp, *itInst, bActivity, bArguments, bRelations);
 
-            itSt->vEvents.push_back(evtTemp);
-            itSt->addOCW(tempOCW);
+            itSt.vEvents.push_back(evtTemp);
+            itSt.addOCW(tempOCW);
         }
 
         cout << "story initialized" << endl;
 
-        itSt->displayNarration();
+        itSt.displayNarration();
 
         cout << "with lrh: " << endl;
-
-        bool lrh = false;
-
+        
         if (lrh){
-            for (auto& evt : itSt->vEvents){
+            for (auto& evt : itSt.vEvents){
                 bool bO = false;
                 bool bR = false;
                 string meaning;
@@ -480,9 +478,9 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
-            else if (evt.isIn(vAgent, bTemp.get(2).toString())) evt.agent = bTemp.get(0).toString();
+     //       else if (evt.isIn(vAgent, bTemp.get(2).toString())) evt.agent = bTemp.get(0).toString();
             else if (evt.isIn(vObject, bTemp.get(1).toString()))    evt.object = bTemp.get(0).toString();
-            else if (evt.isIn(vObject, bTemp.get(2).toString()))    evt.object = bTemp.get(0).toString();
+     //       else if (evt.isIn(vObject, bTemp.get(2).toString()))    evt.object = bTemp.get(0).toString();
             else if (evt.isIn(vRecipient, bTemp.get(1).toString())) evt.recipient = bTemp.get(0).toString();
             else if (evt.isIn(vRecipient, bTemp.get(2).toString())) evt.recipient = bTemp.get(0).toString();
             else {
@@ -495,18 +493,18 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         }
     }
 
-    //if (evt.activity_name == "sentence"){
-    //    evt.predicate = "say";
-    //    for (int kk = 0; kk < bArguments.size(); kk++){
-    //        if (bArguments.get(kk).isList()) {
-    //            Bottle bTemp = *bArguments.get(kk).asList();
-    //            if (bTemp.get(1).toString() == "speaker") evt.agent = bTemp.get(0).toString();
-    //            else if (bTemp.get(1).toString() == "addressee") evt.recipient = bTemp.get(0).toString();
-    //            else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
-    //        }
-    //    }
-    //}
-
+    if (evt.activity_name == "production" || evt.activity_name == "comprehension" || evt.activity_name == "sentence"){
+        evt.predicate = "say";
+        for (int kk = 0; kk < bArguments.size(); kk++){
+            if (bArguments.get(kk).isList()) {
+                Bottle bTemp = *bArguments.get(kk).asList();
+                if (bTemp.get(1).toString() == "speaker") evt.agent = bTemp.get(0).toString();
+                else if (bTemp.get(1).toString() == "addressee") evt.recipient = bTemp.get(0).toString();
+                else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
+            }
+        }
+    }
+    
 
     if (_bRelations.toString() != "NULL"){
         for (int kk = 0; kk < _bRelations.size(); kk++){

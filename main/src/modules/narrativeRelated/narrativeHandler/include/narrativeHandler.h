@@ -27,6 +27,7 @@ private:
 
     double      period;
     bool abm;
+    bool lrh;
 
     double dThresholdDiffStory; // threshold in second between to action from two different stories.
     unsigned int  iThresholdSizeStory; // threshold of the number of instance in a story

@@ -43,17 +43,22 @@ namespace wysiwyd{
             }
             SubSystem_ABM* SubABM;
             bool ABMconnected() {
-                bool b = SubABM->Connect();
-                yInfo() << (b ? "LRH connected to ABM" : "LRH didn't connect to ABM");
+                bool b = SubABM->Connect() && bForwardABM;
+                yInfo() << (b ? "LRH connected to ABM" : "LRH not connected to ABM");
                 return b;
             }
 
         public:
+            bool bForwardABM;
+            std::string interlocutor;
 
             yarp::os::Port portRPC;
+
             SubSystem_LRH(const std::string &masterName) : SubSystem(masterName){
                 portRPC.open(("/" + m_masterName + "/lrh:o").c_str());
+                interlocutor = "partner";
                 m_type = SUBSYSTEM_LRH;
+                bForwardABM = true;
                 SubABM = new SubSystem_ABM(m_masterName + "/lrh");
             }
 
@@ -62,7 +67,7 @@ namespace wysiwyd{
                 portRPC.interrupt();
                 portRPC.close();
                 SubABM->Close();
-            };
+            }
 
 
             std::string meaningToSentence(std::string sInput)
@@ -80,6 +85,8 @@ namespace wysiwyd{
                             lArgument.push_back(std::pair<std::string, std::string>(sInput, "meaning"));
                             lArgument.push_back(std::pair<std::string, std::string>(bReturn.get(1).toString(), "sentence"));
                             lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                            lArgument.push_back(std::pair<std::string, std::string>("iCub", "speaker"));
+                            lArgument.push_back(std::pair<std::string, std::string>(interlocutor, "addressee"));
                             SubABM->sendActivity("action", "production", "lrh", lArgument, true);
                         }
                         return bReturn.get(1).asString();
@@ -110,6 +117,8 @@ namespace wysiwyd{
                             lArgument.push_back(std::pair<std::string, std::string>(sInput, "sentence"));
                             lArgument.push_back(std::pair<std::string, std::string>(bReturn.get(1).toString(), "meaning"));
                             lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                            lArgument.push_back(std::pair<std::string, std::string>("iCub", "addressee"));
+                            lArgument.push_back(std::pair<std::string, std::string>(interlocutor, "speaker"));
                             SubABM->sendActivity("action", "comprehension", "lrh", lArgument, true);
                         }
                         return bReturn.get(1).asString();

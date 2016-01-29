@@ -112,7 +112,9 @@ void story::createNarration()
                 }
             }
         }
-        else if (vEvents[currentElement].activity_name == "sentence") {
+        else if (vEvents[currentElement].activity_name == "sentence"
+            || vEvents[currentElement].activity_name == "comprehension"
+            || vEvents[currentElement].activity_name == "production") {
             string speaker = "none",
                 addressee = "none",
                 sentence = "none";

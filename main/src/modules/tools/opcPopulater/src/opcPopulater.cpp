@@ -102,6 +102,10 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " populateABMiCubStory";
         (populateABMiCubStory(command)) ? reply.addString("populateABMiCubStory done !") : reply.addString("populateABMiCubStory failed !");
     }
+    else if (command.get(0).asString() == "populateABMiCubStoryFull") {
+        yInfo() << " populateABMiCubStoryFull";
+        (populateABMiCubStoryFull(command)) ? reply.addString("populateABMiCubStoryFull done !") : reply.addString("populateABMiCubStoryFull failed !");
+    }
     else if (command.get(0).asString() == "addUnknownEntity") {
         yInfo() << " addUnknownEntity";
         (addUnknownEntity(command)) ? reply.addString("addUnknownEntity done !") : reply.addString("addUnknownEntity failed !");
@@ -692,6 +696,9 @@ bool opcPopulater::populateSpecific(){
 */
 bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
 {
+
+    iCub->getLRH()->interlocutor = "Narrator";
+
     Time::delay(12.);
     // first the Giraffe is close to larry (from left to right)
     iCub->opc->clear();
@@ -774,6 +781,10 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
     // FINAL SITUATION/
 
 
+    string sentence = "You wanted to get the giraffe";
+    iCub->getLRH()->SentenceToMeaning(sentence);
+
+    Time::delay(1.0);
 
     yInfo() << " start recording in ABM";
 
@@ -792,13 +803,11 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
             true);
     }
 
-    string sentence = "I wanted to get the giraffe";
-    iCub->getLRH()->SentenceToMeaning(sentence);
 
     yInfo() << " start grasping";
     bool finished = iCub->getARE()->take(Giraffe->m_ego_position);
 
-    sentence = "But I failed to grasp it";
+    sentence = "but you failed to grasp it";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
     if (iCub->getABMClient()->Connect())
@@ -819,7 +828,7 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
-    sentence = "Because it was out of reach";
+    sentence = "because it laid outofreach";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
     yInfo() << " searching for an action";
@@ -892,13 +901,13 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
             false);
     }
 
-    sentence = "So I found a different action";
+    sentence = "so you found a different action";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
-    sentence = "If I could ask you to give it to me";
+    sentence = "if you could ask me to give it to you";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
-    sentence = "Then you would give it to me";
+    sentence = "then I would give it to you";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
     Time::delay(dDelay*Random::uniform());
@@ -921,7 +930,7 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
         true);
 
 
-    sentence = "So I asked you to give it to me";
+    sentence = "so you asked me to give it to you";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
 
@@ -960,10 +969,10 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
         lArgument,
         false);
 
-    sentence = "And you gave it to me";
+    sentence = "and I gave it to you";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
-    sentence = "Now I have the giraffe";
+    sentence = "now you have the giraffe";
     iCub->getLRH()->SentenceToMeaning(sentence);
 
 
