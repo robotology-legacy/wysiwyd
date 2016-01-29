@@ -639,7 +639,7 @@ void IOL2OPCBridge::updateOPC()
             it->second.prepare();
 
         // check detected objects
-        bool unknownObjectInScene=true;
+        bool unknownObjectInScene=false;
         for (int j=0; j<blobs.size(); j++)
         {
             Bottle *item=blobs.get(j).asList();
@@ -669,9 +669,9 @@ void IOL2OPCBridge::updateOPC()
                     it->second.latchBBox(cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
                     it->second.heartBeat();
                 }
-
-                unknownObjectInScene=false;
             }
+            else
+                unknownObjectInScene=true;
         }
 
         // cycle over objects to handle tracking
