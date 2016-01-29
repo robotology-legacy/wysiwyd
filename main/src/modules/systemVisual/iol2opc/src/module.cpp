@@ -119,7 +119,7 @@ Bottle IOL2OPCBridge::getBlobs()
                 lastBlobs.clear();
         }        
     }
-    else if (Time::now()-lastBlobsArrivalTime>10.0*rtLocalizationPeriod)
+    else if (Time::now()-lastBlobsArrivalTime>blobs_detection_timeout)
         lastBlobs.clear();
 
     // release resources
@@ -826,9 +826,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     histObjLocation[2]=-0.1;
 
     rtLocalization.setBridge(this);
-    int rtLocalizationPeriod_=rf.check("rt_localization_period",Value(30)).asInt();
-    rtLocalization.setRate(rtLocalizationPeriod_);
-    rtLocalizationPeriod=rtLocalizationPeriod_*0.001;
+    rtLocalization.setRate(rf.check("rt_localization_period",Value(30)).asInt());
 
     opcUpdater.setBridge(this);
     opcUpdater.setRate(rf.check("opc_update_period",Value(60)).asInt());
@@ -836,6 +834,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 
     classifierReporter.setBridge(this);
 
+    blobs_detection_timeout=rf.check("blobs_detection_timeout",Value(0.2)).asDouble();
     histFilterLength=std::max(1,rf.check("hist_filter_length",Value(10)).asInt());
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
     tracker_type=rf.check("tracker_type",Value("BOOSTING")).asString().c_str();

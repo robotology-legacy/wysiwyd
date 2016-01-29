@@ -206,7 +206,6 @@ protected:
     BufferedPort<ImageOf<PixelBgr> > imgHistogram;
     Port imgClassifier;
 
-    double rtLocalizationPeriod;
     RtLocalization rtLocalization;
     OpcUpdater opcUpdater;
     int opcMedianFilterOrder;
@@ -230,6 +229,7 @@ protected:
     int histFilterLength;
     deque<CvScalar> histColorsCode;
 
+    double blobs_detection_timeout;
     double lastBlobsArrivalTime;
     Bottle lastBlobs;
     Bottle opcBlobs;
