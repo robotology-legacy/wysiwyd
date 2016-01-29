@@ -224,7 +224,7 @@ void GuiUpdater::deleteObject(const string &opcTag, Object* o)
 
     if (o != NULL && o->entity_type() == EFAA_OPC_ENTITY_AGENT && displaySkeleton)
     {
-        int i = 0;
+        unsigned int i = 0;
         Agent* a = dynamic_cast<Agent*>(o);
         while (i < a->m_body.m_parts.size())
         {
