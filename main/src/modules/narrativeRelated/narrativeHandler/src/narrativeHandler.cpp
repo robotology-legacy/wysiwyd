@@ -58,8 +58,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
     }
 
-    (!iCub->getLRH()) ? yWarning(" WARNING LRH NOT CONNECTED") : iCub->getLRH()->bForwardABM = rf.find("forwardABM").asInt() == 1;
-
+    if (!iCub->getLRH())
+        yWarning(" WARNING LRH NOT CONNECTED");
+    else
+        iCub->getLRH()->bForwardABM = (rf.find("forwardABM").asInt() == 1);
 
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
