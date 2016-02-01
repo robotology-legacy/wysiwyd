@@ -39,6 +39,8 @@ public:
 
     bool isIn(std::vector<std::string> vec, std::string str);
 
+    bool isNarration; // set if the event is due to the narration of an external agent
+
 
     yarp::os::Bottle bRelations;
 
@@ -46,6 +48,7 @@ public:
     bool begin;
 
     std::vector<std::string> initialize(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle bRelations);
+
 
 };
 

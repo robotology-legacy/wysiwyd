@@ -45,6 +45,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
     int iMinInstance = rf.check("instanceStart", Value(0)).asInt();
+    narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
 
     //rpc port
@@ -107,6 +108,15 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         rpcPort.reply(reply);
         return false;
     }
+    else if (command.get(0).asString() == "setNarrator"){
+        if (command.size() == 2){
+            narrator = command.get(1).asString();
+            reply.addString("narrator set to " + narrator);
+        }
+        else{
+            reply.addString("error in narrativeHandler::setNarrator wrong size of input: should be: (setNarrator narrator)");
+        }
+    }
     else{
         reply.addString(helpMessage);
     }
@@ -128,6 +138,7 @@ void narrativeHandler::findStories(int iInstance)
 
     //    int iCurrentInstance = iInstance;
 
+    int counter = 0;
     ostringstream osRequest;
     osRequest << "SELECT instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
@@ -179,6 +190,8 @@ void narrativeHandler::findStories(int iInstance)
 
     if (currentStory.viInstances.size() > iThresholdSizeStory)
     {
+        currentStory.counter = counter;
+        counter++;
         listStories.push_back(currentStory);
     }
 
@@ -390,7 +403,7 @@ void narrativeHandler::initializeStories()
         itSt.displayNarration();
 
         cout << "with lrh: " << endl;
-        
+
         if (lrh){
             for (auto& evt : itSt.vEvents){
                 bool bO = false;
@@ -413,7 +426,7 @@ void narrativeHandler::initializeStories()
                 meaning += "_-_-_-_][_-_-_-_-_-_-_-_] <o>";
 
                 string sentence = iCub->getLRH()->meaningToSentence(meaning);
-                
+
                 cout << sentence << endl;
             }
         }
@@ -448,9 +461,9 @@ void narrativeHandler::updateScoreStory(story &st){
 
 
 
-
 vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
     evt.instance = _instance;
+    evt.isNarration = false;
     evt.bRelations = _bRelations;
     vector<string>   vOCW;
 
@@ -480,9 +493,9 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
-     //       else if (evt.isIn(vAgent, bTemp.get(2).toString())) evt.agent = bTemp.get(0).toString();
+            //       else if (evt.isIn(vAgent, bTemp.get(2).toString())) evt.agent = bTemp.get(0).toString();
             else if (evt.isIn(vObject, bTemp.get(1).toString()))    evt.object = bTemp.get(0).toString();
-     //       else if (evt.isIn(vObject, bTemp.get(2).toString()))    evt.object = bTemp.get(0).toString();
+            //       else if (evt.isIn(vObject, bTemp.get(2).toString()))    evt.object = bTemp.get(0).toString();
             else if (evt.isIn(vRecipient, bTemp.get(1).toString())) evt.recipient = bTemp.get(0).toString();
             else if (evt.isIn(vRecipient, bTemp.get(2).toString())) evt.recipient = bTemp.get(0).toString();
             else {
@@ -505,8 +518,9 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
                 else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
             }
         }
+        evt.isNarration = (evt.agent == narrator);
     }
-    
+
 
     if (_bRelations.toString() != "NULL"){
         for (int kk = 0; kk < _bRelations.size(); kk++){
@@ -526,4 +540,55 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
     return vOCW;
 
+}
+
+
+void narrativeHandler::compareNarration(story target){
+
+    for (auto currentStory : listStories){
+
+        if (currentStory.counter != target.counter){ // not comparing the target to itself
+
+            if (target.vEvents.size() <= currentStory.vEvents.size()){ //if there is not more in the target than in the current
+
+                unsigned int K = 0; // possibility to pass narration
+                bool stillOk = true;
+
+                for (auto tarEvt : target.vEvents){  // for each event of the target
+                    bool found = false;
+                    unsigned int cursor;
+                    if (stillOk){
+                        for (unsigned int j = K; j < currentStory.vEvents.size(); j++){
+                            evtStory evt = currentStory.vEvents[K];
+                            if (!evt.isNarration && !found){
+
+                                bool isEqual = evt.agent == tarEvt.agent &&
+                                    evt.predicate == tarEvt.predicate &&
+                                    evt.object == tarEvt.object &&
+                                    evt.recipient == tarEvt.recipient;
+
+                                if (isEqual){
+                                    found = true;
+                                    cursor = j;
+                                }
+                            }
+
+                            K = j + 1;
+
+                        }
+                    }
+                    stillOk &= found;
+                }
+                if (stillOk){
+                    yInfo("I found I matching story ! looking for narration !");
+                }
+                for (unsigned int j = K; j < currentStory.vEvents.size(); j++){
+                    evtStory evt = currentStory.vEvents[K];
+                    if (evt.isNarration){
+                        cout << "\t\t" << evt.object << endl;
+                    }
+                }
+            }
+        }
+    }
 }

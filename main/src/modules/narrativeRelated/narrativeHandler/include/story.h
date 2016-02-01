@@ -39,6 +39,8 @@ public:
 class story{
 public:
 
+    int counter;
+
     void inizializeOCW();
     void addOCW(std::vector<std::string> _OCW);
     void updateMapScore();

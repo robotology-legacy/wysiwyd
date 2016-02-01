@@ -78,6 +78,7 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         "addUnknownEntity entity_type\n" +
         "populateABM \n" +
         "populateABMiCubStory \n" +
+        "populateABMiCubStoryFull \n"
         "setSaliencyEntity entity_name saliency_name\n";
 
     reply.clear();
@@ -807,8 +808,6 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
     yInfo() << " start grasping";
     bool finished = iCub->getARE()->take(Giraffe->m_ego_position);
 
-    sentence = "but you failed to grasp it";
-    iCub->getLRH()->SentenceToMeaning(sentence);
 
     if (iCub->getABMClient()->Connect())
     {
@@ -827,6 +826,9 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
     }
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
+
+    sentence = "but you failed to grasp it";
+    iCub->getLRH()->SentenceToMeaning(sentence);
 
     sentence = "because it laid outofreach";
     iCub->getLRH()->SentenceToMeaning(sentence);
