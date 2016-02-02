@@ -46,7 +46,7 @@ public:
 
     bool    populateABM(Bottle bInput);
     bool    populateABMiCubStory(Bottle bInput);
-    bool    populateABMiCubStoryFull(Bottle bInput);
+    bool    storyFromPOV(Bottle bInput);
 
 
     //RPC & scenarios

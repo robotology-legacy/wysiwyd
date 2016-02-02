@@ -24,6 +24,7 @@ class narrativeHandler : public yarp::os::RFModule {
 private:
 
     wysiwyd::wrdac::ICubClient  *iCub;
+    int counter;
 
     double      period;
     bool abm;
@@ -40,6 +41,7 @@ private:
 
     yarp::os::Bottle unfoldGoal(std::string goal);
     void updateScoreStory(story &st);
+    std::string narrator;
     std::vector<std::string> initializeEVT(evtStory &evt, int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
 
 
@@ -65,4 +67,6 @@ public:
 
     //RPC & scenarios
     bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
+    void compareNarration(story target); // try to tell the story target based on the other known stories
+
 };
