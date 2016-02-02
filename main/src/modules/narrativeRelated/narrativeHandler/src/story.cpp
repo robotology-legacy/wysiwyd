@@ -342,20 +342,21 @@ void story::displayNarration()
 {
     createNarration();
 
-    cout << "begin display narration:" << endl;
+    cout << "begin display narration of story: " << counter << " with " << vEvents.size() << " events." << endl;
 
-    for (auto itSt = vEvents.begin(); itSt != vEvents.end(); itSt++){
-        cout << "\t A:" << itSt->agent;
-        cout << "\t P:" << itSt->predicate;
-        cout << "\t O:" << itSt->object;
-        cout << "\t R:" << itSt->recipient << endl;
+    for (auto itSt : vEvents){
+        cout << "\t A:" << itSt.agent;
+        cout << "\t P:" << itSt.predicate;
+        cout << "\t O:" << itSt.object;
+        cout << "\t R:" << itSt.recipient << endl;
     }
 
-    for (auto itSt = sentenceStory.begin(); itSt != sentenceStory.end(); itSt++){
-        cout << *itSt;
+    for (auto itSt : sentenceStory){
+        cout << itSt;
     }
 
-    cout << "OCW are: ";
+
+    cout << "OCW ARE: ";
     for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
         cout << *itS << "  ";
     }
@@ -379,4 +380,15 @@ void story::addOCW(vector<string> inputOCW){
         }
     }
 
+}
+
+
+string story::toString(){
+    ostringstream osOut;
+    osOut << "counter " << counter << endl << "size of events: " << vEvents.size() << " size of instance: " << viInstances.size() << endl;
+    for (auto itSt : vEvents){
+        osOut << itSt.agent << "\t" << itSt.predicate << "\t" << itSt.object << "\t" << itSt.recipient << endl;
+    }
+    string sOutput = osOut.str();
+    return sOutput;
 }

@@ -64,4 +64,6 @@ public:
     std::vector<int>        viInstances;
     std::vector<evtStory>   vEvents;
 
+    std::string toString();
+
 };

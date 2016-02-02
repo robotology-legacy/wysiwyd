@@ -24,6 +24,7 @@ class narrativeHandler : public yarp::os::RFModule {
 private:
 
     wysiwyd::wrdac::ICubClient  *iCub;
+    int counter;
 
     double      period;
     bool abm;

@@ -67,12 +67,16 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
 
+    counter = 0;
+
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
     findStories(iMinInstance);
     cout << endl;
     initializeStories();
+
+    compareNarration(listStories[listStories.size() - 1]);
 
     return false;
 }
@@ -138,7 +142,6 @@ void narrativeHandler::findStories(int iInstance)
 
     //    int iCurrentInstance = iInstance;
 
-    int counter = 0;
     ostringstream osRequest;
     osRequest << "SELECT instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
@@ -174,6 +177,8 @@ void narrativeHandler::findStories(int iInstance)
             if (mDiff > dThresholdDiffStory){
                 if (currentStory.viInstances.size() > iThresholdSizeStory)
                 {
+                    currentStory.counter = counter;
+                    counter++;
                     listStories.push_back(currentStory);
                 }
                 currentStory.viInstances.clear();
@@ -358,7 +363,7 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 
 void narrativeHandler::initializeStories()
 {
-    for (auto itSt : listStories){
+    for (auto& itSt : listStories){
 
         itSt.vEvents.clear();
         ostringstream osRequest;
@@ -372,27 +377,27 @@ void narrativeHandler::initializeStories()
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
         itSt.timeEnd = string2Time(bMessenger.toString());
 
-        for (auto itInst = itSt.viInstances.begin(); itInst != itSt.viInstances.end(); itInst++){
+        for (auto& itInst : itSt.viInstances){
 
 
             ostringstream osRequest;
 
             osRequest.str("");
-            osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itInst << " AND verb != 'isAtLoc'";
+            osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itInst << " AND verb != 'isAtLoc'";
             Bottle bRelations = iCub->getABMClient()->requestFromString(osRequest.str());
             //cout << "Relations: " << bMessenger.toString() << endl;
 
             osRequest.str("");
-            osRequest << "SELECT activityname, activitytype, begin FROM main WHERE instance = " << *itInst;
+            osRequest << "SELECT activityname, activitytype, begin FROM main WHERE instance = " << itInst;
             Bottle bActivity = iCub->getABMClient()->requestFromString(osRequest.str());
             //        cout << "activity info: " << bActivity.toString() << endl;
 
             osRequest.str("");
-            osRequest << "SELECT argument, role, subtype FROM contentarg WHERE instance = " << *itInst;
+            osRequest << "SELECT argument, role, subtype FROM contentarg WHERE instance = " << itInst;
             Bottle bArguments = iCub->getABMClient()->requestFromString(osRequest.str());
 
             evtStory evtTemp;
-            vector<string> tempOCW = initializeEVT(evtTemp, *itInst, bActivity, bArguments, bRelations);
+            vector<string> tempOCW = initializeEVT(evtTemp, itInst, bActivity, bArguments, bRelations);
 
             itSt.vEvents.push_back(evtTemp);
             itSt.addOCW(tempOCW);
@@ -401,7 +406,7 @@ void narrativeHandler::initializeStories()
         cout << "story initialized" << endl;
 
         itSt.displayNarration();
-
+        
         cout << "with lrh: " << endl;
 
         if (lrh){
@@ -430,9 +435,7 @@ void narrativeHandler::initializeStories()
                 cout << sentence << endl;
             }
         }
-
         cout << endl << endl;
-
     }
 }
 
@@ -445,13 +448,13 @@ void narrativeHandler::updateScoreStory(story &st){
     unsigned int _size = st.vEvents.size();
 
     // create the map of each OCW with a vector of double for the score at each instance of the story
-    for (auto itS = st.vOCW.begin(); itS != st.vOCW.end(); itS++){
+    for (auto& itS = st.vOCW.begin(); itS != st.vOCW.end(); itS++){
         vector<double> vTemp(_size);
         st.mapScore[*itS] = vTemp;
     }
 
     // for each instance update the score of each OCW corresponding to a few rules
-    for (auto itE = st.vEvents.begin(); itE != st.vEvents.end(); itE++){
+    for (auto& itE = st.vEvents.begin(); itE != st.vEvents.end(); itE++){
 
 
 
@@ -544,48 +547,48 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
 
 void narrativeHandler::compareNarration(story target){
+    cout << "Starting to compare Narration from target: "<<target.counter << endl;
 
-    for (auto currentStory : listStories){
-
+    for (auto& currentStory : listStories){
+        
         if (currentStory.counter != target.counter){ // not comparing the target to itself
 
             if (target.vEvents.size() <= currentStory.vEvents.size()){ //if there is not more in the target than in the current
 
                 unsigned int K = 0; // possibility to pass narration
                 bool stillOk = true;
+                unsigned int cursor = 0;
 
-                for (auto tarEvt : target.vEvents){  // for each event of the target
+                for (auto& tarEvt : target.vEvents){  // for each event of the target
+                    K = cursor;
                     bool found = false;
-                    unsigned int cursor;
                     if (stillOk){
                         for (unsigned int j = K; j < currentStory.vEvents.size(); j++){
-                            evtStory evt = currentStory.vEvents[K];
+                            evtStory evt = currentStory.vEvents[j];
                             if (!evt.isNarration && !found){
 
                                 bool isEqual = evt.agent == tarEvt.agent &&
                                     evt.predicate == tarEvt.predicate &&
                                     evt.object == tarEvt.object &&
                                     evt.recipient == tarEvt.recipient;
+  //                              cout << " isEqual: " << isEqual << endl;
 
                                 if (isEqual){
+                                    //cout << "is equal" << endl;
                                     found = true;
-                                    cursor = j;
+                                    cursor = j+1;
                                 }
                             }
-
-                            K = j + 1;
-
                         }
+                        stillOk &= found;
                     }
-                    stillOk &= found;
                 }
                 if (stillOk){
-                    yInfo("I found I matching story ! looking for narration !");
-                }
-                for (unsigned int j = K; j < currentStory.vEvents.size(); j++){
-                    evtStory evt = currentStory.vEvents[K];
-                    if (evt.isNarration){
-                        cout << "\t\t" << evt.object << endl;
+                    yInfo("I found I matching story ! looking for narration !!");
+                    for (auto& evt : currentStory.vEvents){
+                        if (evt.isNarration){
+                            cout << evt.object << endl;
+                        }
                     }
                 }
             }
