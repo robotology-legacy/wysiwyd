@@ -78,7 +78,7 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         "addUnknownEntity entity_type\n" +
         "populateABM \n" +
         "populateABMiCubStory \n" +
-        "populateABMiCubStoryFull \n"
+        "storyFromPOV POV\n"
         "setSaliencyEntity entity_name saliency_name\n";
 
     reply.clear();
@@ -103,9 +103,9 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " populateABMiCubStory";
         (populateABMiCubStory(command)) ? reply.addString("populateABMiCubStory done !") : reply.addString("populateABMiCubStory failed !");
     }
-    else if (command.get(0).asString() == "populateABMiCubStoryFull") {
-        yInfo() << " populateABMiCubStoryFull";
-        (populateABMiCubStoryFull(command)) ? reply.addString("populateABMiCubStoryFull done !") : reply.addString("populateABMiCubStoryFull failed !");
+    else if (command.get(0).asString() == "storyFromPOV") {
+        yInfo() << " storyFromPOV";
+        (storyFromPOV(command)) ? reply.addString("storyFromPOV done !") : reply.addString("storyFromPOV failed !");
     }
     else if (command.get(0).asString() == "addUnknownEntity") {
         yInfo() << " addUnknownEntity";
@@ -695,8 +695,43 @@ bool opcPopulater::populateSpecific(){
 /*
 * Populate the ABM with precific action comming from a external file
 */
-bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
+bool opcPopulater::storyFromPOV(Bottle bInput)
 {
+
+
+    vector<string>  listSentencePOViCub;
+    vector<string>  listSentencePOVNathan;
+
+    listSentencePOVNathan.push_back("You wanted to get the giraffe");
+    listSentencePOVNathan.push_back("but you failed to grasp it");
+    listSentencePOVNathan.push_back("because it laid outofreach");
+    listSentencePOVNathan.push_back("so you found a different action");
+    listSentencePOVNathan.push_back("if you could ask me to give it to you");
+    listSentencePOVNathan.push_back("then I would give it to you");
+    listSentencePOVNathan.push_back("so you asked me to give it to you");
+    listSentencePOVNathan.push_back("and I gave it to you");
+    listSentencePOVNathan.push_back("now you have the giraffe");
+
+    listSentencePOViCub.push_back("I wanted to get the giraffe");
+    listSentencePOViCub.push_back("but I failed to grasp it");
+    listSentencePOViCub.push_back("because it laid outofreach");
+    listSentencePOViCub.push_back("so I found a different action");
+    listSentencePOViCub.push_back("if I could ask you to give it to me");
+    listSentencePOViCub.push_back("then you would give it to me");
+    listSentencePOViCub.push_back("so I asked you to give it to me");
+    listSentencePOViCub.push_back("and you gave it to me");
+    listSentencePOViCub.push_back("now I have the giraffe");
+
+    unsigned int isentence = 0;
+    vector<string>  currentPOV;
+
+    if (bInput.size() != 2){
+        yWarning(" in opcPopulater::storyFromPOV wrong size of input (should be 2). POV is set to iCub.");
+        currentPOV = listSentencePOViCub;
+    }
+    else  if (bInput.get(1).toString() == "Nathan") {
+        currentPOV = listSentencePOVNathan;
+    }
 
     iCub->getLRH()->interlocutor = "Narrator";
 
@@ -782,8 +817,8 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
     // FINAL SITUATION/
 
 
-    string sentence = "You wanted to get the giraffe";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
     Time::delay(1.0);
 
@@ -827,11 +862,11 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
-    sentence = "but you failed to grasp it";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
-    sentence = "because it laid outofreach";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
     yInfo() << " searching for an action";
     if (iCub->getABMClient()->Connect())
@@ -903,20 +938,20 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
             false);
     }
 
-    sentence = "so you found a different action";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
-    sentence = "if you could ask me to give it to you";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
-    sentence = "then I would give it to you";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
     Time::delay(dDelay*Random::uniform());
     yInfo(" iCub ask the giraffe");
 
     list<pair<string, string> > lArgument;
-    sentence = "Give me the giraffe please";
+    string sentence = "Give me the giraffe please";
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>("Nathan", "agent"));
@@ -932,8 +967,8 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
         true);
 
 
-    sentence = "so you asked me to give it to you";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
 
     Time::delay(dDelay*Random::uniform());
@@ -971,11 +1006,11 @@ bool opcPopulater::populateABMiCubStoryFull(Bottle bInput)
         lArgument,
         false);
 
-    sentence = "and I gave it to you";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
-    sentence = "now you have the giraffe";
-    iCub->getLRH()->SentenceToMeaning(sentence);
+    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    isentence++;
 
 
     return true;
