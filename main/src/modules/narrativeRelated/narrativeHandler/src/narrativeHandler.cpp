@@ -406,7 +406,7 @@ void narrativeHandler::initializeStories()
         cout << "story initialized" << endl;
 
         itSt.displayNarration();
-        
+
         cout << "with lrh: " << endl;
 
         if (lrh){
@@ -448,9 +448,9 @@ void narrativeHandler::updateScoreStory(story &st){
     unsigned int _size = st.vEvents.size();
 
     // create the map of each OCW with a vector of double for the score at each instance of the story
-    for (auto& itS = st.vOCW.begin(); itS != st.vOCW.end(); itS++){
+    for (auto& itS : st.vOCW){
         vector<double> vTemp(_size);
-        st.mapScore[*itS] = vTemp;
+        st.mapScore[itS] = vTemp;
     }
 
     // for each instance update the score of each OCW corresponding to a few rules
@@ -547,14 +547,10 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
 
 void narrativeHandler::compareNarration(story target){
-    cout << "Starting to compare Narration from target: "<<target.counter << endl;
-
+    cout << "Starting to compare Narration from target: " << target.counter << endl;
     for (auto& currentStory : listStories){
-        
         if (currentStory.counter != target.counter){ // not comparing the target to itself
-
             if (target.vEvents.size() <= currentStory.vEvents.size()){ //if there is not more in the target than in the current
-
                 unsigned int K = 0; // possibility to pass narration
                 bool stillOk = true;
                 unsigned int cursor = 0;
@@ -571,12 +567,10 @@ void narrativeHandler::compareNarration(story target){
                                     evt.predicate == tarEvt.predicate &&
                                     evt.object == tarEvt.object &&
                                     evt.recipient == tarEvt.recipient;
-  //                              cout << " isEqual: " << isEqual << endl;
 
                                 if (isEqual){
-                                    //cout << "is equal" << endl;
                                     found = true;
-                                    cursor = j+1;
+                                    cursor = j + 1;
                                 }
                             }
                         }
