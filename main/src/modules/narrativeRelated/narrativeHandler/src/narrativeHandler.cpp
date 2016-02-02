@@ -203,21 +203,21 @@ void narrativeHandler::findStories(int iInstance)
     int ii = 1;
 
     cout << listStories.size() << " stories found" << endl;
-    for (std::vector<story>::iterator itSt = listStories.begin(); itSt != listStories.end(); itSt++)
+    for (auto& itSt : listStories)
     {
         cout << "Story " << ii << ": ";
-        for (std::vector<int>::iterator itIn = itSt->viInstances.begin(); itIn != itSt->viInstances.end(); itIn++)
+        for (auto& itIn : itSt.viInstances)
         {
-            cout << *itIn << " ";
+            cout << itIn << " ";
         }
         cout << endl;
         osRequest.str("");
-        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itSt->viInstances.begin() << " AND verb != 'isAtLoc'";
+        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itSt.viInstances.begin() << " AND verb != 'isAtLoc'";
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
         if (bMessenger.toString() != "NULL")   cout << "before: " << bMessenger.toString() << endl;
 
         osRequest.str("");
-        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itSt->viInstances[itSt->viInstances.size() - 1] << " AND verb != 'isAtLoc'";
+        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itSt.viInstances[itSt.viInstances.size() - 1] << " AND verb != 'isAtLoc'";
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
         if (bMessenger.toString() != "NULL")   cout << "after : " << bMessenger.toString() << endl;
 
@@ -454,11 +454,8 @@ void narrativeHandler::updateScoreStory(story &st){
     }
 
     // for each instance update the score of each OCW corresponding to a few rules
-    for (auto& itE = st.vEvents.begin(); itE != st.vEvents.end(); itE++){
-
-
-
-
+    for (auto& itE : st.vEvents){
+        // TODO
     }
 }
 
