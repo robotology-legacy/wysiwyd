@@ -585,10 +585,8 @@ bool AgentDetector::updateModule()
                             kPosition[1] = jnt->second.y;
                             kPosition[2] = jnt->second.z;
                             kPosition[3] = 1;
-                            Vector icubPos(4);
-                            icubPos = kinect2icub * kPosition;
-                            icubPos.resize(3);
-                            Vector irPos = icubPos;
+                            Vector icubPos = kinect2icub * kPosition;
+                            Vector irPos = icubPos.subVector(0,2);
 
                             if (isMounted)
                             {
