@@ -1,0 +1,111 @@
+<launch>
+    <param name="robot_description" command="cat $(find perspective_taking)/icub_simulation.urdf" />
+
+    <arg name="point_cloud_topic"           default="/camera/depth_registered/points" />
+    <arg name="start_head_pose_estimation"  default="false" />
+    <arg name="start_gaze_to_tf"            default="false" />
+    <arg name="start_opc_to_tf"             default="false" />
+    <arg name="start_static_publishers"     default="false" />
+    <arg name="start_mental_transform"      default="false" />
+    <arg name="start_robot_perspective"     default="false" />
+    <arg name="start_raytracer"             default="false" />
+
+    <!-- roslaunch openni_launch openni.launch depth_registration:=true -->
+    <!-- rosrun openni_tracker openni_tracker _camera_frame_id:=/camera_depth_frame -->
+
+    <include file="$(find head_pose_estimation)/launch/head_pose_estimation.launch" if="$(arg start_head_pose_estimation)">
+        <arg name="max_distance" value="2300" />
+    </include>
+    <!--include file="$(find freenect_launch)/launch/freenect.launch" -->
+        <!--arg name="depth_registration" value="true"-->
+    <!--/include-->
+
+    <!--include file="$(find rtabmap_ros)/launch/rgbd_mapping.launch" -->
+        <!--arg name="rviz" value="true"-->
+        <!--arg name="rtabmapviz" value="false"-->
+    <!--/include-->
+        <!--node pkg="tf" type="static_transform_publisher" name="base_link_broadcaster"
+              args="0.0 0.0 0.0 0.000 0.000 1.000 0.000 /robot_root /base_link 100" /-->
+    <!--node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="true" />
+        <rosparam param="source_list">["JointState"]</rosparam>
+    </node>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" /-->
+
+    <!-- USED TO BE IN IKART-->
+    <node pkg="tf" type="static_transform_publisher" name="ikart_root_broadcaster"
+          args="0.0 0.0 0.0 0.0 0.0 -0.707 0.707 /base_link /ikart_root 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="base_laser_broadcaster"
+          args="0.0 0.245 0.2 0.0 0.0 0.707 0.707 /ikart_root /base_laser 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="robot_root_broadcaster"
+          args="0.0 0.111 0.9 0.0 0.0 0.707 0.707 /ikart_root /robot_root 100" />
+    <!-- END IKART -->
+
+    <!--node pkg="tf" type="static_transform_publisher" name="root_broadcaster"
+          args="0.150 0.175 1.475 0.159 0.159 -0.689 0.689 /ikart_root /camera_link 100" /-->
+
+    <!--node pkg="tf" type="static_transform_publisher" name="root_broadcaster"
+          args="-0.15 -0.2 1.475 -0.0 0.0 0.97629600711 0.21 /ikart_root /camera_link 100" /-->
+
+    <node pkg="tf" type="static_transform_publisher" name="root_broadcaster"
+          args="-0.15 -0.0 1.50 -0.159 0.159 0.689 0.689 /ikart_root /camera_link 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="headpose_root_broadcaster"
+          args="0.3 0.1 0.3 0.0 0.0 0.0 1.0 /robot_root /headpose_root 100" />
+
+    <node pkg="tf" type="static_transform_publisher" name="headpose_root_optical_broadcaster"
+          args="0.0 0.0 0.0 -0.5 0.5 -0.5 0.5 /headpose_root /headpose_root_optical 100" />
+
+    <!--node pkg="perspective_taking" type="point_cloud_merger"
+          name="point_cloud_merger"  output="screen" /-->
+
+    <group if="$(arg start_static_publishers)">
+        <node pkg="tf" type="static_transform_publisher" name="head_broadcaster"
+              args="0.063 -0.000 0.341 -0.707 0.000 0.000 0.707 /robot_root /robot_head 100"
+              unless="$(arg start_gaze_to_tf)" />
+
+        <node pkg="tf" type="static_transform_publisher" name="left_eye_broadcaster"
+              args="0.063 0.034 0.341 -0.707 0.002 -0.002 0.707 /robot_root /robot_left_eye 100"
+              unless="$(arg start_gaze_to_tf)" />
+
+        <node pkg="tf" type="static_transform_publisher" name="right_eye_broadcaster"
+              args="0.063 -0.034 0.341 -0.707 -0.002 0.002 0.707 /robot_root /robot_right_eye 100"
+              unless="$(arg start_gaze_to_tf)" />
+
+        <!--node pkg="tf" type="static_transform_publisher" name="root_broadcaster"
+              args="-0.279 0.100 0.765 0.000 0.195 0.000 0.981 /robot_root /camera_link 100" /DEPRECATED!-->
+        <!--node pkg="tf" type="static_transform_publisher" name="root_broadcaster"
+              args="0.55 -0.1 -0.60 0 -0.19509 0 0.980785 /camera_link /robot_root 100" /DEPRECATED!-->
+        <!--node pkg="tf" type="static_transform_publisher" name="root_broadcaster"
+              args="-0.6 -0.0 -0.0 0 -0.0 0 1.0 /camera_link /robot_root 100" /DEPRECATED!-->
+    </group>
+
+    <node pkg="perspective_taking_python" type="solve_circle_equation.py"
+          name="equation_solver"  output="screen" />
+
+    <node pkg="perspective_taking" type="visualize_robot_perspective"
+          name="visualize_robot_perspective" args="$(arg point_cloud_topic)"
+          if="$(arg start_robot_perspective)" />
+
+    <node pkg="perspective_taking_c03" type="raytracer"
+          name="raytracer" args="$(arg point_cloud_topic)"
+          required="true" output="screen"
+          if="$(arg start_raytracer)" />
+
+    <node pkg="perspective_taking" type="opc_to_tf"
+          name="opc_to_tf" output="screen"
+          if="$(arg start_opc_to_tf)" />
+
+    <node pkg="perspective_taking" type="gaze_to_tf"
+          name="gaze_to_tf" output="screen" required="true"
+          if="$(arg start_gaze_to_tf)" />
+
+    <node pkg="perspective_taking" type="mental_perspective_transformer"
+          name="mental_perspective_transformer" args="$(arg point_cloud_topic)"
+          required="true" output="screen"
+          if="$(arg start_mental_transform)" />
+</launch>
+
