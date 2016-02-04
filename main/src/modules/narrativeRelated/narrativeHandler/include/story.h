@@ -57,6 +57,7 @@ public:
     yarp::os::Bottle unfoldGoal(std::string);
 
     std::vector<std::string>    sentenceStory;
+    std::vector<std::string>    meaningStory;
 
     void displayNarration();
 

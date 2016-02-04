@@ -76,8 +76,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     cout << endl;
     initializeStories();
 
-    listStories[listStories.size() - 1].displayNarration();
+    for (auto P : listStories){
+        P.displayNarration();
+    }
     compareNarration(listStories[listStories.size() - 1]);
+    tellingStoryFromMeaning(listStories[listStories.size() - 1]);
 
     return false;
 }
@@ -516,9 +519,10 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 }
 
 
-void narrativeHandler::compareNarration(story target){
+void narrativeHandler::compareNarration(story &target){
     cout << "Starting to compare Narration from target: " << target.counter << endl;
     for (auto& currentStory : listStories){
+        comparator.clear();
         if (currentStory.counter != target.counter){ // not comparing the target to itself
             if (target.vEvents.size() <= currentStory.vEvents.size()){ //if there is not more in the target than in the current
                 unsigned int K = 0; // possibility to pass narration
@@ -533,10 +537,18 @@ void narrativeHandler::compareNarration(story target){
                             evtStory evt = currentStory.vEvents[j];
                             if (!evt.isNarration && !found){
 
-                                bool isEqual = evt.agent == tarEvt.agent &&
-                                    evt.predicate == tarEvt.predicate &&
-                                    evt.object == tarEvt.object &&
-                                    evt.recipient == tarEvt.recipient;
+
+                                vector<string>  vOriginal, vCopy;
+                                vOriginal.push_back(evt.agent);
+                                vOriginal.push_back(evt.predicate);
+                                vOriginal.push_back(evt.object);
+                                vOriginal.push_back(evt.recipient);
+                                vCopy.push_back(tarEvt.agent);
+                                vCopy.push_back(tarEvt.predicate);
+                                vCopy.push_back(tarEvt.object);
+                                vCopy.push_back(tarEvt.recipient);
+
+                                bool isEqual = checkListPAOR(vOriginal, vCopy);
 
                                 if (isEqual){
                                     found = true;
@@ -548,18 +560,14 @@ void narrativeHandler::compareNarration(story target){
                     }
                 }
                 if (stillOk){
-                    yInfo("I found I matching story ! looking for narration !!");
-                    for (auto& evt : currentStory.vEvents){
-                        if (evt.isNarration){
-                            cout << evt.object << endl;
-                        }
+                    yInfo("I found I matching story.");
+                    for (auto mean : currentStory.meaningStory){
+                        target.meaningStory.push_back(adaptMeaning(mean));
                     }
                 }
             }
         }
     }
-    //    cout << "goes to narrationSimple:" << endl;
-    //    sayNarrationSimple(target);
 }
 
 
@@ -743,7 +751,7 @@ void narrativeHandler::createNarration(story &sto)
                     osCurrent << "\t\t\t" << tmpSentence;
                 }
                 else{
-                    osCurrent << "\t\t\t" << speaker << " says to " << addressee << ": " << sentence << endl;
+                    osCurrent << "\t\t\t" << speaker << " says to " << addressee << ": " << sentence;
                 }
                 osCurrent << endl;
             }
@@ -763,7 +771,7 @@ void narrativeHandler::createNarration(story &sto)
                         osCurrent << "\t\t\t" << tmpSentence;
                     }
                     else{
-                        osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name << endl;
+                        osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
                     }
                     osCurrent << endl;
                     for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
@@ -959,14 +967,19 @@ void narrativeHandler::createNarration(story &sto)
             vsOutput.push_back(osCurrent.str());
             cursor++;
         }
+        // is narrration
+        else {
+            for (auto arg : currentEvent.vArgument){
+                if (arg.first == "meaning"){
+                    sto.meaningStory.push_back(arg.second);
+                }
+            }
+        }
     }
 
     if (VERBOSE) cout << endl << endl;
     sto.sentenceStory = vsOutput;
 }
-
-
-
 
 
 string narrativeHandler::createMeaning(string agent, string predicate, string object, string recipient){
@@ -984,4 +997,70 @@ string narrativeHandler::createMeaning(string agent, string predicate, string ob
     bR ? osMeaning << "R-" : osMeaning << "_-";
     osMeaning << "_-_-_-_][_-_-_-_-_-_-_-_] <o>";
     return osMeaning.str();
+}
+
+
+// compare a list of PAOR to the ones that could be used in another story
+bool narrativeHandler::checkListPAOR(vector<string> vOriginal, vector<string> vCopy){
+
+    if (vOriginal.size() != vCopy.size()){
+        yInfo(" Error in narrativeHandler::checkListPAOR - different sizes of input");
+        return false;
+    }
+
+    for (unsigned int i = 0; i < vOriginal.size(); i++){
+        bool found = false;
+        for (auto &PAIR : comparator){
+            if (!found){
+                if (PAIR.first == vOriginal[i]){
+                    found = true;
+                    if (PAIR.second != vCopy[i]){
+                        return false;
+                    }
+                }
+            }
+        }
+        if (!found){
+            pair<string, string>  pTmp(vOriginal[i], vCopy[i]);
+            comparator.push_back(pTmp);
+        }
+    }
+
+    return true;
+}
+
+
+
+string narrativeHandler::adaptMeaning(string meaning){
+//    cout << "meaning: " << meaning;
+    string str = meaning;
+    for (unsigned int jj = 0; jj < comparator.size(); jj++){
+        if (comparator[jj].first != ""){
+//            cout << " first: " << comparator[jj].first << " second: " << comparator[jj].second;
+            size_t pos = 0;
+            while ((pos = str.find(comparator[jj].first, pos)) != std::string::npos){
+                str.replace(pos, comparator[jj].first.length(), comparator[jj].second);
+                pos += comparator[jj].second.length();
+            }
+            //cout << "str is:" << str << endl;
+        }
+    }
+    return str;
+}
+
+
+
+void narrativeHandler::tellingStoryFromMeaning(story target){
+
+    cout << "start telling story from meaning" << endl;
+    vector<string>    tmpStory;  
+    for (auto mean : target.meaningStory){
+        tmpStory.push_back(iCub->getLRH()->meaningToSentence(mean));
+    }
+
+
+    for (auto sen : tmpStory){
+        cout << "\t\t" << sen << endl;
+    }
+
 }
