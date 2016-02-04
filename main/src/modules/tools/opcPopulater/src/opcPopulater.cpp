@@ -697,20 +697,11 @@ bool opcPopulater::populateSpecific(){
 */
 bool opcPopulater::storyFromPOV(Bottle bInput)
 {
-
-
+    bool fromMeaning = true;
     vector<string>  listSentencePOViCub;
     vector<string>  listSentencePOVNathan;
-
-    listSentencePOVNathan.push_back("You wanted to get the giraffe");
-    listSentencePOVNathan.push_back("but you failed to grasp it");
-    listSentencePOVNathan.push_back("because it laid outofreach");
-    listSentencePOVNathan.push_back("so you found a different action");
-    listSentencePOVNathan.push_back("if you could ask me to give it to you");
-    listSentencePOVNathan.push_back("then I would give it to you");
-    listSentencePOVNathan.push_back("so you asked me to give it to you");
-    listSentencePOVNathan.push_back("and I gave it to you");
-    listSentencePOVNathan.push_back("now you have the giraffe");
+    vector<string>  listMeaningPOViCub;
+    vector<string>  listMeaningPOVNathan;
 
     listSentencePOViCub.push_back("I wanted to get the giraffe");
     listSentencePOViCub.push_back("but I failed to grasp it");
@@ -722,18 +713,51 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     listSentencePOViCub.push_back("and you gave it to me");
     listSentencePOViCub.push_back("now I have the giraffe");
 
+    listMeaningPOViCub.push_back(", wanted I , get I giraffe <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>");
+    listMeaningPOViCub.push_back("but , failed I , grasp I it <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-_-_-_] <o>");
+    listMeaningPOViCub.push_back("because , laid it outofreach <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_] <o>");
+    listMeaningPOViCub.push_back("so , found I action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>");
+    listMeaningPOViCub.push_back("if , could I , ask I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>");
+    listMeaningPOViCub.push_back("then , would you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>");
+    listMeaningPOViCub.push_back("so , asked I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>");
+    listMeaningPOViCub.push_back("and , gave you it me <o> [P-_-_-_-_-_-_-_][_-A-P-O-R-_-_-_] <o>");
+    listMeaningPOViCub.push_back("now , have I giraffe <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>");
+
+    listSentencePOVNathan.push_back("you wanted to get the giraffe");
+    listSentencePOVNathan.push_back("but you failed to grasp it");
+    listSentencePOVNathan.push_back("because it laid outofreach");
+    listSentencePOVNathan.push_back("so you found a different action");
+    listSentencePOVNathan.push_back("if you could ask me to give it to you");
+    listSentencePOVNathan.push_back("then I would give it to you");
+    listSentencePOVNathan.push_back("so you asked me to give it to you");
+    listSentencePOVNathan.push_back("and I gave it to you");
+    listSentencePOVNathan.push_back("now you have the giraffe");
+
+    listMeaningPOVNathan.push_back(", wanted you , get you giraffe <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>");
+    listMeaningPOVNathan.push_back("but , failed you , grasp youI it <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-_-_-_] <o>");
+    listMeaningPOVNathan.push_back("because , laid it outofreach <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_] <o>");
+    listMeaningPOVNathan.push_back("so , found you action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>");
+    listMeaningPOVNathan.push_back("if , could you , ask I me , give me it you<o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>");
+    listMeaningPOVNathan.push_back("then , would I , give I it you <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>");
+    listMeaningPOVNathan.push_back("so , asked you me, give me it you <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>");
+    listMeaningPOVNathan.push_back("and , gave I it you <o> [P-_-_-_-_-_-_-_][_-A-P-O-R-_-_-_] <o>");
+    listMeaningPOVNathan.push_back("now , have you giraffe <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>");
+
     unsigned int isentence = 0;
     vector<string>  currentPOV;
 
-    if (bInput.size() != 2){
-        yWarning(" in opcPopulater::storyFromPOV wrong size of input (should be 2). POV is set to iCub.");
-        currentPOV = listSentencePOViCub;
-    }
-    else  if (bInput.get(1).toString() == "Nathan") {
-        currentPOV = listSentencePOVNathan;
+    fromMeaning ? currentPOV = listMeaningPOViCub : currentPOV = listSentencePOViCub;
+    
+    if (bInput.size() == 2){
+        if (bInput.get(1).toString() == "Nathan") {
+            fromMeaning ? currentPOV = listMeaningPOVNathan : currentPOV = listSentencePOVNathan;
+        }
     }
 
-    iCub->getLRH()->interlocutor = "Narrator";
+    yInfo(" OPC populater starting story from POV");
+
+    fromMeaning ? iCub->getLRH()->narrator= "Narrator":
+        iCub->getLRH()->interlocutor = "Narrator";
 
     Time::delay(12.);
     // first the Giraffe is close to larry (from left to right)
@@ -816,8 +840,10 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
 
     // FINAL SITUATION/
 
+    iCub->getLRH()->meaningToSentence(listMeaningPOViCub[isentence]);
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
     Time::delay(1.0);
@@ -862,10 +888,12 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     yInfo() << " end of grasping... delay";
     Time::delay(dThresholdDelay + dDelay*Random::uniform());
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
     yInfo() << " searching for an action";
@@ -938,13 +966,16 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
             false);
     }
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
     Time::delay(dDelay*Random::uniform());
@@ -962,12 +993,13 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     lArgument.push_back(pair<string, string>("Nathan", "addressee"));
     iCub->getABMClient()->sendActivity("action",
         "sentence",
-        "recog",
+        "say",
         lArgument,
         true);
 
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
 
@@ -1006,10 +1038,12 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
         lArgument,
         false);
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
-    iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
+    (fromMeaning) ? iCub->getLRH()->meaningToSentence(currentPOV[isentence]) :
+        iCub->getLRH()->SentenceToMeaning(currentPOV[isentence]);
     isentence++;
 
 
