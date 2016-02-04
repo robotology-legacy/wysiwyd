@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package>
+  <name>openni_tracker</name>
+  <version>0.2.0</version>
+  <description>The OpenNI tracker broadcasts the OpenNI skeleton frames using tf.</description>
+  <maintainer email="marcus.liebhardt@yujinrobot.com">Marcus Liebhardt</maintainer>
+  <license>BSD</license>
+  <url type="website">http://www.ros.org/wiki/openni_tracker</url>  
+  <author email="tim.field@unknown.com">Tim Field</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>libopenni-dev</build_depend>
+  <build_depend>libusb-1.0-dev</build_depend>
+  <build_depend>libopenni-sensor-primesense-dev</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>orocos_kdl</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>roslib</build_depend>
+  <build_depend>tf</build_depend>
+
+  <run_depend>libopenni-dev</run_depend>
+  <run_depend>libusb-1.0-dev</run_depend>
+  <run_depend>libopenni-sensor-primesense-dev</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>orocos_kdl</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>roslib</run_depend>
+  <run_depend>tf</run_depend>
+</package>
