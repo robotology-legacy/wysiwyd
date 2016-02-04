@@ -68,5 +68,9 @@ public:
     //RPC & scenarios
     bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     void compareNarration(story target); // try to tell the story target based on the other known stories
+    void sayNarrationSimple(story target);
+    void createNarration(story &sto);
+    std::string createMeaning(std::string agent, std::string predicate, std::string object = "", std::string recipient = "");
+
 
 };

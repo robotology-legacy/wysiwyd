@@ -76,6 +76,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     cout << endl;
     initializeStories();
 
+    listStories[listStories.size() - 1].displayNarration();
     compareNarration(listStories[listStories.size() - 1]);
 
     return false;
@@ -405,36 +406,8 @@ void narrativeHandler::initializeStories()
 
         cout << "story initialized" << endl;
 
-        itSt.displayNarration();
+        createNarration(itSt);
 
-        cout << "with lrh: " << endl;
-
-        if (lrh){
-            for (auto& evt : itSt.vEvents){
-                bool bO = false;
-                bool bR = false;
-                string meaning;
-                meaning = ", ";
-                meaning += evt.agent + " " + evt.predicate + " ";
-                if (evt.object != ""){
-                    meaning += evt.object + " ";
-                    bO = true;
-                }
-                if (evt.recipient != "") {
-                    meaning += evt.recipient + " ";
-                    bR = true;
-                }
-
-                meaning += "<o> [_-_-_-_-_-_-_-_][A-P-";
-                bO ? meaning += "O-" : "_-";
-                bR ? meaning += "R-" : "_-";
-                meaning += "_-_-_-_][_-_-_-_-_-_-_-_] <o>";
-
-                string sentence = iCub->getLRH()->meaningToSentence(meaning);
-
-                cout << sentence << endl;
-            }
-        }
         cout << endl << endl;
     }
 }
@@ -585,4 +558,430 @@ void narrativeHandler::compareNarration(story target){
             }
         }
     }
+    //    cout << "goes to narrationSimple:" << endl;
+    //    sayNarrationSimple(target);
+}
+
+
+
+void narrativeHandler::sayNarrationSimple(story target){
+
+    cout << "Start Narration Simple : " << endl;
+
+    vector<string>    sentencesFromLRH;
+
+    for (auto evt : target.vEvents){
+        cout << "\t A:" << evt.agent;
+        cout << "\t P:" << evt.predicate;
+        cout << "\t O:" << evt.object;
+        cout << "\t R:" << evt.recipient << endl;
+        string meaning = createMeaning(evt.agent, evt.predicate, evt.object, evt.recipient);
+        string sentence = iCub->getLRH()->meaningToSentence(meaning);
+        sentencesFromLRH.push_back(sentence);
+    }
+
+
+    cout << endl << "Narration simple using LRH" << endl;
+    // story comming from LRH is:
+    for (auto sen : sentencesFromLRH){
+        cout << sen << endl;
+    }
+}
+
+
+void narrativeHandler::createNarration(story &sto)
+{
+    bool VERBOSE = false;
+
+    vector<string>  vsOutput;
+
+    ostringstream  osCurrent;
+
+    tuple<string, string, string, string>  PAOR;
+
+    //Bottle bPreviousRelation;
+
+    osCurrent << "story: " << sto.timeBegin.toString() << " (" << sto.viInstances[0] << ")  to " << sto.timeEnd.toString() << " (" << sto.viInstances[sto.viInstances.size() - 1] << ")" << endl;
+
+    vsOutput.push_back(osCurrent.str());
+    int cursor = 0;
+    for (unsigned int currentElement = 0; currentElement != sto.vEvents.size(); currentElement++){
+        evtStory currentEvent = sto.vEvents[currentElement];
+        if (!currentEvent.isNarration)
+        {
+            osCurrent.str("");
+            if (VERBOSE) cout << currentElement << "...";
+
+            // initial situation
+            if (cursor == 0){
+                if (currentEvent.bRelations.toString() != "NULL"){
+                    osCurrent << "\t\t\t" << "At the beginning, ";
+                    for (int jj = 0; jj < currentEvent.bRelations.size(); jj++){
+                        if (jj != 0){
+                            osCurrent << " and ";
+                        }
+                        if (lrh && currentEvent.bRelations.get(jj).isList()){
+                            string meaning = createMeaning(currentEvent.bRelations.get(jj).asList()->get(0).toString(),
+                                currentEvent.bRelations.get(jj).asList()->get(1).toString(),
+                                currentEvent.bRelations.get(jj).asList()->get(2).toString());
+                            string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                            osCurrent << tmpSentence;
+                        }
+                        else{
+                            osCurrent << currentEvent.bRelations.get(jj).toString();
+                        }
+                    }
+                    osCurrent << endl;
+                }
+            }
+            // end initial situation
+
+            // if it is an ACTION
+            if (currentEvent.activity_type == "action"){
+                // if the action begin
+                if (currentEvent.begin){
+
+                    if (cursor == 0){
+                        if (lrh){
+                            string meaning = createMeaning(currentEvent.agent,
+                                "tries",
+                                currentEvent.predicate,
+                                currentEvent.object);
+                            string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                            osCurrent << "\t\t\t" << tmpSentence;
+                        }
+                        else{
+                            osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.predicate << " the " << currentEvent.object;
+                        }
+                        if (currentEvent.recipient != "none" && currentEvent.recipient != "")  osCurrent << " " << currentEvent.recipient;
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "adv1" || iarg->first == "adv2") osCurrent << " " << iarg->second;
+                        }
+                        osCurrent << endl;
+                    }
+                    else{
+                        // if the previous instance wasn't already an action
+                        if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || currentEvent.begin != sto.vEvents[currentElement - 1].begin){
+                            if (lrh){
+                                string meaning = createMeaning(currentEvent.agent,
+                                    "tries",
+                                    currentEvent.predicate,
+                                    currentEvent.object);
+                                string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                                osCurrent << "\t\t\t" << tmpSentence;
+                            }
+                            else{
+                                osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.predicate << " the " << currentEvent.object;
+                            }
+                            if (currentEvent.recipient != "none" && currentEvent.recipient != "")  osCurrent << " " << currentEvent.recipient;
+                            for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                                if (iarg->first == "adv1" || iarg->first == "adv2") osCurrent << " " << iarg->second;
+                            }
+                            osCurrent << endl;
+                        }
+                    }
+                }
+                // the action ends
+                else{
+                    if (cursor == 0){
+                        bool bStatusFound = false;
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "status" && iarg->second == "failed"){
+                                osCurrent << "\t\t\t" << "But it failed." << endl;
+                                bStatusFound = true;
+                            }
+                        }
+                        if (!bStatusFound){
+                            osCurrent << "\t\t\t" << "And it worked." << endl;
+                        }
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "reason"){
+                                osCurrent << " because " << iarg->second << "." << endl;
+                            }
+                        }
+                    }
+                    else{
+                        if (VERBOSE) cout << endl;
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (VERBOSE) cout << iarg->first << " " << iarg->second << " - " << endl;
+                        }
+                        // if previous instance was not a beggining of action
+                        if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){
+                            bool bStatusFound = false;
+                            for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                                if (iarg->first == "status" && iarg->second == "failed"){
+                                    osCurrent << "\t\t\t" << "But it failed." << endl;
+                                    bStatusFound = true;
+                                }
+                            }
+                            if (!bStatusFound){
+                                osCurrent << "\t\t\t" << "And it worked." << endl;
+                            }
+                        }
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "reason"){
+                                osCurrent << "\t\t\t" << "Because " << iarg->second << "." << endl;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (currentEvent.activity_name == "sentence"
+                || currentEvent.activity_name == "comprehension"
+                || currentEvent.activity_name == "production") {
+                string speaker = "none",
+                    addressee = "none",
+                    sentence = "none";
+                for (auto& iarg : currentEvent.vArgument){
+                    if (iarg.first == "speaker") speaker = iarg.second;
+                    else if (iarg.first == "addressee")     addressee = iarg.second;
+                    else if (iarg.first == "sentence")    sentence = iarg.second;
+                }
+                if (lrh){
+                    string meaning = createMeaning(speaker, "says", sentence, addressee);
+                    string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                    osCurrent << "\t\t\t" << tmpSentence;
+                }
+                else{
+                    osCurrent << "\t\t\t" << speaker << " says to " << addressee << ": " << sentence << endl;
+                }
+                osCurrent << endl;
+            }
+            // if not actino or sentence
+            else if (currentEvent.activity_type == "reasoning"){
+                /* for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                osCurrent << iarg->second << " ";
+                }*/
+                // if the action begin
+                if (currentEvent.begin){
+
+                    // if the previous instance wasn't already an action
+                    //if (current_activitytype != previous_activitytype || previous_begin != current_begin){
+                    if (lrh){
+                        string meaning = createMeaning(currentEvent.agent, "tries", currentEvent.activity_name);
+                        string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                        osCurrent << "\t\t\t" << tmpSentence;
+                    }
+                    else{
+                        osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name << endl;
+                    }
+                    osCurrent << endl;
+                    for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                        if (iarg->first == "goal"){
+                            Bottle bUnfolded = unfoldGoal(iarg->second);
+                            osCurrent << "\t\t\t" << "The goal was that: ";
+                            if (lrh){
+                                string meaning = createMeaning(bUnfolded.find("agent").toString(),
+                                    "try",
+                                    bUnfolded.find("predicate").toString(),
+                                    bUnfolded.find("object").toString());
+                                string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                                osCurrent << tmpSentence;
+
+                            }
+                            else{
+                                osCurrent << bUnfolded.find("agent").toString() << " tries to " << bUnfolded.find("predicate").toString() << " the " << bUnfolded.find("object").toString();
+                            }
+                            if (bUnfolded.find("recipient").toString() != "")  osCurrent << " " << bUnfolded.find("recipient").toString();
+                            osCurrent << endl;
+                        }
+                    }
+                }
+                // the action ends
+                else{
+                    if (cursor == 0){
+                        bool bStatusFound = false;
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "status" && iarg->second == "failed"){
+                                osCurrent << "\t\t\t" << "But it failed";
+                                bStatusFound = true;
+                            }
+                        }
+                        if (!bStatusFound){
+                            osCurrent << "\t\t\t" << "And it worked." << endl;
+                        }
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "reason"){
+                                osCurrent << " because " << iarg->second;
+                            }
+                        }
+                        osCurrent << "." << endl;
+                    }
+                    else if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){// if previous instance was not a beggining of action
+                        bool bStatusFound = false;
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "status" && iarg->second == "failed"){
+                                osCurrent << "\t\t\t" << "But it failed." << endl;
+                                bStatusFound = true;
+                            }
+                        }
+                        if (!bStatusFound){
+                            osCurrent << "\t\t\t" << "And it worked." << endl;
+                        }
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "reason"){
+                                osCurrent << " because " << iarg->second << "." << endl;
+                            }
+                        }
+                    }
+                    else{
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "reason"){
+                                osCurrent << " because " << iarg->second << "." << endl;;
+                            }
+                        }
+                    }
+                }
+            }
+            // nor action/reasoning/sentence
+            else {
+                //for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                //    osCurrent << iarg->first << " " << iarg->second << "; ";
+                //    //                osCurrent << bTemp.toString() << endl;
+                //}
+                //osCurrent << endl;
+                // if the action begin
+                if (currentEvent.begin){
+                    if (cursor == 0){
+                        if (lrh){
+                            string meaning = createMeaning(currentEvent.agent,
+                                "tries",
+                                currentEvent.activity_name,
+                                currentEvent.object);
+                            string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                            osCurrent << "\t\t\t" << tmpSentence;
+                        }
+                        else{
+                            osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                        }
+                        if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
+                        osCurrent << endl;
+                    }
+                    // if the previous instance wasn't already an action
+                    else if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || currentEvent.begin != sto.vEvents[currentElement - 1].begin){
+                        if (lrh){
+                            string meaning = createMeaning(currentEvent.agent,
+                                "tries",
+                                currentEvent.activity_name,
+                                currentEvent.object);
+                            string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                            osCurrent << "\t\t\t" << tmpSentence;
+                        }
+                        else{
+                            osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                        }
+                        if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
+                        osCurrent << endl;
+                    }
+                }
+                // the action ends
+                else {
+                    if (cursor == 0){
+                        bool bStatusFound = false;
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "status" && iarg->second == "failed"){
+                                osCurrent << "\t\t\t" << "But it failed";
+                                bStatusFound = true;
+                            }
+                        }
+                        if (!bStatusFound){
+                            osCurrent << "\t\t\t" << "And it worked." << endl;
+                        }
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "reason"){
+                                osCurrent << " because " << iarg->second << "." << endl;
+                            }
+                        }
+                    }
+                    else if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){// if previous instance was not a beggining of action
+                        bool bStatusFound = false;
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "status" && iarg->second == "failed"){
+                                osCurrent << "\t\t\t" << "But it failed";
+                                bStatusFound = true;
+                            }
+                        }
+                        if (!bStatusFound){
+                            osCurrent << "\t\t\t" << "And it worked." << endl;
+                        }
+                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                            if (iarg->first == "reason"){
+                                osCurrent << " because " << iarg->second << "." << endl;
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            // changes in the relations:
+            if (currentElement != sto.vEvents.size() && cursor != 0){
+
+                if (currentEvent.bRelations != sto.vEvents[currentElement - 1].bRelations)
+                {
+                    if (currentEvent.bRelations.toString() != "NULL"){
+                        osCurrent << "\t\t\t" << "And now, ";
+                        for (int jj = 0; jj < currentEvent.bRelations.size(); jj++){
+                            if (jj != 0){
+                                osCurrent << " and ";
+                            }
+                            osCurrent << currentEvent.bRelations.get(jj).toString();
+                        }
+                        osCurrent << endl;
+                    }
+                }
+            }
+
+            // final situation
+            if (currentElement == sto.vEvents.size() - 1){
+                osCurrent << "\t\t\t" << "In the end, ";
+                for (int jj = 0; jj < currentEvent.bRelations.size(); jj++){
+                    if (jj != 0){
+                        osCurrent << " and ";
+                    }
+                    if (lrh && currentEvent.bRelations.get(jj).isList()){
+                        string meaning = createMeaning(currentEvent.bRelations.get(jj).asList()->get(0).toString(),
+                            currentEvent.bRelations.get(jj).asList()->get(1).toString(),
+                            currentEvent.bRelations.get(jj).asList()->get(2).toString());
+                        string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                        osCurrent << tmpSentence;
+                    }
+                    else{
+                        osCurrent << currentEvent.bRelations.get(jj).toString();
+                    }
+                }
+                osCurrent << "." << endl;
+            }
+
+
+            if (VERBOSE) cout << osCurrent.str();
+
+            vsOutput.push_back(osCurrent.str());
+            cursor++;
+        }
+    }
+
+    if (VERBOSE) cout << endl << endl;
+    sto.sentenceStory = vsOutput;
+}
+
+
+
+
+
+string narrativeHandler::createMeaning(string agent, string predicate, string object, string recipient){
+    ostringstream osMeaning;
+    bool bO = object != "";
+    bool bR = recipient != "";
+
+    // at least agent and predicate:
+    osMeaning << ", " << predicate << " " << agent << " ";
+    if (bO) osMeaning << object << " ";
+    if (bR) osMeaning << recipient << " ";
+
+    osMeaning << "<o> [_-_-_-_-_-_-_-_][A-P-";
+    bO ? osMeaning << "O-" : osMeaning << "_-";
+    bR ? osMeaning << "R-" : osMeaning << "_-";
+    osMeaning << "_-_-_-_][_-_-_-_-_-_-_-_] <o>";
+    return osMeaning.str();
 }

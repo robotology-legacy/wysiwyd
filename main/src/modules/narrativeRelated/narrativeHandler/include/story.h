@@ -58,12 +58,12 @@ public:
 
     std::vector<std::string>    sentenceStory;
 
-    void createNarration();
     void displayNarration();
 
     std::vector<int>        viInstances;
     std::vector<evtStory>   vEvents;
 
     std::string toString();
+
 
 };
