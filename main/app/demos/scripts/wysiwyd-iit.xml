@@ -57,7 +57,7 @@
 
         <module>
            <name>lbpExtract</name>
-           <parameters></parameters>
+           <parameters>--minArcLength 120</parameters>
            <node>icub21</node>
         </module>
         <module>
