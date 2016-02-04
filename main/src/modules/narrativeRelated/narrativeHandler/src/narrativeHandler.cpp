@@ -427,9 +427,9 @@ void narrativeHandler::updateScoreStory(story &st){
     }
 
     // for each instance update the score of each OCW corresponding to a few rules
-    for (auto& itE : st.vEvents){
-        // TODO
-    }
+    //for (auto& itE : st.vEvents){
+    //    // TODO
+    //}
 }
 
 
