@@ -55,7 +55,7 @@ class Babbler : public RFModule
                 cout << '\t' << part << endl;
             }
 
-            icub = new ICubClient(moduleName, rf.getContext());
+            icub = new ICubClient(moduleName, rf.getContext(), "client.ini", false, true, true);
 
             char rep = 'n';
             while (rep != 'y'&&!icub->connect())
