@@ -38,7 +38,7 @@ using namespace yarp::sig;
 using namespace yarp::dev;
 using namespace wysiwyd::wrdac;
 
-ICubClient::ICubClient(const std::string &moduleName, const std::string &context, const std::string &clientConfigFile, bool isRFVerbose)
+ICubClient::ICubClient(const std::string &moduleName, const std::string &context, const std::string &clientConfigFile, bool isRFVerbose, bool bLoadChore, bool bLoadPostures)
 {
     yarp::os::ResourceFinder rfClient;
     rfClient.setVerbose(isRFVerbose);
@@ -46,20 +46,23 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     rfClient.setDefaultConfigFile(clientConfigFile.c_str());
     rfClient.configure(0, NULL);
 
-    yarp::os::ResourceFinder rfPostures;
-    rfPostures.setVerbose(isRFVerbose);
-    rfPostures.setDefaultContext(context.c_str());
-    rfPostures.setDefaultConfigFile(rfClient.check("posturesFile", Value("postures.ini")).asString().c_str());
-    rfPostures.configure(0, NULL);
+    if (bLoadPostures){
+        yarp::os::ResourceFinder rfPostures;
+        rfPostures.setVerbose(isRFVerbose);
+        rfPostures.setDefaultContext(context.c_str());
+        rfPostures.setDefaultConfigFile(rfClient.check("posturesFile", Value("postures.ini")).asString().c_str());
+        rfPostures.configure(0, NULL);
+        LoadPostures(rfPostures);
+    }
 
-    yarp::os::ResourceFinder rfChoregraphies;
-    rfChoregraphies.setVerbose(isRFVerbose);
-    rfChoregraphies.setDefaultContext(context.c_str());
-    rfChoregraphies.setDefaultConfigFile(rfClient.check("choregraphiesFile", Value("choregraphies.ini")).asString().c_str());
-    rfChoregraphies.configure(0, NULL);
-
-    LoadPostures(rfPostures);
-    LoadChoregraphies(rfChoregraphies);
+    if (bLoadChore){
+        yarp::os::ResourceFinder rfChoregraphies;
+        rfChoregraphies.setVerbose(isRFVerbose);
+        rfChoregraphies.setDefaultContext(context.c_str());
+        rfChoregraphies.setDefaultConfigFile(rfClient.check("choregraphiesFile", Value("choregraphies.ini")).asString().c_str());
+        rfChoregraphies.configure(0, NULL);
+        LoadChoregraphies(rfChoregraphies);
+    }
 
     //Reaching range
     Bottle defaultRangeMin; defaultRangeMin.fromString("-0.5 -0.3 -0.15");
