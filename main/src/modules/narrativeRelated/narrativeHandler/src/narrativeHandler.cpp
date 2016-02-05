@@ -32,9 +32,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period", Value(0.1)).asDouble();
 
     //Create an iCub Client and check that all dependencies are here before starting
-    bool isRFVerbose = true;
+    bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "narrativeHandler", "narrativeHandler.ini", isRFVerbose);
-    iCub->opc->isVerbose &= true;
+    //iCub->opc->isVerbose &= true;
 
     if (!iCub->connect())
     {

@@ -546,7 +546,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
         ostringstream osTmp2;
         osTmp2 << "(predicate sentence) (speaker icub) (object " << sOject << ")";
         string tmp2 = osTmp2.str();
-        lArgument.push_back(std::pair<std::string, std::string>("(predicate sentence) (speaker icub) (object ObjStory)", "result"));
+        lArgument.push_back(std::pair<std::string, std::string>(tmp2, "result"));
         lArgument.push_back(std::pair<std::string, std::string>("addressee#have#object", "needs"));
         lArgument.push_back(std::pair<std::string, std::string>("abmReasoning", "provider"));
         iCub->getABMClient()->sendActivity("action",
@@ -598,7 +598,8 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
 
     list<pair<string, string> > lArgument;
     string sentence;
-    sentence = "Give me the ObjStory please";
+    sentence = "Give me the " + sOject;
+    sentence += " please";
     lArgument.push_back(pair<string, string>(sentence, "sentence"));
     lArgument.push_back(pair<string, string>("give", "predicate"));
     lArgument.push_back(pair<string, string>(sAgent, "agent"));
@@ -761,7 +762,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     vector<string>  currentPOV;
 
     fromMeaning ? currentPOV = listMeaningPOViCub : currentPOV = listSentencePOViCub;
-    
+
     if (bInput.size() == 2){
         if (bInput.get(1).toString() == "Nathan") {
             fromMeaning ? currentPOV = listMeaningPOVNathan : currentPOV = listSentencePOVNathan;
@@ -770,7 +771,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
 
     yInfo(" OPC populater starting story from POV");
 
-    fromMeaning ? iCub->getLRH()->narrator= "Narrator":
+    fromMeaning ? iCub->getLRH()->narrator = "Narrator" :
         iCub->getLRH()->interlocutor = "Narrator";
 
     Time::delay(12.);
