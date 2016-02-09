@@ -1,4 +1,5 @@
 #include "allostaticController.h"
+#include "wrdac/subsystems/subSystem_ABM.h"
 
 bool AllostaticController::close()
 {
@@ -71,6 +72,16 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(0.5)).asDouble();
 
     configureAllostatic(rf);
+
+    bool isRFVerbose = true;
+    iCub = new ICubClient(moduleName, "allostaticController", "client.ini", isRFVerbose);
+    iCub->opc->isVerbose &= true;
+
+    if (!iCub->connect())
+    {
+        yInfo() << "iCubClient : Some dependencies are not running...";
+        Time::delay(1.0);
+    }
 
     yInfo()<<"Configuration done.";
 
@@ -214,7 +225,9 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
     if (! Normalize(drivePriorities))
         yDebug() << "Error: Drive priorities sum up to 0.";// << endl;
 
+
     yInfo() << "done.";// << endl;
+
 }
 
 bool AllostaticController::Normalize(vector<double>& vec) {
@@ -312,8 +325,41 @@ bool AllostaticController::updateAllostatic()
 
     if (allostaticDrives[activeDrive.name].active) {
         yInfo() << "Trigerring " + activeDrive.name;
+
         allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
-    } else {
+        
+        // record event in ABM
+        if (iCub->getABMClient()->Connect()) {
+            yDebug() << "ABM connected and receiving record.";
+            string drive_level;
+            if (to_string(activeDrive.level) == "0"){
+                drive_level = "under";
+            }
+            else{
+                drive_level="over";
+            }
+            string predicate = "goes_" + drive_level;
+            yDebug() << "Predicate set.";
+            
+            std::list<std::pair<std::string, std::string> > lArgument;
+            lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+            lArgument.push_back(std::pair<std::string, std::string>(predicate, "predicate"));
+            lArgument.push_back(std::pair<std::string, std::string>(activeDrive.name, "object"));
+            lArgument.push_back(std::pair<std::string, std::string>(drive_level, "recipient"));
+            iCub->getABMClient()->sendActivity("action",
+                activeDrive.name,
+                "drives",  // expl: "pasar", "drives"...
+                lArgument,
+                true);
+            yInfo() << activeDrive.name + " has been recorded in the ABM";
+
+        }
+        else{
+            yDebug() << "ABM not connected; no recording of the trigger.";
+        }
+
+    }
+    else {
         yInfo() << "Drive " + activeDrive.name + " is not active";
     }
 

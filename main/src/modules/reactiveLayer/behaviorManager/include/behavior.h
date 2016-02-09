@@ -4,6 +4,8 @@
 #include <string>
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
+#include <wrdac/clients/clients.h>
+#include "wrdac/subsystems/subSystem_ABM.h"
 
 using namespace std;
 using namespace yarp::os;
@@ -31,7 +33,6 @@ public:
     }
 
     ICubClient *iCub;
-
     string name, from_sensation_port_name, external_port_name;
     BufferedPort<Bottle> sensation_port_in;
     Port rpc_out_port;

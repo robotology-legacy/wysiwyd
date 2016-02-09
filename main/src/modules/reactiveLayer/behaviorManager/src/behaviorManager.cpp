@@ -1,6 +1,7 @@
 #include "behaviorManager.h"
 
 
+
 bool BehaviorManager::close()
 {
     rpc_in_port.interrupt();
@@ -24,14 +25,14 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(1.0)).asDouble();
 
     Bottle grp = rf.findGroup("BEHAVIORS");
-    Bottle behaviorList = *grp.find("behaviors").asList();  
+    behaviorList = *grp.find("behaviors").asList();  
 
     rpc_in_port.open("/" + moduleName + "/trigger:i");
     yInfo() << "RPC_IN : " << rpc_in_port.getName();
     attach(rpc_in_port);
     for (int i = 0; i<behaviorList.size(); i++)
     {
-        string behavior_name = behaviorList.get(i).asString();
+        behavior_name = behaviorList.get(i).asString();
         if (behavior_name == "tagging") {
             behaviors.push_back(new Tagging(&mut));
         } else if (behavior_name == "pointing") {
@@ -61,6 +62,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         yInfo()<<"iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
+
 
     // id = 0;
     for(auto& beh : behaviors) {
@@ -102,6 +104,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
 {
     yDebug() << "RPC received in BM";
     yDebug() << cmd.toString();
+    
     if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
         help += " ['behavior_name']  : Triggers corresponding behavior \n";
@@ -118,6 +121,25 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
         //             args.add(&cmd.get(a));
         //         }
                 beh->trigger(/*args*/);
+
+                // Add event into ABM
+                if (iCub->getABMClient()->Connect()) {
+                    //ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
+                    std::list<std::pair<std::string, std::string> > lArgument;
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+                    lArgument.push_back(std::pair<std::string, std::string>(cmd.get(0).asString(), "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>("unknown_object", "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("partner", "recipient"));
+                    iCub->getABMClient()->sendActivity("action",
+                        cmd.get(0).asString(),
+                        "behavior",  // expl: "pasar", "drives"...
+                        lArgument,
+                        true);
+                    yInfo() << cmd.get(0).asString() + "behavior has been recorded in the ABM";
+                }
+                else{
+                    yDebug() << "ABM not connected; no recording of action.";
+                }
             }
         }
     }

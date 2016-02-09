@@ -5,11 +5,13 @@
 #include <yarp/sig/all.h>
 #include <yarp/math/Rand.h>
 #include <map>
+#include <wrdac/clients/clients.h>
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace yarp::math;
+using namespace wysiwyd::wrdac;
 
 enum OutCZ {UNDER, OVER};
 
@@ -33,6 +35,7 @@ public:
     Bottle behaviorUnderCmd;
     Bottle behaviorOverCmd;
     Bottle sensationOnCmd, sensationOffCmd, beforeTriggerCmd, afterTriggerCmd;
+    
 
     bool close_ports() {
         if (behaviorUnderPort) {
@@ -113,7 +116,7 @@ public:
         
         yInfo() << "Drive " + name + " to be triggered via " << port->getName();
         port->write(cmd, rply);
-
+        
         // after trigger command
         if ( ! afterTriggerCmd.isNull()) {
             cmd.clear();
@@ -125,8 +128,16 @@ public:
                 yDebug() << cmd.toString();     
                 homeoPort->write(cmd,rply);
                 rplies.addList() = rply;
+            yDebug() << "triggerBehavior completed.";
+
             }        
         }
+
+        // record event in ABM
+        // string moduleName = rf.check("name",Value("AllostaticController")).asString();
+        // setName(moduleName.c_str());
+ 
+        
     }
 };
 
@@ -157,7 +168,7 @@ private:
     int openPorts(string driveName);
 public:
     bool configure(yarp::os::ResourceFinder &rf);
-
+    ICubClient  *iCub;
     bool interruptModule()
     {
         return true;

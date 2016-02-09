@@ -44,6 +44,9 @@ private:
     int behavior_to_trigger;
 
     Mutex mut;
+    Bottle behaviorList;
+    string behavior_name;
+    //Agent *ag;
 public:
    bool configure(yarp::os::ResourceFinder &rf);
 
