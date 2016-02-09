@@ -40,6 +40,9 @@ public:
     bool updateModule();
     bool    populateEntityRandom(Bottle bInput);
     bool    populateSpecific();
+    bool    populateSpecific1(Bottle bInput);
+    bool    populateSpecific2();
+    bool    populateSpecific3();
 
     bool    addUnknownEntity(Bottle bInput);
     bool    setSaliencyEntity(Bottle bInput);

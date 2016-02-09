@@ -75,6 +75,7 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         "quit \n" +
         "populateSpecific1 entity_type entity_name \n" +
         "populateSpecific2 \n" +
+        "populateSpecific3 \n"
         "addUnknownEntity entity_type\n" +
         "populateABM \n" +
         "populateABMiCubStory \n" +
@@ -94,6 +95,10 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "populateSpecific2") {
         yInfo() << " populateSpecific2";
         (populateSpecific()) ? reply.addString("populateSpecific done !") : reply.addString("populateSpecific failed !");
+    }
+    else if (command.get(0).asString() == "populateSpecific3") {
+        yInfo() << " populateSpecific3";
+        (populateSpecific3()) ? reply.addString("populated 2 objects !") : reply.addString("populateSpecific failed !");
     }
     else if (command.get(0).asString() == "populateABM") {
         yInfo() << " populateABM";
@@ -687,6 +692,34 @@ bool opcPopulater::populateSpecific(){
     obj4->m_color[1] = Random::uniform(0, 80);
     obj4->m_color[2] = Random::uniform(180, 250);
     iCub->opc->commit(obj4);
+
+
+    return true;
+}
+
+bool opcPopulater::populateSpecific3(){
+
+    iCub->opc->clear();
+
+    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("unknown_1");
+    obj1->m_ego_position[0] = -0.4;
+    obj1->m_ego_position[1] = 0.25;
+    obj1->m_ego_position[2] = 0;
+    obj1->m_present = 1;
+    obj1->m_color[0] = Random::uniform(0, 80);
+    obj1->m_color[1] = Random::uniform(80, 180);
+    obj1->m_color[2] = Random::uniform(180, 250);
+    iCub->opc->commit(obj1);
+
+    Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("unknown_2");
+    obj2->m_ego_position[0] = -0.4;
+    obj2->m_ego_position[1] = -0.25;
+    obj2->m_ego_position[2] = 0;
+    obj2->m_present = 1;
+    obj2->m_color[0] = Random::uniform(100, 180);
+    obj2->m_color[1] = Random::uniform(0, 80);
+    obj2->m_color[2] = Random::uniform(180, 250);
+    iCub->opc->commit(obj2);
 
 
     return true;
