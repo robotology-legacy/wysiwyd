@@ -51,12 +51,14 @@ namespace wysiwyd{
         public:
             bool bForwardABM;
             std::string interlocutor;
+            std::string narrator;
 
             yarp::os::Port portRPC;
 
             SubSystem_LRH(const std::string &masterName) : SubSystem(masterName){
                 portRPC.open(("/" + m_masterName + "/lrh:o").c_str());
                 interlocutor = "partner";
+                narrator = "iCub";
                 m_type = SUBSYSTEM_LRH;
                 bForwardABM = true;
                 SubABM = new SubSystem_ABM(m_masterName + "/lrh");
@@ -85,7 +87,7 @@ namespace wysiwyd{
                             lArgument.push_back(std::pair<std::string, std::string>(sInput, "meaning"));
                             lArgument.push_back(std::pair<std::string, std::string>(bReturn.get(1).toString(), "sentence"));
                             lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
-                            lArgument.push_back(std::pair<std::string, std::string>("iCub", "speaker"));
+                            lArgument.push_back(std::pair<std::string, std::string>(narrator, "speaker"));
                             lArgument.push_back(std::pair<std::string, std::string>(interlocutor, "addressee"));
                             SubABM->sendActivity("action", "production", "lrh", lArgument, true);
                         }

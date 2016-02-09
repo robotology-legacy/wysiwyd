@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <name>perspective_taking_meta</name>
+  <description>The perspective taking metapackage</description>
+  
+  <version>0.9.0</version>
+  <maintainer email="t.fischer@imperial.ac.uk">Tobias Fischer</maintainer>
+  <license>GPLv2</license>
+  <url type="repository">https://github.com/robotology/wysiwyd</url>
+  <url type="website">http://www.tobiasfischer.info</url>
+  <author email="t.fischer@imperial.ac.uk">Tobias Fischer</author>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <run_depend>perspective_taking</run_depend>
+  <run_depend>perspective_taking_c03</run_depend>
+  <run_depend>perspective_taking_python</run_depend>
+
+  <export>
+     <metapackage/> 
+  </export>
+  
+</package>
+

@@ -1,0 +1,31 @@
+<package>
+  <name>head_pose_estimation</name>
+  <version>0.0.1</version>
+  <description>
+    ROS version of Fanelli's head pose estimation program.
+  </description>
+  <maintainer email="miguel.sarabia@imperial.ac.uk">Miguel Sarabia</maintainer>
+  <license>MSR-SSLA</license>
+  <url>http://www.vision.ee.ethz.ch/~gfanelli/head_pose/head_forest.html</url>
+
+  <author>Miguel Sarabia</author>
+  <author email="fanelli@vision.ee.ethz.ch">Gabriele Fanelli</author>
+  <author>Thibaut Weise</author>
+  <author>Juergen Gall</author>
+  
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>rospack</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>boost</build_depend>
+  <build_depend>cmake_modules</build_depend>
+  <build_depend>tf</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>rospack</run_depend>
+</package>

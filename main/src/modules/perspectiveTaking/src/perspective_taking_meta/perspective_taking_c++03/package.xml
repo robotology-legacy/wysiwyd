@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<package>
+  <name>perspective_taking_c03</name>
+  <version>0.9.0</version>
+  <description>Helper packages which are not compiled with C++11, but C++03. See Fischer and Demiris ICRA2016 for more details.</description>
+
+  <maintainer email="t.fischer@imperial.ac.uk">Tobias Fischer</maintainer>
+
+  <license>GPLv2</license>
+
+  <url type="repository">https://github.com/robotology/wysiwyd</url>
+  <url type="website">http://www.tobiasfischer.info</url>
+
+  <author email="t.fischer@imperial.ac.uk">Tobias Fischer</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>opencv2</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospack</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
+  <build_depend>pcl_ros</build_depend>
+  <build_depend>libpcl-all-dev</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>perspective_taking</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospack</run_depend>
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>opencv2</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>tf_conversions</run_depend>
+  <run_depend>libpcl-all</run_depend>
+  <run_depend>pcl_ros</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>perspective_taking</run_depend>
+
+  <export>
+
+  </export>
+</package>

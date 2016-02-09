@@ -36,7 +36,7 @@ private:
 
     std::vector<story> listStories;
 
-    void tellingStory(story st);
+    void tellingStoryFromMeaning(story st);
     void initializeStories();
 
     yarp::os::Bottle unfoldGoal(std::string goal);
@@ -44,7 +44,10 @@ private:
     std::string narrator;
     std::vector<std::string> initializeEVT(evtStory &evt, int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle _bRelations);
 
+    std::vector<std::pair<std::string, std::string> >  comparator;
 
+    bool checkListPAOR(std::vector<std::string> vOriginal, std::vector<std::string> vCopy);
+    std::string adaptMeaning(std::string oriMeaning);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -67,6 +70,10 @@ public:
 
     //RPC & scenarios
     bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    void compareNarration(story target); // try to tell the story target based on the other known stories
+    void compareNarration(story &target); // try to tell the story target based on the other known stories
+    void sayNarrationSimple(story target);
+    void createNarration(story &sto);
+    std::string createMeaning(std::string agent, std::string predicate, std::string object = "", std::string recipient = "");
+
 
 };

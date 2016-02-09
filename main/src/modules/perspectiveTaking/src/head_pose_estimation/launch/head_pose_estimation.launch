@@ -1,0 +1,28 @@
+<launch>
+  <arg name="max_distance"          default="2300" />
+  <arg name="head_threshold"        default="500" />
+  <arg name="probability_threshold" default="1.0" />
+  <arg name="max_variance"          default="800" />
+  <arg name="stride"                default="5" />
+  <arg name="clustering_radius"     default="1.6" />
+  <arg name="mean_shift_radius"     default="5" />
+  <arg name="frame_from"            default="camera_depth_frame" />
+  <arg name="frame_to"              default="head_origin" />
+  <arg name="camera"                default="camera" />
+
+  <node pkg="head_pose_estimation" name="head_pose_estimation" type="head_pose_estimation" required="true" output="screen">
+    <param name="max_distance"          value="$(arg max_distance)" />
+    <param name="head_threshold"        value="$(arg head_threshold)" />
+    <param name="probability_threshold" value="$(arg probability_threshold)" />
+    <param name="max_variance"          value="$(arg max_variance)" />
+    <param name="stride"                value="$(arg stride)" />
+    <param name="clustering_radius"     value="$(arg clustering_radius)" />
+    <param name="mean_shift_radius"     value="$(arg mean_shift_radius)" />
+    <param name="frame_from"            value="$(arg frame_from)" />
+    <param name="frame_to"              value="$(arg frame_to)" />
+
+    <remap from="depth/image_raw" to="/$(arg camera)/depth_registered/image_raw" />
+    <remap from="depth/camera_info" to="/$(arg camera)/depth_registered/camera_info" />
+  </node>
+</launch>
+

@@ -107,7 +107,8 @@ namespace wysiwyd{
             * @param moduleName The port namespace that will precede the client ports names.
             */
             ICubClient(const std::string &moduleName, const std::string &context = "icubClient",
-                const std::string &clientConfigFile = "client.ini", bool isRFVerbose = false);
+                const std::string &clientConfigFile = "client.ini", bool isRFVerbose = false,
+                bool bLoadChore = false, bool bLoadPostures = false);
 
             /**
             * Load a library of postures from config file specified in rf
