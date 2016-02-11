@@ -72,6 +72,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
+
     findStories(iMinInstance);
     cout << endl;
     initializeStories();
@@ -1032,11 +1033,11 @@ bool narrativeHandler::checkListPAOR(vector<string> vOriginal, vector<string> vC
 
 
 string narrativeHandler::adaptMeaning(string meaning){
-//    cout << "meaning: " << meaning;
+    //    cout << "meaning: " << meaning;
     string str = meaning;
     for (unsigned int jj = 0; jj < comparator.size(); jj++){
         if (comparator[jj].first != ""){
-//            cout << " first: " << comparator[jj].first << " second: " << comparator[jj].second;
+            //            cout << " first: " << comparator[jj].first << " second: " << comparator[jj].second;
             size_t pos = 0;
             while ((pos = str.find(comparator[jj].first, pos)) != std::string::npos){
                 str.replace(pos, comparator[jj].first.length(), comparator[jj].second);
@@ -1053,7 +1054,7 @@ string narrativeHandler::adaptMeaning(string meaning){
 void narrativeHandler::tellingStoryFromMeaning(story target){
 
     cout << "start telling story from meaning" << endl;
-    vector<string>    tmpStory;  
+    vector<string>    tmpStory;
     for (auto mean : target.meaningStory){
         tmpStory.push_back(iCub->getLRH()->meaningToSentence(mean));
     }
