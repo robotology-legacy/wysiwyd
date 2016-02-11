@@ -21,12 +21,17 @@
     <node>icub-b1</node>
   </module>
 
-
   <module>
     <name>allostaticController</name>
     <node>icub-b2</node>
   </module>
 
+      <module>
+    <name>proactiveTagging</name>
+    <parameters />
+    <node>icub-b1</node>
+    <tag>proactiveTaggingTag</tag>
+  </module>
 
   <!-- ********************* CONNECTIONS ********************* -->
 

@@ -1,5 +1,12 @@
 <application>
   <name>Year 2 iCub</name>
+  <dependencies>
+    <port>/icub/cartesianController/right_arm/state:o</port>
+    <port>/icub/cartesianController/left_arm/state:o</port>
+    <port>/iKinGazeCtrl/rpc</port>
+    <port>/icub/camcalib/left/out</port>
+    <port>/icub/camcalib/right/out</port>
+  </dependencies>
 
 
   <!--OPC-->
@@ -29,7 +36,6 @@
     <tag>iCubGui_tagOPC</tag>
   </module>
 
-
   <module>
     <name>kinectServer</name>
     <node>ikart</node>
@@ -49,10 +55,16 @@
 
   <module>
     <name>actionRenderingEngine</name>
+	<parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
     <node>icub-b2</node>
     <tag>ARETag</tag>
   </module>
 
+    <module>
+    <name>touchDetector</name>
+    <node>icub-b3</node>
+    <tag>touchDetectorTag</tag>
+  </module>
 
   <!-- ********************* CONNECTIONS ********************* -->
 
@@ -70,43 +82,43 @@
 
  
    <connection>
-   <from>/icubSim/head/state:o</from>
+   <from>/icub/head/state:o</from>
    <to>/iCubGui/head:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
-   <from>/icubSim/inertial</from>
+   <from>/icub/inertial</from>
    <to>/iCubGui/inertial:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
-   <from>/icubSim/left_arm/state:o</from>
+   <from>/icub/left_arm/state:o</from>
    <to>/iCubGui/left_arm:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
-   <from>/icubSim/right_arm/state:o</from>
+   <from>/icub/right_arm/state:o</from>
    <to>/iCubGui/right_arm:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
-   <from>/icubSim/left_leg/state:o</from>
+   <from>/icub/left_leg/state:o</from>
    <to>/iCubGui/left_leg:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
-   <from>/icubSim/right_leg/state:o</from>
+   <from>/icub/right_leg/state:o</from>
    <to>/iCubGui/right_leg:i</to>
    <protocol>udp</protocol>
    </connection>
            
    <connection>
-   <from>/icubSim/torso/state:o</from>
+   <from>/icub/torso/state:o</from>
    <to>/iCubGui/torso:i</to>
    <protocol>udp</protocol>
    </connection>
@@ -117,6 +129,49 @@
    <to> /wholeBodyDynamics/rpc:i</to>
    <protocol>tcp</protocol>
    </connection>
+   
+     <!-- TouchDetector -->
+  <connection>
+    <from>/icub/skin/torso_comp</from>
+    <to>/touchDetector/torso:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_arm_comp</from>
+    <to>/touchDetector/left_arm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_arm_comp</from>
+    <to>/touchDetector/right_arm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_forearm_comp</from>
+    <to>/touchDetector/left_forearm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_forearm_comp</from>
+    <to>/touchDetector/right_forearm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_hand_comp</from>
+    <to>/touchDetector/left_hand:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_hand_comp</from>
+    <to>/touchDetector/right_hand:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/touchDetector/touch:o</from>
+    <to>/proactiveTagging/fromTouch:i</to>
+    <protocol>tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list</protocol>
+  </connection>
+
 
 
 </application>
