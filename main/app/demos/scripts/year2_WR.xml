@@ -1,0 +1,51 @@
+<application>
+  <name>Year 2 WR</name>
+
+  <module>
+    <name>autobiographicalMemory</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>speechRecognizer</name>
+    <node>winnode1</node>
+  </module>
+
+  <module>
+    <name>iSpeak</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>lrh</name>
+    <node>console1</node>
+  </module>
+
+
+  <module>
+    <name>opcPopulater</name>
+    <node>icub-b2</node>
+  </module>
+
+  <module>
+    <name>pasar</name>
+    <node>icub-b3</node>
+  </module>
+
+  <module>
+    <name>babbling</name>
+    <node>console1</node>
+  </module>
+
+  <module>
+    <name>narrativeHandler</name>
+    <node>icub-b3</node>
+  </module>
+
+
+  <!-- ********************* CONNECTIONS ********************* -->
+
+
+</application>
+
+
