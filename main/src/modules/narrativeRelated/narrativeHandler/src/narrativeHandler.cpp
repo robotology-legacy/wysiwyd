@@ -16,7 +16,6 @@
 */
 
 #include "narrativeHandler.h"
-#include "wrdac/subsystems/subSystem_LRH.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -36,6 +35,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "narrativeHandler", "narrativeHandler.ini", isRFVerbose);
     //iCub->opc->isVerbose &= true;
 
+    // get grammar file
+    GrammarNarration = rf.findFileByName(rf.check("GrammarNarration", Value("GrammarNarration.xml")).toString());
+    GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
+
     if (!iCub->connect())
     {
         yInfo() << "iCubClient : Some dependencies are not running...";
@@ -52,17 +55,22 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-    abm = true;
     if (!iCub->getABMClient())
     {
-        abm = false;
         yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+        return false;
     }
 
     if (!iCub->getLRH())
         yWarning(" WARNING LRH NOT CONNECTED");
     else
         iCub->getLRH()->bForwardABM = (rf.find("forwardABM").asInt() == 1);
+
+    if (!iCub->getRecogClient())
+    {
+        iCub->say("Proactive Tagging warning speech recognizer not connected");
+        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
+    }
 
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
@@ -80,8 +88,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     for (auto P : listStories){
         P.displayNarration();
     }
-    compareNarration(listStories[listStories.size() - 1]);
-    tellingStoryFromMeaning(listStories[listStories.size() - 1]);
+    story target = listStories[listStories.size() - 1];
+    compareNarration(target);
+    tellingStoryFromMeaning(target);
+
+    addNarrationToStory(target, true);
 
     return false;
 }
@@ -383,8 +394,6 @@ void narrativeHandler::initializeStories()
         itSt.timeEnd = string2Time(bMessenger.toString());
 
         for (auto& itInst : itSt.viInstances){
-
-
             ostringstream osRequest;
 
             osRequest.str("");
@@ -417,7 +426,6 @@ void narrativeHandler::initializeStories()
 }
 
 
-
 void narrativeHandler::updateScoreStory(story &st){
 
     st.mapScore.clear();
@@ -435,7 +443,6 @@ void narrativeHandler::updateScoreStory(story &st){
     //    // TODO
     //}
 }
-
 
 
 vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
@@ -537,7 +544,6 @@ void narrativeHandler::compareNarration(story &target){
                         for (unsigned int j = K; j < currentStory.vEvents.size(); j++){
                             evtStory evt = currentStory.vEvents[j];
                             if (!evt.isNarration && !found){
-
 
                                 vector<string>  vOriginal, vCopy;
                                 vOriginal.push_back(evt.agent);
@@ -1031,7 +1037,6 @@ bool narrativeHandler::checkListPAOR(vector<string> vOriginal, vector<string> vC
 }
 
 
-
 string narrativeHandler::adaptMeaning(string meaning){
     //    cout << "meaning: " << meaning;
     string str = meaning;
@@ -1048,7 +1053,6 @@ string narrativeHandler::adaptMeaning(string meaning){
     }
     return str;
 }
-
 
 
 void narrativeHandler::tellingStoryFromMeaning(story target){

@@ -18,6 +18,9 @@
 
 
 #include <story.h>
+#include "wrdac/clients/icubClient.h"
+#include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_LRH.h"
 
 
 class narrativeHandler : public yarp::os::RFModule {
@@ -27,7 +30,6 @@ private:
     int counter;
 
     double      period;
-    bool abm;
     bool lrh;
 
     double dThresholdDiffStory; // threshold in second between to action from two different stories.
@@ -48,6 +50,12 @@ private:
 
     bool checkListPAOR(std::vector<std::string> vOriginal, std::vector<std::string> vCopy);
     std::string adaptMeaning(std::string oriMeaning);
+
+    void addNarrationToStory(story target, bool overWrite = false);
+    std::string grammarToString(std::string sPath);
+
+    std::string GrammarNarration; // the file for the grammar narration
+    std::string GrammarYesNo;
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
