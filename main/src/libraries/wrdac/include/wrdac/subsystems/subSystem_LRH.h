@@ -39,7 +39,14 @@ namespace wysiwyd{
         protected:
             virtual bool connect() {
                 // paste master name of 
-                return yarp::os::Network::connect(portRPC.getName(), "/lrh/rpc");
+                if (yarp::os::Network::isConnected(portRPC.getName(), "/lrh/rpc"))
+                {
+                    return true;
+                }
+                else
+                {
+                    return yarp::os::Network::connect(portRPC.getName(), "/lrh/rpc");
+                }
             }
             SubSystem_ABM* SubABM;
             bool ABMconnected() {
@@ -48,7 +55,12 @@ namespace wysiwyd{
                 return b;
             }
             bool SAMconnected() {
-                return yarp::os::Network::connect(portSAM.getName(), "/sam/rpc");
+                if (yarp::os::Network::isConnected(portSAM.getName(), "/sam/rpc")){
+                    return true;
+                }
+                else {
+                    return yarp::os::Network::connect(portSAM.getName(), "/sam/rpc");
+                }
             }
 
         public:
