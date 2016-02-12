@@ -289,6 +289,10 @@ namespace wysiwyd{
                     osRet << A1 << " " << P1 << " ";
                     if (O1 != "none")  osRet << "the " << O1 << " ";
                     if (R1 != "none")  osRet << "to " << R1 << " ";
+                    osRet << "and ";
+                    osRet << A2 << " " << P2 << " ";
+                    if (O2 != "none")  osRet << "the " << O2 << " ";
+                    if (R2 != "none")  osRet << "to " << R2 << " ";
 
                     return osRet.str();
 
