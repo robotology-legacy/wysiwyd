@@ -1,4 +1,8 @@
-This is the refactored version of the reactive layer as done by UPF for the London integration meeting (December 2015).
+This is the refactored version of the reactive layer as produced by UPF in 2015.
+[The original version](https://github.com/robotology/wysiwyd/tree/master/main/src/modules/reactiveLayerEFAA) led to several publications, and in particular:
+
+[Towards the synthetic self: Making others perceive me as an other
+S Lallee, V Vouloutsi, MB Munoz, K Grechuta, JYP Llobet, M Sarda, PFMJ Verschure (2015). *Paladyn, Journal of Behavioral Robotics*. 6 (1)](http://www.degruyter.com/view/j/pjbr.2015.6.issue-1/pjbr-2015-0010/pjbr-2015-0010.xml)
 
 # How
 
