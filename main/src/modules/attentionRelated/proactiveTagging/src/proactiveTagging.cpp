@@ -340,8 +340,7 @@ string proactiveTagging::askManner(string agent, string verb, string object)
     Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic, // semantic information of the content of the recognition
-        bSendReasoning, // send the information of recall to the abmReasoning
-        bMessenger; //to be send TO speech recog
+        bSendReasoning; // send the information of recall to the abmReasoning
 
     //bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskManner), 20);
 
