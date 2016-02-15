@@ -353,9 +353,6 @@ void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
         // process scores on the given blob
         if (Bottle *blobScores=scores.find(tag.str().c_str()).asList())
         {
-            CvFont font;
-            cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX,0.8,0.8,0,2);
-
             // set up some variables and constraints
             int maxHeight=(int)(imgConf.height()*0.8);
             int minHeight=imgConf.height()-20;
