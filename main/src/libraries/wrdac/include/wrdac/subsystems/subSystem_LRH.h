@@ -177,8 +177,6 @@ namespace wysiwyd{
                         if (SAMconnected()){
                             std::stringstream iss(bReturn.get(1).toString());
                             std::string word;
-                            int ii = 0;
-                            int iSentence = 0;
                             yarp::os::Bottle toSAM;
                             std::vector<std::string> allElement;
                             std::cout << "iss " << iss.str() << std::endl;

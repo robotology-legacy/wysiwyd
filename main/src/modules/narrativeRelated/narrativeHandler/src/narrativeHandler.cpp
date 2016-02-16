@@ -81,9 +81,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-    //    findStories(iMinInstance);
+    findStories(iMinInstance);
     cout << endl;
-    //   initializeStories();
+    initializeStories();
 
     for (auto P : listStories){
         P.displayNarration();
