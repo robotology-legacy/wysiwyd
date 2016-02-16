@@ -81,9 +81,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-    findStories(iMinInstance);
+    //    findStories(iMinInstance);
     cout << endl;
-    initializeStories();
+    //   initializeStories();
 
     for (auto P : listStories){
         P.displayNarration();
@@ -93,6 +93,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     tellingStoryFromMeaning(target);
 
     addNarrationToStory(target, true);
+
+    cout << iCub->getLRH()->SentenceToMeaning("if I could ask you to give it to me") << endl;
+    cout << iCub->getLRH()->SentenceToMeaning("then you would give it to me") << endl;
 
     return false;
 }
