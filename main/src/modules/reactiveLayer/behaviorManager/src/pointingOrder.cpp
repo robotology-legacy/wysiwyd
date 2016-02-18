@@ -13,9 +13,13 @@ void PointingOrder::configure() {
 void PointingOrder::run(Bottle args/*=Bottle()*/) {
     yInfo() << "PointingOrder::run";
 
-    string type = sensation_port_in.read()->get(0).asString();
-    string target = sensation_port_in.read()->get(1).asString();
-    yInfo() << target ;
+    Bottle* sens = sensation_port_in.read();
+    string type = sens->get(0).asString();
+    string target = sens->get(1).asString();
+
+    yDebug() << type;
+    yInfo() << target;
+
     if (target != "none"){
         yInfo() << "there are elements to search!!!";//<<endl;
         finding = handleSearch(type, target);
