@@ -33,6 +33,10 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     GrammarAskNameBodypart = rf.findFileByName(rf.check("GrammarAskNameBodypart", Value("GrammarAskNameSelf.xml")).toString());
     GrammarDescribeAction = rf.findFileByName(rf.check("GrammarDescribeAction", Value("GrammarDescribeAction.xml")).toString());
 
+    babblingArm = rf.findFileByName(rf.check("babblingArm", Value("left")).toString());
+
+    yDebug() << "------------> babblingArm : " << babblingArm ;
+
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
 
@@ -537,7 +541,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         int joint = BPtemp->m_joint_number;
         //send rpc command to bodySchema to move the corresponding part
         yInfo() << "Start bodySchema";
-        iCub->babbling(joint);
+        iCub->babbling(joint, babblingArm);
 
         sQuestion = " How do you call this part of my body?";
         yInfo() << sQuestion;

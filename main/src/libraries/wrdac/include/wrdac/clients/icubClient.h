@@ -284,17 +284,19 @@ namespace wysiwyd{
             /**
             * Babbling a single joint
             * @param jointNumber contains the int corresponding to an arm joint
+            * @param babblingLimb contains the string corresponding to the side of the arm used ("left" or "right")
             * @return true in case of success release, false otherwise
             */
-            bool babbling(int &jointNumber);
+            bool babbling(int &jointNumber, const std::string &babblingArm);
 
             /**
             * Babbling a single joint using the name of a corresponding bodypart
             * @param bpName contains the string with the name of the bodypart
+            * @param babblingLimb contains the string corresponding to the side of the arm used ("left" or "right")
             * @return true in case of success release, false otherwise
             *         (bodypart non existing, no joint number assigned, etc.).
             */
-            bool babbling(const std::string &bpName);
+            bool babbling(const std::string &bpName, const std::string &babblingArm);
 
 
             /**

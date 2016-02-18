@@ -588,7 +588,7 @@ bool ICubClient::lookStop()
     return ((SubSystem_Attention*)subSystems["attention"])->stop();
 }
 
-bool ICubClient::babbling(const string &bpName)
+bool ICubClient::babbling(const string &bpName, const string &babblingLimb)
 {
     //check the subsystem is running
     if (subSystems.find("babbling") != subSystems.end()){
@@ -608,17 +608,17 @@ bool ICubClient::babbling(const string &bpName)
             return false;
         }
 
-        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb);
     }
 
     cerr << "Error, babbling is not running..." << endl;
     return false;
 }
 
-bool ICubClient::babbling(int &jointNumber)
+bool ICubClient::babbling(int &jointNumber, const string &babblingLimb)
 {
     if (subSystems.find("babbling") != subSystems.end())
-        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb);
 
     cerr << "Error, babbling is not running..." << endl;
     return false;

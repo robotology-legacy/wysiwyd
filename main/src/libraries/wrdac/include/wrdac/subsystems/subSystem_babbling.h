@@ -52,22 +52,22 @@ public:
     }
 
     //whole arm babbling
-    bool babblingArm(std::string sideArm) { // need to be extended for several agents
+    bool babblingArm(std::string babblingLimb) { // need to be extended for several agents
         yarp::os::Bottle bReq, bResp;
         bReq.addString("babbling");
-        bReq.addString(sideArm);
+        bReq.addString(babblingLimb);
         portRPC.write(bReq, bResp);
 
         return bResp.get(0).asBool();
     }
 
     //single joint babbling
-    bool babbling(int jointNumber, std::string sideArm = "left") { // need to be extended for several agents
+    bool babbling(int jointNumber, std::string babblingLimb) { // need to be extended for several agents
         yarp::os::Bottle bReq, bResp;
         bReq.addString("babbling");
         bReq.addString("joint");
         bReq.addInt(jointNumber);
-        bReq.addString(sideArm);
+        bReq.addString(babblingLimb);
         portRPC.write(bReq, bResp);
 
         return bResp.get(0).asBool();

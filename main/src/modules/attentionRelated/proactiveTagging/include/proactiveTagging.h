@@ -44,6 +44,8 @@ private:
     std::string      GrammarAskNameBodypart;
     std::string      GrammarYesNo;
 
+    std::string      babblingArm; //side of the babbling arm : left or right
+
     std::string      GrammarDescribeAction;
 
     double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other

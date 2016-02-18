@@ -33,6 +33,7 @@ class TouchingOrder: public Behavior
 {
 private:
     void run(Bottle args=Bottle());
+    std::string babblingLimb ;
 
 public:
     TouchingOrder(Mutex* mut): Behavior(mut) {
