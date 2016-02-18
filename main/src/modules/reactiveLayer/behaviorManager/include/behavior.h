@@ -38,11 +38,14 @@ public:
     Port rpc_out_port;
 
     void trigger(Bottle args=Bottle()) {
+        yDebug() << "Behavior::trigger starts"; 
         if (mut->tryLock()) {
+            yDebug() << "Behavior::trigger mutex closed"; 
             run(args);
             // Time::delay(0.0);
             mut->unlock();
         }
+        yDebug() << "Behavior::trigger ends";
     }
 
     virtual void configure() = 0;

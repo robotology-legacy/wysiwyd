@@ -135,7 +135,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                         "behavior",  // expl: "pasar", "drives"...
                         lArgument,
                         true);
-                    yInfo() << cmd.get(0).asString() + "behavior has been recorded in the ABM";
+                    yInfo() << cmd.get(0).asString() + " behavior has been recorded in the ABM";
                 }
                 else{
                     yDebug() << "ABM not connected; no recording of action.";
