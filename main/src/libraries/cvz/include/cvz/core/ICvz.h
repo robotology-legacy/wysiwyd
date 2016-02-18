@@ -39,6 +39,8 @@ namespace cvz {
             yarp::os::Property parametersStartTime;
 
         public:
+            IConvergenceZone() {}
+            virtual ~IConvergenceZone() {}
             yarp::os::RpcServer rpcPort;
             yarp::os::Port  parametersPortOut;
 

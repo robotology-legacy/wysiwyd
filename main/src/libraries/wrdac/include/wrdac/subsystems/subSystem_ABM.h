@@ -50,6 +50,7 @@ namespace wysiwyd{
                 portRPC.open(("/" + m_masterName + "/abm:rpc").c_str());
                 m_type = SUBSYSTEM_ABM;
             }
+            virtual ~SubSystem_ABM() {}
 
             virtual void Close() { portRPC.interrupt(); portRPC.close(); }
 

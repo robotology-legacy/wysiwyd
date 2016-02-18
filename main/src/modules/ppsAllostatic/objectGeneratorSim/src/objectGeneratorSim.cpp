@@ -102,7 +102,7 @@ bool objectGeneratorSim::configure(yarp::os::ResourceFinder &rf)
 
     cout<<"Configuration done."<<endl;
 
-    return true;
+    return bEveryThingisGood;
 }
 
 void objectGeneratorSim::spamTable()

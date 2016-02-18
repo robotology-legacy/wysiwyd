@@ -44,11 +44,9 @@ bool AdaptiveLayer::configure(yarp::os::ResourceFinder &rf)
 bool AdaptiveLayer::updateModule()
 {
     cout<<".";
-    bool spokenInteraction = false;
-    bool gestureInteraction = false;
 
-    spokenInteraction =  handleSpeech();
-    gestureInteraction = handleGesture();
+    handleSpeech();
+    handleGesture();
 
     return true;
 }

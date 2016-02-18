@@ -70,6 +70,7 @@ public:
         portLaser.open(("/" + m_masterName + "/ikart/laser:i").c_str());
         m_type = SUBSYSTEM_IKART;
     }
+    virtual ~SubSystem_iKart() {}
 
     virtual void Close()
     {

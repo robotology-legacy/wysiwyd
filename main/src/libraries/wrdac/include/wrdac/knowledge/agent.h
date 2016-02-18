@@ -174,6 +174,7 @@ private:
 public:
                         Agent();
                         Agent(const Agent &b);
+                        virtual ~Agent() {}
 
     std::map<std::string, double> m_emotions_intrinsic;
     std::map<std::string, Drive>  m_drives;

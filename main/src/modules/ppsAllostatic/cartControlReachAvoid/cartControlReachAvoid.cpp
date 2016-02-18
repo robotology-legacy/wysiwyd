@@ -285,9 +285,9 @@ int main(int argc, char * argv[])
 
     if (rf.check("help"))
     {   
-        yInfo(""); 
+        yInfo();
         yInfo("Options:");
-        yInfo("");
+        yInfo();
         yInfo("   --context    path:  where to find the called resource");
         yInfo("   --from       from:  the name of the .ini file.");
         yInfo("   --name       name:  the name of the module (default cartControlReachAvoid).");
@@ -295,7 +295,7 @@ int main(int argc, char * argv[])
         yInfo("   --rate       rate:  the period used by the thread. Default 100ms.");
         yInfo("   --verbosity  int:   verbosity level (default 0).");
            
-        yInfo("");
+        yInfo();
         return 0;
     }
     

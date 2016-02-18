@@ -42,7 +42,7 @@ bool babbler::configure(yarp::os::ResourceFinder &rf)
 
     srand(seed);
 
-    return true;
+    return bEveryThingisGood;
 }
 
 //Generates frequencies between 220 and 880 Hz aprox. Separated as clear tones

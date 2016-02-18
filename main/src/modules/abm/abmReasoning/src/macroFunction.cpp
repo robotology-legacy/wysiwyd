@@ -850,7 +850,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
     }
 
 
-    int iNbCond = 0;
+    //int iNbCond = 0;
     if (bInput.get(2).asList()->size() <= 0)
     {
         string sError = "Error in abmReasoning::executeReasoning | no goal are given";
@@ -858,7 +858,7 @@ Bottle abmReasoning::executeReasoning(Bottle bInput)
         bOutput.addString(sError.c_str());
         return bOutput;
     }
-    iNbCond = bInput.get(2).asList()->size();
+    //iNbCond = bInput.get(2).asList()->size();
 
 
     // Fill contentArg

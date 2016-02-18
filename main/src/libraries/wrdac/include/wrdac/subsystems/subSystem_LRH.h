@@ -17,7 +17,7 @@
 */
 
 #ifndef __EFAA_SUBSYSTEM_LRH_H__
-#define __EFAA_SUBSYSTEM_RLH_H__
+#define __EFAA_SUBSYSTEM_LRH_H__
 
 #define SUBSYSTEM_LRH        "lrh"
 
