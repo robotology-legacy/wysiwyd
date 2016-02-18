@@ -13,15 +13,9 @@ if(MSVC)
    add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
    set(CMAKE_DEBUG_POSTFIX "d")
  
-elseif(CMAKE_COMPILER_IS_GNUCXX)
+elseif(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
  
-   set(WARNINGS_LIST -Waddress -Wchar-subscripts
-   -Wcomment -Wformat -Wmain -Wmissing-braces
-   -Wparentheses -Wreorder -Wreturn-type -Wsequence-point
-   -Wsign-compare -Wstrict-aliasing -Wstrict-overflow=1 -Wswitch -Wtrigraphs
-   -Wuninitialized -Wunused-function -Wunused-label -Wunused-value
-   -Wunused-variable -Wvolatile-register-var -Wextra)
- 
+   set(WARNINGS_LIST -Wall)
    foreach(WARNING ${WARNINGS_LIST})
       set(WARNINGS_STRING "${WARNINGS_STRING} ${WARNING}")
    endforeach(WARNING)
