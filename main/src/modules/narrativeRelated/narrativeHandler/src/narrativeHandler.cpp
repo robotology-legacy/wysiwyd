@@ -94,8 +94,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     addNarrationToStory(target, true);
 
-    cout << iCub->getLRH()->SentenceToMeaning("if I could ask you to give it to me") << endl;
-    cout << iCub->getLRH()->SentenceToMeaning("then you would give it to me") << endl;
+//    cout << iCub->getLRH()->SentenceToMeaning("if I could ask you to give it to me") << endl;
+//    cout << iCub->getLRH()->SentenceToMeaning("then you would give it to me") << endl;
 
     return false;
 }
@@ -157,6 +157,8 @@ bool narrativeHandler::updateModule() {
 
 void narrativeHandler::findStories(int iInstance)
 {
+    cout << "Starting findStories begin: "<< iInstance <<endl;
+
     story currentStory;
 
     //    int iCurrentInstance = iInstance;
@@ -165,12 +167,12 @@ void narrativeHandler::findStories(int iInstance)
     osRequest << "SELECT instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
     Bottle bMessenger;
-    int numberSentence = bAllInstances.size();
+    int numberInstances = bAllInstances.size();
 
     vector<int> vError;
-    yInfo() << "\t" << "found " << numberSentence << " sentence(s)";
+    yInfo() << "\t" << "found " << numberInstances << " instance(s)";
     double mDiff;
-    for (int j = 1; j < (numberSentence); j++)
+    for (int j = 1; j < (numberInstances); j++)
     {
 
         int Id = atoi(bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
@@ -335,7 +337,7 @@ myTimeStruct  narrativeHandler::string2Time(string sTime)
 
     myTimeStruct mtsOut;
     mtsOut.m_tm = tOutput;
-    (sMS.size() == 2) ? mtsOut.iMilliSec = atoi(sMS.c_str()) * 10 : mtsOut.iMilliSec = atoi(sMS.c_str());
+    mtsOut.iMilliSec = atoi(sMS.c_str()) * pow(10, 3 - sMS.size());
 
     return mtsOut;
 }
@@ -625,6 +627,7 @@ void narrativeHandler::createNarration(story &sto)
     int cursor = 0;
     for (unsigned int currentElement = 0; currentElement != sto.vEvents.size(); currentElement++){
         evtStory currentEvent = sto.vEvents[currentElement];
+        bool addEvt = true;
         if (!currentEvent.isNarration)
         {
             osCurrent.str("");
@@ -653,6 +656,7 @@ void narrativeHandler::createNarration(story &sto)
                 }
             }
             // end initial situation
+
 
             // if it is an ACTION
             if (currentEvent.activity_type == "action"){
@@ -755,6 +759,17 @@ void narrativeHandler::createNarration(story &sto)
                     else if (iarg.first == "addressee")     addressee = iarg.second;
                     else if (iarg.first == "sentence")    sentence = iarg.second;
                 }
+                if (speaker=="none" && currentEvent.activity_type=="say"){
+                    speaker = "iCub";
+                }
+                if (speaker != "icub" && speaker != "iCub"){
+                    if (addressee == "none"){
+                        addressee = "iCub";
+                    }
+                }
+                if (sentence=="none" || sentence == ""){
+                    addEvt = false;
+                }
                 if (lrh){
                     string meaning = createMeaning(speaker, "says", sentence, addressee);
                     string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
@@ -765,7 +780,7 @@ void narrativeHandler::createNarration(story &sto)
                 }
                 osCurrent << endl;
             }
-            // if not actino or sentence
+            // if not action or sentence
             else if (currentEvent.activity_type == "reasoning"){
                 /* for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                 osCurrent << iarg->second << " ";
@@ -973,8 +988,9 @@ void narrativeHandler::createNarration(story &sto)
 
 
             if (VERBOSE) cout << osCurrent.str();
-
-            vsOutput.push_back(osCurrent.str());
+            if (addEvt){
+                vsOutput.push_back(osCurrent.str());
+            }
             cursor++;
         }
         // is narrration

@@ -8,6 +8,12 @@
     <port>/icub/camcalib/right/out</port>
   </dependencies>
 
+  <module>
+    <name>skinManager</name>
+    <parameters>--from skinManAll.ini --context skinGui</parameters>
+    <node>localhost</node>
+    <tag>skinMan</tag>
+  </module>
 
   <!--OPC-->
   <module>
@@ -32,7 +38,7 @@
   <module>
     <name>iCubGui</name>
     <parameters>--from iCubGui.ini</parameters>
-    <node>localhost</node>
+    <node>display</node>
     <tag>iCubGui_tagOPC</tag>
   </module>
 
@@ -44,7 +50,7 @@
   <module>
     <name>agentDetector</name>
     <parameters>--showImages true</parameters>
-    <node>icub-cuda</node>
+    <node>display</node>
   </module>
 
   <module>
@@ -54,9 +60,9 @@
   </module>
 
   <module>
-    <name>actionRenderingEngine</name>
+    <name>actionsRenderingEngine</name>
 	<parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
-    <node>icub-b2</node>
+    <node>console1</node>
     <tag>ARETag</tag>
   </module>
 

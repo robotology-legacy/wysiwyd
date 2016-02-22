@@ -13,7 +13,7 @@
 
   <module>
     <name>iSpeak</name>
-    <node>localhost</node>
+    <node>display</node>
   </module>
 
   <module>

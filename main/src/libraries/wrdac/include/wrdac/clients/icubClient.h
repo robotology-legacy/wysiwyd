@@ -216,7 +216,7 @@ namespace wysiwyd{
             *         otherwise (Entity non existing, impossible to reach,
             *         not grasped, etc.).
             */
-            bool grasp(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle());
+            bool grasp(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
 
             /**
             * Release the hand-held object on a given location.
@@ -263,7 +263,7 @@ namespace wysiwyd{
             * @return true in case of success release, false otherwise
             *         (Entity non existing, impossible to reach, etc.).
             */
-            bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle());
+            bool point(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
 
             /**
             * Start tracking a given entity
