@@ -583,7 +583,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         sReply = " Nice to meet you " + sName;
     }
     else if (currentEntityType == "object") {
-        //sReply = " I get it, this is a " + sName;
+        sReply = " I get it, this is a " + sName;
         Bottle bToLRH, bFromLRH;
         bToLRH.addString("production");
         bToLRH.addString(sName);
@@ -596,6 +596,22 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     else if (currentEntityType == "bodypart") {
         sReply = " Nice, I know that I have a " + sName;
     }//go out before if not one of those entityType
+
+
+    if (iCub->getABMClient()->Connect())
+    {
+        //                yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
+        std::list<std::pair<std::string, std::string> > lArgument;
+        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+        lArgument.push_back(std::pair<std::string, std::string>("rename", "predicate"));
+        lArgument.push_back(std::pair<std::string, std::string>(sNameTarget, "object"));
+        lArgument.push_back(std::pair<std::string, std::string>(sName, "recipient"));
+        iCub->getABMClient()->sendActivity("action",
+            "rename",
+            "proactiveTagging",
+            lArgument,
+            true);
+    }
 
     yInfo() << sReply;
     iCub->say(sReply);
@@ -795,6 +811,22 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     iCub->home();
 
     iCub->opc->commit();
+
+    if (iCub->getABMClient()->Connect())
+    {
+        //                yInfo() << "\t\t START POINTING OF: " << it.second.o.name();
+        std::list<std::pair<std::string, std::string> > lArgument;
+        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+        lArgument.push_back(std::pair<std::string, std::string>("name", "predicate"));
+        lArgument.push_back(std::pair<std::string, std::string>(sNameTarget, "object"));
+        iCub->getABMClient()->sendActivity("action",
+            "rename",
+            "proactiveTagging",
+            lArgument,
+            true);
+    }
+
+
 
     return bOutput;
 }
