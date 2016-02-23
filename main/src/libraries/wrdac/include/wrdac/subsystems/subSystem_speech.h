@@ -132,6 +132,10 @@ namespace wysiwyd{
                     if (Ent.size()!=0){
                         lArgument.push_back(std::pair<std::string, std::string>( (*Ent.begin())->name(), "addressee"));
                     }
+                    for (std::list<Entity*>::iterator it_E = Ent.begin(); it_E != Ent.end(); it_E++)
+                    {
+                        delete *it_E;
+                    }
 
                     lArgument.push_back(std::pair<std::string, std::string>(text, "sentence"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
