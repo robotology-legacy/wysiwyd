@@ -17,6 +17,7 @@
 
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_speech.h"
 
 class proactiveTagging : public yarp::os::RFModule {
 private:
