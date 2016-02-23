@@ -61,7 +61,8 @@ namespace wysiwyd{
                 sttRpc.open(("/" + m_masterName + "/stt:rpc").c_str());
                 m_type = SUBSYSTEM_SPEECH;
                 SubABM = new SubSystem_ABM(m_masterName+"/from_speech");
-                opc = new OPCClient("OPC");
+                opc = new OPCClient(m_masterName+"/opc");
+                opc->connect("OPC");
             }
             virtual bool connect()
             {
