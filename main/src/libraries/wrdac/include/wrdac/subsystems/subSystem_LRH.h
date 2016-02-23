@@ -87,6 +87,8 @@ namespace wysiwyd{
                 portRPC.interrupt();
                 portRPC.close();
                 SubABM->Close();
+
+                delete SubABM;
             }
 
 

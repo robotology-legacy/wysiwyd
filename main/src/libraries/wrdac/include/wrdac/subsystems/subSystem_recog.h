@@ -76,6 +76,8 @@ namespace wysiwyd{
                 ears_port.interrupt();
                 ears_port.close();
                 SubABM->Close();
+
+                delete SubABM;
             };
 
             /**

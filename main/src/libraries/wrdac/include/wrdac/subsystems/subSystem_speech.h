@@ -62,7 +62,6 @@ namespace wysiwyd{
                 m_type = SUBSYSTEM_SPEECH;
                 SubABM = new SubSystem_ABM(m_masterName+"/from_speech");
                 opc = new OPCClient(m_masterName+"/opc");
-                opc->connect("OPC");
             }
             virtual bool connect()
             {
@@ -71,6 +70,8 @@ namespace wysiwyd{
                 connected &= yarp::os::Network::connect(ttsRpc.getName(), "/iSpeak/rpc");
                 connected &= yarp::os::Network::connect("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str());
                 connected &= yarp::os::Network::connect(sttRpc.getName().c_str(), "/speechRecognizer/rpc");
+
+                opc->connect("OPC");
 
                 ABMconnected = (SubABM->Connect());
                 std::cout << ((ABMconnected) ? "iSpeak connected to ABM" : "iSpeak didn't connect to ABM") << std::endl;
@@ -245,6 +246,9 @@ namespace wysiwyd{
                 sttRpc.interrupt();
                 sttRpc.close();
                 SubABM->Close();
+
+                delete SubABM;
+                delete opc;
             }
         };
 
