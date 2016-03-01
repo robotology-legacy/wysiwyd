@@ -104,8 +104,8 @@ Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
 /**********************************************************/
 bool IOL2OPCBridge::thresBBox(CvRect &bbox, const Image &img)
 {
-    CvPoint tl(bbox.x,bbox.y);
-    CvPoint br(tl.x+bbox.width,tl.y+bbox.height);
+    CvPoint tl=cvPoint(bbox.x,bbox.y);
+    CvPoint br=cvPoint(tl.x+bbox.width,tl.y+bbox.height);
     tl.x=std::min(img.width(),std::max(tl.x,0));
     tl.y=std::min(img.height(),std::max(tl.y,0));
     br.x=std::min(img.width(),std::max(br.x,0));
@@ -683,7 +683,7 @@ void IOL2OPCBridge::updateOPC()
                     br.x=(int)item->get(2).asDouble();
                     br.y=(int)item->get(3).asDouble();
 
-                    CvRect bbox(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+                    CvRect bbox=cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
                     if (thresBBox(bbox,imgLatch))
                     {
                         it->second.latchBBox(bbox);
