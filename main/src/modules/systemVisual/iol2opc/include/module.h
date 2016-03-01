@@ -221,6 +221,7 @@ protected:
     double presence_timeout;
     string tracker_type;
     double tracker_timeout;
+    VectorOf<int> tracker_min_blob_size;
     map<string,IOLObject> db;
     Bridge::State state;
     IOLObject onlyKnownObjects;
@@ -247,6 +248,7 @@ protected:
 
     string  findName(const Bottle &scores, const string &tag);
     Bottle  skimBlobs(const Bottle &blobs);
+    bool    thresBBox(CvRect &bbox, const Image &img);
     Bottle  getBlobs();
     CvPoint getBlobCOG(const Bottle &blobs, const int i);
     bool    get3DPosition(const CvPoint &point, Vector &x);

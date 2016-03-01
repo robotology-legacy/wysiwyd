@@ -102,6 +102,25 @@ Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
 
 
 /**********************************************************/
+bool IOL2OPCBridge::thresBBox(CvRect &bbox, const Image &img)
+{
+    CvPoint tl(bbox.x,bbox.y);
+    CvPoint br(tl.x+bbox.width,tl.y+bbox.height);
+    tl.x=std::min(img.width(),std::max(tl.x,0));
+    tl.y=std::min(img.height(),std::max(tl.y,0));
+    br.x=std::min(img.width(),std::max(br.x,0));
+    br.y=std::min(img.height(),std::max(br.y,0));
+
+    bbox=cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+    if ((bbox.width>tracker_min_blob_size[0]) &&
+        (bbox.height>tracker_min_blob_size[1]))
+        return true;
+    else
+        return false;
+}
+
+
+/**********************************************************/
 Bottle IOL2OPCBridge::getBlobs()
 {
     // grab resources
@@ -663,8 +682,13 @@ void IOL2OPCBridge::updateOPC()
                     tl.y=(int)item->get(1).asDouble();
                     br.x=(int)item->get(2).asDouble();
                     br.y=(int)item->get(3).asDouble();
-                    it->second.latchBBox(cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y));
-                    it->second.heartBeat();
+
+                    CvRect bbox(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
+                    if (thresBBox(bbox,imgLatch))
+                    {
+                        it->second.latchBBox(bbox);
+                        it->second.heartBeat();
+                    }
                 }
             }
             else
@@ -708,15 +732,7 @@ void IOL2OPCBridge::updateOPC()
                     obj->m_present=true;
 
                     // threshold bbox
-                    CvPoint tl=cvPoint(bbox.x,bbox.y);
-                    CvPoint br=cvPoint(tl.x+bbox.width,tl.y+bbox.height);
-                    tl.x=std::min(imgRtLoc.width(),std::max(tl.x,0));
-                    tl.y=std::min(imgRtLoc.height(),std::max(tl.y,0));
-                    br.x=std::min(imgRtLoc.width(),std::max(br.x,0));
-                    br.y=std::min(imgRtLoc.height(),std::max(br.y,0));
-
-                    bbox=cvRect(tl.x,tl.y,br.x-tl.x,br.y-tl.y);
-                    if ((bbox.width>0) && (bbox.height>0))
+                    if (thresBBox(bbox,imgLatch))
                     {
                         // Extract color information from blob
                         // create temporary image, and copy blob in there
@@ -836,6 +852,19 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     presence_timeout=std::max(0.0,rf.check("presence_timeout",Value(1.0)).asDouble());
     tracker_type=rf.check("tracker_type",Value("BOOSTING")).asString().c_str();
     tracker_timeout=std::max(0.0,rf.check("tracker_timeout",Value(5.0)).asDouble());
+
+    tracker_min_blob_size.resize(2,0);
+    if (rf.check("tracker_min_blob_size"))
+    {
+        if (Bottle *size=rf.find("tracker_min_blob_size").asList())
+        {
+            if (size->size()>=2)
+            {
+                tracker_min_blob_size[0]=size->get(0).asInt();
+                tracker_min_blob_size[1]=size->get(1).asInt();
+            }
+        }
+    }
 
     imgRtLoc.resize(320,240);
     imgRtLoc.zero();
