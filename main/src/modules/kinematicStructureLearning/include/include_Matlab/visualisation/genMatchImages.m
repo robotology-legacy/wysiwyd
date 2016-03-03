@@ -1,4 +1,4 @@
-function img_output = genMatchImages(cdata_P,KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, method)
+function img_output = genMatchImages(cdata_P,cdata_Q,KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, method)
 
 % height_normalised = 240;
 % width_normalised = 320;
