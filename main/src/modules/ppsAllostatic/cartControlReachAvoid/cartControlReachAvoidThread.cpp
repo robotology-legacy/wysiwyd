@@ -23,7 +23,7 @@
 
 #include <vector>
 
-#include <gsl/gsl_math.h>
+#include <math.h>
 
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
