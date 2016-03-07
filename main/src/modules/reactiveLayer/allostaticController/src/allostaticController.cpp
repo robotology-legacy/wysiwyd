@@ -342,10 +342,9 @@ bool AllostaticController::updateAllostatic()
             yDebug() << "Predicate set.";
             
             std::list<std::pair<std::string, std::string> > lArgument;
-            lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
             lArgument.push_back(std::pair<std::string, std::string>(predicate, "predicate"));
-            lArgument.push_back(std::pair<std::string, std::string>(activeDrive.name, "object"));
-            lArgument.push_back(std::pair<std::string, std::string>(drive_level, "recipient"));
+            lArgument.push_back(std::pair<std::string, std::string>(activeDrive.name, "agent"));
+            lArgument.push_back(std::pair<std::string, std::string>(drive_level, "object"));
             iCub->getABMClient()->sendActivity("action",
                 activeDrive.name,
                 "drives",  // expl: "pasar", "drives"...
