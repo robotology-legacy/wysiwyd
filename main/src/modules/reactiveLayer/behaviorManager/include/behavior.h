@@ -30,18 +30,29 @@ public:
         if (external_port_name != "None") {
             rpc_out_port.open("/" + port_name_prefix +"/" + name + "/to_external_module");
         }
+        behavior_start_stop_port.open("/" + port_name_prefix +"/" + name + "/start_stop:o");
     }
 
     ICubClient *iCub;
     string name, from_sensation_port_name, external_port_name;
-    BufferedPort<Bottle> sensation_port_in;
+    BufferedPort<Bottle> sensation_port_in, behavior_start_stop_port;
     Port rpc_out_port;
 
     void trigger(Bottle args=Bottle()) {
         yDebug() << "Behavior::trigger starts"; 
         if (mut->tryLock()) {
             yDebug() << "Behavior::trigger mutex closed"; 
+            yarp::os::Bottle & msg = behavior_start_stop_port.prepare();
+            msg.clear();
+            msg.addString("start");
+            behavior_start_stop_port.write();
+
             run(args);
+            
+            msg = behavior_start_stop_port.prepare();
+            msg.clear();
+            msg.addString("stop");
+            behavior_start_stop_port.write();
             // Time::delay(0.0);
             mut->unlock();
         }

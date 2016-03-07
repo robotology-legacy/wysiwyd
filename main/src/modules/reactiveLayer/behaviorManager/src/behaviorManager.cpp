@@ -105,10 +105,20 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     yDebug() << "RPC received in BM";
     yDebug() << cmd.toString();
     
+    reply.clear();
+
     if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
         help += " ['behavior_name']  : Triggers corresponding behavior \n";
         reply.addString(help);
+    }
+    else if (cmd.get(0).asString() == "names" ) {
+        Bottle names;
+        names.clear();
+        for(auto& beh : behaviors) {
+            names.addString(beh->name);
+        }
+        reply.addList() = names;
     }
     else
     {
@@ -142,9 +152,8 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 }
             }
         }
+        reply.addString("ack");
     }
-    reply.clear();
-    reply.addString("ack");
     yDebug() << "End of BehaviorManager::respond";
     return true;
 }
