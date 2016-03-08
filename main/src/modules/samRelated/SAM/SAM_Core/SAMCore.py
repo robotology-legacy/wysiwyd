@@ -26,6 +26,7 @@ import pylab as pb
 import cPickle as pickle
 from scipy.spatial import distance
 import operator
+import os
 
 # try:
 #     from mpi4py import MPI
@@ -98,7 +99,7 @@ class LFM(object):
 
         if kernel is None:
             kernel = GPy.kern.RBF(self.Q, ARD=True) + GPy.kern.Bias(self.Q) + GPy.kern.White(self.Q)
-
+            
         if self.type == 'bgplvm':
             Ytmp = self.observed[self.observed.keys()[0]]
             pcaFailed = False
@@ -394,7 +395,7 @@ def load_model(fileName='m_serialized.txt'):
     mm = pickle.load(open(fileName,'r'))
     return mm
 
-def save_pruned_model(mm, fileName='m_pruned', economy=False):
+def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
     """
     Save a trained model after prunning things that are not needed to be stored.
     Economy set to True will trigger a (currently BETA) storing which creates much smaller files.
@@ -410,9 +411,14 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False):
     SAMObjPruned['N'] = mm.N
     SAMObjPruned['num_inducing'] = mm.num_inducing
     SAMObjPruned['namesList'] = mm.namesList
+    SAMObjPruned['kernelString'] = mm.kernelString
+    SAMObjPruned.update(extraDict)
 
     if economy:
         SAMObjPruned['modelPath'] = fileName + '_model.h5'
+        #if file exists delete
+        if(os.path.isfile(SAMObjPruned['modelPath'])):
+            os.remove(SAMObjPruned['modelPath'])
         mm.model.save(SAMObjPruned['modelPath'])
     else:
         SAMObjPruned['modelPath'] = fileName + '_model.pickle'
@@ -455,7 +461,7 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
     SAMObject.Q = SAMObjPruned['Q'] 
     SAMObject.N = SAMObjPruned['N'] 
     SAMObject.num_inducing = SAMObjPruned['num_inducing'] 
-    SAMObject.namesList = SAMObjPruned['namesList'] 
+    SAMObject.namesList = SAMObjPruned['namesList']
 
     return SAMObject
 

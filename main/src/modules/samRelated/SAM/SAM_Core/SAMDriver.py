@@ -140,7 +140,7 @@ class SAMDriver:
     #
     #Outputs: None
     #""""""""""""""""
-    def training(self, modelNumInducing, modelNumIterations, modelInitIterations, fname, save_model, economy_save):
+    def training(self, modelNumInducing, modelNumIterations, modelInitIterations, fname, save_model, economy_save, keepIfPresent = True, kernelStr=None):
         self.model_num_inducing = modelNumInducing
         self.model_num_iterations = modelNumIterations
         self.model_init_iterations = modelInitIterations
@@ -154,28 +154,42 @@ class SAMDriver:
                 Q=2
 
             if Q > 100:
+                #one could parse and execute the string kernelStr for kernel instead of line below
                 kernel = GPy.kern.RBF(Q, ARD=False) + GPy.kern.Bias(Q) + GPy.kern.White(Q)
+                self.SAMObject.kernelString = kernelStr
             else:
                 kernel = None
+                self.SAMObject.kernelString = ''
             # Simulate the function of storing a collection of events
             self.SAMObject.store(observed=self.Y, inputs=self.X, Q=Q, kernel=kernel, num_inducing=self.model_num_inducing)
+            
             # If data are associated with labels (e.g. face identities), associate them with the event collection
             if self.data_labels is not None:
                 self.SAMObject.add_labels(self.data_labels)
             
-            if not os.path.isfile(fname + '.pickle'): 
+            if economy_save and os.path.isfile(fname + '.pickle') and keepIfPresent:
+                try:
+                    print("Try loading economy size SAMObject: " + fname)
+                    # Load the model from the economy storage
+                    SAMCore.load_pruned_model(fname, economy_save, self.SAMObject.model)
+                except ValueError:
+                    print("Loading " + fname + " failed.\nParameters not valid. Training new model")
+                    self.SAMObject.learn(optimizer='scg',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
+                    if save_model:
+                        print("Saving SAMObject: " + fname)
+                        SAMCore.save_pruned_model(self.SAMObject, fname, economy_save)
+            elif not os.path.isfile(fname + '.pickle') or not keepIfPresent: 
                 # Simulate the function of learning from stored memories, e.g. while sleeping (consolidation).
                 self.SAMObject.learn(optimizer='scg',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
-                print("Saving SAMObject: " + fname)
                 if save_model:
+                    print("Saving SAMObject: " + fname)
                     SAMCore.save_pruned_model(self.SAMObject, fname, economy_save)
-            elif economy_save:
-                print("Loading economy size SAMObject: " + fname)
-                # Load the model from the economy storage
-                SAMCore.load_pruned_model(fname, economy_save, self.SAMObject.model)
         else:
             print("Loading SAMOBject: " + fname)
             self.SAMObject = SAMCore.load_pruned_model(fname)
+
+    #def load(self, fname,save_model, economy_save):
+
 
     def prepareData(self, model='mrd', Ntr = 50, randSeed=0):    
 

@@ -8,3 +8,4 @@ endif()
 
 add_subdirectory(speechInteraction)
 add_subdirectory(abmActions)
+add_subdirectory(samSupervisor)
