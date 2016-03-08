@@ -74,6 +74,7 @@ build_script:
 notifications:
   - provider: Email
     to:
+      - wysiwyd-technical@googlegroups.com
       - ugo.pattacini@iit.it
       - t.fischer@imperial.ac.uk
       - m.petit@imperial.ac.uk

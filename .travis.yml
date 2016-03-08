@@ -62,6 +62,7 @@ script:
 
 notifications:
   email:
+  - wysiwyd-technical@googlegroups.com
   - ugo.pattacini@iit.it
   - gregoire.pointeau@inserm.fr
   - anne.laure.mealier@gmail.com
