@@ -134,9 +134,9 @@ Ntr=500
 
 # Specification of model type and training parameters
 model_type = 'mrd'
-model_num_inducing = 35
-model_num_iterations = 100 #100
-model_init_iterations = 300 #800
+model_num_inducing = np.min((35,Ntr))
+model_num_iterations = 200 #100
+model_init_iterations = 500 #800
 fname = modelPath + '/models/mActions_' + model_type + '_exp' + str(experiment_number) #+ '.pickle'
 
 # Enable to save the model and visualise GP nearest neighbour matching
@@ -185,31 +185,40 @@ else:
 #fig_input = pb.figure()
 #subplt_input = fig_input.add_subplot(111)
 
-# LB @@@@@@@@@@@@@@@@@@@@@@@ REAL TIME DATA SECTION -> get actions from robot
-actionCount=0
+if yarpRunning:
 
-pb.figure(111)
-#pb.ion()
-#pb.show()
-pb.figure(112)
-#pb.ion()
-#pb.show()
+    # LB @@@@@@@@@@@@@@@@@@@@@@@ REAL TIME DATA SECTION -> get actions from robot
+    actionCount=0
 
-while (True):
-    if yarpRunning:
+    pb.figure(111)
+    #pb.ion()
+    #pb.show()
+    pb.figure(112)
+    #pb.ion()
+    #pb.show()
+
+    while (True):
         testAction, testActionZero, actionFormattedTesting, testTime = mySAMpy.readActionFromRobot()
         choice = inputInteractionPort.read(True)
-    else:
-        TODO
-
+                
+        # Send data to model
+        pp = mySAMpy.testing(actionFormattedTesting, choice, objectFlag, visualiseInfo)
+        l = pp.pop()
+        l.remove()
+        pb.draw()
             
-    # Send data to model
-    pp = mySAMpy.testing(actionFormattedTesting, choice, objectFlag, visualiseInfo)
-    l = pp.pop()
-    l.remove()
-    pb.draw()
-        
-    pb.waitforbuttonpress(0.1)
+        pb.waitforbuttonpress(0.1)
+else:
+    # Test with offline test data
+    pred_labels = np.zeros((mySAMpy.Ytestn.shape[0],1))
+    for i in range(mySAMpy.Ytestn.shape[0]):
+        pred_labels[i] = mySAMpy.SAMObject.pattern_completion_inference(mySAMpy.Ytestn[i,:][None,:]).values
+    
+    num_errors = len(np.where(mySAMpy.Ltest != pred_labels)[0])
+    from sklearn.metrics import confusion_matrix
+    c = confusion_matrix(pred_labels, mySAMpy.Ltest)
+    print 'Confusion matrix (errors = ' + str(num_errors) + ')'
+    print c
 
 
 pb.figure(111)
