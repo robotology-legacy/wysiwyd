@@ -540,6 +540,11 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         evt.isNarration = (evt.agent == narrator);
     }
 
+    if (evt.activity_type == "drives"){
+        evt.object = evt.agent;
+        evt.agent = "iCub";
+        evt.predicate = "wants to";
+    }
 
     if (_bRelations.toString() != "NULL"){
         for (int kk = 0; kk < _bRelations.size(); kk++){
@@ -771,8 +776,8 @@ void narrativeHandler::createNarration(story &sto)
             else if (currentEvent.activity_name == "sentence"
                      || currentEvent.activity_name == "comprehension"
                      || currentEvent.activity_name == "production") {
-                string speaker = "none",
-                        addressee = "none",
+                string speaker = currentEvent.agent,
+                        addressee = currentEvent.recipient,
                         sentence = "none";
                 for (auto& iarg : currentEvent.vArgument){
                     if (iarg.first == "speaker") speaker = iarg.second;
@@ -913,6 +918,7 @@ void narrativeHandler::createNarration(story &sto)
                                 }
                             }
                         }
+                        if (currentEvent.object != "") osCurrent << " the " << currentEvent.object;
                         if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
                         osCurrent << endl;
                     }
@@ -934,6 +940,7 @@ void narrativeHandler::createNarration(story &sto)
                                 osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
                             }
                         }
+                        if (currentEvent.object != "") osCurrent << " the " << currentEvent.object;
                         if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
                         osCurrent << endl;
                     }

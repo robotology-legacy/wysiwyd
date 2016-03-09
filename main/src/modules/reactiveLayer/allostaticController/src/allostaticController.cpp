@@ -326,8 +326,6 @@ bool AllostaticController::updateAllostatic()
     if (allostaticDrives[activeDrive.name].active) {
         yInfo() << "Trigerring " + activeDrive.name;
 
-        allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
-        
         // record event in ABM
         if (iCub->getABMClient()->Connect()) {
             yDebug() << "ABM connected and receiving record.";
@@ -356,6 +354,8 @@ bool AllostaticController::updateAllostatic()
         else{
             yDebug() << "ABM not connected; no recording of the trigger.";
         }
+        allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
+
 
     }
     else {
