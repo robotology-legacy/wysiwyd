@@ -627,7 +627,7 @@ void narrativeHandler::createNarration(story &sto)
     int cursor = 0;
     for (unsigned int currentElement = 0; currentElement != sto.vEvents.size(); currentElement++){
         evtStory currentEvent = sto.vEvents[currentElement];
-        bool addEvt = true;
+        bool addEvt = true;        
         if (!currentEvent.isNarration)
         {
             osCurrent.str("");
@@ -878,7 +878,9 @@ void narrativeHandler::createNarration(story &sto)
                                 osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.predicate;
                             }
                             else{
-                                osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                                if (currentEvent.agent != "" && currentEvent.agent != "none"){
+                                    osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                                }
                             }
                         }
                         if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
@@ -983,6 +985,31 @@ void narrativeHandler::createNarration(story &sto)
                     }
                 }
                 osCurrent << "." << endl;
+            }
+
+            if ((currentEvent.predicate == "" || currentEvent.predicate == "none")
+                && (currentEvent.activity_name == "" || currentEvent.activity_name == "none")
+                && (currentEvent.agent == "" || currentEvent.agent == "none"))
+            {
+                addEvt = false;
+            }
+
+            // Add only one appearance and one dissapearance per object
+            if (currentEvent.predicate == "appear"){
+                for (unsigned int prev = 0; prev < currentElement; prev++){
+                    if (sto.vEvents[prev].predicate == "appear"
+                        && sto.vEvents[prev].agent == currentEvent.agent){
+                        addEvt = false;
+                    }
+                }
+            }
+            if (currentEvent.predicate == "dissappear"){
+                for (unsigned int prev = 0; prev < currentElement; prev++){
+                    if (sto.vEvents[prev].predicate == "dissappear"
+                        && sto.vEvents[prev].agent == currentEvent.agent){
+                        addEvt = false;
+                    }
+                }
             }
 
 
