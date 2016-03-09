@@ -47,6 +47,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
+    iThresholdSentence = rf.check("iThresholdSentence", Value(6)).asInt();
     int iMinInstance = rf.check("instanceStart", Value(0)).asInt();
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
@@ -160,6 +161,7 @@ void narrativeHandler::findStories(int iInstance)
     cout << "Starting findStories begin: "<< iInstance <<endl;
 
     story currentStory;
+    currentStory.iThresholdSentence = iThresholdSentence;
 
     //    int iCurrentInstance = iInstance;
 
@@ -384,6 +386,7 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 
 void narrativeHandler::initializeStories()
 {
+    cout << "begin initializating stories ";
     for (auto& itSt : listStories){
 
         itSt.vEvents.clear();
@@ -422,12 +425,12 @@ void narrativeHandler::initializeStories()
             itSt.addOCW(tempOCW);
         }
 
-        cout << "story initialized" << endl;
+        cout << ".";
 
         createNarration(itSt);
 
-        cout << endl << endl;
     }
+    cout << endl;
 }
 
 
@@ -507,6 +510,33 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
                 else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
             }
         }
+
+        string presentAgent = "partner";
+        ostringstream osRequest;
+        osRequest << "SELECT name FROM agent WHERE instance = " << _instance << " AND presence = true";
+        Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        if (bMessenger.toString() != "NULL"){
+            if (bMessenger.size() !=0){
+                for (int ll = 0 ; ll < bMessenger.size() ; ll++){
+                    if (bMessenger.get(ll).toString() != "partner"){
+                        presentAgent = bMessenger.get(ll).toString();
+                    }
+                }
+            }
+        }
+
+        if (evt.activity_type == "recog"){
+            if (evt.agent == "" || evt.agent == "none" || evt.agent == "partner"){
+                evt.agent = presentAgent;
+            }
+        }
+        if (evt.activity_type =="say"){
+            evt.agent = "iCub";
+            if (evt.recipient == "" || evt.recipient == "none" || evt.recipient == "partner"){
+                evt.recipient = presentAgent;
+            }
+        }
+
         evt.isNarration = (evt.agent == narrator);
     }
 
@@ -987,9 +1017,9 @@ void narrativeHandler::createNarration(story &sto)
                 osCurrent << "." << endl;
             }
 
-            if ((currentEvent.predicate == "" || currentEvent.predicate == "none")
-                && (currentEvent.activity_name == "" || currentEvent.activity_name == "none")
-                && (currentEvent.agent == "" || currentEvent.agent == "none"))
+            if (((currentEvent.predicate == "" || currentEvent.predicate == "none")
+                && (currentEvent.activity_name == "" || currentEvent.activity_name == "none"))
+                || (currentEvent.agent == "" || currentEvent.agent == "none"))
             {
                 addEvt = false;
             }
@@ -1011,7 +1041,7 @@ void narrativeHandler::createNarration(story &sto)
                     }
                 }
             }
-
+            addEvt &= osCurrent.str() != "";
 
             if (VERBOSE) cout << osCurrent.str();
             if (addEvt){
