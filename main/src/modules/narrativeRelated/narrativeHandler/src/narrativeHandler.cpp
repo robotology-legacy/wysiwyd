@@ -562,6 +562,8 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         }
     }
 
+    evt.addUnderscore();
+
     return vOCW;
 
 }
@@ -1052,7 +1054,9 @@ void narrativeHandler::createNarration(story &sto)
 
             if (VERBOSE) cout << osCurrent.str();
             if (addEvt){
-                vsOutput.push_back(osCurrent.str());
+                string sentenceWithoutUnderscore = osCurrent.str();
+                currentEvent.removeUnderscoreString(sentenceWithoutUnderscore);
+                vsOutput.push_back(sentenceWithoutUnderscore);
             }
             cursor++;
         }

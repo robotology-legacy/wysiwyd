@@ -49,6 +49,10 @@ public:
 
     std::vector<std::string> initialize(int _instance, yarp::os::Bottle bActivity, yarp::os::Bottle bArguments, yarp::os::Bottle bRelations);
 
+    void removeUnderscore();
+    void addUnderscore();
 
+    void removeUnderscoreString(std::string &input);
+    void addUnderscoreString(std::string &input);
 };
 

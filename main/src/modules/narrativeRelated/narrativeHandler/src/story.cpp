@@ -52,6 +52,7 @@ void story::displayNarration(bool displayAll)
 
         if (displayAll){
             for (auto itSt : vEvents){
+                itSt.removeUnderscore();
                 cout << "\t A:" << itSt.agent;
                 cout << "\t P:" << itSt.predicate;
                 cout << "\t O:" << itSt.object;
@@ -99,4 +100,3 @@ string story::toString(){
     string sOutput = osOut.str();
     return sOutput;
 }
-
