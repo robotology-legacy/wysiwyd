@@ -1,0 +1,18 @@
+<train data>
+, wanted I , get I giraffe <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>; I wanted to get the giraffe
+but , failed I , grasp I it <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-_-_-_] <o>; but I failed to grasp it
+because , laid it outofreach <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_] <o>; because it laid outofreach
+so , found I action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>; so I found a different action
+if , could I , ask I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>; if I could ask you to give it to me
+then , would you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>; then you would give it to me
+so , asked I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>; so I asked you to give it to me
+#, gave you it me <o> [_-_-_-_-_-_-_-_][A-P-O-R-_-_-_-_] <o>; and you gave it to me # => 'and' is declared as 'CCW' because the scenario 2. If we remove the 'CCW' for Scenario 3 we can write the meaning like this:
+and , gave you it me <o> [P-_-_-_-_-_-_-_][_-A-P-O-R-_-_-_] <o>; and you gave it to me
+now , have I giraffe <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>; now I have the giraffe
+, run john <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_] <o>; john run
+, like john ball <o> [_-_-_-_-_-_-_-_][A-P-O-_-_-_-_-_] <o>; john like the ball
+, like john chicken <o> [_-_-_-_-_-_-_-_][A-P-O-_-_-_-_-_] <o>; john like the chicken
+, like john dance <o> [_-_-_-_-_-_-_-_][A-P-O-_-_-_-_-_] <o>; john like to dance
+, loves john dancing <o> [_-_-_-_-_-_-_-_][A-P-O-_-_-_-_-_] <o>; john loves dancing
+,  gives john ball bryan <o> [_-_-_-_-_-_-_-_][A-P-O-R-_-_-_-_] <o>; john gives the ball to bryan
+,  gives john doge ball <o> [_-_-_-_-_-_-_-_][A-P-O-R-_-_-_-_] <o>; john gives to doge the ball

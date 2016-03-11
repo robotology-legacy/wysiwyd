@@ -1029,6 +1029,22 @@ bool autobiographicalMemory::close()
     requestInsertProcessQueue();
     storeImageOIDs();
 
+    for(auto& input : mapDataStreamInput) {
+        delete input.second;
+    }
+
+    for(auto& input : mapImgStreamInput) {
+        delete input.second;
+    }
+
+    for(auto& outport : mapDataStreamPortOut) {
+        delete outport.second;
+    }
+
+    for(auto& outport : mapImgStreamPortOut) {
+        delete outport.second;
+    }
+
     delete opcWorldReal;
     delete opcWorldMental;
     delete ABMDataBase;

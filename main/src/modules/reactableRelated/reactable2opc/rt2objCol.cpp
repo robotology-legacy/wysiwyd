@@ -344,14 +344,14 @@ void  Reactable2OPC::refresh(TuioTime frameTime) {
 //UGLY - If anyone passes tehre and has time to loose you can move it to main.cpp
 int main(int argc, char* argv[])
 {
-    if (argc >= 2 && strcmp(argv[1], "-h") == 0)
-    {
-        std::cout << "usage: Reactable2OPC [port]\n";
-        return 0;
-    }
+    //if (argc >= 2 && strcmp(argv[1], "-h") == 0)
+    //{
+    //    std::cout << "usage: Reactable2OPC [port]\n";
+    //    return 0;
+    //}
 
-    int port = 3333;
-    if (argc >= 2) port = atoi(argv[1]);
+    //int port = 3333;
+    //if (argc >= 2) port = atoi(argv[1]);
 
     Network yarp;
     if (!yarp.checkNetwork())

@@ -7,11 +7,11 @@ ctrl_param.KineStruct.motion_ON = true;
 ctrl_param.KineStruct.motion_GT_load_ON = true;
 % ctrl_param.KineStruct.motion_GT_load_ON = false;
 
-% ctrl_param.KineStruct.motion_seg_plot_ON = true;
-ctrl_param.KineStruct.motion_seg_plot_ON = false;
+ctrl_param.KineStruct.motion_seg_plot_ON = true;
+% ctrl_param.KineStruct.motion_seg_plot_ON = false;
 
-% ctrl_param.KineStruct.motion_seg_connect_plot_ON = true;
-ctrl_param.KineStruct.motion_seg_connect_plot_ON = false;
+ctrl_param.KineStruct.motion_seg_connect_plot_ON = true;
+% ctrl_param.KineStruct.motion_seg_connect_plot_ON = false;
 
 % ctrl_param.KineStruct.motion_seg_connect_plot_with_video_ON = true;
 ctrl_param.KineStruct.motion_seg_connect_plot_with_video_ON = false;

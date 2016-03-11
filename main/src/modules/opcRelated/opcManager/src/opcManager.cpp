@@ -291,7 +291,7 @@ Bottle opcManager::updateBelief(string sOPCname)
     // Create the Relations
     Adjective* present;
     Action* is;
-    Action* isDoing;
+    //Action* isDoing;
 
     if (bReal)
     {
@@ -302,7 +302,7 @@ Bottle opcManager::updateBelief(string sOPCname)
         present = realOPC->addOrRetrieveEntity<Adjective>("isPresent");
         present->m_quality = "presence";
         is = realOPC->addOrRetrieveEntity<Action>("is");
-        isDoing = realOPC->addOrRetrieveEntity<Action>("isDoing");
+        //isDoing = realOPC->addOrRetrieveEntity<Action>("isDoing");
     }
     else
     {
@@ -313,7 +313,7 @@ Bottle opcManager::updateBelief(string sOPCname)
         present = mentalOPC->addOrRetrieveEntity<Adjective>("isPresent");
         present->m_quality = "presence";
         is = mentalOPC->addOrRetrieveEntity<Action>("is");
-        isDoing = mentalOPC->addOrRetrieveEntity<Action>("isDoing");
+        //isDoing = mentalOPC->addOrRetrieveEntity<Action>("isDoing");
     }
 
     for (list<Entity*>::iterator it_E = PresentEntities.begin(); it_E != PresentEntities.end(); it_E++)

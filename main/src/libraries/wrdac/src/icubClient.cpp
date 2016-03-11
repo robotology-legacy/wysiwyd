@@ -444,11 +444,11 @@ bool ICubClient::grasp(const string &oName, const Bottle &options)
         return false;
     }
 
-    return grasp(oTarget->m_ego_position, options);
+    return grasp(oTarget->m_ego_position, options, oTarget->name());
 }
 
 
-bool ICubClient::grasp(const Vector &target, const Bottle &options)
+bool ICubClient::grasp(const Vector &target, const Bottle &options, std::string sName)
 {
     SubSystem_ARE *are = getARE();
     if (are == NULL)
@@ -461,7 +461,7 @@ bool ICubClient::grasp(const Vector &target, const Bottle &options)
     {
         Bottle opt(options);
         opt.addString("still"); // always avoid automatic homing after grasp
-        return are->take(target, opt);
+        return are->take(target, opt, sName);
     }
     else
     {
@@ -526,11 +526,11 @@ bool ICubClient::point(const string &oLocation, const Bottle &options)
         return false;
     }
 
-    return point(oTarget->m_ego_position, options);
+    return point(oTarget->m_ego_position, options, oTarget->name());
 }
 
 
-bool ICubClient::point(const Vector &target, const Bottle &options)
+bool ICubClient::point(const Vector &target, const Bottle &options, std::string sName)
 {
     SubSystem_ARE *are = getARE();
     if (are == NULL)
@@ -541,7 +541,7 @@ bool ICubClient::point(const Vector &target, const Bottle &options)
 
     Bottle opt(options);
     opt.addString("still"); // always avoid automatic homing after point
-    return are->point(target, opt);
+    return are->point(target, opt, sName);
 }
 
 
@@ -554,7 +554,7 @@ bool ICubClient::look(const string &target)
     {
         if (Object *oTarget = dynamic_cast<Object*>(opc->getEntity(target)))
             if (oTarget->m_present)
-                return are->look(oTarget->m_ego_position);
+                return are->look(oTarget->m_ego_position, yarp::os::Bottle() , oTarget->name());
 
         cerr << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"" << endl;
         return false;
@@ -588,7 +588,7 @@ bool ICubClient::lookStop()
     return ((SubSystem_Attention*)subSystems["attention"])->stop();
 }
 
-bool ICubClient::babbling(const string &bpName)
+bool ICubClient::babbling(const string &bpName, const string &babblingLimb)
 {
     //check the subsystem is running
     if (subSystems.find("babbling") != subSystems.end()){
@@ -608,17 +608,17 @@ bool ICubClient::babbling(const string &bpName)
             return false;
         }
 
-        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb);
     }
 
     cerr << "Error, babbling is not running..." << endl;
     return false;
 }
 
-bool ICubClient::babbling(int &jointNumber)
+bool ICubClient::babbling(int &jointNumber, const string &babblingLimb)
 {
     if (subSystems.find("babbling") != subSystems.end())
-        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber);
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb);
 
     cerr << "Error, babbling is not running..." << endl;
     return false;

@@ -62,10 +62,16 @@ script:
 
 notifications:
   email:
+  - wysiwyd-technical@googlegroups.com
   - ugo.pattacini@iit.it
   - gregoire.pointeau@inserm.fr
   - anne.laure.mealier@gmail.com
-  - maxpetit@gmail.com
+  - m.petit@imperial.ac.uk
   - jordiysard@gmail.com
   - t.fischer@imperial.ac.uk
   - matej.hoffmann@iit.it
+  - anne.laure.mealier@gmail.com
+  - clement.moulinfrier@gmail.com
+  - dcamilleri1@sheffield.ac.uk
+      
+

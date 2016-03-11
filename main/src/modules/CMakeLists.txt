@@ -39,10 +39,6 @@ if(WYSIWYD_USE_kinectWrapper)
     add_subdirectory(humanUnderstanding)
 endif()
 
-if(WYSIWYD_USE_RTABMap AND WYSIWYD_USE_OpenCV AND WYSIWYD_USE_PCL AND WYSIWYD_USE_Qt5 AND WYSIWYD_USE_kinectWrapper)
-    add_subdirectory(perspectiveTaking)
-endif()
-
 if(WYSIWYD_USE_TUIO)
     add_subdirectory(reactableRelated)
 endif()

@@ -29,27 +29,27 @@ for frm_idx = 1:num_frames
 end
 
 %% Draw
-figure(739)
-clf
-for frm_idx = 1:num_frames
-    clf
-    hold on
-    grid on
-    for node_idx = 1:num_seg
-        plot3(joints{frm_idx}(node_idx,1), joints{frm_idx}(node_idx,2), joints{frm_idx}(node_idx,3), 'ro');
-        %         text(joints{frm_idx}(node_idx,1), joints{frm_idx}(node_idx,2), node_info{node_idx}, 'Color', 'b');
-    end
-    
-    for edge_idx = 1:num_edges
-        plot3([joints{frm_idx}(edge_info(edge_idx,1),1),joints{frm_idx}(edge_info(edge_idx,2),1)],...
-            [joints{frm_idx}(edge_info(edge_idx,1),2),joints{frm_idx}(edge_info(edge_idx,2),2)],...
-            [joints{frm_idx}(edge_info(edge_idx,1),3),joints{frm_idx}(edge_info(edge_idx,2),3)],'k-');
-    end
-    
-    axis equal
-    view(3)
-    pause(0.01);
-end
+% figure(739)
+% clf
+% for frm_idx = 1:num_frames
+%     clf
+%     hold on
+%     grid on
+%     for node_idx = 1:num_seg
+%         plot3(joints{frm_idx}(node_idx,1), joints{frm_idx}(node_idx,2), joints{frm_idx}(node_idx,3), 'ro');
+%         %         text(joints{frm_idx}(node_idx,1), joints{frm_idx}(node_idx,2), node_info{node_idx}, 'Color', 'b');
+%     end
+%     
+%     for edge_idx = 1:num_edges
+%         plot3([joints{frm_idx}(edge_info(edge_idx,1),1),joints{frm_idx}(edge_info(edge_idx,2),1)],...
+%             [joints{frm_idx}(edge_info(edge_idx,1),2),joints{frm_idx}(edge_info(edge_idx,2),2)],...
+%             [joints{frm_idx}(edge_info(edge_idx,1),3),joints{frm_idx}(edge_info(edge_idx,2),3)],'k-');
+%     end
+%     
+%     axis equal
+%     view(3)
+%     pause(0.01);
+% end
 
 %% New Nodes & Joints
 numNode = 13;

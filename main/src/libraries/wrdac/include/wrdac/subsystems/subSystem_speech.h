@@ -24,6 +24,7 @@
 
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
+#include "wrdac/clients/opcClient.h"
 #include "wrdac/functions.h"
 #include <iostream>
 #include <iterator>
@@ -45,8 +46,10 @@ namespace wysiwyd{
             yarp::os::BufferedPort<yarp::os::Bottle> stt;
             yarp::os::Port sttRpc;
 
+
             bool ABMconnected;
             SubSystem_ABM* SubABM;
+            OPCClient *opc;
 
         public:
 
@@ -58,6 +61,7 @@ namespace wysiwyd{
                 sttRpc.open(("/" + m_masterName + "/stt:rpc").c_str());
                 m_type = SUBSYSTEM_SPEECH;
                 SubABM = new SubSystem_ABM(m_masterName+"/from_speech");
+                opc = new OPCClient(m_masterName+"/opc");
             }
             virtual bool connect()
             {
@@ -66,6 +70,8 @@ namespace wysiwyd{
                 connected &= yarp::os::Network::connect(ttsRpc.getName(), "/iSpeak/rpc");
                 connected &= yarp::os::Network::connect("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str());
                 connected &= yarp::os::Network::connect(sttRpc.getName().c_str(), "/speechRecognizer/rpc");
+
+                opc->connect("OPC");
 
                 ABMconnected = (SubABM->Connect());
                 std::cout << ((ABMconnected) ? "iSpeak connected to ABM" : "iSpeak didn't connect to ABM") << std::endl;
@@ -102,6 +108,37 @@ namespace wysiwyd{
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
+                    // get agent name
+                    opc->checkout();
+                    yarp::os::Bottle isAgent, condition, isPresent, noIcub;
+                    isAgent.addString(EFAA_OPC_ENTITY_TAG);
+                    isAgent.addString("==");
+                    isAgent.addString(EFAA_OPC_ENTITY_RTOBJECT);
+
+                    isPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
+                    isPresent.addString("==");
+                    isPresent.addInt(1);
+
+                    noIcub.addString(EFAA_OPC_OBJECT_NAME_TAG);
+                    noIcub.addString("!=");
+                    noIcub.addString("icub");
+
+
+                    condition.addList() = isAgent;
+                    condition.addString("&&");
+                    condition.addList() = isPresent;
+                    condition.addString("&&");
+                    condition.addList() = noIcub;
+
+                    std::list<Entity*> Ent = opc->Entities(condition);
+                    if (Ent.size()!=0){
+                        lArgument.push_back(std::pair<std::string, std::string>( (*Ent.begin())->name(), "addressee"));
+                    }
+                    for (std::list<Entity*>::iterator it_E = Ent.begin(); it_E != Ent.end(); it_E++)
+                    {
+                        delete *it_E;
+                    }
+
                     lArgument.push_back(std::pair<std::string, std::string>(text, "sentence"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     SubABM->sendActivity("action", "sentence", "say", lArgument, true);
@@ -209,6 +246,9 @@ namespace wysiwyd{
                 sttRpc.interrupt();
                 sttRpc.close();
                 SubABM->Close();
+
+                delete SubABM;
+                delete opc;
             }
         };
 

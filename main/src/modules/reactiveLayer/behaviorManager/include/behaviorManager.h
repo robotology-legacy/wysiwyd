@@ -12,6 +12,7 @@
 #include "touchingOrder.h"
 #include "pointingOrder.h"
 #include "pointing.h"
+#include "reactions.h"
 
 using namespace std;
 using namespace yarp::os;

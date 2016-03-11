@@ -61,6 +61,7 @@ namespace wysiwyd{namespace wrdac{
                             Entity();
                             Entity(const Entity &b);
                             Entity(yarp::os::Bottle &b);
+                            virtual ~Entity() {}
         
 
 

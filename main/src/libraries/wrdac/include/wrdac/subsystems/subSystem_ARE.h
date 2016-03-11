@@ -226,7 +226,7 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
+            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target")
             {
                 yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
@@ -234,6 +234,9 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     SubABM->sendActivity("action", "take", "action", lArgument, true);
@@ -251,6 +254,9 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
@@ -271,7 +277,7 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
+            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
             {
                 yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
@@ -279,6 +285,9 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     SubABM->sendActivity("action", "push", "action", lArgument, true);
@@ -297,6 +306,9 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
@@ -314,7 +326,7 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
+            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
             {
                 yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
@@ -322,6 +334,9 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     SubABM->sendActivity("action", "point", "action", lArgument, true);
@@ -340,6 +355,9 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
@@ -364,6 +382,8 @@ namespace wysiwyd {
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
+                    lArgument.push_back(std::pair<std::string, std::string>("drop", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     SubABM->sendActivity("action", "drop", "action", lArgument, true);
                 }
 
@@ -379,6 +399,8 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
+                    lArgument.push_back(std::pair<std::string, std::string>("drop", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     SubABM->sendActivity("action", "drop", "action", lArgument, true);
@@ -587,13 +609,16 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle())
+            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
             {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("look", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
                     SubABM->sendActivity("action", "look", "action", lArgument, true);
@@ -612,6 +637,9 @@ namespace wysiwyd {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
+                    lArgument.push_back(std::pair<std::string, std::string>("look", "predicate"));
+                    lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
+                    lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));

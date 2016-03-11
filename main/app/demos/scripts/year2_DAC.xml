@@ -1,0 +1,41 @@
+<application>
+  <name>Year 2 DAC</name>
+
+  <module>
+    <name>ears</name>
+    <node>icub-b1</node>
+  </module>
+
+  <module>
+    <name>homeostasis</name>
+    <node>icub-b2</node>
+  </module>
+
+  <module>
+    <name>sensationManager</name>
+    <node>icub-b3</node>
+  </module>
+
+  <module>
+    <name>behaviorManager</name>
+    <node>icub-b1</node>
+  </module>
+
+  <module>
+    <name>allostaticController</name>
+    <node>icub-b2</node>
+  </module>
+
+      <module>
+    <name>proactiveTagging</name>
+    <parameters />
+    <node>icub-b1</node>
+    <tag>proactiveTaggingTag</tag>
+  </module>
+
+  <!-- ********************* CONNECTIONS ********************* -->
+
+
+</application>
+
+

@@ -326,8 +326,6 @@ bool AllostaticController::updateAllostatic()
     if (allostaticDrives[activeDrive.name].active) {
         yInfo() << "Trigerring " + activeDrive.name;
 
-        allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
-        
         // record event in ABM
         if (iCub->getABMClient()->Connect()) {
             yDebug() << "ABM connected and receiving record.";
@@ -342,10 +340,9 @@ bool AllostaticController::updateAllostatic()
             yDebug() << "Predicate set.";
             
             std::list<std::pair<std::string, std::string> > lArgument;
-            lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
             lArgument.push_back(std::pair<std::string, std::string>(predicate, "predicate"));
-            lArgument.push_back(std::pair<std::string, std::string>(activeDrive.name, "object"));
-            lArgument.push_back(std::pair<std::string, std::string>(drive_level, "recipient"));
+            lArgument.push_back(std::pair<std::string, std::string>(activeDrive.name, "agent"));
+            lArgument.push_back(std::pair<std::string, std::string>(drive_level, "object"));
             iCub->getABMClient()->sendActivity("action",
                 activeDrive.name,
                 "drives",  // expl: "pasar", "drives"...
@@ -357,6 +354,8 @@ bool AllostaticController::updateAllostatic()
         else{
             yDebug() << "ABM not connected; no recording of the trigger.";
         }
+        allostaticDrives[activeDrive.name].triggerBehavior(activeDrive.level);
+
 
     }
     else {

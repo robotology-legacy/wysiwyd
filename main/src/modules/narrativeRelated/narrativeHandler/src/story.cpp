@@ -6,8 +6,6 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 
-
-
 Bottle story::unfoldGoal(string goal)
 {
     bool bVerbose = false;
@@ -47,28 +45,31 @@ Bottle story::unfoldGoal(string goal)
 }
 
 
-void story::displayNarration()
+void story::displayNarration(bool displayAll)
 {
-    cout << "begin display narration of story: " << counter << " with " << vEvents.size() << " events." << endl;
+    if (sentenceStory.size() > iThresholdSentence){
+        cout << endl << "begin display narration of story: " << counter << " with " << vEvents.size() << " events and " << sentenceStory.size() << " sentence." << endl;
 
-    for (auto itSt : vEvents){
-        cout << "\t A:" << itSt.agent;
-        cout << "\t P:" << itSt.predicate;
-        cout << "\t O:" << itSt.object;
-        cout << "\t R:" << itSt.recipient << endl;
+        if (displayAll){
+            for (auto itSt : vEvents){
+                itSt.removeUnderscore();
+                cout << "\t A:" << itSt.agent;
+                cout << "\t P:" << itSt.predicate;
+                cout << "\t O:" << itSt.object;
+                cout << "\t R:" << itSt.recipient << endl;
+            }
+        }
+        for (auto itSt : sentenceStory){
+            cout << itSt;
+        }
+
+
+        cout << "OCW ARE: ";
+        for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
+            cout << *itS << "  ";
+        }
+        cout << endl<<endl;
     }
-
-    for (auto itSt : sentenceStory){
-        cout << itSt;
-    }
-
-
-    cout << "OCW ARE: ";
-    for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
-        cout << *itS << "  ";
-    }
-
-    cout << endl;
 }
 
 
@@ -99,4 +100,3 @@ string story::toString(){
     string sOutput = osOut.str();
     return sOutput;
 }
-

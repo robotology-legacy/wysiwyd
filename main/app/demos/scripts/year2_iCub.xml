@@ -1,0 +1,185 @@
+<application>
+  <name>Year 2 iCub</name>
+  <dependencies>
+    <port>/icub/cartesianController/right_arm/state:o</port>
+    <port>/icub/cartesianController/left_arm/state:o</port>
+    <port>/iKinGazeCtrl/rpc</port>
+    <port>/icub/camcalib/left/out</port>
+    <port>/icub/camcalib/right/out</port>
+  </dependencies>
+
+  <module>
+    <name>skinManager</name>
+    <parameters>--from skinManAll.ini --context skinGui</parameters>
+    <node>localhost</node>
+    <tag>skinMan</tag>
+  </module>
+
+  <!--OPC-->
+  <module>
+    <name>objectsPropertiesCollector</name>
+    <parameters>--name OPC --empty --nosave</parameters>
+    <node>icub-b1</node>
+    <tag>opcTag</tag>
+  </module>
+
+  <module>
+    <name>referenceFrameHandler</name>
+    <node>icub-b2</node>
+    <tag>referenceFrameHandlerTag</tag>
+  </module>
+  
+  <module>
+    <name>attentionSelector</name>
+    <node>icub-b3</node>
+    <tag>attentionSelectorTag</tag>
+  </module>
+
+  <module>
+    <name>iCubGui</name>
+    <parameters>--from iCubGui.ini</parameters>
+    <node>display</node>
+    <tag>iCubGui_tagOPC</tag>
+  </module>
+
+  <module>
+    <name>kinectServer</name>
+    <node>ikart</node>
+  </module>
+
+  <module>
+    <name>agentDetector</name>
+    <parameters>--showImages true</parameters>
+    <node>display</node>
+  </module>
+
+  <module>
+    <name>guiUpdater</name>
+    <node>icub-b1</node>
+    <tag>guiUpdaterTag</tag>
+  </module>
+
+  <module>
+    <name>actionsRenderingEngine</name>
+	<parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
+    <node>console1</node>
+    <tag>ARETag</tag>
+  </module>
+
+    <module>
+    <name>touchDetector</name>
+    <node>icub-b3</node>
+    <tag>touchDetectorTag</tag>
+  </module>
+
+  <!-- ********************* CONNECTIONS ********************* -->
+
+  <connection>
+    <from>/guiUpdater/gui:o</from>
+    <to>/iCubGui/objects</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+  <connection>
+    <from>/guiUpdater/guiBase:o</from>
+    <to>/iCubGui/base:i</to>
+    <protocol>tcp</protocol>
+  </connection>
+
+ 
+   <connection>
+   <from>/icub/head/state:o</from>
+   <to>/iCubGui/head:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/inertial</from>
+   <to>/iCubGui/inertial:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/left_arm/state:o</from>
+   <to>/iCubGui/left_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/right_arm/state:o</from>
+   <to>/iCubGui/right_arm:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/left_leg/state:o</from>
+   <to>/iCubGui/left_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/right_leg/state:o</from>
+   <to>/iCubGui/right_leg:i</to>
+   <protocol>udp</protocol>
+   </connection>
+           
+   <connection>
+   <from>/icub/torso/state:o</from>
+   <to>/iCubGui/torso:i</to>
+   <protocol>udp</protocol>
+   </connection>
+
+   <connection>
+
+   <from>/actionsRenderingEngine/wbd:rpc</from>
+   <to> /wholeBodyDynamics/rpc:i</to>
+   <protocol>tcp</protocol>
+   </connection>
+   
+     <!-- TouchDetector -->
+  <connection>
+    <from>/icub/skin/torso_comp</from>
+    <to>/touchDetector/torso:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_arm_comp</from>
+    <to>/touchDetector/left_arm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_arm_comp</from>
+    <to>/touchDetector/right_arm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_forearm_comp</from>
+    <to>/touchDetector/left_forearm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_forearm_comp</from>
+    <to>/touchDetector/right_forearm:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/left_hand_comp</from>
+    <to>/touchDetector/left_hand:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/icub/skin/right_hand_comp</from>
+    <to>/touchDetector/right_hand:i</to>
+    <protocol></protocol>
+  </connection>
+  <connection>
+    <from>/touchDetector/touch:o</from>
+    <to>/proactiveTagging/fromTouch:i</to>
+    <protocol>tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list</protocol>
+  </connection>
+
+
+
+</application>
+
+

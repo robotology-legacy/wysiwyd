@@ -39,6 +39,7 @@ def meaning_stim_to_meaning_code(stim, ocw_array, l_m_elt, verbose=False):
     ocws = ocw_array[:]
     ocws.reverse()
     meanings = []
+    PAOR = []
     for i_m in range(0,max_nr_actionrelation):
         meaning = []
         for i_elt_pred in range(0,len(elt_pred)):
@@ -59,8 +60,12 @@ def meaning_stim_to_meaning_code(stim, ocw_array, l_m_elt, verbose=False):
             idx_elt_pred = elt_pred.index(e_p)
             idx_meaning = int(m_elt[4]) # looking at '#' in '_1-P#'
             meanings[idx_meaning-1][idx_elt_pred] = word
+            tmp=[]
+            tmp.append(word)
+            tmp.append(m_elt.split("-",1)[1])
+            PAOR.append(tmp);
             if verbose:
-                print "  i=", i
+                print "--i=", i
                 print "  m_elt (l_m_elt[i])=", m_elt
                 print "  idx_ocw:", idx_ocw
                 print "  word:", word
@@ -72,12 +77,27 @@ def meaning_stim_to_meaning_code(stim, ocw_array, l_m_elt, verbose=False):
             try:
                 meanings[i_m].remove(None)
             except:
-                break
+                break				
     while True:
         try:
             meanings.remove([])
         except:
             break
+	# create proper meaning
+    isUsed = []
+    properPAOR = []
+    for jj in range(0,len(meanings)):
+        for ii in range(0,len(meanings[jj])):
+            isUsed.append(True)
+    for jj in range(0,len(meanings)):
+        for ii in range(0,len(meanings[jj])):
+            missing = True
+            for kk in range(0,len(PAOR)):
+                if missing and PAOR[kk][0] ==  meanings[jj][ii] and isUsed[kk]:
+                    properPAOR.append(PAOR[kk][1])
+                    isUsed[kk] = False
+                    missing = False
+    meanings.append(properPAOR)
     return meanings
 
 def convert_one_output_activity_in_meaning(out_act, ocw_array, l_m_elt, thres=0.6):

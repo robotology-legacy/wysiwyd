@@ -45,6 +45,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new PointingOrder(&mut));
         }  else if (behavior_name == "touchingOrder") {
             behaviors.push_back(new TouchingOrder(&mut));
+        }  else if (behavior_name == "reactions") {
+            behaviors.push_back(new Reactions(&mut));
         }
             // other behaviors here
         else {
@@ -105,10 +107,20 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     yDebug() << "RPC received in BM";
     yDebug() << cmd.toString();
     
+    reply.clear();
+
     if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
         help += " ['behavior_name']  : Triggers corresponding behavior \n";
         reply.addString(help);
+    }
+    else if (cmd.get(0).asString() == "names" ) {
+        Bottle names;
+        names.clear();
+        for(auto& beh : behaviors) {
+            names.addString(beh->name);
+        }
+        reply.addList() = names;
     }
     else
     {
@@ -135,16 +147,15 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                         "behavior",  // expl: "pasar", "drives"...
                         lArgument,
                         true);
-                    yInfo() << cmd.get(0).asString() + "behavior has been recorded in the ABM";
+                    yInfo() << cmd.get(0).asString() + " behavior has been recorded in the ABM";
                 }
                 else{
                     yDebug() << "ABM not connected; no recording of action.";
                 }
             }
         }
+        reply.addString("ack");
     }
-    reply.clear();
-    reply.addString("ack");
     yDebug() << "End of BehaviorManager::respond";
     return true;
 }

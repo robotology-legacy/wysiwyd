@@ -6,8 +6,8 @@ add_subdirectory(libraries)
 add_subdirectory(examples)
 add_subdirectory(modules)
 
-option(COMPILE_TESTS "Compile Tests" OFF)
-if(COMPILE_TESTS)
-    add_subdirectory(tests)
-endif()
+#option(COMPILE_TESTS "Compile Tests" OFF)
+#if(COMPILE_TESTS)
+#    add_subdirectory(tests)
+#endif()
 

@@ -15,3 +15,51 @@ bool evtStory::isIn(vector<string> vec, string str){
     }
     return out;
 }
+
+
+
+void evtStory::removeUnderscoreString(string &input){
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == '_') {
+            *it = ' ';
+        }
+    }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == '*') {
+            *it = ',';
+        }
+    }
+}
+
+
+void evtStory::addUnderscoreString(string &input){
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == ' ') {
+            *it = '_';
+        }
+    }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == ',') {
+            *it = '*';
+        }
+    }
+}
+
+
+void evtStory::addUnderscore(){
+    addUnderscoreString(activity_name);
+    addUnderscoreString(activity_type);
+    addUnderscoreString(predicate);
+    addUnderscoreString(agent);
+    addUnderscoreString(object);
+    addUnderscoreString(recipient);
+}
+
+void evtStory::removeUnderscore(){
+    removeUnderscoreString(activity_name);
+    removeUnderscoreString(activity_type);
+    removeUnderscoreString(predicate);
+    removeUnderscoreString(agent);
+    removeUnderscoreString(object);
+    removeUnderscoreString(recipient);
+}

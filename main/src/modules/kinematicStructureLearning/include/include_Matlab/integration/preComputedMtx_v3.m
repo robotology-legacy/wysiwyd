@@ -72,7 +72,7 @@ switch(method)
             j = idx_set(idx,2);
             k = idx_set(idx,3);
             
-            for frm_idx = 1:50:nFrm
+            for frm_idx = 1:5:nFrm
                 cal_m_buf(frm_idx) = cal_logm(intermediate_result{i,j,frm_idx}.rotm_z, intermediate_result{i,k,frm_idx}.rotm_z);
             end
             out{i,j,k}.cal_m_F = cal_m_buf;

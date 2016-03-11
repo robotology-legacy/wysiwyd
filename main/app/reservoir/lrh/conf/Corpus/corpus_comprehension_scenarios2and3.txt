@@ -12,5 +12,5 @@ now , have I giraffe <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>; now I have the 
 
 </train data>
 <test data>
-, wanted I , get I giraffe <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>
+now I have the giraffe
 </test data>

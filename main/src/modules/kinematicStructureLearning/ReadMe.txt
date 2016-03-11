@@ -13,10 +13,10 @@ In order to run the module properly, it is required to install the followings:
 	>> run 'include/include_Matlab/graph_matching/compile.m' to compile all C-MEX files
 + R 3.2.x
 	>> R also requires following packages to be installed:
-	>> - igraph
-	>> - reshape2
-	>> - ggplot2
-+ OpenCV 2.3.x
+	>> - igraph: install.packages("igraph")
+	>> - reshape2: install.packages("reshape2")
+	>> - ggplot2: install.packages("ggplot2")
++ OpenCV 2.3.x or 2.4.x: sudo apt-get install libopencv-dev
 + YARP
 
 Then, the OpenCV and YARP should be connected to Matlab.
@@ -28,8 +28,7 @@ http://vision.is.tohoku.ac.jp/~kyamagu/software/mexopencv/
 
 2. Matlab + YARP
 Here are instructions for calling YARP from Matlab:
-http://wiki.icub.org/wiki/Calling_yarp_from_Matlab
-
+http://www.yarp.it/yarp_swig.html
 
 =====================
 HOW TO RUN THE MODULE

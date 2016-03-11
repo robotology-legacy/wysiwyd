@@ -35,7 +35,14 @@ namespace wysiwyd{
         class SubSystem_ABM : public SubSystem
         {
         protected:
-            virtual bool connect() { return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/rpc"); }
+            virtual bool connect() {
+                if (yarp::os::Network::isConnected(portRPC.getName(), "/autobiographicalMemory/rpc")){
+                    return true;
+                }
+                else {
+                return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/rpc"); 
+                }
+            }
 
         public:
             yarp::os::Port portRPC;
@@ -43,6 +50,7 @@ namespace wysiwyd{
                 portRPC.open(("/" + m_masterName + "/abm:rpc").c_str());
                 m_type = SUBSYSTEM_ABM;
             }
+            virtual ~SubSystem_ABM() {}
 
             virtual void Close() { portRPC.interrupt(); portRPC.close(); }
 

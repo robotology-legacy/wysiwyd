@@ -17,6 +17,7 @@
 
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_speech.h"
 
 class proactiveTagging : public yarp::os::RFModule {
 private:
@@ -43,6 +44,8 @@ private:
     std::string      GrammarAskNameObject;
     std::string      GrammarAskNameBodypart;
     std::string      GrammarYesNo;
+
+    std::string      babblingArm; //side of the babbling arm : left or right
 
     std::string      GrammarDescribeAction;
 

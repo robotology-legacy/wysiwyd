@@ -44,10 +44,16 @@ namespace wysiwyd{
                 yInfo() << ((ABMconnected) ? "Recog connected to ABM" : "Recog didn't connect to ABM");
                 if (yarp::os::Network::connect(ears_port.getName(), "/ears/rpc")) {
                     yInfo() << "Recog connected to ears";
-                }  else {
+                }
+                else {
                     yWarning() << "Recog didn't connect to ears";
                 }
-                return yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
+                if (yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
+                    return true;
+                }
+                else{
+                    return yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
+                }
             }
             SubSystem_ABM* SubABM;
             std::string speakerName_;
@@ -60,7 +66,7 @@ namespace wysiwyd{
                 portRPC.open(("/" + m_masterName + "/recog:rpc").c_str());
                 ears_port.open("/" + m_masterName + "/ears:o");
                 m_type = SUBSYSTEM_RECOG;
-                SubABM = new SubSystem_ABM(m_masterName+"/from_recog");
+                SubABM = new SubSystem_ABM(m_masterName + "/from_recog");
             }
 
 
@@ -70,6 +76,8 @@ namespace wysiwyd{
                 ears_port.interrupt();
                 ears_port.close();
                 SubABM->Close();
+
+                delete SubABM;
             };
 
             /**
@@ -78,8 +86,8 @@ namespace wysiwyd{
             */
             bool setSpeakerName(std::string speaker)
             {
-                speakerName_ = speaker ;
-                yInfo() << " [subSystem_Recog] : speaker is now " << speakerName_ ;
+                speakerName_ = speaker;
+                yInfo() << " [subSystem_Recog] : speaker is now " << speakerName_;
                 return true;
             }
 
@@ -92,14 +100,16 @@ namespace wysiwyd{
                     cmd.addString("listen");
                     if (on) {
                         cmd.addString("on");
-                    } else {
+                    }
+                    else {
                         cmd.addString("off");
                     }
                     yDebug() << "Listen sending command " << cmd.toString();
-                    ears_port.write(cmd, reply);                 
+                    ears_port.write(cmd, reply);
                     yDebug() << "Listen got reply" << reply.toString();
-                }else{
-                    yWarning()<< "No connection to ears available...";
+                }
+                else{
+                    yWarning() << "No connection to ears available...";
                 }
             }
 
@@ -162,20 +172,20 @@ namespace wysiwyd{
 
                 int loop;
                 (iLoop == -1) ? loop = -3 : loop = 0;
-                
+
                 // listen off
 
                 while (!fGetaReply && loop < iLoop)
                 {
                     // turn on the main grammar through ears
-                    if (!isEars) 
-                        listen(false);  
-                    
+                    if (!isEars)
+                        listen(false);
+
                     // send the message
                     portRPC.write(bMessenger, bReply);
 
                     // turn on the main grammar through ears
-                      
+
 
                     yInfo() << " Reply from Speech Recog : " << bReply.toString();
 
@@ -187,7 +197,8 @@ namespace wysiwyd{
                         yError() << " " << osError.str();
                         if (!isEars) listen(true);
                         return bOutput;
-                    }else if (bReply.get(0).toString() == "0")
+                    }
+                    else if (bReply.get(0).toString() == "0")
                     {
                         bOutput.addInt(0);
                         osError << "Grammar not recognized";
@@ -195,14 +206,16 @@ namespace wysiwyd{
                         yInfo() << " " << osError.str();
                         if (!isEars) listen(true);
                         return bOutput;
-                    }else if (bReply.get(0).toString()=="ACK")
+                    }
+                    else if (bReply.get(0).toString() == "ACK")
                     {
                         if (bReply.get(1).toString() == "-1")
                         {
-                            yInfo()<< "Only found Garbage...";
-                            yDebug()<< "Check Why this happens";
-                        }else{
-                            yInfo()<< "Sentence Acknowledged";
+                            yInfo() << "Only found Garbage...";
+                            yDebug() << "Check Why this happens";
+                        }
+                        else{
+                            yInfo() << "Sentence Acknowledged";
                             bAnswer = *bReply.get(1).asList();
 
                             if (bAnswer.toString() != "" && !bAnswer.isNull())
@@ -220,9 +233,9 @@ namespace wysiwyd{
                                     lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
                                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                                     //add speaker name. name should be sent through fonction before
-                                    if(speakerName_.empty()){
+                                    if (speakerName_.empty()){
                                         speakerName_ = "partner";
-                                        yWarning() << " [subSystem_Recog] " << "name of the speaker has been assigned to the default value : " << speakerName_ ;
+                                        yWarning() << " [subSystem_Recog] " << "name of the speaker has been assigned to the default value : " << speakerName_;
                                     }
                                     lArgument.push_back(std::pair<std::string, std::string>(speakerName_, "speaker"));
                                     SubABM->sendActivity("action",

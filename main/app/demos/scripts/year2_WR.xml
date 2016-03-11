@@ -1,0 +1,79 @@
+<application>
+  <name>Year 2 WR</name>
+
+  <module>
+    <name>autobiographicalMemory</name>
+    <node>localhost</node>
+  </module>
+
+  <module>
+    <name>speechRecognizer</name>
+    <node>winnode1</node>
+  </module>
+
+  <module>
+    <name>iSpeak</name>
+    <node>display</node>
+  </module>
+
+  <module>
+    <name>lrh</name>
+    <node>console1</node>
+  </module>
+
+  <module>
+    <name>opcPopulater</name>
+    <node>icub-b2</node>
+  </module>
+
+  <module>
+    <name>pasar</name>
+    <node>icub-b3</node>
+  </module>
+
+  <module>
+    <name>babbling</name>
+    <node>console1</node>
+  </module>
+
+  <module>
+    <name>narrativeHandler</name>
+    <node>icub-b3</node>
+  </module>
+
+  <module>
+    <name>kinematicStructure</name>
+    <parameters />
+    <node>icub-b1</node>
+    <tag>ksTag</tag>
+  </module>
+  
+    <!--yarpview-->
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out --x 2370 --y 0 --p 50 --w 640 --h 480</parameters>
+    <node>copper</node>
+    <tag>yarpview_camRight</tag>
+  </module>
+  
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/right/out --x 1700 --y 0 --p 50 --w 640 --h 480</parameters>
+    <node>copper</node>
+    <tag>yarpview_camLeft</tag>
+  </module>
+  
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out/kinematic_structure --x 2370 --y 500 --p 50 --w 640 --h 480</parameters>
+    <node>copper</node>
+    <tag>yarpview_augmentRight</tag>
+  </module>
+
+
+  <!-- ********************* CONNECTIONS ********************* -->
+
+
+</application>
+
+

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from copy import copy
 from time import sleep
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -17,6 +18,10 @@ if __name__ == '__main__':
     homeo_rpc = yarp.Port()
     homeo_rpc.open("/" + module_name +"/to_homeo_rpc")
     yarp.Network.connect(homeo_rpc.getName(), "/homeostasis/rpc")
+    behaviorManager_rpc = yarp.Port()
+    behaviorManager_rpc.open("/" + module_name +"/to_behaviorManager_rpc")
+    yarp.Network.connect(behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i")
+
     request = yarp.Bottle()
     rep = yarp.Bottle()
 
@@ -28,7 +33,21 @@ if __name__ == '__main__':
     for i in range(names.size()):
         drives.append(names.get(i).asString())
 
-    # Retrieve honeostasis boundaries
+    # Retrieve behavior names from the behaviorManager module
+    request.clear()
+    rep.clear()
+    request.addString("names")
+    behaviorManager_rpc.write(request, rep)
+    behaviors = []
+    behavior_ports = []
+    names = rep.get(0).asList()
+    for i in range(names.size()):
+        behaviors.append(names.get(i).asString())
+        behavior_ports.append(yarp.BufferedPortBottle())
+        behavior_ports[-1].open("/" + module_name + "/behaviors/" + behaviors[-1] + ":i")
+        yarp.Network.connect("/BehaviorManager/" + behaviors[-1] + "/start_stop:o", behavior_ports[-1].getName())
+
+    # Retrieve homeostasis boundaries
     homeo_mins = []
     homeo_maxs = []
     for d in drives:
@@ -75,8 +94,13 @@ if __name__ == '__main__':
 
     drive_values = [[0.] * win_size for _ in drives]
 
+    behaviors_to_plot = plt.Rectangle(xy=(0,0), width=0, height=0)
+
+    has_started = False
+
     # Plot update function, called each 0.1s
     def animate(t, drive_values_as_list):
+        global has_started, behaviors_to_plot
         drive_values_as_list[0] = [values[1:] + [0.] for values in drive_values_as_list[0]]
         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(drive_value_ports, homeo_maxs, value_lines, homeo_min_lines, homeo_max_lines)):
             res = port.read()
@@ -84,9 +108,33 @@ if __name__ == '__main__':
                 drive_values_as_list[0][i][-1] = res.get(0).asDouble() + homeo_max
             else:
                 drive_values_as_list[0][i][-1] = res
-            v_line[0].set_data(range(win_size), drive_values_as_list[0][i])
-            min_line[0].set_data((0, win_size), (homeo_mins[i], homeo_mins[i]))
-            max_line[0].set_data((0, win_size), (homeo_maxs[i], homeo_maxs[i]))
+            v_line[0].set_data(range(t- win_size, t), drive_values_as_list[0][i])
+            min_line[0].set_data((t- win_size, t), (homeo_mins[i], homeo_mins[i]))
+            max_line[0].set_data((t- win_size, t), (homeo_maxs[i], homeo_maxs[i]))
+            ax.set_xlim(t- win_size, t)
+        for name, port in zip(behaviors, behavior_ports):
+            res = port.read(False)
+            if res is not None:
+                msg = res.get(0).asString()
+                if msg == "start":
+                    #behaviors_to_plot.append([t, -1, plt.Rectangle(xy=(t,y_min), width=10, height=(y_max-y_min)/20.)])
+                    behaviors_to_plot = plt.Rectangle(xy=(t,y_min), width=10000, height=(y_max-y_min)/20.)
+                    plt.gca().add_patch(behaviors_to_plot)
+                    has_started = True
+                    print "Behavior " + name + " starts"
+                elif msg == "stop" and has_started:
+                    behaviors_to_plot.set_width(t - behaviors_to_plot.get_x())
+                        #behaviors_to_plot[-1][1] = copy(t)
+                    print "Behavior " + name + " stops"
+        # for i, (start, end, rect) in enumerate(behaviors_to_plot):
+        #     if end == -1:
+        #         rect.set_width(rect.get_x() + t - start)
+        #     else:
+        #         print rect.get_x() + end - start
+        #         rect.set_width(rect.get_x() + end - start)
+        #     plt.gca().add_patch(rect)
+
+
         return value_lines
 
     # Matplotlib animator (call the above funtion in a loop)

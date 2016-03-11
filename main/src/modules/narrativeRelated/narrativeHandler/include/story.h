@@ -41,9 +41,9 @@ public:
 
     int counter;
 
-    void inizializeOCW();
     void addOCW(std::vector<std::string> _OCW);
     void updateMapScore();
+    unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
 
 
     std::vector<std::string>     vOCW;
@@ -57,9 +57,9 @@ public:
     yarp::os::Bottle unfoldGoal(std::string);
 
     std::vector<std::string>    sentenceStory;
-    std::vector<std::string>    meaningStory;
+    std::vector<std::string>    meaningStory;       // human narration
 
-    void displayNarration();
+    void displayNarration(bool displayAll = true);
 
     std::vector<int>        viInstances;
     std::vector<evtStory>   vEvents;

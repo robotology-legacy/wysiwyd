@@ -14,7 +14,7 @@ valH1 = zeros(nP1*nP2,1);
 % calculate topological similarity
 writeKineStruct(KineStruct_P, KineStruct_Q);
 
-system('R -f ../../include/include_Matlab/topology_similarity/Incremmental_Topologically_constrained_subisomorphism_old2.r');
+[status,result] = system('R -f ../../include/include_Matlab/topology_similarity/Incremmental_Topologically_constrained_subisomorphism_old2.r');
 nodeSimilarity = readNodeSimilarity('../../include/include_Matlab/topology_similarity/matrix-correspondance-with-removal.output');
 % nodeSimilarity = readNodeSimilarity('../../include/include_Matlab/topology_similarity/matrix-correspondance-no-removal.output');
 nodeSimilarity = reshape(nodeSimilarity, [KineStruct_P.num_seg,KineStruct_Q.num_seg])';
@@ -26,9 +26,16 @@ structure_buf_P = [KineStruct_P.structure_i;KineStruct_P.structure_j];
 structure_buf_Q = [KineStruct_Q.structure_i;KineStruct_Q.structure_j];
 
 num_connection_P = histcounts(structure_buf_P, KineStruct_P.num_seg);
-num_estimated_connection_P = checkConnection(KineStruct_P, 'P')
-num_connection_P = num_connection_P + num_estimated_connection_P
+if strcmp(KineStruct_P.videoFileName,'video.avi')
+    num_estimated_connection_P = checkConnection(KineStruct_P, 'P');
+    num_connection_P = num_connection_P + num_estimated_connection_P;
+end
+
 num_connection_Q = histcounts(structure_buf_Q, KineStruct_Q.num_seg);
+% if strcmp(KineStruct_Q.videoFileName,'video.avi')
+%     num_estimated_connection_Q = checkConnection(KineStruct_Q, 'Q')
+%     num_connection_Q = num_connection_Q + num_estimated_connection_Q;
+% end
 
 end_joint_P = (num_connection_P == 1);
 end_joint_Q = (num_connection_Q == 1);

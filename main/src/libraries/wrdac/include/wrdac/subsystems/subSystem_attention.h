@@ -54,6 +54,7 @@ public:
         attentionSelector.open(("/"+m_masterName+"/attention:rpc").c_str());
         m_type = SUBSYSTEM_ATTENTION;
     }
+    virtual ~SubSystem_Attention() {}
 
     virtual void Close()
     {

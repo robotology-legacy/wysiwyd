@@ -316,7 +316,7 @@ class SAMDriver_interaction(SAMDriver):
             ttt=numpy.transpose(self.Y,(0,1,3,2))
             ttt=ttt.reshape((ttt.shape[0],ttt.shape[1]*ttt.shape[2],ttt.shape[3])) 
         else:
-    		ttt=self.Y[:,:,:,pose_selection]
+            ttt=self.Y[:,:,:,pose_selection]
         ttt=numpy.transpose(ttt,(0,2,1))
         self.Y=ttt.reshape(ttt.shape[0],ttt.shape[2]*ttt.shape[1]) 
         self.Y=self.Y.T
@@ -326,7 +326,7 @@ class SAMDriver_interaction(SAMDriver):
             ttt=numpy.transpose(self.L,(0,1,3,2))
             ttt=ttt.reshape((ttt.shape[0],ttt.shape[1]*ttt.shape[2],ttt.shape[3]))
         else:
-    		ttt=self.L[:,:,:,pose_selection]
+            ttt=self.L[:,:,:,pose_selection]
         ttt=numpy.transpose(ttt,(0,2,1))
         self.L=ttt.reshape(ttt.shape[0],ttt.shape[2]*ttt.shape[1]) 
         self.L=self.L.T

@@ -23,6 +23,7 @@ void TouchingOrder::configure() {
     name = "touchingOrder";
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/ears/target:o";
+    babblingLimb = "left";
 }
 
 void TouchingOrder::run(Bottle args/*=Bottle()*/) {
@@ -48,7 +49,7 @@ bool TouchingOrder::handleTouch(string type, string target)
         if(e->entity_type() == "bodypart") {
             iCub->say("I am going to move my " + target);
             Bodypart* b = dynamic_cast<Bodypart*>(e);
-            iCub->babbling(b->m_joint_number);
+            iCub->babbling(b->m_joint_number, babblingLimb);
         }
     }
 

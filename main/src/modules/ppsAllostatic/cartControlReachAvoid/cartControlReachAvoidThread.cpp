@@ -13,17 +13,16 @@
 * Public License for more details
 */
 
-#include <stdlib.h>     /* srand, rand */
-#include <time.h>       /* time */
-#include <stdarg.h>
+#include <cstdlib>
+#include <ctime>
+#include <cstdarg>
+#include <cmath>
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 #include <vector>
-
-#include <gsl/gsl_math.h>
 
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>

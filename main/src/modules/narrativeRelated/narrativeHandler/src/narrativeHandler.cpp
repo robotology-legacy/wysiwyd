@@ -16,7 +16,6 @@
 */
 
 #include "narrativeHandler.h"
-#include "wrdac/subsystems/subSystem_LRH.h"
 
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -36,6 +35,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     iCub = new ICubClient(moduleName, "narrativeHandler", "narrativeHandler.ini", isRFVerbose);
     //iCub->opc->isVerbose &= true;
 
+    // get grammar file
+    GrammarNarration = rf.findFileByName(rf.check("GrammarNarration", Value("GrammarNarration.xml")).toString());
+    GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
+
     if (!iCub->connect())
     {
         yInfo() << "iCubClient : Some dependencies are not running...";
@@ -44,6 +47,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
+    iThresholdSentence = rf.check("iThresholdSentence", Value(6)).asInt();
     int iMinInstance = rf.check("instanceStart", Value(0)).asInt();
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
@@ -52,17 +56,22 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
 
-    abm = true;
     if (!iCub->getABMClient())
     {
-        abm = false;
         yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+        return false;
     }
 
     if (!iCub->getLRH())
         yWarning(" WARNING LRH NOT CONNECTED");
     else
         iCub->getLRH()->bForwardABM = (rf.find("forwardABM").asInt() == 1);
+
+    if (!iCub->getRecogClient())
+    {
+        iCub->say("Proactive Tagging warning speech recognizer not connected");
+        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
+    }
 
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
@@ -72,6 +81,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
+
     findStories(iMinInstance);
     cout << endl;
     initializeStories();
@@ -79,8 +89,14 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     for (auto P : listStories){
         P.displayNarration();
     }
-    compareNarration(listStories[listStories.size() - 1]);
-    tellingStoryFromMeaning(listStories[listStories.size() - 1]);
+    story target = listStories[listStories.size() - 1];
+    compareNarration(target);
+    tellingStoryFromMeaning(target);
+
+    addNarrationToStory(target, true);
+
+    //    cout << iCub->getLRH()->SentenceToMeaning("if I could ask you to give it to me") << endl;
+    //    cout << iCub->getLRH()->SentenceToMeaning("then you would give it to me") << endl;
 
     return false;
 }
@@ -105,8 +121,8 @@ bool narrativeHandler::close() {
 
 bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
-        " commands are: \n" +
-        "quit \n";
+            " commands are: \n" +
+            "quit \n";
 
     reply.clear();
 
@@ -142,7 +158,10 @@ bool narrativeHandler::updateModule() {
 
 void narrativeHandler::findStories(int iInstance)
 {
+    cout << "Starting findStories begin: "<< iInstance <<endl;
+
     story currentStory;
+    currentStory.iThresholdSentence = iThresholdSentence;
 
     //    int iCurrentInstance = iInstance;
 
@@ -150,12 +169,12 @@ void narrativeHandler::findStories(int iInstance)
     osRequest << "SELECT instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
     Bottle bMessenger;
-    int numberSentence = bAllInstances.size();
+    int numberInstances = bAllInstances.size();
 
     vector<int> vError;
-    yInfo() << "\t" << "found " << numberSentence << " sentence(s)";
+    yInfo() << "\t" << "found " << numberInstances << " instance(s)";
     double mDiff;
-    for (int j = 1; j < (numberSentence); j++)
+    for (int j = 1; j < (numberInstances); j++)
     {
 
         int Id = atoi(bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
@@ -172,7 +191,7 @@ void narrativeHandler::findStories(int iInstance)
         string sT2 = bMessenger.get(0).asList()->get(0).toString();
 
         myTimeStruct m1 = string2Time(sT1),
-            m2 = string2Time(sT2);
+                m2 = string2Time(sT2);
 
         mDiff = timeDiff(m1, m2);
 
@@ -234,12 +253,12 @@ double narrativeHandler::timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrin
 {
     //  struct tm diffTime;
     long int iYears,
-        iMonth,
-        iDays,
-        iHours,     // number of hours of differences
-        iMinutes,
-        iSecond,
-        iMilliSec;   // number of minutes of differences
+            iMonth,
+            iDays,
+            iHours,     // number of hours of differences
+            iMinutes,
+            iSecond,
+            iMilliSec;   // number of minutes of differences
 
     iYears = tm2.m_tm.tm_year - tm1.m_tm.tm_year;
     if (bPrint) cout << " iYears: " << iYears;
@@ -320,7 +339,7 @@ myTimeStruct  narrativeHandler::string2Time(string sTime)
 
     myTimeStruct mtsOut;
     mtsOut.m_tm = tOutput;
-    (sMS.size() == 2) ? mtsOut.iMilliSec = atoi(sMS.c_str()) * 10 : mtsOut.iMilliSec = atoi(sMS.c_str());
+    mtsOut.iMilliSec = atoi(sMS.c_str()) * pow(10, 3 - sMS.size());
 
     return mtsOut;
 }
@@ -367,6 +386,7 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 
 void narrativeHandler::initializeStories()
 {
+    cout << "begin initializating stories ";
     for (auto& itSt : listStories){
 
         itSt.vEvents.clear();
@@ -382,8 +402,6 @@ void narrativeHandler::initializeStories()
         itSt.timeEnd = string2Time(bMessenger.toString());
 
         for (auto& itInst : itSt.viInstances){
-
-
             ostringstream osRequest;
 
             osRequest.str("");
@@ -407,14 +425,13 @@ void narrativeHandler::initializeStories()
             itSt.addOCW(tempOCW);
         }
 
-        cout << "story initialized" << endl;
+        cout << ".";
 
         createNarration(itSt);
 
-        cout << endl << endl;
     }
+    cout << endl;
 }
-
 
 
 void narrativeHandler::updateScoreStory(story &st){
@@ -434,7 +451,6 @@ void narrativeHandler::updateScoreStory(story &st){
     //    // TODO
     //}
 }
-
 
 
 vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bottle bActivity, Bottle bArguments, Bottle _bRelations){
@@ -494,9 +510,41 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
                 else if (bTemp.get(1).toString() == "sentence") evt.object = bTemp.get(0).toString();
             }
         }
+
+        string presentAgent = "partner";
+        ostringstream osRequest;
+        osRequest << "SELECT name FROM agent WHERE instance = " << _instance << " AND presence = true";
+        Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+        if (bMessenger.toString() != "NULL"){
+            if (bMessenger.size() !=0){
+                for (int ll = 0 ; ll < bMessenger.size() ; ll++){
+                    if (bMessenger.get(ll).toString() != "partner"){
+                        presentAgent = bMessenger.get(ll).toString();
+                    }
+                }
+            }
+        }
+
+        if (evt.activity_type == "recog"){
+            if (evt.agent == "" || evt.agent == "none" || evt.agent == "partner"){
+                evt.agent = presentAgent;
+            }
+        }
+        if (evt.activity_type =="say"){
+            evt.agent = "iCub";
+            if (evt.recipient == "" || evt.recipient == "none" || evt.recipient == "partner"){
+                evt.recipient = presentAgent;
+            }
+        }
+
         evt.isNarration = (evt.agent == narrator);
     }
 
+    if (evt.activity_type == "drives"){
+        evt.object = evt.agent;
+        evt.agent = "iCub";
+        evt.predicate = "wants to";
+    }
 
     if (_bRelations.toString() != "NULL"){
         for (int kk = 0; kk < _bRelations.size(); kk++){
@@ -513,6 +561,8 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
             vOCW.push_back(evt.predicate);
         }
     }
+
+    evt.addUnderscore();
 
     return vOCW;
 
@@ -536,7 +586,6 @@ void narrativeHandler::compareNarration(story &target){
                         for (unsigned int j = K; j < currentStory.vEvents.size(); j++){
                             evtStory evt = currentStory.vEvents[j];
                             if (!evt.isNarration && !found){
-
 
                                 vector<string>  vOriginal, vCopy;
                                 vOriginal.push_back(evt.agent);
@@ -615,6 +664,8 @@ void narrativeHandler::createNarration(story &sto)
     int cursor = 0;
     for (unsigned int currentElement = 0; currentElement != sto.vEvents.size(); currentElement++){
         evtStory currentEvent = sto.vEvents[currentElement];
+        currentEvent.addUnderscore();
+        bool addEvt = true;        
         if (!currentEvent.isNarration)
         {
             osCurrent.str("");
@@ -630,8 +681,8 @@ void narrativeHandler::createNarration(story &sto)
                         }
                         if (lrh && currentEvent.bRelations.get(jj).isList()){
                             string meaning = createMeaning(currentEvent.bRelations.get(jj).asList()->get(0).toString(),
-                                currentEvent.bRelations.get(jj).asList()->get(1).toString(),
-                                currentEvent.bRelations.get(jj).asList()->get(2).toString());
+                                                           currentEvent.bRelations.get(jj).asList()->get(1).toString(),
+                                                           currentEvent.bRelations.get(jj).asList()->get(2).toString());
                             string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
                             osCurrent << tmpSentence;
                         }
@@ -644,6 +695,7 @@ void narrativeHandler::createNarration(story &sto)
             }
             // end initial situation
 
+
             // if it is an ACTION
             if (currentEvent.activity_type == "action"){
                 // if the action begin
@@ -652,14 +704,14 @@ void narrativeHandler::createNarration(story &sto)
                     if (cursor == 0){
                         if (lrh){
                             string meaning = createMeaning(currentEvent.agent,
-                                "tries",
-                                currentEvent.predicate,
-                                currentEvent.object);
+                                                           currentEvent.predicate,
+                                                           currentEvent.object,
+                                                           currentEvent.recipient);
                             string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
                             osCurrent << "\t\t\t" << tmpSentence;
                         }
                         else{
-                            osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.predicate << " the " << currentEvent.object;
+                            osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.predicate << " the " << currentEvent.object;
                         }
                         if (currentEvent.recipient != "none" && currentEvent.recipient != "")  osCurrent << " " << currentEvent.recipient;
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
@@ -672,14 +724,14 @@ void narrativeHandler::createNarration(story &sto)
                         if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || currentEvent.begin != sto.vEvents[currentElement - 1].begin){
                             if (lrh){
                                 string meaning = createMeaning(currentEvent.agent,
-                                    "tries",
-                                    currentEvent.predicate,
-                                    currentEvent.object);
+                                                               currentEvent.predicate,
+                                                               currentEvent.object,
+                                                               currentEvent.recipient);
                                 string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
                                 osCurrent << "\t\t\t" << tmpSentence;
                             }
                             else{
-                                osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.predicate << " the " << currentEvent.object;
+                                osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.predicate << " the " << currentEvent.object;
                             }
                             if (currentEvent.recipient != "none" && currentEvent.recipient != "")  osCurrent << " " << currentEvent.recipient;
                             for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
@@ -692,15 +744,10 @@ void narrativeHandler::createNarration(story &sto)
                 // the action ends
                 else{
                     if (cursor == 0){
-                        bool bStatusFound = false;
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "status" && iarg->second == "failed"){
                                 osCurrent << "\t\t\t" << "But it failed." << endl;
-                                bStatusFound = true;
                             }
-                        }
-                        if (!bStatusFound){
-                            osCurrent << "\t\t\t" << "And it worked." << endl;
                         }
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "reason"){
@@ -715,15 +762,10 @@ void narrativeHandler::createNarration(story &sto)
                         }
                         // if previous instance was not a beggining of action
                         if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){
-                            bool bStatusFound = false;
                             for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                                 if (iarg->first == "status" && iarg->second == "failed"){
                                     osCurrent << "\t\t\t" << "But it failed." << endl;
-                                    bStatusFound = true;
                                 }
-                            }
-                            if (!bStatusFound){
-                                osCurrent << "\t\t\t" << "And it worked." << endl;
                             }
                         }
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
@@ -735,19 +777,34 @@ void narrativeHandler::createNarration(story &sto)
                 }
             }
             else if (currentEvent.activity_name == "sentence"
-                || currentEvent.activity_name == "comprehension"
-                || currentEvent.activity_name == "production") {
-                string speaker = "none",
-                    addressee = "none",
-                    sentence = "none";
+                     || currentEvent.activity_name == "comprehension"
+                     || currentEvent.activity_name == "production") {
+                string speaker = currentEvent.agent,
+                        addressee = currentEvent.recipient,
+                        sentence = "none";
                 for (auto& iarg : currentEvent.vArgument){
                     if (iarg.first == "speaker") speaker = iarg.second;
                     else if (iarg.first == "addressee")     addressee = iarg.second;
                     else if (iarg.first == "sentence")    sentence = iarg.second;
                 }
+                if (speaker=="none" && currentEvent.activity_type=="say"){
+                    speaker = "iCub";
+                }
+                if (speaker != "icub" && speaker != "iCub"){
+                    if (addressee == "none"){
+                        addressee = "iCub";
+                    }
+                }
+                if (sentence=="none" || sentence == ""){
+                    addEvt = false;
+                }
+                else{
+                    currentEvent.addUnderscoreString(sentence);
+                }
                 if (lrh){
                     string meaning = createMeaning(speaker, "says", sentence, addressee);
                     string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                    currentEvent.removeUnderscoreString(tmpSentence);
                     osCurrent << "\t\t\t" << tmpSentence;
                 }
                 else{
@@ -755,7 +812,7 @@ void narrativeHandler::createNarration(story &sto)
                 }
                 osCurrent << endl;
             }
-            // if not actino or sentence
+            // if not action or sentence
             else if (currentEvent.activity_type == "reasoning"){
                 /* for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                 osCurrent << iarg->second << " ";
@@ -771,7 +828,7 @@ void narrativeHandler::createNarration(story &sto)
                         osCurrent << "\t\t\t" << tmpSentence;
                     }
                     else{
-                        osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                        osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.activity_name;
                     }
                     osCurrent << endl;
                     for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
@@ -780,15 +837,15 @@ void narrativeHandler::createNarration(story &sto)
                             osCurrent << "\t\t\t" << "The goal was that: ";
                             if (lrh){
                                 string meaning = createMeaning(bUnfolded.find("agent").toString(),
-                                    "try",
-                                    bUnfolded.find("predicate").toString(),
-                                    bUnfolded.find("object").toString());
+                                                               "try",
+                                                               bUnfolded.find("predicate").toString(),
+                                                               bUnfolded.find("object").toString());
                                 string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
                                 osCurrent << tmpSentence;
 
                             }
                             else{
-                                osCurrent << bUnfolded.find("agent").toString() << " tries to " << bUnfolded.find("predicate").toString() << " the " << bUnfolded.find("object").toString();
+                                osCurrent << bUnfolded.find("agent").toString() << " " << bUnfolded.find("predicate").toString() << " the " << bUnfolded.find("object").toString();
                             }
                             if (bUnfolded.find("recipient").toString() != "")  osCurrent << " " << bUnfolded.find("recipient").toString();
                             osCurrent << endl;
@@ -816,15 +873,10 @@ void narrativeHandler::createNarration(story &sto)
                         osCurrent << "." << endl;
                     }
                     else if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){// if previous instance was not a beggining of action
-                        bool bStatusFound = false;
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "status" && iarg->second == "failed"){
                                 osCurrent << "\t\t\t" << "But it failed." << endl;
-                                bStatusFound = true;
                             }
-                        }
-                        if (!bStatusFound){
-                            osCurrent << "\t\t\t" << "And it worked." << endl;
                         }
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "reason"){
@@ -835,7 +887,7 @@ void narrativeHandler::createNarration(story &sto)
                     else{
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "reason"){
-                                osCurrent << " because " << iarg->second << "." << endl;;
+                                osCurrent << " because " << iarg->second << "." << endl;
                             }
                         }
                     }
@@ -850,18 +902,30 @@ void narrativeHandler::createNarration(story &sto)
                 //osCurrent << endl;
                 // if the action begin
                 if (currentEvent.begin){
+                    bool hasPredicate = false;
+                    if (currentEvent.predicate != "" && currentEvent.predicate!="none"){
+                        hasPredicate = true;
+                    }
                     if (cursor == 0){
                         if (lrh){
                             string meaning = createMeaning(currentEvent.agent,
-                                "tries",
-                                currentEvent.activity_name,
-                                currentEvent.object);
+                                                           "tries",
+                                                           currentEvent.activity_name,
+                                                           currentEvent.object);
                             string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
                             osCurrent << "\t\t\t" << tmpSentence;
                         }
                         else{
-                            osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                            if (hasPredicate){
+                                osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.predicate;
+                            }
+                            else{
+                                if (currentEvent.agent != "" && currentEvent.agent != "none"){
+                                    osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                                }
+                            }
                         }
+                        if (currentEvent.object != "") osCurrent << " the " << currentEvent.object;
                         if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
                         osCurrent << endl;
                     }
@@ -869,15 +933,21 @@ void narrativeHandler::createNarration(story &sto)
                     else if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || currentEvent.begin != sto.vEvents[currentElement - 1].begin){
                         if (lrh){
                             string meaning = createMeaning(currentEvent.agent,
-                                "tries",
-                                currentEvent.activity_name,
-                                currentEvent.object);
+                                                           "tries",
+                                                           currentEvent.activity_name,
+                                                           currentEvent.object);
                             string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
                             osCurrent << "\t\t\t" << tmpSentence;
                         }
                         else{
-                            osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                            if (hasPredicate){
+                                osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.predicate;
+                            }
+                            else{
+                                osCurrent << "\t\t\t" << currentEvent.agent << " tries to " << currentEvent.activity_name;
+                            }
                         }
+                        if (currentEvent.object != "") osCurrent << " the " << currentEvent.object;
                         if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
                         osCurrent << endl;
                     }
@@ -949,8 +1019,8 @@ void narrativeHandler::createNarration(story &sto)
                     }
                     if (lrh && currentEvent.bRelations.get(jj).isList()){
                         string meaning = createMeaning(currentEvent.bRelations.get(jj).asList()->get(0).toString(),
-                            currentEvent.bRelations.get(jj).asList()->get(1).toString(),
-                            currentEvent.bRelations.get(jj).asList()->get(2).toString());
+                                                       currentEvent.bRelations.get(jj).asList()->get(1).toString(),
+                                                       currentEvent.bRelations.get(jj).asList()->get(2).toString());
                         string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
                         osCurrent << tmpSentence;
                     }
@@ -961,10 +1031,38 @@ void narrativeHandler::createNarration(story &sto)
                 osCurrent << "." << endl;
             }
 
+            if (((currentEvent.predicate == "" || currentEvent.predicate == "none")
+                && (currentEvent.activity_name == "" || currentEvent.activity_name == "none"))
+                || (currentEvent.agent == "" || currentEvent.agent == "none"))
+            {
+                addEvt = false;
+            }
+
+            // Add only one appearance and one dissapearance per object
+            if (currentEvent.predicate == "appear"){
+                for (unsigned int prev = 0; prev < currentElement; prev++){
+                    if (sto.vEvents[prev].predicate == "appear"
+                        && sto.vEvents[prev].agent == currentEvent.agent){
+                        addEvt = false;
+                    }
+                }
+            }
+            if (currentEvent.predicate == "dissappear"){
+                for (unsigned int prev = 0; prev < currentElement; prev++){
+                    if (sto.vEvents[prev].predicate == "dissappear"
+                        && sto.vEvents[prev].agent == currentEvent.agent){
+                        addEvt = false;
+                    }
+                }
+            }
+            addEvt &= osCurrent.str() != "";
 
             if (VERBOSE) cout << osCurrent.str();
-
-            vsOutput.push_back(osCurrent.str());
+            if (addEvt){
+                string sentenceWithoutUnderscore = osCurrent.str();
+                currentEvent.removeUnderscoreString(sentenceWithoutUnderscore);
+                vsOutput.push_back(sentenceWithoutUnderscore);
+            }
             cursor++;
         }
         // is narrration
@@ -1030,13 +1128,12 @@ bool narrativeHandler::checkListPAOR(vector<string> vOriginal, vector<string> vC
 }
 
 
-
 string narrativeHandler::adaptMeaning(string meaning){
-//    cout << "meaning: " << meaning;
+    //    cout << "meaning: " << meaning;
     string str = meaning;
     for (unsigned int jj = 0; jj < comparator.size(); jj++){
         if (comparator[jj].first != ""){
-//            cout << " first: " << comparator[jj].first << " second: " << comparator[jj].second;
+            //            cout << " first: " << comparator[jj].first << " second: " << comparator[jj].second;
             size_t pos = 0;
             while ((pos = str.find(comparator[jj].first, pos)) != std::string::npos){
                 str.replace(pos, comparator[jj].first.length(), comparator[jj].second);
@@ -1049,11 +1146,10 @@ string narrativeHandler::adaptMeaning(string meaning){
 }
 
 
-
 void narrativeHandler::tellingStoryFromMeaning(story target){
 
     cout << "start telling story from meaning" << endl;
-    vector<string>    tmpStory;  
+    vector<string>    tmpStory;
     for (auto mean : target.meaningStory){
         tmpStory.push_back(iCub->getLRH()->meaningToSentence(mean));
     }

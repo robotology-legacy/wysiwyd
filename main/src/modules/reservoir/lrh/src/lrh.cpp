@@ -106,7 +106,7 @@ bool LRH::configure(ResourceFinder &rf) {
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-    return true;
+    return bEveryThingisGood;
 }
 
 

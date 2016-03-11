@@ -112,7 +112,7 @@ bool CFFT::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
 
-    return true;
+    return bEveryThingisGood;
 }
 
 

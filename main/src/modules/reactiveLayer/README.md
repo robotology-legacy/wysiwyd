@@ -1,4 +1,8 @@
-This is the refactored version of the reactive layer as done by UPF for the London integration meeting (December 2015).
+This is the refactored version of the reactive layer as produced by UPF in 2015.
+[The original version](https://github.com/robotology/wysiwyd/tree/master/main/src/modules/reactiveLayerEFAA) led to several publications, and in particular:
+
+[Towards the synthetic self: Making others perceive me as an other
+S Lallee, V Vouloutsi, MB Munoz, K Grechuta, JYP Llobet, M Sarda, PFMJ Verschure (2015). *Paladyn, Journal of Behavioral Robotics*. 6 (1)](http://www.degruyter.com/view/j/pjbr.2015.6.issue-1/pjbr-2015-0010/pjbr-2015-0010.xml)
 
 # How
 
@@ -25,8 +29,3 @@ Anyway, it contains three subfolders:
 - `sensationManager`: a module containing a set of sensations, in the aim of modulating the  dynamics in `allostaticController`. For example, in the context of the proactive demo, there is a sensation which is active when there are unknown objects in the scene and which is connected to the `tagging` drive.
 
 
-# Why
-
-The former `reactiveLayer` module has become an unmanageable mess during the last year for a number of reasons. When Stéphane left SPECS, it let a clean reactive layer module. However it was limited to associate drives with speech sentences or face expressions. In the following integration meetings (Sheffield, VVV, BCBT), we needed something more general: associating any kind of behavior to a drive, and modulating those drives in a more complex way according to input sensations. This was done directly by adding more and more specific code to the `reactiveLayer` module file. Hence the mess ;)
-
-The new version separates the reactive layer in three modules, `sensationManager`, `allostaticController` and `behaviorManager`, allowing a better management of the code and an easy way to add new sensations, drives and behaviors using a common interface, and to configure them via config files . Moreover it fit with the original DAC pipeline for the reactive layer.
