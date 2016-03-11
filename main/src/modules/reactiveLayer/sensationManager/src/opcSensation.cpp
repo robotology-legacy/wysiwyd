@@ -17,11 +17,23 @@ void OpcSensation::configure()
         Time::delay(1.0);
     }
 
-    confusion_port_name = "/" + moduleName + "/confusion:o"; //This goes to homeostasis
-    confusion_port.open(confusion_port_name);
+    opc_has_unknown_port_name = "/" + moduleName + "/opc_has_unknown:o"; //This goes to homeostasis
+    opc_has_unknown_port.open(opc_has_unknown_port_name);
 
     unknown_entities_port_name = "/" + moduleName + "/unknown_entities:o"; //this goes to behaviors
     unknown_entities_port.open(unknown_entities_port_name);
+ 
+    opc_has_known_port_name = "/" + moduleName + "/opc_has_known:o"; //This goes to homeostasis
+    opc_has_known_port.open(opc_has_known_port_name);
+
+    known_entities_port_name = "/" + moduleName + "/known_entities:o"; //this goes to behaviors
+    known_entities_port.open(known_entities_port_name);
+
+    is_touched_port_name = "/" + moduleName + "/is_touched:o";
+    is_touched_port.open(is_touched_port_name);
+
+    // touch_location_port_name = "/" + moduleName + "/touch_location:o";
+    // touch_location_port.open(touch_location_port_name);
 
     // friendly_port_name = "/" + moduleName + "/friendly:o"; //for homeostatic drive
     // friendly_port.open(friendly_port_name);
@@ -44,17 +56,29 @@ void OpcSensation::configure()
 void OpcSensation::publish()
 {
     // should change handleTagging to handleUnknownEntities?
-    Bottle res = handleUnknownEntities();
+    Bottle res = handleEntities();
     
-    yarp::os::Bottle &confus = confusion_port.prepare();
-    confus.clear();
-    confus.addInt(int(res.get(0).asInt()));
-    confusion_port.write();
+    yarp::os::Bottle &has_unkn = opc_has_unknown_port.prepare();
+    has_unkn.clear();
+    has_unkn.addInt(int(res.get(0).asInt()));
+    opc_has_unknown_port.write();
     
     yarp::os::Bottle &unkn = unknown_entities_port.prepare();
     unkn.clear();
     unkn.append(*res.get(1).asList());
     unknown_entities_port.write();
+  
+    yarp::os::Bottle &has_kn = opc_has_known_port.prepare();
+    has_kn.clear();
+    has_kn.addInt(int(res.get(2).asInt()));
+    opc_has_known_port.write();
+    
+    yarp::os::Bottle &kn = known_entities_port.prepare();
+    kn.clear();
+    kn.append(*res.get(3).asList());
+    known_entities_port.write();
+
+    handleTouch();
 
     // yarp::os::Bottle &frie = friendly_port.prepare();
     // frie.clear();
@@ -84,17 +108,35 @@ void OpcSensation::publish()
     
 }
 
-Bottle OpcSensation::handleUnknownEntities()
+void OpcSensation::handleTouch()
+{
+    list<Relation> tactileRelations = iCub->opc->getRelationsMatching("icub","is","any","touchLocation");
+    Bottle& out = is_touched_port.prepare();
+    out.clear();
+    out.addInt(int(tactileRelations.size() > 0));  // is touched
+    is_touched_port.write();
+
+    // if (tactileRelations.size() > 0) {
+    //     out = touch_location_port.prepare()
+    //     out.clear();
+    //     out.
+    // }
+
+}
+
+Bottle OpcSensation::handleEntities()
 {
     iCub->opc->checkout();
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
     bool unknown_obj = false;
-    Bottle u_entities;
+    bool known_obj = false;
+    Bottle u_entities, k_entities;
     // Bottle u_partner;
     Bottle ob;
     Bottle partners;
     Bottle body_parts;
+    Bottle known_entity;
 
     for (auto& entity : lEntities)
     {
@@ -156,13 +198,20 @@ Bottle OpcSensation::handleUnknownEntities()
             if (entity->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(entity)->m_tactile_number == -1 || dynamic_cast<Bodypart*>(entity)->m_kinStruct_instance == -1))
             {
                 unknown_obj = true;
-                //Output is a list of objects entity + objects name [the arguments for tagging]
-                // o->m_saliency = unknownObjectSaliency;
+            //Output is a list of objects entity + objects name [the arguments for tagging]
+            // o->m_saliency = unknownObjectSaliency;
                 body_parts.clear();
                 body_parts.addString(entity->entity_type());
                 body_parts.addString(original_name);
                 u_entities.addList()=body_parts;
-            }//unknown_obj = true;
+            }
+            else if (entity->entity_type() == "object") {  // Known entities
+                known_obj = true;
+                known_entity.clear();
+                known_entity.addString(entity->entity_type());
+                known_entity.addString(original_name);
+                k_entities.addList()=known_entity;           
+            }
         }
     }
     //if no unknown object was found, return false
@@ -172,6 +221,8 @@ Bottle OpcSensation::handleUnknownEntities()
     Bottle out;
     out.addInt(int(unknown_obj));
     out.addList()=u_entities;
+    out.addInt(int(known_obj));
+    out.addList()=k_entities;
     // out.addList()=u_partner;
     // cout << out.toString()<<endl;
     return out;
@@ -222,5 +273,3 @@ Bottle OpcSensation::handleUnknownEntities()
 //     out.addList()=k_objects;
 //     return out;
 // }
-
-
