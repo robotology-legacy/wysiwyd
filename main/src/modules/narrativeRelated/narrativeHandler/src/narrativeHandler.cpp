@@ -664,6 +664,7 @@ void narrativeHandler::createNarration(story &sto)
     int cursor = 0;
     for (unsigned int currentElement = 0; currentElement != sto.vEvents.size(); currentElement++){
         evtStory currentEvent = sto.vEvents[currentElement];
+        currentEvent.addUnderscore();
         bool addEvt = true;        
         if (!currentEvent.isNarration)
         {
@@ -797,9 +798,13 @@ void narrativeHandler::createNarration(story &sto)
                 if (sentence=="none" || sentence == ""){
                     addEvt = false;
                 }
+                else{
+                    currentEvent.addUnderscoreString(sentence);
+                }
                 if (lrh){
                     string meaning = createMeaning(speaker, "says", sentence, addressee);
                     string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
+                    currentEvent.removeUnderscoreString(tmpSentence);
                     osCurrent << "\t\t\t" << tmpSentence;
                 }
                 else{

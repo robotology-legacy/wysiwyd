@@ -24,6 +24,11 @@ void evtStory::removeUnderscoreString(string &input){
             *it = ' ';
         }
     }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == '*') {
+            *it = ',';
+        }
+    }
 }
 
 
@@ -31,6 +36,11 @@ void evtStory::addUnderscoreString(string &input){
     for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
         if (*it == ' ') {
             *it = '_';
+        }
+    }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == ',') {
+            *it = '*';
         }
     }
 }
