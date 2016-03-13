@@ -5,11 +5,11 @@
    <!-- real OPC-->
        <module>
           <name>objectsPropertiesCollector</name>
-          <parameters>--name OPC --empty --nosave</parameters>
+          <parameters>--name OPC --no-load-db --no-save-db</parameters>
           <node>greg-pc</node>
           <tag>realOPC</tag>
        </module>
-	
+    
        <module>
             <name>iCubGui</name>
             <parameters>--from guiOPC.ini</parameters>
@@ -43,17 +43,17 @@
    <!-- Mental OPC-->
        <module>
           <name>objectsPropertiesCollector</name>
-          <parameters>--name mentalOPC --empty --nosave</parameters>
+          <parameters>--name mentalOPC --no-load-db --no-save-db</parameters>
           <node>greg-pc</node>
           <tag>opcMentalModule</tag>
        </module>
-	
+    
        <module>
             <name>iCubGui</name>
             <parameters>--from guiMentalOPC.ini</parameters>
-			<node>greg-pc</node>
+            <node>greg-pc</node>
             <tag>iCubGui_tagMentalOPC</tag>
-			<prefix>/mental</prefix> 
+            <prefix>/mental</prefix> 
         </module>
 
        <module>
@@ -77,4 +77,4 @@
           <protocol>tcp</protocol>
         </connection>
 
-</application>	
+</application>  

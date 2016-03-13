@@ -8,7 +8,7 @@
    <!--Memory-->
    <module>
        <name>objectsPropertiesCollector</name>
-       <parameters>--name OPC --empty --nosave</parameters>
+       <parameters>--name OPC --no-load-db --no-save-db</parameters>
        <node>icuboracle</node>
        <tag>opcTag</tag>
    </module>

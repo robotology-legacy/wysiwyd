@@ -6,11 +6,11 @@
 
        <module>
           <name>objectsPropertiesCollector</name>
-          <parameters>--name OPC --empty --nosave</parameters>
+          <parameters>--name OPC --no-load-db --no-save-db</parameters>
           <node>greg-pc</node>
           <tag>realOPC</tag>
        </module>
-	
+    
        <module>
             <name>iCubGui</name>
             <parameters>--from guiOPC.ini</parameters>
@@ -60,7 +60,7 @@
           <name>autobiographicalMemory</name>
           <node>icubwin1</node>
         </module>
-		
+        
         <module>
           <name>speechRecognizer</name>
           <parameters>--noLegacy</parameters>

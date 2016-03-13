@@ -2,7 +2,7 @@
   <name>Dependencies for test-are-attention</name>
   <module>
     <name>objectsPropertiesCollector</name>
-    <parameters>--name OPC --empty --nosave</parameters>
+    <parameters>--name OPC --no-load-db --no-save-db</parameters>
     <node>localhost</node>
   </module>
 

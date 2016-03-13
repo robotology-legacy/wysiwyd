@@ -11,7 +11,7 @@
    <!--OPC-->
         <module>
           <name>slidingController</name>
-	  <!--for xavier rad : reactable, object name, Partner...-->
+      <!--for xavier rad : reactable, object name, Partner...-->
           <parameters>--arm right</parameters>
           <node>localhost</node>
           <tag>slidingControllerTag</tag>
@@ -19,19 +19,19 @@
 
         <module>
           <name>objectsPropertiesCollector</name>
-	  <!--for xavier rad : reactable, object name, Partner...-->
-          <parameters>--name OPC --db xavier.ini --nosave</parameters>
-	  <!--<parameters>--name OPC --empty --nosave</parameters>...-->
+      <!--for xavier rad : reactable, object name, Partner...-->
+          <parameters>--name OPC --db xavier.ini --no-save-db</parameters>
+      <!--<parameters>--name OPC --no-load-db --no-save-db</parameters>...-->
           <node>localhost</node>
           <tag>opcTag</tag>
         </module>
-		
+        
         <module>
           <name>referenceFrameHandler</name>
           <node>localhost</node>
           <tag>referenceFrameHandlerTag</tag>
-        </module>	
-		
+        </module>   
+        
         <module>
             <name>reactable2opc</name>
             <node>localhost</node>
@@ -44,7 +44,7 @@
           <node>localhost</node>
             <tag>iCubGui_tagOPC</tag>
         </module>
-		          
+                  
         <module>
           <name>guiUpdater</name>
           <node>localhost</node>
@@ -83,9 +83,9 @@
           <node>localhost</node>
           <tag>actionsRenderingEngineTag</tag>
         </module>
-	<!-- ********************* CONNECTIONS ********************* -->
+    <!-- ********************* CONNECTIONS ********************* -->
    
-   	<connection>
+    <connection>
             <from>/guiUpdater/gui:o</from>
             <to>/iCubGui/objects</to>
             <protocol>tcp</protocol>
