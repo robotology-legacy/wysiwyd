@@ -33,9 +33,9 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     GrammarAskNameBodypart = rf.findFileByName(rf.check("GrammarAskNameBodypart", Value("GrammarAskNameSelf.xml")).toString());
     GrammarDescribeAction = rf.findFileByName(rf.check("GrammarDescribeAction", Value("GrammarDescribeAction.xml")).toString());
 
-    babblingArm = rf.findFileByName(rf.check("babblingArm", Value("left")).toString());
+    babblingArm = rf.check("babblingArm", Value("left")).toString();
 
-    yDebug() << "------------> babblingArm : " << babblingArm ;
+    yDebug() << "------------> babblingArm: " << babblingArm;
 
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
