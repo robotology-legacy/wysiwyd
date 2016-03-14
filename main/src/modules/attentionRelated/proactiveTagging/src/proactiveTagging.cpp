@@ -74,7 +74,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     SAMRpc = rf.check("SAMRpc", Value("/sam/face/rpc:i")).asString().c_str();
 
     if (!Network::connect(portToSAM.getName().c_str(), SAMRpc.c_str())) {
-        yWarning() << " SAM NOT CONNECTED: selfTagging will not work";
+        yWarning() << " SAM NOT CONNECTED: face recognition will not work";
     }
 
     //out to BodySchema, bufferedPort for no wait and allow describe actions
@@ -484,7 +484,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         iCub->look(TARGET->name());
 
         if (!Network::connect(portToSAM.getName().c_str(), SAMRpc.c_str())) {
-            yWarning() << " SAM NOT CONNECTED: selfTagging will not work";
+            yWarning() << " SAM NOT CONNECTED: face recognition will not work";
         }
         if(portToSAM.getOutputCount()>0) {
             Bottle bToSam, bReplySam;
