@@ -173,6 +173,10 @@ bool Babbling::close() {
     portToABM.interrupt();
     portToABM.close();
 
+    delete leftArmDev;
+    delete rightArmDev;
+    delete headDev;
+
     yInfo() << "Bye!";
 
     return true;
