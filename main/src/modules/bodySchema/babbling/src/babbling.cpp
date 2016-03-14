@@ -161,6 +161,7 @@ bool Babbling::close() {
     cout << "Closing module, please wait ... " <<endl;
 
     leftArmDev->close();
+    rightArmDev->close();
     headDev->close();
 
     portVelocityOut.interrupt();
