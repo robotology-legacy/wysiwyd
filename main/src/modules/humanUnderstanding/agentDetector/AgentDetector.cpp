@@ -280,6 +280,7 @@ bool AgentDetector::close()
     opc->close();
     rfh.close();
     delete opc;
+    delete partner;
 
     return true;
 }
@@ -295,6 +296,7 @@ bool AgentDetector::respond(const Bottle& cmd, Bottle& reply)
         if(cmd.get(1).isString()) {
             reply.addString("ack");
             partner_default_name=cmd.get(1).asString();
+            identities[joint.ID] = partner_default_name;
         } else {
             reply.addString("nack");
         }

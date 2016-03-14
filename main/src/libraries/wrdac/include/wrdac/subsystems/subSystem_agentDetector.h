@@ -57,7 +57,10 @@ public:
         bReq.addString(new_name);
         portRPC.write(bReq, bResp);
 
-        return bResp.get(0).asBool();
+        if(bResp.get(0).asString()=="ack")
+            return true;
+        else
+            return false;
     }
 
     void pause() {

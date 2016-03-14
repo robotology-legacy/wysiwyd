@@ -273,7 +273,9 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->pause();
 
             opc->changeName(e, newName);
-            dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName);
+            if(!dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName)) {
+                yError() << "[SubSystem_agentDetector] Could not change default name of partner";
+            }
 
             dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->resume();
         }
