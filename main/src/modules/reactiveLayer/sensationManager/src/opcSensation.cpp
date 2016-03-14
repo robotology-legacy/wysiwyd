@@ -26,6 +26,9 @@ void OpcSensation::configure()
     opc_has_known_port_name = "/" + moduleName + "/opc_has_known:o"; //This goes to homeostasis
     opc_has_known_port.open(opc_has_known_port_name);
 
+    opc_has_agent_name = "/" + moduleName + "/hasAgent:o"; //This goes to homeostasis
+    opc_has_agent_port.open(opc_has_agent_name);
+
     known_entities_port_name = "/" + moduleName + "/known_entities:o"; //this goes to behaviors
     known_entities_port.open(known_entities_port_name);
 
@@ -77,6 +80,11 @@ void OpcSensation::publish()
     kn.clear();
     kn.append(*res.get(3).asList());
     known_entities_port.write();
+
+    yarp::os::Bottle &has_ag = opc_has_agent_port.prepare();
+    has_ag.clear();
+    has_ag.addInt(int(res.get(4).asInt()));
+    opc_has_agent_port.write();
 
     handleTouch();
 
@@ -131,6 +139,7 @@ Bottle OpcSensation::handleEntities()
 
     bool unknown_obj = false;
     bool known_obj = false;
+    bool agentPresent = false;
     Bottle u_entities, k_entities;
     // Bottle u_partner;
     Bottle ob;
@@ -213,6 +222,10 @@ Bottle OpcSensation::handleEntities()
                 k_entities.addList()=known_entity;           
             }
         }
+        if (entity->entity_type() == "agent") {  // Known entities
+            agentPresent = true;
+                    
+        }
     }
     //if no unknown object was found, return false
 
@@ -223,6 +236,7 @@ Bottle OpcSensation::handleEntities()
     out.addList()=u_entities;
     out.addInt(int(known_obj));
     out.addList()=k_entities;
+    out.addInt(int(agentPresent));
     // out.addList()=u_partner;
     // cout << out.toString()<<endl;
     return out;

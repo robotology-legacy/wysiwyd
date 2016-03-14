@@ -18,11 +18,12 @@ class OpcSensation: public Sensation
 private:
     ICubClient *iCub;
     bool confusion;
-    string moduleName, is_touched_port_name, unknown_entities_port_name, known_entities_port_name, opc_has_unknown_port_name, opc_has_known_port_name; //, show_port_name, known_obj_port_name, friendly_port_name, greeting_port_name;
+    string moduleName, is_touched_port_name, unknown_entities_port_name, known_entities_port_name, opc_has_unknown_port_name, opc_has_known_port_name, opc_has_agent_name; //, show_port_name, known_obj_port_name, friendly_port_name, greeting_port_name;
     yarp::os::BufferedPort<Bottle> unknown_entities_port;
     yarp::os::BufferedPort<Bottle> opc_has_unknown_port;
     yarp::os::BufferedPort<Bottle> known_entities_port;
     yarp::os::BufferedPort<Bottle> opc_has_known_port;
+    yarp::os::BufferedPort<Bottle> opc_has_agent_port;
     yarp::os::BufferedPort<Bottle> is_touched_port;
     // yarp::os::BufferedPort<Bottle> touch_location_port;
     // yarp::os::BufferedPort<Bottle> friendly_port, greeting_port;

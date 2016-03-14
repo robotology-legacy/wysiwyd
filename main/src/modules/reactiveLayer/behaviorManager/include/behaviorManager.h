@@ -13,6 +13,7 @@
 #include "pointingOrder.h"
 #include "pointing.h"
 #include "reactions.h"
+#include "narrate.h"
 
 using namespace std;
 using namespace yarp::os;
