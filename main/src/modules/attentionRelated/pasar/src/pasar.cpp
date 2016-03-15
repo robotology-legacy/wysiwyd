@@ -331,19 +331,19 @@ void PasarModule::saliencyTopDown() {
 
             // If the object is absent:
             // if the lastTimeSeen was more than a threshold, the object dissapeared
-            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (!it.second.o.m_present) && it.second.present;
+            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (it.second.o.m_present!=1.0) && it.second.present;
             if (disappeared){
                 cout << "DISAPPEARED since: " << now - it.second.lastTimeSeen << endl;
             }
 
             // If the object is present:
             // if the lastTimeSeen was more than a threshold, the object appeared
-            appeared = (now - it.second.lastTimeSeen > dthresholdAppear) && (it.second.o.m_present) && !it.second.present;
+            appeared = (now - it.second.lastTimeSeen > dthresholdAppear) && (it.second.o.m_present==1.0) && !it.second.present;
             if (appeared){
                 cout << "APPEARED since: " << now - it.second.lastTimeSeen << endl;
             }
 
-            if (it.second.o.m_present) it.second.lastTimeSeen = now;
+            if (it.second.o.m_present==1.0) it.second.lastTimeSeen = now;
 
             //instantaneous speed/acceleration
             Vector lastPos = presentObjectsLastStep[it.first].o.m_ego_position;
@@ -598,7 +598,7 @@ bool PasarModule::saliencyWaving()
     double dAccelRight;
     bool wavingNow = false;
 
-    if (!ag || !ag->m_present)
+    if (!ag || (ag->m_present!=1.0))
     {
         presentRightHand.first = presentRightHand.second;
         presentLeftHand.first = presentLeftHand.second;
@@ -751,9 +751,8 @@ void PasarModule::initializeMapTiming()
             {
                 Object * ob = dynamic_cast<Object*>(entity);
                 OPCEntities[entity->opc_id()].o = *ob;
-                OPCEntities[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
-                OPCEntities[entity->opc_id()].present = ob->m_present;
-
+                OPCEntities[entity->opc_id()].lastTimeSeen = (ob->m_present==1.0) ? now : now - 10;
+                OPCEntities[entity->opc_id()].present = (ob->m_present==1.0);
             }
         }
     }

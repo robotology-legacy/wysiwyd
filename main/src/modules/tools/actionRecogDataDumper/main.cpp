@@ -102,7 +102,7 @@ public:
                 bAgent.addDouble(agent->m_ego_position[0]);
                 bAgent.addDouble(agent->m_ego_position[1]);
                 bAgent.addDouble(agent->m_ego_position[2]);
-                bAgent.addInt(agent->m_present?1:0);
+                bAgent.addInt(agent->m_present==1.0?1:0);
             }
         }
 
@@ -121,7 +121,7 @@ public:
                     bObject.addDouble(object->m_ego_position[0]);
                     bObject.addDouble(object->m_ego_position[1]);
                     bObject.addDouble(object->m_ego_position[2]);
-                    bObject.addInt(object->m_present?1:0);
+                    bObject.addInt(object->m_present==1.0?1:0);
                 }
             }
         }

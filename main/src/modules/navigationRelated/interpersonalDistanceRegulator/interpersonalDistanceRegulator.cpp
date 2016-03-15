@@ -44,7 +44,7 @@ bool InterpersonalDistanceRegulator::updateModule()
     {
         partner = opc->addOrRetrieveEntity<Agent>("partner");
 
-        if (partner->m_present)
+        if (partner->m_present==1.0)
         {
             yarp::sig::Vector p = partner->m_ego_position;
             double linearSpeed = 0.0;

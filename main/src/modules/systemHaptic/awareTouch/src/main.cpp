@@ -104,7 +104,7 @@ bool AwareTouch::configure(ResourceFinder &rf)
 
     world->addOrRetrieveEntity<Agent>("icub");
     touchLocation = world->addOrRetrieveEntity<Object>("touchLocation");
-    touchLocation->m_present = false;
+    touchLocation->m_present = 0.0;
     world->commit(touchLocation);
     world->addOrRetrieveEntity<Action>("is");
     world->addOrRetrieveEntity<Adjective>("none");
@@ -183,7 +183,7 @@ void AwareTouch::sendOPC(const string &partTouch, int &typeTouch, const Vector& 
    cout<<"Touch Pos:"<<posTouch.toString().c_str()<<endl;
    (touchLocation ->m_ego_position) = posTouch;
    (touchLocation ->m_dimensions) = dimensions;
-   touchLocation->m_present = true;
+   touchLocation->m_present = 1.0;
    world->commit(touchLocation);   // add position of touching
    world->addRelation(Relation("icub","is",gestureSet[typeTouch], "touchLocation"), recordingPeriod);  // add the relation with gesture
 

@@ -57,7 +57,7 @@ public:
     {
         opc->update(cursor);
 
-        if (cursor->m_present)
+        if (cursor->m_present==1.0)
         {
             cout<<"Trying to acquire a calibration point..."<<endl;
             Bottle* bPos = cartesianPort.read(false);

@@ -775,7 +775,7 @@ Bottle abmReasoning::findAllActions(int from)
                 LOCATION->m_dimensions[0] = 0.04;
                 LOCATION->m_dimensions[1] = 0.04;
                 LOCATION->m_dimensions[2] = 0.08;
-                LOCATION->m_present = 1;
+                LOCATION->m_present = 1.0;
                 LOCATION->m_color[0] = 100;
                 LOCATION->m_color[1] = 255;
                 LOCATION->m_color[2] = 0;
@@ -835,7 +835,7 @@ Bottle abmReasoning::findAllActions(int from)
                 LOCATION->m_ego_position[0] = END.first;
                 LOCATION->m_ego_position[1] = END.second;
                 LOCATION->m_ego_position[2] = 0.01;
-                LOCATION->m_present = 1;
+                LOCATION->m_present = 1.0;
                 LOCATION->m_color[0] = 100;
                 LOCATION->m_color[1] = 255;
                 LOCATION->m_color[2] = 0;
@@ -847,7 +847,7 @@ Bottle abmReasoning::findAllActions(int from)
     {
         string  sObject = "dream...";
         RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
-        LOCATION->m_present = 0;
+        LOCATION->m_present = 0.0;
         mentalOPC->commit();
     }
     yInfo() << "\t";
@@ -949,7 +949,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
                     LOCATION->m_dimensions[0] = 0.04;
                     LOCATION->m_dimensions[1] = 0.04;
                     LOCATION->m_dimensions[2] = 0.08;
-                    LOCATION->m_present = 1;
+                    LOCATION->m_present = 1.0;
                     LOCATION->m_color[0] = 100;
                     LOCATION->m_color[1] = 255;
                     LOCATION->m_color[2] = 0;
@@ -984,7 +984,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
                     LOCATION->m_ego_position[0] = END.first;
                     LOCATION->m_ego_position[1] = END.second;
                     LOCATION->m_ego_position[2] = 0.01;
-                    LOCATION->m_present = 1;
+                    LOCATION->m_present = 1.0;
                     LOCATION->m_color[0] = 100;
                     LOCATION->m_color[1] = 255;
                     LOCATION->m_color[2] = 0;
@@ -997,7 +997,7 @@ Bottle abmReasoning::findAllActionsV2(int from)
     {
         string  sObject = "dream...";
         RTObject* LOCATION = mentalOPC->addOrRetrieveEntity<RTObject>(sObject);
-        LOCATION->m_present = 0;
+        LOCATION->m_present = 0.0;
         mentalOPC->commit();
     }
     yInfo() << "\t";
@@ -2967,7 +2967,7 @@ Bottle  abmReasoning::askWordKnowledge(Bottle bInput)
         {
             Object o;
             o.fromBottle((*itE)->asBottle());
-            if (o.m_present)
+            if (o.m_present==1.0)
             {
                 vContext.push_back(o.name());
             }

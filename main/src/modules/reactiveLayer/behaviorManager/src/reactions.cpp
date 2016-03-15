@@ -12,7 +12,7 @@ void Reactions::run(Bottle args/*=Bottle()*/) {
 
     Object* touchLocation = dynamic_cast<Object*>(iCub->opc->getEntity("touchLocation"));
     iCub->opc->update(touchLocation);
-    touchLocation->m_present = true;
+    touchLocation->m_present = 1.0;
     iCub->opc->commit(touchLocation);
 
     iCub->say("Wow");

@@ -338,7 +338,7 @@ void  qRM::mainLoop()
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && (dynamic_cast<Object*>(*it))->m_present)
+            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && (dynamic_cast<Object*>(*it))->m_present==1.0)
             {
                 presentObjects.push_back(dynamic_cast<Object*>(*it));
             }
@@ -392,7 +392,7 @@ void  qRM::mainLoop()
         for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
         {
             //!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && (dynamic_cast<Object*>(*it))->m_present)
+            if (((*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT)) && (dynamic_cast<Object*>(*it))->m_present==1.0)
             {
                 presentObjects.push_back(dynamic_cast<Object*>(*it));
             }
@@ -619,7 +619,7 @@ bool qRM::populateOpc(){
     Agent* agent = iCub->opc->addOrRetrieveEntity<Agent>("Carol");
     agent->m_ego_position[0] = -1.4;
     agent->m_ego_position[2] = 0.60;
-    agent->m_present = 1;
+    agent->m_present = 1.0;
     agent->m_color[0] = 200;
     agent->m_color[1] = 50;
     agent->m_color[2] = 50;
@@ -1303,7 +1303,7 @@ Bottle qRM::executeAction(Bottle bInput)
                 else if (EntToGrasp->isType("object"))
                 {
                     Object *toGrasp = dynamic_cast<Object*>(iCub->opc->getEntity(sObject));
-                    if (toGrasp->m_present)
+                    if (toGrasp->m_present==1.0)
                     {
                         yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
                         iCub->getABMClient()->sendActivity("action",
@@ -1331,7 +1331,7 @@ Bottle qRM::executeAction(Bottle bInput)
                 else if (EntToGrasp->isType("RTObject"))
                 {
                     RTObject *toGrasp = dynamic_cast<RTObject*>(iCub->opc->getEntity(sObject));
-                    if (toGrasp->m_present)
+                    if (toGrasp->m_present==1.0)
                     {
                         yarp::sig::Vector coordToGrasp = toGrasp->m_ego_position;
                         iCub->getABMClient()->sendActivity("action",
@@ -1497,7 +1497,7 @@ void qRM::populateABMGive(int iRepetition)
         ag1->m_ego_position[0] = robert_X;
         ag1->m_ego_position[1] = robert_Y;
         ag1->m_ego_position[2] = 0.30;
-        ag1->m_present = 1;
+        ag1->m_present = 1.0;
         ag1->m_color[0] = Random::uniform(0, 180);
         ag1->m_color[1] = Random::uniform(0, 80);
         ag1->m_color[2] = Random::uniform(180, 250);
@@ -1509,7 +1509,7 @@ void qRM::populateABMGive(int iRepetition)
         ag2->m_ego_position[0] = larry_X;
         ag2->m_ego_position[1] = larry_Y;
         ag2->m_ego_position[2] = 0.30;
-        ag2->m_present = 1;
+        ag2->m_present = 1.0;
         ag2->m_color[0] = Random::uniform(100, 180);
         ag2->m_color[1] = Random::uniform(80, 180);
         ag2->m_color[2] = Random::uniform(0, 80);
@@ -1519,7 +1519,7 @@ void qRM::populateABMGive(int iRepetition)
         obj->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
         obj->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
         obj->m_ego_position[2] = 0.0;
-        obj->m_present = 1;
+        obj->m_present = 1.0;
         obj->m_color[0] = Random::uniform(0, 80);
         obj->m_color[1] = Random::uniform(80, 180);
         obj->m_color[2] = Random::uniform(180, 250);
@@ -1612,7 +1612,7 @@ void qRM::populateABMGive(int iRepetition)
         ag1->m_ego_position[0] = robert_X;
         ag1->m_ego_position[1] = robert_Y;
         ag1->m_ego_position[2] = 0.30;
-        ag1->m_present = 1;
+        ag1->m_present = 1.0;
         ag1->m_color[0] = Random::uniform(0, 180);
         ag1->m_color[1] = Random::uniform(0, 80);
         ag1->m_color[2] = Random::uniform(180, 250);
@@ -1624,7 +1624,7 @@ void qRM::populateABMGive(int iRepetition)
         ag2->m_ego_position[0] = larry_X;
         ag2->m_ego_position[1] = larry_Y;
         ag2->m_ego_position[2] = 0.30;
-        ag2->m_present = 1;
+        ag2->m_present = 1.0;
         ag2->m_color[0] = Random::uniform(100, 180);
         ag2->m_color[1] = Random::uniform(80, 180);
         ag2->m_color[2] = Random::uniform(0, 80);
@@ -1634,7 +1634,7 @@ void qRM::populateABMGive(int iRepetition)
         obj->m_ego_position[0] = larry_X + 0.1 * Random::uniform();
         obj->m_ego_position[1] = larry_Y + 0.1 * Random::uniform();
         obj->m_ego_position[2] = 0.0;
-        obj->m_present = 1;
+        obj->m_present = 1.0;
         obj->m_color[0] = Random::uniform(0, 80);
         obj->m_color[1] = Random::uniform(80, 180);
         obj->m_color[2] = Random::uniform(180, 250);
@@ -1748,7 +1748,7 @@ void qRM::populateABMTake(int iRepetition)
         ag1->m_ego_position[0] = XAG;
         ag1->m_ego_position[1] = YAG;
         ag1->m_ego_position[2] = 0.30;
-        ag1->m_present = 1;
+        ag1->m_present = 1.0;
         ag1->m_color[0] = Random::uniform(0, 180);
         ag1->m_color[1] = Random::uniform(0, 80);
         ag1->m_color[2] = Random::uniform(180, 250);
@@ -1766,7 +1766,7 @@ void qRM::populateABMTake(int iRepetition)
         obj->m_ego_position[0] = xObj;
         obj->m_ego_position[1] = yObj;
         obj->m_ego_position[2] = 0.0;
-        obj->m_present = 1;
+        obj->m_present = 1.0;
         obj->m_color[0] = Random::uniform(0, 80);
         obj->m_color[1] = Random::uniform(80, 180);
         obj->m_color[2] = Random::uniform(180, 250);

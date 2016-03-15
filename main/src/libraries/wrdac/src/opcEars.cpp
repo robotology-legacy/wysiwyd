@@ -157,7 +157,7 @@ Bottle opcEars::insertEntity(Entity *A)
         Object OA;
         OA.fromBottle(bA);
 
-        if (OA.m_present)
+        if (OA.m_present==1.0)
             osEntity << " , TRUE , '{ ";
         else
             osEntity << " , FALSE , '{ ";
@@ -187,7 +187,7 @@ Bottle opcEars::insertEntity(Entity *A)
         AgA.fromBottle(bA);
         bool fBelief = false;
 
-        if (AgA.m_present)
+        if (AgA.m_present==1.0)
             osEntity << " , TRUE , '{ ";
         else
             osEntity << " , FALSE , '{ ";
@@ -239,7 +239,7 @@ Bottle opcEars::insertEntity(Entity *A)
         RTObject RTA;
         RTA.fromBottle(bA);
 
-        if (RTA.m_present)
+        if (RTA.m_present==1.0)
             osEntity << " , TRUE , '{ ";
         else
             osEntity << " , FALSE , '{ ";
@@ -828,7 +828,9 @@ Bottle opcEars::getDiffObject(Object *AgA, Object *AgB)
     {
         bTemp.clear();
         bTemp.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-        bTemp.addInt(AgB->m_present - AgA->m_present);
+        int tmpA=AgA->m_present==1.0?1:0;
+        int tmpB=AgB->m_present==1.0?1:0;
+        bTemp.addInt(tmpB-tmpA);
         bOutput.addList() = bTemp;
     }
 
