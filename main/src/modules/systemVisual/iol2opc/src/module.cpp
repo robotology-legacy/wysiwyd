@@ -709,7 +709,7 @@ void IOL2OPCBridge::updateOPC()
             Object *obj=opc->addOrRetrieveEntity<Object>(object);
 
             // garbage collection
-            if (it->second.isDead())
+            if (it->second.isDead() && (obj->m_present!=0.0))
             {
                 obj->m_present=0.5;
                 continue;

@@ -260,7 +260,7 @@ bool attentionSelectorModule::updateModule()
             are->track(newTarget);
     }
     else if (trackedObject != "none")
-    {        
+    {
         if (Object *oTracked=dynamic_cast<Object*>(opc->getEntity(trackedObject)))
         {
             yInfo() << "Tracking locked on object " << trackedObject << ".";
@@ -320,13 +320,13 @@ void attentionSelectorModule::exploring()
             timeLastSwitch = Time::now();
         }
     }
-    
+
     if (trackedObject!="none")
     {
         Object *obj=dynamic_cast<Object*>(opc->getEntity(trackedObject));
         if (obj->m_present!=1.0)
         {
-            are->look(obj->m_ego_position,Bottle("wait")); 
+            are->look(obj->m_ego_position,Bottle("wait"));
             obj=dynamic_cast<Object*>(opc->getEntity(obj->name(),true));
             if (obj->m_present!=1.0)
             {
