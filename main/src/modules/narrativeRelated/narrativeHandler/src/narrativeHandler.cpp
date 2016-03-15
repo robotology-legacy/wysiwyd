@@ -346,7 +346,7 @@ myTimeStruct  narrativeHandler::string2Time(string sTime)
 
     myTimeStruct mtsOut;
     mtsOut.m_tm = tOutput;
-    mtsOut.iMilliSec = atoi(sMS.c_str()) * pow(10, 3 - sMS.size());
+    mtsOut.iMilliSec = long(atoi(sMS.c_str()) * pow(10, 3 - sMS.size()));
 
     return mtsOut;
 }

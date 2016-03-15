@@ -148,7 +148,7 @@ namespace wysiwyd{
             *   From one grxml grammar, return the first sentence non-empty recognized
             *   can last for several timeout (by default 50
             */
-            yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50, bool isEars = false)
+            yarp::os::Bottle recogFromGrammarLoop(std::string sInput, int iLoop = 50, bool isEars = false, bool forwardABM = true)
             {
                 if (!yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
                     if (!yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc")){
@@ -226,7 +226,7 @@ namespace wysiwyd{
 
 
                                 // send the result of recognition to the ABM
-                                if (ABMconnected)
+                                if (ABMconnected && forwardABM)
                                 {
                                     std::list<std::pair<std::string, std::string> > lArgument;
                                     lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
