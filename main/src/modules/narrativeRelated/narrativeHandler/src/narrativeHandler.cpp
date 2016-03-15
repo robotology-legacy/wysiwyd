@@ -48,7 +48,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
     iThresholdSentence = rf.check("iThresholdSentence", Value(6)).asInt();
-    int iMinInstance = rf.check("instanceStart", Value(0)).asInt();
+    iMinInstance = rf.check("instanceStart", Value(0)).asInt();
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
 
@@ -82,23 +82,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-    findStories(iMinInstance);
-    cout << endl;
-    initializeStories();
 
-    for (auto P : listStories){
-        P.displayNarration();
-    }
-    story target = listStories[listStories.size() - 1];
-    compareNarration(target);
-    tellingStoryFromMeaning(target);
-
-    addNarrationToStory(target, true);
 
     //    cout << iCub->getLRH()->SentenceToMeaning("if I could ask you to give it to me") << endl;
     //    cout << iCub->getLRH()->SentenceToMeaning("then you would give it to me") << endl;
 
-    return false;
+    return true;
 }
 
 
@@ -132,16 +121,33 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         rpcPort.reply(reply);
         return false;
     }
-    else if (command.get(0).asString() == "setNarrator"){
-        if (command.size() == 2){
-            narrator = command.get(1).asString();
-            reply.addString("narrator set to " + narrator);
-        }
-        else{
-            reply.addString("error in narrativeHandler::setNarrator wrong size of input: should be: (setNarrator narrator)");
-        }
-    }
-    else{
+	else if (command.get(0).asString() == "setNarrator"){
+		if (command.size() == 2){
+			narrator = command.get(1).asString();
+			reply.addString("narrator set to " + narrator);
+		}
+		else{
+			reply.addString("error in narrativeHandler::setNarrator wrong size of input: should be: (setNarrator narrator)");
+		}
+	}
+	else if (command.get(0).asString() == "askNarrate"){
+		if (askNarrate()){
+			reply.addString("ack");
+		}
+		else{
+			reply.addString("nack");
+		}
+	}
+	else if (command.get(0).asString() == "narrate"){
+		if (narrate()){
+			reply.addString("ack");
+		}
+		else{
+			reply.addString("nack");
+		}
+	}
+
+	else{
         reply.addString(helpMessage);
     }
 
@@ -179,6 +185,8 @@ void narrativeHandler::findStories(int iInstance)
 
         int Id = atoi(bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
         int Id2 = atoi(bAllInstances.get(j).asList()->get(0).toString().c_str());
+
+		iMinInstance = Id2;
 
         osRequest.str("");
         osRequest << "SELECT time, begin FROM main WHERE instance = " << Id;
@@ -225,7 +233,6 @@ void narrativeHandler::findStories(int iInstance)
 
     int ii = 1;
 
-    cout << listStories.size() << " stories found" << endl;
     for (auto& itSt : listStories)
     {
         cout << "Story " << ii << ": ";
@@ -387,7 +394,10 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 void narrativeHandler::initializeStories()
 {
     cout << "begin initializating stories ";
-    for (auto& itSt : listStories){
+    
+	vector<int>    toDelete; // vector of the stories to delete from the list.
+	int iSto = 0;
+	for (auto& itSt : listStories){
 
         itSt.vEvents.clear();
         ostringstream osRequest;
@@ -428,9 +438,21 @@ void narrativeHandler::initializeStories()
         cout << ".";
 
         createNarration(itSt);
-
+		if (itSt.sentenceStory.size() < 2){
+			toDelete.push_back(iSto);
+		}
+		iSto++;
     }
-    cout << endl;
+
+	for (auto ii : toDelete){
+		listStories[ii] = listStories.back();
+		listStories.pop_back();
+	}
+
+	cout << "End of initialisation of stories" << endl;
+	cout << listStories.size() << " stories found" << endl;
+	cout << endl;
+
 }
 
 
@@ -1146,17 +1168,57 @@ string narrativeHandler::adaptMeaning(string meaning){
 }
 
 
-void narrativeHandler::tellingStoryFromMeaning(story target){
+bool narrativeHandler::tellingStoryFromMeaning(story target){
 
-    cout << "start telling story from meaning" << endl;
+    yInfo() << " start telling story from meaning";
     vector<string>    tmpStory;
     for (auto mean : target.meaningStory){
         tmpStory.push_back(iCub->getLRH()->meaningToSentence(mean));
     }
+	yInfo() << " tmpStory size is: " << tmpStory.size();
+	if (tmpStory.size() < 2)
+	{
+		return false;
+	}
 
 
     for (auto sen : tmpStory){
         cout << "\t\t" << sen << endl;
     }
-
+	return true;
 }
+
+bool narrativeHandler::narrate(){
+	
+	findStories(iMinInstance);
+	initializeStories();
+
+	story target = listStories[listStories.size() - 1];
+
+	target.displayNarration();
+
+	yInfo(" Narration finished.");
+	
+	return true;
+}
+
+bool narrativeHandler::askNarrate(){
+
+	findStories(iMinInstance);
+	initializeStories();
+	
+	addNarrationToStory(listStories[listStories.size() - 1], true);
+	
+	yInfo() << " size of narration of story: " << listStories[listStories.size() - 1].meaningStory.size();
+	yInfo() << "telling:";
+	tellingStoryFromMeaning(listStories[listStories.size() - 1]);
+	yInfo("display");
+	listStories[listStories.size() - 1].displayNarration();
+
+
+
+	return true;
+}
+
+
+

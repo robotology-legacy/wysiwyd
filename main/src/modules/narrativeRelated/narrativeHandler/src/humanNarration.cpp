@@ -27,7 +27,7 @@ using namespace std;
 *  Add through the speechRecog a human spoken narration to an existing story
 *
 */
-void narrativeHandler::addNarrationToStory(story target, bool overWrite){
+void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
 
     if (target.meaningStory.size() != 0){
         if (overWrite){
@@ -85,6 +85,7 @@ void narrativeHandler::addNarrationToStory(story target, bool overWrite){
         cout << phrase << endl;
     }
 
+	target.humanNarration = vNewStory;
 
 }
 
