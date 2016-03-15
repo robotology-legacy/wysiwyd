@@ -65,6 +65,7 @@
 #define EFAA_OPC_OBJECT_SALIENCY            ("saliency")
 #define EFAA_OPC_OBJECT_CURID_TAG           ("cur_id")
 
+#define EFAA_OPC_OBJECT_ROBOTPOS_TAG        ("position_3d")
 #define EFAA_OPC_OBJECT_ROBOTPOSX_TAG       ("robot_position_x")
 #define EFAA_OPC_OBJECT_ROBOTPOSY_TAG       ("robot_position_y")
 #define EFAA_OPC_OBJECT_ROBOTPOSZ_TAG       ("robot_position_z")
