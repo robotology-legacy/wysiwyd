@@ -54,7 +54,7 @@ namespace wysiwyd {
             yarp::os::RpcClient cmdPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
-            yarp::os::RpcClient d2kPort;
+            yarp::os::RpcClient calibPort;
 
             std::string lastlyUsedHand;
 
@@ -98,16 +98,16 @@ namespace wysiwyd {
                         hand=handToUse;
                 }
 
-                // apply depth2kin correction
-                if (d2kPort.getOutputCount()>0)
+                // apply 3D correction
+                if (calibPort.getOutputCount()>0)
                 {
                     yarp::os::Bottle cmd,reply;
-                    cmd.addString("getPoint");
-                    cmd.addString(hand.c_str());
+                    cmd.addString("get_location_nolook");
+                    cmd.addString(hand+"-"+"iol");
                     cmd.addDouble(target[0]);
                     cmd.addDouble(target[1]);
                     cmd.addDouble(target[2]);
-                    d2kPort.write(cmd,reply);
+                    calibPort.write(cmd,reply);
                     target[0]=reply.get(1).asDouble();
                     target[1]=reply.get(2).asDouble();
                     target[2]=reply.get(3).asDouble();
@@ -162,10 +162,10 @@ namespace wysiwyd {
                 ret&=yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
                 ret&=yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
 
-                if (yarp::os::Network::connect(d2kPort.getName(),"/depth2kin/rpc"))
-                    yInfo()<<"ARE connected to depth2kin";
+                if (yarp::os::Network::connect(calibPort.getName(),"/iolReachingCalibration/rpc"))
+                    yInfo()<<"ARE connected to calibrator";
                 else
-                    yWarning()<<"ARE didn't connect to depth2kin";
+                    yWarning()<<"ARE didn't connect to calibrator";
 
                 return ret;
             }
@@ -183,7 +183,7 @@ namespace wysiwyd {
                 cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
                 rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
                 getPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/get:io").c_str());
-                d2kPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/d2k:io").c_str());
+                calibPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/calib:io").c_str());
                 m_type = SUBSYSTEM_ARE;
                 lastlyUsedHand="";
             }
@@ -196,7 +196,7 @@ namespace wysiwyd {
                 cmdPort.interrupt();
                 rpcPort.interrupt();
                 getPort.interrupt();
-                d2kPort.interrupt();
+                calibPort.interrupt();
 
                 SubABM->Close();
                 SubATT->Close();
@@ -204,7 +204,7 @@ namespace wysiwyd {
                 cmdPort.close();
                 rpcPort.close();
                 getPort.close();
-                d2kPort.close();
+                calibPort.close();
             }
 
             /********************************************************************************/
