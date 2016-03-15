@@ -53,7 +53,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     }
     opc->checkout();
     partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
-    partner->m_present = false;
+    partner->m_present = 0.0;
     opc->commit(partner);
 
     //Retrieve the calibration matrix from RFH
@@ -500,9 +500,9 @@ bool AgentDetector::updateModule()
         //Clear the previous agents
         //for(map<int, Agent*>::iterator pA=identities.begin(); pA!=identities.end() ; pA++)
         //{
-        //    pA->second->m_present = false;
+        //    pA->second->m_present = 0.0;
         //}  
-        //partner->m_present = false;
+        //partner->m_present = 0.0;
 
         // check if last apparition was more than dThreshlodDisaparition ago
 
@@ -551,7 +551,7 @@ bool AgentDetector::updateModule()
                         //Retrieve this player in OPC or create if does not exist
                         opc->checkout();
                         partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
-                        partner->m_present = true;
+                        partner->m_present = 1.0;
 
                         // reset the timing.
                         dTimingLastApparition = clock();
@@ -566,7 +566,7 @@ bool AgentDetector::updateModule()
                                 yError() << "SHIT specificAgent";
                             } else {
                                 identities[p->ID] = specificAgent->name();
-                                specificAgent->m_present = true;
+                                specificAgent->m_present = 1.0;
                                 yInfo() << " specific agent is commited";
                                 opc->commit(specificAgent);
                                 yInfo() << " specific agent is commited done";
@@ -623,7 +623,7 @@ bool AgentDetector::updateModule()
             {
                 opc->checkout();
                 partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
-                partner->m_present = false;
+                partner->m_present = 0.0;
                 opc->commit(partner);
             }
             else

@@ -200,7 +200,7 @@ bool LRH::populateOPC(){
 
     //vGoal is : -0.350000   0.200000    0.001600
     obj1->m_ego_position = x;
-    obj1->m_present = 1;
+    obj1->m_present = 1.0;
     obj1->m_dimensions = dimensionObject;
     obj1->m_color = color;
 
@@ -213,7 +213,7 @@ bool LRH::populateOPC(){
     x[2] = 0.0016; //z position
     //vGoal is : -0.350000   0.200000    0.001600
     obj2->m_ego_position = x;
-    obj2->m_present = 1;
+    obj2->m_present = 1.0;
     obj2->m_dimensions = dimensionObject;
     obj2->m_color = color;
 
@@ -226,7 +226,7 @@ bool LRH::populateOPC(){
     x[2] = 0.0016;
     //vGoal is : -0.350000   0.200000    0.001600
     obj3->m_ego_position = x;
-    obj3->m_present = 1;
+    obj3->m_present = 1.0;
     obj3->m_dimensions = dimensionObject;
     obj3->m_color = color;
 
@@ -239,14 +239,14 @@ bool LRH::populateOPC(){
     x[2] = 0.0026;
     //vGoal is : -0.350000   0.200000    0.001600
     obj4->m_ego_position = x;
-    obj4->m_present = 1;
+    obj4->m_present = 1.0;
     obj4->m_dimensions = dimensionObject;
     obj4->m_color = color;
 
     Agent* coco = iCub->opc->addOrRetrieveEntity<Agent>("Michel");
     coco->m_ego_position[0] = -1.2;
     coco->m_ego_position[2] = 0.60;
-    coco->m_present = 1;
+    coco->m_present = 1.0;
     iCub->opc->commit();
 
     return true;
@@ -422,7 +422,7 @@ bool LRH::AREactions(vector<string> seq)
 
     bool success = true;
 
-    if (rtObject->m_present)
+    if (rtObject->m_present==1.0)
     {
 
         // GRASP BEGIN
@@ -541,7 +541,8 @@ bool LRH::spatialRelation(string sObjectFocus)
         {
             Object rto;
             rto.fromBottle((*itE)->asBottle());
-            if (rto.m_present)PresentRtoBefore.push_back(rto);
+            if (rto.m_present==1.0)
+                PresentRtoBefore.push_back(rto);
         }
     }
 

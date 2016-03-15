@@ -229,7 +229,7 @@ bool ReactiveLayer::handleTactile()
         //Look at the place where it has been touched
         Object* touchLocation = dynamic_cast<Object*>(iCub->opc->getEntity("touchLocation"));
         iCub->opc->update(touchLocation);
-        touchLocation->m_present = true;
+        touchLocation->m_present = 1.0;
         iCub->opc->commit(touchLocation);
 
         iCub->look("touchLocation");//r.complement_place().c_str());
@@ -257,7 +257,7 @@ bool ReactiveLayer::handleTactile()
         iCub->commitAgent();
 
         iCub->opc->removeRelation(r);
-        touchLocation->m_present = false;
+        touchLocation->m_present = 0.0;
         iCub->opc->commit(touchLocation);
         iCub->look("partner");
         iCub->lookAround();
@@ -283,7 +283,7 @@ bool ReactiveLayer::handleSalutation(bool& someoneIsPresent)
         Agent* currentAgent = dynamic_cast<Agent*>(*currentAgentIt);
 
 
-        if (currentAgent->name() != "icub" && currentAgent->m_present)
+        if (currentAgent->name() != "icub" && (currentAgent->m_present==1.0))
         {
             someoneIsPresent = true;
             string currentPartner = currentAgent->name();
@@ -378,7 +378,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 string name = agentList->get(d).asString().c_str();
                 Agent* agent = iCub->opc->addOrRetrieveAgent(name);
-                agent->m_present = false;
+                agent->m_present = 0.0;
                 iCub->opc->commit(agent);
             }
         }
@@ -390,7 +390,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 string name = objectList->get(d).asString().c_str();
                 Object* o = iCub->opc->addOrRetrieveObject(name);
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }
@@ -402,7 +402,7 @@ void ReactiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 string name = rtobjectList->get(d).asString().c_str();
                 RTObject* o = iCub->opc->addOrRetrieveRTObject(name);
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }

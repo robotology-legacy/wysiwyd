@@ -116,7 +116,7 @@ void Reactable2OPC::loadObjectsDatabase(ResourceFinder& rf)
         o->m_color[1] = bColor->get(1).asDouble();
         o->m_color[2] = bColor->get(2).asDouble();
 
-        o->m_present = false;
+        o->m_present = 0.0;
         w->commit(o);
         //cout<<o->toString()<<endl;
     }
@@ -231,7 +231,7 @@ void Reactable2OPC::addTuioObject(TuioObject *tobj) {
         o->m_ego_position[2] = icubPos[2] + idOffsets[tobj->getSymbolID()][2];
     }
 
-    o->m_present = true;
+    o->m_present = 1.0;
     o->m_ego_orientation[0] = 0.0;
     o->m_ego_orientation[1] = 0.0;
     o->m_ego_orientation[2] = tobj->getAngle();
@@ -262,7 +262,7 @@ void Reactable2OPC::removeTuioObject(TuioObject *tobj) {
     string objectName = idMap[tobj->getSymbolID()];
     RTObject *o = dynamic_cast<RTObject*>(w->getEntity(objectName));
     if(o) {
-        o->m_present = false;
+        o->m_present = 0.0;
         w->commit(o);
     }
 }
@@ -299,7 +299,7 @@ void Reactable2OPC::addTuioCursor(TuioCursor *tcur) {
         o->m_ego_position[2] = icubPos[2];
     }
 
-    o->m_present = true;
+    o->m_present = 1.0;
     o->m_ego_orientation[0] = 0.0;
     o->m_ego_orientation[1] = 0.0;
     o->m_ego_orientation[2] = 0.0;
@@ -328,7 +328,7 @@ void Reactable2OPC::removeTuioCursor(TuioCursor *tcur) {
     curName<<"cursor_"<<tcur->getCursorID();
     RTObject *o = dynamic_cast<RTObject*>(w->getEntity(curName.str()));
     if(o) {
-        o->m_present = false;
+        o->m_present = 0.0;
         w->commit(o);
     }
 }
