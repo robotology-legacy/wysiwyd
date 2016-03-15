@@ -56,7 +56,7 @@ bool AdaptiveLayer::handleGesture()
     bool gotSignal = false;
     string humanName = "partner";
     Agent* partner = dynamic_cast<Agent*>(iCub->opc->getEntity(humanName));
-    if (partner->m_present)
+    if (partner->m_present==1.0)
     {
 
         //Check if the human did a particular gesture
@@ -434,7 +434,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 string name = agentList->get(d).asString().c_str();
                 Agent* agent = iCub->opc->addOrRetrieveEntity<Agent>(name);
-                agent->m_present = false;
+                agent->m_present = 0.0;
                 iCub->opc->commit(agent);
             }
         }
@@ -446,7 +446,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 string name = objectList->get(d).asString().c_str();
                 Object* o = iCub->opc->addOrRetrieveEntity<Object>(name);
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }
@@ -458,7 +458,7 @@ void AdaptiveLayer::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 string name = rtobjectList->get(d).asString().c_str();
                 RTObject* o = iCub->opc->addOrRetrieveEntity<RTObject>(name);
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }

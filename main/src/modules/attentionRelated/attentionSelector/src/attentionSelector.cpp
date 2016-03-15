@@ -18,12 +18,15 @@
 * Public License for more details
 */
 
+#include <yarp/math/Math.h>
+
 #include "attentionSelector.h"
 #include "wrdac/subsystems/subSystem_ARE.h"
 
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
+using namespace yarp::math;
 using namespace wysiwyd::wrdac;
 
 /************************************************************************/
@@ -199,9 +202,16 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
 }
 
 
-/***************************************************************************/
-bool attentionSelectorModule::updateModule() {
+/************************************************************************/
+double attentionSelectorModule::getPeriod()
+{
+    return 0.01;
+}
 
+
+/***************************************************************************/
+bool attentionSelectorModule::updateModule()
+{
     if (!opc->isConnected())
         if (!opc->connect("OPC"))
             return true;
@@ -211,42 +221,25 @@ bool attentionSelectorModule::updateModule() {
     presentObjects.clear();
     for (auto& entity : entities)
     {
-        if (entity->isType(EFAA_OPC_ENTITY_ACTION)) {
+        if (entity->isType(EFAA_OPC_ENTITY_ACTION))
             yDebug() << "Ignoring relation...";
-        }
         else
         {
-            if (entity->name() == "icub") {
+            if (entity->name() == "icub")
                 icub = dynamic_cast<Agent*>(entity);
-            } else {
-                ////!!! ONLY RT_OBJECT and AGENTS ARE TRACKED !!!
-                //if ( ( (*it)->isType(EFAA_OPC_ENTITY_RTOBJECT) || (*it)->isType(EFAA_OPC_ENTITY_AGENT) ) && (dynamic_cast<Object*>(*it))->m_present )
-                //{
-                //    //yDebug() << "push back " << (*it)->name() << *it;
-                //    presentObjects.push_back(dynamic_cast<Object*>(*it));
-                //}
-                //yDebug() << "object name is : " << dynamic_cast<Object*>(*it)->name() << " with type " << dynamic_cast<Object*>(*it)->entity_type() ;
-                //yDebug() << "Check " << (*it)->isType(EFAA_OPC_ENTITY_OBJECT) ;
-                //yDebug() << "Position = {" <<  (dynamic_cast<Object*>(*it))->m_ego_position[0] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[1] << ", " << (dynamic_cast<Object*>(*it))->m_ego_position[2] << "}" ;
-                // EVERY OBJECT CAN BE TRACKED, INCLUDE ABSENT OBJECT ONL IF SALIENCY IS NOT NUL AND OBJECT NOT IN 0 0 0
-                if ((entity->isType(EFAA_OPC_ENTITY_OBJECT) || entity->isType(EFAA_OPC_ENTITY_RTOBJECT) || entity->isType(EFAA_OPC_ENTITY_AGENT)))
+            else
+            {
+                if ((entity->isType(EFAA_OPC_ENTITY_OBJECT)   ||
+                     entity->isType(EFAA_OPC_ENTITY_RTOBJECT) ||
+                     entity->isType(EFAA_OPC_ENTITY_AGENT)))
                 {
-                    if (!( dynamic_cast<Object*>(entity)->m_ego_position[0] == 0.0 && dynamic_cast<Object*>(entity)->m_ego_position[1] == 0.0 && dynamic_cast<Object*>(entity)->m_ego_position[2] == 0.0))
+                    Object *obj=dynamic_cast<Object*>(entity);
+                    if (norm(obj->m_ego_position)>0.0)
                     {
-                        if ((dynamic_cast<Object*>(entity))->m_present)
-                        {
-                            //yDebug() << "push back (present) " << (*it)->name() ;
-                            presentObjects.push_back(dynamic_cast<Object*>(entity)->name());
-                        }
-                        else if ((dynamic_cast<Object*>(entity))->m_saliency > 0.0)
-                        {
-                            //yDebug() << "push back (saliency) " << (*it)->name() ;
-                            presentObjects.push_back(dynamic_cast<Object*>(entity)->name());
-                        }
+                        if ((obj->m_present>0.0) || (obj->m_saliency>0.0))
+                            presentObjects.push_back(obj->name());
                     }
                 }
-
-
             }
         }
     }
@@ -254,7 +247,7 @@ bool attentionSelectorModule::updateModule() {
     if (icub == NULL)
         icub = opc->addOrRetrieveEntity<Agent>("icub");
 
-    if (presentObjects.size() <= 0)
+    if (presentObjects.size()<=0)
         yWarning() << "Unable to get any lookable entity from OPC";
     else if (autoSwitch)
         exploring();
@@ -276,15 +269,12 @@ bool attentionSelectorModule::updateModule() {
                 are->track(newTarget);
         }
     }
+
     return true;
 }
 
 
 /************************************************************************/
-double attentionSelectorModule::getPeriod() {
-    return 0.01;
-}
-
 bool attentionSelectorModule::isFixationPointSafe(const Vector &fp)
 {
     if (fp[0] < -0.015)
@@ -293,14 +283,16 @@ bool attentionSelectorModule::isFixationPointSafe(const Vector &fp)
         return false;
 }
 
-/************************************************************************/
-void attentionSelectorModule::exploring() {
 
-    double maxSalience = 0;
+/************************************************************************/
+void attentionSelectorModule::exploring()
+{
+    double maxSalience = 0.0;
     string nameTrackedObject = "none";
-    if (presentObjects.size() == 0)
+    if (presentObjects.size()==0)
     {
-        aState = s_exploring; return;
+        aState = s_exploring;
+        return;
     }
 
     for (auto& presentObject : presentObjects)
@@ -326,6 +318,21 @@ void attentionSelectorModule::exploring() {
             trackedObject = presentObjects[rndID];
             yInfo() << "Now track object " << rndID << trackedObject;
             timeLastSwitch = Time::now();
+        }
+    }
+    
+    if (trackedObject!="none")
+    {
+        Object *obj=dynamic_cast<Object*>(opc->getEntity(trackedObject));
+        if (obj->m_present!=1.0)
+        {
+            are->look(obj->m_ego_position,Bottle("wait")); 
+            obj=dynamic_cast<Object*>(opc->getEntity(obj->name(),true));
+            if (obj->m_present!=1.0)
+            {
+                obj->m_present=0.0;
+                opc->commit();
+            }
         }
     }
 }

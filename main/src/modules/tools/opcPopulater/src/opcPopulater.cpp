@@ -156,7 +156,7 @@ bool opcPopulater::populateEntityRandom(Bottle bInput){
         agent->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.5;
         agent->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         agent->m_ego_position[2] = 0.60;
-        agent->m_present = 1;
+        agent->m_present = 1.0;
         agent->m_color[0] = Random::uniform(0, 80);
         agent->m_color[1] = Random::uniform(180, 250);
         agent->m_color[2] = Random::uniform(80, 180);
@@ -171,7 +171,7 @@ bool opcPopulater::populateEntityRandom(Bottle bInput){
         obj->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.2;
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         obj->m_ego_position[2] = 0.20;
-        obj->m_present = 1;
+        obj->m_present = 1.0;
         obj->m_color[0] = Random::uniform(100, 180);
         obj->m_color[1] = Random::uniform(0, 80);
         obj->m_color[2] = Random::uniform(180, 250);
@@ -185,7 +185,7 @@ bool opcPopulater::populateEntityRandom(Bottle bInput){
         RTObject* obj = iCub->opc->addOrRetrieveEntity<RTObject>(sName);
         obj->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.2;
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
-        obj->m_present = 1;
+        obj->m_present = 1.0;
         obj->m_color[0] = Random::uniform(180, 250);
         obj->m_color[1] = Random::uniform(100, 180);
         obj->m_color[2] = Random::uniform(0, 80);
@@ -217,7 +217,7 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         agent->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.5;
         agent->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         agent->m_ego_position[2] = 0.60;
-        agent->m_present = 1;
+        agent->m_present = 1.0;
         agent->m_color[0] = Random::uniform(0, 80);
         agent->m_color[1] = Random::uniform(180, 250);
         agent->m_color[2] = Random::uniform(80, 180);
@@ -232,7 +232,7 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         obj->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.2;
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
         obj->m_ego_position[2] = 0.20;
-        obj->m_present = 1;
+        obj->m_present = 1.0;
         obj->m_color[0] = Random::uniform(100, 180);
         obj->m_color[1] = Random::uniform(0, 80);
         obj->m_color[2] = Random::uniform(180, 250);
@@ -246,7 +246,7 @@ bool opcPopulater::addUnknownEntity(Bottle bInput){
         RTObject* obj = iCub->opc->addEntity<RTObject>(sName);
         obj->m_ego_position[0] = (-1.5) * (Random::uniform()) - 0.2;
         obj->m_ego_position[1] = (2) * (Random::uniform()) - 1;
-        obj->m_present = 1;
+        obj->m_present = 1.0;
         obj->m_color[0] = Random::uniform(180, 250);
         obj->m_color[1] = Random::uniform(100, 180);
         obj->m_color[2] = Random::uniform(0, 80);
@@ -451,7 +451,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     Interlocutor->m_ego_position[0] = XInterlocutor;
     Interlocutor->m_ego_position[1] = YInterlocutor;
     Interlocutor->m_ego_position[2] = ZInterlocutor;
-    Interlocutor->m_present = 1;
+    Interlocutor->m_present = 1.0;
     Interlocutor->m_color[0] = Random::uniform(0, 80);
     Interlocutor->m_color[1] = Random::uniform(180, 250);
     Interlocutor->m_color[2] = Random::uniform(80, 180);
@@ -460,7 +460,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     ObjStory->m_ego_position[0] = XInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
     ObjStory->m_ego_position[1] = YInterlocutor + distanceNat_Gir*(Random::uniform() - 0.5);
     ObjStory->m_ego_position[2] = 0;
-    ObjStory->m_present = 1;
+    ObjStory->m_present = 1.0;
     ObjStory->m_color[0] = Random::uniform(0, 250);
     ObjStory->m_color[1] = Random::uniform(0, 250);
     ObjStory->m_color[2] = Random::uniform(0, 250);
@@ -469,7 +469,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     icub->m_ego_position[0] = 0.0;
     icub->m_ego_position[1] = 0.0;
     icub->m_ego_position[2] = 0.0;
-    icub->m_present = 1;
+    icub->m_present = 1.0;
     icub->m_color[0] = Random::uniform(0, 80);
     icub->m_color[1] = Random::uniform(180, 250);
     icub->m_color[2] = Random::uniform(80, 180);
@@ -671,7 +671,7 @@ bool opcPopulater::populateSpecific(){
     obj1->m_ego_position[0] = X_obj + errorMargin * (Random::uniform() - 0.5);
     obj1->m_ego_position[1] = -1.* Y_obj + errorMargin * (Random::uniform() - 0.5);
     obj1->m_ego_position[2] = Z_obj + errorMargin * (Random::uniform() - 0.5);
-    obj1->m_present = 1;
+    obj1->m_present = 1.0;
     obj1->m_color[0] = Random::uniform(0, 80);
     obj1->m_color[1] = Random::uniform(80, 180);
     obj1->m_color[2] = Random::uniform(180, 250);
@@ -681,7 +681,7 @@ bool opcPopulater::populateSpecific(){
     obj2->m_ego_position[0] = X_ag + errorMargin * (Random::uniform() - 0.5);
     obj2->m_ego_position[1] = -1.* Y_ag + errorMargin * (Random::uniform() - 0.5);
     obj2->m_ego_position[2] = Z_ag + errorMargin * (Random::uniform() - 0.5);
-    obj2->m_present = 1;
+    obj2->m_present = 1.0;
     obj2->m_color[0] = Random::uniform(0, 180);
     obj2->m_color[1] = Random::uniform(0, 80);
     obj2->m_color[2] = Random::uniform(180, 250);
@@ -691,7 +691,7 @@ bool opcPopulater::populateSpecific(){
     obj3->m_ego_position[0] = X_ag + errorMargin * (Random::uniform() - 0.5);
     obj3->m_ego_position[1] = Y_ag + errorMargin * (Random::uniform() - 0.5);
     obj3->m_ego_position[2] = Z_ag + errorMargin * (Random::uniform() - 0.5);
-    obj3->m_present = 1;
+    obj3->m_present = 1.0;
     obj3->m_color[0] = Random::uniform(100, 180);
     obj3->m_color[1] = Random::uniform(80, 180);
     obj3->m_color[2] = Random::uniform(0, 80);
@@ -702,7 +702,7 @@ bool opcPopulater::populateSpecific(){
     obj4->m_ego_position[0] = X_obj + errorMargin * (Random::uniform() - 0.5);
     obj4->m_ego_position[1] = Y_obj + errorMargin * (Random::uniform() - 0.5);
     obj4->m_ego_position[2] = Z_obj + errorMargin * (Random::uniform() - 0.5);
-    obj4->m_present = 1;
+    obj4->m_present = 1.0;
     obj4->m_color[0] = Random::uniform(100, 180);
     obj4->m_color[1] = Random::uniform(0, 80);
     obj4->m_color[2] = Random::uniform(180, 250);
@@ -720,7 +720,7 @@ bool opcPopulater::populateSpecific3(){
     obj1->m_ego_position[0] = -0.4;
     obj1->m_ego_position[1] = 0.25;
     obj1->m_ego_position[2] = 0;
-    obj1->m_present = 1;
+    obj1->m_present = 1.0;
     obj1->m_color[0] = Random::uniform(0, 80);
     obj1->m_color[1] = Random::uniform(80, 180);
     obj1->m_color[2] = Random::uniform(180, 250);
@@ -730,7 +730,7 @@ bool opcPopulater::populateSpecific3(){
     obj2->m_ego_position[0] = -0.4;
     obj2->m_ego_position[1] = -0.25;
     obj2->m_ego_position[2] = 0;
-    obj2->m_present = 1;
+    obj2->m_present = 1.0;
     obj2->m_color[0] = Random::uniform(100, 180);
     obj2->m_color[1] = Random::uniform(0, 80);
     obj2->m_color[2] = Random::uniform(180, 250);
@@ -837,7 +837,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     Nathan->m_ego_position[0] = XNathan;
     Nathan->m_ego_position[1] = YNathan;
     Nathan->m_ego_position[2] = ZNathan;
-    Nathan->m_present = 1;
+    Nathan->m_present = 1.0;
     Nathan->m_color[0] = Random::uniform(0, 80);
     Nathan->m_color[1] = Random::uniform(180, 250);
     Nathan->m_color[2] = Random::uniform(80, 180);
@@ -846,7 +846,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     Giraffe->m_ego_position[0] = XNathan + distanceNat_Gir*(Random::uniform() - 0.5);
     Giraffe->m_ego_position[1] = YNathan + distanceNat_Gir*(Random::uniform() - 0.5);
     Giraffe->m_ego_position[2] = 0;
-    Giraffe->m_present = 1;
+    Giraffe->m_present = 1.0;
     Giraffe->m_color[0] = Random::uniform(0, 250);
     Giraffe->m_color[1] = Random::uniform(0, 250);
     Giraffe->m_color[2] = Random::uniform(0, 250);
@@ -855,7 +855,7 @@ bool opcPopulater::storyFromPOV(Bottle bInput)
     icub->m_ego_position[0] = 0.0;
     icub->m_ego_position[1] = 0.0;
     icub->m_ego_position[2] = 0.0;
-    icub->m_present = 1;
+    icub->m_present = 1.0;
     icub->m_color[0] = Random::uniform(0, 80);
     icub->m_color[1] = Random::uniform(180, 250);
     icub->m_color[2] = Random::uniform(80, 180);

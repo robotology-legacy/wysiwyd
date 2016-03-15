@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     obj1->m_ego_position[0] = X_obj;
     obj1->m_ego_position[1] = -1.* Y_obj;
     obj1->m_ego_position[2] = Z_obj;
-    obj1->m_present = 1;
+    obj1->m_present = 1.0;
     obj1->m_color[0] = Random::uniform(0, 80);
     obj1->m_color[1] = Random::uniform(80, 180);
     obj1->m_color[2] = Random::uniform(180, 250);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     obj2->m_ego_position[0] = X_ag;
     obj2->m_ego_position[1] = -1.* Y_ag;
     obj2->m_ego_position[2] = Z_ag;
-    obj2->m_present = 1;
+    obj2->m_present = 1.0;
     obj2->m_color[0] = Random::uniform(0, 180);
     obj2->m_color[1] = Random::uniform(0, 80);
     obj2->m_color[2] = Random::uniform(180, 250);
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     obj3->m_ego_position[0] = X_ag;
     obj3->m_ego_position[1] = Y_ag;
     obj3->m_ego_position[2] = Z_ag;
-    obj3->m_present = 1;
+    obj3->m_present = 1.0;
     obj3->m_color[0] = Random::uniform(100, 180);
     obj3->m_color[1] = Random::uniform(80, 180);
     obj3->m_color[2] = Random::uniform(0, 80);
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     obj4->m_ego_position[0] = X_obj;
     obj4->m_ego_position[1] = Y_obj;
     obj4->m_ego_position[2] = Z_obj;
-    obj4->m_present = 1;
+    obj4->m_present = 1.0;
     obj4->m_color[0] = Random::uniform(100, 180);
     obj4->m_color[1] = Random::uniform(0, 80);
     obj4->m_color[2] = Random::uniform(180, 250);    

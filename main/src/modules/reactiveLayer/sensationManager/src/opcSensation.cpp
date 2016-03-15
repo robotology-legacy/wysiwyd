@@ -158,7 +158,7 @@ Bottle OpcSensation::handleEntities()
             {
                 // yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
-                if(o && o->m_present) {
+                if(o && (o->m_present==1.0)) {
                     unknown_obj = true;
                     //Output is a list of objects entity + objects name [the arguments for tagging]
                     // o->m_saliency = unknownObjectSaliency;
@@ -183,7 +183,7 @@ Bottle OpcSensation::handleEntities()
         else if (sNameCut == "partner" && entity->entity_type() == "agent") {
             yInfo() << "I found an unknown partner: " << sName;
             Agent* a = dynamic_cast<Agent*>(entity);
-            if(a && a->m_present) {
+            if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
                 //Output is a list of objects entity + objects name [the arguments for tagging]
                 // o->m_saliency = unknownObjectSaliency;

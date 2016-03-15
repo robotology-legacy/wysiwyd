@@ -711,7 +711,7 @@ void IOL2OPCBridge::updateOPC()
             // garbage collection
             if (it->second.isDead())
             {
-                obj->m_present=false;
+                obj->m_present=0.5;
                 continue;
             }
 
@@ -729,7 +729,7 @@ void IOL2OPCBridge::updateOPC()
                     it->second.opc_id=obj->opc_id();
                     obj->m_ego_position=x_filtered;
                     obj->m_dimensions=dim_filtered;
-                    obj->m_present=true;
+                    obj->m_present=1.0;
 
                     // threshold bbox
                     if (thresBBox(bbox,imgLatch))

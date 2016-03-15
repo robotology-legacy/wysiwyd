@@ -247,12 +247,12 @@ bool OpcInspector::respond(const yarp::os::Bottle& command, yarp::os::Bottle& re
         }
         if( key2 == "show")
         {
-            objPtr->m_present = true;
+            objPtr->m_present = 1.0;
         opc->commit(objPtr);
         }
         if( key2 == "hide")
         {
-            objPtr->m_present = false;
+            objPtr->m_present = 0.0;
         opc->commit(objPtr);
         }
     }

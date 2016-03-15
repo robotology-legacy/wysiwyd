@@ -250,7 +250,7 @@ void humanRobotDump::DumpHumanObject()
                 bObject.addDouble(ob->m_ego_position[0]);
                 bObject.addDouble(ob->m_ego_position[1]);
                 bObject.addDouble(ob->m_ego_position[2]);
-                bObject.addInt(ob->m_present);
+                bObject.addInt(ob->m_present==1.0?1:0);
                 bDump.addList() = bObject;
             }
         }

@@ -53,7 +53,7 @@ int main()
     icub.lookStop();
     
     Object *object=world.addOrRetrieveEntity<Object>("BEER");    
-    object->m_present=true;
+    object->m_present=1.0;
     object->m_ego_position[0]=-0.35;
     object->m_ego_position[1]=-0.2;
     object->m_ego_position[2]=-0.1;

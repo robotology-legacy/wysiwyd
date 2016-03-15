@@ -50,7 +50,7 @@ bool PointingOrder::handlePoint(string type, string target)
             {
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
-                if(o && o->m_present) {
+                if(o && (o->m_present==1)) {
                     //pointRPC=true;
                     yInfo() << "I'd like to point " << e_name;// <<endl;
                     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
@@ -93,7 +93,7 @@ bool PointingOrder::handleSearch(string type, string target)
             {
                 Object* o = dynamic_cast<Object*>(entity);
                 yInfo() << "I found the entity in the opc: " << sName;
-                if(o && o->m_present) {
+                if(o && (o->m_present==1)) {
                     //searchList.pop_back();
                     // return, so "if(tagRPC)" ... is never executed
                     return true;

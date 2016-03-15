@@ -184,7 +184,7 @@ bool GuiUpdater::updateModule()
                 ostringstream guiTag;
                 guiTag<< o->name() <<"("<<o->opc_id()<<")";
 
-                if (!o->m_present) {
+                if (o->m_present==0.0) {
                     deleteObject(guiTag.str(), o);
                 }
                 else

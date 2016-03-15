@@ -2031,17 +2031,17 @@ Bottle abmReasoning::imagineOPC(int Id)
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
             Object *Ob = dynamic_cast<Object*>(*it_E);
-            Ob->m_present = 0;
+            Ob->m_present = 0.0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
             Agent *Ag = dynamic_cast<Agent*>(*it_E);
-            Ag->m_present = 0;
+            Ag->m_present = 0.0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
             RTObject *Rt = dynamic_cast<RTObject*>(*it_E);
-            Rt->m_present = 0;
+            Rt->m_present = 0.0;
         }
     }
     mentalOPC->commit();
@@ -2051,7 +2051,7 @@ Bottle abmReasoning::imagineOPC(int Id)
 
     // ADD Agent iCub
     Agent *icub = mentalOPC->addEntity<Agent>("icub");
-    icub->m_present = true;
+    icub->m_present = 1.0;
     mentalOPC->commit(icub);
 
     // Get the id of the RTO present
@@ -2083,7 +2083,7 @@ Bottle abmReasoning::imagineOPC(int Id)
 
         RTOtemp->m_ego_position[0] = pCoordinate.first;
         RTOtemp->m_ego_position[1] = pCoordinate.second;
-        RTOtemp->m_present = bPresence;
+        RTOtemp->m_present = (bPresence?1.0:0.0);
         RTOtemp->m_color[0] = get<0>(tColor);
         RTOtemp->m_color[1] = get<1>(tColor);
         RTOtemp->m_color[2] = get<2>(tColor);

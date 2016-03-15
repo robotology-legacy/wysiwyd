@@ -34,7 +34,7 @@ Object::Object():Entity()
     m_dimensions.resize(3,0.1);
     m_color.resize(3,255.0);
     m_saliency = 0.0;
-    m_present = false;
+    m_present = 0.0;
     
     // by default, place object 25cm in front of the robot
     // to avoid collisions when pointing to an object
@@ -119,10 +119,7 @@ Bottle Object::asBottle()
 
     //Present
     bSub.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-    if (this->m_present)
-        bSub.addInt(1);
-    else
-        bSub.addInt(0);
+    bSub.addDouble(this->m_present);
     b.addList() = bSub;
 
     return b;
@@ -163,7 +160,7 @@ bool Object::fromBottle(Bottle b)
     m_color[1] = b.find(EFAA_OPC_OBJECT_GUI_COLOR_G).asDouble();
     m_color[2] = b.find(EFAA_OPC_OBJECT_GUI_COLOR_B).asDouble();
     m_saliency = b.find(EFAA_OPC_OBJECT_SALIENCY).asDouble();
-    m_present = (b.find(EFAA_OPC_OBJECT_PRESENT_TAG).asInt() == 1);
+    m_present = b.find(EFAA_OPC_OBJECT_PRESENT_TAG).asDouble();
     return true;
 }
 
