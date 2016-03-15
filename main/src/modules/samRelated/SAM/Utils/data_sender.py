@@ -7,12 +7,7 @@ try:
 except ImportError:
     print 'WARNING! Yarp was not found! Switching to offline mode'
     yarpRunning = False
-
 messageList = []
-messageList.append('ask_face_label')
-messageList.append('ask_face_instance')
-messageList.append('ask_action_label')
-messageList.append('information_PAOR (P1 wanted) (A1 I) (P2 get) (A2 I) (O2 croco)')
 messageList.append('567 1454594804.655575 none none ((elbowLeft (-1.256752 0.27183 -0.246973)) (elbowRight (-1.270087 -0.326172 -0.238417)) (handLeft (-1.046666 0.28861 -0.012651)) (handRight (-1.073482 -0.459701 -0.038741)) (head (-1.294263 -0.085272 0.132913)) (shoulderCenter (-1.292125 -0.055619 -0.083768)) (shoulderLeft (-1.290561 0.097068 -0.091069)) (shoulderRight (-1.29369 -0.208306 -0.076466)) (spine (-1.284894 -0.060415 -0.182516))) (partner -1.294263 -0.085272 0.132913 1) (car -0.57236 -0.023297 -0.207144 1) (octopus -1.335235 0.291384 -0.175733 1) 0')
 messageList.append('1115 1454594832.087066 none none ((elbowLeft (-1.133998 0.261702 -0.21455)) (elbowRight (-1.179768 -0.355514 -0.254918)) (handLeft (-0.967347 0.219258 -0.023513)) (handRight (-0.993117 -0.376821 -0.074161)) (head (-1.269766 -0.073088 0.10057)) (shoulderCenter (-1.232639 -0.073923 -0.09706)) (shoulderLeft (-1.199574 0.088335 -0.090268)) (shoulderRight (-1.265703 -0.236182 -0.103853)) (spine (-1.1922 -0.073822 -0.296319))) (partner -1.269766 -0.073088 0.10057 1) (car -0.572421 -0.02331 -0.207083 1) (octopus -1.109489 0.39926 -0.283833 0) 0')
 messageList.append('1116 1454594832.137602 none none ((elbowLeft (-1.137181 0.261151 -0.217223)) (elbowRight (-1.178959 -0.355495 -0.254991)) (handLeft (-0.968057 0.218677 -0.027965)) (handRight (-0.992158 -0.378412 -0.074924)) (head (-1.272558 -0.072416 0.101308)) (shoulderCenter (-1.232665 -0.074704 -0.096065)) (shoulderLeft (-1.198936 0.087434 -0.089702)) (shoulderRight (-1.266394 -0.236843 -0.102429)) (spine (-1.189087 -0.075977 -0.294618))) (partner -1.272558 -0.072416 0.101308 1) (car -0.572006 -0.023355 -0.206681 1) (octopus -1.109489 0.39926 -0.283833 0) 0')
@@ -87,29 +82,23 @@ messageList.append('1184 1454594835.542158 none none ((elbowLeft (-0.921535 0.08
 messageList.append('1185 1454594835.591969 none none ((elbowLeft (-0.936417 0.101911 -0.219957)) (elbowRight (-1.188323 -0.3412 -0.283135)) (handLeft (-0.694353 -0.007415 -0.220785)) (handRight (-0.926738 -0.387169 -0.270558)) (head (-1.256705 -0.069373 0.100575)) (shoulderCenter (-1.215929 -0.073666 -0.097267)) (shoulderLeft (-1.162134 0.082916 -0.089929)) (shoulderRight (-1.269724 -0.230247 -0.104604)) (spine (-1.17373 -0.078846 -0.296097))) (partner -1.256705 -0.069373 0.100575 1) (car -0.570592 -0.023623 -0.20483 1) (octopus -1.109489 0.39926 -0.283833 0) 0')
 messageList.append('1186 1454594835.641889 none none ((elbowLeft (-0.936417 0.101911 -0.219957)) (elbowRight (-1.188323 -0.3412 -0.283135)) (handLeft (-0.694353 -0.007415 -0.220785)) (handRight (-0.926738 -0.387169 -0.270558)) (head (-1.256705 -0.069373 0.100575)) (shoulderCenter (-1.215929 -0.073666 -0.097267)) (shoulderLeft (-1.162134 0.082916 -0.089929)) (shoulderRight (-1.269724 -0.230247 -0.104604)) (spine (-1.17373 -0.078846 -0.296097))) (partner -1.256705 -0.069373 0.100575 1) (car -0.570111 -0.023753 -0.204261 1) (octopus -1.109489 0.39926 -0.283833 0) 0')
 messageList.append('1187 1454594835.691887 none none ((elbowLeft (-0.921095 0.086387 -0.215206)) (elbowRight (-1.189826 -0.342778 -0.284701)) (handLeft (-0.677942 -0.020506 -0.227658)) (handRight (-0.928065 -0.387265 -0.270373)) (head (-1.253777 -0.0744 0.10074)) (shoulderCenter (-1.213942 -0.07613 -0.09733)) (shoulderLeft (-1.154804 0.078395 -0.087988)) (shoulderRight (-1.273081 -0.230656 -0.106672)) (spine (-1.171939 -0.080181 -0.296218))) (partner -1.253777 -0.0744 0.10074 1) (car -0.569732 -0.023754 -0.203806 1) (octopus -1.109489 0.39926 -0.283833 0) 0')
-messageList.append('information_PAOR (P1 failed) (A1 I) (P2 grasp) (A2 I) (O2 it)')
-messageList.append('information_PAOR (P1 laid) (A1 it) (O1 outofreach)')
-messageList.append('information_PAOR (P1 found) (A1 I) (O1 action) (R1 different)')
-messageList.append('information_PAOR (P1 could) (A1 I) (P2 ask) (A2 I) (O2 you) (P3 give) (A3 you) (O3 it) (R3 me)')
-messageList.append('information_PAOR (P1 would) (A1 you) (P2 give) (A2 you) (O2 it) (R2 me)')
-messageList.append('information_PAOR (P1 asked) (A1 I) (O1 you) (P2 give) (A2 you) (O2 it) (R2 me)')
-messageList.append('information_PAOR (P1 gave) (A1 you) (O1 it) (R1 me)')
-messageList.append('information_PAOR (P1 have) (A1 I) (O1 croco)')
 
-clientName = '/testSender'
-serverName = '/sam/rpc:i'
+clientName = '/testDataSender'
+serverName = '/sam/actions/actionData:i'
+#serverName = '/read/test'
 #serverName = '/testServer'
 yarp.Network.init()
 
 print 'available messages: \n' + '\n'.join(messageList)
 
-messagePort = yarp.RpcClient()
+messagePort = yarp.BufferedPortBottle()
 messagePort.open(clientName)
 
 connected = False
 inputBottle = yarp.Bottle()
 outputBottle = yarp.Bottle()
 lastvar = 0
+intvar = 0
 try:
 	while(True):
 		if(messagePort.getOutputCount() == 0):
@@ -120,23 +109,25 @@ try:
 		else:
 			var = raw_input('choose message to send: ')
 			if(len(var) > 0):
-				var = int(var)
-				if(var < 0 or var > len(messageList)):
-					var = lastvar
+				intvar = int(var)
+				if(intvar < 0 or intvar > len(messageList)):
+					intvar = lastvar
 			else:
-				var = lastvar + 1
-				lastvar = var
+				intvar = lastvar + 1
+				lastvar = intvar
 
-			outputBottle = yarp.Bottle(messageList[var])
+			outputBottle = messagePort.prepare()
+			outputBottle.fromString(messageList[intvar])
 			print 'sending ' + outputBottle.toString()
-			messagePort.write(outputBottle, inputBottle)
+			messagePort.write()
 
-			inputList = []
-			for i in range(inputBottle.size()):
-				inputList.append(inputBottle.get(i).asString())
-
-			print 'received input:'
-			print inputList
+			# if(messagePort.getPendingReads() > 0):
+			# 	inputBottle = messagePort.read(True)
+			# 	inputList = []
+			# 	for i in range(inputBottle.size()):
+			# 		inputList.append(inputBottle.get(i).asString())
+			# 	print 'received input:'
+			# 	print inputList
 
 except KeyboardInterrupt:
 	print

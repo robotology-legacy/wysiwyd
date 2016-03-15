@@ -53,38 +53,39 @@ def ask(screen, question):
 clientName = '/testSender'
 dataPortName = '/dataPort'
 serverName = '/yarpdataplayer/rpc:i'
-labelStorePath = '/home/daniel/WYSIWYD_PROJECT/actionRecognitionDataset/lift-drop-left_arm/labels/data.log'
-dataStorePath = '/home/daniel/WYSIWYD_PROJECT/actionRecognitionDataset/lift-drop-left_arm/data/data.log'
+labelStorePath = '/home/daniel/WYSIWYD_PROJECT/actionRecognitionDataset/push-pull-right_arm/labels/data.log'
+dataStorePath = '/home/daniel/WYSIWYD_PROJECT/actionRecognitionDataset/push-pull-right_arm/data/data.log'
 
 pygame.init()
 screen = pygame.display.set_mode((640, 100))
 pygame.display.set_caption('Dataset Labeller')
 pygame.mouse.set_visible(1)
+pygame.key.set_repeat(100,100)
 
 yarp.Network.init()
 
 messagePort = yarp.RpcClient()
 messagePort.open(clientName)
 
-dataPort = yarp.Port()
+dataPort = yarp.BufferedPortBottle()
 dataPort.open(dataPortName)
 
 connected = False
+step = False
 inputBottle = yarp.Bottle()
 outputBottle = yarp.Bottle()
 dataInBottle = yarp.Bottle()
 pressed = False
 seclabel = ''
-previousTimeStamp = 0
-currTimeStamp = 0
+previousIdx = 0
+currIdx = 0
+timeString = ''
 
 dataFile = open(dataStorePath,'r')
 count = 0
 dataList = []
-logList = []
 
 for line in dataFile:
-	logList.append(line)
 	t = line.split(' ')[1]
 	dataList.append([str(count), t])
 	count += 1
@@ -98,57 +99,74 @@ try:
 			yarp.Network.connect(clientName, serverName)
 			time.sleep(1)
 		else:
+			dataInBottle.clear()
+			reads = dataPort.getPendingReads()
+			if(reads > 0):
+				dataPort.read(dataInBottle)
+				#print dataInBottle.toString()
+				dataPort.getEnvelope(dataInBottle)
+				timeString = dataInBottle.toString()
+
 			events = pygame.event.get()
 			for event in events:
 				if event.type == pygame.KEYDOWN:
-					if event.key == pygame.K_RETURN:
+					if (event.key == pygame.K_RETURN):
 						pressed = True
+					elif(event.key == pygame.K_SPACE):
+						step = True
 			if(pressed):
 				outputBottle = yarp.Bottle('pause')
 				print 'Paused...\n'
 				messagePort.write(outputBottle, inputBottle)
 
-				dataInBottle.clear()
-				dataPort.read(dataInBottle)
-				#print getEnvelope(dataInBottle)
-				#get curent timestamp
-				print dataInBottle.toString()
-
-				dataPort.getEnvelope(dataInBottle)
-				print dataInBottle.toString()
-
-				dataPort.getEnvelope(dataInBottle)
-				print dataInBottle.toString()
-
-				#t = dataInBottle.toString().split(' ')[1]
-				#indx = [s for s in dataList if t in s]
-				#ind = indx[0][0]
-				t = dataInBottle.toString()
-				print t
-
+				idx = int(timeString.split(' ')[0])
+				currIdx = idx
 
 				#get label of past action
 				sectionLabel = ask(screen, "Section Label")
-				print sectionLabel
+				print 'Assigning ' + sectionLabel + ' to timestamp range from ' + dataList[previousIdx][1] + ' to ' + dataList[currIdx][1]
+				print 'Assigning ' + sectionLabel + ' to index range from ' + dataList[previousIdx][0] + ' to ' + dataList[currIdx][0]
 
 				#fill range between last and curr index with message
-				# dataList[count].append('hello')
+				sectionLabel = '(' + sectionLabel + ')'
+				for i in range(previousIdx, currIdx+1):
+					if(len(dataList[i]) > 2):
+						dataList[i][2] = sectionLabel
+					else:
+						dataList[i].append(sectionLabel)
+
+				previousIdx = currIdx
 
 				outputBottle = yarp.Bottle('play')
 				print 'Continue...\n'
 				messagePort.write(outputBottle, inputBottle)
 
 				pressed = False
+				step = True
+			elif(step):
+				outputBottle = yarp.Bottle('play')
+				print 'Time before step: ' + timeString
+				messagePort.write(outputBottle, inputBottle)
+
+				reads = 0
+				while(reads == 0):
+					reads = dataPort.getPendingReads()
+
+				outputBottle = yarp.Bottle('pause')
+				messagePort.write(outputBottle, inputBottle)
+				step = False;
+
 
 except KeyboardInterrupt:
 	print
 	print 'Interrupted'
 	dataString =''
-	for i in range(len(logList)):
-		dataString += " ".join(logList[i]) + os.linesep
+	for i in range(len(dataList)):
+		dataString += " ".join(dataList[i]) + "\n"
 	labelFile = open(labelStorePath,'w')
 	labelFile.write(dataString)
 	labelFile.close()
+	dataPort.close()
 	messagePort.close()
 	try:
 		sys.exit(0)

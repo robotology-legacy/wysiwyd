@@ -140,7 +140,7 @@ for i in range(len(modelList)):
 	cur.Y = {'Y':Yn_cur}
 	cur.Ytestn = {'Ytest':Ytestn_cur}
 	cur.Ltest = {'Ltest':Ltest_cur}
-	
+	print 
 	fname = modelList[i]
 
 	if Q > 100:
@@ -153,13 +153,11 @@ for i in range(len(modelList)):
 	cur.SAMObject.store(observed=cur.Y, inputs=cur.X, Q=Q, kernel=kernel, num_inducing=model_num_inducing)
 	SAMCore.load_pruned_model(fname, economy_save, cur.SAMObject.model)
 	mm.append(cur)
-	print len(mm)
 	
 #open ports
 yarp.Network.init()
 
 sect = splitPath[0].split('/')[-1].lower()
-print sect
 
 parser2 = SafeConfigParser()
 parser2.read(interactionConfPath)
@@ -183,6 +181,10 @@ for j in range(len(portNameList)):
 
 		elif(parts[1].lower() == 'imagemono'):
 			portsList.append(yarp.BufferedPortImageMono())
+			portsList[j].open(parts[0])
+
+		elif(parts[1].lower() == 'bottle'):
+			portsList.append(yarp.BufferedPortBottle())
 			portsList[j].open(parts[0])
 		#mrd models with label/instance training will always have:
 		#1 an input data line which is used when a label is requested
@@ -216,7 +218,6 @@ testFace = numpy.zeros([numFaces,imgHNew*imgWNew])
 images = numpy.zeros((numFaces, imgHNew*imgWNew), dtype=numpy.uint8)
 
 print 'Responding to callsigns: ' + ', '.join(callSignList)
-print len(mm)
 while( True ):
         try: 
 			print "Waiting for input"
@@ -277,43 +278,6 @@ while( True ):
 				print message + ' is not a valid request'
 			
 			portsList[svPort].reply(yarp.Bottle(replyString))
-			    
-			#     #pp = mySAMpy.testing(testFace, choice, visualiseInfo)
-			#     ss=numpy.zeros(len(participantList))
-			#     for i in range(len(Lunique)):
-			#         testFacen = testFace;
-			#         #testFacen = testFace - testFace.mean()
-			#         #testFacen /= testFace.std()
-			#         #testFacen = testFace - mm[i].Ymean
-			#         #testFacen /= mm[i].Ystd
-			#         ss[i] = mm[i].SAMObject.familiarity(testFacen)
-			#         print('Familiarity with ' + participantList[i] + ' given current face is: ' + str(ss[i]))
-
-			#     outputBottle.clear()
-			#     #deciding response
-			#     maxIdx = np.argmax(ss)
-			#     maxVal = ss[maxIdx]
-			    
-			#     threshold = 0.4
-			#     if(maxVal > threshold):
-			#         outputBottle.addString(participantList[maxIdx])
-			#         #outputBottle.addString("greg")
-			#     else:
-			#         #outputBottle.addString("Unknown")
-			#         outputBottle.addString("partner")
-			    
-			#     print(outputBottle.get(0).asString())
-			#     #time.sleep(0.5)
-			#     #l = pp.pop()
-			#     #l.remove()
-			#     #pb.draw()
-			#     #pb.waitforbuttonpress(0.1)
-			# else:
-			#     outputBottle.clear()
-			#     outputBottle.addString("nack")
-			#     #outputBottle.addString("Greg")
-
-			# inputInteractionPort.reply(outputBottle)
 
         except KeyboardInterrupt:
             print 'Exiting ...'

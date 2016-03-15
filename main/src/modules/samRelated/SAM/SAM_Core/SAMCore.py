@@ -131,8 +131,8 @@ class LFM(object):
                     self.model = GPy.models.MRD(self.Ylist, input_dim=self.Q, num_inducing=self.num_inducing, kernel=kernel, initx="PCA_single", initz='permute')
                 except ValueError:
                     pcaFailed = True
-                    print "Initialisation with PCA failed."
-            if init_X == 'PPCA' or pcaFailed:
+                    print "Initialisation with PCA failed. Initialising with PPCA..."
+            elif init_X == 'PPCA' or pcaFailed:
                 print "Initialising with PPCA..."
                 from GPy.util.initialization import initialize_latent
                 Xr = np.zeros((self.Ylist[0].shape[0], self.Q))
@@ -140,7 +140,7 @@ class LFM(object):
                     try:
                         x,frcs = initialize_latent('PCA', len(qs), Y)
                     except ValueError:
-                        x = GPy.util.linalg.ppca(Y, len(qs), 1000)[0]
+                        x = GPy.util.linalg.ppca(Y, len(qs), 2000)[0]
                     Xr[:, qs] = x
                 Xr -= Xr.mean()
                 Xr /= Xr.std()

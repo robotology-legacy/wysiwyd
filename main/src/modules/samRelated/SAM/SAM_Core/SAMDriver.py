@@ -150,8 +150,10 @@ class SAMDriver:
                 print("Training for " +str(modelInitIterations) + "|" + str(modelNumIterations) + " iterations...")    
             if self.X is not None:
                 Q = self.X.shape[1]
+            elif self.Quser is not None:
+                Q=self.Quser
             else:
-                Q=2
+                Q = 2
 
             if Q > 100:
                 #one could parse and execute the string kernelStr for kernel instead of line below
