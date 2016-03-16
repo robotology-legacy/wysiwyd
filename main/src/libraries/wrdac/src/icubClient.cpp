@@ -440,7 +440,7 @@ bool ICubClient::grasp(const string &oName, const Bottle &options)
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
-    if (!oTarget->m_present)
+    if (oTarget->m_present!=1.0)
     {
         cerr << "[iCubClient] Called grasp() on an unavailable entity: \"" << oName << "\"" << endl;
         return false;
@@ -483,7 +483,7 @@ bool ICubClient::release(const string &oLocation, const Bottle &options)
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
-    if (!oTarget->m_present)
+    if (oTarget->m_present!=1.0)
     {
         cerr << "[iCubClient] Called release() on an unavailable entity: \"" << oLocation << "\"" << endl;
         return false;
@@ -522,7 +522,7 @@ bool ICubClient::point(const string &oLocation, const Bottle &options)
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
-    if (!oTarget->m_present)
+    if (oTarget->m_present!=1.0)
     {
         cerr << "[iCubClient] Called point() on an unavailable entity: \"" << oLocation << "\"" << endl;
         return false;
@@ -588,7 +588,7 @@ bool ICubClient::look(const string &target)
     if (SubSystem_ARE *are = getARE())
     {
         if (Object *oTarget = dynamic_cast<Object*>(opc->getEntity(target)))
-            if (oTarget->m_present)
+            if (oTarget->m_present==1.0)
                 return are->look(oTarget->m_ego_position, yarp::os::Bottle() , oTarget->name());
 
         cerr << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"" << endl;
@@ -811,7 +811,7 @@ list<Object*> ICubClient::getObjectsInRange()
     list<Entity*> allEntities = opc->EntitiesCache();
     for (list<Entity*>::iterator it = allEntities.begin(); it != allEntities.end(); it++)
     {
-        if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT) && (dynamic_cast<Object*>(*it))->m_present)
+        if ((*it)->isType(EFAA_OPC_ENTITY_OBJECT) && (dynamic_cast<Object*>(*it))->m_present==1.0)
         {
             Vector itemPosition = this->icubAgent->getSelfRelativePosition((dynamic_cast<Object*>(*it))->m_ego_position);
 

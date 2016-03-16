@@ -27,7 +27,7 @@ using namespace std;
 *  Add through the speechRecog a human spoken narration to an existing story
 *
 */
-void narrativeHandler::addNarrationToStory(story target, bool overWrite){
+void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
 
     if (target.meaningStory.size() != 0){
         if (overWrite){
@@ -52,7 +52,7 @@ void narrativeHandler::addNarrationToStory(story target, bool overWrite){
 
     while (storyOnGoing){
         // while the narration is not finished
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarNarration), 20);
+		bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarNarration), 20, false, true);
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -72,7 +72,7 @@ void narrativeHandler::addNarrationToStory(story target, bool overWrite){
         else{
             cout << "confirmation: " << sSentence << endl;
 
-            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarYesNo), 20);
+            bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarYesNo), 20, false, false);
 
             if (bRecognized.get(1).asList()->get(0).toString() == "yes"){
                 vNewStory.push_back(sSentence);
@@ -85,6 +85,7 @@ void narrativeHandler::addNarrationToStory(story target, bool overWrite){
         cout << phrase << endl;
     }
 
+	target.humanNarration = vNewStory;
 
 }
 

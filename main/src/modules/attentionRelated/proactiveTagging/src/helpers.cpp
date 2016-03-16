@@ -67,7 +67,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
                 std::string name = objectList->get(d).asString().c_str();
                 wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveEntity<Object>(name);
                 yInfo() << " [configureOPC] object " << o->name() << "added" ;
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }
@@ -86,7 +86,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
                 std::string name = objectList->get(d).asString().c_str();
                 wysiwyd::wrdac::Object* o = iCub->opc->addEntity<Object>(name);
                 yInfo() << " [configureOPC] object " << o->name() << "added" ;
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }
@@ -103,7 +103,7 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
                 std::string name = bodyPartList->get(d).asString().c_str();
                 wysiwyd::wrdac::Bodypart* o = iCub->opc->addEntity<Bodypart>(name);
                 yInfo() << " [configureOPC] Bodypart " << o->name() << "added" ;
-                o->m_present = false;
+                o->m_present = 0.0;
                 //apply the joint number if available. protect for the loop because using d from bodyPartList. should be same number of element between bodyPartList and bodyPartJointList
                 if(d < bodyPartJointList->size()){
                     o->m_joint_number = bodyPartJointList->get(d).asInt();

@@ -56,7 +56,7 @@ public:
     /**
     * Is the object present in the scene
     */          
-    bool              m_present;
+    double              m_present;
 
     /**
     * A measurement of the object saliency [0,1]

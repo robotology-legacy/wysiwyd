@@ -75,12 +75,18 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     leftHandt1 = Vector(3, 0.0);
     leftHandt2 = Vector(3, 0.0);
 
-    thresholdMovementAccel = rf.check("thresholdMovementAccel",
+	thresholdMovementAccelAgent = rf.check("thresholdMovementAccelAgent",
+		Value(0.02)).asDouble();
+	thresholdMovementAccelObject = rf.check("thresholdMovementAccelObject",
+		Value(0.2)).asDouble();
+	thresholdWaving = rf.check("thresholdWaving",
         Value(0.02)).asDouble();
-    thresholdWaving = rf.check("thresholdWaving",
-        Value(0.02)).asDouble();
-    thresholdSaliency = rf.check("thresholdSaliency",
-        Value(0.005)).asDouble();
+	thresholdSaliency = rf.check("thresholdSaliency",
+		Value(0.005)).asDouble();
+	rangeHaving = rf.check("rangeHaving",
+		Value(0.3)).asDouble();
+	persistenceHaving = rf.check("persistenceHaving",
+		Value(1.0)).asDouble();
 
     isControllingMotors = rf.check("motorControl",
         Value(0)).asInt() == 1;
@@ -116,13 +122,15 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     }
 
     checkPointing = rf.find("isPointing").asInt() == 1;
-    checkWaving = rf.find("isWaving").asInt() == 1;
+	checkWaving = rf.find("isWaving").asInt() == 1;
+	checkHaving = rf.find("isHaving").asInt() == 0;
 
     isPointing = false;
-    isWaving = false;
+	isWaving = false;
 
     yInfo() << " pointing: " << checkPointing;
-    yInfo() << " waving: " << checkWaving;
+	yInfo() << " waving: " << checkWaving;
+	yInfo() << " having: " << checkHaving;
 
     if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
         cout << getName() << ": Unable to open port rpc" << endl;
@@ -185,28 +193,49 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "help") {
         reply.addString(helpMessage.c_str());
     }
-    else if (command.get(0).asString() == "pointing") {
-        if (command.size() != 2)
-        {
-            reply.addString("error in PASAR: Bottle 'pointing' misses information (on/off)");
-        }
-        else
-        {
-            if (command.get(1).asString() == "off")
-            {
-                checkPointing = false;
-                yInfo() << " stop pointing";
-                reply.addString("stop pointing");
-            }
-            else if (command.get(1).asString() == "on")
-            {
-                checkPointing = true;
-                yInfo() << " start pointing";
-                reply.addString("start pointing");
-            }
-        }
-    }
-    else if (command.get(0).asString() == "waving") {
+	else if (command.get(0).asString() == "pointing") {
+		if (command.size() != 2)
+		{
+			reply.addString("error in PASAR: Bottle 'pointing' misses information (on/off)");
+		}
+		else
+		{
+			if (command.get(1).asString() == "off")
+			{
+				checkPointing = false;
+				yInfo() << " stop pointing";
+				reply.addString("stop pointing");
+			}
+			else if (command.get(1).asString() == "on")
+			{
+				checkPointing = true;
+				yInfo() << " start pointing";
+				reply.addString("start pointing");
+			}
+		}
+	}
+	else if (command.get(0).asString() == "having") {
+		if (command.size() != 2)
+		{
+			reply.addString("error in PASAR: Bottle 'having' misses information (on/off)");
+		}
+		else
+		{
+			if (command.get(1).asString() == "off")
+			{
+				checkHaving = false;
+				yInfo() << " stop having";
+				reply.addString("stop having");
+			}
+			else if (command.get(1).asString() == "on")
+			{
+				checkHaving = true;
+				yInfo() << " start having";
+				reply.addString("start having");
+			}
+		}
+	}
+	else if (command.get(0).asString() == "waving") {
         if (command.size() != 2)
         {
             reply.addString("error in PASAR: Bottle 'waving' misses information (on/off)");
@@ -269,7 +298,8 @@ bool PasarModule::updateModule()
         //Compute top down saliency (concept based)
         saliencyTopDown();
         if (checkPointing) saliencyPointing();
-        if (checkWaving) saliencyWaving();
+		if (checkWaving) saliencyWaving();
+		if (checkHaving) checkAgentHaving();
 
         //Leaky integrate
         saliencyLeakyIntegration();
@@ -331,19 +361,19 @@ void PasarModule::saliencyTopDown() {
 
             // If the object is absent:
             // if the lastTimeSeen was more than a threshold, the object dissapeared
-            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (!it.second.o.m_present) && it.second.present;
+            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (it.second.o.m_present!=1.0) && it.second.present;
             if (disappeared){
                 cout << "DISAPPEARED since: " << now - it.second.lastTimeSeen << endl;
             }
 
             // If the object is present:
             // if the lastTimeSeen was more than a threshold, the object appeared
-            appeared = (now - it.second.lastTimeSeen > dthresholdAppear) && (it.second.o.m_present) && !it.second.present;
+            appeared = (now - it.second.lastTimeSeen > dthresholdAppear) && (it.second.o.m_present==1.0) && !it.second.present;
             if (appeared){
                 cout << "APPEARED since: " << now - it.second.lastTimeSeen << endl;
             }
 
-            if (it.second.o.m_present) it.second.lastTimeSeen = now;
+            if (it.second.o.m_present==1.0) it.second.lastTimeSeen = now;
 
             //instantaneous speed/acceleration
             Vector lastPos = presentObjectsLastStep[it.first].o.m_ego_position;
@@ -393,11 +423,21 @@ void PasarModule::saliencyTopDown() {
                 }
             }
 
-            if (acceleration > thresholdMovementAccel)
-            {
-                it.second.o.m_saliency += pTopDownAccelerationCoef;
-                yInfo() << " moving object:" << it.second.o.name() << " salience : " << it.second.o.m_saliency << " acceleration: " << acceleration;
-            }
+			if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT){
+				if (acceleration > thresholdMovementAccelAgent)
+				{
+					it.second.o.m_saliency += pTopDownAccelerationCoef;
+					yInfo() << " moving agent:" << it.second.o.name() << " salience : " << it.second.o.m_saliency << " acceleration: " << acceleration;
+				}
+
+			}
+			else {
+				if (acceleration > thresholdMovementAccelObject)
+				{
+					it.second.o.m_saliency += pTopDownAccelerationCoef;
+					yInfo() << " moving object:" << it.second.o.name() << " salience : " << it.second.o.m_saliency << " acceleration: " << acceleration;
+				}
+			}
         }
     }
 }
@@ -434,7 +474,7 @@ void PasarModule::saliencyLeakyIntegration() {
     //cout<<"Membrane Activity : "<<endl;
     for (auto &it : OPCEntities)
     {
-        if (it.second.o.name() != "")
+        if (it.second.o.name() != "" && it.second.o.m_present != 0.5)
         {
             it.second.o.m_saliency *= pExponentialDecrease;
         }
@@ -598,7 +638,7 @@ bool PasarModule::saliencyWaving()
     double dAccelRight;
     bool wavingNow = false;
 
-    if (!ag || !ag->m_present)
+    if (!ag || (ag->m_present!=1.0))
     {
         presentRightHand.first = presentRightHand.second;
         presentLeftHand.first = presentLeftHand.second;
@@ -751,10 +791,45 @@ void PasarModule::initializeMapTiming()
             {
                 Object * ob = dynamic_cast<Object*>(entity);
                 OPCEntities[entity->opc_id()].o = *ob;
-                OPCEntities[entity->opc_id()].lastTimeSeen = ob->m_present ? now : now - 10;
-                OPCEntities[entity->opc_id()].present = ob->m_present;
-
+                OPCEntities[entity->opc_id()].lastTimeSeen = (ob->m_present==1.0) ? now : now - 10;
+                OPCEntities[entity->opc_id()].present = (ob->m_present==1.0);
             }
         }
     }
+}
+
+
+void PasarModule::checkAgentHaving(){
+
+	Agent *ag;
+	// founding all agents:
+	for (auto &it : OPCEntities){
+		if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
+			&& (it.second.present || it.second.o.name() != "icub")){
+			Agent *ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
+
+			for (auto &ob : OPCEntities){
+				// calcul of distance onl in X and Y
+				double distance = (ag->m_ego_position[0] - ob.second.o.m_ego_position[0]) *
+					(ag->m_ego_position[0] - ob.second.o.m_ego_position[0]) +
+					(ag->m_ego_position[1] - ob.second.o.m_ego_position[1]) *
+					(ag->m_ego_position[1] - ob.second.o.m_ego_position[1]);
+				distance = sqrt(distance);
+				if (distance < rangeHaving){
+					//create relation
+					Relation relHaving;
+					relHaving.m_subject = ag->name();
+					relHaving.m_verb = "have";
+					relHaving.m_object = ob.second.o.name();
+
+					yInfo() << "\t" << relHaving.toString() << " distance: " << distance;
+
+					iCub->opc->addRelation(relHaving, persistenceHaving);
+				}
+			}
+		}
+	}
+
+	iCub->opc->commit();
+
 }

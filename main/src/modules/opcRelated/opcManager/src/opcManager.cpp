@@ -448,17 +448,17 @@ Bottle opcManager::synchoniseOPCs()
     {
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_OBJECT)   {
             Object *Ob = dynamic_cast<Object*>(*it_E);
-            Ob->m_present = 0;
+            Ob->m_present = 0.0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_AGENT)    {
             Agent *Ag = dynamic_cast<Agent*>(*it_E);
-            Ag->m_present = 0;
+            Ag->m_present = 0.0;
         }
 
         if ((*it_E)->entity_type() == EFAA_OPC_ENTITY_RTOBJECT) {
             RTObject *Rt = dynamic_cast<RTObject*>(*it_E);
-            Rt->m_present = 0;
+            Rt->m_present = 0.0;
         }
     }
 

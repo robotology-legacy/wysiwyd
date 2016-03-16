@@ -30,7 +30,7 @@ Bodypart::Bodypart():Object()
     m_tactile_number = -1;
     m_kinStruct_instance = -1;
     m_part = "unknown";
-    m_present = true;
+    m_present = 1.0;
 }
 
 
@@ -41,7 +41,7 @@ Bodypart::Bodypart(const Bodypart &b):Object(b)
     this->m_tactile_number = b.m_tactile_number;
     this->m_kinStruct_instance = b.m_kinStruct_instance;
     this->m_part = b.m_part;
-    this->m_present = true;
+    this->m_present = 1.0;
 }
 
 Bottle Bodypart::asBottle()

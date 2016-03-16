@@ -98,7 +98,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
                 o->m_dimensions[1] = dimy;
                 o->m_dimensions[2] = 0.01;
 
-                o->m_present = true;
+                o->m_present = 1.0;
                 o->m_ego_orientation[0] = 0.0;
                 o->m_ego_orientation[1] = 0.0;
                 o->m_ego_orientation[2] = 0.0;//tobj->getAngle();
@@ -122,7 +122,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
                 cout<<"Removing object"<<endl;
                 RTObject *o = dynamic_cast<RTObject*>(opc->getEntity(name));
                 if(o) {
-                    o->m_present = false;
+                    o->m_present = 0.0;
                     //opc->isVerbose = true;
                     opc->commit(o);
                     //opc->isVerbose = false;

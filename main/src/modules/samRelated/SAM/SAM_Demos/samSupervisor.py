@@ -178,11 +178,12 @@ else:
     print str(len(updateModels)) + " Models require an update."
     print str(len(noModels)) + " new models to train."
     print
-
-    trainNowChoice = 'y' #DEBUG
-    while(trainNowChoice == '' or not (trainNowChoice == 'y' or trainNowChoice == 'n')):
-        trainNowChoice = raw_input("Do you want to train models now? Press Y or N: ")
-        trainNowChoice = trainNowChoice.lower()
+    trainNowChoice = ''
+    #trainNowChoice = 'y' #DEBUG
+    if(len(updateModels) + len(noModels) > 0):
+        while(trainNowChoice == '' or not (trainNowChoice == 'y' or trainNowChoice == 'n')):
+            trainNowChoice = raw_input("Do you want to train models now? Press Y or N: ")
+            trainNowChoice = trainNowChoice.lower()
     print '-------------------'
     if(trainNowChoice =='y'):
         print "Training Models:"
@@ -194,24 +195,27 @@ else:
             print 'Training ' + mod[0] + ' ...'
             print 'Opening ' + trainPath
             print
-            mod[0] = join(dataPath, mod[0])
+            dPath = join(dataPath, mod[0])
             if(mod[4] != ''):
-                mod[4] = join(modelPath, mod[4]) + '.pickle'
+                mPath = join(modelPath, mod[4]) + '.pickle'
             else:
-                mod[4] = join(modelPath, mod[4])
+                mPath = join(modelPath, mod[4])
 
             #open separate ipython for training
             #this will allow separate training across different computers in future
             if(mod in updateModels):
-                command = 'ipython ' + trainPath + ' -- ' + ' '.join([mod[0], mod[4], mod[1], 'update'])
+                command = 'ipython ' + trainPath + ' -- ' + ' '.join([dPath, mPath, mod[1], 'update'])
             else:
-                command = 'ipython ' + trainPath + ' -- ' + ' '.join([mod[0], mod[4], mod[1], 'new'])
+                command = 'ipython ' + trainPath + ' -- ' + ' '.join([dPath, mPath, mod[1], 'new'])
             os.system(command)
             mod[3] = False
         print
         print 'Training finished'
         print '-------------------'
-        print trainableModels
+        print
+        for j in trainableModels:
+            print j
+        print
         print 'Updating models status:'
         
         #update trainableModels
@@ -240,6 +244,7 @@ else:
             else:
                 trainableModels[trainableModels.index(f)].append('')
                 print f[0] + ' Model not found. Training Required'
+                f[3] = True
             print
         print '-------------------'
         print
@@ -279,58 +284,66 @@ else:
                 print 'No interaction function specified in config.ini. Skipping model'
         
         #connect supervisor to all submodels
-        for j in rpcConnections:
-            noConn = True
-            print 'connecting ' + j[2]+'o ' + 'with ' + j[2]+'i'
-            while(noConn):
-                noConn = yarp.Network.connect(j[2]+'o',j[2]+'i')
-                noConn = not noConn
-                time.sleep(1)
-            print 'connected'
+        if(len(rpcConnections) != 0):
+            for j in rpcConnections:
+                noConn = True
+                print 'connecting ' + j[2]+'o ' + 'with ' + j[2]+'i'
+                while(noConn):
+                    noConn = yarp.Network.connect(j[2]+'o',j[2]+'i')
+                    noConn = not noConn
+                    time.sleep(1)
+                print 'connected'
 
-        #create rpc port to communicate with outside
-        supervisorPort = yarp.RpcServer()
-        supervisorPort.open('/sam/rpc:i')
-        inputBottle = yarp.Bottle()
-        sendingBottle = yarp.Bottle()
-        responseBottle = yarp.Bottle()
-        outputBottle = yarp.Bottle()
-        print
-        print '-------------------'
+            #create rpc port to communicate with outside
+            supervisorPort = yarp.RpcServer()
+            supervisorPort.open('/sam/rpc:i')
+            inputBottle = yarp.Bottle()
+            sendingBottle = yarp.Bottle()
+            responseBottle = yarp.Bottle()
+            outputBottle = yarp.Bottle()
+            print
+            print '-------------------'
 
-        while( True ):
-            try: 
-                print 'Waiting for input:'
-                supervisorPort.read(inputBottle,True)
+            while( True ):
+                try: 
+                    print 'Waiting for input:'
+                    supervisorPort.read(inputBottle,True)
 
-                #determine towards which process inputBottle is directed
-                callSign = inputBottle.get(0).asString()
-                print callSign + ' request received'
-                print
-                replied = False;
-                for j in rpcConnections:
-                    if(callSign in j[3]):
-                        #sendingBottle.clean()
-                        sendingBottle = inputBottle
-                        #send input bottle intact
-                        j[1].write(sendingBottle,responseBottle)
-                        supervisorPort.reply(responseBottle)
-                        replied = True
+                    #determine towards which process inputBottle is directed
+                    callSign = inputBottle.get(0).asString()
+                    print callSign + ' request received'
+                    print
+                    replied = False;
+                    for j in rpcConnections:
+                        if(callSign in j[3]):
+                            #sendingBottle.clean()
+                            sendingBottle = inputBottle
+                            #send input bottle intact
+                            j[1].write(sendingBottle,responseBottle)
+                            supervisorPort.reply(responseBottle)
+                            replied = True
 
-                if(not replied):
-                    supervisorPort.reply(yarp.Bottle('nack'))
+                    if(not replied):
+                        supervisorPort.reply(yarp.Bottle('nack'))
 
-            except KeyboardInterrupt:
-                print 'Interrupted'
-                for j in rpcConnections:
-                    j[1].write(yarp.Bottle('EXIT'), inputBottle)
-                    j[1].close()
+                except KeyboardInterrupt:
+                    print 'Interrupted'
+                    for j in rpcConnections:
+                        j[1].write(yarp.Bottle('EXIT'), inputBottle)
+                        j[1].close()
 
-                supervisorPort.close()
-                try:
-                    sys.exit(0)
-                except SystemExit:
-                    os._exit(0)
+                    supervisorPort.close()
+                    try:
+                        sys.exit(0)
+                    except SystemExit:
+                        os._exit(0)
+        else:
+            print 'Intersection of sensory_level_conf and available models = no models'
+            print 'Exiting...'
+            try:
+                sys.exit(0)
+            except SystemExit:
+                os._exit(0)
     else:
         print 'Error: Yarp not found'
 

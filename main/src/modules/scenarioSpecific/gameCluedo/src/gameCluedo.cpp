@@ -397,7 +397,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 std::string name = agentList->get(d).asString().c_str();
                 wysiwyd::wrdac::Agent* agent = iCub->opc->addOrRetrieveEntity<Agent>(name);
-                agent->m_present = false;
+                agent->m_present = 0.0;
                 iCub->opc->commit(agent);
             }
         }
@@ -409,7 +409,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 std::string name = objectList->get(d).asString().c_str();
                 wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveEntity<wysiwyd::wrdac::Object>(name);
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }
@@ -421,7 +421,7 @@ void GameCluedo::configureOPC(yarp::os::ResourceFinder &rf)
             {
                 std::string name = rtobjectList->get(d).asString().c_str();
                 wysiwyd::wrdac::RTObject* o = iCub->opc->addOrRetrieveEntity<wysiwyd::wrdac::RTObject>(name);
-                o->m_present = false;
+                o->m_present = 0.0;
                 iCub->opc->commit(o);
             }
         }

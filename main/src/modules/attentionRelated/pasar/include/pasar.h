@@ -53,10 +53,13 @@ class PasarModule : public yarp::os::RFModule {
     double pTopDownInhibitionReturn;        // threshold of an acceleration detection
     double pExponentialDecrease;            // Speed of the decrease of the saliency over the time (should be less than 1)
     double pTopDownWaving;                  // increase of saliency if waving
-    double thresholdMovementAccel;          // minimum acceleration detect
-    double thresholdWaving;                 // minimum waving detected
-    double thresholdPointing;                 // minimum waving detected
-    double thresholdSaliency;
+	double thresholdMovementAccelAgent;          // minimum acceleration to detect an agent
+	double thresholdMovementAccelObject;          // minimum acceleration to detect an object
+	double thresholdWaving;                 // minimum waving detected
+	double thresholdPointing;                 // minimum pointing detected
+	double rangeHaving;                 // minimum range to have an object detected
+	double persistenceHaving;                 // minimum life time of a relation "having"
+	double thresholdSaliency;
     double dthresholdAppear;
     double dthresholdDisappear;
     double dBurstOfPointing;
@@ -64,8 +67,9 @@ class PasarModule : public yarp::os::RFModule {
     double lastTimeWaving;
     double lastTimePointing;
 
-    bool checkWaving;
-    bool checkPointing;
+	bool checkWaving;
+	bool checkHaving;
+	bool checkPointing;
     ICubClient  *iCub;
     bool abm;
 
@@ -105,7 +109,8 @@ protected:
     bool saliencyPointing();
     bool saliencyWaving();
     void initializeMapTiming();
-    void updateMapTiming();
+	void updateMapTiming();
+	void checkAgentHaving();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful

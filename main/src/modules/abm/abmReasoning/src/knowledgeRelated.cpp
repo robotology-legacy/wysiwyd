@@ -1445,7 +1445,7 @@ Bottle abmReasoning::updateKnownLocations()
                             LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                             LOCATION->m_dimensions[2] = abmReasoningFunction::size_location * 2;
                             LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
-                            LOCATION->m_present = 1;
+                            LOCATION->m_present = 1.0;
                             LOCATION->m_color[0] = colorR / 2;
                             LOCATION->m_color[1] = colorG / 2;
                             LOCATION->m_color[2] = colorB / 2;
@@ -1457,15 +1457,15 @@ Bottle abmReasoning::updateKnownLocations()
                             LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                             LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                             LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location;
-                            LOCATION_LARGE->m_present = 1;
+                            LOCATION_LARGE->m_present = 1.0;
                             LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
                             LOCATION_LARGE->m_color[0] = colorR;
                             LOCATION_LARGE->m_color[1] = colorG;
                             LOCATION_LARGE->m_color[2] = colorB;
 
                             iAdded++;
-                            LOCATION->m_present = 1;
-                            LOCATION_LARGE->m_present = 0;
+                            LOCATION->m_present = 1.0;
+                            LOCATION_LARGE->m_present = 0.0;
                             realOPC->commit();
                         }
 
@@ -1480,7 +1480,7 @@ Bottle abmReasoning::updateKnownLocations()
                             LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                             LOCATION->m_dimensions[2] = abmReasoningFunction::size_location * 2;
                             LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
-                            LOCATION->m_present = 1;
+                            LOCATION->m_present = 1.0;
                             LOCATION->m_color[0] = colorR / 2;
                             LOCATION->m_color[1] = colorG / 2;
                             LOCATION->m_color[2] = colorB / 2;
@@ -1492,15 +1492,15 @@ Bottle abmReasoning::updateKnownLocations()
                             LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                             LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                             LOCATION_LARGE->m_dimensions[2] = abmReasoningFunction::size_location;
-                            LOCATION_LARGE->m_present = 1;
+                            LOCATION_LARGE->m_present = 1.0;
                             LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
                             LOCATION_LARGE->m_color[0] = colorR;
                             LOCATION_LARGE->m_color[1] = colorG;
                             LOCATION_LARGE->m_color[2] = colorB;
 
                             iAdded++;
-                            LOCATION->m_present = 1;
-                            LOCATION_LARGE->m_present = 0;
+                            LOCATION->m_present = 1.0;
+                            LOCATION_LARGE->m_present = 0.0;
                         }
                     }
                 }
@@ -1580,7 +1580,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[2] = 0.04;
-                    LOCATION->m_present = 1;
+                    LOCATION->m_present = 1.0;
                     LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
                     LOCATION->m_color[0] = colorR / 2;
                     LOCATION->m_color[1] = colorG / 2;
@@ -1593,7 +1593,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[2] = 0.02;
-                    LOCATION_LARGE->m_present = 1;
+                    LOCATION_LARGE->m_present = 1.0;
                     LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
                     LOCATION_LARGE->m_color[0] = colorR;
                     LOCATION_LARGE->m_color[1] = colorG;
@@ -1614,7 +1614,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION->m_dimensions[0] = sqrt(VP2)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[1] = sqrt(VP1)*abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION->m_dimensions[2] = 0.04;
-                    LOCATION->m_present = 1;
+                    LOCATION->m_present = 1.0;
                     LOCATION->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
                     LOCATION->m_color[0] = abmReasoningFunction::color_loc_R / 2;
                     LOCATION->m_color[1] = abmReasoningFunction::color_loc_G / 2;
@@ -1627,7 +1627,7 @@ Bottle abmReasoning::updateLocation(string sLocation)
                     LOCATION_LARGE->m_dimensions[0] = sqrt(VP2) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[1] = sqrt(VP1) * 2 * abmReasoningFunction::FACTOR_LOCATION;
                     LOCATION_LARGE->m_dimensions[2] = 0.02;
-                    LOCATION_LARGE->m_present = 1;
+                    LOCATION_LARGE->m_present = 1.0;
                     LOCATION_LARGE->m_ego_orientation[2] = sin(Vect2.second / Vect2.first)*180. / PI;
                     LOCATION_LARGE->m_color[0] = colorR;
                     LOCATION_LARGE->m_color[1] = colorG;
@@ -1676,19 +1676,19 @@ Bottle abmReasoning::DeleteKnownLocations()
                 if (realOPC->isConnected())
                 {
                     Object* LOCATION = realOPC->addOrRetrieveEntity<Object>(sLoc);
-                    LOCATION->m_present = 0;
+                    LOCATION->m_present = 0.0;
 
                     Object* LOCATION_LARGE = realOPC->addOrRetrieveEntity<Object>(large);
-                    LOCATION_LARGE->m_present = 0;
+                    LOCATION_LARGE->m_present = 0.0;
                 }
 
                 if (mentalOPC->isConnected())
                 {
                     Object* LOCATION = mentalOPC->addOrRetrieveEntity<Object>(sLoc);
-                    LOCATION->m_present = 0;
+                    LOCATION->m_present = 0.0;
 
                     Object* LOCATION_LARGE = mentalOPC->addOrRetrieveEntity<Object>(large);
-                    LOCATION_LARGE->m_present = 0;
+                    LOCATION_LARGE->m_present = 0.0;
                 }
             }
         }

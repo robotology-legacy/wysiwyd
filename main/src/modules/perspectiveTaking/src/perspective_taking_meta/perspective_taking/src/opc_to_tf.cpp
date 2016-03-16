@@ -29,7 +29,7 @@ void updateObjectsCallback(const ros::TimerEvent&) {
     for(const auto& entity:entities) {
         if(entity->isType("object")) {
             if (auto obj=dynamic_cast<wysiwyd::wrdac::Object*>(entity)) {
-                if(obj->m_present && obj->name()!="partner") {
+                if((obj->m_present==1.0) && obj->name()!="partner") {
                     // draw object in visualizer
                     auto obj_name = obj->name();
                     auto obj_pos_yarp = obj->m_ego_position;

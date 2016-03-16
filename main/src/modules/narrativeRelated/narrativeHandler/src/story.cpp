@@ -47,29 +47,39 @@ Bottle story::unfoldGoal(string goal)
 
 void story::displayNarration(bool displayAll)
 {
-    if (sentenceStory.size() > iThresholdSentence){
-        cout << endl << "begin display narration of story: " << counter << " with " << vEvents.size() << " events and " << sentenceStory.size() << " sentence." << endl;
+	cout << "size of human narration: " << humanNarration.size() << endl;
 
-        if (displayAll){
-            for (auto itSt : vEvents){
-                itSt.removeUnderscore();
-                cout << "\t A:" << itSt.agent;
-                cout << "\t P:" << itSt.predicate;
-                cout << "\t O:" << itSt.object;
-                cout << "\t R:" << itSt.recipient << endl;
-            }
-        }
-        for (auto itSt : sentenceStory){
-            cout << itSt;
-        }
+	if (humanNarration.size() > 2){
+		cout << "begin narration from human:" << endl;
+		for (auto ii : humanNarration){
+			cout << "\t" << ii << endl;
+		}
+	}
+	else{
+		if (sentenceStory.size() > iThresholdSentence){
+			cout << endl << "begin display narration of story: " << counter << " with " << vEvents.size() << " events and " << sentenceStory.size() << " sentence." << endl;
+
+			if (displayAll){
+				for (auto itSt : vEvents){
+					itSt.removeUnderscore();
+					cout << "\t A:" << itSt.agent;
+					cout << "\t P:" << itSt.predicate;
+					cout << "\t O:" << itSt.object;
+					cout << "\t R:" << itSt.recipient << endl;
+				}
+			}
+			for (auto itSt : sentenceStory){
+				cout << itSt;
+			}
 
 
-        cout << "OCW ARE: ";
-        for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
-            cout << *itS << "  ";
-        }
-        cout << endl<<endl;
-    }
+			cout << "OCW ARE: ";
+			for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
+				cout << *itS << "  ";
+			}
+			cout << endl << endl;
+		}
+	}
 }
 
 

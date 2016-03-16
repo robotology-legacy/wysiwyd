@@ -1382,7 +1382,7 @@ TempAgent->m_color.push_back(*it);
 //TempAgent->m_color[1] = get<1>(colorAgent);
 //TempAgent->m_color[2] = get<2>(colorAgent);
 }
-TempAgent->m_present = false;
+TempAgent->m_present = 0.0;
 
 opcWorld->commit(TempAgent);
 incrAgent++;
@@ -1413,12 +1413,12 @@ RTObject *RTO = opcWorld->addEntity<RTObject>(sName.c_str());
 //RTO->m_color[0] = get<0>(colorRto);
 //RTO->m_color[1] = get<1>(colorRto);
 //RTO->m_color[2] = get<2>(colorRto);
-//RTO->m_present = false;
+//RTO->m_present = 0.0;
 RTO->m_color.clear();
 for (vector<int>::iterator it = colorRto.begin(); it != colorRto.end(); it++){
 RTO->m_color.push_back(*it);
 }
-RTO->m_present = false;
+RTO->m_present = 0.0;
 
 opcWorld->commit(RTO);
 incrRTO++;
@@ -1484,7 +1484,7 @@ for (vector<double>::iterator it = orientationObject.begin(); it != orientationO
 TempObj->m_color.push_back(*it);
 }
 
-TempObj->m_present = false;
+TempObj->m_present = 0.0;
 
 opcWorld->commit(TempObj);
 incrObject++;

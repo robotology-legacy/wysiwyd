@@ -34,12 +34,13 @@ private:
 
     double dThresholdDiffStory; // threshold in second between to action from two different stories.
     unsigned int  iThresholdSizeStory; // threshold of the number of instance in a story
-    unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
-    yarp::os::Port  rpcPort;
+	unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
+	unsigned int  iMinInstance; // threshold of the number of sentence in a story
+	yarp::os::Port  rpcPort;
 
     std::vector<story> listStories;
 
-    void tellingStoryFromMeaning(story st);
+    bool tellingStoryFromMeaning(story st);
     void initializeStories();
 
     yarp::os::Bottle unfoldGoal(std::string goal);
@@ -52,11 +53,14 @@ private:
     bool checkListPAOR(std::vector<std::string> vOriginal, std::vector<std::string> vCopy);
     std::string adaptMeaning(std::string oriMeaning);
 
-    void addNarrationToStory(story target, bool overWrite = false);
+    void addNarrationToStory(story &target, bool overWrite = false);
     std::string grammarToString(std::string sPath);
 
     std::string GrammarNarration; // the file for the grammar narration
     std::string GrammarYesNo;
+
+	bool narrate();
+	bool askNarrate();
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
