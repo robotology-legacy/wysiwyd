@@ -57,7 +57,7 @@ bool TouchDetectorThread::threadInit()
         yError() << ex.what();
         return false;
     }
-    
+
     return true;
 }
 
@@ -90,9 +90,9 @@ bool TouchDetectorThread::readTaxelsMapping(string filename)
             }
         }
     }
-    
+
     nbClusters = clusterId;
-    
+
     return true;
 }
 
@@ -111,7 +111,7 @@ int TouchDetectorThread::getBodyPartId(string bodyPartName)
     {
         throw ParsingException();
     }
-    
+
     return id;
 }
 
@@ -125,8 +125,11 @@ void TouchDetectorThread::updateMapping(int bodyPart, int firstTaxel, int lastTa
 
 void TouchDetectorThread::run()
 {
-    vector<int> activations(nbClusters, 0);
-    
+    vector<int> activations;
+    for(size_t i = 0; i < nbClusters; i++) {
+        activations.push_back(0);
+    }
+
     int port = 0;
     try
     {
@@ -145,9 +148,9 @@ void TouchDetectorThread::run()
     }
     Bottle& output = touchPort->prepare();
     output.clear();
-    for (vector<int>::iterator it = activations.begin() ; it != activations.end(); ++it)
+    for (auto& activation : activations)
     {
-        output.addInt(*it);
+        output.addInt(activation);
     }
     touchPort->write();
 }
