@@ -81,8 +81,12 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 		Value(0.2)).asDouble();
 	thresholdWaving = rf.check("thresholdWaving",
         Value(0.02)).asDouble();
-    thresholdSaliency = rf.check("thresholdSaliency",
-        Value(0.005)).asDouble();
+	thresholdSaliency = rf.check("thresholdSaliency",
+		Value(0.005)).asDouble();
+	rangeHaving = rf.check("rangeHaving",
+		Value(0.3)).asDouble();
+	persistenceHaving = rf.check("persistenceHaving",
+		Value(1.0)).asDouble();
 
     isControllingMotors = rf.check("motorControl",
         Value(0)).asInt() == 1;
@@ -118,13 +122,15 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     }
 
     checkPointing = rf.find("isPointing").asInt() == 1;
-    checkWaving = rf.find("isWaving").asInt() == 1;
+	checkWaving = rf.find("isWaving").asInt() == 1;
+	checkHaving = rf.find("isHaving").asInt() == 0;
 
     isPointing = false;
-    isWaving = false;
+	isWaving = false;
 
     yInfo() << " pointing: " << checkPointing;
-    yInfo() << " waving: " << checkWaving;
+	yInfo() << " waving: " << checkWaving;
+	yInfo() << " having: " << checkHaving;
 
     if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
         cout << getName() << ": Unable to open port rpc" << endl;
@@ -187,28 +193,49 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "help") {
         reply.addString(helpMessage.c_str());
     }
-    else if (command.get(0).asString() == "pointing") {
-        if (command.size() != 2)
-        {
-            reply.addString("error in PASAR: Bottle 'pointing' misses information (on/off)");
-        }
-        else
-        {
-            if (command.get(1).asString() == "off")
-            {
-                checkPointing = false;
-                yInfo() << " stop pointing";
-                reply.addString("stop pointing");
-            }
-            else if (command.get(1).asString() == "on")
-            {
-                checkPointing = true;
-                yInfo() << " start pointing";
-                reply.addString("start pointing");
-            }
-        }
-    }
-    else if (command.get(0).asString() == "waving") {
+	else if (command.get(0).asString() == "pointing") {
+		if (command.size() != 2)
+		{
+			reply.addString("error in PASAR: Bottle 'pointing' misses information (on/off)");
+		}
+		else
+		{
+			if (command.get(1).asString() == "off")
+			{
+				checkPointing = false;
+				yInfo() << " stop pointing";
+				reply.addString("stop pointing");
+			}
+			else if (command.get(1).asString() == "on")
+			{
+				checkPointing = true;
+				yInfo() << " start pointing";
+				reply.addString("start pointing");
+			}
+		}
+	}
+	else if (command.get(0).asString() == "having") {
+		if (command.size() != 2)
+		{
+			reply.addString("error in PASAR: Bottle 'having' misses information (on/off)");
+		}
+		else
+		{
+			if (command.get(1).asString() == "off")
+			{
+				checkHaving = false;
+				yInfo() << " stop having";
+				reply.addString("stop having");
+			}
+			else if (command.get(1).asString() == "on")
+			{
+				checkHaving = true;
+				yInfo() << " start having";
+				reply.addString("start having");
+			}
+		}
+	}
+	else if (command.get(0).asString() == "waving") {
         if (command.size() != 2)
         {
             reply.addString("error in PASAR: Bottle 'waving' misses information (on/off)");
@@ -271,7 +298,8 @@ bool PasarModule::updateModule()
         //Compute top down saliency (concept based)
         saliencyTopDown();
         if (checkPointing) saliencyPointing();
-        if (checkWaving) saliencyWaving();
+		if (checkWaving) saliencyWaving();
+		if (checkHaving) checkAgentHaving();
 
         //Leaky integrate
         saliencyLeakyIntegration();
@@ -768,4 +796,36 @@ void PasarModule::initializeMapTiming()
             }
         }
     }
+}
+
+
+void PasarModule::checkAgentHaving(){
+
+	Agent *ag;
+	// founding all agents:
+	for (auto &it : OPCEntities){
+		if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
+			&& (it.second.present || it.second.o.name() != "icub")){
+			Agent *ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
+
+			for (auto &ob : OPCEntities){
+				// calcul of distance onl in X and Y
+				double distance = (ag->m_ego_position[0] - ob.second.o.m_ego_position[0]) *
+					(ag->m_ego_position[0] - ob.second.o.m_ego_position[0]) +
+					(ag->m_ego_position[1] - ob.second.o.m_ego_position[1]) *
+					(ag->m_ego_position[1] - ob.second.o.m_ego_position[1]);
+				if (distance < rangeHaving){
+					//create relation
+					Relation relHaving;
+					relHaving.m_subject = ag->name();
+					relHaving.m_verb = "have";
+					relHaving.m_object = ob.second.o.name();
+					iCub->opc->addRelation(relHaving, persistenceHaving);
+				}
+			}
+		}
+	}
+
+	iCub->opc->commit();
+
 }
