@@ -26,6 +26,11 @@
       <RULEREF  NAME="SENTENCE_TYPE_PAPPOR"  />
       <RULEREF  NAME="SENTENCE_TYPE_PAPRAPOR"  />
       <RULEREF  NAME="SENTENCE_TYPE_PAPOR"  />
+      <RULEREF  NAME="SENTENCE_TYPE_APRO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_APROPA"  />
+      <RULEREF  NAME="SENTENCE_TYPE_APRAPO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAAPPVRO"  />
     </L>
   </RULE>
 
@@ -150,6 +155,82 @@
     </O>
   </RULE>
 
+    <!-- I detected an unknown object -->
+  <RULE  NAME="SENTENCE_TYPE_APRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="recipient"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="object"/>
+  </RULE>
+
+  <!-- so I pointed to the object -->
+  <RULE  NAME="SENTENCE_TYPE_PAPO"  DYNAMIC="TRUE">
+	<RULEREF NAME="linking"/>
+	<RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="object"/>
+  </RULE>
+
+  <!-- and I asked you what is this object -->
+  <RULE  NAME="SENTENCE_TYPE_APROPA"  DYNAMIC="TRUE">
+	<RULEREF NAME="linking"/>
+	<RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+	<L>
+		<RULEREF  NAME="object"/>
+		<RULEREF  NAME="agent"/>
+	</L>
+    <RULEREF  NAME="object"/>
+	<RULEREF NAME ="predicate"/>
+	<O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+	<L>
+		<RULEREF  NAME="object"/>
+		<RULEREF  NAME="agent"/>
+	</L>
+	</RULE>
+	
+  <!-- you told me that it was the box -->
+  <RULE  NAME="SENTENCE_TYPE_APROPA"  DYNAMIC="TRUE">
+	<RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+	<L>
+		<RULEREF  NAME="object"/>
+		<RULEREF  NAME="agent"/>
+	</L>	
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="object"/>
+	<RULEREF NAME ="predicate"/>
+	<O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+	<L>
+		<RULEREF  NAME="object"/>
+		<RULEREF  NAME="agent"/>
+	</L>
+	</RULE>
+
+  
+  
   <RULE NAME="agent" DYNAMIC="TRUE">
     <L>
       <P>I</P>

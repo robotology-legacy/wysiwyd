@@ -253,6 +253,8 @@ void narrativeHandler::findStories(int iInstance)
 
         ii++;
     }
+
+	initializeStories();
 }
 
 // return the diff between two actions in seconds
@@ -1191,7 +1193,6 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
 bool narrativeHandler::narrate(){
 	
 	findStories(iMinInstance);
-	initializeStories();
 
 	story target = listStories[listStories.size() - 1];
 
@@ -1205,7 +1206,6 @@ bool narrativeHandler::narrate(){
 bool narrativeHandler::askNarrate(){
 
 	findStories(iMinInstance);
-	initializeStories();
 	
 	addNarrationToStory(listStories[listStories.size() - 1], true);
 	
