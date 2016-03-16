@@ -110,6 +110,7 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
         "track <string name> : track the object with the given opc name \n" +
         "track <int id> : track the object with the given opc id \n" +
         "track <double x> <double y> <double z> : track with the object coordinates \n" +
+        "look <double x> <double y> <double z> : look at the object coordinates \n" +
         "auto : switch attention between present objects \n" +
         "sleep : pauses the head control until next command \n" +
         "stat : returns \"auto\",\"quiet\",\"<object_name_to_track>\" \n" +
