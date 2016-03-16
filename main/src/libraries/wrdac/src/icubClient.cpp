@@ -547,6 +547,41 @@ bool ICubClient::point(const Vector &target, const Bottle &options, std::string 
 }
 
 
+bool ICubClient::push(const string &oLocation, const Bottle &options)
+{
+    Entity *target = opc->getEntity(oLocation, true);
+    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
+    {
+        cerr << "[iCubClient] Called push() on a unallowed location: \"" << oLocation << "\"" << endl;
+        return false;
+    }
+
+    Object *oTarget = dynamic_cast<Object*>(target);
+    if (!oTarget->m_present)
+    {
+        cerr << "[iCubClient] Called push() on an unavailable entity: \"" << oLocation << "\"" << endl;
+        return false;
+    }
+
+    return push(oTarget->m_ego_position, options, oTarget->name());
+}
+
+
+bool ICubClient::push(const Vector &target, const Bottle &options, std::string sName)
+{
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        cerr << "[iCubClient] Called push() but ARE subsystem is not available." << endl;
+        return false;
+    }
+
+    Bottle opt(options);
+    opt.addString("still"); // always avoid automatic homing after point
+    return are->push(target, opt, sName);
+}
+
+
 bool ICubClient::look(const string &target)
 {
     if (subSystems.find("attention") != subSystems.end())
