@@ -105,8 +105,8 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
         Bottle *objectList = grpOPC_AOR.find("objectName").asList();
         subPopulateObjects(objectList, true);
 
-        Bottle *bodyPartList = grpOPC_Add.find("bodypartName").asList();
-        Bottle *bodyPartJointList = grpOPC_Add.find("bodypartJoint").asList();
+        Bottle *bodyPartList = grpOPC_AOR.find("bodypartName").asList();
+        Bottle *bodyPartJointList = grpOPC_AOR.find("bodypartJoint").asList();
         subPopulateBodyparts(bodyPartList, bodyPartJointList, true);
     }
 

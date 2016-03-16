@@ -59,6 +59,8 @@ private:
 
     //Configure
     void configureOPC(yarp::os::ResourceFinder &rf);
+    void subPopulateObjects(yarp::os::Bottle* objectList, bool addOrRetrieve);
+    void subPopulateBodyparts(yarp::os::Bottle* bodyPartList, yarp::os::Bottle* bodyPartJointList, bool addOrRetrieve);
 
     //objectTagging
     yarp::os::Bottle  exploreUnknownEntity(const yarp::os::Bottle &bInput);
