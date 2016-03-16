@@ -814,12 +814,16 @@ void PasarModule::checkAgentHaving(){
 					(ag->m_ego_position[0] - ob.second.o.m_ego_position[0]) +
 					(ag->m_ego_position[1] - ob.second.o.m_ego_position[1]) *
 					(ag->m_ego_position[1] - ob.second.o.m_ego_position[1]);
+				distance = sqrt(distance);
 				if (distance < rangeHaving){
 					//create relation
 					Relation relHaving;
 					relHaving.m_subject = ag->name();
 					relHaving.m_verb = "have";
 					relHaving.m_object = ob.second.o.name();
+
+					yInfo() << "\t" << relHaving.toString() << " distance: " << distance;
+
 					iCub->opc->addRelation(relHaving, persistenceHaving);
 				}
 			}
