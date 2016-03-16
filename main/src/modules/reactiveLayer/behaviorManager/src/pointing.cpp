@@ -10,7 +10,9 @@ void Pointing::configure() {
 void Pointing::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
-    int id = 0;  // should be random here
+    
+    int id = ((int)(yarp::os::Random::uniform()*100))%sensation->size(); 
+    yDebug()<<"Randomly selected: "<< id; // should be random here 
     string obj_name = sensation->get(id).asList()->get(1).asString();
     
     iCub->say("I could point to the " + obj_name);
