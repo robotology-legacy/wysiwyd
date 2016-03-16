@@ -15,6 +15,9 @@ void Narrate::run(Bottle args/*=Bottle()*/) {
     cmd.addString("start");
     cmd.addString("narration");
     yInfo() << "Proactively narrating...";
+
+
+    
     rpc_out_port.write(cmd, rply);
 
 }

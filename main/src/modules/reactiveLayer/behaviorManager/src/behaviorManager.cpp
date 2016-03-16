@@ -133,6 +133,20 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
         //         {
         //             args.add(&cmd.get(a));
         //         }
+                bool aux;
+                if (beh->from_sensation_port_name != "None") {
+                    if (!Network::isConnected(beh->from_sensation_port_name, beh->sensation_port_in.getName())) {
+                        aux =Network::connect(beh->from_sensation_port_name, beh->sensation_port_in.getName());
+                        yInfo()<< "The sensations port for "<< beh->name <<" was not connected. \nReconnection status: " << aux;
+                    }
+                }
+                if (beh->external_port_name != "None") {
+                    if (!Network::isConnected(beh->rpc_out_port.getName(), beh->external_port_name)) {
+                        aux = Network::connect(beh->rpc_out_port.getName(), beh->external_port_name);
+                        yInfo()<< "The external port for "<< beh->name <<" was not connected. \nReconnection status: " << aux;
+                    }   
+                }
+
                 beh->trigger(/*args*/);
 
                 // Add event into ABM
