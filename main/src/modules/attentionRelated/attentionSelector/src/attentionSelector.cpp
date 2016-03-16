@@ -205,7 +205,7 @@ bool attentionSelectorModule::respond(const Bottle& command, Bottle& reply) {
 /************************************************************************/
 double attentionSelectorModule::getPeriod()
 {
-    return 0.01;
+    return 0.1;
 }
 
 
