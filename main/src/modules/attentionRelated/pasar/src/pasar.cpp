@@ -75,9 +75,11 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     leftHandt1 = Vector(3, 0.0);
     leftHandt2 = Vector(3, 0.0);
 
-    thresholdMovementAccel = rf.check("thresholdMovementAccel",
-        Value(0.02)).asDouble();
-    thresholdWaving = rf.check("thresholdWaving",
+	thresholdMovementAccelAgent = rf.check("thresholdMovementAccelAgent",
+		Value(0.02)).asDouble();
+	thresholdMovementAccelObject = rf.check("thresholdMovementAccelObject",
+		Value(0.2)).asDouble();
+	thresholdWaving = rf.check("thresholdWaving",
         Value(0.02)).asDouble();
     thresholdSaliency = rf.check("thresholdSaliency",
         Value(0.005)).asDouble();
@@ -393,11 +395,21 @@ void PasarModule::saliencyTopDown() {
                 }
             }
 
-            if (acceleration > thresholdMovementAccel)
-            {
-                it.second.o.m_saliency += pTopDownAccelerationCoef;
-                yInfo() << " moving object:" << it.second.o.name() << " salience : " << it.second.o.m_saliency << " acceleration: " << acceleration;
-            }
+			if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT){
+				if (acceleration > thresholdMovementAccelAgent)
+				{
+					it.second.o.m_saliency += pTopDownAccelerationCoef;
+					yInfo() << " moving agent:" << it.second.o.name() << " salience : " << it.second.o.m_saliency << " acceleration: " << acceleration;
+				}
+
+			}
+			else {
+				if (acceleration > thresholdMovementAccelObject)
+				{
+					it.second.o.m_saliency += pTopDownAccelerationCoef;
+					yInfo() << " moving object:" << it.second.o.name() << " salience : " << it.second.o.m_saliency << " acceleration: " << acceleration;
+				}
+			}
         }
     }
 }
@@ -434,7 +446,7 @@ void PasarModule::saliencyLeakyIntegration() {
     //cout<<"Membrane Activity : "<<endl;
     for (auto &it : OPCEntities)
     {
-        if (it.second.o.name() != "")
+        if (it.second.o.name() != "" && it.second.o.m_present != 0.5)
         {
             it.second.o.m_saliency *= pExponentialDecrease;
         }

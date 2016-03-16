@@ -53,8 +53,9 @@ class PasarModule : public yarp::os::RFModule {
     double pTopDownInhibitionReturn;        // threshold of an acceleration detection
     double pExponentialDecrease;            // Speed of the decrease of the saliency over the time (should be less than 1)
     double pTopDownWaving;                  // increase of saliency if waving
-    double thresholdMovementAccel;          // minimum acceleration detect
-    double thresholdWaving;                 // minimum waving detected
+	double thresholdMovementAccelAgent;          // minimum acceleration detect
+	double thresholdMovementAccelObject;          // minimum acceleration detect
+	double thresholdWaving;                 // minimum waving detected
     double thresholdPointing;                 // minimum waving detected
     double thresholdSaliency;
     double dthresholdAppear;
