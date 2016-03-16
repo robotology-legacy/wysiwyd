@@ -22,6 +22,11 @@ void Tagging::run(Bottle args/*=Bottle()*/) {
     cmd.addString(sensation->get(id).asList()->get(0).asString());
     cmd.addString(sensation->get(id).asList()->get(1).asString());
     yInfo() << "Proactively tagging...";
+    if (!Network::isConnected(rpc_out_port.getName(), external_port_name))
+        {
+            bool aux = Network::connect(rpc_out_port.getName(), external_port_name);
+            yInfo()<< "The port for tagging was not connected. \nReconnection status: " << aux;
+        }
     rpc_out_port.write(cmd, rply);
     yInfo() << "Proactive tagging ends";
 
