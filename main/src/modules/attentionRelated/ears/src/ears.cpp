@@ -128,15 +128,14 @@ bool ears::updateModule() {
 
         bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
         cout << bSemantic.toString() << endl;
-        string sObject,sAction;
+        string sObject;
         string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
         //string sPredicate = bSemantic.check("predicate", Value("none")).asString();
 
         string sObjectType, sCommand;
         if(sQuestionKind == "SENTENCEOBJECT") {
             sObject = bSemantic.check("object", Value("none")).asString();
-            sAction = bSemantic.check("predicateObject", Value("none")).asString();
-            sCommand = "followingingOrder";
+            sCommand = "pointingOrder";
             sObjectType = "object";
         } else if(sQuestionKind == "SENTENCEBODYPART") {
             sObject = bSemantic.check("bodypart", Value("none")).asString();
@@ -148,7 +147,6 @@ bool ears::updateModule() {
 
         Bottle &bToTarget = portTarget.prepare();
         bToTarget.clear();
-        bToTarget.addString(sAction);
         bToTarget.addString(sObjectType);
         bToTarget.addString(sObject);
         portTarget.write();
