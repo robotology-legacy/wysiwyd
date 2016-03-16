@@ -163,6 +163,16 @@ bool PasarModule::interruptModule() {
 
 /************************************************************************/
 bool PasarModule::close() {
+	entities = iCub->opc->EntitiesCacheCopy();
+
+	for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+	{
+		(dynamic_cast<Object*>(*it))->m_saliency = 0.0;
+		delete *it;
+	}
+	iCub->opc->commit();
+
+
     iCub->opc->close();
     handlerPort.interrupt();
     handlerPort.close();
