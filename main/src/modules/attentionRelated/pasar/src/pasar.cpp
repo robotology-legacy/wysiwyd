@@ -371,7 +371,7 @@ void PasarModule::saliencyTopDown() {
 
             // If the object is absent:
             // if the lastTimeSeen was more than a threshold, the object dissapeared
-            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (it.second.o.m_present!=1.0) && it.second.present;
+            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (it.second.o.m_present==0.0) && it.second.present;
             if (disappeared){
                 cout << "DISAPPEARED since: " << now - it.second.lastTimeSeen << endl;
             }
