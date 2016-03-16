@@ -19,6 +19,7 @@
 #include <string>
 #include <sstream>
 
+#include <yarp/os/LogStream.h>
 #include <yarp/os/Value.h>
 #include <yarp/os/Property.h>
 
@@ -32,7 +33,7 @@ const int TouchDetectorThread::nbBodyParts = 7;
 const char* TouchDetectorThread::bodyParts[7] = {"torso", "left_arm", "right_arm", "left_forearm", "right_forearm", "left_hand", "right_hand"};
 const int TouchDetectorThread::nbTaxels[7] = {4 * 192, 4 * 192, 4 * 192, 2 * 192, 2 * 192, 192, 192};
 
-TouchDetectorThread::TouchDetectorThread(BufferedPort<Bottle> *torsoPort, BufferedPort<Bottle> *leftArmPort, BufferedPort<Bottle> *rightArmPort, BufferedPort<Bottle> *leftForearmPort, BufferedPort<Bottle> *rightForearmPort, BufferedPort<Bottle> *leftHandPort, BufferedPort<Bottle> *rightHandPort, BufferedPort<Bottle> *touchPort, int period, string *clustersConfFilepath, int threshold)
+TouchDetectorThread::TouchDetectorThread(BufferedPort<Bottle> *torsoPort, BufferedPort<Bottle> *leftArmPort, BufferedPort<Bottle> *rightArmPort, BufferedPort<Bottle> *leftForearmPort, BufferedPort<Bottle> *rightForearmPort, BufferedPort<Bottle> *leftHandPort, BufferedPort<Bottle> *rightHandPort, BufferedPort<Bottle> *touchPort, int period, string clustersConfFilepath, int threshold)
     : RateThread(period), threshold(threshold), clustersConfFilepath(clustersConfFilepath), torsoPort(torsoPort), leftArmPort(leftArmPort), rightArmPort(rightArmPort), leftForearmPort(leftForearmPort), rightForearmPort(rightForearmPort), leftHandPort(leftHandPort), rightHandPort(rightHandPort), touchPort(touchPort)
 {
     for (int i = 0; i < nbBodyParts; ++i)
@@ -49,18 +50,18 @@ bool TouchDetectorThread::threadInit()
 {
     try
     {
-        readTaxelsMapping(clustersConfFilepath->c_str());
+        readTaxelsMapping(clustersConfFilepath);
     }
     catch (ParsingException ex)
     {
-        cerr << ex.what() << endl;
+        yError() << ex.what();
         return false;
     }
     
     return true;
 }
 
-bool TouchDetectorThread::readTaxelsMapping(const char* filename)
+bool TouchDetectorThread::readTaxelsMapping(string filename)
 {
     Property p;
     p.fromConfigFile(filename);
@@ -160,7 +161,7 @@ void TouchDetectorThread::processPort(int portNum, yarp::os::BufferedPort<yarp::
     }
     else
     {
-        cerr << "Unable to read data for " << bodyParts[portNum] << endl;;
+        yError() << "Unable to read data for " << bodyParts[portNum];
     }
 }
 
