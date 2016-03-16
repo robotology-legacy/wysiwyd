@@ -45,9 +45,27 @@ public:
    * @return true/false on success/failure.
    */
   virtual bool change_name(const std::string& old_name, const std::string& new_name);
+  /**
+   * Enable/disable object persistence.
+   * @param sw can be "on"|"off".
+   * @return true/false on success/failure.
+   */
+  virtual bool set_object_persistence(const std::string& sw);
+  /**
+   * Return current status of object persistence.
+   * @return "on"|"off".
+   */
+  virtual std::string get_object_persistence();
+  /**
+   * Pause module
+   */
+  virtual void pause();
+  /**
+   * Resume module
+   */
+  virtual void resume();
   virtual bool read(yarp::os::ConnectionReader& connection);
   virtual std::vector<std::string> help(const std::string& functionName="--all");
 };
 
 #endif
-

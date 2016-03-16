@@ -42,6 +42,37 @@ public:
   virtual bool read(yarp::os::ConnectionReader& connection);
 };
 
+class iol2opc_IDL_set_object_persistence : public yarp::os::Portable {
+public:
+  std::string sw;
+  bool _return;
+  void init(const std::string& sw);
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class iol2opc_IDL_get_object_persistence : public yarp::os::Portable {
+public:
+  std::string _return;
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class iol2opc_IDL_pause : public yarp::os::Portable {
+public:
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
+class iol2opc_IDL_resume : public yarp::os::Portable {
+public:
+  void init();
+  virtual bool write(yarp::os::ConnectionWriter& connection);
+  virtual bool read(yarp::os::ConnectionReader& connection);
+};
+
 bool iol2opc_IDL_train_object::write(yarp::os::ConnectionWriter& connection) {
   yarp::os::idl::WireWriter writer(connection);
   if (!writer.writeListHeader(3)) return false;
@@ -134,6 +165,82 @@ void iol2opc_IDL_change_name::init(const std::string& old_name, const std::strin
   this->new_name = new_name;
 }
 
+bool iol2opc_IDL_set_object_persistence::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(4)) return false;
+  if (!writer.writeTag("set_object_persistence",1,3)) return false;
+  if (!writer.writeString(sw)) return false;
+  return true;
+}
+
+bool iol2opc_IDL_set_object_persistence::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readBool(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void iol2opc_IDL_set_object_persistence::init(const std::string& sw) {
+  _return = false;
+  this->sw = sw;
+}
+
+bool iol2opc_IDL_get_object_persistence::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(3)) return false;
+  if (!writer.writeTag("get_object_persistence",1,3)) return false;
+  return true;
+}
+
+bool iol2opc_IDL_get_object_persistence::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  if (!reader.readString(_return)) {
+    reader.fail();
+    return false;
+  }
+  return true;
+}
+
+void iol2opc_IDL_get_object_persistence::init() {
+  _return = "";
+}
+
+bool iol2opc_IDL_pause::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("pause",1,1)) return false;
+  return true;
+}
+
+bool iol2opc_IDL_pause::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  return true;
+}
+
+void iol2opc_IDL_pause::init() {
+}
+
+bool iol2opc_IDL_resume::write(yarp::os::ConnectionWriter& connection) {
+  yarp::os::idl::WireWriter writer(connection);
+  if (!writer.writeListHeader(1)) return false;
+  if (!writer.writeTag("resume",1,1)) return false;
+  return true;
+}
+
+bool iol2opc_IDL_resume::read(yarp::os::ConnectionReader& connection) {
+  yarp::os::idl::WireReader reader(connection);
+  if (!reader.readListReturn()) return false;
+  return true;
+}
+
+void iol2opc_IDL_resume::init() {
+}
+
 iol2opc_IDL::iol2opc_IDL() {
   yarp().setOwner(*this);
 }
@@ -176,6 +283,42 @@ bool iol2opc_IDL::change_name(const std::string& old_name, const std::string& ne
   }
   bool ok = yarp().write(helper,helper);
   return ok?helper._return:_return;
+}
+bool iol2opc_IDL::set_object_persistence(const std::string& sw) {
+  bool _return = false;
+  iol2opc_IDL_set_object_persistence helper;
+  helper.init(sw);
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","bool iol2opc_IDL::set_object_persistence(const std::string& sw)");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+std::string iol2opc_IDL::get_object_persistence() {
+  std::string _return = "";
+  iol2opc_IDL_get_object_persistence helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","std::string iol2opc_IDL::get_object_persistence()");
+  }
+  bool ok = yarp().write(helper,helper);
+  return ok?helper._return:_return;
+}
+void iol2opc_IDL::pause() {
+  iol2opc_IDL_pause helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","void iol2opc_IDL::pause()");
+  }
+  yarp().write(helper,helper);
+}
+void iol2opc_IDL::resume() {
+  iol2opc_IDL_resume helper;
+  helper.init();
+  if (!yarp().canWrite()) {
+    yError("Missing server method '%s'?","void iol2opc_IDL::resume()");
+  }
+  yarp().write(helper,helper);
 }
 
 bool iol2opc_IDL::read(yarp::os::ConnectionReader& connection) {
@@ -251,6 +394,51 @@ bool iol2opc_IDL::read(yarp::os::ConnectionReader& connection) {
       reader.accept();
       return true;
     }
+    if (tag == "set_object_persistence") {
+      std::string sw;
+      if (!reader.readString(sw)) {
+        reader.fail();
+        return false;
+      }
+      bool _return;
+      _return = set_object_persistence(sw);
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeBool(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "get_object_persistence") {
+      std::string _return;
+      _return = get_object_persistence();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(1)) return false;
+        if (!writer.writeString(_return)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "pause") {
+      pause();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(0)) return false;
+      }
+      reader.accept();
+      return true;
+    }
+    if (tag == "resume") {
+      resume();
+      yarp::os::idl::WireWriter writer(reader);
+      if (!writer.isNull()) {
+        if (!writer.writeListHeader(0)) return false;
+      }
+      reader.accept();
+      return true;
+    }
     if (tag == "help") {
       std::string functionName;
       if (!reader.readString(functionName)) {
@@ -289,6 +477,10 @@ std::vector<std::string> iol2opc_IDL::help(const std::string& functionName) {
     helpString.push_back("remove_object");
     helpString.push_back("remove_all");
     helpString.push_back("change_name");
+    helpString.push_back("set_object_persistence");
+    helpString.push_back("get_object_persistence");
+    helpString.push_back("pause");
+    helpString.push_back("resume");
     helpString.push_back("help");
   }
   else {
@@ -319,6 +511,25 @@ std::vector<std::string> iol2opc_IDL::help(const std::string& functionName) {
       helpString.push_back("@param old_name is the object which name is to be changed ");
       helpString.push_back("@param new_name is the new object name ");
       helpString.push_back("@return true/false on success/failure. ");
+    }
+    if (functionName=="set_object_persistence") {
+      helpString.push_back("bool set_object_persistence(const std::string& sw) ");
+      helpString.push_back("Enable/disable object persistence. ");
+      helpString.push_back("@param sw can be \"on\"|\"off\". ");
+      helpString.push_back("@return true/false on success/failure. ");
+    }
+    if (functionName=="get_object_persistence") {
+      helpString.push_back("std::string get_object_persistence() ");
+      helpString.push_back("Return current status of object persistence. ");
+      helpString.push_back("@return \"on\"|\"off\". ");
+    }
+    if (functionName=="pause") {
+      helpString.push_back("void pause() ");
+      helpString.push_back("Pause module ");
+    }
+    if (functionName=="resume") {
+      helpString.push_back("void resume() ");
+      helpString.push_back("Resume module ");
     }
     if (functionName=="help") {
       helpString.push_back("std::vector<std::string> help(const std::string& functionName=\"--all\")");

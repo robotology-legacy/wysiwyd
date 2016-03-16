@@ -44,6 +44,19 @@ service iol2opc_IDL
    bool change_name(1:string old_name, 2:string new_name);
 
    /**
+   * Enable/disable object persistence.
+   * @param sw can be "on"|"off".
+   * @return true/false on success/failure.
+   */
+   bool set_object_persistence(1:string sw);
+
+   /**
+   * Return current status of object persistence.
+   * @return "on"|"off".
+   */
+   string get_object_persistence();
+
+   /**
    * Pause module
    */
    void pause();

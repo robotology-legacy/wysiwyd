@@ -217,6 +217,7 @@ protected:
     Mutex mutexResourcesSFM;
 
     bool empty;
+    bool object_persistence;
     double period;
     double presence_timeout;
     string tracker_type;
@@ -277,6 +278,8 @@ public:
     bool    remove_object(const string &name);
     bool    remove_all();
     bool    change_name(const string &old_name, const string &new_name);
+    bool    set_object_persistence(const string &sw);
+    string  get_object_persistence();
     void    pause();
     void    resume();
 };

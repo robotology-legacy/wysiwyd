@@ -709,9 +709,15 @@ void IOL2OPCBridge::updateOPC()
             Object *obj=opc->addOrRetrieveEntity<Object>(object);
 
             // garbage collection
-            if (it->second.isDead() && (obj->m_present!=0.0))
+            if (it->second.isDead())
             {
-                obj->m_present=0.5;
+                if (object_persistence)
+                {
+                    if (obj->m_present!=0.0)
+                        obj->m_present=0.5; 
+                }
+                else
+                    obj->m_present=0.0; 
                 continue;
             }
 
@@ -778,6 +784,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     string name=rf.check("name",Value("iol2opc")).asString().c_str();
     period=rf.check("period",Value(0.1)).asDouble();
     empty=rf.check("empty");
+    object_persistence=(rf.check("object_persistence",Value("off")).asString()=="on");
 
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
@@ -1210,6 +1217,27 @@ bool IOL2OPCBridge::change_name(const string &old_name,
     }
 
     return true;
+}
+
+
+/**********************************************************/
+bool IOL2OPCBridge::set_object_persistence(const string &sw)
+{
+    if (sw=="on")
+        object_persistence=true;
+    else if (sw=="off")
+        object_persistence=false;
+    else
+        return false;
+
+    return true;
+}
+
+
+/**********************************************************/
+string IOL2OPCBridge::get_object_persistence()
+{
+    return (object_persistence?"on":"off");
 }
 
 
