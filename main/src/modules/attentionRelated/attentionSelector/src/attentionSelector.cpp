@@ -324,6 +324,7 @@ void attentionSelectorModule::exploring()
     if (trackedObject!="none")
     {
         Object *obj=dynamic_cast<Object*>(opc->getEntity(trackedObject));
+        // handle the case of an object that was seen before and is retained in memory
         if (obj->m_present!=1.0)
         {
             are->look(obj->m_ego_position,Bottle("wait"));
