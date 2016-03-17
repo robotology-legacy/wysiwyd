@@ -104,21 +104,25 @@ class AllostaticPlotModule(yarp.RFModule):
 
     def reconnect_ports(self):
         everything_connected = False
+
         while not everything_connected:
             everything_connected = True
-            for name in self.behaviors:
-                in_port, out_port = "/BehaviorManager/" + self.behaviors[-1] + "/start_stop:o", self.behavior_ports[-1].getName()
+            for name_in, port_out in zip(self.behaviors, self.behavior_ports):
+                in_port, out_port = "/BehaviorManager/" + name_in + "/start_stop:o", port_out.getName()
                 if not yarp.Network.isConnected(in_port, out_port):
                     everything_connected = False
                     yarp.Network.connect(in_port, out_port)
+
             if not yarp.Network.isConnected(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i"):
                 everything_connected = False
                 yarp.Network.connect(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i")
+
             for i, d in enumerate(self.drives):
                 in_port, out_port = "/homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName()
                 if not yarp.Network.isConnected(in_port, out_port):
                     everything_connected = False
                     yarp.Network.connect(in_port, out_port)
+
             if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
                 everything_connected = False
                 yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
