@@ -43,6 +43,8 @@
   <RULE NAME="predicateObject" DYNAMIC="TRUE">
     <L>
       <P>point</P>
+      <P>look at</P>
+      <P>push</P>
     </L>
   </RULE>
 
