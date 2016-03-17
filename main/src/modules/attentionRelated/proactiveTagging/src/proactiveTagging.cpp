@@ -790,7 +790,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
             }
 
             iCub->changeName(TARGET,sNameTarget);
-            iCub->opc->commit(TARGET);
+
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
             iCub->say("Now I know the" + sNameTarget);
