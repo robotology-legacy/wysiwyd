@@ -269,6 +269,32 @@ bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
 
 
 /**********************************************************/
+Vector IOL2OPCBridge::calibPosition(const Vector &x)
+{
+    Vector y=x;
+
+    // apply 3D correction
+    if (rpcCalib.getOutputCount()>0)
+    {
+        yarp::os::Bottle cmd,reply;
+        cmd.addString("get_location_nolook");
+        cmd.addString(calib_entry);
+        cmd.addDouble(y[0]);
+        cmd.addDouble(y[1]);
+        cmd.addDouble(y[2]);
+        rpcCalib.write(cmd,reply);
+        y[0]=reply.get(1).asDouble();
+        y[1]=reply.get(2).asDouble();
+        y[2]=reply.get(3).asDouble();
+    }
+    else
+        yWarning("Unable to connect to calibrator");
+
+    return y;
+}
+
+
+/**********************************************************/
 void IOL2OPCBridge::acquireImage()
 {
     // grab resources
@@ -496,7 +522,8 @@ int IOL2OPCBridge::findClosestBlob(const Bottle &blobs,
 
 
 /**********************************************************/
-int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const Vector &loc)
+int IOL2OPCBridge::findClosestBlob(const Bottle &blobs,
+                                   const Vector &loc)
 {
     int ret=RET_INVALID;
     double curMinDist=std::numeric_limits<double>::max();
@@ -725,7 +752,7 @@ void IOL2OPCBridge::updateOPC()
                                     dim,dim_filtered);
 
                     it->second.opc_id=obj->opc_id();
-                    obj->m_ego_position=x_filtered;
+                    obj->m_ego_position=calibPosition(x_filtered);
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
 
@@ -777,6 +804,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     period=rf.check("period",Value(0.1)).asDouble();
     empty=rf.check("empty");
     object_persistence=(rf.check("object_persistence",Value("off")).asString()=="on");
+    calib_entry=rf.check("calib_entry",Value("right-iol")).asString();
 
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
@@ -798,6 +826,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcPort.open(("/"+name+"/rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
+    rpcCalib.open(("/"+name+"/calib:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
     skim_blobs_x_bounds.resize(2);
@@ -904,6 +933,7 @@ bool IOL2OPCBridge::interruptModule()
     rpcClassifier.interrupt();
     getClickPort.interrupt();
     rpcGet3D.interrupt();
+    rpcCalib.interrupt();
     opc->interrupt();
 
     rtLocalization.stop();
@@ -928,6 +958,7 @@ bool IOL2OPCBridge::close()
     rpcClassifier.close();
     getClickPort.close();
     rpcGet3D.close();
+    rpcCalib.close();
     opc->close();
 
     delete opc;
