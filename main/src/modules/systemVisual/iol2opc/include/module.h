@@ -194,6 +194,7 @@ protected:
     RpcServer  rpcPort;
     RpcClient  rpcClassifier;
     RpcClient  rpcGet3D;
+    RpcClient  rpcCalib;
     OPCClient *opc;
 
     BufferedPort<Bottle>             blobExtractor;
@@ -216,8 +217,11 @@ protected:
     Mutex mutexResourcesOpc;
     Mutex mutexResourcesSFM;
 
-    bool empty;
     double period;
+    bool empty;
+    bool object_persistence;
+    string calib_entry;    
+
     double presence_timeout;
     string tracker_type;
     double tracker_timeout;
@@ -253,6 +257,7 @@ protected:
     CvPoint getBlobCOG(const Bottle &blobs, const int i);
     bool    get3DPosition(const CvPoint &point, Vector &x);
     bool    get3DPositionAndDimensions(const CvRect &bbox, Vector &x, Vector &dim);
+    Vector  calibPosition(const Vector &x);
     bool    getClickPosition(CvPoint &pos);
     void    acquireImage();
     void    drawBlobs(const Bottle &blobs, const int i, const Bottle &scores);
@@ -277,6 +282,8 @@ public:
     bool    remove_object(const string &name);
     bool    remove_all();
     bool    change_name(const string &old_name, const string &new_name);
+    bool    set_object_persistence(const string &sw);
+    string  get_object_persistence();
     void    pause();
     void    resume();
 };

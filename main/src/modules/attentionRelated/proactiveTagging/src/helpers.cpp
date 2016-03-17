@@ -49,6 +49,49 @@ string proactiveTagging::grammarToString(string sPath)
     return sOutput;
 }
 
+void proactiveTagging::subPopulateObjects(Bottle* objectList, bool addOrRetrieve) {
+    if (objectList)
+    {
+        for (int d = 0; d < objectList->size(); d++)
+        {
+            std::string name = objectList->get(d).asString().c_str();
+            wysiwyd::wrdac::Object* o;
+            if(addOrRetrieve) {
+                o = iCub->opc->addOrRetrieveEntity<Object>(name);
+            } else {
+                o = iCub->opc->addEntity<Object>(name);
+            }
+            yInfo() << " [configureOPC] object " << o->name() << "added" ;
+            o->m_present = 0.0;
+            iCub->opc->commit(o);
+        }
+    }
+}
+
+void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPartJointList, bool addOrRetrieve) {
+    if (bodyPartList)
+    {
+        for (int d = 0; d < bodyPartList->size(); d++)
+        {
+            std::string name = bodyPartList->get(d).asString().c_str();
+            wysiwyd::wrdac::Bodypart* o;
+            if(addOrRetrieve) {
+                o = iCub->opc->addOrRetrieveEntity<Bodypart>(name);
+            } else {
+                o = iCub->opc->addEntity<Bodypart>(name);
+            }
+            yInfo() << " [configureOPC] Bodypart " << o->name() << "added";
+            o->m_present = 0.0;
+            //apply the joint number if available. protect for the loop because using d from bodyPartList. should be same number of element between bodyPartList and bodyPartJointList
+            if(d < bodyPartJointList->size()){
+                o->m_joint_number = bodyPartJointList->get(d).asInt();
+                yInfo() << " [configureOPC] Bodypart " << o->name() << " has now a joint " << o->m_joint_number ;
+            }
+            iCub->opc->commit(o);
+        }
+    }
+}
+
 void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
 {
     //Populate the OPC if required
@@ -60,17 +103,11 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
     if (shouldPopulate_AOR)
     {
         Bottle *objectList = grpOPC_AOR.find("objectName").asList();
-        if (objectList)
-        {
-            for (int d = 0; d < objectList->size(); d++)
-            {
-                std::string name = objectList->get(d).asString().c_str();
-                wysiwyd::wrdac::Object* o = iCub->opc->addOrRetrieveEntity<Object>(name);
-                yInfo() << " [configureOPC] object " << o->name() << "added" ;
-                o->m_present = 0.0;
-                iCub->opc->commit(o);
-            }
-        }
+        subPopulateObjects(objectList, true);
+
+        Bottle *bodyPartList = grpOPC_AOR.find("bodypartName").asList();
+        Bottle *bodyPartJointList = grpOPC_AOR.find("bodypartJoint").asList();
+        subPopulateBodyparts(bodyPartList, bodyPartJointList, true);
     }
 
     //2. Populate Add part (allows several object with same base name, e.g. object, object_1, object_2, ..., object_n)
@@ -79,39 +116,11 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
     if (shouldPopulate_Add)
     {
         Bottle *objectList = grpOPC_Add.find("objectName").asList();
-        if (objectList)
-        {
-            for (int d = 0; d < objectList->size(); d++)
-            {
-                std::string name = objectList->get(d).asString().c_str();
-                wysiwyd::wrdac::Object* o = iCub->opc->addEntity<Object>(name);
-                yInfo() << " [configureOPC] object " << o->name() << "added" ;
-                o->m_present = 0.0;
-                iCub->opc->commit(o);
-            }
-        }
-    }
+        subPopulateObjects(objectList, false);
 
-    if (shouldPopulate_Add)
-    {
         Bottle *bodyPartList = grpOPC_Add.find("bodypartName").asList();
         Bottle *bodyPartJointList = grpOPC_Add.find("bodypartJoint").asList();
-        if (bodyPartList)
-        {
-            for (int d = 0; d < bodyPartList->size(); d++)
-            {
-                std::string name = bodyPartList->get(d).asString().c_str();
-                wysiwyd::wrdac::Bodypart* o = iCub->opc->addEntity<Bodypart>(name);
-                yInfo() << " [configureOPC] Bodypart " << o->name() << "added" ;
-                o->m_present = 0.0;
-                //apply the joint number if available. protect for the loop because using d from bodyPartList. should be same number of element between bodyPartList and bodyPartJointList
-                if(d < bodyPartJointList->size()){
-                    o->m_joint_number = bodyPartJointList->get(d).asInt();
-                    yInfo() << " [configureOPC] Bodypart " << o->name() << " has now a joint " << o->m_joint_number ;
-                }
-                iCub->opc->commit(o);
-            }
-        }
+        subPopulateBodyparts(bodyPartList, bodyPartJointList, false);
     }
 
     std::cout << "done" << endl;

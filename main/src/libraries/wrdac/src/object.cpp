@@ -72,6 +72,10 @@ Bottle Object::asBottle()
     bSub.addDouble(m_ego_position[2]);
     b.addList() = bSub;
     bSub.clear();
+    bSub.addString(EFAA_OPC_OBJECT_ROBOTPOS_TAG);
+    bSub.addList().read(m_ego_position);
+    b.addList() = bSub;
+    bSub.clear();
     //Orientation
     bSub.addString(EFAA_OPC_OBJECT_ROBOTORX_TAG);
     bSub.addDouble(m_ego_orientation[0]);

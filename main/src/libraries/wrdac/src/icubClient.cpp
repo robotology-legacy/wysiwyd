@@ -267,12 +267,16 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             say("Could not change name of default partner of agentDetector");
             yWarning() << "Could not change name of default partner of agentDetector";
             opc->changeName(e, newName);
+            opc->commit(e);
+
             return false;
         }
         else {
             dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->pause();
 
             opc->changeName(e, newName);
+            opc->commit(e);
+
             if(!dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName)) {
                 yError() << "[SubSystem_agentDetector] Could not change default name of partner";
             }
@@ -282,22 +286,24 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
     }
     else if (e->entity_type() == "object") {
         if (subSystems.find("iol2opc") == subSystems.end()) {
-            say("Could not change name in iol2opc");
-            yWarning() << "Could not change name in iol2opc";
+            say("iol2opc not reachable, did not change object name");
+            yWarning() << "iol2opc not reachable, did not change object name";
             opc->changeName(e, newName);
+            opc->commit(e);
+
             return false;
         }
         else {
-            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->pause();
-
             string oldName = e->name();
-            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName);
-
-            dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->resume();
+            if(!dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName)) {
+                yError() << "iol2opc did not change name successfully";
+                say("iol2opc did not change name successfully");
+            }
         }
     }
     else {
         opc->changeName(e, newName);
+        opc->commit(e);
     }
     return true;
 }

@@ -163,6 +163,16 @@ bool PasarModule::interruptModule() {
 
 /************************************************************************/
 bool PasarModule::close() {
+	entities = iCub->opc->EntitiesCacheCopy();
+
+	for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
+	{
+		(dynamic_cast<Object*>(*it))->m_saliency = 0.0;
+		delete *it;
+	}
+	iCub->opc->commit();
+
+
     iCub->opc->close();
     handlerPort.interrupt();
     handlerPort.close();
@@ -361,7 +371,7 @@ void PasarModule::saliencyTopDown() {
 
             // If the object is absent:
             // if the lastTimeSeen was more than a threshold, the object dissapeared
-            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (it.second.o.m_present!=1.0) && it.second.present;
+            disappeared = (now - it.second.lastTimeSeen > dthresholdDisappear) && (it.second.o.m_present==0.0) && it.second.present;
             if (disappeared){
                 cout << "DISAPPEARED since: " << now - it.second.lastTimeSeen << endl;
             }

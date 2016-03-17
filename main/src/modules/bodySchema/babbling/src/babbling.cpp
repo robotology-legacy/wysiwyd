@@ -34,7 +34,7 @@ bool Babbling::configure(yarp::os::ResourceFinder &rf) {
     moduleName = rf.check("name",Value("babbling"),"module name (string)").asString();
 
     //    part = rf.check("part",Value("left_arm")).asString();
-    robot = rf.check("robot",Value("icubSim")).asString();
+    robot = rf.check("robot",Value("icub")).asString();
     fps = rf.check("fps",Value(30)).asInt(); //30;
     cmd_source = rf.check("cmd_source",Value("C")).asString();
     single_joint = rf.check("single_joint",Value(-1)).asInt();

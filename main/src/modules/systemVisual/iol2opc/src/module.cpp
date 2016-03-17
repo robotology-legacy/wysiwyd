@@ -90,10 +90,9 @@ Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
         Vector x;
         if (get3DPosition(cog,x))
         {
-            if ((x[0]>skim_blobs_x_bounds[0])&&(x[0]<skim_blobs_x_bounds[1])&&
-                    (x[1]>skim_blobs_y_bounds[0])&&(x[1]<skim_blobs_y_bounds[1])) {
+            if ((x[0]>skim_blobs_x_bounds[0]) && (x[0]<skim_blobs_x_bounds[1]) &&
+                (x[1]>skim_blobs_y_bounds[0]) && (x[1]<skim_blobs_y_bounds[1]))
                 skimmedBlobs.add(blobs.get(i));
-            }
         }
     }
 
@@ -203,24 +202,17 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
         cmd.addString("Root");
         cmd.addInt(point.x);
         cmd.addInt(point.y);
-        yInfo("Sending get3D query: %s",cmd.toString().c_str());
         mutexResourcesSFM.lock();
         rpcGet3D.write(cmd,reply);
         mutexResourcesSFM.unlock();
-        if(!reply.isNull()) {
-            yInfo("Received blob cartesian coordinates: %s",reply.toString().c_str());
 
-            if (reply.size()>=3)
-            {
-                x.resize(3);
-                x[0]=reply.get(0).asDouble();
-                x[1]=reply.get(1).asDouble();
-                x[2]=reply.get(2).asDouble();
-
-                return (norm(x)>0.0);
-            }
-        } else {
-            yError() << "Did not get reply from SFM";
+        if (reply.size()>=3)
+        {
+            x.resize(3);
+            x[0]=reply.get(0).asDouble();
+            x[1]=reply.get(1).asDouble();
+            x[2]=reply.get(2).asDouble();
+            return (norm(x)>0.0);
         }
     }
 
@@ -273,6 +265,32 @@ bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
     }
 
     return false;
+}
+
+
+/**********************************************************/
+Vector IOL2OPCBridge::calibPosition(const Vector &x)
+{
+    Vector y=x;
+
+    // apply 3D correction
+    if (rpcCalib.getOutputCount()>0)
+    {
+        yarp::os::Bottle cmd,reply;
+        cmd.addString("get_location_nolook");
+        cmd.addString(calib_entry);
+        cmd.addDouble(y[0]);
+        cmd.addDouble(y[1]);
+        cmd.addDouble(y[2]);
+        rpcCalib.write(cmd,reply);
+        y[0]=reply.get(1).asDouble();
+        y[1]=reply.get(2).asDouble();
+        y[2]=reply.get(3).asDouble();
+    }
+    else
+        yWarning("Unable to connect to calibrator");
+
+    return y;
 }
 
 
@@ -504,7 +522,8 @@ int IOL2OPCBridge::findClosestBlob(const Bottle &blobs,
 
 
 /**********************************************************/
-int IOL2OPCBridge::findClosestBlob(const Bottle &blobs, const Vector &loc)
+int IOL2OPCBridge::findClosestBlob(const Bottle &blobs,
+                                   const Vector &loc)
 {
     int ret=RET_INVALID;
     double curMinDist=std::numeric_limits<double>::max();
@@ -709,9 +728,15 @@ void IOL2OPCBridge::updateOPC()
             Object *obj=opc->addOrRetrieveEntity<Object>(object);
 
             // garbage collection
-            if (it->second.isDead() && (obj->m_present!=0.0))
+            if (it->second.isDead())
             {
-                obj->m_present=0.5;
+                if (object_persistence)
+                {
+                    if (obj->m_present!=0.0)
+                        obj->m_present=0.5; 
+                }
+                else
+                    obj->m_present=0.0; 
                 continue;
             }
 
@@ -727,7 +752,7 @@ void IOL2OPCBridge::updateOPC()
                                     dim,dim_filtered);
 
                     it->second.opc_id=obj->opc_id();
-                    obj->m_ego_position=x_filtered;
+                    obj->m_ego_position=calibPosition(x_filtered);
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
 
@@ -778,6 +803,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     string name=rf.check("name",Value("iol2opc")).asString().c_str();
     period=rf.check("period",Value(0.1)).asDouble();
     empty=rf.check("empty");
+    object_persistence=(rf.check("object_persistence",Value("off")).asString()=="on");
+    calib_entry=rf.check("calib_entry",Value("right-iol")).asString();
 
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))
@@ -799,6 +826,7 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcPort.open(("/"+name+"/rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
+    rpcCalib.open(("/"+name+"/calib:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
     skim_blobs_x_bounds.resize(2);
@@ -905,6 +933,7 @@ bool IOL2OPCBridge::interruptModule()
     rpcClassifier.interrupt();
     getClickPort.interrupt();
     rpcGet3D.interrupt();
+    rpcCalib.interrupt();
     opc->interrupt();
 
     rtLocalization.stop();
@@ -929,6 +958,7 @@ bool IOL2OPCBridge::close()
     rpcClassifier.close();
     getClickPort.close();
     rpcGet3D.close();
+    rpcCalib.close();
     opc->close();
 
     delete opc;
@@ -1210,6 +1240,27 @@ bool IOL2OPCBridge::change_name(const string &old_name,
     }
 
     return true;
+}
+
+
+/**********************************************************/
+bool IOL2OPCBridge::set_object_persistence(const string &sw)
+{
+    if (sw=="on")
+        object_persistence=true;
+    else if (sw=="off")
+        object_persistence=false;
+    else
+        return false;
+
+    return true;
+}
+
+
+/**********************************************************/
+string IOL2OPCBridge::get_object_persistence()
+{
+    return (object_persistence?"on":"off");
 }
 
 

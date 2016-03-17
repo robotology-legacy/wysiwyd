@@ -30,7 +30,7 @@ bool TouchDetectorModule::configure(ResourceFinder &rf)
         return false;
 
     // create the thread and pass pointers to the module parameters
-    thread = new TouchDetectorThread(&torsoPort, &leftArmPort, &rightArmPort, &leftForearmPort, &rightForearmPort, &leftHandPort, &rightHandPort, &touchPort, period, &clustersConfFilepath, threshold);
+    thread = new TouchDetectorThread(&torsoPort, &leftArmPort, &rightArmPort, &leftForearmPort, &rightForearmPort, &leftHandPort, &rightHandPort, &touchPort, period, clustersConfFilepath, threshold);
     // now start the thread to do the work
     thread->start(); // this calls threadInit() and it if returns true, it then calls run()
 
@@ -68,6 +68,9 @@ bool TouchDetectorModule::close()
     leftHandPort.close();
     rightHandPort.close();
     touchPort.close();
+
+    delete thread;
+
     return true;
 }
 

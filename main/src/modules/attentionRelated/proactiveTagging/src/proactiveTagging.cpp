@@ -105,6 +105,12 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
     }
 
+	std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
+	if (ttsOptions != "iCub") {
+		if (iCub->getSpeechClient())
+			iCub->getSpeechClient()->SetOptions(ttsOptions);
+	}
+
     if (!iCub->getRecogClient())
     {
         iCub->say("Proactive Tagging warning speech recognizer not connected");
@@ -116,11 +122,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
-    std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
-    if (ttsOptions != "iCub") { 
-        if (iCub->getSpeechClient())
-        iCub->getSpeechClient()->SetOptions(ttsOptions);
-    }
+    iCub->home();
 
     iCub->say("proactive tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -579,7 +581,6 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     string sReply;
     Entity* e = iCub->opc->getEntity(sNameTarget);
     iCub->changeName(e,sName);
-    iCub->opc->commit(e);
 
     if (currentEntityType == "agent") {
         sReply = " Nice to meet you " + sName;
@@ -791,7 +792,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
             }
 
             iCub->changeName(TARGET,sNameTarget);
-            iCub->opc->commit(TARGET);
+
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
             iCub->say("Now I know the" + sNameTarget);
