@@ -182,7 +182,8 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "help \n" +
-        "quit \n"
+        "quit \n" +
+        "change_name oldname newname \n" +
         "exploreUnknownEntity entity_type entity_name \n" +
         "searchingEntity entity_type entity_name \n" +
         "exploreKinematicByName entity_name bodypart [true/false] \n" +
@@ -195,6 +196,19 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
 
         rpcPort.reply(reply);
         return false;
+    }
+    else if(command.get(0).asString() == "change_name") {
+        string oldname = command.get(1).toString();
+        string newname = command.get(2).toString();
+        yInfo() << "change_name from" << oldname << "to" << newname;
+        Entity *e = iCub->opc->getEntity(oldname);
+        if(!e) {
+            iCub->say("No entity with name " + oldname);
+            yError() << "No entity with name " << oldname;
+            reply.addString("nack");
+        } else {
+            iCub->changeName(e, newname);
+        }
     }
     else if (command.get(0).asString() == "exploreUnknownEntity") {
         yInfo() << " exploreUnknownEntity";
