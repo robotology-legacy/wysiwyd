@@ -122,8 +122,14 @@ bool narrativeHandler::close() {
 
 bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
-            " commands are: \n" +
-            "quit \n";
+		" commands are: \n" +
+		" setNarrator + name: \n" +
+		" askNarrate: \n" +
+		" narrate: \n" +
+		" commands are: \n" +
+		" quit \n";
+
+	yInfo() << " rpc command received: " << command.toString();
 
     reply.clear();
 
@@ -1203,7 +1209,8 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
 }
 
 bool narrativeHandler::narrate(){
-	
+	yInfo(" begin narrate");
+
 	findStories(iMinInstance);
 
 	story target = listStories[listStories.size() - 1];
@@ -1217,6 +1224,7 @@ bool narrativeHandler::narrate(){
 }
 
 bool narrativeHandler::askNarrate(){
+	yInfo(" begin askNarrate");
 
 	findStories(iMinInstance);
 	
