@@ -37,7 +37,7 @@
 
   <module>
     <name>iCubGui</name>
-    <parameters>--from iCubGui.ini</parameters>
+    <parameters>--xpos 1000 --ypos 0</parameters>
     <node>display</node>
     <tag>iCubGui_tagOPC</tag>
   </module>
@@ -49,10 +49,17 @@
 
   <module>
     <name>agentDetector</name>
-    <parameters>--showImages true</parameters>
-    <node>display</node>
+    <parameters>--showImages false</parameters>
+    <node>icub-b1</node>
   </module>
 
+  <module>
+    <name>yarpview</name>
+    <parameters>--name /skeleton</parameters>
+    <node>console1</node>
+    <tag>skeleton</tag>
+  </module>
+ 
   <module>
     <name>guiUpdater</name>
     <node>icub-b1</node>
@@ -178,6 +185,11 @@
     <protocol>tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list</protocol>
   </connection>
 
+  <connection>
+	<from>/agentDetector/kinect/skeletonPort:o</from>
+	<to>/skeleton</to>
+	<protocol>udp</protocol>
+  </connection>
 
 
 </application>

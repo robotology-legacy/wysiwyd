@@ -3,7 +3,7 @@
 
   <module>
     <name>autobiographicalMemory</name>
-    <node>localhost</node>
+    <node>console1</node>
   </module>
 
   <module>
@@ -13,7 +13,7 @@
 
   <module>
     <name>iSpeak</name>
-    <node>display</node>
+    <node>console1</node>
   </module>
 
   <module>
@@ -33,7 +33,8 @@
 
   <module>
     <name>babbling</name>
-    <node>console1</node>
+    <parameters>--robot icub</parameters>
+    <node>icub-b2</node>
   </module>
 
   <module>
