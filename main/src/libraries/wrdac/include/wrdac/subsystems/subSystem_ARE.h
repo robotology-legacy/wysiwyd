@@ -20,6 +20,7 @@
 #define __EFAA_SUBSYSTEM_ARE_H__
 
 #include <string>
+#include <algorithm>
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 
@@ -49,18 +50,70 @@ namespace wysiwyd {
 
             SubSystem_Attention* SubATT;
             bool ATTconnected;
-        
+
             yarp::os::RpcClient cmdPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient getPort;
+            yarp::os::RpcClient calibPort;
+
+            std::string lastlyUsedHand;
 
             /********************************************************************************/
             void appendCartesianTarget(yarp::os::Bottle& b, const yarp::sig::Vector &t)
             {
-                yarp::os::Bottle &sub = b.addList();
+                yarp::os::Bottle &sub=b.addList();
                 sub.addString("cartesian");
-                for (size_t i = 0; i < t.length(); i++)
+                for (size_t i=0; i<t.length(); i++)
                     sub.addDouble(t[i]);
+            }
+
+            /********************************************************************************/
+            void selectHandCorrectTarget(yarp::os::Bottle& options, yarp::sig::Vector& target,
+                                         const std::string handToUse="")
+            {
+                std::string hand="";
+                for (int i=0; i<options.size(); i++)
+                {
+                    yarp::os::Value val=options.get(i);
+                    if (val.isString())
+                    {
+                        std::string item=val.asString();
+                        if ((item=="left") || (item=="right"))
+                        {
+                            hand=item;
+                            break;
+                        }
+                    }
+                }
+
+                // always choose hand
+                if (hand.empty())
+                {
+                    if (handToUse.empty())
+                    {
+                        hand=(target[1]>0.0?"right":"left"); 
+                        options.addString(hand.c_str());
+                    }
+                    else
+                        hand=handToUse;
+                }
+
+                // apply 3D correction
+                if (calibPort.getOutputCount()>0)
+                {
+                    yarp::os::Bottle cmd,reply;
+                    cmd.addString("get_location_nolook");
+                    cmd.addString(hand+"-"+"iol");
+                    cmd.addDouble(target[0]);
+                    cmd.addDouble(target[1]);
+                    cmd.addDouble(target[2]);
+                    calibPort.write(cmd,reply);
+                    target[0]=reply.get(1).asDouble();
+                    target[1]=reply.get(2).asDouble();
+                    target[2]=reply.get(3).asDouble();
+                }
+
+                lastlyUsedHand=hand;
             }
 
             /********************************************************************************/
@@ -94,16 +147,26 @@ namespace wysiwyd {
             /********************************************************************************/
             bool connect()
             {
-                ABMconnected = SubABM->Connect();
-                std::cout << (ABMconnected ? "ARE connected to ABM" : "ARE didn't connect to ABM") << std::endl;
+                if (ABMconnected=SubABM->Connect())
+                    yInfo()<<"ARE connected to ABM";
+                else
+                    yWarning()<<"ARE didn't connect to ABM";
 
-                ATTconnected = SubATT->Connect();
-                std::cout << (ATTconnected ? "ARE connected to Attention" : "ARE didn't connect to Attention") << std::endl;
+                if (ATTconnected=SubATT->Connect())
+                    yInfo()<<"ARE connected to Attention";
+                else
+                    yWarning()<<"ARE didn't connect to Attention";
 
-                bool ret = true;
-                ret &= yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
-                ret &= yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
-                ret &= yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
+                bool ret=true;
+                ret&=yarp::os::Network::connect(cmdPort.getName(),"/actionsRenderingEngine/cmd:io");
+                ret&=yarp::os::Network::connect(rpcPort.getName(),"/actionsRenderingEngine/rpc");
+                ret&=yarp::os::Network::connect(getPort.getName(),"/actionsRenderingEngine/get:io");
+
+                if (yarp::os::Network::connect(calibPort.getName(),"/iolReachingCalibration/rpc"))
+                    yInfo()<<"ARE connected to calibrator";
+                else
+                    yWarning()<<"ARE didn't connect to calibrator";
+
                 return ret;
             }
 
@@ -120,7 +183,9 @@ namespace wysiwyd {
                 cmdPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/cmd:io").c_str());
                 rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/rpc").c_str());
                 getPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/get:io").c_str());
-                m_type = SUBSYSTEM_ARE;                
+                calibPort.open(("/" + masterName + "/" + SUBSYSTEM_ARE + "/calib:io").c_str());
+                m_type = SUBSYSTEM_ARE;
+                lastlyUsedHand="";
             }
 
             /**
@@ -131,6 +196,7 @@ namespace wysiwyd {
                 cmdPort.interrupt();
                 rpcPort.interrupt();
                 getPort.interrupt();
+                calibPort.interrupt();
 
                 SubABM->Close();
                 SubATT->Close();
@@ -138,6 +204,7 @@ namespace wysiwyd {
                 cmdPort.close();
                 rpcPort.close();
                 getPort.close();
+                calibPort.close();
             }
 
             /********************************************************************************/
@@ -162,19 +229,14 @@ namespace wysiwyd {
             /********************************************************************************/
             yarp::sig::Vector applySafetyMargins(const yarp::sig::Vector& in)
             {
-                yarp::sig::Vector out = in;
+                yarp::sig::Vector out=in;
+                out[0]=std::min(out[0],-0.1);
 
                 double height;
-                if (getTableHeight(height)) {
-                    if (out[2] < height) {
-                        out[2] = height + 0.03; // TODO: Add offset in config file
-                    }
-                }
-
-                if (out[0] > -0.1) {
-                    out[0] = -0.1;
-                }
-
+                if (getTableHeight(height))
+                    if (out[2]<height)
+                        out[2]=height+0.03; // TODO: Add offset in config file
+                
                 return out;
             }
 
@@ -228,11 +290,10 @@ namespace wysiwyd {
             */
             bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target")
             {
-                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
                     lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -244,15 +305,21 @@ namespace wysiwyd {
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("take"));
-                appendCartesianTarget(bCmd, target);
-                bCmd.append(options);
+                
+                yarp::sig::Vector target=targetUnsafe;
+                yarp::os::Bottle opt=options;
+                selectHandCorrectTarget(opt,target);
+                target=applySafetyMargins(target);
+                appendCartesianTarget(bCmd,target);
+                bCmd.append(opt);
+
                 bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>("take", "predicate"));
                     lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -279,11 +346,10 @@ namespace wysiwyd {
             */
             bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
             {
-                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
                     lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -295,8 +361,14 @@ namespace wysiwyd {
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("push"));
-                appendCartesianTarget(bCmd, target);
-                bCmd.append(options);
+                
+                yarp::sig::Vector target=targetUnsafe;
+                yarp::os::Bottle opt=options;
+                selectHandCorrectTarget(opt,target);
+                target=applySafetyMargins(target);
+                appendCartesianTarget(bCmd,target);
+                bCmd.append(opt);
+
                 bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
@@ -304,7 +376,7 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>("push", "predicate"));
                     lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -328,11 +400,10 @@ namespace wysiwyd {
             */
             bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
             {
-                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
                     lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -344,8 +415,14 @@ namespace wysiwyd {
 
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("point"));
-                appendCartesianTarget(bCmd, target);
-                bCmd.append(options);
+                
+                yarp::sig::Vector target=targetUnsafe;
+                yarp::os::Bottle opt=options;
+                selectHandCorrectTarget(opt,target);
+                target=applySafetyMargins(target);
+                appendCartesianTarget(bCmd,target);
+                bCmd.append(opt);
+
                 bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
@@ -353,7 +430,7 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>("point", "predicate"));
                     lArgument.push_back(std::pair<std::string, std::string>(sName, "object"));
@@ -387,6 +464,9 @@ namespace wysiwyd {
                     SubABM->sendActivity("action", "drop", "action", lArgument, true);
                 }
 
+                // we don't need d2k correction
+                // because the drop takes place
+                // on a random location
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("drop"));
                 bCmd.append(options);
@@ -419,11 +499,10 @@ namespace wysiwyd {
             */
             bool dropOn(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle())
             {
-                yarp::sig::Vector target = applySafetyMargins(targetUnsafe);
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>("ARE", "subsystem"));
@@ -433,8 +512,14 @@ namespace wysiwyd {
                 yarp::os::Bottle bCmd;
                 bCmd.addVocab(yarp::os::Vocab::encode("drop"));
                 bCmd.addString("over");
-                appendCartesianTarget(bCmd, target);
-                bCmd.append(options);
+                
+                yarp::sig::Vector target=targetUnsafe;
+                yarp::os::Bottle opt=options;
+                selectHandCorrectTarget(opt,target,lastlyUsedHand);
+                target=applySafetyMargins(target);
+                appendCartesianTarget(bCmd,target);
+                bCmd.append(opt);
+
                 bool bReturn = sendCmd(bCmd,true);
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
@@ -442,7 +527,7 @@ namespace wysiwyd {
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
-                    lArgument.push_back(std::pair<std::string, std::string>(target.toString().c_str(), "vector"));
+                    lArgument.push_back(std::pair<std::string, std::string>(targetUnsafe.toString().c_str(), "vector"));
                     lArgument.push_back(std::pair<std::string, std::string>(options.toString().c_str(), "options"));
                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                     lArgument.push_back(std::pair<std::string, std::string>(status, "status"));
