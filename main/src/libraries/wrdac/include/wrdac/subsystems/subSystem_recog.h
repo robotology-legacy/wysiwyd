@@ -168,10 +168,13 @@ namespace wysiwyd{
 
 
                 if (!isEars)
-                { //this line hqs been qdded becquse non-eqrs modules should be qble to interrupt eqrs
+                { //this line has been added becquse non-ears modules should be able to interrupt ears
                     bMessenger.addString("interrupt");
                     // send the message
                     portRPC.write(bMessenger, bReply);
+                    if(bReply.get(0).asString() != "OK") {
+                        yError() << "speechRecognizer was not interrupted";
+                    }
                     yarp::os::Time::delay(0.5);
                     bMessenger.clear();
                 }

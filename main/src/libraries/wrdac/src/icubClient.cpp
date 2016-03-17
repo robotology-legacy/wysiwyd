@@ -262,6 +262,7 @@ void ICubClient::updateAgent()
 }
 
 bool ICubClient::changeName(Entity *e, const std::string &newName) {
+    bool allOkay = true;
     if (e->entity_type() == "agent") {
         if (subSystems.find("agentDetector") == subSystems.end()) {
             say("Could not change name of default partner of agentDetector");
@@ -269,7 +270,7 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             opc->changeName(e, newName);
             opc->commit(e);
 
-            return false;
+            allOkay = false;
         }
         else {
             dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->pause();
@@ -278,7 +279,9 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             opc->commit(e);
 
             if(!dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName)) {
+                say("could not change default name of partner");
                 yError() << "[SubSystem_agentDetector] Could not change default name of partner";
+                allOkay = false;
             }
 
             dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->resume();
@@ -291,21 +294,26 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             opc->changeName(e, newName);
             opc->commit(e);
 
-            return false;
+            allOkay = false;
         }
         else {
             string oldName = e->name();
             if(!dynamic_cast<SubSystem_IOL2OPC*>(subSystems["iol2opc"])->changeName(oldName, newName)) {
                 yError() << "iol2opc did not change name successfully";
                 say("iol2opc did not change name successfully");
+                allOkay = false;
             }
         }
     }
     else {
-        opc->changeName(e, newName);
+        if(!opc->changeName(e, newName)) {
+            yError() << "Could not change name of entity";
+            say("Could not change name of entity");
+            allOkay = false;
+        }
         opc->commit(e);
     }
-    return true;
+    return allOkay;
 }
 
 void ICubClient::commitAgent()
