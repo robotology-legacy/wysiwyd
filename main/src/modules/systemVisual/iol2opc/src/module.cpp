@@ -184,7 +184,7 @@ bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
                   clickLocation.x,clickLocation.y);
         }
         else
-            yWarning("Bottle does not have correct size");
+            yError("Mis-sized bottle for click location");
     }
 
     pos=clickLocation;
@@ -288,7 +288,7 @@ Vector IOL2OPCBridge::calibPosition(const Vector &x)
         y[2]=reply.get(3).asDouble();
     }
     else
-        yWarning("Unable to connect to calibrator");
+        yError("Unable to connect to calibrator");
 
     return y;
 }
