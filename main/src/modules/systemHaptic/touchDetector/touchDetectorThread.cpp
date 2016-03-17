@@ -126,7 +126,7 @@ void TouchDetectorThread::updateMapping(int bodyPart, int firstTaxel, int lastTa
 void TouchDetectorThread::run()
 {
     vector<int> activations;
-    for(size_t i = 0; i < nbClusters; i++) {
+    for(int i = 0; i < nbClusters; i++) {
         activations.push_back(0);
     }
 
