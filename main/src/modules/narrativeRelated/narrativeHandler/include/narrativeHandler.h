@@ -21,6 +21,7 @@
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/subsystems/subSystem_recog.h"
 #include "wrdac/subsystems/subSystem_LRH.h"
+#include "wrdac/subsystems/subSystem_speech.h"
 
 
 class narrativeHandler : public yarp::os::RFModule {
@@ -61,6 +62,7 @@ private:
 
 	bool narrate();
 	bool askNarrate();
+	bool narrationToSpeech(story sto);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

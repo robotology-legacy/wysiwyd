@@ -73,6 +73,13 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
     }
 
+	std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
+	if (ttsOptions != "iCub") {
+		if (iCub->getSpeechClient())
+			iCub->getSpeechClient()->SetOptions(ttsOptions);
+	}
+
+
     yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
     yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
 
@@ -1197,6 +1204,7 @@ bool narrativeHandler::narrate(){
 	story target = listStories[listStories.size() - 1];
 
 	target.displayNarration();
+	narrationToSpeech(target);
 
 	yInfo(" Narration finished.");
 	
@@ -1222,3 +1230,31 @@ bool narrativeHandler::askNarrate(){
 
 
 
+bool narrativeHandler::narrationToSpeech(story target){
+
+	cout << "narration to speech: " << target.humanNarration.size() << endl;
+
+	if (target.humanNarration.size() > 2){
+		cout << "begin narration to speech from human:" << endl;
+		for (auto ii : target.humanNarration){
+			cout << "\t to speech: " << ii << endl;
+			iCub->say(ii);
+		}
+	}
+	else{
+		if (target.sentenceStory.size() > iThresholdSentence){
+			cout << endl << "begin display narration to speech of story: " << counter << " with " << target.vEvents.size() << " events and " << target.sentenceStory.size() << " sentence." << endl;
+
+			for (auto itSt : target.sentenceStory){
+				cout << "\t to speech: " << itSt;
+				iCub->say(itSt);
+			}
+
+
+			cout << endl << endl;
+		}
+	}
+
+
+	return true;
+}
