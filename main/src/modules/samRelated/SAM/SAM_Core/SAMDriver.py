@@ -148,6 +148,11 @@ class SAMDriver:
         if not os.path.isfile(fname + '.pickle') or economy_save:
             if not os.path.isfile(fname + '.pickle'):
                 print("Training for " +str(modelInitIterations) + "|" + str(modelNumIterations) + " iterations...")    
+            try:
+                ttest = self.Quser == None
+            except :
+                self.Quser = None
+
             if self.X is not None:
                 Q = self.X.shape[1]
             elif self.Quser is not None:
