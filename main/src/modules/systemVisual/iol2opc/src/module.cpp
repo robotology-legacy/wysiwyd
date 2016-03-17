@@ -90,10 +90,9 @@ Bottle IOL2OPCBridge::skimBlobs(const Bottle &blobs)
         Vector x;
         if (get3DPosition(cog,x))
         {
-            if ((x[0]>skim_blobs_x_bounds[0])&&(x[0]<skim_blobs_x_bounds[1])&&
-                    (x[1]>skim_blobs_y_bounds[0])&&(x[1]<skim_blobs_y_bounds[1])) {
+            if ((x[0]>skim_blobs_x_bounds[0]) && (x[0]<skim_blobs_x_bounds[1]) &&
+                (x[1]>skim_blobs_y_bounds[0]) && (x[1]<skim_blobs_y_bounds[1]))
                 skimmedBlobs.add(blobs.get(i));
-            }
         }
     }
 
