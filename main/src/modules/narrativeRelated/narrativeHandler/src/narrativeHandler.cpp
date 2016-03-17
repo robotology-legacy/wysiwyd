@@ -85,6 +85,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     counter = 0;
 
+	findStories(iMinInstance);
+	for (auto st : listStories){
+		st.displayNarration();
+	}
+
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
