@@ -122,6 +122,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
+    iCub->home();
 
     iCub->say("proactive tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
