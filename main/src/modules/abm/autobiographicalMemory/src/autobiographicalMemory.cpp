@@ -700,6 +700,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "saveAugmentedImages")
         {
+            yDebug() << "start saveAugmentedImages";
             saveAugmentedImages();
             bReply.addString("ack");
         }
