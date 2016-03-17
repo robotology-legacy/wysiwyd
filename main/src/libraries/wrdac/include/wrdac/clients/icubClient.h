@@ -304,7 +304,7 @@ namespace wysiwyd{
             * @param text to be said.
             */
             bool say(const std::string &text, bool shouldWait = true, bool emotionalIfPossible = false,
-                const std::string &overrideVoice = "default");
+                const std::string &overrideVoice = "default", bool recordABM = true);
 
             bool changeName(Entity *e, const std::string &newName);
 

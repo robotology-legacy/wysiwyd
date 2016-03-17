@@ -90,7 +90,7 @@ namespace wysiwyd{
             * @param text The text to be said.
             * @param shouldWait Is the function blocking until the end of the sentence or not.
             */
-            virtual void TTS(const std::string &text, bool shouldWait = true) {
+            virtual void TTS(const std::string &text, bool shouldWait = true, bool recordABM = true) {
                 //Clean the input of underscores.
                 std::string tmpText = text;
                 replace_all(tmpText, "_", " ");
@@ -105,7 +105,7 @@ namespace wysiwyd{
                 std::string status = "speaking";
                 bool speechStarted = false;
 
-                if (ABMconnected)
+                if (ABMconnected && recordABM)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
                     // get agent name
