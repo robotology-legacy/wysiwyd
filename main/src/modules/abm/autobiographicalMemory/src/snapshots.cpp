@@ -200,6 +200,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
                     else {
                         cArgRole = "unknown";
                     }
+
+                    std::replace( cArgArgument.begin(), cArgArgument.end(), '\'', ' ');
+
                     if (bShouldSend){
                         osArg << "INSERT INTO contentarg(instance, argument, type, subtype, role) VALUES ( " << instance << ", '" << cArgArgument << "', " << "'" << cArgType << "', '" << cArgSubtype << "', '" << cArgRole << "') ; ";
                     }
