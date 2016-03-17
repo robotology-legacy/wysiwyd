@@ -155,6 +155,7 @@ private:
 
     map<string, AllostaticDrive> allostaticDrives;
 
+    yarp::os::ContactStyle style;
 
     vector<double> drivePriorities;
     double priority_sum;
