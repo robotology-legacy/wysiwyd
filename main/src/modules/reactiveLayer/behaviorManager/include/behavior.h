@@ -21,6 +21,8 @@ public:
 
     Behavior(Mutex* _mut) {
         mut = _mut;
+        from_sensation_port_name = "None";
+        external_port_name = "None";
     }
 
     void openPorts(string port_name_prefix="") {
