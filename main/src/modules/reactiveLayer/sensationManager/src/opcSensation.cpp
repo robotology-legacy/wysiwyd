@@ -214,7 +214,7 @@ Bottle OpcSensation::handleEntities()
                 body_parts.addString(original_name);
                 u_entities.addList()=body_parts;
             }
-            else if (entity->entity_type() == "object") {  // Known entities
+            else if (entity->entity_type() == "object" && dynamic_cast<Bodypart*>(entity)->m_present != 0.) {  // Known entities and present!
                 known_obj = true;
                 known_entity.clear();
                 known_entity.addString(entity->entity_type());

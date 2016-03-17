@@ -23,11 +23,18 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     iCub->say("Do you know that this is a " + obj_name);
     Object* obj = iCub->opc->addOrRetrieveEntity<Object>(obj_name);
     string sHand = "right";
-    if (obj->m_ego_position[1]<0)
+    if (obj->m_ego_position[1]<0) 
         sHand = "left";
-    Bottle bHand(sHand);
-    iCub->point(obj_name, bHand);
+
+    Bottle bHand(sHand); 
+
+    bool succeeded = iCub->point(obj_name, bHand);
     Time::delay(0.5);
+
+    if (!succeeded) {
+        iCub->say(" I couldn't find the " + obj_name);
+    }
+
     iCub->home();
 
 }
