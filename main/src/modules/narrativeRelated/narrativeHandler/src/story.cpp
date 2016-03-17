@@ -45,7 +45,7 @@ Bottle story::unfoldGoal(string goal)
 }
 
 
-void story::displayNarration(bool displayAll)
+bool story::displayNarration(bool displayAll)
 {
     cout << "size of human narration: " << humanNarration.size() << endl;
 
@@ -54,6 +54,7 @@ void story::displayNarration(bool displayAll)
         for (auto ii : humanNarration){
             cout << "\t" << ii << endl;
         }
+        return true;
     }
     else{
         if (sentenceStory.size() > iThresholdSentence){
@@ -78,6 +79,10 @@ void story::displayNarration(bool displayAll)
                 cout << *itS << "  ";
             }
             cout << endl << endl;
+            return true;
+        }
+        else{
+            return false;
         }
     }
 }

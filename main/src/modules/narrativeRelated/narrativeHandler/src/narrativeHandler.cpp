@@ -1217,12 +1217,20 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
 
 bool narrativeHandler::narrate(){
 	yInfo(" begin narrate");
+    iCub->say("Starting to narrate !");
 
 	findStories(iMinInstance);
 
-	story target = listStories[listStories.size() - 1];
+    bool canNarrate = false;
+    int iSto = listStories.size();
+    story target;
+    while (!canNarrate && iSto > 0){
+        iSto--;
+        target = listStories[iSto];
+        canNarrate = target.displayNarration();
+    }
 
-	target.displayNarration();
+
 	narrationToSpeech(target);
 
 	yInfo(" Narration finished.");

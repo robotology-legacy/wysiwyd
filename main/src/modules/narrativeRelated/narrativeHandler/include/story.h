@@ -60,7 +60,7 @@ public:
 	std::vector<std::string>    humanNarration;
 	std::vector<std::string>    meaningStory;       // human narration
 
-    void displayNarration(bool displayAll = true);
+    bool displayNarration(bool displayAll = true);
 
     std::vector<int>        viInstances;
     std::vector<evtStory>   vEvents;
