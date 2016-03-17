@@ -187,7 +187,7 @@ Bottle OpcSensation::handleEntities()
                     body_parts.addString(original_name);
                     u_entities.addList()=body_parts;
             }
-        } 
+        }
 
         else if (sNameCut == "partner" && entity->entity_type() == "agent") {
             yInfo() << "I found an unknown partner: " << sName;
@@ -202,7 +202,7 @@ Bottle OpcSensation::handleEntities()
                 u_entities.addList()=partners;
                 //Could also send saliency
             }
-        } 
+        }
         else {
             if (entity->entity_type() == "bodypart" && (dynamic_cast<Bodypart*>(entity)->m_tactile_number == -1 || dynamic_cast<Bodypart*>(entity)->m_kinStruct_instance == -1))
             {
@@ -214,17 +214,16 @@ Bottle OpcSensation::handleEntities()
                 body_parts.addString(original_name);
                 u_entities.addList()=body_parts;
             }
-            else if (entity->entity_type() == "object" && dynamic_cast<Bodypart*>(entity)->m_present != 0.) {  // Known entities and present!
+            else if (entity->entity_type() == "object" && dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
                 known_obj = true;
                 known_entity.clear();
                 known_entity.addString(entity->entity_type());
                 known_entity.addString(original_name);
-                k_entities.addList()=known_entity;           
+                k_entities.addList()=known_entity;
             }
         }
         if (entity->entity_type() == "agent") {  // Known entities
             agentPresent = true;
-                    
         }
     }
     //if no unknown object was found, return false

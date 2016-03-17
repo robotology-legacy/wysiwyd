@@ -6,7 +6,7 @@ void Narrate::configure() {
     external_port_name = "/narrativeHandler/rpc";
     yInfo() << "external_port_name: " << external_port_name;
 
-    //from_sensation_port_name = "/opcSensation/known_entities:o";
+    from_sensation_port_name = "None";
 }
 
 void Narrate::run(Bottle args/*=Bottle()*/) {
