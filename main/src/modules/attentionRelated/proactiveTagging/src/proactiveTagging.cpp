@@ -579,7 +579,6 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     string sReply;
     Entity* e = iCub->opc->getEntity(sNameTarget);
     iCub->changeName(e,sName);
-    iCub->opc->commit(e);
 
     if (currentEntityType == "agent") {
         sReply = " Nice to meet you " + sName;
