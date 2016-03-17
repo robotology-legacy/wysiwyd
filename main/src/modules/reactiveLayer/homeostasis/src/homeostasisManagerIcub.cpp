@@ -161,6 +161,7 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         help += " ['add'] ['new'] [drive name]                          : Adds a default drive to the manager \n";
         help += " ['rm'] [drive name]                                   : removes a drive from the manager \n";
         help += " ['sleep'] [drive name] [time]                         : prevent drive update for a certain time (in seconds) \n";
+        help += " ['sleep'] ['all'] [time]                              : prevent all drive updates for a certain time (in seconds) \n";
         help += " ['names']                                             : returns an ordered list of the drives in the manager \n";
         help += "                                                       : (string name, double value, double homeo_min, double homeo_max, double decay = 0.05, bool gradient = true) \n";
         reply.addString(help);
@@ -291,13 +292,30 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     }
     else if (cmd.get(0).asString()=="sleep")
     {
-        for (unsigned int d = 0; d<manager->drives.size();d++)
+        if (cmd.get(1).asString() != "all")
         {
-            if (cmd.get(1).asString() == manager->drives[d]->name)
+            for (unsigned int d = 0; d<manager->drives.size();d++)
             {
-                double time = cmd.get(2).asDouble();
-                manager->sleep(d, time);
-                reply.addString("ack: Drive sleep");
+                if (cmd.get(1).asString() == manager->drives[d]->name)
+                {
+                    double t = cmd.get(2).asDouble();
+                    manager->sleep(d, t);
+                    reply.addString("ack: Drive sleep");
+                }
+            }
+        }
+        else
+        {
+            yDebug() << "all drives to sleep";
+            for (unsigned int d = 0; d<manager->drives.size();d++)
+            {
+                yDebug() << manager->drives[d]->name;
+                double t = cmd.get(2).asDouble();
+                manager->sleep(d, t);
+                std::stringstream ss;
+                ss << "ack: "<< manager->drives[d]->name << " sleep for " << t << "s";
+                yDebug() << ss.str();
+                reply.addString(ss.str());
             }
         }
         reply.addString("nack");
