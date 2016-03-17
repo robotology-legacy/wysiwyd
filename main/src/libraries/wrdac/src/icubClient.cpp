@@ -267,7 +267,7 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             say("Could not change name of default partner of agentDetector");
             yWarning() << "Could not change name of default partner of agentDetector";
             opc->changeName(e, newName);
-            iCub->opc->commit(e);
+            opc->commit(e);
 
             return false;
         }
@@ -275,7 +275,7 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->pause();
 
             opc->changeName(e, newName);
-            iCub->opc->commit(e);
+            opc->commit(e);
 
             if(!dynamic_cast<SubSystem_agentDetector*>(subSystems["agentDetector"])->changeDefaultName(newName)) {
                 yError() << "[SubSystem_agentDetector] Could not change default name of partner";
@@ -289,7 +289,7 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
             say("iol2opc not reachable, did not change object name");
             yWarning() << "iol2opc not reachable, did not change object name";
             opc->changeName(e, newName);
-            iCub->opc->commit(e);
+            opc->commit(e);
 
             return false;
         }
@@ -303,7 +303,7 @@ bool ICubClient::changeName(Entity *e, const std::string &newName) {
     }
     else {
         opc->changeName(e, newName);
-        iCub->opc->commit(e);
+        opc->commit(e);
     }
     return true;
 }

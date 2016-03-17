@@ -147,12 +147,14 @@ namespace wysiwyd {
             /********************************************************************************/
             bool connect()
             {
-                if (ABMconnected=SubABM->Connect())
+                ABMconnected=SubABM->Connect();
+                if (ABMconnected)
                     yInfo()<<"ARE connected to ABM";
                 else
                     yWarning()<<"ARE didn't connect to ABM";
 
-                if (ATTconnected=SubATT->Connect())
+                ATTconnected=SubATT->Connect();
+                if (ATTconnected)
                     yInfo()<<"ARE connected to Attention";
                 else
                     yWarning()<<"ARE didn't connect to Attention";
