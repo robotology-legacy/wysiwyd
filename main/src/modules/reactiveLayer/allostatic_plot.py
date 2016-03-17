@@ -84,7 +84,7 @@ class AllostaticPlotModule(yarp.RFModule):
         self.y_max = 1.1  # ((max_val - center_val) * 1.25) + center_val
         self.fig = plt.figure()
         self.ax = plt.axes(xlim=(0, self.win_size), ylim=(self.y_min, self.y_max))
-        self.colors = 'g', 'b', 'w', 'm', 'r', 'y', 'c', 'k'
+        self.colors = 'g', 'b', 'm', 'r', 'y', 'c', 'k'
         self.value_lines = [self.ax.plot([], [], self.colors[i] + '-', lw=2, label=d) for i,d in enumerate(self.drives)]
         self.homeo_min_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
         self.homeo_max_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
