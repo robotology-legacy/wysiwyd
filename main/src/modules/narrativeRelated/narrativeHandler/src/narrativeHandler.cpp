@@ -182,6 +182,7 @@ bool narrativeHandler::updateModule() {
 
 void narrativeHandler::findStories(int iInstance)
 {
+	yInfo() << " begin findStories from: " << iInstance << " while iMinInstance is: " << iMinInstance;
     cout << "Starting findStories begin: "<< iInstance <<endl;
 
     story currentStory;
