@@ -102,6 +102,28 @@ class AllostaticPlotModule(yarp.RFModule):
         self.t = 0
         return True
 
+    def reconnect_ports(self):
+        everything_connected = False
+        while not everything_connected:
+            everything_connected = True
+            for name in self.behaviors:
+                in_port, out_port = "/BehaviorManager/" + self.behaviors[-1] + "/start_stop:o", self.behavior_ports[-1].getName()
+                if not yarp.Network.isConnected(in_port, out_port):
+                    everything_connected = False
+                    yarp.Network.connect(in_port, out_port)
+            if not yarp.Network.isConnected(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i"):
+                everything_connected = False
+                yarp.Network.connect(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i")
+            for i, d in enumerate(self.drives):
+                in_port, out_port = "/homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName()
+                if not yarp.Network.isConnected(in_port, out_port):
+                    everything_connected = False
+                    yarp.Network.connect(in_port, out_port)
+            if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
+                everything_connected = False
+                yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
+
+
     def close(self):
         print "Closing ports..."
         self.homeo_rpc.close()
@@ -125,6 +147,7 @@ class AllostaticPlotModule(yarp.RFModule):
         return 0.1
 
     def one_step(self,t):
+        self.reconnect_ports()
         self.drive_values = [values[1:] + [0.] for values in self.drive_values]
         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(self.drive_value_ports, self.homeo_maxs, self.value_lines, self.homeo_min_lines, self.homeo_max_lines)):
             res = port.read()
