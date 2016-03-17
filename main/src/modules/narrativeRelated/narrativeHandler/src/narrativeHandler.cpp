@@ -52,6 +52,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
 
+	cursorStories = 0;
+
     //rpc port
     rpcPort.open(("/" + moduleName + "/rpc").c_str());
     attach(rpcPort);
@@ -414,12 +416,14 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 
 void narrativeHandler::initializeStories()
 {
+	yInfo() << " initializeStories from: " << cursorStories;
     cout << "begin initializating stories ";
     
 	vector<int>    toDelete; // vector of the stories to delete from the list.
 	int iSto = 0;
-	for (auto& itSt : listStories){
+	for (int jj = cursorStories; jj < listStories.size(); jj++){
 
+		story &itSt = listStories[jj];
         itSt.vEvents.clear();
         ostringstream osRequest;
         osRequest.str("");
@@ -464,11 +468,13 @@ void narrativeHandler::initializeStories()
 		}
 		iSto++;
     }
+	
 
 	for (auto ii : toDelete){
 		listStories[ii] = listStories.back();
 		listStories.pop_back();
 	}
+	cursorStories = listStories.size();
 
 	cout << "End of initialisation of stories" << endl;
 	cout << listStories.size() << " stories found" << endl;
@@ -1259,9 +1265,11 @@ bool narrativeHandler::narrationToSpeech(story target){
 		if (target.sentenceStory.size() > iThresholdSentence){
 			cout << endl << "begin display narration to speech of story: " << counter << " with " << target.vEvents.size() << " events and " << target.sentenceStory.size() << " sentence." << endl;
 
+			bool removeFirst = true;
 			for (auto itSt : target.sentenceStory){
 				cout << "\t to speech: " << itSt;
-				iCub->say(itSt);
+				if (!removeFirst) iCub->say(itSt);
+				removeFirst = false;
 			}
 
 

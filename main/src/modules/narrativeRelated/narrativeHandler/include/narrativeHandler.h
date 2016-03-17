@@ -29,6 +29,7 @@ private:
 
     wysiwyd::wrdac::ICubClient  *iCub;
     int counter;
+	int cursorStories;
 
     double      period;
     bool lrh;
