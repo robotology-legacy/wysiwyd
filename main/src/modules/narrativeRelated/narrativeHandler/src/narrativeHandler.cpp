@@ -33,7 +33,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "narrativeHandler", "narrativeHandler.ini", isRFVerbose);
-    //iCub->opc->isVerbose &= true;
+    iCub->opc->isVerbose &= true;
 
     // get grammar file
     GrammarNarration = rf.findFileByName(rf.check("GrammarNarration", Value("GrammarNarration.xml")).toString());
@@ -420,7 +420,7 @@ void narrativeHandler::initializeStories()
     cout << "begin initializating stories ";
     
 	vector<int>    toDelete; // vector of the stories to delete from the list.
-	int iSto = 0;
+	unsigned int iSto = 0;
 	for (int jj = cursorStories; jj < listStories.size(); jj++){
 
 		story &itSt = listStories[jj];
@@ -1260,12 +1260,28 @@ bool narrativeHandler::askNarrate(){
 
 bool narrativeHandler::narrationToSpeech(story target){
 
+    // look at agent;
+    iCub->opc->checkout();
+    bool bFound = false;
+    list<Entity*> entities = iCub->opc->EntitiesCache();
+    Agent *ag;
+    // founding the agent:
+    for (auto &it : entities){
+        if (it->isType("agent")){
+            ag = dynamic_cast<Agent*>(it);
+            if (ag->m_present != 0 && ag->name() != "iCub" && ag->name() != "iCub"){
+                bFound = true;
+            }
+        }
+    }
+
 	cout << "narration to speech: " << target.humanNarration.size() << endl;
 
 	if (target.humanNarration.size() > 2){
 		cout << "begin narration to speech from human:" << endl;
 		for (auto ii : target.humanNarration){
 			cout << "\t to speech: " << ii << endl;
+            iCub->look(ag->name());
 			iCub->say(ii);
 		}
 	}
@@ -1276,6 +1292,7 @@ bool narrativeHandler::narrationToSpeech(story target){
 			bool removeFirst = true;
 			for (auto itSt : target.sentenceStory){
 				cout << "\t to speech: " << itSt;
+                iCub->look(ag->name());
 				if (!removeFirst) iCub->say(itSt);
 				removeFirst = false;
 			}
