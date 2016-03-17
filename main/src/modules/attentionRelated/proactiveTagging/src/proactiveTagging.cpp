@@ -105,6 +105,12 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << " TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
     }
 
+	std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
+	if (ttsOptions != "iCub") {
+		if (iCub->getSpeechClient())
+			iCub->getSpeechClient()->SetOptions(ttsOptions);
+	}
+
     if (!iCub->getRecogClient())
     {
         iCub->say("Proactive Tagging warning speech recognizer not connected");
@@ -116,11 +122,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "WARNING ABM NOT CONNECTED";
     }
 
-    std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
-    if (ttsOptions != "iCub") { 
-        if (iCub->getSpeechClient())
-        iCub->getSpeechClient()->SetOptions(ttsOptions);
-    }
 
     iCub->say("proactive tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
