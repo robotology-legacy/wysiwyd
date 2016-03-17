@@ -40,6 +40,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         yInfo() << "pushing elements to look at!!!";//<<endl;
         yDebug() << finding;// << endl;
     }
+
 }
 
 bool FollowingOrder::handlePoint(string type, string target)
