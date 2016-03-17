@@ -288,7 +288,8 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName = "target")
+            bool take(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                      const std::string &sName = "target")
             {
                 if (ABMconnected)
                 {
@@ -344,7 +345,8 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
+            bool push(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                      const std::string &sName="target")
             {
                 if (ABMconnected)
                 {
@@ -398,7 +400,8 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
+            bool point(const yarp::sig::Vector &targetUnsafe, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                       const std::string &sName="target")
             {
                 if (ABMconnected)
                 {
@@ -694,7 +697,8 @@ namespace wysiwyd {
             * @return true in case of successfull motor command, false
             *         otherwise.
             */
-            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target")
+            bool look(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),
+                      const std::string &sName="target")
             {
                 if (ABMconnected)
                 {
