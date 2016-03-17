@@ -16,6 +16,7 @@
  * Public License for more details
  */
 
+#include <yarp/os/LogStream.h>
 #include "wrdac/clients/icubClient.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
 #include "wrdac/subsystems/subSystem_agentDetector.h"
@@ -531,14 +532,14 @@ bool ICubClient::point(const string &oLocation, const Bottle &options)
     Entity *target = opc->getEntity(oLocation, true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
     {
-        cerr << "[iCubClient] Called point() on a unallowed location: \"" << oLocation << "\"" << endl;
+        yError() << "[iCubClient] Called point() on a unallowed location: \"" << oLocation << "\"";
         return false;
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
     if (oTarget->m_present!=1.0)
     {
-        cerr << "[iCubClient] Called point() on an unavailable entity: \"" << oLocation << "\"" << endl;
+        yError() << "[iCubClient] Called point() on an unavailable entity: \"" << oLocation << "\"";
         return false;
     }
 
@@ -551,7 +552,7 @@ bool ICubClient::point(const Vector &target, const Bottle &options, std::string 
     SubSystem_ARE *are = getARE();
     if (are == NULL)
     {
-        cerr << "[iCubClient] Called point() but ARE subsystem is not available." << endl;
+        yError() << "[iCubClient] Called point() but ARE subsystem is not available.";
         return false;
     }
 
@@ -560,6 +561,39 @@ bool ICubClient::point(const Vector &target, const Bottle &options, std::string 
     return are->point(target, opt, sName);
 }
 
+bool ICubClient::push(const string &oLocation, const Bottle &options)
+{
+    Entity *target = opc->getEntity(oLocation, true);
+    if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
+    {
+        yError() << "[iCubClient] Called push() on a unallowed location: \"" << oLocation << "\"";
+        return false;
+    }
+
+    Object *oTarget = dynamic_cast<Object*>(target);
+    if (oTarget->m_present!=1.0)
+    {
+        yError() << "[iCubClient] Called push() on an unavailable entity: \"" << oLocation << "\"";
+        return false;
+    }
+
+    return push(oTarget->m_ego_position, options, oTarget->name());
+}
+
+
+bool ICubClient::push(const Vector &target, const Bottle &options, std::string sName)
+{
+    SubSystem_ARE *are = getARE();
+    if (are == NULL)
+    {
+        yError() << "[iCubClient] Called push() but ARE subsystem is not available.";
+        return false;
+    }
+
+    Bottle opt(options);
+    opt.addString("still"); // always avoid automatic homing after point
+    return are->push(target, opt, sName);
+}
 
 bool ICubClient::look(const string &target)
 {
