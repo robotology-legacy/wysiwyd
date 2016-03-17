@@ -60,7 +60,7 @@ private:
 
     std::string GrammarNarration; // the file for the grammar narration
     std::string GrammarYesNo;
-
+    bool shouldSpeak;
     bool narrate();
     bool askNarrate();
     bool narrationToSpeech(story sto);
