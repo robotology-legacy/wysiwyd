@@ -166,6 +166,16 @@ namespace wysiwyd{
                     bReply, //response from speech recog without transfer information, including raw sentence
                     bOutput; // semantic information of the content of the recognition
 
+
+                if (!isEars)
+                { //this line hqs been qdded becquse non-eqrs modules should be qble to interrupt eqrs
+                    bMessenger.addString("interrupt");
+                    // send the message
+                    portRPC.write(bMessenger, bReply);
+                    yarp::os::Time::delay(0.5);
+                    bMessenger.clear();
+                }
+
                 bMessenger.addString("recog");
                 bMessenger.addString("grammarXML");
                 bMessenger.addString(sInput);
