@@ -33,6 +33,12 @@ Bottle proactiveTagging::assignKinematicStructureByName(std::string sName, std::
     //1. search through opc for the m_joint_number corresponding to the bodypart name
     iCub->opc->checkout();
     Entity* e = iCub->opc->getEntity(sName, true);
+    if(!e) {
+        yError() << "Could not get bodypart" << sName;
+        iCub->say("Could not get bodypart" + sName);
+        bOutput.addString("nack");
+        return bOutput;
+    }
 
     //Error if the name does NOT correspond to a bodypart
     if(!e->isType("bodypart")) {
@@ -48,6 +54,7 @@ Bottle proactiveTagging::assignKinematicStructureByName(std::string sName, std::
     Bottle bResultByJoint = assignKinematicStructureByJoint(BPjoint, sBodyPartType, forcingKS);
 
     if(bResultByJoint.get(0).asString() == "error") {
+        yError() << bResultByJoint.toString();
         return bResultByJoint;
     }
 
@@ -69,6 +76,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
     Bottle bResult, bOutput;
     ostringstream osRequest;
     osRequest << "SELECT max(main.instance) FROM main, contentarg WHERE main.instance = contentarg.instance AND activityname = 'singleJointBabbling' AND main.begin = TRUE AND contentarg.role = 'limb' AND contentarg.argument = '" << BPjoint << "' ;";
+    yInfo() << "assignKinematicStructureByJoint request: " << osRequest.str();
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     if (bResult.toString() == "NULL") {
@@ -97,12 +105,13 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
             //pb with the casting: BPtemp is empty
             Bodypart* BPtemp = dynamic_cast<Bodypart*>(entity);
             if(!BPtemp) {
-                yError() << "Could not cast to Bodypart";
+                yDebug() << "Could not cast " << entity->name() << " to Bodypart";
                 continue;
             }
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
+                yInfo() << "Change" << BPtemp->name() << "to kinematic instance" << ksInstance;
                 break;
             }
         }
@@ -183,7 +192,7 @@ Bottle proactiveTagging::orderKinematicStructure(int instance) {
     bCommandKs.addList() = bActivity;
     bCommandKs.addList() = bQuantity;
 
-    //4. send single joint moving bottle
+    yDebug() << "Send reqeust for augmented images to ABM" << bCommandKs.toString();
     bReplyFromABM = iCub->getABMClient()->rpcCommand(bCommandKs);
     yDebug() << " [orderKinematicStructure] Reply from ABM:" << bReplyFromABM.toString();
 
@@ -208,12 +217,13 @@ Bottle proactiveTagging::orderKinematicStructure(int instance) {
 * @return Bottle with the result (error or ack?)
 */
 yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {  
-    Bottle bOutput ;
+    Bottle bOutput;
 
     if (bInput.size() != 3)
     {
         yInfo() << " proactiveTagging::exploreTactileEntityWithName | Problem in input size.";
         bOutput.addString("Problem in input size");
+        iCub->say("Error in input size explore tactile with name");
         return bOutput;
     }
 
@@ -226,7 +236,10 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     iCub->opc->checkout();
     Bodypart* BPentity = dynamic_cast<Bodypart*>(iCub->opc->getEntity(sName, true));
     if(!BPentity) {
-        yError() << "Could not cast to bodypart";
+        iCub->say("Could not cast to bodypart in tactile");
+        yError() << "Could not cast to bodypart in tactile";
+        bOutput.addString("nack");
+        return bOutput;
     }
 
     //2.Ask human to touch
@@ -242,6 +255,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
         yError() << " error in proactiveTagging::exploreTactileEntityWithName | for " << sName << " | Touch not detected!" ;
         bOutput.addString("error");
         bOutput.addString("Touch not detected!");
+        iCub->say("You did not touch me.");
         return bOutput;
     }
 
@@ -249,7 +263,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     BPentity->m_tactile_number = bTactile->get(0).asInt();
     bOutput.addString("ack");
     bOutput.addInt(bTactile->get(0).asInt());
-    iCub->opc->commit() ;
+    iCub->opc->commit();
 
     //4.Ask human to touch
     string sThank = " Thank you, now I know when I am touching object with my " + sName ;
@@ -258,4 +272,3 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
 
     return bOutput;
 }
-

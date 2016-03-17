@@ -199,11 +199,17 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         if (type == "bodypart" && name.find("unknown") == std::string::npos) {
             iCub->opc->checkout();
             Bodypart* bp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(name));
+            if(!bp) {
+                yError() << "Could not cast" << name << "to bodypart";
+                iCub->say("Could not cast " + name + " to bodypart");
+            }
             // TODO: Make calls of exploreTactileEntityWithName and assignKinematicStructureByName consistent
             if (bp->m_tactile_number == -1) {
+                yInfo() << "Going to tag skin part";
                 reply = exploreTactileEntityWithName(command);
             }
             else if (bp->m_kinStruct_instance == -1) {
+                yInfo() << "Going to tag kinematic structure";
                 bool forcingKS = true;
                 reply = assignKinematicStructureByName(name, type, forcingKS);
             }
@@ -212,6 +218,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             }
         }
         else {
+            yInfo() << "Going to tag bodypart (babbling)";
             reply = exploreUnknownEntity(command);
         }
     }
