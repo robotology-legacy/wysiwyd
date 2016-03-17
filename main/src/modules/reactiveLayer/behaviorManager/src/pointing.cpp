@@ -11,7 +11,7 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
     
-    int id = ((int)(yarp::os::Random::uniform()*100))%sensation->size(); 
+    int id = yarp::os::Random::uniform(0, sensation->size()-1);
     yDebug()<<"Randomly selected: "<< id; // should be random here 
     string obj_name = sensation->get(id).asList()->get(1).asString();
     
