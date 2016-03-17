@@ -5,6 +5,7 @@
     <ID	NAME="object"	VAL="3"/>
     <ID	NAME="predicateBodypart"	VAL="4"/>
     <ID	NAME="bodypart"	VAL="5"/>
+    <ID NAME="questionMark" VAL="6"/>
   </DEFINE>
 
 
@@ -12,6 +13,21 @@
     <P>stop</P>
   </RULE>
 
+<RULE NAME="SENTENCENARRATIVE" TOPLEVEL="ACTIVE" EXPORT="1">
+<!--    <RULEREF  NAME="agent"/>  -->
+    <RULEREF  NAME="questionMark"/>
+      <L>
+        <P>have you done</P>
+        <P>did you just do</P>
+        <P>did we do</P>
+        <P>did you say</P>
+      </L>
+  </RULE>
+<RULE NAME="questionMark" DYNAMIC="TRUE">
+    <L>
+      <P>what</P>
+    </L>
+  </RULE>
 
   <RULE	NAME="SENTENCEOBJECT"	TOPLEVEL="ACTIVE"	EXPORT="1">
 <!--    <RULEREF	NAME="agent"/>  -->
@@ -43,6 +59,8 @@
   <RULE NAME="predicateObject" DYNAMIC="TRUE">
     <L>
       <P>point</P>
+      <P>look at</P>
+      <P>push</P>
     </L>
   </RULE>
 

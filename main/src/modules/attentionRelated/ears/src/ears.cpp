@@ -128,25 +128,32 @@ bool ears::updateModule() {
 
         bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
         cout << bSemantic.toString() << endl;
-        string sObject;
+        string sObject, sAction;
         string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
         //string sPredicate = bSemantic.check("predicate", Value("none")).asString();
 
         string sObjectType, sCommand;
         if(sQuestionKind == "SENTENCEOBJECT") {
             sObject = bSemantic.check("object", Value("none")).asString();
-            sCommand = "pointingOrder";
-            sObjectType = "object";
+            sAction = bSemantic.check("predicateObject", Value("none")).asString();
+            sCommand = "followingingOrder";            sObjectType = "object";
         } else if(sQuestionKind == "SENTENCEBODYPART") {
             sObject = bSemantic.check("bodypart", Value("none")).asString();
             sCommand = "touchingOrder";
             sObjectType = "bodypart";
-        } else {
+        } else if(sQuestionKind == "SENTENCENARRATIVE") {
+            sCommand = "followingingOrder"; 
+            sAction = "narrate";
+            sObjectType = "";
+            sObject = "";
+        }else{
             yError() << "[ears] Unknown predicate";
+        
         }
 
         Bottle &bToTarget = portTarget.prepare();
         bToTarget.clear();
+        bToTarget.addString(sAction);
         bToTarget.addString(sObjectType);
         bToTarget.addString(sObject);
         portTarget.write();
