@@ -52,12 +52,12 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
 
     while (storyOnGoing){
         // while the narration is not finished
-		bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarNarration), 20, false, true);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarNarration), 20, false, true);
 
         if (bRecognized.get(0).asInt() == 0)
         {
             yError() << " error in narrativeHandler::addNarrationToStory | Error in speechRecog";
-            return ;
+            return;
         }
 
         bAnswer = *bRecognized.get(1).asList();
@@ -85,7 +85,7 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
         cout << phrase << endl;
     }
 
-	target.humanNarration = vNewStory;
+    target.humanNarration = vNewStory;
 
 }
 
