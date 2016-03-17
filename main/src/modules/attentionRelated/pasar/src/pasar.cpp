@@ -216,12 +216,14 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
 			{
 				checkPointing = false;
 				yInfo() << " stop pointing";
+                reply.addString("ack");
 				reply.addString("stop pointing");
 			}
 			else if (command.get(1).asString() == "on")
 			{
 				checkPointing = true;
 				yInfo() << " start pointing";
+                reply.addString("ack");
 				reply.addString("start pointing");
 			}
 		}

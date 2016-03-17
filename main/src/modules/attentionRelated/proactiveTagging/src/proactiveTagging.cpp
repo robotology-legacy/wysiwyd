@@ -60,13 +60,26 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     attach(rpcPort);
 
     //--------------------------------------------- output port
+    std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
+    if (ttsOptions != "iCub") {
+        if (iCub->getSpeechClient())
+            iCub->getSpeechClient()->SetOptions(ttsOptions);
+    }
 
     //out to BodySchema
     portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str());
     bodySchemaRpc = rf.check("bodySchemaRpc", Value("/babbling/rpc")).asString().c_str();
 
     if (!Network::connect(portToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
-        yWarning() << " BODY SCHEMA NOT CONNECTED: selfTagging will not work";
+        yWarning() << "BODY SCHEMA NOT CONNECTED: selfTagging will not work";
+        iCub->say("BODY SCHEMA NOT CONNECTED: selfTagging will not work");
+    }
+
+    //out to BodySchema, bufferedPort for no wait and allow describe actions
+    portNoWaitToBodySchema.open(("/" + moduleName + "/BufferedPort/toBodySchema:o").c_str());
+    if (!Network::connect(portNoWaitToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
+        yWarning() << "BODY SCHEMA BUFFERED PORT NOT CONNECTED: actionTagging will not work";
+        iCub->say("BODY SCHEMA BUFFERED PORT NOT CONNECTED: actionTagging will not work");
     }
 
     //out to SAM
@@ -74,47 +87,38 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     SAMRpc = rf.check("SAMRpc", Value("/sam/face/rpc:i")).asString().c_str();
 
     if (!Network::connect(portToSAM.getName().c_str(), SAMRpc.c_str())) {
-        yWarning() << " SAM NOT CONNECTED: face recognition will not work";
-    }
-
-    //out to BodySchema, bufferedPort for no wait and allow describe actions
-    portNoWaitToBodySchema.open(("/" + moduleName + "/BufferedPort/toBodySchema:o").c_str());
-    if (!Network::connect(portNoWaitToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
-        yWarning() << " BODY SCHEMA BUFFERED PORT NOT CONNECTED: actionTagging will not work";
+        yWarning() << "SAM NOT CONNECTED: face recognition will not work";
+        iCub->say("SAM NOT CONNECTED: face recognition will not work");
     }
 
     //out to LRH
     portToLRH.open(("/" + moduleName + "/toLRH:o").c_str());
     LRHRpc = rf.check("LRHRpc", Value("/lrh/rpc")).asString().c_str();
     if (!Network::connect(portToLRH.getName().c_str(), LRHRpc.c_str())) {
-        yWarning() << " LRH NOT CONNECTED: will not produce sentences";
+        yWarning() << "LRH NOT CONNECTED: will not produce sentences";
+        iCub->say("LRH NOT CONNECTED: will not produce sentences");
     }
 
     // out to pasar
     portToPasar.open(("/" + moduleName + "/pasar:o").c_str());
     if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
-        yWarning() << " PASAR NOT CONNECTED: will not engage pointing";
+        yWarning() << "PASAR NOT CONNECTED: will not engage pointing";
+        iCub->say("PASAR NOT CONNECTED: will not engage pointing");
     }
-
 
     //in from TouchDetector
     portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str());
     touchDetectorRpc = rf.check("touchDetectorOut", Value("/touchDetector/touch:o")).asString().c_str();
 
     if (!Network::connect(touchDetectorRpc.c_str(), portFromTouchDetector.getName().c_str(), "tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list")) {
-        yWarning() << " TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
+        yWarning() << "TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
+        iCub->say("TOUCH DETECTOR NOT CONNECTED: selfTagging will not work");
     }
-
-	std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
-	if (ttsOptions != "iCub") {
-		if (iCub->getSpeechClient())
-			iCub->getSpeechClient()->SetOptions(ttsOptions);
-	}
 
     if (!iCub->getRecogClient())
     {
         iCub->say("Proactive Tagging warning speech recognizer not connected");
-        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
+        yWarning() << "SPEECH RECOGNIZER NOT CONNECTED";
     }
     if (!iCub->getABMClient())
     {
@@ -696,13 +700,18 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
     if(sTypeTarget == "object") {
         Bottle bToPasar;
+        Bottle bFromPasar;
         bToPasar.addString("pointing");
         bToPasar.addString("on");
         if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
             yError() << "Could not connect to pasar";
             iCub->say("Could not connect to pasar");
         } else {
-            portToPasar.write(bToPasar);
+            portToPasar.write(bToPasar, bFromPasar);
+            if(bFromPasar.get(0).asString()!="ack") {
+                yError() << "Pasar did not change pointing to on";
+                iCub->say("Pasar did not change pointing to on");
+            }
         }
     }
 
@@ -807,14 +816,18 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     }
 
     if(sTypeTarget == "object") {
-        Bottle bToPasar;
+        Bottle bToPasar, bFromPasar;
         bToPasar.addString("pointing");
         bToPasar.addString("off");
         if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
             yError() << "Could not connect to pasar";
             iCub->say("Could not connect to pasar");
         } else {
-            portToPasar.write(bToPasar);
+            portToPasar.write(bToPasar, bFromPasar);
+            if(bFromPasar.get(0).asString()!="ack") {
+                yError() << "Pasar did not change pointing to on";
+                iCub->say("Pasar did not change pointing to on");
+            }
         }
     }
 

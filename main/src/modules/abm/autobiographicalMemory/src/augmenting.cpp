@@ -82,6 +82,7 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
 }
 
 void autobiographicalMemory::saveAugmentedImages() {
+    yDebug() << "saveAugmentedImages";
     yarp::sig::ImageOf<yarp::sig::PixelRgb> *img_augmented = portAugmentedImagesIn.read(false);
     if (img_augmented != NULL) {
         Bottle env;
