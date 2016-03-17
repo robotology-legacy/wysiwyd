@@ -234,9 +234,8 @@ namespace wysiwyd {
 
                 double height;
                 if (getTableHeight(height))
-                    if (out[2]<height)
-                        out[2]=height+0.03; // TODO: Add offset in config file
-                
+                    out[2]=std::max(out[2],height);
+
                 return out;
             }
 
