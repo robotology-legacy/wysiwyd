@@ -136,13 +136,14 @@ bool ears::updateModule() {
         if(sQuestionKind == "SENTENCEOBJECT") {
             sObject = bSemantic.check("object", Value("none")).asString();
             sAction = bSemantic.check("predicateObject", Value("none")).asString();
-            sCommand = "followingingOrder";            sObjectType = "object";
+            sCommand = "followingOrder";
+            sObjectType = "object";
         } else if(sQuestionKind == "SENTENCEBODYPART") {
             sObject = bSemantic.check("bodypart", Value("none")).asString();
             sCommand = "touchingOrder";
             sObjectType = "bodypart";
         } else if(sQuestionKind == "SENTENCENARRATIVE") {
-            sCommand = "followingingOrder"; 
+            sCommand = "followingOrder";
             sAction = "narrate";
             sObjectType = "";
             sObject = "";
