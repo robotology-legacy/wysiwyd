@@ -22,7 +22,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     string target;
     if (sens->size()>0)
         type = sens->get(1).asString();
-    else if (sens->size()>1)
+    if (sens->size()>1)
         target = sens->get(2).asString();
     yDebug() << action;
     yDebug() << type;
