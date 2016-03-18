@@ -457,12 +457,12 @@ void narrativeHandler::initializeStories()
 
             evtStory evtTemp;
             vector<string> tempOCW = initializeEVT(evtTemp, itInst, bActivity, bArguments, bRelations);
-
+            
             itSt.vEvents.push_back(evtTemp);
             itSt.addOCW(tempOCW);
         }
 
-        cout << ".";
+        cout << "-";
 
         createNarration(itSt);
         if (itSt.sentenceStory.size() < 2){
@@ -471,15 +471,16 @@ void narrativeHandler::initializeStories()
         iSto++;
     }
 
+    yInfo() << "starting deletion of stories: " << toDelete.size();
 
     for (auto ii : toDelete){
-        listStories[ii] = listStories.back();
+        if (ii < listStories.size() + toDelete.size() -3) listStories[ii] = listStories.back();
         listStories.pop_back();
     }
     cursorStories = listStories.size();
 
-    cout << "End of initialisation of stories" << endl;
-    cout << listStories.size() << " stories found" << endl;
+    yInfo() << "End of initialisation of stories";
+    yInfo() << listStories.size() << " stories found";
     cout << endl;
 
 }
@@ -1287,8 +1288,8 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
 
 bool narrativeHandler::narrate(){
     yInfo(" begin narrate");
-    iCub->say("Starting to narrate !", true, false, "default", false);
-    iCub->say("But for now I don't want to speak !");
+    if (shouldSpeak)    iCub->say("Starting to narrate !", true, false, "default", false);
+    if (shouldSpeak)    iCub->say("But for now I don't want to speak !");
 
 //    findStories(iMinInstance);
 
