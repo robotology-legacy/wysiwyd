@@ -1006,16 +1006,12 @@ void OPCClient::commit(Entity *e)
     id.addString("id");
     id.addInt(e->opc_id());
 
-    Bottle props = e->asBottleOnlyModifiedProperties();
-
-    for(int i=0;i<props.size();i++)
-    {
-        query.addList() = (*props.get(i).asList());
-    }
+    Bottle props=e->asBottleOnlyModifiedProperties();
+    if (props.size()>0)
+        query.addList().append(props);
 
     write(cmd,reply,isVerbose);
-
-    if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
+    if (reply.get(0).asVocab()==VOCAB4('n','a','c','k'))
     {
         yError() << "OPC Client: error while commiting " << e->opc_id();
         return;
