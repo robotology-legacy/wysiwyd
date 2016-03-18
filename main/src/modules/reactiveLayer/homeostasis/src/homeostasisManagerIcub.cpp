@@ -306,15 +306,12 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         }
         else
         {
-            yDebug() << "all drives to sleep";
             for (unsigned int d = 0; d<manager->drives.size();d++)
             {
-                yDebug() << manager->drives[d]->name;
                 double t = cmd.get(2).asDouble();
                 manager->sleep(d, t);
                 std::stringstream ss;
                 ss << "ack: "<< manager->drives[d]->name << " sleep for " << t << "s";
-                yDebug() << ss.str();
                 reply.addString(ss.str());
             }
         }
