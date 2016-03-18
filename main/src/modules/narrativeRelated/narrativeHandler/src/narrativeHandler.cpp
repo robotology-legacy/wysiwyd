@@ -1287,9 +1287,10 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
 
 bool narrativeHandler::narrate(){
     yInfo(" begin narrate");
-    iCub->say("Starting to narrate !");
+    iCub->say("Starting to narrate !", true, false, "default", false);
+    iCub->say("But for now I don't want to speak !");
 
-    findStories(iMinInstance);
+//    findStories(iMinInstance);
 
     bool canNarrate = false;
     int iSto = listStories.size();
@@ -1301,7 +1302,7 @@ bool narrativeHandler::narrate(){
     }
 
 
-    narrationToSpeech(target);
+//    narrationToSpeech(target);
 
     yInfo(" Narration finished.");
 
