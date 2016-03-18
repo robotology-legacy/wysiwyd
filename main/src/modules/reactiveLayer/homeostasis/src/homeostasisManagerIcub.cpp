@@ -152,6 +152,7 @@ bool HomeostaticModule::removeDrive(int d)
 
 bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
 {
+    bool all_drives = false;
     if (cmd.get(0).asString() == "help" )
     {   string help = "\n";
         help += " ['par'] ['drive'] ['val'/'min'/'max'/'dec'] [value]   : Assigns a value to a specific parameter \n";
@@ -174,9 +175,13 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
     }    
     else if (cmd.get(0).asString() == "par" )
     {
+        
+        if (cmd.get(1).asString() == "all") {
+            all_drives = true;
+        }
         for (unsigned int d = 0; d<manager->drives.size();d++)
         {
-            if (cmd.get(1).asString() == manager->drives[d]->name)
+            if (all_drives || cmd.get(1).asString() == manager->drives[d]->name)
             {
                 if (cmd.get(2).asString()=="val")
                 {
@@ -289,6 +294,25 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
             }
         }
         reply.addString("nack");
+    }
+    else if (cmd.get(0).asString()=="freeze" || cmd.get(0).asString()=="unfreeze") {
+        if (cmd.get(1).asString() == "all") {
+            all_drives = true;
+        }
+        for (unsigned int d = 0; d<manager->drives.size();d++)
+        {
+            if (all_drives || cmd.get(1).asString() == manager->drives[d]->name)
+            {
+                if (cmd.get(0).asString()=="freeze") {
+                    manager->drives[d]->freeze(); 
+                }
+                else {
+                    manager->drives[d]->unfreeze();
+                }
+            }
+        }
+        reply.addString("ack");
+
     }
     else if (cmd.get(0).asString()=="sleep")
     {

@@ -104,6 +104,15 @@ public:
         time_to_sleep = t;
     }
 
+    void freeze() {
+        is_sleeping = true;
+        time_to_sleep = 1e10;
+    }
+
+    void unfreeze() {
+        is_sleeping = false;
+    }
+
     void update()
     {
         if (is_sleeping) {
