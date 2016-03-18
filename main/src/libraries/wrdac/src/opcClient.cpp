@@ -1007,8 +1007,8 @@ void OPCClient::commit(Entity *e)
     id.addInt(e->opc_id());
 
     Bottle props=e->asBottleOnlyModifiedProperties();
-    if (props.size()>0)
-        query.addList().append(props);
+    for (int i=0; i<props.size(); i++)
+        query.addList()=*props.get(i).asList();
 
     write(cmd,reply,isVerbose);
     if (reply.get(0).asVocab()==VOCAB4('n','a','c','k'))
