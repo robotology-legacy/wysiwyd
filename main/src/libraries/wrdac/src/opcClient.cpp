@@ -242,6 +242,8 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
     //Update the fields
     newE->fromBottle(*reply.get(1).asList());
     newE->m_opc_id = id;
+    newE->m_original_entity = newE->asBottle();
+
 
     //Commit to the dictionary
     entitiesByID[newE->opc_id()] = newE;

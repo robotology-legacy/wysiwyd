@@ -81,9 +81,9 @@ Bottle Entity::asBottleOnlyModifiedProperties()
     {
         string currentTag = current_entity.get(p).asList()->get(0).asString();
         Value &currentValue = current_entity.find(currentTag.c_str());
-        Value &originalValue = m_original_entity.find(currentTag.c_str()); 
-     
-        if (currentValue != originalValue)
+        Value &originalValue = m_original_entity.find(currentTag.c_str());
+
+        if (currentValue.toString() != originalValue.toString())
         {
             Bottle &bSub=new_entity.addList();
             bSub.addString(currentTag);
