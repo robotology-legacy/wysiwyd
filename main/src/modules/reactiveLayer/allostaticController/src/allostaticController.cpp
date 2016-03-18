@@ -65,7 +65,6 @@ int AllostaticController::openPorts(string driveName)
 
 bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
 {
-    style.persistent = true;
 
     moduleName = rf.check("name",Value("AllostaticController")).asString();
     setName(moduleName.c_str());
@@ -190,7 +189,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             alloDrive.behaviorUnderPort = new Port();
             alloDrive.behaviorUnderPort->open(out_port_name);
             yDebug() << "trying to connect to " << under_port_name;// << endl;
-            while(!Network::connect(out_port_name,under_port_name, style))
+            while(!Network::connect(out_port_name,under_port_name))
             {
                 
                 yarp::os::Time::delay(0.5);
