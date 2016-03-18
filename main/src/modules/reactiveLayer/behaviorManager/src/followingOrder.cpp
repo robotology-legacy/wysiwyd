@@ -230,7 +230,7 @@ bool FollowingOrder::handleSearch(string type, string target)
             yDebug() << "Entity found: "<<e_name;//<<endl;
             if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
-                Object* o = iCub->opc->getEntity(sName);
+                Object* o = dynamic_cast<Object*>(iCub->opc->getEntity(sName));
                 yInfo() << "I found the entity in the opc: " << sName;
                 if(o && o->m_present==1.0) {
                     //searchList.pop_back();
