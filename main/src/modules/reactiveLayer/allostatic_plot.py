@@ -126,6 +126,8 @@ class AllostaticPlotModule(yarp.RFModule):
             if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
                 everything_connected = False
                 yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
+            if not everything_connected:
+                yarp.Time.delay(0.1)
 
 
     def close(self):
