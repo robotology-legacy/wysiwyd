@@ -14,6 +14,7 @@
 #include "pointing.h"
 #include "reactions.h"
 #include "narrate.h"
+#include "followingOrder.h"
 
 using namespace std;
 using namespace yarp::os;

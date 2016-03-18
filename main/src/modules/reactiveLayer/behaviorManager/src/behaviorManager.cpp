@@ -47,6 +47,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new TouchingOrder(&mut));
         }  else if (behavior_name == "reactions") {
             behaviors.push_back(new Reactions(&mut));
+        }  else if (behavior_name == "followingOrder") {
+            behaviors.push_back(new FollowingOrder(&mut));
         }  else if (behavior_name == "narrate") {
             behaviors.push_back(new Narrate(&mut));
             // other behaviors here

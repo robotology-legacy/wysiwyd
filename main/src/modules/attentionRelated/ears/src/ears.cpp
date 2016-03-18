@@ -160,6 +160,7 @@ bool ears::updateModule() {
 
         Bottle bCondition;
         bCondition.addString(sCommand);
+        //bCondition.addString(sAction);
         bCondition.addString(sObjectType);
         bCondition.addString(sObject);
 
