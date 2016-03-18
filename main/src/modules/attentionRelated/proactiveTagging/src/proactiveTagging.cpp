@@ -215,7 +215,10 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " exploreUnknownEntity";
         string type = command.get(1).toString();
         string name = command.get(2).toString();
-        if (type == "bodypart" && name.find("unknown") == std::string::npos) {
+        yDebug() << "exploreUnknownEntity with name = " << name ;
+        //yDebug() << "It is " <<  !(name.find("unknown") == std::string::npos) << "that it contains 'unknown'" ;
+        //type is bodypart and it has been named! name.find... is true when name DOES NOT contain unknown
+        if ((type == "bodypart") && (name.find("unknown") == std::string::npos)) {
             iCub->opc->checkout();
             Bodypart* bp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(name));
             if(!bp) {
@@ -235,6 +238,9 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             else {
                 yWarning("Not sure what to do, name + kinematic structure + tactile information already known");
             }
+        } else if (type == "bodypart") {
+            yInfo() << "Going to tag bodypart (include babbling)";
+            reply = exploreUnknownEntity(command);
         }
         else if (type == "object") {
             yInfo() << "Going to tag object (include a pointing)";
