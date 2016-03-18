@@ -112,6 +112,8 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
                 BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
                 yInfo() << "Change" << BPtemp->name() << "to kinematic instance" << ksInstance;
+                iCub->opc->commit(BPtemp);
+
                 break;
             }
         }
@@ -126,7 +128,6 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
         return bOutput;
     }
 
-    iCub->opc->commit();
     bOutput.addString("ack");
     bOutput.addInt(ksInstance);
     bOutput.addList() = bListEntChanged;

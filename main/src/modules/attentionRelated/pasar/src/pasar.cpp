@@ -340,10 +340,13 @@ bool PasarModule::updateModule()
         {
             if (OPCEntities.find((*it)->opc_id()) != OPCEntities.end())
             {
-                (dynamic_cast<Object*>(*it))->m_saliency = OPCEntities[(*it)->opc_id()].o.m_saliency;
+                Object* o = dynamic_cast<Object*>(*it);
+                if(o) {
+                    o->m_saliency = OPCEntities[(*it)->opc_id()].o.m_saliency;
+                    iCub->opc->commit();
+                }
             }
         }
-        iCub->opc->commit();
     }
     else{
         yInfo(" no object present in the OPC");

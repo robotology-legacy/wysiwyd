@@ -840,15 +840,13 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         } else {
             portToPasar.write(bToPasar, bFromPasar);
             if(bFromPasar.get(0).asString()!="ack") {
-                yError() << "Pasar did not change pointing to on";
-                iCub->say("Pasar did not change pointing to on");
+                yError() << "Pasar did not change pointing to off";
+                iCub->say("Pasar did not change pointing to off");
             }
         }
     }
 
     iCub->home();
-
-    iCub->opc->commit();
 
     if (iCub->getABMClient()->Connect())
     {
