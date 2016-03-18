@@ -233,7 +233,7 @@ try
                     cdata_P = featureExtractionYARP(idx);
                     [y_P, W_P, frames_P, points_P] = submodule_cvuKltRead([pwd,'/points/',cdata_P.filename(1:end-4),'/point_seq_%d.txt'], 1, cdata_P.nFrames, 'workspace', cdata_P.points_total);
                     %                 numOfSegments_P = 6;
-                    numOfSegments_P = 0;
+                    numOfSegments_P = 4;
                     KineStruct_P = genKineStruct(y_P, numOfSegments_P, cdata_P, ctrl_param);
                 elseif strcmp(data_source_P,'kinect')
                     idx = 'P';
@@ -246,7 +246,7 @@ try
                     cdata_Q = featureExtractionYARP(idx);
                     [y_Q, W_Q, frames_Q, points_Q] = submodule_cvuKltRead([pwd,'/points/',cdata_Q.filename(1:end-4),'/point_seq_%d.txt'], 1, cdata_Q.nFrames, 'workspace', cdata_Q.points_total);
                     %                 numOfSegments_Q = 6;
-                    numOfSegments_Q = 0;
+                    numOfSegments_Q = 4;
                     KineStruct_Q = genKineStruct(y_Q, numOfSegments_Q, cdata_Q, ctrl_param);
                 elseif strcmp(data_source_Q,'kinect')
                     idx = 'Q';
@@ -280,7 +280,7 @@ try
                 % Alg(HGM_method).bOrder = [0 1 0];   % 2nd
                 % Alg(HGM_method).bOrder = [0 0 1];   % 3rd
                 Alg(HGM_method).bOrder = [1 0 1];   % 1st & 3rd
-                % Alg(HGM_method).bOrder = [1 1 1];   % all
+%                 Alg(HGM_method).bOrder = [1 1 1];   % all
                 
                 X = hyperGraphMatching(problem, HGM_method, Alg);
                 
@@ -298,7 +298,7 @@ try
                 % output display
                 % YARP ABM save
                 %=========================================================
-                %             wrapper_YARP_ABM_save_for_Correspondence;
+                wrapper_YARP_ABM_save_for_Correspondence;
                 
                 bReply.addString('ack');
                 bReply.addString(['Finding Kinematic Structure Correspondences between ABM #', instance_num_P, ' and ABM #', instance_num_Q,' is completed!']);
@@ -331,9 +331,9 @@ try
     portIncoming_Q.close;
     
 catch
-    disp('######################################3')
+    disp('######################################')
     disp('Response: Error! Closing ports!');
-    disp('######################################3')
+    disp('######################################')
     bReply.addString('Error! Closing ports');
     portTrigger.reply(bReply);
     bReply.clear();

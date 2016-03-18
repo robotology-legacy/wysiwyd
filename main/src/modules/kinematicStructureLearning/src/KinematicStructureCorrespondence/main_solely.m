@@ -37,17 +37,15 @@ control_params;
 %=========================================================
 % video input selection
 %=========================================================
-disp('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
-[videoName_P, numOfSegments_P] = videoInputSelect();
-[videoName_Q, numOfSegments_Q] = videoInputSelect();
-
-%%
 %=========================================================
 % video load 
 % -- feature extraction
 % ---- saving feature values
 %=========================================================
+disp('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
+[videoName_P, numOfSegments_P] = videoInputSelect();
 cdata_P = featureExtraction(videoName_P);
+[videoName_Q, numOfSegments_Q] = videoInputSelect();
 cdata_Q = featureExtraction(videoName_Q);
 
 %%
@@ -124,3 +122,10 @@ img_acc_Q = genAccImageSeq(cdata_Q.pathname, KineStruct_Q, step_size);
 % Draw result
 %=========================================================
 img_combined = genMatchImage(img_acc_P, img_acc_Q, KineStruct_P, KineStruct_Q, X, 'PROPOSED_RRWHM');
+
+%%
+%=========================================================
+% Remove path
+%=========================================================
+rmpath(genpath('../../include/include_Matlab'));   % add path of libraries
+rmpath(genpath('submodule'));     % add path of required submodules

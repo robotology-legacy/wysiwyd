@@ -2,7 +2,7 @@
 require(igraph)     #graph method
 require(reshape2)   #print matrix
 require(ggplot2)    #print matrix
-source("topology/helpers.R")
+source("../../include/include_Matlab/topology_similarity/helpers.R")
 
 ##should be > 0 : total edge difference between graph suisomorphism
 neighbors.constraint.total <- 3

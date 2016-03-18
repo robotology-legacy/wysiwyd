@@ -61,9 +61,9 @@ disp('1st Port is connected to ABM!')
 % get number of frames: "getImagesInfo"
 if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
     portIncoming_P = BufferedPortImageRgb;
-%     portIncoming_P = Port;
+    %     portIncoming_P = Port;
 elseif strcmp(data_source_P,'kinect')
-%     portIncoming_P = Bottle;
+    %     portIncoming_P = Bottle;
     portIncoming_P = Port;
 end
 
@@ -105,7 +105,9 @@ for i=0:b_provide_P.size()-1
     
     % for camcalib/left or camcalib/right
     if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
+        
         if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',data_source_P,'/out'])
+            %         if strcmp(char_buf(1:end-18), '/autobiographicalMemory/grabber')
             num_images_P = b_provide_P.get(i).asList().get(1).asInt();
             final_portname_P = char_buf;
         end
@@ -125,7 +127,7 @@ connection_check = 0;
 while(~connection_check)
     Network.connect(final_portname_P, '/matlab/kinematicStructure/1st_datain');
     connection_check = Network.isConnected(final_portname_P, '/matlab/kinematicStructure/1st_datain');
-%     pause(0.5)
+    %     pause(0.5)
     disp('waiting for connection...');
 end
 disp('1st Port Connected!')
@@ -140,11 +142,21 @@ bRawImage_P_buf = cell(num_images_P,1);
 start_frame_idx_P = 1;
 last_frame_idx_P = num_images_P;
 
+reverseStr = '';
+% h = waitbar(0,'Initializing progress bar...');
+
 %------------------------------------------
 % for camcalib/left or camcalib/right
-if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')    
-    for i=0:num_images_P-2
-        disp(['receive image ', num2str(i),'/',num2str(num_images_P)]);
+if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
+    for i=0:ceil(num_images_P*0.9)-1
+        
+        %                 disp(['receive image ', num2str(i),'/',num2str(num_images_P-5)]);
+        percentDone = 100 * (i+1) / (ceil(num_images_P*0.9));
+        msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
+        fprintf([reverseStr, msg]);
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        %         waitbar(i/(num_images_P-4),h,sprintf('%d%% along...',floor(i/(num_images_P-4)*100)))
+        
         yarpData_P = yarp.ImageRgb;
         yarpData_P = portIncoming_P.read();
         
@@ -154,7 +166,7 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
             save_path = ['ABM/P/',filename];
             
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
-%                 disp('got it..');
+                %                 disp('got it..');
                 h=yarpData_P.height;
                 w=yarpData_P.width;
                 pixSize=yarpData_P.getPixelSize();
@@ -175,9 +187,12 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
             env = yarp.Bottle;
             portIncoming_P.getEnvelope(env);
             bDataMeta_P_buf{i+1,1} = env.toString();
-            pause(0.1);
+            pause(0.01);
         end
     end
+    disp('');
+    disp('Done receiving images!');
+    %     close(h);
     %------------------------------------------
     % for kinect
 elseif strcmp(data_source_P,'kinect')
@@ -188,7 +203,7 @@ elseif strcmp(data_source_P,'kinect')
     for i=0:floor(num_images_P/16)-2
         disp(['receive data of frame ', num2str(i)]);
         if(i+1 >= start_frame_idx_P && i < last_frame_idx_P)
-            % save data           
+            % save data
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
                 for body_idx = 0:15
                     buf = char(yarpData_P.get(0).asList().get(body_idx).toString());
@@ -286,9 +301,9 @@ disp('2nd Port is connected to ABM!')
 % get number of frames: "getImagesInfo"
 if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
     portIncoming_Q = BufferedPortImageRgb;
-%     portIncoming_Q = Port;
+    %     portIncoming_Q = Port;
 elseif strcmp(data_source_Q,'kinect')
-%     portIncoming_Q = Bottle;
+    %     portIncoming_Q = Bottle;
     portIncoming_Q = Port;
 end
 
@@ -312,8 +327,6 @@ port2ABM_query_Q.write(b_write_Q,b_response_Q);
 % pause(3);
 disp(b_response_Q.toString);
 
-b_provide_Q = yarp.Bottle;
-
 if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
     b_provide_Q = b_response_Q.get(2).asList();
 elseif strcmp(data_source_Q,'kinect')
@@ -330,6 +343,7 @@ for i=0:b_provide_Q.size()-1
     % for camcalib/left or camcalib/right
     if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
         if strcmp(char_buf(1:end-18), ['/autobiographicalMemory/icub/camcalib/',data_source_Q,'/out'])
+            %         if strcmp(char_buf(1:end-18), '/autobiographicalMemory/grabber')
             num_images_Q = b_provide_Q.get(i).asList().get(1).asInt();
             final_portname_Q = char_buf;
         end
@@ -364,11 +378,19 @@ bRawImage_Q_buf = cell(num_images_Q,1);
 start_frame_idx_Q = 1;
 last_frame_idx_Q = num_images_Q;
 
+reverseStr = '';
+% h = waitbar(0,'Initializing progress bar...');
+
 %------------------------------------------
 % for camcalib/left or camcalib/right
-if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')    
-    for i=0:num_images_Q-2
-        disp(['receive image ', num2str(i),'/',num2str(num_images_Q)]);
+if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
+    for i=0:ceil(num_images_Q*0.9)-1        %         disp(['receive image ', num2str(i),'/',num2str(num_images_Q-2)]);
+        %         waitbar(i/(num_images_Q-4),h,sprintf('%d%% along...',floor(i/(num_images_Q-4)*100)))
+        percentDone = 100 * (i+1) / (ceil(num_images_Q*0.9));
+        msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
+        fprintf([reverseStr, msg]);
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        
         yarpData_Q = yarp.ImageRgb;
         yarpData_Q = portIncoming_Q.read();
         
@@ -403,17 +425,21 @@ if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
             bDataMeta_Q_buf{i+1,1} = env.toString();
         end
     end
+    disp('');
+    disp('Done receiving images!');
+    %     close(h);
+    
     %------------------------------------------
     % for kinect
 elseif strcmp(data_source_Q,'kinect')
     fileID = fopen('ABM/Q/joints.txt','w');
     yarpData_Q = yarp.Bottle;
-    portIncoming_Q.read(yarpData_Q);    
+    portIncoming_Q.read(yarpData_Q);
     
     for i=0:floor(num_images_Q/16)-2
         disp(['receive data of frame ', num2str(i)]);
         if(i+1 >= start_frame_idx_Q && i < last_frame_idx_Q)
-            % save data           
+            % save data
             if (sum(size(yarpData_Q)) ~= 0) %check size of bottle
                 for body_idx = 0:15
                     buf = char(yarpData_Q.get(0).asList().get(body_idx).toString());

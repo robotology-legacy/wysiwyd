@@ -65,11 +65,11 @@ disp('Connected!')
 
 augmentedLabel = 'kinematic_structure_correspondence';
 
-correpondence_result = [];
-for p = 1:size(X,1)
-    buf = sprintf('"%d \t %s"', p, node_info{find(X(p,:)==1)});
-    correpondence_result = [correpondence_result, ' ', buf];
-end
+% correpondence_result = [];
+% for p = 1:size(X,1)
+%     buf = sprintf('"%d \t %s"', p, node_info{find(X(p,:)==1)});
+%     correpondence_result = [correpondence_result, ' ', buf];
+% end
 
 %%
 %====================================
@@ -105,26 +105,31 @@ bAugmentedImageWithMeta.clear();
 bResponseAugmented = yarp.Bottle;
 bResponseAugmented.clear();
 
-%         bImageMeta_string = bImageMeta_buf{i}.toString();
+bImageMeta_string = bDataMeta_P_buf{1}.toString();
 
 image_name = 'output.png';
-fprintf(['Retrieving to ABM', image_name, '\n']);
+% image_name = '0000.png';
+
+fprintf(['Retrieving to ABM ', image_name, '\n']);
 img_mat_org = imread(['result/images/correspondences/',image_name]);
+% img_mat_org = img_mat_org(1:end,1:end,:);
 [h,w,pixSize] = size(img_mat_org);
 tool=YarpImageHelper(h, w);
 
 img = yarp.ImageRgb(); %create a new yarp image to send results to ports
-img.resize(w,h);   %resize it to the desired size
+img.resize(h,w);   %res-2ize it to the desired size
 img.zero();        %set all pixels to black
-img_mat_org = reshape(img_mat_org, [h*w*pixSize 1]); %reshape the matlab image to 1D
+img_mat_org = reshape(img_mat_org, [(h)*(w)*pixSize 1]); %reshape the matlab image to 1D
 tempImg = cast(img_mat_org ,'int16');   %cast it to int16
-img = tool.setRawImg(tempImg, h, w, pixSize); % pass it to the setRawImg function (returns the full image)
+img = tool.setRawImg(tempImg, (h), (w), pixSize); % pass it to the setRawImg function (returns the full image)
+% img = tool.setRawImg(tempImg, pixSize, (h), (w)); % pass it to the setRawImg function (returns the full image)
 
 bMetaBottle = yarp.Bottle;
-%         bMetaBottle.fromString(bImageMeta_string);
+bMetaBottle.fromString(bImageMeta_string);
 bMetaBottle.addString(augmentedLabel);
-bMetaBottle.addString(correpondence_result);    % correspondence result
+% bMetaBottle.addString(correpondence_result);    % correspondence result
 portOutgoing.setEnvelope(bMetaBottle);
+disp(bMetaBottle)
 portOutgoing.write(img); %send it off
 
 Network.disconnect('/matlab/kinematicStructure/imageout', '/autobiographicalMemory/augmented:i');

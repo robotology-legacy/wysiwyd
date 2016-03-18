@@ -42,8 +42,16 @@ par(mfrow=c(1,2))
 plot(g1, main = "g1 : more complex skeleton")
 plot(g2, main = "g2 : skeleton used as a template")
 
+g1
+g2
+
 count.sub <- graph.count.subisomorphisms.vf2(g1,g2, vertex.color1 = NULL, vertex.color2 = NULL)
+cat(count.sub, " subisomorphisms found!\n")
+################################################# If count.sub is 0 I should go out!!!!!!!!!!!!!!!!!!!!!!!!!
 get.subG <- graph.get.subisomorphisms.vf2(g1,g2, vertex.color1 = NULL, vertex.color2 = NULL)
+
+get.subG[[1]]
+V(g1)
 
 matrix.correspondance = matrix(0, nrow = length(V(g1)), ncol = length(get.subG[[1]]))
 rownames(matrix.correspondance) = V(g1)$name
