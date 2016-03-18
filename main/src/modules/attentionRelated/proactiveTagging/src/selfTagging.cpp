@@ -263,10 +263,11 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     BPentity->m_tactile_number = bTactile->get(0).asInt();
     bOutput.addString("ack");
     bOutput.addInt(bTactile->get(0).asInt());
+    yDebug() << "Assigned" << BPentity->name() << "tactile_number to" << bTactile->get(0).asInt();
     iCub->opc->commit();
 
     //4.Ask human to touch
-    string sThank = " Thank you, now I know when I am touching object with my " + sName ;
+    string sThank = " Thank you, now I know when I am touching object with my " + sName;
     yInfo() << " sThank: " << sThank;
     iCub->say(sThank);
 
