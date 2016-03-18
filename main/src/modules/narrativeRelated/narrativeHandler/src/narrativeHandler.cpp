@@ -470,13 +470,15 @@ void narrativeHandler::initializeStories()
         }
         iSto++;
     }
+    cout << endl;
 
     yInfo() << "starting deletion of stories: " << toDelete.size();
-
-    for (auto ii : toDelete){
-        if (ii < listStories.size() + toDelete.size() -3) listStories[ii] = listStories.back();
-        listStories.pop_back();
+    reverse(toDelete.begin(), toDelete.end());
+    for (auto del : toDelete)
+    {
+        listStories.erase(listStories.begin() + del);
     }
+
     cursorStories = listStories.size();
 
     yInfo() << "End of initialisation of stories";
