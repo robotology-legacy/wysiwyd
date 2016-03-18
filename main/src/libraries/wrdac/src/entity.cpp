@@ -77,24 +77,20 @@ Bottle Entity::asBottleOnlyModifiedProperties()
     Bottle current_entity = this->asBottle();
 
     Bottle new_entity;
-    for(int p=0; p<current_entity.size();p++)
+    for(int p=0; p<current_entity.size(); p++)
     {
-        string currentTag = current_entity.get(p).asList()->get(0).asString().c_str();
-        Value currentValue = current_entity.find(currentTag.c_str());
-        Value originalValue = m_original_entity.find(currentTag.c_str()); 
+        string currentTag = current_entity.get(p).asList()->get(0).asString();
+        Value &currentValue = current_entity.find(currentTag.c_str());
+        Value &originalValue = m_original_entity.find(currentTag.c_str()); 
      
-    //std::cout<<"Debug: tag:"<<currentTag<<std::endl;
-    //std::cout<<"Debug: cValue:"<<currentValue.toString()<<std::endl;
-    //std::cout<<"Debug: oValue:"<<originalValue.toString()<<std::endl;
-        if (currentValue.toString() != originalValue.toString())
+        if (currentValue != originalValue)
         {
-            Bottle bSub;
-            bSub.addString(currentTag.c_str());
+            Bottle &bSub=new_entity.addList();
+            bSub.addString(currentTag);
             bSub.add(currentValue);
-
-            new_entity.addList()=bSub;
         }
     }
+
     return new_entity;
 }
 
