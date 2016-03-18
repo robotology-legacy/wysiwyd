@@ -236,9 +236,16 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
                 yWarning("Not sure what to do, name + kinematic structure + tactile information already known");
             }
         }
-        else {
-            yInfo() << "Going to tag bodypart (babbling)";
+        else if (type == "object") {
+            yInfo() << "Going to tag object (include a pointing)";
             reply = exploreUnknownEntity(command);
+        } else if (type == "agent") {
+            yInfo() << "Going to tag an agent (include a gazing)";
+            reply = exploreUnknownEntity(command);
+        } else {
+            yWarning() << "Type = " << type << " is NON valid for exploreUnknownEntity/ doing nothing";
+            reply.addString("error");
+            reply.addString("Type is NON valid for exploreUnknownEntity");
         }
     }
     else if (command.get(0).asString() == "searchingEntity") {
@@ -556,7 +563,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
 
     //TODO : choose between say and TTS. say put stuff in ABM, TTS?
     yInfo() << sQuestion;
-    iCub->say(sQuestion);
+    iCub->say(sQuestion, false);
 
     //Act to determine the entity to be named, according to entityType (e.g. bodypart is sending a command to move the joint, ...)
     if (currentEntityType == "bodypart") {
