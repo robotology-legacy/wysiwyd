@@ -13,6 +13,10 @@ import yarp
 
 class AllostaticPlotModule(yarp.RFModule):
     def configure(self, rf):
+
+        # time window size (= win_size * 0.1s)
+        self.win_size = 600
+
         self.module_name = "allostatic_plot"
         self.homeo_rpc = yarp.Port()
         self.homeo_rpc.open("/" + self.module_name +"/to_homeo_rpc")
@@ -73,8 +77,6 @@ class AllostaticPlotModule(yarp.RFModule):
             self.drive_value_ports[i].open("/" + self.module_name +"/" + d + ":i") 
             yarp.Network.connect("/homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName())
 
-        # time window size (= win_size * 0.1s)
-        self.win_size = 200
 
         # Init matplotlib stuff
         min_val = min(self.homeo_mins)
