@@ -91,7 +91,7 @@ namespace wysiwyd{namespace wrdac{
         */ 
                 int              size(){return subActions.size();}
         virtual yarp::os::Bottle asBottle();
-        virtual bool             fromBottle(yarp::os::Bottle b);
+        virtual bool             fromBottle(const yarp::os::Bottle &b);
         virtual std::string      toString();
                 
         /**

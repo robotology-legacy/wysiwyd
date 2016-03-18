@@ -42,7 +42,7 @@ namespace wysiwyd{namespace wrdac{
         /**
         * TODO
         */
-        void fromBottle(yarp::os::Bottle bInput);
+        void fromBottle(const yarp::os::Bottle &bInput);
 
         opcSave();
         ~opcSave();

@@ -8,7 +8,7 @@ class spatialKnowledge
 {
 public:
     std::pair<double, double>    coordRelative(double Xo, double Yo, double Xh, double Yh);      // return the relatve coordinates of an object from an other agent
-    bool                    fromBottle(yarp::os::Bottle bInput);
+    bool                    fromBottle(const yarp::os::Bottle &bInput);
 
     bool    isRelative;
     bool    isAbsolut;

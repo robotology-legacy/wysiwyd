@@ -177,7 +177,7 @@ Bottle Relation::asLightBottle(bool ignoreID)
 
 
 
-void Relation::fromBottle(Bottle b)
+void Relation::fromBottle(const Bottle &b)
 {        
     m_opcId = b.find("id").asInt();
     m_subject = b.find("rSubject").toString().c_str();

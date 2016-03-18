@@ -84,7 +84,7 @@ string Bodypart::toString()
     return oss.str();
 }
 
-bool Bodypart::fromBottle(Bottle b)
+bool Bodypart::fromBottle(const Bottle &b)
 {
     if (!this->Object::fromBottle(b))
         return false;

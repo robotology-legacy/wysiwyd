@@ -67,7 +67,7 @@ Bottle Action::asBottle()
     return b;
 }
 
-bool Action::fromBottle(Bottle b)
+bool Action::fromBottle(const Bottle &b)
 {
     if (!this->Entity::fromBottle(b))
         return false;
