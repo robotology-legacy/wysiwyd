@@ -10,8 +10,4 @@ WYSIWYD.creator
 WYSIWYD.creator.user
 WYSIWYD.files
 WYSIWYD.includes
-main/src/modules/reactiveLayer/behaviorManager/include/greeting.h
-main/src/modules/reactiveLayer/behaviorManager/src/greeting.cpp
-build/CMakeCache.txt
-build/CMakeFiles/cmake.check_cache
-main/src/modules/reactiveLayer/sensationManager/include/opcSensation_BC.h
+
