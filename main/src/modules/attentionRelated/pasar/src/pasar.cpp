@@ -290,7 +290,7 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
 bool PasarModule::updateModule()
 {
     iCub->opc->checkout();
-    entities = iCub->opc->EntitiesCache();
+    entities = iCub->opc->EntitiesCacheCopy();
 
     presentLastSpeed = presentCurrentSpeed;
     presentCurrentSpeed.clear();
@@ -340,10 +340,10 @@ bool PasarModule::updateModule()
         {
             if (OPCEntities.find((*it)->opc_id()) != OPCEntities.end())
             {
-                Object* o = dynamic_cast<Object*>(*it);
+                Object* o = dynamic_cast<Object*>(iCub->opc->getEntity((*it)->name()));
                 if(o) {
                     o->m_saliency = OPCEntities[(*it)->opc_id()].o.m_saliency;
-                    iCub->opc->commit();
+                    iCub->opc->commit(o);
                 }
             }
         }
@@ -769,8 +769,8 @@ bool PasarModule::saliencyWaving()
         if (wavingNow){
             ag->m_saliency += pTopDownWaving;
             lastTimeWaving = now;
+            iCub->opc->commit(ag);
         }
-        iCub->opc->commit();
 
         presentRightHand.first = presentRightHand.second;
         presentLeftHand.first = presentLeftHand.second;
@@ -791,7 +791,7 @@ void PasarModule::initializeMapTiming()
     isPointing = false;
 
     iCub->opc->checkout();
-    entities = iCub->opc->EntitiesCache();
+    entities = iCub->opc->EntitiesCacheCopy();
     double now = yarp::os::Time::now() - initTime;
     OPCEntities.clear();
 
@@ -816,9 +816,8 @@ void PasarModule::initializeMapTiming()
 }
 
 
-void PasarModule::checkAgentHaving(){
-
-    Agent *ag;
+void PasarModule::checkAgentHaving()
+{
     // founding all agents:
     for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT
@@ -848,5 +847,4 @@ void PasarModule::checkAgentHaving(){
     }
 
     iCub->opc->commit();
-
 }
