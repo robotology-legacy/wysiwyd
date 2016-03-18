@@ -28,7 +28,9 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
 	Bottle bHand(sHand);
 
 	bool succeeded = iCub->point(obj_name, bHand);
-	Time::delay(0.5);
+	Time::delay(0.2);
+
+	iCub->say("Do you know that this is a " + obj_name, false);
 
 	iCub->opc->checkout();
 	yInfo() << "[pointing] : opc checkout";
@@ -48,10 +50,8 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
 	else
 	{
 		iCub->look(aName);
-		Time::delay(0.3);
+		Time::delay(1.0);
 	}
-
-    iCub->say("Do you know that this is a " + obj_name, false);
 
     if (!succeeded) {
         iCub->say(" I couldn't find the " + obj_name);
