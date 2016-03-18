@@ -13,24 +13,24 @@
     <P>stop</P>
   </RULE>
 
-<RULE NAME="SENTENCENARRATIVE" TOPLEVEL="ACTIVE" EXPORT="1">
-<!--    <RULEREF  NAME="agent"/>  -->
+  <RULE NAME="SENTENCENARRATIVE" TOPLEVEL="ACTIVE" EXPORT="1">
     <RULEREF  NAME="questionMark"/>
+    <O>
       <L>
         <P>have you done</P>
         <P>did you just do</P>
         <P>did we do</P>
         <P>did you say</P>
       </L>
+    </O>
   </RULE>
-<RULE NAME="questionMark" DYNAMIC="TRUE">
+  <RULE NAME="questionMark" DYNAMIC="TRUE">
     <L>
       <P>what</P>
     </L>
   </RULE>
 
   <RULE	NAME="SENTENCEOBJECT"	TOPLEVEL="ACTIVE"	EXPORT="1">
-<!--    <RULEREF	NAME="agent"/>  -->
     <RULEREF	NAME="predicateObject"/>
     <O>
       <L>
@@ -43,7 +43,6 @@
   </RULE>
 
   <RULE	NAME="SENTENCEBODYPART"	TOPLEVEL="ACTIVE"	EXPORT="1">
-<!--    <RULEREF	NAME="agent"/>  -->
     <RULEREF	NAME="predicateBodypart"/>
     <O>
       <L>
@@ -71,7 +70,7 @@
   </RULE>
 
   
-    <RULE NAME="object" DYNAMIC="TRUE">
+  <RULE NAME="object" DYNAMIC="TRUE">
     <L>
       <P>ladybug</P>
       <P>carrots</P>
@@ -80,8 +79,8 @@
       <P>pig</P>
       <P>bottle</P>
     </L>
-    </RULE>
-    <RULE NAME="bodypart" DYNAMIC="TRUE">
+  </RULE>
+  <RULE NAME="bodypart" DYNAMIC="TRUE">
     <L>
       <P>hand</P>
       <P>thumb</P>
