@@ -82,7 +82,7 @@ namespace wysiwyd{namespace wrdac{
         * Fill entity fields from a bottle representation
         * @param b a pointer to the bottle containing the entity representation
         */
-        virtual bool        fromBottle(yarp::os::Bottle b);
+        virtual bool        fromBottle(const yarp::os::Bottle &b);
 
         /**
         * Return a human readable description of the entity

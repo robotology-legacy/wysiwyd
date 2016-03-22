@@ -66,7 +66,7 @@ namespace wysiwyd{namespace wrdac{
         * Return the relation as a bottle without the argument to "none"
         */
         yarp::os::Bottle    asLightBottle(bool ignoreID = false);
-        void                fromBottle(yarp::os::Bottle b);
+        void                fromBottle(const yarp::os::Bottle &b);
         virtual std::string toString();
 
         /**

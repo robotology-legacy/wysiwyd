@@ -82,7 +82,7 @@ Bottle Agent::asBottle()
     return b;
 }
 
-bool Agent::fromBottle(Bottle b)
+bool Agent::fromBottle(const Bottle &b)
 {
     if (!this->Object::fromBottle(b))
         return false;

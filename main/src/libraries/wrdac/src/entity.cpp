@@ -94,7 +94,7 @@ Bottle Entity::asBottleOnlyModifiedProperties()
     return new_entity;
 }
 
-bool Entity::fromBottle(Bottle b)
+bool Entity::fromBottle(const Bottle &b)
 {
     if (!b.check("name") || !b.check("entity"))
         return false;

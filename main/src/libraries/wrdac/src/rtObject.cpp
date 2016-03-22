@@ -69,7 +69,7 @@ string RTObject::toString()
     return oss.str();
 }
 
-bool RTObject::fromBottle(Bottle b)
+bool RTObject::fromBottle(const Bottle &b)
 {
     if (!this->Object::fromBottle(b))
         return false;
