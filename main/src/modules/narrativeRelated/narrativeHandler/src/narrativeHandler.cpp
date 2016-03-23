@@ -536,6 +536,10 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
 
+            if (bTemp.get(1).toString() == "status" || bTemp.get(2).toString() == "status"){
+                yInfo() << "STATUS !!! STATUS !!!" << evt.instance << " " << bTemp.get(0).toString() << "-" << bTemp.get(1).toString() << "-" << bTemp.get(2).toString();
+            }
+
             if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
@@ -756,6 +760,8 @@ void narrativeHandler::createNarration(story &sto)
             }
                         // if it is an ACTION
             else if (currentEvent.activity_type == "action"){
+                osCurrent << "IN HERE " << currentEvent.instance << " -> " << currentEvent.vArgument.size() << endl;
+
                 // if the action begin
                 if (currentEvent.agent == "iCub" || currentEvent.agent == "icub"){
                     currentEvent.agent = "I";
@@ -784,7 +790,7 @@ void narrativeHandler::createNarration(story &sto)
                     }
                     else{
                         // if the previous instance wasn't already an action
-                        if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || currentEvent.begin != sto.vEvents[currentElement - 1].begin){
+                        if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || true == sto.vEvents[currentElement - 1].begin){
                             if (lrh){
                                 string meaning = createMeaning(currentEvent.agent,
                                     currentEvent.predicate,
@@ -807,16 +813,7 @@ void narrativeHandler::createNarration(story &sto)
                 // the action ends
                 else{
                     if (cursor == 0){
-                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
-                            if (iarg->first == "status" && iarg->second == "failed"){
-                                osCurrent << "\t\t\t" << "But it failed." << endl;
-                            }
-                        }
-                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
-                            if (iarg->first == "reason"){
-                                osCurrent << " because " << iarg->second << "." << endl;
-                            }
-                        }
+                        addEvt = false;
                     }
                     else{
                         if (VERBOSE) cout << endl;
@@ -826,10 +823,12 @@ void narrativeHandler::createNarration(story &sto)
                         // if previous instance was not a beggining of action
                         if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){
                             for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
+                                osCurrent << " " <<  iarg->first << "-" << iarg->second;
                                 if (iarg->first == "status" && iarg->second == "failed"){
                                     osCurrent << "\t\t\t" << "But it failed." << endl;
                                 }
                             }
+                            osCurrent << endl;
                         }
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "reason"){
@@ -871,7 +870,7 @@ void narrativeHandler::createNarration(story &sto)
                 if (speaker == "iCub"){
                     speaker = "I";
                     addressee = "you";
-                    addEvt = false;
+                   // addEvt = false;
                 }
                 else{
                     speaker = "You";
