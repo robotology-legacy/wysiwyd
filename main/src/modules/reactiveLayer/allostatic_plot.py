@@ -102,6 +102,7 @@ class AllostaticPlotModule(yarp.RFModule):
         for name in self.behaviors:
             self.has_started[name] = False
         self.t = 0
+        self.is_running = True
         return True
 
     def reconnect_ports(self):
@@ -128,8 +129,8 @@ class AllostaticPlotModule(yarp.RFModule):
             if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
                 everything_connected = False
                 yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
-            if not everything_connected:
-                yarp.Time.delay(0.1)
+            # if not everything_connected:
+            #     yarp.Time.delay(0.1)
 
 
     def close(self):
@@ -143,19 +144,27 @@ class AllostaticPlotModule(yarp.RFModule):
 
     def interruptModule(self):
         print "Interrupting ports..."
+        # self.is_running = False
+        # del self.anim
+        # time.sleep(1)
         self.homeo_rpc.interrupt()
+        print "Interrupting ports..."
         self.behaviorManager_rpc.interrupt()
+        print "Interrupting ports..."
         for p in self.behavior_ports:
             p.interrupt()
+            print "Interrupting ports..."
         for p in self.drive_value_ports:
             p.interrupt()
+            print "Interrupting ports..."
         return True        
 
     def getPeriod(self):
         return 0.1
 
     def one_step(self,t):
-        self.reconnect_ports()
+        if self.is_running:
+            self.reconnect_ports()
         self.drive_values = [values[1:] + [0.] for values in self.drive_values]
         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(self.drive_value_ports, self.homeo_maxs, self.value_lines, self.homeo_min_lines, self.homeo_max_lines)):
             res = port.read()
@@ -186,14 +195,15 @@ class AllostaticPlotModule(yarp.RFModule):
                     self.text_to_plot[name].set_horizontalalignment("right")
                         #behaviors_to_plot[-1][1] = copy(t)
                     print "Behavior " + name + " stops"
+        plt.draw()
         
     def animate(self):
-        self.anim = animation.FuncAnimation(self.fig, self.one_step, fargs=None, init_func=None,
-                                        frames=None, interval=100)
-        plt.show()
+        pass
 
     def updateModule(self):
         # Don't forget the following:
+        self.one_step(self.t)
+        self.t += 1
         return True
 
 
@@ -205,10 +215,14 @@ if __name__ == '__main__':
     rf = yarp.ResourceFinder()
     mod.configure(rf)
 
+    plt.ion()
+    mod.runModule(rf)
+    # anim = animation.FuncAnimation(mod.fig, mod.one_step, fargs=None, init_func=None,
+                                    # frames=None, interval=100)
+    # plt.show()
     
-    mod.animate()
-    # mod.runModule(rf)
-
+    # mod.animate()
+    # del mod
 
     #     # Plot update function, called each 0.1s
     #     def animate(t, drive_values_as_list):
