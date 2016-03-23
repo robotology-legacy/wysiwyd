@@ -3,12 +3,8 @@
 from copy import copy
 from time import sleep
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 import yarp
-
-
-
 
 
 class AllostaticPlotModule(yarp.RFModule):
@@ -18,6 +14,7 @@ class AllostaticPlotModule(yarp.RFModule):
         self.win_size = 600
 
         self.module_name = "allostatic_plot"
+        self.setName(self.module_name)
         self.homeo_rpc = yarp.Port()
         self.homeo_rpc.open("/" + self.module_name +"/to_homeo_rpc")
         yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
@@ -101,8 +98,9 @@ class AllostaticPlotModule(yarp.RFModule):
         self.has_started = {}
         for name in self.behaviors:
             self.has_started[name] = False
+
         self.t = 0
-        self.is_running = True
+
         return True
 
     def reconnect_ports(self):
@@ -129,8 +127,8 @@ class AllostaticPlotModule(yarp.RFModule):
             if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
                 everything_connected = False
                 yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
-            # if not everything_connected:
-            #     yarp.Time.delay(0.1)
+            if not everything_connected:
+                yarp.Time.delay(0.1)
 
 
     def close(self):
@@ -144,27 +142,19 @@ class AllostaticPlotModule(yarp.RFModule):
 
     def interruptModule(self):
         print "Interrupting ports..."
-        # self.is_running = False
-        # del self.anim
-        # time.sleep(1)
         self.homeo_rpc.interrupt()
-        print "Interrupting ports..."
         self.behaviorManager_rpc.interrupt()
-        print "Interrupting ports..."
         for p in self.behavior_ports:
             p.interrupt()
-            print "Interrupting ports..."
         for p in self.drive_value_ports:
             p.interrupt()
-            print "Interrupting ports..."
         return True        
 
     def getPeriod(self):
         return 0.1
 
     def one_step(self,t):
-        if self.is_running:
-            self.reconnect_ports()
+        self.reconnect_ports()
         self.drive_values = [values[1:] + [0.] for values in self.drive_values]
         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(self.drive_value_ports, self.homeo_maxs, self.value_lines, self.homeo_min_lines, self.homeo_max_lines)):
             res = port.read()
@@ -196,9 +186,6 @@ class AllostaticPlotModule(yarp.RFModule):
                         #behaviors_to_plot[-1][1] = copy(t)
                     print "Behavior " + name + " stops"
         plt.draw()
-        
-    def animate(self):
-        pass
 
     def updateModule(self):
         # Don't forget the following:
@@ -208,8 +195,7 @@ class AllostaticPlotModule(yarp.RFModule):
 
 
 if __name__ == '__main__':
-    # try: 
-        # yarp port stuff
+
     yarp.Network.init() 
     mod = AllostaticPlotModule()
     rf = yarp.ResourceFinder()
@@ -217,61 +203,3 @@ if __name__ == '__main__':
 
     plt.ion()
     mod.runModule(rf)
-    # anim = animation.FuncAnimation(mod.fig, mod.one_step, fargs=None, init_func=None,
-                                    # frames=None, interval=100)
-    # plt.show()
-    
-    # mod.animate()
-    # del mod
-
-    #     # Plot update function, called each 0.1s
-    #     def animate(t, drive_values_as_list):
-    #         global has_started, behaviors_to_plot
-    #         drive_values_as_list[0] = [values[1:] + [0.] for values in drive_values_as_list[0]]
-    #         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(drive_value_ports, homeo_maxs, value_lines, homeo_min_lines, homeo_max_lines)):
-    #             res = port.read()
-    #             if res is not None:
-    #                 drive_values_as_list[0][i][-1] = res.get(0).asDouble() + homeo_max
-    #             else:
-    #                 drive_values_as_list[0][i][-1] = res
-    #             v_line[0].set_data(range(t- win_size, t), drive_values_as_list[0][i])
-    #             min_line[0].set_data((t- win_size, t), (homeo_mins[i], homeo_mins[i]))
-    #             max_line[0].set_data((t- win_size, t), (homeo_maxs[i], homeo_maxs[i]))
-    #             ax.set_xlim(t- win_size, t)
-    #         for name, port in zip(behaviors, behavior_ports):
-    #             res = port.read(False)
-    #             if res is not None:
-    #                 msg = res.get(0).asString()
-    #                 if msg == "start":
-    #                     #behaviors_to_plot.append([t, -1, plt.Rectangle(xy=(t,y_min), width=10, height=(y_max-y_min)/20.)])
-    #                     behaviors_to_plot[name] = plt.Rectangle(xy=(t,y_min), width=10000, height=(y_max-y_min)/20.)
-    #                     plt.gca().add_patch(behaviors_to_plot[name])
-    #                     text_to_plot[name] = plt.text(max(t, ax.get_xlim()[0]), y_min, name, horizontalalignment='left', color="white")
-    #                     has_started = True
-    #                     print "Behavior " + name + " starts"
-    #                 elif msg == "stop" and has_started:
-    #                     behaviors_to_plot[name].set_width(t - behaviors_to_plot[name].get_x())
-    #                     #plt.text(behaviors_to_plot.get_x() + behaviors_to_plot.get_width(), 0., name, horizontalalignment='right', verticalalignment='center', transform=ax.transAxes)
-    #                     # text_to_plot[name].set_transform(ax.transLimits)
-    #                     text_to_plot[name].set_x(behaviors_to_plot[name].get_x() + behaviors_to_plot[name].get_width())
-    #                     text_to_plot[name].set_horizontalalignment("right")
-    #                         #behaviors_to_plot[-1][1] = copy(t)
-    #                     print "Behavior " + name + " stops"
-    #         # for i, (start, end, rect) in enumerate(behaviors_to_plot):
-    #         #     if end == -1:
-    #         #         rect.set_width(rect.get_x() + t - start)
-    #         #     else:
-    #         #         print rect.get_x() + end - start
-    #         #         rect.set_width(rect.get_x() + end - start)
-    #         #     plt.gca().add_patch(rect)
-
-
-    #         return value_lines
-
-    #     # Matplotlib animator (call the above funtion in a loop)
-
-    #     anim = animation.FuncAnimation(fig, animate, fargs=([drive_values],), init_func=None,
-    #                                    frames=None, interval=100)
-
-    #     plt.show()
-    # except KeyboardInterrupt:
