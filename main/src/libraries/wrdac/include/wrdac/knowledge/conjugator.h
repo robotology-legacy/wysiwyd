@@ -81,7 +81,7 @@ struct VerbInfo
         return b;
     }
 
-    void fromBottle(yarp::os::Bottle b)
+    void fromBottle(const yarp::os::Bottle &b)
     {
          verbalRoot = b.find("root").asString().c_str();
          participe = b.find("participe").asString().c_str();
@@ -150,7 +150,7 @@ struct Conjugator
         return b;
     }
 
-    void fromBottle(yarp::os::Bottle b)
+    void fromBottle(const yarp::os::Bottle &b)
     {
         yarp::os::Bottle* knownsB = b.find("knownVerbs").asList();
         for(int i=0;i<knownsB->size();i++)
@@ -728,7 +728,7 @@ public:
         return b;
     }
 
-    void fromBottle(yarp::os::Bottle b)
+    void fromBottle(const yarp::os::Bottle &b)
     {
         yarp::os::Bottle *subCorpus = b.find("abstractCorpus").asList();
         for(int i=0; i<subCorpus->size(); i++)

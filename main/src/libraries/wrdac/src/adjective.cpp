@@ -48,7 +48,7 @@ Bottle Adjective::asBottle()
     return b;
 }
 
-bool Adjective::fromBottle(Bottle b)
+bool Adjective::fromBottle(const Bottle &b)
 {
     if (!this->Entity::fromBottle(b))
         return false;

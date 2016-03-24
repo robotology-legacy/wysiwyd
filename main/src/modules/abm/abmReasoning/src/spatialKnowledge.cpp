@@ -6,7 +6,7 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 
-bool spatialKnowledge::fromBottle(Bottle bInput)
+bool spatialKnowledge::fromBottle(const Bottle &bInput)
 {
     //yInfo() << "\t"   << "input : "   << bInput.toString()    ;
 

@@ -90,7 +90,7 @@ struct Drive
         return b;
     }
 
-    bool fromBottle(yarp::os::Bottle b)
+    bool fromBottle(const yarp::os::Bottle &b)
     {
         name = b.find("name").asString().c_str();
         value = b.find("value").asDouble();
@@ -147,7 +147,7 @@ struct Body
             return b;
         }
 
-        bool fromBottle(yarp::os::Bottle b)
+        bool fromBottle(const yarp::os::Bottle &b)
         {
             for(std::map<std::string,yarp::sig::Vector>::iterator part = m_parts.begin(); part != m_parts.end(); part++)
             {
@@ -189,7 +189,7 @@ public:
         }
 
     virtual yarp::os::Bottle asBottle();
-    virtual bool             fromBottle(yarp::os::Bottle b);
+    virtual bool             fromBottle(const yarp::os::Bottle &b);
     virtual std::string      toString();
 
     /**

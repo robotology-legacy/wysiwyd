@@ -10,7 +10,7 @@ public:
 
     std::string                      sTemporal;
     std::pair<double, double>        coordFromString(std::string);
-    void                        fromBottle(yarp::os::Bottle bInput);
+    void                        fromBottle(const yarp::os::Bottle &bInput);
     void                        addKnowledge(yarp::os::Bottle bInput);
     std::string                      sArgument;
     int                         iSize;

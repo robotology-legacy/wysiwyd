@@ -11,7 +11,7 @@ using namespace std;
 * input format :
 * <string name> <string timeArg1> <string timeArg2>
 */
-void timeKnowledge::fromBottle(Bottle bInput)
+void timeKnowledge::fromBottle(const Bottle &bInput)
 {
     if (bInput.size() != 3)
     {

@@ -129,7 +129,7 @@ Bottle Object::asBottle()
     return b;
 }
 
-bool Object::fromBottle(Bottle b)
+bool Object::fromBottle(const Bottle &b)
 {
     if (!this->Entity::fromBottle(b))
         return false;
