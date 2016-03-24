@@ -17,6 +17,30 @@ bool evtStory::isIn(vector<string> vec, string str){
 }
 
 
+void evtStory::print(){
+    cout << "*************************************" << endl;
+    cout << "\tinstance:      " << instance << endl;
+    cout << "\tbegin:         " << begin<< endl;
+    cout << "\tactivityName:  " << activity_name << endl;
+    cout << "\tactivity_type: " << activity_type << endl;
+    cout << "\tpredicate:     " << predicate << endl;
+    cout << "\tagent:         " << agent << endl;
+    cout << "\tobject:        " << object << endl;
+    cout << "\trecipient:     " << recipient << endl;
+    cout << "\tisNarration:   " << isNarration << endl;
+    cout << "\tbRelations:    " << bRelations.toString() << endl;
+    cout << "\tvArgument:     " << endl;
+    for (auto ar : vArgument){
+        cout << "\t\t" << ar.first << " - " << ar.second << endl;
+    }
+    cout << "\tvFocus:        " << endl;
+    for (auto ar : mFocus){
+        cout << "\t\t" << ar.first << " - " << ar.second << endl;
+    }
+    cout << "*************************************" << endl;
+
+}
+
 
 void evtStory::removeUnderscoreString(string &input){
     for (std::string::iterator it = input.begin(); it != input.end(); ++it) {

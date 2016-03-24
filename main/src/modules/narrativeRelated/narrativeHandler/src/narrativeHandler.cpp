@@ -536,6 +536,10 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
 
+            if (bTemp.get(1).toString() == "status" || bTemp.get(2).toString() == "status"){
+                yInfo() << "STATUS !!! STATUS !!!" << evt.instance << " " << bTemp.get(0).toString() << "-" << bTemp.get(1).toString() << "-" << bTemp.get(2).toString();
+            }
+
             if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
             else if (evt.isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
@@ -702,7 +706,7 @@ void narrativeHandler::sayNarrationSimple(story target){
 
 void narrativeHandler::createNarration(story &sto)
 {
-    bool VERBOSE = false;
+    bool VERBOSE = true;
 
     vector<string>  vsOutput;
 
@@ -724,6 +728,7 @@ void narrativeHandler::createNarration(story &sto)
         if (!currentEvent.isNarration)
         {
             osCurrent.str("");
+            osCurrent << currentEvent.instance;
             if (VERBOSE) cout << currentElement << "...";
 
             // initial situation
@@ -745,7 +750,7 @@ void narrativeHandler::createNarration(story &sto)
                             osCurrent << currentEvent.bRelations.get(jj).toString();
                         }
                     }
-                    osCurrent << endl;
+                    if (osCurrent.str() != "") osCurrent << endl;
                 }
             }
             // end initial situation
@@ -756,10 +761,12 @@ void narrativeHandler::createNarration(story &sto)
             }
                         // if it is an ACTION
             else if (currentEvent.activity_type == "action"){
+
                 // if the action begin
                 if (currentEvent.agent == "iCub" || currentEvent.agent == "icub"){
                     currentEvent.agent = "I";
                 }
+
                 if (currentEvent.begin){
                     if (currentEvent.predicate == "babbling"){
                         osCurrent << "\t\t\tI moved a finger" << endl;
@@ -780,11 +787,11 @@ void narrativeHandler::createNarration(story &sto)
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "adv1" || iarg->first == "adv2") osCurrent << " " << iarg->second;
                         }
-                        osCurrent << endl;
+                        if (osCurrent.str() != "") osCurrent << endl;
                     }
                     else{
                         // if the previous instance wasn't already an action
-                        if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || currentEvent.begin != sto.vEvents[currentElement - 1].begin){
+                        if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || true == sto.vEvents[currentElement - 1].begin){
                             if (lrh){
                                 string meaning = createMeaning(currentEvent.agent,
                                     currentEvent.predicate,
@@ -800,23 +807,14 @@ void narrativeHandler::createNarration(story &sto)
                             for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                                 if (iarg->first == "adv1" || iarg->first == "adv2") osCurrent << " " << iarg->second;
                             }
-                            osCurrent << endl;
+                            if (osCurrent.str() != "") osCurrent << endl;
                         }
                     }
                 }
                 // the action ends
                 else{
                     if (cursor == 0){
-                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
-                            if (iarg->first == "status" && iarg->second == "failed"){
-                                osCurrent << "\t\t\t" << "But it failed." << endl;
-                            }
-                        }
-                        for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
-                            if (iarg->first == "reason"){
-                                osCurrent << " because " << iarg->second << "." << endl;
-                            }
-                        }
+                        addEvt = false;
                     }
                     else{
                         if (VERBOSE) cout << endl;
@@ -827,9 +825,10 @@ void narrativeHandler::createNarration(story &sto)
                         if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){
                             for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                                 if (iarg->first == "status" && iarg->second == "failed"){
-                                    osCurrent << "\t\t\t" << "But it failed." << endl;
+                                    osCurrent << "\t\t\t" << "But it failed.";                                    
                                 }
                             }
+                            if (osCurrent.str() != "") osCurrent << endl;
                         }
                         for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                             if (iarg->first == "reason"){
@@ -871,7 +870,7 @@ void narrativeHandler::createNarration(story &sto)
                 if (speaker == "iCub"){
                     speaker = "I";
                     addressee = "you";
-                    addEvt = false;
+                   // addEvt = false;
                 }
                 else{
                     speaker = "You";
@@ -887,7 +886,7 @@ void narrativeHandler::createNarration(story &sto)
                 else{
                     osCurrent << "\t\t\t" << speaker << " said to " << addressee << ": " << sentence;
                 }
-                osCurrent << endl;
+                if (osCurrent.str() != "") osCurrent << endl;
             }
             // if not action or sentence
             else if (currentEvent.activity_type == "reasoning"){
@@ -907,7 +906,7 @@ void narrativeHandler::createNarration(story &sto)
                     else{
                         osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.activity_name;
                     }
-                    osCurrent << endl;
+                    if (osCurrent.str() != "") osCurrent << endl;
                     for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                         if (iarg->first == "goal"){
                             Bottle bUnfolded = unfoldGoal(iarg->second);
@@ -925,7 +924,7 @@ void narrativeHandler::createNarration(story &sto)
                                 osCurrent << bUnfolded.find("agent").toString() << " " << bUnfolded.find("predicate").toString() << " the " << bUnfolded.find("object").toString();
                             }
                             if (bUnfolded.find("recipient").toString() != "")  osCurrent << " " << bUnfolded.find("recipient").toString();
-                            osCurrent << endl;
+                            if (osCurrent.str() != "") osCurrent << endl;
                         }
                     }
                 }
@@ -976,7 +975,7 @@ void narrativeHandler::createNarration(story &sto)
                 //    osCurrent << iarg->first << " " << iarg->second << "; ";
                 //    //                osCurrent << bTemp.toString() << endl;
                 //}
-                //osCurrent << endl;
+                //if (osCurrent.str() != "") osCurrent << endl;
                 // if the action begin
                 if (currentEvent.agent == "iCub" || currentEvent.agent == "icub"){
                     currentEvent.agent = "I";
@@ -1045,7 +1044,7 @@ void narrativeHandler::createNarration(story &sto)
                             }
                             if (currentEvent.object != "") osCurrent << " the " << currentEvent.object;
                             if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
-                            osCurrent << endl;
+                            if (osCurrent.str() != "") osCurrent << endl;
                     }
                     // if the previous instance wasn't already an action
                     else if (currentEvent.activity_type != sto.vEvents[currentElement - 1].activity_type || currentEvent.begin != sto.vEvents[currentElement - 1].begin){
@@ -1067,7 +1066,7 @@ void narrativeHandler::createNarration(story &sto)
                         }
                         if (currentEvent.object != "") osCurrent << " the " << currentEvent.object;
                         if (currentEvent.recipient != "") osCurrent << " the " << currentEvent.recipient;
-                        osCurrent << endl;
+                        if (osCurrent.str() != "") osCurrent << endl;
                     }
                 }
                 // the action ends
@@ -1108,8 +1107,7 @@ void narrativeHandler::createNarration(story &sto)
                     }
                 }
             }
-
-
+                       
             // changes in the relations:
             if (currentElement != sto.vEvents.size() && cursor != 0){
 
@@ -1123,7 +1121,7 @@ void narrativeHandler::createNarration(story &sto)
                             }
                             osCurrent << currentEvent.bRelations.get(jj).toString();
                         }
-                        osCurrent << endl;
+                        if (osCurrent.str() != "") osCurrent << endl;
                     }
                 }
             }
@@ -1147,7 +1145,7 @@ void narrativeHandler::createNarration(story &sto)
                             osCurrent << currentEvent.bRelations.get(jj).toString();
                         }
                     }
-                    osCurrent << endl;
+                    if (osCurrent.str() != "") osCurrent << endl;
                 }
             }
 
@@ -1155,7 +1153,7 @@ void narrativeHandler::createNarration(story &sto)
                 && (currentEvent.activity_name == "" || currentEvent.activity_name == "none"))
                 || (currentEvent.agent == "" || currentEvent.agent == "none"))
             {
-                addEvt = false;
+             //   addEvt = false;
             }
 
             // Add only one appearance and one dissapearance per object
@@ -1178,7 +1176,6 @@ void narrativeHandler::createNarration(story &sto)
                 addEvt = false;
             }
             addEvt &= osCurrent.str() != "";
-
             if (VERBOSE) cout << osCurrent.str();
             if (addEvt){
                 string sentenceWithoutUnderscore = osCurrent.str();
@@ -1187,8 +1184,9 @@ void narrativeHandler::createNarration(story &sto)
             }
             cursor++;
         }
-        // is narrration
+        // else is not narrration
         else {
+            if (VERBOSE) currentEvent.print();
             for (auto arg : currentEvent.vArgument){
                 if (arg.first == "meaning"){
                     sto.meaningStory.push_back(arg.second);
