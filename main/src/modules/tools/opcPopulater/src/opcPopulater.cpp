@@ -417,8 +417,9 @@ bool opcPopulater::populateABM(Bottle bInput)
 bool opcPopulater::populateABMiCubStory(Bottle bInput)
 {
 
-    string sOject = "croco";    // CHANGE REASONING TOO
-    string sAgent = "Interlocutor";
+
+    string sOject = bInput.check("object", Value("croco")).asString();
+    string sAgent = bInput.check("agent", Value("Interlocutor")).asString();
 
 
     Time::delay(4.);
