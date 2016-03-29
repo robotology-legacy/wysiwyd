@@ -9,9 +9,7 @@ void Tagging::configure() {
 
 void Tagging::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Tagging::run";
-    // Bottle *objects = sensation.get(1).asList();
-    //iCub->say("I dont know all of these objects");
-    yDebug() << "send rpc to proactiveTagging";//<<endl;
+    yDebug() << "send rpc to proactiveTagging";
     Bottle *sensation = sensation_port_in.read();
     int id = yarp::os::Random::uniform(0, sensation->size()-1);
     //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true

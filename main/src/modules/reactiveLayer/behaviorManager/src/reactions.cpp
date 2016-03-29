@@ -16,7 +16,7 @@ void Reactions::run(Bottle args/*=Bottle()*/) {
     iCub->opc->commit(touchLocation);
 
     iCub->say("Wow");
-    iCub->look("touchLocation");//r.complement_place().c_str());
+    iCub->look("touchLocation");
     iCub->say("Haaaahaha ... hahaaa");
     Time::delay(1.0);    
 

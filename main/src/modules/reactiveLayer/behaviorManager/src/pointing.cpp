@@ -12,13 +12,11 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     Bottle *sensation = sensation_port_in.read();
     
     int id = yarp::os::Random::uniform(0, sensation->size()-1);
-    yDebug()<<"Randomly selected: "<< id; // should be random here 
+    yDebug()<<"Randomly selected: "<< id;
     string obj_name = sensation->get(id).asList()->get(1).asString();
     
     iCub->say("I could point to the " + obj_name);
     Time::delay(2.0);
-    // yInfo() << "About to point the " + obj_name;
-    // return;
 
     iCub->say("Do you know that this is a " + obj_name);
     Object* obj = iCub->opc->addOrRetrieveEntity<Object>(obj_name);

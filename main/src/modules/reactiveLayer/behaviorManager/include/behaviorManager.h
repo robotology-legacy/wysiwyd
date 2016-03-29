@@ -22,13 +22,6 @@ using namespace yarp::sig;
 using namespace yarp::math;
 
 
-// struct StimulusEmotionalResponse
-// {
-//     bool active;
-//     Port *output_port;
-//     Bottle rpc_command;
-// };
-
 class BehaviorManager: public RFModule
 {
 private:
@@ -49,7 +42,6 @@ private:
     Mutex mut;
     Bottle behaviorList;
     string behavior_name;
-    //Agent *ag;
 public:
    bool configure(yarp::os::ResourceFinder &rf);
 

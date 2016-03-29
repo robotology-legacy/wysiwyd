@@ -61,7 +61,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     //Create an iCub Client and check that all dependencies are here before starting
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "behaviorManager","client.ini",isRFVerbose);
-    // char rep = 'n';
+
     if (!iCub->connect())
     {
         yInfo()<<"iCubClient : Some dependencies are not running...";
@@ -87,12 +87,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
                 yarp::os::Time::delay(0.5);
             }   
         }
-
-        // id++;
     }
-
-    // behavior_to_trigger = -1;  // means no behavior to trigger
-
     yInfo("Init done");
 
     return true;
@@ -128,6 +123,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     else
     {
         for(auto& beh : behaviors) {
+            yDebug()<<cmd.get(0).asString() <<"    "<< beh->name;
             if (cmd.get(0).asString() == beh->name) {
         //         Bottle args;
         //         args.clear();
@@ -153,7 +149,6 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
 
                 // Add event into ABM
                 if (iCub->getABMClient()->Connect()) {
-                    //ag = dynamic_cast<Agent*>(iCub->opc->getEntity(it.second.o.name()));
                     std::list<std::pair<std::string, std::string> > lArgument;
                     lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
                     lArgument.push_back(std::pair<std::string, std::string>(cmd.get(0).asString(), "predicate"));

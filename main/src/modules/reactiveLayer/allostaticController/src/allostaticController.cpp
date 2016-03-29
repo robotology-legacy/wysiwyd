@@ -101,15 +101,15 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
 
     while(!Network::connect(to_h_rpc_name,homeo_rpc_name))
     {
-        yDebug()<<"Trying to connect to homeostasis...";//<<endl;
-        yDebug() << "from " << to_h_rpc_name << " to " << homeo_rpc_name;// << endl;
+        yDebug()<<"Trying to connect to homeostasis...";
+        yDebug() << "from " << to_h_rpc_name << " to " << homeo_rpc_name;
         yarp::os::Time::delay(0.2);
     }
 
     yInfo() << "Initializing drives...";//<<endl;
     Bottle grpAllostatic = rf.findGroup("ALLOSTATIC");
     drivesList = *grpAllostatic.find("drives").asList();
-    //iCub->icubAgent->m_drives.clear();
+    
     Bottle cmd;
 
     priority_sum = 0.;
@@ -166,7 +166,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
         string sensationPort = grpAllostatic.check((driveName + "-sensation-port"), Value("None")).asString();
         string pn = "/" + moduleName + "/" + driveName + "/sensation:i";
         while(!Network::connect(sensationPort, pn)) {
-            yDebug()<<"Connecting " << sensationPort << " to " << pn;// << endl;
+            yDebug()<<"Connecting " << sensationPort << " to " << pn;
             yarp::os::Time::delay(0.5);
         }
 
@@ -188,13 +188,13 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
             alloDrive.behaviorUnderPort = new Port();
             alloDrive.behaviorUnderPort->open(out_port_name);
-            yDebug() << "trying to connect to " << under_port_name;// << endl;
+            yDebug() << "trying to connect to " << under_port_name;
             while(!Network::connect(out_port_name,under_port_name))
             {
                 
                 yarp::os::Time::delay(0.5);
             }
-            alloDrive.behaviorUnderCmd = Bottle(under_cmd_name);//.addString(under_cmd_name);
+            alloDrive.behaviorUnderCmd = Bottle(under_cmd_name);
         }else{
             yInfo() << "No port name";            
         }
@@ -208,13 +208,13 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             string out_port_name = "/" + moduleName + "/" + driveName + "/over_action:o";
             alloDrive.behaviorOverPort = new Port();
             alloDrive.behaviorOverPort->open(out_port_name);
-            yDebug() << "trying to connect to " << over_port_name ;//<< endl;
+            yDebug() << "trying to connect to " << over_port_name ;
             while(!Network::connect(out_port_name, over_port_name))
             {
                 
                 yarp::os::Time::delay(0.5);
             }
-            alloDrive.behaviorOverCmd = Bottle(over_cmd_name);//.addString(over_cmd_name);
+            alloDrive.behaviorOverCmd = Bottle(over_cmd_name);
         } else {
             yInfo() << "No port name";
         }
@@ -224,10 +224,10 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
     }
 
     if (! Normalize(drivePriorities))
-        yDebug() << "Error: Drive priorities sum up to 0.";// << endl;
+        yDebug() << "Error: Drive priorities sum up to 0.";
 
 
-    yInfo() << "done.";// << endl;
+    yInfo() << "done.";
 
 }
 
@@ -245,7 +245,6 @@ bool AllostaticController::Normalize(vector<double>& vec) {
 bool AllostaticController::updateModule()
 {
     for(std::map<string, AllostaticDrive>::iterator it=allostaticDrives.begin(); it!=allostaticDrives.end(); ++it) {
-        // yDebug() << it->second.inputSensationPort->read()->get(0).asInt();// << endl;
         if (bool(it->second.inputSensationPort->read()->get(0).asInt())) {
             yDebug() << "Sensation ON";
             it->second.update(SENSATION_ON);

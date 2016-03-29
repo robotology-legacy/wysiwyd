@@ -31,7 +31,7 @@ public:
     void configure();
 
     bool handlePoint(string type, string target);
-    //bool handlePush(string type, string target);
+    bool handlePush(string type, string target);
     bool handleLook(string type, string target);
     bool handleSearch(string type, string target);
     bool handleNarrate();

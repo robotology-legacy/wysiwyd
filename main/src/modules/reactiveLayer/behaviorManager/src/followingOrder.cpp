@@ -29,19 +29,19 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     yInfo() << target;
 
     if (target != "none"){
-        yInfo() << "there are elements to search!!!";//<<endl;
+        yInfo() << "there are elements to search!!!";
         finding = handleSearch(type, target);
     }
 
     if (action == "point"){
-        // Be carfull: both handlePoint (point in response of a human order) and handlePointing (point what you know)
+        // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
             yInfo()<<"I can't point if  you don't tell me the objects";
             iCub->say("I can't point if  you don't tell me the objects");
         }else{
             pointing = handlePoint(type, target);
-            yInfo() << "pointing elements to point!!!";//<<endl;
-            yDebug() << finding;// << endl;
+            yInfo() << "pointing elements to point!!!";
+            yDebug() << finding;
         }
     }else if (action == "look at"){
         if (sens->size()<2){
@@ -49,22 +49,22 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
             iCub->say("I can't look if  you don't tell me the objects");
         }else{
         handleLook(type, target);
-        yInfo() << "looking elements to look at!!!";//<<endl;
-        yDebug() << finding;// << endl;
+        yInfo() << "looking elements to look at!!!";
+        yDebug() << finding;
     }
     }else if (action == "push"){
         if (sens->size()<2){
             yInfo()<<"I can't push if  you don't tell me the objects";
             iCub->say("I can't push if  you don't tell me the objects");
         }else{
-        //handlePush(type, target); //Feature under development
-        yInfo() << "pushing elements to look at!!!";//<<endl;
-        yDebug() << finding;// << endl;
+        handlePush(type, target); 
+        yInfo() << "pushing elements to look at!!!";
+        yDebug() << finding;
     }
     }else if (action == "narrate"){
         handleNarrate();
-        yInfo() << "narrating!!!";//<<endl;
-        yDebug() << finding;// << endl;
+        yInfo() << "narrating!!!";
+        yDebug() << finding;
     }
 
 }
@@ -95,32 +95,26 @@ bool FollowingOrder::handlePoint(string type, string target)
     yInfo() << " [handlePoint] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
     string e_name = target;
-    // point RPC useless
-    //bool pointRPC = false;
 
     for (auto& entity : lEntities)
     {
         string sName = entity->name();
 
-        yDebug() << "Checking entity: " << e_name << " to " << sName;//<<endl;
+        yDebug() << "Checking entity: " << e_name << " to " << sName;
         if (sName == e_name) {
-            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if (entity->entity_type() == "object")
             {
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
                 if(o && o->m_present) {
-                    //pointRPC=true;
-                    yInfo() << "I'd like to point " << e_name;// <<endl;
-                    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
-                    string sHand = "right";
-                    if (obj1->m_ego_position[1]<0) sHand = "left";
-                    Bottle bHand(sHand);
-                    //iCub->say("I'm going to point the " + target);
-                    iCub->point(e_name, bHand);
+                    
+                    yInfo() << "I'd like to point " << e_name;
+                    
+                    iCub->point(e_name);
                     iCub->say("oh! this is a " + e_name);
                     yarp::os::Time::delay(2.0);
                     iCub->home();
-                    target = "none";//pointList.pop_back();
+                    target = "none";
                     return true;
                 }
 
@@ -137,29 +131,24 @@ bool FollowingOrder::handleLook(string type, string target)
     yInfo() << " [handleLook] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
     string e_name = target;
-    // point RPC useless
-    //bool pointRPC = false;
 
     for (auto& entity : lEntities)
     {
         string sName = entity->name();
 
-        yDebug() << "Checking entity: " << e_name << " to " << sName;//<<endl;
+        yDebug() << "Checking entity: " << e_name << " to " << sName;
         if (sName == e_name) {
-            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if (entity->entity_type() == "object")
             {
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
                 if(o && o->m_present) {
-                    //pointRPC=true;
-                    yInfo() << "I'd like to look " << e_name;// <<endl;
+                    yInfo() << "I'd like to look " << e_name;
                     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
-                    //iCub->say("I'm going to look the " + target);
                     iCub->look(obj1->name());
                     iCub->say("oh! look at this!");
                     yarp::os::Time::delay(1.0);
-                    //iCub->home();
-                    target = "none";//pointList.pop_back();
+                    target = "none";
                     return true;
                 }
 
@@ -169,7 +158,7 @@ bool FollowingOrder::handleLook(string type, string target)
     return false;  
 }
 
-/* //Feature to be added in a near future
+//Feature to be added in a near future
 bool FollowingOrder::handlePush(string type, string target)
 {
     // Point an object (from human order). Independent of proactivetagging
@@ -177,32 +166,25 @@ bool FollowingOrder::handlePush(string type, string target)
     yInfo() << " [handlePush] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
     string e_name = target;
-    // point RPC useless
-    //bool pointRPC = false;
 
     for (auto& entity : lEntities)
     {
         string sName = entity->name();
 
-        yDebug() << "Checking entity: " << e_name << " to " << sName;//<<endl;
+        yDebug() << "Checking entity: " << e_name << " to " << sName;
         if (sName == e_name) {
-            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            if (entity->entity_type() == "object")
             {
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
                 if(o && o->m_present) {
-                    //pointRPC=true;
-                    yInfo() << "I'd like to push " << e_name;// <<endl;
-                    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
-                    string sHand = "right";
-                    if (obj1->m_ego_position[1]<0) sHand = "left";
-                    Bottle bHand(sHand);
-                    //iCub->say("I'm going to push the " + target);
-                    iCub->push(e_name, bHand);
+                    yInfo() << "I'd like to push " << e_name;
+                    
+                    iCub->push(e_name);
                     iCub->say("oh! look how I push the " + e_name);
                     yarp::os::Time::delay(2.0);
                     iCub->home();
-                    target = "none";//pointList.pop_back();
+                    target = "none";
                     return true;
                 }
 
@@ -211,7 +193,7 @@ bool FollowingOrder::handlePush(string type, string target)
     }
     return false;  
 }
-*/
+
 bool FollowingOrder::handleSearch(string type, string target)
 {
     // look if the object (from human order) exist and if not, trigger proactivetagging
@@ -219,7 +201,6 @@ bool FollowingOrder::handleSearch(string type, string target)
     iCub->opc->checkout();
     yInfo() << " [handleSearch] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
-    bool tagRPC = false;
 
     string e_name = target;
 
@@ -227,26 +208,22 @@ bool FollowingOrder::handleSearch(string type, string target)
     {
         string sName = entity->name();
         if (sName == e_name) {
-            yDebug() << "Entity found: "<<e_name;//<<endl;
-            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+            yDebug() << "Entity found: "<<e_name;
+            if (entity->entity_type() == "object")
             {
                 Object* o = dynamic_cast<Object*>(iCub->opc->getEntity(sName));
                 yInfo() << "I found the entity in the opc: " << sName;
                 if(o && o->m_present==1.0) {
-                    //searchList.pop_back();
-                    // return, so "if(tagRPC)" ... is never executed
                     return true;
                 }
-            } else {
-                tagRPC = true;
             }
         }
     }
 
-    yInfo() << "I need to explore by name!";// << endl;
+    yInfo() << "I need to explore by name!";
 
     // ask for the object
-    yInfo() << "send rpc to proactiveTagging";//<<endl;
+    yInfo() << "send rpc to proactiveTagging";
 
     //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
     Bottle cmd;
@@ -256,11 +233,8 @@ bool FollowingOrder::handleSearch(string type, string target)
     cmd.addString(type);
     cmd.addString(e_name);
     rpc_out_port.write(cmd,rply);
-    yDebug() << rply.toString(); //<< endl;
+    yDebug() << rply.toString();
 
-    //searchList.pop_back();
     return true;
-      
-    //if no unknown object was found, return false
-    //return false;
+
 }

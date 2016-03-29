@@ -109,7 +109,6 @@ bool ears::updateModule() {
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
-        //bShouldListen=true;
 
         if (bRecognized.get(0).asInt() == 0)
         {
@@ -130,7 +129,6 @@ bool ears::updateModule() {
         cout << bSemantic.toString() << endl;
         string sObject, sAction;
         string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
-        //string sPredicate = bSemantic.check("predicate", Value("none")).asString();
 
         string sObjectType, sCommand;
         if(sQuestionKind == "SENTENCEOBJECT") {
@@ -161,7 +159,7 @@ bool ears::updateModule() {
 
         Bottle bCondition;
         bCondition.addString(sCommand);
-        //bCondition.addString(sAction);
+        bCondition.addString(sAction);
         bCondition.addString(sObjectType);
         bCondition.addString(sObject);
 

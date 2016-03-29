@@ -69,7 +69,7 @@ bool TouchingOrder::handleSearch(string type, string target)
         return true;
     }
 
-    yInfo() << "I need to call proactiveTagging!";// << endl;
+    yInfo() << "I need to call proactiveTagging!";
 
     //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
     Bottle cmd;
@@ -80,7 +80,7 @@ bool TouchingOrder::handleSearch(string type, string target)
     cmd.addString(target);
     yDebug() << "Send to proactiveTagging: " << cmd.toString();
     rpc_out_port.write(cmd,rply);
-    yDebug() << rply.toString(); //<< endl;
+    yDebug() << rply.toString(); 
 
     return true;
 }
