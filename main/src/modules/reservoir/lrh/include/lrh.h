@@ -19,20 +19,20 @@
 #define _LRH_H_
 
 #ifdef WIN32
-#include <windows.h>
+//#include <windows.h>
 #define  BOOST_ALL_NO_LIB
 #endif
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <list>
+//#include <iostream>
+//#include <fstream>
+//#include <sstream>
+//#include <string>
+//#include <list>
 
 #include <boost/python.hpp>
 
-#include <yarp/sig/all.h>
-#include <yarp/os/all.h>
+//#include <yarp/sig/all.h>
+//#include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 
 
