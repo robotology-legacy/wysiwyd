@@ -50,10 +50,11 @@ bool story::displayNarration(bool displayAll)
     cout << "size of human narration: " << humanNarration.size() << endl;
 
     if (humanNarration.size() > 2){
-        cout << "begin narration from human:" << endl;
+        cout << "********************************\nbegin narration from human:" << endl;
         for (auto ii : humanNarration){
             cout << "\t" << ii << endl;
         }
+        cout << endl;
         return true;
     }
     else{

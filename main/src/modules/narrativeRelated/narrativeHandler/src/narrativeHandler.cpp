@@ -98,6 +98,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
+    askNarrate();
+
+    compareNarration(listStories[listStories.size() - 2]);
+
 
 
     //    cout << iCub->getLRH()->SentenceToMeaning("if I could ask you to give it to me") << endl;
@@ -668,13 +672,22 @@ void narrativeHandler::compareNarration(story &target){
                 }
                 if (stillOk){
                     yInfo("I found I matching story.");
-                    for (auto mean : currentStory.meaningStory){
-                        target.meaningStory.push_back(adaptMeaning(mean));
+                    if (currentStory.humanNarration.size() > 0){
+                        yInfo(" adapting meaning !");
+                        for (auto mean : currentStory.humanNarration){
+                            target.meaningStory.push_back(adaptMeaning(mean));
+                        }
+                    }
+                    yInfo(" Meanings are:");
+                    for (auto meani : target.meaningStory){
+                        cout << "\t" << meani << endl;
                     }
                 }
             }
         }
     }
+
+    target.displayNarration();
 }
 
 

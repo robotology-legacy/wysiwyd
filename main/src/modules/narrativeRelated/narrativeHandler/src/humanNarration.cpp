@@ -87,6 +87,18 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
 
     target.humanNarration = vNewStory;
 
+    yInfo(" End of human narration, starting to create meaning with LRH");
+    if (true){   // to change to lrh
+        for (auto sentence : target.humanNarration){
+            string meaning = iCub->getLRH()->SentenceToMeaning(sentence);
+            target.meaningStory.push_back(meaning);
+        }
+    }
+    yInfo(" Meanings are:");
+    for (auto meani : target.meaningStory){
+        cout << "\t" << meani << endl;
+    }
+    cout << endl;
 }
 
 
