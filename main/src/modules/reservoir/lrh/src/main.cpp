@@ -19,10 +19,10 @@
 
 int main(int argc, char * argv[]) {
 
-    Network yarp;
+    yarp::os::Network yarp;
     LRH module;
 
-    ResourceFinder rf;
+    yarp::os::ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("lrh.ini"); //overridden by --from parameter
     rf.setDefaultContext("lrh/conf");   //overridden by --context parameter

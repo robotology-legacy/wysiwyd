@@ -30,76 +30,71 @@
 #include <list>
 
 #include <boost/python.hpp>
-using namespace boost::python;
 
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include "wrdac/clients/icubClient.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace wysiwyd::wrdac;
 
-class LRH : public RFModule {
+class LRH : public yarp::os::RFModule {
 private:
 
     int iCurrentInstance;
 
-    string sKeyWord;
-    string moduleName;
-    string handlerPortName;
+    std::string sKeyWord;
+    std::string moduleName;
+    std::string handlerPortName;
 
-    string scorpusFileSD;
-    string scorpusFile;
-    string sfileResult;
-    string stemporaryCorpus;
+    std::string scorpusFileSD;
+    std::string scorpusFile;
+    std::string sfileResult;
+    std::string stemporaryCorpus;
+    
+    std::string sreservoirAP;
+    std::string sreservoirSD;
+    std::string sreservoirNarratif;
 
-    string sreservoirAP;
-    string sreservoirSD;
-    string sreservoirNarratif;
+    std::string sclosed_class_wordsSD;
+    std::string sclosed_class_words;
+    
+    std::string smax_nr_ocw;
+    std::string smax_nr_actionrelation;
+    std::string selt_pred;
+    std::string sNbNeurons;
 
-    string sclosed_class_wordsSD;
-    string sclosed_class_words;
-
-    string smax_nr_ocw;
-    string smax_nr_actionrelation;
-    string selt_pred;
-    string sNbNeurons;
-
-    string sdataTestSD;
-    string sHand;
+    std::string sdataTestSD;
+    std::string sHand;
     float offsetGrasp;
 
-    string sobjectFocusChanged;
+    std::string sobjectFocusChanged;
 
-    Port handlerPort;               // a port to handle messages
-    Port PortToSam;               // a port to forward PAOR structure to SAM
-    string nameSamInputPort;
+    yarp::os::Port handlerPort;               // a port to handle messages
+    yarp::os::Port PortToSam;               // a port to forward PAOR structure to SAM
+    std::string nameSamInputPort;
 
-    ICubClient *iCub;
+    wysiwyd::wrdac::ICubClient *iCub;
 
-    bool callReservoir(string pythonFile, string closed_class_words);
+    bool callReservoir(std::string pythonFile, std::string closed_class_words);
     int copyPastTrainFile(const char* fileNameIn, const char* fileNameOut);
-    int createTest(const char* filename, string sMeaningSentence);
-    int createTest(const char* filename, std::list<string> lMeaningsSentences);
-    string openResult(const char* fileNameIn);
+    int createTest(const char* filename, std::string sMeaningSentence);
+    int createTest(const char* filename, std::list<std::string> lMeaningsSentences);
+    std::string openResult(const char* fileNameIn);
     bool populateOPC();
 
-    bool AREactions(vector<string> seq);
-    bool spatialRelation(string sObjectFocus);
-    string production(string stest);
+    bool AREactions(std::vector<std::string> seq);
+    bool spatialRelation(std::string sObjectFocus);
+    std::string production(std::string stest);
 
 public:
-    bool configure(ResourceFinder &rf);
+    bool configure(yarp::os::ResourceFinder &rf);
     bool interruptModule();
     bool close();
-    bool respond(const Bottle& command, Bottle& reply);
+    bool respond(const yarp::os::Bottle& command, yarp::os::Bottle& reply);
     double getPeriod();
     bool updateModule();
 
-    string meaningToSentence(string meaning);
-    string sentenceToMeaning(string sentence);
+    std::string meaningToSentence(std::string meaning);
+    std::string sentenceToMeaning(std::string sentence);
 };
 
 
