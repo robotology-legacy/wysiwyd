@@ -52,10 +52,10 @@ public:
     std::vector<std::string>     vOCWNarration;
 
     // matrix of the score of each OCW from vOCWEvt
-    std::vector<std::vector<double > > mapScoreEvent;
+    std::map<std::string, std::vector<double> > mapScoreEvent;
 
     // matrix of the score of each OCW from vOCWNarration;
-    std::vector<std::vector<double > > mapScoreNarration;
+    std::map<std::string, std::vector<double> > mapScoreNarration;
 
 
     std::vector<std::tuple<double, double, double, double> > vtPAOR;
