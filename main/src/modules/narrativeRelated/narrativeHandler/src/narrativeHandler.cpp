@@ -490,14 +490,14 @@ void narrativeHandler::initializeStories()
 
 void narrativeHandler::updateScoreStory(story &st){
 
-    st.mapScore.clear();
+    st.mapScoreEvent.clear();
 
     unsigned int _size = st.vEvents.size();
 
     // create the map of each OCW with a vector of double for the score at each instance of the story
-    for (auto& itS : st.vOCW){
+    for (auto& itS : st.vOCWEvt){
         vector<double> vTemp(_size);
-        st.mapScore[itS] = vTemp;
+        st.mapScoreEvent[itS] = vTemp;
     }
 
     // for each instance update the score of each OCW corresponding to a few rules
@@ -728,8 +728,15 @@ void narrativeHandler::createNarration(story &sto)
         if (!currentEvent.isNarration)
         {
             osCurrent.str("");
-            osCurrent << currentEvent.instance;
+            //osCurrent << currentEvent.instance;
             if (VERBOSE) cout << currentElement << "...";
+
+            if (((currentEvent.predicate == "" || currentEvent.predicate == "none")
+                && (currentEvent.activity_name == "" || currentEvent.activity_name == "none"))
+                || (currentEvent.agent == "" || currentEvent.agent == "none"))
+            {
+                addEvt = false;
+            }
 
             // initial situation
             if (cursor == 0){
@@ -764,7 +771,7 @@ void narrativeHandler::createNarration(story &sto)
 
                 // if the action begin
                 if (currentEvent.agent == "iCub" || currentEvent.agent == "icub"){
-                    currentEvent.agent = "I";
+                    currentEvent.agent = "iCub";
                 }
 
                 if (currentEvent.begin){
@@ -825,7 +832,8 @@ void narrativeHandler::createNarration(story &sto)
                         if (sto.vEvents[currentElement - 1].begin || sto.vEvents[currentElement - 1].activity_type != "action"){
                             for (auto iarg = currentEvent.vArgument.begin(); iarg != currentEvent.vArgument.end(); iarg++){
                                 if (iarg->first == "status" && iarg->second == "failed"){
-                                    osCurrent << "\t\t\t" << "But it failed.";                                    
+                                    osCurrent << "\t\t\t" << "But it failed.";        
+                                    addEvt = true;
                                 }
                             }
                             if (osCurrent.str() != "") osCurrent << endl;
@@ -857,8 +865,8 @@ void narrativeHandler::createNarration(story &sto)
                         if (addressee == "none"){
                             addressee = "iCub";
                         }
-                        speaker = "You";
-                        addressee = "me";
+//                        speaker = "You";
+//                        addressee = "me";
                     }
                 }
                 if (sentence == "none" || sentence == ""){
@@ -867,16 +875,16 @@ void narrativeHandler::createNarration(story &sto)
                 else{
                     currentEvent.addUnderscoreString(sentence);
                 }
-                if (speaker == "iCub"){
-                    speaker = "I";
-                    addressee = "you";
-                   // addEvt = false;
-                }
-                else{
-                    speaker = "You";
-                    addressee = "me";
+                //if (speaker == "iCub"){
+                //    speaker = "I";
+                //    addressee = "you";
+                //   // addEvt = false;
+                //}
+                //else{
+                //    speaker = "You";
+                //    addressee = "me";
 
-                }
+                //}
                 if (lrh){
                     string meaning = createMeaning(speaker, "said", sentence, addressee);
                     string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
@@ -978,7 +986,7 @@ void narrativeHandler::createNarration(story &sto)
                 //if (osCurrent.str() != "") osCurrent << endl;
                 // if the action begin
                 if (currentEvent.agent == "iCub" || currentEvent.agent == "icub"){
-                    currentEvent.agent = "I";
+                    currentEvent.agent = "iCub";
                 }
 
                 if (currentEvent.begin){
@@ -1020,7 +1028,7 @@ void narrativeHandler::createNarration(story &sto)
                     }
                     else if (currentEvent.predicate == "point"){
                         currentEvent.predicate = "pointed";
-                        if (currentEvent.agent != "I") currentEvent.agent = "You";
+                        //if (currentEvent.agent != "I") currentEvent.agent = "You";
                         osCurrent << "\t\t\t" << currentEvent.agent << " " << currentEvent.predicate << " to it." << endl;
                     }
                     else if (cursor == 0){
@@ -1149,12 +1157,6 @@ void narrativeHandler::createNarration(story &sto)
                 }
             }
 
-            if (((currentEvent.predicate == "" || currentEvent.predicate == "none")
-                && (currentEvent.activity_name == "" || currentEvent.activity_name == "none"))
-                || (currentEvent.agent == "" || currentEvent.agent == "none"))
-            {
-             //   addEvt = false;
-            }
 
             // Add only one appearance and one dissapearance per object
             if (currentEvent.predicate == "appear"){

@@ -40,7 +40,10 @@ namespace wysiwyd{
                     return true;
                 }
                 else {
-                return yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/rpc"); 
+                    yWarning(" in SubSytem_ABM: cannot connect, tyring connection.");
+                    bool ret = yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/rpc"); 
+                    if (!ret) yWarning(" connection to ABM impossible: check that ABM is running");
+                    return ret;
                 }
             }
 
@@ -91,7 +94,7 @@ namespace wysiwyd{
                 bSnapshot.addList() = bMain;
                 bSnapshot.addList() = bArgument;
                 bSnapshot.addList() = bBegin;
-                portRPC.write(bSnapshot);
+                if (connect())  portRPC.write(bSnapshot);
             }
 
             yarp::os::Bottle requestFromString(const std::string &sInput)

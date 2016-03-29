@@ -421,7 +421,7 @@ bool opcPopulater::populateABMiCubStory(Bottle bInput)
     string sAgent = "Interlocutor";
 
 
-    Time::delay(12.);
+    Time::delay(4.);
     // first the ObjStory is close to larry (from left to right)
     iCub->opc->clear();
     iCub->opc->checkout();

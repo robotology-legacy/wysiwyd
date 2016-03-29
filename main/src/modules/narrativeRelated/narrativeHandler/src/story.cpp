@@ -75,7 +75,7 @@ bool story::displayNarration(bool displayAll)
 
 
             cout << "OCW ARE: ";
-            for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
+            for (auto itS = vOCWEvt.begin(); itS != vOCWEvt.end(); itS++){
                 cout << *itS << "  ";
             }
             cout << endl << endl;
@@ -94,12 +94,12 @@ void story::addOCW(vector<string> inputOCW){
         bool found = false;
         if (*itIn != "none"){
 
-            for (auto itS = vOCW.begin(); itS != vOCW.end(); itS++){
+            for (auto itS = vOCWEvt.begin(); itS != vOCWEvt.end(); itS++){
                 if (*itS == *itIn){
                     found = true;
                 }
             }
-            if (!found) vOCW.push_back(*itIn);
+            if (!found) vOCWEvt.push_back(*itIn);
         }
     }
 

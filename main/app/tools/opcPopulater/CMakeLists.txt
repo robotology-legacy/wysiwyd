@@ -2,7 +2,7 @@
 # Authors: Grégoire Pointeau
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-set(appname opcManager)
+set(appname opcPopulater)
 file(GLOB ini      ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.*)
 file(GLOB template ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.template)
 

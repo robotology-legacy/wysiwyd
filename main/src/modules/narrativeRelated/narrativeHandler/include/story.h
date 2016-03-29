@@ -45,10 +45,19 @@ public:
     void updateMapScore();
     unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
 
+    // list of the OCW inside the event in the ABM (naive story)
+    std::vector<std::string>     vOCWEvt;
 
-    std::vector<std::string>     vOCW;
+    //list of the OCW get from the human narration
+    std::vector<std::string>     vOCWNarration;
 
-    std::map<std::string, std::vector<double> > mapScore;
+    // matrix of the score of each OCW from vOCWEvt
+    std::vector<std::vector<double > > mapScoreEvent;
+
+    // matrix of the score of each OCW from vOCWNarration;
+    std::vector<std::vector<double > > mapScoreNarration;
+
+
     std::vector<std::tuple<double, double, double, double> > vtPAOR;
 
     myTimeStruct    timeBegin;
