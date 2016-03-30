@@ -112,7 +112,7 @@ bool ears::updateModule() {
 
         if (bRecognized.get(0).asInt() == 0)
         {
-            yWarning() << " error in ears::updateModule | Error in speechRecog";
+            yDebug() << "ears::updateModule -> speechRecognizer did not recognize anything";
             return true;
         }
 
