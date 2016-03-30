@@ -240,7 +240,6 @@
         <node>console1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
-            <port timeout="10">/speechRecognizer/rpc</port>
         </dependencies>
     </module>
 
