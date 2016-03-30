@@ -12,7 +12,7 @@ class Drive
 public:
     std::string name;
     double period;
-    double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax;
+    double value, homeostasisMin, homeostasisMax, decay, valueMin, valueMax, default_value;
     bool gradient;
     time_t start_sleep;
     bool is_sleeping;
@@ -25,6 +25,7 @@ public:
         value = d_value;
         homeostasisMin = d_homeo_min;
         homeostasisMax = d_homeo_max;
+        default_value = (d_homeo_max + d_homeo_min)/2.;
         decay = d_decay;
         gradient = d_gradient;
         is_sleeping = false;
@@ -107,6 +108,10 @@ public:
     void freeze() {
         is_sleeping = true;
         time_to_sleep = 1e10;
+    }
+
+    void reset(){
+        value = default_value;
     }
 
     void unfreeze() {
