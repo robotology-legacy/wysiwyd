@@ -246,6 +246,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     //2.Ask human to touch
     string sAsking = "I know how to move my " + sName + ", but how does it feel to be touched? Can you touch my " + sName + ", please.";
     yInfo() << " sAsking: " << sAsking;
+    iCub->lookAtAgent();
     iCub->say(sAsking);
 
     //3. Read until some tactile value are detected

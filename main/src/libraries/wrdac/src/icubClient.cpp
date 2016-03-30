@@ -323,7 +323,6 @@ void ICubClient::commitAgent()
         opc->commit(this->icubAgent);
 }
 
-
 bool ICubClient::moveToPosture(const string &name, double time)
 {
     if (subSystems.find("postures") == subSystems.end())
@@ -614,6 +613,20 @@ bool ICubClient::look(const string &target)
     return false;
 }
 
+bool ICubClient::lookAtAgent()
+{
+    list<Entity*> lEntities = opc->EntitiesCacheCopy();
+    for (auto& entity : lEntities) {
+        if (entity->entity_type() == "agent") {
+            Agent* a = dynamic_cast<Agent*>(entity);
+            if(a->m_present == 1.0 && a->name()!="icub") {
+                look(a->name());
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 bool ICubClient::lookAround()
 {
