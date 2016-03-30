@@ -62,19 +62,19 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     if (!iCub->getABMClient())
     {
-        yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+        yWarning() << "ABM not connected. narrativeHandler cannot start.";
         return false;
     }
 
     if (!iCub->getLRH())
-        yWarning(" WARNING LRH NOT CONNECTED");
+        yWarning("LRH not connected");
     else
         iCub->getLRH()->bForwardABM = (rf.find("forwardABM").asInt() == 1);
 
     if (!iCub->getRecogClient())
     {
-        iCub->say("Proactive Tagging warning speech recognizer not connected");
-        yWarning() << "WARNING SPEECH RECOGNIZER NOT CONNECTED";
+        iCub->say("Narrative handler warning speech recognizer not connected!");
+        yWarning() << "Speech recognizer not connected!";
     }
 
     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
