@@ -1,6 +1,5 @@
 #!/usr/local/bin/python
 
-from pyNNLib import *
 import yarp
 
 #Open network
@@ -15,7 +14,20 @@ targetRPC = "/homeostasis/rpc"
 
 print yarp.Network.connect(portName,targetRPC)
 
-
+def trigger_behavior(behavior):
+	# Prepare command
+	cmd = yarp.Bottle()
+	cmd.clear()
+	cmd.addString('force')
+	cmd.addString(behavior)
+	cmd.addString('bottom')
+	# Send command
+	if not yarp.Network.isConnected(portName,targetRPC):
+		print yarp.Network.connect(portName,targetRPC)
+		yarp.Time.delay(0.1)
+	toHomeo.write(cmd)
+	yarp.Time.delay(2.)
+	freeze_all()	
 
 def freeze_all():
 	# Prepare command
@@ -28,7 +40,6 @@ def freeze_all():
 		print yarp.Network.connect(portName,targetRPC)
 		yarp.Time.delay(0.1)
 	toHomeo.write(cmd)
-	return True
 
 def unfreeze_all():
 	# Prepare command
@@ -41,7 +52,6 @@ def unfreeze_all():
 		print yarp.Network.connect(portName,targetRPC)
 		yarp.Time.delay(0.1)
 	toHomeo.write(cmd)
-	return True
 
 def reset_all():
 	# Prepare command
@@ -55,60 +65,15 @@ def reset_all():
 		print yarp.Network.connect(portName,targetRPC)
 		yarp.Time.delay(0.1)
 	toHomeo.write(cmd)
-	return True
 
 def narrate():
-	# Prepare command
-	cmd = yarp.Bottle()
-	cmd.clear()
-	cmd.addString('force')
-	cmd.addString('narrate')
-	cmd.addString('bottom')
-	# Send command
-	if not yarp.Network.isConnected(portName,targetRPC):
-		print yarp.Network.connect(portName,targetRPC)
-		yarp.Time.delay(0.1)
-	toHomeo.write(cmd)
-	return True
+	trigger_behavior("narrate")
 
 def pointing():
-	# Prepare command
-	cmd = yarp.Bottle()
-	cmd.clear()
-	cmd.addString('force')
-	cmd.addString('pointing')
-	cmd.addString('bottom')
-	# Send command
-	if not yarp.Network.isConnected(portName,targetRPC):
-		print yarp.Network.connect(portName,targetRPC)
-		yarp.Time.delay(0.1)
-	toHomeo.write(cmd)
-	return True
+	trigger_behavior("pointing")
 
 def tagging():
-	# Prepare command
-	cmd = yarp.Bottle()
-	cmd.clear()
-	cmd.addString('force')
-	cmd.addString('tagging')
-	cmd.addString('bottom')
-	# Send command
-	if not yarp.Network.isConnected(portName,targetRPC):
-		print yarp.Network.connect(portName,targetRPC)
-		yarp.Time.delay(0.1)
-	toHomeo.write(cmd)
-	return True
+	trigger_behavior("tagging")
 
 def test():
-	# Prepare command
-	cmd = yarp.Bottle()
-	cmd.clear()
-	cmd.addString('force')
-	cmd.addString('test')
-	cmd.addString('bottom')
-	# Send command
-	if not yarp.Network.isConnected(portName,targetRPC):
-		print yarp.Network.connect(portName,targetRPC)
-		yarp.Time.delay(0.1)
-	toHomeo.write(cmd)
-	return True
+	trigger_behavior("test")
