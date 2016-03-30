@@ -72,12 +72,10 @@ bool AgentDetector::configure(ResourceFinder &rf)
         cout<<"Waiting connection to RFH..."<<endl;
         Time::delay(1.0);
     }
-    isCalibrated=false; // DO NOT DELETE THIS LINE!
-    isCalibrated=checkCalibration();
 
-    if(!isCalibrated){
+    isCalibrated=false;
+    if(!checkCalibration())
         yWarning() << " ========================= KINECT NEED TO BE CALIBRATED ============================" ;
-    }
 
     string clientName = name;
     clientName += "/kinect";
