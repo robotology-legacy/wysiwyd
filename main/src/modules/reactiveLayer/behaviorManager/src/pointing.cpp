@@ -21,9 +21,11 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     string aName = "";
     for (auto& entity : lEntities)
     {
-        if (entity->entity_type() == "agent" && entity->m_present == 1.0)
-        {
-            aName = entity->name();
+        if (entity->entity_type() == "agent") {
+            Agent* a = dynamic_cast<Agent*>(entity);
+            if(a->m_present == 1.0 && a->name()!="icub") {
+                aName = a->name();
+            }
         }
     }
     if (aName == "")
