@@ -36,13 +36,18 @@ public:
     Bottle behaviorOverCmd;
     Bottle sensationOnCmd, sensationOffCmd, beforeTriggerCmd, afterTriggerCmd;
     
+    AllostaticDrive() {
+        behaviorUnderPort = nullptr;
+        behaviorOverPort = nullptr;
+        homeoPort = nullptr;
+    }
 
     bool close_ports() {
-        if (behaviorUnderPort) {
+        if (behaviorUnderPort!=nullptr) {
             behaviorUnderPort->interrupt();
             behaviorUnderPort->close();
         }
-        if (behaviorOverPort) {
+        if (behaviorOverPort!=nullptr) {
             behaviorOverPort->interrupt();
             behaviorOverPort->close();
         }
@@ -82,7 +87,6 @@ public:
 
     void triggerBehavior(OutCZ mode)
     {
-
         Bottle cmd, rply, rplies;
         // before trigger command
         if ( ! beforeTriggerCmd.isNull()) {
