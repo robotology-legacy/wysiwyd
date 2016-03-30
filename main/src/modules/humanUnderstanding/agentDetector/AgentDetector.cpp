@@ -280,7 +280,6 @@ bool AgentDetector::close()
     opc->close();
     rfh.close();
     delete opc;
-    delete partner;
 
     return true;
 }
