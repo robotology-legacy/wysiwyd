@@ -401,10 +401,8 @@ bool AgentDetector::updateModule()
     }
 
     //Send the players information to the OPC
-    bool localIsCalibrated=checkCalibration();
-
     //Allow click calibration
-    if (!localIsCalibrated)
+    if (!checkCalibration())
     {
         if (AgentDetector::clicked==clicked_left)
         {
@@ -544,7 +542,7 @@ bool AgentDetector::updateModule()
                     }
 
                     //We interact with OPC only if the calibration is done
-                    if (localIsCalibrated)
+                    if (isCalibrated)
                     {
                         //Retrieve this player in OPC or create if does not exist
                         opc->checkout();
