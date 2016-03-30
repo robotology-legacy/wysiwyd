@@ -96,10 +96,12 @@ public:
     yarp::os::Bottle eraseInstance(const yarp::os::Bottle &bInput);
 
     // snapshot
+    yarp::os::Mutex mutexSnapshot;
+
     yarp::os::Bottle snapshot(const yarp::os::Bottle &bInput);
     yarp::os::Bottle snapshotSP(const yarp::os::Bottle &bInput);
     yarp::os::Bottle snapshotBehavior(const yarp::os::Bottle &bInput);
-    void recogFromGrammarSemantic(yarp::os::Bottle bRecogBottle, std::string s_deep, int i_deep, int iInstance);
+    void recogFromGrammarSemantic(const yarp::os::Bottle &bRecogBottle, std::string s_deep, int i_deep, const int iInstance);
 
     //////////////////////////////////////////////////////////////////////////
     // visual + data streaming
