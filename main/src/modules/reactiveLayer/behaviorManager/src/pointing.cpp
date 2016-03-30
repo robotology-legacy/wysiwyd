@@ -12,16 +12,16 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     Bottle *sensation = sensation_port_in.read();
 
     int id = yarp::os::Random::uniform(0, sensation->size() - 1);
-    yDebug() << "Randomly selected: " << id; // should be random here 
+    yDebug() << "Randomly selected: " << id;
     string obj_name = sensation->get(id).asList()->get(1).asString();
 
     iCub->opc->checkout();
-    yInfo() << "[pointing] : opc checkout";
+    yDebug() << "[pointing] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
     string aName = "";
     for (auto& entity : lEntities)
     {
-        if (entity->entity_type() == "agent")
+        if (entity->entity_type() == "agent" && entity->m_present == true)
         {
             aName = entity->name();
         }
@@ -39,14 +39,6 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     iCub->say("I could point to the " + obj_name);
     Time::delay(2.0);
 
-    Object* obj = iCub->opc->addOrRetrieveEntity<Object>(obj_name);
-    //string sHand = "right";
-    //if (obj->m_ego_position[1] < 0)
-    //    sHand = "left";
-
-    //Bottle bHand(sHand);
-
-    //bool succeeded = iCub->point(obj_name, bHand);
     bool succeeded = iCub->point(obj_name);
     Time::delay(0.2);
 
