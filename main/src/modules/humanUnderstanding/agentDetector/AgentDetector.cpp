@@ -72,6 +72,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
         cout<<"Waiting connection to RFH..."<<endl;
         Time::delay(1.0);
     }
+    isCalibrated=false; // DO NOT DELETE THIS LINE!
     isCalibrated=checkCalibration();
 
     if(!isCalibrated){
@@ -760,7 +761,7 @@ Vector AgentDetector::transform2IR(Vector v)
 
     Vector vIR = v;
     vIR.push_back(1.0);
-    vIR = H * vIR ;
+    vIR = H * vIR;
     //cout<<"Kinect in IR = "<<vIR.toString(3,3)<<endl;
     return vIR;
 }
