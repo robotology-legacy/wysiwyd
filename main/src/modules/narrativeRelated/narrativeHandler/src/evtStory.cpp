@@ -7,16 +7,6 @@ using namespace wysiwyd::wrdac;
 using namespace std;
 
 
-bool evtStory::isIn(vector<string> vec, string str){
-    bool out = false;
-
-    for (auto itS = vec.begin(); itS != vec.end(); itS++){
-        out |= (*itS == str);
-    }
-    return out;
-}
-
-
 void evtStory::print(){
     cout << "*************************************" << endl;
     cout << "\tinstance:      " << instance << endl;
@@ -42,32 +32,7 @@ void evtStory::print(){
 }
 
 
-void evtStory::removeUnderscoreString(string &input){
-    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
-        if (*it == '_') {
-            *it = ' ';
-        }
-    }
-    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
-        if (*it == '*') {
-            *it = ',';
-        }
-    }
-}
 
-
-void evtStory::addUnderscoreString(string &input){
-    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
-        if (*it == ' ') {
-            *it = '_';
-        }
-    }
-    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
-        if (*it == ',') {
-            *it = '*';
-        }
-    }
-}
 
 
 void evtStory::addUnderscore(){
@@ -86,4 +51,48 @@ void evtStory::removeUnderscore(){
     removeUnderscoreString(agent);
     removeUnderscoreString(object);
     removeUnderscoreString(recipient);
+}
+
+
+void removeUnderscoreString(std::string &input){
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == '_') {
+            *it = ' ';
+        }
+    }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == '*') {
+            *it = ',';
+        }
+    }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == '"') {
+            *it = ' ';
+        }
+    }
+}
+
+
+void addUnderscoreString(std::string &input){
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == ' ') {
+            *it = '_';
+        }
+    }
+    for (std::string::iterator it = input.begin(); it != input.end(); ++it) {
+        if (*it == ',') {
+            *it = '*';
+        }
+    }
+}
+
+
+
+bool isIn(vector<string> vec, string str){
+    bool out = false;
+
+    for (auto itS = vec.begin(); itS != vec.end(); itS++){
+        out |= (*itS == str);
+    }
+    return out;
 }

@@ -22,6 +22,10 @@
 #include <string>
 #include <sstream>
 #include <time.h>
+#include "wrdac/clients/icubClient.h"
+#include "wrdac/subsystems/subSystem_recog.h"
+#include "wrdac/subsystems/subSystem_LRH.h"
+#include "wrdac/subsystems/subSystem_speech.h"
 
 
 class evtStory{
@@ -37,7 +41,6 @@ public:
     std::string object;
     std::string recipient;
 
-    bool isIn(std::vector<std::string> vec, std::string str);
 
     bool isNarration; // set if the event is due to the narration of an external agent
 
@@ -53,7 +56,11 @@ public:
     void addUnderscore();
     void print();
 
-    void removeUnderscoreString(std::string &input);
-    void addUnderscoreString(std::string &input);
+    //    void removeUnderscoreString(std::string &input);
+    //    void addUnderscoreString(std::string &input);
 };
 
+
+extern void addUnderscoreString(std::string &input);
+extern void removeUnderscoreString(std::string &input);
+extern bool isIn(std::vector<std::string> vec, std::string str);

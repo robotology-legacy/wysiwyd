@@ -96,17 +96,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
-
-
-    askNarrate();
-
-    compareNarration(listStories[listStories.size() - 2]);
-
-
-
-    //    cout << iCub->getLRH()->SentenceToMeaning("if I could ask you to give it to me") << endl;
-    //    cout << iCub->getLRH()->SentenceToMeaning("then you would give it to me") << endl;
-
+    
     return true;
 }
 
@@ -544,21 +534,21 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
                 yInfo() << "STATUS !!! STATUS !!!" << evt.instance << " " << bTemp.get(0).toString() << "-" << bTemp.get(1).toString() << "-" << bTemp.get(2).toString();
             }
 
-            if (evt.isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
-            else if (evt.isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
-            else if (evt.isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
+            if (isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
+            else if (isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
+            else if (isIn(vAgent, bTemp.get(1).toString())) evt.agent = bTemp.get(0).toString();
             //       else if (evt.isIn(vAgent, bTemp.get(2).toString())) evt.agent = bTemp.get(0).toString();
-            else if (evt.isIn(vObject, bTemp.get(1).toString()))    evt.object = bTemp.get(0).toString();
+            else if (isIn(vObject, bTemp.get(1).toString()))    evt.object = bTemp.get(0).toString();
             //       else if (evt.isIn(vObject, bTemp.get(2).toString()))    evt.object = bTemp.get(0).toString();
-            else if (evt.isIn(vRecipient, bTemp.get(1).toString())) evt.recipient = bTemp.get(0).toString();
-            else if (evt.isIn(vRecipient, bTemp.get(2).toString())) evt.recipient = bTemp.get(0).toString();
+            else if (isIn(vRecipient, bTemp.get(1).toString())) evt.recipient = bTemp.get(0).toString();
+            else if (isIn(vRecipient, bTemp.get(2).toString())) evt.recipient = bTemp.get(0).toString();
             else {
                 pair<string, string> ptemp(bTemp.get(1).toString(), bTemp.get(0).toString());
                 evt.vArgument.push_back(ptemp);
             }
 
-            if (!evt.isIn(vNoPAOR, bTemp.get(1).toString())) vOCW.push_back(bTemp.get(0).asString());
-            else if (!evt.isIn(vNoPAOR, bTemp.get(2).toString())) vOCW.push_back(bTemp.get(0).asString());
+            if (!isIn(vNoPAOR, bTemp.get(1).toString())) vOCW.push_back(bTemp.get(0).asString());
+            else if (!isIn(vNoPAOR, bTemp.get(2).toString())) vOCW.push_back(bTemp.get(0).asString());
         }
     }
 
@@ -632,7 +622,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
 
 void narrativeHandler::compareNarration(story &target){
-    cout << "Starting to compare Narration from target: " << target.counter << endl;
+    yInfo() << "BEGIN compareNarration: start to compare Narration from target: " << target.counter;
     for (auto& currentStory : listStories){
         comparator.clear();
         if (currentStory.counter != target.counter){ // not comparing the target to itself
@@ -671,16 +661,18 @@ void narrativeHandler::compareNarration(story &target){
                     }
                 }
                 if (stillOk){
-                    yInfo("I found I matching story.");
+                    yInfo("I found a matching story.");
                     if (currentStory.humanNarration.size() > 0){
                         yInfo(" adapting meaning !");
-                        for (auto mean : currentStory.humanNarration){
+                        for (auto mean : currentStory.meaningStory){
                             target.meaningStory.push_back(adaptMeaning(mean));
                         }
                     }
-                    yInfo(" Meanings are:");
+                    yInfo(" adapted meanings are:");
+                    target.humanNarration.clear();
                     for (auto meani : target.meaningStory){
                         cout << "\t" << meani << endl;
+                        target.humanNarration.push_back(iCub->getLRH()->meaningToSentence(meani));
                     }
                 }
             }
@@ -688,6 +680,7 @@ void narrativeHandler::compareNarration(story &target){
     }
 
     target.displayNarration();
+    yInfo() << "\nEND compareNarration";
 }
 
 
@@ -886,7 +879,7 @@ void narrativeHandler::createNarration(story &sto)
                     addEvt = false;
                 }
                 else{
-                    currentEvent.addUnderscoreString(sentence);
+                    addUnderscoreString(sentence);
                 }
                 //if (speaker == "iCub"){
                 //    speaker = "I";
@@ -901,7 +894,7 @@ void narrativeHandler::createNarration(story &sto)
                 if (lrh){
                     string meaning = createMeaning(speaker, "said", sentence, addressee);
                     string tmpSentence = iCub->getLRH()->meaningToSentence(meaning);
-                    currentEvent.removeUnderscoreString(tmpSentence);
+                    removeUnderscoreString(tmpSentence);
                     osCurrent << "\t\t\t" << tmpSentence;
                 }
                 else{
@@ -1194,7 +1187,7 @@ void narrativeHandler::createNarration(story &sto)
             if (VERBOSE) cout << osCurrent.str();
             if (addEvt){
                 string sentenceWithoutUnderscore = osCurrent.str();
-                currentEvent.removeUnderscoreString(sentenceWithoutUnderscore);
+                removeUnderscoreString(sentenceWithoutUnderscore);
                 vsOutput.push_back(sentenceWithoutUnderscore);
             }
             cursor++;
@@ -1264,7 +1257,7 @@ bool narrativeHandler::checkListPAOR(vector<string> vOriginal, vector<string> vC
 
 
 string narrativeHandler::adaptMeaning(string meaning){
-    //    cout << "meaning: " << meaning;
+    //cout << "adapt   |   input: " << meaning;
     string str = meaning;
     for (unsigned int jj = 0; jj < comparator.size(); jj++){
         if (comparator[jj].first != ""){
@@ -1277,6 +1270,7 @@ string narrativeHandler::adaptMeaning(string meaning){
             //cout << "str is:" << str << endl;
         }
     }
+    //cout << "   |  output: " << str << endl;
     return str;
 }
 
@@ -1286,6 +1280,7 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
     yInfo() << " start telling story from meaning";
     vector<string>    tmpStory;
     for (auto mean : target.meaningStory){
+        cout << "\t mean: " << mean << endl;
         tmpStory.push_back(iCub->getLRH()->meaningToSentence(mean));
     }
     yInfo() << " tmpStory size is: " << tmpStory.size();
@@ -1326,19 +1321,20 @@ bool narrativeHandler::narrate(){
 }
 
 bool narrativeHandler::askNarrate(){
-    yInfo(" begin askNarrate");
+    yInfo(" BEGIN askNarrate");
 
     findStories(iMinInstance);
 
     addNarrationToStory(listStories[listStories.size() - 1], true);
 
-    yInfo() << " size of narration of story: " << listStories[listStories.size() - 1].meaningStory.size();
-    yInfo() << "telling:";
-    tellingStoryFromMeaning(listStories[listStories.size() - 1]);
-    yInfo("display");
-    listStories[listStories.size() - 1].displayNarration();
+    //yInfo() << " size of narration by human: " << listStories[listStories.size() - 1].meaningStory.size();
+    //yInfo() << "telling:";
+    //tellingStoryFromMeaning(listStories[listStories.size() - 1]);
+    //yInfo("display");
+    //listStories[listStories.size() - 1].displayNarration();
 
-
+    yInfo(" END askNarrate");
+    cout << endl;
 
     return true;
 }
@@ -1364,6 +1360,16 @@ bool narrativeHandler::narrationToSpeech(story target){
 
     cout << "narration to speech: " << target.humanNarration.size() << endl;
 
+    //if (target.humanNarration.size() > 2){
+    //    cout << "begin narration to speech from human:" << endl;
+    //    for (auto ii : target.humanNarration){
+    //        cout << "\t to speech: " << ii << endl;
+    //        if (shouldSpeak){
+    //            iCub->look(ag->name());
+    //            iCub->say(ii, true, false, "default", false);
+    //        }
+    //    }
+    //}
     if (target.humanNarration.size() > 2){
         cout << "begin narration to speech from human:" << endl;
         for (auto ii : target.humanNarration){
