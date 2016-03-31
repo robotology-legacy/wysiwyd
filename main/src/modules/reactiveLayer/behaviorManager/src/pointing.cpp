@@ -21,7 +21,8 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     Time::delay(0.5);
     
     iCub->say("I could point to the " + obj_name);
-    Time::delay(2.0);
+    iCub->home();
+    Time::delay(1.5);
 
     bool succeeded = iCub->point(obj_name);
     Time::delay(0.2);
