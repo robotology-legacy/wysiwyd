@@ -111,7 +111,7 @@
     </module>
     <module>
         <name>guiUpdater</name>
-        <parameters>--xpos 1000 --ypos 0</parameters>
+        <parameters></parameters>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
         </dependencies>
