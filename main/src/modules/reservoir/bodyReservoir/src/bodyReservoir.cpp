@@ -166,15 +166,11 @@ bool bodyReservoir::respond(const Bottle& command, Bottle& reply) {
         else
         {
             string ob = command.get(2).toString();
-            Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(ob);
-            string sHand;
-            (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
-            Bottle bHand(sHand);
             bool bSuccess = false;
 
-            cout << ob << ": " << obj1->m_ego_position.toString() << " with hand: " << sHand << endl;
+            yDebug() << "Point to" << ob;
             if (command.get(1).toString() == "point"){
-                bSuccess = iCub->point(ob, bHand);
+                bSuccess = iCub->point(ob);
             }
             else if (command.get(1).toString() == "look"){
                 bSuccess = iCub->look(ob);
@@ -207,12 +203,7 @@ Bottle bodyReservoir::pointObject(string sObject)
         yWarning() << " CANNOT CONNECT TO DUMPERS";
     }
 
-    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(sObject);
-    string sHand;
-    (obj1->m_ego_position[1] < 0) ? sHand = "left" : sHand = "right";
-    Bottle bHand(sHand);
-
-    cout << sObject << ": " << obj1->m_ego_position.toString() << endl;
+    cout << sObject << endl;
 
     Bottle   bOutput;
     list<pair<string, string> > lArgument;
@@ -253,7 +244,7 @@ Bottle bodyReservoir::pointObject(string sObject)
     Time::delay(delayLook);
     iCub->lookStop();
 
-    bSuccess &= iCub->point(sObject, bHand);
+    bSuccess &= iCub->point(sObject);
     // SEND SUBACTION
     bToDumper.clear();
     bToDumper.addString("subaction");
