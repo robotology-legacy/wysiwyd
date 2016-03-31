@@ -98,7 +98,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
 
-    askNarrate();
+    //askNarrate();
 
     compareNarration(listStories[listStories.size() - 2]);
 
