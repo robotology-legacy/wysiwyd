@@ -36,35 +36,34 @@ bool PointingOrder::handlePoint(string type, string target)
     iCub->opc->checkout();
     yInfo() << " [handlePoint] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
-    string e_name = target;
     
     for (auto& entity : lEntities)
     {
         string sName = entity->name();
 
-        yDebug() << "Checking entity: " << e_name << " to " << sName;//<<endl;
-        if (sName == e_name) {
+        yDebug() << "Checking entity: " << target << " to " << sName;//<<endl;
+        if (sName == target) {
             if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
-                if(o && (o->m_present==1)) {
-                    yInfo() << "I'd like to point " << e_name;// <<endl;
-                    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
-                    string sHand = "right";
-                    if (obj1->m_ego_position[1]<0) sHand = "left";
-                    Bottle bHand(sHand);
-                    iCub->point(e_name, bHand);
-                    iCub->say("oh! this is a " + e_name);
+                if(o && (o->m_present==1.0)) {
+                    yInfo() << "I'd like to point " << target;// <<endl;
+
+                    iCub->point(target);
+                    iCub->say("oh! this is a " + target);
                     yarp::os::Time::delay(2.0);
                     iCub->home();
-                    target = "none";
+
                     return true;
                 }
-
             }
         }
     }
+
+    iCub->lookAtAgent();
+    iCub->say("I cannot point to the " + target);
+    iCub->home();
     return false;  
 }
 
@@ -88,7 +87,7 @@ bool PointingOrder::handleSearch(string type, string target)
             {
                 Object* o = dynamic_cast<Object*>(entity);
                 yInfo() << "I found the entity in the opc: " << sName;
-                if(o && (o->m_present==1)) {
+                if(o && (o->m_present==1.0)) {
                     return true;
                 }
             }
