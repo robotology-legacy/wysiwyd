@@ -105,7 +105,6 @@ class AllostaticPlotModule(yarp.RFModule):
 
     def reconnect_ports(self):
         everything_connected = False
-
         while not everything_connected:
             everything_connected = True
             for name_in, port_out in zip(self.behaviors, self.behavior_ports):
@@ -113,21 +112,23 @@ class AllostaticPlotModule(yarp.RFModule):
                 if not yarp.Network.isConnected(in_port, out_port):
                     everything_connected = False
                     yarp.Network.connect(in_port, out_port)
+                    yarp.Time.delay(0.1)
 
             if not yarp.Network.isConnected(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i"):
                 everything_connected = False
                 yarp.Network.connect(self.behaviorManager_rpc.getName(), "/BehaviorManager/trigger:i")
+                yarp.Time.delay(0.1)
 
             for i, d in enumerate(self.drives):
                 in_port, out_port = "/homeostasis/" + d + "/max:o", self.drive_value_ports[i].getName()
                 if not yarp.Network.isConnected(in_port, out_port):
                     everything_connected = False
                     yarp.Network.connect(in_port, out_port)
+                    yarp.Time.delay(0.1)
 
             if not yarp.Network.isConnected(self.homeo_rpc.getName(), "/homeostasis/rpc"):
                 everything_connected = False
                 yarp.Network.connect(self.homeo_rpc.getName(), "/homeostasis/rpc")
-            if not everything_connected:
                 yarp.Time.delay(0.1)
 
 
@@ -154,7 +155,8 @@ class AllostaticPlotModule(yarp.RFModule):
         return 0.1
 
     def one_step(self,t):
-        self.reconnect_ports()
+        if t % (10 / self.getPeriod()) == 0:
+            self.reconnect_ports()
         self.drive_values = [values[1:] + [0.] for values in self.drive_values]
         for i, (port, homeo_max, v_line, min_line, max_line) in enumerate(zip(self.drive_value_ports, self.homeo_maxs, self.value_lines, self.homeo_min_lines, self.homeo_max_lines)):
             res = port.read()
