@@ -251,13 +251,25 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
 
     //3. Read until some tactile value are detected
     //TODO: Here, instead we should check the saliency given by pasar!
-    Bottle *bTactile = portFromTouchDetector.read();
+    bool gotTouch = false;
+    Bottle *bTactile;
+    int timeout = 0;
+    while(!gotTouch && timeout<10) {
+        bTactile = portFromTouchDetector.read(false);
+        if(bTactile != NULL) {
+            gotTouch = true;
+            break;
+        } else {
+            yarp::os::Time::delay(0.5);
+            timeout++;
+        }
+    }
 
-    if(bTactile == NULL){
+    if(!gotTouch) {
         yError() << " error in proactiveTagging::exploreTactileEntityWithName | for " << sName << " | Touch not detected!" ;
         bOutput.addString("error");
-        bOutput.addString("Touch not detected!");
-        iCub->say("You did not touch me.");
+        bOutput.addString("I did not feel any touch.");
+        iCub->say("I did not feel any touch.");
         iCub->home();
 
         return bOutput;
