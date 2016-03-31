@@ -188,7 +188,7 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             string out_port_name = "/" + moduleName + "/" + driveName + "/under_action:o";
             alloDrive.behaviorUnderPort = new Port();
             alloDrive.behaviorUnderPort->open(out_port_name);
-            yDebug() << "trying to connect to " << under_port_name;
+            yDebug() << "trying to connect to" << under_port_name;
             while(!Network::connect(out_port_name,under_port_name))
             {
                 
@@ -196,11 +196,11 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             }
             alloDrive.behaviorUnderCmd = Bottle(under_cmd_name);
         }else{
-            yInfo() << "No port name";            
+            yInfo() << "No port name for" << driveName << "under-behavior-port";
         }
 
         //Over effects
-        string over_port_name = grpAllostatic.check((driveName + "-under-behavior-port"), Value("None")).asString();
+        string over_port_name = grpAllostatic.check((driveName + "-over-behavior-port"), Value("None")).asString();
         string over_cmd_name = grpAllostatic.check((driveName + "-over-behavior"), Value("None")).asString();
         if (over_port_name != "None" && over_cmd_name != "None")
         {
@@ -208,15 +208,14 @@ void AllostaticController::configureAllostatic(yarp::os::ResourceFinder &rf)
             string out_port_name = "/" + moduleName + "/" + driveName + "/over_action:o";
             alloDrive.behaviorOverPort = new Port();
             alloDrive.behaviorOverPort->open(out_port_name);
-            yDebug() << "trying to connect to " << over_port_name ;
+            yDebug() << "trying to connect to" << over_port_name;
             while(!Network::connect(out_port_name, over_port_name))
             {
-                
                 yarp::os::Time::delay(0.5);
             }
             alloDrive.behaviorOverCmd = Bottle(over_cmd_name);
         } else {
-            yInfo() << "No port name";
+            yInfo() << "No port name for" << driveName << "over-behavior-port";
         }
 
         alloDrive.active = active;

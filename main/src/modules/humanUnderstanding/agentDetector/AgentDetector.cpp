@@ -72,11 +72,10 @@ bool AgentDetector::configure(ResourceFinder &rf)
         cout<<"Waiting connection to RFH..."<<endl;
         Time::delay(1.0);
     }
-    isCalibrated=checkCalibration();
 
-    if(!isCalibrated){
+    isCalibrated=false;
+    if(!checkCalibration())
         yWarning() << " ========================= KINECT NEED TO BE CALIBRATED ============================" ;
-    }
 
     string clientName = name;
     clientName += "/kinect";
@@ -280,7 +279,6 @@ bool AgentDetector::close()
     opc->close();
     rfh.close();
     delete opc;
-    delete partner;
 
     return true;
 }
@@ -403,10 +401,8 @@ bool AgentDetector::updateModule()
     }
 
     //Send the players information to the OPC
-    bool localIsCalibrated=checkCalibration();
-
     //Allow click calibration
-    if (!localIsCalibrated)
+    if (!checkCalibration())
     {
         if (AgentDetector::clicked==clicked_left)
         {
@@ -546,7 +542,7 @@ bool AgentDetector::updateModule()
                     }
 
                     //We interact with OPC only if the calibration is done
-                    if (localIsCalibrated)
+                    if (isCalibrated)
                     {
                         //Retrieve this player in OPC or create if does not exist
                         opc->checkout();
@@ -761,7 +757,7 @@ Vector AgentDetector::transform2IR(Vector v)
 
     Vector vIR = v;
     vIR.push_back(1.0);
-    vIR = H * vIR ;
+    vIR = H * vIR;
     //cout<<"Kinect in IR = "<<vIR.toString(3,3)<<endl;
     return vIR;
 }

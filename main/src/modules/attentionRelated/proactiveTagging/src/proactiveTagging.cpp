@@ -558,6 +558,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         sQuestion = " Hum, what is this object?";
     }
     else if (currentEntityType == "bodypart") {
+        iCub->lookAtAgent();
         sQuestion = " Watch please, I will move a part of my body";
     }
     else {
@@ -586,6 +587,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         yInfo() << "Start bodySchema";
         iCub->babbling(joint, babblingArm);
 
+        iCub->lookAtAgent();
         sQuestion = " How do you call this part of my body?";
         yInfo() << sQuestion;
         //iCub->getSpeechClient()->TTS(sQuestion, false);
@@ -621,6 +623,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     Entity* e = iCub->opc->getEntity(sNameTarget);
     iCub->changeName(e,sName);
 
+    iCub->lookAtAgent();
     if (currentEntityType == "agent") {
         sReply = " Nice to meet you " + sName;
     }
@@ -723,6 +726,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     } else if (sTypeTarget == "bodypart") {
         sSentence = "I don't known my " + sNameTarget + ". Can you please touch my " + sNameTarget;
     }
+    iCub->lookAtAgent();
     iCub->say(sSentence);
     yInfo() << " " << sSentence;
 
@@ -874,8 +878,6 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
             lArgument,
             true);
     }
-
-
 
     return bOutput;
 }

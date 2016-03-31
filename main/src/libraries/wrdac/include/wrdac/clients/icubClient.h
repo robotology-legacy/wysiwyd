@@ -306,6 +306,11 @@ namespace wysiwyd{
             bool lookStop();
 
             /**
+            * Looks at the agent if present in the scene.
+            */
+            bool lookAtAgent();
+
+            /**
             * Babbling a single joint
             * @param jointNumber contains the int corresponding to an arm joint
             * @param babblingLimb contains the string corresponding to the side of the arm used ("left" or "right")

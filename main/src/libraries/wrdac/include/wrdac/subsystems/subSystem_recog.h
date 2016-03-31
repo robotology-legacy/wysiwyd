@@ -167,17 +167,14 @@ namespace wysiwyd{
                     bOutput; // semantic information of the content of the recognition
 
 
-                if (!isEars)
-                { //this line has been added becquse non-ears modules should be able to interrupt ears
-                    bMessenger.addString("interrupt");
-                    // send the message
-                    portRPC.write(bMessenger, bReply);
-                    if(bReply.get(0).asString() != "OK") {
-                        yError() << "speechRecognizer was not interrupted";
-                    }
-                    yarp::os::Time::delay(0.5);
-                    bMessenger.clear();
+                bMessenger.addString("interrupt");
+                // send the message
+                portRPC.write(bMessenger, bReply);
+                if(bReply.get(0).asString() != "OK") {
+                    yError() << "speechRecognizer was not interrupted";
                 }
+                yarp::os::Time::delay(0.5);
+                bMessenger.clear();
 
                 bMessenger.addString("recog");
                 bMessenger.addString("grammarXML");
@@ -270,7 +267,7 @@ namespace wysiwyd{
                     bOutput.addInt(0);
                     osError << "no vocal input";
                     bOutput.addString(osError.str());
-                    yError() << " " << osError.str();
+                    yDebug() << osError.str();
                 }
                 if (!isEars) listen(true);
                 return bOutput;

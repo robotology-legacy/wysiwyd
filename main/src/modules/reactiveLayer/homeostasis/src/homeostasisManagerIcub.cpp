@@ -199,9 +199,13 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
                 {
                     manager->drives[d]->setDecay(cmd.get(3).asDouble());
                 }
+                else if (cmd.get(2).asString()=="reset")
+                {
+                    manager->drives[d]->reset();
+                }
                 else
                 {
-                    reply.addString("Format is: \n - ['par'] [drive_name] [val/min/max/dec] [value]");
+                    reply.addString("Format is: \n - ['par'] [drive_name] [val/min/max/dec/reset] [value]");
                     
                 }
                 reply.addString("ack");
@@ -369,7 +373,33 @@ bool HomeostaticModule::respond(const Bottle& cmd, Bottle& reply)
         if (reply.size() == 0) {
             reply.addString("nack");
         }
-    }    
+    }
+    else if (cmd.get(0).asString() == "force")
+    {
+        for (unsigned int d = 0; d<manager->drives.size();d++)
+        {
+            manager->drives[d]->freeze();
+            manager->drives[d]->reset();
+            if (cmd.get(1).asString() == manager->drives[d]->name)
+            {
+                if (cmd.get(2).asString()=="bottom")
+                    manager->drives[d]->setValue(0.);
+                else if (cmd.get(2).asString()=="top")
+                    manager->drives[d]->setValue(1.);
+                else
+                {
+                    reply.addString("Format is: \n - ['force'] [drive_name] [top/bottom]");
+                }
+                reply.addString("ack");
+                yInfo()<<"Received a order";
+            }
+            else
+            {
+                reply.addString("Format is: \n - ['force'] [drive_name] [top/bottom]");
+            }
+
+        }
+    }  
     else
     {
         reply.addString("nack");

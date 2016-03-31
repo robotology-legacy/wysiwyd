@@ -15,6 +15,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     - something external : argN + role is mandatory
     */
 
+    // run only one snapshot at a time
+    LockGuard lg(mutexSnapshot);
+
     //get Instance of the next opc
     string sRequest_instance;
 
@@ -318,6 +321,9 @@ Bottle autobiographicalMemory::snapshotSP(const Bottle &bInput)
     - something from the OPC : just argN is enough
     - something external : argN + role is mandatory
     */
+
+    LockGuard lg(mutexSnapshot);
+
     Bottle bOutput;
 
     // check input
@@ -506,6 +512,8 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
     - something external : argN + role is mandatory
     */
 
+    LockGuard lg(mutexSnapshot);
+
     Bottle bOutput;
 
     // check input
@@ -634,14 +642,10 @@ Bottle autobiographicalMemory::snapshotBehavior(const Bottle &bInput)
 * bRecogBottle     : (temporal "before you") (actionX (action1 ((verb1 point) (object "the circle")))) (actionX (action2 ((verb2 push) (object "the ball"))))
 * Modify the ostringstream osInsertTemp
 */
-void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle, string s_deep, int i_deep, int iInstance)
+void autobiographicalMemory::recogFromGrammarSemantic(const Bottle &bRecogBottle, string s_deep, int i_deep, const int iInstance)
 {
-
-
-    yarp::os::Bottle bReply;
-
-    //TODO : list of string for the deepness, no need for the int in that case
-    //TODO : careful, may have to copy each time because of recursive
+    //TODO: list of string for the deepness, no need for the int in that case
+    //TODO: careful, may have to copy each time because of recursive
 
     string currentWord = "";
     string currentRole = "";
@@ -676,8 +680,6 @@ void autobiographicalMemory::recogFromGrammarSemantic(Bottle bRecogBottle, strin
         i_deep = i_deep * 10 + 1;
         int i_deep_cp = i_deep;
         recogFromGrammarSemantic(*bRecogBottle.get(1).asList(), s_deep, i_deep_cp, iInstance);
-
-
     }
 
     //case 3 : it is not case 1 or 2, so we should have reach the "end" of a semantic, and having group of pairs (role1 arg1) (role2 arg2) (role3 arg3) 
