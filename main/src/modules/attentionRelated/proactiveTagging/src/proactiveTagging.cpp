@@ -693,6 +693,8 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     string sNameTarget = bInput.get(2).toString();
     yInfo() << " Entity to find: " << sNameTarget;
 
+    bool unknownEntityPresent = false;
+
     // check if the entity is already present in the OPC
     if (iCub->opc->isConnected())
     {
@@ -701,13 +703,24 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
         for (auto& entity : lEntities)
         {
-            if (entity->name() == sNameTarget)
+            if (entity->name() == sNameTarget && entity->entity_type() == sTypeTarget)
             {
                 yInfo() << " Entity " << sNameTarget << " is already known.";
                 bOutput.addString("warning");
                 bOutput.addString("entity already exists");
                 return bOutput;
             }
+            if (entity->name().find("unknown") != string::npos && entity->entity_type() == sTypeTarget) { // TODO!!! && entity->m_present == 1.0
+                unknownEntityPresent = true;
+            }
+        }
+
+        if(!unknownEntityPresent) {
+            iCub->say("I know all the " + sTypeTarget + " present. The " + sNameTarget + " is not here");
+            yInfo() << "No unknown entity is present.";
+            bOutput.addString("nack");
+            bOutput.addString("No unknown entity is present.");
+            return bOutput;
         }
     }
     else
