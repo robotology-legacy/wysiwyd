@@ -710,7 +710,8 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                 bOutput.addString("entity already exists");
                 return bOutput;
             }
-            if (entity->name().find("unknown") != string::npos && entity->entity_type() == sTypeTarget) { // TODO!!! && entity->m_present == 1.0
+            Object *o = dynamic_cast<Object*>(entity);
+            if(o && o->name().find("unknown") != string::npos && o->entity_type() == sTypeTarget && o->m_present == 1.0) {
                 unknownEntityPresent = true;
             }
         }

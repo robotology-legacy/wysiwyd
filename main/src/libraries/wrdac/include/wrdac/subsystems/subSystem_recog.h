@@ -78,7 +78,7 @@ namespace wysiwyd{
                 SubABM->Close();
 
                 delete SubABM;
-            };
+            }
 
             /**
             * Set the speaker name to be sent as argument to abm when snapshot
