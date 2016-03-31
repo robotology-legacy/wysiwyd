@@ -258,6 +258,8 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
         bOutput.addString("error");
         bOutput.addString("Touch not detected!");
         iCub->say("You did not touch me.");
+        iCub->home();
+
         return bOutput;
     }
 
@@ -272,6 +274,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     string sThank = " Thank you, now I know when I am touching object with my " + sName;
     yInfo() << " sThank: " << sThank;
     iCub->say(sThank);
+    iCub->home();
 
     return bOutput;
 }
