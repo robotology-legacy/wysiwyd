@@ -248,6 +248,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     yInfo() << " sAsking: " << sAsking;
     iCub->lookAtAgent();
     iCub->say(sAsking);
+    portFromTouchDetector.read(false); // clear buffer from previous readings
 
     //3. Read until some tactile value are detected
     //TODO: Here, instead we should check the saliency given by pasar!
