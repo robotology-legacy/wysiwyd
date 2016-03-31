@@ -24,10 +24,7 @@ private:
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
-    bool interruptModule()
-    {
-        return true;
-    }
+    bool interruptModule();
 
     bool close();
 
@@ -36,8 +33,7 @@ public:
         return period;
     }
 
-
-    bool updateModule();
+    bool    updateModule();
     bool    populateSpecific1(Bottle bInput);
 
     bool    addUnknownEntity(Bottle bInput);

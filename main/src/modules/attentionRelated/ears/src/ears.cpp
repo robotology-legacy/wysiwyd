@@ -38,6 +38,14 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     return true;
 }
 
+bool ears::interruptModule() {
+    portToBehavior.interrupt();
+    portTarget.interrupt();
+    rpc.interrupt();
+
+    return true;
+}
+
 
 bool ears::close() {
     if(iCub) {
@@ -108,7 +116,7 @@ bool ears::updateModule() {
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 3, true);
 
         if (bRecognized.get(0).asInt() == 0)
         {
