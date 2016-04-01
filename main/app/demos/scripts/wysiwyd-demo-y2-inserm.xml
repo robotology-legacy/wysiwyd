@@ -74,7 +74,7 @@
     </module>
     <module>
         <name>proactiveTagging</name>
-        <parameters></parameters>
+        <parameters>--OPC_AddOrRetrieve::populateOPC 1</parameters>
         <node>icub-b1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
