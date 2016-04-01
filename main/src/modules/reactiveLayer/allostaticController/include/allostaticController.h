@@ -27,7 +27,7 @@ class AllostaticDrive
 {
 public: 
     string name;
-    bool active;
+    bool active, manualMode;
     Port *behaviorUnderPort;
     Port *behaviorOverPort;
     Port *homeoPort;
@@ -37,6 +37,7 @@ public:
     Bottle sensationOnCmd, sensationOffCmd, beforeTriggerCmd, afterTriggerCmd;
     
     AllostaticDrive() {
+        manualMode = false;
         behaviorUnderPort = nullptr;
         behaviorOverPort = nullptr;
         homeoPort = nullptr;
@@ -78,8 +79,10 @@ public:
         for (int i=0; i<cmds.size(); i++){
             Bottle rply;
             rply.clear();
-            Bottle cmd = *cmds.get(i).asList();        
-            homeoPort->write(cmd,rply);
+            Bottle cmd = *cmds.get(i).asList();
+            if ( ! manualMode) {
+                homeoPort->write(cmd,rply);
+            }
             rplies.addList() = rply;
         }
         return rplies;
@@ -89,7 +92,7 @@ public:
     {
         Bottle cmd, rply, rplies;
         // before trigger command
-        if ( ! beforeTriggerCmd.isNull()) {
+        if ( ! beforeTriggerCmd.isNull() && ! manualMode) {
             cmd.clear();
             rply.clear();
             rplies.clear();
@@ -122,7 +125,7 @@ public:
         port->write(cmd, rply);
         
         // after trigger command
-        if ( ! afterTriggerCmd.isNull()) {
+        if ( ! afterTriggerCmd.isNull() && ! manualMode) {
             cmd.clear();
             rply.clear();
             rplies.clear();
@@ -151,7 +154,7 @@ private:
 
     Bottle drivesList;
     
-    Port to_homeo_rpc;
+    Port to_homeo_rpc, rpc_in_port;;
     string moduleName;
     string homeo_name;
 
@@ -165,6 +168,7 @@ private:
 
     vector< yarp::os::BufferedPort<Bottle>* > outputM_ports;
     vector< yarp::os::BufferedPort<Bottle>* > outputm_ports;
+
 
     //Configuration
     void configureAllostatic(yarp::os::ResourceFinder &rf);
@@ -194,4 +198,6 @@ public:
 
     // Choose a drive out of CZ, according to drive priorities
     DriveOutCZ chooseDrive();
+
+    bool respond(const Bottle& cmd, Bottle& reply);
 };

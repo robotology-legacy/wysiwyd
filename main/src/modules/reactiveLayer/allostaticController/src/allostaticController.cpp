@@ -60,6 +60,9 @@ int AllostaticController::openPorts(string driveName)
         yarp::os::Time::delay(0.5);
     }
 
+    rpc_in_port.open("/" + moduleName + "/rpc");
+    attach(rpc_in_port);
+
     return 42;
 }
 
@@ -361,5 +364,39 @@ bool AllostaticController::updateAllostatic()
         yInfo() << "Drive " + activeDrive.name + " is not active";
     }
 
+    return true;
+}
+
+
+bool AllostaticController::respond(const Bottle& cmd, Bottle& reply)
+{
+    yInfo() << "RPC received in allostaticController";
+    yDebug() << cmd.toString();
+    
+    reply.clear();
+
+    if (cmd.get(0).asString() == "help" )
+    {   string help = "\n";
+        help += " [manual on/off]  : Turns on/off manual mode (for manual control of drives) \n";
+        reply.addString(help);
+    }
+    else if (cmd.get(0).asString() == "manual") {
+        if (cmd.get(1).asString() == "on") {
+            for(auto& allostaticDrive : allostaticDrives) {
+                allostaticDrive.second.manualMode = true;
+            }
+            yInfo() << "Manual mode turns on";
+            reply.addString("ack");
+        } else if (cmd.get(1).asString() == "off") {
+            for(auto& allostaticDrive : allostaticDrives) {
+                allostaticDrive.second.manualMode = false;
+            }
+            yInfo() << "Manual mode turns off";
+            reply.addString("ack");
+        }
+    } else {
+        reply.addString("nack");
+        reply.addString("Unknown rpc command");
+    }
     return true;
 }
