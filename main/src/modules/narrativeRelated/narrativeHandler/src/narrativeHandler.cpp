@@ -49,6 +49,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
     iThresholdSentence = rf.check("iThresholdSentence", Value(6)).asInt();
     iMinInstance = rf.check("instanceStart", Value(0)).asInt();
+    storyToNarrate = rf.check("storyToNarrate", Value(1770)).asInt();
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
 
@@ -750,26 +751,27 @@ void narrativeHandler::compareNarration(story &target){
 
 
 void narrativeHandler::sayNarrationSimple(story target){
-
+       
     cout << "Start Narration Simple : " << endl;
+    cout << "size of human narration: " << target.humanNarration.size() << endl;
 
-    vector<string>    sentencesFromLRH;
-
-    for (auto evt : target.vEvents){
-        cout << "\t A:" << evt.agent;
-        cout << "\t P:" << evt.predicate;
-        cout << "\t O:" << evt.object;
-        cout << "\t R:" << evt.recipient << endl;
-        string meaning = createMeaning(evt.agent, evt.predicate, evt.object, evt.recipient);
-        string sentence = iCub->getLRH()->meaningToSentence(meaning);
-        sentencesFromLRH.push_back(sentence);
+    if (target.humanNarration.size() > 2){
+        cout << endl << "********************************\nbegin narration from human: " << target.viInstances[0] << " with " << target.humanNarration.size() << " events and " << target.sentenceStory.size() << " sentences." << endl;
+        for (auto ii : target.humanNarration){
+            iCub->say(ii, true, false, "default", false);
+        }
+        return;
     }
-
-
-    cout << endl << "Narration simple using LRH" << endl;
-    // story comming from LRH is:
-    for (auto sen : sentencesFromLRH){
-        cout << sen << endl;
+    else{
+        if (target.sentenceStory.size() > iThresholdSentence){
+            cout << endl << "begin display narration of story: " << counter << " with " << target.vEvents.size() << " events and " << target.sentenceStory.size() << " sentence." << endl;
+            for (auto itSt : target.sentenceStory){
+                iCub->say(itSt, true, false, "default", false);
+            }
+        }
+        else{
+            return ;
+        }
     }
 }
 
@@ -1368,14 +1370,13 @@ bool narrativeHandler::narrate(){
     //    findStories(iMinInstance);
 
     bool canNarrate = false;
-    int iSto = listStories.size();
-    story target;
-    while (!canNarrate && iSto > 0){
-        iSto--;
-        target = listStories[iSto];
-        canNarrate = target.displayNarration();
+    
+    for (auto target : listStories){
+        if (target.viInstances[0] == storyToNarrate){
+            target.displayNarration();
+            sayNarrationSimple(target);
+        }
     }
-
 
     //    narrationToSpeech(target);
 

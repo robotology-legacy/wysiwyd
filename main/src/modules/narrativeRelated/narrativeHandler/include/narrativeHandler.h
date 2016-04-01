@@ -34,6 +34,7 @@ private:
     unsigned int  iThresholdSizeStory; // threshold of the number of instance in a story
     unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
     unsigned int  iMinInstance; // threshold of the number of sentence in a story
+    int            storyToNarrate; // first instance of the story to narrate
     yarp::os::Port  rpcPort;
 
     std::vector<story> listStories;
