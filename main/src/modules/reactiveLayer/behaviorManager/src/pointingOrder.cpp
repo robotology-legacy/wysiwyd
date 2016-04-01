@@ -64,7 +64,7 @@ bool PointingOrder::handlePoint(string type, string target)
     iCub->lookAtAgent();
     iCub->say("I cannot point to the " + target);
     iCub->home();
-    return false;  
+    return false;
 }
 
 

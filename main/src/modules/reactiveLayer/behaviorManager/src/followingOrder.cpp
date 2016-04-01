@@ -94,34 +94,35 @@ bool FollowingOrder::handlePoint(string type, string target)
     iCub->opc->checkout();
     yInfo() << " [handlePoint] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
-    string e_name = target;
 
     for (auto& entity : lEntities)
     {
         string sName = entity->name();
 
-        yDebug() << "Checking entity: " << e_name << " to " << sName;
-        if (sName == e_name) {
-            if (entity->entity_type() == "object")
+        yDebug() << "Checking entity: " << target << " to " << sName;//<<endl;
+        if (sName == target) {
+            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
             {
                 yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
-                if(o && o->m_present) {
-                    
-                    yInfo() << "I'd like to point " << e_name;
-                    
-                    iCub->point(e_name);
-                    iCub->say("oh! this is a " + e_name);
+                if(o && (o->m_present==1.0)) {
+                    yInfo() << "I'd like to point " << target;// <<endl;
+
+                    iCub->point(target);
+                    iCub->say("oh! this is a " + target);
                     yarp::os::Time::delay(2.0);
                     iCub->home();
-                    target = "none";
+
                     return true;
                 }
-
             }
         }
     }
-    return false;  
+
+    iCub->lookAtAgent();
+    iCub->say("I cannot point to the " + target);
+    iCub->home();
+    return false;
 }
 
 bool FollowingOrder::handleLook(string type, string target)
