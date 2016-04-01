@@ -64,6 +64,9 @@ bool FollowingOrder::handleNarrate(){
 }
 
 bool FollowingOrder::handleAction(string type, string target, string action) {
+    iCub->home();
+    yarp::os::Time::delay(1.0);
+
     yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
     iCub->opc->checkout();
     yInfo() << " [handleAction]: opc checkout";
