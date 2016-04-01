@@ -100,7 +100,15 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
     for (auto meani : target.meaningStory){
         cout << "\t" << meani << endl;
     }
+
+    // recording narration
+    recordNarrationABM(target);
+
+    yInfo(" END add narration");
+
 }
+
+
 
 // take a meaning under the format: OCW, OCW OCW, OCW OCW, P1 P2 A2 O3 ... and return: , OCW1 OCW2 , OCW3 OCW4 OCW5 <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>
 void narrativeHandler::enrichMeaning(string &meaning, string sentence){
@@ -108,7 +116,7 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
     //if I could ask John to give it to me
     //[P-_-_-_-_-_-_-_][_ - A - P - _ - _ - _ - _ - _][_ - A - _ - P - R - _ - _ - _][_ - A - _ - _ - _ - P - O - R]
 
-    
+
     // decompose the sentence into words
     istringstream iss(sentence);
     vector<string> wordsSentence;
@@ -116,7 +124,7 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
         istream_iterator<string>(),
         back_inserter(wordsSentence));
 
-//    cout << "         BEGIN ENRICH         " << endl;
+    //    cout << "         BEGIN ENRICH         " << endl;
 
     //yInfo() << " sentence: " << sentence;
     //yInfo() << " meaning: " << meaning;
@@ -167,8 +175,8 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
 
     // remove PAOR from meaningParsed:
     vector<string> meaningWords = vector<string>(meaningParsed.begin(), meaningParsed.begin() + meaningParsed.size() / 2);
-    vector<string> meaningPAOR = vector<string>(meaningParsed.begin()+ meaningParsed.size() / 2, meaningParsed.end());
- 
+    vector<string> meaningPAOR = vector<string>(meaningParsed.begin() + meaningParsed.size() / 2, meaningParsed.end());
+
     //yInfo() << " meaning meaningWords is:";
     //for (auto it : meaningWords){
     //    cout << it << " ";
@@ -203,7 +211,7 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
     }
 
     for (int ii = 0; ii < iPAOR; ii++){
-                
+
         // if we change the proposition
         string current = meaningPAOR[ii];
         if (int(current.at(1) - '0') != iCurrentPAOR){
@@ -243,7 +251,7 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
 
     osMeaning << "] <o>";
 
-    
+
     // if no narrative word
     if (iPAORWordsInProp == iCurrentPAOR - 1){
         //yInfo("   adding a coma");
@@ -256,14 +264,44 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
 
     //cout << "meaning is: " << meaning << endl;
     //cout << "result is: " <<  iCub->getLRH()->meaningToSentence(meaning) << endl;
-    
+
     //meaning = osMeaning.str();
     //cout << endl;
 
 }
 
 
+/*
+* Get the human narration and record it into ABM and link it to the corresponding story
+*/
+void narrativeHandler::recordNarrationABM(story &target){
 
+    // each sentence is recorded with the corresponding instance from the target and the corresponding order
+
+    yInfo(" BEGIN recording in ABM");
+    if (target.humanNarration.size() != target.meaningStory.size()){
+        yWarning(" in narrativeHandler::recordNarrationABM : meaning and narration have different size. Won't be recorded");
+        return;
+    }
+
+    for (unsigned int ii = 0; ii < target.humanNarration.size(); ii++){
+        if (iCub->getABMClient()->Connect())
+        {
+            std::list<std::pair<string, string> > lArgument;
+            lArgument.push_back(pair<string, string>(target.meaningStory[ii], "meaning"));
+            lArgument.push_back(pair<string, string>(target.humanNarration[ii], "sentence"));
+            lArgument.push_back(pair<string, string>(to_string(target.viInstances[0]), "story"));
+            lArgument.push_back(pair<string, string>(to_string(ii), "rank"));
+            iCub->getABMClient()->sendActivity("action",
+                "narration",
+                "narration",
+                lArgument,
+                true);
+        }
+    }
+    yInfo(" END recording in ABM");
+
+}
 
 
 

@@ -52,6 +52,8 @@ private:
     std::string adaptMeaning(std::string oriMeaning);
 
     void addNarrationToStory(story &target, bool overWrite = false);
+    void recordNarrationABM(story &target);
+
 
     std::string GrammarNarration; // the file for the grammar narration
     std::string GrammarYesNo;
