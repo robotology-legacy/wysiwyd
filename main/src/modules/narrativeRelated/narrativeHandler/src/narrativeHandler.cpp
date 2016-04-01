@@ -91,10 +91,14 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     counter = 0;
 
     findStories(iMinInstance);
+
+
+    cout << endl << "###   DISPLAY KNOWN STORIES   ###" << endl;
     for (auto st : listStories){
         st.displayNarration();
     }
 
+    cout << endl << "###   END DISPLAY   ###" << endl;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -181,8 +185,7 @@ bool narrativeHandler::updateModule() {
 
 void narrativeHandler::findStories(int iInstance)
 {
-    yInfo() << " begin findStories from: " << iInstance << " while iMinInstance is: " << iMinInstance;
-    cout << "Starting findStories begin: " << iInstance << endl;
+    yInfo() << " BEGIN FINDSTORIES from: " << iInstance << " while iMinInstance is: " << iMinInstance;
 
     story currentStory;
     currentStory.iThresholdSentence = iThresholdSentence;
@@ -262,18 +265,20 @@ void narrativeHandler::findStories(int iInstance)
         osRequest.str("");
         osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itSt.viInstances.begin() << " AND verb != 'isAtLoc'";
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        if (bMessenger.toString() != "NULL")   cout << "before: " << bMessenger.toString() << endl;
+        //if (bMessenger.toString() != "NULL")   cout << "before: " << bMessenger.toString() << endl;
 
         osRequest.str("");
         osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itSt.viInstances[itSt.viInstances.size() - 1] << " AND verb != 'isAtLoc'";
         bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        if (bMessenger.toString() != "NULL")   cout << "after : " << bMessenger.toString() << endl;
+        //if (bMessenger.toString() != "NULL")   cout << "after : " << bMessenger.toString() << endl;
 
         ii++;
     }
 
     initializeStories();
     findNarration();
+
+    yInfo(" END FINDSTORIES ");
 }
 
 
@@ -302,7 +307,7 @@ void narrativeHandler::findNarration()
         bool stop = false;
 
         if (bListInstances.toString() != "NULL"){
-            yInfo() << " Narration found for story: " << iTarget << ", size: " << bListInstances.size() ;
+            yInfo() << " Narration found for story: " << iTarget << ", size: " << bListInstances.size();
             target.humanNarration.clear();
             target.meaningStory.clear();
 
@@ -328,7 +333,7 @@ void narrativeHandler::findNarration()
                         target.humanNarration.push_back(sSentence);
                         target.meaningStory.push_back(sMeaning);
                     }
-                    iCurrentElm = iRank+1;
+                    iCurrentElm = iRank + 1;
                 }
             }
             target.displayNarration();
@@ -521,7 +526,7 @@ void narrativeHandler::initializeStories()
             itSt.addOCW(tempOCW);
         }
 
-        cout << "-";
+        //cout << "-";
 
         createNarration(itSt);
         if (itSt.sentenceStory.size() < 2){
@@ -751,15 +756,17 @@ void narrativeHandler::compareNarration(story &target){
 
 
 void narrativeHandler::sayNarrationSimple(story target){
-       
+
     cout << "Start Narration Simple : " << endl;
     cout << "size of human narration: " << target.humanNarration.size() << endl;
 
     if (target.humanNarration.size() > 2){
-        cout << endl << "********************************\nbegin narration from human: " << target.viInstances[0] << " with " << target.humanNarration.size() << " events and " << target.sentenceStory.size() << " sentences." << endl;
+        cout << endl << "********************************\nbegin saying from human: " << target.viInstances[0] << " with " << target.humanNarration.size() << " events and " << target.sentenceStory.size() << " sentences." << endl;
         for (auto ii : target.humanNarration){
             iCub->say(ii, true, false, "default", false);
         }
+        cout << endl << "********************************" << endl;
+
         return;
     }
     else{
@@ -770,7 +777,7 @@ void narrativeHandler::sayNarrationSimple(story target){
             }
         }
         else{
-            return ;
+            return;
         }
     }
 }
@@ -778,7 +785,7 @@ void narrativeHandler::sayNarrationSimple(story target){
 
 void narrativeHandler::createNarration(story &sto)
 {
-    bool VERBOSE = true;
+    bool VERBOSE = false;
 
     vector<string>  vsOutput;
 
@@ -1370,7 +1377,7 @@ bool narrativeHandler::narrate(){
     //    findStories(iMinInstance);
 
     bool canNarrate = false;
-    
+
     for (auto target : listStories){
         if (target.viInstances[0] == storyToNarrate){
             target.displayNarration();
