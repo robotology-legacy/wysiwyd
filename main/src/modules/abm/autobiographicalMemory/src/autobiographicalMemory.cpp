@@ -774,7 +774,6 @@ bool autobiographicalMemory::updateModule() {
     {
         yInfo() << "I have received a sound!";
         string soundPath = storingPath + "/" + storingTmpSuffix + "/sound/";
-        if (yarp::os::stat())
         if (yarp::os::mkdir(soundPath.c_str()) == -1) {
             yDebug() << "Folder " << soundPath << " already exists or could not be created!";
         }
