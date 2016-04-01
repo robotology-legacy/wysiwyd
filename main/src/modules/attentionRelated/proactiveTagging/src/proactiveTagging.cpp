@@ -752,11 +752,19 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
             yError() << "Could not connect to pasar";
             iCub->say("Could not connect to pasar");
+
+            bOutput.addString("error");
+            bOutput.addString("Could not connect to pasar");
+            return bOutput;
         } else {
             portToPasar.write(bToPasar, bFromPasar);
             if(bFromPasar.get(0).asString()!="ack") {
                 yError() << "Pasar did not change pointing to on";
                 iCub->say("Pasar did not change pointing to on");
+
+                bOutput.addString("error");
+                bOutput.addString("Pasar did not change pointing to on");
+                return bOutput;
             }
         }
     }
