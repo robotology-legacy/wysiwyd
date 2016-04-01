@@ -38,6 +38,7 @@ class TouchDetectorModule: public yarp::os::RFModule
         /* module parameters */
         int period;
         int threshold;
+        int taxelThreshold;
         std::string moduleName;
         std::string torsoPortName;
         std::string leftArmPortName;
@@ -47,6 +48,7 @@ class TouchDetectorModule: public yarp::os::RFModule
         std::string leftHandPortName;
         std::string rightHandPortName;
         std::string touchPortName;
+        std::string touchPortCleanName;
         std::string clustersConfFilepath;
 
         /* class variables */
@@ -58,6 +60,7 @@ class TouchDetectorModule: public yarp::os::RFModule
         yarp::os::BufferedPort<yarp::os::Bottle> leftHandPort;
         yarp::os::BufferedPort<yarp::os::Bottle> rightHandPort;
         yarp::os::BufferedPort<yarp::os::Bottle> touchPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> touchPortCleaned;
         TouchDetectorThread *thread;
         
         void initializeParameters(yarp::os::ResourceFinder &rf);

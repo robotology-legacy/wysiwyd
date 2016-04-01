@@ -33,8 +33,8 @@ const int TouchDetectorThread::nbBodyParts = 7;
 const char* TouchDetectorThread::bodyParts[7] = {"torso", "left_arm", "right_arm", "left_forearm", "right_forearm", "left_hand", "right_hand"};
 const int TouchDetectorThread::nbTaxels[7] = {4 * 192, 4 * 192, 4 * 192, 2 * 192, 2 * 192, 192, 192};
 
-TouchDetectorThread::TouchDetectorThread(BufferedPort<Bottle> *torsoPort, BufferedPort<Bottle> *leftArmPort, BufferedPort<Bottle> *rightArmPort, BufferedPort<Bottle> *leftForearmPort, BufferedPort<Bottle> *rightForearmPort, BufferedPort<Bottle> *leftHandPort, BufferedPort<Bottle> *rightHandPort, BufferedPort<Bottle> *touchPort, int period, string clustersConfFilepath, int threshold)
-    : RateThread(period), threshold(threshold), clustersConfFilepath(clustersConfFilepath), torsoPort(torsoPort), leftArmPort(leftArmPort), rightArmPort(rightArmPort), leftForearmPort(leftForearmPort), rightForearmPort(rightForearmPort), leftHandPort(leftHandPort), rightHandPort(rightHandPort), touchPort(touchPort)
+TouchDetectorThread::TouchDetectorThread(BufferedPort<Bottle> *torsoPort, BufferedPort<Bottle> *leftArmPort, BufferedPort<Bottle> *rightArmPort, BufferedPort<Bottle> *leftForearmPort, BufferedPort<Bottle> *rightForearmPort, BufferedPort<Bottle> *leftHandPort, BufferedPort<Bottle> *rightHandPort, BufferedPort<Bottle> *touchPort, BufferedPort<Bottle> *touchPortCleaned, int period, string clustersConfFilepath, int threshold, int taxelThreshold)
+    : RateThread(period), threshold(threshold), taxelThreshold(taxelThreshold), clustersConfFilepath(clustersConfFilepath), torsoPort(torsoPort), leftArmPort(leftArmPort), rightArmPort(rightArmPort), leftForearmPort(leftForearmPort), rightForearmPort(rightForearmPort), leftHandPort(leftHandPort), rightHandPort(rightHandPort), touchPort(touchPort), touchPortCleaned(touchPortCleaned)
 {
     for (int i = 0; i < nbBodyParts; ++i)
     {
@@ -146,13 +146,27 @@ void TouchDetectorThread::run()
         ex.portName = bodyParts[port];
         throw ex;
     }
+
+    int activatedTaxelNumber = -1; // which taxel patch was activated
+    int i = 0;
     Bottle& output = touchPort->prepare();
     output.clear();
     for (auto& activation : activations)
     {
+        if(activation >= taxelThreshold) {
+            activatedTaxelNumber = i;
+        }
         output.addInt(activation);
+        i++;
     }
     touchPort->write();
+
+    if(activatedTaxelNumber >= 0) {
+        Bottle& outputClean = touchPortCleaned->prepare();
+        outputClean.clear();
+        outputClean.addInt(activatedTaxelNumber);
+        touchPortCleaned->write();
+    }
 }
 
 void TouchDetectorThread::processPort(int portNum, yarp::os::BufferedPort<yarp::os::Bottle> *port, vector<int> &activations)
@@ -164,7 +178,7 @@ void TouchDetectorThread::processPort(int portNum, yarp::os::BufferedPort<yarp::
     }
     else
     {
-        yError() << "Unable to read data for " << bodyParts[portNum];
+        yWarning() << "Unable to read data for " << bodyParts[portNum];
     }
 }
 

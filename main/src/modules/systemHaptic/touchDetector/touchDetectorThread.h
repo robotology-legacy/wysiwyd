@@ -29,7 +29,7 @@
 class TouchDetectorThread : public yarp::os::RateThread
 {
     public:
-        TouchDetectorThread(yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPort, int period, std::string clustersConfFilepath, int threshold);
+        TouchDetectorThread(yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPortCleaned, int period, std::string clustersConfFilepath, int threshold, int taxelThreshold);
         void run(); 
         bool threadInit();
        
@@ -41,6 +41,7 @@ class TouchDetectorThread : public yarp::os::RateThread
         
         int nbClusters;
         int threshold;
+        int taxelThreshold;
         std::string clustersConfFilepath;
         std::vector<int> taxels2Clusters[7];
         
@@ -53,6 +54,7 @@ class TouchDetectorThread : public yarp::os::RateThread
         yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort;
         yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort;
         yarp::os::BufferedPort<yarp::os::Bottle> *touchPort;
+        yarp::os::BufferedPort<yarp::os::Bottle> *touchPortCleaned;
         
         bool readTaxelsMapping(std::string filename);
         void parseMappingLine(std::string line, int &bodyPart, int &firstTaxel, int &lastTaxel);
