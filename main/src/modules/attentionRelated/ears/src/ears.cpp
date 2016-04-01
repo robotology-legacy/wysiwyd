@@ -84,11 +84,13 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
         {
             if (command.get(1).asString() == "on")
             {
+                yDebug() << "should listen on";
                 bShouldListen = true;
                 reply.addString("ack");
             }
             else if (command.get(1).asString() == "off")
             {
+                yDebug() << "should listen off";
                 bShouldListen = false;
                 reply.addString("ack");
             }
@@ -114,7 +116,7 @@ bool ears::updateModule() {
         Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
-        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 3, true);
+        bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
 
         if (bRecognized.get(0).asInt() == 0)
         {

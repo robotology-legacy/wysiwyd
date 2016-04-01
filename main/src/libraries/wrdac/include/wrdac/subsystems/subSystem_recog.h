@@ -164,14 +164,28 @@ namespace wysiwyd{
                     bReply, //response from speech recog without transfer information, including raw sentence
                     bOutput; // semantic information of the content of the recognition
 
-                if (!isEars)
+                if (!isEars) {
                     listen(false);
 
-                bMessenger.addString("interrupt");
-                // send the message
-                portRPC.write(bMessenger, bReply);
-                if(bReply.get(0).asString() != "OK") {
-                    yError() << "speechRecognizer was not interrupted";
+                    int interruptTrials = 0;
+                    bool wasInterrupted = false;
+                    while(!wasInterrupted && interruptTrials < 3) {
+                        bMessenger.clear();
+                        bReply.clear();
+                        bMessenger.addString("interrupt");
+                        // send the message
+                        portRPC.write(bMessenger, bReply);
+                        if(bReply.get(0).asString() != "OK") {
+                            yInfo() << "speechRecognizer was not interrupted on trial" << interruptTrials;
+                        } else {
+                            wasInterrupted = true;
+                        }
+                        yarp::os::Time::delay(1.0);
+                        interruptTrials++;
+                    }
+                    if(!wasInterrupted) {
+                        yError() << "speechRecognizer could not at all be interrupted";
+                    }
                 }
 
                 bMessenger.clear();

@@ -97,6 +97,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
         }
     }
 
+    yWarning() << "Cannot" << action << "the" << target;
     iCub->lookAtAgent();
     iCub->say("I cannot " + action + " the " + target);
     iCub->home();
