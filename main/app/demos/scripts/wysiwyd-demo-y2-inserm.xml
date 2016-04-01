@@ -416,10 +416,9 @@
         <protocol>udp</protocol>
     </connection>
     <connection>
-        <from>/touchDetector/touch:o</from>
+        <from>/touchDetector/touchClean:o</from>
         <to>/proactiveTagging/fromTouch:i</to>
-        <protocol>
-            tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list</protocol>
+        <protocol>tcp</protocol>
     </connection>
     <connection>
         <from>/guiUpdater/gui:o</from>

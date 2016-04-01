@@ -108,9 +108,9 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     //in from TouchDetector
     portFromTouchDetector.open(("/" + moduleName + "/fromTouch:i").c_str());
-    touchDetectorRpc = rf.check("touchDetectorOut", Value("/touchDetector/touch:o")).asString().c_str();
+    touchDetectorRpc = rf.check("touchDetectorOut", Value("/touchDetector/touchClean:o")).asString().c_str();
 
-    if (!Network::connect(touchDetectorRpc.c_str(), portFromTouchDetector.getName().c_str(), "tcp+recv.portmonitor+type.lua+context.touchDetector+file.conversion_cluster_list")) {
+    if (!Network::connect(touchDetectorRpc.c_str(), portFromTouchDetector.getName().c_str())) {
         yWarning() << "TOUCH DETECTOR NOT CONNECTED: selfTagging will not work";
         iCub->say("TOUCH DETECTOR NOT CONNECTED");
     }
