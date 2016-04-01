@@ -8,9 +8,6 @@ void FollowingOrder::configure() {
 
     port_to_narrate_name = "/behaviorManager/narrate:o";
     port_to_narrate.open(port_to_narrate_name);
-
-    finding=false;
-    pointing=false;
 }
 
 void FollowingOrder::run(Bottle args/*=Bottle()*/) {
@@ -30,43 +27,21 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
 
     if (target != "none"){
         yInfo() << "there are elements to search!!!";
-        finding = handleSearch(type, target);
+        handleSearch(type, target);
     }
 
-    if (action == "point"){
+    if (action == "point" || action == "look at" || action == "push"){
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
-            yInfo()<<"I can't point if  you don't tell me the objects";
-            iCub->say("I can't point if  you don't tell me the objects");
-        }else{
-            pointing = handlePoint(type, target);
-            yInfo() << "pointing elements to point!!!";
-            yDebug() << finding;
+            yInfo()<<"I can't" << action << "if you don't tell me the object";
+            iCub->say("I can't " + action + "if you don't tell me the object");
+        } else{
+            handleAction(type, target, action);
         }
-    }else if (action == "look at"){
-        if (sens->size()<2){
-            yInfo()<<"I can't look if  you don't tell me the objects";
-            iCub->say("I can't look if  you don't tell me the objects");
-        }else{
-            handleLook(type, target);
-            yInfo() << "looking elements to look at!!!";
-            yDebug() << finding;
-        }
-    }else if (action == "push"){
-        if (sens->size()<2){
-            yInfo()<<"I can't push if  you don't tell me the objects";
-            iCub->say("I can't push if  you don't tell me the objects");
-        }else{
-            handlePush(type, target);
-            yInfo() << "pushing elements to look at!!!";
-            yDebug() << finding;
-        }
-    }else if (action == "narrate"){
+    } else if (action == "narrate"){
         handleNarrate();
         yInfo() << "narrating!!!";
-        yDebug() << finding;
     }
-
 }
 
 bool FollowingOrder::handleNarrate(){
@@ -88,29 +63,32 @@ bool FollowingOrder::handleNarrate(){
     return true;
 }
 
-bool FollowingOrder::handlePoint(string type, string target)
-{
-    // Point an object (from human order). Independent of proactivetagging
+bool FollowingOrder::handleAction(string type, string target, string action) {
+    yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
     iCub->opc->checkout();
-    yInfo() << " [handlePoint] : opc checkout";
+    yInfo() << " [handleAction]: opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
     for (auto& entity : lEntities)
     {
-        string sName = entity->name();
-
-        yDebug() << "Checking entity: " << target << " to " << sName;//<<endl;
-        if (sName == target) {
-            if (entity->entity_type() == "object")//|| (*itEnt)->entity_type() == "agent" || (*itEnt)->entity_type() == "rtobject")
+        if (entity->name() == target) {
+            if (entity->entity_type() == "object")
             {
-                yInfo() << "I already knew that the object was in the opc: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
                 if(o && (o->m_present==1.0)) {
-                    yInfo() << "I'd like to point " << target;// <<endl;
+                    yInfo() << "I'd like to" << action << "the" << target;
 
-                    iCub->point(target);
-                    iCub->say("oh! this is a " + target);
-                    yarp::os::Time::delay(2.0);
+                    if(action == "point") {
+                        iCub->point(target);
+                        iCub->say("oh! this is a " + target);
+                    } else if(action == "look at") {
+                        iCub->look(target);
+                        iCub->say("oh! look at the " + target);
+                    } else if(action == "push") {
+                        iCub->push(target);
+                        iCub->say("oh! look how I pushed the " + target);
+                    }
+                    yarp::os::Time::delay(1.0);
                     iCub->home();
 
                     return true;
@@ -120,78 +98,8 @@ bool FollowingOrder::handlePoint(string type, string target)
     }
 
     iCub->lookAtAgent();
-    iCub->say("I cannot point to the " + target);
+    iCub->say("I cannot " + action + " the " + target);
     iCub->home();
-    return false;
-}
-
-bool FollowingOrder::handleLook(string type, string target)
-{
-    // Point an object (from human order). Independent of proactivetagging
-    iCub->opc->checkout();
-    yInfo() << " [handleLook] : opc checkout";
-    list<Entity*> lEntities = iCub->opc->EntitiesCache();
-    string e_name = target;
-
-    for (auto& entity : lEntities)
-    {
-        string sName = entity->name();
-
-        yDebug() << "Checking entity: " << e_name << " to " << sName;
-        if (sName == e_name) {
-            if (entity->entity_type() == "object")
-            {
-                yInfo() << "I already knew that the object was in the opc: " << sName;
-                Object* o = dynamic_cast<Object*>(entity);
-                if(o && o->m_present) {
-                    yInfo() << "I'd like to look " << e_name;
-                    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(e_name);
-                    iCub->look(obj1->name());
-                    iCub->say("oh! look at this!");
-                    yarp::os::Time::delay(1.0);
-                    target = "none";
-                    return true;
-                }
-
-            }
-        }
-    }
-    return false;
-}
-
-//Feature to be added in a near future
-bool FollowingOrder::handlePush(string type, string target)
-{
-    // Point an object (from human order). Independent of proactivetagging
-    iCub->opc->checkout();
-    yInfo() << " [handlePush] : opc checkout";
-    list<Entity*> lEntities = iCub->opc->EntitiesCache();
-    string e_name = target;
-
-    for (auto& entity : lEntities)
-    {
-        string sName = entity->name();
-
-        yDebug() << "Checking entity: " << e_name << " to " << sName;
-        if (sName == e_name) {
-            if (entity->entity_type() == "object")
-            {
-                yInfo() << "I already knew that the object was in the opc: " << sName;
-                Object* o = dynamic_cast<Object*>(entity);
-                if(o && o->m_present) {
-                    yInfo() << "I'd like to push " << e_name;
-                    
-                    iCub->push(e_name);
-                    iCub->say("oh! look how I push the " + e_name);
-                    yarp::os::Time::delay(2.0);
-                    iCub->home();
-                    target = "none";
-                    return true;
-                }
-
-            }
-        }
-    }
     return false;
 }
 

@@ -17,8 +17,6 @@ using namespace yarp::sig;
 class FollowingOrder: public Behavior
 {
 private:
-    bool finding;
-    bool pointing;
     yarp::os::Port port_to_narrate;
     string port_to_narrate_name;
     void run(Bottle args=Bottle());
@@ -30,9 +28,7 @@ public:
       
     void configure();
 
-    bool handlePoint(string type, string target);
-    bool handlePush(string type, string target);
-    bool handleLook(string type, string target);
+    bool handleAction(string type, string target, string action);
     bool handleSearch(string type, string target);
     bool handleNarrate();
 
@@ -40,4 +36,3 @@ public:
         ;
     }
 };
-
