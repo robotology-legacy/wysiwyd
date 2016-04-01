@@ -237,29 +237,6 @@ double speechInteraction::getPeriod()
     return 0.1;
 }
 
-string speechInteraction::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    if (!isGrammar)
-    {
-        string sErrorMessage = " Error in qRM::grammarToString. Couldn't open file : " + sPath;
-        sErrorMessage += " .";
-        yInfo() << sErrorMessage;
-        return sErrorMessage;
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}
-
 bool speechInteraction::close()
 {
     iCub->close();

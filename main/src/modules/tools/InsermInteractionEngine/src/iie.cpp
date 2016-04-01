@@ -1,31 +1,5 @@
 #include "iie.h"
 
-
-/*
-*   Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-string IIE::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    if (!isGrammar)
-    {
-        yInfo() << " Error in iie::grammarToString. Couldn't open file : " << sPath << ".";
-        return "Error in iie::grammarToString. Couldn't open file";
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}
-
 bool IIE::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("iie")).asString().c_str();

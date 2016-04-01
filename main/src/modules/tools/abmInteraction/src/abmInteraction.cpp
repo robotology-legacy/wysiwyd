@@ -3,32 +3,6 @@
 #include "wrdac/subsystems/subSystem_recog.h"
 
 /*
-*   Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-string abmInteraction::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    if (!isGrammar)
-    {
-        cout << "Error in abmInteraction::grammarToString. Couldn't open file : " << sPath << "." << endl;
-        return "Error in abmInteraction::grammarToString. Couldn't open file";
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}
-
-
-/*
 * Configure method, connect to different subsystem
 */
 bool abmInteraction::configure(yarp::os::ResourceFinder &rf)

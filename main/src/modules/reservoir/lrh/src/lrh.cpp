@@ -324,9 +324,13 @@ bool LRH::callReservoir(string pythonFile, string closed_class_words)
     std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + closed_class_words + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred + " " + sNbNeurons;
     std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
 
-    system(l_pythonCall.c_str());
+    int python_return = system(l_pythonCall.c_str());
 
-    return true;
+    if(python_return == 0) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
@@ -595,12 +599,12 @@ bool LRH::spatialRelation(string sObjectFocus)
     {
 
         yDebug() << "== than 2 obj present";
-        double deltaX = 0.0;
+        //double deltaX = 0.0;
         double deltaY = 0.0;
         int iFactor;
         (PresentRtoBefore[0].name() == sObjectFocus) ? iFactor = 1 : iFactor = -1;
         yDebug() << "weird if done";
-        deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
+        //deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
         deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
 
         string sLocation;

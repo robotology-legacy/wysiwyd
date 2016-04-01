@@ -596,7 +596,7 @@ Bottle abmReasoning::getActionConsequenceDrives(pair<string, string> pNameArg)
         //bOpcId -> instance, driveName, value
         int opcIdBegin = atoi(bOpcIdBegin.get(i).asList()->get(0).toString().c_str());
         int currentInstance = opcIdBegin;
-        int opcIdEnd = atoi(bOpcIdEnd.get(i).asList()->get(0).toString().c_str());
+        //int opcIdEnd = atoi(bOpcIdEnd.get(i).asList()->get(0).toString().c_str());
 
         yInfo() << "\t" << "instance " << currentInstance;
         //print and do something for all the drives of the same instance
@@ -604,10 +604,10 @@ Bottle abmReasoning::getActionConsequenceDrives(pair<string, string> pNameArg)
         while (atoi(bOpcIdBegin.get(i).asList()->get(0).toString().c_str()) == currentInstance){
 
             opcIdBegin = atoi(bOpcIdBegin.get(i).asList()->get(0).toString().c_str());
-            opcIdEnd = atoi(bOpcIdEnd.get(i).asList()->get(0).toString().c_str());
+            //opcIdEnd = atoi(bOpcIdEnd.get(i).asList()->get(0).toString().c_str());
 
             string driveNameBegin = bOpcIdBegin.get(i).asList()->get(1).toString().c_str();
-            string driveNameEnd = bOpcIdEnd.get(i).asList()->get(1).toString().c_str();
+            //string driveNameEnd = bOpcIdEnd.get(i).asList()->get(1).toString().c_str();
 
             double driveValueBegin = atof(bOpcIdBegin.get(i).asList()->get(2).toString().c_str());
             double driveValueEnd = atof(bOpcIdEnd.get(i).asList()->get(2).toString().c_str());
@@ -1654,12 +1654,12 @@ Bottle abmReasoning::addLastAction()
         sEND2 = bAction.get(8).toString().c_str();
     }
     string sHanoi = "hanoi";
-    bool    isHanoi = false;
+    //    isHanoi = false;
     Bottle bRTOpresent;
     if (sName == sHanoi && bAction.size() == 8)
     {
         bRTOpresent = *bAction.get(7).asList();
-        isHanoi = true;
+        //isHanoi = true;
     }
 
     pair<double, double> BEGIN,
@@ -3464,8 +3464,8 @@ Bottle abmReasoning::askSentenceFromId(int Id)
     }
 
     // 2-
-    int iInstancePrevious =-1,
-        iInstanceNext=-1;
+    //int iInstancePrevious = -1;
+    int iInstanceNext = -1;
     string sTimePrevious, sTimeNext,
         sAgentPrevious, sAgentNext;
 
@@ -3474,7 +3474,7 @@ Bottle abmReasoning::askSentenceFromId(int Id)
     bTemp = *(requestFromStream(osName.str()).get(0).asList());
 
     sTimePrevious = bTemp.get(0).toString().c_str();
-    iInstancePrevious = atoi(bTemp.get(1).toString().c_str());
+    //iInstancePrevious = atoi(bTemp.get(1).toString().c_str());
     sAgentPrevious = bTemp.get(2).toString().c_str();
 
 

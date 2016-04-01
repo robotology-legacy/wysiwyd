@@ -5,33 +5,6 @@
 #include "wrdac/subsystems/subSystem_ARE.h"
 #include "wrdac/subsystems/subSystem_speech.h"
 
-/*
-*  Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-string qRM::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    if (!isGrammar)
-    {
-        string sErrorMessage = " Error in qRM::grammarToString. Couldn't open file : " + sPath;
-        sErrorMessage += " .";
-        yInfo() << sErrorMessage;
-        return sErrorMessage;
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}
-
 bool qRM::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("qRM")).asString().c_str();

@@ -15,7 +15,6 @@ private:
     int         scaledValue; // Test for eyelids opening
     int         minEyeOpening;
     int         maxEyeOpening;
-    string      grammarToString(string sPath);
     //AutomaticCalibrationThread* calibrationThread;
     Port        rpc;
     int boolLeftCam;

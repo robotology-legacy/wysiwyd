@@ -17,7 +17,6 @@ private:
     wysiwyd::wrdac::ICubClient  *iCub;
     double      period;
 
-    std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
     yarp::os::Port   portToArm;
 

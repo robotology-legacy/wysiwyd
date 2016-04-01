@@ -417,7 +417,7 @@ void narrativeHandler::initializeStories()
 
     vector<int>    toDelete; // vector of the stories to delete from the list.
     unsigned int iSto = 0;
-    for (int jj = cursorStories; jj < listStories.size(); jj++){
+    for (unsigned int jj = cursorStories; jj < listStories.size(); jj++){
 
         story &itSt = listStories[jj];
         itSt.vEvents.clear();
@@ -1345,15 +1345,16 @@ bool narrativeHandler::narrationToSpeech(story target){
 
     // look at agent;
     iCub->opc->checkout();
-    bool bFound = false;
+    //bool bFound = false;
     list<Entity*> entities = iCub->opc->EntitiesCache();
     Agent *ag;
     // founding the agent:
     for (auto &it : entities){
         if (it->isType("agent")){
             ag = dynamic_cast<Agent*>(it);
-            if (ag->m_present != 0 && ag->name() != "iCub" && ag->name() != "iCub"){
-                bFound = true;
+            if (ag->m_present != 0.0 && ag->name() != "iCub"){
+                //bFound = true;
+                break;
             }
         }
     }

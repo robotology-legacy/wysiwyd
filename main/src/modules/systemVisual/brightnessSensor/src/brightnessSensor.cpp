@@ -79,7 +79,7 @@ bool brightnessSensor::configure(yarp::os::ResourceFinder &rf)
         attach(rpc);
     }
 
-    return true;
+    return bEveryThingisGood;
 }
 
 

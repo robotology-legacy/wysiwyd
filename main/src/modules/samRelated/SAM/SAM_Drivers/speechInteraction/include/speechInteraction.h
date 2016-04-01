@@ -91,7 +91,6 @@ class speechInteraction: public RFModule
         void sendSpeech(int);
         void triggerBehaviour(int);
         bool close();
-        string grammarToString(string);
 };
 
 #endif // __SPEECHINTERACTION_H__

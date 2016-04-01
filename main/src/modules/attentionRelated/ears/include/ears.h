@@ -15,7 +15,6 @@ private:
 
     bool bShouldListen;
 
-    std::string      grammarToString(std::string sPath);
     std::string      MainGrammar;
 
     yarp::os::Mutex mutex;

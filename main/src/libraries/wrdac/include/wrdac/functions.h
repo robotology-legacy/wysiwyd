@@ -43,6 +43,15 @@ namespace wysiwyd{
          */
         void replace_all(std::string & in, const std::string & plain, const std::string & tok);
 
+        /**
+         * @ingroup wrdac
+         *
+         * Get the context path of a .grxml grammar, and return it as a string
+         *
+         * @param sPath Path to the grammar file
+         * @return Grammar as string
+         */
+        std::string grammarToString(std::string sPath);
     }
 
 }

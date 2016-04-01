@@ -64,8 +64,6 @@ private:
 
     std::string dateToSpeech(std::string sDate);
 
-    std::string  grammarToString(std::string sPath);
-
 public:
     /**
     * document your methods too.

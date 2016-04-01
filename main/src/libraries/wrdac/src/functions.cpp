@@ -16,9 +16,11 @@
  * Public License for more details
  */
 
+#include <fstream>
+#include <yarp/os/LogStream.h>
 #include <yarp/os/Value.h>
 #include <yarp/os/Vocab.h>
-#include <wrdac/functions.h>
+#include "wrdac/functions.h"
 
 using namespace yarp::os;
 using namespace wysiwyd::wrdac;
@@ -34,7 +36,6 @@ int wysiwyd::wrdac::opcGetIdFromAdd(Bottle &reply)
     return EFAA_OPC_INVALID_ID;
 }
 
-
 /************************************************************************/
 Bottle wysiwyd::wrdac::opcGetIdsFromAsk(Bottle &reply)
 {
@@ -47,6 +48,7 @@ Bottle wysiwyd::wrdac::opcGetIdsFromAsk(Bottle &reply)
 
     return ids;
 }
+
 /************************************************************************/
 void wysiwyd::wrdac::replace_all(std::string & in, const std::string & plain, const std::string & tok)
 {
@@ -61,4 +63,28 @@ void wysiwyd::wrdac::replace_all(std::string & in, const std::string & plain, co
             break;
         }
     }
+}
+
+/************************************************************************/
+std::string wysiwyd::wrdac::grammarToString(std::string sPath)
+{
+    std::string sOutput = "";
+    std::ifstream isGrammar(sPath.c_str());
+
+    yDebug() << "Path is:" << sPath;
+
+    if (!isGrammar)
+    {
+        yError() << "grammarToString. Couldn't open file :" << sPath;
+        return "Error in grammarToString. Couldn't open file";
+    }
+
+    std::string sLine;
+    while (getline(isGrammar, sLine))
+    {
+        sOutput += sLine;
+        sOutput += "\n";
+    }
+
+    return sOutput;
 }

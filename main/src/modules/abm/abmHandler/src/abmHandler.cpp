@@ -199,35 +199,6 @@ double abmHandler::getPeriod() {
     return 0.1;
 }
 
-
-
-/*
-*   Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-string abmHandler::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    if (!isGrammar)
-    {
-        yInfo() << " Error in abmHandler::grammarToString. Couldn't open file : " << sPath << ".";
-        return "Error in abmHandler::grammarToString. Couldn't open file";
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}
-
-
-
 /* Node 1: general question
 * (When was ... )
 * Send nameGrammarNode1 in loop every 5 second until a correct answer or a STOP signal

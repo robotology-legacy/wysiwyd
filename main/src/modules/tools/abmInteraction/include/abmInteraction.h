@@ -11,7 +11,6 @@ private:
     //rfh module
     ICubClient      *iCub;
     double          period;
-    string          grammarToString(string sPath);
     Port            rpc;
 
     //global

@@ -6,7 +6,6 @@ private:
 
     ICubClient *iCub;
     double      period;
-    string      grammarToString(string sPath);
     AutomaticCalibrationThread* calibrationThread;
     Port        rpc;
     string      MainGrammar;

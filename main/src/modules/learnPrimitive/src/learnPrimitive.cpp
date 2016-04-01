@@ -1038,33 +1038,3 @@ bool learnPrimitive::updateAction(ResourceFinder &rf){
 
     return true;
 }
-
-
-/*
-*   Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-string learnPrimitive::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    cout << "path is: " << sPath << endl;
-
-    if (!isGrammar)
-    {
-        cout << "Error in proactiveTagging::grammarToString. Couldn't open file : " << sPath << "." << endl;
-        return "Error in proactiveTagging::grammarToString. Couldn't open file";
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}
-
-

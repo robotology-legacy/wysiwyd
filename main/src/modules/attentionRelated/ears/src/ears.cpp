@@ -180,29 +180,3 @@ bool ears::updateModule() {
 
     return true;
 }
-
-
-/*
-*   Get the context path of a .grxml grammar, and return it as a string
-*
-*/
-string ears::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    if (!isGrammar)
-    {
-        yInfo() << "Error in ears::grammarToString. Couldn't open file : " << sPath << ".";
-        return "Error in ears::grammarToString. Couldn't open file";
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    return sOutput;
-}

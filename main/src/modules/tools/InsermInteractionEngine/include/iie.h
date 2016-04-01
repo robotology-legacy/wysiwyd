@@ -11,7 +11,6 @@ private:
 
     ICubClient *iCub;
     double      period;
-    string      grammarToString(string sPath);
     Port        rpc;
 
     yarp::os::Port Port2Supervisor;       // a port to communicate with the reasoning module

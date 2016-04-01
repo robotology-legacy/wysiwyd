@@ -31,7 +31,6 @@ private:
     std::string LRHRpc;
     std::string touchDetectorRpc;
 
-    std::string      grammarToString(std::string sPath);
     yarp::os::Port   rpcPort;
     yarp::os::Port   portToBodySchema;
     yarp::os::Port   portToSAM;

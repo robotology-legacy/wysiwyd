@@ -102,34 +102,6 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
     }
 }
 
-
-
-string narrativeHandler::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
-
-    cout << "path is: " << sPath << endl;
-
-    if (!isGrammar)
-    {
-        cout << "Error in narrativeHandler::grammarToString. Couldn't open file : " << sPath << "." << endl;
-        return "Error in narrativeHandler::grammarToString. Couldn't open file";
-    }
-
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
-
-    cout << " grammar to string finished" << endl;
-
-    return sOutput;
-}
-
-
 // take a meaning under the format: OCW, OCW OCW, OCW OCW, P1 P2 A2 O3 ... and return: , OCW1 OCW2 , OCW3 OCW4 OCW5 <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>
 void narrativeHandler::enrichMeaning(string &meaning, string sentence){
     //if,could I,ask I John,give John it me,P1 P2 A2 P3 A3 O3 P4 A4 O4 R4
@@ -230,7 +202,7 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
         currentProp.push_back("_");
     }
 
-    for (unsigned int ii = 0; ii < iPAOR; ii++){
+    for (int ii = 0; ii < iPAOR; ii++){
                 
         // if we change the proposition
         string current = meaningPAOR[ii];
