@@ -48,19 +48,19 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
             yInfo()<<"I can't look if  you don't tell me the objects";
             iCub->say("I can't look if  you don't tell me the objects");
         }else{
-        handleLook(type, target);
-        yInfo() << "looking elements to look at!!!";
-        yDebug() << finding;
-    }
+            handleLook(type, target);
+            yInfo() << "looking elements to look at!!!";
+            yDebug() << finding;
+        }
     }else if (action == "push"){
         if (sens->size()<2){
             yInfo()<<"I can't push if  you don't tell me the objects";
             iCub->say("I can't push if  you don't tell me the objects");
         }else{
-        handlePush(type, target); 
-        yInfo() << "pushing elements to look at!!!";
-        yDebug() << finding;
-    }
+            handlePush(type, target);
+            yInfo() << "pushing elements to look at!!!";
+            yDebug() << finding;
+        }
     }else if (action == "narrate"){
         handleNarrate();
         yInfo() << "narrating!!!";
@@ -156,7 +156,7 @@ bool FollowingOrder::handleLook(string type, string target)
             }
         }
     }
-    return false;  
+    return false;
 }
 
 //Feature to be added in a near future
@@ -192,7 +192,7 @@ bool FollowingOrder::handlePush(string type, string target)
             }
         }
     }
-    return false;  
+    return false;
 }
 
 bool FollowingOrder::handleSearch(string type, string target)
