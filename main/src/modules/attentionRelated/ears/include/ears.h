@@ -6,7 +6,6 @@ using namespace wysiwyd::wrdac;
 
 class ears : public RFModule {
 private:
-
     ICubClient *iCub;
     double      period;
     Port        rpc;
@@ -16,9 +15,6 @@ private:
     bool bShouldListen;
 
     std::string      MainGrammar;
-
-    yarp::os::Mutex mutex;
-
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

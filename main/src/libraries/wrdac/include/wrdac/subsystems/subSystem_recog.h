@@ -51,24 +51,22 @@ namespace wysiwyd{
                 if (yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
                     return true;
                 }
-                else{
+                else {
                     return yarp::os::Network::connect(portRPC.getName(), "/speechRecognizer/rpc");
                 }
             }
             SubSystem_ABM* SubABM;
             std::string speakerName_;
             yarp::os::Port ears_port;
+            yarp::os::Port portRPC;
 
         public:
-
-            yarp::os::Port portRPC;
             SubSystem_Recog(const std::string &masterName) : SubSystem(masterName){
                 portRPC.open(("/" + m_masterName + "/recog:rpc").c_str());
                 ears_port.open("/" + m_masterName + "/ears:o");
                 m_type = SUBSYSTEM_RECOG;
                 SubABM = new SubSystem_ABM(m_masterName + "/from_recog");
             }
-
 
             virtual void Close() {
                 portRPC.interrupt();
@@ -108,7 +106,7 @@ namespace wysiwyd{
                     ears_port.write(cmd, reply);
                     yDebug() << "Listen got reply" << reply.toString();
                 }
-                else{
+                else {
                     yWarning() << "No connection to ears available...";
                 }
             }
@@ -166,6 +164,8 @@ namespace wysiwyd{
                     bReply, //response from speech recog without transfer information, including raw sentence
                     bOutput; // semantic information of the content of the recognition
 
+                if (!isEars)
+                    listen(false);
 
                 bMessenger.addString("interrupt");
                 // send the message
@@ -173,9 +173,8 @@ namespace wysiwyd{
                 if(bReply.get(0).asString() != "OK") {
                     yError() << "speechRecognizer was not interrupted";
                 }
-                yarp::os::Time::delay(0.5);
-                bMessenger.clear();
 
+                bMessenger.clear();
                 bMessenger.addString("recog");
                 bMessenger.addString("grammarXML");
                 bMessenger.addString(sInput);
@@ -187,15 +186,8 @@ namespace wysiwyd{
 
                 while (!fGetaReply && loop < iLoop)
                 {
-                    // turn on the main grammar through ears
-                    if (!isEars)
-                        listen(false);
-
                     // send the message
                     portRPC.write(bMessenger, bReply);
-
-                    // turn on the main grammar through ears
-
 
                     yInfo() << " Reply from Speech Recog : " << bReply.toString();
 
@@ -221,10 +213,11 @@ namespace wysiwyd{
                     {
                         if (bReply.get(1).toString() == "-1")
                         {
-                            yInfo() << "Only found Garbage...";
-                            yDebug() << "Check Why this happens";
+                            yError() << "Only found Garbage...";
+                            yError() << "Check Why this happens";
                         }
-                        else{
+                        else
+                        {
                             yInfo() << "Sentence Acknowledged";
                             bAnswer = *bReply.get(1).asList();
 
@@ -233,7 +226,6 @@ namespace wysiwyd{
                                 fGetaReply = true;
                                 bOutput.addInt(1);
                                 bOutput.addList() = bAnswer;
-
 
                                 // send the result of recognition to the ABM
                                 if (ABMconnected && forwardABM)

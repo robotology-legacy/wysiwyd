@@ -34,7 +34,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     bShouldListen = true;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
-    
+
     return true;
 }
 
@@ -67,7 +67,6 @@ bool ears::close() {
 
 
 bool ears::respond(const Bottle& command, Bottle& reply) {
-    LockGuard lg(mutex);
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "quit \n";
@@ -80,7 +79,7 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "listen")
     {
-        // yInfo() << 
+        // yInfo() <<
         if (command.size() == 2)
         {
             if (command.get(1).asString() == "on")
@@ -109,7 +108,6 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool ears::updateModule() {
-    LockGuard lg(mutex);
     if (bShouldListen)
     {
         yDebug() << "bListen";
@@ -155,7 +153,7 @@ bool ears::updateModule() {
             sObject = "";
         }else{
             yError() << "[ears] Unknown predicate";
-        
+
         }
 
         Bottle &bToTarget = portTarget.prepare();
@@ -172,7 +170,7 @@ bool ears::updateModule() {
         bCondition.addString(sObject);
 
         portToBehavior.write(bCondition);
- 
+
         yDebug() << "Sending " + bCondition.toString();
     } else {
         yDebug() << "Not bListen";
