@@ -212,6 +212,9 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         }
     }
     else if (command.get(0).asString() == "exploreUnknownEntity") {
+        // disable EARS early on
+        iCub->getRecogClient()->listen(false);
+
         yInfo() << " exploreUnknownEntity";
         string type = command.get(1).toString();
         string name = command.get(2).toString();
@@ -253,6 +256,9 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
             reply.addString("error");
             reply.addString("Type is NON valid for exploreUnknownEntity");
         }
+
+        // enable EARS again
+        iCub->getRecogClient()->listen(true);
     }
     else if (command.get(0).asString() == "searchingEntity") {
         yInfo() << " searchingEntity";
