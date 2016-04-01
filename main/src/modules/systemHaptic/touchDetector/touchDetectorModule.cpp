@@ -15,6 +15,7 @@
  * Public License for more details
 */
 
+#include <yarp/os/LogStream.h>
 #include "touchDetectorModule.h"
 
 using namespace std;
