@@ -55,10 +55,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     configureOPC(rf);
 
-    //rpc port
-    rpcPort.open(("/" + moduleName + "/rpc").c_str());
-    attach(rpcPort);
-
     //--------------------------------------------- output port
     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
     if (ttsOptions != "iCub") {
@@ -130,6 +126,10 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     iCub->say("proactive tagging is ready", false);
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+
+    //rpc port
+    rpcPort.open(("/" + moduleName + "/rpc").c_str());
+    attach(rpcPort);
 
     return true;
 }
