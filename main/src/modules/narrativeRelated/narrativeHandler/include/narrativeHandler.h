@@ -79,6 +79,7 @@ public:
     bool updateModule();
 
     void findStories(int iInstance = 0);
+    void findNarration(int iInstance = 0);
 
     double timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrint = false);
     myTimeStruct string2Time(std::string sTime);
