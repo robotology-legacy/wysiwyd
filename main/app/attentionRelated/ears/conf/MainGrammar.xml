@@ -3,11 +3,8 @@
   <DEFINE>
     <ID	NAME="predicateObject"	VAL="2"/>
     <ID	NAME="object"	VAL="3"/>
-    <ID	NAME="predicateBodypart"	VAL="4"/>
-    <ID	NAME="bodypart"	VAL="5"/>
     <ID NAME="questionMark" VAL="6"/>
   </DEFINE>
-
 
   <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
     <P>stop</P>
@@ -42,19 +39,6 @@
     <RULEREF	NAME="object"/>
   </RULE>
 
-  <RULE	NAME="SENTENCEBODYPART"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <RULEREF	NAME="predicateBodypart"/>
-    <O>
-      <L>
-        <P>the</P>
-        <P>your</P>
-      </L>
-    </O>
-    <RULEREF	NAME="bodypart"/>
-  </RULE>
-
-
-
   <RULE NAME="predicateObject" DYNAMIC="TRUE">
     <L>
       <P>point</P>
@@ -62,13 +46,6 @@
       <P>push</P>
     </L>
   </RULE>
-
-  <RULE NAME="predicateBodypart" DYNAMIC="TRUE">
-    <L>
-      <P>touch</P>
-    </L>
-  </RULE>
-
   
   <RULE NAME="object" DYNAMIC="TRUE">
     <L>
@@ -79,22 +56,5 @@
       <P>pig</P>
       <P>bottle</P>
     </L>
-  </RULE>
-  <RULE NAME="bodypart" DYNAMIC="TRUE">
-    <L>
-      <P>hand</P>
-      <P>thumb</P>
-      <P>index</P>
-      <P>middle</P>
-      <P>ring</P>
-      <P>pinky</P>
-    </L>
-    <O>
-      <L>
-        <P>finger</P>
-      </L>
-    </O>
-  </RULE>
-
-  
+  </RULE> 
 </GRAMMAR>
