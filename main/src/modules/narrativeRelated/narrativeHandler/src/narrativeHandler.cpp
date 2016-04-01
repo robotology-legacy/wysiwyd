@@ -272,13 +272,13 @@ void narrativeHandler::findStories(int iInstance)
     }
 
     initializeStories();
-    findNarration(iInstance);
+    findNarration();
 }
 
 
 
 
-void narrativeHandler::findNarration(int iInstance)
+void narrativeHandler::findNarration()
 {
     yInfo() << " BEGIN SEARCH NARRATION";
 
@@ -289,7 +289,7 @@ void narrativeHandler::findNarration(int iInstance)
         bMessenger;
 
 
-    for (auto target : listStories){
+    for (auto &target : listStories){
         int iTarget = target.viInstances[0];
 
         osRequest.str("");
@@ -330,7 +330,6 @@ void narrativeHandler::findNarration(int iInstance)
                     iCurrentElm = iRank+1;
                 }
             }
-
             target.displayNarration();
         }
     }
@@ -595,9 +594,9 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
         if (bArguments.get(kk).isList()) {
             Bottle bTemp = *bArguments.get(kk).asList();
 
-            if (bTemp.get(1).toString() == "status" || bTemp.get(2).toString() == "status"){
-                yInfo() << "STATUS !!! STATUS !!!" << evt.instance << " " << bTemp.get(0).toString() << "-" << bTemp.get(1).toString() << "-" << bTemp.get(2).toString();
-            }
+            //if (bTemp.get(1).toString() == "status" || bTemp.get(2).toString() == "status"){
+            //    yInfo() << "STATUS !!! STATUS !!!" << evt.instance << " " << bTemp.get(0).toString() << "-" << bTemp.get(1).toString() << "-" << bTemp.get(2).toString();
+            //}
 
             if (isIn(vPredicate, bTemp.get(1).toString())) evt.predicate = bTemp.get(0).toString();
             else if (isIn(vPredicate, bTemp.get(2).toString())) evt.predicate = bTemp.get(0).toString();
