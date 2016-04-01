@@ -751,6 +751,8 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     yInfo() << " " << sSentence;
 
     if(sTypeTarget == "object") {
+        iCub->home();
+
         Bottle bToPasar;
         Bottle bFromPasar;
         bToPasar.addString("pointing");
