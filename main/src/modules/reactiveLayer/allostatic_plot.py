@@ -188,6 +188,7 @@ class AllostaticPlotModule(yarp.RFModule):
                         #behaviors_to_plot[-1][1] = copy(t)
                     print "Behavior " + name + " stops"
         plt.draw()
+        plt.pause(0.05)
 
     def updateModule(self):
         # Don't forget the following:
