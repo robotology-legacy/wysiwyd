@@ -6,21 +6,16 @@
     <ID NAME="questionMark" VAL="6"/>
   </DEFINE>
 
-  <RULE	NAME="stop"	TOPLEVEL="ACTIVE"	EXPORT="1">
-    <P>stop</P>
-  </RULE>
-
   <RULE NAME="SENTENCENARRATIVE" TOPLEVEL="ACTIVE" EXPORT="1">
     <RULEREF  NAME="questionMark"/>
-    <O>
       <L>
         <P>have you done</P>
         <P>did you just do</P>
         <P>did we do</P>
         <P>did you say</P>
       </L>
-    </O>
   </RULE>
+
   <RULE NAME="questionMark" DYNAMIC="TRUE">
     <L>
       <P>what</P>
