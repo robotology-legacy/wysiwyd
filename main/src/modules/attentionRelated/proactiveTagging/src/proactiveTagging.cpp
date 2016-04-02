@@ -440,14 +440,39 @@ Bottle proactiveTagging::recogName(string entityType)
 
     yDebug() << "Going to load grammar.";
     //Load the Speech Recognition with grammar according to entityType
+    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
     if (entityType == "agent"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameAgent), 20);
+        bAnswer = *bRecognized.get(1).asList();
+        if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEAGENT") {
+            iCub->say("I asked you something else");
+            yError() << "Wrong sentence type returned (not SENTENCEAGENT)";
+            bOutput.addString("error");
+            bOutput.addString("Wrong sentence type returned (not SENTENCEAGENT)");
+            return bOutput;
+        }
     }
     else if (entityType == "object" || entityType == "rtobject"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameObject), 20);
+        bAnswer = *bRecognized.get(1).asList();
+        if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEOBJECT") {
+            iCub->say("I asked you something else");
+            yError() << "Wrong sentence type returned (not SENTENCEOBJECT)";
+            bOutput.addString("error");
+            bOutput.addString("Wrong sentence type returned (not SENTENCEOBJECT)");
+            return bOutput;
+        }
     }
     else if (entityType == "bodypart"){
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarAskNameBodypart), 20);
+        bAnswer = *bRecognized.get(1).asList();
+        if(bAnswer.get(1).asList()->get(0).toString() != "SENTENCEBODYPART") {
+            iCub->say("I asked you something else");
+            yError() << "Wrong sentence type returned (not SENTENCEBODYPART)";
+            bOutput.addString("error");
+            bOutput.addString("Wrong sentence type returned (not SENTENCEBODYPART)");
+            return bOutput;
+        }
     }
     else {
         yError() << " error in proactiveTagging::recogName | for " << entityType << " | Entity Type not managed";
@@ -464,9 +489,6 @@ Bottle proactiveTagging::recogName(string entityType)
         bOutput.addString("error in speechRecog");
         return bOutput;
     }
-
-    bAnswer = *bRecognized.get(1).asList();
-    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
     string sSentence = bAnswer.get(0).asString();
     iCub->say("I've understood " + sSentence);

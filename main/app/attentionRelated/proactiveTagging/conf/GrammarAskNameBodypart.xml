@@ -7,7 +7,7 @@
   </DEFINE>
 
 
-  <RULE  NAME="SENTENCE1"  TOPLEVEL="ACTIVE"  EXPORT="1">
+  <RULE  NAME="SENTENCEBODYPART"  TOPLEVEL="ACTIVE"  EXPORT="1">
     <L>
 		<P>This is</P>
 		<P>That is</P>
