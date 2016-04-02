@@ -269,6 +269,7 @@ while( True ):
 				#parse all remaining Bottle contents
 				if(portsList[instancePort].getInputCount() != 0):
 					replyString = 'ack'
+					print 'functionaliy not yet implemented'
 				else:
 					replyString = 'nack'
 					print 'No connections to ' + portsList[instancePort].getName()
