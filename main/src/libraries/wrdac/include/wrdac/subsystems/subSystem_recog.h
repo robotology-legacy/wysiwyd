@@ -102,7 +102,24 @@ namespace wysiwyd{
                     else {
                         cmd.addString("off");
                     }
-                    yDebug() << "Listen sending command " << cmd.toString();
+                    yDebug() << "Listen sending command" << cmd.toString();
+                    ears_port.write(cmd, reply);
+                    yDebug() << "Listen got reply" << reply.toString();
+                }
+                else {
+                    yWarning() << "No connection to ears available...";
+                }
+            }
+
+            void waitForEars() {
+                if (!yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")){
+                    yarp::os::Network::connect(ears_port.getName(), "/ears/rpc");
+                }
+                if (yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")) {
+                    yarp::os::Bottle cmd, reply;
+                    cmd.addString("listen");
+                    cmd.addString("offShouldWait");
+                    yDebug() << "Listen sending command" << cmd.toString();
                     ears_port.write(cmd, reply);
                     yDebug() << "Listen got reply" << reply.toString();
                 }
@@ -176,6 +193,8 @@ namespace wysiwyd{
                         yError() << "speechRecognizer was not interrupted";
                         yDebug() << "Reply from speechRecognizer:" << bReply.toString();
                     }
+
+                    waitForEars();
                 }
 
                 bMessenger.clear();
