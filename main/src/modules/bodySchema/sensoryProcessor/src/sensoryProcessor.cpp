@@ -29,6 +29,7 @@ using namespace cv;
 using namespace yarp::os;
 using namespace yarp::sig;
 
+
 bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
     bool bEveryThingisGood = true;
 
@@ -75,6 +76,11 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
             yError() << getName() << ": Unable to open port " << "/" << getName() << "featureImg:o";
     }
 
+    if (!portHandPositionFromFeaturesOut.open("/" + getName() + "/handfeaturepos:o")) {
+        yError() << getName() << ": Unable to open port " << "/" << getName() << "/handfeaturepos:o";
+        bEveryThingisGood = false;
+    }
+
     if (!portBodypartsPositionOut.open("/" + getName() + "/bodypartpos:o")) {
         yError() << getName() << ": Unable to open port " << "/" << getName() << "/bodypartpos:o";
         bEveryThingisGood = false;
@@ -110,6 +116,10 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
         bEveryThingisGood = false;
     }
 
+    if (!portMidiOut.open("/" + getName() + "/portMidiOut:o")) {
+        yError() << ": Unable to open port " << "/" << getName() << "portMidiOut:o";
+        bEveryThingisGood = false;
+    }
 
     if(useSFM)
     {
@@ -181,7 +191,7 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
 
     yDebug() << "End configuration...";
 
-    MAX_COUNT = 150;
+    MAX_COUNT = 20;
 
     attach(handlerPort);
 
@@ -194,6 +204,7 @@ bool SensoryProcessor::interruptModule() {
     featureImgPortOut.interrupt();
     portToSFM.interrupt();
     handlerPort.interrupt();
+    portHandPositionFromFeaturesOut.interrupt();
     portHandPositionOut.interrupt();
     portHeadEncodersOut.interrupt();
     portArmEncodersOut.interrupt();
@@ -202,6 +213,7 @@ bool SensoryProcessor::interruptModule() {
     portReadSkinHand.interrupt();
     portReadSkinForearm.interrupt();
     portReadSkinArm.interrupt();
+    portMidiOut.interrupt();
 
     yInfo() << "Bye!";
 
@@ -219,6 +231,9 @@ bool SensoryProcessor::close() {
 
     featureImgPortOut.interrupt();
     featureImgPortOut.close();
+
+    portHandPositionFromFeaturesOut.interrupt();
+    portHandPositionFromFeaturesOut.close();
 
     portHandPositionOut.interrupt();
     portHandPositionOut.close();
@@ -246,6 +261,9 @@ bool SensoryProcessor::close() {
 
     portReadSkinArm.interrupt();
     portReadSkinArm.close();
+
+    portMidiOut.interrupt();
+    portMidiOut.close();
 
     handlerPort.interrupt();
     handlerPort.close();
@@ -390,18 +408,35 @@ bool SensoryProcessor::findFeatures(TermCriteria &termcrit, Size &subPixWinSize,
         copy = image.clone();
 
         // automatic initialization
-        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.003, 3, Mat(), 3, 0, 0.04);
+        goodFeaturesToTrack(gray, points[1], MAX_COUNT, 0.0003, 5, Mat(), 3, 0, 0.0004);
         cornerSubPix(gray, points[1], subPixWinSize, Size(-1,-1), termcrit);
         /// Draw corners detected
-        int radius = 4;
+        int radius = 2;
         for(unsigned int i = 0; i < points[1].size(); i++ ) {
             circle( copy, points[1][i], radius, Scalar(0,255,0), -1, 8);
         }
+        cv::Point2f zero(0.0f, 0.0f);
+        cv::Point2f sum  = std::accumulate(points[1].begin(), points[1].end(), zero);
+        Point2f mean_point(sum.x / points[1].size(), sum.y / points[1].size());
+        circle( copy, mean_point, 5, Scalar(255,255,0), -1, 8);
+
+        namedWindow( "source_window", WINDOW_NORMAL );
+        imshow( "source_window", copy );
+        waitKey(25);
 
         for(size_t i=0; i<points[1].size(); i++)
         {
             points_idx.push_back(i);
         }
+
+
+
+        Bottle &bHandFeatPositions = portHandPositionFromFeaturesOut.prepare();
+        bHandFeatPositions.clear();
+        bHandFeatPositions.addDouble(mean_point.x);
+        bHandFeatPositions.addDouble(mean_point.y);
+
+        portHandPositionFromFeaturesOut.write();
 
         //cout << "Number of points " << num_init_points;
     } else {
@@ -425,10 +460,28 @@ bool SensoryProcessor::findFeatures(TermCriteria &termcrit, Size &subPixWinSize,
             points_idx[k] = points_idx[i];
             points[1][k++] = points[1][i];
 
+            //cout << points[1][i] << endl;
+            //sum_x=sum_x+points[1][i];
+
             circle( copy, points[1][i], 2, Scalar(0,255,0), -1, 8);
         }
+        cv::Point2f zero(0.0f, 0.0f);
+        cv::Point2f sum  = std::accumulate(points[1].begin(), points[1].end(), zero);
+        Point2f mean_point(sum.x / points[1].size(), sum.y / points[1].size());
+        circle( copy, mean_point, 5, Scalar(255,255,0), -1, 8);
+
+        Bottle &bHandFeatPositions = portHandPositionFromFeaturesOut.prepare();
+        bHandFeatPositions.clear();
+        bHandFeatPositions.addDouble(mean_point.x);
+        bHandFeatPositions.addDouble(mean_point.y);
+
+        portHandPositionFromFeaturesOut.write();
+
         points[1].resize(k);
         points_idx.resize(k);
+
+        imshow( "source_window", copy );
+        waitKey(25);
 
         // convert Mat to YARP image
         ImageOf<PixelRgb> &imageYarp=featureImgPortOut.prepare();
@@ -442,6 +495,55 @@ bool SensoryProcessor::findFeatures(TermCriteria &termcrit, Size &subPixWinSize,
 
     return true;
 }
+
+void midiCallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ )
+{
+    Bottle bMidiByte = portMidiOut.prepare();
+    bMidiByte.clear();
+
+    unsigned int nBytes = message->size();
+    for ( unsigned int i=0; i<nBytes; i++ )
+        std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
+
+    bMidiByte.addInt((int)message->at(1));
+
+    if ( nBytes > 0 )
+        std::cout << "stamp = " << deltatime << std::endl;
+
+
+}
+
+
+bool SensoryProcessor::readMidiKeyboard()
+{
+    RtMidiIn *midiin = 0;
+    try {
+
+        // RtMidiIn constructor
+        midiin = new RtMidiIn();
+
+
+
+        midiin->openPort( 1 );
+
+        midiin->setCallback( &midiCallback );
+
+        // Don't ignore sysex, timing, or active sensing messages.
+        midiin->ignoreTypes( false, false, false );
+
+        std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
+        char input;
+        std::cin.get(input);
+
+      } catch ( RtMidiError &error ) {
+        error.printMessage();
+      }
+
+      return 1;
+}
+
+
+
 
 bool SensoryProcessor::init_iCub(string &part)
 {
@@ -570,7 +672,7 @@ void SensoryProcessor::find_image(yarp::sig::Vector &handTarget, yarp::sig::Vect
             for (int y=0; y<image->height(); y++)
             {
                 PixelRgb& pixel = image->pixel(x,y);
-                if (pixel.r>pixel.b*1.2+10 && pixel.r>pixel.g*1.2+10)
+                if (pixel.r>pixel.b*1.2+5 && pixel.r>pixel.g*1.2+5)
                 {
                     xMeanR += x;
                     yMeanR += y;
@@ -637,7 +739,7 @@ void SensoryProcessor::find_image(yarp::sig::Vector &handTarget, yarp::sig::Vect
             handTarget[1] = yMeanPrevG;
             handTarget[2] = 0;
         }
-        if (ctR>(image->width()/20)*(image->height()/20))
+        if (ctR>(image->width()/50)*(image->height()/50))
         {
             fingerTarget.resize(3);
             fingerTarget[0] = xMeanR;
@@ -688,4 +790,5 @@ void SensoryProcessor::find_image(yarp::sig::Vector &handTarget, yarp::sig::Vect
         armTarget[1] = 240/2;
         armTarget[2] = 0;
     }
+
 }

@@ -25,6 +25,7 @@
 #include <yarp/dev/all.h>
 
 #include <wrdac/clients/icubClient.h>
+#include "RtMidi.h"
 
 class SensoryProcessor : public yarp::os::RFModule {
 private:
@@ -43,6 +44,8 @@ private:
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinHand;
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinForearm;
     yarp::os::BufferedPort<yarp::os::Bottle> portReadSkinArm;
+    yarp::os::BufferedPort<yarp::os::Bottle> portHandPositionFromFeaturesOut;
+    yarp::os::BufferedPort<yarp::os::Bottle> portMidiOut;
 
     yarp::os::RpcClient portToSFM;
 
@@ -80,9 +83,13 @@ public:
     bool updateModule();
 
 private:
+
+
     bool init_iCub(std::string &part);
     bool getMultimodalData();
     bool findFeatures(cv::TermCriteria &termcrit, cv::Size &subPixWinSize, cv::Size &winSize);
+    bool readMidiKeyboard();
+    //void midiCallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ );
     void find_image(yarp::sig::Vector &handTarget, yarp::sig::Vector &armTarget, yarp::sig::Vector &fingerTarget);
 };
 
