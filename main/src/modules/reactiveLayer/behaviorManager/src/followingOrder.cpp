@@ -115,13 +115,11 @@ bool FollowingOrder::handleSearch(string type, string target)
     yInfo() << " [handleSearch] : opc checkout";
     list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
-    string e_name = target;
-
     for (auto& entity: lEntities)
     {
         string sName = entity->name();
-        if (sName == e_name) {
-            yDebug() << "Entity found: "<<e_name;
+        if (sName == target) {
+            yDebug() << "Entity found: "<<target;
             if (entity->entity_type() == "object")
             {
                 Object* o = dynamic_cast<Object*>(iCub->opc->getEntity(sName));
@@ -144,7 +142,7 @@ bool FollowingOrder::handleSearch(string type, string target)
 
     cmd.addString("searchingEntity");
     cmd.addString(type);
-    cmd.addString(e_name);
+    cmd.addString(target);
     rpc_out_port.write(cmd,rply);
     yDebug() << rply.toString();
 
