@@ -308,7 +308,13 @@ namespace wysiwyd{
             /**
             * Looks at the agent if present in the scene.
             */
-            bool lookAtAgent();
+            bool lookAtPartner();
+
+            /**
+            * Extract the name of the agent interaction with the iCub (present, not iCub nor 'unnamed' partner)
+            * @return string, the name of the agent
+            */
+            std::string getPartnerName();
 
             /**
             * Babbling a single joint

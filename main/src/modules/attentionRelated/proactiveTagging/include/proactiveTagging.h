@@ -45,6 +45,7 @@ private:
     std::string      GrammarYesNo;
 
     std::string      babblingArm; //side of the babbling arm : left or right
+    std::string      defaultPartnerName; //default name of the partner: considered NOT named
 
     std::string      GrammarDescribeAction;
 

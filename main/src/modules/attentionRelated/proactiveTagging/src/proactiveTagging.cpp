@@ -40,6 +40,8 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     cout << moduleName << ": finding configuration files..." << endl;
     period = rf.check("period", Value(0.1)).asDouble();
 
+    defaultPartnerName = "partner";
+
     //bool    bEveryThingisGood = true;
 
     //Create an iCub Client and check that all dependencies are here before starting
@@ -336,6 +338,8 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
 
     rpcPort.reply(reply);
 
+
+
     return true;
 }
 
@@ -586,7 +590,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         sQuestion = " Hum, what is this object?";
     }
     else if (currentEntityType == "bodypart") {
-        iCub->lookAtAgent();
+        iCub->lookAtPartner();
         sQuestion = " Watch please, I will move a part of my body";
     }
     else {
@@ -615,8 +619,15 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         yInfo() << "Start bodySchema";
         iCub->babbling(joint, babblingArm);
 
-        iCub->lookAtAgent();
-        sQuestion = " How do you call this part of my body?";
+        //add name of the partner in the question if defined
+        string partnerName = iCub->getPartnerName();
+        iCub->lookAtPartner();
+        if(partnerName == defaultPartnerName){
+            sQuestion = " How do you call this part of my body?";
+        } else {
+            sQuestion = partnerName + ", How do you call this part of my body?";
+        }
+
         yInfo() << sQuestion;
         //iCub->getSpeechClient()->TTS(sQuestion, false);
         iCub->say(sQuestion, false);
@@ -651,7 +662,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     Entity* e = iCub->opc->getEntity(sNameTarget);
     iCub->changeName(e,sName);
 
-    iCub->lookAtAgent();
+    iCub->lookAtPartner();
     if (currentEntityType == "agent") {
         sReply = " Nice to meet you " + sName;
     }
@@ -768,7 +779,14 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     } else if (sTypeTarget == "bodypart") {
         sSentence = "I don't known my " + sNameTarget + ". Can you please touch my " + sNameTarget;
     }
-    iCub->lookAtAgent();
+
+    //add name of the partner at the end of the question if defined
+    string partnerName = iCub->getPartnerName();
+    if(partnerName != defaultPartnerName){
+        sSentence += ", " + partnerName;
+    }
+
+    iCub->lookAtPartner();
     iCub->say(sSentence);
     yInfo() << " " << sSentence;
 

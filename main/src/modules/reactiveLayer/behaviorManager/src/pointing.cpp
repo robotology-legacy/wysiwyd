@@ -17,7 +17,7 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
 
     iCub->opc->checkout();
     yDebug() << "[pointing]: opc checkout";
-    iCub->lookAtAgent();
+    iCub->lookAtPartner();
     Time::delay(0.5);
     
     iCub->say("I could point to the " + obj_name);
@@ -28,7 +28,7 @@ void Pointing::run(Bottle args/*=Bottle()*/) {
     Time::delay(0.2);
 
     if (succeeded) {
-        iCub->lookAtAgent();
+        iCub->lookAtPartner();
         iCub->say("Do you know that this is a " + obj_name, false);
     } else {
         iCub->say(" I couldn't find the " + obj_name);
