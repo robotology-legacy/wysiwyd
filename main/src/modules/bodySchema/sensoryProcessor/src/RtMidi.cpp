@@ -815,7 +815,7 @@ static CFStringRef ConnectedEndpointName( MIDIEndpointRef endpoint )
 
   CFRelease( result );
 
-  // Here, either the endpoint had no connections, or we failed to obtain names
+  // Here, either the endpoint had no connections, or we failed to obtain names 
   return EndpointName( endpoint, false );
 }
 
@@ -1223,7 +1223,7 @@ static void *alsaMidiHandler( void *ptr )
       if ( !( data->ignoreFlags & 0x04 ) ) doDecode = true;
       break;
 
-        case SND_SEQ_EVENT_SYSEX:
+    case SND_SEQ_EVENT_SYSEX:
       if ( (data->ignoreFlags & 0x01) ) break;
       if ( ev->data.ext.len > apiData->bufferSize ) {
         apiData->bufferSize = ev->data.ext.len;
@@ -1287,8 +1287,8 @@ static void *alsaMidiHandler( void *ptr )
     if ( message.bytes.size() == 0 || continueSysex ) continue;
 
     if ( data->usingCallback ) {
-      RtMidiIn::RtMidiCallback callback = data->userCallback;
-      (data->instance->*callback)( message.timeStamp, &message.bytes, data->userData );
+      RtMidiIn::RtMidiCallback callback = (RtMidiIn::RtMidiCallback) data->userCallback;
+      callback( message.timeStamp, &message.bytes, data->userData );
     }
     else {
       // As long as we haven't reached our queue size limit, push the message.
@@ -1686,7 +1686,7 @@ void MidiOutAlsa :: initialize( const std::string& clientName )
     errorString_ = "MidiOutAlsa::initialize: error creating ALSA sequencer client object.";
     error( RtMidiError::DRIVER_ERROR, errorString_ );
     return;
-    }
+  }
 
   // Set client name.
   snd_seq_set_client_name( seq, clientName.c_str() );
@@ -2372,7 +2372,7 @@ void MidiOutWinMM :: sendMessage( std::vector<unsigned char> *message )
     sysex.lpData = (LPSTR) buffer;
     sysex.dwBufferLength = nBytes;
     sysex.dwFlags = 0;
-    result = midiOutPrepareHeader( data->outHandle,  &sysex, sizeof(MIDIHDR) );
+    result = midiOutPrepareHeader( data->outHandle,  &sysex, sizeof(MIDIHDR) ); 
     if ( result != MMSYSERR_NOERROR ) {
       free( buffer );
       errorString_ = "MidiOutWinMM::sendMessage: error preparing sysex header.";
@@ -2697,8 +2697,7 @@ void MidiOutJack :: connect()
   JackMidiData *data = static_cast<JackMidiData *> (apiData_);
   if ( data->client )
     return;
-
-  // Initialize output ringbuffers
+  // Initialize output ringbuffers  
   data->buffSize = jack_ringbuffer_create( JACK_RINGBUFFER_SIZE );
   data->buffMessage = jack_ringbuffer_create( JACK_RINGBUFFER_SIZE );
 

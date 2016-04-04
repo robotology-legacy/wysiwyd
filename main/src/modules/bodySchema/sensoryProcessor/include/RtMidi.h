@@ -204,6 +204,7 @@ class RtMidi
 //
 // **************************************************************** //
 class SensoryProcessor;
+
 class RtMidiIn : public RtMidi
 {
  public:
