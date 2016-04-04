@@ -152,7 +152,12 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         }
     }
     else if (command.get(0).asString() == "askNarrate"){
-        if (askNarrate()){
+        int iIns = storyToNarrate;
+        if (command.size() == 2) {
+            iIns = command.get(1).asInt();
+        }
+
+        if (askNarrate(iIns)){
             reply.addString("ack");
         }
         else{
@@ -160,14 +165,18 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         }
     }
     else if (command.get(0).asString() == "narrate"){
-        if (narrate()){
+        int iIns = storyToNarrate;
+        if (command.size() == 2) {
+            iIns = command.get(1).asInt();
+        }
+
+        if (narrate(iIns)){
             reply.addString("ack");
         }
         else{
             reply.addString("nack");
         }
     }
-
     else{
         reply.addString(helpMessage);
     }
@@ -1369,17 +1378,17 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
     return true;
 }
 
-bool narrativeHandler::narrate(){
+bool narrativeHandler::narrate(int iIns){
     yInfo(" begin narrate");
     if (shouldSpeak)    iCub->say("Starting to narrate !", true, false, "default", false);
-    if (shouldSpeak)    iCub->say("But for now I don't want to speak !");
+    if (shouldSpeak)    iCub->say("But for now I don't want to speak !", true, false, "default", false);
 
     //    findStories(iMinInstance);
 
     bool canNarrate = false;
 
     for (auto target : listStories){
-        if (target.viInstances[0] == storyToNarrate){
+        if (target.viInstances[0] == iIns){
             target.displayNarration();
             sayNarrationSimple(target);
         }
@@ -1392,12 +1401,17 @@ bool narrativeHandler::narrate(){
     return true;
 }
 
-bool narrativeHandler::askNarrate(){
+bool narrativeHandler::askNarrate(int iInstance){
     yInfo(" BEGIN askNarrate");
 
     findStories(iMinInstance);
 
-    addNarrationToStory(listStories[listStories.size() - 1], true);
+    for (auto target : listStories){
+        if (target.viInstances[0] == iInstance){
+            target.displayNarration();
+            addNarrationToStory(target);
+        }
+    }
 
     //yInfo() << " size of narration by human: " << listStories[listStories.size() - 1].meaningStory.size();
     //yInfo() << "telling:";

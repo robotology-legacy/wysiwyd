@@ -59,8 +59,8 @@ private:
     std::string GrammarNarration; // the file for the grammar narration
     std::string GrammarYesNo;
     bool shouldSpeak;
-    bool narrate();
-    bool askNarrate();
+    bool narrate(int iIns);
+    bool askNarrate(int iIns);
     bool narrationToSpeech(story sto);
 
     void enrichMeaning(std::string &meaning, std::string sentence);
