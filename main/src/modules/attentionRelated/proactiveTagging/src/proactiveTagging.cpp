@@ -66,6 +66,8 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
             iCub->getSpeechClient()->SetOptions(ttsOptions);
     }
 
+    bodySchemaRpc = rf.check("bodySchemaRpc", Value("/babbling/rpc")).asString().c_str();
+
     //out to BodySchema, bufferedPort for no wait and allow describe actions
     portNoWaitToBodySchema.open(("/" + moduleName + "/BufferedPort/toBodySchema:o").c_str());
     if (!Network::connect(portNoWaitToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
