@@ -735,8 +735,9 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         iCub->opc->checkout();
         list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
 
-        double highestSaliency = 0.0;
-        double secondSaliency = 0.0;
+        int unknownObjects = 0;
+        double highestSaliency = -1.0;
+        double secondSaliency = -1.0;
         string sNameBestEntity = "none";
         string sTypeBestEntity = "none";
 
@@ -759,6 +760,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                 if ((sTypeTarget == "object" && (entity->entity_type() == "object" || entity->entity_type() == "rtobject")) ||
                     (sTypeTarget == "bodypart" && (entity->entity_type() == "bodypart")))
                 {
+                    unknownObjects++;
                     Object* temp = dynamic_cast<Object*>(entity);
                     if(!temp) {
                         yError() << "Could not cast " << entity->name() << " to an object";
@@ -804,6 +806,10 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                 bFound = true;
             }
         }
+        if (unknownObjects == 1)
+        {
+            bFound = true;
+        }
         if (sNameBestEntity == "none")
         {
             bFound = false;
@@ -821,6 +827,9 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
             yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
             bOutput.addString("name changed");
+            if(unknownObjects == 1) {
+                iCub->say("There was only one object which I did not know.");
+            }
             iCub->say("Now I know the" + sNameTarget);
         }
     }
