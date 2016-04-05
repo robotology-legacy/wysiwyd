@@ -41,6 +41,115 @@ void proactiveTagging::subPopulateObjects(Bottle* objectList, bool addOrRetrieve
     }
 }
 
+bool proactiveTagging::setPasarPointing(bool on) {
+    Bottle bToPasar, bFromPasar;
+    bToPasar.addString("pointing");
+    if(on) {
+        bToPasar.addString("on");
+    } else {
+        bToPasar.addString("off");
+    }
+    if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
+        yError() << "Could not connect to pasar";
+        iCub->say("Could not connect to pasar");
+        return false;
+    } else {
+        portToPasar.write(bToPasar, bFromPasar);
+        if(bFromPasar.get(0).asString()!="ack") {
+            yError() << "Pasar did not change pointing to on";
+            iCub->say("Pasar did not change pointing to on");
+            return false;
+        } else {
+            return true;
+        }
+    }
+}
+
+string proactiveTagging::getBestEntity(string sTypeTarget) {
+    bool bFound = false;
+    string sNameBestEntity = "none";
+
+    // start detecting unknown objects
+    while (!bFound)
+    {
+        iCub->opc->checkout();
+        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+
+        double highestSaliency = 0.0;
+        double secondSaliency = 0.0;
+
+        for (auto& entity : lEntities)
+        {
+            string sName = entity->name();
+            string sNameCut = sName;
+            string delimiter = "_";
+            size_t pos = 0;
+            string token;
+            if ((pos = sName.find(delimiter)) != string::npos) {
+                token = sName.substr(0, pos);
+                sName.erase(0, pos + delimiter.length());
+                sNameCut = token;
+            }
+            // check is label is known
+
+            if (sNameCut == "unknown")
+            {
+                if ((sTypeTarget == "object" && (entity->entity_type() == "object" || entity->entity_type() == "rtobject")) ||
+                    (sTypeTarget == "bodypart" && (entity->entity_type() == "bodypart")))
+                {
+                    Object* temp = dynamic_cast<Object*>(entity);
+                    if(!temp) {
+                        yError() << "Could not cast " << entity->name() << " to an object";
+                        iCub->say("Could not cast " + entity->name() + " to an object");
+                    }
+                    if (temp->m_saliency > highestSaliency)
+                    {
+                        if (secondSaliency != 0.0)
+                        {
+                            secondSaliency = highestSaliency;
+                        }
+                        highestSaliency = temp->m_saliency;
+                        sNameBestEntity = temp->name();
+                    }
+                    else
+                    {
+                        if (temp->m_saliency > secondSaliency)
+                        {
+                            secondSaliency = temp->m_saliency;
+                        }
+                    }
+                }
+            }
+        }
+
+        bFound = false;
+        if (highestSaliency > thresholdSalienceDetection)
+        {
+            //the object with highest salience is salient enough
+            if (secondSaliency != 0.0)
+            {
+                // there are other salient objects
+                if ((highestSaliency / secondSaliency) > thresholdDistinguishObjectsRatio)
+                {
+                    //but it is enough difference
+                    bFound = true;
+                }
+            }
+            else
+            {
+                //other object are not salient
+                bFound = true;
+            }
+        }
+        if (sNameBestEntity == "none")
+        {
+            bFound = false;
+        }
+    }
+
+    return sNameBestEntity;
+}
+
 void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPartJointList, bool addOrRetrieve) {
     if (bodyPartList)
     {
