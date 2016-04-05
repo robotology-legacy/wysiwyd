@@ -244,11 +244,19 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     }
 
     //2.Ask human to touch
-    string sAsking = "I know how to move my " + sName + ", but how does it feel to be touched? Can you touch my " + sName + ", please.";
+    string sAsking = "I know how to move my " + sName + ", but how does it feel to be touched? I will move my " + sName + ". Can you touch it, please?";
     yInfo() << " sAsking: " << sAsking;
     iCub->lookAtPartner();
     iCub->say(sAsking);
     portFromTouchDetector.read(false); // clear buffer from previous readings
+
+    //2.b Move also the bodypart to show it has been learnt.
+    yInfo() << "Cast okay : name BP = " << BPentity->name();
+    int joint = BPentity->m_joint_number;
+    //send rpc command to bodySchema to move the corresponding part
+    yInfo() << "Start bodySchema";
+    double babbling_duration = 3.0;
+    iCub->babbling(joint, babblingArm, babbling_duration);
 
     //3. Read until some tactile value are detected
     //TODO: Here, instead we should check the saliency given by pasar!

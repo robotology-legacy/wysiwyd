@@ -322,7 +322,7 @@ namespace wysiwyd{
             * @param babblingLimb contains the string corresponding to the side of the arm used ("left" or "right")
             * @return true in case of success release, false otherwise
             */
-            bool babbling(int &jointNumber, const std::string &babblingArm);
+            bool babbling(int jointNumber, const std::string &babblingArm);
 
             /**
             * Babbling a single joint using the name of a corresponding bodypart
@@ -332,6 +332,26 @@ namespace wysiwyd{
             *         (bodypart non existing, no joint number assigned, etc.).
             */
             bool babbling(const std::string &bpName, const std::string &babblingArm);
+
+
+            /**
+            * Babbling a single joint with modified duration
+            * @param jointNumber contains the int corresponding to an arm joint
+            * @param babblingLimb contains the string corresponding to the side of the arm used ("left" or "right")
+            * @param train_dur optional param, set the babbling time to the specified double
+            * @return true in case of success release, false otherwise
+            */
+            bool babbling(int jointNumber, const std::string &babblingArm, double train_dur);
+
+            /**
+            * Babbling a single joint using the name of a corresponding bodypart with modified duration
+            * @param bpName contains the string with the name of the bodypart
+            * @param babblingLimb contains the string corresponding to the side of the arm used ("left" or "right")
+            * @param train_dur optional param, set the babbling time to the specified double
+            * @return true in case of success release, false otherwise
+            *         (bodypart non existing, no joint number assigned, etc.).
+            */
+            bool babbling(const std::string &bpName, const std::string &babblingArm, double train_dur);
 
 
             /**

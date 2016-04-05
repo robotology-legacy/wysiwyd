@@ -52,22 +52,31 @@ public:
     }
 
     //whole arm babbling
-    bool babblingArm(std::string babblingLimb) { // need to be extended for several agents
+    bool babblingArm(std::string babblingLimb, double train_duration = -1.0) { // need to be extended for several agents
         yarp::os::Bottle bReq, bResp;
         bReq.addString("babbling");
         bReq.addString(babblingLimb);
+        //changethe train_duration if specified
+        if(train_duration >= 0.0){
+            yInfo() << "Babbling with specific train_duration: " << train_duration;
+            bReq.addDouble(train_duration);
+        }
         portRPC.write(bReq, bResp);
 
         return bResp.get(0).asBool();
     }
 
     //single joint babbling
-    bool babbling(int jointNumber, std::string babblingLimb) { // need to be extended for several agents
+    bool babbling(int jointNumber, std::string babblingLimb, double train_duration = -1.0) { // need to be extended for several agents
         yarp::os::Bottle bReq, bResp;
         bReq.addString("babbling");
         bReq.addString("joint");
         bReq.addInt(jointNumber);
         bReq.addString(babblingLimb);
+        if(train_duration >= 0.0){
+            yInfo() << "Babbling with specific train_duration: " << train_duration;
+            bReq.addDouble(train_duration);
+        }
         portRPC.write(bReq, bResp);
 
         return bResp.get(0).asBool();
