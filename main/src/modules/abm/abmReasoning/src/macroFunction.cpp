@@ -303,7 +303,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
         }
 
         // get action object and argument
-        bool fObject = false, fArgument = false, fAgent = false;
+        bool fObject = false, fArgument = false; //, fAgent = false;
         for (int i = 0; i < iSizeArg; i++)
         {
             if (bRole.get(i).toString() == "object1")
@@ -319,7 +319,7 @@ Bottle abmReasoning::executeActivity(Bottle bInput)
             if (bRole.get(i).toString() == "agent1")
             {
                 sAgent = bArgu.get(i).toString();
-                fAgent = true;
+                //fAgent = true;
             }
         }
         if (fObject && fArgument)
