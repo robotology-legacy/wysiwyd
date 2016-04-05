@@ -513,7 +513,7 @@ Bottle abmReasoning::executeComplex(Bottle bInput)
     }
 
     // get action object and argument
-    bool fObject1 = false, fObject2 = false, fAction1 = false, fAction2 = false, fArgument1 = false, fArgument2 = false, fAgent1 = false, fAgent2 = false, fTemporal = false;
+    bool fObject1 = false, fObject2 = false, fAction1 = false, fAction2 = false, fArgument1 = false, fArgument2 = false, fTemporal = false; //fAgent1 = false, fAgent2 = false,
     for (int i = 0; i < iSizeArg; i++)
     {
         if (bRole.get(i).toString() == "object1")
@@ -549,12 +549,12 @@ Bottle abmReasoning::executeComplex(Bottle bInput)
         if (bRole.get(i).toString() == "agent1")
         {
             sAgent1 = bArgu.get(i).toString();
-            fAgent1 = true;
+            //fAgent1 = true;
         }
         if (bRole.get(i).toString() == "agent2")
         {
             sAgent2 = bArgu.get(i).toString();
-            fAgent2 = true;
+            //fAgent2 = true;
         }
         if (bRole.get(i).toString() == "temporal")
         {

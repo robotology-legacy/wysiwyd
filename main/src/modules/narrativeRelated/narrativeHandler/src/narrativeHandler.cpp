@@ -322,7 +322,7 @@ void narrativeHandler::findNarration()
 
 
             // for each element of narration found
-            for (unsigned int ii = 0; ii < bListInstances.size(); ii++){
+            for (int ii = 0; ii < bListInstances.size(); ii++){
                 int itp = atoi(bListInstances.get(ii).asList()->get(0).asString().c_str());
                 if (!stop){
                     osRequest.str("");
@@ -1385,7 +1385,7 @@ bool narrativeHandler::narrate(int iIns){
 
     //    findStories(iMinInstance);
 
-    bool canNarrate = false;
+    //bool canNarrate = false;
 
     for (auto target : listStories){
         if (target.viInstances[0] == iIns){

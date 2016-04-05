@@ -99,13 +99,13 @@ pair <double, double> adjKnowledge::coordRelative(double Xo, double Yo, double X
 
     double X,   // X relative Coordinate
         Y,      // Y relative coordinate
-        R,      // Distance from agent to object
+        //R,      // Distance from agent to object
         A,      // temporaty for atan2 calculation
         B,      // temporaty for atan2 calculation
         Pi = atan(1.) * 4,
         Theta;  // angle of the Human relative to the table
 
-    R = sqrt((Xh - Xo)*(Xh - Xo) + (Yh - Yo)*(Yh - Yo));
+    //R = sqrt((Xh - Xo)*(Xh - Xo) + (Yh - Yo)*(Yh - Yo));
 
     A = Xh - abmReasoningFunction::X_center;
     B = Yh - abmReasoningFunction::Y_center;
