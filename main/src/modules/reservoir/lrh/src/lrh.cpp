@@ -42,17 +42,17 @@ bool LRH::configure(ResourceFinder &rf) {
     sKeyWord = rf.check("keyword", Value("grammar")).toString().c_str();
 
     /* Mode Scene Describer => sentences */
-    scorpusFileSD = rf.findFile(rf.check("corpusFileSD", Value("Corpus/corpus_SD.txt")).toString());
-    sfileResult = rf.findFile(rf.check("fileResult", Value("Corpus/output.txt")).toString());
-    stemporaryCorpus = rf.findFile(rf.check("temporaryCorpus", Value("Corpus/temporaryCorpus.txt")).toString());
-    sreservoirSD = rf.findFile(rf.check("reservoirSD", Value("spatial_relation.py")).toString());
+    scorpusFileSD = rf.findFile("corpusFileSD");
+    sfileResult = rf.findFile("fileResult");
+    stemporaryCorpus = rf.findFile("temporaryCorpus");
+    sreservoirSD = rf.findFile("reservoirSD");
     sclosed_class_wordsSD = rf.check("closed_class_wordsSD", Value("after")).toString().c_str();
 
     /* Mode Action Performer => Meaning */
-    sreservoirAP = rf.findFile(rf.check("reservoirAP", Value("action_performer_PAOR.py")).toString());
+    sreservoirAP = rf.findFile("reservoirAP");
 
     /* Mode Narratif => Sentences */
-    sreservoirNarratif = rf.findFile(rf.check("reservoirNarrative", Value("SentenceProduction.py")).toString());
+    sreservoirNarratif = rf.findFile("reservoirNarrative");
     scorpusFile = rf.findFile(rf.check("corpusFile", Value("Corpus/corpus_narratif_scenario3_XPAOR.txt")).toString());
     sclosed_class_words = rf.check("closed_class_words", Value("after")).toString().c_str();
 
