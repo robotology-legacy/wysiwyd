@@ -100,7 +100,7 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
         }
 
         string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
-        std::replace( relativeImagePath.begin(), relativeImagePath.end(), '\'', '');
+        std::replace( relativeImagePath.begin(), relativeImagePath.end(), '\'', ' ');
         string imagePath = storingPath + "/" + relativeImagePath;
 
         if (saveImageFromPort(imagePath, imgStreamInput.first, imgStreamInput.second)) {
