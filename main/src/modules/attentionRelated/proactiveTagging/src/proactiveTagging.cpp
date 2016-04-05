@@ -35,6 +35,9 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     babblingArm = rf.check("babblingArm", Value("left")).toString();
 
+    thresholdDistinguishObjectsRatio = rf.check("thresholdDistinguishObjectsRatio", Value(3.0)).asDouble();
+    thresholdSalienceDetection = rf.check("thresholdSalienceDetection", Value(2.0)).asDouble();
+
     yDebug() << "------------> babblingArm: " << babblingArm;
 
     cout << moduleName << ": finding configuration files..." << endl;
