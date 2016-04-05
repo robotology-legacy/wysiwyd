@@ -27,7 +27,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("proactiveTagging")).asString().c_str();
     setName(moduleName.c_str());
 
-    GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
     GrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
     GrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
     GrammarAskNameBodypart = rf.findFileByName(rf.check("GrammarAskNameBodypart", Value("GrammarAskNameSelf.xml")).toString());
@@ -65,15 +64,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     if (ttsOptions != "iCub") {
         if (iCub->getSpeechClient())
             iCub->getSpeechClient()->SetOptions(ttsOptions);
-    }
-
-    //out to BodySchema
-    portToBodySchema.open(("/" + moduleName + "/toBodySchema:o").c_str());
-    bodySchemaRpc = rf.check("bodySchemaRpc", Value("/babbling/rpc")).asString().c_str();
-
-    if (!Network::connect(portToBodySchema.getName().c_str(), bodySchemaRpc.c_str())) {
-        yWarning() << "BODY SCHEMA NOT CONNECTED: selfTagging will not work";
-        iCub->say("BODY SCHEMA NOT CONNECTED");
     }
 
     //out to BodySchema, bufferedPort for no wait and allow describe actions
@@ -143,7 +133,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 bool proactiveTagging::interruptModule() {
     portToLRH.interrupt();
     portFromTouchDetector.interrupt();
-    portToBodySchema.interrupt();
     portNoWaitToBodySchema.interrupt();
     portToSAM.interrupt();
     portToPasar.interrupt();
@@ -163,9 +152,6 @@ bool proactiveTagging::close() {
 
     portFromTouchDetector.interrupt();
     portFromTouchDetector.close();
-
-    portToBodySchema.interrupt();
-    portToBodySchema.close();
 
     portNoWaitToBodySchema.interrupt();
     portNoWaitToBodySchema.close();
@@ -349,87 +335,6 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool proactiveTagging::updateModule() {
     return true;
-}
-
-void proactiveTagging::checkRelations()
-{
-    iCub->opc->update();
-    iCub->opc->checkout();
-
-    string none = "none";
-
-    list<Relation> lRelations = iCub->opc->getRelations();
-
-    //FOR EACH RELATION
-    for (list<Relation>::iterator itRel = lRelations.begin(); itRel != lRelations.end(); itRel++)
-    {
-        cout << itRel->toString() << endl;
-
-        if (itRel->complement_manner() == none)
-        {
-            cout << "should ask the manner complement" << endl;
-            string sManner = askManner(itRel->subject(), itRel->verb(), itRel->object());
-
-            iCub->opc->removeRelation(*itRel);
-
-            cout << "relation is now: " << itRel->toString() << endl;
-            itRel->m_complement_manner = sManner;
-            iCub->opc->addEntity<Adjective>(sManner);
-            iCub->opc->addRelation(*itRel);
-            iCub->opc->commit();
-        }
-        cout << itRel->complement_manner() << endl;
-        cout << itRel->complement_place() << endl;
-        cout << itRel->complement_time() << endl;
-    }
-}
-
-
-
-string proactiveTagging::askManner(string agent, string verb, string object)
-{
-
-    ostringstream osSentenceToSay, osError;
-    osSentenceToSay << "Do you know how " << agent << " " << verb << " the " << object << " ?";
-
-    iCub->say(osSentenceToSay.str());
-
-    Bottle bOutput;
-
-    //bool fGetaReply = false;
-    Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
-        bAnswer, //response from speech recog without transfer information, including raw sentence
-        bSemantic, // semantic information of the content of the recognition
-        bSendReasoning; // send the information of recall to the abmReasoning
-
-    //bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(nameGrammarAskManner), 20);
-
-    if (bRecognized.get(0).asInt() == 0)
-    {
-        cout << bRecognized.get(1).toString() << endl;
-        return "none";
-    }
-
-    bAnswer = *bRecognized.get(1).asList();
-    cout << "bAnswer is : " << bAnswer.toString() << endl;
-
-    // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
-    bSemantic = *bAnswer.get(1).asList();
-
-    if (bAnswer.get(0).asString() == "stop")
-    {
-        osError.str("");
-        osError << " | STOP called";
-        bOutput.addString(osError.str());
-        cout << osError.str() << endl;
-        return "stop";
-    }
-
-    string sManner = bSemantic.check("manner", Value("none")).asString();
-    cout << "answer is : " << sManner << endl;
-
-    return sManner;
-    //TODO dialogue interaction to ask for complement of manner
 }
 
 /*
