@@ -2,7 +2,7 @@
 # Authors: Maxime Petit
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-install(PROGRAMS "./allostatic_plot.py" "./drive_control_gui.py" "./drive_control_rpc.py" DESTINATION bin PERMISSIONS WORLD_READ WORLD_EXECUTE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE)
+install(PROGRAMS "./allostatic_plot.py" "./drive_control_gui.py" "./drive_control_rpc.py" DESTINATION bin PERMISSIONS WORLD_READ WORLD_WRITE WORLD_EXECUTE OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE)
 
 add_subdirectory(allostaticController)
 add_subdirectory(homeostasis)
