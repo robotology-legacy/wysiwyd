@@ -93,12 +93,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     findStories(iMinInstance);
 
 
-    cout << endl << "###   DISPLAY KNOWN STORIES   ###" << endl;
-    for (auto st : listStories){
-        st.displayNarration();
-    }
+    //cout << endl << "###   DISPLAY KNOWN STORIES   ###" << endl;
+    //for (auto st : listStories){
+    //    st.displayNarration();
+    //}
 
-    cout << endl << "###   END DISPLAY   ###" << endl;
+    //cout << endl << "###   END DISPLAY   ###" << endl;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -202,7 +202,7 @@ void narrativeHandler::findStories(int iInstance)
     //    int iCurrentInstance = iInstance;
 
     ostringstream osRequest;
-    osRequest << "SELECT instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
+    osRequest << "SELECT time, begin, instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
     Bottle bMessenger;
     int numberInstances = bAllInstances.size();
@@ -213,27 +213,18 @@ void narrativeHandler::findStories(int iInstance)
     for (int j = 1; j < (numberInstances); j++)
     {
 
-        int Id = atoi(bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
-        int Id2 = atoi(bAllInstances.get(j).asList()->get(0).toString().c_str());
+        int Id = atoi(bAllInstances.get(j - 1).asList()->get(2).toString().c_str());
+        int Id2 = atoi(bAllInstances.get(j).asList()->get(2).toString().c_str());
 
-        iMinInstance = Id2;
-
-        osRequest.str("");
-        osRequest << "SELECT time, begin FROM main WHERE instance = " << Id;
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        string sT1 = bMessenger.get(0).asList()->get(0).toString();
-
-        osRequest.str("");
-        osRequest << "SELECT time, begin FROM main WHERE instance = " << Id2;
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        string sT2 = bMessenger.get(0).asList()->get(0).toString();
+        string sT1 = (bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
+        string sT2 = (bAllInstances.get(j).asList()->get(0).toString().c_str());
 
         myTimeStruct m1 = string2Time(sT1),
             m2 = string2Time(sT2);
 
         mDiff = timeDiff(m1, m2);
 
-        if (bMessenger.get(0).asList()->get(1).toString() != "f")
+        if ((bAllInstances.get(j).asList()->get(1).toString().c_str()) != "f")
         {
             if (mDiff > dThresholdDiffStory){
                 if (currentStory.viInstances.size() > iThresholdSizeStory)
@@ -263,26 +254,26 @@ void narrativeHandler::findStories(int iInstance)
 
     int ii = 1;
 
-    for (auto& itSt : listStories)
-    {
-        cout << "Story " << ii << ": ";
-        for (auto& itIn : itSt.viInstances)
-        {
-            cout << itIn << " ";
-        }
-        cout << endl;
-        osRequest.str("");
-        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itSt.viInstances.begin() << " AND verb != 'isAtLoc'";
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        //if (bMessenger.toString() != "NULL")   cout << "before: " << bMessenger.toString() << endl;
+    //for (auto& itSt : listStories)
+    //{
+    //    cout << "Story " << ii << ": ";
+    //    for (auto& itIn : itSt.viInstances)
+    //    {
+    //        cout << itIn << " ";
+    //    }
+    //    cout << endl;
+    //    osRequest.str("");
+    //    osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << *itSt.viInstances.begin() << " AND verb != 'isAtLoc'";
+    //    bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+    //    //if (bMessenger.toString() != "NULL")   cout << "before: " << bMessenger.toString() << endl;
 
-        osRequest.str("");
-        osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itSt.viInstances[itSt.viInstances.size() - 1] << " AND verb != 'isAtLoc'";
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        //if (bMessenger.toString() != "NULL")   cout << "after : " << bMessenger.toString() << endl;
+    //    osRequest.str("");
+    //    osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itSt.viInstances[itSt.viInstances.size() - 1] << " AND verb != 'isAtLoc'";
+    //    bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+    //    //if (bMessenger.toString() != "NULL")   cout << "after : " << bMessenger.toString() << endl;
 
-        ii++;
-    }
+    //    ii++;
+    //}
 
     initializeStories();
     findNarration();
@@ -300,18 +291,18 @@ void narrativeHandler::findNarration()
     //    int iCurrentInstance = iInstance;
 
     ostringstream osRequest;
-    Bottle bListInstances,
-        bMessenger;
+    Bottle bListInstances;
 
 
     for (auto &target : listStories){
         int iTarget = target.viInstances[0];
 
         osRequest.str("");
+        osRequest << "SELECT instance, role, argument FROM contentarg WHERE instance in (";
         osRequest << "SELECT contentarg.instance FROM contentarg, main WHERE contentarg.instance = main.instance and main.activitytype = 'narration' and contentarg.role = 'story' and contentarg.argument = '"
-            << iTarget << "'";
+            << iTarget << "' order by contentarg.instance"
+            << ") order by instance";
         bListInstances = iCub->getABMClient()->requestFromString(osRequest.str());
-
         int iCurrentElm = 0;
         bool stop = false;
 
@@ -321,13 +312,21 @@ void narrativeHandler::findNarration()
             target.meaningStory.clear();
 
 
+            int counter = atoi(bListInstances.get(0).asList()->get(0).toString().c_str());
             // for each element of narration found
             for (int ii = 0; ii < bListInstances.size(); ii++){
-                int itp = atoi(bListInstances.get(ii).asList()->get(0).asString().c_str());
+                //int itp = atoi(bListInstances.get(ii).asList()->get(0).asString().c_str());
                 if (!stop){
-                    osRequest.str("");
-                    osRequest << "SELECT role, argument FROM contentarg WHERE instance = " << itp;
-                    bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
+
+                    Bottle bMessenger;
+                    if (bListInstances.toString() != "NULL"){
+                        for (unsigned int ll = 0; ll < bListInstances.size(); ll++){
+                            if (atoi(bListInstances.get(ll).asList()->get(0).toString().c_str()) == counter){
+                                bMessenger.addList() = (*bListInstances.get(ll).asList()).tail();
+                            }
+                        }
+                    }
+                    counter++;
 
                     string sMeaning = bMessenger.check("meaning", Value("none")).asString();
                     string sSentence = bMessenger.check("sentence", Value("none")).asString();
@@ -345,7 +344,7 @@ void narrativeHandler::findNarration()
                     iCurrentElm = iRank + 1;
                 }
             }
-            target.displayNarration();
+            //target.displayNarration();
         }
     }
     yInfo(" END SEARCH NARRATION");
@@ -492,7 +491,7 @@ Bottle narrativeHandler::unfoldGoal(string goal)
 void narrativeHandler::initializeStories()
 {
     yInfo() << " initializeStories from: " << cursorStories;
-    cout << "begin initializating stories ";
+    cout << "begin initializating stories " << endl;
 
     vector<int>    toDelete; // vector of the stories to delete from the list.
     unsigned int iSto = 0;
@@ -502,40 +501,77 @@ void narrativeHandler::initializeStories()
         itSt.vEvents.clear();
         ostringstream osRequest;
         osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance = " << *(itSt.viInstances.begin());
+        osRequest << "SELECT time FROM main WHERE instance in ( " << *(itSt.viInstances.begin()) << " , " << itSt.viInstances[itSt.viInstances.size() - 1] <<  ") order by instance";
         Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        itSt.timeBegin = string2Time(bMessenger.toString());
+        itSt.timeBegin = string2Time(bMessenger.get(0).asList()->get(0).toString());
+        itSt.timeEnd   = string2Time(bMessenger.get(1).asList()->get(0).toString());
 
-        osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance = " << itSt.viInstances[itSt.viInstances.size() - 1];
-        bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
-        itSt.timeEnd = string2Time(bMessenger.toString());
+        ostringstream osRelation;
+        ostringstream osMain;
+        ostringstream osContentarg;
 
+        osRelation << "SELECT instance, subject, verb, object FROM relation WHERE verb != 'isAtLoc' AND instance in (";
+        osMain << "SELECT instance, activityname, activitytype, begin FROM main WHERE instance in (";
+        osContentarg << "SELECT instance, argument, role, subtype FROM contentarg WHERE instance in (";
+
+
+        bool bFirst = true;
         for (auto& itInst : itSt.viInstances){
-            ostringstream osRequest;
 
-            osRequest.str("");
-            osRequest << "SELECT subject, verb, object FROM relation WHERE instance = " << itInst << " AND verb != 'isAtLoc'";
-            Bottle bRelations = iCub->getABMClient()->requestFromString(osRequest.str());
-            //cout << "Relations: " << bMessenger.toString() << endl;
+            if (!bFirst) {
+                osRelation << ", ";
+                osMain << ", ";
+                osContentarg << ", ";
+            }
+            osRelation << itInst;
+            osMain << itInst;
+            osContentarg << itInst;
+            bFirst = false;
+        }
+        osRelation << ") ORDER BY instance";
+        osMain << ") ORDER BY instance";
+        osContentarg << ") ORDER BY instance";
+        
+        Bottle bAllRelation = iCub->getABMClient()->requestFromString(osRelation.str());
+        Bottle bAllMain = iCub->getABMClient()->requestFromString(osMain.str());
+        Bottle bAllContentA = iCub->getABMClient()->requestFromString(osContentarg.str());
+        
+        for (auto& itInst : itSt.viInstances){
 
-            osRequest.str("");
-            osRequest << "SELECT activityname, activitytype, begin FROM main WHERE instance = " << itInst;
-            Bottle bActivity = iCub->getABMClient()->requestFromString(osRequest.str());
-            //        cout << "activity info: " << bActivity.toString() << endl;
+            Bottle bTmpMain;
+            if (bAllMain.toString() != "NULL"){
+                for (unsigned int ll = 0; ll < bAllMain.size(); ll++){
+                    if (atoi(bAllMain.get(ll).asList()->get(0).toString().c_str()) == itInst){
+                        bTmpMain.addList() = (*bAllMain.get(ll).asList()).tail();
+                    }
+                }
+            }
 
-            osRequest.str("");
-            osRequest << "SELECT argument, role, subtype FROM contentarg WHERE instance = " << itInst;
-            Bottle bArguments = iCub->getABMClient()->requestFromString(osRequest.str());
+            Bottle bTmpArg;
+            if (bAllContentA.toString() != "NULL"){
+                for (unsigned int ll = 0; ll < bAllContentA.size(); ll++){
+                    if (atoi(bAllContentA.get(ll).asList()->get(0).toString().c_str()) == itInst){
+                        bTmpArg.addList() = (*bAllContentA.get(ll).asList()).tail();
+                    }
+                }
+            }
+
+            Bottle bTmpRel;
+            if (bAllRelation.toString() != "NULL"){
+                for (unsigned int ll = 0; ll < bAllRelation.size(); ll++){
+                    if (atoi(bAllRelation.get(ll).asList()->get(0).toString().c_str()) == itInst){
+                        // removing first element: instance
+                        bTmpRel.addList() = (*bAllRelation.get(ll).asList()).tail();
+                    }
+                }
+            }
 
             evtStory evtTemp;
-            vector<string> tempOCW = initializeEVT(evtTemp, itInst, bActivity, bArguments, bRelations);
+            vector<string> tempOCW = initializeEVT(evtTemp, itInst, bTmpMain, bTmpArg, bTmpRel);
 
             itSt.vEvents.push_back(evtTemp);
             itSt.addOCW(tempOCW);
         }
-
-        //cout << "-";
 
         createNarration(itSt);
         if (itSt.sentenceStory.size() < 2){
@@ -585,6 +621,12 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
     evt.isNarration = false;
     evt.bRelations = _bRelations;
     vector<string>   vOCW;
+
+//    cout << endl;
+//    cout << "initialize: instance: " << _instance << endl << "bActivity: " << bActivity.toString() << endl
+//        << "bargu " << bArguments.toString() << endl
+//        << "brela " << _bRelations.toString() << endl;
+
 
     vector<string> vPredicate{ "predicate", "action", "action1", "action2", "action3", "verb", "verb1", "verb2", "verb3" };
     vector<string> vAgent{ "agent", "agent1", "agent2", "agent3" };
@@ -679,7 +721,7 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
 
     if (_bRelations.toString() != "NULL"){
         for (int kk = 0; kk < _bRelations.size(); kk++){
-            Bottle bTemp = *_bRelations.get(kk).asList();
+            Bottle bTemp = (*_bRelations.get(kk).asList());
             for (int jj = 0; jj != bTemp.size(); jj++){
                 vOCW.push_back(bTemp.get(jj).toString());
             }
