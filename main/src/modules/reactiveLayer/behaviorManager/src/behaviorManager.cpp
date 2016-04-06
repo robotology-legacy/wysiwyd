@@ -49,6 +49,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new FollowingOrder(&mut));
         }  else if (behavior_name == "narrate") {
             behaviors.push_back(new Narrate(&mut));
+	}  else if (behavior_name == "recognitionOrder") {
+            behaviors.push_back(new recognitionOrder(&mut));
             // other behaviors here
         }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
