@@ -37,6 +37,11 @@ private:
     unsigned int  instanceStart; // min range of the research of story
     unsigned int  instanceStop;  // max range of the research of story
     int            storyToNarrate; // first instance of the story to narrate
+
+    bool researchWindows;   // if the research of sotry is by window (min*max) or by n-back
+    int nBackSize;              // number of nBack instance to look at
+    bool bInitial;          // if is the first research
+
     yarp::os::Port  rpcPort;
 
     std::vector<story> listStories;
@@ -81,7 +86,7 @@ public:
 
     bool updateModule();
 
-    void findStories(int iMin = 0, int iMax = 1000000);
+    void findStories();
     void findNarration();
 
     double timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrint = false);

@@ -51,8 +51,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     instanceStart = rf.check("instanceStart", Value(0)).asInt();
     instanceStop = rf.check("instanceStop", Value(100000)).asInt();
     storyToNarrate = rf.check("storyToNarrate", Value(1770)).asInt();
+    nBackSize = rf.check("nBackSize", Value(200)).asInt();
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
+    researchWindows = rf.find("researchWindows").asInt() == 1;
 
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
@@ -85,7 +87,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
             iCub->getSpeechClient()->SetOptions(ttsOptions);
     }
 
-    findStories(instanceStart, instanceStop);
+    bInitial = true;
+    findStories();
 
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -180,17 +183,36 @@ bool narrativeHandler::updateModule() {
     return true;
 }
 
-void narrativeHandler::findStories(int iMin, int iMax)
+void narrativeHandler::findStories()
 {
-    yInfo() << " BEGIN FINDSTORIES from: " << iMin << " to " << iMax ;
+    // initial: if it is the initialisation: 2 choices: window or n-back
+    // else only from last story
+
+    ostringstream osRequest;
+    if (bInitial){
+        if (researchWindows){
+            yInfo() << " BEGIN FINDSTORIES INITIAL from: " << instanceStart << " to " << instanceStop;
+            osRequest << "SELECT time, begin, instance FROM main WHERE instance between " << instanceStart << " and " << instanceStop << " ORDER by instance";
+
+        }
+
+        else{
+            yInfo() << " BEGIN FINDSTORIES INITIAL n-back: last " << nBackSize;
+            osRequest << "SELECT time, begin, instance FROM main WHERE instance in (SELECT instance FROM main ORDER BY instance DESC LIMIT " << nBackSize << ") ORDER by instance";
+        }
+    }
+    else{
+        yInfo() << " BEGIN FINDSTORIES from " << instanceStart;
+        osRequest << "SELECT time, begin, instance FROM main WHERE instance > " << instanceStart;
+    }
+
+    bInitial = false;
 
     story currentStory;
     currentStory.iThresholdSentence = iThresholdSentence;
 
     //    int iCurrentInstance = iInstance;
 
-    ostringstream osRequest;
-    osRequest << "SELECT time, begin, instance FROM main WHERE instance between " << iMin <<  " and " << iMax << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
     Bottle bMessenger;
     int numberInstances = bAllInstances.size();
@@ -496,10 +518,10 @@ void narrativeHandler::initializeStories()
         itSt.vEvents.clear();
         ostringstream osRequest;
         osRequest.str("");
-        osRequest << "SELECT time FROM main WHERE instance in ( " << *(itSt.viInstances.begin()) << " , " << itSt.viInstances[itSt.viInstances.size() - 1] <<  ") order by instance";
+        osRequest << "SELECT time FROM main WHERE instance in ( " << *(itSt.viInstances.begin()) << " , " << itSt.viInstances[itSt.viInstances.size() - 1] << ") order by instance";
         Bottle bMessenger = iCub->getABMClient()->requestFromString(osRequest.str());
         itSt.timeBegin = string2Time(bMessenger.get(0).asList()->get(0).toString());
-        itSt.timeEnd   = string2Time(bMessenger.get(1).asList()->get(0).toString());
+        itSt.timeEnd = string2Time(bMessenger.get(1).asList()->get(0).toString());
 
         ostringstream osRelation;
         ostringstream osMain;
@@ -526,11 +548,11 @@ void narrativeHandler::initializeStories()
         osRelation << ") ORDER BY instance";
         osMain << ") ORDER BY instance";
         osContentarg << ") ORDER BY instance";
-        
+
         Bottle bAllRelation = iCub->getABMClient()->requestFromString(osRelation.str());
         Bottle bAllMain = iCub->getABMClient()->requestFromString(osMain.str());
         Bottle bAllContentA = iCub->getABMClient()->requestFromString(osContentarg.str());
-        
+
         for (auto& itInst : itSt.viInstances){
 
             Bottle bTmpMain;
@@ -617,10 +639,10 @@ vector<string> narrativeHandler::initializeEVT(evtStory &evt, int _instance, Bot
     evt.bRelations = _bRelations;
     vector<string>   vOCW;
 
-//    cout << endl;
-//    cout << "initialize: instance: " << _instance << endl << "bActivity: " << bActivity.toString() << endl
-//        << "bargu " << bArguments.toString() << endl
-//        << "brela " << _bRelations.toString() << endl;
+    //    cout << endl;
+    //    cout << "initialize: instance: " << _instance << endl << "bActivity: " << bActivity.toString() << endl
+    //        << "bargu " << bArguments.toString() << endl
+    //        << "brela " << _bRelations.toString() << endl;
 
 
     vector<string> vPredicate{ "predicate", "action", "action1", "action2", "action3", "verb", "verb1", "verb2", "verb3" };
@@ -1441,7 +1463,7 @@ bool narrativeHandler::narrate(int iIns){
 bool narrativeHandler::askNarrate(int iInstance){
     yInfo(" BEGIN askNarrate");
 
-    findStories(instanceStart);
+    findStories();
 
     for (auto target : listStories){
         if (target.viInstances[0] == iInstance){
