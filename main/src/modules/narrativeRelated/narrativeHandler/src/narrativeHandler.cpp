@@ -48,7 +48,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
     iThresholdSentence = rf.check("iThresholdSentence", Value(6)).asInt();
-    iMinInstance = rf.check("instanceStart", Value(0)).asInt();
+    instanceStart = rf.check("instanceStart", Value(0)).asInt();
+    instanceStop = rf.check("instanceStop", Value(100000)).asInt();
     storyToNarrate = rf.check("storyToNarrate", Value(1770)).asInt();
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
@@ -84,21 +85,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
             iCub->getSpeechClient()->SetOptions(ttsOptions);
     }
 
+    findStories(instanceStart, instanceStop);
 
-    yInfo() << " dThresholdDiffStory: " << dThresholdDiffStory;
-    yInfo() << " iThresholdSizeStory: " << iThresholdSizeStory;
-
-    counter = 0;
-
-    findStories(iMinInstance);
-
-
-    //cout << endl << "###   DISPLAY KNOWN STORIES   ###" << endl;
-    //for (auto st : listStories){
-    //    st.displayNarration();
-    //}
-
-    //cout << endl << "###   END DISPLAY   ###" << endl;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -192,9 +180,9 @@ bool narrativeHandler::updateModule() {
     return true;
 }
 
-void narrativeHandler::findStories(int iInstance)
+void narrativeHandler::findStories(int iMin, int iMax)
 {
-    yInfo() << " BEGIN FINDSTORIES from: " << iInstance << " while iMinInstance is: " << iMinInstance;
+    yInfo() << " BEGIN FINDSTORIES from: " << iMin << " to " << iMax ;
 
     story currentStory;
     currentStory.iThresholdSentence = iThresholdSentence;
@@ -202,7 +190,7 @@ void narrativeHandler::findStories(int iInstance)
     //    int iCurrentInstance = iInstance;
 
     ostringstream osRequest;
-    osRequest << "SELECT time, begin, instance FROM main WHERE instance > " << iInstance << " ORDER by instance";
+    osRequest << "SELECT time, begin, instance FROM main WHERE instance between " << iMin <<  " and " << iMax << " ORDER by instance";
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
     Bottle bMessenger;
     int numberInstances = bAllInstances.size();
@@ -210,11 +198,13 @@ void narrativeHandler::findStories(int iInstance)
     vector<int> vError;
     yInfo() << "\t" << "found " << numberInstances << " instance(s)";
     double mDiff;
+    int Id;
+    int Id2;
     for (int j = 1; j < (numberInstances); j++)
     {
 
-        int Id = atoi(bAllInstances.get(j - 1).asList()->get(2).toString().c_str());
-        int Id2 = atoi(bAllInstances.get(j).asList()->get(2).toString().c_str());
+        Id = atoi(bAllInstances.get(j - 1).asList()->get(2).toString().c_str());
+        Id2 = atoi(bAllInstances.get(j).asList()->get(2).toString().c_str());
 
         string sT1 = (bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
         string sT2 = (bAllInstances.get(j).asList()->get(0).toString().c_str());
@@ -278,7 +268,12 @@ void narrativeHandler::findStories(int iInstance)
     initializeStories();
     findNarration();
 
+    instanceStart = Id2;
+
+
     yInfo(" END FINDSTORIES ");
+
+    yInfo() << " Found: " << listStories.size() << " stories.";
 }
 
 
@@ -1446,7 +1441,7 @@ bool narrativeHandler::narrate(int iIns){
 bool narrativeHandler::askNarrate(int iInstance){
     yInfo(" BEGIN askNarrate");
 
-    findStories(iMinInstance);
+    findStories(instanceStart);
 
     for (auto target : listStories){
         if (target.viInstances[0] == iInstance){

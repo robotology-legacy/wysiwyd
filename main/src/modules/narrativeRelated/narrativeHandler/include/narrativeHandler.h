@@ -33,7 +33,9 @@ private:
     double dThresholdDiffStory; // threshold in second between to action from two different stories.
     unsigned int  iThresholdSizeStory; // threshold of the number of instance in a story
     unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
-    unsigned int  iMinInstance; // threshold of the number of sentence in a story
+
+    unsigned int  instanceStart; // min range of the research of story
+    unsigned int  instanceStop;  // max range of the research of story
     int            storyToNarrate; // first instance of the story to narrate
     yarp::os::Port  rpcPort;
 
@@ -79,7 +81,7 @@ public:
 
     bool updateModule();
 
-    void findStories(int iInstance = 0);
+    void findStories(int iMin = 0, int iMax = 1000000);
     void findNarration();
 
     double timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrint = false);
