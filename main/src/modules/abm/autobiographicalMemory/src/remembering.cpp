@@ -23,7 +23,7 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace cv;
 
-Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, const string &robotName, const vector<string> &desired_augmented_times)
+Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, const string &robotName)
 {
     Bottle bReply;
     while(streamStatus!="none") {
@@ -34,7 +34,7 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
     speedMultiplier = speedM;
     imgInstance = instance;
 
-    openImgStreamPorts(instance, includeAugmented, desired_augmented_times);
+    openImgStreamPorts(instance, includeAugmented);
     openDataStreamPorts(instance, robotName);
     // make sure images are stored in ABM before saving them
     storeImageOIDs(instance);
@@ -96,16 +96,24 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
     return bReply;
 }
 
-int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugmented, const vector<string> &desired_times)
+int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugmented)
 {
     Bottle bRequest;
     ostringstream osArg;
 
     bRequest.addString("request");
-    osArg << "SELECT DISTINCT img_provider_port, augmented, augmented_time FROM visualdata WHERE instance = " << instance << endl;
+    osArg << "SELECT DISTINCT img_provider_port, augmented, augmented_time FROM visualdata WHERE instance = " << instance << " ORDER BY augmented_time DESC" << endl;
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
 
+    map<string, vector<string>> desired_times_local;
+    for (int i = 0; i < bRequest.size() && bRequest.toString() != "NULL"; i++) {
+        string augmented = bRequest.get(i).asList()->get(1).asString();
+        string augmented_time = bRequest.get(i).asList()->get(2).asString();
+        if(augmented != "") {
+            desired_times_local[augmented].push_back(augmented_time);
+        }
+    }
     for (int i = 0; i < bRequest.size() && bRequest.toString() != "NULL"; i++) {
         string imgProviderPort = bRequest.get(i).asList()->get(0).asString();
         string augmented = bRequest.get(i).asList()->get(1).asString();
@@ -123,14 +131,13 @@ int autobiographicalMemory::openImgStreamPorts(int instance, bool includeAugment
             Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort);
         }
         else if (includeAugmented) {
-            if (!desired_times.empty() && augmented != "") {
-                size_t pos = std::find(desired_times.begin(), desired_times.end(), augmented_time) - desired_times.begin();
-                stringstream ss; ss << pos; string pos_str = ss.str();
-                if (pos < desired_times.size()) {
+            if (augmented != "") {
+                size_t pos = std::find(desired_times_local[augmented].begin(), desired_times_local[augmented].end(), augmented_time) - desired_times_local[augmented].begin();
+                if (pos < desired_times_local.size()) {
                     mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;
                     mapImgStreamPortOut[concatenated_port]->open((portPrefixForStreaming + concatenated_port).c_str());
-                    yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str;
-                    Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + pos_str);
+                    yDebug() << "Connect " << concatenated_port << " with " << "/yarpview" + portPrefixForStreaming + imgProviderPort + std::to_string(pos);
+                    Network::connect(mapImgStreamPortOut[concatenated_port]->getName(), "/yarpview" + portPrefixForStreaming + imgProviderPort + std::to_string(pos));
                 }
             } else {
                 mapImgStreamPortOut[concatenated_port] = new yarp::os::BufferedPort < yarp::sig::ImageOf<yarp::sig::PixelRgb> > ;

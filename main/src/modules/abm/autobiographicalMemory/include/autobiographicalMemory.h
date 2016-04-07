@@ -117,7 +117,7 @@ public:
     bool sendStreamIsInitialized;
     bool increaseFrameNb;
 
-    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback, bool includeAugmented, double speedM, const std::string& robotName, const std::vector<std::string> &desired_augmented_times = std::vector<std::string>());
+    yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback, bool includeAugmented, double speedM, const std::string& robotName);
 
     // maps to receive / send images
     std::map <std::string, yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >*> mapImgStreamPortOut;
@@ -160,7 +160,7 @@ public:
     template<typename T>
     yarp::os::Bottle disconnectStreamProviders(std::map <std::string, yarp::os::BufferedPort<T>* > &map);
 
-    int openImgStreamPorts(int instance, bool includeAugmented = true, const std::vector<std::string> &desired_times = std::vector<std::string>());
+    int openImgStreamPorts(int instance, bool includeAugmented = true);
     int openDataStreamPorts(int instance, std::string robotName = "icubSim");
 
     //unsigned int getImagesProviderCount(int instance); // obsolete

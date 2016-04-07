@@ -583,7 +583,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bool includeAugmented = true;
                 double speedMultiplier = 1.0;
                 string robot = "icubSim";
-                vector<string> desiredTimes;
 
                 Value vRealtime = bCommand.find("realtime");
                 if (!vRealtime.isNull() && vRealtime.isInt()) {
@@ -605,26 +604,17 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     robot = vRobot.asString();
                 }
 
-                Bottle bDesiredTimes = bCommand.findGroup("augmentedTimes");
-                if (!bDesiredTimes.isNull() && bDesiredTimes.size() > 1) {
-                    for (int i = 1; i < bDesiredTimes.size(); i++) {
-                        desiredTimes.push_back(bDesiredTimes.get(i).asString());
-                        yDebug() << "Push " << bDesiredTimes.get(i).asString() << " to desiredTimes";
-                    }
-                }
-
                 yDebug() << "instance: " << instance;
                 yDebug() << "realtime: " << realtime;
                 yDebug() << "includeAugmented: " << includeAugmented;
                 yDebug() << "speedMultiplier: " << speedMultiplier;
                 yDebug() << "robot: " << robot;
-                yDebug() << "augmentedTimes: " << bDesiredTimes.toString();
 
-                bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot, desiredTimes);
+                bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot);
             }
             else
             {
-                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instance (realtime true/false) (includeAugmented true/false) (speedMultiplier true/false) (robot icubSim)");
+                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instance (realtime true/false) (includeAugmented true/false) (speedMultiplier 1.0) (robot icubSim)");
                 bReply = bError;
             }
         }
