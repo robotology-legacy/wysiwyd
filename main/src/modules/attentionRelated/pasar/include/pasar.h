@@ -71,7 +71,6 @@ class PasarModule : public yarp::os::RFModule {
 	bool checkHaving;
 	bool checkPointing;
     ICubClient  *iCub;
-    bool abm;
 
     yarp::os::Port handlerPort;      //a port to handle messages 
 
@@ -84,8 +83,6 @@ class PasarModule : public yarp::os::RFModule {
 
     pair<bool, bool> presentRightHand;
     pair<bool, bool> presentLeftHand;
-
-    bool    isSkeletonIn;
 
     map<int, ObjectModel>  presentObjectsLastStep;
     map<int, pair<double, double> > presentLastSpeed;

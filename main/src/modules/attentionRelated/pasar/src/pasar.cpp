@@ -28,14 +28,8 @@ using namespace std;
 
 /************************************************************************/
 bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
-    std::string opcName;
-    std::string gazePortName;
-    std::string handlerPortName;
-    std::string saliencyPortName;
-
     string moduleName = rf.check("name", Value("pasar")).asString().c_str();
     setName(moduleName.c_str());
-
 
     //    moduleName = rf.check("name",
     //        Value("pasar")).asString();
@@ -99,26 +93,21 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 
     if (!iCub->connect())
     {
-        yInfo() << "iCubClient : Some dependencies are not running...";
-        Time::delay(1.0);
+        yError() << "iCubClient : Some dependencies are not running...";
+        return false;
     }
 
-    abm = true;
     if (!iCub->getABMClient())
     {
-        abm = false;
-        yWarning() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+        yError() << " WARNING ABM NOT CONNECTED, MODULE CANNOT START";
+        return false;
     }
 
 
-    if (!Network::connect("/agentDetector/skeleton:o", ("/" + moduleName + "/skeleton:i").c_str()))
-    {
-        isSkeletonIn = false;
-    }
-    else
-    {
+    if (Network::connect("/agentDetector/skeleton:o", ("/" + moduleName + "/skeleton:i").c_str())) {
         yInfo() << " is connected to skeleton";
-        isSkeletonIn = true;
+    } else {
+        yError() << " could not connect to skeleton";
     }
 
     checkPointing = rf.find("isPointing").asInt() == 1;
@@ -133,7 +122,7 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     yInfo() << " having: " << checkHaving;
 
     if (!handlerPort.open(("/" + moduleName + "/rpc").c_str())) {
-        cout << getName() << ": Unable to open port rpc" << endl;
+        yError() << getName() << ": Unable to open port rpc";
         return false;
     }
 
@@ -163,16 +152,6 @@ bool PasarModule::interruptModule() {
 
 /************************************************************************/
 bool PasarModule::close() {
-    entities = iCub->opc->EntitiesCacheCopy();
-
-    for (list<Entity*>::iterator it = entities.begin(); it != entities.end(); it++)
-    {
-        (dynamic_cast<Object*>(*it))->m_saliency = 0.0;
-        delete *it;
-    }
-    iCub->opc->commit();
-
-
     iCub->opc->close();
     handlerPort.interrupt();
     handlerPort.close();
