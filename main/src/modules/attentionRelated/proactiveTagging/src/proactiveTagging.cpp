@@ -645,10 +645,8 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         iCub->opc->checkout();
         list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
 
-        for (auto& entity : lEntities)
-        {
-            if (entity->name() == sNameTarget && entity->entity_type() == sTypeTarget)
-            {
+        for (auto& entity : lEntities) {
+            if (entity->name() == sNameTarget && entity->entity_type() == sTypeTarget) {
                 yInfo() << " Entity " << sNameTarget << " is already known.";
                 bOutput.addString("warning");
                 bOutput.addString("entity already exists");
@@ -661,11 +659,37 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         }
 
         if(unknownEntitiesPresent == 0) {
+            iCub->lookAtPartner();
             iCub->say("I know all the " + sTypeTarget + " present. The " + sNameTarget + " is not here");
+            iCub->home();
             yInfo() << "No unknown entity is present.";
             bOutput.addString("nack");
             bOutput.addString("No unknown entity is present.");
             return bOutput;
+        } else if(unknownEntitiesPresent == 1) {
+            yInfo() << "There is only one unknown entity";
+            // let's find the only unknown entity
+            for (auto& entity : lEntities) {
+                Object *o = dynamic_cast<Object*>(entity);
+                if(o && o->name().find("unknown") != string::npos && o->entity_type() == sTypeTarget && o->m_present == 1.0) {
+                    iCub->say("There was only one object which I didn't know");
+                    iCub->changeName(o, sNameTarget);
+                    iCub->point(sNameTarget);
+                    iCub->say("Now I know the" + sNameTarget);
+                    iCub->home();
+
+                    if (iCub->getABMClient()->Connect()) {
+                        std::list<std::pair<std::string, std::string> > lArgument;
+                        lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+                        lArgument.push_back(std::pair<std::string, std::string>("name", "predicate"));
+                        lArgument.push_back(std::pair<std::string, std::string>(sNameTarget, "object"));
+                        iCub->getABMClient()->sendActivity("action", "rename", "proactiveTagging", lArgument);
+                    }
+
+                    bOutput.addString("name changed");
+                    return bOutput;
+                }
+            }
         }
     }
     else
@@ -740,11 +764,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
         lArgument.push_back(std::pair<std::string, std::string>("name", "predicate"));
         lArgument.push_back(std::pair<std::string, std::string>(sNameTarget, "object"));
-        iCub->getABMClient()->sendActivity("action",
-            "rename",
-            "proactiveTagging",
-            lArgument,
-            true);
+        iCub->getABMClient()->sendActivity("action", "rename", "proactiveTagging", lArgument);
     }
 
     return bOutput;
