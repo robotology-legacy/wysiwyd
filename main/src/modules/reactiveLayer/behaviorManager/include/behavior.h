@@ -70,6 +70,8 @@ public:
         sensation_port_in.close();
         rpc_out_port.interrupt();
         rpc_out_port.close();
+        behavior_start_stop_port.interrupt();
+        behavior_start_stop_port.close();
     }
     
 };

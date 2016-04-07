@@ -26,7 +26,10 @@ public:
     void configure();
     void publish();
     void close_ports() {
-        ;
+        in.interrupt();
+        in.close();
+        out.interrupt();
+        out.close();
     }
 
 };

@@ -5,6 +5,8 @@ bool SensationManager::close() {
     for(auto sens : sensations) {
         sens->close_ports();
     }
+    sensations.clear();
+
     return true;
 }
 

@@ -11,6 +11,7 @@ bool BehaviorManager::close()
     for(auto& beh : behaviors) {
         beh->close_ports();
     }
+    behaviors.clear();
 
     delete iCub;
 
