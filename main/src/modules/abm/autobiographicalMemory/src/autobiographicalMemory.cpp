@@ -77,7 +77,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     sendStreamIsInitialized = false;
 
     augmentedTime = getCurrentTime();
-    augmentedLastFrameNumber = std::numeric_limits<int>::max();
 
     shouldClose = false;
     bPutObjectsOPC = false;
@@ -691,6 +690,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         else if (bCommand.get(0) == "saveAugmentedImages")
         {
             yDebug() << "start saveAugmentedImages";
+            augmentedTime = getCurrentTime();
             saveAugmentedImages();
             bReply.addString("ack");
         }
