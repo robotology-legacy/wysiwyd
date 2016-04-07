@@ -67,7 +67,7 @@ bool proactiveTagging::setPasarPointing(bool on) {
 
 string proactiveTagging::getBestEntity(string sTypeTarget) {
     bool bFound = false;
-    string sNameBestEntity = "none";
+    string sNameBestEntity = "none", sNameSecondBest = "none";
 
     // start detecting unknown objects
     while (!bFound)
@@ -80,19 +80,7 @@ string proactiveTagging::getBestEntity(string sTypeTarget) {
 
         for (auto& entity : lEntities)
         {
-            string sName = entity->name();
-            string sNameCut = sName;
-            string delimiter = "_";
-            size_t pos = 0;
-            string token;
-            if ((pos = sName.find(delimiter)) != string::npos) {
-                token = sName.substr(0, pos);
-                sName.erase(0, pos + delimiter.length());
-                sNameCut = token;
-            }
-            // check is label is known
-
-            if (sNameCut == "unknown")
+            if (entity->name().find("unknown")==0)
             {
                 if ((sTypeTarget == "object" && (entity->entity_type() == "object" || entity->entity_type() == "rtobject")) ||
                     (sTypeTarget == "bodypart" && (entity->entity_type() == "bodypart")))
@@ -116,33 +104,38 @@ string proactiveTagging::getBestEntity(string sTypeTarget) {
                         if (temp->m_saliency > secondSaliency)
                         {
                             secondSaliency = temp->m_saliency;
+                            sNameSecondBest = temp->name();
                         }
                     }
                 }
             }
         }
 
+        yDebug() << sNameBestEntity << " has highest saliency: " << highestSaliency;
+        yDebug() << sNameSecondBest << " has second highest saliency: " << secondSaliency;
+
         bFound = false;
-        if (highestSaliency > thresholdSalienceDetection)
-        {
+        if (highestSaliency > thresholdSalienceDetection) {
             //the object with highest salience is salient enough
-            if (secondSaliency != 0.0)
-            {
+            if (secondSaliency != 0.0) {
                 // there are other salient objects
-                if ((highestSaliency / secondSaliency) > thresholdDistinguishObjectsRatio)
-                {
+                if ((highestSaliency / secondSaliency) > thresholdDistinguishObjectsRatio) {
+                    yDebug() << "Two objects are salient, but one is much more";
                     //but it is enough difference
                     bFound = true;
                 }
-            }
-            else
-            {
+                else {
+                    yDebug() << "Two objects are similarly salient";
+                }
+            } else {
+                yDebug() << "Only one object is salient, take this one";
                 //other object are not salient
                 bFound = true;
             }
         }
         if (sNameBestEntity == "none")
         {
+            yDebug() << "No object is salient";
             bFound = false;
         }
     }
