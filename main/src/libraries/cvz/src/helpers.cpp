@@ -4,12 +4,7 @@ namespace cvz {
 
 std::string int2str(int i)
 {
-    std::stringstream ss;
-    ss << i;
-    return ss.str();
-    //char buffer[255];
-    //itoa(i, buffer, 10);
-    //return buffer;
+    return std::to_string(i);
 }
 
 yarp::sig::PixelRgb double2RGB(double value)

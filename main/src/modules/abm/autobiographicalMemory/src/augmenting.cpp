@@ -35,8 +35,7 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
     osRequest << "    SELECT instance FROM main WHERE activityname = '" << activityname << "' ";
     osRequest << "    AND begin='true'";
     if (instance != -1) {
-        ostringstream osInstance; osInstance << instance;
-        osRequest << " AND instance='" << osInstance.str() << "'";
+        osRequest << " AND instance='" << std::to_string(instance) << "'";
     }
     osRequest << ") GROUP BY instance ";
     osRequest << "HAVING count(DISTINCT augmented_time) < " << number_of_augmentions;

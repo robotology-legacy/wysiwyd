@@ -785,8 +785,7 @@ bool autobiographicalMemory::updateModule() {
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
 
-        stringstream imgInstanceString; imgInstanceString << imgInstance;
-        string currentPathFolder = storingPath + "/" + imgInstanceString.str();
+        string currentPathFolder = storingPath + "/" + std::to_string(imgInstance);
         if (yarp::os::mkdir_p(currentPathFolder.c_str()) == -1) {
             yWarning() << "Folder " << currentPathFolder << " already exists or could not be created!";
         }
@@ -1279,9 +1278,8 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
         request(bRequest);
 
         //delete folders where images were stored in
-        ostringstream instanceString; instanceString << *it;
-        delete_directory(storingPath + "/" + instanceString.str() + "/");
-        delete_directory(storingPath + "/" + storingTmpSuffix + "/" + instanceString.str() + "/");
+        delete_directory(storingPath + "/" + std::to_string(*it) + "/");
+        delete_directory(storingPath + "/" + storingTmpSuffix + "/" + std::to_string(*it) + "/");
 
         //remove from proprioceptivedata table
         osRequest.str("");
