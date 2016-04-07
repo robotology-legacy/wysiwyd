@@ -1,6 +1,14 @@
 #include "behaviorManager.h"
 
+bool BehaviorManager::interruptModule()
+{
+    rpc_in_port.interrupt();
 
+    for(auto& beh : behaviors) {
+        beh->interrupt_ports();
+    }
+    return true;
+}
 
 bool BehaviorManager::close()
 {

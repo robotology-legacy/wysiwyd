@@ -25,7 +25,7 @@ public:
         external_port_name = "None";
     }
 
-    void openPorts(string port_name_prefix="") {
+    void openPorts(string port_name_prefix) {
         if (from_sensation_port_name != "None") {
             sensation_port_in.open("/" + port_name_prefix +"/" + name + "/sensation:i");
         }    
@@ -63,6 +63,12 @@ public:
 
     virtual void configure() = 0;
     virtual void close_extra_ports() = 0;
+
+    void interrupt_ports() {
+        sensation_port_in.interrupt();
+        rpc_out_port.interrupt();
+        behavior_start_stop_port.interrupt();
+    }
 
     void close_ports() {
         close_extra_ports();

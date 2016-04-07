@@ -44,10 +44,7 @@ private:
 public:
    bool configure(yarp::os::ResourceFinder &rf);
 
-    bool interruptModule()
-    {
-        return true;
-    }
+    bool interruptModule();
 
     bool close();
 
