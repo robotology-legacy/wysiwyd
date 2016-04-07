@@ -118,9 +118,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         " setNarrator + name: \n" +
-        " askNarrate: \n" +
-        " narrate: \n" +
-        " commands are: \n" +
+        " askNarrate + instanceStory = default_value: \n" +
+        " narrate + instanceStory = default_value: \n" +
+        " displayStories + n-back = default_all: \n" +
         " quit \n";
 
     yInfo() << " rpc command received: " << command.toString();
@@ -166,6 +166,39 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         }
         else{
             reply.addString("nack");
+        }
+    }
+    else if (command.get(0).asString() == "displayStories"){
+        yInfo("Starting to display stories:");
+        if (command.size()==2){
+            unsigned int nback = command.get(1).asInt();
+            if (nback < listStories.size()){
+                for (unsigned int jj = listStories.size() - nback; jj < listStories.size() ; jj++){
+                    listStories[jj].displayNarration();
+                }
+            }
+            else{
+                for (auto st : listStories){
+                    st.displayNarration();
+                }
+            }
+        }
+        else{
+        for (auto st : listStories){
+            st.displayNarration();
+        }
+        }
+        reply.addString("display finished");
+    }
+    else if (command.get(0).asString() == "setDefaultStory"){
+        if (command.size() == 2) {
+            storyToNarrate = command.get(1).asInt();
+            yInfo() << " default instance of story set to: " << storyToNarrate;
+            reply.addString("default instance of story set to " + storyToNarrate);
+        }
+        else{
+            yWarning(" in narrativeHandler: command setDefaultStory: missing argument (int expected)");
+            reply.addString(" in narrativeHandler: command setDefaultStory: missing argument (int expected)");
         }
     }
     else{
@@ -214,18 +247,17 @@ void narrativeHandler::findStories()
     //    int iCurrentInstance = iInstance;
 
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
-    Bottle bMessenger;
+   // Bottle bMessenger;
     int numberInstances = bAllInstances.size();
 
-    vector<int> vError;
+   // vector<int> vError;
     yInfo() << "\t" << "found " << numberInstances << " instance(s)";
     double mDiff;
-    int Id;
-    int Id2;
+    int Id2=0;
     for (int j = 1; j < (numberInstances); j++)
     {
 
-        Id = atoi(bAllInstances.get(j - 1).asList()->get(2).toString().c_str());
+        //Id = atoi(bAllInstances.get(j - 1).asList()->get(2).toString().c_str());
         Id2 = atoi(bAllInstances.get(j).asList()->get(2).toString().c_str());
 
         string sT1 = (bAllInstances.get(j - 1).asList()->get(0).toString().c_str());
@@ -236,7 +268,7 @@ void narrativeHandler::findStories()
 
         mDiff = timeDiff(m1, m2);
 
-        if ((bAllInstances.get(j).asList()->get(1).toString().c_str()) != "f")
+        if (strcmp((bAllInstances.get(j).asList()->get(1).toString().c_str()) , "f") == 1)
         {
             if (mDiff > dThresholdDiffStory){
                 if (currentStory.viInstances.size() > iThresholdSizeStory)
@@ -263,8 +295,6 @@ void narrativeHandler::findStories()
         counter++;
         listStories.push_back(currentStory);
     }
-
-    int ii = 1;
 
     //for (auto& itSt : listStories)
     //{
@@ -337,7 +367,7 @@ void narrativeHandler::findNarration()
 
                     Bottle bMessenger;
                     if (bListInstances.toString() != "NULL"){
-                        for (unsigned int ll = 0; ll < bListInstances.size(); ll++){
+                        for (int ll = 0; ll < bListInstances.size(); ll++){
                             if (atoi(bListInstances.get(ll).asList()->get(0).toString().c_str()) == counter){
                                 bMessenger.addList() = (*bListInstances.get(ll).asList()).tail();
                             }
@@ -557,7 +587,7 @@ void narrativeHandler::initializeStories()
 
             Bottle bTmpMain;
             if (bAllMain.toString() != "NULL"){
-                for (unsigned int ll = 0; ll < bAllMain.size(); ll++){
+                for (int ll = 0; ll < bAllMain.size(); ll++){
                     if (atoi(bAllMain.get(ll).asList()->get(0).toString().c_str()) == itInst){
                         bTmpMain.addList() = (*bAllMain.get(ll).asList()).tail();
                     }
@@ -566,7 +596,7 @@ void narrativeHandler::initializeStories()
 
             Bottle bTmpArg;
             if (bAllContentA.toString() != "NULL"){
-                for (unsigned int ll = 0; ll < bAllContentA.size(); ll++){
+                for (int ll = 0; ll < bAllContentA.size(); ll++){
                     if (atoi(bAllContentA.get(ll).asList()->get(0).toString().c_str()) == itInst){
                         bTmpArg.addList() = (*bAllContentA.get(ll).asList()).tail();
                     }
@@ -575,7 +605,7 @@ void narrativeHandler::initializeStories()
 
             Bottle bTmpRel;
             if (bAllRelation.toString() != "NULL"){
-                for (unsigned int ll = 0; ll < bAllRelation.size(); ll++){
+                for (int ll = 0; ll < bAllRelation.size(); ll++){
                     if (atoi(bAllRelation.get(ll).asList()->get(0).toString().c_str()) == itInst){
                         // removing first element: instance
                         bTmpRel.addList() = (*bAllRelation.get(ll).asList()).tail();
