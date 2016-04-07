@@ -72,6 +72,9 @@ private:
     //actionTagging
     yarp::os::Bottle describeBabbling(std::string sJointName, int jointNumber); // to change extract the joint from the name
 
+    bool setPasarPointing(bool on);
+    std::string getBestEntity(std::string sTypeTarget);
+    yarp::os::Bottle getNameFromSAM(std::string sNameTarget, std::string currentEntityType);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
