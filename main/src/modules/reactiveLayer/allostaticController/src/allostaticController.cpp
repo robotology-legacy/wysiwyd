@@ -1,8 +1,39 @@
 #include "allostaticController.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
 
+bool AllostaticController::interruptModule()
+{
+    yDebug() << "Interrupt rpc port";
+    rpc_in_port.interrupt();
+
+    yDebug() << "Interrupt port to homeo rpc";
+    to_homeo_rpc.interrupt();
+    for (auto& outputm_port : outputm_ports)
+    {
+        // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
+        outputm_port->interrupt();
+    }
+
+    for(auto& outputM_port : outputM_ports)
+    {
+        outputM_port->interrupt();
+    }
+
+    yDebug() << "Interrupt AllostaticDrive ports";
+    for(auto& allostaticDrive : allostaticDrives) {
+        allostaticDrive.second.interrupt_ports();
+    }
+
+    return true;
+
+}
+
 bool AllostaticController::close()
 {
+    yDebug() << "Closing rpc port";
+    rpc_in_port.interrupt();
+    rpc_in_port.close();
+
     yDebug() << "Closing port to homeo rpc";
     to_homeo_rpc.interrupt();
     to_homeo_rpc.close();

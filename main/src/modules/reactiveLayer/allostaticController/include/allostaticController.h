@@ -43,6 +43,18 @@ public:
         homeoPort = nullptr;
     }
 
+    bool interrupt_ports() {
+        if (behaviorUnderPort!=nullptr) {
+            behaviorUnderPort->interrupt();
+        }
+        if (behaviorOverPort!=nullptr) {
+            behaviorOverPort->interrupt();
+        }
+        homeoPort->interrupt();
+        inputSensationPort->interrupt();
+        return true;
+    }
+
     bool close_ports() {
         if (behaviorUnderPort!=nullptr) {
             behaviorUnderPort->interrupt();
@@ -154,7 +166,7 @@ private:
 
     Bottle drivesList;
     
-    Port to_homeo_rpc, rpc_in_port;;
+    Port to_homeo_rpc, rpc_in_port;
     string moduleName;
     string homeo_name;
 
@@ -177,10 +189,7 @@ private:
 public:
     bool configure(yarp::os::ResourceFinder &rf);
     ICubClient  *iCub;
-    bool interruptModule()
-    {
-        return true;
-    }
+    bool interruptModule();
 
     bool close();
 
