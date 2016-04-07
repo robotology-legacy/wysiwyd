@@ -117,7 +117,7 @@ void autobiographicalMemory::saveAugmentedImages() {
         cvCvtColor((IplImage*)img_augmented->getIplImage(), cvImage, CV_RGB2BGR);
 
         string folderName = storingPath + "/" + storingTmpSuffix + "/" + augmentedLabel;
-        yarp::os::mkdir(folderName.c_str());
+        yarp::os::mkdir_p(folderName.c_str());
 #ifdef __linux__
         // we do this because we use postgres user, so that user does not
         // have sufficient permissions to write

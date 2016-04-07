@@ -221,7 +221,7 @@ int autobiographicalMemory::saveImagesFromABM(int instance, int fromFrame, int t
 
             if (i == 0) { // only create folder to store images once
                 string folderName = storingPath + "/" + storingTmpSuffix + "/" + relative_path.substr(0, relative_path.find_first_of("/"));
-                yarp::os::mkdir(folderName.c_str());
+                yarp::os::mkdir_p(folderName.c_str());
 #ifdef __linux__
                 // we do this because we use postgres user, so that user does not
                 // have sufficient permissions to write

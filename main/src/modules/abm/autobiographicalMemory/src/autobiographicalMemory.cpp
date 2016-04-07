@@ -90,8 +90,8 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     //create the storingPath and the tmp also
     string fullTmpPath = storingPath + "/" + storingTmpSuffix;
-    yarp::os::mkdir(storingPath.c_str());
-    yarp::os::mkdir(fullTmpPath.c_str());
+    yarp::os::mkdir_p(storingPath.c_str());
+    yarp::os::mkdir_p(fullTmpPath.c_str());
 
     isconnected2reasoning = false;
 
@@ -774,7 +774,7 @@ bool autobiographicalMemory::updateModule() {
     {
         yInfo() << "I have received a sound!";
         string soundPath = storingPath + "/" + storingTmpSuffix + "/sound/";
-        if (yarp::os::mkdir(soundPath.c_str()) == -1) {
+        if (yarp::os::mkdir_p(soundPath.c_str()) == -1) {
             yDebug() << "Folder " << soundPath << " already exists or could not be created!";
         }
         if (!yarp::sig::file::write(*s, (soundPath + "default.wav").c_str()))
@@ -797,7 +797,7 @@ bool autobiographicalMemory::updateModule() {
 
         stringstream imgInstanceString; imgInstanceString << imgInstance;
         string currentPathFolder = storingPath + "/" + imgInstanceString.str();
-        if (yarp::os::mkdir(currentPathFolder.c_str()) == -1) {
+        if (yarp::os::mkdir_p(currentPathFolder.c_str()) == -1) {
             yWarning() << "Folder " << currentPathFolder << " already exists or could not be created!";
         }
 

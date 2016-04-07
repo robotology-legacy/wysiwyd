@@ -88,7 +88,7 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
             imgName << fullSentence << port << "." << imgFormat;
 
             string currentPathFolder = storingPath + "/"; currentPathFolder += imgInstanceString.str();
-            yarp::os::mkdir(currentPathFolder.c_str());
+            yarp::os::mkdir_p(currentPathFolder.c_str());
 #ifdef __linux__
             // we do this because we use postgres user, so that user does not
             // have sufficient permissions to write
