@@ -128,6 +128,20 @@ namespace wysiwyd{
                 }
             }
 
+            bool interruptSpeechRecognizer() {
+                yarp::os::Bottle bMessenger, bReply;
+                bMessenger.addString("interrupt");
+                // send the message
+                portRPC.write(bMessenger, bReply);
+                if(bReply.get(1).asString() != "OK") {
+                    yError() << "speechRecognizer was not interrupted";
+                    yDebug() << "Reply from speechRecognizer:" << bReply.toString();
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+
             /**
             * From one grxml grammar, return the sentence recognized for one timeout
             *
@@ -184,15 +198,7 @@ namespace wysiwyd{
                 if (!isEars) {
                     listen(false);
 
-                    bMessenger.clear();
-                    bReply.clear();
-                    bMessenger.addString("interrupt");
-                    // send the message
-                    portRPC.write(bMessenger, bReply);
-                    if(bReply.get(1).asString() != "OK") {
-                        yError() << "speechRecognizer was not interrupted";
-                        yDebug() << "Reply from speechRecognizer:" << bReply.toString();
-                    }
+                    interruptSpeechRecognizer();
 
                     waitForEars();
                 }
