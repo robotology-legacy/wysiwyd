@@ -861,6 +861,7 @@ void narrativeHandler::sayNarrationSimple(story target){
     if (target.humanNarration.size() > 2){
         cout << endl << "********************************\nbegin saying from human: " << target.viInstances[0] << " with " << target.humanNarration.size() << " events and " << target.sentenceStory.size() << " sentences." << endl;
         for (auto ii : target.humanNarration){
+            cout << "\t" << ii << endl;
             iCub->say(ii, true, false, "default", false);
         }
         cout << endl << "********************************" << endl;
@@ -1470,7 +1471,7 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
 bool narrativeHandler::narrate(int iIns){
     yInfo(" begin narrate");
     if (shouldSpeak)    iCub->say("Starting to narrate !", true, false, "default", false);
-    if (shouldSpeak)    iCub->say("But for now I don't want to speak !", true, false, "default", false);
+   // if (shouldSpeak)    iCub->say("But for now I don't want to speak !", true, false, "default", false);
 
     //    findStories(iMinInstance);
 
@@ -1478,7 +1479,7 @@ bool narrativeHandler::narrate(int iIns){
 
     for (auto target : listStories){
         if (target.viInstances[0] == iIns){
-            target.displayNarration();
+            //target.displayNarration();
             sayNarrationSimple(target);
         }
     }
