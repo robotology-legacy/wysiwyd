@@ -44,8 +44,6 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
                                         Value(0.1)).asDouble();
     //pLeakyIntegrationA        =  rf.check("parameterLeakyIntegrationA",
     //    Value(0.9)).asDouble();
-    pTopDownInhibitionReturn = rf.check("parameterInhibitionReturn",
-                                        Value(0.05)).asDouble();
     pExponentialDecrease = rf.check("ExponentialDecrease",
                                     Value(0.9)).asDouble();
     pTopDownWaving = rf.check("pTopDownWaving",
@@ -82,8 +80,6 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
     persistenceHaving = rf.check("persistenceHaving",
                                  Value(1.0)).asDouble();
 
-    isControllingMotors = rf.check("motorControl",
-                                   Value(0)).asInt() == 1;
     //Ports
 
 
@@ -259,7 +255,6 @@ bool PasarModule::respond(const Bottle& command, Bottle& reply) {
         //if
         //{
         reply.addString("ir");
-        this->pTopDownInhibitionReturn = command.get(2).asDouble();
         //  }
     }
     return true;
@@ -483,16 +478,6 @@ void PasarModule::saliencyLeakyIntegration() {
 double PasarModule::getPeriod() {
     return 0.1;
 }
-
-bool PasarModule::isFixationPointSafe(Vector fp)
-{
-    if (fp[0] < -0.015)
-        return true;
-    else
-        return false;
-}
-
-
 
 /*
 * increase the salience of the closest object from the right hand

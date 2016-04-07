@@ -44,13 +44,10 @@ struct ObjectModel
 * Module in charge of polling the OPC and updating icubGUI
 */
 class PasarModule : public yarp::os::RFModule {
-    std::string moduleName;
-
     //Parameter
     double pTopDownAppearanceBurst;         // score of saliency for an appereance
     double pTopDownDisappearanceBurst;      // score of saliency for an diappereance
     double pTopDownAccelerationCoef;        // score of saliency for an acceleration detected
-    double pTopDownInhibitionReturn;        // threshold of an acceleration detection
     double pExponentialDecrease;            // Speed of the decrease of the saliency over the time (should be less than 1)
     double pTopDownWaving;                  // increase of saliency if waving
 	double thresholdMovementAccelAgent;          // minimum acceleration to detect an agent
@@ -92,14 +89,11 @@ class PasarModule : public yarp::os::RFModule {
 
     std::string trackedObject;
 
-    bool isControllingMotors;
     bool isPointing; // if the human is pointing
     bool isWaving; // if if the human is waving
-    int store_context_id;
     double initTime;
 
 protected:
-    bool isFixationPointSafe(yarp::sig::Vector fp);
     void saliencyTopDown();
     void saliencyNormalize();
     void saliencyLeakyIntegration();
@@ -118,8 +112,4 @@ public:
     bool updateModule();
 };
 
-
 #endif
-
-//----- end-of-file --- ( next line intentionally left blank ) ------------------
-
