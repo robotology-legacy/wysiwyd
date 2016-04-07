@@ -89,7 +89,7 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
         for (int s = 0; s < bSubsystems->size(); s++)
         {
             std::string currentSS = bSubsystems->get(s).asString();
-            cout << "Trying to open subsystem : " << currentSS << endl;
+            yInfo() << "Trying to open subsystem : " << currentSS;
             if (currentSS == SUBSYSTEM_ATTENTION)
                 subSystems[SUBSYSTEM_ATTENTION] = new SubSystem_Attention(fullName);
             else if (currentSS == SUBSYSTEM_EXPRESSION)
@@ -169,7 +169,7 @@ void ICubClient::LoadChoregraphies(yarp::os::ResourceFinder &rf)
     choregraphiesKnown.clear();
 
     int posCount = rf.check("choregraphiesCount", yarp::os::Value(0)).asInt();
-    cout << "Loading Choregraphies: " << endl;
+    yInfo() << "Loading Choregraphies: ";
     for (int i = 0; i < posCount; i++)
     {
         std::stringstream ss;
@@ -177,7 +177,7 @@ void ICubClient::LoadChoregraphies(yarp::os::ResourceFinder &rf)
         Bottle postureGroup = rf.findGroup(ss.str().c_str());
 
         std::string name = postureGroup.find("name").asString().c_str();
-        std::cout << "\t" << name << std::endl;
+        yInfo() << "\t" << name;
         Bottle* sequence = postureGroup.find("sequence").asList();
 
         std::list< std::pair<std::string, double> > seq;
@@ -199,7 +199,7 @@ bool ICubClient::connectOPC(const string &opcName)
     bool isConnected = opc->connect(opcName);
     if (isConnected)
         updateAgent();
-    cout << "Connection to OPC: " << (isConnected ? "successful" : "failed") << endl;
+    yInfo() << "Connection to OPC: " << (isConnected ? "successful" : "failed");
     return isConnected;
 }
 
@@ -209,9 +209,9 @@ bool ICubClient::connectSubSystems()
     bool isConnected = true;
     for (map<string, SubSystem*>::iterator sIt = subSystems.begin(); sIt != subSystems.end(); sIt++)
     {
-        cout << "Connection to " << sIt->first << ": ";
+        yInfo() << "Connection to " << sIt->first << ": ";
         bool result = sIt->second->Connect();
-        cout << (result ? "successful" : "failed") << endl;
+        yInfo() << (result ? "successful" : "failed");
         isConnected &= result;
     }
 
@@ -232,10 +232,10 @@ void ICubClient::close()
     if (closed)
         return;
 
-    cout << "Terminating subsystems:" << endl;
+    yInfo() << "Terminating subsystems:";
     for (map<string, SubSystem*>::iterator sIt = subSystems.begin(); sIt != subSystems.end(); sIt++)
     {
-        cout << "\t" << sIt->first << endl;
+        yInfo() << "\t" << sIt->first;
         sIt->second->Close();
         delete sIt->second;
     }
@@ -327,13 +327,13 @@ bool ICubClient::moveToPosture(const string &name, double time)
 {
     if (subSystems.find("postures") == subSystems.end())
     {
-        cout << "Impossible, postures system is not running..." << endl;
+        yError() << "Impossible, postures system is not running...";
         return false;
     }
 
     if (posturesKnown.find(name) == posturesKnown.end())
     {
-        cout << "Unknown posture" << endl;
+        yError() << "Unknown posture";
         return false;
     }
 
@@ -346,13 +346,13 @@ bool ICubClient::moveBodyPartToPosture(const string &name, double time, const st
 {
     if (subSystems.find("postures") == subSystems.end())
     {
-        cout << "Impossible, postures system is not running..." << endl;
+        yError() << "Impossible, postures system is not running...";
         return false;
     }
 
     if (posturesKnown.find(name) == posturesKnown.end())
     {
-        cout << "Unknown posture" << endl;
+        yError() << "Unknown posture";
         return false;
     }
 
@@ -365,16 +365,16 @@ bool ICubClient::playBodyPartChoregraphy(const std::string &name, const std::str
 {
     if (choregraphiesKnown.find(name) == choregraphiesKnown.end())
     {
-        cout << "Unknown choregraphy" << endl;
+        yError() << "Unknown choregraphy";
         return false;
     }
     bool overallError = true;
-    cout << "Playing " << name << " at " << speedFactor << " speed" << endl;
+    yInfo() << "Playing " << name << " at " << speedFactor << " speed";
     std::list< std::pair<std::string, double> > chore = choregraphiesKnown[name];
     for (std::list< std::pair<std::string, double> >::iterator element = chore.begin(); element != chore.end(); element++)
     {
         double factoredTime = element->second / speedFactor;
-        cout << "Going to " << element->first << " in " << factoredTime << endl;
+        yInfo() << "Going to " << element->first << " in " << factoredTime;
         overallError &= moveBodyPartToPosture(element->first, factoredTime, bodyPart);
 
         if (isBlocking)
@@ -388,7 +388,7 @@ double ICubClient::getChoregraphyLength(const std::string &name, double speedFac
 {
     if (choregraphiesKnown.find(name) == choregraphiesKnown.end())
     {
-        cout << "Unknown choregraphy" << endl;
+        yError() << "Unknown choregraphy";
         return 0.0;
     }
     double totalTime = 0.0;
@@ -396,7 +396,7 @@ double ICubClient::getChoregraphyLength(const std::string &name, double speedFac
     for (std::list< std::pair<std::string, double> >::iterator element = chore.begin(); element != chore.end(); element++)
         totalTime += element->second / speedFactor;
 
-    cout << "Playing " << name << " at " << speedFactor << " speed should take " << endl;
+    yInfo() << "Playing " << name << " at " << speedFactor << " speed should take ";
     return totalTime;
 }
 
@@ -405,16 +405,16 @@ bool ICubClient::playChoregraphy(const std::string &name, double speedFactor, bo
 {
     if (choregraphiesKnown.find(name) == choregraphiesKnown.end())
     {
-        cout << "Unknown choregraphy" << endl;
+        yError() << "Unknown choregraphy";
         return false;
     }
     bool overallError = true;
-    cout << "Playing " << name << " at " << speedFactor << " speed" << endl;
+    yInfo() << "Playing " << name << " at " << speedFactor << " speed";
     std::list< std::pair<std::string, double> > chore = choregraphiesKnown[name];
     for (std::list< std::pair<std::string, double> >::iterator element = chore.begin(); element != chore.end(); element++)
     {
         double factoredTime = element->second / speedFactor;
-        cout << "Going to " << element->first << " in " << factoredTime << endl;
+        yInfo() << "Going to " << element->first << " in " << factoredTime;
         overallError &= moveToPosture(element->first, factoredTime);
 
         if (isBlocking)
@@ -426,7 +426,7 @@ bool ICubClient::playChoregraphy(const std::string &name, double speedFactor, bo
 
 bool ICubClient::goTo(const string &place)
 {
-    cerr << "Try to call \"gotTo\" on iCubClient but the method is not implemented." << endl;
+    yError() << "Try to call \"gotTo\" on iCubClient but the method is not implemented.";
     return false;
 }
 
@@ -436,7 +436,7 @@ bool ICubClient::home(const string &part)
     SubSystem_ARE *are = getARE();
     if (are == NULL)
     {
-        cerr << "[iCubClient] Called home() but ARE subsystem is not available." << endl;
+        yError() << "[iCubClient] Called home() but ARE subsystem is not available.";
         return false;
     }
 
@@ -449,14 +449,14 @@ bool ICubClient::grasp(const string &oName, const Bottle &options)
     Entity *target = opc->getEntity(oName, true);
     if (!target->isType(EFAA_OPC_ENTITY_OBJECT))
     {
-        cerr << "[iCubClient] Called grasp() on a unallowed entity: \"" << oName << "\"" << endl;
+        yError() << "[iCubClient] Called grasp() on a unallowed entity: \"" << oName << "\"";
         return false;
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
     if (oTarget->m_present!=1.0)
     {
-        cerr << "[iCubClient] Called grasp() on an unavailable entity: \"" << oName << "\"" << endl;
+        yError() << "[iCubClient] Called grasp() on an unavailable entity: \"" << oName << "\"";
         return false;
     }
 
@@ -469,7 +469,7 @@ bool ICubClient::grasp(const Vector &target, const Bottle &options, std::string 
     SubSystem_ARE *are = getARE();
     if (are == NULL)
     {
-        cerr << "[iCubClient] Called grasp() but ARE subsystem is not available." << endl;
+        yError() << "[iCubClient] Called grasp() but ARE subsystem is not available.";
         return false;
     }
 
@@ -481,7 +481,7 @@ bool ICubClient::grasp(const Vector &target, const Bottle &options, std::string 
     }
     else
     {
-        cerr << "[iCubClient] Called grasp() on a unreachable entity: (" << target.toString(3, 3).c_str() << ")" << endl;
+        yError() << "[iCubClient] Called grasp() on a unreachable entity: (" << target.toString(3, 3).c_str() << ")";
         return false;
     }
 }
@@ -492,14 +492,14 @@ bool ICubClient::release(const string &oLocation, const Bottle &options)
     Entity *target = opc->getEntity(oLocation, true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
     {
-        cerr << "[iCubClient] Called release() on a unallowed location: \"" << oLocation << "\"" << endl;
+        yError() << "[iCubClient] Called release() on a unallowed location: \"" << oLocation << "\"";
         return false;
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
     if (oTarget->m_present!=1.0)
     {
-        cerr << "[iCubClient] Called release() on an unavailable entity: \"" << oLocation << "\"" << endl;
+        yError() << "[iCubClient] Called release() on an unavailable entity: \"" << oLocation << "\"";
         return false;
     }
 
@@ -512,7 +512,7 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
     SubSystem_ARE *are = getARE();
     if (are == NULL)
     {
-        cerr << "[iCubClient] Called release() but ARE subsystem is not available." << endl;
+        yError() << "[iCubClient] Called release() but ARE subsystem is not available.";
         return false;
     }
 
@@ -520,7 +520,7 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
         return are->dropOn(target, options);
     else
     {
-        cerr << "[iCubClient] Called release() on a unreachable location: (" << target.toString(3, 3).c_str() << ")" << endl;
+        yError() << "[iCubClient] Called release() on a unreachable location: (" << target.toString(3, 3).c_str() << ")";
         return false;
     }
 }
@@ -605,11 +605,11 @@ bool ICubClient::look(const string &target)
             if (oTarget->m_present==1.0)
                 return are->look(oTarget->m_ego_position, yarp::os::Bottle() , oTarget->name());
 
-        cerr << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"" << endl;
+        yError() << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"";
         return false;
     }
 
-    cerr << "Error, neither Attention nor ARE are running..." << endl;
+    yError() << "Error, neither Attention nor ARE are running...";
     return false;
 }
 
@@ -641,7 +641,7 @@ bool ICubClient::lookAround()
 {
     if (subSystems.find("attention") == subSystems.end())
     {
-        cerr << "Error, Attention is not running..." << endl;
+        yError() << "Error, Attention is not running...";
         return false;
     }
 
@@ -653,7 +653,7 @@ bool ICubClient::lookStop()
 {
     if (subSystems.find("attention") == subSystems.end())
     {
-        cerr << "Error, Attention is not running..." << endl;
+        yError() << "Error, Attention is not running...";
         return false;
     }
 
@@ -669,30 +669,66 @@ bool ICubClient::babbling(const string &bpName, const string &babblingLimb)
         Entity *target = opc->getEntity(bpName, true);
         if (!target->isType(EFAA_OPC_ENTITY_BODYPART))
         {
-            cerr << "[iCubClient] Called babbling() on a unallowed entity: \"" << bpName << "\"" << endl;
+            yError() << "[iCubClient] Called babbling() on a unallowed entity: \"" << bpName << "\"";
             return false;
         }
 
         Bodypart *bp = dynamic_cast<Bodypart*>(target);
         int jointNumber = bp->m_joint_number;
         if (jointNumber == -1){
-            cerr << "[iCubClient] Called babbling() on " << bpName << " which have no joint number linked to it\"" << endl;
+            yError() << "[iCubClient] Called babbling() on " << bpName << " which have no joint number linked to it\"";
             return false;
         }
 
         return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb);
     }
 
-    cerr << "Error, babbling is not running..." << endl;
+    yError() << "Error, babbling is not running...";
     return false;
 }
 
-bool ICubClient::babbling(int &jointNumber, const string &babblingLimb)
+bool ICubClient::babbling(int jointNumber, const string &babblingLimb)
 {
     if (subSystems.find("babbling") != subSystems.end())
         return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb);
 
-    cerr << "Error, babbling is not running..." << endl;
+    yError() << "Error, babbling is not running...";
+    return false;
+}
+
+bool ICubClient::babbling(const string &bpName, const string &babblingLimb, double train_dur)
+{
+    //check the subsystem is running
+    if (subSystems.find("babbling") != subSystems.end()){
+
+        //extract the bodypart with the name
+        Entity *target = opc->getEntity(bpName, true);
+        if (!target->isType(EFAA_OPC_ENTITY_BODYPART))
+        {
+            yError() << "[iCubClient] Called babbling() on a unallowed entity: \"" << bpName << "\"";
+            return false;
+        }
+
+        Bodypart *bp = dynamic_cast<Bodypart*>(target);
+        int jointNumber = bp->m_joint_number;
+        if (jointNumber == -1){
+            yError() << "[iCubClient] Called babbling() on " << bpName << " which have no joint number linked to it\"";
+            return false;
+        }
+
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb, train_dur);
+    }
+
+    yError() << "Error, babbling is not running...";
+    return false;
+}
+
+bool ICubClient::babbling(int jointNumber, const string &babblingLimb, double train_dur)
+{
+    if (subSystems.find("babbling") != subSystems.end())
+        return ((SubSystem_babbling*)subSystems["babbling"])->babbling(jointNumber, babblingLimb, train_dur);
+
+    yError() << "Error, babbling is not running...";
     return false;
 }
 
@@ -719,7 +755,7 @@ bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossib
 {
     if (subSystems.find("speech") == subSystems.end())
     {
-        cout << "Impossible, speech is not running..." << endl;
+        yError() << "Impossible, speech is not running...";
         return false;
     }
 
@@ -738,13 +774,13 @@ bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossib
 
 bool ICubClient::execute(Action &what, bool applyEstimatedDriveEffect)
 {
-    cout << "iCubClient>> Executing plan: " << what.toString() << endl;
+    yInfo() << "iCubClient>> Executing plan: " << what.toString();
     bool overallResult = true;
     list<Action> unrolled = what.asPlan();
     for (list<Action>::iterator a = unrolled.begin(); a != unrolled.end(); a++)
     {
         bool result = true;
-        cout << "iCubClient>> Executing action: " << a->toString() << endl;
+        yInfo() << "iCubClient>> Executing action: " << a->toString();
 
         //First we check if the iCub should do this or if it is a someone else
         if (a->description().subject() == "icub")
@@ -760,7 +796,7 @@ bool ICubClient::execute(Action &what, bool applyEstimatedDriveEffect)
                 result = release(a->description().object());
             else
             {
-                cout << "Warning: " << a->description().verb() << " is not composite, however it is not a primitive" << endl;
+                yWarning() << "Warning: " << a->description().verb() << " is not composite, however it is not a primitive";
                 result = true;
             }
         }
@@ -786,7 +822,7 @@ bool ICubClient::execute(Action &what, bool applyEstimatedDriveEffect)
         //If the action failed we wait 5s. FOR DEBUG PURPOSE
         if (!result)
         {
-            cout << "Action failed... Waiting 5s" << endl;
+            yWarning() << "Action failed... Waiting 5s";
             Time::delay(5.0);
         }
     }
