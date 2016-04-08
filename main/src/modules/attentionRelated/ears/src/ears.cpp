@@ -154,7 +154,8 @@ bool ears::updateModule() {
             sObjectType = "object";
         } else if(sQuestionKind == "SENTENCEBODYPART") {
             sObject = bSemantic.check("bodypart", Value("none")).asString();
-            sCommand = "touchingOrder";
+            sAction = bSemantic.check("predicateBodypart", Value("none")).asString();
+            sCommand = "followingOrder";
             sObjectType = "bodypart";
         } else if(sQuestionKind == "SENTENCENARRATIVE") {
             sCommand = "followingOrder";

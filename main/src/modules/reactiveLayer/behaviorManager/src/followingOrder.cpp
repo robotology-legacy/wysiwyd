@@ -25,18 +25,26 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     yDebug() << type;
     yInfo() << target;
 
-    if (target != "none"){
-        yInfo() << "there are elements to search!!!";
+    if (target != "none" && type != "bodypart"){           //we dont have searchEntity for bodypart
+        yInfo() << "there are objects to search!!!";
         handleSearch(type, target);
     }
 
-    if (action == "point" || action == "look at" || action == "push"){
+    //FollowingOrder implying objects
+    if ( (action == "point" || action == "look at" || action == "push") && type == "object"){
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
             yInfo()<<"I can't" << action << "if you don't tell me the object";
             iCub->say("I can't " + action + "if you don't tell me the object");
         } else{
             handleAction(type, target, action);
+        }
+    } else if (action == "move" && type == "bodypart") { //FollowingOrder implying bodypart
+        if (sens->size()<2){
+            yInfo()<<"I can't" << action << "if you don't tell me the bodypart";
+            iCub->say("I can't " + action + "if you don't tell me the bodypart");
+        } else{
+            handleActionBP(type, target, action);
         }
     } else if (action == "narrate"){
         handleNarrate();
@@ -103,6 +111,54 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
     yWarning() << "Cannot" << action << "the" << target;
     iCub->lookAtPartner();
     iCub->say("I cannot " + action + " the " + target);
+    iCub->home();
+    return false;
+}
+
+bool FollowingOrder::handleActionBP(string type, string target, string action) {
+
+    iCub->home();
+    yarp::os::Time::delay(1.0);
+
+    //*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! This is a HACK! To be changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    string babblingArm = "left" ;
+    //Need to update the "part" in the OPC object to extract left/right arm.
+    //*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! This is a HACK! To be changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    yInfo() << "[handleActionBP] type: " << type << "target:" << target << "action:" << action;
+    iCub->opc->checkout();
+    yInfo() << " [handleActionBP]: opc checkout";
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
+
+    for (auto& entity : lEntities)
+    {
+        if (entity->name() == target) {
+            if (entity->entity_type() == type) //type has been checked to be "bodypart" before, in run()
+            {
+                Bodypart* BPentity = dynamic_cast<Bodypart*>(entity);
+                iCub->say("Nice, I will do some exercise with my " + babblingArm + " arm");
+                yInfo() << "I'd like to" << action << "the" << target;
+
+                if(action == "move") { //only action available right now for bodypart but keep the check for future development
+                    int joint = BPentity->m_joint_number;
+                    //send rpc command to bodySchema to move the corresponding part
+                    yInfo() << "Start bodySchema";
+                    double babbling_duration = 4.0;
+                    iCub->say("I am moving my " + target, false);
+                    iCub->babbling(joint, babblingArm, babbling_duration);
+                }
+
+                yarp::os::Time::delay(1.0);
+                iCub->home();
+
+                return true;
+            }
+        }
+    }
+
+    yWarning() << "Cannot" << action << "my" << target;
+    iCub->lookAtPartner();
+    iCub->say("I cannot " + action + " my " + target + ", I do not know this word");
     iCub->home();
     return false;
 }
