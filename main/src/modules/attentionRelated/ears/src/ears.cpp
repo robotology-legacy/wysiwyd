@@ -48,6 +48,9 @@ bool ears::interruptModule() {
 
 
 bool ears::close() {
+    bShouldListen = false;
+    iCub->getRecogClient()->interruptSpeechRecognizer();
+
     if(iCub) {
         iCub->close();
         delete iCub;
