@@ -84,14 +84,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         iCub->say("SAM NOT CONNECTED");
     }
 
-    //out to LRH
-    portToLRH.open(("/" + moduleName + "/toLRH:o").c_str());
-    LRHRpc = rf.check("LRHRpc", Value("/lrh/rpc")).asString().c_str();
-    if (!Network::connect(portToLRH.getName().c_str(), LRHRpc.c_str())) {
-        yWarning() << "LRH NOT CONNECTED: will not produce sentences";
-        iCub->say("LRH NOT CONNECTED");
-    }
-
     // out to pasar
     portToPasar.open(("/" + moduleName + "/pasar:o").c_str());
     if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
@@ -133,7 +125,6 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
 
 bool proactiveTagging::interruptModule() {
-    portToLRH.interrupt();
     portFromTouchDetector.interrupt();
     portNoWaitToBodySchema.interrupt();
     portToSAM.interrupt();
@@ -148,9 +139,6 @@ bool proactiveTagging::close() {
         iCub->close();
         delete iCub;
     }
-
-    portToLRH.interrupt();
-    portToLRH.close();
 
     portFromTouchDetector.interrupt();
     portFromTouchDetector.close();
@@ -573,11 +561,6 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     }
     else if (currentEntityType == "object") {
         sReply = " I get it, this is a " + sName;
-        Bottle bToLRH, bFromLRH;
-        bToLRH.addString("production");
-        bToLRH.addString(sName);
-        if (portToLRH.getOutputCount() > 0)
-            portToLRH.write(bToLRH, bFromLRH);
     }
     else if (currentEntityType == "rtobject") {
         sReply = " So this is a " + sName;

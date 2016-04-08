@@ -86,7 +86,6 @@
             <port timeout="10">/autobiographicalMemory/rpc</port>
             <port timeout="10">/iSpeak</port>
             <port timeout="10">/speechRecognizer/rpc</port>
-            <port timeout="10">/lrh/rpc</port>
             <port timeout="10">/actionsRenderingEngine/cmd:io</port>
             <port timeout="10">/babbling/rpc</port>
             <port timeout="10">/agentDetector/rpc</port>
