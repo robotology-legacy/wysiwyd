@@ -185,7 +185,7 @@ private:
     //Configuration
     void configureAllostatic(yarp::os::ResourceFinder &rf);
 
-    int openPorts(string driveName);
+    bool openPorts(string driveName);
 public:
     bool configure(yarp::os::ResourceFinder &rf);
     ICubClient  *iCub;
