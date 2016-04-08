@@ -50,8 +50,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new Dummy(&mut));
         } else if (behavior_name == "dummy2") {
             behaviors.push_back(new Dummy(&mut));
-        }  else if (behavior_name == "touchingOrder") {
-            behaviors.push_back(new TouchingOrder(&mut));
         }  else if (behavior_name == "reactions") {
             behaviors.push_back(new Reactions(&mut));
         }  else if (behavior_name == "followingOrder") {
