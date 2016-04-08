@@ -34,7 +34,6 @@ private:
     yarp::os::Port   rpcPort;
     yarp::os::Port   portToSAM;
     yarp::os::Port   portToPasar;
-    yarp::os::Port   portToLRH;
     yarp::os::BufferedPort<yarp::os::Bottle>   portFromTouchDetector;
     yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
 
