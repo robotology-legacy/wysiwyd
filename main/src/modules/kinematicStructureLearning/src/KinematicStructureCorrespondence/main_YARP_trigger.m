@@ -18,7 +18,7 @@
 % Triggering this module through YARP
 % ==========================================================================
 
-% clc
+clc
 close all
 clear all
 
@@ -74,7 +74,7 @@ bReply.clear();
 %=========================================================
 % YARP Trigger
 %=========================================================
-try
+% try
     while(~shouldClose)
         %%
         disp(sprintf('\n'))
@@ -136,13 +136,12 @@ try
                 % ---- saving feature values
                 %=========================================================
                 submodule_video_loading_feature_extraction;
-                video_filename = video_filename;
                 
                 %%
                 %=========================================================
                 % converting feature data to y
                 %=========================================================
-                [y, W, frames, points] = submodule_cvuKltRead([pwd,'/points/',video_filename(1:end-4),'/point_seq_%d.txt'], 1, nFrames, 'workspace', points_total);
+                [y, W, frames, points] = submodule_cvuKltRead(cdata);
                 
                 %             %%
                 %             %=========================================================
@@ -157,7 +156,10 @@ try
                 % main algorithm
                 %=========================================================
                 disp('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
-                submodule_motion_segmentation;
+                %                 numOfSegments = 0;
+                numOfSegments = 3;                
+%                 submodule_motion_segmentation;
+                KineStruct = genKineStruct(y, numOfSegments, cdata, ctrl_param);
                 
                 %%
                 %=========================================================
@@ -171,6 +173,7 @@ try
                 bReply.addString(['Structure learning from ABM #',instance_num, ' is completed!']);
                 
                 %----------------------------------------------------------------------
+%**********************************************************************************************************                
             elseif (strcmp(bCommand.get(0).toString, 'findCorrespondence'))
                 %% kinematic structure correspondences matching from two videos
                 %=========================================================
@@ -231,9 +234,9 @@ try
                 if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
                     idx = 'P';
                     cdata_P = featureExtractionYARP(idx);
-                    [y_P, W_P, frames_P, points_P] = submodule_cvuKltRead([pwd,'/points/',cdata_P.filename(1:end-4),'/point_seq_%d.txt'], 1, cdata_P.nFrames, 'workspace', cdata_P.points_total);
+                    [y_P, W_P, frames_P, points_P] = submodule_cvuKltRead(cdata_P);
                     %                 numOfSegments_P = 6;
-                    numOfSegments_P = 4;
+                    numOfSegments_P = 3;
                     KineStruct_P = genKineStruct(y_P, numOfSegments_P, cdata_P, ctrl_param);
                 elseif strcmp(data_source_P,'kinect')
                     idx = 'P';
@@ -244,7 +247,7 @@ try
                 if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
                     idx = 'Q';
                     cdata_Q = featureExtractionYARP(idx);
-                    [y_Q, W_Q, frames_Q, points_Q] = submodule_cvuKltRead([pwd,'/points/',cdata_Q.filename(1:end-4),'/point_seq_%d.txt'], 1, cdata_Q.nFrames, 'workspace', cdata_Q.points_total);
+                    [y_Q, W_Q, frames_Q, points_Q] = submodule_cvuKltRead(cdata_Q);
                     %                 numOfSegments_Q = 6;
                     numOfSegments_Q = 4;
                     KineStruct_Q = genKineStruct(y_Q, numOfSegments_Q, cdata_Q, ctrl_param);
@@ -276,7 +279,7 @@ try
                 % Hypergraph Matching
                 %=========================================================
                 setAlg;
-                % Alg(HGM_method).bOrder = [1 0 0];   % 1st
+%                 Alg(HGM_method).bOrder = [1 0 0];   % 1st
                 % Alg(HGM_method).bOrder = [0 1 0];   % 2nd
                 % Alg(HGM_method).bOrder = [0 0 1];   % 3rd
                 Alg(HGM_method).bOrder = [1 0 1];   % 1st & 3rd
@@ -289,16 +292,17 @@ try
                 %%
                 %=========================================================
                 % Draw Matching Result
-                %=========================================================
-                
-                img_output = genMatchImages(cdata_P, cdata_Q, KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, 'PROPOSED_RRWHM');
+                %=========================================================                
+%                 img_output = genMatchImages(cdata_P, cdata_Q, KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, 'PROPOSED_RRWHM');
+                img_output = genMatchImageSeq(cdata_P, cdata_Q, KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, 'PROPOSED_RRWHM');
                 
                 %%
                 %=========================================================
                 % output display
                 % YARP ABM save
                 %=========================================================
-                wrapper_YARP_ABM_save_for_Correspondence;
+%                 wrapper_YARP_ABM_save_for_Correspondence;
+                wrapper_YARP_ABM_save_for_Correspondence_Seq;
                 
                 bReply.addString('ack');
                 bReply.addString(['Finding Kinematic Structure Correspondences between ABM #', instance_num_P, ' and ABM #', instance_num_Q,' is completed!']);
@@ -330,24 +334,24 @@ try
     portIncoming_P.close;
     portIncoming_Q.close;
     
-catch
-    disp('######################################')
-    disp('Response: Error! Closing ports!');
-    disp('######################################')
-    bReply.addString('Error! Closing ports');
-    portTrigger.reply(bReply);
-    bReply.clear();
-    %%
-    % Module close
-    portTrigger.close;
-    
-    %====================================
-    % Close Ports
-    %====================================
-    port2ABM_query_P.close;
-    
-    port2ABM_query_Q.close;
-    portIncoming_P.close;
-    portIncoming_Q.close;
-    
-end
+% catch
+%     disp('######################################')
+%     disp('Response: Error! Closing ports!');
+%     disp('######################################')
+%     bReply.addString('Error! Closing ports');
+%     portTrigger.reply(bReply);
+%     bReply.clear();
+%     %%
+%     % Module close
+%     portTrigger.close;
+%     
+%     %====================================
+%     % Close Ports
+%     %====================================
+%     port2ABM_query_P.close;
+%     
+%     port2ABM_query_Q.close;
+%     portIncoming_P.close;
+%     portIncoming_Q.close;
+%     
+% end

@@ -3,7 +3,7 @@ function connection = checkConnection(KineStruct,idx)
 %%
 % idx = 'P';
 cdata.filename = 'video.avi';
-cdata.pathname = ['ABM/',idx,'/'];
+cdata.pathname = ['data/KSC/',idx,'/'];
 % disp([cdata.pathname,cdata.filename]);
 videoObj = VideoReader([cdata.pathname,cdata.filename]);
 cdata.nFrames = videoObj.NumberOfFrames;

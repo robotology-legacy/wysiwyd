@@ -6,7 +6,7 @@ disp(['Perform Kinematic Structure Building from Kinect data...',idx]);
 disp('=========================================================================');
 
 edge_file = 'submodule/KinectMapping/edges.txt';
-joint_file = ['ABM/',idx,'/joints.txt'];
+joint_file = ['data/KSC/',idx,'/joints.txt'];
 node_file = 'submodule/KinectMapping/nodes.txt';
 
 edge_info = importdata(edge_file);

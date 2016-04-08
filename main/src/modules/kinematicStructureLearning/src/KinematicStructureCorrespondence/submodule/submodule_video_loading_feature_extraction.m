@@ -20,6 +20,14 @@
 % data load
 %=========================================================
 
+cdata = struct('filename',[],...
+    'pathname',[],...
+    'nFrames',[],...
+    'width',[],...
+    'height',[],...
+    'feature_point_save_path',[],...
+    'points_total',[]);
+
 switch videoName
     case 'webcam'
         %-----------------------
@@ -27,7 +35,7 @@ switch videoName
         % Set up camera
         %-----------------------
         disp('Connecting to the webcam...');
-        nFrames = 500;
+        cdata.nFrames = 500;
         camera = cv.VideoCapture;
         pause(2);
     case 'video'
@@ -36,18 +44,18 @@ switch videoName
         %-----------------------
         disp('Loading image sequences ...');
         
-        [video_filename, pathname, filterindex] = uigetfile(...
+        [cdata.filename, cdata.pathname, filterindex] = uigetfile(...
             {'*.avi;*.mpg;*.mpeg','Video Files (*.avi,*.mpg,*.mpeg)';
             '*.*',  'All Files (*.*)'}, ...
             'Select a video file');
-        disp([pathname,video_filename]);
-        videoObj = VideoReader([pathname,video_filename]);
-        nFrames = videoObj.NumberOfFrames;
-        width = videoObj.Width;
-        height = videoObj.Height;
+        disp([cdata.pathname,cdata.filename]);
+        videoObj = VideoReader([cdata.pathname,cdata.filename]);
+        cdata.nFrames = videoObj.NumberOfFrames;
+        cdata.width = videoObj.Width;
+        cdata.height = videoObj.Height;
         
-        feature_point_save_path = [pwd,'/points/',video_filename(1:end-4)];
-        [SUCCESS,MESSAGE,MESSAGEID] = mkdir(feature_point_save_path);
+        cdata.feature_point_save_path = ['data/KS/points/',cdata.filename(1:end-4)];
+        [SUCCESS,MESSAGE,MESSAGEID] = mkdir(cdata.feature_point_save_path);
         
     case 'YARP'
         %-----------------------
@@ -55,18 +63,17 @@ switch videoName
         %-----------------------
         wrapper_YARP_ABM_retrieve;
         
-        pause(1)
+        pause(0.1)
+                 
+        cdata.filename = 'video.avi';
+        cdata.pathname = 'data/KS/';
+        videoObj = VideoReader([cdata.pathname,cdata.filename]);
+        cdata.nFrames = videoObj.NumberOfFrames;
+        cdata.width = videoObj.Width;
+        cdata.height = videoObj.Height;        
         
-        video_filename = 'video.avi';
-        pathname = 'ABM_images/';
-        disp([pathname,video_filename]);
-        videoObj = VideoReader([pathname,video_filename]);
-        nFrames = videoObj.NumberOfFrames;
-        width = videoObj.Width;
-        height = videoObj.Height;
-        
-        feature_point_save_path = [pwd,'/points/',video_filename(1:end-4)];
-        [SUCCESS,MESSAGE,MESSAGEID] = mkdir(feature_point_save_path);
+        cdata.feature_point_save_path = ['data/KS/points/',cdata.filename(1:end-4)];
+        [SUCCESS,MESSAGE,MESSAGEID] = mkdir(cdata.feature_point_save_path);        
         
     case 'images'
         %-----------------------
@@ -74,18 +81,18 @@ switch videoName
         %-----------------------
         disp('Please select a folder ...');
         img2video;
-        pause(3);
+        pause(0.1);
         
         disp('Loading image sequences ...');
         
-        pathname = [pwd,'/data/'];
-        video_filename = 'video.avi';
-        videoObj = VideoReader([pathname,video_filename]);
-        nFrames = videoObj.NumberOfFrames;
-        width = videoObj.Width;
-        height = videoObj.Height;
+        cdata.pathname = [pwd,'/data/'];
+        cdata.filename = 'video.avi';
+        videoObj = VideoReader([cdata.pathname,cdata.filename]);
+        cdata.nFrames = videoObj.NumberOfFrames;
+        cdata.width = videoObj.Width;
+        cdata.height = videoObj.Height;
         
-        feature_point_save_path = [pwd,'/points/',video_filename(1:end-4)];
+        cdata.feature_point_save_path = ['data/KS/points/',cdata.filename(1:end-4)];
         [SUCCESS,MESSAGE,MESSAGEID] = mkdir(feature_point_save_path);
         
 end
@@ -102,9 +109,9 @@ feature_extraction_parameters;
 
 %
 disp('++++++++++++++++++++++++++++++++++++++++++++++');
-disp('Extracting feature points and tracking using Lukas-Kanade optical flow.\n');
+disp('Extracting feature points and tracking using Lukas-Kanade optical flow.');
 y_total = -1*ones(MAX_COUNT,2);
-points_total = cell(nFrames,1);
+cdata.points_total = cell(cdata.nFrames,1);
 
 % Start main loop
 frm_idx = 0;
@@ -116,21 +123,21 @@ while true
             % Grab and preprocess an image
             image = camera.read;
         case 'video'
-            if frm_idx > nFrames
+            if frm_idx > cdata.nFrames
                 break;
             else
                 % from video
                 image = read(videoObj,frm_idx);
             end
         case 'images'
-            if frm_idx > nFrames
+            if frm_idx > cdata.nFrames
                 break;
             else
                 % from video
                 image = read(videoObj,frm_idx);
             end
         case 'YARP'
-            if frm_idx > nFrames
+            if frm_idx > cdata.nFrames
                 break;
             else
                 % from video
@@ -189,7 +196,7 @@ while true
 %             'K',0.04);
         cur_points = cv.goodFeaturesToTrack(cur_Gray, ...
             'MaxCorners', MAX_COUNT, ...
-            'QualityLevel',0.001,...
+            'QualityLevel',0.01,...
             'MinDistance',5,...
             'BlockSize',5,...
             'K',0.04);
@@ -255,7 +262,7 @@ while true
         end
     end
     
-    points_total{frm_idx} = points_total_buf;
+    cdata.points_total{frm_idx} = points_total_buf;
     
     % swap data
     prev_Gray = cur_Gray;
@@ -270,11 +277,11 @@ end
 
 %%
 % Feature data save
-for frm_idx = 1:nFrames
-    output_file = sprintf([feature_point_save_path,'/point_seq_%d.txt'],frm_idx);
+for frm_idx = 1:cdata.nFrames
+    output_file = sprintf([cdata.feature_point_save_path,'/point_seq_%d.txt'],frm_idx);
     fid = fopen(output_file,'wt');
     for i = 1:num_init_points
-        buf = points_total{frm_idx};
+        buf = cdata.points_total{frm_idx};
         fprintf(fid,'[%f,%f]\n',buf(i,1),buf(i,2));
     end
 end
@@ -283,6 +290,6 @@ disp('..... Saving feature points completed!')
 %%
 % Close
 disp('..... Feature extraction & saving is finished!');
-pause(1);
+pause(0.1);
 close(window);
 disp('++++++++++++++++++++++++++++++++++++++++++++++');

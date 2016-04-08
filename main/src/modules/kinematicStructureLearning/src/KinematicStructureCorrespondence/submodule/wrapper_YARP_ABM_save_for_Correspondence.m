@@ -63,7 +63,8 @@ disp('Connected!')
 % load('ABM_images/ImageMeta.mat');
 % load('ABM_images/RawImage.mat');
 
-augmentedLabel = 'kinematic_structure_correspondence';
+% augmentedLabel = 'kinematic_structure_correspondence';
+augmentedLabel = 'KSC';
 
 % correpondence_result = [];
 % for p = 1:size(X,1)
@@ -111,7 +112,14 @@ image_name = 'output.png';
 % image_name = '0000.png';
 
 fprintf(['Retrieving to ABM ', image_name, '\n']);
-img_mat_org = imread(['result/images/correspondences/',image_name]);
+img_mat_org = imread(['result/KSC/images/',image_name]);
+[h_org, w_org, c_org] = size(img_mat_org);
+
+img_buf = zeros(240*2, 320*2, 3);
+img_buf([240/2+1:240/2+240],1:end,:) = img_mat_org(1:240, 1:320*2, :);
+% img_mat_org = imresize(img_mat_org, [240 320]);
+
+img_mat_org = img_buf;
 % img_mat_org = img_mat_org(1:end,1:end,:);
 [h,w,pixSize] = size(img_mat_org);
 tool=YarpImageHelper(h, w);

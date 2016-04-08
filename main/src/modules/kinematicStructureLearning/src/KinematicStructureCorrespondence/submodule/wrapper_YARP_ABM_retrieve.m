@@ -20,21 +20,6 @@
 
 %%
 %====================================
-% Parameter Initialisation
-%====================================
-% initialise YARP
-LoadYarp;
-import yarp.Port
-import yarp.BufferedPortImageRgb
-import yarp.Bottle
-import yarp.Time
-import yarp.ImageRgb
-import yarp.Image
-import yarp.PixelRgb
-import yarp.Network
-
-%%
-%====================================
 % Connecting Ports
 %====================================
 %creating ports
@@ -77,38 +62,19 @@ disp('Connected!')
 % Receive Data & Save Images
 %====================================
 % clean and make a saving directory
-[SUCCESS,MESSAGE,MESSAGEID] = rmdir('ABM_images','s');
-mkdir('ABM_images');
+[SUCCESS,MESSAGE,MESSAGEID] = rmdir('data/KS','s');
+mkdir('data/KS');
 
 % get number of frames: "getImagesInfo"
 b_write=yarp.Bottle;
 b_response=yarp.Bottle;
 
-% command = ['getImagesInfo ', num2str(instance_num), ' 0'];
-% b_write.fromString(command);
-% disp(b_write);
-% port2ABM_read.write(b_write,b_response);
-
-% disp(b_response.toString);
-
-command = ['triggerStreaming ', num2str(instance_num), ' ("includeAugmented" 0) ("realtime" 0)'];
+command = ['triggerStreaming ', num2str(instance_num), ' ("includeAugmented" 0) ("realtime" 1) ("speedMultiplier" 0.1)'];
 b_write.fromString(command);
 disp(b_write);
 port2ABM_read.write(b_write,b_response);
 
 disp(b_response.toString);
-
-
-% num_images = str2num(b_response.get(0));
-% num_image_ports = sum(b_response.get(1).size());
-
-%     Bottle* bListImgProviders = bRespImagesInfo.get(2).asList();
-%     for(int i=0; i<bListImgProviders->size(); i++) {
-%         if(bListImgProviders->get(i).asList()->get(0).asString()==portName) {
-%             numberOfImages = bListImgProviders->get(i).asList()->get(1).asInt();
-%         }
-%     }
-%     yDebug() << "Num images: " << numberOfImages;
 
 b_provide = yarp.Bottle;
 b_provide = b_response.get(2).asList();
@@ -122,14 +88,9 @@ for i=0:b_provide.size()-1
         final_portname = char_buf;
     end
 end
-disp(num2str(num_images));
+% disp(num2str(num_images));
 
 Network.connect(final_portname, '/matlab/kinematicStructure/imagein');
-
-% command = ['storeImageOIDs ', num2str(instance_num)];
-% b_write.fromString(command);
-% disp(b_write);
-% port2ABM_read.write(b_write,b_response);
 
 %%
 disp('================================');
@@ -142,16 +103,24 @@ if isequal(last_frame_idx, 'last')
     last_frame_idx = num_images;
 end
 
-for i=0:num_images-2
-    disp(['receive image ', num2str(i)]);
+disp(['Actual retrieving number of images: ',num2str(ceil(num_images*0.9))]);
+
+reverseStr = '';
+
+for i=0:ceil(num_images * 0.9)-1   
+    percentDone = 100 * (i+1) / (ceil(num_images * 0.9));
+    msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
+    fprintf([reverseStr, msg]);
+    reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    
     yarpImage = yarp.ImageRgb;
     yarpImage = portIncoming.read();
-
+    
     if(i+1 >= start_frame_idx & i < last_frame_idx)
         % save images
         filename=[sprintf('%04d',i) '.png'];
-        save_path = ['ABM_images/',filename];
-
+        save_path = ['data/KS/',filename];
+        
         if (sum(size(yarpImage)) ~= 0) %check size of bottle
             %disp('got it..');
             h=yarpImage.height;
@@ -176,59 +145,16 @@ for i=0:num_images-2
         env = yarp.Bottle;
         portIncoming.getEnvelope(env);
         bImageMeta_buf{i+1,1} = env.toString();
+        pause(0.01);
     end
 end
 
-% for frm_idx = start_frame_idx-1:last_frame_idx-1
-%
-%     % get the images: "provideImagesByFrame"
-%     command = ['provideImagesByFrame ', num2str(instance_num), ' ', num2str(frm_idx), ' 0', ' /icub/camcalib/',camera_selection,'/out'];
-%     b_write.fromString(command);
-%     disp(b_write);
-%     port2ABM_read.write(b_write,b_response);
-%
-%     if(b_response.get(0).toString ~= 'ack')
-%         disp('Error')
-%     else
-%         bImagesWithMeta = yarp.Bottle;
-%         bImagesWithMeta = b_response.get(1).asList();
-%
-%         i=0;
-%         bSingleImageWithMeta = yarp.Bottle;
-%         bSingleImageWithMeta = bImagesWithMeta.get(i).asList();
-%
-%         % Image Metadata
-%         bImageMeta = yarp.Bottle;
-%         bImageMeta = bSingleImageWithMeta.get(0).asList();
-%         bImageMeta_buf{frm_idx+1,i+1} = bImageMeta.toString();
-%
-%         % Raw Images
-%         bRawImage = yarp.Bottle;
-%         bRawImage = bSingleImageWithMeta.get(1).asList();
-%
-%         % Imamge Conversion
-%         image_data_buf = str2num(bRawImage.get(2).toString());
-%         pixSize = image_data_buf(1);
-%         h = image_data_buf(5);
-%         w = image_data_buf(4);
-%         img_buf = uint8(zeros(h, w, pixSize));
-%
-%         img_raw_seq = uint8( sscanf( char( bRawImage.get(3).toString() ), '%d' )' );
-%         img_raw_mtx = reshape(img_raw_seq,[pixSize,w,h]);
-%         img_buf(:,:,1) = squeeze(img_raw_mtx(1,:,:))';
-%         img_buf(:,:,2) = squeeze(img_raw_mtx(2,:,:))';
-%         img_buf(:,:,3) = squeeze(img_raw_mtx(3,:,:))';
-%
-%         % save images
-%         filename=[sprintf('%04d',frm_idx) '.png'];
-%         save_path = ['ABM_images/',num2str(i),'_',filename];
-%         imwrite(img_buf,save_path);
-%     end
-% end
+disp(' ');
+disp('Done receiving images!');
+
 
 % save buf data
-save('ABM_images/ImageMeta.mat','bImageMeta_buf');
-% save('ABM_images/RawImage.mat','bRawImage_buf');
+save('data/KS/ImageMeta.mat','bImageMeta_buf');
 
 %%
 %====================================
@@ -241,7 +167,7 @@ portIncoming.close;
 %====================================
 % Generate Video
 %====================================
-imagesFolder='ABM_images';
+imagesFolder='data/KS';
 imageFiles = dir(strcat(imagesFolder,'/*.png'));
 num_images = size(imageFiles,1);
 fileIdx = zeros(num_images,1);

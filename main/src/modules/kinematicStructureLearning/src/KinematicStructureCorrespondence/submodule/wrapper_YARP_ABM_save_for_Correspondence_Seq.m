@@ -5,10 +5,10 @@
 % Permission is granted to copy, distribute, and/or modify this program
 % under the terms of the GNU General Public License, version 2 or any
 % later version published by the Free Software Foundation.
-% 
+%
 % A copy of the license can be found at
 % wysiwyd/license/gpl.txt
-% 
+%
 % This program is distributed in the hope that it will be useful, but
 % WITHOUT ANY WARRANTY; without even the implied warranty of
 % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
@@ -23,7 +23,7 @@
 % Connecting Ports
 %====================================
 %creating ports
-port2ABM_write  = Port;          %port for ABM
+port2ABM_write = Port;          %port for ABM
 portOutgoing = Port;
 
 %first close the port just in case
@@ -60,9 +60,17 @@ disp('Connected!')
 %====================================
 % Load Images
 %====================================
-load('data/KS/ImageMeta.mat');
-augmentedLabel = 'KS';
-% augmentedLabel = '__________';
+% load('ABM_images/ImageMeta.mat');
+% load('ABM_images/RawImage.mat');
+
+% augmentedLabel = 'kinematic_structure_correspondence';
+augmentedLabel = 'KSC';
+
+% correpondence_result = [];
+% for p = 1:size(X,1)
+%     buf = sprintf('"%d \t %s"', p, node_info{find(X(p,:)==1)});
+%     correpondence_result = [correpondence_result, ' ', buf];
+% end
 
 %%
 %====================================
@@ -71,8 +79,18 @@ augmentedLabel = 'KS';
 %send it back to yarp
 %%
 disp('================================');
-disp('Start sending images!');
+disp('Start sending result image!');
 tic
+
+% bDeletePrevious = yarp.Bottle;
+% bDeletePrevious.clear();
+% bResponseDelete = yarp.Bottle;
+% % bResponseDelete.clear();
+% delete_command = ['DELETE FROM visualdata WHERE instance = ', num2str(instance_num), ' AND augmented = ''', augmentedLabel, ''''];
+% bDeletePrevious.addString('request');
+% bDeletePrevious.addString(delete_command);
+% port2ABM_write.write(bDeletePrevious);
+% % disp(bResponseDelete.toString());
 
 connection_check = 0;
 while(~connection_check)
@@ -83,40 +101,62 @@ while(~connection_check)
 end
 disp('Connected!')
 
+% Get a list of all files in the folder.
+output_img_folder = 'result/KSC/images/';
+filePattern = fullfile(output_img_folder, '*.png');
+ImageFiles = dir(filePattern);
+num_images = length(ImageFiles);
+
+%%
 reverseStr = '';
 
 for i = 1:num_images
-    if ~isempty(bImageMeta_buf{i})
+    if ~isempty(bDataMeta_P_buf{i})
+        
         bAugmentedImageWithMeta = yarp.Bottle;
         bAugmentedImageWithMeta.clear();
         bResponseAugmented = yarp.Bottle;
         bResponseAugmented.clear();
         
-        bImageMeta_string = bImageMeta_buf{i}.toString();
+        bImageMeta_string = bDataMeta_P_buf{i}.toString();
         
-        image_name = [sprintf('%04d',i) '.png'];
-%         fprintf(['Saving ', image_name, '\n']);
-        img_mat_org = imread(['result/KS/images/points/',image_name]);
+        %  image_name = 'output.png';
+        image_name = ['output_',sprintf('%04d',i'),'.png'];
+        % image_name = '0000.png';
+        
+%         fprintf(['Retrieving to ABM ', image_name, '\n']);
+        img_mat_org = imread(['result/KSC/images/',image_name]);
+        [h_org, w_org, c_org] = size(img_mat_org);
+        
+        img_buf = zeros(240*2, 320*2, 3);
+        img_buf([240/2+1:240/2+240],1:end,:) = img_mat_org(1:240, 1:320*2, :);
+        % img_mat_org = imresize(img_mat_org, [240 320]);
+        
+        img_mat_org = img_buf;
+        % img_mat_org = img_mat_org(1:end,1:end,:);
         [h,w,pixSize] = size(img_mat_org);
         tool=YarpImageHelper(h, w);
         
         img = yarp.ImageRgb(); %create a new yarp image to send results to ports
-        img.resize(w,h);   %resize it to the desired size
+        img.resize(h,w);   %res-2ize it to the desired size
         img.zero();        %set all pixels to black
-        img_mat_org = reshape(img_mat_org, [h*w*pixSize 1]); %reshape the matlab image to 1D
+        img_mat_org = reshape(img_mat_org, [(h)*(w)*pixSize 1]); %reshape the matlab image to 1D
         tempImg = cast(img_mat_org ,'int16');   %cast it to int16
-        img = tool.setRawImg(tempImg, h, w, pixSize); % pass it to the setRawImg function (returns the full image)
+        img = tool.setRawImg(tempImg, (h), (w), pixSize); % pass it to the setRawImg function (returns the full image)
+        % img = tool.setRawImg(tempImg, pixSize, (h), (w)); % pass it to the setRawImg function (returns the full image)
         
         bMetaBottle = yarp.Bottle;
         bMetaBottle.fromString(bImageMeta_string);
         bMetaBottle.addString(augmentedLabel);
+        % bMetaBottle.addString(correpondence_result);    % correspondence result
         portOutgoing.setEnvelope(bMetaBottle);
+%         disp(bMetaBottle)
         portOutgoing.write(img); %send it off
         
         percentDone = 100 * i / num_images;
         msg = sprintf('Sending completed percentage: %3.1f', percentDone); %Don't forget this semicolon
         fprintf([reverseStr, msg]);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg));        
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));          
     end
 end
 
