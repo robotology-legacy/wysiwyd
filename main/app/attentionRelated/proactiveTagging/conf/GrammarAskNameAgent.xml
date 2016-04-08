@@ -20,9 +20,6 @@
 
   <RULE NAME="agent" DYNAMIC="TRUE">
     <L>
-      <P>I</P>
-      <P>Icub</P>
-      <P>You</P>
       <P>Carol</P>
       <P>Greg</P>
     </L>
