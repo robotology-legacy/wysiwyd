@@ -18,20 +18,15 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
         yInfo() << " iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
-    rpc.open(("/" + moduleName + "/rpc").c_str());
-    attach(rpc);
 
     portToBehavior.open("/" + moduleName + "/behavior:o");
-    while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i ")) {
-        yWarning() << " Behavior is not reachable";
-        yarp::os::Time::delay(0.5);
-    }
-
     portTarget.open("/" + moduleName + "/target:o");
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
-
     bShouldListen = true;
+
+    rpc.open(("/" + moduleName + "/rpc").c_str());
+    attach(rpc);
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 

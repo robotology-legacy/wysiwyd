@@ -38,7 +38,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
     rpc_in_port.open("/" + moduleName + "/trigger:i");
     yInfo() << "RPC_IN : " << rpc_in_port.getName();
-    attach(rpc_in_port);
+
     for (int i = 0; i<behaviorList.size(); i++)
     {
         behavior_name = behaviorList.get(i).asString();
@@ -71,10 +71,14 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
     if (!iCub->connect())
     {
-        yInfo()<<"iCubClient : Some dependencies are not running...";
+        yInfo() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
 
+    while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
+        yWarning() << "Ears is not reachable";
+        yarp::os::Time::delay(0.5);
+    }
 
     // id = 0;
     for(auto& beh : behaviors) {
@@ -95,6 +99,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             }   
         }
     }
+
+    attach(rpc_in_port);
     yInfo("Init done");
 
     return true;

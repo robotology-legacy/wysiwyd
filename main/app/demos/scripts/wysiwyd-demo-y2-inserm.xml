@@ -58,9 +58,14 @@
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
             <port timeout="10">/iSpeak</port>
-            <port timeout="10">/speechRecognizer/rpc</port>
             <port timeout="10">/actionsRenderingEngine/cmd:io</port>
             <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/opcSensation/unknown_entities:o</port>
+            <port timeout="10">/opcSensation/known_entities:o</port>
+            <port timeout="10">/ears/behavior:o</port>
+            <port timeout="10">/ears/target:o</port>
+            <port timeout="10">/proactiveTagging/rpc</port>
+            <port timeout="10">/narrativeHandler/rpc</port>
         </dependencies>
     </module>
     <module>
@@ -69,7 +74,7 @@
         <node>icub-b1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
-            <port timeout="10">/BehaviorManager/trigger:i</port>
+            <port timeout="10">/speechRecognizer/rpc</port>
         </dependencies>
     </module>
     <module>
@@ -129,6 +134,7 @@
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
             <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/homeostasis/rpc</port>
         </dependencies>
     </module>
     <module>
