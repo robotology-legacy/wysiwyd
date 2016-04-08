@@ -69,8 +69,9 @@ string proactiveTagging::getBestEntity(string sTypeTarget) {
     bool bFound = false;
     string sNameBestEntity = "none", sNameSecondBest = "none";
 
+    double start = yarp::os::Time::now();
     // start detecting unknown objects
-    while (!bFound)
+    while (!bFound && start + 8.0 > yarp::os::Time::now())
     {
         iCub->opc->checkout();
         list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();

@@ -730,9 +730,13 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         }
     }
 
-    Time::delay(2.0);
-
     string sNameBestEntity = getBestEntity(sTypeTarget);
+    if(sNameBestEntity=="none") {
+        iCub->say("you did not point at any object");
+        bOutput.addString("error");
+        bOutput.addString("no pointing received");
+        return bOutput;
+    }
 
     // change name
     Object* TARGET = dynamic_cast<Object*>(iCub->opc->getEntity(sNameBestEntity));
