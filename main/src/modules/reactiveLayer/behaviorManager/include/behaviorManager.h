@@ -13,6 +13,7 @@
 #include "reactions.h"
 #include "narrate.h"
 #include "followingOrder.h"
+#include "recognitionOrder.h"
 
 using namespace std;
 using namespace yarp::os;
