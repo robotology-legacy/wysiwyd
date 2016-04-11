@@ -27,6 +27,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     string moduleName = rf.check("name", Value("proactiveTagging")).asString().c_str();
     setName(moduleName.c_str());
 
+    GrammarYesNo = rf.findFileByName(rf.check("GrammarYesNo", Value("nodeYesNo.xml")).toString());
     GrammarAskNameObject = rf.findFileByName(rf.check("GrammarAskNameObject", Value("GrammarAskNameObject.xml")).toString());
     GrammarAskNameAgent = rf.findFileByName(rf.check("GrammarAskNameAgent", Value("GrammarAskNameAgent.xml")).toString());
     GrammarAskNameBodypart = rf.findFileByName(rf.check("GrammarAskNameBodypart", Value("GrammarAskNameSelf.xml")).toString());
@@ -327,6 +328,32 @@ bool proactiveTagging::updateModule() {
     return true;
 }
 
+bool proactiveTagging::recogYesNo()
+{
+    Bottle bRecognized, bOutput;
+    yDebug() << "Going to load YesNo grammar.";
+    bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(GrammarYesNo), 20);
+    yDebug() << bRecognized.toString();
+    if (bRecognized.get(0).asInt() == 0)
+    {
+        yError() << " error in proactiveTagging::recogYesNo | Error in speechRecog";
+        return true;
+    }
+    string reply = bRecognized.get(1).asList()->get(1).asList()->get(0).asString();
+    if (reply == "yes") {
+        yInfo() << "Recognized as Yes";
+        return true;
+    }
+    else if (reply == "no") {
+        yInfo() << "Recognized as No";
+        return false;   
+    }
+    else {
+        yError() << " error in proactiveTagging::recogYesNo | returned neither yes nor no";
+        return true;        
+    } 
+}
+
 /*
 * Recognize the name of an unknown entity
 * Recognize through speech the name of an unknwon entity.
@@ -541,35 +568,57 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         iCub->point(sNameTarget);
     }
 
-    Bottle bName = recogName(currentEntityType);
-    string sName;
+	bool recognized = false;
+    bool is_renaming = false;
+	
+	string sName, sReply;
+    while (! recognized) {
+        if (is_renaming) {
+            iCub->lookAtPartner();
+            iCub->say("So, repeat again please?");          
+        }
 
-    if (bName.get(0).asString() == "error") {
-        return bName;     //if error, bName = (error errorDescription) -> return it
-    }
-    else {
-        sName = bName.get(0).asString();
+		Bottle bName = recogName(currentEntityType);
+		string sName;
+		
+		//if error, bName = (error errorDescription) -> return it
+		if (bName.get(0).asString() == "error") {
+		    return bName;
+		}
+		else {
+		    sName = bName.get(0).asString();
+		}
+		
+		iCub->lookAtPartner();
+		if (currentEntityType == "agent") {
+		    sReply = " Nice to meet you " + sName;
+		}
+		else if (currentEntityType == "object") {
+		    sReply = " I get it, this is a " + sName;
+		}
+		else if (currentEntityType == "rtobject") {
+		    sReply = " So this is a " + sName;
+		}
+		else if (currentEntityType == "bodypart") {
+		    sReply = " Nice, I know that I have a " + sName;
+		} else {
+		    iCub->say("I do not know this entity type");
+		}
+    	
+		yInfo() << sReply;
+        iCub->say(sReply);
+		
+		recognized = recogYesNo();
+        if (! recognized)
+            is_renaming = true;
+        
     }
 
-    string sReply;
+
     Entity* e = iCub->opc->getEntity(sNameTarget);
     iCub->changeName(e,sName);
 
-    iCub->lookAtPartner();
-    if (currentEntityType == "agent") {
-        sReply = " Nice to meet you " + sName;
-    }
-    else if (currentEntityType == "object") {
-        sReply = " I get it, this is a " + sName;
-    }
-    else if (currentEntityType == "rtobject") {
-        sReply = " So this is a " + sName;
-    }
-    else if (currentEntityType == "bodypart") {
-        sReply = " Nice, I know that I have a " + sName;
-    } else {
-        iCub->say("I do not know this entity type");
-    }
+    
 
     if (iCub->getABMClient()->Connect())
     {

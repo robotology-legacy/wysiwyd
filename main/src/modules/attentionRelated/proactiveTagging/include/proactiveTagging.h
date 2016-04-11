@@ -41,6 +41,7 @@ private:
     std::string      GrammarAskNameObject;
     std::string      GrammarAskNameBodypart;
     std::string      GrammarDescribeAction;
+	std::string      GrammarYesNo;
 
     std::string      babblingArm; //side of the babbling arm : left or right
     std::string      defaultPartnerName; //default name of the partner: considered NOT named
@@ -49,7 +50,9 @@ private:
     double  thresholdSalienceDetection; //value of saliency needed to detect if 1 object is more salient that the other
 
     yarp::os::Bottle   recogName(std::string entityType);
-
+	
+	bool recogYesNo();
+	
     //Configure
     void configureOPC(yarp::os::ResourceFinder &rf);
     void subPopulateObjects(yarp::os::Bottle* objectList, bool addOrRetrieve);
