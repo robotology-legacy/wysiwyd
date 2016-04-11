@@ -11,7 +11,7 @@ void Tagging::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Tagging::run";
     yDebug() << "send rpc to proactiveTagging";
     Bottle *sensation = sensation_port_in.read();
-    int id = 42;
+    int id = yarp::os::Random::uniform(0, sensation->size() - 1);
         
     // If there are unknown agents, prioritise tagging it.
     for (int i = 0; i < sensation->size(); i++)
@@ -23,10 +23,6 @@ void Tagging::run(Bottle args/*=Bottle()*/) {
         {
             id = i;
         }
-    }
-    if (id == 42)
-    {
-        id = yarp::os::Random::uniform(0, sensation->size() - 1);
     }
 
     //If there is an unknown object (to see with agents and rtobjects), add it to the rpc_command bottle, and return true
