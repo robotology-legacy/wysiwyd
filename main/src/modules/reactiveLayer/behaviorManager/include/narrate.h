@@ -20,7 +20,7 @@ private:
     void run(Bottle args=Bottle());
     
 public:
-    Narrate(Mutex* mut): Behavior(mut) {
+    Narrate(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
         ;
     }
         

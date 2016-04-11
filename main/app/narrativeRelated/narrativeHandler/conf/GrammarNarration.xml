@@ -155,7 +155,7 @@
     </O>
   </RULE>
 
-    <!-- I detected an unknown object -->
+  <!-- I detected an unknown object -->
   <RULE  NAME="SENTENCE_TYPE_APRO"  DYNAMIC="TRUE">
     <RULEREF  NAME="agent"/>
     <RULEREF  NAME="predicate"/>
@@ -171,8 +171,8 @@
 
   <!-- so I pointed to the object -->
   <RULE  NAME="SENTENCE_TYPE_PAPO"  DYNAMIC="TRUE">
-	<RULEREF NAME="linking"/>
-	<RULEREF  NAME="agent"/>
+    <RULEREF NAME="linking"/>
+    <RULEREF  NAME="agent"/>
     <RULEREF  NAME="predicate"/>
     <O>
       <RULEREF  NAME="CCW"/>
@@ -185,52 +185,52 @@
 
   <!-- and I asked you what is this object -->
   <RULE  NAME="SENTENCE_TYPE_APROPA"  DYNAMIC="TRUE">
-	<RULEREF NAME="linking"/>
-	<RULEREF  NAME="agent"/>
+    <RULEREF NAME="linking"/>
+    <RULEREF  NAME="agent"/>
     <RULEREF  NAME="predicate"/>
     <O>
       <RULEREF  NAME="CCW"/>
     </O>
-	<L>
-		<RULEREF  NAME="object"/>
-		<RULEREF  NAME="agent"/>
-	</L>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
     <RULEREF  NAME="object"/>
-	<RULEREF NAME ="predicate"/>
-	<O>
+    <RULEREF NAME ="predicate"/>
+    <O>
       <RULEREF  NAME="CCW"/>
     </O>
-	<L>
-		<RULEREF  NAME="object"/>
-		<RULEREF  NAME="agent"/>
-	</L>
-	</RULE>
-	
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
+
   <!-- you told me that it was the box -->
   <RULE  NAME="SENTENCE_TYPE_APROPA"  DYNAMIC="TRUE">
-	<RULEREF  NAME="agent"/>
+    <RULEREF  NAME="agent"/>
     <RULEREF  NAME="predicate"/>
     <O>
       <RULEREF  NAME="CCW"/>
     </O>
-	<L>
-		<RULEREF  NAME="object"/>
-		<RULEREF  NAME="agent"/>
-	</L>	
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
     <RULEREF  NAME="linking"/>
     <RULEREF  NAME="object"/>
-	<RULEREF NAME ="predicate"/>
-	<O>
+    <RULEREF NAME ="predicate"/>
+    <O>
       <RULEREF  NAME="CCW"/>
     </O>
-	<L>
-		<RULEREF  NAME="object"/>
-		<RULEREF  NAME="agent"/>
-	</L>
-	</RULE>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
 
-  
-  
+
+
   <RULE NAME="agent" DYNAMIC="TRUE">
     <L>
       <P>I</P>
@@ -262,6 +262,7 @@
       <P>giraffe</P>
       <P>it</P>
       <P>action</P>
+      <P>box</P>
     </L>
   </RULE>
 
@@ -272,7 +273,8 @@
       <P>me</P>
       <P>it</P>
       <P>different</P>
-      <P>you</P>
+      <P>you</P>z
+      <P>that</P>
     </L>
   </RULE>
 

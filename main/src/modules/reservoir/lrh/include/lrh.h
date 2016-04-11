@@ -61,7 +61,7 @@ private:
     std::string smax_nr_actionrelation;
     std::string selt_pred;
     std::string sNbNeurons;
-
+    std::string sMode;
     std::string sdataTestSD;
     std::string sHand;
     float offsetGrasp;
@@ -74,7 +74,7 @@ private:
 
     wysiwyd::wrdac::ICubClient *iCub;
 
-    bool callReservoir(std::string pythonFile, std::string closed_class_words);
+    bool callReservoir(std::string pythonFile, std::string sCCW);
     int copyPastTrainFile(const char* fileNameIn, const char* fileNameOut);
     int createTest(const char* filename, std::string sMeaningSentence);
     int createTest(const char* filename, std::list<std::string> lMeaningsSentences);

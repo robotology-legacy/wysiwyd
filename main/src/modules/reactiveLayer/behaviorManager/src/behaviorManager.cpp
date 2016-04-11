@@ -43,21 +43,21 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     {
         behavior_name = behaviorList.get(i).asString();
         if (behavior_name == "tagging") {
-            behaviors.push_back(new Tagging(&mut));
+            behaviors.push_back(new Tagging(&mut, rf));
         } else if (behavior_name == "pointing") {
-            behaviors.push_back(new Pointing(&mut));
+            behaviors.push_back(new Pointing(&mut, rf));
         } else if (behavior_name == "dummy") {
-            behaviors.push_back(new Dummy(&mut));
+            behaviors.push_back(new Dummy(&mut, rf));
         } else if (behavior_name == "dummy2") {
-            behaviors.push_back(new Dummy(&mut));
+            behaviors.push_back(new Dummy(&mut, rf));
         }  else if (behavior_name == "reactions") {
-            behaviors.push_back(new Reactions(&mut));
+            behaviors.push_back(new Reactions(&mut, rf));
         }  else if (behavior_name == "followingOrder") {
-            behaviors.push_back(new FollowingOrder(&mut));
+            behaviors.push_back(new FollowingOrder(&mut, rf));
         }  else if (behavior_name == "narrate") {
-            behaviors.push_back(new Narrate(&mut));
+            behaviors.push_back(new Narrate(&mut, rf));
         }  else if (behavior_name == "recognitionOrder") {
-            behaviors.push_back(new recognitionOrder(&mut));
+            behaviors.push_back(new recognitionOrder(&mut, rf));
             // other behaviors here
         }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";

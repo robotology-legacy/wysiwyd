@@ -20,7 +20,7 @@ private:
     void run(Bottle args=Bottle());
     
 public:
-    Tagging(Mutex* mut): Behavior(mut) {
+    Tagging(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
         ;
     }
        

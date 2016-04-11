@@ -19,8 +19,7 @@ private:
     virtual void run(Bottle args=Bottle()) = 0;
 public:
 
-    Behavior(Mutex* _mut) {
-        mut = _mut;
+    Behavior(Mutex* _mut, ResourceFinder &_rf) : mut(_mut), rf(_rf){
         from_sensation_port_name = "None";
         external_port_name = "None";
     }
@@ -39,6 +38,7 @@ public:
     string name, from_sensation_port_name, external_port_name;
     BufferedPort<Bottle> sensation_port_in, behavior_start_stop_port;
     Port rpc_out_port;
+    ResourceFinder& rf;
 
     void trigger(Bottle args=Bottle()) {
         yDebug() << "Behavior::trigger starts"; 

@@ -1,0 +1,397 @@
+﻿<!-- LANGID 809 for english-UK, 409 for english-US -->
+
+<GRAMMAR  LANGID="809">
+
+  <DEFINE>
+    <ID  NAME="agent"  VAL="1"/>
+    <ID  NAME="predicate"  VAL="2"/>
+    <ID  NAME="object"  VAL="3"/>
+    <ID  NAME="recipient"  VAL="4"/>
+    <ID  NAME="CCW"  VAL="5"/>
+    <ID  NAME="linking"  VAL="6"/>
+  </DEFINE>
+
+
+  <RULE  NAME="stop"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <P>stop</P>
+  </RULE>
+
+  <RULE  NAME="SENTENCE"  TOPLEVEL="ACTIVE"  EXPORT="1">
+    <L>
+      <RULEREF  NAME="SENTENCE_TYPE_APRO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPROPA"  />
+      <RULEREF  NAME="SENTENCE_TYPE_APROPA"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAAPAPVRO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPRO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPRRPAPO" />
+      <RULEREF  NAME="SENTENCE_TYPE_APRAPRO" />
+      <RULEREF  NAME="SENTENCE_TYPE_PAAPPAPO" />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPVRO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPRAPRO"  />
+      <RULEREF  NAME="SENTENCE_TYPE_PAPAPAPRO"  />
+    </L>
+  </RULE>
+
+  <!-- I detected an unknown object -->
+  <RULE  NAME="SENTENCE_TYPE_APRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="recipient"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="object"/>
+  </RULE>
+
+  <!-- so I pointed to the object -->
+  <!-- and you touch it -->
+  <RULE  NAME="SENTENCE_TYPE_PAPO"  DYNAMIC="TRUE">
+    <RULEREF NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
+
+
+  <!-- and I asked you what is this object -->
+  <RULE  NAME="SENTENCE_TYPE_PAPROPA"  DYNAMIC="TRUE">
+    <RULEREF NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <RULEREF  NAME="object"/>
+    <RULEREF NAME ="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
+
+
+  <!-- you told me that it was the box -->
+  <RULE  NAME="SENTENCE_TYPE_APROPA"  DYNAMIC="TRUE">
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <RULEREF  NAME="linking"/>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <RULEREF NAME ="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
+
+  <!--  so now I have discovered a new object box  -->
+  <RULE  NAME="SENTENCE_TYPE_PAAPAPVRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="predicate"/>
+    </L>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="object"/>
+    <RULEREF  NAME="object"/>
+    <RULEREF  NAME="object"/>
+  </RULE>
+
+
+
+  <!--  then I detected an unknown body-part  -->
+  <RULE  NAME="SENTENCE_TYPE_PAPRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="recipient"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="object"/>
+  </RULE>
+
+
+  <!--  so I asked you to watch while I moved a body-part  -->
+  <RULE  NAME="SENTENCE_TYPE_PAPRRPAPO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="predicate"/>
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
+
+
+  <!--  you told me that it was my thumb  -->
+  <RULE  NAME="SENTENCE_TYPE_APRAPRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <RULEREF  NAME="linking"/>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <RULEREF  NAME="predicate"/>
+    <RULEREF  NAME="recipient"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+    </L>
+  </RULE>
+
+  <!--  so now I know that I have a thumb -->
+  <RULE  NAME="SENTENCE_TYPE_PAAPPAPO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="linking"/>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="object"/>
+  </RULE>
+
+  <!--  again I detected an unknown tactile sensor-->
+  <RULE  NAME="SENTENCE_TYPE_PAPVRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="recipient"/>
+    </L>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="recipient"/>
+    </L>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="recipient"/>
+    </L>
+  </RULE>
+
+
+  <!--  so I asked you to touch my thumb  -->
+  <RULE  NAME="SENTENCE_TYPE_PAPRAPRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="predicate"/>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="recipient"/>
+    </L>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
+
+
+  <!--  now I can feel when an object touches my thumb  -->
+  <RULE  NAME="SENTENCE_TYPE_PAPAPAPRO"  DYNAMIC="TRUE">
+    <RULEREF  NAME="linking"/>
+    <RULEREF  NAME="agent"/>
+    <RULEREF  NAME="predicate"/>
+    <RULEREF  NAME="predicate"/>
+    <RULEREF  NAME="linking"/>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <RULEREF  NAME="predicate"/>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="recipient"/>
+    </L>
+    <O>
+      <RULEREF  NAME="CCW"/>
+    </O>
+    <L>
+      <RULEREF  NAME="object"/>
+      <RULEREF  NAME="agent"/>
+    </L>
+  </RULE>
+
+  <!--  VOCABULARY  -->
+
+  <RULE NAME="agent" DYNAMIC="TRUE">
+    <L>
+      <P>I</P>
+      <P>you</P>
+      <P>me</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="predicate" DYNAMIC="TRUE">
+    <L>
+      <P>detected</P>
+      <P>pointed</P>
+      <P>ask</P>
+      <P>is</P>
+      <P>told</P>
+      <P>was</P>
+      <P>discovered</P>
+      <P>watch</P>
+      <P>move</P>
+      <P>know</P>
+      <P>have</P>
+      <P>touch</P>
+      <P>can</P>
+      <P>feel</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="object" DYNAMIC="TRUE">
+    <L>
+      <P>object</P>
+      <P>what</P>
+      <P>it</P>
+      <P>croco</P>
+      <P>new</P>
+      <P>body-part</P>
+      <P>thumb</P>
+      <P>sensor</P>
+    </L>
+  </RULE>
+
+
+  <RULE NAME="recipient" DYNAMIC="TRUE">
+    <L>
+      <P>unknown</P>
+      <P>my</P>
+      <P>tactile</P>
+    </L>
+  </RULE>
+
+
+  <RULE NAME="CCW" DYNAMIC="TRUE">
+    <L>
+      <P>to</P>
+      <P>the</P>
+      <P>a</P>
+      <P>an</P>
+      <P>this</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="linking" DYNAMIC="TRUE">
+    <L>
+      <P>but</P>
+      <P>because</P>
+      <P>so</P>
+      <P>if</P>
+      <P>then</P>
+      <P>and</P>
+      <P>now</P>
+      <P>that</P>
+      <P>while</P>
+      <P>again</P>
+      <P>when</P>
+    </L>
+  </RULE>
+
+
+</GRAMMAR>

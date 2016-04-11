@@ -20,7 +20,7 @@ private:
     void run(Bottle args=Bottle());
     
 public:
-    Reactions(Mutex* mut): Behavior(mut) {
+    Reactions(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
         ;
     }
        

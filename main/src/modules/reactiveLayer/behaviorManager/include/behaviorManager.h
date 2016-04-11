@@ -41,6 +41,7 @@ private:
     Mutex mut;
     Bottle behaviorList;
     string behavior_name;
+
 public:
    bool configure(yarp::os::ResourceFinder &rf);
 

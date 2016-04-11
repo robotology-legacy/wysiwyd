@@ -21,8 +21,12 @@ private:
     string port_to_narrate_name;
     void run(Bottle args=Bottle());
 
+    //followingOrder option
+    Bottle listKS1;
+    Bottle listKS2;
+
 public:
-    FollowingOrder(Mutex* mut): Behavior(mut) {
+    FollowingOrder(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
         ;
     }
       
@@ -30,7 +34,8 @@ public:
 
     bool handleAction(string type, string target, string action);
     bool handleActionBP(string type, string target, string action);
-    bool handleSearch(string type, string target);
+    bool handleActionKS(string type, string action);
+    bool handleSearch(string type, string action);
     bool handleNarrate();
 
     void close_extra_ports() {

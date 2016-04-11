@@ -1,6 +1,14 @@
 #include "followingOrder.h"
 
 void FollowingOrder::configure() {
+
+    Bottle bFollowingOrder = rf.findGroup("followingOrder");
+    listKS1.clear();
+    listKS2.clear();
+    listKS1 = *bFollowingOrder.find("ks1").asList();
+    listKS2 = *bFollowingOrder.find("ks2").asList();
+
+
     // Todo: set the value beow from a config file (but we are not in a module here)
     name = "followingOrder";
     external_port_name = "/proactiveTagging/rpc";
@@ -8,6 +16,8 @@ void FollowingOrder::configure() {
 
     port_to_narrate_name = "/behaviorManager/narrate:o";
     port_to_narrate.open(port_to_narrate_name);
+
+
 }
 
 void FollowingOrder::run(Bottle args/*=Bottle()*/) {
@@ -15,12 +25,13 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
 
     Bottle* sens = sensation_port_in.read();
     string action = sens->get(0).asString();
-    string type;
-    string target;
+    string type = "";
+    string target = "";
     if (sens->size()>0)
         type = sens->get(1).asString();
     if (sens->size()>1)
         target = sens->get(2).asString();
+
     yDebug() << action;
     yDebug() << type;
     yInfo() << target;
@@ -49,6 +60,8 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     } else if (action == "narrate"){
         handleNarrate();
         yInfo() << "narrating!!!";
+    }  else if (action == "show" && (type == "kinematic_structure" || type == "kinematic_structure_correspondence")){
+        handleActionKS(type, action);
     }
 }
 
@@ -112,6 +125,39 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
     iCub->lookAtPartner();
     iCub->say("I cannot " + action + " the " + target);
     iCub->home();
+    return false;
+}
+
+bool FollowingOrder::handleActionKS(string type, string action) {
+
+    iCub->home();
+    yarp::os::Time::delay(1.0);
+
+    //extract list of KS1
+    if(listKS1.size() != 0){
+
+        //int ks1Index = rand(0,listKS1.size()-1);
+
+
+    } else {
+        yError() << "[handleActionKS]: no instance for KS1 found!" ;
+        return false;
+    }
+
+    //if not null: ok
+
+    //if kinematic_structure_correspondence: extract list of KS2
+
+        //if not null: ok
+
+    //send rpc command to KS
+
+
+    yInfo() << "[handleActionKS] type: " << type  << "action:" << action;
+    iCub->opc->checkout();
+    yInfo() << " [handleActionBP]: opc checkout";
+
+
     return false;
 }
 
