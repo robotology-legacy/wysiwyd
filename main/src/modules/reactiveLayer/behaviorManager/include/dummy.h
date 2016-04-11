@@ -29,7 +29,7 @@ private:
     int id;
 
 public:
-    Dummy(Mutex* mut): Behavior(mut) {
+    Dummy(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
         n_instances++;
         id = n_instances;
     }

@@ -20,7 +20,7 @@ private:
     void run(Bottle args=Bottle());
     
 public:
-    Pointing(Mutex* mut): Behavior(mut) {
+    Pointing(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
         ;
     }
         
