@@ -568,47 +568,47 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
         iCub->point(sNameTarget);
     }
 
-	bool recognized = false;
+    bool recognized = false;
     bool is_renaming = false;
-	
-	string sName, sReply;
+    
+    string sName, sReply;
     while (! recognized) {
         if (is_renaming) {
             iCub->lookAtPartner();
             iCub->say("So, repeat again please?");          
         }
 
-		Bottle bName = recogName(currentEntityType);
-		string sName;
-		
-		//if error, bName = (error errorDescription) -> return it
-		if (bName.get(0).asString() == "error") {
-		    return bName;
-		}
-		else {
-		    sName = bName.get(0).asString();
-		}
-		
-		iCub->lookAtPartner();
-		if (currentEntityType == "agent") {
-		    sReply = " Nice to meet you " + sName;
-		}
-		else if (currentEntityType == "object") {
-		    sReply = " I get it, this is a " + sName;
-		}
-		else if (currentEntityType == "rtobject") {
-		    sReply = " So this is a " + sName;
-		}
-		else if (currentEntityType == "bodypart") {
-		    sReply = " Nice, I know that I have a " + sName;
-		} else {
-		    iCub->say("I do not know this entity type");
-		}
-    	
-		yInfo() << sReply;
+        Bottle bName = recogName(currentEntityType);
+        string sName;
+        
+        //if error, bName = (error errorDescription) -> return it
+        if (bName.get(0).asString() == "error") {
+            return bName;
+        }
+        else {
+            sName = bName.get(0).asString();
+        }
+        
+        iCub->lookAtPartner();
+        if (currentEntityType == "agent") {
+            sReply = " Nice to meet you " + sName;
+        }
+        else if (currentEntityType == "object") {
+            sReply = " I get it, this is a " + sName;
+        }
+        else if (currentEntityType == "rtobject") {
+            sReply = " So this is a " + sName;
+        }
+        else if (currentEntityType == "bodypart") {
+            sReply = " Nice, I know that I have a " + sName;
+        } else {
+            iCub->say("I do not know this entity type");
+        }
+        
+        yInfo() << sReply;
         iCub->say(sReply);
-		
-		recognized = recogYesNo();
+        
+        recognized = recogYesNo();
         if (! recognized)
             is_renaming = true;
         
