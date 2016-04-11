@@ -24,7 +24,7 @@
 
 #include "lrh.h"
 #include "wrdac/subsystems/subSystem_ARE.h"
-
+#include <fstream>
 
 using namespace std;
 using namespace yarp::os;
@@ -43,6 +43,8 @@ bool LRH::configure(ResourceFinder &rf) {
 
     /* Mode Scene Describer => sentences */
     scorpusFileSD = rf.findFile("corpusFileSD");
+    std::cout << "scorpusFileSD : " << scorpusFileSD << std::endl;
+
     sfileResult = rf.findFile("fileResult");
     stemporaryCorpus = rf.findFile("temporaryCorpus");
     sreservoirSD = rf.findFile("reservoirSD");
@@ -63,11 +65,12 @@ bool LRH::configure(ResourceFinder &rf) {
     selt_pred = rf.check("l_elt_pred", Value("P A O R V")).toString().c_str();
     sNbNeurons = rf.check("iNbNeurons", Value("600")).toString().c_str();
 
+
     sHand = rf.check("hand", Value("right")).toString().c_str();
     offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
 
     nameSamInputPort = rf.check("nameSamInputPort", Value("/SAM/rpc")).toString().c_str();
-
+    sMode = rf.check("sMode", Value("train")).toString().c_str();
     setName(moduleName.c_str());
 
     // Open handler port
@@ -102,6 +105,12 @@ bool LRH::configure(ResourceFinder &rf) {
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
+    // Start train mode of the reservoirs
+    copyPastTrainFile(scorpusFileSD.c_str(), stemporaryCorpus.c_str());
+    std::cout << "In Python" << std::endl;
+    callReservoir(sreservoirAP.c_str(), sclosed_class_words);
+    std::cout << "Out Python" << std::endl;
+    sMode = "test";
 
     return bEveryThingisGood;
 }
@@ -251,7 +260,6 @@ bool LRH::populateOPC(){
 
 // Understanding
 string LRH::sentenceToMeaning(string sentence){
-    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), sentence);
     callReservoir(sreservoirAP, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
@@ -273,7 +281,7 @@ string LRH::sentenceToMeaning(string sentence){
 string LRH::meaningToSentence(string meaning){
     copyPastTrainFile(scorpusFileSD.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), meaning);
-    callReservoir(sreservoirSD, sclosed_class_wordsSD);
+    callReservoir(sreservoirSD, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
 
     // forward meaning to SAM
@@ -292,7 +300,7 @@ string LRH::meaningToSentence(string meaning){
 string LRH::production(string test) {
     copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), test);
-    callReservoir(sreservoirNarratif, sclosed_class_words);
+    callReservoir(sreservoirNarratif, sclosed_class_wordsSD);
     string sOutput = openResult(sfileResult.c_str());
 
     // forward meaning to SAM
@@ -308,10 +316,11 @@ string LRH::production(string test) {
     return sOutput;
 }
 
-bool LRH::callReservoir(string pythonFile, string closed_class_words)
+bool LRH::callReservoir(string pythonFile, string sCCW)
 {
     std::string l_pythonCmd("python " + pythonFile);
-    std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + closed_class_words + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred + " " + sNbNeurons;
+    std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + sMode + " " + \
+            sCCW + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred + " " + sNbNeurons;
     std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
 
     int python_return = system(l_pythonCall.c_str());
@@ -337,14 +346,13 @@ string LRH::openResult(const char* fileNameIn)
     return str;
 }
 
+
 int LRH::createTest(const char* filename, std::list<string> lMeaningsSentences)
 {
     cout << filename << "    " << "sMeaningSentence" << endl;
     ofstream file;
     file.open(filename, ios::app);
     std::list<string>::iterator it;
-
-    file << "</train data>" << endl;
     file << "<test data>" << endl;
     for (it = lMeaningsSentences.begin(); it != lMeaningsSentences.end(); ++it)
     {
@@ -360,8 +368,7 @@ int LRH::createTest(const char* filename, string sMeaningSentence)
 {
     cout << filename << "    " << "sMeaningSentence" << endl;
     ofstream file;
-    file.open(filename, ios::app);
-    file << "</train data>" << endl;
+    file.open(filename, ios::out | ios::trunc);
     file << "<test data>" << endl;
     file << sMeaningSentence << endl;
     file << "</test data>" << endl;
@@ -374,13 +381,14 @@ int LRH::copyPastTrainFile(const char* fileNameIn, const char* fileNameOut)
 {
     ifstream in;
     ofstream out;
-    in.open(fileNameIn);
+    in.open(fileNameIn, ios::in);
     out.open(fileNameOut, ios::out | ios::trunc);
     string str;
     while (getline(in, str))
     {
         out << str << endl;
     }
+    out << "</train data>" << endl;
     in.close();
     out.close();
 
@@ -529,7 +537,6 @@ bool LRH::spatialRelation(string sObjectFocus)
     //iCub->opc->checkout();
     //cout << "Checkout done" << endl;
     //populateOPC();
-
     iCub->opc->update();
     iCub->opc->checkout();
     std::list<Entity*> PresentObjects = iCub->opc->EntitiesCache();
