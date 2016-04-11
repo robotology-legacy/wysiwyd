@@ -35,8 +35,7 @@ bool autobiographicalMemory::requestAugmentedImages(string activityname, int num
     osRequest << "    SELECT instance FROM main WHERE activityname = '" << activityname << "' ";
     osRequest << "    AND begin='true'";
     if (instance != -1) {
-        ostringstream osInstance; osInstance << instance;
-        osRequest << " AND instance='" << osInstance.str() << "'";
+        osRequest << " AND instance='" << std::to_string(instance) << "'";
     }
     osRequest << ") GROUP BY instance ";
     osRequest << "HAVING count(DISTINCT augmented_time) < " << number_of_augmentions;
@@ -94,16 +93,6 @@ void autobiographicalMemory::saveAugmentedImages() {
         int frame_number = atoi(frameNumberString.c_str());
         string augmentedLabel = env.get(4).asString();
 
-        // this is a way to keep track when the first
-        // augmented image was sent
-        // it is reset as soon as the frame number received
-        // is smaller than the last frame number which was received + 10
-        // please note that this is a HACK!!!
-        if (frame_number + 10 < augmentedLastFrameNumber) {
-            augmentedTime = getCurrentTime();
-        }
-        augmentedLastFrameNumber = frame_number;
-
         yDebug() << "instance: " << instance;
         yDebug() << "port: " << providerPort;
         yDebug() << "time: " << time;
@@ -117,7 +106,7 @@ void autobiographicalMemory::saveAugmentedImages() {
         cvCvtColor((IplImage*)img_augmented->getIplImage(), cvImage, CV_RGB2BGR);
 
         string folderName = storingPath + "/" + storingTmpSuffix + "/" + augmentedLabel;
-        yarp::os::mkdir(folderName.c_str());
+        yarp::os::mkdir_p(folderName.c_str());
 #ifdef __linux__
         // we do this because we use postgres user, so that user does not
         // have sufficient permissions to write

@@ -49,5 +49,9 @@ public:
         known_entities_port.close();
         opc_has_known_port.interrupt();
         opc_has_known_port.close();   
+        opc_has_agent_port.interrupt();
+        opc_has_agent_port.close();
+        is_touched_port.interrupt();
+        is_touched_port.close();
     }
 };

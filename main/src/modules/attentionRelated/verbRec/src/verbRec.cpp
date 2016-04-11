@@ -848,20 +848,20 @@ verbRec::have(float obj[], int objNbr, float spine[])
 bool
 verbRec::give(float obj[], float prev_obj[], float spine[], float prev_sp[])
 {
-        static bool robot_give = false;
+        //static bool robot_give = false;
         static bool agent_give = false;
     
-        static float dis_thr_r = 0.5f;
+        //static float dis_thr_r = 0.5f;
         static float dis_thr_a = 1.0f;
     
         // ROBOT gives
-        float prev_nobj = sqrt(pow(prev_obj[0],2)+pow(prev_obj[1],2)+pow(prev_obj[2],2));
-        float nobj = sqrt(pow(obj[0],2)+pow(obj[1],2)+pow(obj[2],2));
+        //float prev_nobj = sqrt(pow(prev_obj[0],2)+pow(prev_obj[1],2)+pow(prev_obj[2],2));
+        //float nobj = sqrt(pow(obj[0],2)+pow(obj[1],2)+pow(obj[2],2));
     
-        if ( (prev_nobj < dis_thr_r) && (nobj > dis_thr_r) )
-            robot_give = true;
-        else
-            robot_give = false;
+        //if ( (prev_nobj < dis_thr_r) && (nobj > dis_thr_r) )
+        //    robot_give = true;
+        //else
+        //    robot_give = false;
     
         // AGENT gives
         float prev_nobj_sp = sqrt(pow(prev_obj[0]-prev_sp[0],2)+pow(prev_obj[1]-prev_sp[1],2)+pow(prev_obj[2]-prev_sp[2],2));
@@ -879,20 +879,20 @@ verbRec::give(float obj[], float prev_obj[], float spine[], float prev_sp[])
 bool
 verbRec::take(float obj[], float prev_obj[], float spine[], float prev_sp[])
 {
-        static bool robot_take = false;
+        //static bool robot_take = false;
         static bool agent_take = false;
     
-        static float dis_thr_r = 0.5f;
+        //static float dis_thr_r = 0.5f;
         static float dis_thr_a = 1.0f;
     
         // ROBOT takes
-        float prev_nobj = sqrt(pow(prev_obj[0],2)+pow(prev_obj[1],2)+pow(prev_obj[2],2));
-        float nobj = sqrt(pow(obj[0],2)+pow(obj[1],2)+pow(obj[2],2));
+        //float prev_nobj = sqrt(pow(prev_obj[0],2)+pow(prev_obj[1],2)+pow(prev_obj[2],2));
+        //float nobj = sqrt(pow(obj[0],2)+pow(obj[1],2)+pow(obj[2],2));
         
-        if ( (prev_nobj > dis_thr_r) && (nobj < dis_thr_r) )
-            robot_take = true;
-        else
-            robot_take = false;
+        //if ( (prev_nobj > dis_thr_r) && (nobj < dis_thr_r) )
+        //    robot_take = true;
+        //else
+        //    robot_take = false;
     
         // AGENT takes
         float prev_nobj_sp = sqrt(pow(prev_obj[0]-prev_sp[0],2)+pow(prev_obj[1]-prev_sp[1],2)+pow(prev_obj[2]-prev_sp[2],2));

@@ -18,20 +18,15 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
         yInfo() << " iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
-    rpc.open(("/" + moduleName + "/rpc").c_str());
-    attach(rpc);
 
     portToBehavior.open("/" + moduleName + "/behavior:o");
-    while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i ")) {
-        yWarning() << " Behavior is not reachable";
-        yarp::os::Time::delay(0.5);
-    }
-
     portTarget.open("/" + moduleName + "/target:o");
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
-
     bShouldListen = true;
+
+    rpc.open(("/" + moduleName + "/rpc").c_str());
+    attach(rpc);
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -39,6 +34,11 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 }
 
 bool ears::interruptModule() {
+    // speechRecognizer is in a long loop, which prohibits closure of ears
+    // so interrupt the speechRecognizer
+    bShouldListen = false;
+    iCub->getRecogClient()->interruptSpeechRecognizer();
+
     portToBehavior.interrupt();
     portTarget.interrupt();
     rpc.interrupt();
@@ -48,6 +48,9 @@ bool ears::interruptModule() {
 
 
 bool ears::close() {
+    bShouldListen = false;
+    iCub->getRecogClient()->interruptSpeechRecognizer();
+
     if(iCub) {
         iCub->close();
         delete iCub;
@@ -94,6 +97,13 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
                 bShouldListen = false;
                 reply.addString("ack");
             }
+            else if (command.get(1).asString() == "offShouldWait")
+            {
+                yDebug() << "should listen offShouldWait";
+                bShouldListen = false;
+                LockGuard lg(m);
+                reply.addString("ack");
+            }
             else {
                 reply.addString("nack");
                 reply.addString("Send either listen on or listen off");
@@ -112,8 +122,9 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
 bool ears::updateModule() {
     if (bShouldListen)
     {
+        LockGuard lg(m);
         yDebug() << "bListen";
-        Bottle bRecognized, //recceived FROM speech recog with transfer information (1/0 (bAnswer))
+        Bottle bRecognized, //received FROM speech recog with transfer information (1/0 (bAnswer))
         bAnswer, //response from speech recog without transfer information, including raw sentence
         bSemantic; // semantic information of the content of the recognition
         bRecognized = iCub->getRecogClient()->recogFromGrammarLoop(grammarToString(MainGrammar), 1, true);
@@ -146,7 +157,8 @@ bool ears::updateModule() {
             sObjectType = "object";
         } else if(sQuestionKind == "SENTENCEBODYPART") {
             sObject = bSemantic.check("bodypart", Value("none")).asString();
-            sCommand = "touchingOrder";
+            sAction = bSemantic.check("predicateBodypart", Value("none")).asString();
+            sCommand = "followingOrder";
             sObjectType = "bodypart";
         } else if(sQuestionKind == "SENTENCENARRATIVE") {
             sCommand = "followingOrder";

@@ -9,7 +9,6 @@
 
 #include "dummy.h"
 #include "tagging.h"
-#include "touchingOrder.h"
 #include "pointing.h"
 #include "reactions.h"
 #include "narrate.h"
@@ -45,10 +44,7 @@ private:
 public:
    bool configure(yarp::os::ResourceFinder &rf);
 
-    bool interruptModule()
-    {
-        return true;
-    }
+    bool interruptModule();
 
     bool close();
 

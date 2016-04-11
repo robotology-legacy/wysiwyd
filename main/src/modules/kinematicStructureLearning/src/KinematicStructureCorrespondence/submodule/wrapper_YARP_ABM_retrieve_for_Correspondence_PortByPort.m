@@ -19,9 +19,10 @@
 % ==========================================================================
 
 % clean and make a saving directory
-[SUCCESS,MESSAGE,MESSAGEID] = rmdir('ABM','s');
-mkdir('ABM/P');
-mkdir('ABM/Q');
+[SUCCESS,MESSAGE,MESSAGEID] = rmdir('data/KSC/P','s');
+[SUCCESS,MESSAGE,MESSAGEID] = rmdir('data/KSC/Q','s');
+mkdir('data/KSC/P');
+mkdir('data/KSC/Q');
 
 %%
 %-------------------------------------------------------------------------------------------
@@ -121,7 +122,7 @@ for i=0:b_provide_P.size()-1
 end
 
 disp(final_portname_P);
-disp(num2str(num_images_P));
+disp(['Total number of data: ', num2str(num_images_P)]);
 
 connection_check = 0;
 while(~connection_check)
@@ -136,12 +137,13 @@ disp('1st Port Connected!')
 disp('================================');
 disp('Start retrieving 1st data!');
 
-bDataMeta_P_buf = cell(num_images_P,1);
-bRawImage_P_buf = cell(num_images_P,1);
+bDataMeta_P_buf = cell(ceil(num_images_P*0.9),1);
+bRawImage_P_buf = cell(ceil(num_images_P*0.9),1);
 
 start_frame_idx_P = 1;
 last_frame_idx_P = num_images_P;
 
+disp(['Actual retrieving number of images: ',num2str(ceil(num_images_P*0.9))]);
 reverseStr = '';
 % h = waitbar(0,'Initializing progress bar...');
 
@@ -155,7 +157,6 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
         msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
-        %         waitbar(i/(num_images_P-4),h,sprintf('%d%% along...',floor(i/(num_images_P-4)*100)))
         
         yarpData_P = yarp.ImageRgb;
         yarpData_P = portIncoming_P.read();
@@ -163,7 +164,7 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
         if(i+1 >= start_frame_idx_P && i < last_frame_idx_P)
             % save images
             filename = [sprintf('%04d',i) '.png'];
-            save_path = ['ABM/P/',filename];
+            save_path = ['data/KSC/P/',filename];
             
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
                 %                 disp('got it..');
@@ -196,12 +197,18 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
     %------------------------------------------
     % for kinect
 elseif strcmp(data_source_P,'kinect')
-    fileID = fopen('ABM/P/joints.txt','w');
+    fileID = fopen('data/KSC/P/joints.txt','w');
     yarpData_P = yarp.Bottle;
     portIncoming_P.read(yarpData_P);
     
     for i=0:floor(num_images_P/16)-2
-        disp(['receive data of frame ', num2str(i)]);
+%         disp(['receive data of frame ', num2str(i)]);
+        
+        percentDone = 100 * (i+1) / (floor(num_images_P/16)-2);
+        msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
+        fprintf([reverseStr, msg]);
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        
         if(i+1 >= start_frame_idx_P && i < last_frame_idx_P)
             % save data
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
@@ -223,10 +230,12 @@ elseif strcmp(data_source_P,'kinect')
         end
     end
     fclose(fileID);
+    disp('');
+    disp('Done receiving images!');    
 end
 
 % save buf data
-save('ABM/P/DataMeta.mat','bDataMeta_P_buf');
+save('data/KSC/P/DataMeta.mat','bDataMeta_P_buf');
 
 %%
 %====================================
@@ -235,7 +244,7 @@ save('ABM/P/DataMeta.mat','bDataMeta_P_buf');
 %------------------------------------------
 % for camcalib/left or camcalib/right
 if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
-    imagesFolder_P='ABM/P';
+    imagesFolder_P='data/KSC/P';
     imageFiles_P = dir(strcat(imagesFolder_P,'/*.png'));
     num_images_P = size(imageFiles_P,1);
     
@@ -356,8 +365,8 @@ for i=0:b_provide_Q.size()-1
     end
 end
 
-disp(final_portname_P);
-disp(num2str(num_images_Q));
+disp(final_portname_Q);
+disp(['Total number of data: ', num2str(num_images_Q)]);
 
 connection_check = 0;
 while(~connection_check)
@@ -372,32 +381,34 @@ disp('2nd Port Connected!')
 disp('================================');
 disp('Start retrieving 2nd data!');
 
-bDataMeta_Q_buf = cell(num_images_Q,1);
-bRawImage_Q_buf = cell(num_images_Q,1);
+bDataMeta_Q_buf = cell(ceil(num_images_Q*0.9),1);
+bRawImage_Q_buf = cell(ceil(num_images_Q*0.9),1);
 
 start_frame_idx_Q = 1;
 last_frame_idx_Q = num_images_Q;
 
+disp(['Actual retrieving number of images: ',num2str(ceil(num_images_Q*0.9))]);
 reverseStr = '';
 % h = waitbar(0,'Initializing progress bar...');
 
 %------------------------------------------
 % for camcalib/left or camcalib/right
 if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
-    for i=0:ceil(num_images_Q*0.9)-1        %         disp(['receive image ', num2str(i),'/',num2str(num_images_Q-2)]);
+    for i=0:ceil(num_images_Q*0.9)-1
+        yarpData_Q = yarp.ImageRgb;
+        yarpData_Q = portIncoming_Q.read();
+        
+        %         disp(['receive image ', num2str(i),'/',num2str(num_images_Q-2)]);
         %         waitbar(i/(num_images_Q-4),h,sprintf('%d%% along...',floor(i/(num_images_Q-4)*100)))
         percentDone = 100 * (i+1) / (ceil(num_images_Q*0.9));
         msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
         
-        yarpData_Q = yarp.ImageRgb;
-        yarpData_Q = portIncoming_Q.read();
-        
         if(i+1 >= start_frame_idx_Q && i < last_frame_idx_Q)
             % save images
             filename = [sprintf('%04d',i) '.png'];
-            save_path = ['ABM/Q/',filename];
+            save_path = ['data/KSC/Q/',filename];
             
             if (sum(size(yarpData_Q)) ~= 0) %check size of bottle
                 %disp('got it..');
@@ -432,12 +443,21 @@ if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
     %------------------------------------------
     % for kinect
 elseif strcmp(data_source_Q,'kinect')
-    fileID = fopen('ABM/Q/joints.txt','w');
-    yarpData_Q = yarp.Bottle;
-    portIncoming_Q.read(yarpData_Q);
+    fileID = fopen('data/KSC/Q/joints.txt','w');
     
-    for i=0:floor(num_images_Q/16)-2
-        disp(['receive data of frame ', num2str(i)]);
+%     portIncoming_Q.read(yarpData_Q);
+    
+    for i=0:floor(num_images_Q/16)-2        
+        yarpData_Q = yarp.Bottle;        
+%         yarpData_Q = portIncoming_Q.read();
+        portIncoming_Q.read(yarpData_Q);
+        
+%         disp(['receive data of frame ', num2str(i)]);
+        percentDone = 100 * (i) / (floor(num_images_Q/16)-2);
+        msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
+        fprintf([reverseStr, msg]);
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        
         if(i+1 >= start_frame_idx_Q && i < last_frame_idx_Q)
             % save data
             if (sum(size(yarpData_Q)) ~= 0) %check size of bottle
@@ -459,10 +479,12 @@ elseif strcmp(data_source_Q,'kinect')
         end
     end
     fclose(fileID);
+    disp('');
+    disp('Done receiving images!');    
 end
 
 % save buf data
-save('ABM/Q/DataMeta.mat','bDataMeta_Q_buf');
+save('data/KSC/Q/DataMeta.mat','bDataMeta_Q_buf');
 
 %%
 %====================================
@@ -471,7 +493,7 @@ save('ABM/Q/DataMeta.mat','bDataMeta_Q_buf');
 %------------------------------------------
 % for camcalib/left or camcalib/right
 if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
-    imagesFolder_Q='ABM/Q';
+    imagesFolder_Q='data/KSC/Q';
     imageFiles_Q = dir(strcat(imagesFolder_Q,'/*.png'));
     num_images_Q = size(imageFiles_Q,1);
     

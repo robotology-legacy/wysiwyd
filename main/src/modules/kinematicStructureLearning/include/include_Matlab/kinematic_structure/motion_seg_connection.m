@@ -48,22 +48,22 @@ motion_MST_UG = tril(motion_MST_DG + motion_MST_DG');
 % Drawing the connections
 if ctrl_param.KineStruct.motion_seg_connect_plot_ON    
     
-    h=figure;
+    h=figure(123);
     
     for frm = 1:num_frames;
         clf
-        plot(y(1,:,frm),height-y(2,:,frm),'b.');
+        plot(y(1,:,frm),cdata.height-y(2,:,frm),'b.');
         %     plot(y(1,:,frm),y(2,:,frm),'b.');
         hold on
-        plot(seg_center(1,:,frm),height-seg_center(2,:,frm),'ro');
+        plot(seg_center(1,:,frm),cdata.height-seg_center(2,:,frm),'ro');
         %     plot(seg_y(1,:,frm),seg_y(2,:,frm),'ro');
         for i = 1:num_seg
-            text(seg_center(1,i,frm)+3, height-seg_center(2,i,frm)+3, num2str(i), 'Color', 'r');
+            text(seg_center(1,i,frm)+3, cdata.height-seg_center(2,i,frm)+3, num2str(i), 'Color', 'r');
         end
-        axis([0 width 0 height]);
+        axis([0 cdata.width 0 cdata.height]);
         hold on
         for m = 1:size(motion_MST_ii,1)
-            plot([seg_center(1,motion_MST_ii(m),frm),seg_center(1,motion_MST_jj(m),frm)],height-[seg_center(2,motion_MST_ii(m),frm),seg_center(2,motion_MST_jj(m),frm)],'k-');
+            plot([seg_center(1,motion_MST_ii(m),frm),seg_center(1,motion_MST_jj(m),frm)],cdata.height-[seg_center(2,motion_MST_ii(m),frm),seg_center(2,motion_MST_jj(m),frm)],'k-');
             %         plot([seg_y(1,ii(m),frm),seg_y(1,jj(m),frm)],[seg_y(2,ii(m),frm),seg_y(2,jj(m),frm)],'k-');
         end
         pause(0.001)

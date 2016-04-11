@@ -12,6 +12,7 @@ private:
     Port        portToBehavior;
     BufferedPort<Bottle>        portTarget;
 
+    Mutex m;
     bool bShouldListen;
 
     std::string      MainGrammar;

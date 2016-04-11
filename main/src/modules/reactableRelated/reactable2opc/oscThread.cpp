@@ -166,7 +166,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
             const char *cplace = "none";
             const char *ctime = "none";
             const char *cmanner = "none";
-            double timeLife = 5.0;
+            //double timeLife = 5.0;
             if (arg != m.ArgumentsEnd())
                 cobj = (arg++)->AsString();
             if (arg != m.ArgumentsEnd())
@@ -176,7 +176,7 @@ void OscThread::ProcessMessage( const osc::ReceivedMessage& m,
             if (arg != m.ArgumentsEnd())
                 cmanner = (arg++)->AsString();
             if (arg != m.ArgumentsEnd())
-                timeLife = (arg++)->AsFloat();
+                (void)(arg++)->AsFloat();
 
             Relation r(subject,verb,cobj,cplace,ctime,cmanner);
             cout<<"Received relation remove request (/revent) from OSC "<<r.toString()<< "Trying to remove : ";

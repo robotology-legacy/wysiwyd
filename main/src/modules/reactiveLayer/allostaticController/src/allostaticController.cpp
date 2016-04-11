@@ -1,8 +1,39 @@
 #include "allostaticController.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
 
+bool AllostaticController::interruptModule()
+{
+    yDebug() << "Interrupt rpc port";
+    rpc_in_port.interrupt();
+
+    yDebug() << "Interrupt port to homeo rpc";
+    to_homeo_rpc.interrupt();
+    for (auto& outputm_port : outputm_ports)
+    {
+        // yDebug() << "Closing port " + itoa(i) + " to homeo min/max";
+        outputm_port->interrupt();
+    }
+
+    for(auto& outputM_port : outputM_ports)
+    {
+        outputM_port->interrupt();
+    }
+
+    yDebug() << "Interrupt AllostaticDrive ports";
+    for(auto& allostaticDrive : allostaticDrives) {
+        allostaticDrive.second.interrupt_ports();
+    }
+
+    return true;
+
+}
+
 bool AllostaticController::close()
 {
+    yDebug() << "Closing rpc port";
+    rpc_in_port.interrupt();
+    rpc_in_port.close();
+
     yDebug() << "Closing port to homeo rpc";
     to_homeo_rpc.interrupt();
     to_homeo_rpc.close();
@@ -27,43 +58,48 @@ bool AllostaticController::close()
     return true;
 }
 
-int AllostaticController::openPorts(string driveName)
+bool AllostaticController::openPorts(string driveName)
 {
+    bool allGood = true;
+
     outputm_ports.push_back(new BufferedPort<Bottle>);
     outputM_ports.push_back(new BufferedPort<Bottle>);
 
     string portName = "/" + moduleName + "/" + driveName;
+
+    // first, min ports
     string pn = portName + "/min:i";
 
     if (!outputm_ports.back()->open(pn))
     {
-        yDebug() << getName() << ": Unable to open port " << pn;// << endl;
+        yError() << getName() << ": Unable to open port " << pn;
+        allGood = false;
     }
     string targetPortName = "/" + homeo_name + "/" + driveName + "/min:o";
     yarp::os::Time::delay(0.1);
     while(!Network::connect(targetPortName,pn)) {
-        yInfo() <<"Setting up homeostatic connections... "<< targetPortName << " " << pn ;//<<endl;
+        yInfo() <<"Setting up homeostatic connections... "<< targetPortName << " " << pn ;
         yarp::os::Time::delay(0.5);
     }
+
+    // now, max ports
     pn = portName + "/max:i";
-    yInfo() << "Configuring port " << pn << " ...";// << endl;
+    yInfo() << "Configuring port " << pn << " ...";
     yarp::os::Time::delay(0.1);
     if (!outputM_ports.back()->open(pn))
     {
-        yDebug() << getName() << ": Unable to open port " << pn ;//<< endl;
+        yError() << getName() << ": Unable to open port " << pn;
+        allGood = false;
     }
     yarp::os::Time::delay(0.1);
     targetPortName = "/" + homeo_name + "/" + driveName + "/max:o";
     while(!Network::connect(targetPortName, pn))
     {
-        yDebug()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn;//endl;
+        yDebug()<<"Setting up homeostatic connections... "<< targetPortName << " " << pn;
         yarp::os::Time::delay(0.5);
     }
 
-    rpc_in_port.open("/" + moduleName + "/rpc");
-    attach(rpc_in_port);
-
-    return 42;
+    return allGood;
 }
 
 bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
@@ -75,8 +111,6 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
     yDebug()<<moduleName<<": finding configuration files...";//<<endl;
     period = rf.check("period",Value(0.5)).asDouble();
 
-    configureAllostatic(rf);
-
     bool isRFVerbose = true;
     iCub = new ICubClient(moduleName, "allostaticController", "client.ini", isRFVerbose);
     iCub->opc->isVerbose &= true;
@@ -86,6 +120,11 @@ bool AllostaticController::configure(yarp::os::ResourceFinder &rf)
         yInfo() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
+
+    configureAllostatic(rf);
+
+    rpc_in_port.open("/" + moduleName + "/rpc");
+    attach(rpc_in_port);
 
     yInfo()<<"Configuration done.";
 

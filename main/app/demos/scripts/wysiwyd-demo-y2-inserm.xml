@@ -58,9 +58,14 @@
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
             <port timeout="10">/iSpeak</port>
-            <port timeout="10">/speechRecognizer/rpc</port>
             <port timeout="10">/actionsRenderingEngine/cmd:io</port>
             <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/opcSensation/unknown_entities:o</port>
+            <port timeout="10">/opcSensation/known_entities:o</port>
+            <port timeout="10">/ears/behavior:o</port>
+            <port timeout="10">/ears/target:o</port>
+            <port timeout="10">/proactiveTagging/rpc</port>
+            <port timeout="10">/narrativeHandler/rpc</port>
         </dependencies>
     </module>
     <module>
@@ -69,7 +74,7 @@
         <node>icub-b1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
-            <port timeout="10">/BehaviorManager/trigger:i</port>
+            <port timeout="10">/speechRecognizer/rpc</port>
         </dependencies>
     </module>
     <module>
@@ -81,7 +86,6 @@
             <port timeout="10">/autobiographicalMemory/rpc</port>
             <port timeout="10">/iSpeak</port>
             <port timeout="10">/speechRecognizer/rpc</port>
-            <port timeout="10">/lrh/rpc</port>
             <port timeout="10">/actionsRenderingEngine/cmd:io</port>
             <port timeout="10">/babbling/rpc</port>
             <port timeout="10">/agentDetector/rpc</port>
@@ -129,6 +133,25 @@
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
             <port timeout="10">/autobiographicalMemory/rpc</port>
+            <port timeout="10">/homeostasis/rpc</port>
+        </dependencies>
+    </module>
+    <module>
+        <name>allostatic_plot.py</name>
+        <parameters></parameters>
+        <node>display</node>
+        <dependencies>
+            <port timeout="10">/proactiveTagging/rpc</port>
+            <port timeout="10">/BehaviorManager/trigger:i</port>
+        </dependencies>
+    </module>
+    <module>
+        <name>drive_control_gui.py</name>
+        <parameters></parameters>
+        <node>display</node>
+        <dependencies>
+            <port timeout="10">/proactiveTagging/rpc</port>
+            <port timeout="10">/BehaviorManager/trigger:i</port>
         </dependencies>
     </module>
     <module>

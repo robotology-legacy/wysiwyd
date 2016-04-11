@@ -34,19 +34,15 @@ if motion_ON
     % y is trajectory, 3 x (the number of points) x (the number of frames)
     % T, T_i, T_c, T_r, alpha, lambda : tuning parameters
     % c : the number of group
-    % s : ground truth, (the number of points) x 1
+    % s : ground truth, (the number of points) x 1   
     
+    %     T_i = 200; % the number of iteration     % 150
+    %     T = 3; % the number of trial
+    %     T_c = 20; % convergence test, noise free : 15, noise : 5
+    %     T_r = 15; % reinitialization at T_r
+    %     alpha = 0.9; % decay parameter
+    %     lambda = 2; % voting strength
     
-    
-    
-    
-%     T_i = 200; % the number of iteration     % 150
-%     T = 3; % the number of trial
-%     T_c = 20; % convergence test, noise free : 15, noise : 5
-%     T_r = 15; % reinitialization at T_r
-%     alpha = 0.9; % decay parameter
-%     lambda = 2; % voting strength
-
     T_i = 300; % the number of iteration     % 150
     T = 100; % the number of trial
     T_c = 15; % convergence test, noise free : 15, noise : 5
@@ -69,7 +65,7 @@ if motion_ON
             while(1)
                 %    final = motion_segmentation(y, T, T_i, T_c, T_r, alpha, lambda, c, s);
                 num_seg_history = [num_seg_history;num_seg];
-%                 final = my_motion_segmentation(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
+                %                 final = my_motion_segmentation(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
                 final = my_motion_segmentation_parallel(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
                 
                 % do segmentation
@@ -87,20 +83,20 @@ if motion_ON
             num_seg = numOfSegments;
             max_dist = ones(1,num_seg);
             
-%             final = my_motion_segmentation(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
-
-%%
-%             tstart = tic;
-%             final = my_motion_segmentation(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
-%             ms_time = toc(tstart)
-%%
+            %             final = my_motion_segmentation(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
+            
+            %%
+            %             tstart = tic;
+            %             final = my_motion_segmentation(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
+            %             ms_time = toc(tstart)
+            %%
             tstart = tic;
             final = my_motion_segmentation_parallel(y, T, T_i, T_c, T_r, alpha, lambda, num_seg);
-            ms_time = toc(tstart)
-%%            
+            ms_time = toc(tstart);
+            %%
             motion_seg_from_final;
     end
-     
+    
     motion_seg_center_calculation;
     
     % segmentation result visualisation

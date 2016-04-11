@@ -29,6 +29,7 @@ public:
     void configure();
 
     bool handleAction(string type, string target, string action);
+    bool handleActionBP(string type, string target, string action);
     bool handleSearch(string type, string target);
     bool handleNarrate();
 

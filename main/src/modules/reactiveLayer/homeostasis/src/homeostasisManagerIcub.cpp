@@ -513,8 +513,15 @@ bool HomeostaticModule::close()
         outputm_ports[d]->interrupt();
         outputm_ports[d]->close();
     }
+
+    input_ports.clear();
+    outputM_ports.clear();
+    outputm_ports.clear();
+
     rpc.interrupt();
     rpc.close();
+
+    delete manager;
 
     return true;
 }

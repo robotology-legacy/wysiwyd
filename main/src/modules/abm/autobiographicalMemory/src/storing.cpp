@@ -74,8 +74,6 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
     for (const auto& imgStreamInput : mapImgStreamInput)
     {
         //concatenation of the path to store
-        stringstream imgInstanceString; imgInstanceString << imgInstance;
-
         stringstream imgName;
         string port = imgStreamInput.first;
         replace(port.begin(), port.end(), '/', '_');
@@ -87,8 +85,8 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
             replace(fullSentence.begin(), fullSentence.end(), ' ', '_');
             imgName << fullSentence << port << "." << imgFormat;
 
-            string currentPathFolder = storingPath + "/"; currentPathFolder += imgInstanceString.str();
-            yarp::os::mkdir(currentPathFolder.c_str());
+            string currentPathFolder = storingPath + "/"; currentPathFolder += std::to_string(imgInstance);
+            yarp::os::mkdir_p(currentPathFolder.c_str());
 #ifdef __linux__
             // we do this because we use postgres user, so that user does not
             // have sufficient permissions to write
@@ -99,7 +97,8 @@ bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool 
             imgName << imgLabel << frameNb << port << "." << imgFormat;
         }
 
-        string relativeImagePath = imgInstanceString.str() + "/" + imgName.str();
+        string relativeImagePath =  std::to_string(imgInstance) + "/" + imgName.str();
+        std::replace( relativeImagePath.begin(), relativeImagePath.end(), '\'', ' ');
         string imagePath = storingPath + "/" + relativeImagePath;
 
         if (saveImageFromPort(imagePath, imgStreamInput.first, imgStreamInput.second)) {

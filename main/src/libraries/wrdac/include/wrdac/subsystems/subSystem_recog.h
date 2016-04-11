@@ -102,12 +102,43 @@ namespace wysiwyd{
                     else {
                         cmd.addString("off");
                     }
-                    yDebug() << "Listen sending command " << cmd.toString();
+                    yDebug() << "Listen sending command" << cmd.toString();
                     ears_port.write(cmd, reply);
                     yDebug() << "Listen got reply" << reply.toString();
                 }
                 else {
                     yWarning() << "No connection to ears available...";
+                }
+            }
+
+            void waitForEars() {
+                if (!yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")){
+                    yarp::os::Network::connect(ears_port.getName(), "/ears/rpc");
+                }
+                if (yarp::os::Network::isConnected(ears_port.getName(), "/ears/rpc")) {
+                    yarp::os::Bottle cmd, reply;
+                    cmd.addString("listen");
+                    cmd.addString("offShouldWait");
+                    yDebug() << "Listen sending command" << cmd.toString();
+                    ears_port.write(cmd, reply);
+                    yDebug() << "Listen got reply" << reply.toString();
+                }
+                else {
+                    yWarning() << "No connection to ears available...";
+                }
+            }
+
+            bool interruptSpeechRecognizer() {
+                yarp::os::Bottle bMessenger, bReply;
+                bMessenger.addString("interrupt");
+                // send the message
+                portRPC.write(bMessenger, bReply);
+                if(bReply.get(1).asString() != "OK") {
+                    yError() << "speechRecognizer was not interrupted";
+                    yDebug() << "Reply from speechRecognizer:" << bReply.toString();
+                    return false;
+                } else {
+                    return true;
                 }
             }
 
@@ -167,25 +198,9 @@ namespace wysiwyd{
                 if (!isEars) {
                     listen(false);
 
-                    int interruptTrials = 0;
-                    bool wasInterrupted = false;
-                    while(!wasInterrupted && interruptTrials < 3) {
-                        bMessenger.clear();
-                        bReply.clear();
-                        bMessenger.addString("interrupt");
-                        // send the message
-                        portRPC.write(bMessenger, bReply);
-                        if(bReply.get(0).asString() != "OK") {
-                            yInfo() << "speechRecognizer was not interrupted on trial" << interruptTrials;
-                        } else {
-                            wasInterrupted = true;
-                        }
-                        yarp::os::Time::delay(1.0);
-                        interruptTrials++;
-                    }
-                    if(!wasInterrupted) {
-                        yError() << "speechRecognizer could not at all be interrupted";
-                    }
+                    interruptSpeechRecognizer();
+
+                    waitForEars();
                 }
 
                 bMessenger.clear();

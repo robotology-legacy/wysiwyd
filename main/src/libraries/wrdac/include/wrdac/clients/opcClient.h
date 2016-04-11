@@ -70,10 +70,8 @@ public:
         Entity *e = getEntity(name, true);
         // loop until we find the first appendix which is not used yet
         while(e!=NULL) {
-            std::stringstream ss;
             ++appendix;
-            ss << appendix;
-            name_appended = name + "_" + ss.str();
+            name_appended = name + "_" + std::to_string(appendix);
             e = getEntity(name_appended,true);
         }
 

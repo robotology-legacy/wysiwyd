@@ -22,20 +22,20 @@ augmented_result_save_ON = true;
 
 if augmented_result_save_ON
     % clean and make a saving directory
-    [SUCCESS,MESSAGE,MESSAGEID] = rmdir('result','s');
-    mkdir('result');
-    mkdir('result/video');
-    mkdir('result/video/graph');
-    mkdir('result/video/points');
+    [SUCCESS,MESSAGE,MESSAGEID] = rmdir('result/KS','s');
+    mkdir('result/KS');
+    mkdir('result/KS/video');
+    mkdir('result/KS/video/graph');
+    mkdir('result/KS/video/points');
     
-    mkdir('result/images');
-    mkdir('result/images/graph');
-    mkdir('result/images/points');
+    mkdir('result/KS/images');
+    mkdir('result/KS/images/graph');
+    mkdir('result/KS/images/points');
     
-    result_save_folder_video_graph = 'result/video/graph/';
-    result_save_folder_video_points = 'result/video/points/';
-    result_save_folder_images_graph = 'result/images/graph/';
-    result_save_folder_images_points = 'result/images/points/';
+    result_save_folder_video_graph = 'result/KS/video/graph/';
+    result_save_folder_video_points = 'result/KS/video/points/';
+    result_save_folder_images_graph = 'result/KS/images/graph/';
+    result_save_folder_images_points = 'result/KS/images/points/';
     
     writerobj_graph = VideoWriter([result_save_folder_video_graph,'result_video_graph.avi']);
     writerobj_points = VideoWriter([result_save_folder_video_points,'result_video_points.avi']);
@@ -44,8 +44,8 @@ if augmented_result_save_ON
     open(writerobj_points);
 end
 
-videoFileName = filename(1:end-4);
-videoObj = VideoReader([pathname,filename]);
+videoFileName = cdata.filename(1:end-4);
+videoObj = VideoReader([cdata.pathname,cdata.filename]);
 
 %%
 % % Draw structure with graph
@@ -88,12 +88,47 @@ videoObj = VideoReader([pathname,filename]);
 % end
 
 %%
+% % Draw structure with points
+% h_points=figure(1001);
+% color_idx = 'rgbcmyk';
+% marker_idx = '+o*xsd^v><ph';
+%     
+% for frm_idx = 1:num_frames
+% 
+%     curFrame = read(videoObj,frm_idx);
+%     
+%     clf
+%     imshow(curFrame,'Border','tight');
+%     hold on
+%     
+%     % feature points
+%     for i=1:num_seg
+%         plot(y(1,seg_idx{i},frm_idx), y(2,seg_idx{i},frm_idx),marker_idx(mod(i,12)+1), 'Color', color_idx(mod(i,7)+1), 'LineWidth', 3, 'MarkerSize', 7);
+%         hold on
+%         plot(y(1,seg_idx{i},frm_idx), y(2,seg_idx{i},frm_idx),marker_idx(mod(i,12)+1), 'Color', 'w', 'LineWidth', 1, 'MarkerSize', 7);
+%     end
+%     
+%     pause(0.003)
+%     
+%     % get image from figure
+%     if augmented_result_save_ON
+%         F_points = getframe(h_points);
+%         writeVideo(writerobj_points,F_points);
+%     
+%     % save images
+%         save_image_filename=[sprintf('%04d',frm_idx) '.png'];
+%         save_path = [result_save_folder_images_points,save_image_filename];
+%         imwrite(F_points.cdata,save_path);
+%     end
+% end
+
+%%
 % Draw structure with points
 h_points=figure(1001);
-color_idx = 'rgbcmyk';
-marker_idx = '+o*xsd^v><ph';
+color_idx = 'rgbcmy';
+marker_idx = '............';
     
-for frm_idx = 1:num_frames
+for frm_idx = 1:KineStruct.num_frames
 
     curFrame = read(videoObj,frm_idx);
     
@@ -102,11 +137,56 @@ for frm_idx = 1:num_frames
     hold on
     
     % feature points
-    for i=1:num_seg
-        plot(y(1,seg_idx{i},frm_idx), y(2,seg_idx{i},frm_idx),marker_idx(mod(i,12)+1), 'Color', color_idx(mod(i,7)+1), 'LineWidth', 3, 'MarkerSize', 7);
+    for i=1:KineStruct.num_seg
+        plot(KineStruct.y(1,KineStruct.seg_idx{i},frm_idx),...
+             KineStruct.y(2,KineStruct.seg_idx{i},frm_idx),...
+             marker_idx(mod(i,12)+1),...
+             'Color', color_idx(mod(i,6)+1),...
+             'LineWidth', 3,...
+             'MarkerSize', 10);
         hold on
-        plot(y(1,seg_idx{i},frm_idx), y(2,seg_idx{i},frm_idx),marker_idx(mod(i,12)+1), 'Color', 'w', 'LineWidth', 1, 'MarkerSize', 7);
     end
+    
+    color_value = 0.99;
+    
+    for m = 1:size(KineStruct.structure_i,1)
+        hold on
+        joint_pts_buf = KineStruct.joint_center{KineStruct.structure_i(m),KineStruct.structure_j(m)};
+        
+        % Connection
+        plot([KineStruct.seg_center(1,KineStruct.structure_i(m),frm_idx), joint_pts_buf(1,frm_idx)],...
+             [KineStruct.seg_center(2,KineStruct.structure_i(m),frm_idx), joint_pts_buf(2,frm_idx)],...
+             '-','Color',[color_value,color_value,color_value],'LineWidth',4);
+        plot([KineStruct.seg_center(1,KineStruct.structure_j(m),frm_idx), joint_pts_buf(1,frm_idx)],...
+             [KineStruct.seg_center(2,KineStruct.structure_j(m),frm_idx), joint_pts_buf(2,frm_idx)],...
+             '-','Color',[color_value,color_value,color_value],'LineWidth',4);
+        
+        % Node
+        plot([KineStruct.seg_center(1,KineStruct.structure_i(m),frm_idx)],...
+             [KineStruct.seg_center(2,KineStruct.structure_i(m),frm_idx)],'-ws',...
+            'LineWidth',3,...
+            'MarkerSize',15,...
+            'MarkerEdgeColor',[color_value,color_value,color_value],...
+            'MarkerFaceColor',[1.0,0.2,0.2]);
+        plot([KineStruct.seg_center(1,KineStruct.structure_j(m),frm_idx)],...
+             [KineStruct.seg_center(2,KineStruct.structure_j(m),frm_idx)],'-ws',...
+            'LineWidth',3,...
+            'MarkerSize',15,...
+            'MarkerEdgeColor',[color_value,color_value,color_value],...
+            'MarkerFaceColor',[1.0,0.2,0.2]);
+        
+        % Joint
+        plot(joint_pts_buf(1,frm_idx), joint_pts_buf(2,frm_idx),'wo',...
+            'LineWidth',1,...
+            'MarkerSize',9,...
+            'MarkerEdgeColor',[color_value,color_value,color_value],...
+            'MarkerFaceColor',[1.0,0.647,0.0]);
+        plot(joint_pts_buf(1,frm_idx), joint_pts_buf(2,frm_idx),'wx',...
+            'LineWidth',1,...
+            'MarkerSize',9,...
+            'MarkerEdgeColor',[color_value,color_value,color_value],...
+            'MarkerFaceColor',[1.0,0.647,0.0]);
+    end    
     
     pause(0.003)
     

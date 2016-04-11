@@ -41,6 +41,109 @@ void proactiveTagging::subPopulateObjects(Bottle* objectList, bool addOrRetrieve
     }
 }
 
+bool proactiveTagging::setPasarPointing(bool on) {
+    Bottle bToPasar, bFromPasar;
+    bToPasar.addString("pointing");
+    if(on) {
+        bToPasar.addString("on");
+    } else {
+        bToPasar.addString("off");
+    }
+    if (!Network::connect(portToPasar.getName().c_str(), "/pasar/rpc")) {
+        yError() << "Could not connect to pasar";
+        iCub->say("Could not connect to pasar");
+        return false;
+    } else {
+        portToPasar.write(bToPasar, bFromPasar);
+        if(bFromPasar.get(0).asString()!="ack") {
+            yError() << "Pasar did not change pointing to on";
+            iCub->say("Pasar did not change pointing to on");
+            return false;
+        } else {
+            return true;
+        }
+    }
+}
+
+string proactiveTagging::getBestEntity(string sTypeTarget) {
+    bool bFound = false;
+    string sNameBestEntity = "none", sNameSecondBest = "none";
+
+    double start = yarp::os::Time::now();
+    // start detecting unknown objects
+    while (!bFound && start + 8.0 > yarp::os::Time::now())
+    {
+        iCub->opc->checkout();
+        list<Entity*> lEntities = iCub->opc->EntitiesCacheCopy();
+
+        double highestSaliency = 0.0;
+        double secondSaliency = 0.0;
+
+        for (auto& entity : lEntities)
+        {
+            if (entity->name().find("unknown")==0)
+            {
+                if ((sTypeTarget == "object" && (entity->entity_type() == "object" || entity->entity_type() == "rtobject")) ||
+                    (sTypeTarget == "bodypart" && (entity->entity_type() == "bodypart")))
+                {
+                    Object* temp = dynamic_cast<Object*>(entity);
+                    if(!temp) {
+                        yError() << "Could not cast " << entity->name() << " to an object";
+                        iCub->say("Could not cast " + entity->name() + " to an object");
+                    }
+                    if (temp->m_saliency > highestSaliency)
+                    {
+                        if (secondSaliency != 0.0)
+                        {
+                            secondSaliency = highestSaliency;
+                        }
+                        highestSaliency = temp->m_saliency;
+                        sNameBestEntity = temp->name();
+                    }
+                    else
+                    {
+                        if (temp->m_saliency > secondSaliency)
+                        {
+                            secondSaliency = temp->m_saliency;
+                            sNameSecondBest = temp->name();
+                        }
+                    }
+                }
+            }
+        }
+
+        yDebug() << sNameBestEntity << " has highest saliency: " << highestSaliency;
+        yDebug() << sNameSecondBest << " has second highest saliency: " << secondSaliency;
+
+        bFound = false;
+        if (highestSaliency > thresholdSalienceDetection) {
+            //the object with highest salience is salient enough
+            if (secondSaliency != 0.0) {
+                // there are other salient objects
+                if ((highestSaliency / secondSaliency) > thresholdDistinguishObjectsRatio) {
+                    yDebug() << "Two objects are salient, but one is much more";
+                    //but it is enough difference
+                    bFound = true;
+                }
+                else {
+                    yDebug() << "Two objects are similarly salient";
+                }
+            } else {
+                yDebug() << "Only one object is salient, take this one";
+                //other object are not salient
+                bFound = true;
+            }
+        }
+        if (sNameBestEntity == "none")
+        {
+            yDebug() << "No object is salient";
+            bFound = false;
+        }
+    }
+
+    return sNameBestEntity;
+}
+
 void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPartJointList, bool addOrRetrieve) {
     if (bodyPartList)
     {

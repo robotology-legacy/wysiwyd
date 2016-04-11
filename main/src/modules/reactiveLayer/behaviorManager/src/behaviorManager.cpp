@@ -1,6 +1,14 @@
 #include "behaviorManager.h"
 
+bool BehaviorManager::interruptModule()
+{
+    rpc_in_port.interrupt();
 
+    for(auto& beh : behaviors) {
+        beh->interrupt_ports();
+    }
+    return true;
+}
 
 bool BehaviorManager::close()
 {
@@ -11,6 +19,7 @@ bool BehaviorManager::close()
     for(auto& beh : behaviors) {
         beh->close_ports();
     }
+    behaviors.clear();
 
     delete iCub;
 
@@ -29,7 +38,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
     rpc_in_port.open("/" + moduleName + "/trigger:i");
     yInfo() << "RPC_IN : " << rpc_in_port.getName();
-    attach(rpc_in_port);
+
     for (int i = 0; i<behaviorList.size(); i++)
     {
         behavior_name = behaviorList.get(i).asString();
@@ -41,8 +50,6 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             behaviors.push_back(new Dummy(&mut));
         } else if (behavior_name == "dummy2") {
             behaviors.push_back(new Dummy(&mut));
-        }  else if (behavior_name == "touchingOrder") {
-            behaviors.push_back(new TouchingOrder(&mut));
         }  else if (behavior_name == "reactions") {
             behaviors.push_back(new Reactions(&mut));
         }  else if (behavior_name == "followingOrder") {
@@ -64,10 +71,14 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 
     if (!iCub->connect())
     {
-        yInfo()<<"iCubClient : Some dependencies are not running...";
+        yInfo() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
 
+    while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
+        yWarning() << "Ears is not reachable";
+        yarp::os::Time::delay(0.5);
+    }
 
     // id = 0;
     for(auto& beh : behaviors) {
@@ -88,6 +99,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
             }   
         }
     }
+
+    attach(rpc_in_port);
     yInfo("Init done");
 
     return true;

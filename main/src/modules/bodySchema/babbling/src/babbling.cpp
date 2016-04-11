@@ -217,16 +217,38 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
             {
                 part = command.get(2).asString() + "_arm";
                 yInfo() << "Babbling "+command.get(2).asString()+" arm...";
+
+                if (command.size()>=4) {
+                    yInfo() << "Custom train_duration = " << command.get(3).asDouble() ;
+                    if (command.get(3).asDouble() >= 0.0)
+                    {
+                        double newTrainDuration = command.get(3).asDouble();
+                        double tempTrainDuration = train_duration;
+                        train_duration = newTrainDuration;
+                        yInfo() << "Train_Duration is changed from " << tempTrainDuration << " to " << train_duration;
+                        doBabbling();
+                        train_duration = tempTrainDuration;
+                        yInfo() << "Going back to train_duration from config file: " << train_duration;
+                        reply.addString("ack");
+                        return true;
+                    }
+                    else
+                    {
+                        yError("Invalid train duration: Must be a double >= 0.0");
+                        yWarning("Doing the babbling anyway with default value");
+                    }
+                }
+
                 doBabbling();
                 reply.addString("ack");
+                return true;
             }
             else
             {
                 yError("Invalid babbling part: specify LEFT or RIGHT after 'arm'.");
                 reply.addString("nack");
+                return false;
             }
-
-
         }
         else if (command.get(1).asString()=="joint")
         {
@@ -237,22 +259,46 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
                 if (command.get(3).asString()=="left" || command.get(3).asString()=="right")
                 {
                     part = command.get(3).asString() + "_arm";
-                    yInfo() << "Babbling joint " << single_joint << "...";
+                    yInfo() << "Babbling joint " << single_joint << " of " << part ;
+
+                    //change train_duration if specified
+                    if (command.size()>=5) {
+                        yInfo() << "Custom train_duration = " << command.get(4).asDouble() ;
+                        if (command.get(4).asDouble() >= 0.0)
+                        {
+                            double newTrainDuration = command.get(4).asDouble();
+                            double tempTrainDuration = train_duration;
+                            train_duration = newTrainDuration;
+                            yInfo() << "Train_Duration is changed from " << tempTrainDuration << " to " << train_duration;
+                            doBabbling();
+                            train_duration = tempTrainDuration;
+                            yInfo() << "Going back to train_duration from config file: " << train_duration;
+                            reply.addString("ack");
+                            return true;
+                        }
+                        else
+                        {
+                            yError("Invalid train duration: Must be a double >= 0.0");
+                            yWarning("Doing the babbling anyway with default value");
+                        }
+                    }
+
                     doBabbling();
                     reply.addString("ack");
+                    return true;
                 }
                 else
                 {
                     yError("Invalid babbling part: specify LEFT or RIGHT after joint number.");
                     reply.addString("nack");
+                    return false;
                 }
-
-
             }
             else
             {
                 yError("Invalid joint number.");
                 reply.addString("nack");
+                return false;
             }
 
         }
@@ -267,11 +313,13 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
                 yInfo() << "Babbling "+command.get(2).asString()+" hand...";
                 doBabbling();
                 reply.addString("ack");
+                return true;
             }
             else
             {
                 yError("Invalid babbling part: specify LEFT or RIGHT after 'arm'.");
                 reply.addString("nack");
+                return false;
             }
 
 
@@ -280,6 +328,7 @@ bool Babbling::respond(const Bottle& command, Bottle& reply) {
         {
             yInfo() << "Command not found\n" << helpMessage;
             reply.addString("nack");
+            return false;
         }
     }
 

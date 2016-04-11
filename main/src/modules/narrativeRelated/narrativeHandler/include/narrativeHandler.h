@@ -33,8 +33,15 @@ private:
     double dThresholdDiffStory; // threshold in second between to action from two different stories.
     unsigned int  iThresholdSizeStory; // threshold of the number of instance in a story
     unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
-    unsigned int  iMinInstance; // threshold of the number of sentence in a story
+
+    unsigned int  instanceStart; // min range of the research of story
+    unsigned int  instanceStop;  // max range of the research of story
     int            storyToNarrate; // first instance of the story to narrate
+
+    bool researchWindows;   // if the research of sotry is by window (min*max) or by n-back
+    int nBackSize;              // number of nBack instance to look at
+    bool bInitial;          // if is the first research
+
     yarp::os::Port  rpcPort;
 
     std::vector<story> listStories;
@@ -59,8 +66,8 @@ private:
     std::string GrammarNarration; // the file for the grammar narration
     std::string GrammarYesNo;
     bool shouldSpeak;
-    bool narrate();
-    bool askNarrate();
+    bool narrate(int iIns);
+    bool askNarrate(int iIns);
     bool narrationToSpeech(story sto);
 
     void enrichMeaning(std::string &meaning, std::string sentence);
@@ -79,7 +86,7 @@ public:
 
     bool updateModule();
 
-    void findStories(int iInstance = 0);
+    void findStories();
     void findNarration();
 
     double timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrint = false);

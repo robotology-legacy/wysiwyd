@@ -32,28 +32,22 @@ private:
     std::string touchDetectorRpc;
 
     yarp::os::Port   rpcPort;
-    yarp::os::Port   portToBodySchema;
     yarp::os::Port   portToSAM;
-    yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
     yarp::os::Port   portToPasar;
-    yarp::os::Port   portToLRH;
     yarp::os::BufferedPort<yarp::os::Bottle>   portFromTouchDetector;
+    yarp::os::BufferedPort<yarp::os::Bottle>   portNoWaitToBodySchema;
 
     std::string      GrammarAskNameAgent;
     std::string      GrammarAskNameObject;
     std::string      GrammarAskNameBodypart;
-    std::string      GrammarYesNo;
+    std::string      GrammarDescribeAction;
 
     std::string      babblingArm; //side of the babbling arm : left or right
-
-    std::string      GrammarDescribeAction;
+    std::string      defaultPartnerName; //default name of the partner: considered NOT named
 
     double  thresholdDistinguishObjectsRatio; //ratio of saliency needed to detect if 1 object is more salient that the other
     double  thresholdSalienceDetection; //value of saliency needed to detect if 1 object is more salient that the other
 
-    void        checkRelations();
-
-    std::string        askManner(std::string agent, std::string verb, std::string object);
     yarp::os::Bottle   recogName(std::string entityType);
 
     //Configure
@@ -77,6 +71,9 @@ private:
     //actionTagging
     yarp::os::Bottle describeBabbling(std::string sJointName, int jointNumber); // to change extract the joint from the name
 
+    bool setPasarPointing(bool on);
+    std::string getBestEntity(std::string sTypeTarget);
+    yarp::os::Bottle getNameFromSAM(std::string sNameTarget, std::string currentEntityType);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

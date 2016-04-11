@@ -11,10 +11,10 @@ if ctrl_param.KineStruct.motion_seg_plot_ON
         for i=1:num_seg
             %             plot(y(1,seg_idx{i},f), height-y(2,seg_idx{i},f),'.','Color',color_idx(mod(i,7)+1));
             %             plot(y(1,seg_idx{i},frm_idx), height-y(2,seg_idx{i},frm_idx),'Marker',marker_idx(mod(i,13)+1),'Color',color_idx(mod(i,7)+1));
-            plot(y(1,seg_idx{i},frm_idx), height-y(2,seg_idx{i},frm_idx),marker_idx(mod(i,13)+1),'Color',color_idx(mod(i,7)+1));
+            plot(y(1,seg_idx{i},frm_idx), cdata.height-y(2,seg_idx{i},frm_idx),marker_idx(mod(i,13)+1),'Color',color_idx(mod(i,7)+1));
             %             plot(y(1,seg_idx{i},f), height-y(2,seg_idx{i},f),'.','Color',[1-i/num_seg,i/num_seg,1-i/num_seg]);
             hold on
-            axis([0, width, 0, height]);
+            axis([0, cdata.width, 0, cdata.height]);
         end
         pause(0.001);
     end

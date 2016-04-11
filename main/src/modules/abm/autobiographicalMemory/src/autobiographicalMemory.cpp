@@ -77,7 +77,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
     sendStreamIsInitialized = false;
 
     augmentedTime = getCurrentTime();
-    augmentedLastFrameNumber = std::numeric_limits<int>::max();
 
     shouldClose = false;
     bPutObjectsOPC = false;
@@ -90,8 +89,8 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     //create the storingPath and the tmp also
     string fullTmpPath = storingPath + "/" + storingTmpSuffix;
-    yarp::os::mkdir(storingPath.c_str());
-    yarp::os::mkdir(fullTmpPath.c_str());
+    yarp::os::mkdir_p(storingPath.c_str());
+    yarp::os::mkdir_p(fullTmpPath.c_str());
 
     isconnected2reasoning = false;
 
@@ -583,7 +582,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bool includeAugmented = true;
                 double speedMultiplier = 1.0;
                 string robot = "icubSim";
-                vector<string> desiredTimes;
 
                 Value vRealtime = bCommand.find("realtime");
                 if (!vRealtime.isNull() && vRealtime.isInt()) {
@@ -605,26 +603,17 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     robot = vRobot.asString();
                 }
 
-                Bottle bDesiredTimes = bCommand.findGroup("augmentedTimes");
-                if (!bDesiredTimes.isNull() && bDesiredTimes.size() > 1) {
-                    for (int i = 1; i < bDesiredTimes.size(); i++) {
-                        desiredTimes.push_back(bDesiredTimes.get(i).asString());
-                        yDebug() << "Push " << bDesiredTimes.get(i).asString() << " to desiredTimes";
-                    }
-                }
-
                 yDebug() << "instance: " << instance;
                 yDebug() << "realtime: " << realtime;
                 yDebug() << "includeAugmented: " << includeAugmented;
                 yDebug() << "speedMultiplier: " << speedMultiplier;
                 yDebug() << "robot: " << robot;
-                yDebug() << "augmentedTimes: " << bDesiredTimes.toString();
 
-                bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot, desiredTimes);
+                bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot);
             }
             else
             {
-                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instance (realtime true/false) (includeAugmented true/false) (speedMultiplier true/false) (robot icubSim)");
+                bError.addString("[triggerStreaming]: number of element incorrect: triggerStreaming instance (realtime true/false) (includeAugmented true/false) (speedMultiplier 1.0) (robot icubSim)");
                 bReply = bError;
             }
         }
@@ -701,6 +690,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         else if (bCommand.get(0) == "saveAugmentedImages")
         {
             yDebug() << "start saveAugmentedImages";
+            augmentedTime = getCurrentTime();
             saveAugmentedImages();
             bReply.addString("ack");
         }
@@ -774,7 +764,7 @@ bool autobiographicalMemory::updateModule() {
     {
         yInfo() << "I have received a sound!";
         string soundPath = storingPath + "/" + storingTmpSuffix + "/sound/";
-        if (yarp::os::mkdir(soundPath.c_str()) == -1) {
+        if (yarp::os::mkdir_p(soundPath.c_str()) == -1) {
             yDebug() << "Folder " << soundPath << " already exists or could not be created!";
         }
         if (!yarp::sig::file::write(*s, (soundPath + "default.wav").c_str()))
@@ -795,9 +785,8 @@ bool autobiographicalMemory::updateModule() {
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
 
-        stringstream imgInstanceString; imgInstanceString << imgInstance;
-        string currentPathFolder = storingPath + "/" + imgInstanceString.str();
-        if (yarp::os::mkdir(currentPathFolder.c_str()) == -1) {
+        string currentPathFolder = storingPath + "/" + std::to_string(imgInstance);
+        if (yarp::os::mkdir_p(currentPathFolder.c_str()) == -1) {
             yWarning() << "Folder " << currentPathFolder << " already exists or could not be created!";
         }
 
@@ -1289,9 +1278,8 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
         request(bRequest);
 
         //delete folders where images were stored in
-        ostringstream instanceString; instanceString << *it;
-        delete_directory(storingPath + "/" + instanceString.str() + "/");
-        delete_directory(storingPath + "/" + storingTmpSuffix + "/" + instanceString.str() + "/");
+        delete_directory(storingPath + "/" + std::to_string(*it) + "/");
+        delete_directory(storingPath + "/" + storingTmpSuffix + "/" + std::to_string(*it) + "/");
 
         //remove from proprioceptivedata table
         osRequest.str("");
