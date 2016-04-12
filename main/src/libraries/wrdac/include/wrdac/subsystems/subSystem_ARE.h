@@ -103,7 +103,7 @@ namespace wysiwyd {
                 {
                     yarp::os::Bottle cmd,reply;
                     cmd.addString("get_location_nolook");
-                    cmd.addString(hand+"-"+"iol");
+                    cmd.addString("iol-"+hand);
                     cmd.addDouble(target[0]);
                     cmd.addDouble(target[1]);
                     cmd.addDouble(target[2]);
