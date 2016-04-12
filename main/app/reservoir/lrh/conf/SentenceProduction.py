@@ -632,11 +632,12 @@ if __name__ == '__main__':
     import sys
     corpusFile= sys.argv[1] # "corpus_narratif_scenario3_XPAOR.txt"
     fileResult = sys.argv[2]
-    closed_class_words = sys.argv[3].split(',') #   ['after', 'than', 'before', 'to', 'the', 'slowly', 'quickly', 'with', 'that', 'for', 'a', 'an', 'this', 'of', 'and', 'while', 'when'] 
-    imax_nr_ocw = int(sys.argv[4])              #15
-    imax_nr_actionrelation = int(sys.argv[5])    #5
-    l_elt_pred= sys.argv[6].split(',')     #['P','A','O','R','V']
-    nbNeurons = int(sys.argv[7]) #600
+    sMode = sys.argv[3]
+    closed_class_words = sys.argv[4].split(',') #   ['after', 'than', 'before', 'to', 'the', 'slowly', 'quickly', 'with', 'that', 'for', 'a', 'an', 'this', 'of', 'and', 'while', 'when'] 
+    imax_nr_ocw = int(sys.argv[5])              #15
+    imax_nr_actionrelation = int(sys.argv[6])    #5
+    l_elt_pred= sys.argv[7].split(',')     #['P','A','O','R','V']
+    nbNeurons = int(sys.argv[8]) #600
 
     prodSentences = Production(corpusFile, fileResult, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, nbNeurons)
 

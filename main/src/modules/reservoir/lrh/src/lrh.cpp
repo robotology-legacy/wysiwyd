@@ -41,23 +41,18 @@ bool LRH::configure(ResourceFinder &rf) {
 
     sKeyWord = rf.check("keyword", Value("grammar")).toString().c_str();
 
-    /* Mode Scene Describer => sentences */
-    scorpusFileSD = rf.findFile("corpusFileSD");
-    std::cout << "scorpusFileSD : " << scorpusFileSD << std::endl;
+
 
     sfileResult = rf.findFile("fileResult");
     stemporaryCorpus = rf.findFile("temporaryCorpus");
-    sreservoirSD = rf.findFile("reservoirSD");
-    sclosed_class_wordsSD = rf.check("closed_class_wordsSD", Value("after")).toString().c_str();
+    sclosed_class_words = rf.check("closed_class_words", Value("after")).toString().c_str();
+    scorpusFile = rf.findFile(rf.check("corpusFile", Value("Corpus/corpus_narratif_scenario3_XPAOR.txt")).toString());
 
     /* Mode Action Performer => Meaning */
     sreservoirAP = rf.findFile("reservoirAP");
 
     /* Mode Narratif => Sentences */
     sreservoirNarratif = rf.findFile("reservoirNarrative");
-    scorpusFile = rf.findFile(rf.check("corpusFile", Value("Corpus/corpus_narratif_scenario3_XPAOR.txt")).toString());
-    sclosed_class_words = rf.check("closed_class_words", Value("after")).toString().c_str();
-
 
     /* General parameters */
     smax_nr_ocw = rf.check("imax_nr_ocw", Value("15")).toString().c_str();
@@ -65,12 +60,12 @@ bool LRH::configure(ResourceFinder &rf) {
     selt_pred = rf.check("l_elt_pred", Value("P A O R V")).toString().c_str();
     sNbNeurons = rf.check("iNbNeurons", Value("600")).toString().c_str();
 
+    sMode = rf.check("sMode", Value("train")).toString().c_str();
 
     sHand = rf.check("hand", Value("right")).toString().c_str();
     offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
 
     nameSamInputPort = rf.check("nameSamInputPort", Value("/SAM/rpc")).toString().c_str();
-    sMode = rf.check("sMode", Value("train")).toString().c_str();
     setName(moduleName.c_str());
 
     // Open handler port
@@ -106,7 +101,7 @@ bool LRH::configure(ResourceFinder &rf) {
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
     // Start train mode of the reservoirs
-    copyPastTrainFile(scorpusFileSD.c_str(), stemporaryCorpus.c_str());
+    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     std::cout << "In Python" << std::endl;
     callReservoir(sreservoirAP.c_str(), sclosed_class_words);
     std::cout << "Out Python" << std::endl;
@@ -260,6 +255,7 @@ bool LRH::populateOPC(){
 
 // Understanding
 string LRH::sentenceToMeaning(string sentence){
+    stypeReservoir = "C";
     createTest(stemporaryCorpus.c_str(), sentence);
     callReservoir(sreservoirAP, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
@@ -279,9 +275,10 @@ string LRH::sentenceToMeaning(string sentence){
 
 // Production
 string LRH::meaningToSentence(string meaning){
-    copyPastTrainFile(scorpusFileSD.c_str(), stemporaryCorpus.c_str());
+    stypeReservoir = "P";
+    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), meaning);
-    callReservoir(sreservoirSD, sclosed_class_words);
+    callReservoir(sreservoirNarratif, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
 
     // forward meaning to SAM
@@ -298,9 +295,10 @@ string LRH::meaningToSentence(string meaning){
 }
 
 string LRH::production(string test) {
+    stypeReservoir = "P";
     copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), test);
-    callReservoir(sreservoirNarratif, sclosed_class_wordsSD);
+    callReservoir(sreservoirNarratif, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
 
     // forward meaning to SAM
@@ -368,7 +366,11 @@ int LRH::createTest(const char* filename, string sMeaningSentence)
 {
     cout << filename << "    " << "sMeaningSentence" << endl;
     ofstream file;
-    file.open(filename, ios::out | ios::trunc);
+    if (stypeReservoir == "P"){
+        file.open(filename, ios::app);
+    }
+    else
+        file.open(filename, ios::out | ios::trunc);
     file << "<test data>" << endl;
     file << sMeaningSentence << endl;
     file << "</test data>" << endl;

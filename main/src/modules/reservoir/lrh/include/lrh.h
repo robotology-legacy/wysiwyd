@@ -45,16 +45,13 @@ private:
     std::string moduleName;
     std::string handlerPortName;
 
-    std::string scorpusFileSD;
     std::string scorpusFile;
     std::string sfileResult;
     std::string stemporaryCorpus;
     
     std::string sreservoirAP;
-    std::string sreservoirSD;
     std::string sreservoirNarratif;
 
-    std::string sclosed_class_wordsSD;
     std::string sclosed_class_words;
     
     std::string smax_nr_ocw;
@@ -62,8 +59,11 @@ private:
     std::string selt_pred;
     std::string sNbNeurons;
     std::string sMode;
+    std::string stypeReservoir;
+
     std::string sdataTestSD;
     std::string sHand;
+
     float offsetGrasp;
 
     std::string sobjectFocusChanged;
