@@ -6,6 +6,8 @@
     <ID	NAME="predicateBodypart"	VAL="4"/>
     <ID	NAME="bodypart"	VAL="5"/>
     <ID NAME="questionMark" VAL="6"/>
+    <ID	NAME="predicateKS"	VAL="7"/>
+    <ID NAME="KS" VAL="8"/>
   </DEFINE>
 
   <RULE NAME="SENTENCENARRATIVE" TOPLEVEL="ACTIVE" EXPORT="1">
@@ -47,6 +49,16 @@
     <RULEREF	NAME="object"/>
   </RULE>
 
+  <RULE	NAME="SENTENCEKS"	TOPLEVEL="ACTIVE"	EXPORT="1">
+    <RULEREF	NAME="predicateKS"/>
+    <O>
+      <L>
+        <P>a</P>
+      </L>
+    </O>
+    <RULEREF	NAME="KS"/>
+  </RULE>
+
   <RULE NAME="predicateObject" DYNAMIC="TRUE">
     <L>
       <P>point</P>
@@ -58,6 +70,19 @@
   <RULE NAME="predicateBodypart" DYNAMIC="TRUE">
     <L>
       <P>move</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="predicateKS" DYNAMIC="TRUE">
+    <L>
+      <P>show</P>
+    </L>
+  </RULE>
+
+  <RULE NAME="KS" DYNAMIC="TRUE">
+    <L>
+      <P>kinematic structure</P>
+      <P>kinematic structure correspondence</P>
     </L>
   </RULE>
   

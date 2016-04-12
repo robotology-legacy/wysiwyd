@@ -22,8 +22,8 @@ private:
     void run(Bottle args=Bottle());
 
     //followingOrder option
-    Bottle listKS1;
-    Bottle listKS2;
+    Bottle bKS1;
+    Bottle bKS2;
 
 public:
     FollowingOrder(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
@@ -34,9 +34,11 @@ public:
 
     bool handleAction(string type, string target, string action);
     bool handleActionBP(string type, string target, string action);
-    bool handleActionKS(string type, string action);
+    bool handleActionKS(string action, string type);
     bool handleSearch(string type, string action);
     bool handleNarrate();
+
+    int randKS(Bottle bKS);
 
     void close_extra_ports() {
         ;

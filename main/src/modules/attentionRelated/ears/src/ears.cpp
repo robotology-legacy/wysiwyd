@@ -151,21 +151,32 @@ bool ears::updateModule() {
 
         string sObjectType, sCommand;
         if(sQuestionKind == "SENTENCEOBJECT") {
-            sObject = bSemantic.check("object", Value("none")).asString();
             sAction = bSemantic.check("predicateObject", Value("none")).asString();
-            sCommand = "followingOrder";
             sObjectType = "object";
+            sObject = bSemantic.check("object", Value("none")).asString();
+
+            sCommand = "followingOrder";
+
         } else if(sQuestionKind == "SENTENCEBODYPART") {
-            sObject = bSemantic.check("bodypart", Value("none")).asString();
             sAction = bSemantic.check("predicateBodypart", Value("none")).asString();
-            sCommand = "followingOrder";
+            sObject = bSemantic.check("bodypart", Value("none")).asString();
             sObjectType = "bodypart";
-        } else if(sQuestionKind == "SENTENCENARRATIVE") {
+
             sCommand = "followingOrder";
+
+        } else if(sQuestionKind == "SENTENCENARRATIVE") {
             sAction = "narrate";
             sObjectType = "";
             sObject = "";
-        }else{
+
+            sCommand = "followingOrder";
+        } else if (sQuestionKind == "SENTENCEKS") {
+            sCommand = "followingOrder";
+            sAction = bSemantic.check("predicateKS", Value("none")).asString();
+            sObjectType = bSemantic.check("KS", Value("none")).asString();
+            sObject = "";
+
+        } else{
             yError() << "[ears] Unknown predicate";
 
         }
