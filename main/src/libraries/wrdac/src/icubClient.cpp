@@ -767,6 +767,7 @@ bool ICubClient::say(const string &text, bool shouldWait, bool emotionalIfPossib
         this->getExpressionClient()->express(emo, value, (SubSystem_Speech_eSpeak*)subSystems["speech"], overrideVoice);
     }
 
+    yDebug() << "iCub says" << text;
     ((SubSystem_Speech*)subSystems["speech"])->TTS(text, shouldWait, recordABM);
     return true;
 }
