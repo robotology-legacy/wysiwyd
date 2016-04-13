@@ -40,7 +40,7 @@ class TouchDetectorThread : public yarp::os::RateThread
         static const int nbTaxels[7];
         
         int nbClusters;
-        int threshold;
+        double threshold;
         int taxelThreshold;
         std::string clustersConfFilepath;
         std::vector<int> taxels2Clusters[7];

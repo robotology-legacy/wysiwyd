@@ -37,7 +37,7 @@ class TouchDetectorModule: public yarp::os::RFModule
     protected:
         /* module parameters */
         int period;
-        int threshold;
+        double threshold;
         int taxelThreshold;
         std::string moduleName;
         std::string torsoPortName;

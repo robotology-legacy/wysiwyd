@@ -194,7 +194,7 @@ void TouchDetectorThread::countActivations(int bodyPart, Bottle* data, vector<in
             ex.expectedType = "double";
             throw ex;
         }
-        if (v.asInt() > threshold && *it != noCluster)
+        if (v.asDouble() > threshold && *it != noCluster)
         {
             ++activations[*it];
         }
