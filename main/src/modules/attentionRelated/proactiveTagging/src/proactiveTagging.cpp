@@ -658,7 +658,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                     iCub->say("There was only one object which I didn't know");
                     iCub->changeName(o, sNameTarget);
                     iCub->point(sNameTarget);
-                    iCub->say("Now I know the" + sNameTarget);
+                    iCub->say("Now I know the " + sNameTarget);
                     iCub->home();
 
                     if (iCub->getABMClient()->Connect()) {
@@ -707,6 +707,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
         bool success = setPasarPointing(true);
         if(!success) {
+            yError() << "Problem with pasar when setPasarPointing(true)";
             bOutput.addString("error");
             bOutput.addString("Problem with pasar");
             return bOutput;
@@ -716,6 +717,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
     string sNameBestEntity = getBestEntity(sTypeTarget);
     if(sNameBestEntity=="none") {
         iCub->say("you did not point at any object");
+        yError() << "you did not point at any object";
         bOutput.addString("error");
         bOutput.addString("no pointing received");
         return bOutput;
@@ -731,11 +733,12 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
     yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
     bOutput.addString("name changed");
-    iCub->say("Now I know the" + sNameTarget);
+    iCub->say("Now I know the " + sNameTarget);
 
     if(sTypeTarget == "object") {
         bool success = setPasarPointing(false);
         if(!success) {
+            yError() << "Problem with pasar when setPasarPointing(false)";
             bOutput.addString("error");
             bOutput.addString("Problem with pasar");
             return bOutput;
