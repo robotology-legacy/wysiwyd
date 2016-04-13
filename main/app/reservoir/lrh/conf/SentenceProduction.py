@@ -9,20 +9,21 @@ xavier.hinaut #/at\# inserm.fr
 import mdp
 import numpy as np
 import reservoir
-
+import shelve
 
 
 class Production:
-    def __init__(self, corpusFile, fileResult, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, nbNeuron):
+    def __init__(self, corpusFile, fileResult, smode, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, nbNeuron):
         self.corpusFile = corpusFile
         self.fileResult = fileResult
+        self.smode = smode
         self.closed_class_words = closed_class_words 
         self.imax_nr_ocw = imax_nr_ocw
         self.imax_nr_actionrelation = imax_nr_actionrelation
         self.l_elt_pred= l_elt_pred
-        self.nbNeurons = nbNeuron
+        self.iNbNeurons = nbNeuron
         
-        self.mainFunc(self.corpusFile, self.fileResult, self.nbNeurons)
+        self.mainFunc(self.corpusFile, self.fileResult, self.iNbNeurons)
 
     def extr_sent(self, sent):
         sent = sent.strip() #removing spaces before and after the sentence
@@ -437,43 +438,39 @@ class Production:
             if vect[i]>=sup:    vect[i]=sup
             elif vect[i]<=inf:  vect[i]=inf
         return vect
-    
-    
-    ### Main Methods ###
-    ##########################
-    
-    def mainFunc(self, path_file_in, path_file_out, nbNeurons, sr=3, iss=0.1, leak=0.1, ridge=10**-1, plot=False, feedback=False, return_result=False, verbose=False):
-        def write_list_in_file(l, file=None, file_path=None):
-            """
-            Write a list in a file with with one item per line (like a one column csv).
-            
-            If file is given, then it assumes the file is already open for writing.
-            If file_path is given, then it opens the file for writing, write the list, and then close the file.
-            """
-            if file_path is not None:
-                if file is not None:
-                    raise Exception, "Too much arguments. You must choose between file and file_path."
-                else:
-                    file = open(file_path, 'w')
-            if file is None:
-                raise Exception, "No file given in input."
-            
-            for item in l:
-                file.write("%s\n" % item)
-                
-            if file_path is not None:
-                file.close()
-    
-        import io_language_coding as CtIolangcod
+
+    def write_list_in_file(self, listSentences, file=None, file_path=None):
+        """
+        Write a list in a file with with one item per line (like a one column csv).
         
-        # Definning parameters of stimulus (in a dictionary)
-        d = {}
-        d['act_time'] = 5
-        d['pause'] = True
-        d['suppl_pause_at_the_end'] = 1*d['act_time']
-        d['initial_pause'] = True
-        d['offset'] = False        
+        If file is given, then it assumes the file is already open for writing.
+        If file_path is given, then it opens the file for writing, write the list, and then close the file.
+        """
+        if file_path is not None:
+            if file is not None:
+                raise Exception, "Too much arguments. You must choose between file and file_path."
+            else:
+                file = open(file_path, 'w')
+        if file is None:
+            raise Exception, "No file given in input."
         
+        for item in listSentences:
+            file.write("%s\n" % item)
+            
+        if file_path is not None:
+            file.close()   
+    
+    def shelveData(self,data, namePickle):
+        base = shelve.open(namePickle)
+        base[namePickle]=data
+        base.close()
+    
+    def unshelveData(self,data, namePickle):
+        base = shelve.open('base')
+        return base    
+
+    def train(self, sent_form_info_train, train_meaning, train_corpus, d, sr=3, iss=0.1, leak=0.1, ridge=10**-1):
+        import io_language_coding as CtIolangcod                
         ## Random parameters
         import time
         millis = int(round(time.time() ))    
@@ -482,17 +479,10 @@ class Production:
         if seed is not None:
             mdp.numx.random.seed(seed)
             np.random.seed(seed)
-            
-        [train_data_txt, test_data_txt, sent_form_info_train, sent_form_info_test] = self.extract_data_io(path_file=path_file_in)
-    
-        train_corpus, train_meaning  = self.txt2corpus_and_meaning(train_txt=train_data_txt)
 
-        test_meaning = test_data_txt
         # making the list of constructions (refering to "construction grammar"), a construction is a sentence without its open class words (Nouns and Verbs)
         (l_construction_train, construction_words) = self.get_and_remove_ocw_in_corpus(corpus=train_corpus, _OCW='X')
         l_ocw_array_train=self.generate_l_ocw_array(sent_form_info_train, train_meaning)
-        l_ocw_array_test=self.generate_l_ocw_array(sent_form_info_test, test_meaning)
-    
 
         l_full_const = l_construction_train
         slice_train = slice(0,len(l_construction_train))
@@ -503,33 +493,101 @@ class Production:
                                 with_offset=d['offset'], pause=d['pause'], initial_pause=d['initial_pause'],
                                 suppl_pause_at_the_end=d['suppl_pause_at_the_end'], verbose=False)
         stim_sent_train = stim_full_data[slice_train]
-    
         l_m_elt = self.get_meaning_coding(max_nr_ocw=self.imax_nr_ocw, max_nr_actionrelation=self.imax_nr_actionrelation, elt_pred=self.l_elt_pred)
-    
+
         (stim_mean_train, l_meaning_code_train) = self.generate_meaning_stim(l_structure=sent_form_info_train, full_time=stim_sent_train[0].shape[0], l_m_elt=l_m_elt)
 
-        (stim_mean_test, l_meaning_code_test) = self.generate_meaning_stim(l_structure=sent_form_info_test, full_time=stim_sent_train[0].shape[0], l_m_elt=l_m_elt)
-    
-        other_corpus_used = False
-    
         # Reservoir and Read-out definitions
-        res = reservoir.Reservoir(self.nbNeurons, sr, iss, leak)
+        res = reservoir.Reservoir(self.iNbNeurons, sr, iss, leak)
     
+        #classic working of the reservoir without feedback
+
+        ## test set = train set
+        states_out_train, internal_states_train = res.train (stim_mean_train, stim_sent_train)
+
+        return l_ocw_array_train, states_out_train, construction_words, internal_states_train, res, stim_mean_train, stim_sent_train, l_m_elt
+        
+# Feedback mode      
+# feedback working of the reservoir. !! Should be implemented directly in the reservoir class !!
+#        
+#
+#        delay=1
+#        nb_epoch_max=4generate_meaning_stim
+#        dim_input = stim_mean_train[0].shape[1]
+#        #dim_output =  len(stim_sent_train[0][0])
+#        input_train=[]
+#
+#        for (x,y) in zip( np.copy(stim_mean_train), np.copy(stim_sent_train)):
+#            for time_step_delay in range(delay):
+#                y=np.concatenate( ([[0.]*len(y[0])] , y), axis=0)
+#            input_train.append(np.array(  np.concatenate(   (x, y[:-delay]), axis=1 )  ))
+#      
+#        nb_train=0  
+#        while nb_train < nb_epoch_max:
+#            ## test set = train set
+#            states_out_train, internal_states_train = res.train (input_train, stim_sent_train)
+#            
+#            tab_feedback=[]
+#            for num_phrase in range(len(states_out_train)):
+#                #signal tresholded
+#                states_out_train[num_phrase]=np.array([self.treshold_signal(signal_t,1.5,-0.5) for signal_t in states_out_train[num_phrase]])
+#                if nb_train==0: #feedback kept only for the first train
+#                    #feedback assignation
+#                    feedback=np.array(states_out_train[num_phrase])
+#                    #signal delayed
+#                    for time_step_delay in range(delay):l_m_elt
+#                        feedback=np.concatenate( ([[0.]*len(feedback[0])] , feedback), axis=0)
+#                
+#                tab_feedback.append(feedback)
+#                input_train[num_phrase]=input_train[num_phrase].T
+#                input_train[num_phrase][dim_input:] = feedback[:-delay].T
+#                input_train[num_phrase]=input_train[num_phrase].T
+#
+#            nb_train+=1
+#
+#        ## test set not train set
+#        for t in range(0,stim_mean_test[0].shape[0],1):
+#            input_test=[]l_m_elt
+#            if t==0: #A REMODIFIER
+#                for n_phrase in range(len(stim_mean_test)):
+#                    input_test.append(np.concatenate(  (stim_mean_test[n_phrase][t:t+1,:] , [[0.]*len(stim_sent_train[0][0])] ) , axis=1     ) )
+#
+#                states_out_test, internal_states_test = res.test(input_test)
+#                import copy
+#                states_out_test_def=copy.deepcopy(states_out_test)
+#
+#            else:
+#                for n_phrase in range(len(stim_mean_test)):
+#                    #feedback assignation
+#                    feedback=np.array(states_out_test[n_phrase])
+#                    input_test.append(np.concatenate(  (stim_mean_test[n_phrase][t:t+1,:] , feedback ) , axis=1     ) )
+#
+#                states_out_test, internal_states_test = res.test(input_test)
+#            
+#                for n_phrase in range(len(stim_mean_test)):
+#                    states_out_test_def[ n_phrase ]=np.concatenate( (states_out_test_def[n_phrase] , states_out_test[n_phrase]), axis=0  )
+#
+#        states_out_test=states_out_test_def
+            
+    def test(self, test_corpus, sent_form_info_test, shelf, plot=False, feedback=False ):
+        
+        l_ocw_array_test = self.generate_l_ocw_array(sent_form_info_test, test_corpus)
+        (stim_mean_test, l_meaning_code_test) = self.generate_meaning_stim(l_structure=sent_form_info_test, full_time=shelf["stim_sent_train"][0].shape[0], l_m_elt=shelf["l_m_elt"])
+
+        
         #classic working of the reservoir
         if feedback==False:
-            ## test set = train set
-            states_out_train, internal_states_train = res.train (stim_mean_train, stim_sent_train)
             ## test set not train set
-            states_out_test, internal_states_test = res.test(stim_mean_test)
+            states_out_test, internal_states_test = shelf["res"].test(stim_mean_test)
         #feedback working of the reservoir. !! Should be implemented directly in the reservoir class !!
         else:
             delay=1
             nb_epoch_max=4
-            dim_input = stim_mean_train[0].shape[1]
+            dim_input = shelf["stim_sent_train"][0].shape[1]
             #dim_output =  len(stim_sent_train[0][0])
             input_train=[]
     
-            for (x,y) in zip( np.copy(stim_mean_train), np.copy(stim_sent_train)):
+            for (x,y) in zip( np.copy(shelf["stim_sent_train"]), np.copy(shelf["stim_sent_train"])):
                 for time_step_delay in range(delay):
                     y=np.concatenate( ([[0.]*len(y[0])] , y), axis=0)
                 input_train.append(np.array(  np.concatenate(   (x, y[:-delay]), axis=1 )  ))
@@ -537,7 +595,7 @@ class Production:
             nb_train=0  
             while nb_train < nb_epoch_max:
                 ## test set = train set
-                states_out_train, internal_states_train = res.train (input_train, stim_sent_train)
+                states_out_train, internal_states_train = shelf["res"].train (input_train, shelf["stim_sent_train"])
                 
                 tab_feedback=[]
                 for num_phrase in range(len(states_out_train)):
@@ -562,9 +620,9 @@ class Production:
                 input_test=[]
                 if t==0: #A REMODIFIER
                     for n_phrase in range(len(stim_mean_test)):
-                        input_test.append(np.concatenate(  (stim_mean_test[n_phrase][t:t+1,:] , [[0.]*len(stim_sent_train[0][0])] ) , axis=1     ) )
+                        input_test.append(np.concatenate(  (stim_mean_test[n_phrase][t:t+1,:] , [[0.]*len(shelf["stim_sent_train"][0][0])] ) , axis=1     ) )
     
-                    states_out_test, internal_states_test = res.test(input_test)
+                    states_out_test, internal_states_test = shelf["res"].test(input_test)
                     import copy
                     states_out_test_def=copy.deepcopy(states_out_test)
     
@@ -574,72 +632,114 @@ class Production:
                         feedback=np.array(states_out_test[n_phrase])
                         input_test.append(np.concatenate(  (stim_mean_test[n_phrase][t:t+1,:] , feedback ) , axis=1     ) )
     
-                    states_out_test, internal_states_test = res.test(input_test)
+                    states_out_test, internal_states_test = shelf["res"].test(input_test)
                 
                     for n_phrase in range(len(stim_mean_test)):
                         states_out_test_def[ n_phrase ]=np.concatenate( (states_out_test_def[n_phrase] , states_out_test[n_phrase]), axis=0  )
     
             states_out_test=states_out_test_def
-    
-         
-        # Ecriture de la phrase de réponse
-        if other_corpus_used:
-            var_inutile=0
-    
-        else:
-    
-            l_recovered_construction_train = self.convert_l_output_activity_in_construction(l_out_act=states_out_train,
-                                                                                       construction_words=construction_words,
-                                                                                       min_nr_of_val_upper_thres=1)
-            l_recovered_sentences_train = self.attribute_ocw_to_constructions(l_constructions=l_recovered_construction_train,
-                                                                         l_ocw_array=l_ocw_array_train, _OCW='X')
-    
-            l_recovered_construction_test = self.convert_l_output_activity_in_construction(l_out_act=states_out_test,
-                                                                                      construction_words=construction_words,
-                                                                                      min_nr_of_val_upper_thres=2)
-            l_recovered_sentences_test = self.attribute_ocw_to_constructions(l_constructions=l_recovered_construction_test,
-                                                                        l_ocw_array=l_ocw_array_test, _OCW='X')
-        
-        
-            ## Writting sentences to output file
-            #print " *** Writting to output file ... *** "
-            l_final_sent_test = []
-            for list_words in l_recovered_sentences_test:
-                l_final_sent_test.append(" ".join(list_words))
-                
-    
-            print "********************************************** "
-            print " *** RECOGNIZED SENTENCES *** "
-    
-            for sent in l_final_sent_test:
-                print sent
-    
-            write_list_in_file(l=l_final_sent_test, file_path=path_file_out)
-            if return_result:   
-                return l_final_sent_test
-    
-        ## Plot inputs
+
+#            l_recovered_construction_train = self.convert_l_output_activity_in_construction(l_out_act=states_out_train,
+#                                                                                       construction_words=construction_words,
+#                                                                                       min_nr_of_val_upper_thres=1)
+#            l_recovered_sentences_train = self.attribute_ocw_to_constructions(l_constructions=l_recovered_construction_train,
+#                                                                         l_ocw_array=l_ocw_array_train, _OCW='X')    
+        l_recovered_construction_test = self.convert_l_output_activity_in_construction(l_out_act=states_out_test,
+                                                                                  construction_words=shelf["construction_words"],
+                                                                                  min_nr_of_val_upper_thres=2)
+        l_recovered_sentences_test = self.attribute_ocw_to_constructions(l_constructions=l_recovered_construction_test,
+                                                                    l_ocw_array=l_ocw_array_test, _OCW='X')
+                                                                                    ## Plot inputs
         if plot:
             import plotting as plotting
         
-            plotting.plot_array_in_file(root_file_name="../Results/states_out_train", array_=states_out_train, titles_subset=l_construction_train, legend_=construction_words, plot_slice=None, title="", subtitle="")
+            plotting.plot_array_in_file(root_file_name="../Results/states_out_train", array_=shelf["states_out_train"], titles_subset=shelf["l_construction_train"], legend_=shelf["construction_words"], plot_slice=None, title="", subtitle="")
     
-            plotting.plot_array_in_file(root_file_name="../Results/states_out_test", array_=states_out_test, titles_subset=l_recovered_sentences_test, legend_=construction_words, plot_slice=None, title="", subtitle="")
-    
+            plotting.plot_array_in_file(root_file_name="../Results/states_out_test", array_=states_out_test, titles_subset=l_recovered_sentences_test, legend_=shelf["construction_words"], plot_slice=None, title="", subtitle="")
+
+        return l_recovered_sentences_test
+                   
+    def mainFunc(self, path_file_in, path_file_out, plot=False, feedback=False, return_result=False, verbose=False):            
+        # Definning parameters of stimulus (in a dictionary)
+        d = {}
+        d['act_time'] = 5
+        d['pause'] = True
+        d['suppl_pause_at_the_end'] = 1*d['act_time']
+        d['initial_pause'] = True
+        d['offset'] = False        
+            
+        [train_data_txt, test_data, sent_form_info_train, sent_form_info_test] = self.extract_data_io(path_file=path_file_in)    
+        train_corpus, train_meaning  = self.txt2corpus_and_meaning(train_txt=train_data_txt)
+
+        if self.smode =="test":
+            shelf = shelve.open('shelf_prod.db', flag='r')
+            flag = shelf.has_key("l_ocw_array_train")
+            if flag:
+                test_corpus = test_data
+
+                l_recovered_sentences_test = self.test(test_corpus, sent_form_info_test, shelf)
+                
+                
+                ## Writting sentences to output file
+                #print " *** Writting to output file ... *** "
+                l_final_sent_test = []
+                for list_words in l_recovered_sentences_test:
+                    l_final_sent_test.append(" ".join(list_words))
+                    
+        
+                print "********************************************** "
+                print " *** RECOGNIZED SENTENCES *** "
+        
+                for sent in l_final_sent_test:
+                    print sent
+        
+                self.write_list_in_file(l_final_sent_test, file_path=path_file_out)
+            else:
+                raise Exception, "The train was not launched"
+                
+            shelf.close()
+
+
+        else:
+            shelf = shelve.open('shelf_prod.db', writeback=True)
+            l_ocw_array_train, states_out_train, construction_words, internal_states_train, res, stim_mean_train, stim_sent_train, l_m_elt = \
+                self.train(sent_form_info_train, train_meaning, train_corpus, d)
+            shelf["l_ocw_array_train"] = l_ocw_array_train
+            shelf["states_out_train"] = states_out_train
+            shelf["construction_words"] = construction_words
+            shelf["internal_states_train"] = internal_states_train
+            shelf["res"] = res
+            shelf["stim_mean_train"] = stim_mean_train
+            shelf["stim_sent_train"] = stim_sent_train
+            shelf["l_m_elt"] = l_m_elt
+            shelf.close()
         print ""
 
 if __name__ == '__main__':
-    import sys
+    import os, sys
+
+    sdir = os.path.dirname(os.path.abspath(__file__))
     corpusFile= sys.argv[1] # "corpus_narratif_scenario3_XPAOR.txt"
     fileResult = sys.argv[2]
-    sMode = sys.argv[3]
+    sMode =  sys.argv[3]   
     closed_class_words = sys.argv[4].split(',') #   ['after', 'than', 'before', 'to', 'the', 'slowly', 'quickly', 'with', 'that', 'for', 'a', 'an', 'this', 'of', 'and', 'while', 'when'] 
     imax_nr_ocw = int(sys.argv[5])              #15
     imax_nr_actionrelation = int(sys.argv[6])    #5
     l_elt_pred= sys.argv[7].split(',')     #['P','A','O','R','V']
-    nbNeurons = int(sys.argv[8]) #600
+    iNbNeurons = int(sys.argv[8]) #600
 
-    prodSentences = Production(corpusFile, fileResult, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, nbNeurons)
 
+#    corpusFile = sdir + "/Corpus/temporaryCorpus.txt"
+#    fileResult = sdir + "/Corpus/output.txt"
+#    sMode = "test"
+#    #closed_class_words = ['after', 'than', 'before', 'to', 'the', 'slowly', 'quickly', 'with', 'that', 'for', 'a', 'an', 'this', 'of', 'and', 'while', 'when']
+#    #closed_class_words = ['could','would','if','so','a','because','but','after','and','before','to','the','slowly','quickly','was','with','that','for','now','and']
+#    closed_class_words = ['the', 'a', 'and', 'to']
+#    imax_nr_ocw = 15
+#    imax_nr_actionrelation = 5
+#    l_elt_pred = ['P','A','O','R','V']
+#    iNbNeurons = 600
+    
+    prodSentences = Production(corpusFile, fileResult, sMode, closed_class_words, imax_nr_ocw, imax_nr_actionrelation, l_elt_pred, iNbNeurons)
 
     print "*********END OF PROGRAM********"

@@ -102,9 +102,10 @@ bool LRH::configure(ResourceFinder &rf) {
 
     // Start train mode of the reservoirs
     copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
-    std::cout << "In Python" << std::endl;
+    std::cout << "Start Reservoirs" << std::endl;
     callReservoir(sreservoirAP.c_str(), sclosed_class_words);
-    std::cout << "Out Python" << std::endl;
+    callReservoir(sreservoirNarratif.c_str(), sclosed_class_words);
+    std::cout << "Trains processed" << std::endl;
     sMode = "test";
 
     return bEveryThingisGood;
@@ -154,7 +155,7 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "production"  && command.size() == 2) {
         reply.addString("ack");
         cout << "command.get(1).asString() : " << command.get(1).asString() << endl;
-        reply.addString(production(command.get(1).asString()));
+        reply.addString(meaningToSentence(command.get(1).asString()));
     }
     else if (command.get(0).asString() == "meaning" && command.size() == 2) {
         reply.addString("ack");
@@ -255,7 +256,6 @@ bool LRH::populateOPC(){
 
 // Understanding
 string LRH::sentenceToMeaning(string sentence){
-    stypeReservoir = "C";
     createTest(stemporaryCorpus.c_str(), sentence);
     callReservoir(sreservoirAP, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
@@ -275,8 +275,6 @@ string LRH::sentenceToMeaning(string sentence){
 
 // Production
 string LRH::meaningToSentence(string meaning){
-    stypeReservoir = "P";
-    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
     createTest(stemporaryCorpus.c_str(), meaning);
     callReservoir(sreservoirNarratif, sclosed_class_words);
     string sOutput = openResult(sfileResult.c_str());
@@ -294,25 +292,6 @@ string LRH::meaningToSentence(string meaning){
     return sOutput;
 }
 
-string LRH::production(string test) {
-    stypeReservoir = "P";
-    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
-    createTest(stemporaryCorpus.c_str(), test);
-    callReservoir(sreservoirNarratif, sclosed_class_words);
-    string sOutput = openResult(sfileResult.c_str());
-
-    // forward meaning to SAM
-    if (Network::connect(PortToSam.getName(), nameSamInputPort)){
-        Bottle bToSam;
-        bToSam.addString("from_lrh");
-        bToSam.addString(test);
-        PortToSam.write(bToSam);
-    }
-
-    yInfo() << "result is: " << sOutput;
-
-    return sOutput;
-}
 
 bool LRH::callReservoir(string pythonFile, string sCCW)
 {
@@ -366,11 +345,7 @@ int LRH::createTest(const char* filename, string sMeaningSentence)
 {
     cout << filename << "    " << "sMeaningSentence" << endl;
     ofstream file;
-    if (stypeReservoir == "P"){
-        file.open(filename, ios::app);
-    }
-    else
-        file.open(filename, ios::out | ios::trunc);
+    file.open(filename, ios::out | ios::trunc);
     file << "<test data>" << endl;
     file << sMeaningSentence << endl;
     file << "</test data>" << endl;

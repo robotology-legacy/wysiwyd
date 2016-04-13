@@ -59,7 +59,6 @@ private:
     std::string selt_pred;
     std::string sNbNeurons;
     std::string sMode;
-    std::string stypeReservoir;
 
     std::string sdataTestSD;
     std::string sHand;
@@ -83,7 +82,6 @@ private:
 
     bool AREactions(std::vector<std::string> seq);
     bool spatialRelation(std::string sObjectFocus);
-    std::string production(std::string stest);
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);

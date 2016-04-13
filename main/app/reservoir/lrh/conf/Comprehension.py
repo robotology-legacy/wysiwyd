@@ -10,7 +10,7 @@ xavier.hinaut #/at\# inserm.fr
 import mdp
 import Oger
 import numpy as np
-import reservoir as res
+#import reservoir as res
 import io_language_coding as CtIolangcod
 import pickle 
 import shelve 
