@@ -516,21 +516,21 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
         }
         else if (bCommand.get(0) == "snapshot")
         {
-            if(streamStatus=="none" || streamStatus=="record")
+            if(streamStatus=="none" || streamStatus=="begin" || streamStatus=="record")
                 bReply = snapshot(bCommand);
             else
                 bReply.addString("[nack]");
         }
         else if (bCommand.get(0) == "snapshotSP")
         {
-            if(streamStatus=="none" || streamStatus=="record")
+            if(streamStatus=="none" || streamStatus=="begin" || streamStatus=="record")
                 bReply = snapshotSP(bCommand);
             else
                 bReply.addString("[nack]");
         }
         else if (bCommand.get(0) == "snapshotBE")
         {
-            if(streamStatus=="none" || streamStatus=="record")
+            if(streamStatus=="none" || streamStatus=="begin" || streamStatus=="record")
                 bReply = snapshotBehavior(bCommand);
             else
                 bReply.addString("[nack]");
