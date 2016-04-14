@@ -820,9 +820,6 @@ bool autobiographicalMemory::updateModule() {
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
-            yDebug() << "[mutexChangeover] unlocked in send";
-
-            mutexChangeover.unlock();
             yDebug() << "[mutexStreamRecord] trying to lock in stream send";
             mutexStreamRecord.lock();
             yDebug() << "[mutexStreamRecord] locked in stream send";
@@ -841,6 +838,8 @@ bool autobiographicalMemory::updateModule() {
             timeStreamStart = getCurrentTimeInMS();
 
             sendStreamIsInitialized = true;
+            yDebug() << "[mutexChangeover] unlocked in send";
+            mutexChangeover.unlock();
         }
 
         // Calculate time in update method since first image/contdata was sent
