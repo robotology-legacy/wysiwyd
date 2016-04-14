@@ -793,6 +793,7 @@ bool autobiographicalMemory::updateModule() {
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
     if (streamStatus == "begin") {
+        mutexChangeover.unlock();
         mutexStreamRecord.lock();
         yInfo() << "============================= STREAM BEGIN =================================";
 
@@ -807,15 +808,18 @@ bool autobiographicalMemory::updateModule() {
         storeImagesAndData(synchroTime);
 
         //init of the stream record done: go through the classic record phase
+        mutexChangeover.lock();
         streamStatus = "record";
     }
     else if (streamStatus == "record") {
+        mutexChangeover.unlock();
         string synchroTime = getCurrentTime();
         storeImagesAndData(synchroTime);
     }
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
+            mutexChangeover.unlock();
             mutexStreamRecord.lock();
             yInfo() << "============================= STREAM SEND =================================";
             timeLastImageSent = -1;
@@ -962,6 +966,7 @@ bool autobiographicalMemory::updateModule() {
             mapImgStreamPortOut.clear();
             mapDataStreamPortOut.clear();
 
+            mutexChangeover.lock();
             streamStatus = "end";
         }
     }
@@ -982,6 +987,7 @@ bool autobiographicalMemory::updateModule() {
         sendStreamIsInitialized = false;
         streamStatus = "none";
         mutexStreamRecord.unlock();
+        mutexChangeover.unlock();
     }
 
     return !shouldClose;

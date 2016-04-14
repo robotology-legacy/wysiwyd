@@ -91,6 +91,7 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
 
     bReply.addList() = bDataStreamProviders;
 
+    mutexChangeover.lock();
     streamStatus = "send"; //streamStatus changed (triggered in update())
 
     return bReply;
