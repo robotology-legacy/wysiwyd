@@ -197,7 +197,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
 
     yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks = " << ks;
     iCub->lookAtPartner();
-    iCub->say("I estimate my arm looks like this", false);
+    iCub->say("I estimate my arm looks like this");
     iCub->getABMClient()->triggerStreaming(ks);
     iCub->home();
 
