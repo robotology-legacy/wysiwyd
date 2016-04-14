@@ -18,8 +18,11 @@ class FollowingOrder: public Behavior
 {
 private:
     yarp::os::Port port_to_narrate;
+    yarp::os::Port port_to_homeo;
     string port_to_narrate_name;
     void run(Bottle args=Bottle());
+    string portToHomeo_name;
+    string  homeoPort ;
 
     //followingOrder option
     Bottle bKS1;

@@ -8,6 +8,9 @@ void FollowingOrder::configure() {
     bKS1 = *bFollowingOrder.find("ks1").asList();
     bKS2 = *bFollowingOrder.find("ks2").asList();
 
+    portToHomeo_name = "/"+name+"/toHomeo:o";
+    homeoPort = "/homeostasis:rpc";
+
     babblingArm = bFollowingOrder.find("babblingArm").asString();
 
     // Todo: set the value beow from a config file (but we are not in a module here)
@@ -17,10 +20,29 @@ void FollowingOrder::configure() {
 
     port_to_narrate_name = "/behaviorManager/narrate:o";
     port_to_narrate.open(port_to_narrate_name);
+    port_to_homeo.open(portToHomeo_name);
 }
 
 void FollowingOrder::run(Bottle args/*=Bottle()*/) {
+
     yInfo() << "FollowingOrder::run";
+
+    if (!Network::isConnected(portToHomeo_name,homeoPort)){
+        if (!Network::connect(portToHomeo_name,homeoPort)){
+            yDebug()<<"Could not freeze the drives...";
+            return;
+        }
+    }
+    yInfo()<<"freezing drives";
+    Bottle cmd;
+    Bottle rply;
+    cmd.clear();
+    rply.clear();
+    cmd.addString("freeze");
+    cmd.addString("all");
+
+    port_to_homeo.write(cmd, rply);
+
 
     Bottle* sens = sensation_port_in.read();
     string action = sens->get(0).asString();
@@ -64,6 +86,14 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     }  else if (action == "show" && (type == "kinematic structure" || type == "kinematic structure correspondence")){
         handleActionKS(action, type);
     }
+
+    yInfo()<<"unfreezing drives";
+    cmd.clear();
+    rply.clear();
+    cmd.addString("unfreeze");
+    cmd.addString("all");
+    port_to_homeo.write(cmd, rply);
+
 }
 
 bool FollowingOrder::handleNarrate(){
@@ -76,6 +106,7 @@ bool FollowingOrder::handleNarrate(){
     Bottle cmd;
     Bottle rply;
     cmd.clear();
+    rply.clear();
     cmd.addString("narrate");
     yInfo() << "Proactively narrating...";
 
