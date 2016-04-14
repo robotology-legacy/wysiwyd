@@ -619,6 +619,9 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 yDebug() << "robot: " << robot;
 
                 bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot);
+                while(streamStatus=="send") {
+                    yarp::os::Time::delay(0.2);
+                }
             }
             else
             {
@@ -790,7 +793,6 @@ bool autobiographicalMemory::updateModule() {
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
     if (streamStatus == "begin") {
-        LockGuard lg(mutexSnapshot);
         mutexStreamRecord.lock();
         yInfo() << "============================= STREAM BEGIN =================================";
 
@@ -814,7 +816,6 @@ bool autobiographicalMemory::updateModule() {
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
-            mutexSnapshot.lock();
             mutexStreamRecord.lock();
             yInfo() << "============================= STREAM SEND =================================";
             timeLastImageSent = -1;
@@ -962,7 +963,6 @@ bool autobiographicalMemory::updateModule() {
             mapDataStreamPortOut.clear();
 
             streamStatus = "end";
-            mutexSnapshot.unlock();
         }
     }
 
