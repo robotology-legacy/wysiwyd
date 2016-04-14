@@ -36,8 +36,6 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         yInfo()<<"freezing drives";
         Bottle cmd;
         Bottle rply;
-        cmd.clear();
-        rply.clear();
         cmd.addString("freeze");
         cmd.addString("all");
 
@@ -89,8 +87,8 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
 
     if (Network::isConnected(portToHomeo_name,homeoPort)){
         yInfo()<<"unfreezing drives";
-        cmd.clear();
-        rply.clear();
+        Bottle cmd;
+        Bottle rply;
         cmd.addString("unfreeze");
         cmd.addString("all");
         port_to_homeo.write(cmd, rply);
