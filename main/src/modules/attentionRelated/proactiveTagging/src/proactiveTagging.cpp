@@ -56,6 +56,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
         cout << "iCubClient : Some dependencies are not running..." << endl;
         Time::delay(1.0);
     }
+    iCub->opc->checkout();
 
     configureOPC(rf);
 
