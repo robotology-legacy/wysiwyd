@@ -182,7 +182,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
 
     if(type == "kinematic structure") {
         ks = randKS(bKS1);         //extract list of KS1
-    } else if(type=="kinematic_structure_correspondence") {
+    } else if(type=="kinematic structure correspondence") {
         ks = randKS(bKS2);
     } else {
         iCub->say("I do not know this type of kinematic structure");
