@@ -29,7 +29,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
 
     if (!Network::isConnected(portToHomeo_name,homeoPort)){
         if (!Network::connect(portToHomeo_name,homeoPort)){
-            yDebug()<<"Could not freeze the drives...";
+            yDebug()<<"Port to Homeostasis not available. Could not freeze the drives...";
             return;
         }
     }
@@ -87,6 +87,12 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         handleActionKS(action, type);
     }
 
+    if (!Network::isConnected(portToHomeo_name,homeoPort)){
+        if (!Network::connect(portToHomeo_name,homeoPort)){
+            yDebug()<<"Port to Homeostasis not available. Could not unfreeze the drives...";
+            return;
+        }
+    }
     yInfo()<<"unfreezing drives";
     cmd.clear();
     rply.clear();
