@@ -199,10 +199,10 @@ class AllostaticPlotModule(yarp.RFModule):
 
 if __name__ == '__main__':
 
+    plt.ion()
     yarp.Network.init() 
     mod = AllostaticPlotModule()
     rf = yarp.ResourceFinder()
-    mod.configure(rf)
+#    mod.configure(rf)
 
-    plt.ion()
     mod.runModule(rf)
