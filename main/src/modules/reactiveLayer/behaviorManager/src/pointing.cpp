@@ -10,6 +10,11 @@ void Pointing::configure() {
 void Pointing::run(Bottle args/*=Bottle()*/) {
     yInfo() << "Pointing::run";
     Bottle *sensation = sensation_port_in.read();
+
+    if(sensation->size()==0) {
+        iCub->say("There are no objects I can point at.");
+        return;
+    }
     
     int id = yarp::os::Random::uniform(0, sensation->size() - 1);
     yDebug() << "Randomly selected: " << id;
