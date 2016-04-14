@@ -175,9 +175,6 @@ bool FollowingOrder::handleActionKS(string action, string type) {
 }
 
 bool FollowingOrder::handleActionBP(string type, string target, string action) {
-    iCub->home();
-    yarp::os::Time::delay(1.0);
-
     yInfo() << "[handleActionBP] type: " << type << "target:" << target << "action:" << action;
     iCub->opc->checkout();
     yInfo() << " [handleActionBP]: opc checkout";
