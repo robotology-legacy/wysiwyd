@@ -22,7 +22,7 @@ private:
     string port_to_narrate_name;
     void run(Bottle args=Bottle());
     string portToHomeo_name;
-    string  homeoPort ;
+    string homeoPort;
 
     //followingOrder option
     Bottle bKS1;

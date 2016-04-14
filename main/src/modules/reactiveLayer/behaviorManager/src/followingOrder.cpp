@@ -29,20 +29,20 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
 
     if (!Network::isConnected(portToHomeo_name,homeoPort)){
         if (!Network::connect(portToHomeo_name,homeoPort)){
-            yDebug()<<"Port to Homeostasis not available. Could not freeze the drives...";
-            return;
+            yWarning()<<"Port to Homeostasis not available. Could not freeze the drives...";
         }
     }
-    yInfo()<<"freezing drives";
-    Bottle cmd;
-    Bottle rply;
-    cmd.clear();
-    rply.clear();
-    cmd.addString("freeze");
-    cmd.addString("all");
+    if (Network::isConnected(portToHomeo_name,homeoPort)){
+        yInfo()<<"freezing drives";
+        Bottle cmd;
+        Bottle rply;
+        cmd.clear();
+        rply.clear();
+        cmd.addString("freeze");
+        cmd.addString("all");
 
-    port_to_homeo.write(cmd, rply);
-
+        port_to_homeo.write(cmd, rply);
+    }
 
     Bottle* sens = sensation_port_in.read();
     string action = sens->get(0).asString();
@@ -87,19 +87,14 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         handleActionKS(action, type);
     }
 
-    if (!Network::isConnected(portToHomeo_name,homeoPort)){
-        if (!Network::connect(portToHomeo_name,homeoPort)){
-            yDebug()<<"Port to Homeostasis not available. Could not unfreeze the drives...";
-            return;
-        }
+    if (Network::isConnected(portToHomeo_name,homeoPort)){
+        yInfo()<<"unfreezing drives";
+        cmd.clear();
+        rply.clear();
+        cmd.addString("unfreeze");
+        cmd.addString("all");
+        port_to_homeo.write(cmd, rply);
     }
-    yInfo()<<"unfreezing drives";
-    cmd.clear();
-    rply.clear();
-    cmd.addString("unfreeze");
-    cmd.addString("all");
-    port_to_homeo.write(cmd, rply);
-
 }
 
 bool FollowingOrder::handleNarrate(){
