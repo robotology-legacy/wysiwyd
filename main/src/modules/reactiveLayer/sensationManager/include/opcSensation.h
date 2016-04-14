@@ -25,15 +25,10 @@ private:
     yarp::os::BufferedPort<Bottle> opc_has_known_port;
     yarp::os::BufferedPort<Bottle> opc_has_agent_port;
     yarp::os::BufferedPort<Bottle> is_touched_port;
-    // yarp::os::BufferedPort<Bottle> touch_location_port;
-    // yarp::os::BufferedPort<Bottle> friendly_port, greeting_port;
 
-    // yarp::os::BufferedPort<Bottle> known_obj_port;
-    // yarp::os::BufferedPort<Bottle> show_port;
-
+    void addToEntityList(yarp::os::Bottle& list, std::string type, std::string name);
     Bottle handleEntities();
     void handleTouch();
-    // Bottle handlePointing();
 
 public:
 
