@@ -80,8 +80,8 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
     SAMRpc = rf.check("SAMRpc", Value("/sam/face/rpc:i")).asString().c_str();
 
     if (!Network::connect(portToSAM.getName().c_str(), SAMRpc.c_str())) {
-        yWarning() << "SAM NOT CONNECTED: face recognition will not work";
-        iCub->say("SAM NOT CONNECTED");
+        yDebug() << "SAM NOT CONNECTED: face recognition will not work";
+        //iCub->say("SAM NOT CONNECTED");
     }
 
     // out to pasar
