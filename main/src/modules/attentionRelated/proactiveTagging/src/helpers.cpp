@@ -186,7 +186,7 @@ void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPa
 void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
 {
     //Populate the OPC if required
-    std::cout << "Populating OPC...";
+    yDebug() << "Populating OPC...";
 
     //1. Populate AddOrRetrieve part
     Bottle grpOPC_AOR = rf.findGroup("OPC_AddOrRetrieve");
@@ -214,5 +214,5 @@ void proactiveTagging::configureOPC(yarp::os::ResourceFinder &rf)
         subPopulateBodyparts(bodyPartList, bodyPartJointList, false);
     }
 
-    std::cout << "done" << endl;
+    yDebug() << "configureOPC done";
 }

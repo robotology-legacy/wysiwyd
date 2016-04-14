@@ -39,7 +39,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     yDebug() << "------------> babblingArm: " << babblingArm;
 
-    cout << moduleName << ": finding configuration files..." << endl;
+    yInfo() << moduleName << ": finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
 
     defaultPartnerName = "partner";
@@ -53,7 +53,7 @@ bool proactiveTagging::configure(yarp::os::ResourceFinder &rf)
 
     while (!iCub->connect())
     {
-        cout << "iCubClient : Some dependencies are not running..." << endl;
+        yWarning() << "iCubClient : Some dependencies are not running...";
         Time::delay(1.0);
     }
     iCub->opc->checkout();
@@ -312,7 +312,7 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         reply = describeBabbling(sJointName, jointNumber);
     }
     else {
-        cout << helpMessage;
+        yInfo() << helpMessage;
         reply.addString(helpMessage);
     }
 
