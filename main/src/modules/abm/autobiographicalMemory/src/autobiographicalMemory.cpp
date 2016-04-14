@@ -810,10 +810,10 @@ bool autobiographicalMemory::updateModule() {
 
         //init of the stream record done: go through the classic record phase
         streamStatus = "record";
+        yDebug() << "[mutexChangeover] unlocked in begin";
         mutexChangeover.unlock();
     }
     else if (streamStatus == "record") {
-        yDebug() << "[mutexChangeover] unlocked in record";
         string synchroTime = getCurrentTime();
         storeImagesAndData(synchroTime);
     }
