@@ -793,7 +793,6 @@ bool autobiographicalMemory::updateModule() {
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
     if (streamStatus == "begin") {
-        mutexChangeover.unlock();
         mutexStreamRecord.lock();
         yInfo() << "============================= STREAM BEGIN =================================";
 
@@ -808,7 +807,6 @@ bool autobiographicalMemory::updateModule() {
         storeImagesAndData(synchroTime);
 
         //init of the stream record done: go through the classic record phase
-        mutexChangeover.lock();
         streamStatus = "record";
     }
     else if (streamStatus == "record") {

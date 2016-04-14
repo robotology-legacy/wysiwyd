@@ -32,7 +32,7 @@ void Tagging::run(Bottle args/*=Bottle()*/) {
     cmd.addString("exploreUnknownEntity");
     cmd.addString(sensation->get(id).asList()->get(0).asString());
     cmd.addString(sensation->get(id).asList()->get(1).asString());
-    yInfo() << "Proactively tagging...";
+    yInfo() << "Proactively tagging:" << cmd.toString();
     
     rpc_out_port.write(cmd, rply);
     yInfo() << "Proactive tagging ends";
