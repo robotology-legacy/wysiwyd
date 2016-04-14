@@ -83,8 +83,7 @@ bool Bodypart::fromBottle(const Bottle &b)
 
     if (!b.check("joint_number") ||
         !b.check("tactile_number") ||
-        !b.check("part") ||
-        !b.check("kinStruct_instance"))
+        !b.check("part"))
     {
         return false;
     }
