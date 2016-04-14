@@ -24,6 +24,7 @@ private:
     //followingOrder option
     Bottle bKS1;
     Bottle bKS2;
+    string babblingArm;
 
 public:
     FollowingOrder(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {

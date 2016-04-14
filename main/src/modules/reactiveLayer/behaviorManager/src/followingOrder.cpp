@@ -8,6 +8,7 @@ void FollowingOrder::configure() {
     bKS1 = *bFollowingOrder.find("ks1").asList();
     bKS2 = *bFollowingOrder.find("ks2").asList();
 
+    babblingArm = bFollowingOrder.find("babblingArm").asString();
 
     // Todo: set the value beow from a config file (but we are not in a module here)
     name = "followingOrder";
@@ -16,8 +17,6 @@ void FollowingOrder::configure() {
 
     port_to_narrate_name = "/behaviorManager/narrate:o";
     port_to_narrate.open(port_to_narrate_name);
-
-
 }
 
 void FollowingOrder::run(Bottle args/*=Bottle()*/) {
@@ -80,8 +79,6 @@ bool FollowingOrder::handleNarrate(){
     cmd.addString("narrate");
     yInfo() << "Proactively narrating...";
 
-
-    
     port_to_narrate.write(cmd, rply);
     return true;
 }
@@ -131,8 +128,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
 }
 
 //Randomly go through a bottle with instance number (int>0) to pick one
-int FollowingOrder::randKS(Bottle bKS){
-
+int FollowingOrder::randKS(Bottle bKS) {
     int ks = -1;
 
     if(bKS.size() != 0){
@@ -142,79 +138,45 @@ int FollowingOrder::randKS(Bottle bKS){
             ks = bKS.get(ksIndex).asInt() ;
             return ks;
         } else {
-            yError() << "[handleActionKS] wrong input for KS: it should be an int, and not " << bKS.get(ksIndex).toString();
+            yError() << "[handleActionKS] wrong input for" << bKS.toString() << ": it should be an int, and not " << bKS.get(ksIndex).toString();
             return -1;
         }
     } else {
-        yError() << "[handleActionKS]: no instance for KS found!" ;
+        yError() << "[handleActionKS]: no instance for " << bKS.toString() << "found!" ;
         return -1;
     }
 }
 
 bool FollowingOrder::handleActionKS(string action, string type) {
+    int ks = -1;
 
+    if(type == "kinematic structure") {
+        ks = randKS(bKS1);         //extract list of KS1
+    } else if(type=="kinematic_structure_correspondence") {
+        ks = randKS(bKS2);
+    } else {
+        iCub->say("I do not know this type of kinematic structure");
+        return false;
+    }
+
+    //if ks1 < 0 in case provide a negative instance...
+    if(ks < 0){
+        yError() << "[handleActionKS] wrong input for KS: it should be an instance > 0 and not " << ks;
+        return false;
+    }
+
+    yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks = " << ks;
+    iCub->lookAtPartner();
+    iCub->say("I estimate my arm looks like this", false);
+    iCub->getABMClient()->triggerStreaming(ks);
     iCub->home();
-    yarp::os::Time::delay(1.0);
 
-    int ks1 = -1 ;
-    int ks2 = -1 ;
-
-    //if type == kinematic_structure, it is enough to show it
-    if(type == "kinematic structure"){
-
-        //extract list of KS1
-        ks1 = randKS(bKS1);
-
-        //if ks1 < 0 in case provide a negative instance...
-        if(ks1 < 0){
-            yError() << "[handleActionKS] wrong input for KS1: it should be an instance >0 and not " << ks1;
-            return false;
-        }
-
-        //TODOOOOOOOOOOOOOO : triggerStreaming or rpc command to KS?
-
-        yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks1 = " << ks1;
-        iCub->say("kinematic structure for instance " + to_string(ks1), false);
-        iCub->getABMClient()->triggerStreaming(ks1);
-
-        return true;
-    }
-
-    //if type == kinematic_structure_correspondence, find the ks2 and show correspondence
-    if(type == "kinematic structure correspondence"){
-
-        //if kinematic_structure_correspondence: extract list of KS2
-        ks2 = randKS(bKS2);
-
-        //if ks2 < 0 in case provide a negative instance...
-        if(ks2 < 0){
-            yError() << "[handleActionKS] wrong input for KS2: it should be an instance >0 and not " << ks2;
-            return false;
-        }
-
-        //TODOOOOOOOOOOOOOO : triggerStreaming or rpc command to KS?
-
-        yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks2 = " << ks2;
-        iCub->say("kinematic structure correspondence for instance " + to_string(ks2), false);
-        iCub->getABMClient()->triggerStreaming(ks2);
-
-
-        return true;
-    }
-
-
-    return false;
+    return true;
 }
 
 bool FollowingOrder::handleActionBP(string type, string target, string action) {
-
     iCub->home();
     yarp::os::Time::delay(1.0);
-
-    //*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! This is a HACK! To be changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    string babblingArm = "left" ;
-    //Need to update the "part" in the OPC object to extract left/right arm.
-    //*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! This is a HACK! To be changed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     yInfo() << "[handleActionBP] type: " << type << "target:" << target << "action:" << action;
     iCub->opc->checkout();
