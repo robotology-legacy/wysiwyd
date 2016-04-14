@@ -126,7 +126,10 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     }
 
     if (isStreamActivity == true && !bBegin) { //just stop stream images stores when relevant activity
+        yDebug() << "[mutexChangeover] try locking in snapshot end";
         mutexChangeover.lock();
+        yDebug() << "[mutexChangeover] locked in snapshot end";
+
         streamStatus = "end"; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
     }
 
@@ -243,7 +246,10 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
     if (isStreamActivity == true) { //just launch stream images stores when relevant activity
         if (bBegin) {
+            yDebug() << "[mutexChangeover] try locking in snapshot begin";
             mutexChangeover.lock();
+            yDebug() << "[mutexChangeover] locked in snapshot begin";
+
             streamStatus = "begin"; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
         }
     }

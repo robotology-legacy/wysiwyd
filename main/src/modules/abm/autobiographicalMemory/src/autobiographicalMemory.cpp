@@ -793,7 +793,9 @@ bool autobiographicalMemory::updateModule() {
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
     if (streamStatus == "begin") {
+        yDebug() << "[mutexStreamRecord] trying to lock in stream begin";
         mutexStreamRecord.lock();
+        yDebug() << "[mutexStreamRecord] locked in stream begin";
         yInfo() << "============================= STREAM BEGIN =================================";
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
@@ -810,6 +812,7 @@ bool autobiographicalMemory::updateModule() {
         streamStatus = "record";
     }
     else if (streamStatus == "record") {
+        yDebug() << "[mutexChangeover] unlocked in record";
         mutexChangeover.unlock();
         string synchroTime = getCurrentTime();
         storeImagesAndData(synchroTime);
@@ -817,8 +820,12 @@ bool autobiographicalMemory::updateModule() {
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
+            yDebug() << "[mutexChangeover] unlocked in send";
+
             mutexChangeover.unlock();
+            yDebug() << "[mutexStreamRecord] trying to lock in stream send";
             mutexStreamRecord.lock();
+            yDebug() << "[mutexStreamRecord] locked in stream send";
             yInfo() << "============================= STREAM SEND =================================";
             timeLastImageSent = -1;
 
@@ -968,7 +975,10 @@ bool autobiographicalMemory::updateModule() {
             mapImgStreamPortOut.clear();
             mapDataStreamPortOut.clear();
 
+            yDebug() << "[mutexChangeover] trying to lock in end of send";
             mutexChangeover.lock();
+            yDebug() << "[mutexChangeover] unlocked in end of send";
+
             streamStatus = "end";
         }
     }
@@ -988,7 +998,10 @@ bool autobiographicalMemory::updateModule() {
         frameNb = 0;
         sendStreamIsInitialized = false;
         streamStatus = "none";
+
+        yDebug() << "[mutexStreamRecord] unlocked in end of stop";
         mutexStreamRecord.unlock();
+        yDebug() << "[mutexChangeover] unlocked in end of stop";
         mutexChangeover.unlock();
     }
 

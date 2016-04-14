@@ -91,7 +91,10 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
 
     bReply.addList() = bDataStreamProviders;
 
+    yDebug() << "[mutexChangeover] try locking in triggerStreaming";
     mutexChangeover.lock();
+    yDebug() << "[mutexChangeover] locked in triggerStreaming";
+
     streamStatus = "send"; //streamStatus changed (triggered in update())
 
     return bReply;

@@ -722,6 +722,8 @@ namespace wysiwyd {
                 std::string status;
                 bReturn ? status = "success" : status = "failed";
 
+                yarp::os::Time::delay(0.1);
+
                 if (ABMconnected)
                 {
                     std::list<std::pair<std::string, std::string> > lArgument;
