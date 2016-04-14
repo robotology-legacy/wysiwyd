@@ -859,13 +859,18 @@ void narrativeHandler::sayNarrationSimple(story target){
     cout << "size of human narration: " << target.humanNarration.size() << endl;
 
     if (target.humanNarration.size() > 2){
+        iCub->opc->checkout();
+        iCub->lookAtPartner();
         cout << endl << "********************************\nbegin saying from human: " << target.viInstances[0] << " with " << target.humanNarration.size() << " events and " << target.sentenceStory.size() << " sentences." << endl;
+        iCub->say("I'll tell you what I did the other day.", true, false, "default", false);
         for (auto ii : target.humanNarration){
+            iCub->opc->checkout();
+            iCub->lookAtPartner();
             cout << "\t" << ii << endl;
             iCub->say(ii, true, false, "default", false);
         }
         cout << endl << "********************************" << endl;
-
+        iCub->home();
         return;
     }
     else{
