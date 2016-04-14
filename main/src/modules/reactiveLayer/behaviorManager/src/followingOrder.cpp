@@ -9,7 +9,7 @@ void FollowingOrder::configure() {
     bKS2 = *bFollowingOrder.find("ks2").asList();
 
     portToHomeo_name = "/"+name+"/toHomeo:o";
-    homeoPort = "/homeostasis:rpc";
+    homeoPort = "/homeostasis/rpc";
 
     babblingArm = bFollowingOrder.find("babblingArm").asString();
 
