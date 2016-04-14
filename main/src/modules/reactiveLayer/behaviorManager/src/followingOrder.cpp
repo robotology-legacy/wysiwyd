@@ -175,7 +175,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
 
         yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks1 = " << ks1;
         iCub->say("kinematic structure for instance " + to_string(ks1), false);
-        iCub->getABMClient()->triggerStreaming(ks1, 1, 1);
+        iCub->getABMClient()->triggerStreaming(ks1);
 
         return true;
     }
@@ -196,7 +196,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
 
         yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks2 = " << ks2;
         iCub->say("kinematic structure correspondence for instance " + to_string(ks2), false);
-        iCub->getABMClient()->triggerStreaming(ks2, 1, 1);
+        iCub->getABMClient()->triggerStreaming(ks2);
 
 
         return true;

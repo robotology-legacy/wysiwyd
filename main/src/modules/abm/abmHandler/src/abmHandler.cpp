@@ -653,7 +653,7 @@ Bottle abmHandler::appleNode2()
         //yarp::os::Time::delay(3);
 
         //TODO : triggerStreaming for raw images  
-        bAnswer = iCub->getABMClient()->triggerStreaming(iCurrentInstance, 1, 1); // syncro real time yes, augmented images yes
+        bAnswer = iCub->getABMClient()->triggerStreaming(iCurrentInstance); // syncro real time yes, augmented images yes
 
 
         //TODO : streaming RAW + augmented image from sCurrentAugmented

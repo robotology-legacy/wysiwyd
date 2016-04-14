@@ -118,15 +118,34 @@ namespace wysiwyd{
                 return bReplyRequest;
             }
 
-            yarp::os::Bottle triggerStreaming(int iCurrentInstance, int iSyncro, int iAugmented)
+            yarp::os::Bottle triggerStreaming(int iCurrentInstance, bool realtime=false, bool includeAugmented=true, double speedMultiplier=1.0, std::string robot="icubSim")
             {
                 yarp::os::Bottle bSend,
                     bReceived;
 
                 bSend.addString("triggerStreaming");
                 bSend.addInt(iCurrentInstance);
-                bSend.addInt(iSyncro);
-                bSend.addInt(iAugmented);
+
+                yarp::os::Bottle bRealtime;
+                bRealtime.addString("realtime");
+                bRealtime.addInt((int) realtime);
+                bSend.addList() = bRealtime;
+
+                yarp::os::Bottle bAugmented;
+                bAugmented.addString("includeAugmented");
+                bAugmented.addInt((int) includeAugmented);
+                bSend.addList() = bRealtime;
+
+                yarp::os::Bottle bSpeedMultiplier;
+                bSpeedMultiplier.addString("speedMultiplier");
+                bSpeedMultiplier.addDouble(speedMultiplier);
+                bSend.addList() = bSpeedMultiplier;
+
+
+                yarp::os::Bottle bRobot;
+                bRobot.addString("robot");
+                bRobot.addString(robot);
+                bSend.addList() = bRobot;
 
                 portRPC.write(bSend, bReceived);
 
