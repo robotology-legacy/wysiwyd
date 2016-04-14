@@ -140,8 +140,8 @@ Bottle OpcSensation::handleEntities()
         }
     }
 
-    yDebug() << "u_entities = " + u_entities.toString();
-    yDebug() << "k_entities = " + k_entities.toString();
+    //yDebug() << "u_entities = " + u_entities.toString();
+    //yDebug() << "k_entities = " + k_entities.toString();
 
     Bottle out;
     out.addInt(int(unknown_obj));

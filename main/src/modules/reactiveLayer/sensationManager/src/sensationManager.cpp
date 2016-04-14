@@ -28,9 +28,7 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
             sensations.push_back(new OpcSensation());
         } else if (sensation_name == "test") {
             sensations.push_back(new Test());
-        }
-            // other behaviors here
-        else{
+        } else{
             yDebug() << "Sensation " + sensation_name + " not implemented";
             return false;
         }
@@ -55,27 +53,3 @@ bool SensationManager::updateModule()
 
 
 }
-
-
-// bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
-// {
-//     cout << cmd.get(0).asString() << endl;
-//     if (cmd.get(0).asString() == "help" )
-//     {   string help = "\n";
-//         help += " ['behavior_name']  : Triggers corresponding behavior \n";
-//         reply.addString(help);
-//     }else
-//     {
-//         for(std::vector<Behavior*>::size_type i = 0; i != behaviors.size(); i++) {
-//             if (cmd.get(0).asString() == behaviors[i]->name) {
-    //                 behavior_to_trigger = i;
-//             }
-//         }
-
-//         reply.addString("ack");
-//     }
-//     // strange:
-//     reply.addString("nack");
-
-//     return true;
-// }
