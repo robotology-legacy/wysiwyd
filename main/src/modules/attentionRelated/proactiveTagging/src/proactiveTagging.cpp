@@ -214,11 +214,11 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
                 yInfo() << "Going to tag skin part";
                 reply = exploreTactileEntityWithName(command);
             }
-            else if (bp->m_kinStruct_instance == -1) {
+            /*else if (bp->m_kinStruct_instance == -1) {
                 yInfo() << "Going to tag kinematic structure";
                 bool forcingKS = true;
                 reply = assignKinematicStructureByName(name, type, forcingKS);
-            }
+            }*/
             else {
                 yWarning("Not sure what to do, name + kinematic structure + tactile information already known");
             }

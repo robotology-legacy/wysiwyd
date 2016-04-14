@@ -109,7 +109,7 @@ Bottle proactiveTagging::assignKinematicStructureByJoint(int BPjoint, std::strin
                 continue;
             }
             if(BPtemp->m_joint_number == BPjoint) {                                             //if corresponding joint : change it
-                BPtemp->m_kinStruct_instance = ksInstance;
+                //BPtemp->m_kinStruct_instance = ksInstance;
                 bListEntChanged.addString(BPtemp->name());
                 yInfo() << "Change" << BPtemp->name() << "to kinematic instance" << ksInstance;
                 iCub->opc->commit(BPtemp);
