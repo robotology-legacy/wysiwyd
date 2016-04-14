@@ -1053,7 +1053,10 @@ Bottle Babbling::dealABM(const Bottle& command, int begin)
     bABM.addList() = bBegin;
     yInfo() << "Bottle to ABM: " << bABM.toString();
 
-    if(Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc")) {
+    if(!Network::isConnected(portToABM.getName(), "/autobiographicalMemory/rpc")) {
+        Network::connect(portToABM.getName(), "/autobiographicalMemory/rpc");
+    }
+    if(Network::isConnected(portToABM.getName(), "/autobiographicalMemory/rpc")) {
         portToABM.write(bABM,bABMreply);
     }
 

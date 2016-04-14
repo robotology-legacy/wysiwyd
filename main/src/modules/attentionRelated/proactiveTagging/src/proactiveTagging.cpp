@@ -657,7 +657,9 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                 if(o && o->name().find("unknown") != string::npos && o->entity_type() == sTypeTarget && o->m_present == 1.0) {
                     iCub->say("There was only one object which I didn't know");
                     iCub->changeName(o, sNameTarget);
+                    yarp::os::Time::delay(0.1);
                     iCub->point(sNameTarget);
+                    yarp::os::Time::delay(0.1);
                     iCub->say("Now I know the " + sNameTarget);
                     iCub->home();
 
