@@ -921,6 +921,10 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 /**********************************************************/
 bool IOL2OPCBridge::interruptModule()
 {
+    yDebug() << "Interrupt iol2opc";
+    rtLocalization.stop();
+    opcUpdater.stop();
+
     imgIn.interrupt();
     imgRtLocOut.interrupt();
     imgTrackOut.interrupt();
@@ -936,9 +940,6 @@ bool IOL2OPCBridge::interruptModule()
     rpcCalib.interrupt();
     opc->interrupt();
 
-    rtLocalization.stop();
-    opcUpdater.stop();
-
     return true;
 }
 
@@ -946,19 +947,37 @@ bool IOL2OPCBridge::interruptModule()
 /**********************************************************/
 bool IOL2OPCBridge::close()
 {
-    imgIn.close();
-    imgRtLocOut.close();
-    imgTrackOut.close();
-    imgSelBlobOut.close();
-    imgClassifier.close();
-    imgHistogram.close();
-    histObjLocPort.close();
+    yDebug() << "Close iol2opc";
+    rtLocalization.stop();
+    opcUpdater.stop();
+
+    rpcPort.interrupt();
     rpcPort.close();
+    imgIn.interrupt();
+    imgIn.close();
+    imgRtLocOut.interrupt();
+    imgRtLocOut.close();
+    imgTrackOut.interrupt();
+    imgTrackOut.close();
+    imgSelBlobOut.interrupt();
+    imgSelBlobOut.close();
+    imgClassifier.interrupt();
+    imgClassifier.close();
+    imgHistogram.interrupt();
+    imgHistogram.close();
+    histObjLocPort.interrupt();
+    histObjLocPort.close();
+    blobExtractor.interrupt();
     blobExtractor.close();
+    rpcClassifier.interrupt();
     rpcClassifier.close();
+    getClickPort.interrupt();
     getClickPort.close();
+    rpcGet3D.interrupt();
     rpcGet3D.close();
+    rpcCalib.interrupt();
     rpcCalib.close();
+    opc->interrupt();
     opc->close();
 
     delete opc;
