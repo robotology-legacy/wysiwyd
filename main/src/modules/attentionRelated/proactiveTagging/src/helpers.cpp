@@ -154,7 +154,7 @@ void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPa
             bool foundSame = false;
             for(auto& e : currentEntitiesList) {
                 if(Bodypart* bp = dynamic_cast<Bodypart*>(e)) {
-                    if(bp->m_joint_number =bodyPartJointList->get(d).asInt()) {
+                    if(bp->m_joint_number == bodyPartJointList->get(d).asInt()) {
                         yWarning() << "Joint" << bp->m_joint_number << "already existing";
                         foundSame = true;
                         break;
