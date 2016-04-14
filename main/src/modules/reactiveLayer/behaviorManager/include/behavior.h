@@ -19,7 +19,7 @@ private:
     virtual void run(Bottle args=Bottle()) = 0;
 public:
 
-    Behavior(Mutex* _mut, ResourceFinder &_rf) : mut(_mut), rf(_rf){
+    Behavior(Mutex* _mut, ResourceFinder &_rf, std::string _behaviorName) : behaviorName(_behaviorName), mut(_mut), rf(_rf){
         from_sensation_port_name = "None";
         external_port_name = "None";
     }
@@ -27,7 +27,7 @@ public:
     void openPorts(string port_name_prefix) {
         if (from_sensation_port_name != "None") {
             sensation_port_in.open("/" + port_name_prefix +"/" + name + "/sensation:i");
-        }    
+        }
         if (external_port_name != "None") {
             rpc_out_port.open("/" + port_name_prefix +"/" + name + "/to_external_module");
         }
@@ -39,6 +39,7 @@ public:
     BufferedPort<Bottle> sensation_port_in, behavior_start_stop_port;
     Port rpc_out_port;
     ResourceFinder& rf;
+    std::string behaviorName;
 
     void trigger(Bottle args=Bottle()) {
         yDebug() << "Behavior::trigger starts"; 

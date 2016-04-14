@@ -43,21 +43,21 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     {
         behavior_name = behaviorList.get(i).asString();
         if (behavior_name == "tagging") {
-            behaviors.push_back(new Tagging(&mut, rf));
+            behaviors.push_back(new Tagging(&mut, rf, "tagging"));
         } else if (behavior_name == "pointing") {
-            behaviors.push_back(new Pointing(&mut, rf));
+            behaviors.push_back(new Pointing(&mut, rf, "pointing"));
         } else if (behavior_name == "dummy") {
-            behaviors.push_back(new Dummy(&mut, rf));
+            behaviors.push_back(new Dummy(&mut, rf, "dummy"));
         } else if (behavior_name == "dummy2") {
-            behaviors.push_back(new Dummy(&mut, rf));
+            behaviors.push_back(new Dummy(&mut, rf, "dummy2"));
         }  else if (behavior_name == "reactions") {
-            behaviors.push_back(new Reactions(&mut, rf));
+            behaviors.push_back(new Reactions(&mut, rf, "reactions"));
         }  else if (behavior_name == "followingOrder") {
-            behaviors.push_back(new FollowingOrder(&mut, rf));
+            behaviors.push_back(new FollowingOrder(&mut, rf, "followingOrder"));
         }  else if (behavior_name == "narrate") {
-            behaviors.push_back(new Narrate(&mut, rf));
+            behaviors.push_back(new Narrate(&mut, rf, "narrate"));
         }  else if (behavior_name == "recognitionOrder") {
-            behaviors.push_back(new recognitionOrder(&mut, rf));
+            behaviors.push_back(new recognitionOrder(&mut, rf, "recognitionOrder"));
             // other behaviors here
         }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
@@ -83,7 +83,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     // id = 0;
     for(auto& beh : behaviors) {
         beh->configure();
-        beh->openPorts(moduleName);
+        beh->openPorts(beh->behaviorName);
         beh->iCub = iCub;
 
         if (beh->from_sensation_port_name != "None") {

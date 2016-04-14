@@ -30,7 +30,7 @@ private:
     string babblingArm;
 
 public:
-    FollowingOrder(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
+    FollowingOrder(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
       

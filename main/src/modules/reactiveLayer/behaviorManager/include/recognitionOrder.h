@@ -20,7 +20,7 @@ private:
     void run(Bottle args=Bottle());
     
 public:
-    recognitionOrder(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
+    recognitionOrder(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
        

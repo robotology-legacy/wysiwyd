@@ -29,7 +29,7 @@ private:
     int id;
 
 public:
-    Dummy(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
+    Dummy(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         n_instances++;
         id = n_instances;
     }

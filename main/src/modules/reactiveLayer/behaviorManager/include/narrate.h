@@ -20,7 +20,7 @@ private:
     void run(Bottle args=Bottle());
     
 public:
-    Narrate(Mutex* mut, ResourceFinder &rf): Behavior(mut, rf) {
+    Narrate(Mutex* mut, ResourceFinder &rf, std::string behaviorName): Behavior(mut, rf, behaviorName) {
         ;
     }
         
