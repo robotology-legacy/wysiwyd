@@ -50,12 +50,6 @@ public:
     */
     std::string m_part;
 
-    /**
-    * The instance within the ABM in which the kinematic structure of this
-    * bodypart was computed.
-    */
-    int m_kinStruct_instance;
-
     virtual bool isType(std::string _entityType)
     {
         if (_entityType == "bodypart")
