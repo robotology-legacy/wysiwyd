@@ -145,10 +145,25 @@ string proactiveTagging::getBestEntity(string sTypeTarget) {
 }
 
 void proactiveTagging::subPopulateBodyparts(Bottle* bodyPartList, Bottle* bodyPartJointList, bool addOrRetrieve) {
+    list<Entity*> currentEntitiesList = opc->EntitiesCacheCopy();
+
     if (bodyPartList)
     {
         for (int d = 0; d < bodyPartList->size(); d++)
         {
+            bool foundSame = false;
+            for(auto& e : currentEntitiesList) {
+                if(bp = dynamic_cast<Bodypart*>(e)) {
+                    if(bp->m_joint_number =bodyPartJointList->get(d).asInt()) {
+                        yWarning() << "Joint" << bp->m_joint_number << "already existing";
+                        foundSame = true;
+                        break;
+                    }
+                }
+            }
+            if(foundSame) {
+                continue;
+            }
             std::string name = bodyPartList->get(d).asString().c_str();
             wysiwyd::wrdac::Bodypart* o;
             if(addOrRetrieve) {
