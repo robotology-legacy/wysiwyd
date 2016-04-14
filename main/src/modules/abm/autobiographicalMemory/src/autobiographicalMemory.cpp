@@ -792,6 +792,8 @@ bool autobiographicalMemory::updateModule() {
     if (streamStatus == "begin") {
         yInfo() << "============================= STREAM BEGIN =================================";
 
+        mutexStreamRecord.lock();
+
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
 
         string currentPathFolder = storingPath + "/" + std::to_string(imgInstance);
@@ -812,6 +814,7 @@ bool autobiographicalMemory::updateModule() {
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
+            mutexStreamRecord.lock();
             yInfo() << "============================= STREAM SEND =================================";
             timeLastImageSent = -1;
 
@@ -976,6 +979,7 @@ bool autobiographicalMemory::updateModule() {
         frameNb = 0;
         sendStreamIsInitialized = false;
         streamStatus = "none";
+        mutexStreamRecord.unlock();
     }
 
     return !shouldClose;

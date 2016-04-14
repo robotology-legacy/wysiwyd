@@ -117,6 +117,8 @@ public:
     bool sendStreamIsInitialized;
     bool increaseFrameNb;
 
+    yarp::os::Mutex mutexStreamRecord;
+
     yarp::os::Bottle triggerStreaming(int instance, bool realtimePlayback, bool includeAugmented, double speedM, const std::string& robotName);
 
     // maps to receive / send images
