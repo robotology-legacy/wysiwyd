@@ -790,10 +790,9 @@ bool autobiographicalMemory::updateModule() {
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
     if (streamStatus == "begin") {
-        yInfo() << "============================= STREAM BEGIN =================================";
-
         LockGuard lg(mutexSnapshot);
         mutexStreamRecord.lock();
+        yInfo() << "============================= STREAM BEGIN =================================";
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
 
@@ -815,6 +814,7 @@ bool autobiographicalMemory::updateModule() {
     else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
+            mutexSnapshot.lock();
             mutexStreamRecord.lock();
             yInfo() << "============================= STREAM SEND =================================";
             timeLastImageSent = -1;
@@ -961,8 +961,8 @@ bool autobiographicalMemory::updateModule() {
             mapImgStreamPortOut.clear();
             mapDataStreamPortOut.clear();
 
-            LockGuard lg(mutexSnapshot);
             streamStatus = "end";
+            mutexSnapshot.unlock();
         }
     }
 
