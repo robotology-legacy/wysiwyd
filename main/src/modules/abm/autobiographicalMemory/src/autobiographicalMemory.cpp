@@ -887,6 +887,10 @@ bool autobiographicalMemory::updateModule() {
                 }
                 catch (const std::out_of_range&) {
                     yWarning() << "No corresponding port to" << portname << ", not going to send image for this port!";
+                    yWarning() << "Available ports:";
+                    for(auto& port : mapImgStreamPortOut) {
+                        yWarning() << port.first;
+                    }
                 }
             }
         }
