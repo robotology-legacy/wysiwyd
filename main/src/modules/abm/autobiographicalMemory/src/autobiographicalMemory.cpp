@@ -792,6 +792,7 @@ bool autobiographicalMemory::updateModule() {
     if (streamStatus == "begin") {
         yInfo() << "============================= STREAM BEGIN =================================";
 
+        LockGuard lg(mutexSnapshot);
         mutexStreamRecord.lock();
 
         imgInstance = currentInstance; //currentInstance is different from begin/end : imgInstance instanciated just at the beginning and use for the whole stream to assure the same instance id
@@ -960,6 +961,7 @@ bool autobiographicalMemory::updateModule() {
             mapImgStreamPortOut.clear();
             mapDataStreamPortOut.clear();
 
+            LockGuard lg(mutexSnapshot);
             streamStatus = "end";
         }
     }
