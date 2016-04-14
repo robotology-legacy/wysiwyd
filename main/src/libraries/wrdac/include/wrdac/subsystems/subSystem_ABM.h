@@ -134,7 +134,7 @@ namespace wysiwyd{
                 yarp::os::Bottle bAugmented;
                 bAugmented.addString("includeAugmented");
                 bAugmented.addInt((int) includeAugmented);
-                bSend.addList() = bRealtime;
+                bSend.addList() = bAugmented;
 
                 yarp::os::Bottle bSpeedMultiplier;
                 bSpeedMultiplier.addString("speedMultiplier");
