@@ -126,6 +126,12 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     }
 
     if (isStreamActivity == true && !bBegin) { //just stop stream images stores when relevant activity
+        while(!mutexStreamRecord.tryLock()) {
+            yDebug() << "[mutexStreamRecord] tryLock";
+            yarp::os::sleep(0.3);
+        }
+        yDebug() << "[mutexStreamRecord] unlock";
+        mutexStreamRecord.unlock();
         yDebug() << "[mutexChangeover] try locking in snapshot end";
         mutexChangeover.lock();
         yDebug() << "[mutexChangeover] locked in snapshot end";
@@ -246,6 +252,12 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
     if (isStreamActivity == true) { //just launch stream images stores when relevant activity
         if (bBegin) {
+            while(!mutexStreamRecord.tryLock()) {
+                yDebug() << "[mutexStreamRecord] tryLock";
+                yarp::os::sleep(0.3);
+            }
+            yDebug() << "[mutexStreamRecord] unlock";
+            mutexStreamRecord.unlock();
             yDebug() << "[mutexChangeover] try locking in snapshot begin";
             mutexChangeover.lock();
             yDebug() << "[mutexChangeover] locked in snapshot begin";
