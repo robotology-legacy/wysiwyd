@@ -953,10 +953,11 @@ bool autobiographicalMemory::updateModule() {
         // Are we done?
         bool done = false;
         if (realtimePlayback && updateTimeDifference >= timeVeryLastStream) {
+            yDebug() << "realtime on, end of stream:" << timeLastImageSent << " >= " << timeVeryLastStream;
             done = true;
         }
         else if (!realtimePlayback && timeLastImageSent >= timeVeryLastStream) {
-            //yDebug() << timeLastImageSent << " >= " << timeVeryLastStream;
+            yDebug() << "realtime off, end of stream:" << timeLastImageSent << " >= " << timeVeryLastStream;
             done = true;
         }
 
