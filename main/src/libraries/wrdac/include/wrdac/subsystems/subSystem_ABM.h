@@ -118,7 +118,7 @@ namespace wysiwyd{
                 return bReplyRequest;
             }
 
-            yarp::os::Bottle triggerStreaming(int iCurrentInstance, bool realtime=false, bool includeAugmented=true, double speedMultiplier=1.0, std::string robot="icubSim")
+            yarp::os::Bottle triggerStreaming(int iCurrentInstance, bool realtime=false, bool includeAugmented=true, double speedMultiplier=1.0, std::string robot="icubSim", bool blocking=false)
             {
                 yarp::os::Bottle bSend,
                     bReceived;
@@ -130,6 +130,11 @@ namespace wysiwyd{
                 bRealtime.addString("realtime");
                 bRealtime.addInt((int) realtime);
                 bSend.addList() = bRealtime;
+
+                yarp::os::Bottle bBlocking;
+                bBlocking.addString("blocking");
+                bBlocking.addInt((int) blocking);
+                bSend.addList() = bBlocking;
 
                 yarp::os::Bottle bAugmented;
                 bAugmented.addString("includeAugmented");

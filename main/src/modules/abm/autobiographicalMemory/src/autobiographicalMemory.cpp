@@ -587,6 +587,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             {
                 yDebug() << "Command: " << bCommand.toString();
                 int instance = bCommand.get(1).asInt();
+                bool blocking = false;
                 bool realtime = false;
                 bool includeAugmented = true;
                 double speedMultiplier = 1.0;
@@ -612,15 +613,23 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                     robot = vRobot.asString();
                 }
 
+                Value vBlocking = bCommand.find("blocking");
+                if (!vBlocking.isNull() && vBlocking.isInt()) {
+                    blocking = vBlocking.asInt() > 0;
+                }
+
                 yDebug() << "instance: " << instance;
                 yDebug() << "realtime: " << realtime;
                 yDebug() << "includeAugmented: " << includeAugmented;
                 yDebug() << "speedMultiplier: " << speedMultiplier;
                 yDebug() << "robot: " << robot;
+                yDebug() << "blocking: " << blocking;
 
                 bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot);
-                while(streamStatus=="send") {
-                    yarp::os::Time::delay(0.2);
+                if(blocking) {
+                    while(streamStatus=="send") {
+                        yarp::os::Time::delay(0.2);
+                    }
                 }
             }
             else
