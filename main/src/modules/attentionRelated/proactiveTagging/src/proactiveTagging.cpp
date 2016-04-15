@@ -643,9 +643,9 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
         }
 
         if(unknownEntitiesPresent == 0) {
-            iCub->lookAtPartner();
-            iCub->say("I know all the " + sTypeTarget + " present. The " + sNameTarget + " is not here");
-            iCub->home();
+            //iCub->lookAtPartner();
+            //iCub->say("I know all the " + sTypeTarget + " present. The " + sNameTarget + " is not here");
+            //iCub->home();
             yInfo() << "No unknown entity is present.";
             bOutput.addString("nack");
             bOutput.addString("No unknown entity is present.");

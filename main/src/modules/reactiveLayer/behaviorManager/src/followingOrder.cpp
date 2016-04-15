@@ -53,8 +53,6 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     yDebug() << type;
     yInfo() << target;
 
-    //TODOOOOOOOOO: no search for KS
-
     if ( target != "none" && type != "bodypart" && type != "kinematic structure" && type != "kinematic structure correspondence"){           //we dont have searchEntity for bodypart
         yInfo() << "there are objects to search!!!";
         handleSearch(type, target);
@@ -78,7 +76,6 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         }
     } else if (action == "narrate"){
         handleNarrate();
-        yInfo() << "narrating!!!";
     }  else if (action == "show" && (type == "kinematic structure" || type == "kinematic structure correspondence")){
         handleActionKS(action, type);
     }
@@ -125,22 +122,29 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
             if (entity->entity_type() == "object")
             {
                 Object* o = dynamic_cast<Object*>(entity);
-                if(o && (o->m_present==1.0)) {
+                if(o && o->m_present==1.0) {
                     yInfo() << "I'd like to" << action << "the" << target;
 
                     if(action == "point") {
                         iCub->point(target);
-                        iCub->say("oh! this is a " + target);
+                        iCub->say("oh! this is a " + target + ".");
                     } else if(action == "look at") {
                         iCub->look(target);
-                        iCub->say("oh! look at the " + target);
+                        iCub->say("oh! look at the " + target + ".");
                     } else if(action == "push") {
                         iCub->push(target);
-                        iCub->say("oh! look how I pushed the " + target);
+                        iCub->say("oh! look how I pushed the " + target + ".");
+                    } else {
+                        yError() << "This action is not supported!";
                     }
                     yarp::os::Time::delay(1.0);
                     iCub->home();
 
+                    return true;
+                } else if (o && o->m_present==0.0) {
+                    iCub->lookAtPartner();
+                    iCub->say("I know the " + target + " but it is not here.");
+                    iCub->home();
                     return true;
                 }
             }
@@ -149,7 +153,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
 
     yWarning() << "Cannot" << action << "the" << target;
     iCub->lookAtPartner();
-    iCub->say("I cannot " + action + " the " + target);
+    iCub->say("I don't know the " + target + " but I know it is not here. I will not " + action + " it.");
     iCub->home();
     return false;
 }
