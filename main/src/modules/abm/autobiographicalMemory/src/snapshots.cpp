@@ -18,13 +18,6 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     // run only one snapshot at a time
     LockGuard lg(mutexSnapshot);
 
-    while(!mutexStreamRecord.tryLock()) {
-        yDebug() << "[mutexStreamRecord] tryLock";
-        yarp::os::Time::delay(0.3);
-    }
-    yDebug() << "[mutexStreamRecord] unlock";
-    mutexStreamRecord.unlock();
-
     //get Instance of the next opc
     string sRequest_instance;
 
@@ -253,6 +246,14 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
     if (isStreamActivity == true) { //just launch stream images stores when relevant activity
         if (bBegin) {
+            while(!mutexStreamRecord.tryLock()) {
+                yDebug() << "[mutexStreamRecord] tryLock";
+                yarp::os::Time::delay(0.3);
+            }
+            yDebug() << "[mutexStreamRecord] unlock";
+            mutexStreamRecord.unlock();
+
+
             yDebug() << "[mutexChangeover] try locking in snapshot begin";
             mutexChangeover.lock();
             yDebug() << "[mutexChangeover] locked in snapshot begin";
@@ -262,7 +263,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     }
     else
     {   //just one image (sentence?)
-        imgInstance = currentInstance;
+        if(streamStatus != "record" && streamStatus != "send") {
+            imgInstance = currentInstance;
+        }
         string synchroTime = getCurrentTime();
         frameNb = 0;
 
