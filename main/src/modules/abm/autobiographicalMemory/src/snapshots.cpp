@@ -282,9 +282,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             //read sound from file and put data in yarp::sig::Sound to store properly with semantic/instance that we are now aware of
             yarp::sig::Sound s;
             string defaultSoundFullPath = storingPath + "/" + storingTmpSuffix + "/sound/" + "default.wav";
-            printf("opening file %s\n", defaultSoundFullPath.c_str());
+            yDebug() << "opening sound file " << defaultSoundFullPath.c_str();
             if (yarp::sig::file::read(s, defaultSoundFullPath.c_str()) == false) {
-                yError() << "Cannot open the default sound file : check " << defaultSoundFullPath;
+                yWarning() << "Cannot open the default sound file: check " << defaultSoundFullPath;
             }
             else {
                 yInfo() << "Default sound file loaded from " << defaultSoundFullPath;
