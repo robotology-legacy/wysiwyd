@@ -244,7 +244,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     }
 
     //2.Ask human to touch
-    string sAsking = "I know how to move my " + sName + ", but how does it feel to be touched? I will move my " + sName + ". Can you touch it, please?";
+    string sAsking = "I know how to move my " + sName + ", but how does it feel when I touch something? Can you touch my " + sName + " when I move it, please?";
     yInfo() << " sAsking: " << sAsking;
     iCub->lookAtPartner();
     iCub->say(sAsking);
@@ -294,6 +294,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     //4.Ask human to touch
     string sThank = " Thank you, now I know when I am touching object with my " + sName;
     yInfo() << " sThank: " << sThank;
+    iCub->lookAtPartner();
     iCub->say(sThank);
     iCub->home();
 

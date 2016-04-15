@@ -113,7 +113,6 @@ bool FollowingOrder::handleNarrate(){
 
 bool FollowingOrder::handleAction(string type, string target, string action) {
     iCub->home();
-    yarp::os::Time::delay(1.0);
 
     yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
     iCub->opc->checkout();
@@ -150,7 +149,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
 
     yWarning() << "Cannot" << action << "the" << target;
     iCub->lookAtPartner();
-    iCub->say("I don't think the " + target + " is here. I cannot " + action + " it");
+    iCub->say("I cannot " + action + " the " + target);
     iCub->home();
     return false;
 }
@@ -222,7 +221,7 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
                     //send rpc command to bodySchema to move the corresponding part
                     yInfo() << "Start bodySchema";
                     double babbling_duration = 4.0;
-                    iCub->say("I am moving my " + target, false);
+                    iCub->say("I will move my " + target, false);
                     iCub->babbling(joint, babblingArm, babbling_duration);
                 }
 
@@ -281,5 +280,4 @@ bool FollowingOrder::handleSearch(string type, string target)
     yDebug() << rply.toString();
 
     return true;
-
 }
