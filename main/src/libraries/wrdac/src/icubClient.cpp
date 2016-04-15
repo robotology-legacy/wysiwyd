@@ -456,7 +456,7 @@ bool ICubClient::grasp(const string &oName, const Bottle &options)
     Object *oTarget = dynamic_cast<Object*>(target);
     if (oTarget->m_present!=1.0)
     {
-        yError() << "[iCubClient] Called grasp() on an unavailable entity: \"" << oName << "\"";
+        yWarning() << "[iCubClient] Called grasp() on an unavailable entity: \"" << oName << "\"";
         return false;
     }
 
@@ -481,7 +481,7 @@ bool ICubClient::grasp(const Vector &target, const Bottle &options, std::string 
     }
     else
     {
-        yError() << "[iCubClient] Called grasp() on a unreachable entity: (" << target.toString(3, 3).c_str() << ")";
+        yWarning() << "[iCubClient] Called grasp() on a unreachable entity: (" << target.toString(3, 3).c_str() << ")";
         return false;
     }
 }
@@ -499,7 +499,7 @@ bool ICubClient::release(const string &oLocation, const Bottle &options)
     Object *oTarget = dynamic_cast<Object*>(target);
     if (oTarget->m_present!=1.0)
     {
-        yError() << "[iCubClient] Called release() on an unavailable entity: \"" << oLocation << "\"";
+        yWarning() << "[iCubClient] Called release() on an unavailable entity: \"" << oLocation << "\"";
         return false;
     }
 
@@ -520,7 +520,7 @@ bool ICubClient::release(const Vector &target, const Bottle &options)
         return are->dropOn(target, options);
     else
     {
-        yError() << "[iCubClient] Called release() on a unreachable location: (" << target.toString(3, 3).c_str() << ")";
+        yWarning() << "[iCubClient] Called release() on a unreachable location: (" << target.toString(3, 3).c_str() << ")";
         return false;
     }
 }
@@ -531,14 +531,14 @@ bool ICubClient::point(const string &oLocation, const Bottle &options)
     Entity *target = opc->getEntity(oLocation, true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
     {
-        yError() << "[iCubClient] Called point() on a unallowed location: \"" << oLocation << "\"";
+        yWarning() << "[iCubClient] Called point() on a unallowed location: \"" << oLocation << "\"";
         return false;
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
     if (oTarget->m_present!=1.0)
     {
-        yError() << "[iCubClient] Called point() on an unavailable entity: \"" << oLocation << "\"";
+        yWarning() << "[iCubClient] Called point() on an unavailable entity: \"" << oLocation << "\"";
         return false;
     }
 
@@ -565,14 +565,14 @@ bool ICubClient::push(const string &oLocation, const Bottle &options)
     Entity *target = opc->getEntity(oLocation, true);
     if (!target->isType(EFAA_OPC_ENTITY_RTOBJECT) && !target->isType(EFAA_OPC_ENTITY_OBJECT))
     {
-        yError() << "[iCubClient] Called push() on a unallowed location: \"" << oLocation << "\"";
+        yWarning() << "[iCubClient] Called push() on a unallowed location: \"" << oLocation << "\"";
         return false;
     }
 
     Object *oTarget = dynamic_cast<Object*>(target);
     if (oTarget->m_present!=1.0)
     {
-        yError() << "[iCubClient] Called push() on an unavailable entity: \"" << oLocation << "\"";
+        yWarning() << "[iCubClient] Called push() on an unavailable entity: \"" << oLocation << "\"";
         return false;
     }
 
@@ -605,7 +605,7 @@ bool ICubClient::look(const string &target)
             if (oTarget->m_present==1.0)
                 return are->look(oTarget->m_ego_position, yarp::os::Bottle() , oTarget->name());
 
-        yError() << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"";
+        yWarning() << "[iCubClient] Called look() on an unavailable target: \"" << target << "\"";
         return false;
     }
 
