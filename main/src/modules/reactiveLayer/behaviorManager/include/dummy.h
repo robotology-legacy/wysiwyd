@@ -22,9 +22,9 @@ private:
     static int n_instances;
 
     void run(Bottle args=Bottle()) {
-        yDebug() << "Dummmy::run start " + name;
+        yDebug() << "Dummmy::run start " + behaviorName;
         Time::delay(10);
-        yDebug() << "Dummmy::run stop " + name;
+        yDebug() << "Dummmy::run stop " + behaviorName;
     }
     int id;
 
@@ -35,9 +35,6 @@ public:
     }
 
     void configure() {
-        name = "dummy";
-        if (id >= 2)
-            name += to_string(id);
         external_port_name = "None";
         from_sensation_port_name = "None";        
     }

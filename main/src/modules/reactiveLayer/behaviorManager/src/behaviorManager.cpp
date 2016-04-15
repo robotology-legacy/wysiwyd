@@ -83,7 +83,7 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
     // id = 0;
     for(auto& beh : behaviors) {
         beh->configure();
-        beh->openPorts(beh->behaviorName);
+        beh->openPorts(moduleName);
         beh->iCub = iCub;
 
         if (beh->from_sensation_port_name != "None") {
@@ -129,15 +129,15 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
         Bottle names;
         names.clear();
         for(auto& beh : behaviors) {
-            names.addString(beh->name);
+            names.addString(beh->behaviorName);
         }
         reply.addList() = names;
     }
     else
     {
         for(auto& beh : behaviors) {
-            yDebug()<<cmd.get(0).asString() <<"    "<< beh->name;
-            if (cmd.get(0).asString() == beh->name) {
+            yDebug()<<cmd.get(0).asString() <<"    "<< beh->behaviorName;
+            if (cmd.get(0).asString() == beh->behaviorName) {
         //         Bottle args;
         //         args.clear();
         //         for (int a = 1; a < cmd.size(); a++)
@@ -148,13 +148,13 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 if (beh->from_sensation_port_name != "None") {
                     if (!Network::isConnected(beh->from_sensation_port_name, beh->sensation_port_in.getName())) {
                         aux =Network::connect(beh->from_sensation_port_name, beh->sensation_port_in.getName());
-                        yInfo()<< "The sensations port for "<< beh->name <<" was not connected. \nReconnection status: " << aux;
+                        yInfo()<< "The sensations port for "<< beh->behaviorName <<" was not connected. \nReconnection status: " << aux;
                     }
                 }
                 if (beh->external_port_name != "None") {
                     if (!Network::isConnected(beh->rpc_out_port.getName(), beh->external_port_name)) {
                         aux = Network::connect(beh->rpc_out_port.getName(), beh->external_port_name);
-                        yInfo()<< "The external port for "<< beh->name <<" was not connected. \nReconnection status: " << aux;
+                        yInfo()<< "The external port for "<< beh->behaviorName <<" was not connected. \nReconnection status: " << aux;
                     }   
                 }
 

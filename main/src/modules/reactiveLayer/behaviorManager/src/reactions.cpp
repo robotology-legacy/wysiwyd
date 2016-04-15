@@ -2,7 +2,6 @@
 
 void Reactions::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
-    name = "reactions";
     external_port_name = "None";
     from_sensation_port_name = "None";
 }

@@ -2,7 +2,6 @@
 
 void recognitionOrder::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
-    name = "recognitionOrder";
     external_port_name = "/SAM/rpc";
     from_sensation_port_name = "None";
     //this could be a port that sends a command 

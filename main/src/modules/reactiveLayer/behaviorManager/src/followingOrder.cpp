@@ -1,20 +1,18 @@
 #include "followingOrder.h"
 
 void FollowingOrder::configure() {
-
     Bottle bFollowingOrder = rf.findGroup("followingOrder");
     bKS1.clear();
     bKS2.clear();
     bKS1 = *bFollowingOrder.find("ks1").asList();
     bKS2 = *bFollowingOrder.find("ks2").asList();
 
-    portToHomeo_name = "/"+name+"/toHomeo:o";
+    portToHomeo_name = "/"+behaviorName+"/toHomeo:o";
     homeoPort = "/homeostasis/rpc";
 
     babblingArm = bFollowingOrder.find("babblingArm").asString();
 
     // Todo: set the value beow from a config file (but we are not in a module here)
-    name = "followingOrder";
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/ears/target:o";
 

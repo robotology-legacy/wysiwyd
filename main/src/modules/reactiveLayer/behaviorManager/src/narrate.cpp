@@ -2,7 +2,6 @@
 
 void Narrate::configure() {
     // Todo: set the value beow from a config file (but we are not in a module here)
-    name = "narrate";
     external_port_name = "/narrativeHandler/rpc";
     yInfo() << "external_port_name: " << external_port_name;
 
