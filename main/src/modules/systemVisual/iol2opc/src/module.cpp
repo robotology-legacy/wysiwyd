@@ -1168,6 +1168,7 @@ bool IOL2OPCBridge::remove_object(const string &name)
         db.erase(it);
 
     opc->checkout();
+    yDebug() << "opc->removeEntity for ID" << it->second.opc_id;
     return opc->removeEntity(it->second.opc_id);
 }
 
@@ -1192,8 +1193,11 @@ bool IOL2OPCBridge::remove_all()
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
     opc->checkout();
-    for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+    for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++) {
+        yDebug() << "opc->removeEntity for ID" << it->second.opc_id;
         opc->removeEntity(it->second.opc_id);
+        yarp::os::Time::delay(0.1);
+    }
 
     db.clear();
     return true;

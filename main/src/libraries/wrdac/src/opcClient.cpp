@@ -172,7 +172,7 @@ Entity* OPCClient::getEntity(const string &name, bool forceUpdate)
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC in getEntity with name";
         return NULL;
     }
 
@@ -214,7 +214,7 @@ Entity *OPCClient::getEntity(int id, bool forceUpdate)
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC in getEntity with ID";
         return NULL;
     }
 
@@ -263,13 +263,13 @@ bool OPCClient::removeEntity(const string &name)
 
         if (write(cmd,reply,isVerbose))
         {
-            if (reply.get(0).asVocab()==VOCAB3('a','c','k'))
-            {
+            if (reply.get(0).asVocab()==VOCAB3('a','c','k')) {
                 entitiesByID.erase(e->opc_id());
                 return true;
             }
-            else
-                yError()<<"Unable to talk correctly to OPC";
+            else {
+                yError()<<"Unable to talk correctly to OPC in removeEntity by name";
+            }
         }
     }
 
@@ -293,8 +293,11 @@ bool OPCClient::removeEntity(int id)
                 entitiesByID.erase(e->opc_id());
                 return true;
             }
-            else
-                yError()<<"Unable to talk correctly to OPC";
+            else {
+                yError()<<"Unable to talk correctly to OPC in removeEntity by ID";
+                yError()<<"Command sent:" << cmd.toString();
+                yError()<<"Reply:" << reply.toString();
+            }
         }
     }
 
@@ -375,7 +378,7 @@ int OPCClient::getRelationID(
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        yError()<<"Unable to talk correctly to OPC";
+        yError()<<"Unable to talk correctly to OPC in getRelationID";
         return false;
     }
     
@@ -438,7 +441,7 @@ bool OPCClient::addRelation(
 
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC in addRelation";
         return false;
     }
     index = reply.get(1).asList()->get(1).asInt();
@@ -487,7 +490,7 @@ bool OPCClient::removeRelation(
         write(cmd,reply,isVerbose);
         if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
         {
-            yError() << "Unable to talk correctly to OPC. Item not deleted.";
+            yError() << "Unable to talk correctly to OPC in removeRelation. Item not deleted.";
             yError() << "command used to remove = " << cmd.toString().c_str();
             return false;
         }
@@ -557,7 +560,7 @@ bool OPCClient::setLifeTime(int opcID, double lifeTime)
     write(cmd,reply,isVerbose);
     if (reply.get(0).asVocab() == VOCAB4('n','a','c','k'))
     {
-        yError() << "Unable to talk correctly to OPC";
+        yError() << "Unable to talk correctly to OPC in setLifeTime";
         return false;
     }
     return true;
