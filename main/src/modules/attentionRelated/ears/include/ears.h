@@ -10,6 +10,7 @@ private:
     double      period;
     Port        rpc;
     Port        portToBehavior;
+    Port        portToSpeechRecognizer;
     BufferedPort<Bottle>        portTarget;
 
     Mutex m;

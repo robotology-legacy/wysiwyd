@@ -21,6 +21,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 
     portToBehavior.open("/" + moduleName + "/behavior:o");
     portTarget.open("/" + moduleName + "/target:o");
+    portToSpeechRecognizer.open("/" + moduleName + "/speech:o");
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
     bShouldListen = true;
@@ -38,9 +39,19 @@ bool ears::interruptModule() {
     // so interrupt the speechRecognizer
     yDebug() << "interrupt ears";
     bShouldListen = false;
-    iCub->getRecogClient()->interruptSpeechRecognizer();
+    if(Network::connect("/" + getName() + "/speech:o", "/speechRecognizer/rpc")) {
+        Bottle bMessenger, bReply;
+        bMessenger.addString("interrupt");
+        // send the message
+        portToSpeechRecognizer.write(bMessenger, bReply);
+        if(bReply.get(1).asString() != "OK") {
+            yError() << "speechRecognizer was not interrupted";
+            yDebug() << "Reply from speechRecognizer:" << bReply.toString();
+        }
+    }
 
     yDebug() << "interrupted speech recognizer";
+    portToSpeechRecognizer.interrupt();
     portToBehavior.interrupt();
     portTarget.interrupt();
     rpc.interrupt();
@@ -53,15 +64,15 @@ bool ears::interruptModule() {
 
 bool ears::close() {
     yDebug() << "close ears";
-    bShouldListen = false;
-    iCub->getRecogClient()->interruptSpeechRecognizer();
-    yDebug() << "interrupted speech recognizer";
 
     if(iCub) {
         iCub->close();
         delete iCub;
     }
     yDebug() << "closed icub";
+
+    portToSpeechRecognizer.interrupt();
+    portToSpeechRecognizer.close();
 
     portToBehavior.interrupt();
     portToBehavior.close();
