@@ -429,7 +429,7 @@ bool AgentDetector::updateModule()
             Bottle bPresent;
             bPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
             bPresent.addString("==");
-            bPresent.addInt(1);
+            bPresent.addDouble(1.0);
 
             bCond.addList()=bObject;
             bCond.addString("&&");
