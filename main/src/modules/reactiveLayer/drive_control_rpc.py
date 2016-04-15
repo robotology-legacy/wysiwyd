@@ -43,6 +43,21 @@ for i in range(names.size()):
 	behavior_ports[name].open("/driveControl/behaviors/" + behaviors[-1] + ":i")
 	yarp.Network.connect("/BehaviorManager/" + behaviors[-1] + "/start_stop:o", behavior_ports[name].getName())
 
+def close_ports():
+	print "Interrupting and closing ports"
+	# interrupting
+	toHomeo.interrupt()
+	toAllo.interrupt()
+	toBehaviorManager.interrupt()
+	for beh_port in behavior_ports.values():
+		beh_port.interrupt()
+	# closing
+	toHomeo.close()
+	toAllo.close()
+	toBehaviorManager.close()
+	for beh_port in behavior_ports.values():
+		beh_port.close()
+
 
 def trigger_behavior(behavior):
 	# Prepare command

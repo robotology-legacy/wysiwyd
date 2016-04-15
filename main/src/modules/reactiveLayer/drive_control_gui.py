@@ -3,15 +3,13 @@
 from collections import OrderedDict
 from Tkinter import *
 
-from drive_control_rpc import pointing, tagging, dummy, reset_all, freeze_all, unfreeze_all, narrate, manual_mode, automatic_mode
+from drive_control_rpc import pointing, tagging, dummy, reset_all, freeze_all, unfreeze_all, narrate, manual_mode, automatic_mode, close_ports
 
 window = Tk()
 
-def test():
-    print "test"
-
-def test2():
-    print "test2"
+def on_closing():
+    close_ports()
+    window.destroy()
 
 title = Label(window, text="Manual drive control")
 
@@ -33,4 +31,5 @@ buttons["dummy"] = Button(window, text="Dummy", command=dummy)
 for b in buttons.values():
     b.pack()
 
+window.protocol("WM_DELETE_WINDOW", on_closing)
 window.mainloop()
