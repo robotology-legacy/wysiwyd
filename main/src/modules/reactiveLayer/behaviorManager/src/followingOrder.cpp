@@ -214,8 +214,8 @@ bool FollowingOrder::handleActionBP(string type, string target, string action) {
             if (entity->entity_type() == type) //type has been checked to be "bodypart" before, in run()
             {
                 Bodypart* BPentity = dynamic_cast<Bodypart*>(entity);
+                iCub->lookAtPartner();
                 iCub->say("Nice, I will do some exercise with my " + babblingArm + " arm");
-                yInfo() << "I'd like to" << action << "the" << target;
 
                 if(action == "move") { //only action available right now for bodypart but keep the check for future development
                     int joint = BPentity->m_joint_number;
