@@ -12,9 +12,10 @@
 #
 #
 
+%matplotlib inline
+import matplotlib
 import matplotlib.pyplot as plt
 import readline
-import warnings
 import GPy
 from SAM.SAM_Core import SAMCore
 from SAM.SAM_Core import SAMDriver
@@ -29,8 +30,11 @@ from os import listdir, walk, system
 from os.path import isfile, join, isdir
 import time
 import operator
+import numpy
+
 import numpy as np
 import numpy.ma as ma
+np.set_printoptions(threshold=numpy.nan)
 import datetime
 import yarp
 import copy
@@ -39,7 +43,9 @@ from ConfigParser import SafeConfigParser
 from scipy.spatial import distance
 from numpy.linalg import inv
 import math
-import itertools
+import ipyparallel as ipp
+import random
+from SAM.SAM_Core import staticPose
 numQ = 6
 warnings.simplefilter("ignore")
 
@@ -50,11 +56,12 @@ def distEuc(a,b):
     temp = np.sum(temp,1)
     return np.sqrt(temp)
 
-def qtc_2D(k,l,q,thresh, contactThresh, contact = None):
+def qtc_2D(k,l,q,thresh):
+    
     d1 = distEuc(k[:-2],l[1:-1])
     d2 = distEuc(k[1:-1],l[1:-1])
     d3 = distEuc(k[2:],l[1:-1])
-
+    
     for i in range(len(d1)):
         #threshold distance moved
         diff1 = d2[i]-d1[i]
@@ -72,14 +79,8 @@ def qtc_2D(k,l,q,thresh, contactThresh, contact = None):
             q[i] = +1
         else:
             q[i] = 0
-                
-        #check contact
-        if(contact != None):
-	        if(d2[i]<contactThresh):
-	        	contact[i] = 1
-
-        #check qtc smoothness
-
+    
+    return d2
 
 def frenetFrame(arr):
     t_num = np.diff(arr,axis=0)
@@ -98,7 +99,10 @@ def frenetFrame(arr):
 def qtc_3D(k, l, thresh, q3, q4, q5):
     fFrameK = frenetFrame(k)
     fFrameL = frenetFrame(l)
-
+    alpArr = np.zeros(q3.shape)
+    betArr = np.zeros(q3.shape)
+    gamArr = np.zeros(q3.shape)
+    
     for g in range(fFrameK.shape[2]):
         fKinv = np.linalg.pinv(fFrameK[:,:,g])
         R = np.dot(fFrameL[:,:,g],fKinv)
@@ -116,29 +120,146 @@ def qtc_3D(k, l, thresh, q3, q4, q5):
             beta = 0
         if(np.abs(gamma) < thresh or math.isnan(gamma)):
             gamma = 0
-
+        alpArr[g] = alpha
+        betArr[g] = beta
+        gamArr[g] = gamma
+        
         q3[g] = np.sign(alpha)
         q4[g] = np.sign(beta)
         q5[g] = np.sign(gamma)
+    
+    return [alpArr,betArr,gamArr]
+            
+def checkQTC(qtcArr):
+    #array of shape x by 11 with 0 to 4 of 11 being the ones that unique must apply to
+    tArr = copy.deepcopy(qtcArr)
+    for i in range(1,tArr.shape[0]):
+        if(i != 0):
+            currRow = tArr[i,:]
+            Mod = False
+            for q in range(tArr.shape[1]):
+                r = tArr[i,q] - tArr[i-1,q]
+                if(r == -2 or r == 2):
+                    Mod = True
+                    currRow[q] = 0
+            if(Mod):    
+                qtcArr = np.insert(qtcArr,i,currRow,axis=0)    
+                Mod = False
+    return qtcArr
 
-def most_common(L):
-	# get an iterable of (item, iterable) pairs
-	SL = sorted((x, i) for i, x in enumerate(L))
-	# print 'SL:', SL
-	groups = itertools.groupby(SL, key=operator.itemgetter(0))
-	# auxiliary function to get "quality" for an item
-	def _auxfun(g):
-		item, iterable = g
-		count = 0
-		min_index = len(L)
-		for _, where in iterable:
-			count += 1
-			min_index = min(min_index, where)
-		# print 'item %r, count %r, minind %r' % (item, count, min_index)
-		return count, -min_index
-	# pick the highest-count/earliest item
-	return max(groups, key=_auxfun)[0]
+def uniqueQTC(currQTC):
+    #array of shape x by 11 with 0 to 4 of 11 being the ones that unique must apply to
+    i = 0
+    del1 = False
+    del2 = False
+    
+    while(i < currQTC.shape[0]-2):
+        if(i!=0):
+            if(np.array_equal(currQTC[i,:5],currQTC[i-1,:5])):
+                del1 = True
+            if(np.array_equal(currQTC[i+1,:5],currQTC[i-1,:5])):
+                del2 = True
+        
+        if(del1 and not del2):
+            currQTC = np.delete(currQTC,i,0)
+        elif(del2):
+            currQTC = np.delete(currQTC,i,0)
+            currQTC = np.delete(currQTC,i+1,0)
+            
+        i+=1
+    return currQTC
 
+def labelize(qin, qout):
+    for h in range(qin.shape[0]):
+        #x at 0 is depth with negative meaning behind an object
+        #y at 1 is width with negative meaning partner-right = ego-left
+        #x at 2 is height with negative meaning underneath
+        currVec = np.abs(qin[h,:])
+        if(currVec.sum() != 0):
+            maxIDx = currVec.argmax()
+            if(maxIDx == 0):
+                if(np.sign(qin[h,maxIDx]) == -1):
+                    #behind
+                    qout[h] = humanStaticLabels.index('behind')
+                elif(np.sign(qin[h,maxIDx]) == 1):
+                    #in front
+                    qout[h] = humanStaticLabels.index('in front of')
+            elif(maxIDx == 1):
+                if(np.sign(qin[h,maxIDx]) == -1):
+                    #left
+                    qout[h] = humanStaticLabels.index('left of')
+                elif(np.sign(qin[h,maxIDx]) == 1):
+                    #right
+                    qout[h] = humanStaticLabels.index('right of')
+            elif(maxIDx == 2):
+                if(np.sign(qin[h,maxIDx]) == -1):
+                    #underneath
+                    qout[h] = humanStaticLabels.index('underneath')
+                elif(np.sign(qin[h,maxIDx]) == 1):
+                    #top of
+                    qout[h] = humanStaticLabels.index('on top of')  
+        else:
+            qout[h] = humanStaticLabels.index('stationary')
+
+def filterMovement(ts, thresh):
+    lastMove = 0
+    stillThere = True
+    
+    for timestep in range(1, ts.shape[0]):
+        g = np.sqrt(np.sum(np.square(ts[timestep,:]-ts[lastMove,:])))
+        if(g >= thresh):
+            lastMove = timestep
+            stillThere = False
+#             print str(g).ljust(20) + ' shift'
+        else:
+#             print str(g).ljust(20) + ' still there'
+            ts[timestep] = ts[lastMove]
+#             if(stillThere):
+#                 print 'delete'
+#                 #np.delete(ts, timestep, axis = 0)
+#             else:
+#                 print 'no delete'
+#                 stillThere = True
+
+def removeStationary(inputArr, labelRemove, indsToCheck):
+    i = 0
+    while(i < inputArr.shape[0]):
+        logic = True 
+        for j in indsToCheck: 
+            if(inputArr[i][j] == labelRemove):
+                logic = logic and True
+            else:
+                logic = logic and False
+        
+        if(logic): #if labelRemove was present in all indsToCheck remove row
+            inputArr = np.delete(inputArr,i,0)
+        else:
+            i += 1
+    return inputArr
+
+def formatFeatures(inputArr, idx):
+    vec = np.zeros((len(humanStaticLabels)+1))
+    for i in range(len(inputArr)):
+        vec[inputArr[i][idx]] += 1
+    vec[-1] = len(inputArr)
+    return vec
+        
+def formatFeatures2(inputArr, idx, valsPossible):
+#     print str(valsPossible) + str(len(valsPossible))
+#     print str(idx) +str(len(idx))
+    if(valsPossible != None):
+        vec = np.zeros((len(valsPossible)*len(idx)))
+        for b in range(len(idx)):
+            for i in range(len(inputArr)):
+                
+                offset = (len(valsPossible)*b)
+                vec[offset + valsPossible.index(inputArr[i][idx[b]])] += 1
+#                 print
+#         print vec
+        return vec
+    else:
+        return np.array(-1)
+    
 class AR_Driver(SAMDriver):
     def testing(self, testInstance):
 		# Returns the predictive mean, the predictive variance and the axis (pp) of the latent space backwards mapping.            
@@ -232,9 +353,18 @@ class AR_Driver(SAMDriver):
 
 					t = line.replace('(','').replace(')','').split(' ')
 					del t[0:4]
+
+					v = labelLine.split(' ')[2].replace('\n','').replace('(','').replace(')','')
+            		if(v == ''):
+                		v = 'unknown'
+            		labelsList[k].append(v)
+
 					#parse skeleton data which has 9 sections by (x,y,z)
 					for i in range(numJoints):
 						a = i*4
+						if(t[a] == 'shoulderCenter'):
+                    		t[a] = 'chest'
+
 						if(firstPass):
 							data[t[a]] = [None]*numFiles
 							data[t[a]][k] = (np.array([float(t[a+1]), float(t[a+2]), float(t[a+3])]))
@@ -260,17 +390,23 @@ class AR_Driver(SAMDriver):
 						else:
 							data[t[a]] = [None]*(numFiles+1)
 							data[t[a]][k] = np.array([float(t[a+1]), float(t[a+2]), float(t[a+3])])
-							data[t[a]][-1] = int(t[a+4])
 							objectsList.append(t[a])
 
 					firstPass = False
-					try:
-						v = labelLine.split(' ')[2].replace('\n','').replace('(','').replace(')','')
-					except IndexError:
-						print labelLine
+				dataFile.close()
+				labelFile.close()
 
-					labelsList[k].append(v)
+		print 'data has length = ' + str(len(data)) + ' joints'
+		strl =  'each joint has ' + str(len(data['head'])) + ' arrays of shape: '
 
+		for i in data['head']:
+		    strl += str(i.shape) + ', '
+		print strl
+
+		strl = 'labelsList has length = ' + str(len(labelsList)) + ' with sizes: '
+		for i in labelsList:
+		    strl += str(len(i)) + ', '
+		print strl
 		#compile a list of all unique labels
 		print
 		print 'Unique labels in labels files:'
@@ -286,230 +422,378 @@ class AR_Driver(SAMDriver):
 		print
 		print 'Of these, config.ini specifies [' + ', '.join(ignoreLabels) + '] to be ignored'
 
-		ignoreInds = []
-		for k in ignoreLabels:
-			ignoreInds.append(labels.index(k))
+		# ignoreInds = []
+		# for k in ignoreLabels:
+		# 	ignoreInds.append(labels.index(k))
 
-		#prepare list of indices for labels which will be used
-		#important that no other labels are removed because that would interfere with temporal continuity of data
-		#no temporal continuity would make QTC calculation with big jumps which is not desirable
-		#future work needs to go through data and split it into subsections depend
+		dataStruct = []
+		verbose = True
+		for arr in range(len(dataFolderList)):
+		    for label in labels:
+		        if(verbose):
+		            print
+		            print 'current dataset = ' + str(dataFolderList[arr])
+		            print 'curent label: ' + str(label)
+		            print
+		        idxs = [i for i in range(len(labelsList[arr])) if labelsList[arr][i] == label]
+		        actionBlocks = []
+		        startIdx = 0
+		        if(len(idxs) > 5):
+		            for idxIndex in range(len(idxs)):
+		                if(idxIndex != 0):
+		                    if(idxs[idxIndex] - idxs[idxIndex-1] != 1):
+		                        if(idxIndex-startIdx > 5):
+		                            for joint in jointsList+objectsList[1:]:
+		                                actionData = data[joint][arr][idxs[startIdx:idxIndex]]
+		                                dataStruct.append([joint, label, arr, actionData.shape[0], actionData])
+		                                if(verbose):
+		                                    print '[%s]' % ', '.join(map(str, dataStruct[-1][:-1]))
+		                            startIdx = idxIndex
 
-		doLabels = [x for i,x in enumerate(labels) if i not in ignoreInds]
-		indicesList = []
-		currIdxList = []
-		func = 0
-		if(func == 0):
-			for ll in labelsList:
-				indicesList.append([i for i, x in enumerate(ll) if x in doLabels])
-		elif(func == 1):
-			for ll in labelsList:
-				#iterate over items of ll
-				#indicesList stores contiguous regions between ignoredLabels 
-				for l in ll:
-					if(l in doLabels):
-						currIdxList.append(l)
-					elif(l not in doLabels):
-						if(len(currIdxList) > 0):
-							indicesList.append(currIdxList)
-							currIdxList = []
+		                    if(idxIndex+2 > len(idxs)):
+		                        if(idxs[idxIndex] - idxs[idxIndex-1] != 1):
+		                            for joint in jointsList+objectsList[1:]:
+		                                actionData = data[joint][arr][idxs[startIdx:idxIndex+1]]
+		                                dataStruct.append([joint, label, arr, actionData.shape[0], actionData])
+		                                if(verbose):
+		                                    print '[%s]' % ', '.join(map(str, dataStruct[-1][:-1]))
+		            print '------------------------------------------------------------------------'
+		joint = 0
+		action = 1
+		dataset = 2
+		start = 3
+		end = 4
+		for a in range(len(dataFolderList)):
+		    print 'Dataset ' + str(a) + ' : ' + dataFolderList[a]
+		    for b in range(len(labels)):
+		        if('no' not in labels[b]):
+		            y = len([i[1] for i in dataStruct if i[joint] == 'head' and i[dataset] == a and i[action] == labels[b]])
+		            print '\t ' + str(labels[b]).ljust(35) + ' = ' + str(y).ljust(3) + ' repetitions'
+		    print
 
-		#apply indices
-		subsetData = None
-		subsetLabels = None
-		#CHECK
-		subsetData = copy.deepcopy(data)
-		subsetLabels = copy.deepcopy(labelsList)
-		if(func == 0):
-			for k in range(numFiles):
-				for j in jointsList + objectsList:	
-					subsetData[j][k] = np.squeeze(data[j][k][[indicesList[k]],:])
-					subsetLabels[k] = [labelsList[k][i] for i in indicesList[k]]
 
-		#apply indices
-		# count = 0
-		# off1 = 3
-		# off2 = 2
-		# off3 = 15
-		# off4 = 25
-		# for k in range(numFiles):
-		# 	for j in jointsList + objectsList:
-		# 		count += 1
-		# 		print str(count).ljust(off1) + ' Folder ' + str(k).ljust(off2) + ' object: ' + j.ljust(off3) + \
-		# 		' data shape: '.ljust(off4) + str(len(data)) + ' ' + str(len(data[j])) + ' ' + str(data[j][k].shape)
-		# 		print str(count).ljust(off1) + ' Folder ' + str(k).ljust(off2) + ' object: ' + j.ljust(off3) + \
-		# 		' subset data shape: '.ljust(off4) + str(len(subsetData)) + ' ' + str(len(subsetData[j])) + ' ' + str(subsetData[j][k].shape)
-		# 		print str(count).ljust(off1) + ' Folder ' + str(k).ljust(off2) + ' object: ' + j.ljust(off3) + \
-		# 		' labels shape: '.ljust(off4) + str(len(labelsList)) + '     ' + str(len(labelsList[k]))
-		# 		print str(count).ljust(off1) + ' Folder ' + str(k).ljust(off2) + ' object: ' + j.ljust(off3) + \
-		# 		' subset labels shape: '.ljust(off4) + str(len(subsetLabels)) + '     ' + str(len(subsetLabels[k]))
-		# 		print str(count).ljust(off1) + ' Folder ' + str(k).ljust(off2) + ' object: ' + j.ljust(off3) + \
-		# 		' good inds shape: '.ljust(off4) + str(len(indicesList)) + '     ' + str(len(indicesList[k]))
-		# 		print
+		joint = 0
+		action = 1
+		dataset = 2
+		start = 3
+		end = 4
 
-		allObjs = jointsList + objectsList
+		for b in range(len(labels)):
+		    if('no' not in labels[b]):
+		        y = 0
+		        for a in range(len(dataFolderList)):
+		            y += len([i[1] for i in dataStruct if i[joint] == 'head' and i[dataset] == a and i[action] == labels[b]])
+		        print '\t ' + str(labels[b]).ljust(35) + ' = ' + str(y).ljust(3) + ' repetitions'
+		
+		#Calibrate contact threshold
+		# data has length = 12 joints
+		# each joint has 4 arrays of shape: (4637, 3), (4907, 3), (5914, 3), (5440, 3), 
+		# labelsList has length = 4 with sizes: 4637, 4907, 5914, 5440, 
+		handPos = np.zeros((1,3))
+		objectPos = np.zeros((1,3))
+
+		# push_object_car_hand_right
+
+		for i in range(len(labelsList)):
+		    for j in range(len(labelsList[i])):
+		        if('object' in labelsList[i][j] and 'reach' not in labelsList[i][j] and "no" not in labelsList[i][j]):
+		            if('left' in labelsList[i][j]):
+		                handPos = np.vstack((handPos,data['handLeft'][i][j,:,None].T))
+		                obj = labelsList[i][j].split('_')[2]
+		                objectPos = np.vstack((objectPos,data[obj][i][j,:,None].T))
+		                
+		            if('right' in labelsList[i][j]):
+		                handPos = np.vstack((handPos,data['handRight'][i][j,:, None].T))
+		                obj = labelsList[i][j].split('_')[2]
+		                objectPos = np.vstack((objectPos,data[obj][i][j,:,None].T))
+
+		d = distEuc(handPos, objectPos)
+		perc = 98
+		print 'Mean of contact distances = ' + str(np.mean(d))
+		print 'Median of contact distances = '  + str(np.median(d))
+		print 'Max contact distance = ' + str(np.max(d))
+		print 'Min contact distance = ' + str(np.min(d))
+		print str(perc)+'% percentile contact distance = ' + str(np.percentile(d,perc))
+
+		jointsList.sort()
+		modJointsListHand_R = [i for i in jointsList if i != 'elbowRight' and i != 'handRight']
+		modJointsListHand_L = [i for i in jointsList if i != 'elbowLeft' and i != 'handLeft']
+
+		modJointsListHand_R = []
+		modJointsListHand_L = []
+		combinationList = []
+
+		if(len(modJointsListHand_R) > 0):
+		    for i in range(len(modJointsListHand_R)):
+		        combinationList.append(['handLeft', modJointsListHand_L[i]])
+		        combinationList.append(['handRight', modJointsListHand_R[i]])
+		    del combinationList[combinationList.index(['handLeft', 'handRight'])]
+
+		for i in objectsList[1:]:
+		    combinationList.append(['handLeft',i])
+		    combinationList.append(['handRight',i])
+
+
+		print 'Available joint pairs for hands:'
 		print
-		print 'Unique joints and objects in data files: '
-		print
-		print '\n'.join(allObjs)
-		print 
-		print 'Of these, config.ini specifies [' + ', '.join(ignoreParts) + '] to be ignored'
-		print
+		for i in combinationList:
+		    print '\t' + str(i)
 
-		remObjs = ignoreParts
-		impObjs = copy.deepcopy(allObjs)
-		for x in remObjs:
-			impObjs.remove(x)
-		objCombs = list(combinations(impObjs, 2))
-		print 'Creating ' + str(len(objCombs)) + ' combinations out of ' + str(len(impObjs)) + ' objects'  
-		print 
-		self.objCombs = objCombs
-		qtcDataList = dict()
-		angleThreshold = self.angleThreshold
-		distanceThreshold = self.distanceThreshold
-		contactThreshold = self.contactThreshold
-		allJoints = []
-		#for all combs
-		for arr in range(len(subsetData[objCombs[0][0]])):
-			print 'Preprocessing file ' + str(arr)
-			jointArr = None
-			for currComb in objCombs:
-				Pk = subsetData[currComb[0]]
-				Pl = subsetData[currComb[1]]
-				#for all arrays in Pk and Pl
-				currPk = Pk[arr]
-				currPl = Pl[arr]
+		humanStaticLabels = []
+		humanStaticLabels.append('left of')
+		humanStaticLabels.append('right of')
+		humanStaticLabels.append('on top of')
+		humanStaticLabels.append('underneath')
+		humanStaticLabels.append('in front of')
+		humanStaticLabels.append('behind')
+		humanStaticLabels.append('stationary')
 
-				q1 = np.zeros(currPk.shape[0]-2, dtype=np.int)
-				q2 = np.zeros(currPk.shape[0]-2, dtype=np.int)
-				q3 = np.zeros(currPk.shape[0]-2, dtype=np.int)
-				q4 = np.zeros(currPk.shape[0]-2, dtype=np.int)
-				q5 = np.zeros(currPk.shape[0]-2, dtype=np.int)
-				q6 = np.zeros(currPk.shape[0]-2, dtype=np.int)
-				#currPk contains xyz and currPl contains xyz
-				#calculate QTC
-				#step 1: q1 = {-1,0,+1} Pk relative to Pl
-				qtc_2D(currPk,currPl,q1, distanceThreshold, contactThreshold, q6)
-				#step 2: q2 = {-1,0,+1} Pl relative to Pk
-				qtc_2D(currPl,currPk,q2, distanceThreshold, contactThreshold)
-				#step 3: calculate q3, q4 and q5
-				qtc_3D(currPk, currPl, angleThreshold, q3, q4, q5)
-				if(numQ == 5):
-					tempArr = np.vstack((q1,q2,q3,q4,q5))
-				elif(numQ == 6):
-					tempArr = np.vstack((q1,q2,q3,q4,q5,q6))
-				if(jointArr == None):
-					jointArr = tempArr.T
-				else:
-					jointArr = np.hstack((jointArr,tempArr.T))
-			allJoints.append(jointArr)
+		joint = 0
+		action = 1
+		dataset = 2
+		start = 3
+		end = 4
 
-			#updating labelsList
-			subsetLabels[arr] = subsetLabels[arr][1:-1]
+		actionsAllowedList = ['lift_object', 'pull_object', 'push_object', 'drop_object', 'carry_object']
+		#actionsAllowedList = ['lift_object', 'drop_object']
+		actionsAllowed = []
 
-		#create mask to temporaly segment actions temporally
-		mask = np.zeros(allJoints[0].shape[1], dtype = int)
-		for i in range(0,len(mask),6):
-		    mask[i+0] = 1
-		    mask[i+1] = 1
+		for ac in actionsAllowedList:
+		    temp = [g for g in labels if ac in g and "no" not in g]
+		    for h in range(len(temp)):
+		        actionsAllowed.append(temp[h])
 
-		actionsIdxList = []
-		actionsLabelsList = []
+		for b in range(len(labels)):
+		#     print labels[b]
+		    if('no' not in labels[b] and labels[b] in actionsAllowed):
+		        y = 0
+		        for a in range(len(dataFolderList)):
+		            y += len([i[1] for i in dataStruct if i[joint] == 'head' and i[dataset] == a and i[action] == labels[b]])
+		        print '\t ' + str(labels[b]).ljust(35) + ' = ' + str(y).ljust(3) + ' repetitions'
 
-		#for each item in list
-		print
-		print 'Temporal segmentation of data:'
-		print
-		for k in range(len(allJoints)):
-			print 'Segmenting file ' + str(k)
-			actionsIdxList.append([])
-			actionsLabelsList.append([])
-			#create array that masks q2,q3 and q4
-			maJoints = allJoints[k]*mask
-			#sum abs(rows) of array
-			maAbs = np.abs(maJoints)
-			maSum = np.sum(maAbs, axis = 1)
-			#indices with maAbs =  0 are regions with no movement 
-			#.ie action demarcation between actions
-			#maSum = maSum[:50]
-			actionCount = 0
-			actionsIndices = None
-			actionsLabels = []
-			started = False
+		#2 joint pairs will be used shoulder-hand and hand-object left and right doesnt matter
+		#both combine within a single model
+		#step 1 will be training these models with static poses to do clustering with a full GP configuration
+		joint = 0
+		action = 1
+		dataset = 2
+		start = 3
+		end = 4
+		verbose = True
 
-			for n in range(len(maSum)):
-				if(maSum[n] == 0):
-					#here we need to close action if previous is not zero
-					#start action if next is not zero
-					#ignore otherwise
+		contactThreshold = 0.2 #between 0.1 and 0.2 value smaller than which contact occurs
+		deltaDistanceThreshold = 0.01 #distance to move between frames for point-point relative movement to be considered true1
+		angleThreshold = 0.001
+		labelToRemove = humanStaticLabels.index('stationary');
+		indsToRemove = [18]
 
-					#if n-1 not 0 end action
-					#check n-1 exists 
-					if(n-1 >= 0):
-						if(maSum[n-1] != 0):
-							#end action including 0 at n
-							actionsIndices = np.hstack((actionsIndices, allJoints[k][n]))
-							actionsLabels.append(subsetLabels[k][n])
-							started = False
-							actionsIdxList[k].append(actionsIndices)
-							actionsLabelsList[k].append(actionsLabels)
-							actionsIndices = None
-							actionsLabels = []
+		firstPass = True
+		handDataStruct = []
 
-					#check n+1 exists
-					if(n+1 < len(maSum)):
-						#if n+1 exists but not 0 start an action
-						if(maSum[n+1] != 0):
-							#start action including 0 at n
-							actionsIndices = allJoints[k][n]
-							actionsLabels.append(subsetLabels[k][n])
-							started = True
-						#else ignore current index
-					#else we are at the end so ignore
+		for currComb in combinationList:
+		    print str(currComb[0]) +'-' +str(currComb[1])
+		    infoK = [i for i in dataStruct if i[joint] == currComb[0]]
+		    infoL = [i for i in dataStruct if i[joint] == currComb[1]]
+		    for i in range(len(infoK)):
+		        if(infoK[i][1] in actionsAllowed):
+		            if('hand' in infoK[i][0] and 'object' in infoK[i][1]):
+		                if('Left' in infoK[i][0] and 'left' in infoK[i][1]):
+		                    condition = True
+		                elif('Right' in infoK[i][0] and 'right' in infoK[i][1]):
+		                    condition = True
+		                else:
+		                    condition = False
+		                    
+		                if(infoL[i][0] not in infoK[i][1]):
+		                    condition = False
+		                    obj = True
+		                    
+		            elif('hand' not in infoK[i][0] and 'object' in infoK[i][1]):
+		                condition = False
+		            else:
+		                condition = True
+		        else:
+		            condition = False
+		             
+		            
+		#         condition = False
+		        if(condition):
+		            
+		            Pk = infoK[i][4]
+		            Pl = infoL[i][4]
 
-				else: #current index is not zero
-					if(started):
-						#here if started = True we are in middle of action so concatenate
-						actionsIndices = np.hstack((actionsIndices, allJoints[k][n]))
-						actionsLabels.append(subsetLabels[k][n])
-						if(n+1 == len(maSum)):
-							actionsIdxList[k].append(actionsIndices)
-							actionsLabelsList[k].append(actionsLabels)
-					else:
-						#here action has not started meaning a zero was not found
-						#this occurs if vector does not start with a zero
-						actionsIndices = allJoints[k][n]
-						actionsLabels.append(subsetLabels[k][n])
-						started = True
-		#find maximum length vector for SAM
-		maxLen = 0
-		for n in actionsIdxList:
-			for k in n:
-				if(k.shape[0] > maxLen):
-					maxLen = k.shape[0]
-		print
-		#create Y and L
-		Y = None
-		L = []
-		for n in range(len(actionsIdxList)):
-			for k in range(len(actionsIdxList[n])):
-				currLen = len(actionsIdxList[n][k])
-				augMat = np.zeros(maxLen-currLen)
-				if(Y == None): 
-					Y = np.hstack((actionsIdxList[n][k],augMat))
-				else:
-					Y = np.vstack((Y, np.hstack((actionsIdxList[n][k],augMat))))
-				L.append(actionsLabelsList[n][k])
+		            #add gaussian noise on output
+		            Pk_Noise = np.random.normal(jointMu, jointSig, Pk.shape)
+		            Pl_Noise = np.random.normal(jointMu, jointSig, Pl.shape)
 
-		L2 = [most_common(sublist) for sublist in L]
-		Larr = np.zeros(len(L2))
-		for f in range(len(L2)):
-			Larr[f] = labels.index(L2[f])
+		            Pk = Pk + Pk_Noise
+		            Pl = Pl + Pl_Noise
 
-		print
-		self.Y = Y
-		self.L = Larr[:,None]
-		self.labelName = labels
+		            q1 = np.zeros((Pk.shape[0]-2,1), dtype=np.int) #motion of k relative to l
+		            q2 = np.zeros((Pk.shape[0]-2,1), dtype=np.int) #motion of l relative to k
+		            q3 = np.zeros((Pk.shape[0]-2,1), dtype=np.int) #alpha
+		            q4 = np.zeros((Pk.shape[0]-2,1), dtype=np.int) #beta
+		            q5 = np.zeros((Pk.shape[0]-2,1), dtype=np.int) #gamma
+		            q7 = np.zeros((Pk.shape[0]-2,1), dtype=np.int) #contact
+		            q8 = np.zeros((Pk.shape[0]-2,1), dtype=np.int) #human static label
+		            
+		            filterMovement(Pk, deltaDistanceThreshold)
+		            filterMovement(Pl, deltaDistanceThreshold)
+		            
+
+		            q6 = (Pl[1:-1]-Pk[1:-1]) #direction vector from joint to joint
+
+		            q9 = qtc_2D(Pk,Pl,q1, deltaDistanceThreshold)
+		            lowV = np.abs(q9) < contactThreshold
+		            q7[lowV] = 1
+
+		            q6 = q6/q9[:,None]
+
+		            qtc_2D(Pl,Pk,q2, deltaDistanceThreshold)
+		            [a,b,g] = qtc_3D(Pk, Pl, angleThreshold, q3, q4, q5)
+		            
+		            labelize(q6,q8)
+
+		            q10 = Pl[1:-1]
+		            q11 = Pk[1:-1]
+		            
+		            q13 = np.ones((Pk.shape[0]-2,1), dtype=np.int)
+		            q12mag = distEuc(Pk[1:-1],Pk[:-2])
+		            lowV = np.abs(q12mag) < deltaDistanceThreshold
+		            q12 = (Pk[1:-1] - Pk[:-2])/q12mag[:,None]
+		            q12[lowV] = 0
+		            labelize(q12,q13)
+
+		            q15 = np.ones((Pk.shape[0]-2,1), dtype=np.int)
+		            q14mag = distEuc(Pl[1:-1],Pl[:-2])
+		            lowV = np.abs(q14mag) < deltaDistanceThreshold
+		            q14 = (Pl[1:-1] - Pl[:-2])/q14mag[:,None]
+		            q14[lowV] = 0
+		            labelize(q14,q15)
+		                
+		            tempQTC = np.hstack((q1,q2,q3,q4,q5,q6[:,0,None],q6[:,1,None],q6[:,2,None],q7,q8,q9[:,None],q10[:,0,None],q10[:,1,None],q10[:,2,None],q11[:,0,None],q11[:,1,None],q11[:,2,None],q13,q15))
+		    #         g = tempQTC.shape[0]
+		    #         tempQTC2 = uniqueQTC(tempQTC)
+
+		    #         gg = tempQTC2.shape[0]
+
+		    #         tempQTC = checkQTC(tempQTC2)
+
+		    #         ggg = tempQTC.shape[0]
+		            
+		            tempQTC = removeStationary(tempQTC, labelToRemove, indsToRemove)
+		#             v = formatFeatures(tempQTC, 18)
+		            handDataStruct.append([currComb[0], currComb[1], infoK[i][1], infoK[i][2], tempQTC.shape[0], tempQTC])
+
+		            if(verbose):
+		                print '[%s]' % ', '.join(map(str, handDataStruct[-1][:-1]))
+		                #print v
+		    #             print str((ggg-gg)).ljust(3) + ' added in check QTC'
+		    #             print str((gg-g)).ljust(3) + ' added in unique QT
+		#q1,q2         [0:2]   -> relative movement of points in terms of distance from each other (closer / farther)
+		#q3-5          [2:5]   -> relative movement of joints in tems of orientation from each other (difference in the paths they are following wrt each other)
+		#q6_1 to _3    [5:8]   -> direction vector from hand to other joint
+		#q7            [8]     -> contact status
+		#q8            [9]     -> instantaneous relative position of K wrt L
+		#q9            [10]    -> distance of points
+		#q10_1 to _3   [11:14] -> position of l
+		#q11_1 to _3   [14:17] -> position of k
+
+		featureSections = dict()
+		featureValues = dict()
+		featureSections['QTC_Motion'] = range(0,2)
+		featureValues['QTC_Motion'] = [-1,0,1]
+
+		featureSections['QTC_Orientation'] = range(2,5)
+		featureValues['QTC_Orientation'] = [-1,0,1]
+
+		featureSections['directionVector'] = range(5,8)
+		featureValues['directionVector'] = []
+
+		featureSections['contact'] = [8]
+		featureValues['contact'] = [0,1]
+
+		featureSections['relativePositionLabel'] = [9]
+		featureValues['relativePositionLabel'] = range(len(humanStaticLabels))
+
+		featureSections['euc_distance'] = [10]
+		featureValues['euc_distance'] = []
+
+		featureSections['posL'] = range(11,14)
+		featureValues['posL'] = []
+
+		featureSections['posK'] = range(14,17)
+		featureValues['posK'] = []
+
+		featureSections['selfMovementLabelL'] = [17]
+		featureValues['selfMovementLabelL']   = range(len(humanStaticLabels))
+
+		featureSections['selfMovementLabelK'] = [18]
+		featureValues['selfMovementLabelK']   = range(len(humanStaticLabels))
+
+
+		featureToUse = ['contact', 'selfMovementLabelK']
+		#selfMovementLabelK movement of hand
+		#selfMovementLabelL movement of object
+		featureInds = []
+		for h in featureToUse:
+		    featureInds += featureSections[h]
+		    
+		    
+		print featureInds
+
+		for i in range(len(humanStaticLabels)):
+    		print str(i).ljust(2) + ': ' + str(humanStaticLabels[i])
+
+    	for n in range(len(handDataStruct)):
+		#     print handDataStruct[n][0:3]
+		#     print featureToUse
+		#     print handDataStruct[n][5][:,featureInds]
+		    v = np.array(len(handDataStruct[n][5]))
+		    for j in featureToUse:
+		        vec = formatFeatures2(handDataStruct[n][5], featureSections[j], featureValues[j])
+		        if(vec[0] !=  -1):
+		            v = np.hstack((v,vec))
+		    handDataStruct[n][5] = v
+		#here model trains recognition of object location wrt each other
+		#feature vector => handDataStruct[5][:,5:8](vector from hand to object) and humanlabel handDataStruct[5][:,9]
+		#actionsAllowedList = ['lift_object', 'pull_object', 'push_object', 'drop_object',]
+
+		for a in range(len(handDataStruct)):
+		    for r in actionsAllowedList:
+		        if r in handDataStruct[a][2]:
+		            labelNum = actionsAllowedList.index(r)
+
+		    if(a == 0):
+		        allPoseY = handDataStruct[a][5]
+		        allPoseL = labelNum
+		    else:
+		        allPoseY = np.vstack((allPoseY, handDataStruct[a][5]))
+		        allPoseL = np.vstack((allPoseL, labelNum))
+		        
+		print allPoseY.shape
+		print allPoseL.shape
+		#here model trains recognition of object location wrt each other
+		#feature vector => handDataStruct[5][:,5:8](vector from hand to object) and humanlabel handDataStruct[5][:,9]
+		#actionsAllowedList = ['lift_object', 'pull_object', 'push_object', 'drop_object',]
+
+		for a in range(len(handDataStruct)):
+		    for r in actionsAllowedList:
+		        if r in handDataStruct[a][2]:
+		            labelNum = actionsAllowedList.index(r)
+
+		    if(a == 0):
+		        allPoseY = handDataStruct[a][5]
+		        allPoseL = labelNum
+		    else:
+		        allPoseY = np.vstack((allPoseY, handDataStruct[a][5]))
+		        allPoseL = np.vstack((allPoseL, labelNum))
+		        
+		print allPoseY.shape
+		print allPoseL.shape
+
+
+
 
     def prepareData(self, model='mrd', Ntr = 50, randSeed=0):    
 

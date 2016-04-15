@@ -27,6 +27,11 @@ except ImportError:
 #parse configuration file to identify root location for data and models
 from ConfigParser import SafeConfigParser
 
+command = 'ipcluster start -n 4' 
+command = "bash -c \"" + command + "; exec bash\""
+#command = "bash -c \"" + command + "\""
+subprocess.Popen(['gnome-terminal','-e', command],shell=False)
+
 # Check configuration file
 parser = SafeConfigParser()
 
@@ -87,6 +92,7 @@ print "Data folders available:          " + ', '.join(dataList)
 
 #likewise parse training functions folder
 functionsList = [f.replace(".py","") for f in listdir(trainingFunctionsPath) if isfile(join(trainingFunctionsPath, f)) if ".py" in f if '~' not in f]
+functionsList.sort()
 print "Training functions available:    " + ', '.join(functionsList)
 
 #format of training functions is expected to be train_modelName_anythingElseToDistinguish
