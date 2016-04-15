@@ -36,25 +36,32 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 bool ears::interruptModule() {
     // speechRecognizer is in a long loop, which prohibits closure of ears
     // so interrupt the speechRecognizer
+    yDebug() << "interrupt ears";
     bShouldListen = false;
     iCub->getRecogClient()->interruptSpeechRecognizer();
 
+    yDebug() << "interrupted speech recognizer";
     portToBehavior.interrupt();
     portTarget.interrupt();
     rpc.interrupt();
+
+    yDebug() << "interrupt done";
 
     return true;
 }
 
 
 bool ears::close() {
+    yDebug() << "close ears";
     bShouldListen = false;
     iCub->getRecogClient()->interruptSpeechRecognizer();
+    yDebug() << "interrupted speech recognizer";
 
     if(iCub) {
         iCub->close();
         delete iCub;
     }
+    yDebug() << "closed icub";
 
     portToBehavior.interrupt();
     portToBehavior.close();
@@ -62,9 +69,11 @@ bool ears::close() {
     portTarget.interrupt();
     portTarget.close();
 
+    yDebug() << "closing rpc port";
     rpc.interrupt();
     rpc.close();
 
+    yDebug() << "end of close. bye!";
     return true;
 }
 
