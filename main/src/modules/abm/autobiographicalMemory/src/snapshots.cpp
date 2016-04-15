@@ -128,7 +128,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
     if (isStreamActivity == true && !bBegin) { //just stop stream images stores when relevant activity
         while(!mutexStreamRecord.tryLock()) {
             yDebug() << "[mutexStreamRecord] tryLock";
-            yarp::os::sleep(0.3);
+            yarp::os::Time::delay(0.3);
         }
         yDebug() << "[mutexStreamRecord] unlock";
         mutexStreamRecord.unlock();
@@ -254,7 +254,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         if (bBegin) {
             while(!mutexStreamRecord.tryLock()) {
                 yDebug() << "[mutexStreamRecord] tryLock";
-                yarp::os::sleep(0.3);
+                yarp::os::Time::delay(0.3);
             }
             yDebug() << "[mutexStreamRecord] unlock";
             mutexStreamRecord.unlock();
