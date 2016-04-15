@@ -52,6 +52,14 @@ bool AgentDetector::configure(ResourceFinder &rf)
         Time::delay(1.0);
     }
     opc->checkout();
+
+    list<Entity*> entityList = opc->EntitiesCacheCopy();
+    for(auto& e : entityList) {
+        if(e->entity_type() == "agent" && e->name() != "icub") {
+            partner_default_name = e->name();
+        }
+    }
+
     partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
     partner->m_present = 0.0;
     opc->commit(partner);
