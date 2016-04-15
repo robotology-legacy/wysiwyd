@@ -99,13 +99,6 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
         return false;
     }
 
-
-    if (Network::connect("/agentDetector/skeleton:o", ("/" + moduleName + "/skeleton:i").c_str())) {
-        yInfo() << " is connected to skeleton";
-    } else {
-        yError() << " could not connect to skeleton";
-    }
-
     checkPointing = rf.find("isPointing").asInt() == 1;
     checkWaving = rf.find("isWaving").asInt() == 1;
     checkHaving = rf.find("isHaving").asInt() == 0;
