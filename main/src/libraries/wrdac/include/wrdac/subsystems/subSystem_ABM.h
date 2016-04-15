@@ -40,7 +40,7 @@ namespace wysiwyd{
                     return true;
                 }
                 else {
-                    yWarning(" in SubSytem_ABM: cannot connect, tyring connection.");
+                    yDebug("SubSystem_ABM: not connected, try to connect");
                     bool ret = yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/rpc"); 
                     if (!ret) yWarning(" connection to ABM impossible: check that ABM is running");
                     return ret;
