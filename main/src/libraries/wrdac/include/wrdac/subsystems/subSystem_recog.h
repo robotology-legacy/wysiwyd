@@ -46,7 +46,7 @@ namespace wysiwyd{
                     yInfo() << "Recog connected to ears";
                 }
                 else {
-                    yWarning() << "Recog didn't connect to ears";
+                    yDebug() << "Recog didn't connect to ears at start";
                 }
                 if (yarp::os::Network::isConnected(portRPC.getName(), "/speechRecognizer/rpc")){
                     return true;
