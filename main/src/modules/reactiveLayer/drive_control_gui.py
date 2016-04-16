@@ -3,7 +3,7 @@
 from collections import OrderedDict
 from Tkinter import *
 
-from drive_control_rpc import pointing, tagging, dummy, reset_all, freeze_all, unfreeze_all, narrate, manual_mode, automatic_mode, close_ports
+from drive_control_rpc import pointing, tagging, reset_all, freeze_all, unfreeze_all, narrate, manual_mode, automatic_mode, close_ports
 
 window = Tk()
 
@@ -24,8 +24,7 @@ buttons["unfreeze"] = Button(window, text="Unfreeze", command=unfreeze_all)
 buttons["reset"] = Button(window, text="Reset", command=reset_all)
 buttons["pointing"] = Button(window, text="Pointing", command=pointing)
 buttons["tagging"] = Button(window, text="Tagging", command=tagging)
-buttons["narate"] = Button(window, text="Narrate", command=narrate)
-buttons["dummy"] = Button(window, text="Dummy", command=dummy)
+buttons["narrate"] = Button(window, text="Narrate", command=narrate)
 
 
 for b in buttons.values():

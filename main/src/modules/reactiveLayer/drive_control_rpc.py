@@ -21,6 +21,14 @@ print yarp.Network.connect(homeoPortName,homeoRPC)
 print yarp.Network.connect(alloPortName,alloRPC)
 
 
+def close_ports():		
+	print "Interrupting and closing ports"		
+	# interrupting		
+	toHomeo.interrupt()		
+	toAllo.interrupt()				
+	# closing		
+	toHomeo.close()		
+	toAllo.close()		
 
 
 def trigger_behavior(behavior):
