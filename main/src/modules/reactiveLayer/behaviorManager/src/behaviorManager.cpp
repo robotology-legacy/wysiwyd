@@ -127,14 +127,14 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     }
     else if (cmd.get(0).asString() == "manual") {
         for(auto& beh : behaviors) {
-            if (cmd.get(0).asString() == "followingOrder") {
+            if (beh->behaviorName == "followingOrder") {
                 if (cmd.get(1).asString() == "on") {
-                    dynamic_cast<FollowingOrder *>(beh)->manual = true;
                     yInfo() << "followingOrder behavior manual mode on";
+                    dynamic_cast<FollowingOrder *>(beh)->manual = true;
                     reply.addString("ack");
                 } else if (cmd.get(1).asString() == "off") {
+                    yInfo() << "followingOrder behavior manual mode off";
                     dynamic_cast<FollowingOrder *>(beh)->manual = false;
-                    yInfo() << "followingOrder behavior manual mode on";
                     reply.addString("ack");
                 }
             }
@@ -150,7 +150,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     else
     {
         for(auto& beh : behaviors) {
-            if (cmd.get(0).asString() == "beh->behaviorName") {
+            if (cmd.get(0).asString() == beh->behaviorName) {
         //         Bottle args;
         //         args.clear();
         //         for (int a = 1; a < cmd.size(); a++)
