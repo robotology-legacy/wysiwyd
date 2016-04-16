@@ -43,24 +43,13 @@ class SubSystem_Attention: public SubSystem
 {
 protected:
     yarp::os::RpcClient attentionSelector;
-    virtual bool connect()
-    {
-        return yarp::os::Network::connect(attentionSelector.getName(),"/attentionSelector/rpc");
-    }
+    virtual bool connect();
 
 public:    
-    SubSystem_Attention(const std::string &masterName) : SubSystem(masterName)
-    {
-        attentionSelector.open(("/"+m_masterName+"/attention:rpc").c_str());
-        m_type = SUBSYSTEM_ATTENTION;
-    }
-    virtual ~SubSystem_Attention() {}
+    SubSystem_Attention(const std::string &masterName);
+    virtual ~SubSystem_Attention();
 
-    virtual void Close()
-    {
-        attentionSelector.interrupt();
-        attentionSelector.close();
-    }
+    virtual void Close();
 
     /**
     * Track object by name.
@@ -68,17 +57,7 @@ public:
     * @return true in case of successfull motor command, false
     *         otherwise.
     */
-    bool track(const std::string &name)
-    {
-        yarp::os::Bottle bCmd,bRep;
-        bCmd.addString("track");
-        bCmd.addString(name.c_str());
-        if (attentionSelector.write(bCmd,bRep))
-            if (bRep.get(0).asString()=="ack")
-                return true;
-
-        return false;
-    }
+    bool track(const std::string &name);
 
     /**
     * Track object by id.
@@ -86,49 +65,21 @@ public:
     * @return true in case of successfull motor command, false
     *         otherwise.
     */
-    bool track(const int id)
-    {
-        yarp::os::Bottle bCmd,bRep;
-        bCmd.addString("track");
-        bCmd.addInt(id);
-        if (attentionSelector.write(bCmd,bRep))
-            if (bRep.get(0).asString()=="ack")
-                return true;
-
-        return false;
-    }
+    bool track(const int id);
 
     /**
     * Enable auto mode.
     * @return true in case of successfull motor command, false
     *         otherwise.
     */
-    bool enableAutoMode()
-    {
-        yarp::os::Bottle bCmd,bRep;
-        bCmd.addString("auto");
-        if (attentionSelector.write(bCmd,bRep))
-            if (bRep.get(0).asString()=="ack")
-                return true;
-
-        return false;
-    }
+    bool enableAutoMode();
 
     /**
     * Stop attention.
     * @return true in case of successfull motor command, false
     *         otherwise.
     */
-    bool stop()
-    {
-        yarp::os::Bottle bCmd,bRep;
-        bCmd.addString("sleep");
-        if (attentionSelector.write(bCmd,bRep))
-            if (bRep.get(0).asString()=="ack")
-                return true;
-
-        return false;
-    }
+    bool stop();
 
     /**
     * Retrieve current attention status.
@@ -137,22 +88,7 @@ public:
     * @return true in case of successfull motor command, false
     *         otherwise.
     */
-    bool getStatus(std::string &status)
-    {
-        yarp::os::Bottle bCmd,bRep;
-        bCmd.addString("stat");
-        if (attentionSelector.write(bCmd,bRep))
-        {
-            if (bRep.get(0).asString()=="ack")
-            {
-                status=bRep.get(1).asString().c_str();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    bool getStatus(std::string &status);
 };
 
 }

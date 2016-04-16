@@ -35,43 +35,19 @@ namespace wrdac{
 class SubSystem_IOL2OPC : public SubSystem
 {
 protected:
-    virtual bool connect() {
-        return yarp::os::Network::connect(portRPC.getName(), "/iol2opc/rpc");
-    }
+    virtual bool connect();
 
 public:
     yarp::os::Port portRPC;
-    SubSystem_IOL2OPC(const std::string &masterName) : SubSystem(masterName) {
-        portRPC.open(("/" + m_masterName + "/iol2opc:rpc").c_str());
-        m_type = SUBSYSTEM_IOL2OPC;
-    }
+    SubSystem_IOL2OPC(const std::string &masterName);
 
-    virtual void Close() {
-        portRPC.interrupt();
-        portRPC.close();
-    }
+    virtual void Close();
 
-    bool changeName(const std::string &old_name, const std::string &new_name) {
-        yarp::os::Bottle bReq, bResp;
-        bReq.addString("change_name");
-        bReq.addString(old_name);
-        bReq.addString(new_name);
-        portRPC.write(bReq, bResp);
+    bool changeName(const std::string &old_name, const std::string &new_name);
 
-        return bResp.get(0).asBool();
-    }
+    void pause();
 
-    void pause() {
-        yarp::os::Bottle bReq, bResp;
-        bReq.addString("pause");
-        portRPC.write(bReq, bResp);
-    }
-
-    void resume() {
-        yarp::os::Bottle bReq, bResp;
-        bReq.addString("resume");
-        portRPC.write(bReq, bResp);
-    }
+    void resume();
 };
 }
 }//Namespace

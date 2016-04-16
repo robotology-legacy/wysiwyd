@@ -53,108 +53,17 @@ namespace wysiwyd{
 
         public:
 
-            SubSystem_Speech(const std::string &masterName) :SubSystem(masterName)
-            {
-                tts.open(("/" + m_masterName + "/tts:o").c_str());
-                ttsRpc.open(("/" + m_masterName + "/tts:rpc").c_str());
-                stt.open(("/" + m_masterName + "/stt:i").c_str());
-                sttRpc.open(("/" + m_masterName + "/stt:rpc").c_str());
-                m_type = SUBSYSTEM_SPEECH;
-                SubABM = new SubSystem_ABM(m_masterName+"/from_speech");
-                opc = new OPCClient(m_masterName+"/opc");
-            }
-            virtual bool connect()
-            {
-                yarp::os::Network::connect("/iSpeak/emotions:o", "/icub/face/emotions/in");
-                bool connected = yarp::os::Network::connect(tts.getName(), "/iSpeak");
-                connected &= yarp::os::Network::connect(ttsRpc.getName(), "/iSpeak/rpc");
-                connected &= yarp::os::Network::connect("/speechRecognizer/recog/continuousGrammar:o", stt.getName().c_str());
-                connected &= yarp::os::Network::connect(sttRpc.getName().c_str(), "/speechRecognizer/rpc");
+            SubSystem_Speech(const std::string &masterName);
+            virtual bool connect();
 
-                opc->connect("OPC");
-
-                ABMconnected = (SubABM->Connect());
-                std::cout << ((ABMconnected) ? "iSpeak connected to ABM" : "iSpeak didn't connect to ABM") << std::endl;
-
-                return connected;
-            }
-
-            unsigned int countWordsInString(std::string const& str)
-            {
-                std::stringstream stream(str);
-                return std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-            }
+            unsigned int countWordsInString(std::string const& str);
 
             /**
             * Produce text to speech output
             * @param text The text to be said.
             * @param shouldWait Is the function blocking until the end of the sentence or not.
             */
-            virtual void TTS(const std::string &text, bool shouldWait = true, bool recordABM = true) {
-                //Clean the input of underscores.
-                std::string tmpText = text;
-                replace_all(tmpText, "_", " ");
-                yarp::os::Bottle txt; txt.addString(tmpText.c_str());
-                tts.write(txt);
-                //int words = countWordsInString(text);
-                //double durationMn =  words / (double)m_speed;
-                //double durationS = durationMn *60.0;
-                //yarp::os::Time::delay(durationS);
-                yarp::os::Bottle cmd, reply;
-                cmd.addVocab(VOCAB('s', 't', 'a', 't'));
-                std::string status = "speaking";
-                bool speechStarted = false;
-
-                if (ABMconnected && recordABM)
-                {
-                    std::list<std::pair<std::string, std::string> > lArgument;
-                    // get agent name
-                    opc->checkout();
-                    yarp::os::Bottle isAgent, condition, isPresent, noIcub;
-                    isAgent.addString(EFAA_OPC_ENTITY_TAG);
-                    isAgent.addString("==");
-                    isAgent.addString(EFAA_OPC_ENTITY_RTOBJECT);
-
-                    isPresent.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-                    isPresent.addString("==");
-                    isPresent.addInt(1);
-
-                    noIcub.addString(EFAA_OPC_OBJECT_NAME_TAG);
-                    noIcub.addString("!=");
-                    noIcub.addString("icub");
-
-
-                    condition.addList() = isAgent;
-                    condition.addString("&&");
-                    condition.addList() = isPresent;
-                    condition.addString("&&");
-                    condition.addList() = noIcub;
-
-                    std::list<Entity*> Ent = opc->Entities(condition);
-                    if (Ent.size()!=0){
-                        lArgument.push_back(std::pair<std::string, std::string>( (*Ent.begin())->name(), "addressee"));
-                    }
-                    for (std::list<Entity*>::iterator it_E = Ent.begin(); it_E != Ent.end(); it_E++)
-                    {
-                        delete *it_E;
-                    }
-
-                    lArgument.push_back(std::pair<std::string, std::string>(text, "sentence"));
-                    lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
-                    SubABM->sendActivity("action", "sentence", "say", lArgument, true);
-                }
-
-                while (shouldWait && (!speechStarted || status == "speaking"))
-                {
-                    ttsRpc.write(cmd, reply);
-                    status = reply.get(0).asString();
-                    if (!speechStarted && status != "quiet")
-                    {
-                        speechStarted = true;
-                    }
-                    yarp::os::Time::delay(0.2);
-                }
-            }
+            virtual void TTS(const std::string &text, bool shouldWait = true, bool recordABM = true);
 
             /**
             * (todo) Recognize a specific sentence or a grammar through a blocking call
@@ -162,94 +71,39 @@ namespace wysiwyd{
             * @param timeout Timeout for recognition (<0 value means wait until something is recognized).
             * @return The sentence recognized
             */
-            virtual yarp::os::Bottle* STT(const std::string &grammar, double timeout = -1)
-            {
-                //todo
-                return NULL;
-            }
+            virtual yarp::os::Bottle* STT(const std::string &grammar, double timeout = -1);
 
             /**
             * Read input from the speech recognizer runtime grammar
             * @param isBlocking Should we wait for a sentence?
             * @return The sentence recognized
             */
-            virtual yarp::os::Bottle* STT(bool isBlocking)
-            {
-                return stt.read(isBlocking);
-            }
+            virtual yarp::os::Bottle* STT(bool isBlocking);
 
             /**
             * Flush the pending reads by consuming all of them.
             */
-            void STTflush()
-            {
-                int pendingReads = stt.getPendingReads();
-                if (pendingReads > 0)
-                    std::cout << "[subsystem.speech] Flushing " << pendingReads << " pending read" << std::endl;
-
-                for (int i = 0; i < pendingReads; i++)
-                    stt.read(false);
-            }
+            void STTflush();
 
             /**
             * Add a word to a given vocabulory
             * @param vocabuloryName The name of the vocabulory to expand
             * @param word The word to be added to this vocabulory
             */
-            virtual void STT_ExpandVocabulory(const std::string &vocabuloryName, const std::string &word)
-            {
-                yarp::os::Bottle bAugmentVocab;
-                bAugmentVocab.addString("rgm");
-                bAugmentVocab.addString("vocabulory");
-                bAugmentVocab.addString("add");
-                std::string sVocabTemp = "#";
-                sVocabTemp += vocabuloryName.c_str();
-                bAugmentVocab.addString(sVocabTemp.c_str());
-                bAugmentVocab.addString(word.c_str());
-                sttRpc.write(bAugmentVocab);
-            };
+            virtual void STT_ExpandVocabulory(const std::string &vocabuloryName, const std::string &word);;
 
             /**
             * Set the command line options sent by iSpeak
             * @param custom The options as a string
             */
-            void SetOptions(const std::string &custom) {
-                if(custom!="iCub") {
-                    yarp::os::Bottle param;
-                    param.addString("set");
-                    param.addString("opt");
-                    param.addString(custom.c_str());
-                    ttsRpc.write(param);
-                } else {
-                    yWarning() << "SetOptions called with none for iSpeak";
-                }
-            }
+            void SetOptions(const std::string &custom);
 
             /**
             * Check if iSpeak is currently speaking
             */
-            bool isSpeaking() {
-                yarp::os::Bottle cmd, reply;
-                cmd.addVocab(VOCAB('s', 't', 'a', 't'));
-                ttsRpc.write(cmd, reply);
-                return (reply.get(0).asString() != "quiet");
-            }
+            bool isSpeaking();
 
-            virtual void Close()
-            {
-                tts.interrupt();
-                tts.close();
-                ttsRpc.interrupt();
-                ttsRpc.close();
-                stt.interrupt();
-                stt.close();
-                sttRpc.interrupt();
-                sttRpc.close();
-                SubABM->Close();
-
-                delete SubABM;
-                delete opc;
-            }
+            virtual void Close();
         };
 
         //--------------------------------------------------------------------------------------------

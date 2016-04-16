@@ -35,52 +35,19 @@ namespace wrdac{
 class SubSystem_babbling : public SubSystem
 {
 protected:
-    virtual bool connect() {
-        return yarp::os::Network::connect(portRPC.getName(), "/babbling/rpc");
-    }
+    virtual bool connect();
 
 public:
     yarp::os::Port portRPC;
-    SubSystem_babbling(const std::string &masterName) : SubSystem(masterName) {
-        portRPC.open(("/" + m_masterName + "/babbling:rpc").c_str());
-        m_type = SUBSYSTEM_BABBLING;
-    }
+    SubSystem_babbling(const std::string &masterName);
 
-    virtual void Close() {
-        portRPC.interrupt();
-        portRPC.close();
-    }
+    virtual void Close();
 
     //whole arm babbling
-    bool babblingArm(std::string babblingLimb, double train_duration = -1.0) { // need to be extended for several agents
-        yarp::os::Bottle bReq, bResp;
-        bReq.addString("babbling");
-        bReq.addString(babblingLimb);
-        //changethe train_duration if specified
-        if(train_duration >= 0.0){
-            yInfo() << "Babbling with specific train_duration: " << train_duration;
-            bReq.addDouble(train_duration);
-        }
-        portRPC.write(bReq, bResp);
-
-        return bResp.get(0).asBool();
-    }
+    bool babblingArm(std::string babblingLimb, double train_duration = -1.0);
 
     //single joint babbling
-    bool babbling(int jointNumber, std::string babblingLimb, double train_duration = -1.0) { // need to be extended for several agents
-        yarp::os::Bottle bReq, bResp;
-        bReq.addString("babbling");
-        bReq.addString("joint");
-        bReq.addInt(jointNumber);
-        bReq.addString(babblingLimb);
-        if(train_duration >= 0.0){
-            yInfo() << "Babbling with specific train_duration: " << train_duration;
-            bReq.addDouble(train_duration);
-        }
-        portRPC.write(bReq, bResp);
-
-        return bResp.get(0).asBool();
-    }
+    bool babbling(int jointNumber, std::string babblingLimb, double train_duration = -1.0);
 
 };
 }

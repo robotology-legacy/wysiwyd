@@ -37,79 +37,38 @@ namespace wysiwyd{namespace wrdac{
 class SubSystem_Reactable: public SubSystem
 {
 protected:
-    virtual bool connect() 
-    { 
-        bool success = true;
-        success &= yarp::os::Network::connect(portRTrpc.getName(), "/reactable2opc/command:i");
-        success &= yarp::os::Network::connect("/reactable2opc/osc:o", portRTin.getName());
-        return success;
-    }
+    virtual bool connect();
 
 public:
     yarp::os::Port portRTrpc;
     yarp::os::BufferedPort<yarp::os::Bottle> portRTin;
 
-    SubSystem_Reactable(const std::string &masterName):SubSystem(masterName)
-    {
-        portRTrpc.open( ("/" + m_masterName + "/reactable:rpc").c_str());
-        portRTin.open(("/" + m_masterName + "/reactable/osc:i").c_str());
-        m_type = SUBSYSTEM_REACTABLE;
-    }
+    SubSystem_Reactable(const std::string &masterName);
 
-    virtual void Close() 
-    {
-        portRTrpc.interrupt();portRTrpc.close();
-        portRTin.interrupt();portRTin.close();
-    };
+    virtual void Close();;
     
     /**
     * Display a virtual object on the reactable
     * @param o the object to be displayed
     */ 
-    void SendOSC(yarp::os::Bottle &oscMsg)
-    {
-            yarp::os::Bottle cmd; 
-            cmd.addString("osc");
-            for(int i=0; i<oscMsg.size(); i++)
-                cmd.add(oscMsg.get(i));
-            std::cout<<"OSC>>"<<cmd.toString().c_str()<<std::endl;
-            portRTrpc.write(cmd);
-    }
+    void SendOSC(yarp::os::Bottle &oscMsg);
 
     /**
     * Read from osc forwarding
     */ 
-    yarp::os::Bottle* ReadOSC(bool shouldWait)
-    {
-            yarp::os::Bottle* cmd = portRTin.read(shouldWait);
-            return cmd;
-    }
+    yarp::os::Bottle* ReadOSC(bool shouldWait);
 
     /**
     * Display a virtual object on the reactable
     * @param o the object to be displayed
     */ 
-    void DisplayPosition(RTObject *o, bool convertFromRobotCoordinates)
-    {
-            yarp::os::Bottle cmd; 
-            if (convertFromRobotCoordinates)
-                cmd.addString("addObject");
-            else
-                cmd.addString("sendBackObject");
-            cmd.addList() = o->asBottle();
-            portRTrpc.write(cmd);
-    }
+    void DisplayPosition(RTObject *o, bool convertFromRobotCoordinates);
         
     /**
     * Ask the module to refresh the calibration matrix from RFH
     * @param o the object to be displayed
     */ 
-    void RefreshCalibration()
-    {
-            yarp::os::Bottle cmd; 
-            cmd.addString("recalibrate");
-            portRTrpc.write(cmd);
-    }
+    void RefreshCalibration();
 };
 
 }}//Namespace

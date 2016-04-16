@@ -22,6 +22,7 @@
 #define SUBSYSTEM_ABM           "abm"
 
 #include <iostream>
+#include <list>
 #include "wrdac/subsystems/subSystem.h"
 
 namespace wysiwyd{
@@ -35,138 +36,29 @@ namespace wysiwyd{
         class SubSystem_ABM : public SubSystem
         {
         protected:
-            virtual bool connect() {
-                if (yarp::os::Network::isConnected(portRPC.getName(), "/autobiographicalMemory/rpc")){
-                    return true;
-                }
-                else {
-                    yDebug("SubSystem_ABM: not connected, try to connect");
-                    bool ret = yarp::os::Network::connect(portRPC.getName(), "/autobiographicalMemory/rpc"); 
-                    if (!ret) yWarning(" connection to ABM impossible: check that ABM is running");
-                    return ret;
-                }
-            }
+            virtual bool connect();
 
         public:
             yarp::os::Port portRPC;
-            SubSystem_ABM(const std::string &masterName) :SubSystem(masterName){
-                portRPC.open(("/" + m_masterName + "/abm:rpc").c_str());
-                m_type = SUBSYSTEM_ABM;
-            }
-            virtual ~SubSystem_ABM() {}
+            SubSystem_ABM(const std::string &masterName);
+            virtual ~SubSystem_ABM();
 
-            virtual void Close() { portRPC.interrupt(); portRPC.close(); }
+            virtual void Close();
 
             void sendActivity(
                 const std::string& activityType,
                 const std::string& activyInformation,
                 const std::string& activityContext,
                 const std::list<std::pair<std::string, std::string> >& arguments,
-                bool fBegin = true)
-            {
-                yarp::os::Bottle
-                    bMain,          // main information about the activity
-                    bArgument,      // Argument of the activity
-                    bBegin;         // information about begining or end of the activity
+                bool fBegin = true);
 
-                bMain.addString(activityType.c_str());
-                bMain.addString(activyInformation.c_str());
-                bMain.addString(activityContext.c_str());
+            yarp::os::Bottle requestFromString(const std::string &sInput);
 
-                bArgument.addString("arguments");
+            yarp::os::Bottle resetKnowledge();
 
+            yarp::os::Bottle triggerStreaming(int iCurrentInstance, bool realtime=false, bool includeAugmented=true, double speedMultiplier=1.0, std::string robot="icubSim", bool blocking=false);
 
-                for (std::list<std::pair<std::string, std::string> >::const_iterator itArg = arguments.begin(); itArg != arguments.end(); itArg++)
-                {
-                    yarp::os::Bottle  bTemp;
-                    bTemp.clear();
-                    bTemp.addString(itArg->first);
-                    bTemp.addString(itArg->second);
-                    bArgument.addList() = bTemp;
-                }
-
-                bBegin.addString("begin");
-                bBegin.addInt((int)fBegin);
-
-                yarp::os::Bottle bSnapshot;
-                bSnapshot.clear();
-                bSnapshot.addString("snapshot");
-                bSnapshot.addList() = bMain;
-                bSnapshot.addList() = bArgument;
-                bSnapshot.addList() = bBegin;
-                if (connect())  portRPC.write(bSnapshot);
-            }
-
-            yarp::os::Bottle requestFromString(const std::string &sInput)
-            {
-                yarp::os::Bottle bReplyRequest;
-                //send the SQL query within a bottle to autobiographicalMemory
-                yarp::os::Bottle bQuery;
-                bQuery.addString("request");
-                bQuery.addString(sInput.c_str());
-                portRPC.write(bQuery, bReplyRequest);
-                return bReplyRequest;
-            }
-
-            yarp::os::Bottle resetKnowledge()
-            {
-                yarp::os::Bottle bReplyRequest;
-                //send the SQL query within a bottle to autobiographicalMemory
-                yarp::os::Bottle bQuery;
-                bQuery.addString("resetKnowledge");
-                portRPC.write(bQuery, bReplyRequest);
-                return bReplyRequest;
-            }
-
-            yarp::os::Bottle triggerStreaming(int iCurrentInstance, bool realtime=false, bool includeAugmented=true, double speedMultiplier=1.0, std::string robot="icubSim", bool blocking=false)
-            {
-                yarp::os::Bottle bSend,
-                    bReceived;
-
-                bSend.addString("triggerStreaming");
-                bSend.addInt(iCurrentInstance);
-
-                yarp::os::Bottle bRealtime;
-                bRealtime.addString("realtime");
-                bRealtime.addInt((int) realtime);
-                bSend.addList() = bRealtime;
-
-                yarp::os::Bottle bBlocking;
-                bBlocking.addString("blocking");
-                bBlocking.addInt((int) blocking);
-                bSend.addList() = bBlocking;
-
-                yarp::os::Bottle bAugmented;
-                bAugmented.addString("includeAugmented");
-                bAugmented.addInt((int) includeAugmented);
-                bSend.addList() = bAugmented;
-
-                yarp::os::Bottle bSpeedMultiplier;
-                bSpeedMultiplier.addString("speedMultiplier");
-                bSpeedMultiplier.addDouble(speedMultiplier);
-                bSend.addList() = bSpeedMultiplier;
-
-
-                yarp::os::Bottle bRobot;
-                bRobot.addString("robot");
-                bRobot.addString(robot);
-                bSend.addList() = bRobot;
-
-                portRPC.write(bSend, bReceived);
-
-                return bReceived;
-            }
-
-            yarp::os::Bottle rpcCommand(yarp::os::Bottle &bRequest)
-            {
-                yarp::os::Bottle bReply;
-
-                yInfo() << " [rpcCommand] bRequest = " << bRequest.toString() ;
-                //send the SQL query within a bottle to autobiographicalMemory
-                portRPC.write(bRequest, bReply);
-                return bReply;
-            }
-
+            yarp::os::Bottle rpcCommand(yarp::os::Bottle &bRequest);
         };
     }
 }//Namespace

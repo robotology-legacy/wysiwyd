@@ -482,7 +482,7 @@ bool PasarModule::saliencyPointing()
     bool stopPointing = false;
 
     bool wasPresent = false;
-    Agent *ag;
+    Agent *ag = nullptr;
     // founding the agent:
     Vector vec;
     for (auto &it : OPCEntities){
@@ -497,7 +497,7 @@ bool PasarModule::saliencyPointing()
     }
 
 
-    if (!wasPresent){
+    if (!ag || !wasPresent){
         yInfo() << " in PASAR:saliencyPointing no human agent present";
         return false;
     }
@@ -591,7 +591,7 @@ bool PasarModule::saliencyPointing()
 bool PasarModule::saliencyWaving()
 {
     bool wasPresent = false;
-    Agent *ag;
+    Agent *ag = nullptr;
     // founding the agent:
     for (auto &it : OPCEntities){
         if (it.second.o.entity_type() == EFAA_OPC_ENTITY_AGENT

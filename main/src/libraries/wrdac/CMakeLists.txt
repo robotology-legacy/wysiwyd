@@ -4,20 +4,35 @@
 
 project(wrdac)
 
-set(folder_source src/action.cpp
-                  src/adjective.cpp
-                  src/agent.cpp
-                  src/animation.cpp
-                  src/bodypart.cpp
-                  src/entity.cpp           
-                  src/functions.cpp
-                  src/icubClient.cpp
-                  src/object.cpp
-                  src/opcClient.cpp
-                  src/opcEars.cpp          
-                  src/opcSave.cpp
-                  src/relation.cpp
-                  src/rtObject.cpp)
+set(folder_source src/functions.cpp
+                  src/knowledge/action.cpp
+                  src/knowledge/adjective.cpp
+                  src/knowledge/agent.cpp
+                  src/knowledge/bodypart.cpp
+                  src/knowledge/entity.cpp
+                  src/knowledge/object.cpp
+                  src/knowledge/relation.cpp
+                  src/knowledge/rtObject.cpp
+                  src/subsystems/subSystem_ABM.cpp
+                  src/subsystems/subSystem_agentDetector.cpp
+                  src/subsystems/subSystem_attention.cpp
+                  src/subsystems/subSystem_ARE.cpp
+                  src/subsystems/subSystem_babbling.cpp
+                  src/subsystems/subSystem_facialExpression.cpp
+                  src/subsystems/subSystem_iol2opc.cpp
+                  src/subsystems/subSystem_iKart.cpp
+                  src/subsystems/subSystem_postures.cpp
+                  src/subsystems/subSystem_reactable.cpp
+                  src/subsystems/subSystem_recog.cpp
+                  src/subsystems/subSystem_LRH.cpp
+                  src/subsystems/subSystem_slidingCtrl.cpp
+                  src/subsystems/subSystem_speech.cpp
+                  src/clients/animation.cpp
+                  src/clients/icubClient.cpp
+                  src/clients/opcClient.cpp
+                  src/clients/opcEars.cpp
+                  src/clients/opcSave.cpp)
+
 
 set(folder_header include/wrdac/functions.h
                   include/wrdac/helpers.h
@@ -36,13 +51,13 @@ set(folder_header include/wrdac/functions.h
                   include/wrdac/clients/clients.h   
                   include/wrdac/clients/icubClient.h
                   include/wrdac/clients/opcClient.h 
-                  include/wrdac/clients/opcEars.h   
+                  include/wrdac/clients/opcEars.h
                   include/wrdac/clients/opcSave.h
                   include/wrdac/subsystems/all.h                       
                   include/wrdac/subsystems/subSystem.h                 
-                  include/wrdac/subsystems/subSystem_ABM.h             
+                  include/wrdac/subsystems/subSystem_ABM.h
                   include/wrdac/subsystems/subSystem_agentDetector.h
-                  include/wrdac/subsystems/subSystem_ARE.h             
+                  include/wrdac/subsystems/subSystem_ARE.h
                   include/wrdac/subsystems/subSystem_attention.h
                   include/wrdac/subsystems/subSystem_babbling.h
                   include/wrdac/subsystems/subSystem_facialExpression.h
