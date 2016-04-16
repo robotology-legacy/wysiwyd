@@ -261,7 +261,9 @@ namespace wysiwyd{
                                 {
                                     std::list<std::pair<std::string, std::string> > lArgument;
                                     lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(0).toString(), "sentence"));
-                                    lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
+                                    if(bAnswer.size() > 1) {
+                                        lArgument.push_back(std::pair<std::string, std::string>(bAnswer.get(1).toString(), "semantic"));
+                                    }
                                     lArgument.push_back(std::pair<std::string, std::string>(m_masterName, "provider"));
                                     //add speaker name. name should be sent through fonction before
                                     if (speakerName_.empty()){

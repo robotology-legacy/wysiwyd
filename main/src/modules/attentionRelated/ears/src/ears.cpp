@@ -164,8 +164,10 @@ bool ears::updateModule() {
         }
         // bAnswer is the result of the regognition system (first element is the raw sentence, 2nd is the list of semantic element)
 
-        bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
-        cout << bSemantic.toString() << endl;
+        if(bAnswer.get(1).asList()->get(1).isList()) {
+            bSemantic = *(*bAnswer.get(1).asList()).get(1).asList();
+        }
+        yDebug() << bSemantic.toString();
         string sObject, sAction;
         string sQuestionKind = bAnswer.get(1).asList()->get(0).toString();
 
