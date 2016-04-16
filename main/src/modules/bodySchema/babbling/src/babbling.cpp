@@ -662,12 +662,13 @@ bool Babbling::doBabblingKinStruct()
     commandHead = encodersHead;
     for (int i=0; i<=4; i++) {
         ictrlHead->setControlMode(i,VOCAB_CM_POSITION);
-        commandHead[0] = -35;
+        commandHead[0] = -30;
         commandHead[2] = cmd_head_2;
         commandHead[3] = -12;
     }
     if(part=="right_arm"){
-        commandHead[2] = -35;
+        commandHead[1] = 10;
+        commandHead[2] = -40;
     }
     posHead->positionMove(commandHead.data());
 
