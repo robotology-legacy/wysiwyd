@@ -661,6 +661,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                     yDebug() << "Changed name for" << sNameTarget;
                     yarp::os::Time::delay(0.1);
                     yDebug() << "Point" << sNameTarget;
+                    iCub->opc->checkout();
                     iCub->point(sNameTarget);
                     yarp::os::Time::delay(0.1);
                     iCub->say("Now I know the " + sNameTarget);

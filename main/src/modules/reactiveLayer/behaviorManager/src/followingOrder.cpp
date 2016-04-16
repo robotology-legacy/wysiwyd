@@ -179,6 +179,7 @@ int FollowingOrder::randKS(Bottle bKS) {
 }
 
 bool FollowingOrder::handleActionKS(string action, string type) {
+    iCub->opc->checkout();
     int ks = -1;
 
     if(type == "kinematic structure") {
