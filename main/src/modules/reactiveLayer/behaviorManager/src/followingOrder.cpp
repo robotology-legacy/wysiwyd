@@ -199,7 +199,7 @@ bool FollowingOrder::handleActionKS(string action, string type) {
     yInfo() << "[handleActionKS] type: " << type  << "action:" << action << "with instance ks = " << ks;
     iCub->lookAtPartner();
     if(type == "kinematic structure") {
-        iCub->say("Please look at the screen behind me. I estimate my arm looks like this.");
+        iCub->say("Please look at the screen behind me. See how my arms look the same.");
     } else if(type == "kinematic structure correspondence") {
         iCub->say("I think our body parts are similar. I show you what I mean on the screen.");
     }
