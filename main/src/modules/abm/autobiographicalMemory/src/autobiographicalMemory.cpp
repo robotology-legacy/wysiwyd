@@ -339,7 +339,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
 
     /****************************** visualdata *************************/
     *ABMDataBase << "DROP TABLE IF EXISTS visualdata CASCADE;";
-    *ABMDataBase << "CREATE TABLE visualdata(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port), CONSTRAINT visualdata_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE);";
+    *ABMDataBase << "CREATE TABLE visualdata(\"time\" timestamp without time zone NOT NULL, img_provider_port text NOT NULL, instance integer NOT NULL, frame_number integer NOT NULL, relative_path text NOT NULL, augmented text, img_oid oid, augmented_time timestamp without time zone NOT NULL DEFAULT '2000-01-01 00:00:00'::timestamp without time zone CONSTRAINT img_pkey PRIMARY KEY(\"time\", img_provider_port, augmented_time), CONSTRAINT visualdata_instance_fkey FOREIGN KEY(instance) REFERENCES main(instance) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION) WITH(OIDS = FALSE);";
     *ABMDataBase << "ALTER TABLE visualdata OWNER TO postgres;";
     *ABMDataBase << "CREATE INDEX visualdata_instance_time ON visualdata (instance, time);";
 
