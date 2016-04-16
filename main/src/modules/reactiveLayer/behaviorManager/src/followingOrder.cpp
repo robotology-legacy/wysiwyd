@@ -19,6 +19,7 @@ void FollowingOrder::configure() {
     port_to_narrate_name = "/behaviorManager/narrate:o";
     port_to_narrate.open(port_to_narrate_name);
     port_to_homeo.open(portToHomeo_name);
+    manual = false;
 }
 
 void FollowingOrder::run(Bottle args/*=Bottle()*/) {
@@ -80,7 +81,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         handleActionKS(action, type);
     }
 
-    if (Network::isConnected(portToHomeo_name,homeoPort)){
+    if (! manual && Network::isConnected(portToHomeo_name,homeoPort)){
         yInfo()<<"unfreezing drives";
         Bottle cmd;
         Bottle rply;
