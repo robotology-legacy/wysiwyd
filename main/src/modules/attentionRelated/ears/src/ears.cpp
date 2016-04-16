@@ -192,11 +192,15 @@ bool ears::updateModule() {
             sCommand = "followingOrder";
         } else if (sQuestionKind == "SENTENCEKS") {
             sCommand = "followingOrder";
-            sAction = bSemantic.check("predicateKS", Value("none")).asString();
-            sObjectType = bSemantic.check("KS", Value("none")).asString();
+            sAction = "show";
+            sObjectType = "kinematic structure";
             sObject = "";
-
-        } else{
+        } else if (sQuestionKind == "SENTENCEKSC") {
+            sCommand = "followingOrder";
+            sAction = "show";
+            sObjectType = "kinematic structure correspondence";
+            sObject = "";
+        } else {
             yError() << "[ears] Unknown predicate";
 
         }
