@@ -266,11 +266,6 @@
         <dependencies>
             <port timeout="20">/homeostasis/rpc</port>
             <port timeout="20">/BehaviorManager/trigger:i</port>
-            <port timeout="20">/BehaviorManager/tagging/start_stop:o</port>
-            <port timeout="20">/BehaviorManager/followingOrder/start_stop:o</port>
-            <port timeout="20">/BehaviorManager/pointing/start_stop:o</port>
-            <port timeout="20">/BehaviorManager/narrate/start_stop:o</port>
-            <port timeout="20">/BehaviorManager/recognitionOrder/start_stop:o</port>
         </dependencies>
     </module>
     <module>
