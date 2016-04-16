@@ -359,8 +359,8 @@ while( True ):
                                     print i,'x'
 
                         data[combinationKeys[i]]['prevContact'] =  data[combinationKeys[i]]['currContact']
-                if(verbose):
-                    print
+                    if(verbose):
+                        print
                 else:
                     print 'Incorrect message received'
 
