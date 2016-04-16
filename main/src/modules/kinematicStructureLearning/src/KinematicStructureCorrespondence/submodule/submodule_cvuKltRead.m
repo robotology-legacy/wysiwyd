@@ -79,10 +79,12 @@ Wx = W(1,:);
 Wy = W(1+num_frames,:);
 
 mask = submodule_bg_removal_mask(cdata);
-for i=1:size(Wx,2)
-    if Wx(i) > 0 && Wy(i) > 0
-        if mask(Wy(i),Wx(i)) == 0
-            W(:,i) = -1;
+if ~isempty(mask)
+    for i=1:size(Wx,2)
+        if Wx(i) > 0 && Wy(i) > 0
+            if mask(Wy(i),Wx(i)) == 0
+                W(:,i) = -1;
+            end
         end
     end
 end

@@ -24,24 +24,24 @@ if augmented_result_save_ON
     % clean and make a saving directory
     [SUCCESS,MESSAGE,MESSAGEID] = rmdir('result/KS','s');
     mkdir('result/KS');
-    mkdir('result/KS/video');
-    mkdir('result/KS/video/graph');
-    mkdir('result/KS/video/points');
+%     mkdir('result/KS/video');
+%     mkdir('result/KS/video/graph');
+%     mkdir('result/KS/video/points');
     
     mkdir('result/KS/images');
     mkdir('result/KS/images/graph');
     mkdir('result/KS/images/points');
-    
-    result_save_folder_video_graph = 'result/KS/video/graph/';
-    result_save_folder_video_points = 'result/KS/video/points/';
+%     
+%     result_save_folder_video_graph = 'result/KS/video/graph/';
+%     result_save_folder_video_points = 'result/KS/video/points/';
     result_save_folder_images_graph = 'result/KS/images/graph/';
     result_save_folder_images_points = 'result/KS/images/points/';
     
-    writerobj_graph = VideoWriter([result_save_folder_video_graph,'result_video_graph.avi']);
-    writerobj_points = VideoWriter([result_save_folder_video_points,'result_video_points.avi']);
+%     writerobj_graph = VideoWriter([result_save_folder_video_graph,'result_video_graph.avi']);
+%     writerobj_points = VideoWriter([result_save_folder_video_points,'result_video_points.avi']);
     
-    open(writerobj_graph);
-    open(writerobj_points);
+%     open(writerobj_graph);
+%     open(writerobj_points);
 end
 
 videoFileName = cdata.filename(1:end-4);
@@ -188,23 +188,31 @@ for frm_idx = 1:KineStruct.num_frames
             'MarkerFaceColor',[1.0,0.647,0.0]);
     end    
     
+%     iptsetpref('ImshowBorder','tight');
     pause(0.003)
     
     % get image from figure
     if augmented_result_save_ON
-        F_points = getframe(h_points);
-        writeVideo(writerobj_points,F_points);
+        iptsetpref('ImshowBorder','tight');
+%         pause(0.1)
+%         F_points = getframe(h_points);
+%         writeVideo(writerobj_points,F_points);
     
-    % save images
+        % save images
         save_image_filename=[sprintf('%04d',frm_idx) '.png'];
         save_path = [result_save_folder_images_points,save_image_filename];
-        imwrite(F_points.cdata,save_path);
+%         imwrite(F_points.cdata,save_path);
+        export_fig(save_path,'-png');
+        
+        img_before = imread(save_path);
+        img_after = imresize(img_before, [240, 320]);
+        imwrite(img_after, save_path);        
     end
 end
 
 %%
-if augmented_result_save_ON
-    close(writerobj_graph);
-    close(writerobj_points);
-end
+% if augmented_result_save_ON
+%     close(writerobj_graph);
+%     close(writerobj_points);
+% end
 

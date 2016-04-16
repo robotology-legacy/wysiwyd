@@ -23,11 +23,20 @@ for h = 1:cdata.height
     end
 end
 
-mask(img_std < 10) = 0;
+mask(img_std < 20) = 0;
 
 figure(343)
 mesh(img_std)
 
 figure(344)
 imagesc(mask)
+
+se_dilate = strel('disk',7);
+mask = imdilate(mask,se_dilate);
+se_erode = strel('disk',14);
+mask = imerode(mask,se_erode);
+
+figure(345)
+imagesc(mask)
+
 end

@@ -22,6 +22,8 @@ clc
 close all
 clear all
 
+warning off
+
 %%
 %=========================================================
 % add path
@@ -156,7 +158,7 @@ bReply.clear();
                 % main algorithm
                 %=========================================================
                 disp('+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++');
-                %                 numOfSegments = 0;
+%                                 numOfSegments = 0;
                 numOfSegments = 3;                
 %                 submodule_motion_segmentation;
                 KineStruct = genKineStruct(y, numOfSegments, cdata, ctrl_param);
@@ -173,6 +175,7 @@ bReply.clear();
                 bReply.addString(['Structure learning from ABM #',instance_num, ' is completed!']);
                 
                 %----------------------------------------------------------------------
+                %
 %**********************************************************************************************************                
             elseif (strcmp(bCommand.get(0).toString, 'findCorrespondence'))
                 %% kinematic structure correspondences matching from two videos
@@ -249,7 +252,7 @@ bReply.clear();
                     cdata_Q = featureExtractionYARP(idx);
                     [y_Q, W_Q, frames_Q, points_Q] = submodule_cvuKltRead(cdata_Q);
                     %                 numOfSegments_Q = 6;
-                    numOfSegments_Q = 4;
+                    numOfSegments_Q = 3;
                     KineStruct_Q = genKineStruct(y_Q, numOfSegments_Q, cdata_Q, ctrl_param);
                 elseif strcmp(data_source_Q,'kinect')
                     idx = 'Q';

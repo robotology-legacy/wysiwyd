@@ -106,12 +106,16 @@ end
 disp(['Actual retrieving number of images: ',num2str(ceil(num_images*0.9))]);
 
 reverseStr = '';
+waitbar_h = waitbar(0,'Initializing progress bar...');
+
 
 for i=0:ceil(num_images * 0.9)-1   
     percentDone = 100 * (i+1) / (ceil(num_images * 0.9));
     msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
     fprintf([reverseStr, msg]);
     reverseStr = repmat(sprintf('\b'), 1, length(msg));
+    
+    waitbar(percentDone/100,waitbar_h,sprintf('%3.1f%% along ...', percentDone));
     
     yarpImage = yarp.ImageRgb;
     yarpImage = portIncoming.read();
@@ -151,6 +155,7 @@ end
 
 disp(' ');
 disp('Done receiving images!');
+close(waitbar_h);
 
 
 % save buf data

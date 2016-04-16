@@ -145,7 +145,7 @@ last_frame_idx_P = num_images_P;
 
 disp(['Actual retrieving number of images: ',num2str(ceil(num_images_P*0.9))]);
 reverseStr = '';
-% h = waitbar(0,'Initializing progress bar...');
+waitbar_h = waitbar(0,'Initializing progress bar...');
 
 %------------------------------------------
 % for camcalib/left or camcalib/right
@@ -157,6 +157,8 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
         msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        
+        waitbar(percentDone/100,waitbar_h,sprintf('%3.1f%% along ...', percentDone));
         
         yarpData_P = yarp.ImageRgb;
         yarpData_P = portIncoming_P.read();
@@ -193,7 +195,7 @@ if strcmp(data_source_P,'left') || strcmp(data_source_P,'right')
     end
     disp('');
     disp('Done receiving images!');
-    %     close(h);
+    close(waitbar_h);
     %------------------------------------------
     % for kinect
 elseif strcmp(data_source_P,'kinect')
@@ -208,6 +210,8 @@ elseif strcmp(data_source_P,'kinect')
         msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        
+        waitbar(percentDone/100,waitbar_h,sprintf('%3.1f%% along ...', percentDone));
         
         if(i+1 >= start_frame_idx_P && i < last_frame_idx_P)
             % save data
@@ -231,7 +235,8 @@ elseif strcmp(data_source_P,'kinect')
     end
     fclose(fileID);
     disp('');
-    disp('Done receiving images!');    
+    disp('Done receiving images!');
+    close(waitbar_h);
 end
 
 % save buf data
@@ -271,6 +276,14 @@ end
 %====================================
 port2ABM_query_P.close;
 portIncoming_P.close;
+
+
+% 
+% for i=10:-1:1
+%     disp(['Please wait ',num2str(i), ' sec']);
+%     pause(1)
+% end
+
 
 %%
 %-------------------------------------------------------------------------------------------
@@ -389,7 +402,7 @@ last_frame_idx_Q = num_images_Q;
 
 disp(['Actual retrieving number of images: ',num2str(ceil(num_images_Q*0.9))]);
 reverseStr = '';
-% h = waitbar(0,'Initializing progress bar...');
+waitbar_h = waitbar(0,'Initializing progress bar...');
 
 %------------------------------------------
 % for camcalib/left or camcalib/right
@@ -404,6 +417,7 @@ if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
         msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        waitbar(percentDone/100,waitbar_h,sprintf('%3.1f%% along ...', percentDone));
         
         if(i+1 >= start_frame_idx_Q && i < last_frame_idx_Q)
             % save images
@@ -438,7 +452,7 @@ if strcmp(data_source_Q,'left') || strcmp(data_source_Q,'right')
     end
     disp('');
     disp('Done receiving images!');
-    %     close(h);
+    close(waitbar_h);
     
     %------------------------------------------
     % for kinect
@@ -457,6 +471,8 @@ elseif strcmp(data_source_Q,'kinect')
         msg = sprintf('Percent done: %3.1f', percentDone); %Don't forget this semicolon
         fprintf([reverseStr, msg]);
         reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        
+        waitbar(percentDone/100,waitbar_h,sprintf('%3.1f%% along ...', percentDone));
         
         if(i+1 >= start_frame_idx_Q && i < last_frame_idx_Q)
             % save data
@@ -481,6 +497,7 @@ elseif strcmp(data_source_Q,'kinect')
     fclose(fileID);
     disp('');
     disp('Done receiving images!');    
+    close(waitbar_h);
 end
 
 % save buf data
