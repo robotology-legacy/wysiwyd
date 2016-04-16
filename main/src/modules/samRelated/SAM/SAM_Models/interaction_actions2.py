@@ -204,8 +204,8 @@ dataReceived = yarp.Bottle();
 # images = numpy.zeros((numFaces, imgHNew*imgWNew), dtype=numpy.uint8)
 replyString = ''
 print 'Responding to callsigns: ' + ', '.join(callSignList)
-
-def readCommands(supPort, inBottle, replyBool, replyStr, exception, recActions ):
+actionStore = []
+def readCommands(supPort, inBottle, replyBool, replyStr, exception, actionStore ):
     while(1):
         supPort.read(inBottle,replyBool)
         message = inBottle.get(0).asString()
@@ -216,10 +216,10 @@ def readCommands(supPort, inBottle, replyBool, replyStr, exception, recActions )
             exception[0] =  'keyInterupt'
             replyStr = 'ack'
         elif('label' in message):
-            if(len(recActions) > 0):
+            if(len(actionStore) > 0):
                 print 'label'
-                print recActions
-                replyStr = '__'.join(recActions)
+                print actionStore[-1]
+                replyStr = actionStore[-1]
                 replyStr = 'ack ' + replyStr 
             else:
                 replyStr = 'ack no_actions_recognised'
@@ -237,7 +237,6 @@ def readCommands(supPort, inBottle, replyBool, replyStr, exception, recActions )
         supPort.reply(yarp.Bottle(replyStr))
 
 exception = []
-actionStore = []
 exception.append('')
 read_thread = threading.Thread(target=readCommands, args=(portsList[svPort], inputBottle, True, replyString, exception, actionStore  ))
 read_thread.start()
@@ -253,7 +252,6 @@ contactThreshold = mySAMpy.contactThreshold
 verbose = False
 data = dict()
 mySAMpy.configProcessing()
-actionStore = []
 
 while( True ):
         try:
@@ -339,7 +337,7 @@ while( True ):
                                     if(verbose):
                                         print i,'Action stopped.', 'Len =', data[combinationKeys[i]]['actionLen']
                                     #processing the action
-                                    tempQTC = mySAMpy.extractFeatures(Pk, Pl)
+                                    tempQTC = mySAMpy.extractFeatures(Pl, Pk)
                                     tempQTC = mySAMpy.chooseFeatures(tempQTC)
                                     print
                                     [label, prob] = mySAMpy.testing(tempQTC[None,:], False)
