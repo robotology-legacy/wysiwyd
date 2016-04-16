@@ -270,7 +270,7 @@ Bottle autobiographicalMemory::getStreamWithinEpoch(long updateTimeDifference, s
     } else if(table=="proprioceptivedata") {
         osArgImages << "SELECT subtype, label_port, time, value, ";
     }
-    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM " << table << " WHERE instance = '" << imgInstance << "')) * 1000000 as INT) as time_difference ";
+    osArgImages << "CAST(EXTRACT(EPOCH FROM time-(SELECT min(time) FROM " << table << " WHERE instance = '" << imgInstance << "')) * 1000000 as BIGINT) as time_difference ";
     if(table=="visualdata") {
         osArgImages << ", frame_number, augmented, augmented_time ";
     }
@@ -308,7 +308,7 @@ long autobiographicalMemory::getTimeLastStream(int instance, string table) {
     Bottle bRequest;
     ostringstream osArg;
 
-    osArg << "SELECT CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM " << table << " WHERE instance = " << instance << " ORDER BY time LIMIT 1)) * 1000000 as INT) as time_difference FROM " << table << " WHERE instance = " << instance << " ORDER BY time DESC LIMIT 1;";
+    osArg << "SELECT CAST(EXTRACT(EPOCH FROM time-(SELECT time FROM " << table << " WHERE instance = " << instance << " ORDER BY time LIMIT 1)) * 1000000 as BIGINT) as time_difference FROM " << table << " WHERE instance = " << instance << " ORDER BY time DESC LIMIT 1;";
     bRequest.addString("request");
     bRequest.addString(osArg.str());
     bRequest = request(bRequest);
