@@ -1,0 +1,26 @@
+<train data>
+, detected I object unknown <o> [_-_-_-_-_-_-_-_][A-P-R-O-_-_-_-_] <o>; I detected an unknown object #ok
+so , pointed I object <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>; so I pointed to the object #ok
+, asked I you , is object what <o> [_-_-_-_-_-_-_-_][A-P-R-_-_-_-_-_][_-_-_-O-P-A-_-_] <o>; and I asked you what is this object #ok
+, told you me , was it box <o> [_-_-_-_-_-_-_-_][A-P-R-_-_-_-_-_][_-_-_-A-P-O-_-_] <o>; you told me that it was the box #ok
+so now , have I , discovered I box object new <o> [P-A-_-_-_-_-_-_][_-_-A-P-_-_-_-_][_-_-A-_-P-V-R-O] <o>; so now I have discovered a new object box #ok
+then ,  detected I body-part unknown <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>; then I detected an unknown body-part #ok
+so , asked I you , watch you, moved I body-part <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-R-P-_-_-_][_-_-_-_-_-A-P-O] <o>; so I asked you to watch while I moved a body-part #ok
+, told you me , was it thumb my <o> [_-_-_-_-_-_-_-_][A-P-R-_-_-_-_-_][_-_-_-A-P-R-O-_] <o>; you told me that it was my thumb #ok
+so now , know I , have I thumb <o> [P-A-_-_-_-_-_-_][_-_-A-P-_-_-_-_][_-_-_-_-A-P-O-_] <o>; so now I know that I have a thumb #ok
+again , detected I sensor tactile unknown <o> [P-_-_-_-_-_-_-_][_-A-P-V-R-O-_-_] <o>; again I detected an unknown tactile sensor #ok
+so , asked I you , touch you thumb my <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-R-O-_] <o>; so I asked you to touch my thumb #ok
+, touched you it <o> [_-_-_-_-_-_-_-_][A-P-O-_-_-_-_-_] <o>; and you touched it  # And you touched it. Touch(you, thumb)-> impossible because in the same train 'it' is a OCW #ok
+now , can I , feel I , touches object thumb my <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-_-_-_-_][_-_-_-_-A-P-R-O] <o>; now I can feel when an object touches my thumb #ok
+
+# scenario 3 data
+, wanted I , get I giraffe <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>; I wanted to get the giraffe
+but , failed I , grasp I it <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-_-_-_] <o>; but I failed to grasp it
+because , laid it outofreach <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_] <o>; because it laid outofreach
+so , found I action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>; so I found a different action
+if , could I , ask I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>; if I could ask you to give it to me
+then , would you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>; then you would give it to me
+so , asked I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>; so I asked you to give it to me
+, gave you it me <o> [_-_-_-_-_-_-_-_][A-P-O-R-_-_-_-_] <o>; and you gave it to me # => 'and' is declared as 'CCW' because the scenario 2. If we remove the 'CCW' for Scenario 3 we can write the meaning like this:
+now , have I giraffe <o> [_-_-P-_-_-_-_-_][A-P-_-O-_-_-_-_] <o>; I have now the giraffe
+
