@@ -99,6 +99,15 @@ bool AllostaticController::openPorts(string driveName)
         yarp::os::Time::delay(0.5);
     }
 
+    yarp::os::Time::delay(0.1);
+    pn = "/" + moduleName + "/toBehaviorManager:o";
+    targetPortName = "/BehaviorManager/trigger:i";
+    to_behavior_rpc.open(pn);
+    while(!Network::connect(pn, targetPortName))
+    {
+        yDebug()<<"Setting up BehaviorManager connections... "<< pn << " " << targetPortName;
+        yarp::os::Time::delay(0.5);
+    }
     return allGood;
 }
 
@@ -429,10 +438,15 @@ bool AllostaticController::respond(const Bottle& cmd, Bottle& reply)
         } else if (cmd.get(1).asString() == "off") {
             for(auto& allostaticDrive : allostaticDrives) {
                 allostaticDrive.second.manualMode = false;
-            }
+            }           
             yInfo() << "Manual mode turns off";
             reply.addString("ack");
         }
+        Bottle bmCmd, bmReply;
+        bmCmd.addString("manual");  
+        bmCmd.addString(cmd.get(1).asString());  // on or off
+        to_behavior_rpc.write(bmCmd, bmReply);     
+
     } else {
         reply.addString("nack");
         reply.addString("Unknown rpc command");

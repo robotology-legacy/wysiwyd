@@ -166,7 +166,7 @@ private:
 
     Bottle drivesList;
     
-    Port to_homeo_rpc, rpc_in_port;
+    Port to_homeo_rpc, rpc_in_port, to_behavior_rpc;
     string moduleName;
     string homeo_name;
 
