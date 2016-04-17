@@ -22,6 +22,13 @@
 	<tag>emotions_interface</tag>
    </module>
 
+   <module>
+  <name>gnome-terminal</name>
+    <parameters>-e "python /home/rococo/robot/wysiwyd/main/src/modules/samRelated/SAM/SAM_Demos/samSupervisor.py"</parameters>
+    <node>rococo</node>
+  </module>
+  <module>
+
     <module>
         <name>actionsRenderingEngine</name>
         <parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
@@ -257,7 +264,11 @@
         </dependencies>
     </module>
 
-
+    <module>
+        <name>actionRecogDataDumper</name>
+        <parameters></parameters>
+        <node>localhost</node>
+    </module>
 
     <module>
         <name>allostatic_plot.py</name>
@@ -557,5 +568,10 @@
     <from>/iSpeak/speech-dev/rpc</from>
     <to>/icub/speech:rpc</to>
     <protocol>tcp</protocol>
+  </connection>
+  <connection>
+      <from>/actionRecogDataDumper/data/dump:o</from>
+      <to>/sam/actions/actionData:i</to>
+      <protocol>udp</protocol>
   </connection>
 </application>

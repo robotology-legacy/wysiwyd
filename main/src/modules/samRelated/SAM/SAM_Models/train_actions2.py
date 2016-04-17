@@ -277,6 +277,7 @@ print 'ratioData = ' + str(ratioData)
 Ntr = ratioData
 
 [Yall,Lall,YtestAll,LtestAll] = mySAMpy.prepareData(model_type, Ntr, randSeed=experiment_number)
+print "Training with ", model_num_inducing, 'inducing points for ', model_init_iterations, '|', model_num_iterations
 mySAMpy.training(model_num_inducing, model_num_iterations, model_init_iterations, fname, save_model, economy_save, keepIfPresent = False)
 
 if visualise_output: 
@@ -286,134 +287,17 @@ if visualise_output:
 else:
     visualiseInfo=None
 
-
-c = ipp.Client()
-dview = c[:]
-
-with dview.sync_imports():
-    from SAM.SAM_Drivers import SAMDriver_AR
-
-dview.push({'mySAMpy':mySAMpy})
-
-ss = []
-sstest = []
-print
-off1 = 11
-off2 = 8
-
-# allCount = Yall.shape[0]
-# factor = 40
-# numItems = int(allCount/factor)
-cmSize = len(mySAMpy.textLabels)
-confMatrix = np.zeros((cmSize, cmSize))
-numItems = Yall.shape[0]
-
-off3 = len(str(numItems))
-
-print 'estimated time: ' + str(numItems/60) + 'mins for ' + str(numItems) + ' items'
-#format training data
+from SAM.SAM_Drivers import testingSegments
 
 yTrainingData = mySAMpy.formatDataFunc(Yall)
-YsampleIdx = [ i for i in sorted(random.sample(xrange(len(yTrainingData)),numItems)) ]
-
-Ysample = [yTrainingData[i] for i in YsampleIdx]
-Lsample = [mySAMpy.textLabels[int(Lall[i])] for i in YsampleIdx]
-
-syn = dview.map_async(testFunc, Ysample, Lsample)
-mySAMpy.wait_watching_stdout(syn, dt=1, truncate=1000)
-ret = syn.get()
-# clear_output()
-for i in range(len(ret)):
-
-    currLabel = Lsample[i]
-
-    if(currLabel == ret[i][0]):
-        result = True
-    else:
-        result = False
-    print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + ret[i][0].ljust(off1) + ' with ' + str(1-ret[i][1])[:6].ljust(off2) + ' confidence: ' + str(result)
-    confMatrix[mySAMpy.textLabels.index(currLabel),mySAMpy.textLabels.index(ret[i][0])] += 1
-    ss.append(ret[i][0])
-
-confMatLabels = copy.deepcopy(mySAMpy.textLabels)
-confMatLabels.sort()
-
-h = confusion_matrix(Lsample, ss)
-total = h.astype(np.float).sum(axis=1)
-normConf = copy.deepcopy(h)
-normConf = normConf.astype(np.float)
-
-for l in range(h.shape[0]):
-    normConf[l,:] = normConf[l,:].astype(np.float)*100/total[l].astype(np.float)
-
-print normConf
-
-mySAMpy.plot_confusion_matrix(normConf, confMatLabels)
-
-percCorect = 100*np.diag(h.astype(np.float)).sum()/numItems
-
-print str(percCorect)[:5].ljust(7) + "% correct for training data"
-print
-for i in range(cmSize):
-    for j in range(cmSize):
-        print str(normConf[i,j])[:5].ljust(7) + '% of ' + str(mySAMpy.textLabels[i]) + ' classified as ' + str(mySAMpy.textLabels[j])
-    print
-
-cmSize = len(mySAMpy.textLabels)
-confMatrixTest = np.zeros((cmSize, cmSize))
-numItems = YtestAll.shape[0]
-
-off3 = len(str(numItems))
-
-print 'estimated time: ' + str(numItems/60) + 'mins for ' + str(numItems) + ' items'
-#format training data
+testingSegments.testSegments(mySAMpy, yTrainingData, Lall)
 
 yTrainingData = mySAMpy.formatDataFunc(YtestAll)
-YsampleIdx = [ i for i in sorted(random.sample(xrange(len(yTrainingData)),numItems)) ]
-
-Ysample = [yTrainingData[i] for i in YsampleIdx]
-Lsample = [mySAMpy.textLabels[int(LtestAll[i])] for i in YsampleIdx]
-
-syn = dview.map_async(testFunc, Ysample, Lsample)
-mySAMpy.wait_watching_stdout(syn, dt=1, truncate=1000)
-ret = syn.get()
-clear_output()
-for i in range(len(ret)):
-
-    currLabel = Lsample[i]
-
-    if(currLabel == ret[i][0]):
-        result = True
-    else:
-        result = False
-    print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + ret[i][0].ljust(off1) + ' with ' + str(1-ret[i][1])[:6].ljust(off2) + ' confidence: ' + str(result)
-    sstest.append(ret[i][0])
-
-confMatrixTest = confusion_matrix(Lsample, sstest)
-total = confMatrixTest.astype(np.float).sum(axis=1)
-normConfTest = copy.deepcopy(confMatrixTest)
-normConfTest = normConfTest.astype(np.float)
-
-for l in range(confMatrixTest.shape[0]):
-    normConfTest[l,:] = normConfTest[l,:].astype(np.float)*100/total[l].astype(np.float)
-
-print normConfTest
-
-mySAMpy.plot_confusion_matrix(normConfTest, confMatLabels)
-
-percCorect = 100*np.diag(confMatrixTest.astype(np.float)).sum()/numItems 
-
-print str(percCorect)[:5].ljust(7) + "% correct for testing data"
+testingSegments.testSegments(mySAMpy, yTrainingData, LtestAll)
 print
-for i in range(cmSize):
-    for j in range(cmSize):
-        print str(normConfTest[i,j])[:5].ljust(7)  + '% of ' + str(mySAMpy.textLabels[i]) + ' classified as ' + str(mySAMpy.textLabels[j])
-    print
-
-print
-
 #save model with custom .pickle dictionary by iterating through all nested models
 fname_cur = fname
+print '-------------------'
 print 'Saving: ' + fname_cur
 extraParams = dict()
 extraParams['YALL'] = Yall
@@ -432,6 +316,7 @@ extraParams['maxNumItems'] = mySAMpy.maxNumItems
 extraParams['deltaDistanceThreshold'] = mySAMpy.deltaDistanceThreshold
 extraParams['jointMu'] = mySAMpy.jointMu
 extraParams['jointSig'] = mySAMpy.jointSig
+extraParams['numJoints'] = mySAMpy.numJoints
 extraParams['ratioData'] = ratioData
 extraParams['model_type'] = model_type
 extraParams['model_num_inducing'] = model_num_inducing
@@ -445,4 +330,6 @@ extraParams['economy_save'] = economy_save
 extraParams['humanStaticLabels'] = mySAMpy.humanStaticLabels
 extraParams['featureSections'] = mySAMpy.featureSections
 extraParams['featureValues'] = mySAMpy.featureValues
+extraParams['dataLogList'] = mySAMpy.dataLogList
+extraParams['labelsLogList'] = mySAMpy.labelsLogList
 SAMCore.save_pruned_model(mySAMpy.SAMObject, fname_cur, economy_save, extraDict=extraParams)

@@ -73,6 +73,7 @@ maxNumItems = modelPickle['maxNumItems']
 deltaDistanceThreshold = modelPickle['deltaDistanceThreshold']
 jointMu = modelPickle['jointMu']
 jointSig = modelPickle['jointSig']
+numJoints = modelPickle['numJoints']
 ratioData = modelPickle['ratioData']
 model_type = modelPickle['model_type']
 model_num_inducing = modelPickle['model_num_inducing']
@@ -85,12 +86,13 @@ textLabels = modelPickle['textLabels']
 contactThreshold = modelPickle['contactThreshold']
 Ytrain = modelPickle['YALL']
 Ltrain= modelPickle['LALL']
+Ltrain= modelPickle['LALL']
 economy_save = modelPickle['economy_save']
 humanStaticLabels = modelPickle['humanStaticLabels']
 featureSections = modelPickle['featureSections']
 featureValues = modelPickle['featureValues']
-#Ytest = modelPickle['YTEST']
-#Ltest = modelPickle['LTEST']
+dataLogList = modelPickle['dataLogList']
+labelsLogList = modelPickle['labelsLogList']
 
 yarpRunning = False
 
@@ -115,6 +117,9 @@ mySAMpy.humanStaticLabels = humanStaticLabels
 mySAMpy.featureSections = featureSections
 mySAMpy.featureValues = featureValues
 mySAMpy.textLabels = textLabels
+mySAMpy.numJoints = numJoints
+mySAMpy.dataLogList = dataLogList
+mySAMpy.labelsLogList = labelsLogList
 
 if model_type == 'mrd':    
     mySAMpy.X=None     

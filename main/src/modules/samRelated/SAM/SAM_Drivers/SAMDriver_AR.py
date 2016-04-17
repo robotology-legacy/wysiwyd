@@ -27,12 +27,8 @@ import copy
 from itertools import combinations 
 from ConfigParser import SafeConfigParser
 from scipy.spatial import distance
-from numpy.linalg import inv
 import math
-import ipyparallel as ipp
 import random
-from sklearn.metrics import confusion_matrix
-from IPython.display import clear_output
 
 class SAMDriver_AR(SAMDriver):
 
@@ -164,8 +160,10 @@ class SAMDriver_AR(SAMDriver):
         dataLogList.sort()
         labelsLogList = [f for f in onlyfiles if 'label' in f]
         labelsLogList.sort()
+        self.dataLogList = dataLogList
+        self.labelsLogList = labelsLogList
 
-        numJoints = 9
+        self.numJoints = 9
         data = dict()
         firstPass = True
         jointsList = []
@@ -213,7 +211,7 @@ class SAMDriver_AR(SAMDriver):
                     labelsList[k].append(v)
 
                     #parse skeleton data which has 9 sections by (x,y,z)
-                    for i in range(numJoints):
+                    for i in range(self.numJoints):
                         a = i*4
                         if(t[a] == 'shoulderCenter'):
                             t[a] = 'chest'
@@ -229,7 +227,7 @@ class SAMDriver_AR(SAMDriver):
                             else:
                                 data[t[a]][k] = arr
 
-                    currIdx = (numJoints*4 -1)
+                    currIdx = (self.numJoints*4 -1)
                     numObjs = (len(t) - currIdx)/5
 
                     for i in range(numObjs):
@@ -781,27 +779,108 @@ class SAMDriver_AR(SAMDriver):
                 yDataList.append(Ydata[j][None,:])
             return yDataList
 
-    def plot_confusion_matrix(self, cm, targetNames, title='Confusion matrix', cmap=plt.cm.inferno):
-        plt.imshow(cm, interpolation='nearest', cmap=cmap)
-        plt.title(title)
-        plt.colorbar()
-        tick_marks = np.arange(len(targetNames))
-        plt.xticks(tick_marks, targetNames, rotation=45)
-        plt.yticks(tick_marks, targetNames)
-        plt.tight_layout()
-        plt.ylabel('True label')
-        plt.xlabel('Predicted label')
+    def sequenceConfig(self):
+        self.data = dict()
+        self.jointsList = []
+        self.objectsList = []
+        self.configProcessing()
+        self.actionStore = []
+        self.verbose = verbose
 
-    def wait_watching_stdout(self, ar, dt=1, truncate=1000):
-        while not ar.ready():
-            stdouts = ar.stdout
-            if any(stdouts):
-                clear_output()
-                print '-' * 30
-                print "%.3fs elapsed" % ar.elapsed
-                print ""
-                for stdout in ar.stdout:
-                    if stdout:
-                        print "\n%s" % (stdout[-truncate:])
-                sys.stdout.flush()
-            time.sleep(dt)
+    def sequenceProcessing(self, dataMessage, verbose=False):
+        t = dataMessage.replace('(','').replace(')','').split(' ')[2:]
+        if(t > 40):
+            del t[0:2]
+            #extract data parts
+            for i in range(self.numJoints):
+                a = i*4
+                if(t[a] == 'shoulderCenter'):
+                    t[a] = 'chest'
+
+                self.data[t[a]] = (np.array([float(t[a+1]), float(t[a+2]), float(t[a+3])]))
+                if(t[a] not in self.jointsList):
+                    self.jointsList.append(t[a])
+
+            currIdx = (numJoints*4 -1)
+            numObjs = (len(t) - currIdx)/5
+
+            for i in range(numObjs):
+                a = currIdx + 1 + (i*5)
+                self.data[t[a]] = np.array([float(t[a+1]), float(t[a+2]), float(t[a+3])])
+                if(t[a] not in self.objectsList):
+                    self.objectsList.append(t[a])
+
+            #check contact of either hand with either object
+            #generate list of combinations of hands and objects to check for contact
+            self.combinationList = []
+            self.combinationKeys = []
+            for i in objectsList[1:]:
+                self.combinationList.append(['handLeft',i])
+                self.combinationList.append(['handRight',i])
+                
+                self.combinationKeys.append(','.join(combinationList[-2]))
+                self.combinationKeys.append(','.join(combinationList[-1]))
+
+            Pk = None
+            Pl = None
+            for i in range(len(self.combinationList)):
+                if(self.combinationKeys[i] not in self.data):
+                    print 'add item', self.combinationKeys[i]
+                    self.data[combinationKeys[i]] = {'Pk':[None],'Pl':[None],'prevContact':False,'currContact':False,'d':[None]}
+               
+                if(Pk == None):
+                    Pk = self.data[combinationList[i][0]].T
+                    Pl = self.data[combinationList[i][1]].T
+                else:
+                    Pk = np.vstack((Pk,self.data[combinationList[i][0]].T))
+                    Pl = np.vstack((Pl,self.data[combinationList[i][1]].T))
+
+            d = self.distEuc(Pk,Pl)
+            
+            for i in range(len(self.combinationList)):
+                if(d[i] < self.contactThreshold):
+                    self.data[self.combinationKeys[i]]['currContact'] = True
+                else:
+                    self.data[self.combinationKeys[i]]['currContact'] = False
+                
+                if(self.data[self.combinationKeys[i]]['currContact']):
+                    if(self.data[self.combinationKeys[i]]['prevContact']):
+                        self.data[self.combinationKeys[i]]['Pk'].append(Pk[i])
+                        self.data[self.combinationKeys[i]]['Pl'].append(Pl[i])
+                        if(self.verbose):
+                            print i,'Append data', self.combinationList[i]
+                    else:
+                        self.data[self.combinationKeys[i]]['actionOccuring'] = True
+                        if(self.verbose):
+                            print i,'Contact between', self.combinationList[i], 'Action started'
+                else:
+                    if(self.data[self.combinationKeys[i]]['prevContact']):
+                        self.data[self.combinationKeys[i]]['actionOccuring']  = False
+                        self.data[self.combinationKeys[i]]['actionLen'] = len(self.data[self.combinationKeys[i]]['Pk'])
+                        
+                        if(self.data[self.combinationKeys[i]]['actionLen'] > 10):
+                            if(self.verbose):
+                                print i,'Action stopped.', 'Len =', self.data[self.combinationKeys[i]]['actionLen']
+                            #processing the action
+                            tempQTC = self.extractFeatures(Pk, Pl)
+                            tempQTC = self.chooseFeatures(tempQTC)
+                            print
+                            [label, prob] = self.testing(tempQTC[None,:], False)
+                            sentence = "You " + label.split('_')[0] + "ed the " + str(self.combinationList[i][1]) + " with your " + str(self.combinationList[i][0]).replace('hand','') + ' hand'
+                            print sentence
+                            self.actionStore.append(sentence)
+                        else:
+                            if(self.verbose):
+                                print i,'Action stopped.', 'Len =', self.data[self.combinationKeys[i]]['actionLen'], 'Action too short'
+                            else:
+                                'Action too short'
+                            
+                        self.data[self.combinationKeys[i]]['Pk'] = [None]
+                        self.data[self.combinationKeys[i]]['Pl'] = [None]
+                    else:
+                        if(self.verbose):
+                            print i,'x'
+
+                self.data[self.combinationKeys[i]]['prevContact'] =  self.data[self.combinationKeys[i]]['currContact']
+        if(self.verbose):
+            print
