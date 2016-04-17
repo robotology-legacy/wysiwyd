@@ -27,7 +27,7 @@
 #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
 #else
-#include <sys/time.h>
+#include <ctime>
 #endif
 
 using namespace std;
