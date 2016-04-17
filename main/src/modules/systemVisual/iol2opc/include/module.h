@@ -79,8 +79,6 @@ protected:
 #endif
 
 public:
-    int opc_id;
-
     /**********************************************************/
     IOLObject(const int filter_order=1, const double presenceTmo_=0.0,
               const string &trackerType_="BOOSTING", const double trackerTmo_=0.0) :
