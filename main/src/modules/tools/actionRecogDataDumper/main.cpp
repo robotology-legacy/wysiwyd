@@ -71,6 +71,26 @@ public:
         return true;
     }
 
+    // TODO FOR DANIEL: USE ICUBCLIENT!!!
+    std::string getPartnerName()
+    {
+        string partnerName = "";
+        list<Entity*> lEntities = opc.EntitiesCacheCopy();
+        for (auto& entity : lEntities) {
+            if (entity->entity_type() == "agent") {
+                Agent* a = dynamic_cast<Agent*>(entity);
+                //We assume kinect can only recognize one skeleton at a time
+                if(a->m_present == 1.0 && a->name()!="icub") {
+                    partnerName = a->name() ;
+                    yInfo() << "Partner found: name = " << partnerName;
+                    return partnerName;
+                }
+            }
+        }
+        yWarning() << "No partner present was found!";
+        return partnerName;
+    }
+
     /*******************************************************/
     double getPeriod()
     {
@@ -92,6 +112,7 @@ public:
         opc.checkout();        
 
         // agent body + position
+        agentName = getPartnerName();
         if (Entity *e=opc.getEntity(agentName))
         {
             if (Agent *agent=dynamic_cast<Agent*>(e))
