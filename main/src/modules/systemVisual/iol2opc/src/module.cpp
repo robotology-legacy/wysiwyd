@@ -670,7 +670,7 @@ void IOL2OPCBridge::updateOPC()
         mutexResourcesOpc.unlock();
 
         // reset internal tracking state
-        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+        for (auto it=db.begin(); it!=db.end(); it++)
             it->second.prepare();
 
         // check detected objects
@@ -688,7 +688,7 @@ void IOL2OPCBridge::updateOPC()
             string object=findName(scores,tag.str());
             if (object!=OBJECT_UNKNOWN)
             {
-                map<string,IOLObject>::iterator it=db.find(object);
+                auto it=db.find(object);
                 if (it!=db.end())
                 {
                     CvPoint cog=getBlobCOG(blobs,j);
@@ -715,14 +715,14 @@ void IOL2OPCBridge::updateOPC()
         }
 
         // cycle over objects to handle tracking
-        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+        for (auto it=db.begin(); it!=db.end(); it++)
             it->second.track(imgLatch);
 
         CvFont font;
         cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX,0.5,0.5,0,1);                
 
         // perform operations
-        for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++)
+        for (auto it=db.begin(); it!=db.end(); it++)
         {
             string object=it->first;
             Object *obj=opc->addOrRetrieveEntity<Object>(object);
@@ -1170,7 +1170,7 @@ bool IOL2OPCBridge::remove_object(const string &name)
     bool success = false;
     opc->checkout();
 
-    map<string,IOLObject>::iterator it=db.find(name);
+    auto it=db.find(name);
     if (it!=db.end()) {
         success = opc->removeEntity(it->second.opc_id);
         if(!success) {
@@ -1204,7 +1204,7 @@ bool IOL2OPCBridge::remove_all()
 
     bool success = true;
     opc->checkout();
-    for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++) {
+    for (auto it=db.begin(); it!=db.end(); it++) {
         yDebug() << "opc->removeEntity for ID" << it->second.opc_id;
         if(!opc->removeEntity(it->second.opc_id)) {
             if(!opc->removeEntity(it->first)) { // if removal by ID failed, remove by name
@@ -1249,14 +1249,14 @@ bool IOL2OPCBridge::change_name(const string &old_name,
     }
     else if (new_name!=old_name)
     {   
-        const map<string,IOLObject>::iterator it_new=db.find(new_name);
+        const auto it_new=db.find(new_name);
         if (it_new!=db.end())
         {
             yError("\"%s\" is already existing in the database",new_name.c_str());
             return false;
         }
 
-        const map<string,IOLObject>::iterator it_old=db.find(old_name);
+        const auto it_old=db.find(old_name);
         if (it_old!=db.end())
         {
             db[new_name]=IOLObject(opcMedianFilterOrder,presence_timeout,
