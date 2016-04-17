@@ -98,6 +98,7 @@ void autobiographicalMemory::saveAugmentedImages() {
         yDebug() << "time: " << time;
         yDebug() << "frame: " << frame_number;
         yDebug() << "augmentedLabel: " << augmentedLabel;
+        yDebug() << "augmentedTime: " << augmentedTime;
 
         string providerPortSpecifier = providerPort;
         replace(providerPortSpecifier.begin(), providerPortSpecifier.end(), '/', '_');
