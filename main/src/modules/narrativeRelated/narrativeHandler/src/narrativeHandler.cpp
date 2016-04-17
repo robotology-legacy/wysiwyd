@@ -875,8 +875,11 @@ void narrativeHandler::sayNarrationSimple(story target){
     }
     else{
         if (target.sentenceStory.size() > iThresholdSentence){
+            iCub->opc->checkout();
             cout << endl << "begin display narration of story: " << counter << " with " << target.vEvents.size() << " events and " << target.sentenceStory.size() << " sentence." << endl;
             for (auto itSt : target.sentenceStory){
+                iCub->opc->checkout();
+                iCub->lookAtPartner();
                 iCub->say(itSt, true, false, "default", false);
             }
         }
