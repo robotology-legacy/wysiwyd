@@ -1167,13 +1167,19 @@ bool IOL2OPCBridge::remove_object(const string &name)
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
-    map<string,IOLObject>::iterator it=db.find(name);
-    if (it!=db.end())
-        db.erase(it);
-
+    bool success = false;
     opc->checkout();
-    yDebug() << "opc->removeEntity for ID" << it->second.opc_id;
-    return opc->removeEntity(it->second.opc_id);
+
+    map<string,IOLObject>::iterator it=db.find(name);
+    if (it!=db.end()) {
+        success = opc->removeEntity(it->second.opc_id);
+        if(!success) {
+            success = opc->removeEntity(it->first);
+        }
+        db.erase(it);
+    }
+
+    return success;
 }
 
 
@@ -1196,15 +1202,21 @@ bool IOL2OPCBridge::remove_all()
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
+    bool success = true;
     opc->checkout();
     for (map<string,IOLObject>::iterator it=db.begin(); it!=db.end(); it++) {
         yDebug() << "opc->removeEntity for ID" << it->second.opc_id;
-        opc->removeEntity(it->second.opc_id);
+        if(!opc->removeEntity(it->second.opc_id)) {
+            if(!opc->removeEntity(it->first)) { // if removal by ID failed, remove by name
+                // this is a hack, sometimes the opc_id is wrong for some reason!
+                success = false;
+            }
+        }
         yarp::os::Time::delay(0.1);
     }
 
     db.clear();
-    return true;
+    return success;
 }
 
 
@@ -1250,7 +1262,9 @@ bool IOL2OPCBridge::change_name(const string &old_name,
             db[new_name]=IOLObject(opcMedianFilterOrder,presence_timeout,
                                    tracker_type,tracker_timeout);
             opc->checkout();
-            opc->removeEntity(it_old->second.opc_id);
+            if(!opc->removeEntity(it_old->second.opc_id)) {
+                opc->removeEntity(it_old->first);
+            }
             db.erase(it_old);
             yInfo("Name change successful: reloading local cache");
         }
