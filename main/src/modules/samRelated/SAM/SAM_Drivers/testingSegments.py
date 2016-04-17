@@ -115,6 +115,73 @@ def testSegments(thisModel, Ysample, Lnum):
         for j in range(cmSize):
             print str(normConf[i,j])[:5].ljust(7) + '% of ' + str(thisModel.textLabels[i]) + ' classified as ' + str(thisModel.textLabels[j])
         print
+    return [normConf,percCorect]
 
-# def testSequence(thisModel):
-#         
+def testSequence(thisModel):
+    off1 = 26
+    off2 = 6
+    off3 = 20
+    lastActualAction = [None]*2
+    liveLabels = []
+    liveLabels = copy.deepcopy(thisModel.textLabels)
+    liveLabels.append('None_object')
+    cmSize = len(liveLabels)
+    labelTotals = np.zeros((cmSize,1))
+    confMatrix = np.zeros((cmSize, cmSize))
+
+    print '     ', 'Classification'.center(off1), 'Label'.center(off2), 'Verdict'.center(off3)
+    for j in range(len(thisModel.dataLogList)):
+        xdataFile = open(thisModel.dataLogList[j],'r')
+        for i, l in enumerate(xdataFile):
+            pass
+        xlenFile = i+1
+        xdataFile.close()
+
+        xDataFile = open(thisModel.dataLogList[j],'r')
+        xLogFile =  open(thisModel.labelsLogList[j],'r')
+
+        for i in range(xlenFile):
+            dataMessage = xDataFile.readline()
+            actualLabel = xLogFile.readline().replace('(','').replace(')','').split(' ')[-1][:-1]
+            classification = thisModel.sequenceProcessing(dataMessage, 'testing')
+            proper = False
+            
+            for k in thisModel.actionsAllowedList:
+                if(k in actualLabel):
+                    proper = proper or True
+                else:
+                    proper = proper or False
+                    
+            if(proper):
+                if(lastActualAction[0] != actualLabel.split('_')[0]):
+                    lastActualAction[1] = lastActualAction[0]
+                    lastActualAction[0] = actualLabel.split('_')[0]
+            
+            if(classification != None):
+                print str(i).ljust(4), classification.center(off1), str(lastActualAction[0]).center(off2),
+                confMatrix[liveLabels.index(str(lastActualAction[0])+'_object'),liveLabels.index(classification+'_object')] += 1
+                labelTotals[liveLabels.index(str(lastActualAction[0])+'_object')] += 1
+                if(classification == lastActualAction[0]):
+                    print 'Correct'.center(off3)
+                else:
+                    print 'Wrong'.center(off3)
+
+    total = confMatrix.astype(np.float).sum(axis=1)
+    normConf = copy.deepcopy(confMatrix)
+    normConf = normConf.astype(np.float)
+    for l in range(normConf.shape[0]):
+            normConf[l,:] = normConf[l,:].astype(np.float)*100/total[l].astype(np.float)
+    normConf = np.nan_to_num(normConf)
+    print normConf
+
+    plot_confusion_matrix(normConf, liveLabels)
+
+    percCorect = 100*np.diag(confMatrix.astype(np.float)).sum()/sum(labelTotals)
+
+    print str(percCorect)[:5].ljust(7) + "% correct for live data"
+    print
+    for i in range(cmSize):
+        for j in range(cmSize):
+            print str(normConf[i,j])[:5].ljust(7) + '% of ' + str(liveLabels[i]) + ' classified as ' + str(liveLabels[j])
+        print
+    return [normConf,percCorect]

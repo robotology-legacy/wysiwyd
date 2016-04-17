@@ -267,6 +267,9 @@
         <name>actionRecogDataDumper</name>
         <parameters></parameters>
         <node>localhost</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
     </module>
 
     <module>
