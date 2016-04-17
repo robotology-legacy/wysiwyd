@@ -470,13 +470,12 @@ void IOL2OPCBridge::drawScoresHistogram(const Bottle &blobs,
             // give chance for disposing filters that are no longer used (one at time)
             if ((int)histFiltersPool.size()>blobScores->size())
             {
-                for (map<string,Filter*>::iterator it=histFiltersPool.begin();
-                     it!=histFiltersPool.end(); it++)
+                for (auto& it : histFiltersPool)
                 {
-                    if (gcFilters.find(it->first)==gcFilters.end())
+                    if (gcFilters.find(it.first)==gcFilters.end())
                     {
-                        delete it->second;
-                        histFiltersPool.erase(it);
+                        delete it.second;
+                        histFiltersPool.erase(it.first);
                         break;
                     }
                 }
@@ -670,8 +669,8 @@ void IOL2OPCBridge::updateOPC()
         mutexResourcesOpc.unlock();
 
         // reset internal tracking state
-        for (auto it=db.begin(); it!=db.end(); it++)
-            it->second.prepare();
+        for (auto& it : db)
+            it.second.prepare();
 
         // check detected objects
         bool unknownObjectInScene=false;
@@ -715,20 +714,20 @@ void IOL2OPCBridge::updateOPC()
         }
 
         // cycle over objects to handle tracking
-        for (auto it=db.begin(); it!=db.end(); it++)
-            it->second.track(imgLatch);
+        for (auto& it : db)
+            it.second.track(imgLatch);
 
         CvFont font;
         cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX,0.5,0.5,0,1);                
 
         // perform operations
-        for (auto it=db.begin(); it!=db.end(); it++)
+        for (auto& it : db)
         {
-            string object=it->first;
+            string object=it.first;
             Object *obj=opc->addOrRetrieveEntity<Object>(object);
 
             // garbage collection
-            if (it->second.isDead())
+            if (it.second.isDead())
             {
                 if (object_persistence)
                 {
@@ -741,15 +740,14 @@ void IOL2OPCBridge::updateOPC()
             }
 
             CvRect bbox;
-            if (it->second.is_tracking(bbox))
+            if (it.second.is_tracking(bbox))
             {
                 // find 3d position
                 Vector x,dim;
                 if (get3DPositionAndDimensions(bbox,x,dim))
                 {
                     Vector x_filtered,dim_filtered;
-                    it->second.filt(x,x_filtered,
-                                    dim,dim_filtered);
+                    it.second.filt(x,x_filtered,dim,dim_filtered);
 
                     obj->m_ego_position=calibPosition(x_filtered);
                     obj->m_dimensions=dim_filtered;
@@ -986,8 +984,8 @@ bool IOL2OPCBridge::close()
     delete opc;
 
     // dispose filters used for scores histogram
-    for (map<string,Filter*>::iterator it=histFiltersPool.begin(); it!=histFiltersPool.end(); it++)
-        delete it->second;
+    for (auto& it : histFiltersPool)
+        delete it.second;
 
     return true;
 }
@@ -1166,9 +1164,9 @@ bool IOL2OPCBridge::remove_object(const string &name)
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
-    bool success = false;
     opc->checkout();
 
+    bool success = false;
     auto it=db.find(name);
     if (it!=db.end()) {
         success = opc->removeEntity(it->first);
@@ -1198,11 +1196,11 @@ bool IOL2OPCBridge::remove_all()
     rpcClassifier.write(cmdClassifier,replyClassifier);
     yInfo("Received reply: %s",replyClassifier.toString().c_str());
 
-    bool success = true;
     opc->checkout();
-    for (auto it=db.begin(); it!=db.end(); it++) {
-        success = opc->removeEntity(it->first);
-    }
+
+    bool success = true;
+    for (auto& it : db)
+        success &= opc->removeEntity(it.first);
 
     db.clear();
     return success;
