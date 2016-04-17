@@ -1528,17 +1528,6 @@ bool narrativeHandler::narrationToSpeech(story target){
     iCub->opc->checkout();
     //bool bFound = false;
     list<Entity*> entities = iCub->opc->EntitiesCache();
-    Agent *ag = nullptr;
-    // founding the agent:
-    for (auto &it : entities){
-        if (it->isType("agent")){
-            ag = dynamic_cast<Agent*>(it);
-            if (ag && ag->m_present != 0.0 && ag->name() != "iCub"){
-                //bFound = true;
-                break;
-            }
-        }
-    }
 
     cout << "narration to speech: " << target.humanNarration.size() << endl;
 
@@ -1557,9 +1546,7 @@ bool narrativeHandler::narrationToSpeech(story target){
         for (auto ii : target.humanNarration){
             cout << "\t to speech: " << ii << endl;
             if (shouldSpeak){
-                if(ag) {
-                    iCub->look(ag->name());
-                }
+                iCub->lookAtPartner();
                 iCub->say(ii, true, false, "default", false);
             }
         }
@@ -1572,9 +1559,7 @@ bool narrativeHandler::narrationToSpeech(story target){
             for (auto itSt : target.sentenceStory){
                 cout << "\t to speech: " << itSt;
                 if (shouldSpeak){
-                    if(ag) {
-                        iCub->look(ag->name());
-                    }
+                    iCub->lookAtPartner();
                     if (!removeFirst) iCub->say(itSt, true, false, "default", false);
                 }
                 removeFirst = false;
