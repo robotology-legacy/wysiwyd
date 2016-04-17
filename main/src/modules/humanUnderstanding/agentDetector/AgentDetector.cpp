@@ -88,12 +88,7 @@ bool AgentDetector::configure(ResourceFinder &rf)
     string clientName = name;
     clientName += "/kinect";
 
-    //Prepare skeleton output port
-    string skeletonName = "/";
-    skeletonName += name;
-    skeletonName += "/skeleton:o";
-    outputSkeletonPort.open(skeletonName.c_str());
-
+    outputSkeletonPort.open(("/"+name+"/skeleton:o").c_str());
     depthPort.open( ("/"+clientName+"/depthPort:o").c_str());
     imagePort.open(("/"+clientName+"/imagePort:o").c_str());
     playersPort.open(("/"+clientName+"/playersPort:o").c_str());
