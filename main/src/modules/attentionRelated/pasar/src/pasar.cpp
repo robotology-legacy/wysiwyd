@@ -141,8 +141,8 @@ bool PasarModule::interruptModule() {
 
 /************************************************************************/
 bool PasarModule::close() {
-    iCub->close();
     iCub->opc->close();
+    iCub->close();
     handlerPort.interrupt();
     handlerPort.close();
     return true;
