@@ -751,7 +751,6 @@ void IOL2OPCBridge::updateOPC()
                     it->second.filt(x,x_filtered,
                                     dim,dim_filtered);
 
-                    it->second.opc_id=obj->opc_id();
                     obj->m_ego_position=calibPosition(x_filtered);
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
@@ -1172,10 +1171,7 @@ bool IOL2OPCBridge::remove_object(const string &name)
 
     auto it=db.find(name);
     if (it!=db.end()) {
-        success = opc->removeEntity(it->second.opc_id);
-        if(!success) {
-            success = opc->removeEntity(it->first);
-        }
+        success = opc->removeEntity(it->first);
         db.erase(it);
     }
 
@@ -1205,14 +1201,7 @@ bool IOL2OPCBridge::remove_all()
     bool success = true;
     opc->checkout();
     for (auto it=db.begin(); it!=db.end(); it++) {
-        yDebug() << "opc->removeEntity for ID" << it->second.opc_id;
-        if(!opc->removeEntity(it->second.opc_id)) {
-            if(!opc->removeEntity(it->first)) { // if removal by ID failed, remove by name
-                // this is a hack, sometimes the opc_id is wrong for some reason!
-                success = false;
-            }
-        }
-        yarp::os::Time::delay(0.1);
+        success = opc->removeEntity(it->first);
     }
 
     db.clear();
@@ -1262,9 +1251,7 @@ bool IOL2OPCBridge::change_name(const string &old_name,
             db[new_name]=IOLObject(opcMedianFilterOrder,presence_timeout,
                                    tracker_type,tracker_timeout);
             opc->checkout();
-            if(!opc->removeEntity(it_old->second.opc_id)) {
-                opc->removeEntity(it_old->first);
-            }
+            opc->removeEntity(it_old->first);
             db.erase(it_old);
             yInfo("Name change successful: reloading local cache");
         }
