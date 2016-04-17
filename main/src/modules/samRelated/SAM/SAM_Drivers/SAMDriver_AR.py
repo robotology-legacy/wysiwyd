@@ -160,8 +160,8 @@ class SAMDriver_AR(SAMDriver):
         dataLogList.sort()
         labelsLogList = [f for f in onlyfiles if 'label' in f]
         labelsLogList.sort()
-        self.dataLogList = dataLogList
-        self.labelsLogList = labelsLogList
+        self.dataLogList = []
+        self.labelsLogList = []
 
         self.numJoints = 9
         data = dict()
@@ -177,7 +177,9 @@ class SAMDriver_AR(SAMDriver):
             print 'model file: ' + str(join(root_data_dir, labelsLogList[k]))
             print
             dataFile = open(join(root_data_dir, dataLogList[k]),'r')
+            self.dataLogList.append(str(join(root_data_dir, dataLogList[k])))
             labelFile = open(join(root_data_dir, labelsLogList[k]),'r')
+            self.labelsLogList.append(join(root_data_dir, labelsLogList[k]))
 
             #number of lines in dataFile
             for i, l in enumerate(dataFile):
@@ -779,7 +781,7 @@ class SAMDriver_AR(SAMDriver):
                 yDataList.append(Ydata[j][None,:])
             return yDataList
 
-    def sequenceConfig(self):
+    def sequenceConfig(self, verbose = False):
         self.data = dict()
         self.jointsList = []
         self.objectsList = []
@@ -787,7 +789,8 @@ class SAMDriver_AR(SAMDriver):
         self.actionStore = []
         self.verbose = verbose
 
-    def sequenceProcessing(self, dataMessage, verbose=False):
+    def sequenceProcessing(self, dataMessage, mode='live'):
+        classification = None
         t = dataMessage.replace('(','').replace(')','').split(' ')[2:]
         if(t > 40):
             del t[0:2]
@@ -801,7 +804,7 @@ class SAMDriver_AR(SAMDriver):
                 if(t[a] not in self.jointsList):
                     self.jointsList.append(t[a])
 
-            currIdx = (numJoints*4 -1)
+            currIdx = (self.numJoints*4 -1)
             numObjs = (len(t) - currIdx)/5
 
             for i in range(numObjs):
@@ -814,26 +817,27 @@ class SAMDriver_AR(SAMDriver):
             #generate list of combinations of hands and objects to check for contact
             self.combinationList = []
             self.combinationKeys = []
-            for i in objectsList[1:]:
+            for i in self.objectsList[1:]:
                 self.combinationList.append(['handLeft',i])
                 self.combinationList.append(['handRight',i])
                 
-                self.combinationKeys.append(','.join(combinationList[-2]))
-                self.combinationKeys.append(','.join(combinationList[-1]))
+                self.combinationKeys.append(','.join(self.combinationList[-2]))
+                self.combinationKeys.append(','.join(self.combinationList[-1]))
 
             Pk = None
             Pl = None
             for i in range(len(self.combinationList)):
                 if(self.combinationKeys[i] not in self.data):
-                    print 'add item', self.combinationKeys[i]
-                    self.data[combinationKeys[i]] = {'Pk':[None],'Pl':[None],'prevContact':False,'currContact':False,'d':[None]}
+                    if(self.verbose):
+                        print 'add item', self.combinationKeys[i]
+                    self.data[self.combinationKeys[i]] = {'Pk':[None],'Pl':[None],'prevContact':False,'currContact':False,'d':[None]}
                
                 if(Pk == None):
-                    Pk = self.data[combinationList[i][0]].T
-                    Pl = self.data[combinationList[i][1]].T
+                    Pk = self.data[self.combinationList[i][0]].T
+                    Pl = self.data[self.combinationList[i][1]].T
                 else:
-                    Pk = np.vstack((Pk,self.data[combinationList[i][0]].T))
-                    Pl = np.vstack((Pl,self.data[combinationList[i][1]].T))
+                    Pk = np.vstack((Pk,self.data[self.combinationList[i][0]].T))
+                    Pl = np.vstack((Pl,self.data[self.combinationList[i][1]].T))
 
             d = self.distEuc(Pk,Pl)
             
@@ -864,10 +868,13 @@ class SAMDriver_AR(SAMDriver):
                             #processing the action
                             tempQTC = self.extractFeatures(Pk, Pl)
                             tempQTC = self.chooseFeatures(tempQTC)
-                            print
+                            if(self.verbose):
+                                print
                             [label, prob] = self.testing(tempQTC[None,:], False)
+                            classification = label.split('_')[0] 
                             sentence = "You " + label.split('_')[0] + "ed the " + str(self.combinationList[i][1]) + " with your " + str(self.combinationList[i][0]).replace('hand','') + ' hand'
-                            print sentence
+                            if(self.verbose):
+                                print sentence
                             self.actionStore.append(sentence)
                         else:
                             if(self.verbose):
@@ -884,3 +891,6 @@ class SAMDriver_AR(SAMDriver):
                 self.data[self.combinationKeys[i]]['prevContact'] =  self.data[self.combinationKeys[i]]['currContact']
         if(self.verbose):
             print
+
+        if(mode == 'testing'):
+            return classification

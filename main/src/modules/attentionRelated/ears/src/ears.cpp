@@ -202,6 +202,11 @@ bool ears::updateModule() {
             sAction = "show";
             sObjectType = "kinematic structure correspondence";
             sObject = "";
+        } else if (sQuestionKind == "SENTENCERECOGNISE") {
+            sCommand = "recognitionOrder";
+            sAction = "";
+            sObjectType = "";
+            sObject = "";
         } else {
             yError() << "[ears] Unknown predicate";
 
