@@ -275,8 +275,7 @@
         <parameters>--x 940</parameters>
         <node>rococo</node>
         <dependencies>
-            <port timeout="20">/homeostasis/rpc</port>
-            <port timeout="20">/BehaviorManager/trigger:i</port>
+            <port timeout="20">/AllostaticController/rpc</port>
         </dependencies>
     </module>
     <module>
@@ -284,7 +283,6 @@
         <parameters>--x940 --y600</parameters>
         <node>console1</node>
         <dependencies>
-            <port timeout="20">/homeostasis/rpc</port>
             <port timeout="20">/AllostaticController/rpc</port>
         </dependencies>
     </module>
