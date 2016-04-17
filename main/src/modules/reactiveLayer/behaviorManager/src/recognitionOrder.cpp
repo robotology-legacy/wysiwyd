@@ -27,7 +27,7 @@ void recognitionOrder::run(Bottle args/*=Bottle()*/) {
 
     if(rply.get(0).asString() == "ack")
     {
-        toSay = "You just did a " + rply.get(1).asString() + " action";
+        toSay = rply.get(1).asString();
     }
     else
     {
