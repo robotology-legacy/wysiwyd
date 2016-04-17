@@ -27,7 +27,6 @@
     <parameters>-e "python /home/rococo/robot/wysiwyd/main/src/modules/samRelated/SAM/SAM_Demos/samSupervisor.py"</parameters>
     <node>rococo</node>
   </module>
-  <module>
 
     <module>
         <name>actionsRenderingEngine</name>
