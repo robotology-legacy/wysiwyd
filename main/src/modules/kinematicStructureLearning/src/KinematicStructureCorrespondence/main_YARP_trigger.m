@@ -317,7 +317,7 @@ bReply.clear();
             end
         else
             disp('Wrong input bottle format!');
-            bReply.addString('Wrong input bottle format!');-
+            bReply.addString('Wrong input bottle format!');
         end
         
         portTrigger.reply(bReply);
