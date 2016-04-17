@@ -268,7 +268,9 @@ bool OPCClient::removeEntity(const string &name)
                 return true;
             }
             else {
-                yError()<<"Unable to talk correctly to OPC in removeEntity by name";
+                yError()<<"Unable to talk correctly to OPC in removeEntity by name for " << name << "(id " << e->opc_id() << ")";
+                yError()<<"Command sent:" << cmd.toString();
+                yError()<<"Reply:" << reply.toString();
             }
         }
     }
@@ -294,7 +296,7 @@ bool OPCClient::removeEntity(int id)
                 return true;
             }
             else {
-                yError()<<"Unable to talk correctly to OPC in removeEntity by ID";
+                yError()<<"Unable to talk correctly to OPC in removeEntity by ID for id" << id << "(" << e->name() << ")";
                 yError()<<"Command sent:" << cmd.toString();
                 yError()<<"Reply:" << reply.toString();
             }
