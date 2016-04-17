@@ -285,8 +285,8 @@ bReply.clear();
 %                 Alg(HGM_method).bOrder = [1 0 0];   % 1st
                 % Alg(HGM_method).bOrder = [0 1 0];   % 2nd
                 % Alg(HGM_method).bOrder = [0 0 1];   % 3rd
-                Alg(HGM_method).bOrder = [1 0 1];   % 1st & 3rd
-%                 Alg(HGM_method).bOrder = [1 1 1];   % all
+%                 Alg(HGM_method).bOrder = [1 0 1];   % 1st & 3rd
+                Alg(HGM_method).bOrder = [1 1 1];   % all
                 
                 X = hyperGraphMatching(problem, HGM_method, Alg);
                 
@@ -298,7 +298,7 @@ bReply.clear();
                 %=========================================================                
 %                 img_output = genMatchImages(cdata_P, cdata_Q, KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, 'PROPOSED_RRWHM');
                 img_output = genMatchImageSeq(cdata_P, cdata_Q, KineStruct_P, KineStruct_Q, data_source_P, data_source_Q, X, 'PROPOSED_RRWHM');
-                
+%                 
                 %%
                 %=========================================================
                 % output display
@@ -317,7 +317,7 @@ bReply.clear();
             end
         else
             disp('Wrong input bottle format!');
-            bReply.addString('Wrong input bottle format!');
+            bReply.addString('Wrong input bottle format!');-
         end
         
         portTrigger.reply(bReply);

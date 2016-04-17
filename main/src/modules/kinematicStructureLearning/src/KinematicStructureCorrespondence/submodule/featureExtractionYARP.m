@@ -37,7 +37,7 @@ cdata.nFrames = videoObj.NumberOfFrames;
 cdata.width = videoObj.Width;
 cdata.height = videoObj.Height;
 
-cdata.feature_point_save_path = ['data/KSC/',idx,'/','/points/',cdata.filename(1:end-4)];
+cdata.feature_point_save_path = ['data/KSC/',idx,'/points/',cdata.filename(1:end-4)];
 [SUCCESS,MESSAGE,MESSAGEID] = mkdir(cdata.feature_point_save_path);
 
 %%

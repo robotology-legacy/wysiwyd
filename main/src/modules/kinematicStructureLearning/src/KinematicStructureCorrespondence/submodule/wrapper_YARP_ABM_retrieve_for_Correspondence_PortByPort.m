@@ -218,7 +218,7 @@ elseif strcmp(data_source_P,'kinect')
             if (sum(size(yarpData_P)) ~= 0) %check size of bottle
                 for body_idx = 0:15
                     buf = char(yarpData_P.get(0).asList().get(body_idx).toString());
-                    readData = str2double(strsplit(' ',buf));
+                    readData = str2double(strsplit(buf));
                     x = readData(2);
                     y = readData(3);
                     z = readData(4);
@@ -479,7 +479,8 @@ elseif strcmp(data_source_Q,'kinect')
             if (sum(size(yarpData_Q)) ~= 0) %check size of bottle
                 for body_idx = 0:15
                     buf = char(yarpData_Q.get(0).asList().get(body_idx).toString());
-                    readData = str2double(strsplit(' ',buf));
+%                     readData = str2double(strsplit(' ',buf));
+                    readData = str2double(strsplit(buf));
                     x = readData(2);
                     y = readData(3);
                     z = readData(4);
