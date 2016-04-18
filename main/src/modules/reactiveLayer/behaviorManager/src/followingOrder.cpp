@@ -337,17 +337,30 @@ bool FollowingOrder::handleGame(string type) {
         yarp::os::Time::delay(10);
         iCub->home();
         iCub->say("Okay I am ready");
+
+        Bottle sub;
+        sub.addDouble(-0.28);
+        sub.addDouble(0.2);
+        sub.addDouble(0.05);
+        avoidance_cmd.addString("set_xd");
+        avoidance_cmd.addList() = sub;
+        yDebug() << "To avoidance:" << avoidance_cmd.toString();
+        port_to_avoidance.write(avoidance_cmd, avoidance_reply);
+        yDebug() << "Reply avoidance: " << avoidance_reply.toString();
+
         avoidance_cmd.addString("set_relative_circular_xd");
         avoidance_cmd.addDouble(0.1);
         avoidance_cmd.addDouble(0.15);
+        yDebug() << "To avoidance:" << avoidance_cmd.toString();
+        port_to_avoidance.write(avoidance_cmd, avoidance_reply);
+        yDebug() << "Reply avoidance: " << avoidance_reply.toString();
     } else if (type == "end") {
         iCub->say("This was fun! Thanks for playing with me.");
         avoidance_cmd.addString("stop");
+        yDebug() << "To avoidance:" << avoidance_cmd.toString();
+        port_to_avoidance.write(avoidance_cmd, avoidance_reply);
+        yDebug() << "Reply avoidance: " << avoidance_reply.toString();
     }
-
-    yDebug() << "To avoidance:" << avoidance_cmd.toString();
-    port_to_avoidance.write(avoidance_cmd, avoidance_reply);
-    yDebug() << "Reply avoidance: " << avoidance_reply.toString();
 
     yInfo()<<"[handleGame] freezing drives";
     manual = true;
