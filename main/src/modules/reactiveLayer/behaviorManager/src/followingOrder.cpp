@@ -338,7 +338,7 @@ bool FollowingOrder::handleGame(string type) {
         iCub->home();
         iCub->say("Okay I am ready");
 
-        Bottle sub;
+        /*Bottle sub;
         sub.addDouble(-0.28);
         sub.addDouble(0.2);
         sub.addDouble(0.05);
@@ -355,7 +355,7 @@ bool FollowingOrder::handleGame(string type) {
         avoidance_cmd.addDouble(0.15);
         yDebug() << "To avoidance:" << avoidance_cmd.toString();
         port_to_avoidance.write(avoidance_cmd, avoidance_reply);
-        yDebug() << "Reply avoidance: " << avoidance_reply.toString();
+        yDebug() << "Reply avoidance: " << avoidance_reply.toString();*/
     } else if (type == "end") {
         iCub->say("This was fun! Thanks for playing with me.");
         avoidance_cmd.addString("stop");
