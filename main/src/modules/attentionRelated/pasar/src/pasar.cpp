@@ -141,9 +141,6 @@ bool PasarModule::interruptModule() {
 
 /************************************************************************/
 bool PasarModule::close() {
-    if(entities) {
-        delete entities;
-    }
     if(iCub) {
         iCub->close();
         delete iCub;
