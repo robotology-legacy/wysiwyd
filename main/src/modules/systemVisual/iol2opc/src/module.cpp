@@ -925,6 +925,7 @@ bool IOL2OPCBridge::interruptModule()
 
     rtLocalization.stop();
     opcUpdater.stop();
+    yDebug() << "iol2opc threads stopped";
 
     imgIn.interrupt();
     imgRtLocOut.interrupt();
@@ -934,12 +935,16 @@ bool IOL2OPCBridge::interruptModule()
     imgHistogram.interrupt();
     histObjLocPort.interrupt();
     rpcPort.interrupt();
+
+    yDebug() << "iol2opc half way through interrupt";
+
     blobExtractor.interrupt();
     rpcClassifier.interrupt();
     getClickPort.interrupt();
     rpcGet3D.interrupt();
     rpcCalib.interrupt();
     opc->interrupt();
+    yDebug() << "Interrupt finished";
 
     return true;
 }

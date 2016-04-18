@@ -208,9 +208,20 @@ public:
     /*******************************************************/
     bool close()
     {
+        rpcPort.interrupt();
         rpcPort.close();
+        dumpPort.interrupt();
         dumpPort.close();
+        opc.interrupt();
         opc.close();
+        return true;
+    }
+
+    bool interruptModule()
+    {
+        rpcPort.interrupt();
+        dumpPort.interrupt();
+        opc.interrupt();
         return true;
     }
 };

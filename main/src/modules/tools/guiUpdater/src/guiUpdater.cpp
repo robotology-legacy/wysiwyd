@@ -79,15 +79,18 @@ bool GuiUpdater::configure(yarp::os::ResourceFinder &rf)
 
 bool GuiUpdater::interruptModule()
 {
+    yDebug() << "interrupt";
     opc->interrupt();
     toGui.interrupt();
     toGuiBase.interrupt();
     handlerPort.interrupt();
+    yDebug() << "interrupt done";
     return true;
 }
 
 bool GuiUpdater::close()
 {
+    yDebug() << "close";
     if(opc) {
         opc->close();
         delete opc;
@@ -101,7 +104,11 @@ bool GuiUpdater::close()
     toGuiBase.interrupt();
     toGuiBase.close();
 
+    handlerPort.interrupt();
     handlerPort.close();
+
+    yDebug() << "bye";
+
     return true;
 }
 
