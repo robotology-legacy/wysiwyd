@@ -22,8 +22,9 @@ private:
     yarp::os::Port port_to_avoidance;
     string port_to_narrate_name;
     string port_to_avoidance_name;
+    string port_to_homeo_name;
+
     void run(Bottle args=Bottle());
-    string portToHomeo_name;
     string homeoPort;
 
     //followingOrder option
@@ -44,6 +45,7 @@ public:
     bool handleActionKS(string action, string type);
     bool handleSearch(string type, string action);
     bool handleNarrate();
+    bool handleGame(string type);
     bool handleEnd();
 
     int randKS(Bottle bKS);
