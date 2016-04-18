@@ -141,17 +141,43 @@ class SAMDriver_AR(SAMDriver):
         print 'Features to use:'
         for h in self.featuresToUse:
             featureInds += self.featureSections[h]
-            print '\t' + h
-
+            print '\t', h, self.featureSections[h]
+        print featureInds
         return featureInds
+
+    def chooseFeaturesOld(self, handDataStruct):
+        v = np.array(len(handDataStruct))
+        for j in self.featureInds:
+            vec = self.formatFeatures2(handDataStruct, self.featureSections[j], self.featureValues[j])
+            if(vec[0] !=  -1):
+                v = np.hstack((v,vec))
+        return v
 
     def chooseFeatures(self, handDataStruct):
         v = np.array(len(handDataStruct))
         for j in self.featuresToUse:
             vec = self.formatFeatures2(handDataStruct, self.featureSections[j], self.featureValues[j])
             if(vec[0] !=  -1):
-                v = np.hstack((v,vec))
+                 #Remove last index and normalise wr the sum of frames
+                v = np.hstack(vec[:-1]/v)
+        v = np.nan_to_num(v)
         return v
+
+    def formatFeatures2(self, inputArr, idx, valsPossible):
+    #     print str(valsPossible) + str(len(valsPossible))
+    #     print str(idx) +str(len(idx))
+        if(valsPossible != None):
+            vec = np.zeros((len(valsPossible)*len(idx)))
+            for b in range(len(idx)):
+                for i in range(len(inputArr)):
+                    
+                    offset = (len(valsPossible)*b)
+                    vec[offset + valsPossible.index(inputArr[i][idx[b]])] += 1
+    #                 print
+    #         print vec
+            return vec
+        else:
+            return np.array(-1)
     
     def readData(self, root_data_dir, participant_index):
         #this function reads from data files and prepares a Y and an X
@@ -427,7 +453,7 @@ class SAMDriver_AR(SAMDriver):
         self.featureSections['selfMovementLabelK'] = [18]
         self.featureValues['selfMovementLabelK']   = range(len(self.humanStaticLabels))
         
-        featureInds = self.configProcessing()
+        self.featureInds = self.configProcessing()
 
         firstPass = True
         handDataStruct = []
@@ -551,7 +577,8 @@ class SAMDriver_AR(SAMDriver):
 #         self.Ltestn = self.Ltest - self.Lmean
 #         self.Ltestn /= self.Lstd
 #         self.L
-
+        #self.Ltestn = self.Ltest
+        self.Y_normalized=True
         if model == 'mrd':    
             self.X=None     
             self.Y = {'Y':self.Yn,'L':self.L}
@@ -758,22 +785,6 @@ class SAMDriver_AR(SAMDriver):
         vec[-1] = len(inputArr)
         return vec
 
-    def formatFeatures2(self, inputArr, idx, valsPossible):
-    #     print str(valsPossible) + str(len(valsPossible))
-    #     print str(idx) +str(len(idx))
-        if(valsPossible != None):
-            vec = np.zeros((len(valsPossible)*len(idx)))
-            for b in range(len(idx)):
-                for i in range(len(inputArr)):
-                    
-                    offset = (len(valsPossible)*b)
-                    vec[offset + valsPossible.index(inputArr[i][idx[b]])] += 1
-    #                 print
-    #         print vec
-            return vec
-        else:
-            return np.array(-1)
-
     # curTestData = Yall[][None,:].tolist()
     def formatDataFunc(self, Ydata):
             yDataList = []
@@ -789,11 +800,46 @@ class SAMDriver_AR(SAMDriver):
         self.actionStore = []
         self.verbose = verbose
 
-    def sequenceProcessing(self, dataMessage, mode='live'):
+    def messageChecker(self,dataMessage, mode):
+
+        goAhead = True
+        if(mode == 'testing'):
+            t = dataMessage.replace('(','').replace(')','').split(' ')[4:]
+        elif(mode == 'live'):
+            t = dataMessage.replace('(','').replace(')','').split(' ')[2:]
+        else:
+            print 'Nonexisting mode. Choose either live or read'
+            t = []
+        
+        if(len(t) > 45):
+            for i in range(self.numJoints):
+                    a = i*4
+                    goAhead = goAhead and type(t[a]) == str
+                    goAhead = goAhead and float(t[a+1]) != None
+                    goAhead = goAhead and float(t[a+2]) != None
+                    goAhead = goAhead and float(t[a+3]) != None
+
+            currIdx = (self.numJoints*4 -1)
+            numObjs = (len(t) - currIdx)/5
+
+            for i in range(numObjs):
+                a = currIdx + 1 + (i*5)
+                goAhead = goAhead and type(t[a]) == str
+                goAhead = goAhead and float(t[a+1]) != None
+                goAhead = goAhead and float(t[a+2]) != None
+                goAhead = goAhead and float(t[a+3]) != None
+        else:
+            goAhead = False
+
+        return [t,goAhead]
+
+    def sequenceProcessing(self, dataMessage, mode='live',verbose=True):
+        
         classification = None
-        t = dataMessage.replace('(','').replace(')','').split(' ')[2:]
-        if(t > 40):
-            del t[0:2]
+        [t,goAhead]= self.messageChecker(dataMessage,mode)
+
+        #TODO check data message for None
+        if(goAhead):
             #extract data parts
             for i in range(self.numJoints):
                 a = i*4
@@ -839,7 +885,7 @@ class SAMDriver_AR(SAMDriver):
                     Pk = np.vstack((Pk,self.data[self.combinationList[i][0]].T))
                     Pl = np.vstack((Pl,self.data[self.combinationList[i][1]].T))
 
-            d = self.distEuc(Pk,Pl)
+            d = self.distEuc(Pk,Pl)#TODO change to self movement
             
             for i in range(len(self.combinationList)):
                 if(d[i] < self.contactThreshold):
@@ -870,11 +916,14 @@ class SAMDriver_AR(SAMDriver):
                             tempQTC = self.chooseFeatures(tempQTC)
                             if(self.verbose):
                                 print
-                            [label, prob] = self.testing(tempQTC[None,:], False)
+                            ytest = tempQTC[None,:]
+                            if (self.Y_normalized):
+                                ytest = ytest - self.Ymean
+                                ytest/=self.Ystd
+                            [label, prob] = self.testing(ytest, False)
                             classification = label.split('_')[0] 
                             sentence = "You " + label.split('_')[0] + "ed the " + str(self.combinationList[i][1]) + " with your " + str(self.combinationList[i][0]).replace('hand','') + ' hand'
-                            if(self.verbose):
-                                print sentence
+                            print sentence
                             self.actionStore.append(sentence)
                         else:
                             if(self.verbose):
@@ -889,8 +938,10 @@ class SAMDriver_AR(SAMDriver):
                             print i,'x'
 
                 self.data[self.combinationKeys[i]]['prevContact'] =  self.data[self.combinationKeys[i]]['currContact']
-        if(self.verbose):
-            print
+            if(self.verbose):
+                print
+        else:
+            print 'Incorrect message received'
 
         if(mode == 'testing'):
             return classification

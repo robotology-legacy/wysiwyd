@@ -180,7 +180,27 @@ class LFM(object):
             self.model['.*noise'].constrain_positive()
         
         self.model.optimize(optimizer, messages=verbose, max_iters=max_iters)
+        self.check_snr()
 
+    def check_snr(self,warning=True,messages=True):
+        if self.type == 'bgplvm':
+            snr=self.model.Y.var()/self.model.Gaussian_noise.variance.values[0]
+
+            if messages:
+                print('# SNR: ' + str(snr))
+            if warning and snr < 8:
+                print(' WARNING! SNR is small!')
+
+        if self.type == 'mrd':
+            snr = []
+            for i in range(len(self.model.bgplvms)):
+                snr.append(self.model.bgplvms[i].Y.var()/self.model.bgplvms[i].Gaussian_noise.variance.values[0])
+                if messages:
+                    print('# SNR view ' + str(i) + ': ' + str(snr[-1]))
+                if warning and snr[-1] < 8:
+                    print(' WARNING! SNR for view ' + str(i) + ' is small!!')
+        return snr
+        
     def visualise(self, which_indices=None, plot_scales=True):
         """
         Show the internal representation of the memory

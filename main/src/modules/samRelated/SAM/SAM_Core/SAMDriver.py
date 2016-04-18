@@ -181,13 +181,13 @@ class SAMDriver:
                     SAMCore.load_pruned_model(fname, economy_save, self.SAMObject.model)
                 except ValueError:
                     print("Loading " + fname + " failed.\nParameters not valid. Training new model")
-                    self.SAMObject.learn(optimizer='scg',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
+                    self.SAMObject.learn(optimizer='bfgs',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
                     if save_model:
                         print("Saving SAMObject: " + fname)
                         SAMCore.save_pruned_model(self.SAMObject, fname, economy_save)
             elif not os.path.isfile(fname + '.pickle') or not keepIfPresent: 
                 # Simulate the function of learning from stored memories, e.g. while sleeping (consolidation).
-                self.SAMObject.learn(optimizer='scg',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
+                self.SAMObject.learn(optimizer='bfgs',max_iters=self.model_num_iterations, init_iters=self.model_init_iterations, verbose=True)
                 if save_model:
                     print("Saving SAMObject: " + fname)
                     SAMCore.save_pruned_model(self.SAMObject, fname, economy_save)

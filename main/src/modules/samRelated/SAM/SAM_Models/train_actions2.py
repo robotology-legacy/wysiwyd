@@ -123,7 +123,12 @@ if(mode == 'new' or modeConfig == 'new' or '.pickle' not in modelPath): #or upda
             percentContactThreshold = 98.0
         
         if(parser.has_option(trainName, 'featuresToUse')):
-            featuresToUse = parser.get(trainName, 'featuresToUse').split(',')
+            featuresToUse = []
+            temp = parser.get(trainName, 'featuresToUse')
+            temp = temp.split(',')
+            for j in temp:
+                if(j!=''):
+                    featuresToUse.append(j)
         else:
             featuresToUse = ['contact','selfMovementLabelK']
 
@@ -321,12 +326,15 @@ extraParams['ratioData'] = ratioData
 extraParams['model_type'] = model_type
 extraParams['model_num_inducing'] = model_num_inducing
 extraParams['model_num_iterations'] = model_num_iterations
+extraParams['Ymean'] = mySAMpy.Ymean
+extraParams['Ystd'] = mySAMpy.Ystd
 extraParams['model_init_iterations'] = model_init_iterations
 extraParams['contactThreshold'] = mySAMpy.contactThreshold
 extraParams['verbose'] = verbose
 extraParams['Quser'] = mySAMpy.Quser
 extraParams['textLabels'] = mySAMpy.textLabels
 extraParams['economy_save'] = economy_save
+extraParams['Y_normalized'] = mySAMpy.Y_normalized
 extraParams['humanStaticLabels'] = mySAMpy.humanStaticLabels
 extraParams['featureSections'] = mySAMpy.featureSections
 extraParams['featureValues'] = mySAMpy.featureValues

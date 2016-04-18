@@ -91,11 +91,13 @@ def testSegments(thisModel, Ysample, Lnum):
         print str(i).rjust(off3) + '/' + str(numItems) + ' Truth: ' + currLabel.ljust(off1) + ' Model: ' + ret[i][0].ljust(off1) + ' with ' + str(1-ret[i][1])[:6].ljust(off2) + ' confidence: ' + str(result)
         confMatrix[thisModel.textLabels.index(currLabel),thisModel.textLabels.index(ret[i][0])] += 1
         ss.append(ret[i][0])
+    calculateData(thisModel, confMatrix, numItems)
 
+def calculateData(thisModel, confMatrix, numItems):
     confMatLabels = copy.deepcopy(thisModel.textLabels)
     #confMatLabels.sort()
 
-    h = confusion_matrix(Lsample, ss)
+    h = confMatrix
     total = h.astype(np.float).sum(axis=1)
     normConf = copy.deepcopy(h)
     normConf = normConf.astype(np.float)
@@ -111,8 +113,8 @@ def testSegments(thisModel, Ysample, Lnum):
 
     print str(percCorect)[:5].ljust(7) + "% correct for training data"
     print
-    for i in range(cmSize):
-        for j in range(cmSize):
+    for i in range(confMatrix.shape[0]):
+        for j in range(confMatrix.shape[0]):
             print str(normConf[i,j])[:5].ljust(7) + '% of ' + str(thisModel.textLabels[i]) + ' classified as ' + str(thisModel.textLabels[j])
         print
     return [normConf,percCorect]

@@ -75,6 +75,7 @@ jointMu = modelPickle['jointMu']
 jointSig = modelPickle['jointSig']
 numJoints = modelPickle['numJoints']
 ratioData = modelPickle['ratioData']
+Y_normalized = modelPickle['Y_normalized']
 model_type = modelPickle['model_type']
 model_num_inducing = modelPickle['model_num_inducing']
 model_num_iterations = modelPickle['model_num_iterations']
@@ -82,6 +83,8 @@ model_init_iterations = modelPickle['model_init_iterations']
 verbose = modelPickle['verbose']
 Quser = modelPickle['Quser']
 kernelString = modelPickle['kernelString']
+Ymean = modelPickle['Ymean']
+Ystd = modelPickle['Ystd']
 textLabels = modelPickle['textLabels']
 contactThreshold = modelPickle['contactThreshold']
 Ytrain = modelPickle['YALL']
@@ -99,6 +102,8 @@ yarpRunning = False
 # # Creates a SAMpy object
 print 'Loading model ...'
 mySAMpy = SAMDriver_AR.SAMDriver_AR(yarpRunning)
+mySAMpy.Ymean = Ymean
+mySAMpy.Ystd = Ystd
 mySAMpy.ignoreLabels = ignoreLabels
 mySAMpy.ignoreParts = ignoreParts
 mySAMpy.actionsAllowedList = actionsAllowedList
@@ -113,6 +118,7 @@ mySAMpy.contactThreshold = contactThreshold
 mySAMpy.jointMu = jointMu
 mySAMpy.jointSig = jointSig
 mySAMpy.verbose = verbose
+mySAMpy.Y_normalized = Y_normalized
 mySAMpy.humanStaticLabels = humanStaticLabels
 mySAMpy.featureSections = featureSections
 mySAMpy.featureValues = featureValues
@@ -209,7 +215,7 @@ dataReceived = yarp.Bottle();
 # images = numpy.zeros((numFaces, imgHNew*imgWNew), dtype=numpy.uint8)
 replyString = ''
 print 'Responding to callsigns: ' + ', '.join(callSignList)
-actionStore = []
+mySAMpy.sequenceConfig()
 def readCommands(supPort, inBottle, replyBool, replyStr, exception, actionStore ):
     while(1):
         supPort.read(inBottle,replyBool)
@@ -243,20 +249,11 @@ def readCommands(supPort, inBottle, replyBool, replyStr, exception, actionStore 
 
 exception = []
 exception.append('')
-read_thread = threading.Thread(target=readCommands, args=(portsList[svPort], inputBottle, True, replyString, exception, actionStore  ))
+read_thread = threading.Thread(target=readCommands, args=(portsList[svPort], inputBottle, True, replyString, exception, mySAMpy.actionStore  ))
 read_thread.start()
 #portsList[svPort].setTimeout(1)
 
-numJoints = 9
-data = dict()
-jointsList = []
-objectsList = []
-angleThreshold = mySAMpy.angleThreshold
-deltaDistanceThreshold = mySAMpy.deltaDistanceThreshold
-contactThreshold = mySAMpy.contactThreshold
 verbose = False
-data = dict()
-mySAMpy.configProcessing()
 
 while( True ):
         try:
@@ -268,104 +265,7 @@ while( True ):
                 #step 1: parse bottle
                 dataReceived = portsList[labelPort].read(True)
                 dataMessage = dataReceived.toString()
-                t = dataMessage.replace('(','').replace(')','').split(' ')
-                if(t > 40):
-                    del t[0:2]
-                    #extract data parts
-                    for i in range(numJoints):
-                        a = i*4
-                        if(t[a] == 'shoulderCenter'):
-                            t[a] = 'chest'
-
-                        data[t[a]] = (np.array([float(t[a+1]), float(t[a+2]), float(t[a+3])]))
-                        if(t[a] not in jointsList):
-                            jointsList.append(t[a])
-
-                    currIdx = (numJoints*4 -1)
-                    numObjs = (len(t) - currIdx)/5
-
-                    for i in range(numObjs):
-                        a = currIdx + 1 + (i*5)
-                        data[t[a]] = np.array([float(t[a+1]), float(t[a+2]), float(t[a+3])])
-                        if(t[a] not in objectsList):
-                            objectsList.append(t[a])
-
-                    #check contact of either hand with either object
-                    #generate list of combinations of hands and objects to check for contact
-                    combinationList = []
-                    combinationKeys = []
-                    for i in objectsList[1:]:
-                        combinationList.append(['handLeft',i])
-                        combinationList.append(['handRight',i])
-                        
-                        combinationKeys.append(','.join(combinationList[-2]))
-                        combinationKeys.append(','.join(combinationList[-1]))
-                    
-                    Pk = None
-                    Pl = None
-                    for i in range(len(combinationList)):
-                        if(combinationKeys[i] not in data):
-                            print 'add item', combinationKeys[i]
-                            data[combinationKeys[i]] = {'Pk':[None],'Pl':[None],'prevContact':False,'currContact':False,'d':[None]}
-                       
-                        if(Pk == None):
-                            Pk = data[combinationList[i][0]].T
-                            Pl = data[combinationList[i][1]].T
-                        else:
-                            Pk = np.vstack((Pk,data[combinationList[i][0]].T))
-                            Pl = np.vstack((Pl,data[combinationList[i][1]].T))
-
-                    d = mySAMpy.distEuc(Pk,Pl)
-                    
-                    for i in range(len(combinationList)):
-                        if(d[i] < mySAMpy.contactThreshold):
-                            data[combinationKeys[i]]['currContact'] = True
-                        else:
-                            data[combinationKeys[i]]['currContact'] = False
-                        
-                        if(data[combinationKeys[i]]['currContact']):
-                            if(data[combinationKeys[i]]['prevContact']):
-                                data[combinationKeys[i]]['Pk'].append(Pk[i])
-                                data[combinationKeys[i]]['Pl'].append(Pl[i])
-                                if(verbose):
-                                    print i,'Append data', combinationList[i]
-                            else:
-                                data[combinationKeys[i]]['actionOccuring'] = True
-                                if(verbose):
-                                    print i,'Contact between', combinationList[i], 'Action started'
-                        else:
-                            if(data[combinationKeys[i]]['prevContact']):
-                                data[combinationKeys[i]]['actionOccuring']  = False
-                                data[combinationKeys[i]]['actionLen'] = len(data[combinationKeys[i]]['Pk'])
-                                
-                                if(data[combinationKeys[i]]['actionLen'] > 10):
-                                    if(verbose):
-                                        print i,'Action stopped.', 'Len =', data[combinationKeys[i]]['actionLen']
-                                    #processing the action
-                                    tempQTC = mySAMpy.extractFeatures(Pl, Pk)
-                                    tempQTC = mySAMpy.chooseFeatures(tempQTC)
-                                    print
-                                    [label, prob] = mySAMpy.testing(tempQTC[None,:], False)
-                                    sentence = "You " + label.split('_')[0] + "ed the " + str(combinationList[i][1]) + " with your " + str(combinationList[i][0]).replace('hand','') + ' hand'
-                                    print sentence
-                                    actionStore.append(sentence)
-                                else:
-                                    if(verbose):
-                                        print i,'Action stopped.', 'Len =', data[combinationKeys[i]]['actionLen'], 'Action too short'
-                                    else:
-                                        'Action too short'
-                                    
-                                data[combinationKeys[i]]['Pk'] = [None]
-                                data[combinationKeys[i]]['Pl'] = [None]
-                            else:
-                                if(verbose):
-                                    print i,'x'
-
-                        data[combinationKeys[i]]['prevContact'] =  data[combinationKeys[i]]['currContact']
-                    if(verbose):
-                        print
-                else:
-                    print 'Incorrect message received'
+                mySAMpy.sequenceProcessing(dataMessage,'live',verbose = True)
 
             if(exception[0] == 'keyInterupt'):
                 raise KeyboardInterrupt

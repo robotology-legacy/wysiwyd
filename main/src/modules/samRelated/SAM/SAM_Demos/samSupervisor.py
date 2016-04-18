@@ -15,7 +15,7 @@ import time
 import operator
 import numpy as np
 import datetime
-
+import yarp
 try:
     import yarp
     yarpRunning = True
