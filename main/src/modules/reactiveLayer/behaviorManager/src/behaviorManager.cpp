@@ -138,6 +138,17 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                     reply.addString("ack");
                 }
             }
+            else if (beh->behaviorName == "recognitionOrder") {
+                if (cmd.get(1).asString() == "on") {
+                    yInfo() << "recognitionOrder behavior manual mode on";
+                    dynamic_cast<recognitionOrder *>(beh)->manual = true;
+                    reply.addString("ack");
+                } else if (cmd.get(1).asString() == "off") {
+                    yInfo() << "recognitionOrder behavior manual mode off";
+                    dynamic_cast<recognitionOrder *>(beh)->manual = false;
+                    reply.addString("ack");
+                }
+            }
         }
     } else if (cmd.get(0).asString() == "names" ) {
         Bottle names;

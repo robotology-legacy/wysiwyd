@@ -6,10 +6,33 @@ void recognitionOrder::configure() {
     from_sensation_port_name = "None";
     //this could be a port that sends a command 
     //describing what to classify e.g action/face/emotion...
+
+    homeoPort = "/homeostasis/rpc";
+
+    port_to_homeo_name = "/"+behaviorName+"/toHomeo:o";
+    port_to_homeo.open(port_to_homeo_name);
+
+    manual = false;
 }
 
 void recognitionOrder::run(Bottle args/*=Bottle()*/) {
     yInfo() << "recognitionOrder::run";
+
+    if (!Network::isConnected(port_to_homeo_name,homeoPort)){
+        if (!Network::connect(port_to_homeo_name,homeoPort)){
+            yWarning()<<"Port to Homeostasis not available. Could not freeze the drives...";
+        }
+    }
+    if (Network::isConnected(port_to_homeo_name,homeoPort)){
+        yInfo()<<"freezing drives";
+        Bottle cmd;
+        Bottle rply;
+        cmd.addString("freeze");
+        cmd.addString("all");
+
+        port_to_homeo.write(cmd, rply);
+    }
+
     yDebug() << "send rpc to SAM";
     //Bottle *order = sensation_port_in.read();
     Bottle order;
@@ -35,4 +58,13 @@ void recognitionOrder::run(Bottle args/*=Bottle()*/) {
     }
     iCub->say(toSay);
     yInfo() << "Recognising ends";
+
+    if (!manual && Network::isConnected(port_to_homeo_name, homeoPort)){
+        yInfo()<<"unfreezing drives";
+        Bottle cmd;
+        Bottle rply;
+        cmd.addString("unfreeze");
+        cmd.addString("all");
+        port_to_homeo.write(cmd, rply);
+    }
 }
