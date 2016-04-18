@@ -141,8 +141,13 @@ bool PasarModule::interruptModule() {
 
 /************************************************************************/
 bool PasarModule::close() {
-    iCub->opc->close();
-    iCub->close();
+    if(entities) {
+        delete entities;
+    }
+    if(iCub) {
+        iCub->close();
+        delete iCub;
+    }
     handlerPort.interrupt();
     handlerPort.close();
     return true;
@@ -744,7 +749,6 @@ bool PasarModule::saliencyWaving()
 
 void PasarModule::initializeMapTiming()
 {
-
     isWaving = false;
     isPointing = false;
 
