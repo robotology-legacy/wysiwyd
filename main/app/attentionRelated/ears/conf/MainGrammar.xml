@@ -44,7 +44,19 @@
   </RULE>
 
   <RULE NAME="SENTENCERECOGNISE"  TOPLEVEL="ACTIVE" EXPORT="1">
-     <P>Which action have I just done?</P>
+     <P>How do you call this action?</P>
+  </RULE>
+
+  <RULE NAME="SENTENCEDONE"  TOPLEVEL="ACTIVE" EXPORT="1">
+     <P>Thank you for the nice demonstration. It is now time to sleep.</P>
+  </RULE>
+
+  <RULE NAME="SENTENCEGAMESTART"  TOPLEVEL="ACTIVE" EXPORT="1">
+     <P>Do you want to play the game with the red ball?</P>
+  </RULE>
+
+  <RULE NAME="SENTENCEGAMEEND"  TOPLEVEL="ACTIVE" EXPORT="1">
+     <P>The game is finished.</P>
   </RULE>
 
   <RULE	NAME="SENTENCEOBJECT"	TOPLEVEL="ACTIVE"	EXPORT="1">

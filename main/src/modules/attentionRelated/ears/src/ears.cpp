@@ -176,21 +176,16 @@ bool ears::updateModule() {
             sAction = bSemantic.check("predicateObject", Value("none")).asString();
             sObjectType = "object";
             sObject = bSemantic.check("object", Value("none")).asString();
-
             sCommand = "followingOrder";
-
         } else if(sQuestionKind == "SENTENCEBODYPART") {
             sAction = bSemantic.check("predicateBodypart", Value("none")).asString();
             sObject = bSemantic.check("bodypart", Value("none")).asString();
             sObjectType = "bodypart";
-
             sCommand = "followingOrder";
-
         } else if(sQuestionKind == "SENTENCENARRATIVE") {
             sAction = "narrate";
             sObjectType = "";
             sObject = "";
-
             sCommand = "followingOrder";
         } else if (sQuestionKind == "SENTENCEKS") {
             sCommand = "followingOrder";
@@ -206,6 +201,21 @@ bool ears::updateModule() {
             sCommand = "recognitionOrder";
             sAction = "";
             sObjectType = "";
+            sObject = "";
+        } else if (sQuestionKind == "SENTENCEDONE") {
+            sCommand = "followingOrder";
+            sAction = "end";
+            sObjectType = "";
+            sObject = "";
+        } else if (sQuestionKind == "SENTENCEGAMESTART") {
+            sCommand = "followingOrder";
+            sAction = "game";
+            sObjectType = "start";
+            sObject = "";
+        } else if (sQuestionKind == "SENTENCEGAMEEND") {
+            sCommand = "followingOrder";
+            sAction = "game";
+            sObjectType = "end";
             sObject = "";
         } else {
             yError() << "[ears] Unknown predicate";

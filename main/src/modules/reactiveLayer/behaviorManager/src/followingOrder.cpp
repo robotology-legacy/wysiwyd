@@ -7,7 +7,6 @@ void FollowingOrder::configure() {
     bKS1 = *bFollowingOrder.find("ks1").asList();
     bKS2 = *bFollowingOrder.find("ks2").asList();
 
-    portToHomeo_name = "/"+behaviorName+"/toHomeo:o";
     homeoPort = "/homeostasis/rpc";
 
     babblingArm = bFollowingOrder.find("babblingArm").asString();
@@ -16,9 +15,15 @@ void FollowingOrder::configure() {
     external_port_name = "/proactiveTagging/rpc";
     from_sensation_port_name = "/ears/target:o";
 
-    port_to_narrate_name = "/behaviorManager/narrate:o";
+    port_to_narrate_name = "/"+behaviorName+"/narrate:o";
     port_to_narrate.open(port_to_narrate_name);
-    port_to_homeo.open(portToHomeo_name);
+
+    port_to_homeo_name = "/"+behaviorName+"/toHomeo:o";
+    port_to_homeo.open(port_to_homeo_name);
+
+    port_to_avoidance_name = "/"+behaviorName+"/avoidance:o";
+    port_to_avoidance.open(port_to_avoidance_name);
+
     manual = false;
 }
 
@@ -26,12 +31,12 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
 
     yInfo() << "FollowingOrder::run";
 
-    if (!Network::isConnected(portToHomeo_name,homeoPort)){
-        if (!Network::connect(portToHomeo_name,homeoPort)){
+    if (!Network::isConnected(port_to_homeo_name,homeoPort)){
+        if (!Network::connect(port_to_homeo_name,homeoPort)){
             yWarning()<<"Port to Homeostasis not available. Could not freeze the drives...";
         }
     }
-    if (Network::isConnected(portToHomeo_name,homeoPort)){
+    if (Network::isConnected(port_to_homeo_name,homeoPort)){
         yInfo()<<"freezing drives";
         Bottle cmd;
         Bottle rply;
@@ -63,25 +68,29 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
     if ( (action == "point" || action == "look at" || action == "push") && type == "object"){
         // Be careful: both handlePoint (point in response of a human order) and handlePointing (point what you know)
         if (sens->size()<2){
-            yInfo()<<"I can't" << action << "if you don't tell me the object";
             iCub->say("I can't " + action + "if you don't tell me the object");
         } else{
             handleAction(type, target, action);
         }
     } else if (action == "move" && type == "bodypart") { //FollowingOrder implying bodypart
-        if (sens->size()<2){
-            yInfo()<<"I can't" << action << "if you don't tell me the bodypart";
+        if (sens->size()<2) {
             iCub->say("I can't " + action + "if you don't tell me the bodypart");
-        } else{
+        } else {
             handleActionBP(type, target, action);
         }
-    } else if (action == "narrate"){
+    } else if (action == "narrate") {
         handleNarrate();
     }  else if (action == "show" && (type == "kinematic structure" || type == "kinematic structure correspondence")){
         handleActionKS(action, type);
+    } else if (action == "end") {
+        handleEnd();
+    } else if (action == "") {
+        handleGame(type);
+    } else {
+        iCub->say("I don't know what you mean.");
     }
 
-    if (! manual && Network::isConnected(portToHomeo_name,homeoPort)){
+    if (!manual && Network::isConnected(port_to_homeo_name, homeoPort)){
         yInfo()<<"unfreezing drives";
         Bottle cmd;
         Bottle rply;
@@ -98,10 +107,7 @@ bool FollowingOrder::handleNarrate(){
         yarp::os::Network::connect(port_to_narrate_name, port_narrate);
 
     yInfo() << "Narrate::run";
-    Bottle cmd;
-    Bottle rply;
-    cmd.clear();
-    rply.clear();
+    Bottle cmd, rply;
     cmd.addString("narrate");
     yInfo() << "Proactively narrating...";
 
@@ -288,6 +294,71 @@ bool FollowingOrder::handleSearch(string type, string target)
     cmd.addString(target);
     rpc_out_port.write(cmd,rply);
     yDebug() << rply.toString();
+
+    return true;
+}
+
+bool FollowingOrder::handleEnd() {
+    iCub->opc->checkout();
+    yInfo() << "[handleEnd] time to sleep";
+    iCub->lookAtPartner();
+    iCub->say("Nice to play with you! See you soon.");
+    iCub->home();
+
+    yInfo()<<"[handleEnd] freezing drives";
+    manual = true;
+    Bottle cmd, rply;
+    cmd.addString("freeze");
+    cmd.addString("all");
+    port_to_homeo.write(cmd, rply);
+
+    return true;
+}
+
+bool FollowingOrder::handleGame(string type) {
+    string port_avoidance = "/reactController/rpc:i";
+
+    if (!yarp::os::Network::isConnected(port_to_avoidance_name, port_avoidance))
+        yarp::os::Network::connect(port_to_avoidance_name, port_avoidance);
+
+    if (!yarp::os::Network::isConnected(port_to_avoidance_name, port_avoidance)) {
+        iCub->say("I cannot play this game right now.");
+        return false;
+    }
+
+    iCub->opc->checkout();
+    yInfo() << "[handleGame] type:" << type;
+    iCub->lookAtPartner();
+
+    Bottle avoidance_cmd, avoidance_reply;
+    if(type == "start") {
+        iCub->say("Nice. Let me draw a circle. I will avoid obstacles.");
+        iCub->say("Please put the table away.");
+        yarp::os::Time::delay(10);
+        iCub->home();
+        iCub->say("Okay I am ready");
+        avoidance_cmd.addString("set_relative_circular_xd");
+        avoidance_cmd.addDouble(0.1);
+        avoidance_cmd.addDouble(0.15);
+    } else if (type == "end") {
+        iCub->say("This was fun! Thanks for playing with me.");
+        avoidance_cmd.addString("stop");
+    }
+
+    yDebug() << "To avoidance:" << avoidance_cmd.toString();
+    port_to_avoidance.write(avoidance_cmd, avoidance_reply);
+    yDebug() << "Reply avoidance: " << avoidance_reply.toString();
+
+    yInfo()<<"[handleGame] freezing drives";
+    manual = true;
+    Bottle homeo_cmd, homeo_reply;
+    if(type == "start") {
+        homeo_cmd.addString("freeze");
+    } else if(type == "end") {
+        homeo_cmd.addString("unfreeze");
+    }
+    homeo_cmd.addString("all");
+    port_to_homeo.write(homeo_cmd, homeo_reply);
 
     return true;
 }
