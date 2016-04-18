@@ -84,7 +84,7 @@ void FollowingOrder::run(Bottle args/*=Bottle()*/) {
         handleActionKS(action, type);
     } else if (action == "end") {
         handleEnd();
-    } else if (action == "") {
+    } else if (action == "game") {
         handleGame(type);
     } else {
         iCub->say("I don't know what you mean.");
