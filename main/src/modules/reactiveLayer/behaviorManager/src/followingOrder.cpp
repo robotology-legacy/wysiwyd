@@ -348,6 +348,8 @@ bool FollowingOrder::handleGame(string type) {
         port_to_avoidance.write(avoidance_cmd, avoidance_reply);
         yDebug() << "Reply avoidance: " << avoidance_reply.toString();
 
+        yarp::os::Time::delay(2.0);
+
         avoidance_cmd.addString("set_relative_circular_xd");
         avoidance_cmd.addDouble(0.1);
         avoidance_cmd.addDouble(0.15);
