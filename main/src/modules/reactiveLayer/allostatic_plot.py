@@ -6,6 +6,20 @@ import matplotlib.pyplot as plt
 
 import yarp
 
+def change_drive_names(drive_names):
+    new_names = []
+    for name in drive_names:
+        if name == "exploration":
+            new_names.append("Knowledge exploration")
+        elif name == "demonstration":
+            new_names.append("Knowledge exploitation")
+        elif name == "narration":
+            new_names.append("History narration")
+        elif name = "dummy":
+            new_names.append("This is a test")
+        else:
+            new_names.append(name)
+    return new_names
 
 class AllostaticPlotModule(yarp.RFModule):
     def configure(self, rf):
@@ -87,7 +101,7 @@ class AllostaticPlotModule(yarp.RFModule):
         self.value_lines = [self.ax.plot([], [], self.colors[i] + '-', lw=2, label=d) for i,d in enumerate(self.drives)]
         self.homeo_min_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
         self.homeo_max_lines = [self.ax.plot([], [], self.colors[i] + '--', lw=1) for i,d in enumerate(self.drives)]
-        plt.legend(self.drives)
+        plt.legend(change_drive_names(self.drives))
 
 
         self.drive_values = [[0.] * self.win_size for _ in self.drives]
