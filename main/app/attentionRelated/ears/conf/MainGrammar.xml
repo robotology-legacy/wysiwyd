@@ -11,7 +11,7 @@
   <RULE NAME="SENTENCENARRATIVE" TOPLEVEL="ACTIVE" EXPORT="1">
     <RULEREF  NAME="questionMark"/>
       <L>
-        <P>have you done</P>
+        <P>have you done the other day</P>
         <P>did you just do</P>
         <P>did we do</P>
         <P>did you say</P>
@@ -44,7 +44,7 @@
   </RULE>
 
   <RULE NAME="SENTENCERECOGNISE"  TOPLEVEL="ACTIVE" EXPORT="1">
-     <P>How do you call this action?</P>
+     <P>How do call this action?</P>
   </RULE>
 
   <RULE NAME="SENTENCEDONE"  TOPLEVEL="ACTIVE" EXPORT="1">
@@ -75,7 +75,6 @@
     <L>
       <P>point</P>
       <P>look at</P>
-      <P>push</P>
     </L>
   </RULE>
 
@@ -87,22 +86,18 @@
   
   <RULE NAME="object" DYNAMIC="TRUE">
     <L>
-      <P>ladybug</P>
-      <P>carrots</P>
-      <P>joystick</P>
-      <P>mug</P>
-      <P>pig</P>
-      <P>bottle</P>
+      <P>brain</P>
+      <P>crocodile</P>
+      <P>mouse</P>
+      <P>rabbit</P>
     </L>
-  </RULE> 
+  </RULE>
 
   <RULE NAME="bodypart" DYNAMIC="TRUE">
     <L>
-      <P>thumb</P>
       <P>index</P>
       <P>middle</P>
       <P>ring</P>
-      <P>little</P>
     </L>
   </RULE> 
 </GRAMMAR>
