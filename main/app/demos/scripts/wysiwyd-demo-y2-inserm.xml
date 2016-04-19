@@ -22,12 +22,6 @@
 	<tag>emotions_interface</tag>
    </module>
 
-   <module>
-  <name>gnome-terminal</name>
-    <parameters>-e "python /home/rococo/robot/wysiwyd/main/src/modules/samRelated/SAM/SAM_Demos/samSupervisor.py"</parameters>
-    <node>rococo</node>
-  </module>
-
     <module>
         <name>actionsRenderingEngine</name>
         <parameters>--motor::block_eyes 5.0 --motor::impedance off</parameters>
@@ -82,12 +76,7 @@
 
     <module>
         <name>yarpview</name>
-        <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out/KS0 --x 640 --y 0 --h 480 --w 480 --compact</parameters>
-        <node>rococo</node>
-    </module>
-    <module>
-        <name>yarpview</name>
-        <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out/KSC0 --x 1125 --y 0 --h 480 --w 480 --compact</parameters>
+        <parameters>--name /yarpview/autobiographicalMemory/icub/camcalib/left/out/KSC0 --x 750 --y 0 --h 480 --w 480 --compact</parameters>
         <node>rococo</node>
     </module>
     <module>
@@ -196,6 +185,7 @@
         <node>icub-b3</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
+            <port timeout="10">/actionsRenderingEngine/cmd:io</port>
             <port timeout="10">/autobiographicalMemory/rpc</port>
             <port timeout="10">/iSpeak</port>
             <port timeout="10">/speechRecognizer/rpc</port>
@@ -220,7 +210,7 @@
     </module>
     <module>
         <name>yarpview</name>
-        <parameters>--name /viewer/iol/localizer --x 1305 --y 530 --out /viewer/iol/localizer:o --p 50 --compact</parameters>
+        <parameters>--name /viewer/iol/localizer --x 1305 --y 0 --out /viewer/iol/localizer:o --p 50 --compact</parameters>
         <node>rococo</node>
     </module>
     <module>
@@ -237,12 +227,12 @@
 
     <module>
         <name>yarpview</name>
-        <parameters>--name /viewer/skeleton --compact --x 930 --y 680</parameters>
-        <node>console1</node>
+        <parameters>--name /viewer/skeleton --compact --x 2340 --y 0 --w 320 --h 260</parameters>
+        <node>rococo</node>
     </module>
     <module>
         <name>iCubGui</name>
-        <parameters>--xpos 1610</parameters>
+        <parameters>--xpos 2010 --ypos 520 --width 650 --height 550</parameters>
         <node>rococo</node>
     </module>
 
@@ -263,14 +253,7 @@
         </dependencies>
     </module>
 
-    <module>
-        <name>actionRecogDataDumper</name>
-        <parameters></parameters>
-        <node>localhost</node>
-        <dependencies>
-            <port timeout="10">/OPC/rpc</port>
-        </dependencies>
-    </module>
+
 
     <module>
         <name>allostatic_plot.py</name>
@@ -295,7 +278,7 @@
         <node>icub-b3</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
-        </dependencies>        
+        </dependencies>
     </module>
     <module>
         <name>homeostasis</name>
@@ -307,15 +290,15 @@
         <parameters></parameters>
         <node>icub-b2</node>
         <dependencies>
+            <port timeout="10">/opcSensation/opc_has_unknown:o</port>
+            <port timeout="10">/autobiographicalMemory/rpc</port>
             <port timeout="10">/homeostasis/rpc</port>
             <port timeout="10">/BehaviorManager/trigger:i</port>
-            <port timeout="10">/autobiographicalMemory/rpc</port>
-            <port timeout="10">/opcSensation/opc_has_unknown:o</port>
         </dependencies>
     </module>
     <module>
         <name>behaviorManager</name>
-        <parameters></parameters>
+        <parameters>--from default.ini</parameters>
         <node>icub-b1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
@@ -328,11 +311,12 @@
             <port timeout="10">/ears/target:o</port>
             <port timeout="20">/proactiveTagging/rpc</port>
             <port timeout="10">/narrativeHandler/rpc</port>
+            <port timeout="10">/sam/rpc:i</port>
         </dependencies>
     </module>
     <module>
         <name>ears</name>
-        <parameters></parameters>
+        <parameters>--from ears.ini</parameters>
         <node>icub-b1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
@@ -341,7 +325,7 @@
     </module>
     <module>
         <name>proactiveTagging</name>
-        <parameters>--OPC_AddOrRetrieve::populateOPC 1</parameters>
+        <parameters>--from proactiveTagging.ini --OPC_AddOrRetrieve::populateOPC 1</parameters>
         <node>icub-b1</node>
         <dependencies>
             <port timeout="10">/OPC/rpc</port>
@@ -355,6 +339,20 @@
         </dependencies>
     </module>
 
+   <module>
+       <name>xterm</name>
+       <parameters>-e "python /home/rococo/samSupervisor.py"</parameters>
+       <node>rococo</node>
+  </module>
+
+    <module>
+        <name>actionRecogDataDumper</name>
+        <parameters></parameters>
+        <node>icub-b3</node>
+        <dependencies>
+            <port timeout="10">/OPC/rpc</port>
+        </dependencies>
+    </module>
 
 
   <connection>
@@ -456,7 +454,7 @@
     <connection>
         <from>/icub/camcalib/left/out</from>
         <to>/iol2opc/img:i</to>
-        <protocol>udp</protocol>
+        <protocol>tcp</protocol>
     </connection>
     <connection>
         <from>/iolReachingCalibration/are</from>
