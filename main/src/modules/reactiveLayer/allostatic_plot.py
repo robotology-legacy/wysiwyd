@@ -15,7 +15,7 @@ def change_drive_names(drive_names):
             new_names.append("Knowledge exploitation")
         elif name == "narration":
             new_names.append("History narration")
-        elif name = "dummy":
+        elif name == "dummy":
             new_names.append("This is a test")
         else:
             new_names.append(name)
