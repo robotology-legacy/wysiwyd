@@ -242,21 +242,19 @@ bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
         dim.resize(3);
 
         // find mean and standard deviation
-        double N=reply.size()/3.0;
+        Vector tmp(3);
         for (int i=0; i<reply.size(); i+=3)
         {
-            x[0]+=reply.get(i+0).asDouble();
-            x[1]+=reply.get(i+1).asDouble();
-            x[2]+=reply.get(i+2).asDouble();
+            tmp[0]=reply.get(i+0).asDouble();
+            tmp[1]=reply.get(i+1).asDouble();
+            tmp[2]=reply.get(i+2).asDouble();
 
-            dim[0]+=reply.get(i+0).asDouble()*reply.get(i+0).asDouble();
-            dim[1]+=reply.get(i+1).asDouble()*reply.get(i+1).asDouble();
-            dim[2]+=reply.get(i+2).asDouble()*reply.get(i+2).asDouble();
+            x+=tmp;
+            dim+=tmp*tmp;
         }
         
-        x/=N;
-
-        dim=dim*(1.0/N)-x*x;
+        double N=reply.size()/3.0;
+        x/=N; dim=dim/N-x*x;
         dim[0]=2.0*sqrt(dim[0]);
         dim[1]=2.0*sqrt(dim[1]);
         dim[2]=2.0*sqrt(dim[2]);
