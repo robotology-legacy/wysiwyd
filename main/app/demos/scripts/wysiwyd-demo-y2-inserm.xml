@@ -41,7 +41,7 @@
 
     <module>
       <name>yarpdev</name>
-      <parameters>--device speech --language en-GB --pitch 90 --speed 105</parameters>
+      <parameters>--device speech --default-language en-US --pitch 90 --speed 105</parameters>
       <node>console1</node>
     </module>
 
