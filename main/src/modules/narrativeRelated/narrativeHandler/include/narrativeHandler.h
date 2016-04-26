@@ -16,6 +16,8 @@
  */
 
 
+#ifndef _NARRATIVEHANDLER_H_
+#define _NARRATIVEHANDLER_H_
 
 #include <story.h>
 
@@ -24,8 +26,10 @@ class narrativeHandler : public yarp::os::RFModule {
 private:
 
     wysiwyd::wrdac::ICubClient  *iCub;
+    wysiwyd::wrdac::OPCClient   *mentalOPC;
     int counter;
     int cursorStories;
+    void cleanMental();
 
     double      period;
     bool lrh;
@@ -43,6 +47,7 @@ private:
     bool bInitial;          // if is the first research
 
     yarp::os::Port  rpcPort;
+    yarp::os::Port  Port2abmReasoning;
 
     std::vector<story> listStories;
 
@@ -58,6 +63,7 @@ private:
 
     bool checkListPAOR(std::vector<std::string> vOriginal, std::vector<std::string> vCopy);
     std::string adaptMeaning(std::string oriMeaning);
+    evtStory adaptMeaning(evtStory& evt);
 
     void addNarrationToStory(story &target, bool overWrite = false);
     void recordNarrationABM(story &target);
@@ -69,10 +75,10 @@ private:
     bool narrate(int iIns);
     bool askNarrate(int iIns);
     bool narrationToSpeech(story sto);
+    bool narrationToMeaning();
+    void imagineStory(story& target);
 
     void enrichMeaning(std::string &meaning, std::string sentence);
-
-public:
     bool configure(yarp::os::ResourceFinder &rf);
 
     bool interruptModule();
@@ -101,3 +107,7 @@ public:
 
 
 };
+
+
+
+#endif

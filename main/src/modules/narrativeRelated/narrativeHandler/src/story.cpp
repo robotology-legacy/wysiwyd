@@ -47,9 +47,19 @@ Bottle story::unfoldGoal(string goal)
 
 bool story::displayNarration(bool displayAll)
 {
-
     if (humanNarration.size() > 2){
         cout << endl << "********************************\nbegin narration from human: " << viInstances[0] << " with " << humanNarration.size() << " events and " << sentenceStory.size() << " sentences." << endl;
+ 
+        if (displayAll){
+            for (auto itSt : vEvents){
+                itSt.removeUnderscore();
+                cout << "\t A:" << itSt.agent;
+                cout << "\t P:" << itSt.predicate;
+                cout << "\t O:" << itSt.object;
+                cout << "\t R:" << itSt.recipient << endl;
+            }
+        }
+       
         for (auto ii : humanNarration){
             cout << "\t" << ii << endl;
         }

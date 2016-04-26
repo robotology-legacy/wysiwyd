@@ -41,6 +41,8 @@ public:
 
     int counter;
 
+    int iBasedOn;   // indicate the counter of the story where it comes from if it is an imagined story. if real: -1
+
     void addOCW(std::vector<std::string> _OCW);
     void updateMapScore();
     unsigned int  iThresholdSentence; // threshold of the number of sentence in a story

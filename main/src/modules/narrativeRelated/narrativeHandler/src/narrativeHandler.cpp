@@ -81,6 +81,34 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "Speech recognizer not connected!";
     }
 
+
+    if (!Port2abmReasoning.open("/" + getName() + "ABMR")) {
+        yWarning() << ": Unable to open port " << Port2abmReasoning.getName();
+    }
+    if (Network::connect(Port2abmReasoning.getName(), "/abmReasoning/rpc")){
+        yWarning(" Cannot connect to ABMReasoning");
+    }
+
+    mentalOPC = new OPCClient(getName()+"/mentalOPC");
+    int iTry = 0;
+    while (!mentalOPC->isConnected())
+    {
+        yInfo() << "\t" << "narrativeHandler Connecting to mentalOPC ..." << mentalOPC->connect("mentalOPC");
+        if (!mentalOPC->isConnected())
+            Time::delay(0.5);
+        iTry++;
+        if (iTry > 1)
+        {
+            yInfo() << "\t" << "narrativeHandler failed to connect to mentalOPC";
+        }
+        mentalOPC->isVerbose = false;
+    }
+    mentalOPC->checkout();
+    mentalOPC->update();
+
+
+
+
     std::string ttsOptions = rf.check("ttsOptions", yarp::os::Value("iCub")).toString();
     if (ttsOptions != "iCub") {
         if (iCub->getSpeechClient())
@@ -88,8 +116,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     }
 
     bInitial = true;
+    counter = 0;
     findStories();
 
+//    narrationToMeaning();
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -121,6 +151,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " askNarrate + instanceStory = default_value: \n" +
         " narrate + instanceStory = default_value: \n" +
         " displayStories + n-back = default_all: \n" +
+        " cleanMeantal\n" +
         " quit \n";
 
     yInfo() << " rpc command received: " << command.toString();
@@ -141,6 +172,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         else{
             reply.addString("error in narrativeHandler::setNarrator wrong size of input: should be: (setNarrator narrator)");
         }
+    }
+    else if (command.get(0).asString() == "cleanMental"){
+        cleanMental();
     }
     else if (command.get(0).asString() == "askNarrate"){
         int iIns = storyToNarrate;
@@ -292,6 +326,7 @@ void narrativeHandler::findStories()
     if (currentStory.viInstances.size() > iThresholdSizeStory)
     {
         currentStory.counter = counter;
+        currentStory.iBasedOn = -1;
         counter++;
         listStories.push_back(currentStory);
     }
@@ -1410,7 +1445,7 @@ string narrativeHandler::createMeaning(string agent, string predicate, string ob
 bool narrativeHandler::checkListPAOR(vector<string> vOriginal, vector<string> vCopy){
 
     if (vOriginal.size() != vCopy.size()){
-        yInfo(" Error in narrativeHandler::checkListPAOR - different sizes of input");
+//        yInfo(" Error in narrativeHandler::checkListPAOR - different sizes of input");
         return false;
     }
 
@@ -1574,3 +1609,5 @@ bool narrativeHandler::narrationToSpeech(story target){
 
     return true;
 }
+
+
