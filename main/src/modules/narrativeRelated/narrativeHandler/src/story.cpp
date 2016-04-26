@@ -49,7 +49,7 @@ bool story::displayNarration(bool displayAll)
 {
     if (humanNarration.size() > 2){
         cout << endl << "********************************\nbegin narration from human: " << viInstances[0] << " with " << humanNarration.size() << " events and " << sentenceStory.size() << " sentences." << endl;
- 
+
         if (displayAll){
             for (auto itSt : vEvents){
                 itSt.removeUnderscore();
@@ -59,7 +59,7 @@ bool story::displayNarration(bool displayAll)
                 cout << "\t R:" << itSt.recipient << endl;
             }
         }
-       
+
         for (auto ii : humanNarration){
             cout << "\t" << ii << endl;
         }

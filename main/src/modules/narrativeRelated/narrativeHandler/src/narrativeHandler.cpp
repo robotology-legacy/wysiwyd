@@ -89,7 +89,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yWarning(" Cannot connect to ABMReasoning");
     }
 
-    mentalOPC = new OPCClient(getName()+"/mentalOPC");
+    mentalOPC = new OPCClient(getName() + "/mentalOPC");
     int iTry = 0;
     while (!mentalOPC->isConnected())
     {
@@ -119,7 +119,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     counter = 0;
     findStories();
 
-//    narrationToMeaning();
+    //    narrationToMeaning();
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
@@ -129,6 +129,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 bool narrativeHandler::interruptModule() {
     rpcPort.interrupt();
+    mentalOPC->interrupt();
 
     yInfo() << "--Interrupting the synchronized yarp ports module...";
     return true;
@@ -137,6 +138,9 @@ bool narrativeHandler::interruptModule() {
 bool narrativeHandler::close() {
     iCub->close();
     delete iCub;
+
+    mentalOPC->close();
+    delete mentalOPC;
 
     rpcPort.interrupt();
     rpcPort.close();
@@ -204,10 +208,10 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "displayStories"){
         yInfo("Starting to display stories:");
-        if (command.size()==2){
+        if (command.size() == 2){
             unsigned int nback = command.get(1).asInt();
             if (nback < listStories.size()){
-                for (unsigned int jj = listStories.size() - nback; jj < listStories.size() ; jj++){
+                for (unsigned int jj = listStories.size() - nback; jj < listStories.size(); jj++){
                     listStories[jj].displayNarration();
                 }
             }
@@ -218,9 +222,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             }
         }
         else{
-        for (auto st : listStories){
-            st.displayNarration();
-        }
+            for (auto st : listStories){
+                st.displayNarration();
+            }
         }
         reply.addString("display finished");
     }
@@ -281,13 +285,13 @@ void narrativeHandler::findStories()
     //    int iCurrentInstance = iInstance;
 
     Bottle  bAllInstances = iCub->getABMClient()->requestFromString(osRequest.str());
-   // Bottle bMessenger;
+    // Bottle bMessenger;
     int numberInstances = bAllInstances.size();
 
-   // vector<int> vError;
+    // vector<int> vError;
     yInfo() << "\t" << "found " << numberInstances << " instance(s)";
     double mDiff;
-    int Id2=0;
+    int Id2 = 0;
     for (int j = 1; j < (numberInstances); j++)
     {
 
@@ -302,7 +306,7 @@ void narrativeHandler::findStories()
 
         mDiff = timeDiff(m1, m2);
 
-        if (strcmp((bAllInstances.get(j).asList()->get(1).toString().c_str()) , "f") == 1)
+        if (strcmp((bAllInstances.get(j).asList()->get(1).toString().c_str()), "f") == 1)
         {
             if (mDiff > dThresholdDiffStory){
                 if (currentStory.viInstances.size() > iThresholdSizeStory)
@@ -1445,7 +1449,7 @@ string narrativeHandler::createMeaning(string agent, string predicate, string ob
 bool narrativeHandler::checkListPAOR(vector<string> vOriginal, vector<string> vCopy){
 
     if (vOriginal.size() != vCopy.size()){
-//        yInfo(" Error in narrativeHandler::checkListPAOR - different sizes of input");
+        //        yInfo(" Error in narrativeHandler::checkListPAOR - different sizes of input");
         return false;
     }
 
@@ -1514,7 +1518,7 @@ bool narrativeHandler::tellingStoryFromMeaning(story target){
 bool narrativeHandler::narrate(int iIns){
     yInfo(" begin narrate");
     if (shouldSpeak)    iCub->say("Starting to narrate !", true, false, "default", false);
-   // if (shouldSpeak)    iCub->say("But for now I don't want to speak !", true, false, "default", false);
+    // if (shouldSpeak)    iCub->say("But for now I don't want to speak !", true, false, "default", false);
 
     //    findStories(iMinInstance);
 
