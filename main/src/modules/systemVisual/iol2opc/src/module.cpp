@@ -917,8 +917,6 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
 bool IOL2OPCBridge::interruptModule()
 {
     yDebug() << "Interrupt iol2opc";
-    LockGuard lg(mutexResources);
-
     rtLocalization.stop();
     opcUpdater.stop();
     yDebug() << "iol2opc threads stopped";
