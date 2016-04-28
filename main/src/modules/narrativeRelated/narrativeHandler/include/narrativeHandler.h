@@ -67,6 +67,7 @@ private:
 
     void addNarrationToStory(story &target, bool overWrite = false);
     void recordNarrationABM(story &target);
+    void listeningStory();
 
 
     std::string GrammarNarration; // the file for the grammar narration
@@ -75,7 +76,7 @@ private:
     bool narrate(int iIns);
     bool askNarrate(int iIns);
     bool narrationToSpeech(story sto);
-    bool narrationToMeaning();
+    bool narrationToMeaning(story& target);
     void imagineStory(story& target);
 
     void enrichMeaning(std::string &meaning, std::string sentence);

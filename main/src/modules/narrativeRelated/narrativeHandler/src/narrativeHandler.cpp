@@ -155,6 +155,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " askNarrate + instanceStory = default_value: \n" +
         " narrate + instanceStory = default_value: \n" +
         " displayStories + n-back = default_all: \n" +
+        " listenStory: \n" +
         " cleanMeantal\n" +
         " quit \n";
 
@@ -179,6 +180,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "cleanMental"){
         cleanMental();
+    }
+    else if (command.get(0).asString() == "listeningStory"){
+        listeningStory();
     }
     else if (command.get(0).asString() == "askNarrate"){
         int iIns = storyToNarrate;
