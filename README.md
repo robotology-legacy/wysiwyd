@@ -30,8 +30,7 @@ We need the new tracking features delivered with `OpenCV-3.0.0`:
 Configure the project:
 
 1. Fill in the cmake var **`OpenCV_DIR`** with the path to `OpenCV-3.0.0` build.
-2. Toggle on the cmake option **`WYSIWYD_IOL2OPC_WITH_TRACKING`**. Note that if this options is `OFF`, then we do not need `OpenCV-3.0.0` and the project still compiles with the previous versions.
-3. Compile `wysiwyd`.
+2. Compile `wysiwyd`.
 
 ### Building notes
 

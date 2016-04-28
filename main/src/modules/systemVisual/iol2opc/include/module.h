@@ -30,9 +30,7 @@
 #include <wrdac/clients/opcClient.h>
 
 #include <opencv2/opencv.hpp>
-#ifdef IOL2OPC_TRACKING
-    #include <opencv2/tracking.hpp>
-#endif
+#include <opencv2/tracking.hpp>
 
 #include "utils.h"
 #include "iol2opc_IDL.h"
@@ -71,12 +69,8 @@ protected:
     double trackerTmo;
     double trackerTimer;    
 
-#ifdef IOL2OPC_TRACKING
     cv::Rect2d trackerResult;
     cv::Ptr<cv::Tracker> tracker;
-#else
-    CvRect trackerResult;
-#endif
 
 public:
     /**********************************************************/
@@ -144,7 +138,6 @@ public:
     /**********************************************************/
     void track(const Image& img)
     {
-    #ifdef IOL2OPC_TRACKING
         cv::Mat frame=cv::cvarrToMat((IplImage*)img.getIplImage());
         if (trackerState==init)
         {
@@ -171,10 +164,6 @@ public:
             else
                 trackerState=idle;
         }
-    #else
-        if (trackerState==init)
-            trackerState=idle;
-    #endif
     }
 
     /**********************************************************/

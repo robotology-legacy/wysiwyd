@@ -3,7 +3,6 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 project(iol2opc)
-set(WYSIWYD_IOL2OPC_WITH_TRACKING FALSE CACHE BOOL "Enable iol2opc with tracking (requires VERSION(OpenCV) > 2.x.y)")
 
 include(YarpIDL)
 
@@ -23,10 +22,6 @@ yarp_idl_to_dir(${idl_files} ${IDL_GENERATED_CODE_DIR})
 source_group("Header Files" FILES ${folder_header})
 source_group("Source Files" FILES ${folder_source})
 source_group("IDL Files"    FILES ${idl_files})
-
-if(WYSIWYD_IOL2OPC_WITH_TRACKING)
-    add_definitions(-DIOL2OPC_TRACKING)
-endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${IDL_GENERATED_CODE_DIR}/include
