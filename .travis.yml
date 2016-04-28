@@ -56,7 +56,7 @@ before_script:
   - cd main
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -DCMAKE_BUILD_TYPE=Release -DWYSIWYD_BUILD_IOL2OPC=FALSE ..
 
 script:
   - make

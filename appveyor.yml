@@ -69,7 +69,7 @@ build_script:
   - cd c:\dev\wysiwyd\main
   - md build
   - cd build
-  - cmake -G"Visual Studio 12" ..
+  - cmake -G"Visual Studio 12" -DWYSIWYD_BUILD_IOL2OPC=FALSE ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" wysiwyd.sln
 
 notifications:
