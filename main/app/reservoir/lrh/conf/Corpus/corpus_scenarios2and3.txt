@@ -21,6 +21,6 @@ so , found I action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>; so I f
 if , could I , ask I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>; if I could ask you to give it to me
 then , would you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>; then you would give it to me
 so , asked I you , give you it me <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>; so I asked you to give it to me
-and , gave you it me <o> [_-_-_-_-_-_-_-_][A-P-O-R-_-_-_-_] <o>; and you gave it to me # => 'and' is declared as 'CCW' because the scenario 2. If we remove the 'CCW' for Scenario 3 we can write the meaning like this:
+and , gave you it me <o> [P-_-_-_-_-_-_-_][_-A-P-O-R-_-_-_] <o>; and you gave it to me # => 'and' is declared as 'CCW' because the scenario 2. If we remove the 'CCW' for Scenario 3 we can write the meaning like this:
 now , have I giraffe <o> [_-_-P-_-_-_-_-_][A-P-_-O-_-_-_-_] <o>; I have now the giraffe
 
