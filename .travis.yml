@@ -10,6 +10,7 @@ compiler:
 branches:
   only:
   - master
+  - devel
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu trusty contrib/science" > /etc/apt/sources.list.d/icub.list'
@@ -73,5 +74,3 @@ notifications:
   - anne.laure.mealier@gmail.com
   - clement.moulinfrier@gmail.com
   - dcamilleri1@sheffield.ac.uk
-      
-
