@@ -315,34 +315,7 @@ bool narrativeHandler::narrationToMeaning(story &target){
     cout << "------------------------------" << endl;
     cout << "BEGIN NARRATION TO MEANING" << endl;
 
-    // story between Robert and Larry
-    //vector<string> storyToTest;
-    //storyToTest.push_back("Robert wanted to get the hat");
-    //storyToTest.push_back("but he failed to grasp it");
-    //storyToTest.push_back("because it laid outofreach");
-    //storyToTest.push_back("so he found a different action");
-    //storyToTest.push_back("if he could ask Larry to give it to him");
-    //storyToTest.push_back("then Larry would give it to him");
-    //storyToTest.push_back("so he asked Larry to give it to him");
-    //storyToTest.push_back("and Larry gave it to him");
-    //storyToTest.push_back("Robert has now the hat");
-
-    //vector<string> meaningToTest;
-    //meaningToTest.push_back(", wanted Robert , get Robert hat <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>");
-    //meaningToTest.push_back("but , failed Robert , grasp Robert it <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-_-_-_] <o>");
-    //meaningToTest.push_back("because , laid it outofreach <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_] <o>");
-    //meaningToTest.push_back("so , found Robert action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>");
-    //meaningToTest.push_back("if , could Robert , ask Robert Larry , give Larry it him <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>");
-    //meaningToTest.push_back("then , would Larry , give Larry it him <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>");
-    //meaningToTest.push_back("so , asked Robert Larry , give Larry it him <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>");
-    //meaningToTest.push_back("and, gave Larry it him <o> [_-_-_-_-_-_-_-_][A-P-O-R-_-_-_-_] <o>");
-    //meaningToTest.push_back("now , have Robert hat <o> [_-_-P-_-_-_-_-_][A-P-_-O-_-_-_-_] <o>");
-
-
-//    target.humanNarration = storyToTest;
-//    target.meaningStory = meaningToTest;
-
-//    target.viInstances.push_back(5000);
+    //    target.viInstances.push_back(5000);
 
     //    yInfo() << "BEGIN compareNarration: start to compare Narration from target: " << target.counter;
     for (auto& currentStory : listStories){
@@ -435,7 +408,6 @@ bool narrativeHandler::narrationToMeaning(story &target){
     cout << "TARGET STORY IS: " << endl;
     target.displayNarration();
 
-    imagineStory(target);
 
     yInfo() << "\nEND compareNarration";
 
@@ -762,7 +734,36 @@ void narrativeHandler::listeningStory(){
     target.counter = counter;
     counter++;
 
-    addNarrationToStory(target);
 
+    // story between Robert and Larry
+    vector<string> storyToTest;
+    storyToTest.push_back("Robert wanted to get the hat");
+    storyToTest.push_back("but he failed to grasp it");
+    storyToTest.push_back("because it laid outofreach");
+    storyToTest.push_back("so he found a different action");
+    storyToTest.push_back("if he could ask Larry to give it to him");
+    storyToTest.push_back("then Larry would give it to him");
+    storyToTest.push_back("so he asked Larry to give it to him");
+    storyToTest.push_back("and Larry gave it to him");
+    storyToTest.push_back("Robert has now the hat");
+
+    vector<string> meaningToTest;
+    meaningToTest.push_back(", wanted Robert , get Robert hat <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>");
+    meaningToTest.push_back("but , failed Robert , grasp Robert it <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-_-_-_] <o>");
+    meaningToTest.push_back("because , laid it outofreach <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_] <o>");
+    meaningToTest.push_back("so , found Robert action different <o> [P-_-_-_-_-_-_-_][_-A-P-R-O-_-_-_] <o>");
+    meaningToTest.push_back("if , could Robert , ask Robert Larry , give Larry it him <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-R-_-_-_][_-A-_-_-_-P-O-R] <o>");
+    meaningToTest.push_back("then , would Larry , give Larry it him <o> [P-_-_-_-_-_-_-_][_-A-P-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>");
+    meaningToTest.push_back("so , asked Robert Larry , give Larry it him <o> [P-_-_-_-_-_-_-_][_-A-P-R-_-_-_-_][_-_-_-A-P-O-R-_] <o>");
+    meaningToTest.push_back("and, gave Larry it him <o> [P-_-_-_-_-_-_-_][P-A-P-O-R-_-_-_] <o>");
+    meaningToTest.push_back("now , have Robert hat <o> [_-_-P-_-_-_-_-_][A-P-_-O-_-_-_-_] <o>");
+
+
+    target.humanNarration = storyToTest;
+    target.meaningStory = meaningToTest;
+
+    //    addNarrationToStory(target);
     narrationToMeaning(target);
+
+    imagineStory(target);
 }
