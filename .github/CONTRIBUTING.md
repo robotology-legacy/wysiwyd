@@ -62,10 +62,12 @@ This is the typical workflow to fix a bug in the `devel` branch.
 * Add some label.
 * Assign the issue to yourself.
 * Create a new **fix branch** starting from the `devel` branch:
+
   ```sh
   git fetch origin
   git checkout -b fix/<branch_name> origin/devel
   ```
+
 * Fix the bug and make one or more commits.
 * [Push the branch on your fork and create a pull request](https://help.github.com/categories/collaborating-on-projects-using-pull-requests/).
 * Wait for someone else to review your fix and merge your pull request.
