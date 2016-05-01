@@ -6,6 +6,12 @@ The WYSIWYD project will create a new transparency in human robot interaction (H
 ## Documentation
 Visit the official Project [wiki](http://wiki.icub.org/wysiwyd/dox/html/index.html) for the software.
 
+## License
+WYSIWYD software and documentation are distributed under the GPL.
+The full text of the license agreement can be found in: [./license/gpl.txt](https://github.com/robotology/wysiwyd/blob/master/license/gpl.txt).
+
+Please read this license carefully before using the WYSIWYD code.
+
 ## CI Build
 - Linux: [![Build Status](https://travis-ci.org/robotology/wysiwyd.png?branch=master)](https://travis-ci.org/robotology/wysiwyd)
 - Windows: [![Build status](https://ci.appveyor.com/api/projects/status/4rckcp8suov8pcv1)](https://ci.appveyor.com/project/pattacini/wysiwyd)
