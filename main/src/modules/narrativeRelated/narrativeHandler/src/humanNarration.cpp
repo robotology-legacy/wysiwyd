@@ -462,7 +462,7 @@ evtStory narrativeHandler::adaptMeaning(evtStory& evtInput){
         // for each element of the relation
         for (int iSub = 0; iSub < bTemp.size(); iSub++){
             bool bFound = false;
-            for (int jj = 0; jj < comparator.size(); jj++){
+            for (unsigned int jj = 0; jj < comparator.size(); jj++){
                 if (comparator[jj].first == bTemp.get(iSub).asString()){
                     bFound = true;
                     bNewTemp.addString(comparator[jj].second);
@@ -556,7 +556,7 @@ void narrativeHandler::imagineStory(story& target)
             for (int iSub = 0; iSub < bTemp.size(); iSub++){
 
                 string stmp = bTemp.get(iSub).asString();
-                for (int jj = 0; jj < comparator.size(); jj++){
+                for (unsigned int jj = 0; jj < comparator.size(); jj++){
                     if (comparator[jj].first == bTemp.get(iSub).asString()){
                         stmp = comparator[jj].second;
                     }
@@ -586,7 +586,7 @@ void narrativeHandler::imagineStory(story& target)
         vector<string> vInvolvedAgents;
         vector<string> vInvolvedObjects;
 
-        for (unsigned int ii = 0; ii < bNewOpc.size(); ii++){
+        for (int ii = 0; ii < bNewOpc.size(); ii++){
             Bottle bTemp = *bNewOpc.get(ii).asList();
 
             if (bTemp.get(3).toString() == "agent"){
