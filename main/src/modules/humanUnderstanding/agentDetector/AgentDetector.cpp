@@ -446,9 +446,18 @@ bool AgentDetector::updateModule()
             list<Entity*> presentObjects=opc->Entities(bCond);
             opc->isVerbose=false;
             
-            if (presentObjects.size()==1)
-            {
-                Object* o=(Object*)(presentObjects.front());
+            Object *o=nullptr;
+            if (presentObjects.size()==1) {
+                o=dynamic_cast<Object*>(presentObjects.front());
+            } else {
+                for(auto& presentObject : presentObjects) {
+                    if(presentObject->name() == "target") {
+                        o=dynamic_cast<Object*>(presentObject);
+                        break;
+                    }
+                }
+            }
+            if(o) {
                 Bottle botRPH, botRPHRep;
                 botRPH.addString("add");
                 botRPH.addString("kinect");
@@ -466,9 +475,11 @@ bool AgentDetector::updateModule()
                 cout<<"Got from RFH: "<<botRPHRep.toString().c_str()<<endl;
 
                 pointsCnt++;
-            }
-            else
+            } else {
                 yWarning("There should be 1 and only 1 object on the table");
+                yWarning("If there is more than one object, the object you want");
+                yWarning("to calibrate must be called \"target\"");
+            }
         }
         else if (AgentDetector::clicked==clicked_right)
         {
