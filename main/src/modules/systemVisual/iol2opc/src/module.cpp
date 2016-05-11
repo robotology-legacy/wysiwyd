@@ -213,17 +213,29 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
         rpcGet3D.write(cmd,reply);
         mutexResourcesSFM.unlock();
 
-        for (int i=0; i<reply.size(); i+=3)
+        int sz=reply.size();
+        if ((sz>0) && ((sz%3)==0))
         {
-            x[0]+=reply.get(i+0).asDouble();
-            x[1]+=reply.get(i+1).asDouble();
-            x[2]+=reply.get(i+2).asDouble();            
-        }
+            for (int i=0; i<sz; i+=3)
+            {
+                x[0]+=reply.get(i+0).asDouble();
+                x[1]+=reply.get(i+1).asDouble();
+                x[2]+=reply.get(i+2).asDouble();            
+            }
 
-        x/=reply.size()/3;
+            x/=sz/3;
+        }
+        else
+            yWarning("SFM reply with wrong size");
     }
 
-    return (norm(x)>0.0);
+    if (norm(x)>0.0)
+        return true;
+    else
+    {
+        yWarning("get3DPosition failed");
+        return false;
+    }
 }
 
 
