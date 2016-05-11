@@ -3,6 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 set(WYSIWYD_BUILD_IOL2OPC TRUE CACHE BOOL "Enable compilation of iol2opc")
+mark_as_advanced(WYSIWYD_BUILD_IOL2OPC)
 if(WYSIWYD_BUILD_IOL2OPC)
    project(iol2opc)
 
