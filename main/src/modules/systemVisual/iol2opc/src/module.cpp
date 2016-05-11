@@ -226,7 +226,7 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
             x/=sz/3;
         }
         else
-            yWarning("SFM replied with wrong size");
+            yError("SFM replied with wrong size");
     }
 
     if (norm(x)>0.0)
