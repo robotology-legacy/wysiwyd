@@ -196,27 +196,34 @@ bool IOL2OPCBridge::getClickPosition(CvPoint &pos)
 /**********************************************************/
 bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
 {
+    x.resize(3,0.0);
     if (rpcGet3D.getOutputCount()>0)
     {
+        // thanks to SFM we are here
+        // safe against borders checking
         Bottle cmd,reply;
-        cmd.addString("Root");
-        cmd.addInt(point.x);
-        cmd.addInt(point.y);
+        cmd.addString("Rect");
+        cmd.addInt(point.x-3);
+        cmd.addInt(point.y-3);
+        cmd.addInt(7);
+        cmd.addInt(7);
+        cmd.addInt(2);
+
         mutexResourcesSFM.lock();
         rpcGet3D.write(cmd,reply);
         mutexResourcesSFM.unlock();
 
-        if (reply.size()>=3)
+        for (int i=0; i<reply.size(); i+=3)
         {
-            x.resize(3);
-            x[0]=reply.get(0).asDouble();
-            x[1]=reply.get(1).asDouble();
-            x[2]=reply.get(2).asDouble();
-            return (norm(x)>0.0);
+            x[0]+=reply.get(i+0).asDouble();
+            x[1]+=reply.get(i+1).asDouble();
+            x[2]+=reply.get(i+2).asDouble();            
         }
+
+        x/=reply.size()/3;
     }
 
-    return false;
+    return (norm(x)>0.0);
 }
 
 
