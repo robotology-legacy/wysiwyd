@@ -216,26 +216,32 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
         int sz=reply.size();
         if ((sz>0) && ((sz%3)==0))
         {
+            Vector tmp(3);
+            int cnt=0;
+
             for (int i=0; i<sz; i+=3)
             {
-                x[0]+=reply.get(i+0).asDouble();
-                x[1]+=reply.get(i+1).asDouble();
-                x[2]+=reply.get(i+2).asDouble();            
+                tmp[0]=reply.get(i+0).asDouble();
+                tmp[1]=reply.get(i+1).asDouble();
+                tmp[2]=reply.get(i+2).asDouble();
+
+                if (norm(tmp)>0.0)
+                {
+                    x+=tmp;
+                    cnt++;
+                }
             }
 
-            x/=sz/3;
+            if (cnt>0)
+                x/=cnt;
+            else
+                yWarning("get3DPosition failed");
         }
         else
             yError("SFM replied with wrong size");
     }
 
-    if (norm(x)>0.0)
-        return true;
-    else
-    {
-        yWarning("get3DPosition failed");
-        return false;
-    }
+    return (norm(x)>0.0);
 }
 
 
