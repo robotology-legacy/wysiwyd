@@ -201,6 +201,7 @@ bool IOL2OPCBridge::get3DPosition(const CvPoint &point, Vector &x)
     {
         // thanks to SFM we are here
         // safe against borders checking
+        // command format: Rect tlx tly w h step
         Bottle cmd,reply;
         cmd.addString("Rect");
         cmd.addInt(point.x-3);
