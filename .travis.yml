@@ -14,8 +14,9 @@ branches:
 
 install:
   - sudo sh -c 'echo "deb http://www.icub.org/ubuntu trusty contrib/science" > /etc/apt/sources.list.d/icub.list'
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 57A5ACB6110576A6
   - sudo apt-get --quiet --yes update
-  - sudo apt-get --quiet --yes --force-yes install icub-common
+  - sudo apt-get --quiet --yes install icub-common
   - cd ..
 
   - git clone https://github.com/robotology/yarp.git
