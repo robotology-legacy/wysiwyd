@@ -65,7 +65,7 @@ build_script:
   - cd c:\dev\wysiwyd\main
   - md build
   - cd build
-  - cmake -G"Visual Studio 12" -DWYSIWYD_BUILD_IOL2OPC=FALSE ..
+  - cmake -G"Visual Studio 12" -DWYSIWYD_BUILD_IOL2OPC=FALSE -DCOMPILE_TESTS=TRUE ..
   - msbuild /m /p:Configuration=Release /p:Platform="Win32" wysiwyd.sln
 
 notifications:
