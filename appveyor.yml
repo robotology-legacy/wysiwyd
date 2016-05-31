@@ -8,13 +8,13 @@ branches:
 clone_folder: c:\dev\wysiwyd
 
 environment:
-  ACE_ROOT:          c:/Program Files (x86)/robotology/ace-6.1.1
+  ACE_ROOT:          c:/Program Files (x86)/robotology/ace-6.3.4_v12_x86
   GSL_DIR:           c:/Program Files (x86)/robotology/gsl-1.14
-  IPOPT_DIR:         c:/Program Files (x86)/robotology/ipopt-3.10.1
+  IPOPT_DIR:         c:/Program Files (x86)/robotology/ipopt-3.11.7
   OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-2.4.9
   Qt5_DIR:           c:/Program Files (x86)/robotology/Qt-5.4.1_v12_x86
-  YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.64
-  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.16
+  YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.65
+  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.17
   ICUBcontrib_DIR:   c:/iCubContrib
   CMAKE_PREFIX_PATH: c:/iCubContrib
 
@@ -29,9 +29,8 @@ install:
 
       do {
           try {
-            $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.64/yarp_2.3.64_v12_x86_1.exe','c:\dev\yarp.exe')
-            $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.16/iCub_1.1.16_v12_x86_2.exe','c:\dev\icub.exe')
-            $dwntool.DownloadFile('https://raw.githubusercontent.com/robotology/icub-main/master/conf/iCubHelpers.cmake','c:\dev\iCubHelpers.cmake')
+            $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.65/yarp_2.3.65_v12_x86_1.exe','c:\dev\yarp.exe')
+            $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.17/iCub_1.1.17_v12_x86_1.exe','c:\dev\icub.exe')
             $Stoploop = $true
           }
           catch {
@@ -45,9 +44,6 @@ install:
   - cmd: start "" /WAIT "c:\dev\icub.exe" /S
   - cmd: timeout 10
   - cmd: dir "c:\Program Files (x86)\robotology"
-
-  # temporary fix: apply patch for macro icub_export_library() to install correctly trees of headers
-  - ps:  copy-item c:\dev\iCubHelpers.cmake $env:ICUB_DIR\share\iCub\cmake\iCubHelpers.cmake -Force
 
   - cmd: git clone https://github.com/robotology/icub-contrib-common.git c:\dev\icub-contrib-common
   - cmd: cd c:\dev\icub-contrib-common
