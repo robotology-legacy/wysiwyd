@@ -89,23 +89,26 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         yWarning(" Cannot connect to ABMReasoning");
     }
 
+
     mentalOPC = new OPCClient(getName() + "/mentalOPC");
     int iTry = 0;
-    while (!mentalOPC->isConnected())
+    while (!mentalOPC->isConnected() && iTry < 3)
     {
         yInfo() << "\t" << "narrativeHandler Connecting to mentalOPC ..." << mentalOPC->connect("mentalOPC");
         if (!mentalOPC->isConnected())
             Time::delay(0.5);
         iTry++;
-        if (iTry > 1)
+        if (iTry > 2)
         {
             yInfo() << "\t" << "narrativeHandler failed to connect to mentalOPC";
         }
         mentalOPC->isVerbose = false;
     }
-    mentalOPC->checkout();
-    mentalOPC->update();
 
+    if (mentalOPC->isConnected()){
+        mentalOPC->checkout();
+        mentalOPC->update();
+    }
 
 
 
@@ -129,7 +132,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
 bool narrativeHandler::interruptModule() {
     rpcPort.interrupt();
-    mentalOPC->interrupt();
+    if (mentalOPC->isConnected())    mentalOPC->interrupt();
 
     yInfo() << "--Interrupting the synchronized yarp ports module...";
     return true;
@@ -139,7 +142,7 @@ bool narrativeHandler::close() {
     iCub->close();
     delete iCub;
 
-    mentalOPC->close();
+    if (mentalOPC->isConnected())  mentalOPC->close();
     delete mentalOPC;
 
     rpcPort.interrupt();
