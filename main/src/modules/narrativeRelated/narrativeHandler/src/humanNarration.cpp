@@ -519,6 +519,12 @@ evtStory narrativeHandler::adaptMeaning(evtStory& evtInput){
 void narrativeHandler::imagineStory(story& target)
 {
     cout << "-----------------------------------" << endl;
+
+    if (!mentalOPC->isConnected()){
+        yWarning(" in Imagine story: mentalOPC not connected");
+        return;
+    }
+
     yInfo(" Starting to imagine story.");
     cout << "STORY BASED ON: " << target.iBasedOn << endl;
 
@@ -730,6 +736,10 @@ void narrativeHandler::imagineStory(story& target)
 * Clean the mentalOPC and the GUI
 */
 void narrativeHandler::cleanMental(){
+    if (!mentalOPC->isConnected()){
+        yWarning(" in cleanMental: mentalOPC not connected");
+        return;
+    }
     mentalOPC->checkout();
     //clean GUI :
     list<Entity*> lMental = mentalOPC->EntitiesCache();
