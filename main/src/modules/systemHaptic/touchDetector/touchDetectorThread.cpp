@@ -33,7 +33,7 @@ const int TouchDetectorThread::nbBodyParts = 7;
 const char* TouchDetectorThread::bodyParts[7] = {"torso", "left_arm", "right_arm", "left_forearm", "right_forearm", "left_hand", "right_hand"};
 const int TouchDetectorThread::nbTaxels[7] = {4 * 192, 4 * 192, 4 * 192, 2 * 192, 2 * 192, 192, 192};
 
-TouchDetectorThread::TouchDetectorThread(BufferedPort<Bottle> *torsoPort, BufferedPort<Bottle> *leftArmPort, BufferedPort<Bottle> *rightArmPort, BufferedPort<Bottle> *leftForearmPort, BufferedPort<Bottle> *rightForearmPort, BufferedPort<Bottle> *leftHandPort, BufferedPort<Bottle> *rightHandPort, BufferedPort<Bottle> *touchPort, BufferedPort<Bottle> *touchPortCleaned, int period, string clustersConfFilepath, int threshold, int taxelThreshold)
+TouchDetectorThread::TouchDetectorThread(BufferedPort<Bottle> *torsoPort, BufferedPort<Bottle> *leftArmPort, BufferedPort<Bottle> *rightArmPort, BufferedPort<Bottle> *leftForearmPort, BufferedPort<Bottle> *rightForearmPort, BufferedPort<Bottle> *leftHandPort, BufferedPort<Bottle> *rightHandPort, BufferedPort<Bottle> *touchPort, BufferedPort<Bottle> *touchPortCleaned, int period, string clustersConfFilepath, double threshold, int taxelThreshold)
     : RateThread(period), threshold(threshold), taxelThreshold(taxelThreshold), clustersConfFilepath(clustersConfFilepath), torsoPort(torsoPort), leftArmPort(leftArmPort), rightArmPort(rightArmPort), leftForearmPort(leftForearmPort), rightForearmPort(rightForearmPort), leftHandPort(leftHandPort), rightHandPort(rightHandPort), touchPort(touchPort), touchPortCleaned(touchPortCleaned)
 {
     for (int i = 0; i < nbBodyParts; ++i)

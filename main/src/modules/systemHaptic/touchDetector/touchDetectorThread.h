@@ -29,7 +29,7 @@
 class TouchDetectorThread : public yarp::os::RateThread
 {
     public:
-        TouchDetectorThread(yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPortCleaned, int period, std::string clustersConfFilepath, int threshold, int taxelThreshold);
+        TouchDetectorThread(yarp::os::BufferedPort<yarp::os::Bottle> *torsoPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightArmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightForearmPort, yarp::os::BufferedPort<yarp::os::Bottle> *leftHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *rightHandPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPort, yarp::os::BufferedPort<yarp::os::Bottle> *touchPortCleaned, int period, std::string clustersConfFilepath, double threshold, int taxelThreshold);
         void run(); 
         bool threadInit();
        
