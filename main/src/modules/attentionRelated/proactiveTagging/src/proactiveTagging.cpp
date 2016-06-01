@@ -474,7 +474,6 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
     string sNameTarget = bInput.get(2).toString();
 
     yInfo() << " EntityType : " << currentEntityType;
-    double timeDelay = 1.0;
 
     //Check if name is known or not. if yes, and body part : ask tactile
 
@@ -589,7 +588,7 @@ Bottle proactiveTagging::exploreUnknownEntity(const Bottle& bInput)
 
     yInfo() << sReply;
     iCub->say(sReply);
-    Time::delay(timeDelay);
+    Time::delay(0.2);
 
     iCub->home();
 
@@ -659,7 +658,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
                     iCub->say("There was only one object which I didn't know");
                     iCub->changeName(o, sNameTarget);
                     yDebug() << "Changed name for" << sNameTarget;
-                    iCub->say("Now I know the " + sNameTarget);
+                    iCub->say("Now I know the " + sNameTarget, false);
                     iCub->home();
 
                     if (iCub->getABMClient()->Connect()) {
@@ -734,7 +733,7 @@ Bottle proactiveTagging::searchingEntity(const Bottle &bInput)
 
     yInfo() << " name changed: " << sNameBestEntity << " is now " << sNameTarget;
     bOutput.addString("name changed");
-    iCub->say("Now I know the " + sNameTarget);
+    iCub->say("Now I know the " + sNameTarget, false);
 
     if(sTypeTarget == "object") {
         bool success = setPasarPointing(false);

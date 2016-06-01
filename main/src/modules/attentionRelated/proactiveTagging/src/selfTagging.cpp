@@ -247,7 +247,7 @@ yarp::os::Bottle proactiveTagging::exploreTactileEntityWithName(Bottle bInput) {
     string sAsking = "I know how to move my " + sName + ", but how does it feel when I touch something? Can you touch my " + sName + " when I move it, please?";
     yInfo() << " sAsking: " << sAsking;
     iCub->lookAtPartner();
-    iCub->say(sAsking);
+    iCub->say(sAsking, false);
     portFromTouchDetector.read(false); // clear buffer from previous readings
 
     //2.b Move also the bodypart to show it has been learnt.
