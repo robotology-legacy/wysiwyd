@@ -184,17 +184,21 @@ bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTi
 
         if (lastReading != NULL) { // only proceed if we got something
             for (int subtype = 0; subtype < lastReading->size(); subtype++) {
-                // go ahead if it is NOT a port related to skin OR it is a skin port and the value is bigger than 5.0
-                if (dataStreamInput.first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
+                if(lastReading->get(subtype).isList()) {
                     doInsert = true;
 
-                    osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << dataStreamInput.first << "', '";
-                    if(lastReading->get(subtype).isList()) {
-                        osArg << lastReading->get(subtype).toString();
-                    } else {
-                        osArg << lastReading->get(subtype).asDouble();
-                    }
+                    osArg << "(" << imgInstance << ", '" << lastReading->get(subtype).asList()->get(0).asString() << "', '" << frameNb << "', '" << synchroTime << "', '" << dataStreamInput.first << "', '";
+                    osArg << lastReading->get(subtype).asList()->get(1).asString();
                     osArg << "' ),";
+                } else {
+                    // go ahead if it is NOT a port related to skin OR it is a skin port and the value is bigger than 5.0
+                    if (dataStreamInput.first.find("skin") == std::string::npos || lastReading->get(subtype).asDouble() > 5.0) {
+                        doInsert = true;
+
+                        osArg << "(" << imgInstance << ", '" << subtype << "', '" << frameNb << "', '" << synchroTime << "', '" << dataStreamInput.first << "', '";
+                        osArg << lastReading->get(subtype).asDouble();
+                        osArg << "' ),";
+                    }
                 }
             }
         }
