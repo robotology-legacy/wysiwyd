@@ -680,7 +680,6 @@ void IOL2OPCBridge::updateOPC()
     if ((state==Bridge::localization) && opc->isConnected())
     {
         Bottle bStreamObjLoc;
-        bStreamObjLoc.clear();
 
         // grab resources
         LockGuard lg(mutexResources);
