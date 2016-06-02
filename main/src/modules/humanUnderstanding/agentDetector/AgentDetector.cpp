@@ -563,8 +563,9 @@ bool AgentDetector::updateModule()
                     //We interact with OPC only if the calibration is done
                     if (isCalibrated)
                     {
+                        //main bottle to be streamed with loc of all agent body part
                         Bottle bAgentLoc;
-                        bAgentLoc.clear();
+
                         //Retrieve this player in OPC or create if does not exist
                         opc->checkout();
                         partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
@@ -600,7 +601,6 @@ bool AgentDetector::updateModule()
                         for(map<string,Joint>::iterator jnt = p->skeleton.begin() ; jnt != p->skeleton.end() ; jnt++)
                         {
                             Bottle bBodyPartLoc;
-                            bBodyPartLoc.clear();
 
                             Vector kPosition(4);
                             kPosition[0] = jnt->second.x;
