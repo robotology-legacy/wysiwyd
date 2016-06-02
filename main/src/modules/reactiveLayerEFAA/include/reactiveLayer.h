@@ -5,6 +5,8 @@
 #include <yarp/sig/all.h>
 #include <yarp/math/SVD.h>
 #include "wrdac/clients/icubClient.h"
+#include "wrdac/subsystems/subSystem_speech.h"
+#include "wrdac/subsystems/subSystem_facialExpression.h"
 #include <map>
 #include "internalVariablesDecay.h"
 
