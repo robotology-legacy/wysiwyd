@@ -70,6 +70,10 @@ bool autobiographicalMemory::storeInfoSingleImage(int instance, int frame_number
 bool autobiographicalMemory::storeInfoAllImages(const string &synchroTime, bool forSingleInstance, string fullSentence) {
     bool allGood = true;
 
+    for (int i = 0; i < defaultImgStreamProviders.size(); i++) {
+        addStreamProvider(mapImgStreamInput, defaultImgStreamProviders.get(i).toString());
+    }
+
     //go through the ImgReceiver ports
     for (const auto& imgStreamInput : mapImgStreamInput)
     {
@@ -165,6 +169,10 @@ bool autobiographicalMemory::storeImageOIDs(int instance) {
 }
 
 bool autobiographicalMemory::storeDataStreamAllProviders(const string &synchroTime) {
+    for (int i = 0; i < defaultDataStreamProviders.size(); i++) {
+        addStreamProvider(mapDataStreamInput, defaultDataStreamProviders.get(i).toString());
+    }
+
     bool doInsert = false;
     ostringstream osArg;
 
