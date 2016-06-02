@@ -679,7 +679,8 @@ void IOL2OPCBridge::updateOPC()
 {
     if ((state==Bridge::localization) && opc->isConnected())
     {
-        Bottle bStreamObjLoc;
+        Bottle& bStreamObjLoc = objLocOut.prepare();
+        bStreamObjLoc.clear();
 
         // grab resources
         LockGuard lg(mutexResources);
@@ -816,9 +817,8 @@ void IOL2OPCBridge::updateOPC()
         if (!unknownObjectInScene)
             onlyKnownObjects.heartBeat();
 
-        objLocOut.write(bStreamObjLoc);
+        objLocOut.write();
         opc->commit();
-
 
         if (imgTrackOut.getOutputCount()>0)
             imgTrackOut.write();

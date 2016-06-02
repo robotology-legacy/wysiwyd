@@ -564,7 +564,8 @@ bool AgentDetector::updateModule()
                     if (isCalibrated)
                     {
                         //main bottle to be streamed with loc of all agent body part
-                        Bottle bAgentLoc;
+                        Bottle& bAgentLoc = agentLocOutPort.prepare();
+                        bAgentLoc.clear();
 
                         //Retrieve this player in OPC or create if does not exist
                         opc->checkout();
@@ -634,7 +635,7 @@ bool AgentDetector::updateModule()
                             bAgentLoc.addList() = bBodyPartLoc;
                         }
 
-                        agentLocOutPort.write(bAgentLoc);
+                        agentLocOutPort.write();
 
                         opc->commit(partner);
 //                        cout << skeleton.toString()<< endl;
