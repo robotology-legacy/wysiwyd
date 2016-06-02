@@ -116,8 +116,6 @@ bool FollowingOrder::handleNarrate(){
 }
 
 bool FollowingOrder::handleAction(string type, string target, string action) {
-    iCub->home();
-
     yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
     iCub->opc->checkout();
     yInfo() << " [handleAction]: opc checkout";
@@ -138,6 +136,7 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
                     } else if(action == "look at") {
                         iCub->say("oh! look at the " + target + ".", false);
                         iCub->look(target);
+                        yarp::os::Time::delay(2.0);
                     } else if(action == "push") {
                         iCub->say("oh! look how I pushed the " + target + ".", false);
                         iCub->push(target);
