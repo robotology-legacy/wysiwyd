@@ -195,6 +195,7 @@ protected:
     BufferedPort<ImageOf<PixelBgr> > imgSelBlobOut;
     BufferedPort<ImageOf<PixelBgr> > imgHistogram;
     Port imgClassifier;
+    Port objLocOut;
 
     RtLocalization rtLocalization;
     OpcUpdater opcUpdater;
