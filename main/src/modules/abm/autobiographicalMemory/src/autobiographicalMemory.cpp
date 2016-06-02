@@ -66,8 +66,8 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     // conf group for data providers
     Bottle &bDataProviders = rf.findGroup("data_providers");
-    Bottle *defaultImgStreamProviders = bDataProviders.find("defaultImgStreamProviders").asList();
-    Bottle *defaultDataStreamProviders = bDataProviders.find("defaultDataStreamProviders").asList();
+    defaultImgStreamProviders = *bDataProviders.find("defaultImgStreamProviders").asList();
+    defaultDataStreamProviders = *bDataProviders.find("defaultDataStreamProviders").asList();
 
     // TODO: streamStatus should be changed to enum
     streamStatus = "none"; //none, record, stop, send
@@ -100,17 +100,6 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     //populateOPC();
     //storeImageOIDs();
-
-    if (defaultImgStreamProviders) {
-        for (int i = 0; i < defaultImgStreamProviders->size(); i++) {
-            addStreamProvider(mapImgStreamInput, defaultImgStreamProviders->get(i).toString());
-        }
-    }
-    if (defaultDataStreamProviders) {
-        for (int i = 0; i < defaultDataStreamProviders->size(); i++) {
-            addStreamProvider(mapDataStreamInput, defaultDataStreamProviders->get(i).toString());
-        }
-    }
 
     //connect to augmented
     //Network::connect(abm2augmented.getName().c_str(), "/ABMAugmentionExample/rpc");
