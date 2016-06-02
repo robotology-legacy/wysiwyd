@@ -84,6 +84,37 @@ yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::resetKnowledge()
     return bReplyRequest;
 }
 
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::addImgStreamProvider()
+{
+    yarp::os::Bottle bRequest, bReply;
+    bRequest.addString("addImgStreamProvider");
+    portRPC.write(bRequest, bReply);
+    return bReply;
+}
+
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::removeImgStreamProvider()
+{
+    yarp::os::Bottle bRequest, bReply;
+    bRequest.addString("removeImgStreamProvider");
+    portRPC.write(bRequest, bReply);
+    return bReply;
+}
+
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::addDataStreamProvider()
+{
+    yarp::os::Bottle bRequest, bReply;
+    bRequest.addString("addDataStreamProvider");
+    portRPC.write(bRequest, bReply);
+    return bReply;
+}
+
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::removeDataStreamProvider()
+{
+    yarp::os::Bottle bRequest, bReply;
+    bRequest.addString("removeDataStreamProvider");
+    portRPC.write(bRequest, bReply);
+    return bReply;
+}
 
 yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::triggerStreaming(int iCurrentInstance, bool realtime, bool includeAugmented, double speedMultiplier, std::string robot, bool blocking)
 {
