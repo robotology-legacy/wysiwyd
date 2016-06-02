@@ -134,7 +134,9 @@ bool PasarModule::configure(yarp::os::ResourceFinder &rf) {
 
 /************************************************************************/
 bool PasarModule::interruptModule() {
+    yDebug() << "Interrupt OPC";
     iCub->opc->interrupt();
+    yDebug() << "Interrupt RPC port";
     handlerPort.interrupt();
     return true;
 }
@@ -142,10 +144,13 @@ bool PasarModule::interruptModule() {
 /************************************************************************/
 bool PasarModule::close() {
     if(iCub) {
+        yDebug() << "Close iCub";
         iCub->close();
         delete iCub;
     }
+    yDebug() << "Interrupt RPC";
     handlerPort.interrupt();
+    yDebug() << "Close RPC";
     handlerPort.close();
     return true;
 }
