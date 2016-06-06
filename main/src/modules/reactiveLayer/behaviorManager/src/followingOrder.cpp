@@ -116,8 +116,6 @@ bool FollowingOrder::handleNarrate(){
 }
 
 bool FollowingOrder::handleAction(string type, string target, string action) {
-    iCub->home();
-
     yInfo() << "[handleAction] type: " << type << "target:" << target << "action:" << action;
     iCub->opc->checkout();
     yInfo() << " [handleAction]: opc checkout";
@@ -133,18 +131,19 @@ bool FollowingOrder::handleAction(string type, string target, string action) {
                     yInfo() << "I'd like to" << action << "the" << target;
 
                     if(action == "point") {
+                        iCub->say("oh! this is a " + target + ".", false);
                         iCub->point(target);
-                        iCub->say("oh! this is a " + target + ".");
                     } else if(action == "look at") {
+                        iCub->say("oh! look at the " + target + ".", false);
                         iCub->look(target);
-                        iCub->say("oh! look at the " + target + ".");
+                        yarp::os::Time::delay(2.0);
                     } else if(action == "push") {
+                        iCub->say("oh! look how I pushed the " + target + ".", false);
                         iCub->push(target);
-                        iCub->say("oh! look how I pushed the " + target + ".");
                     } else {
                         yError() << "This action is not supported!";
                     }
-                    yarp::os::Time::delay(1.0);
+                    yarp::os::Time::delay(0.1);
                     iCub->home();
 
                     return true;
