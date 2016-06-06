@@ -85,8 +85,6 @@ bool learnPrimitive::configure(yarp::os::ResourceFinder &rf)
 
     iCub->say("learn Primitive is ready", false);
 
-
-
     return true;
 }
 
@@ -184,6 +182,9 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "execute"){
         reply = execute();
     }
+    else if (command.get(0).asString() == "testRcpp"){
+        reply = testRcpp();
+    }
     else {
         cout << helpMessage;
         reply.addString("ok");
@@ -192,6 +193,27 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     rpcPort.reply(reply);
 
     return true;
+}
+
+//execute action, stop to go out
+Bottle learnPrimitive::testRcpp(){
+
+    Bottle bOutput;
+
+    yDebug() << "begin RInside" ;
+
+    RInside R();
+
+    //R["txt"] = "Hello, world!\n";	// assign a char* (string) to 'txt'
+
+    //std::string txt = "suppressMessages(require(stats));" "swisssum <- summary(lm(Fertility ~ . , data = swiss));" "print(swisssum)";
+
+    //R.parseEvalQ(txt);           // eval the init string, ignoring any returns*/
+
+    yDebug() << "end testRcpp" ;
+
+    bOutput.addInt(1);
+    return bOutput;
 }
 
 //execute action, stop to go out

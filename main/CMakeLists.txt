@@ -62,6 +62,7 @@ set(WYSIWYD_CMAKE_SCRIPTS FindOTL.cmake
                           FindTBB.cmake
                           FindPGSQL.cmake
                           FindTUIO.cmake
+                          FindR.cmake
                           wysiwydOptions.cmake)
 
 foreach(conf_i ${WYSIWYD_CMAKE_SCRIPTS})

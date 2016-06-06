@@ -7,7 +7,6 @@ add_subdirectory(abm)
 add_subdirectory(adaptiveLayer)
 add_subdirectory(attentionRelated)
 add_subdirectory(reactiveLayer)
-add_subdirectory(learnPrimitive)
 add_subdirectory(navigationRelated)
 add_subdirectory(narrativeRelated)
 add_subdirectory(opcRelated)
@@ -20,6 +19,11 @@ add_subdirectory(systemHaptic)
 add_subdirectory(systemMotor)
 add_subdirectory(tools)
 add_subdirectory(samRelated)
+
+if(WYSIWYD_USE_R)
+    add_subdirectory(learnPrimitive)
+endif()
+
 
 #Add modules with dependencies here
 if(WYSIWYD_USE_OpenCV)

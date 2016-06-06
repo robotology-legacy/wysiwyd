@@ -2,7 +2,9 @@
 #include <map>
 #include <fstream>
 #include <string>
-
+#include <Rcpp.h>
+//#include <RcppArmadillo.h>
+#include <RInside.h>
 
 using namespace std;
 using namespace yarp::os;
@@ -85,4 +87,6 @@ public:
 
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
+
+    yarp::os::Bottle testRcpp();
 };

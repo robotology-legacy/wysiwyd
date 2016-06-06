@@ -19,6 +19,8 @@
 
 #include "learnPrimitive.h"
 
+#include <RInside.h>
+
 using namespace std;
 using namespace yarp::os;
 
@@ -32,6 +34,19 @@ int main(int argc, char * argv[])
     rf.setDefaultContext("learnPrimitive");
     rf.setDefaultConfigFile("learnPrimitive.ini");
     rf.configure(argc, argv);
+
+
+    Rcpp::rnorm(1, 1, 0.1);
+    RInside R();
+    std::string txt = "suppressMessages(require(stats));" "swisssum <- summary(lm(Fertility ~ . , data = swiss));" "print(swisssum)";
+    R.setVerbose(true);
+
+    //R["txt"] = "Hello, world!\n";	// assign a char* (string) to 'txt'
+
+    //std::string txt = "suppressMessages(require(stats));" "swisssum <- summary(lm(Fertility ~ . , data = swiss));" "print(swisssum)";
+
+    //R.parseEvalQ(txt);           // eval the init string, ignoring any returns
+
     mod.runModule(rf);
     return 0;
 }
