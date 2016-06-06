@@ -84,34 +84,38 @@ yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::resetKnowledge()
     return bReplyRequest;
 }
 
-yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::addImgStreamProvider()
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::addImgStreamProvider(std::string portname)
 {
     yarp::os::Bottle bRequest, bReply;
     bRequest.addString("addImgStreamProvider");
+    bRequest.addString(portname);
     portRPC.write(bRequest, bReply);
     return bReply;
 }
 
-yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::removeImgStreamProvider()
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::removeImgStreamProvider(std::string portname)
 {
     yarp::os::Bottle bRequest, bReply;
     bRequest.addString("removeImgStreamProvider");
+    bRequest.addString(portname);
     portRPC.write(bRequest, bReply);
     return bReply;
 }
 
-yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::addDataStreamProvider()
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::addDataStreamProvider(std::string portname)
 {
     yarp::os::Bottle bRequest, bReply;
     bRequest.addString("addDataStreamProvider");
+    bRequest.addString(portname);
     portRPC.write(bRequest, bReply);
     return bReply;
 }
 
-yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::removeDataStreamProvider()
+yarp::os::Bottle wysiwyd::wrdac::SubSystem_ABM::removeDataStreamProvider(std::string portname)
 {
     yarp::os::Bottle bRequest, bReply;
     bRequest.addString("removeDataStreamProvider");
+    bRequest.addString(portname);
     portRPC.write(bRequest, bReply);
     return bReply;
 }
