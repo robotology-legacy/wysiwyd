@@ -59,6 +59,10 @@ namespace wysiwyd{
             yarp::os::Bottle triggerStreaming(int iCurrentInstance, bool realtime=false, bool includeAugmented=true, double speedMultiplier=1.0, std::string robot="icubSim", bool blocking=false);
 
             yarp::os::Bottle rpcCommand(yarp::os::Bottle &bRequest);
+            yarp::os::Bottle addImgStreamProvider(std::string portname);
+            yarp::os::Bottle addDataStreamProvider(std::string portname);
+            yarp::os::Bottle removeImgStreamProvider(std::string portname);
+            yarp::os::Bottle removeDataStreamProvider(std::string portname);
         };
     }
 }//Namespace

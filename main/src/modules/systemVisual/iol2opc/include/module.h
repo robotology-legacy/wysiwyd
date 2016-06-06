@@ -189,6 +189,7 @@ protected:
     BufferedPort<Bottle>             blobExtractor;
     BufferedPort<Bottle>             histObjLocPort;
     BufferedPort<Bottle>             getClickPort;
+    BufferedPort<Bottle>             objLocOut;
     BufferedPort<ImageOf<PixelBgr> > imgIn;
     BufferedPort<ImageOf<PixelBgr> > imgRtLocOut;
     BufferedPort<ImageOf<PixelBgr> > imgTrackOut;

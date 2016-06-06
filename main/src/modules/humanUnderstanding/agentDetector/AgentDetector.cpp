@@ -94,6 +94,8 @@ bool AgentDetector::configure(ResourceFinder &rf)
     playersPort.open(("/"+clientName+"/playersPort:o").c_str());
     skeletonPort.open(("/"+clientName+"/skeletonPort:o").c_str());
 
+    agentLocOutPort.open(("/"+clientName+"/agentLoc:o").c_str());
+
     Property options;
     options.put("carrier","tcp");
     options.put("remote","kinectServer");
@@ -276,11 +278,14 @@ bool AgentDetector::close()
     skeletonPort.close();
     outputSkeletonPort.interrupt();
     outputSkeletonPort.close();
+    agentLocOutPort.interrupt();
+    agentLocOutPort.close();
     client.close();
     cvReleaseImage(&depthTmp);
     cvReleaseImage(&rgbTmp);
     opc->close();
     rfh.close();
+
     delete opc;
 
     return true;
@@ -558,6 +563,10 @@ bool AgentDetector::updateModule()
                     //We interact with OPC only if the calibration is done
                     if (isCalibrated)
                     {
+                        //main bottle to be streamed with loc of all agent body part
+                        Bottle& bAgentLoc = agentLocOutPort.prepare();
+                        bAgentLoc.clear();
+
                         //Retrieve this player in OPC or create if does not exist
                         opc->checkout();
                         partner = opc->addOrRetrieveEntity<Agent>(partner_default_name);
@@ -592,6 +601,8 @@ bool AgentDetector::updateModule()
                         //Convert the skeleton into efaaHelpers body. We loose orientation in the process...
                         for(map<string,Joint>::iterator jnt = p->skeleton.begin() ; jnt != p->skeleton.end() ; jnt++)
                         {
+                            Bottle bBodyPartLoc;
+
                             Vector kPosition(4);
                             kPosition[0] = jnt->second.x;
                             kPosition[1] = jnt->second.y;
@@ -617,7 +628,15 @@ bool AgentDetector::updateModule()
                                 partner->m_ego_position = irPos;
                             }
                             partner->m_body.m_parts[jnt->first] = irPos;
+
+                            bBodyPartLoc.addString(jnt->first);
+                            bBodyPartLoc.addString(irPos.toString());
+
+                            bAgentLoc.addList() = bBodyPartLoc;
                         }
+
+                        agentLocOutPort.write();
+
                         opc->commit(partner);
 //                        cout << skeleton.toString()<< endl;
                         outputSkeletonPort.write();

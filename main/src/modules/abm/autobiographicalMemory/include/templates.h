@@ -82,10 +82,7 @@ yarp::os::Bottle autobiographicalMemory::addStreamProvider(std::map <std::string
         }
     }
     else { //key found
-        std::string warning = "[addStreamProvider] " + portRemote + " is already present!";
-        yWarning() << warning;
         bReply.addString("nack");
-        bReply.addString(warning);
     }
 
     return bReply;

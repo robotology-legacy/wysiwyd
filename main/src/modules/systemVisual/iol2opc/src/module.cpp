@@ -679,6 +679,9 @@ void IOL2OPCBridge::updateOPC()
 {
     if ((state==Bridge::localization) && opc->isConnected())
     {
+        Bottle& bStreamObjLoc = objLocOut.prepare();
+        bStreamObjLoc.clear();
+
         // grab resources
         LockGuard lg(mutexResources);
         opc->checkout();
@@ -770,12 +773,18 @@ void IOL2OPCBridge::updateOPC()
                 Vector x,dim;
                 if (get3DPositionAndDimensions(bbox,x,dim))
                 {
+                    Bottle bObjNameLoc;
                     Vector x_filtered,dim_filtered;
                     it.second.filt(x,x_filtered,dim,dim_filtered);
 
                     obj->m_ego_position=calibPosition(x_filtered);
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
+
+                    bObjNameLoc.addString(obj->name());
+                    bObjNameLoc.addString(obj->m_ego_position.toString());
+
+                    bStreamObjLoc.addList() = bObjNameLoc;
 
                     // threshold bbox
                     if (thresBBox(bbox,imgLatch))
@@ -808,6 +817,7 @@ void IOL2OPCBridge::updateOPC()
         if (!unknownObjectInScene)
             onlyKnownObjects.heartBeat();
 
+        objLocOut.write();
         opc->commit();
 
         if (imgTrackOut.getOutputCount()>0)
@@ -843,6 +853,9 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     imgClassifier.open(("/"+name+"/imgClassifier:o").c_str());
     imgHistogram.open(("/"+name+"/imgHistogram:o").c_str());
     histObjLocPort.open(("/"+name+"/histObjLocation:i").c_str());
+
+    //new port to stream obj localisation
+    objLocOut.open(("/"+name+"/objLoc:o").c_str());
 
     rpcPort.open(("/"+name+"/rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
@@ -958,6 +971,7 @@ bool IOL2OPCBridge::interruptModule()
 
     yDebug() << "iol2opc half way through interrupt";
 
+    objLocOut.interrupt();
     blobExtractor.interrupt();
     rpcClassifier.interrupt();
     getClickPort.interrupt();
@@ -995,6 +1009,8 @@ bool IOL2OPCBridge::close()
     imgHistogram.close();
     histObjLocPort.interrupt();
     histObjLocPort.close();
+    objLocOut.interrupt();
+    objLocOut.close();
     blobExtractor.interrupt();
     blobExtractor.close();
     rpcClassifier.interrupt();
