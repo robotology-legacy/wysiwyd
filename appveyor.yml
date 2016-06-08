@@ -14,7 +14,7 @@ environment:
   OpenCV_DIR:        c:/Program Files (x86)/robotology/opencv-2.4.9
   Qt5_DIR:           c:/Program Files (x86)/robotology/Qt-5.4.1_v12_x86
   YARP_DIR:          c:/Program Files (x86)/robotology/yarp-2.3.66
-  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.1.17
+  ICUB_DIR:          c:/Program Files (x86)/robotology/icub-1.4.0
   ICUBcontrib_DIR:   c:/iCubContrib
   CMAKE_PREFIX_PATH: c:/iCubContrib
 
@@ -30,7 +30,7 @@ install:
       do {
           try {
             $dwntool.DownloadFile('https://github.com/robotology/yarp/releases/download/v2.3.66/yarp_2.3.66_v12_x86_1.exe','c:\dev\yarp.exe')
-            $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.1.17/iCub_1.1.17_v12_x86_1.exe','c:\dev\icub.exe')
+            $dwntool.DownloadFile('https://github.com/robotology/icub-main/releases/download/v1.4.0/iCub_1.4.0_v12_x86_1.exe','c:\dev\icub.exe')
             $Stoploop = $true
           }
           catch {
