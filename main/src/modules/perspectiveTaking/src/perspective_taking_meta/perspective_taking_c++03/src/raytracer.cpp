@@ -59,9 +59,15 @@ private:
 
     static const std::string cloud_name;
     static const int visualizer_point_size=3;
+#if __cplusplus > 199711L
+    constexpr static const double obj_size=0.05;
+    constexpr static const double traversal_sphere_size=0.02;
+    constexpr static const float theta=4.0;
+#else
     static const double obj_size=0.05;
     static const double traversal_sphere_size=0.02;
     static const float theta=4.0;
+#endif
 };
 
 const std::string Raytracer::cloud_name="partner_view_cloud";
