@@ -23,7 +23,14 @@
 #include <yarp/math/SVD.h>
 #include <iCub/ctrl/neuralNetworks.h>
 #include <iCub/ctrl/minJerkCtrl.h>
+#if __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 #include <iCub/iKin/iKinFwd.h>
+#if __clang__
+#pragma clang diagnostic pop
+#endif
 #include <iCub/skinDynLib/common.h>
 
 #define DEFAULT_THR_PER     10

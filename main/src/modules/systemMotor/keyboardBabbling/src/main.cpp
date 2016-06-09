@@ -26,7 +26,14 @@
 #include <yarp/sig/all.h>
 #include <yarp/math/Math.h>
 #include <yarp/math/Rand.h>
+#if __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 #include <iCub/iKin/iKinFwd.h>
+#if __clang__
+#pragma clang diagnostic pop
+#endif
 #include <vector>
 
 using namespace std;
@@ -44,7 +51,7 @@ private:
     IVelocityControl *vel;
     IPidControl *pid;
     IAmplifierControl *amp;
-    IEncoders *armEncUsed;
+    //IEncoders *armEncUsed;
     IControlMode *armCtrlModeUsed;
     IImpedanceControl *armImpUsed;
     ICartesianControl *armCart;
@@ -55,7 +62,7 @@ private:
     Port portRpc;
 
     PolyDriver driverCart, dd;
-    iCubFinger *fingerUsed;
+    //iCubFinger *fingerUsed;
 
     double gap;
     double minY;

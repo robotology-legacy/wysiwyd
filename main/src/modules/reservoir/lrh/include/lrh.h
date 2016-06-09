@@ -39,7 +39,7 @@
 class LRH : public yarp::os::RFModule {
 private:
 
-    int iCurrentInstance;
+    //int iCurrentInstance;
 
     std::string sKeyWord;
     std::string moduleName;

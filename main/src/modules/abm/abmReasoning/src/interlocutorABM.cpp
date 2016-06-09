@@ -2644,7 +2644,7 @@ vector<plan> abmReasoning::checkPlan(plan pInput, vector<plan> listPlanAvailable
 
                     yInfo() << "\t" << "------------------------------";
 
-                    if ((sameActivityArguments == false))
+                    if (sameActivityArguments == false)
                     {
                         break;
                     }

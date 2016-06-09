@@ -17,7 +17,7 @@ class OpcSensation: public Sensation
 {
 private:
     ICubClient *iCub;
-    bool confusion;
+    //bool confusion;
     string moduleName, is_touched_port_name, unknown_entities_port_name, known_entities_port_name, opc_has_unknown_port_name, opc_has_known_port_name, opc_has_agent_name; //, show_port_name, known_obj_port_name, friendly_port_name, greeting_port_name;
     yarp::os::BufferedPort<Bottle> unknown_entities_port;
     yarp::os::BufferedPort<Bottle> opc_has_unknown_port;

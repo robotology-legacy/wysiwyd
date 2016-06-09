@@ -239,7 +239,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         if (command.size() == 2) {
             storyToNarrate = command.get(1).asInt();
             yInfo() << " default instance of story set to: " << storyToNarrate;
-            reply.addString("default instance of story set to " + storyToNarrate);
+            reply.addString("default instance of story set to " + std::to_string(storyToNarrate));
         }
         else{
             yWarning(" in narrativeHandler: command setDefaultStory: missing argument (int expected)");

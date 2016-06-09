@@ -54,7 +54,7 @@ class StackRpcWrapper : public BufferedPort<Bottle>, public yarp::os::RateThread
     vector< vector< cvz::core::CvzMMCM* > > retina;
     vector< vector< cvz::core::CvzMMCM* > > fovea;
     int autoIncrementCnt;
-    bool tickCycleBased;
+    //bool tickCycleBased;
 
 private:
 

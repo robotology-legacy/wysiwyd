@@ -773,7 +773,7 @@ public:
         q = fabs(x);
         if (q > 33.0)
         {
-            if ((x < 0.0))
+            if (x < 0.0)
             {
                 p = (floor(q));
                 i = static_cast<int>(p);
@@ -799,12 +799,12 @@ public:
             return result;
         }
         z = 1;
-        while ((x >= 3))
+        while (x >= 3)
         {
             x = x - 1;
             z = z*x;
         }
-        while ((x < 0))
+        while (x < 0)
         {
             if ((x > -0.000000001))
             {
@@ -814,7 +814,7 @@ public:
             z = z / x;
             x = x + 1;
         }
-        while ((x < 2))
+        while (x < 2)
         {
             if ((x < 0.000000001))
             {
@@ -824,7 +824,7 @@ public:
             z = z / x;
             x = x + 1.0;
         }
-        if ((x == 2))
+        if (x == 2)
         {
             result = z;
             return result;
@@ -936,19 +936,19 @@ public:
             z = 1;
             p = 0;
             u = x;
-            while ((u >= 3))
+            while (u >= 3)
             {
                 p = p - 1;
                 u = x + p;
                 z = z*u;
             }
-            while ((u < 2))
+            while (u < 2)
             {
                 z = z / u;
                 p = p + 1;
                 u = x + p;
             }
-            if ((z < 0))
+            if (z < 0)
             {
                 *sgngam = -1;
                 z = -z;
@@ -957,7 +957,7 @@ public:
             {
                 *sgngam = 1;
             }
-            if ((u == 2))
+            if (u == 2)
             {
                 result = log(z);
                 return result;
@@ -982,13 +982,13 @@ public:
             return result;
         }
         q = (x - 0.5)*log(x) - x + ls2pi;
-        if ((x > 100000000))
+        if (x > 100000000)
         {
             result = q;
             return result;
         }
         p = 1 / (x*x);
-        if ((x >= 1000.0))
+        if (x >= 1000.0)
         {
             q = q + ((7.9365079365079365079365*0.0001*p - 2.7777777777777777777778*0.001)*p + 0.0833333333333333333333) / x;
         }

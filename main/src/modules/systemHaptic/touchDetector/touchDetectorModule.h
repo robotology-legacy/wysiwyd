@@ -31,7 +31,7 @@ class TouchDetectorModule: public yarp::os::RFModule
         bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
         bool interruptModule();                       // interrupt, e.g., the ports 
         bool close();                                 // close and shut down the module
-        bool respond();
+        //bool respond();
         bool updateModule();
        
     protected:

@@ -20,8 +20,15 @@
 #include <yarp/dev/all.h>
 #include <yarp/math/Math.h>
 #include <yarp/dev/Drivers.h>
+#if __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 #include <iCub/iDyn/iDyn.h>
 #include <iCub/iDyn/iDynBody.h>
+#if __clang__
+#pragma clang diagnostic pop
+#endif
 #include <iCub/skinDynLib/skinContactList.h>
 #include <iCub/learningMachine/LSSVMLearner.h>
 #include <iCub/learningMachine/FixedRangeScaler.h>

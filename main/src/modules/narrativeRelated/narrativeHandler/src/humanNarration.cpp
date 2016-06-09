@@ -441,7 +441,7 @@ evtStory narrativeHandler::adaptMeaning(evtStory& evtInput){
         }
 
         // if object is a sentence
-        unsigned int pos = evtInput.object.find(comparator[jj].first);
+        size_t pos = evtInput.object.find(comparator[jj].first);
 
         if (pos != string::npos){
             //            cout << "OBJECT BEFORE: " << evtInput.object << endl;

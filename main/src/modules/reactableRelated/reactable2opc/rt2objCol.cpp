@@ -30,7 +30,7 @@ Reactable2OPC::Reactable2OPC()
     rf.setVerbose(false);
     rf.setDefaultContext("reactable2opc");
     rf.setDefaultConfigFile("mapping.ini");
-    rf.configure(NULL,NULL);
+    rf.configure(0,NULL);
     bool invertYaxis = rf.check("invertYaxis",Value(0)).asInt() == 1;
     bool invertXaxis = rf.check("invertXaxis",Value(0)).asInt() == 1;
     if (invertYaxis)

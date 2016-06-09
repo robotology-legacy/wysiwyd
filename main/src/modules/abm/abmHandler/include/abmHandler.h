@@ -42,7 +42,7 @@ private:
     yarp::os::Port Port2OPCManager;         // a port to communicate with the OPC manager to imagine the memory
     yarp::os::Port Port2BodySchema;         // a port to communicate with the Body Schema module
 
-    bool isAwake;
+    //bool isAwake;
     wysiwyd::wrdac::ICubClient *iCub;
 
     int iCurrentInstance;                   // instance of the current request

@@ -20,17 +20,17 @@ public:
     {
         std::string s = "CvzGuiBuilder knows the following types : \n";
         s += core::TYPE_ICVZ;
-        s += " (Convergence Zone Interface)" + '\n';
+        s += " (Convergence Zone Interface)\n";
         s += core::TYPE_MMCM;
-        s += " (Multi Modal Convergence Map)" + '\n';
+        s += " (Multi Modal Convergence Map)\n" ;
         s += core::TYPE_MLP;
-        s += " (Multiple Layered Perceptron)" + '\n';
+        s += " (Multiple Layered Perceptron)\n";
         s += core::TYPE_ESOM;
-        s += " (Evolving Self Organizing Map)" + '\n';
+        s += " (Evolving Self Organizing Map)\n";
         s += core::TYPE_TEMPLATE;
-        s += " (Dummy Template)" + '\n';
+        s += " (Dummy Template)\n";
         s += core::TYPE_NN;
-        s += " (Neural Model Test)" + '\n';
+        s += " (Neural Model Test)\n";
         return s;
     }
 

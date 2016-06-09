@@ -49,9 +49,9 @@ private:
     // Number of trees
     int g_ntrees;
     // Patch width
-    int g_p_width;
+    //int g_p_width;
     // Patch height
-    int g_p_height;
+    //int g_p_height;
     //maximum distance form the sensor - used to segment the person
     int g_max_z;
     //head threshold - to classify a cluster of votes as a head

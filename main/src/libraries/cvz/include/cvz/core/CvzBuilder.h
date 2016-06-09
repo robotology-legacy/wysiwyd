@@ -19,15 +19,15 @@ public:
     {
         std::string s = "CvzBuilder knows the following types : \n";
         s += TYPE_ICVZ;
-        s +=" (Convergence Zone Interface)" + '\n';
+        s +=" (Convergence Zone Interface)\n";
         s += TYPE_MMCM;
-        s += " (Multi Modal Convergence Map)" + '\n';
+        s += " (Multi Modal Convergence Map)\n";
         s += TYPE_MLP;
-        s += " (Multiple Layered Perceptron)" + '\n';
+        s += " (Multiple Layered Perceptron)\n";
         s += TYPE_TEMPLATE;
-        s += " (Dummy template for new CVZ)" + '\n';
+        s += " (Dummy template for new CVZ)\n";
         s += TYPE_NN;
-        s += " (Neural Network template)" + '\n';
+        s += " (Neural Network template)\n";
         return s;
     }
 

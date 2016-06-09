@@ -41,13 +41,13 @@ private:
 
     std::string part;
 
-    int nInputs;
-    int nOutputs;
+    //int nInputs;
+    //int nOutputs;
 
-    double initTime;
+    //double initTime;
 
     double train_duration,test_duration;
-    bool endTrain;
+    //bool endTrain;
 
     OESGP oesgp,oesgp2;
     VectorXd prediction;

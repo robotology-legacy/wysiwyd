@@ -148,8 +148,15 @@ namespace cvz {
             double getEMax() { return parametersRuntime.find("emax").asDouble(); }
             void setAlpha(const double s) { std::cout << "Alpha set to : " << s << std::endl; parametersRuntime.put("alpha",s); }
             double getAlpha() { return parametersRuntime.find("alpha").asDouble(); }
+#if __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
             double getActivity(const int &x) { return (NN->activity)->at(x); }
             double getActivity(const int &x, const int &y) { return (NN->activity)->at(y*width+x); }
+#if __clang__
+#pragma clang diagnostic pop
+#endif
             void setMaxCycles(const int mc) { std::cout << "Max Cycles set to : " << mc << std::endl; parametersRuntime.put("maxCycles", mc); }
             int getMaxCycles() { return parametersRuntime.find("maxCycles").asInt(); }
             void setNumberExperiments(const int mc) { std::cout << "Max Cycles set to : " << mc << std::endl; parametersRuntime.put("nExp", mc); }

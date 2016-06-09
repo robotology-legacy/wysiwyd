@@ -26,7 +26,14 @@
 #include <yarp/math/Math.h>
 
 #include <iCub/ctrl/math.h>
+#if __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 #include <iCub/iKin/iKinFwd.h>
+#if __clang__
+#pragma clang diagnostic pop
+#endif
 #include <iCub/perception/models.h>
 #include <iCub/action/actionPrimitives.h>
 

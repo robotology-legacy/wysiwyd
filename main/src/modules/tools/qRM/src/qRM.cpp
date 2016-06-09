@@ -527,7 +527,7 @@ void  qRM::nodeSentenceTemporal()
     }
 
     ostringstream osResponse;
-    osResponse << " So, you said that " << (sAgent == "I") ? "you " : ((sAgent == "You") ? "I" : sAgent);
+    osResponse << " So, you said that " << (((sAgent == "I")) ? "you " : ((sAgent == "You") ? "I" : sAgent));
     osResponse << " will " << sVerb << " to the " << sLocation << " " << sAdverb << " ?";
 
     iCub->say(osResponse.str().c_str());

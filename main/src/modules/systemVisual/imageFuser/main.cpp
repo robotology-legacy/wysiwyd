@@ -136,7 +136,7 @@ public:
 
 class ImageFuser : public yarp::os::RFModule
 {
-    double foveaRatio;
+    //double foveaRatio;
     bool showImages;
     BufferedPort< ImageOf<PixelRgb> > portOut;
 
