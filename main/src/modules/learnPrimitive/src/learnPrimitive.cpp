@@ -200,11 +200,71 @@ Bottle learnPrimitive::testRInside(){
 
     Bottle bOutput;
 
-    R.setVerbose(true);;
-    std::string txt = "suppressMessages(require(stats));" "swisssum <- summary(lm(Fertility ~ . , data = swiss));" "print(swisssum)";
-    R.parseEvalQ(txt);           // eval the init string, ignoring any returns
+    try {
 
+        /* ************************************* sample 0: just test *************************************
+        R.setVerbose(true);;
+        std::string txt = "suppressMessages(require(stats));" "swisssum <- summary(lm(Fertility ~ . , data = swiss));" "print(swisssum)";
+        R.parseEvalQ(txt);           // eval the init string, ignoring any returns
+        **************************************************************************************/
 
+        /* ************************************* sample 1: call an rHelper function ************************************/
+        /* ************************************* sample 3: run lm + extract variables from R to C++, also in sample1*************************************/
+        /* ************************************* sample 6: assign values *************************************
+        double d1 = 1.234;		// scalar double
+        R["d1"] = d1;			// or R.assign(d1, "d1")
+
+        std::vector<double> d2;		// vector of doubles
+        d2.push_back(1.23);
+        d2.push_back(4.56);
+        R["d2"] = d2;			// or R.assign(d2, "d2");
+
+        std::map< std::string, double > d3; // map of doubles
+        d3["a"] = 7.89;
+        d3["b"] = 7.07;
+        R["d3"] = d3;			// or R.assign(d3, "d3");
+
+        std::list< double > d4; 	// list of doubles
+        d4.push_back(1.11);
+        d4.push_back(4.44);
+        R["d4"] = d4;			// or R.assign(d4, "d4");
+
+        std::string txt = 		// now access in R
+            "cat('\nd1=', d1, '\n'); print(class(d1));"
+            "cat('\nd2=\n'); print(d2); print(class(d2));"
+            "cat('\nd3=\n'); print(d3); print(class(d3));"
+            "cat('\nd4=\n'); print(d4); print(class(d4));";
+            R.parseEvalQ(txt);
+        **************************************************************************************/
+
+        /* ************************************* sample 11: plot a graph ************************************/
+        /* ************************************* sample 13: quiet errors ************************************/
+
+        //create some dummy data.frame
+        std::string cmd =
+            "L3 <- LETTERS[1:3]; "
+            "fac <- sample(L3, 10, replace = TRUE); "
+            "(d <- data.frame(x = 1, y = 1:10, fac = fac)); "
+            "print(is.data.frame(d)); "
+            "print(head(d)); ";
+        R.parseEval(cmd);
+
+        //extract some info from it
+        double myMean = R.parseEval("mean(d$y)");
+        yInfo() << "myMean = " << myMean ;
+
+        Rcpp::NumericVector colY( (SEXP) R.parseEval("d$y"));
+        for (int i=0; i<colY.size(); i++) {
+            yInfo() << colY[i] << "\t";
+        }
+
+    } catch(std::exception& ex) {
+        yError() << "RInside: Exception caught: " << ex.what() ;
+    } catch(...) {
+        yError() << "RInside: Unknown exception caught" ;
+    }
+
+    yInfo() << "RInside properly executed";
     bOutput.addInt(1);
     return bOutput;
 }

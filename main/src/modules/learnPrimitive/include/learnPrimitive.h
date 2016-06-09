@@ -46,6 +46,8 @@ private:
 
     RInside R;
 
+    Rcpp::NumericMatrix createSquareMatrix(const int);
+
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
