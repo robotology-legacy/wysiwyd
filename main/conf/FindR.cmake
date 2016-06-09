@@ -100,7 +100,7 @@ if(R_COMMAND)
             DOC "Rlapack library (example libRlapack.a, libRlapack.dylib, etc.).")
 
   find_library(R_LIBRARY_RINSIDE NAMES Rrinside RInside
-            HINTS ${R_ROOT_DIR}/lib ${R_ROOT_DIR}/bin/${R_LIB_ARCH} ${R_HOME}/site-library/RInside/libs
+            HINTS ${R_ROOT_DIR}/lib ${R_ROOT_DIR}/bin/${R_LIB_ARCH} ${R_HOME}/site-library/RInside/lib
             DOC "Rinside library (example libRinside.a, libRinside.dylib, etc.).")
 
   find_library(R_LIBRARY_READLINE readline
