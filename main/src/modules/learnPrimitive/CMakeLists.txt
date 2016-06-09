@@ -5,6 +5,7 @@
 set(PROJECTNAME learnPrimitive)
 project(${PROJECTNAME})
 
+find_package(LibLZMA)
 
 file(GLOB folder_source src/*.cpp src/*.cc src/*.c)
 file(GLOB folder_header include/*.h  )
@@ -21,7 +22,7 @@ message("in learnPrimitive: R include dirs: ${R_INCLUDE_DIR} and Rcpp: ${Rcpp_IN
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${wrdac_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS} ${R_INCLUDE_DIR} ${Rcpp_INCLUDE_DIR} ${RInside_INCLUDE_DIR})
 
 add_executable(${PROJECTNAME} ${folder_header} ${folder_source} ${doc_files})
-target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${R_LIBRARIES})
+target_link_libraries(${PROJECTNAME} wrdac ${YARP_LIBRARIES} ${LIBLZMA_LIBRARIES} ${R_LIBRARIES})
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 yarp_install(FILES ${doc_files} DESTINATION ${WYSIWYD_MODULES_INSTALL_DIR})
 

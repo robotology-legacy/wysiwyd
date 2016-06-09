@@ -44,6 +44,8 @@ private:
     //   b.get(1) b.get(2)  b.get(3)
     //   name     arg        list of proto/prim/action
 
+    RInside R;
+
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -88,5 +90,5 @@ public:
     //RPC & scenarios
     bool respond(const Bottle& cmd, Bottle& reply);
 
-    yarp::os::Bottle testRcpp();
+    yarp::os::Bottle testRInside();
 };

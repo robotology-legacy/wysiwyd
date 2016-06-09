@@ -182,8 +182,8 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "execute"){
         reply = execute();
     }
-    else if (command.get(0).asString() == "testRcpp"){
-        reply = testRcpp();
+    else if (command.get(0).asString() == "testRInside"){
+        reply = testRInside();
     }
     else {
         cout << helpMessage;
@@ -196,21 +196,14 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
 }
 
 //execute action, stop to go out
-Bottle learnPrimitive::testRcpp(){
+Bottle learnPrimitive::testRInside(){
 
     Bottle bOutput;
 
-    yDebug() << "begin RInside" ;
+    R.setVerbose(true);;
+    std::string txt = "suppressMessages(require(stats));" "swisssum <- summary(lm(Fertility ~ . , data = swiss));" "print(swisssum)";
+    R.parseEvalQ(txt);           // eval the init string, ignoring any returns
 
-    RInside R();
-
-    //R["txt"] = "Hello, world!\n";	// assign a char* (string) to 'txt'
-
-    //std::string txt = "suppressMessages(require(stats));" "swisssum <- summary(lm(Fertility ~ . , data = swiss));" "print(swisssum)";
-
-    //R.parseEvalQ(txt);           // eval the init string, ignoring any returns*/
-
-    yDebug() << "end testRcpp" ;
 
     bOutput.addInt(1);
     return bOutput;

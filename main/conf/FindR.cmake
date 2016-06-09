@@ -99,6 +99,10 @@ if(R_COMMAND)
             HINTS ${R_ROOT_DIR}/lib ${R_ROOT_DIR}/bin/${R_LIB_ARCH}
             DOC "Rlapack library (example libRlapack.a, libRlapack.dylib, etc.).")
 
+  find_library(R_LIBRARY_RINSIDE NAMES Rrinside RInside
+            HINTS ${R_ROOT_DIR}/lib ${R_ROOT_DIR}/bin/${R_LIB_ARCH} ${R_HOME}/site-library/RInside/libs
+            DOC "Rinside library (example libRinside.a, libRinside.dylib, etc.).")
+
   find_library(R_LIBRARY_READLINE readline
             DOC "(Optional) system readline library. Only required if the R libraries were built with readline support.")
 
@@ -107,10 +111,10 @@ else(R_COMMAND)
 endif(R_COMMAND)
 
 # Note: R_LIBRARY_BASE is added to R_LIBRARIES twice; this may be due to circular linking dependencies; needs further investigation
-set(R_LIBRARIES ${R_LIBRARY_BASE} ${R_LIBRARY_BLAS} ${R_LIBRARY_LAPACK} ${R_LIBRARY_BASE})
-if(R_LIBRARY_READLINE)
-  set(R_LIBRARIES ${R_LIBRARIES} ${R_LIBRARY_READLINE})
-endif(R_LIBRARY_READLINE)
+set(R_LIBRARIES ${R_LIBRARY_BASE} ${R_LIBRARY_BLAS} ${R_LIBRARY_LAPACK} ${R_LIBRARY_BASE} ${R_LIBRARY_RINSIDE})
+#if(R_LIBRARY_READLINE)
+#  set(R_LIBRARIES ${R_LIBRARIES} ${R_LIBRARY_READLINE})
+#endif(R_LIBRARY_READLINE)
 
 if (R_COMMAND AND R_LIBRARIES)
 	set(R_FOUND TRUE)
@@ -119,6 +123,7 @@ endif(R_COMMAND AND R_LIBRARIES)
 
 if (R_FOUND)
     message("Test R is found!")
+    message(${R_LIBRARIES})
     set(R_INCLUDE_DIRS ${Rcpp_INCLUDE_DIRS} ${RInside_INCLUDE_DIRS})
 else(R_FOUND)
     set(R_LIBRARIES "")
