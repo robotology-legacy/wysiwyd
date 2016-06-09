@@ -72,7 +72,7 @@ if(R_COMMAND)
   find_path(Rcpp_INCLUDE_DIR "Rcpp.h" HINTS "${RCPP_HINT}")
 
   #RInside
-  file(GLOB_RECURSE RINSIDE_HINT "${R_HOME}/*/RInside.h" "/usr/local/lib/R/site-library/RInside/include/RInside.h")
+  file(GLOB_RECURSE RINSIDE_HINT "${R_HOME}/*/RInside.h" "/usr/local/lib/R/site-library/RInside/include/RInside.h" "/usr/lib/R/site-library/RInside/include/RInside.h")
   string(REGEX REPLACE "/RInside.h$" "" RINSIDE_HINT "${RINSIDE_HINT}")
 
   find_path(RInside_INCLUDE_DIR "RInside.h" HINTS "${RINSIDE_HINT}")
@@ -100,7 +100,7 @@ if(R_COMMAND)
             DOC "Rlapack library (example libRlapack.a, libRlapack.dylib, etc.).")
 
   find_library(R_LIBRARY_RINSIDE NAMES Rrinside RInside
-            HINTS ${R_ROOT_DIR}/lib ${R_ROOT_DIR}/bin/${R_LIB_ARCH} ${R_HOME}/site-library/RInside/lib /usr/local/lib/R/site-library/RInside/lib
+            HINTS ${R_ROOT_DIR}/lib ${R_ROOT_DIR}/bin/${R_LIB_ARCH} ${R_HOME}/site-library/RInside/lib /usr/local/lib/R/site-library/RInside/lib /usr/lib/R/site-library/RInside/lib
             DOC "Rinside library (example libRinside.a, libRinside.dylib, etc.).")
 
   find_library(R_LIBRARY_READLINE readline
