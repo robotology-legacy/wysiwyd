@@ -175,10 +175,12 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         string sActionArg   = command.get(2).asString() ;
         reply = actionCommand(sActionName, sActionArg);
     }
+    else if (command.get(0).asString() == "proto"){
+        reply = extractProtoAction();
+    }
     else if (command.get(0).asString() == "learn"){
         reply = learn();
     }
-
     else if (command.get(0).asString() == "execute"){
         reply = execute();
     }
@@ -193,6 +195,126 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     rpcPort.reply(reply);
 
     return true;
+}
+
+Bottle learnPrimitive::extractProtoAction(){
+
+    Bottle bOutput;
+
+    //1. extract the data from ABM (assumed we have the instance number of interest)
+    Bottle bResult;
+    ostringstream osRequest;
+
+    //1.1 we have some arguments we need or we do everything in a loop. for know assume arguments: bodypart is known so name + joint
+    int bp_joint = 9;
+    string bp_name = "thumb";
+    string bp_arm = "left_arm";
+
+    //original one, some arg might not be needed so removed
+    /*SELECT main.instance as instancerecog, proprioceptivedata.instance as instancedata, frame_number, word as action, CAST(proprioceptivedata.value as Double Precision) , proprioceptivedata.subtype as joint
+    FROM main, sentencedata, proprioceptivedata WHERE main.instance -1 = proprioceptivedata.instance AND main.instance = sentencedata.instance AND subtype = '9' AND label_port = '/icub/left_arm/state:o'AND sentencedata.instance IN (SELECT instance from sentencedata WHERE role = 'finger' AND word = 'thumb')
+        AND role = 'action_joint' AND (word = 'fold' OR word = 'unfold')
+    ORDER BY main.instance*/
+
+    osRequest << "SELECT main.instance as instancerecog, proprioceptivedata.instance as instancedata, frame_number, word as action, CAST(proprioceptivedata.value as Double Precision) , proprioceptivedata.subtype as joint " <<
+                 "FROM main, sentencedata, proprioceptivedata "<<
+                 "WHERE main.instance -1 = proprioceptivedata.instance AND main.instance = sentencedata.instance AND subtype = '"<< bp_joint << "' AND label_port = '/icub/" << bp_arm << "/state:o' AND role = 'action_joint' " <<
+                        "AND sentencedata.instance IN (SELECT instance from sentencedata WHERE word = '"<< bp_name <<"') " <<
+                 "ORDER BY (main.instance, frame_number)  ;";
+    bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+
+    if(bResult.size() == 0){
+        yError() << "No result from ABM about the querry: is ABM running and connected?";
+        bOutput.addInt(0);
+        return bOutput;
+    }
+    yInfo() << bResult.get(0).toString() ;
+
+    //1.2 split the data
+    vector<int> v_instancedata, v_frame_number, v_joint;
+    vector<string> v_action;
+    vector<double> v_value;
+
+    for(int i = 0; i < bResult.size(); i++){
+        Bottle currentLine;
+        currentLine.addList() = *bResult.get(i).asList();
+        //yInfo() << currentLine.get(0).asList()->get(0).toString() << " --- ->" << atoi(currentLine.get(0).asList()->get(1).toString().c_str()) << "<-" ;
+        v_instancedata.push_back(atoi(currentLine.get(0).asList()->get(1).toString().c_str()));
+        v_frame_number.push_back(atoi(currentLine.get(0).asList()->get(2).toString().c_str()));
+        v_action.push_back(currentLine.get(0).asList()->get(3).toString());
+        v_value.push_back(atof(currentLine.get(0).asList()->get(4).toString().c_str()));
+        v_joint.push_back(atoi(currentLine.get(0).asList()->get(5).toString().c_str()));
+    }
+
+    //yInfo() << "v_instancedata = " << v_instancedata ;
+    //yInfo() << "v_frame_number = " << v_frame_number ;
+    //yInfo() << "v_action = " << v_action ;
+    //yInfo() << "v_value = " << v_value ;
+    //yInfo() << "v_joint = " << v_joint ;
+
+    //vector<int> instancedata = bResult.get()
+
+
+    //2. data.frame or similar to be sent to R
+    R["instancedata"] = v_instancedata;
+    R["frameNumber"] = v_frame_number;
+    R["action"] = v_action;
+    R["value"] = v_value;
+    R["joint"] = v_joint;
+
+    /*  std::string txt = 		// now access in R
+        "cat('\ninstancedata=', instancedata, '\n'); print(class(instancedata));";
+        R.parseEvalQ(txt);
+    */
+
+    std::string cmd =
+        "myData <- data.frame(instancedata, frameNumber, action, value, joint); "
+        "print(is.data.frame(myData)); "
+        "print(head(myData)); ";
+    R.parseEval(cmd);
+
+    //3. R is doing the lm's and send results
+
+    //3.1 transform joint value into percentage of joint value for comparison between joints
+
+    /******************************************** /!\ TODO: Use a pre-defined dictionary for all joints or ini file /!\ ********************************************/
+    double max_angle;
+    if (bp_joint != 15){
+        max_angle = 90.0;
+    } else{
+        max_angle = 250.0;
+    }
+
+    cmd = "myData$value <- (myData$value*100.0)/" + to_string(max_angle);
+    R.parseEval(cmd);
+   /******************************************** /!\ TODO: Use a pre-defined dictionary for all joints or ini file /!\ ********************************************/
+
+    //3.2 Remove the first "flat" part: floating windows of 5? (i +/-2) and 'begin' when diff > threshold ~ 0.2
+    // install.packages("zoo") for that!
+    R["winSize"] = 5;
+    R["winStep"] = 2;
+    cmd =
+        "library(zoo);"
+        "sliding <- rollapply(myData$value, width = winSize, by = winStep, FUN = mean, align = 'left');"
+        "cutFrom <- 1;"
+        "for(i in 1:(length(sliding)-1)){"
+        "    if( abs(sliding[i] - sliding[i+1]) > 0.4){"
+        "        cat('i = ', i, '\n');"
+        "        cutFrom <- i;"
+        "        break;"
+        "    }"
+        "};"
+        "cat('cutFrom: ', cutFrom);"
+        "cutFrom <- cutFrom * winStep;"
+        "cat('finalCutFrom: ', cutFrom);";
+
+    R.parseEval(cmd);
+
+
+    //4. results are stored/written in ini file
+
+    bOutput.addInt(1);
+    return bOutput;
 }
 
 //execute action, stop to go out
@@ -258,14 +380,17 @@ Bottle learnPrimitive::testRInside(){
             yInfo() << colY[i] << "\t";
         }
 
+        bOutput.addInt(1);
+
     } catch(std::exception& ex) {
         yError() << "RInside: Exception caught: " << ex.what() ;
+        bOutput.addInt(0);
     } catch(...) {
         yError() << "RInside: Unknown exception caught" ;
+        bOutput.addInt(0);
     }
 
-    yInfo() << "RInside properly executed";
-    bOutput.addInt(1);
+    yInfo() << "RInside end!";
     return bOutput;
 }
 

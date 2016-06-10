@@ -77,6 +77,7 @@ public:
     yarp::os::Bottle primitiveCommand(std::string sActionName, std::string sBodypartName);
     yarp::os::Bottle actionCommand(std::string sActionName, std::string sArgument);
 
+    yarp::os::Bottle extractProtoAction();
     yarp::os::Bottle learn();
     yarp::os::Bottle learnPrim();
     yarp::os::Bottle learnAction();
