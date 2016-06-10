@@ -66,8 +66,12 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     // conf group for data providers
     Bottle &bDataProviders = rf.findGroup("data_providers");
-    defaultImgStreamProviders = *bDataProviders.find("defaultImgStreamProviders").asList();
-    defaultDataStreamProviders = *bDataProviders.find("defaultDataStreamProviders").asList();
+    if(bDataProviders.isNull() && !bDataProviders.find("defaultImgStreamProviders").isNull()) {
+        defaultImgStreamProviders = *bDataProviders.find("defaultImgStreamProviders").asList();
+    }
+    if(bDataProviders.isNull() && !bDataProviders.find("defaultDataStreamProviders").isNull()) {
+        defaultDataStreamProviders = *bDataProviders.find("defaultDataStreamProviders").asList();
+    }
 
     // TODO: streamStatus should be changed to enum
     streamStatus = "none"; //none, record, stop, send
