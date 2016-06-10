@@ -73,8 +73,7 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
         defaultDataStreamProviders = *bDataProviders.find("defaultDataStreamProviders").asList();
     }
 
-    // TODO: streamStatus should be changed to enum
-    streamStatus = "none"; //none, record, stop, send
+    streamStatus = StreamStatuses::NONE;
     imgLabel = "defaultLabel";
     imgInstance = -1;
     frameNb = 0;
@@ -620,7 +619,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
 
                 bReply = triggerStreaming(instance, realtime, includeAugmented, speedMultiplier, robot);
                 if(blocking) {
-                    while(streamStatus=="send") {
+                    while(streamStatus==StreamStatuses::SEND) {
                         yarp::os::Time::delay(0.2);
                     }
                 }
@@ -738,7 +737,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             }
         else if (bCommand.get(0) == "getStreamStatus")
         {
-            bReply.addString(streamStatus);
+            bReply.addString(std::string(static_cast<char>(streamStatus), 1));
         }
         else
         {
@@ -794,7 +793,7 @@ bool autobiographicalMemory::updateModule() {
 
     //we have received a snapshot command indicating an activity that take time so streaming is needed
     //currently it is when activityType == action
-    if (streamStatus == "begin") {
+    if (streamStatus == StreamStatuses::BEGIN) {
         yDebug() << "[mutexStreamRecord] trying to lock in stream begin";
         mutexStreamRecord.lock();
         yDebug() << "[mutexStreamRecord] locked in stream begin";
@@ -811,15 +810,15 @@ bool autobiographicalMemory::updateModule() {
         storeImagesAndData(synchroTime);
 
         //init of the stream record done: go through the classic record phase
-        streamStatus = "record";
+        streamStatus = StreamStatuses::RECORD;
         yDebug() << "[mutexChangeover] unlocked in begin";
         mutexChangeover.unlock();
     }
-    else if (streamStatus == "record") {
+    else if (streamStatus == StreamStatuses::RECORD) {
         string synchroTime = getCurrentTime();
         storeImagesAndData(synchroTime);
     }
-    else if (streamStatus == "send") { //stream to send, because rpc port receive a sendStreamImage query
+    else if (streamStatus == StreamStatuses::SEND) { //stream to send, because rpc port receive a sendStreamImage query
         //select all the images (through relative_path and image provider) corresponding to a precise instance
         if (sendStreamIsInitialized == false) {
             yDebug() << "[mutexStreamRecord] trying to lock in stream send";
@@ -981,12 +980,12 @@ bool autobiographicalMemory::updateModule() {
             mutexChangeover.lock();
             yDebug() << "[mutexChangeover] unlocked in end of send";
 
-            streamStatus = "end";
+            streamStatus = StreamStatuses::END;
         }
     }
 
     //go back to default global value
-    if (streamStatus == "end") {
+    if (streamStatus == StreamStatuses::END) {
         yInfo() << "============================= STREAM STOP =================================";
 
         // wait for threads to be finished
@@ -999,7 +998,7 @@ bool autobiographicalMemory::updateModule() {
         imgInstance = -1;
         frameNb = 0;
         sendStreamIsInitialized = false;
-        streamStatus = "none";
+        streamStatus = StreamStatuses::NONE;
 
         yDebug() << "[mutexStreamRecord] unlocked in end of stop";
         mutexStreamRecord.unlock();

@@ -130,7 +130,7 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
         mutexChangeover.lock();
         yDebug() << "[mutexChangeover] locked in snapshot end";
 
-        streamStatus = "end"; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
+        streamStatus = StreamStatuses::END; //is done here (before the OPC snapshot), because the snapshot is slowing everything down
     }
 
     if(bMental) {
@@ -257,16 +257,16 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
             mutexChangeover.lock();
             yDebug() << "[mutexChangeover] locked in snapshot begin";
 
-            streamStatus = "begin"; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
+            streamStatus = StreamStatuses::BEGIN; //streamStatus = "end" is done before the OPC snapshot, because the snapshot is slowing everything down
         }
     }
     else
     {   //just one image (sentence?)
-        while(streamStatus == "send") { // when it's sending, don't record new images!
+        while(streamStatus == StreamStatuses::SEND) { // when it's sending, don't record new images!
             yarp::os::Time::delay(0.1);
         }
 
-        if(streamStatus != "record") { // only change instance number if we are not recording already
+        if(streamStatus != StreamStatuses::RECORD) { // only change instance number if we are not recording already
             imgInstance = currentInstance;
         }
         string synchroTime = getCurrentTime();

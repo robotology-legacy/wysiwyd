@@ -26,7 +26,7 @@ using namespace cv;
 Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool includeAugmented, double speedM, const string &robotName)
 {
     Bottle bReply;
-    while(streamStatus!="none") {
+    while(streamStatus!=StreamStatuses::NONE) {
         yarp::os::Time::delay(1.0);
     }
 
@@ -95,7 +95,7 @@ Bottle autobiographicalMemory::triggerStreaming(int instance, bool timingE, bool
     mutexChangeover.lock();
     yDebug() << "[mutexChangeover] locked in triggerStreaming";
 
-    streamStatus = "send"; //streamStatus changed (triggered in update())
+    streamStatus = StreamStatuses::SEND; //streamStatus changed (triggered in update())
 
     return bReply;
 }
