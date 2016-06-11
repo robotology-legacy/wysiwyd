@@ -66,10 +66,10 @@ bool autobiographicalMemory::configure(ResourceFinder &rf)
 
     // conf group for data providers
     Bottle &bDataProviders = rf.findGroup("data_providers");
-    if(bDataProviders.isNull() && !bDataProviders.find("defaultImgStreamProviders").isNull()) {
+    if(!bDataProviders.isNull() && !bDataProviders.find("defaultImgStreamProviders").isNull()) {
         defaultImgStreamProviders = *bDataProviders.find("defaultImgStreamProviders").asList();
     }
-    if(bDataProviders.isNull() && !bDataProviders.find("defaultDataStreamProviders").isNull()) {
+    if(!bDataProviders.isNull() && !bDataProviders.find("defaultDataStreamProviders").isNull()) {
         defaultDataStreamProviders = *bDataProviders.find("defaultDataStreamProviders").asList();
     }
 
