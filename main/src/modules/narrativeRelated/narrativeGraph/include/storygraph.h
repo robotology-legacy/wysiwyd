@@ -18,10 +18,16 @@
 #include <story.h>
 
 namespace storygraph {
-    struct link {
-        int fromEvt;
-        int toEvt;
-        std::string label; // contains spaces
+    struct sKeyEvt { // For narrative link: which part of which DGAR is looked at?
+        int iDGAR;
+        char cellCat; // Drive, Goal, Action or Result ?
+        int iRel; // if looking at a relation, -1 else
+    };
+
+    struct sLink {
+        sKeyEvt fromEvt;
+        sKeyEvt toEvt;
+        std::string word;
     };
 
     enum cell_type {
@@ -29,7 +35,7 @@ namespace storygraph {
     };
 
     struct sDGAR {
-        std::string label; // Todo : Associate with an evtStory so that it can be narrated like the other events
+        std::string label; // <- Not used in narration
         cell_type tDrive;
         cell_type tGoal;
         cell_type tAction;
@@ -44,34 +50,48 @@ namespace storygraph {
 
     class storyGraph {
     public:
-        std::vector< evtStory > vEvents;
-        std::vector< link >     vNarrativeLinks;
-        std::vector< sDGAR >    vDGAR;
+        std::vector < evtStory > vEvents;
+        std::vector < sDGAR >    vDGAR;
+        std::vector < sLink >    vNarrativeLinks;
+
+        std::vector < std::string > vMeanings; // NarrativeSemanticWords, PAOR1, PAOR2, PAOR3 <o> [_-_-_-L-_], [A-P-O-_-_], [A-_-_-_-P], [_-_-_-_-_] <o>
 
         storyGraph();
 
         void initializeStory(const story& base); // Imports events
+
+        // Display functions
         std::string expressDGAR(int i, int details = -1); // details decrease when going in a sub DGAR, stops at 0 to give a simple label (-1 -> all sub DGARs)
         std::string evtRelations(int i); // A string to display relations.
-        std::string evtArguments(int i); // A string to display relations.
+        std::string evtArguments(int i);
         std::string evtDetails(int i); // A string to display PAOR, relations and arguments.
         std::string getDescription(cell_type ct, int i, int details = -1); // Given a cell type and an index, returns details about the event.
+        void show_tree(int start, int level = 0, bool withNext = false); // Display a tree view of a DGAR
 
-        int findFrom(int fromEvt, int startSearch = 0); // Find the first link from the fromEvt, returns its index
-        void extract(const evtStory& evt); // From an event, creates events from the relations, and adds them to the vEvents
-
-        void show_arbor(int start, int level = 0, bool withNext = false);
-
+        // Access
         std::string whatIs(int i, std::string role); // Given an event number, find the argument with label 'role'
-        bool satisfies(int a, int b); // Does the a-th event satifies the relations of the b-th event
 
+        // DGAR construction
+        bool satisfies(int a, int b); // Does the a-th event satifies the relations of the b-th event?
         sDGAR addDGAR(const sDGAR& dgarToAdd); // Adds a DGAR, checking for validity of parameters. Returns the DGAR added, possibly different from the entry.
+        void createAndAddEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = "");
+        void addRelation(int i, std::string predicate, std::string agent, std::string object); // Adds a relation to the i-th event
 
-        // Narrate
+        // Naïve Narration (! Used for debug only !)
         std::string evtToSentence(int i); // Naïve sentence corresponding to the event
         std::string argumentToSentence(int i, int j); // Naïve sentence corresponding to the j-th argument of the i-th event
-        std::string relationToSentence(int i, int j); // Naïve sentence corresponding to the j-th relation of the i-th event
-        std::string linkToSentence(int i); // Replace the <X> in the i-th link by the corresponding sentences of the events.
-        void tellStory(); // Using the narrative links vector, tell the story.
+        std::string relationToSentence(int i, int j);
+        //std::string linkToSentence(int i); // Replace the <X> in the i-th link by the corresponding sentences of the events.
+        //void tellStory(); // Using the narrative links vector, tell the story.
+
+        // Semantic Narration
+        // From a meaning and link, enrich DGAR
+        sKeyEvt newKey(int iDGAR, char cellCat, int iRel);
+        void addLink(sKeyEvt from, sKeyEvt to, std::string word);
+        void addMeaningAndLink(sKeyEvt from, sKeyEvt to, std::string meaning);
+        //std::string tagsToOCW(int i);
+
+        int isKnown(std::string predicate, std::string agent, std::string object = "", std::string recipient = ""); // Return Evt number if exists, -1 else
+        void TESTwhenIsUsed(std::string word); // Temporary tool function. Displays all links made with the word
     };
 }

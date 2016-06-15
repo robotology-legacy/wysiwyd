@@ -160,17 +160,13 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " cleanMeantal\n" +
         " initGraph\n" +
         " listEvts\n" +
-        " extract + no\n" +
-        " createDGAR + 4 x evts\n" +
-        " addLink + fromEvt + label + toEvt \n" +
-        " tellDGAR + no\n" +
-        " showDGAR + no\n" +
-        " changeDGAR + no + which + type + nb\n" +
+        " createEvt + predicate + agent (+ object (+ recipient))\n" +
+        " createRel + noEvt + predicate + agent + object \n" +
         " autoDGAR\n" +
-        " cleanDGAR\n" +
-        " addLink + textExpr \n" +
-        " tellStory\n" +
-        " mapStory + (oldVoc1 newVoc1) + (oldVoc2 newVoc2) + ...\n" +
+        " createDGAR + 2 x evts\n" +
+        " changeDGAR + no + which + type + nb\n" +
+        " showDGAR + no\n" +
+        " createLinkAndMeaning + (noFromDGAR catCell noRel) + meaning + (noToDGAR catCell noRel)\n"
         " quit \n";
 
     yInfo() << " rpc command received: " << command.toString();
@@ -259,118 +255,96 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "initGraph") {
         yInfo(" initialize the narrative graph with last story");
-        sg.initializeStory(listStories.back());
-        yInfo(" imported sucessfully");
-        reply.addString(" imported sucessfully");
-        reply.addString(" init sucessful");
+        if (command.size() >= 2) {
+            int i = command.get(1).asInt();
+            if (i >= 0 && i < listStories.size()) {
+                sg.initializeStory(listStories.at(i));
+                yInfo(" import and init sucessful");
+                reply.addString("init sucessful");
+            }
+            else {
+                yInfo(" error: out of range");
+                reply.addString("Error: out of range");
+            }
+        }
+        else {
+            sg.initializeStory(listStories.back());
+            yInfo(" import of last story and init sucessful");
+            reply.addString("init sucessful");
+        }
     }
     else if (command.get(0).asString() == "listEvts") {
-        yInfo(" list narrative graph event");
+        yInfo(" list narrative graph events");
         for(unsigned int i = 0; i < sg.vEvents.size(); i++) {
             std::cout << to_string(i) + ": " + sg.evtDetails(i) << std::endl;
             reply.addString(sg.evtDetails(i));
         }
-        yInfo(" listing sucessfully");
+        yInfo(" listing sucessful");
         reply.addString(" listing sucessful");
     }
-    else if (command.get(0).asString() == "extract") {
-        yInfo(" extract relations from narrative graph system");
-        if (command.size() >= 2) {
-            int i = command.get(1).asInt();
-            if (i >= 0 || i < (int)sg.vEvents.size()) {
-                sg.extract(sg.vEvents.at(i));
-
-                yInfo(" extract sucessful");
-                reply.addString(" extract sucessful");
-            }
-            else {
-                yInfo(" No such event");
-                reply.addString("Error: No such event");
-            }
+    else if (command.get(0).asString() == "createEvt") {
+        yInfo(" create a narrative graph event");
+        if (command.size() >= 3) {
+            std::string predicate = command.get(1).asString();
+            std::string agent = command.get(2).asString();
+            std::string object = "";
+            std::string recipient = "";
+            if (command.size() >= 4)
+                object = command.get(3).asString();
+            if (command.size() >= 5)
+                recipient = command.get(4).asString();
+            sg.createAndAddEvt(predicate, agent, object, recipient);
+            yInfo(" creation sucessful");
+            reply.addString(" creation sucessful");
         }
         else {
             yInfo(" Not enough arguments");
-            reply.addString("Error: Needs 1 arguments");
+            reply.addString("Error: Needs at least 2 arguments");
+        }
+    }
+    else if (command.get(0).asString() == "createRel") {
+        yInfo(" create a narrative graph relation");
+        if (command.size() >= 5) {
+            int nEvt = command.get(1).asInt();
+            std::string predicate = command.get(2).asString();
+            std::string agent = command.get(3).asString();
+            std::string object = command.get(4).asString();
+            sg.addRelation(nEvt, predicate, agent, object);
+            yInfo(" creation sucessful");
+            reply.addString(" creation sucessful");
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 4 arguments");
         }
     }
     else if (command.get(0).asString() == "createDGAR") {
-        yInfo(" creating a DGAR in the narrative graph system");
         createDGAR(command, reply);
-    }
-    else if (command.get(0).asString() == "addLink") {
-        yInfo(" adding a link in the narrative system");
-        if (command.size() >= 4) {
-            storygraph::link lk;
-            lk.fromEvt = command.get(1).asInt();
-            lk.label = command.get(2).asString();
-            lk.toEvt = command.get(3).asInt();
-            sg.vNarrativeLinks.push_back(lk);
-            std::cout << sg.linkToSentence(sg.vNarrativeLinks.size() - 1) << std::endl;
-            yInfo(" link sucessfully added");
-            reply.addString(" link sucessfully added");
-        }
-        if (command.size() == 2) {
-            storygraph::link lk;
-            lk.fromEvt = -1;
-            lk.label = command.get(1).asString();
-            lk.toEvt = -1;
-            sg.vNarrativeLinks.push_back(lk);
-            std::cout << sg.linkToSentence(sg.vNarrativeLinks.size() - 1) << std::endl;
-            yInfo(" link sucessfully added");
-            reply.addString(" link sucessfully added");
-        }
-        else {
-            yInfo(" Not enough arguments");
-            reply.addString("Error: Needs 1 or 3 arguments");
-        }
-    }
-    else if (command.get(0).asString() == "tellDGAR") {
-        yInfo(" tellDGAR");
-        if (command.size() >= 2) {
-            yInfo(sg.expressDGAR(command.get(1).asInt()));
-            reply.addString(sg.expressDGAR(command.get(1).asInt()));
-            yInfo(" tellDGAR sucessfully");
-        }
-        else {
-            yInfo(" Not enough arguments");
-            reply.addString("Error: Needs 1 arguments");
-        }
     }
     else if (command.get(0).asString() == "showDGAR") {
         yInfo(" showDGAR");
         if (command.size() >= 2) {
-            sg.show_arbor(command.get(1).asInt(), 0, true);
-            yInfo(" showDGAR sucessfully");
-            reply.addString(" showDGAR sucessfully");
+            sg.show_tree(command.get(1).asInt(), 0, true);
+            yInfo(" showDGAR sucessful");
+            reply.addString(" showDGAR sucessful");
         }
         else {
             yInfo(" Not enough arguments");
-            reply.addString("Error: Needs 1 arguments");
+            reply.addString("Error: Needs 1 argument");
         }
     }
     else if (command.get(0).asString() == "changeDGAR") {
-        yInfo(" change a DGAR in the narrative graph system");
         changeDGAR(command, reply);
     }
     else if (command.get(0).asString() == "autoDGAR") {
-        yInfo(" automatically creating a DGAR in the narrative graph system");
-        automaticDGAR(reply);
+        automaticDGAR(sg, reply);
     }
-    else if (command.get(0).asString() == "cleanDGAR") {
-        yInfo(" clean the DGAR (TODO)");
-        cleanDGAR(reply);
+    else if (command.get(0).asString() == "createLinkAndMeaning") {
+        linkAndMeaning(command, reply);
     }
-    else if (command.get(0).asString() == "tellStory") {
-        yInfo(" telling the story learned");
-        sg.tellStory();
-        yInfo(" successful telling");
-        reply.addString("Successful telling");
-    }
-    else if (command.get(0).asString() == "mapStory") {
-        yInfo(" map the story graph with new vocabulary");
-        map(command, reply);
-        yInfo(" successful mapping");
-        reply.addString("Successful mapping");
+    else if (command.get(0).asString() == "TESTwhenIsUsed") {
+        sg.TESTwhenIsUsed(command.get(1).asString());
+        reply.addString("-ok");
     }
     else{
         reply.addString(helpMessage);
@@ -1748,9 +1722,13 @@ bool narrativeHandler::narrationToSpeech(story target){
 }
 
 void narrativeHandler::createDGAR(const Bottle& command, Bottle& reply) {
-    if (command.size() >= 5) {
+    yInfo(" creating a DGAR in the narrative graph system");
+    if (command.size() >= 3) {
         storygraph::sDGAR dgar;
         dgar.label = "User Narrative";
+        if (command.size() >= 4) { // Custom name
+            dgar.label = command.get(3).asInt();
+        }
         dgar.tDrive = storygraph::EVENT;
         dgar.tGoal = storygraph::EVENT;
         dgar.tAction = storygraph::EVENT;
@@ -1758,21 +1736,22 @@ void narrativeHandler::createDGAR(const Bottle& command, Bottle& reply) {
         dgar.tNext = storygraph::NONE;
         dgar.iDrive = command.get(1).asInt();
         dgar.iGoal = command.get(2).asInt();
-        dgar.iAction = command.get(3).asInt();
-        dgar.iResult = command.get(4).asInt();
+        dgar.iAction = command.get(1).asInt();
+        dgar.iResult = command.get(2).asInt();
         sg.addDGAR(dgar);
 
-        yInfo(" creation sucessfully");
+        yInfo(" creation sucessful");
         yInfo(sg.expressDGAR(sg.vDGAR.size()));
         reply.addString(" creation sucessful");
     }
     else {
         yInfo(" Not enough arguments");
-        reply.addString("Error: Needs 4 arguments");
+        reply.addString("Error: Needs 2 arguments");
     }
 }
 
 void narrativeHandler::changeDGAR(const Bottle& command, Bottle& reply) {
+    yInfo(" change a DGAR components in the narrative graph system");
     if (command.size() >= 5) {
         int i = command.get(1).asInt();
         if (i < 0 || i >= (int)sg.vDGAR.size()) {
@@ -1810,29 +1789,28 @@ void narrativeHandler::changeDGAR(const Bottle& command, Bottle& reply) {
             }
         }
 
-        yInfo(" creation sucessfully");
+        yInfo(" modification sucessful");
         yInfo(sg.expressDGAR(sg.vDGAR.size()));
-        reply.addString(" creation sucessful");
+        reply.addString(" modification sucessful");
     }
     else {
         yInfo(" Not enough arguments");
-        reply.addString("Error: Needs 4 arguments");
+        reply.addString("Error: Needs 4 arguments (dgar_number, cell_category, cell_type, cell_number)");
     }
 }
 
-void narrativeHandler::automaticDGAR(Bottle &reply) {
+void narrativeHandler::automaticDGAR(storygraph::storyGraph &_sg, Bottle &reply) {
+    yInfo(" automatically creating a DGAR in the narrative graph system");
     storygraph::storyGraph auto_sg; // The final storyGraph
-    sg.initializeStory(listStories.back());
-    yInfo("Last story successfully imported.");
 
     // Step 1 and 2 : Considering begin and end of activities, create events associated with drive, action, result and goal
-    for (unsigned int i = 0; i < sg.vEvents.size(); i++) {
-        evtStory currentEvt = sg.vEvents.at(i);
+    for (unsigned int i = 0; i < _sg.vEvents.size(); i++) {
+        evtStory currentEvt = _sg.vEvents.at(i);
         if (currentEvt.begin) { // For each begin of action
             evtStory endCurrent;
             endCurrent.instance = -1;
-            if (i + 1 < sg.vEvents.size() && !sg.vEvents.at(i+1).begin) { // Is there an end event ?
-                endCurrent = sg.vEvents.at(i+1);
+            if (i + 1 < _sg.vEvents.size() && !_sg.vEvents.at(i+1).begin) { // Is there an end event ?
+                endCurrent = _sg.vEvents.at(i+1);
             }
             // Save events
             int start = auto_sg.vEvents.size();
@@ -1985,11 +1963,6 @@ void narrativeHandler::automaticDGAR(Bottle &reply) {
     }
     // Step c: Add meaning dgar for this chains
     for (auto c : chains) {
-        // Display
-        for (auto e : c) {
-            std::cout << e << " -> ";
-        }
-        std::cout << std::endl;
 
         // Packing it in a GDAR
         if (!c.empty()) {
@@ -2018,52 +1991,32 @@ void narrativeHandler::automaticDGAR(Bottle &reply) {
     }
 
     yInfo("Creating meaning successful");
-    // Display
-    for (unsigned int i = 0; i < auto_sg.vDGAR.size(); i++) {
-        std::cout << i << " ----------------" << std::endl;
-        auto_sg.show_arbor(i);
-    }
-    std::cout << std::endl;
     reply.addString("Creating meaning successful");
-    sg = auto_sg;
+    _sg = auto_sg;
 }
 
-void narrativeHandler::cleanDGAR(yarp::os::Bottle &reply) {
-    reply.addString("(TODO)");
-}
+void narrativeHandler::linkAndMeaning(const Bottle& command, Bottle& reply) {
+    yInfo(" creating a new sentence meaning and narrative link in the narrative graph system");
+    if (command.size() >= 4) {
+        // Get the From keyEvt
+        storygraph::sKeyEvt from;
+        from.iDGAR =   command.get(1).asList()->get(0).asInt();
+        from.cellCat = command.get(1).asList()->get(1).asString()[0];
+        from.iRel =    command.get(1).asList()->get(2).asInt();
+        // Get the To keyEvt
+        storygraph::sKeyEvt to;
+        to.iDGAR =   command.get(3).asList()->get(0).asInt();
+        to.cellCat = command.get(3).asList()->get(1).asString()[0];
+        to.iRel =    command.get(3).asList()->get(2).asInt();
+        // Get meaning
+        std::string m = command.get(2).asString();
 
-void narrativeHandler::map(const Bottle& command, Bottle& reply) {
-    for (int iVoc = 1; iVoc < (int)command.size(); iVoc++) {
-        std::string oldVoc = command.get(iVoc).asList()->get(0).asString();
-        std::string newVoc = command.get(iVoc).asList()->get(1).asString();
-        for (unsigned int i = 0; i < sg.vEvents.size(); i++) {
-            evtStory& evt = sg.vEvents.at(i);
-            if (evt.predicate == oldVoc) {
-                evt.predicate = newVoc;
-            }
-            if (evt.agent == oldVoc) {
-                evt.agent = newVoc;
-            }
-            if (evt.object == oldVoc) {
-                evt.object = newVoc;
-            }
-            if (evt.recipient == oldVoc) {
-                evt.recipient = newVoc;
-            }
-            for (int j = 0; j < evt.bRelations.size(); j++) {
-                if (evt.bRelations.get(j).isList()) {
-                    Bottle* lst = evt.bRelations.get(j).asList();
-                    std::string s = "";
-                    for (int l = 0; l < 3; l++) {
-                        if (lst->get(l).toString() == oldVoc)
-                            s += newVoc + " ";
-                        else
-                            s += lst->get(l).toString() + " ";
-                    }
-                    lst->fromString(s.c_str());
-                }
-            }
-        }
+        sg.addMeaningAndLink(from, to, m);
+        yInfo(" creation sucessful");
+        reply.addString(" creation sucessful");
+    }
+    else {
+        yInfo(" Not enough arguments");
+        reply.addString("Error: Needs 3 arguments");
     }
 }
-

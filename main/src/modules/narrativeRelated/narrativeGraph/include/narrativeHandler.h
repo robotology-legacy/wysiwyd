@@ -99,7 +99,7 @@ private:
     double timeDiff(myTimeStruct tm1, myTimeStruct tm2, bool bPrint = false);
     myTimeStruct string2Time(std::string sTime);
 
-    //RPC & scenarios
+    // RPC & scenarios
     bool respond(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     void compareNarration(story &target); // try to tell the story target based on the other known stories
     void sayNarrationSimple(story target);
@@ -110,9 +110,10 @@ private:
     storygraph::storyGraph sg;
     void createDGAR(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     void changeDGAR(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    void automaticDGAR(yarp::os::Bottle& reply);
-    void cleanDGAR(yarp::os::Bottle& reply);
-    void map(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
+    void automaticDGAR(storygraph::storyGraph& _sg, yarp::os::Bottle& reply);
+
+    // Meanings
+    void linkAndMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
 };
 
 

@@ -1,5 +1,6 @@
 #include <storygraph.h>
 #include <regex>
+#include <map>
 
 using namespace storygraph;
 
@@ -12,6 +13,8 @@ void storyGraph::initializeStory(const story& sto) {
 
     vEvents = sto.vEvents;
 }
+
+// -- Display functions --
 
 std::string storyGraph::expressDGAR(int i, int details) {
     std::string exp = "";
@@ -110,33 +113,12 @@ std::string storyGraph::getDescription(cell_type ct, int i, int details) {
     return "";
 }
 
-int storyGraph::findFrom(int fromEvt, int startSearch) {
-    for (unsigned int i = startSearch; i < vNarrativeLinks.size(); i++) {
-        if (vNarrativeLinks.at(i).fromEvt == fromEvt) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-void storyGraph::extract(const evtStory &evt) {
-    for (int i = 0; i < evt.bRelations.size(); i++) {
-        if (evt.bRelations.get(i).isList()) {
-            evtStory newEvt;
-            newEvt.agent = evt.bRelations.get(i).asList()->get(0).toString();
-            newEvt.predicate = evt.bRelations.get(i).asList()->get(1).toString();
-            newEvt.object = evt.bRelations.get(i).asList()->get(2).toString();
-            vEvents.push_back(newEvt);
-        }
-    }
-}
-
 void margin(int level) {
     for(int i = 0; i < level; i++)
         std::cout << "| ";
 }
 
-void storyGraph::show_arbor(int start, int level, bool withNext) {
+void storyGraph::show_tree(int start, int level, bool withNext) {
     // Checks
     if (start < 0 || start >= (int)vDGAR.size())
         return;
@@ -150,7 +132,7 @@ void storyGraph::show_arbor(int start, int level, bool withNext) {
         std::cout << "[" << main.iDrive << "] " << evtRelations(main.iDrive) << std::endl;
     }
     else if (main.tDrive == DGAR_CELL) {
-        show_arbor(main.iDrive, level + 1, withNext);
+        show_tree(main.iDrive, level + 1, withNext);
     }
     else {
         std::cout << std::endl;
@@ -162,7 +144,7 @@ void storyGraph::show_arbor(int start, int level, bool withNext) {
         std::cout << "[" << main.iGoal << "] " << evtRelations(main.iGoal) << std::endl;
     }
     else if (main.tGoal == DGAR_CELL) {
-        show_arbor(main.iGoal, level + 1, withNext);
+        show_tree(main.iGoal, level + 1, withNext);
     }
     else {
         std::cout << std::endl;
@@ -174,7 +156,7 @@ void storyGraph::show_arbor(int start, int level, bool withNext) {
         std::cout << "[" << main.iAction << "] " << evtDetails(main.iAction) << std::endl;
     }
     else if (main.tAction == DGAR_CELL) {
-        show_arbor(main.iAction, level + 1, withNext);
+        show_tree(main.iAction, level + 1, withNext);
     }
     else {
         std::cout << std::endl;
@@ -186,7 +168,7 @@ void storyGraph::show_arbor(int start, int level, bool withNext) {
         std::cout << "[" << main.iResult << "] " << evtRelations(main.iResult) << evtArguments(main.iResult) << std::endl;
     }
     else if (main.tResult == DGAR_CELL) {
-        show_arbor(main.iResult, level + 1, withNext);
+        show_tree(main.iResult, level + 1, withNext);
     }
     else {
         std::cout << std::endl;
@@ -202,7 +184,7 @@ void storyGraph::show_arbor(int start, int level, bool withNext) {
             std::cout << std::endl;
             margin(level);
             std::cout << "| ";
-            show_arbor(main.iNext, level, withNext);
+            show_tree(main.iNext, level, withNext);
         }
         else {
             std::cout << main.iNext << std::endl;
@@ -212,6 +194,8 @@ void storyGraph::show_arbor(int start, int level, bool withNext) {
         std::cout << std::endl;
     }
 }
+
+// -- Access --
 
 std::string storyGraph::whatIs(int i, std::string role) {
     std::string s = "";
@@ -225,6 +209,8 @@ std::string storyGraph::whatIs(int i, std::string role) {
     }
     return "";
 }
+
+// -- DGAR construction --
 
 bool sameValue(const yarp::os::Value& v1, const yarp::os::Value& v2) {
     if (v1 == v2)
@@ -350,7 +336,23 @@ sDGAR storyGraph::addDGAR(const sDGAR &dgarToAdd) {
     return copy;
 }
 
-//  --- Narrate ---
+void storyGraph::createAndAddEvt(std::string predicate, std::string agent, std::string object, std::string recipient) {
+    evtStory e;
+    e.instance = -1;
+    e.activity_name = predicate;
+    e.activity_type = "narrated";
+
+    e.predicate = predicate;
+    e.agent = agent;
+    e.object = object;
+    e.recipient = recipient;
+    e.isNarration = true;
+    e.begin = true;
+
+    vEvents.push_back(e);
+}
+
+//  --- Naïve Narration ---
 
 std::string storyGraph::evtToSentence(int i) {
         // -- Todo
@@ -382,43 +384,121 @@ std::string storyGraph::relationToSentence(int i, int j) {
     return evt.bRelations.get(j).toString();
 }
 
-std::string storyGraph::linkToSentence(int i) {
-    if (i < 0 || i >= (int)vNarrativeLinks.size())
+// -- Semantic Narration
+
+sKeyEvt newKey(int iDGAR, char cellCat, int iRel) {
+    sKeyEvt n;
+    n.iDGAR = iDGAR;
+    n.cellCat = cellCat;
+    n.iRel = iRel;
+    return n;
+}
+
+void storyGraph::addLink(sKeyEvt from, sKeyEvt to, std::string word) {
+    sLink newLink;
+    newLink.fromEvt = from;
+    newLink.toEvt = to;
+    newLink.word = word;
+    vNarrativeLinks.push_back(newLink);
+}
+
+void storyGraph::addMeaningAndLink(sKeyEvt from, sKeyEvt to, std::string meaning) {
+    /* The first line of the meaning gives the narrative semantic word used to
+     * creates a link between the fromEvt and the toEvt */
+    std::string firstLine = meaning.substr(0, meaning.find(','));
+    // Extract each narrative words
+    size_t endWrd = firstLine.find(' ');
+    while (endWrd != std::string::npos && firstLine != "") {
+        std::string w = firstLine.substr(0, endWrd + 1);
+        firstLine = firstLine.substr(endWrd + 1);
+        addLink(from, to, w);
+        endWrd = firstLine.find(' ');
+    }
+    vMeanings.push_back(meaning);
+}
+
+/*std::string storyGraph::tagsToOCW(int i) {
+    if (i < 0 || i >= (int)vNarraMeanings.size())
         return "";
-    std::string s = vNarrativeLinks.at(i).label;
+    sNarrativeMeaning lk = vNarraMeanings.at(i);
+    std::string s = lk.meaning;
     std::smatch m;
-    std::regex e ("<e:[0-9]*(;a:[a-zA-Z0-9_]*)?(;r:[0-9]*)?>");
+    std::regex e ("<([FT]):([DGAR])(:r[0-9]*)?(:a[a-zA-Z0-9_]*)?(:[PAOR])?>");
 
     std::string next = "";
-    do { // Replace each balise
+    do { // Replace each tag
         std::regex_search(s, m, e);
         if (!m.empty()) {
             next = m.prefix();
             // Replacing event
-            std::string balise = m[0];
-            std::smatch m2;
-            std::regex evtExp ("e:([0-9]*)");
-            std::regex_search(balise, m2, evtExp);
-            if (m2.size() > 1 && m2[1] != "") {
-                int nEvt = stoi(m2[1]);
-                // Is there focus on an argument?
-                std::smatch m3;
-                std::regex argExp (";a:([a-zA-Z0-9_]*)");
-                std::regex_search(balise, m3, argExp);
-                if (m3.size() > 1 && m3[1] != "") {
-                    next += whatIs(nEvt, m3[1]);
-                }
-                else {
-                    // Is there focus on a relation?
-                    std::smatch m3;
-                    std::regex relExp (";r:([0-9]*)");
-                    std::regex_search(balise, m3, relExp);
-                    if (m3.size() > 1 && m3[1] != "") {
-                        int nRel = stoi(m3[1]);
-                        next += relationToSentence(nEvt, nRel);
-                    }
-                    else {
-                        next += evtToSentence(nEvt);
+            // Select next tag
+            std::string tag = m[0];
+            std::smatch caract;
+            std::regex evtExp ("<([FT]):([DGAR])(:r[0-9]*)?(:a[a-zA-Z0-9_]*)?(:[PAOR])?>");
+            std::regex_search(tag, caract, evtExp);
+            // Select relation
+            std::string relation = caract[3];
+            std::smatch rn;
+            std::regex relExp (":r([0-9]*)");
+            std::regex_search(relation, rn, relExp);
+            // Select arguments
+            std::string argument = caract[4];
+            std::smatch an;
+            std::regex argExp (":a([a-zA-Z0-9_]*)");
+            std::regex_search(argument, an, argExp);
+            // PAOR is the 5th
+            if (caract[1] != "" && caract[2] != "") { // If DGAR number and type of cell are precised
+                int nDGAR = (caract[1] == "F") ? lk.fromDGAR : lk.toDGAR;
+                int nEvt = -1;
+                if (nDGAR >= 0 && nDGAR < (int) vDGAR.size()) {
+                    if (caract[2] == "D")
+                        nEvt = vDGAR.at(nDGAR).iDrive;
+                    else if (caract[2] == "G")
+                        nEvt = vDGAR.at(nDGAR).iGoal;
+                    else if (caract[2] == "R")
+                        nEvt = vDGAR.at(nDGAR).iResult;
+                    else
+                        nEvt = vDGAR.at(nDGAR).iAction;
+                    if (nEvt != -1) {
+                        // Is there focus on a relation?
+                        if (rn.size() > 1 && rn[1] != "") {
+                            int i = stoi(rn[1]);
+                            if (caract[5] == ":P")
+                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(1).toString();
+                            else if (caract[5] == ":A")
+                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(0).toString();
+                            else if (caract[5] == ":O")
+                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(2).toString();
+                            else {
+                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(1).toString() + " " +
+                                        vEvents.at(nEvt).bRelations.get(i).asList()->get(0).toString() + " " +
+                                        vEvents.at(nEvt).bRelations.get(i).asList()->get(2).toString();
+                            }
+                        }
+                        // Is there focus on a argument?
+                        else if (an.size() > 1 && an[1] != "") {
+                            if (caract[5] == ":P")
+                                next += whatIs(nEvt, an[1]);
+                            else if (caract[5] == ":A")
+                                next += an[1];
+                        }
+                        else {
+                            // Only the event
+                            if (caract[5] == ":P")
+                                next += vEvents.at(nEvt).predicate;
+                            else if (caract[5] == ":A")
+                                next += vEvents.at(nEvt).agent;
+                            else if (caract[5] == ":O")
+                                next += vEvents.at(nEvt).object;
+                            else if (caract[5] == ":R")
+                                next += vEvents.at(nEvt).recipient;
+                            else {
+                                next += vEvents.at(nEvt).predicate + " " +
+                                        vEvents.at(nEvt).agent + " " +
+                                        vEvents.at(nEvt).object + " " +
+                                        vEvents.at(nEvt).predicate;
+                            }
+                        }
                     }
                 }
             }
@@ -427,11 +507,32 @@ std::string storyGraph::linkToSentence(int i) {
         }
     } while (!m.empty());
     return s;
+}*/
+
+int storyGraph::isKnown(std::string predicate, std::string agent, std::string object, std::string recipient) {
+    for(unsigned int i = 0; i < vEvents.size(); i++) {
+        evtStory e = vEvents.at(i);
+        if (e.predicate == predicate && e.agent == agent && e.object == object && e.recipient == recipient)
+            return i;
+    }
+    return -1;
 }
 
-void storyGraph::tellStory() {
-    for (unsigned int i = 0; i < vNarrativeLinks.size(); i++) {
-        std::cout << linkToSentence(i) << std::endl;
+void storyGraph::addRelation(int i, std::string predicate, std::string agent, std::string object) {
+    if (i < 0 || i >= (int)vEvents.size())
+        return;
+    evtStory& e = vEvents.at(i);
+    yarp::os::Bottle aimedRelation;
+    aimedRelation.addString(agent);
+    aimedRelation.addString(predicate);
+    aimedRelation.addString(object);
+    e.bRelations.addList() = aimedRelation;
+}
+
+void storyGraph::TESTwhenIsUsed(std::string word) {
+    for(sLink lk : vNarrativeLinks) {
+        if (lk.word == word) {
+            std::cout << "From " << lk.fromEvt.cellCat << " of DGAR " << lk.fromEvt.iDGAR << " to " << lk.toEvt.cellCat << " of DGAR " << lk.toEvt.iDGAR << std::endl;
+        }
     }
 }
-
