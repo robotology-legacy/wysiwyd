@@ -270,7 +270,8 @@ Bottle learnPrimitive::extractProtoAction(){
     std::string cmd =
         "myData <- data.frame(instancedata, frameNumber, action, value, joint); "
         "print(is.data.frame(myData)); "
-        "print(head(myData)); ";
+        "print(head(myData)); "
+        "cat('number of lines : ', nrow(myData))";
     R.parseEval(cmd);
 
     //3. R is doing the lm's and send results
@@ -289,7 +290,7 @@ Bottle learnPrimitive::extractProtoAction(){
     R.parseEval(cmd);
    /******************************************** /!\ TODO: Use a pre-defined dictionary for all joints or ini file /!\ ********************************************/
 
-    //3.2 Remove the first "flat" part: floating windows of 5? (i +/-2) and 'begin' when diff > threshold ~ 0.2
+    //3.2 Remove the first "flat" part: floating windows of 5? (i +/-2) and 'begin' when diff > threshold ~ 0.2. Assume that data are stored by ascending instance number
     // install.packages("zoo") for that!
     R["winSize"] = 5;
     R["winStep"] = 2;
@@ -304,11 +305,41 @@ Bottle learnPrimitive::extractProtoAction(){
         "        break;"
         "    }"
         "};"
-        "cat('cutFrom: ', cutFrom);"
+        "cat('cutFrom: ', cutFrom, '\n');"
         "cutFrom <- cutFrom * winStep;"
-        "cat('finalCutFrom: ', cutFrom);";
+        "cat('finalCutFrom: ', cutFrom, '\n');";
 
     R.parseEval(cmd);
+
+    //3.3 extract the frameNumber to use for subset (depending on spying port, portnumber might not corresponding to line number)
+    cmd =
+        "frame2cut <- myData$frameNumber[cutFrom];"
+        "cat('frame below which to cut: ', frame2cut, '\n')";
+    R.parseEval(cmd);
+
+    //3.4 do the subset
+    cmd =
+        "myCleanedData <- subset(myData, (myData$instancedata != min(myData$instancedata) | myData$frameNumber > frame2cut));"
+        "cat('myCleanedData has now ', nrow(myCleanedData), ' lines\n');"
+        "print(head(myCleanedData));";
+    R.parseEval(cmd);
+
+    //3.4 do the subset
+    cmd =
+        "print(myCleanedData$instancedata)";
+    R.parseEval(cmd);
+
+
+
+
+
+    /* ********************  So actually with the new feature of keeping the same instance number of streaming, I need to split the motor babbling into different instance by myself
+     * 1. go to the main and extract the time of the different sentence
+     * 2. split the proprioceptive babbling using time and assign the instance + "fold/unfold" of the sentence
+     * =====> in SQL for time split
+     * ********************************************************************************************************************************************************************************
+
+
 
 
     //4. results are stored/written in ini file
