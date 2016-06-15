@@ -157,11 +157,12 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " narrate + instanceStory = default_value: \n" +
         " displayStories + n-back = default_all: \n" +
         " listenStory: \n" +
-        " cleanMeantal\n" +
+        " cleanMental\n" +
         " initGraph\n" +
         " listEvts\n" +
         " createEvt + predicate + agent (+ object (+ recipient))\n" +
         " createRel + noEvt + predicate + agent + object \n" +
+        " createArg + noEvt + key + value \n" +
         " autoDGAR\n" +
         " createDGAR + 2 x evts\n" +
         " changeDGAR + no + which + type + nb\n" +
@@ -257,7 +258,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         yInfo(" initialize the narrative graph with last story");
         if (command.size() >= 2) {
             int i = command.get(1).asInt();
-            if (i >= 0 && i < listStories.size()) {
+            if (i >= 0 && i < (int)listStories.size()) {
                 sg.initializeStory(listStories.at(i));
                 yInfo(" import and init sucessful");
                 reply.addString("init sucessful");
@@ -294,6 +295,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             if (command.size() >= 5)
                 recipient = command.get(4).asString();
             sg.createAndAddEvt(predicate, agent, object, recipient);
+            if (command.size() >= 6 && command.get(5).asString() == "F") {
+                sg.vEvents.back().begin = false;
+            }
             yInfo(" creation sucessful");
             reply.addString(" creation sucessful");
         }
@@ -316,6 +320,21 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         else {
             yInfo(" Not enough arguments");
             reply.addString("Error: Needs 4 arguments");
+        }
+    }
+    else if (command.get(0).asString() == "createArg") {
+        yInfo(" create a narrative graph argument");
+        if (command.size() >= 4) {
+            int nEvt = command.get(1).asInt();
+            std::string key = command.get(2).asString();
+            std::string value = command.get(3).asString();
+            sg.addArgument(nEvt, key, value);
+            yInfo(" creation sucessful");
+            reply.addString(" creation sucessful");
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 3 arguments");
         }
     }
     else if (command.get(0).asString() == "createDGAR") {
@@ -344,6 +363,12 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "TESTwhenIsUsed") {
         sg.TESTwhenIsUsed(command.get(1).asString());
+        reply.addString("-ok");
+    }
+    else if (command.get(0).asString() == "TESTlistLinks") {
+        for(storygraph::sLink lk : sg.vNarrativeLinks) {
+            std::cout << lk.word << ": From " << lk.fromEvt.cellCat << " of DGAR " << lk.fromEvt.iDGAR << " to " << lk.toEvt.cellCat << " of DGAR " << lk.toEvt.iDGAR << std::endl;
+        }
         reply.addString("-ok");
     }
     else{
@@ -1808,6 +1833,7 @@ void narrativeHandler::automaticDGAR(storygraph::storyGraph &_sg, Bottle &reply)
         evtStory currentEvt = _sg.vEvents.at(i);
         if (currentEvt.begin) { // For each begin of action
             evtStory endCurrent;
+            endCurrent.isNarration = false;
             endCurrent.instance = -1;
             if (i + 1 < _sg.vEvents.size() && !_sg.vEvents.at(i+1).begin) { // Is there an end event ?
                 endCurrent = _sg.vEvents.at(i+1);
@@ -1815,7 +1841,7 @@ void narrativeHandler::automaticDGAR(storygraph::storyGraph &_sg, Bottle &reply)
             // Save events
             int start = auto_sg.vEvents.size();
             auto_sg.vEvents.push_back(currentEvt); // Event for action and drive
-            if (endCurrent.instance != -1) {
+            if (endCurrent.isNarration || endCurrent.instance != -1) {
                 auto_sg.vEvents.push_back(endCurrent); // Event for goal and result
             }
             // Packing it in a GDAR
@@ -1825,7 +1851,7 @@ void narrativeHandler::automaticDGAR(storygraph::storyGraph &_sg, Bottle &reply)
             dgar.iDrive = start;
             dgar.tAction = storygraph::EVENT;
             dgar.iAction = start;
-            if (endCurrent.instance != -1) {
+            if (endCurrent.isNarration || endCurrent.instance != -1) {
                 dgar.tResult = storygraph::EVENT;
                 dgar.iResult = start + 1;
             }

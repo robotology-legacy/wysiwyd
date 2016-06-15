@@ -409,7 +409,7 @@ void storyGraph::addMeaningAndLink(sKeyEvt from, sKeyEvt to, std::string meaning
     // Extract each narrative words
     size_t endWrd = firstLine.find(' ');
     while (endWrd != std::string::npos && firstLine != "") {
-        std::string w = firstLine.substr(0, endWrd + 1);
+        std::string w = firstLine.substr(0, endWrd);
         firstLine = firstLine.substr(endWrd + 1);
         addLink(from, to, w);
         endWrd = firstLine.find(' ');
@@ -527,6 +527,13 @@ void storyGraph::addRelation(int i, std::string predicate, std::string agent, st
     aimedRelation.addString(predicate);
     aimedRelation.addString(object);
     e.bRelations.addList() = aimedRelation;
+}
+
+void storyGraph::addArgument(int i, std::string key, std::string value){
+    if (i < 0 || i >= (int)vEvents.size())
+        return;
+    evtStory& e = vEvents.at(i);
+    e.vArgument.push_back(std::pair < std::string, std::string > (key, value));
 }
 
 void storyGraph::TESTwhenIsUsed(std::string word) {

@@ -76,6 +76,7 @@ namespace storygraph {
         sDGAR addDGAR(const sDGAR& dgarToAdd); // Adds a DGAR, checking for validity of parameters. Returns the DGAR added, possibly different from the entry.
         void createAndAddEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = "");
         void addRelation(int i, std::string predicate, std::string agent, std::string object); // Adds a relation to the i-th event
+        void addArgument(int i, std::string key, std::string value);
 
         // Naïve Narration (! Used for debug only !)
         std::string evtToSentence(int i); // Naïve sentence corresponding to the event
