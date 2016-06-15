@@ -643,7 +643,6 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
                 bReply = bError;
             }
         }
-
         //remove an image provider from the list of available stream images provider
         else if (bCommand.get(0) == "removeImgStreamProvider")
         {
@@ -734,7 +733,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             else {
                 bReply.addString("nack");
             }
-            }
+        }
         else if (bCommand.get(0) == "getStreamStatus")
         {
             bReply.addString(std::string(static_cast<char>(streamStatus), 1));
@@ -745,7 +744,7 @@ bool autobiographicalMemory::respond(const Bottle& bCommand, Bottle& bReply)
             yInfo() << "\n" << helpMessage;
             bReply = bError;
         }
-        }
+    }
     else
     {
         bError.addString(helpMessage);
@@ -1346,7 +1345,6 @@ Bottle autobiographicalMemory::eraseInstance(const Bottle &bInput)
         bRequest.addString("request");
         bRequest.addString(osRequest.str().c_str());
         request(bRequest);
-
     }
     bOutput.addString("instance(s) erased");
     return bOutput;
