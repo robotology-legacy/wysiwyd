@@ -9,3 +9,5 @@ add_subdirectory(allostaticController)
 add_subdirectory(homeostasis)
 add_subdirectory(sensationManager)
 add_subdirectory(behaviorManager)
+add_subdirectory(goalManager)
+

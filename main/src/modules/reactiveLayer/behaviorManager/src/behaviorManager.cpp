@@ -160,6 +160,7 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
     }
     else
     {
+        bool behavior_triggered = false;
         for(auto& beh : behaviors) {
             if (cmd.get(0).asString() == beh->behaviorName) {
         //         Bottle args;
@@ -182,7 +183,14 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                     }   
                 }
 
-                beh->trigger(/*args*/);
+                Bottle args;
+                args.clear();
+                if (cmd.size()>1){
+                    for (int i = 1; i < cmd.size(); i++)
+                        args.addList()=*cmd.get(i).asList();
+                }
+                beh->trigger(args);
+                behavior_triggered = true;
 
                 // Add event into ABM
                 if (iCub->getABMClient()->Connect()) {
@@ -203,7 +211,12 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 }
             }
         }
-        reply.addString("ack");
+        if (behavior_triggered)
+            reply.addString("ack");
+        else{
+            reply.addString("nack");
+            yDebug()<< "Behavior ' " << cmd.get(0).asString() << " ' not found. \nSend 'names' to see a list of available behaviors. ";
+        }
     }
     yDebug() << "End of BehaviorManager::respond";
     return true;

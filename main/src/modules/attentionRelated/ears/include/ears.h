@@ -11,11 +11,14 @@ private:
     Port        rpc;
     Port        portToBehavior;
     Port        portToSpeechRecognizer;
+    BufferedPort<Bottle>        port_behavior;
+    BufferedPort<Bottle>        goal_need_port;
     BufferedPort<Bottle>        portTarget;
-
+    bool goals_version;
     Mutex m;
     bool bShouldListen;
 
+    std::string      grammarToString(std::string sPath);
     std::string      MainGrammar;
 
 public:

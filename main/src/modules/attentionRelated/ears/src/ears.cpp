@@ -5,6 +5,8 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("ears")).asString().c_str();
     setName(moduleName.c_str());
+    goals_version = rf.check("goals",Value("false")).asBool();
+    yDebug()<< goals_version;
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
@@ -24,6 +26,30 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     portToSpeechRecognizer.open("/" + moduleName + "/speech:o");
 
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
+    bShouldListen = true;
+
+    if (goals_version){
+        portToBehavior.open("/" + moduleName + "/behavior:o");
+        /*while (!Network::connect(portToBehavior.getName(),"/GoalManager/trigger:i ")) {
+            yWarning() << " Behavior is not reachable";
+            yarp::os::Time::delay(0.5);
+        }*/
+
+        port_behavior.open("/" + moduleName + "/target:o");
+
+        goal_need_port.open("/" + moduleName + "/goal:o");
+    }else{
+        portToBehavior.open("/" + moduleName + "/behavior:o");
+        while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i ")) {
+            yWarning() << " Behavior is not reachable";
+            yarp::os::Time::delay(0.5);
+        }
+
+        portTarget.open("/" + moduleName + "/target:o");
+    }
+
+    MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
+
     bShouldListen = true;
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
@@ -76,9 +102,16 @@ bool ears::close() {
 
     portToBehavior.interrupt();
     portToBehavior.close();
+    if (goals_version){
+        port_behavior.interrupt();
+        port_behavior.close();
 
-    portTarget.interrupt();
-    portTarget.close();
+        goal_need_port.interrupt();
+        goal_need_port.close();
+    }else{
+        portTarget.interrupt();
+        portTarget.close();
+    }
 
     yDebug() << "closing rpc port";
     rpc.interrupt();
@@ -219,16 +252,50 @@ bool ears::updateModule() {
             sObject = "";
         } else {
             yError() << "[ears] Unknown predicate";
-
+            if (goals_version){
+                    Bottle &bGoal = goal_need_port.prepare();
+                    bGoal.clear();
+                    bGoal.addInt(1);
+                    goal_need_port.write();
+                }
+            return true;
         }
+        //send rpc data to goalManager
+        if (goals_version){
+            Bottle &bToTarget = port_behavior.prepare();
+            bToTarget.clear();
+            Bottle bAux;
+            bAux.clear();
+            Bottle bAux2;
+            bAux2.clear();
+            bToTarget.addString("new");
+            bAux.addString(sAction);
+            bAux2.addString(sObjectType);
+            bAux2.addString(sObject);
+            bAux.addList()=bAux2;
+            bToTarget.addList()=bAux;
+            port_behavior.write();
+            yDebug() << "Sending " + bToTarget.toString();
+        }else{
+            Bottle &bToTarget = portTarget.prepare();
+            bToTarget.clear();
+            bToTarget.addString(sAction);
+            bToTarget.addString(sObjectType);
+            bToTarget.addString(sObject);
+            portTarget.write();
 
-        Bottle &bToTarget = portTarget.prepare();
-        bToTarget.clear();
-        bToTarget.addString(sAction);
-        bToTarget.addString(sObjectType);
-        bToTarget.addString(sObject);
-        portTarget.write();
+            Bottle bCondition;
+            bCondition.addString(sCommand);
+            bCondition.addString(sAction);
+            bCondition.addString(sObjectType);
+            bCondition.addString(sObject);
 
+            portToBehavior.write(bCondition);
+     
+            yDebug() << "Sending " + bCondition.toString();
+        }
+        /* -> This should go inside behaviors
+        //send rpc to behaviors  
         Bottle bCondition;
         bCondition.addString(sCommand);
         bCondition.addString(sAction);
@@ -236,11 +303,46 @@ bool ears::updateModule() {
         bCondition.addString(sObject);
 
         portToBehavior.write(bCondition);
+        */
 
-        yDebug() << "Sending " + bCondition.toString();
+        /* -> moved to goalManager
+        //send rpc to allostasis  
+        Bottle &bGoal = goal_need_port.prepare();
+        bGoal.clear();
+        bGoal.addInt(1);
+        goal_need_port.write();
+        
+        yDebug() << "Sending " + bGoal.toString();
+        */
     } else {
         yDebug() << "Not bListen";
     }
 
     return true;
+}
+
+
+/*
+*   Get the context path of a .grxml grammar, and return it as a string
+*
+*/
+string ears::grammarToString(string sPath)
+{
+    string sOutput = "";
+    ifstream isGrammar(sPath.c_str());
+
+    if (!isGrammar)
+    {
+        yInfo() << "Error in ears::grammarToString. Couldn't open file : " << sPath << ".";
+        return "Error in ears::grammarToString. Couldn't open file";
+    }
+
+    string sLine;
+    while (getline(isGrammar, sLine))
+    {
+        sOutput += sLine;
+        sOutput += "\n";
+    }
+
+    return sOutput;
 }
