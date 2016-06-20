@@ -18,81 +18,91 @@
 #include <story.h>
 
 namespace storygraph {
-    struct sKeyEvt { // For narrative link: which part of which DGAR is looked at?
-        int iDGAR;
-        char cellCat; // Drive, Goal, Action or Result ?
-        int iRel; // if looking at a relation, -1 else
+
+    struct sActionEvt {
+        std::string predicate;
+        std::string agent;
+        std::string object;
+        std::string recipient;
     };
 
-    struct sLink {
-        sKeyEvt fromEvt;
-        sKeyEvt toEvt;
+    struct sRelation {
+        std::string subject;
+        std::string verb;
+        std::string object;
+    };
+
+    enum evtType {
+        UNDEF, ACTION_EVT, IGARF_EVT
+    };
+
+    struct sIGARF {
+        std::vector < int > vInitState;
+        std::vector < int > vGoal;
+        evtType tAction;
+        evtType tResult;
+        int iAction;
+        int iResult;
+        std::vector < int > vFinalState;
+        int iNext; // -1 if none
+    };
+
+    struct sKeyMean {
+        int iIGARF;
+        char cPart; // I (InitState) G (Goal) A (Action) R (Result) F (FinalState)
+        int iRel; // Relation index
+    };
+
+    struct sDiscourseLink {
+        sKeyMean fromEvt;
+        sKeyMean toEvt;
         std::string word;
     };
 
-    enum cell_type {
-        NONE, EVENT, DGAR_CELL
-    };
-
-    struct sDGAR {
-        std::string label; // <- Not used in narration
-        cell_type tDrive;
-        cell_type tGoal;
-        cell_type tAction;
-        cell_type tResult;
-        cell_type tNext;
-        int iDrive;
-        int iGoal;
-        int iAction;
-        int iResult;
-        int iNext;
-    };
-
-    class storyGraph {
+    class situationModel {
     public:
-        std::vector < evtStory > vEvents;
-        std::vector < sDGAR >    vDGAR;
-        std::vector < sLink >    vNarrativeLinks;
+        std::vector < sRelation >      vRelations;
+        std::vector < sActionEvt >     vActionEvts;
+        std::vector < sIGARF >         vIGARF;
+        std::vector < sDiscourseLink > vDiscourseLinks;
 
         std::vector < std::string > vMeanings; // NarrativeSemanticWords, PAOR1, PAOR2, PAOR3 <o> [_-_-_-L-_], [A-P-O-_-_], [A-_-_-_-P], [_-_-_-_-_] <o>
 
-        storyGraph();
+        situationModel();
 
         void initializeStory(const story& base); // Imports events
 
-        // Display functions
-        std::string expressDGAR(int i, int details = -1); // details decrease when going in a sub DGAR, stops at 0 to give a simple label (-1 -> all sub DGARs)
-        std::string evtRelations(int i); // A string to display relations.
-        std::string evtArguments(int i);
-        std::string evtDetails(int i); // A string to display PAOR, relations and arguments.
-        std::string getDescription(cell_type ct, int i, int details = -1); // Given a cell type and an index, returns details about the event.
-        void show_tree(int start, int level = 0, bool withNext = false); // Display a tree view of a DGAR
+        // -- IGARF approach
+        void clear(); // Remove all IGARF and ActionEvt
 
-        // Access
-        std::string whatIs(int i, std::string role); // Given an event number, find the argument with label 'role'
+        bool sameRelation(const sRelation &r1, const sRelation &r2);
 
-        // DGAR construction
-        bool satisfies(int a, int b); // Does the a-th event satifies the relations of the b-th event?
-        sDGAR addDGAR(const sDGAR& dgarToAdd); // Adds a DGAR, checking for validity of parameters. Returns the DGAR added, possibly different from the entry.
-        void createAndAddEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = "");
-        void addRelation(int i, std::string predicate, std::string agent, std::string object); // Adds a relation to the i-th event
-        void addArgument(int i, std::string key, std::string value);
+        // Display
+        std::string getSentenceEvt(int i); // Produces a naïve sentence from the i-th event
+        std::string getSentenceRel(int i); // Produces a naïve sentence from the i-th relations
+        std::string dispRelations(const std::vector < int >& rels);
+        void showIGARF(int i, int level = 0); // Displays a tree view of the i-th IGARF
 
-        // Naïve Narration (! Used for debug only !)
-        std::string evtToSentence(int i); // Naïve sentence corresponding to the event
-        std::string argumentToSentence(int i, int j); // Naïve sentence corresponding to the j-th argument of the i-th event
-        std::string relationToSentence(int i, int j);
-        //std::string linkToSentence(int i); // Replace the <X> in the i-th link by the corresponding sentences of the events.
-        //void tellStory(); // Using the narrative links vector, tell the story.
-
-        // Semantic Narration
-        // From a meaning and link, enrich DGAR
-        sKeyEvt newKey(int iDGAR, char cellCat, int iRel);
-        void addLink(sKeyEvt from, sKeyEvt to, std::string word);
-        void addMeaningAndLink(sKeyEvt from, sKeyEvt to, std::string meaning);
-        //std::string tagsToOCW(int i);
-
-        int isKnown(std::string predicate, std::string agent, std::string object = "", std::string recipient = ""); // Return Evt number if exists, -1 else
+        // Creation - Modification
+        // Create (or find) Relation, ActionEvt or IGARF event and stock them in the class vectors. Return their index.
+        int addNewActionEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = "");
+        int addOrFindRelation(sRelation rel);
+        int createIGARF();
+        sRelation fromValueToRelation(const yarp::os::Value& b);
+        // Modify
+        void modifEventIGARF(int iIGARF, char cPart, int iActEvt); // Modify Action (cPart = 'A') or Result (cPart = 'R')
+        void modifContentIGARF(int iIGARF, char cPart, int jIGARF); // Action or Result of iIGARF-th IGARF became jIGARF-th IGARF
+        void remContentIGARF(int iIGARF, char cPart);
+        void addRelationIGARF(int iIGARF, char cPart, int iRel); // Add the iRel-th relation to the iIGARF-th IGARF event
+        void removeRelationIGARF(int iIGARF, char cPart, int iRel); // iRel index is the index in the class vector (not IGARF vector)
+        void createFromStory(const story &s);
+        // Meaning
+        sKeyMean createKey(int iIGARF, char cPart, int iRel);
+        void createLink(sKeyMean from, sKeyMean to, std::string word);
+        sKeyMean findEventOrRelation(std::string meaning); // Return a (-1 'A' -1) sKeyMean if not found
+        sKeyMean addMeaningAndLink(std::string meaning, sKeyMean previous); // From a meaning extract discourse function words and events
+                                                                            // then create a link from previous to current event. Return current keyMean.
         void TESTwhenIsUsed(std::string word); // Temporary tool function. Displays all links made with the word
+
     };
 }

@@ -3,239 +3,141 @@
 #include <map>
 
 using namespace storygraph;
-
-storyGraph::storyGraph() {}
-
-void storyGraph::initializeStory(const story& sto) {
-    vDGAR.clear();
-    vNarrativeLinks.clear();
-    vEvents.clear();
-
-    vEvents = sto.vEvents;
-}
-
-// -- Display functions --
-
-std::string storyGraph::expressDGAR(int i, int details) {
-    std::string exp = "";
-    // Checks
-    if (i < 0 || i >= (int)vDGAR.size())
-        return exp;
-    sDGAR story = vDGAR.at(i);
-    if (details == 0)
-        return story.label;
-    // Drive and its links
-    std::string d = getDescription(story.tDrive, story.iDrive, details);
-    // Goal
-    std::string g = getDescription(story.tGoal, story.iGoal, details);
-    // Action
-    std::string a = getDescription(story.tAction, story.iAction, details);
-    // Result
-    std::string r = getDescription(story.tResult, story.iResult, details);
-    // Next
-    std::string n = getDescription(story.tNext, story.iNext, details);
-    if (d != "") {
-        return d;
-    }
-    if (a != "") {
-        return a;
-    }
-    if (g != "") {
-        return g;
-    }
-    if (r != "") {
-        return r;
-    }
-    if (n != "") {
-        return n;
-    }
-    return "";
-}
-
-std::string storyGraph::evtRelations(int i) {
-    std::string s = "";
-    if (i < 0 || i >= (int)vEvents.size())
-        return s;
-    evtStory evt = vEvents.at(i);
-
-    // Relation
-    s += " [";
-    for (int i = 0; i < evt.bRelations.size(); i++) {
-        if (evt.bRelations.get(i).isList()) {
-            s += evt.bRelations.get(i).asList()->get(1).toString();
-            s += "(" + evt.bRelations.get(i).asList()->get(0).toString();
-            s += "," + evt.bRelations.get(i).asList()->get(2).toString();
-            s += "),";
-        }
-    }
-    s += "]";
-
-    return s;
-}
-
-std::string storyGraph::evtArguments(int i) {
-    std::string s = "";
-    if (i < 0 || i >= (int)vEvents.size())
-        return s;
-    evtStory evt = vEvents.at(i);
-
-    // Arguments
-    for (auto iarg = evt.vArgument.begin(); iarg != evt.vArgument.end(); iarg++){
-        s += " [" + iarg->first + ": " + iarg->second + "]";
-    }
-
-    return s;
-}
-
-std::string storyGraph::evtDetails(int i) {
-    std::string s = "";
-    if (i < 0 || i >= (int)vEvents.size())
-        return s;
-    evtStory evt = vEvents.at(i);
-    s += evt.predicate + "(" + evt.agent + ", " + evt.object + ", " + evt.recipient + ")";
-
-    // Relation
-    s += evtRelations(i);
-
-    // Arguments
-    s += evtArguments(i);
-
-    return s;
-}
-
-std::string storyGraph::getDescription(cell_type ct, int i, int details) {
-    if (ct == EVENT) {
-        return evtToSentence(i);
-    }
-    else if (ct == DGAR_CELL) {
-        return expressDGAR(i, details - 1);
-    }
-    return "";
-}
+using namespace std;
 
 void margin(int level) {
     for(int i = 0; i < level; i++)
-        std::cout << "| ";
+        cout << "| ";
 }
 
-void storyGraph::show_tree(int start, int level, bool withNext) {
-    // Checks
-    if (start < 0 || start >= (int)vDGAR.size())
+situationModel::situationModel() {}
+
+void situationModel::clear() {
+    vRelations.clear();
+    vActionEvts.clear();
+    vIGARF.clear();
+    vDiscourseLinks.clear();
+}
+
+bool situationModel::sameRelation(const sRelation &r1, const sRelation &r2) {
+    return (r1.verb    == r2.verb    &&
+            r1.subject == r2.subject &&
+            r1.object  == r2.object);
+}
+
+// Display
+
+string situationModel::getSentenceEvt(int i) {
+    if (i < 0 || i >= (int)vActionEvts.size())
+        return "";
+
+    return vActionEvts.at(i).agent + " " +
+           vActionEvts.at(i).predicate + " " +
+           vActionEvts.at(i).object + " " +
+           vActionEvts.at(i).recipient;
+}
+
+string situationModel::getSentenceRel(int i) {
+    if (i < 0 || i >= (int)vRelations.size())
+        return "";
+
+    return vRelations.at(i).subject + " " + vRelations.at(i).verb + " " + vRelations.at(i).object;
+}
+
+string situationModel::dispRelations(const vector < int >& rels) {
+    string s = "";
+    for (int i : rels) {
+        s += " [" + getSentenceRel(i) + "] ";
+    }
+    return s;
+}
+
+void line(int level) {
+    char prevC = cout.fill();
+    margin(level);
+    cout.fill('-');
+    cout.width(79 - 2*level);
+    cout << right << "-" << endl;
+    cout.fill(prevC);
+}
+
+void situationModel::showIGARF(int i, int level) {
+    if (i < 0 || i >= (int)vIGARF.size())
         return;
 
-    sDGAR main = vDGAR.at(start);
-    std::cout << "[" << start << "] " << main.label << std::endl;
-    // Drive
+    const sIGARF &evt = vIGARF.at(i);
     margin(level);
-    std::cout << "+-DRIVE: ";
-    if (main.tDrive == EVENT) {
-        std::cout << "[" << main.iDrive << "] " << evtRelations(main.iDrive) << std::endl;
+    cout << "[" << i << "] " << endl;
+    line(level);
+    margin(level);
+    cout << "+-INIT: " << dispRelations(evt.vInitState) << endl;
+    margin(level);
+    cout << "+-GOAL: " << dispRelations(evt.vGoal) << endl;
+    margin(level);
+    cout << "+-ACTION: ";
+    if (evt.tAction == ACTION_EVT) {
+        cout << "[" << evt.iAction << "] " << getSentenceEvt(evt.iAction) << endl;
     }
-    else if (main.tDrive == DGAR_CELL) {
-        show_tree(main.iDrive, level + 1, withNext);
+    else if (evt.tAction == IGARF_EVT) {
+        cout << "[" << evt.iAction << "]" << endl;
+        showIGARF(evt.iAction, level + 1);
+    }
+    else
+        cout << endl;
+    margin(level);
+    cout << "+-RESULT: ";
+    if (evt.tResult == ACTION_EVT) {
+        cout << "[" << evt.iResult << "] " << getSentenceEvt(evt.iResult) << endl;
+    }
+    else if (evt.tResult == IGARF_EVT) {
+        cout << "[" << evt.iResult << "]" << endl;
+        showIGARF(evt.iResult, level + 1);
+    }
+    else
+        cout << endl;
+    margin(level);
+    cout << "+-FINAL: " << dispRelations(evt.vFinalState) << endl;
+    margin(level);
+    cout << "+-NEXT: ";
+    if (evt.iNext != -1) {
+        cout << "[" << evt.iNext << "]" << endl;
+        line(level);
+        showIGARF(evt.iNext, level);
     }
     else {
-        std::cout << std::endl;
-    }
-    // Goal
-    margin(level);
-    std::cout << "+-GOAL: ";
-    if (main.tGoal == EVENT) {
-        std::cout << "[" << main.iGoal << "] " << evtRelations(main.iGoal) << std::endl;
-    }
-    else if (main.tGoal == DGAR_CELL) {
-        show_tree(main.iGoal, level + 1, withNext);
-    }
-    else {
-        std::cout << std::endl;
-    }
-    // Action
-    margin(level);
-    std::cout << "+-ACTION: ";
-    if (main.tAction == EVENT) {
-        std::cout << "[" << main.iAction << "] " << evtDetails(main.iAction) << std::endl;
-    }
-    else if (main.tAction == DGAR_CELL) {
-        show_tree(main.iAction, level + 1, withNext);
-    }
-    else {
-        std::cout << std::endl;
-    }
-    // Result
-    margin(level);
-    std::cout << "+-RESULT: ";
-    if (main.tResult == EVENT) {
-        std::cout << "[" << main.iResult << "] " << evtRelations(main.iResult) << evtArguments(main.iResult) << std::endl;
-    }
-    else if (main.tResult == DGAR_CELL) {
-        show_tree(main.iResult, level + 1, withNext);
-    }
-    else {
-        std::cout << std::endl;
-    }
-    // Next
-    margin(level);
-    std::cout << "+-NEXT: ";
-    if (main.tNext == EVENT) {
-        std::cout << evtDetails(main.iNext) << std::endl;
-    }
-    else if (main.tNext == DGAR_CELL) {
-        if (withNext) {
-            std::cout << std::endl;
-            margin(level);
-            std::cout << "| ";
-            show_tree(main.iNext, level, withNext);
-        }
-        else {
-            std::cout << main.iNext << std::endl;
-        }
-    }
-    else {
-        std::cout << std::endl;
+        cout << endl;
+        line(level);
     }
 }
 
-// -- Access --
+// Creation - Modification
 
-std::string storyGraph::whatIs(int i, std::string role) {
-    std::string s = "";
-    if (i < 0 || i >= (int)vEvents.size())
-        return s;
-    evtStory evt = vEvents.at(i);
+// Creation
+int situationModel::addNewActionEvt(std::string predicate, std::string agent, std::string object, std::string recipient) {
+    sActionEvt action;
+    action.predicate = predicate;
+    action.agent     = agent;
+    action.object    = object;
+    action.recipient = recipient;
+    vActionEvts.push_back(action);
+    return vActionEvts.size() - 1;
+}
+
+string findValue(const vector<pair<string, string> > &vArgs, string role) {
     // Arguments
-    for (auto iarg = evt.vArgument.begin(); iarg != evt.vArgument.end(); iarg++){
+    for (auto iarg = vArgs.begin(); iarg != vArgs.end(); iarg++){
         if (iarg->first == role)
             return iarg->second;
     }
     return "";
 }
 
-// -- DGAR construction --
-
-bool sameValue(const yarp::os::Value& v1, const yarp::os::Value& v2) {
-    if (v1 == v2)
-        return true;
-    if (v1.isList() && v2.isList()) {
-        return (v1.asList()->get(0).asString() == v2.asList()->get(0).asString()) &&
-               (v1.asList()->get(1).asString() == v2.asList()->get(1).asString()) &&
-               (v1.asList()->get(2).asString() == v2.asList()->get(2).asString());
-    }
-    return false;
-}
-
-bool storyGraph::satisfies(int a, int b) {
-    if (a < 0 || a >= (int)vEvents.size())
-        return false;
-    evtStory evt1 = vEvents.at(a);
-    if (b < 0 || b >= (int)vEvents.size())
-        return false;
-    evtStory evt2 = vEvents.at(b);
-
+bool isRelationsBInA(vector < int > a, vector < int > b) {
     bool cont = true;
-    for (int i = 0; i < evt2.bRelations.size() && cont; i++) {
+    for (int j = 0; j < (int)b.size() && cont; j++) {
         bool found = false;
-        for (int j = 0; j < evt1.bRelations.size() && !found; j++) {
-            if (sameValue(evt2.bRelations.get(i), evt1.bRelations.get(j))) {
+        for (int i = 0; i < (int)a.size() && !found; i++) {
+            if (a.at(i) == b.at(j)) {
                 found = true;
             }
         }
@@ -244,302 +146,464 @@ bool storyGraph::satisfies(int a, int b) {
     return cont;
 }
 
-sDGAR storyGraph::addDGAR(const sDGAR &dgarToAdd) {
-    sDGAR copy = dgarToAdd;
-    // Drive
-    if (copy.tDrive == NONE || copy.iDrive == -1) {
-        copy.tDrive = NONE;
-        copy.iDrive = -1;
-    }
-    else if (copy.tDrive == EVENT) {
-        if (copy.iDrive < 0 || copy.iDrive >= (int)vEvents.size()) {
-            copy.tDrive = NONE;
-            copy.iDrive = -1;
+int situationModel::addOrFindRelation(sRelation rel) {
+    for (int i = 0; i < (int)vRelations.size(); i++) {
+        if (sameRelation(vRelations.at(i), rel)) {
+            return i;
         }
     }
-    else {
-        if (copy.iDrive < 0 || copy.iDrive >= (int)vDGAR.size()) {
-            copy.tDrive = NONE;
-            copy.iDrive = -1;
-        }
-    }
-    // Goal
-    if (copy.tGoal == NONE || copy.iGoal == -1) {
-        copy.tGoal = NONE;
-        copy.iGoal = -1;
-    }
-    else if (copy.tGoal == EVENT) {
-        if (copy.iGoal < 0 || copy.iGoal >= (int)vEvents.size()) {
-            copy.tGoal = NONE;
-            copy.iGoal = -1;
-        }
-    }
-    else {
-        if (copy.iGoal < 0 || copy.iGoal >= (int)vDGAR.size()) {
-            copy.tGoal = NONE;
-            copy.iGoal = -1;
-        }
-    }
-    // Action
-    if (copy.tAction == NONE || copy.iAction == -1) {
-        copy.tAction = NONE;
-        copy.iAction = -1;
-    }
-    else if (copy.tAction == EVENT) {
-        if (copy.iAction < 0 || copy.iAction >= (int)vEvents.size()) {
-            copy.tAction = NONE;
-            copy.iAction = -1;
-        }
-    }
-    else {
-        if (copy.iAction < 0 || copy.iAction >= (int)vDGAR.size()) {
-            copy.tAction = NONE;
-            copy.iAction = -1;
-        }
-    }
-    // Result
-    if (copy.tResult == NONE || copy.iResult == -1) {
-        copy.tResult = NONE;
-        copy.iResult = -1;
-    }
-    else if (copy.tResult == EVENT) {
-        if (copy.iResult < 0 || copy.iResult >= (int)vEvents.size()) {
-            copy.tResult = NONE;
-            copy.iResult = -1;
-        }
-    }
-    else {
-        if (copy.iResult < 0 || copy.iResult >= (int)vDGAR.size()) {
-            copy.tResult = NONE;
-            copy.iResult = -1;
-        }
-    }
-    // Next
-    if (copy.tNext == NONE || copy.iNext == -1) {
-        copy.tNext = NONE;
-        copy.iNext = -1;
-    }
-    else if (copy.tNext == EVENT) {
-        if (copy.iNext < 0 || copy.iNext >= (int)vEvents.size()) {
-            copy.tNext = NONE;
-            copy.iNext = -1;
-        }
-    }
-    else {
-        if (copy.iNext < 0 || copy.iNext >= (int)vDGAR.size()) {
-            copy.tNext = NONE;
-            copy.iNext = -1;
-        }
-    }
-    // Adding it
-    vDGAR.push_back(copy);
-    return copy;
+    vRelations.push_back(rel);
+    return vRelations.size() - 1;
 }
 
-void storyGraph::createAndAddEvt(std::string predicate, std::string agent, std::string object, std::string recipient) {
-    evtStory e;
-    e.instance = -1;
-    e.activity_name = predicate;
-    e.activity_type = "narrated";
-
-    e.predicate = predicate;
-    e.agent = agent;
-    e.object = object;
-    e.recipient = recipient;
-    e.isNarration = true;
-    e.begin = true;
-
-    vEvents.push_back(e);
+int situationModel::createIGARF() {
+    sIGARF newEvent;
+    newEvent.tAction = UNDEF;
+    newEvent.tResult = UNDEF;
+    newEvent.iAction = -1;
+    newEvent.iResult = -1;
+    newEvent.iNext = -1;
+    vIGARF.push_back(newEvent);
+    return vIGARF.size() - 1;
 }
 
-//  --- Naïve Narration ---
+// Modification
+void situationModel::modifEventIGARF(int iIGARF, char cPart, int iActEvt) {
+    if (iIGARF < 0 || iIGARF >= (int)vIGARF.size())
+        return;
+    if (iActEvt < 0 || iActEvt >= (int)vActionEvts.size())
+        return;
 
-std::string storyGraph::evtToSentence(int i) {
-        // -- Todo
-    std::string s = "";
-    if (i < 0 || i >= (int)vEvents.size())
-        return s;
-    evtStory evt = vEvents.at(i);
-    s += evt.agent + " " + evt.predicate + (evt.object !=""?" ":"") + evt.object + (evt.recipient!=""?" to ":"") + evt.recipient;
-    return s;
-}
-
-std::string storyGraph::argumentToSentence(int i, int j) {
-    if (i < 0 || i >= (int)vEvents.size())
-        return "";
-    evtStory evt = vEvents.at(i);
-    if (j < 0 || j >= (int)evt.vArgument.size())
-        return "";
-    std::string what = evt.vArgument.at(j).first;
-    std::string value = evt.vArgument.at(j).second;
-    return what + " is " + value;
-}
-
-std::string storyGraph::relationToSentence(int i, int j) {
-    if (i < 0 || i >= (int)vEvents.size())
-        return "";
-    evtStory evt = vEvents.at(i);
-    if (j < 0 || j >= (int)evt.bRelations.size())
-        return "";
-    return evt.bRelations.get(j).toString();
-}
-
-// -- Semantic Narration
-
-sKeyEvt newKey(int iDGAR, char cellCat, int iRel) {
-    sKeyEvt n;
-    n.iDGAR = iDGAR;
-    n.cellCat = cellCat;
-    n.iRel = iRel;
-    return n;
-}
-
-void storyGraph::addLink(sKeyEvt from, sKeyEvt to, std::string word) {
-    sLink newLink;
-    newLink.fromEvt = from;
-    newLink.toEvt = to;
-    newLink.word = word;
-    vNarrativeLinks.push_back(newLink);
-}
-
-void storyGraph::addMeaningAndLink(sKeyEvt from, sKeyEvt to, std::string meaning) {
-    /* The first line of the meaning gives the narrative semantic word used to
-     * creates a link between the fromEvt and the toEvt */
-    std::string firstLine = meaning.substr(0, meaning.find(','));
-    // Extract each narrative words
-    size_t endWrd = firstLine.find(' ');
-    while (endWrd != std::string::npos && firstLine != "") {
-        std::string w = firstLine.substr(0, endWrd);
-        firstLine = firstLine.substr(endWrd + 1);
-        addLink(from, to, w);
-        endWrd = firstLine.find(' ');
+    if (cPart == 'A') {
+        vIGARF.at(iIGARF).tAction = ACTION_EVT;
+        vIGARF.at(iIGARF).iAction = iActEvt;
     }
-    vMeanings.push_back(meaning);
+    else if (cPart == 'R') {
+        vIGARF.at(iIGARF).tResult = ACTION_EVT;
+        vIGARF.at(iIGARF).iResult = iActEvt;
+    }
 }
 
-/*std::string storyGraph::tagsToOCW(int i) {
-    if (i < 0 || i >= (int)vNarraMeanings.size())
-        return "";
-    sNarrativeMeaning lk = vNarraMeanings.at(i);
-    std::string s = lk.meaning;
-    std::smatch m;
-    std::regex e ("<([FT]):([DGAR])(:r[0-9]*)?(:a[a-zA-Z0-9_]*)?(:[PAOR])?>");
+void situationModel::modifContentIGARF(int iIGARF, char cPart, int jIGARF) {
+    if (iIGARF < 0 || iIGARF >= (int)vIGARF.size())
+        return;
+    if (jIGARF < 0 || jIGARF >= (int)vIGARF.size())
+        return;
 
-    std::string next = "";
-    do { // Replace each tag
-        std::regex_search(s, m, e);
-        if (!m.empty()) {
-            next = m.prefix();
-            // Replacing event
-            // Select next tag
-            std::string tag = m[0];
-            std::smatch caract;
-            std::regex evtExp ("<([FT]):([DGAR])(:r[0-9]*)?(:a[a-zA-Z0-9_]*)?(:[PAOR])?>");
-            std::regex_search(tag, caract, evtExp);
-            // Select relation
-            std::string relation = caract[3];
-            std::smatch rn;
-            std::regex relExp (":r([0-9]*)");
-            std::regex_search(relation, rn, relExp);
-            // Select arguments
-            std::string argument = caract[4];
-            std::smatch an;
-            std::regex argExp (":a([a-zA-Z0-9_]*)");
-            std::regex_search(argument, an, argExp);
-            // PAOR is the 5th
-            if (caract[1] != "" && caract[2] != "") { // If DGAR number and type of cell are precised
-                int nDGAR = (caract[1] == "F") ? lk.fromDGAR : lk.toDGAR;
-                int nEvt = -1;
-                if (nDGAR >= 0 && nDGAR < (int) vDGAR.size()) {
-                    if (caract[2] == "D")
-                        nEvt = vDGAR.at(nDGAR).iDrive;
-                    else if (caract[2] == "G")
-                        nEvt = vDGAR.at(nDGAR).iGoal;
-                    else if (caract[2] == "R")
-                        nEvt = vDGAR.at(nDGAR).iResult;
-                    else
-                        nEvt = vDGAR.at(nDGAR).iAction;
-                    if (nEvt != -1) {
-                        // Is there focus on a relation?
-                        if (rn.size() > 1 && rn[1] != "") {
-                            int i = stoi(rn[1]);
-                            if (caract[5] == ":P")
-                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(1).toString();
-                            else if (caract[5] == ":A")
-                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(0).toString();
-                            else if (caract[5] == ":O")
-                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(2).toString();
-                            else {
-                                next += vEvents.at(nEvt).bRelations.get(i).asList()->get(1).toString() + " " +
-                                        vEvents.at(nEvt).bRelations.get(i).asList()->get(0).toString() + " " +
-                                        vEvents.at(nEvt).bRelations.get(i).asList()->get(2).toString();
-                            }
-                        }
-                        // Is there focus on a argument?
-                        else if (an.size() > 1 && an[1] != "") {
-                            if (caract[5] == ":P")
-                                next += whatIs(nEvt, an[1]);
-                            else if (caract[5] == ":A")
-                                next += an[1];
-                        }
-                        else {
-                            // Only the event
-                            if (caract[5] == ":P")
-                                next += vEvents.at(nEvt).predicate;
-                            else if (caract[5] == ":A")
-                                next += vEvents.at(nEvt).agent;
-                            else if (caract[5] == ":O")
-                                next += vEvents.at(nEvt).object;
-                            else if (caract[5] == ":R")
-                                next += vEvents.at(nEvt).recipient;
-                            else {
-                                next += vEvents.at(nEvt).predicate + " " +
-                                        vEvents.at(nEvt).agent + " " +
-                                        vEvents.at(nEvt).object + " " +
-                                        vEvents.at(nEvt).predicate;
-                            }
-                        }
-                    }
-                }
-            }
-            next += m.suffix();
-            s = next;
-        }
-    } while (!m.empty());
-    return s;
-}*/
+    if (cPart == 'A') {
+        vIGARF.at(iIGARF).tAction = IGARF_EVT;
+        vIGARF.at(iIGARF).iAction = jIGARF;
+    }
+    else if (cPart == 'R') {
+        vIGARF.at(iIGARF).tResult = IGARF_EVT;
+        vIGARF.at(iIGARF).iResult = jIGARF;
+    }
+    else if (cPart == 'N') {
+        vIGARF.at(iIGARF).tResult = IGARF_EVT;
+        vIGARF.at(iIGARF).iResult = jIGARF;
+    }
+}
 
-int storyGraph::isKnown(std::string predicate, std::string agent, std::string object, std::string recipient) {
-    for(unsigned int i = 0; i < vEvents.size(); i++) {
-        evtStory e = vEvents.at(i);
-        if (e.predicate == predicate && e.agent == agent && e.object == object && e.recipient == recipient)
+void situationModel::remContentIGARF(int iIGARF, char cPart) {
+    if (iIGARF < 0 || iIGARF >= (int)vIGARF.size())
+        return;
+
+    if (cPart == 'A') {
+        vIGARF.at(iIGARF).tAction = UNDEF;
+        vIGARF.at(iIGARF).iAction = -1;
+    }
+    else if (cPart == 'R') {
+        vIGARF.at(iIGARF).tResult = UNDEF;
+        vIGARF.at(iIGARF).iResult = -1;
+    }
+    else if (cPart == 'N') {
+        vIGARF.at(iIGARF).iNext = -1;
+    }
+}
+
+int find(std::vector < int > &vInt, int elt) {
+    for(int i = 0; i < (int)vInt.size(); i++) {
+        if (vInt.at(i) == elt)
             return i;
     }
     return -1;
 }
 
-void storyGraph::addRelation(int i, std::string predicate, std::string agent, std::string object) {
-    if (i < 0 || i >= (int)vEvents.size())
+void situationModel::addRelationIGARF(int iIGARF, char cPart, int iRel) {
+    if (iIGARF < 0 || iIGARF >= (int)vIGARF.size())
         return;
-    evtStory& e = vEvents.at(i);
-    yarp::os::Bottle aimedRelation;
-    aimedRelation.addString(agent);
-    aimedRelation.addString(predicate);
-    aimedRelation.addString(object);
-    e.bRelations.addList() = aimedRelation;
+    if (iRel < 0 || iRel >= (int)vRelations.size())
+        return;
+
+    if (cPart == 'I' && find(vIGARF.at(iIGARF).vInitState, iRel) == -1) {
+        vIGARF.at(iIGARF).vInitState.push_back(iRel);
+    }
+    else if (cPart == 'G' && find(vIGARF.at(iIGARF).vGoal, iRel) == -1) {
+        vIGARF.at(iIGARF).vGoal.push_back(iRel);
+    }
+    else if (cPart == 'F' && find(vIGARF.at(iIGARF).vFinalState, iRel) == -1) {
+        vIGARF.at(iIGARF).vFinalState.push_back(iRel);
+    }
 }
 
-void storyGraph::addArgument(int i, std::string key, std::string value){
-    if (i < 0 || i >= (int)vEvents.size())
+void situationModel::removeRelationIGARF(int iIGARF, char cPart, int iRel) {
+    if (iIGARF < 0 || iIGARF >= (int)vIGARF.size())
         return;
-    evtStory& e = vEvents.at(i);
-    e.vArgument.push_back(std::pair < std::string, std::string > (key, value));
+    if (iRel < 0 || iRel >= (int)vRelations.size())
+        return;
+
+    sIGARF &ig = vIGARF.at(iIGARF);
+    if (cPart == 'I' && find(ig.vInitState, iRel) != -1) {
+        ig.vInitState.erase(ig.vInitState.begin() + find(ig.vInitState, iRel));
+    }
+    else if (cPart == 'G' && find(ig.vGoal, iRel) != -1) {
+        ig.vGoal.erase(ig.vGoal.begin() + find(ig.vGoal, iRel));
+    }
+    else if (cPart == 'F' && find(ig.vFinalState, iRel) != -1) {
+        ig.vFinalState.erase(ig.vFinalState.begin() + find(ig.vFinalState, iRel));
+    }
 }
 
-void storyGraph::TESTwhenIsUsed(std::string word) {
-    for(sLink lk : vNarrativeLinks) {
+sRelation situationModel::fromValueToRelation(const yarp::os::Value& b) {
+    sRelation n;
+    if (b.isList()) {
+        n.subject   = b.asList()->get(0).toString();
+        n.verb      = b.asList()->get(1).toString();
+        n.object    = b.asList()->get(2).toString();
+    }
+    return n;
+}
+
+void situationModel::createFromStory(const story &sto) {
+    // Clearing
+    clear();
+
+    // Get events
+    vector < evtStory > vEvents = sto.vEvents;
+
+    // Step 1 : Considering begin and end of activities, create events and relations
+    for (unsigned int i = 0; i < vEvents.size(); i++) {
+        const evtStory &currentEvt = vEvents.at(i);
+        if (currentEvt.begin) { // For each begin of action
+            evtStory endCurrent;
+            bool hasEnd = false;
+            if (i + 1 < vEvents.size() && !vEvents.at(i+1).begin && currentEvt.activity_name == vEvents.at(i + 1).activity_name) { // Is the next event the end event ?
+                endCurrent = vEvents.at(i+1);
+                hasEnd = true;
+            }
+            // New Action events and relations
+            sIGARF newEvent;
+            newEvent.iNext = -1;
+            // > Action
+            newEvent.tAction = ACTION_EVT;
+            newEvent.iAction = addNewActionEvt(currentEvt.predicate, currentEvt.agent, currentEvt.object, currentEvt.recipient);
+
+            // > Init State
+            for (int i = 0; i < currentEvt.bRelations.size(); i++) {
+                if (currentEvt.bRelations.get(i).isList())
+                    newEvent.vInitState.push_back(addOrFindRelation(fromValueToRelation(currentEvt.bRelations.get(i))));
+            }
+
+            // > Result
+            newEvent.tResult = UNDEF;
+            newEvent.iResult = -1;
+            if (hasEnd) {
+                sActionEvt result;
+                result.predicate = endCurrent.predicate;
+                result.agent     = endCurrent.agent;
+                result.object    = endCurrent.object;
+                result.recipient = endCurrent.recipient;
+                if (findValue(endCurrent.vArgument, "status") == "failed") {
+                    result.predicate = "fail";
+                    result.object    = "to_" + currentEvt.predicate;
+                    result.recipient = "";
+
+                    if (findValue(endCurrent.vArgument, "reason") == "outofreach") {
+                        sRelation cause;
+                        cause.subject = "it";
+                        cause.verb = "is";
+                        cause.object = "out-of-reach";
+                        newEvent.vInitState.push_back(addOrFindRelation(cause));
+                        newEvent.vFinalState.push_back(addOrFindRelation(cause));
+                    }
+                }
+                vActionEvts.push_back(result);
+                newEvent.tResult = ACTION_EVT;
+                newEvent.iResult = vActionEvts.size() - 1;
+
+                // > Final State
+                for (int i = 0; i < endCurrent.bRelations.size(); i++) {
+                    if (endCurrent.bRelations.get(i).isList()) {
+                        newEvent.vFinalState.push_back(addOrFindRelation(fromValueToRelation(endCurrent.bRelations.get(i))));
+                    }
+                }
+
+                // > Goal
+                if (!isRelationsBInA(newEvent.vInitState, newEvent.vFinalState)) {
+                    for (int j = 0; j < (int)newEvent.vFinalState.size(); j++) {
+                        bool found = false;
+                        for (int i = 0; i < (int)newEvent.vInitState.size() && !found; i++) {
+                            if (sameRelation(vRelations.at(newEvent.vInitState.at(i)), vRelations.at(newEvent.vFinalState.at(j)))) {
+                                found = true;
+                            }
+                        }
+                        if (!found) {
+                            newEvent.vGoal.push_back(newEvent.vFinalState.at(j));
+                        }
+                    }
+                }
+            }
+
+            // Stock it
+            vIGARF.push_back(newEvent);
+        }
+    }
+
+    // Step 2: Make chains
+    // Each chain ends iff (1. Init and Final State are different) OR (2. Result is a failure) OR (3. End of the story)
+    vector < int > rep; // Indexes of IGARF which packed chains (used for next step)
+    int firstOfChain = -1;
+    int lastOfChain = -1;
+    int N = vIGARF.size();
+    for (int i = 0; i < N; i++) {
+        // End chain?
+        if ((vIGARF.at(i).tResult == ACTION_EVT && vActionEvts.at(vIGARF.at(i).iResult).predicate == "fail_to") ||
+            !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) && isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState)) ||
+            i == N - 1) {
+            if (!(vIGARF.at(i).tResult == ACTION_EVT &&
+                  vActionEvts.at(vIGARF.at(i).iResult).predicate == "fail") && // Not a failure
+                !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) &&
+                  isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState))) { // Final and init state are differents
+                vIGARF.at(i).vGoal = vIGARF.at(i).vFinalState;
+            }
+            if (lastOfChain == -1)
+                rep.push_back(i);
+            else {
+                vIGARF.at(lastOfChain).iNext = i;
+                // New IGARF, pack the chain
+                sIGARF newEvent;
+                newEvent.vInitState = vIGARF.at(firstOfChain).vInitState;
+                newEvent.vGoal = vIGARF.at(firstOfChain).vGoal; // < Todo: Where goal should be taken?
+                newEvent.tAction = IGARF_EVT;
+                newEvent.iAction = firstOfChain;
+                newEvent.tResult = vIGARF.at(i).tResult;
+                newEvent.iResult = vIGARF.at(i).iResult;
+                newEvent.vFinalState = vIGARF.at(i).vFinalState;
+                newEvent.iNext = -1;
+                vIGARF.push_back(newEvent);
+
+                rep.push_back(vIGARF.size() - 1);
+                firstOfChain = -1;
+                lastOfChain = -1;
+            }
+        }
+        else {
+            if (lastOfChain == -1) {
+                firstOfChain = i;
+                lastOfChain = i;
+            }
+            else {
+                vIGARF.at(lastOfChain).iNext = i;
+                lastOfChain = i;
+            }
+        }
+    }
+    int head = rep.at(0);
+
+    // Step 3: Assembling chains
+    int j;
+    for (unsigned int i = 0; i < rep.size(); i++) {
+        j = rep.at(i);
+        if (vIGARF.at(j).tResult == ACTION_EVT && vActionEvts.at(vIGARF.at(j).iResult).predicate == "fail_to" && i + 1 < rep.size()) {
+            // New IGARF, pack current and next
+            sIGARF newEvent;
+            newEvent.vInitState = vIGARF.at(j).vInitState;
+            newEvent.vGoal = vIGARF.at(j).vGoal; // < Todo: Where goal should be taken?
+            newEvent.tAction = IGARF_EVT;
+            newEvent.iAction = j;
+            newEvent.tResult = IGARF_EVT;
+            newEvent.iResult = rep.at(i + 1);
+            newEvent.vFinalState = vIGARF.at(rep.at(i + 1)).vFinalState;
+            newEvent.iNext = -1;
+            vIGARF.push_back(newEvent);
+            if (head == j)
+                head = vIGARF.size() - 1;
+        }
+        else if (i + 1 < rep.size()) {
+            vIGARF.at(j).iNext = rep.at(i + 1);
+        }
+    }
+
+    // Step 4: Spreading goals
+    // (Naïve)
+    // From Result and Next to Current
+    bool change = true;
+    while (change) {
+        change = false;
+        for(int i = 0; i < (int)vIGARF.size(); i++) {
+            if (vIGARF.at(i).vGoal.empty()) {
+                if (vIGARF.at(i).tResult == IGARF_EVT && !vIGARF.at(vIGARF.at(i).iResult).vGoal.empty()) {
+                    vIGARF.at(i).vGoal = vIGARF.at(vIGARF.at(i).iResult).vGoal;
+                    change = true;
+                }
+                else if (vIGARF.at(i).iNext != -1 && !vIGARF.at(vIGARF.at(i).iNext).vGoal.empty()) {
+                    vIGARF.at(i).vGoal = vIGARF.at(vIGARF.at(i).iNext).vGoal;
+                    change = true;
+                }
+            }
+        }
+    }
+    // From Current to Action, Result and Next
+    change = true;
+    while (change) {
+        change = false;
+        for(int i = 0; i < (int)vIGARF.size(); i++) {
+            if (!vIGARF.at(i).vGoal.empty()) {
+                if (vIGARF.at(i).tAction == IGARF_EVT && vIGARF.at(vIGARF.at(i).iAction).vGoal.empty()) {
+                    vIGARF.at(vIGARF.at(i).iAction).vGoal = vIGARF.at(i).vGoal;
+                    change = true;
+                }
+                if (vIGARF.at(i).tResult == IGARF_EVT && vIGARF.at(vIGARF.at(i).iResult).vGoal.empty()) {
+                    vIGARF.at(vIGARF.at(i).iResult).vGoal = vIGARF.at(i).vGoal;
+                    change = true;
+                }
+                if (vIGARF.at(i).iNext != -1 && vIGARF.at(vIGARF.at(i).iNext).vGoal.empty()) {
+                    vIGARF.at(vIGARF.at(i).iNext).vGoal = vIGARF.at(i).vGoal;
+                    change = true;
+                }
+            }
+        }
+    }
+
+    showIGARF(head);
+}
+
+// Meaning
+sKeyMean situationModel::createKey(int iIGARF, char cPart, int iRel) {
+    sKeyMean k;
+    if (iIGARF < 0 || iIGARF >= (int)vIGARF.size())
+        k.iIGARF = -1;
+    else
+        k.iIGARF = iIGARF;
+
+    if (cPart == 'I' || cPart == 'G' || cPart == 'R' || cPart == 'F')
+        k.cPart = cPart;
+    else
+        k.cPart = 'A';
+
+    if (iRel < 0 || iRel >= (int)vRelations.size())
+        k.iRel = -1;
+    else
+        k.iRel = iRel;
+
+    return k;
+}
+
+void situationModel::createLink(sKeyMean from, sKeyMean to, string word) {
+    sDiscourseLink newLink;
+    newLink.fromEvt = from;
+    newLink.toEvt = to;
+    newLink.word = word;
+    vDiscourseLinks.push_back(newLink);
+}
+
+sKeyMean situationModel::findEventOrRelation(string meaning) {
+    meaning += " ";
+    // Extract meaning (PAOR)
+    string rest = "";
+    // Predicate
+    size_t posEnd = meaning.find(' ');
+    string predicate = meaning.substr(0, posEnd);
+    // Agent
+    string agent = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    posEnd = meaning.find(' ', posEnd + 1);
+    // Object
+    string object = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    posEnd = meaning.find(' ', posEnd + 1);
+    // Recipient
+    string recipient = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    // Find it
+    for (int i = 0; i < (int)vActionEvts.size(); i++) {
+        if (vActionEvts.at(i).predicate == predicate &&
+            vActionEvts.at(i).agent     == agent     &&
+            vActionEvts.at(i).object    == object    &&
+            vActionEvts.at(i).recipient == recipient) {
+            // Search this event in the IGARF
+            for (int j = 0; j < (int)vIGARF.size(); j++) {
+                if (vIGARF.at(j).tAction == ACTION_EVT && vIGARF.at(j).iAction == i) {
+                    sKeyMean km;
+                    km.iIGARF = i;
+                    km.cPart = 'A';
+                    km.iRel = -1;
+                    return km;
+                }
+                else if (vIGARF.at(j).tResult == ACTION_EVT && vIGARF.at(j).iResult == i) {
+                    sKeyMean km;
+                    km.iIGARF = i;
+                    km.cPart = 'R';
+                    km.iRel = -1;
+                    return km;
+                }
+            }
+        }
+    }
+    sRelation r;
+    r.verb = predicate;
+    r.subject = agent;
+    r.object = object;
+    int i = addOrFindRelation(r);
+    cout << i << endl;
+    for (int j = 0; j < (int)vIGARF.size(); j++) {
+        for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
+            if (vIGARF.at(j).vInitState.at(k) == i) {
+                sKeyMean km;
+                km.iIGARF = j;
+                km.cPart = 'I';
+                km.iRel = k;
+                return km;
+            }
+        }
+    }
+    sKeyMean km;
+    km.iIGARF = -1;
+    km.cPart = 'A';
+    km.iRel = -1;
+    return km;
+}
+
+sKeyMean situationModel::addMeaningAndLink(string meaning, sKeyMean previous) {
+    if (previous.iIGARF == -1 && !vDiscourseLinks.empty())
+        previous = vDiscourseLinks.back().toEvt;
+    // The first line of the meaning gives the narrative semantic word used to create a link
+    size_t posEnd = meaning.find(',');
+    string firstLine = meaning.substr(0, posEnd);
+    if (meaning[posEnd + 1] == ' ')
+        posEnd++; // Remove useless begin space
+    string secondLine = meaning.substr(posEnd + 1, meaning.find(',', posEnd + 1));
+
+    // Get Current Key Mean
+    sKeyMean current = findEventOrRelation(secondLine);
+
+    // Extract each narrative words
+    size_t endWrd = -1;
+    string w = "";
+    do {
+        w = firstLine.substr(endWrd + 1, firstLine.find(' ', endWrd + 1) - endWrd - 1);
+        endWrd = firstLine.find(' ', endWrd + 1);
+        std::cout << w << std::endl;
+        createLink(previous, current, w);
+    } while (w != "" && firstLine.find(' ', endWrd + 1) != string::npos);
+    vMeanings.push_back(meaning);
+
+    return current;
+}
+
+// TEST
+void situationModel::TESTwhenIsUsed(string word) {
+    for(sDiscourseLink lk : vDiscourseLinks) {
         if (lk.word == word) {
-            std::cout << "From " << lk.fromEvt.cellCat << " of DGAR " << lk.fromEvt.iDGAR << " to " << lk.toEvt.cellCat << " of DGAR " << lk.toEvt.iDGAR << std::endl;
+            cout << "From " << lk.fromEvt.cPart << " of IGARF " << lk.fromEvt.iIGARF << " to " << lk.toEvt.cPart << " of IGARF " << lk.toEvt.iIGARF << endl;
         }
     }
 }
+

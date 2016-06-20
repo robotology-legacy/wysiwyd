@@ -158,16 +158,21 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " displayStories + n-back = default_all: \n" +
         " listenStory: \n" +
         " cleanMental\n" +
-        " initGraph\n" +
-        " listEvts\n" +
-        " createEvt + predicate + agent (+ object (+ recipient))\n" +
-        " createRel + noEvt + predicate + agent + object \n" +
-        " createArg + noEvt + key + value \n" +
-        " autoDGAR\n" +
-        " createDGAR + 2 x evts\n" +
-        " changeDGAR + no + which + type + nb\n" +
-        " showDGAR + no\n" +
-        " createLinkAndMeaning + (noFromDGAR catCell noRel) + meaning + (noToDGAR catCell noRel)\n"
+        " createFromStory + instanceStory = last\n" +
+        " listActionEvts\n" +
+        " listRels\n" +
+        " listIGARF\n" +
+        " addNewEvt + predicate + agent + object = \"\" + recipient = \"\"\n" +
+        " addRel + subject + verb + object\n" +
+        " addNewIGARF\n" +
+        " showIGARF + instanceIGARF\n" +
+        " changeEvtIGARF + instanceIGARF + cPart + instanceEvt\n" +
+        " changeCntIGARF + instanceIGARF + cPart + instanceIGARF\n" +
+        " removeCntIGARF + instanceIGARF + cPart\n" +
+        " addRelIGARF + instanceIGARF + cPart + instanceRel\n" +
+        " remRelIGARF + instanceIGARF + cPart + instanceRel\n" +
+        " createLink + (instanceFromIGARF cPart instanceRel) + word + (instanceRoIGARF cPart instanceRel)\n"
+        " createFromMeaning + meaning\n"
         " quit \n";
 
     yInfo() << " rpc command received: " << command.toString();
@@ -254,14 +259,14 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             reply.addString(" in narrativeHandler: command setDefaultStory: missing argument (int expected)");
         }
     }
-    else if (command.get(0).asString() == "initGraph") {
-        yInfo(" initialize the narrative graph with last story");
+    else if (command.get(0).asString() == "createFromStory") {
+        yInfo(" create the situation model");
         if (command.size() >= 2) {
             int i = command.get(1).asInt();
             if (i >= 0 && i < (int)listStories.size()) {
-                sg.initializeStory(listStories.at(i));
-                yInfo(" import and init sucessful");
-                reply.addString("init sucessful");
+                sm.createFromStory(listStories.at(i));
+                yInfo(" import and creation sucessful");
+                reply.addString("creation sucessful");
             }
             else {
                 yInfo(" error: out of range");
@@ -269,22 +274,39 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             }
         }
         else {
-            sg.initializeStory(listStories.back());
-            yInfo(" import of last story and init sucessful");
-            reply.addString("init sucessful");
+            sm.createFromStory(listStories.back());
+            yInfo(" import of last story and creation sucessful");
+            reply.addString("creation sucessful");
         }
     }
-    else if (command.get(0).asString() == "listEvts") {
-        yInfo(" list narrative graph events");
-        for(unsigned int i = 0; i < sg.vEvents.size(); i++) {
-            std::cout << to_string(i) + ": " + sg.evtDetails(i) << std::endl;
-            reply.addString(sg.evtDetails(i));
+    else if (command.get(0).asString() == "listActionEvts") {
+        yInfo(" list events of the situation model");
+        for(unsigned int i = 0; i < sm.vActionEvts.size(); i++) {
+            std::cout << "[" << i << "] " << sm.getSentenceEvt(i) << std::endl;
         }
         yInfo(" listing sucessful");
         reply.addString(" listing sucessful");
     }
-    else if (command.get(0).asString() == "createEvt") {
-        yInfo(" create a narrative graph event");
+    else if (command.get(0).asString() == "listRels") {
+        yInfo(" list relations of the situation model");
+        for(unsigned int i = 0; i < sm.vRelations.size(); i++) {
+            std::cout << to_string(i) + ": " + sm.getSentenceRel(i) << std::endl;
+            reply.addString(sm.getSentenceRel(i));
+        }
+        yInfo(" listing sucessful");
+        reply.addString(" listing sucessful");
+    }
+    else if (command.get(0).asString() == "listIGARF") {
+        yInfo(" list IGARF events of the situation model ");
+        for(unsigned int i = 0; i < sm.vIGARF.size(); i++) {
+            sm.showIGARF(i);
+            std::cout << std::endl;
+        }
+        yInfo(" listing sucessful");
+        reply.addString(" listing sucessful");
+    }
+    else if (command.get(0).asString() == "addNewEvt") {
+        yInfo(" create and add an event to the situation model");
         if (command.size() >= 3) {
             std::string predicate = command.get(1).asString();
             std::string agent = command.get(2).asString();
@@ -294,85 +316,156 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
                 object = command.get(3).asString();
             if (command.size() >= 5)
                 recipient = command.get(4).asString();
-            sg.createAndAddEvt(predicate, agent, object, recipient);
-            if (command.size() >= 6 && command.get(5).asString() == "F") {
-                sg.vEvents.back().begin = false;
-            }
-            yInfo(" creation sucessful");
-            reply.addString(" creation sucessful");
+            int i = sm.addNewActionEvt(predicate, agent, object, recipient);
+            yInfo(" creation sucessful of the " + to_string(i) + "-th action event");
+            reply.addString(" creation sucessful of the " + to_string(i) + "-th action event");
         }
         else {
             yInfo(" Not enough arguments");
             reply.addString("Error: Needs at least 2 arguments");
         }
     }
-    else if (command.get(0).asString() == "createRel") {
-        yInfo(" create a narrative graph relation");
-        if (command.size() >= 5) {
-            int nEvt = command.get(1).asInt();
-            std::string predicate = command.get(2).asString();
-            std::string agent = command.get(3).asString();
-            std::string object = command.get(4).asString();
-            sg.addRelation(nEvt, predicate, agent, object);
-            yInfo(" creation sucessful");
-            reply.addString(" creation sucessful");
-        }
-        else {
-            yInfo(" Not enough arguments");
-            reply.addString("Error: Needs 4 arguments");
-        }
-    }
-    else if (command.get(0).asString() == "createArg") {
-        yInfo(" create a narrative graph argument");
+    else if (command.get(0).asString() == "addRel") {
+        yInfo(" add a relation in the situation model (if not already existing)");
         if (command.size() >= 4) {
-            int nEvt = command.get(1).asInt();
-            std::string key = command.get(2).asString();
-            std::string value = command.get(3).asString();
-            sg.addArgument(nEvt, key, value);
-            yInfo(" creation sucessful");
-            reply.addString(" creation sucessful");
+            storygraph::sRelation r;
+            r.subject = command.get(1).asString();
+            r.verb    = command.get(2).asString();
+            r.object  = command.get(3).asString();
+            int i = sm.addOrFindRelation(r);
+            yInfo(" creation sucessful of the " + to_string(i) + "-th relation");
+            reply.addString(" creation sucessful of the " + to_string(i) + "-th relation");
         }
         else {
             yInfo(" Not enough arguments");
-            reply.addString("Error: Needs 3 arguments");
+            reply.addString("Error: Needs 3 argument");
         }
     }
-    else if (command.get(0).asString() == "createDGAR") {
-        createDGAR(command, reply);
+    else if (command.get(0).asString() == "addNewIGARF") {
+        yInfo(" add an IGARF event in the situation model");
+        int i = sm.createIGARF();
+        yInfo(" creation sucessful of the " + to_string(i) + "-th IGARF");
+        reply.addString(" creation sucessful of the " + to_string(i) + "-th IGARF");
     }
-    else if (command.get(0).asString() == "showDGAR") {
-        yInfo(" showDGAR");
+    else if (command.get(0).asString() == "showIGARF") {
+        yInfo(" display tree view of an IGARF event ");
         if (command.size() >= 2) {
-            sg.show_tree(command.get(1).asInt(), 0, true);
-            yInfo(" showDGAR sucessful");
-            reply.addString(" showDGAR sucessful");
+            int i = command.get(1).asInt();
+            if (i >= 0 && i < (int)sm.vIGARF.size()) {
+                sm.showIGARF(i);
+                std::cout << std::endl;
+                yInfo(" display sucessful");
+                reply.addString(" display sucessful");
+            }
+            else {
+                yInfo(" error: out of range");
+                reply.addString("Error: out of range");
+            }
         }
         else {
             yInfo(" Not enough arguments");
             reply.addString("Error: Needs 1 argument");
         }
     }
-    else if (command.get(0).asString() == "changeDGAR") {
-        changeDGAR(command, reply);
+    else if (command.get(0).asString() == "createLink") {
+        addLink(command, reply);
     }
-    else if (command.get(0).asString() == "autoDGAR") {
-        automaticDGAR(sg, reply);
+    else if (command.get(0).asString() == "changeEvtIGARF") {
+            yInfo(" change an IGARF event in the situation model");
+            if (command.size() >= 4) {
+                int  iIGARF = command.get(1).asInt();
+                char cPart  = command.get(2).asString()[0];
+                int  iAct   = command.get(3).asInt();
+
+                sm.modifEventIGARF(iIGARF, cPart, iAct);
+                yInfo(" modification sucessful");
+                reply.addString(" modification sucessful");
+            }
+            else {
+                yInfo(" Not enough arguments");
+                reply.addString("Error: Needs 3 arguments");
+            }
     }
-    else if (command.get(0).asString() == "createLinkAndMeaning") {
-        linkAndMeaning(command, reply);
+    else if (command.get(0).asString() == "changeCntIGARF") {
+            yInfo(" change an IGARF content in the situation model");
+            if (command.size() >= 4) {
+                int  iIGARF = command.get(1).asInt();
+                char cPart  = command.get(2).asString()[0];
+                int  jIGARF   = command.get(3).asInt();
+
+                sm.modifContentIGARF(iIGARF, cPart, jIGARF);
+                yInfo(" modification sucessful");
+                reply.addString(" modification sucessful");
+            }
+            else {
+                yInfo(" Not enough arguments");
+                reply.addString("Error: Needs 3 arguments");
+            }
+    }
+    else if (command.get(0).asString() == "removeCntIGARF") {
+            yInfo(" remove an IGARF content in the situation model");
+            if (command.size() >= 3) {
+                int  iIGARF = command.get(1).asInt();
+                char cPart  = command.get(2).asString()[0];
+
+                sm.remContentIGARF(iIGARF, cPart);
+                yInfo(" removal sucessful");
+                reply.addString(" removal sucessful");
+            }
+            else {
+                yInfo(" Not enough arguments");
+                reply.addString("Error: Needs 2 arguments");
+            }
+    }
+    else if (command.get(0).asString() == "addRelIGARF") {
+            yInfo(" add a relation to an IGARF event in the situation model");
+            if (command.size() >= 4) {
+                int  iIGARF = command.get(1).asInt();
+                char cPart  = command.get(2).asString()[0];
+                int  iRel   = command.get(3).asInt();
+
+                sm.addRelationIGARF(iIGARF, cPart, iRel);
+                yInfo(" addition sucessful");
+                reply.addString(" addition sucessful");
+            }
+            else {
+                yInfo(" Not enough arguments");
+                reply.addString("Error: Needs 3 arguments");
+            }
+    }
+    else if (command.get(0).asString() == "remRelIGARF") {
+            yInfo(" remove a relation to an IGARF event in the situation model");
+            if (command.size() >= 4) {
+                int  iIGARF = command.get(1).asInt();
+                char cPart  = command.get(2).asString()[0];
+                int  iRel   = command.get(3).asInt();
+
+                sm.removeRelationIGARF(iIGARF, cPart, iRel);
+                yInfo(" removal sucessful");
+                reply.addString(" removal sucessful");
+            }
+            else {
+                yInfo(" Not enough arguments");
+                reply.addString("Error: Needs 3 arguments");
+            }
+    }
+    else if (command.get(0).asString() == "createFromMeaning") {
+        addLinkAndMeaning(command, reply);
     }
     else if (command.get(0).asString() == "TESTwhenIsUsed") {
-        sg.TESTwhenIsUsed(command.get(1).asString());
+        sm.TESTwhenIsUsed(command.get(1).asString());
         reply.addString("-ok");
     }
     else if (command.get(0).asString() == "TESTlistLinks") {
-        for(storygraph::sLink lk : sg.vNarrativeLinks) {
-            std::cout << lk.word << ": From " << lk.fromEvt.cellCat << " of DGAR " << lk.fromEvt.iDGAR << " to " << lk.toEvt.cellCat << " of DGAR " << lk.toEvt.iDGAR << std::endl;
+        for(storygraph::sDiscourseLink lk : sm.vDiscourseLinks) {
+            std::cout << lk.word << ": From " << lk.fromEvt.cPart << " of DGAR " << lk.fromEvt.iIGARF <<
+                         " to " << lk.toEvt.cPart << " of DGAR " << lk.toEvt.iIGARF << std::endl;
         }
         reply.addString("-ok");
     }
     else{
         reply.addString(helpMessage);
+        std::cout << helpMessage << std::endl;
     }
 
     rpcPort.reply(reply);
@@ -1745,36 +1838,7 @@ bool narrativeHandler::narrationToSpeech(story target){
 
     return true;
 }
-
-void narrativeHandler::createDGAR(const Bottle& command, Bottle& reply) {
-    yInfo(" creating a DGAR in the narrative graph system");
-    if (command.size() >= 3) {
-        storygraph::sDGAR dgar;
-        dgar.label = "User Narrative";
-        if (command.size() >= 4) { // Custom name
-            dgar.label = command.get(3).asInt();
-        }
-        dgar.tDrive = storygraph::EVENT;
-        dgar.tGoal = storygraph::EVENT;
-        dgar.tAction = storygraph::EVENT;
-        dgar.tResult = storygraph::EVENT;
-        dgar.tNext = storygraph::NONE;
-        dgar.iDrive = command.get(1).asInt();
-        dgar.iGoal = command.get(2).asInt();
-        dgar.iAction = command.get(1).asInt();
-        dgar.iResult = command.get(2).asInt();
-        sg.addDGAR(dgar);
-
-        yInfo(" creation sucessful");
-        yInfo(sg.expressDGAR(sg.vDGAR.size()));
-        reply.addString(" creation sucessful");
-    }
-    else {
-        yInfo(" Not enough arguments");
-        reply.addString("Error: Needs 2 arguments");
-    }
-}
-
+/*
 void narrativeHandler::changeDGAR(const Bottle& command, Bottle& reply) {
     yInfo(" change a DGAR components in the narrative graph system");
     if (command.size() >= 5) {
@@ -1823,226 +1887,51 @@ void narrativeHandler::changeDGAR(const Bottle& command, Bottle& reply) {
         reply.addString("Error: Needs 4 arguments (dgar_number, cell_category, cell_type, cell_number)");
     }
 }
+*/
 
-void narrativeHandler::automaticDGAR(storygraph::storyGraph &_sg, Bottle &reply) {
-    yInfo(" automatically creating a DGAR in the narrative graph system");
-    storygraph::storyGraph auto_sg; // The final storyGraph
-
-    // Step 1 and 2 : Considering begin and end of activities, create events associated with drive, action, result and goal
-    for (unsigned int i = 0; i < _sg.vEvents.size(); i++) {
-        evtStory currentEvt = _sg.vEvents.at(i);
-        if (currentEvt.begin) { // For each begin of action
-            evtStory endCurrent;
-            endCurrent.isNarration = false;
-            endCurrent.instance = -1;
-            if (i + 1 < _sg.vEvents.size() && !_sg.vEvents.at(i+1).begin) { // Is there an end event ?
-                endCurrent = _sg.vEvents.at(i+1);
-            }
-            // Save events
-            int start = auto_sg.vEvents.size();
-            auto_sg.vEvents.push_back(currentEvt); // Event for action and drive
-            if (endCurrent.isNarration || endCurrent.instance != -1) {
-                auto_sg.vEvents.push_back(endCurrent); // Event for goal and result
-            }
-            // Packing it in a GDAR
-            storygraph::sDGAR dgar;
-            dgar.label = currentEvt.predicate;
-            dgar.tDrive = storygraph::EVENT;
-            dgar.iDrive = start;
-            dgar.tAction = storygraph::EVENT;
-            dgar.iAction = start;
-            if (endCurrent.isNarration || endCurrent.instance != -1) {
-                dgar.tResult = storygraph::EVENT;
-                dgar.iResult = start + 1;
-            }
-            else {
-                dgar.tResult = storygraph::NONE;
-                dgar.iResult = -1;
-            }
-            int posGoal = start + 1;
-            if (dgar.iResult != -1 && auto_sg.whatIs(dgar.iResult, "status") != "failed") {
-                if (auto_sg.whatIs(dgar.iResult, "goal") != "") {
-                    // The goal is specified in the argument of reasoning
-                    // A new event is created with the aimed relation
-                    Bottle bUnfolded = unfoldGoal(auto_sg.whatIs(dgar.iResult, "goal"));
-                    evtStory newGoal(endCurrent);
-                    newGoal.bRelations.clear();
-                    Bottle aimedRelation;
-                    aimedRelation.addString(bUnfolded.find("agent").toString());
-                    std::string pred = bUnfolded.find("predicate").toString();
-                    aimedRelation.addString(pred);
-                    aimedRelation.addString(bUnfolded.find("object").toString());
-                    newGoal.bRelations.addList() = aimedRelation;
-                    auto_sg.vEvents.push_back(newGoal);
-
-                    dgar.tGoal = storygraph::EVENT;
-                    dgar.iGoal = posGoal + 1;
-                }
-                else if (!(auto_sg.satisfies(posGoal, start) && auto_sg.satisfies(start, posGoal))) { // If result and drive relations are differents
-                    dgar.tGoal = storygraph::EVENT;
-                    dgar.iGoal = posGoal;
-                }
-                else {
-                    dgar.tGoal = storygraph::NONE;
-                    dgar.iGoal = -1;
-                }
-            }
-            else {
-                dgar.tGoal = storygraph::NONE;
-                dgar.iGoal = -1;
-            }
-            dgar.tNext = storygraph::NONE;
-            dgar.iNext = -1;
-            auto_sg.addDGAR(dgar);
-        }
-    }
-    yInfo("Creation successful");
-    reply.addString("Creation successful");
-
-    // Step 3: Assembling DGAR
-    std::stack <int> levelMarkers; // Keeps a trace of last event at each level
-    std::vector <bool> mark(auto_sg.vDGAR.size(), false); // Marks for events contained within others (See Step 5)
-    for (unsigned int i = 0; i < auto_sg.vDGAR.size(); i++) {
-        if (levelMarkers.empty()) { // There's no story arc on the pile, starting a new one
-            levelMarkers.push(i);
-        }
-        else {
-            // Shortcut
-            int iResult = auto_sg.vDGAR.at(i).iResult;
-            int iGoal = auto_sg.vDGAR.at(i).iGoal;
-            storygraph::cell_type tGoal = auto_sg.vDGAR.at(i).tGoal;
-            // Previous DGAR event
-            int previous = levelMarkers.top();
-            levelMarkers.pop();
-
-            if (auto_sg.vDGAR.at(previous).tResult == storygraph::NONE) { // If result of previous event is unknown, then it is likely that the current event is its consequence
-                auto_sg.vDGAR.at(previous).tResult = storygraph::DGAR_CELL;
-                auto_sg.vDGAR.at(previous).iResult = i;
-                // Descending one level, leaving a mark
-                levelMarkers.push(previous);
-                levelMarkers.push(i);
-                mark.at(i) = true;
-            }
-            else { // Keep acting for the goal
-                auto_sg.vDGAR.at(previous).tNext = storygraph::DGAR_CELL;
-                auto_sg.vDGAR.at(previous).iNext = i;
-                levelMarkers.push(i);
-            }
-            if (tGoal == storygraph::EVENT && auto_sg.satisfies(iResult, iGoal)) { // Does the result satifies the goal ?
-                levelMarkers.pop(); // Ending a sub-story arc
-            }
-        }
-    }
-    yInfo("Assembling successful");
-    reply.addString("Assembling successful");
-
-    // Step 4: Spreading goals
-    // Brute Force
-    bool change = false;
-    do {
-        change = false;
-        for (unsigned int i = 0; i < auto_sg.vDGAR.size(); i++) {
-            if (auto_sg.vDGAR.at(i).tGoal == storygraph::NONE) {
-                // Search a goal in sub events
-                if (auto_sg.vDGAR.at(i).tResult == storygraph::DGAR_CELL) {
-                    int result = auto_sg.vDGAR.at(i).iResult;
-                    if (auto_sg.vDGAR.at(result).tGoal == storygraph::EVENT) {
-                        auto_sg.vDGAR.at(i).tGoal = storygraph::EVENT;
-                        auto_sg.vDGAR.at(i).iGoal = auto_sg.vDGAR.at(result).iGoal;
-                        change = true;
-                    }
-                }
-                // Search a goal in next events
-                else if (auto_sg.vDGAR.at(i).tNext == storygraph::DGAR_CELL) {
-                    int next = auto_sg.vDGAR.at(i).iNext;
-                    if (auto_sg.vDGAR.at(next).tGoal == storygraph::EVENT) {
-                        auto_sg.vDGAR.at(i).tGoal = storygraph::EVENT;
-                        auto_sg.vDGAR.at(i).iGoal = auto_sg.vDGAR.at(next).iGoal;
-                        change = true;
-                    }
-                }
-            }
-        }
-    } while (change);
-    yInfo("Spreadings goals successful");
-    reply.addString("Spreading goals successful");
-
-    // Step 5: Meaning DGAR
-    // Step a: Mark dgar already contained
-    // Done with previous steps.
-
-    // Step b: Extract chains
-    std::vector < std::vector <int> > chains;
-    for (unsigned int i = 0; i < auto_sg.vDGAR.size(); i++) {
-        if (!mark.at(i)) {
-            int current = i;
-            std::vector <int> new_chain;
-            new_chain.push_back(current);
-            mark.at(current) = true;
-            while (auto_sg.vDGAR.at(current).tNext == storygraph::DGAR_CELL) { // Follow the 'Next' entry
-                current = auto_sg.vDGAR.at(current).iNext;
-                new_chain.push_back(current);
-                mark.at(current) = true;
-            }
-            chains.push_back(new_chain);
-        }
-    }
-    // Step c: Add meaning dgar for this chains
-    for (auto c : chains) {
-
-        // Packing it in a GDAR
-        if (!c.empty()) {
-            int head = c.front();
-            int tail = c.back();
-
-            storygraph::sDGAR dgar;
-            dgar.label = "Story";
-            dgar.tDrive = storygraph::EVENT;
-            dgar.iDrive = auto_sg.vDGAR.at(head).iDrive;
-
-            dgar.tGoal = storygraph::EVENT;
-            dgar.iGoal = auto_sg.vDGAR.at(head).iGoal;
-
-            dgar.tAction = storygraph::DGAR_CELL;
-            dgar.iAction = head;
-
-            while (auto_sg.vDGAR.at(tail).tResult == storygraph::DGAR_CELL) {
-                tail = auto_sg.vDGAR.at(tail).iResult;
-            }
-            dgar.tResult = auto_sg.vDGAR.at(tail).tResult;
-            dgar.iResult = auto_sg.vDGAR.at(tail).iResult;
-
-            auto_sg.addDGAR(dgar);
-        }
-    }
-
-    yInfo("Creating meaning successful");
-    reply.addString("Creating meaning successful");
-    _sg = auto_sg;
-}
-
-void narrativeHandler::linkAndMeaning(const Bottle& command, Bottle& reply) {
-    yInfo(" creating a new sentence meaning and narrative link in the narrative graph system");
+void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
+    yInfo(" creating a link in the situation model");
     if (command.size() >= 4) {
-        // Get the From keyEvt
-        storygraph::sKeyEvt from;
-        from.iDGAR =   command.get(1).asList()->get(0).asInt();
-        from.cellCat = command.get(1).asList()->get(1).asString()[0];
-        from.iRel =    command.get(1).asList()->get(2).asInt();
-        // Get the To keyEvt
-        storygraph::sKeyEvt to;
-        to.iDGAR =   command.get(3).asList()->get(0).asInt();
-        to.cellCat = command.get(3).asList()->get(1).asString()[0];
-        to.iRel =    command.get(3).asList()->get(2).asInt();
+        // Get the From sKeyMean
+        storygraph::sKeyMean from;
+        from.iIGARF = command.get(1).asList()->get(0).asInt();
+        from.cPart  = command.get(1).asList()->get(1).asString()[0];
+        from.iRel   = command.get(1).asList()->get(2).asInt();
+        // Get the To sKeyMean
+        storygraph::sKeyMean to;
+        to.iIGARF = command.get(3).asList()->get(0).asInt();
+        to.cPart  = command.get(3).asList()->get(1).asString()[0];
+        to.iRel   = command.get(3).asList()->get(2).asInt();
         // Get meaning
         std::string m = command.get(2).asString();
 
-        sg.addMeaningAndLink(from, to, m);
+        sm.createLink(from, to, m);
         yInfo(" creation sucessful");
         reply.addString(" creation sucessful");
     }
     else {
         yInfo(" Not enough arguments");
         reply.addString("Error: Needs 3 arguments");
+    }
+}
+
+void narrativeHandler::addLinkAndMeaning(const Bottle& command, Bottle& reply) {
+    yInfo(" creating a link in the situation model");
+    if (command.size() >= 2) {
+        // Get the From sKeyMean
+        storygraph::sKeyMean from;
+        from.iIGARF = -1;
+        from.cPart  = 'A';
+        from.iRel   = -1;
+        // Get meaning
+        std::string m = command.get(1).asString();
+
+        sm.addMeaningAndLink(m, from);
+        yInfo(" creation sucessful");
+        reply.addString(" creation sucessful");
+    }
+    else {
+        yInfo(" Not enough arguments");
+        reply.addString("Error: Needs 1 arguments");
     }
 }

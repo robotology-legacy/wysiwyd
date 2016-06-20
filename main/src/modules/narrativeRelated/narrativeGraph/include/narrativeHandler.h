@@ -106,14 +106,12 @@ private:
     void createNarration(story &sto);
     std::string createMeaning(std::string agent, std::string predicate, std::string object = "", std::string recipient = "");
 
-    // Narrative Graphs
-    storygraph::storyGraph sg;
-    void createDGAR(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    void changeDGAR(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    void automaticDGAR(storygraph::storyGraph& _sg, yarp::os::Bottle& reply);
+    // SituationModel
+    storygraph::situationModel sm;
 
     // Meanings
-    void linkAndMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
+    void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
+    void addLinkAndMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
 };
 
 

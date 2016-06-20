@@ -419,7 +419,6 @@ bool narrativeHandler::narrationToMeaning(story &target){
                                 cout << co.first << " - " << co.second << endl;
                             }
                         }
-                        int p = 0;
                         target.vEvents = currentStory.vEvents;
                         target.iBasedOn = currentStory.counter;
                         for (auto& tt : target.vEvents){
@@ -470,7 +469,7 @@ evtStory narrativeHandler::adaptMeaning(evtStory& evtInput){
         }
 
         // if object is a sentence
-        int pos = evtInput.object.find(comparator[jj].first);
+        size_t pos = evtInput.object.find(comparator[jj].first);
 
         if (pos != string::npos){
             //            cout << "OBJECT BEFORE: " << evtInput.object << endl;
@@ -484,12 +483,12 @@ evtStory narrativeHandler::adaptMeaning(evtStory& evtInput){
     Bottle bNewRelations;
     // for each relation
     //    cout << "RELATION BEFORE: " << evtInput.bRelations.toString() << endl;
-    for (unsigned int iRel = 0; iRel < evtInput.bRelations.size(); iRel++){
+    for (int iRel = 0; iRel < evtInput.bRelations.size(); iRel++){
         Bottle bTemp = *evtInput.bRelations.get(iRel).asList();
         Bottle bNewTemp;
 
         // for each element of the relation
-        for (unsigned int iSub = 0; iSub < bTemp.size(); iSub++){
+        for (int iSub = 0; iSub < bTemp.size(); iSub++){
             bool bFound = false;
             for (unsigned int jj = 0; jj < comparator.size(); jj++){
                 if (comparator[jj].first == bTemp.get(iSub).asString()){
@@ -578,11 +577,11 @@ void narrativeHandler::imagineStory(story& target)
         Bottle bAllRelations = iCub->getABMClient()->requestFromString(osRequestRelations.str());
 
         Bottle bNewOpc;
-        for (unsigned int iRel = 0; iRel < bAllInstances.size(); iRel++){
+        for (int iRel = 0; iRel < bAllInstances.size(); iRel++){
             Bottle bTemp = *bAllInstances.get(iRel).asList();
             Bottle bNewTemp;
             // for each element of the relation
-            for (unsigned int iSub = 0; iSub < bTemp.size(); iSub++){
+            for (int iSub = 0; iSub < bTemp.size(); iSub++){
 
                 string stmp = bTemp.get(iSub).asString();
                 for (unsigned int jj = 0; jj < comparator.size(); jj++){
@@ -615,7 +614,7 @@ void narrativeHandler::imagineStory(story& target)
         vector<string> vInvolvedAgents;
         vector<string> vInvolvedObjects;
 
-        for (unsigned int ii = 0; ii < bNewOpc.size(); ii++){
+        for (int ii = 0; ii < bNewOpc.size(); ii++){
             Bottle bTemp = *bNewOpc.get(ii).asList();
 
             if (bTemp.get(3).toString() == "agent"){
@@ -669,7 +668,7 @@ void narrativeHandler::imagineStory(story& target)
 
             mentalOPC->checkout();
 
-            for (unsigned int ii = 0; ii < bNewOpc.size(); ii++){
+            for (int ii = 0; ii < bNewOpc.size(); ii++){
                 Bottle bTemp = *bNewOpc.get(ii).asList();
 
                 // if it is the good instance
@@ -686,7 +685,6 @@ void narrativeHandler::imagineStory(story& target)
                     string token;
                     // current story
                     size_t pos = 0;
-                    size_t prev = 0;
                     while ((pos = spos.find(",")) != string::npos) {
                         token = spos.substr(0, pos);
                         position.push_back(atof(token.c_str()));
