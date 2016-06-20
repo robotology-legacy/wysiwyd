@@ -172,6 +172,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " addRelIGARF + instanceIGARF + cPart + instanceRel\n" +
         " remRelIGARF + instanceIGARF + cPart + instanceRel\n" +
         " createLink + (instanceFromIGARF cPart instanceRel) + word + (instanceRoIGARF cPart instanceRel)\n"
+        " linkFromMeaning + meaning\n"
         " createFromMeaning + meaning\n"
         " quit \n";
 
@@ -283,6 +284,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         yInfo(" list events of the situation model");
         for(unsigned int i = 0; i < sm.vActionEvts.size(); i++) {
             std::cout << "[" << i << "] " << sm.getSentenceEvt(i) << std::endl;
+            reply.addString(sm.getSentenceEvt(i));
         }
         yInfo(" listing sucessful");
         reply.addString(" listing sucessful");
@@ -290,7 +292,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "listRels") {
         yInfo(" list relations of the situation model");
         for(unsigned int i = 0; i < sm.vRelations.size(); i++) {
-            std::cout << to_string(i) + ": " + sm.getSentenceRel(i) << std::endl;
+            std::cout << "[" << i << "] " << sm.getSentenceRel(i) << std::endl;
             reply.addString(sm.getSentenceRel(i));
         }
         yInfo(" listing sucessful");
@@ -449,8 +451,11 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
                 reply.addString("Error: Needs 3 arguments");
             }
     }
-    else if (command.get(0).asString() == "createFromMeaning") {
+    else if (command.get(0).asString() == "linkFromMeaning") {
         addLinkAndMeaning(command, reply);
+    }
+    else if (command.get(0).asString() == "createFromMeaning") {
+        addLinkAndMeaning(command, reply, true);
     }
     else if (command.get(0).asString() == "TESTwhenIsUsed") {
         sm.TESTwhenIsUsed(command.get(1).asString());
@@ -458,9 +463,13 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "TESTlistLinks") {
         for(storygraph::sDiscourseLink lk : sm.vDiscourseLinks) {
-            std::cout << lk.word << ": From " << lk.fromEvt.cPart << " of DGAR " << lk.fromEvt.iIGARF <<
-                         " to " << lk.toEvt.cPart << " of DGAR " << lk.toEvt.iIGARF << std::endl;
+            std::cout << lk.word << ": From " << lk.fromEvt.cPart << " of IGARF " << lk.fromEvt.iIGARF <<
+                         " to " << lk.toEvt.cPart << " of IGARF " << lk.toEvt.iIGARF << std::endl;
         }
+        reply.addString("-ok");
+    }
+    else if (command.get(0).asString() == "TESTperiod") {
+        sm.endSentence();
         reply.addString("-ok");
     }
     else{
@@ -1838,56 +1847,6 @@ bool narrativeHandler::narrationToSpeech(story target){
 
     return true;
 }
-/*
-void narrativeHandler::changeDGAR(const Bottle& command, Bottle& reply) {
-    yInfo(" change a DGAR components in the narrative graph system");
-    if (command.size() >= 5) {
-        int i = command.get(1).asInt();
-        if (i < 0 || i >= (int)sg.vDGAR.size()) {
-            yInfo(" Out of range");
-            reply.addString("Error: Out of range");
-        }
-        else {
-            std::string which = command.get(2).asString();
-            std::string type = command.get(3).asString();
-            int to = command.get(4).asInt();
-
-            storygraph::cell_type ct = storygraph::NONE;
-            if (type == "EVENT") {ct = storygraph::EVENT;}
-            if (type == "DGAR") {ct = storygraph::DGAR_CELL;}
-
-            if (which == "drive") {
-                sg.vDGAR.at(i).tDrive = ct;
-                sg.vDGAR.at(i).iDrive = to;
-            }
-            if (which == "goal") {
-                sg.vDGAR.at(i).tGoal = ct;
-                sg.vDGAR.at(i).iGoal = to;
-            }
-            if (which == "action") {
-                sg.vDGAR.at(i).tAction = ct;
-                sg.vDGAR.at(i).iAction = to;
-            }
-            if (which == "result") {
-                sg.vDGAR.at(i).tResult = ct;
-                sg.vDGAR.at(i).iResult = to;
-            }
-            if (which == "next") {
-                sg.vDGAR.at(i).tNext = ct;
-                sg.vDGAR.at(i).iNext = to;
-            }
-        }
-
-        yInfo(" modification sucessful");
-        yInfo(sg.expressDGAR(sg.vDGAR.size()));
-        reply.addString(" modification sucessful");
-    }
-    else {
-        yInfo(" Not enough arguments");
-        reply.addString("Error: Needs 4 arguments (dgar_number, cell_category, cell_type, cell_number)");
-    }
-}
-*/
 
 void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
     yInfo(" creating a link in the situation model");
@@ -1915,7 +1874,7 @@ void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
     }
 }
 
-void narrativeHandler::addLinkAndMeaning(const Bottle& command, Bottle& reply) {
+void narrativeHandler::addLinkAndMeaning(const Bottle& command, Bottle& reply, bool create) {
     yInfo(" creating a link in the situation model");
     if (command.size() >= 2) {
         // Get the From sKeyMean
@@ -1926,7 +1885,7 @@ void narrativeHandler::addLinkAndMeaning(const Bottle& command, Bottle& reply) {
         // Get meaning
         std::string m = command.get(1).asString();
 
-        sm.addMeaningAndLink(m, from);
+        sm.addMeaningAndLink(m, from, create);
         yInfo(" creation sucessful");
         reply.addString(" creation sucessful");
     }

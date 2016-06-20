@@ -111,7 +111,7 @@ private:
 
     // Meanings
     void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    void addLinkAndMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
+    void addLinkAndMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply, bool create = false);
 };
 
 

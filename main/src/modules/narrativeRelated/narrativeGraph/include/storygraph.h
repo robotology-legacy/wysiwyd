@@ -67,6 +67,7 @@ namespace storygraph {
         std::vector < sDiscourseLink > vDiscourseLinks;
 
         std::vector < std::string > vMeanings; // NarrativeSemanticWords, PAOR1, PAOR2, PAOR3 <o> [_-_-_-L-_], [A-P-O-_-_], [A-_-_-_-P], [_-_-_-_-_] <o>
+        bool sentenceEnd;
 
         situationModel();
 
@@ -87,6 +88,7 @@ namespace storygraph {
         // Create (or find) Relation, ActionEvt or IGARF event and stock them in the class vectors. Return their index.
         int addNewActionEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = "");
         int addOrFindRelation(sRelation rel);
+        int findRelation(sRelation rel); // -1 if not
         int createIGARF();
         sRelation fromValueToRelation(const yarp::os::Value& b);
         // Modify
@@ -100,8 +102,16 @@ namespace storygraph {
         sKeyMean createKey(int iIGARF, char cPart, int iRel);
         void createLink(sKeyMean from, sKeyMean to, std::string word);
         sKeyMean findEventOrRelation(std::string meaning); // Return a (-1 'A' -1) sKeyMean if not found
-        sKeyMean addMeaningAndLink(std::string meaning, sKeyMean previous); // From a meaning extract discourse function words and events
-                                                                            // then create a link from previous to current event. Return current keyMean.
+        // Information on previous discourse function word to create a new event or relation
+        bool pointToEvent(std::string word); // Usually used for event or relation?
+        char pointToState(std::string word); // Points to Init, Goal or Final state?
+        char pointToAct(std::string word); // Points to Action or Result?
+        int extractRel(std::string meaning); // Create a new relation from meaning
+        int extractAction(std::string meaning); // Idem for an action event
+        sKeyMean addMeaningAndLink(std::string meaning, sKeyMean previous,
+                                   bool create = false); // From a meaning extract discourse function words and events
+                                                         // then create a link from previous to current event. Return current keyMean.
+        void endSentence(); // End a sentence, avoid next event to be automatically link to last one
         void TESTwhenIsUsed(std::string word); // Temporary tool function. Displays all links made with the word
 
     };

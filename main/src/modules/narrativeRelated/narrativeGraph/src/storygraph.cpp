@@ -17,6 +17,7 @@ void situationModel::clear() {
     vActionEvts.clear();
     vIGARF.clear();
     vDiscourseLinks.clear();
+    endSentence();
 }
 
 bool situationModel::sameRelation(const sRelation &r1, const sRelation &r2) {
@@ -146,12 +147,18 @@ bool isRelationsBInA(vector < int > a, vector < int > b) {
     return cont;
 }
 
-int situationModel::addOrFindRelation(sRelation rel) {
+int situationModel::findRelation(sRelation rel) {
     for (int i = 0; i < (int)vRelations.size(); i++) {
-        if (sameRelation(vRelations.at(i), rel)) {
+        if (sameRelation(vRelations.at(i), rel))
             return i;
-        }
     }
+    return -1;
+}
+
+int situationModel::addOrFindRelation(sRelation rel) {
+    int i = findRelation(rel);
+    if (i != -1)
+        return i;
     vRelations.push_back(rel);
     return vRelations.size() - 1;
 }
@@ -353,6 +360,9 @@ void situationModel::createFromStory(const story &sto) {
                     }
                 }
             }
+            else { // No end event
+                newEvent.vFinalState = newEvent.vInitState;
+            }
 
             // Stock it
             vIGARF.push_back(newEvent);
@@ -508,6 +518,7 @@ void situationModel::createLink(sKeyMean from, sKeyMean to, string word) {
 }
 
 sKeyMean situationModel::findEventOrRelation(string meaning) {
+    meaning = meaning.substr(0, meaning.find('<'));
     meaning += " ";
     // Extract meaning (PAOR)
     string rest = "";
@@ -532,14 +543,14 @@ sKeyMean situationModel::findEventOrRelation(string meaning) {
             for (int j = 0; j < (int)vIGARF.size(); j++) {
                 if (vIGARF.at(j).tAction == ACTION_EVT && vIGARF.at(j).iAction == i) {
                     sKeyMean km;
-                    km.iIGARF = i;
+                    km.iIGARF = j;
                     km.cPart = 'A';
                     km.iRel = -1;
                     return km;
                 }
                 else if (vIGARF.at(j).tResult == ACTION_EVT && vIGARF.at(j).iResult == i) {
                     sKeyMean km;
-                    km.iIGARF = i;
+                    km.iIGARF = j;
                     km.cPart = 'R';
                     km.iRel = -1;
                     return km;
@@ -551,16 +562,17 @@ sKeyMean situationModel::findEventOrRelation(string meaning) {
     r.verb = predicate;
     r.subject = agent;
     r.object = object;
-    int i = addOrFindRelation(r);
-    cout << i << endl;
-    for (int j = 0; j < (int)vIGARF.size(); j++) {
-        for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
-            if (vIGARF.at(j).vInitState.at(k) == i) {
-                sKeyMean km;
-                km.iIGARF = j;
-                km.cPart = 'I';
-                km.iRel = k;
-                return km;
+    int i = findRelation(r);
+    if (i != -1) {
+        for (int j = 0; j < (int)vIGARF.size(); j++) {
+            for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
+                if (vIGARF.at(j).vInitState.at(k) == i) {
+                    sKeyMean km;
+                    km.iIGARF = j;
+                    km.cPart = 'I';
+                    km.iRel = k;
+                    return km;
+                }
             }
         }
     }
@@ -571,9 +583,110 @@ sKeyMean situationModel::findEventOrRelation(string meaning) {
     return km;
 }
 
-sKeyMean situationModel::addMeaningAndLink(string meaning, sKeyMean previous) {
-    if (previous.iIGARF == -1 && !vDiscourseLinks.empty())
+bool situationModel::pointToEvent(std::string word) {
+    int evtCount = 0;
+    int relCount = 0;
+    for(sDiscourseLink lk : vDiscourseLinks) {
+        if (lk.word == word) {
+            if (lk.toEvt.iRel != -1)
+                relCount++;
+            else
+                evtCount++;
+        }
+    }
+    return evtCount >= relCount;
+}
+
+char situationModel::pointToState(std::string word) {
+    int initCount = 0;
+    int goalCount = 0;
+    int finalCount = 0;
+    for(sDiscourseLink lk : vDiscourseLinks) {
+        if (lk.word == word) {
+            switch (lk.toEvt.cPart) {
+            case 'I':
+                initCount++;
+                break;
+            case 'G':
+                goalCount++;
+                break;
+            case 'F':
+                finalCount++;
+                break;
+            }
+        }
+    }
+    if (goalCount >= initCount && goalCount >= finalCount)
+        return 'G';
+    else if (finalCount >= goalCount && finalCount >= initCount)
+        return 'F';
+    else
+        return 'I';
+}
+
+char situationModel::pointToAct(std::string word) {
+    int actCount = 0;
+    int resCount = 0;
+    for(sDiscourseLink lk : vDiscourseLinks) {
+        if (lk.word == word) {
+            switch (lk.toEvt.cPart) {
+            case 'A':
+                actCount++;
+                break;
+            case 'R':
+                resCount++;
+                break;
+            }
+        }
+    }
+    if (resCount > actCount)
+        return 'R';
+    else
+        return 'A';
+}
+int situationModel::extractRel(string meaning) {
+    meaning = meaning.substr(0, meaning.find('<'));
+    meaning += " ";
+    // Extract meaning (PAOR)
+    string rest = "";
+    // Verb
+    size_t posEnd = meaning.find(' ');
+    string predicate = meaning.substr(0, posEnd);
+    // Subject
+    string agent = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    posEnd = meaning.find(' ', posEnd + 1);
+    // Object
+    string object = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    sRelation r;
+    r.verb = predicate;
+    r.subject = agent;
+    r.object = object;
+    return addOrFindRelation(r);
+}
+
+int situationModel::extractAction(string meaning) {
+    meaning = meaning.substr(0, meaning.find('<'));
+    meaning += " ";
+    // Extract meaning (PAOR)
+    string rest = "";
+    // Verb
+    size_t posEnd = meaning.find(' ');
+    string predicate = meaning.substr(0, posEnd);
+    // Subject
+    string agent = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    posEnd = meaning.find(' ', posEnd + 1);
+    // Object
+    string object = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    posEnd = meaning.find(' ', posEnd + 1);
+    // Recipient
+    string recipient = meaning.substr(posEnd + 1, meaning.find(' ', posEnd + 1) - posEnd - 1);
+    return addNewActionEvt(predicate, agent, object, recipient);
+}
+
+sKeyMean situationModel::addMeaningAndLink(string meaning, sKeyMean previous, bool create) {
+    if (!sentenceEnd && previous.iIGARF == -1 && !vDiscourseLinks.empty())
         previous = vDiscourseLinks.back().toEvt;
+    sentenceEnd = false;
     // The first line of the meaning gives the narrative semantic word used to create a link
     size_t posEnd = meaning.find(',');
     string firstLine = meaning.substr(0, posEnd);
@@ -590,7 +703,34 @@ sKeyMean situationModel::addMeaningAndLink(string meaning, sKeyMean previous) {
     do {
         w = firstLine.substr(endWrd + 1, firstLine.find(' ', endWrd + 1) - endWrd - 1);
         endWrd = firstLine.find(' ', endWrd + 1);
-        std::cout << w << std::endl;
+        if (create && current.iIGARF == -1) { // Neither event nor relation found
+            if (create) { // Still not found
+                // Find out if relation or event is best
+                if (pointToEvent(w)) {
+                    // Create an event
+                    current.cPart = pointToAct(w);
+                    if (previous.iIGARF != -1 &&
+                       ((current.cPart == 'A' && vIGARF.at(previous.iIGARF).tAction == UNDEF) ||
+                        (current.cPart == 'R' && vIGARF.at(previous.iIGARF).tResult == UNDEF)))
+                        current.iIGARF = previous.iIGARF;
+                    else
+                        current.iIGARF = createIGARF();
+                    int i = extractAction(secondLine);
+                    current.iRel = -1;
+                    modifEventIGARF(current.iIGARF, current.cPart, i);
+                }
+                else {
+                    // Add a relation to previous
+                    if (previous.iIGARF != -1)
+                        current.iIGARF = previous.iIGARF;
+                    else
+                        current.iIGARF = createIGARF();
+                    current.cPart = pointToState(w);
+                    current.iRel = extractRel(secondLine);
+                    addRelationIGARF(current.iIGARF, current.cPart, current.iRel);
+                }
+            }
+        }
         createLink(previous, current, w);
     } while (w != "" && firstLine.find(' ', endWrd + 1) != string::npos);
     vMeanings.push_back(meaning);
@@ -602,8 +742,12 @@ sKeyMean situationModel::addMeaningAndLink(string meaning, sKeyMean previous) {
 void situationModel::TESTwhenIsUsed(string word) {
     for(sDiscourseLink lk : vDiscourseLinks) {
         if (lk.word == word) {
-            cout << "From " << lk.fromEvt.cPart << " of IGARF " << lk.fromEvt.iIGARF << " to " << lk.toEvt.cPart << " of IGARF " << lk.toEvt.iIGARF << endl;
+            yInfo() << "From" << lk.fromEvt.cPart << "of IGARF" << lk.fromEvt.iIGARF << "to" << lk.toEvt.cPart << "of IGARF" << lk.toEvt.iIGARF;
         }
     }
 }
 
+
+void situationModel::endSentence() {
+    sentenceEnd = true;
+}
