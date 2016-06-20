@@ -112,6 +112,9 @@ ret.set_title('Memory space visualisation (Training)'); pb.draw()
 ret1 = a.visualise(which_indices=SAM.SAM_Core.most_significant_input_dimensions(a.model.bgplvms[-1],None),plot_scales=False)
 ret1.set_title('Memory space for the label-specific significant dimensions'); pb.draw()
 
+# Train reverse model for uncertainty prediction
+a.familiarity_reverse(Ytest=None, source_view=0)
+
 # Only for images
 #ret_in= a.visualise_interactive(dimensions=(20,28))
 
@@ -134,5 +137,6 @@ pb.show()
 # Example of pattern completion inference:
 index_to_test = 10 # try different ones
 pred_label = a.pattern_completion_inference(Ytest[index_to_test,:][None,:]).values
+rev_pred_uncert = a.familiarity_reverse(Ytest=Ytest[index_to_test,:][None,:])[1]
 print('')
-print("# I predict label " + str(np.round(pred_label).argmax()) + " and correct label is: " + str(Ltest[index_to_test,:].argmax()))
+print("# I predict label " + str(np.round(pred_label).argmax()) + " with uncertainty " + str(rev_pred_uncert) + " and correct label is: " + str(Ltest[index_to_test,:].argmax()))

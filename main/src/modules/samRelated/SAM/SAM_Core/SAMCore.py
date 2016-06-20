@@ -344,8 +344,60 @@ class LFM(object):
             pred_mean, pred_variance = self.model.predict(X)
         return pred_mean, pred_variance
 
+    def familiarity(self,Ytest,ytrmean=None,ytrstd=None):
+        assert(self.type=='bgplvm')
+
+        N = Ytest.shape[0]
+        if ytrmean is not None:
+            Ytest -= ytrmean
+            Ytest /= ytrstd
+
+        from SAM.SAM_Core.svi_ratio import SVI_Ratio
+        s = SVI_Ratio()
+        _,_,_,qX = self.pattern_completion(Ytest, verbose=False)
+        qX = qX.X
+
+        ll = 0
+        for i in range(N):
+            ll+=s.inference(self.model.kern, qX[i,:][None,:],self.model.Z, self.model.likelihood, Ytest[i,:][None,:],self.model.posterior)[0]
+        ll/=N
+        return ll
+        
 ##############################  TMP   ##############################################################
-    def familiarity(self, Ytest, ytrmean = None, ytrstd=None, sigma2=None):
+    def familiarity_reverse(self, Ytest, ytrmean = None, ytrstd=None, source_view = 0, max_iters=1000,num_inducing = 15):
+        if Ytest is None:
+            if self.type == 'bgplvm':
+                tmpX = self.model.Y.values.copy()
+            elif self.type == 'mrd':
+                tmpX = self.model.bgplvms[source_view].Y.values.copy()
+            kernel=GPy.kern.RBF(tmpX.shape[1], ARD=False)+GPy.kern.Bias(tmpX.shape[1])
+            tmpY = self.model.X.mean.values.copy()
+            self.back_GP = GPy.models.SparseGPRegression(tmpX, tmpY, kernel=kernel, num_inducing=num_inducing)
+            self.back_GP.optimize(optimizer='bfgs', max_iters=max_iters, messages=1)
+            return (None,None)
+        else:
+            if ytrmean is not None:
+                Ytest -= ytrmean
+                Ytest /= ytrstd
+            return self.back_GP.predict(Ytest)
+
+    def familiarity3(self, Ytest, ytrmean = None, ytrstd=None):
+        assert(self.type == 'bgplvm')
+
+        import numpy as np
+        N = Ytest.shape[0]
+        if ytrmean is not None:
+            Ytest -= ytrmean
+            Ytest /= ytrstd
+
+        qx, mm = self.model.infer_newX(Ytest)
+        # Optional for more iters---
+        mm.optimize(max_iters=800)
+        # qx = mm.X 
+        return mm._log_marginal_likelihood - self.model._log_marginal_likelihood
+
+
+    def familiarity2(self, Ytest, ytrmean = None, ytrstd=None, sigma2=None,use_uncert=True):
         #def my_logpdf(y, ymean, yvar):
         #    import numpy as np
         #    N = y.shape[0]
@@ -365,10 +417,17 @@ class LFM(object):
             Ytest /= ytrstd
 
         qx, mm = self.model.infer_newX(Ytest)
+        # Optional for more iters---
+        mm.optimize(max_iters=400)
+        qx=mm.X
+        #----
+        
         #ymean, yvar = model._raw_predict(qx)
         # This causes the code to hang!!! Replace qx with qx.mean.values...!!!!
-        ymean, yvar = self.model.predict(qx)
-
+        if use_uncert:
+            ymean, yvar = self.model.predict(qx)
+        else:
+            ymean,yvar = self.model.predict(qx.mean.values)
         ll = np.zeros(N)
         for j in range(N):
             #ll[j] = my_logpdf(Ytest[j], ymean[j], yvar[j])
