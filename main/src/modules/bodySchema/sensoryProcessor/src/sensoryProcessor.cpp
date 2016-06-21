@@ -574,6 +574,7 @@ void SensoryProcessor::midiCallback( double deltatime, std::vector< unsigned cha
 
 void SensoryProcessor::readMidiKeyboard()
 {
+
     RtMidiIn *midiin = 0;
     try {
 
@@ -583,7 +584,6 @@ void SensoryProcessor::readMidiKeyboard()
         midiin->setCallback( &SensoryProcessor::midiCallback, &portMidiOut );
         // Don't ignore sysex, timing, or active sensing messages.
         midiin->ignoreTypes( false, false, false );
-
       } catch ( RtMidiError &error ) {
         error.printMessage();
       }
