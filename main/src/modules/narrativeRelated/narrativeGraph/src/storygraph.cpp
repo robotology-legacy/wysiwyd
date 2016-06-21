@@ -377,7 +377,7 @@ void situationModel::createFromStory(const story &sto) {
     int N = vIGARF.size();
     for (int i = 0; i < N; i++) {
         // End chain?
-        if ((vIGARF.at(i).tResult == ACTION_EVT && vActionEvts.at(vIGARF.at(i).iResult).predicate == "fail_to") ||
+        if ((vIGARF.at(i).tResult == ACTION_EVT && vActionEvts.at(vIGARF.at(i).iResult).predicate == "fail") ||
             !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) && isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState)) ||
             i == N - 1) {
             if (!(vIGARF.at(i).tResult == ACTION_EVT &&
@@ -424,7 +424,7 @@ void situationModel::createFromStory(const story &sto) {
     int j;
     for (unsigned int i = 0; i < rep.size(); i++) {
         j = rep.at(i);
-        if (vIGARF.at(j).tResult == ACTION_EVT && vActionEvts.at(vIGARF.at(j).iResult).predicate == "fail_to" && i + 1 < rep.size()) {
+        if (vIGARF.at(j).tResult == ACTION_EVT && vActionEvts.at(vIGARF.at(j).iResult).predicate == "fail" && i + 1 < rep.size()) {
             // New IGARF, pack current and next
             sIGARF newEvent;
             newEvent.vInitState = vIGARF.at(j).vInitState;
@@ -438,6 +438,7 @@ void situationModel::createFromStory(const story &sto) {
             vIGARF.push_back(newEvent);
             if (head == j)
                 head = vIGARF.size() - 1;
+            rep.at(i + 1) = vIGARF.size() - 1;
         }
         else if (i + 1 < rep.size()) {
             vIGARF.at(j).iNext = rep.at(i + 1);
@@ -454,6 +455,10 @@ void situationModel::createFromStory(const story &sto) {
             if (vIGARF.at(i).vGoal.empty()) {
                 if (vIGARF.at(i).tResult == IGARF_EVT && !vIGARF.at(vIGARF.at(i).iResult).vGoal.empty()) {
                     vIGARF.at(i).vGoal = vIGARF.at(vIGARF.at(i).iResult).vGoal;
+                    change = true;
+                }
+                if (vIGARF.at(i).tAction == IGARF_EVT && !vIGARF.at(vIGARF.at(i).iAction).vGoal.empty()) {
+                    vIGARF.at(i).vGoal = vIGARF.at(vIGARF.at(i).iAction).vGoal;
                     change = true;
                 }
                 else if (vIGARF.at(i).iNext != -1 && !vIGARF.at(vIGARF.at(i).iNext).vGoal.empty()) {
