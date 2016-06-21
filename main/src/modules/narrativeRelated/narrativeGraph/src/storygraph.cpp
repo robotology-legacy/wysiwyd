@@ -294,8 +294,8 @@ void situationModel::createFromStory(const story &sto) {
         if (currentEvt.begin) { // For each begin of action
             evtStory endCurrent;
             bool hasEnd = false;
-            if (i + 1 < vEvents.size() && !vEvents.at(i+1).begin && currentEvt.activity_name == vEvents.at(i + 1).activity_name) { // Is the next event the end event ?
-                endCurrent = vEvents.at(i+1);
+            if (i + 1 < vEvents.size() && !vEvents.at(i + 1).begin && currentEvt.activity_name == vEvents.at(i + 1).activity_name) { // Is the next event the end event ?
+                endCurrent = vEvents.at(i + 1);
                 hasEnd = true;
             }
             // New Action events and relations
@@ -338,25 +338,29 @@ void situationModel::createFromStory(const story &sto) {
                 newEvent.tResult = ACTION_EVT;
                 newEvent.iResult = vActionEvts.size() - 1;
 
+                // > Goal
+                if (findValue(endCurrent.vArgument, "goal") != "") {
+                    // Extract the goal relation
+                    std::string goal = findValue(endCurrent.vArgument, "goal");
+                    size_t pos = goal.find("predicate") + 10;
+                    std::string pred = goal.substr(pos, goal.find(")", pos) - pos);
+                    pos = goal.find("agent") + 6;
+                    std::string agent = goal.substr(pos, goal.find(")", pos) - pos);
+                    pos = goal.find("object") + 7;
+                    std::string object = goal.substr(pos, goal.find(")", pos) - pos);
+                    sRelation g;
+                    g.subject = agent;
+                    g.verb = pred;
+                    g.object = object;
+                    vRelations.push_back(g);
+                    int i = addOrFindRelation(g);
+                    newEvent.vGoal.push_back(i);
+                }
+
                 // > Final State
                 for (int i = 0; i < endCurrent.bRelations.size(); i++) {
                     if (endCurrent.bRelations.get(i).isList()) {
                         newEvent.vFinalState.push_back(addOrFindRelation(fromValueToRelation(endCurrent.bRelations.get(i))));
-                    }
-                }
-
-                // > Goal
-                if (!isRelationsBInA(newEvent.vInitState, newEvent.vFinalState)) {
-                    for (int j = 0; j < (int)newEvent.vFinalState.size(); j++) {
-                        bool found = false;
-                        for (int i = 0; i < (int)newEvent.vInitState.size() && !found; i++) {
-                            if (sameRelation(vRelations.at(newEvent.vInitState.at(i)), vRelations.at(newEvent.vFinalState.at(j)))) {
-                                found = true;
-                            }
-                        }
-                        if (!found) {
-                            newEvent.vGoal.push_back(newEvent.vFinalState.at(j));
-                        }
                     }
                 }
             }
@@ -384,7 +388,7 @@ void situationModel::createFromStory(const story &sto) {
                   vActionEvts.at(vIGARF.at(i).iResult).predicate == "fail") && // Not a failure
                 !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) &&
                   isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState))) { // Final and init state are differents
-                vIGARF.at(i).vGoal = vIGARF.at(i).vFinalState;
+                //vIGARF.at(i).vGoal = vIGARF.at(i).vFinalState;
             }
             if (lastOfChain == -1)
                 rep.push_back(i);
@@ -393,7 +397,7 @@ void situationModel::createFromStory(const story &sto) {
                 // New IGARF, pack the chain
                 sIGARF newEvent;
                 newEvent.vInitState = vIGARF.at(firstOfChain).vInitState;
-                newEvent.vGoal = vIGARF.at(firstOfChain).vGoal; // < Todo: Where goal should be taken?
+                newEvent.vGoal = vIGARF.at(firstOfChain).vGoal;
                 newEvent.tAction = IGARF_EVT;
                 newEvent.iAction = firstOfChain;
                 newEvent.tResult = vIGARF.at(i).tResult;
@@ -428,7 +432,7 @@ void situationModel::createFromStory(const story &sto) {
             // New IGARF, pack current and next
             sIGARF newEvent;
             newEvent.vInitState = vIGARF.at(j).vInitState;
-            newEvent.vGoal = vIGARF.at(j).vGoal; // < Todo: Where goal should be taken?
+            newEvent.vGoal = vIGARF.at(j).vGoal;
             newEvent.tAction = IGARF_EVT;
             newEvent.iAction = j;
             newEvent.tResult = IGARF_EVT;
@@ -455,10 +459,6 @@ void situationModel::createFromStory(const story &sto) {
             if (vIGARF.at(i).vGoal.empty()) {
                 if (vIGARF.at(i).tResult == IGARF_EVT && !vIGARF.at(vIGARF.at(i).iResult).vGoal.empty()) {
                     vIGARF.at(i).vGoal = vIGARF.at(vIGARF.at(i).iResult).vGoal;
-                    change = true;
-                }
-                if (vIGARF.at(i).tAction == IGARF_EVT && !vIGARF.at(vIGARF.at(i).iAction).vGoal.empty()) {
-                    vIGARF.at(i).vGoal = vIGARF.at(vIGARF.at(i).iAction).vGoal;
                     change = true;
                 }
                 else if (vIGARF.at(i).iNext != -1 && !vIGARF.at(vIGARF.at(i).iNext).vGoal.empty()) {
@@ -649,6 +649,7 @@ char situationModel::pointToAct(std::string word) {
     else
         return 'A';
 }
+
 int situationModel::extractRel(string meaning) {
     meaning = meaning.substr(0, meaning.find('<'));
     meaning += " ";
@@ -673,7 +674,6 @@ int situationModel::extractAction(string meaning) {
     meaning = meaning.substr(0, meaning.find('<'));
     meaning += " ";
     // Extract meaning (PAOR)
-    string rest = "";
     // Verb
     size_t posEnd = meaning.find(' ');
     string predicate = meaning.substr(0, posEnd);
