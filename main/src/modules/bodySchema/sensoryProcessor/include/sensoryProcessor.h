@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Martina Zambelli, Tobias Fischer
  * email:   m.zambelli13@imperial.ac.uk, t.fischer@imperial.ac.uk
@@ -23,6 +23,7 @@
 #include <yarp/sig/all.h>
 #include <yarp/os/all.h>
 #include <yarp/dev/all.h>
+#include <thread>
 
 #include <wrdac/clients/icubClient.h>
 #include "RtMidi.h"
@@ -60,6 +61,8 @@ private:
 
     std::string leftCameraPort, rightCameraPort;
 
+    RtMidiIn *midiin;
+
     int MAX_COUNT;
     int fps;
 
@@ -73,6 +76,9 @@ private:
     std::vector<int> points_idx;
     cv::Mat gray, prevGray, image;
     std::vector<cv::Point2f> points[2];
+
+    std::thread readMidi;
+
 
 public:
     bool configure(yarp::os::ResourceFinder &rf);
@@ -88,8 +94,8 @@ private:
     bool init_iCub(std::string &part);
     bool getMultimodalData();
     bool findFeatures(cv::TermCriteria &termcrit, cv::Size &subPixWinSize, cv::Size &winSize);
-    bool readMidiKeyboard();
-    //void midiCallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ );
+    void readMidiKeyboard();
+    void midiCallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ );
     void find_image(yarp::sig::Vector &handTarget, yarp::sig::Vector &armTarget, yarp::sig::Vector &fingerTarget);
 };
 

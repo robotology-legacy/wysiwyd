@@ -42,6 +42,7 @@
 
 #ifndef RTMIDI_H
 #define RTMIDI_H
+#define __LINUX_ALSA__
 
 #define RTMIDI_VERSION "2.1.1"
 
@@ -80,7 +81,7 @@ class RtMidiError : public std::exception
 
   //! The constructor.
   RtMidiError( const std::string& message, Type type = RtMidiError::UNSPECIFIED ) throw() : message_(message), type_(type) {}
- 
+
   //! The destructor.
   virtual ~RtMidiError( void ) throw() {}
 
@@ -202,13 +203,14 @@ class RtMidi
 // make a "logical" API selection.
 //
 // **************************************************************** //
-
+class SensoryProcessor;
 class RtMidiIn : public RtMidi
 {
  public:
 
   //! User callback function type definition.
-  typedef void (*RtMidiCallback)( double timeStamp, std::vector<unsigned char> *message, void *userData);
+  typedef void (*RtMidiCallbackOld)( double timeStamp, std::vector<unsigned char> *message, void *userData);
+  typedef void (SensoryProcessor::*RtMidiCallback)(double timeStamp, std::vector<unsigned char> *message, void *userData);
 
   //! Default constructor that allows an optional api, client name and queue size.
   /*!
@@ -280,6 +282,8 @@ class RtMidiIn : public RtMidi
 
   //! Close an open MIDI connection (if one exists).
   void closePort( void );
+
+  void setInstance (SensoryProcessor* instance);
 
   //! Returns true if a port is open and false if not.
   virtual bool isPortOpen() const;
@@ -471,14 +475,15 @@ class MidiInApi : public MidiApi
   MidiInApi( unsigned int queueSizeLimit );
   virtual ~MidiInApi( void );
   void setCallback( RtMidiIn::RtMidiCallback callback, void *userData );
+  void setInstance( SensoryProcessor* inst ) { inputData_.instance = inst;  }
   void cancelCallback( void );
   virtual void ignoreTypes( bool midiSysex, bool midiTime, bool midiSense );
   double getMessage( std::vector<unsigned char> *message );
 
   // A MIDI structure used internally by the class to store incoming
   // messages.  Each message represents one and only one MIDI message.
-  struct MidiMessage { 
-    std::vector<unsigned char> bytes; 
+  struct MidiMessage {
+    std::vector<unsigned char> bytes;
     double timeStamp;
 
     // Default constructor.
@@ -511,6 +516,7 @@ class MidiInApi : public MidiApi
     RtMidiIn::RtMidiCallback userCallback;
     void *userData;
     bool continueSysex;
+    SensoryProcessor* instance;
 
     // Default constructor.
   RtMidiInData()
@@ -543,6 +549,7 @@ inline void RtMidiIn :: openPort( unsigned int portNumber, const std::string por
 inline void RtMidiIn :: openVirtualPort( const std::string portName ) { rtapi_->openVirtualPort( portName ); }
 inline void RtMidiIn :: closePort( void ) { rtapi_->closePort(); }
 inline bool RtMidiIn :: isPortOpen() const { return rtapi_->isPortOpen(); }
+inline void RtMidiIn :: setInstance( SensoryProcessor* inst ) { ((MidiInApi *)rtapi_)->setInstance( inst ); }
 inline void RtMidiIn :: setCallback( RtMidiCallback callback, void *userData ) { ((MidiInApi *)rtapi_)->setCallback( callback, userData ); }
 inline void RtMidiIn :: cancelCallback( void ) { ((MidiInApi *)rtapi_)->cancelCallback(); }
 inline unsigned int RtMidiIn :: getPortCount( void ) { return rtapi_->getPortCount(); }

@@ -40,12 +40,14 @@ private:
 
     yarp::dev::IPositionControl* posLeftArm;
     yarp::dev::IVelocityControl* velLeftArm;
+    yarp::dev::ITorqueControl *itrqLeftArm;
     yarp::dev::IEncoders* encsLeftArm;
     yarp::dev::IControlMode2 *ictrlLeftArm;
     yarp::dev::IControlLimits *ictrlLimLeftArm;
 
     yarp::dev::IPositionControl* posRightArm;
     yarp::dev::IVelocityControl* velRightArm;
+    yarp::dev::ITorqueControl *itrqRightArm;
     yarp::dev::IEncoders* encsRightArm;
     yarp::dev::IControlMode2 *ictrlRightArm;
     yarp::dev::IControlLimits *ictrlLimRightArm;
@@ -78,6 +80,8 @@ private:
 
     double start_commandHead[5];
     double start_command[16];
+    double start_command_left[16];
+    double start_command_right[16];
     double ref_command[16];
 
 public:
@@ -98,6 +102,8 @@ private:
     int babblingCommandsMatlab();
     bool doBabblingKinStruct();
     bool gotoStartPos();
+    bool gotoStartPos2();
+    bool gotoStartPosPiano();
     bool gotoHomePos();
     yarp::os::Bottle dealABM(const yarp::os::Bottle& command, int begin);
 

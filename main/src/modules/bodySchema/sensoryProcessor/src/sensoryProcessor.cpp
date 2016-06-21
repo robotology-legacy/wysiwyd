@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <iostream>
+#include <thread>
 
 #include "sensoryProcessor.h"
 
@@ -195,10 +196,19 @@ bool SensoryProcessor::configure(yarp::os::ResourceFinder &rf) {
 
     attach(handlerPort);
 
+    readMidi = thread(&SensoryProcessor::readMidiKeyboard, this);
+    cout << "readMidi thread running..." << endl;
+
+    //readMidiKeyboard();
+
+//    midiin = new RtMidiIn();
+//    midiin->openPort( 1 );
+
     return bEveryThingisGood;
 }
 
 bool SensoryProcessor::interruptModule() {
+
 
     imgPortIn.interrupt();
     featureImgPortOut.interrupt();
@@ -222,6 +232,8 @@ bool SensoryProcessor::interruptModule() {
 
 bool SensoryProcessor::close() {
     yInfo() << "Closing module, please wait ... ";
+
+    readMidi.join();
 
     armDev->close();
     headDev->close();
@@ -281,7 +293,9 @@ bool SensoryProcessor::respond(const Bottle& command, Bottle& reply) {
 }
 
 bool SensoryProcessor::updateModule() {
+
     getMultimodalData();
+
     return true;
 }
 
@@ -396,6 +410,36 @@ bool SensoryProcessor::getMultimodalData()
     }
 
 
+//    cout << "MIDI" << endl;
+//    Bottle &bMidiByte = portMidiOut.prepare();
+//    bMidiByte.clear();
+
+//    cout << "MIDI1" << endl;
+//    std::vector<unsigned char> *message = NULL;
+//    midiin->getMessage( message );
+//    unsigned int nBytes = message->size();
+//    for ( unsigned int i=0; i<nBytes; i++ )
+//    {
+//        std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
+//    }
+//    if((int)message->at(0)==144)
+//    {
+//        cout << (int)message->at(1) << " "  << ", ";
+//    }
+//    if((int)message->at(0)==128)
+//    {
+//        cout << (int)message->at(1) << " " << ", ";
+//    }
+//    bMidiByte.addInt((int)message->at(0));
+//    bMidiByte.addInt((int)message->at(1));
+//    portMidiOut.write();
+//    // Don't ignore sysex, timing, or active sensing messages.
+//    midiin->ignoreTypes( false, false, false );
+
+
+//    readMidi.join();
+
+
 
     return true;
 }
@@ -496,16 +540,30 @@ bool SensoryProcessor::findFeatures(TermCriteria &termcrit, Size &subPixWinSize,
     return true;
 }
 
-void midiCallback( double deltatime, std::vector< unsigned char > *message, void */*userData*/ )
+void SensoryProcessor::midiCallback( double deltatime, std::vector< unsigned char > *message, void * ptr )
 {
-    Bottle bMidiByte = portMidiOut.prepare();
+
+    yarp::os::BufferedPort<yarp::os::Bottle> *portMidiOut_local = (yarp::os::BufferedPort<yarp::os::Bottle> *) ptr;
+
+    Bottle &bMidiByte = portMidiOut_local->prepare();
     bMidiByte.clear();
 
     unsigned int nBytes = message->size();
     for ( unsigned int i=0; i<nBytes; i++ )
+    {
         std::cout << "Byte " << i << " = " << (int)message->at(i) << ", ";
-
+    }
+    if((int)message->at(0)==144)
+    {
+        cout << (int)message->at(1) << " "  << ", ";
+    }
+    if((int)message->at(0)==128)
+    {
+        cout << (int)message->at(1) << " " << ", ";
+    }
+    bMidiByte.addInt((int)message->at(0));
     bMidiByte.addInt((int)message->at(1));
+    portMidiOut_local->write();
 
     if ( nBytes > 0 )
         std::cout << "stamp = " << deltatime << std::endl;
@@ -514,32 +572,22 @@ void midiCallback( double deltatime, std::vector< unsigned char > *message, void
 }
 
 
-bool SensoryProcessor::readMidiKeyboard()
+void SensoryProcessor::readMidiKeyboard()
 {
+
     RtMidiIn *midiin = 0;
     try {
 
         // RtMidiIn constructor
         midiin = new RtMidiIn();
-
-
-
         midiin->openPort( 1 );
-
-        midiin->setCallback( &midiCallback );
-
+        midiin->setCallback( &SensoryProcessor::midiCallback, &portMidiOut );
         // Don't ignore sysex, timing, or active sensing messages.
         midiin->ignoreTypes( false, false, false );
-
-        std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
-        char input;
-        std::cin.get(input);
-
       } catch ( RtMidiError &error ) {
         error.printMessage();
       }
 
-      return 1;
 }
 
 
