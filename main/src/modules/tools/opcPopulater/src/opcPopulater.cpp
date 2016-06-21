@@ -158,13 +158,12 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " populating with scenario: " << scenarioNB;
         switch (scenarioNB)
         {
-            case 1: populateScenario1() ? reply.addString("populating scenario 1 done !") : reply.addString("populating scenario failed !");
-            case 2: populateScenario2() ? reply.addString("populating scenario 2 done !") : reply.addString("populating scenario failed !");
-            case 3: populateScenario3() ? reply.addString("populating scenario 3 done !") : reply.addString("populating scenario failed !");
-            case 4: populateScenario4() ? reply.addString("populating scenario 4 done !") : reply.addString("populating scenario failed !");
-            case 5: populateScenario5() ? reply.addString("populating scenario 5 done !") : reply.addString("populating scenario failed !");
-            case 6: populateScenario6() ? reply.addString("populating scenario 6 done !") : reply.addString("populating scenario failed !");
-                break;
+            case 1: populateScenario1() ? reply.addString("populating scenario 1 done !") : reply.addString("populating scenario failed !"); break;
+            case 2: populateScenario2() ? reply.addString("populating scenario 2 done !") : reply.addString("populating scenario failed !"); break;
+            case 3: populateScenario3() ? reply.addString("populating scenario 3 done !") : reply.addString("populating scenario failed !"); break;
+            case 4: populateScenario4() ? reply.addString("populating scenario 4 done !") : reply.addString("populating scenario failed !"); break;
+            case 5: populateScenario5() ? reply.addString("populating scenario 5 done !") : reply.addString("populating scenario failed !"); break;
+            case 6: populateScenario6() ? reply.addString("populating scenario 6 done !") : reply.addString("populating scenario failed !"); break;
         }
     }
     else {
