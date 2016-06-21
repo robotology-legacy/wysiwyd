@@ -47,6 +47,18 @@ Bottle story::unfoldGoal(string goal)
 
 bool story::displayNarration(bool displayAll)
 {
+
+    yDebug() << "humanNarration.size() " << humanNarration.size();
+    yDebug() << "counter " << counter;
+    yDebug() << "vEvents.size() " << vEvents.size();
+    yDebug() << "sentenceStory.size() " << sentenceStory.size();
+    yDebug() << "viInstances.size() " << viInstances.size();
+
+    if (viInstances.size() == 0){
+        yWarning(" in displayNarration::error viInstance size is 0.");
+        return false;
+    }
+
     if (humanNarration.size() > 2){
         cout << endl << "********************************\nbegin narration from human: " << viInstances[0] << " with " << humanNarration.size() << " events and " << sentenceStory.size() << " sentences." << endl;
 
