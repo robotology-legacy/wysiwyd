@@ -432,28 +432,29 @@ bool Babbling::doBabbling()
             yError() << "Don't know which part to move to do babbling." ;
     }
 
-    Bottle reply;
-    Bottle abmCommand;
-    abmCommand.addString("babbling");
-    abmCommand.addString("arm");
-    if(single_joint != -1){
-        yDebug() << "This is  single joint babbling, add into abm bottle";
-        abmCommand.addInt(single_joint);
-    }
-    reply = dealABM(abmCommand,1);
-
-    //check ABM reply
-    if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
-    } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
-    }
-
-    reply.clear();
-
     if (cmd_source == "C")
     {
         double startTime = yarp::os::Time::now();
+
+        Bottle reply;
+
+        //check ABM reply
+        if (reply.isNull()) {
+            cout << "Reply from ABM is null : NOT connected?" << endl;
+        } else if (reply.get(0).asString()!="ack"){
+            cout << reply.toString() << endl;
+        }
+
+        reply.clear();
+
+        Bottle abmCommand;
+        abmCommand.addString("babbling");
+        abmCommand.addString("arm");
+        abmCommand.addString(part);
+
+        yDebug() << "============> babbling with COMMAND will START" ;
+        reply = dealABM(abmCommand,1);
+
         while (Time::now() < startTime + train_duration){
             //            yInfo() << Time::now() << "/" << startTime + train_duration;
             double t = Time::now() - startTime;
@@ -461,20 +462,14 @@ bool Babbling::doBabbling()
 
             babblingCommands(t,single_joint);
         }
+
+        reply = dealABM(abmCommand,0);
+        yDebug() << "============> babbling with COMMAND is FINISHED" ;
     }
     else
     {
         babblingCommandsMatlab();
     }
-
-    reply = dealABM(abmCommand,0);
-    //check ABM reply
-    if (reply.isNull()) {
-        cout << "Reply from ABM is null : NOT connected?" << endl;
-    } else if (reply.get(0).asString()!="ack"){
-        cout << reply.toString() << endl;
-    }
-
 
 //    bool homeEnd = gotoStartPos();
 //    if(!homeEnd) {
@@ -648,6 +643,27 @@ int Babbling::babblingCommandsMatlab()
 //        ictrlRightArm->setControlMode(i,VOCAB_CM_TORQUE);
     }
 
+    /********************************** snapshot to ABM **********************************/
+    Bottle reply;
+
+    //check ABM reply
+    if (reply.isNull()) {
+        cout << "Reply from ABM is null : NOT connected?" << endl;
+    } else if (reply.get(0).asString()!="ack"){
+        cout << reply.toString() << endl;
+    }
+
+    reply.clear();
+
+    Bottle abmCommand;
+    abmCommand.addString("babbling");
+    abmCommand.addString("arm");
+    abmCommand.addString(part);
+
+    yDebug() << "============> babbling with COMMAND will START" ;
+    reply = dealABM(abmCommand,1);
+    /********************************** snapshot to ABM **********************************/
+
     Bottle *endMatlab;
     Bottle *cmdMatlab;
     Bottle replyFromMatlab;
@@ -673,7 +689,7 @@ int Babbling::babblingCommandsMatlab()
             command[i] = cmdMatlab->get(i).asDouble();
 
         // Move
-        int j=1;
+        int j=5;
         while(j--)
         {
             if(part=="right_arm"){
@@ -692,7 +708,7 @@ int Babbling::babblingCommandsMatlab()
             else
                 yError() << "Don't know which part to move to do babbling." ;
 
-            Time::delay(0.2);// use this with iCub
+            Time::delay(0.025);// use this with iCub
         }
         for (unsigned int l=0; l<command.size(); l++)
             command[l]=0;
@@ -726,6 +742,17 @@ int Babbling::babblingCommandsMatlab()
     portReadMatlab.close();
 
     yInfo() << "Finished and ports to/from Matlab closed.";
+
+    /********************************** snapshot to ABM **********************************/
+    reply = dealABM(abmCommand,0);
+    yDebug() << "============> babbling is FINISHED" ;
+    //check ABM reply
+    if (reply.isNull()) {
+        cout << "Reply from ABM is null : NOT connected?" << endl;
+    } else if (reply.get(0).asString()!="ack"){
+        cout << reply.toString() << endl;
+    }
+    /********************************** snapshot to ABM **********************************/
 
     return 0;
 }
@@ -1528,7 +1555,8 @@ bool Babbling::init_iCub(string &part)
 
 Bottle Babbling::dealABM(const Bottle& command, int begin)
 {
-    yDebug() << "Dealing with ABM: bottle received = " << command.toString() << " of size = " << command.size();
+    yDebug() << "Dealing with ABM: bottle received = " << command.toString() << " of size = " << command.size() << " begin: " << begin;
+
     if (begin<0 || begin>1)
     {
         yError() << "begin parameter must be 1 or 0.";
