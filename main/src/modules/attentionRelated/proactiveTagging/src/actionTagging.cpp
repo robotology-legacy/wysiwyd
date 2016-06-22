@@ -46,10 +46,12 @@ Bottle proactiveTagging::describeBabbling(string sJointName, int joint) {
 
     //iCub->point(sNameTarget, bHand, false); //false for shouldWait = False : will continue to the looping describe
     //bottle to move single joint
-    bSingleJoint.addString("singleJointBabbling");
-
+    bSingleJoint.addString("babbling");
+    bSingleJoint.addString("joint");
     //9 11 13 15
     bSingleJoint.addInt(joint);
+    bSingleJoint.addString("left");
+    bSingleJoint.addDouble(18.0);//duration
 
     portNoWaitToBodySchema.prepare() = bSingleJoint ;
     portNoWaitToBodySchema.writeStrict() ;
