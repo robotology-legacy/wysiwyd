@@ -268,9 +268,9 @@ Bottle autobiographicalMemory::snapshot(const Bottle &bInput)
 
         if(streamStatus != StreamStatuses::RECORD) { // only change instance number if we are not recording already
             imgInstance = currentInstance;
+            frameNb = 0;
         }
         string synchroTime = getCurrentTime();
-        frameNb = 0;
 
         storeImagesAndData(synchroTime, true, fullSentence);
 
