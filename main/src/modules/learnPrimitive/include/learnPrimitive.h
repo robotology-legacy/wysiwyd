@@ -44,6 +44,10 @@ private:
     //   b.get(1) b.get(2)  b.get(3)
     //   name     arg        list of proto/prim/action
 
+    yarp::os::Bottle protoDataToR(int babbling_begin, int babbling_end);     // extract data and put to R
+    yarp::os::Bottle protoActionDataSplit(unsigned int instance_begin, unsigned int instance_end, string bp_arm, int bp_joint);
+    yarp::os::Bottle extractProtoProprio(int babbling_begin, std::string babbling_part, int proto_instance, std::string proto_name, std::string proto_finger);
+
     RInside R;
 
     Rcpp::NumericMatrix createSquareMatrix(const int);
@@ -77,7 +81,9 @@ public:
     yarp::os::Bottle primitiveCommand(std::string sActionName, std::string sBodypartName);
     yarp::os::Bottle actionCommand(std::string sActionName, std::string sArgument);
 
-    yarp::os::Bottle extractProtoAction();
+
+
+
     yarp::os::Bottle learn();
     yarp::os::Bottle learnPrim();
     yarp::os::Bottle learnAction();

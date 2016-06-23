@@ -176,7 +176,8 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         reply = actionCommand(sActionName, sActionArg);
     }
     else if (command.get(0).asString() == "proto"){
-        reply = extractProtoAction();
+        reply = protoDataToR(15366, 15370);
+        //reply = extractProtoProprio(15366, "left_arm", 15367, "fold", "thumb");
     }
     else if (command.get(0).asString() == "learn"){
         reply = learn();
@@ -197,152 +198,207 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     return true;
 }
 
-Bottle learnPrimitive::extractProtoAction(){
+yarp::os::Bottle learnPrimitive::extractProtoProprio(int babbling_begin, string babbling_part, int proto_instance, string proto_name, string proto_finger){
 
-    Bottle bOutput;
-
-    //1. extract the data from ABM (assumed we have the instance number of interest)
-    Bottle bResult;
     ostringstream osRequest;
+    Bottle bResult;
 
-    //1.1 we have some arguments we need or we do everything in a loop. for know assume arguments: bodypart is known so name + joint
-    int bp_joint = 9;
-    string bp_name = "thumb";
-    string bp_arm = "left_arm";
+    osRequest.str("");
+    osRequest << "SELECT main.time from main WHERE instance = " << proto_instance -1;
+    Bottle b_time_begin = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
-    //original one, some arg might not be needed so removed
-    /*SELECT main.instance as instancerecog, proprioceptivedata.instance as instancedata, frame_number, word as action, CAST(proprioceptivedata.value as Double Precision) , proprioceptivedata.subtype as joint
-    FROM main, sentencedata, proprioceptivedata WHERE main.instance -1 = proprioceptivedata.instance AND main.instance = sentencedata.instance AND subtype = '9' AND label_port = '/icub/left_arm/state:o'AND sentencedata.instance IN (SELECT instance from sentencedata WHERE role = 'finger' AND word = 'thumb')
-        AND role = 'action_joint' AND (word = 'fold' OR word = 'unfold')
-    ORDER BY main.instance*/
+    osRequest.str("");
+    osRequest << "SELECT main.time from main WHERE instance = " << proto_instance;
+    Bottle b_time_end = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
-    osRequest << "SELECT main.instance as instancerecog, proprioceptivedata.instance as instancedata, frame_number, word as action, CAST(proprioceptivedata.value as Double Precision) , proprioceptivedata.subtype as joint " <<
-                 "FROM main, sentencedata, proprioceptivedata "<<
-                 "WHERE main.instance -1 = proprioceptivedata.instance AND main.instance = sentencedata.instance AND subtype = '"<< bp_joint << "' AND label_port = '/icub/" << bp_arm << "/state:o' AND role = 'action_joint' " <<
-                        "AND sentencedata.instance IN (SELECT instance from sentencedata WHERE word = '"<< bp_name <<"') " <<
-                 "ORDER BY (main.instance, frame_number)  ;";
+    //********************* extract the joint number =========================================================> possibly spy on several?
+    //iCub->opc->checkout();
+    //should check at some point that the bodypart is there and loaded no?
+    //Bodypart* bp = dynamic_cast<Bodypart*>(iCub->opc->getEntity(proto_finger));
+    //int joint = bp->m_joint_number ;
+
+    int joint = 9;
+
+    yDebug() << "time begin = " << b_time_begin.toString() << " and time_end = " << b_time_end.toString();
+    yDebug() << "proto_instance = " << proto_instance << " and proto_name = " << proto_name << " and proto finger = " << proto_finger << "and " << babbling_part;
+
+    //*********************************************************************************** protect if bodypart not found
+
+    osRequest.str("");
+    osRequest << "SELECT " << proto_instance << " AS proto_instance, '" << proto_name <<"' AS proto_name, '" << proto_finger << "' AS proto_finger, proprioceptivedata.* " <<
+                 "FROM   proprioceptivedata " <<
+                 "WHERE proprioceptivedata.time > CAST('" << b_time_begin.toString() << "' AS TIMESTAMP) AND proprioceptivedata.time <  CAST('" << b_time_end.toString() << "' AS TIMESTAMP)" <<
+                 "      AND subtype = '"<< joint << "' AND label_port = '/icub/" << babbling_part << "/state:o' " <<
+                 "ORDER BY (frame_number);";
     bResult = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
-    if(bResult.size() == 0){
-        yError() << "No result from ABM about the querry: is ABM running and connected?";
-        bOutput.addInt(0);
-        return bOutput;
-    }
-    yInfo() << bResult.get(0).toString() ;
+    //yDebug() << "extractProtoAction:\n" << bResult.toString();
 
-    //1.2 split the data
-    vector<int> v_instancedata, v_frame_number, v_joint;
-    vector<string> v_action;
+    return bResult;
+}
+
+yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_end){
+
+    Bottle bOutput, bProtoWords, bProtoArm;
+    ostringstream osRequest;
+
+    //********************* extract the arm used for the babbling
+    osRequest << "SELECT argument FROM contentarg WHERE instance = " << babbling_begin << " AND role = 'side'";
+    bProtoArm = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+    yDebug() << "==> Arm used for babbling: " << bProtoArm.toString() ;
+    string babbling_arm = bProtoArm.get(0).toString();
+
+
+    //********************* extract action and finger for each proto-action
+    osRequest.str("");
+    osRequest << "CREATE EXTENSION IF NOT EXISTS tablefunc;" <<
+                 "SELECT * " <<
+                 "FROM crosstab( " <<
+                 "  'SELECT instance, role, word " <<
+                 "   FROM sentencedata " <<
+                 "   WHERE (role = ''action_joint'' or role = ''finger'') and instance > " << babbling_begin << " and instance < " << babbling_end <<
+                 "   ORDER by 1,2') " <<
+                 "AS sentencedata(instance int, action text, finger text);";
+    bProtoWords = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+    yDebug() << "==> protoactions infos: " << bProtoWords.toString() ;
+
+    //********************* extract proprioceptive data for each proto-action
+    Bottle bBabblingProprio;
+    for (int i = 0; i < bProtoWords.size(); i++){
+        Bottle bProtoProprio;
+
+        int currentProtoInstance  = atoi(bProtoWords.get(i).asList()->get(0).toString().c_str());
+        string currentProtoName   = bProtoWords.get(i).asList()->get(1).asString();
+        string currentProtoFinger = bProtoWords.get(i).asList()->get(2).asString();
+
+        yDebug() << "==> proto instance = " << currentProtoInstance << ", proto name = " << currentProtoName << " and proto finger = " << currentProtoFinger ;
+        // --------------------------------(15366, 15367, "fold", "thumb")
+        bProtoProprio = extractProtoProprio(babbling_begin, babbling_arm, currentProtoInstance, currentProtoName, currentProtoFinger);
+
+        bBabblingProprio.addList() = bProtoProprio ;
+    }
+
+    //************************************************** Preparing R Session **************************************************//
+    vector<int> v_instanceBabbling, v_instanceProto, v_frame_number, v_joint;
+    vector<string> v_protoName, v_protoFinger;
     vector<double> v_value;
 
-    for(int i = 0; i < bResult.size(); i++){
-        Bottle currentLine;
-        currentLine.addList() = *bResult.get(i).asList();
-        //yInfo() << currentLine.get(0).asList()->get(0).toString() << " --- ->" << atoi(currentLine.get(0).asList()->get(1).toString().c_str()) << "<-" ;
-        v_instancedata.push_back(atoi(currentLine.get(0).asList()->get(1).toString().c_str()));
-        v_frame_number.push_back(atoi(currentLine.get(0).asList()->get(2).toString().c_str()));
-        v_action.push_back(currentLine.get(0).asList()->get(3).toString());
-        v_value.push_back(atof(currentLine.get(0).asList()->get(4).toString().c_str()));
-        v_joint.push_back(atoi(currentLine.get(0).asList()->get(5).toString().c_str()));
+
+    yDebug() << "============================================== BEFORE THE LOOP ======================================" ;
+    yDebug() << "We have " << bBabblingProprio.size() << " different protoactions!" ;
+    for(int i = 0; i < bBabblingProprio.size(); i++){
+
+        yDebug() << "-> current proto have " << bBabblingProprio.get(i).asList()->size() << " lines!" ;
+
+        for(int j = 0; j < bBabblingProprio.get(i).asList()->size(); j++){
+            Bottle* currentLine = bBabblingProprio.get(i).asList()->get(j).asList();
+            yDebug() << currentLine->toString();
+
+            // proto_instance | proto_name | proto_finger | babbling_instance | time | port | joint_nb | value | frame
+            //       0              1              2               3              4      5       6          7      8
+
+            v_instanceProto.push_back(atoi(currentLine->get(0).toString().c_str()));
+            v_protoName.push_back(currentLine->get(1).toString().c_str());
+            v_protoFinger.push_back(currentLine->get(2).toString().c_str());
+            v_instanceBabbling.push_back(atoi(currentLine->get(3).toString().c_str()));
+            v_joint.push_back(atoi(currentLine->get(6).toString().c_str()));
+            v_value.push_back(atof(currentLine->get(7).toString().c_str()));
+            v_frame_number.push_back(atoi(currentLine->get(8).toString().c_str()));
+        }
     }
-
-    //yInfo() << "v_instancedata = " << v_instancedata ;
-    //yInfo() << "v_frame_number = " << v_frame_number ;
-    //yInfo() << "v_action = " << v_action ;
-    //yInfo() << "v_value = " << v_value ;
-    //yInfo() << "v_joint = " << v_joint ;
-
-    //vector<int> instancedata = bResult.get()
-
 
     //2. data.frame or similar to be sent to R
-    R["instancedata"] = v_instancedata;
-    R["frameNumber"] = v_frame_number;
-    R["action"] = v_action;
-    R["value"] = v_value;
+    R["instanceProto"] = v_instanceProto;
+    R["protoName"] = v_protoName;
+    R["protoFinger"] = v_protoFinger;
+    R["instanceBabbling"] = v_instanceBabbling;
     R["joint"] = v_joint;
+    R["value"] = v_value;
+    R["frame_number"] = v_frame_number;
 
-    /*  std::string txt = 		// now access in R
-        "cat('\ninstancedata=', instancedata, '\n'); print(class(instancedata));";
-        R.parseEvalQ(txt);
-    */
 
-    std::string cmd =
-        "myData <- data.frame(instancedata, frameNumber, action, value, joint); "
-        "print(is.data.frame(myData)); "
-        "print(head(myData)); "
-        "cat('number of lines : ', nrow(myData))";
-    R.parseEval(cmd);
 
-    //3. R is doing the lm's and send results
+    try {
 
-    //3.1 transform joint value into percentage of joint value for comparison between joints
+        yDebug() << "============================================== R Session ======================================" ;
 
-    /******************************************** /!\ TODO: Use a pre-defined dictionary for all joints or ini file /!\ ********************************************/
-    double max_angle;
-    if (bp_joint != 15){
-        max_angle = 90.0;
-    } else{
-        max_angle = 250.0;
+        std::string cmd =
+            "myData <- data.frame(instanceProto, protoName, protoFinger, instanceBabbling, joint, value, frame_number); "
+            "print(is.data.frame(myData)); "
+            "print(head(myData)); "
+            "cat('number of lines : ', nrow(myData))";
+        R.parseEval(cmd);
+
+        //3.2 Remove the first "flat" part: floating windows of 5? (i +/-2) and 'begin' when diff > threshold ~ 0.2. Assume that data are stored by ascending instance number
+        // install.packages("zoo") for that!
+        R["winSize"] = 5;
+        R["winStep"] = 2;
+        cmd =
+            "library(zoo);"
+            "sliding <- rollapply(myData$value, width = winSize, by = winStep, FUN = mean, align = 'left');"
+            "cutFrom <- 1;"
+            "for(i in 1:(length(sliding)-1)){"
+            "    if( abs(sliding[i] - sliding[i+1]) > 0.4){"
+            "        cat('i = ', i, '\n');"
+            "        cutFrom <- i;"
+            "        break;"
+            "    }"
+            "};"
+            "cat('cutFrom: ', cutFrom, '\n');"
+            "cutFrom <- cutFrom * winStep;"
+            "cat('finalCutFrom: ', cutFrom, '\n');";
+
+        R.parseEval(cmd);
+
+        //3.3 extract the frameNumber to use for subset (depending on spying port, portnumber might not corresponding to line number)
+        cmd =
+            "frame2cut <- myData$frame_number[cutFrom];"
+            "cat('frame below which to cut: ', frame2cut, '\n')";
+        R.parseEval(cmd);
+
+        //3.4 do the subset
+        cmd =
+            "myCleanedData <- subset(myData, (myData$frame_number > frame2cut));"
+            "cat('myCleanedData has now ', nrow(myCleanedData), ' lines\n');"
+            "print(head(myCleanedData));";
+        R.parseEval(cmd);
+
+        //look at what we cut -------------> just to check, to be removed <---------------------------------------------
+        cmd =
+            "dataToRemove <- subset(myData, (myData$frame_number < frame2cut));"
+            "cat('dataToRemove has ', nrow(dataToRemove), ' lines\n');"
+            "print(dataToRemove[c('instanceProto', 'value','frame_number')])";
+        R.parseEval(cmd);
+
+        //3.4 print to check
+        cmd =
+            "print(head(myCleanedData[c('instanceProto', 'value','frame_number')]))";
+        R.parseEval(cmd);
+
+        /******************************************** /!\ value transformed in percentage TODO: Use a pre-defined dictionary for all joints or ini file /!\ ********************************************/
+        double max_angle;
+        int bp_joint = 9;
+        if (bp_joint != 15){
+            max_angle = 90.0;
+        } else{
+            max_angle = 250.0;
+        }
+
+        cmd = "myCleanedData$value <- (myCleanedData$value*100.0)/" + to_string(max_angle);
+        R.parseEval(cmd);
+
+        cmd =
+            "print(head(myCleanedData[c('instanceProto', 'value','frame_number')]))";
+        R.parseEval(cmd);
+
+    } catch(std::exception& ex) {
+        yError() << "RInside: Exception caught: " << ex.what() ;
+        bOutput.addInt(0);
+        bOutput.addString(ex.what());
+    } catch(...) {
+        yError() << "RInside: Unknown exception caught" ;
+        bOutput.addInt(0);
     }
-
-    cmd = "myData$value <- (myData$value*100.0)/" + to_string(max_angle);
-    R.parseEval(cmd);
-   /******************************************** /!\ TODO: Use a pre-defined dictionary for all joints or ini file /!\ ********************************************/
-
-    //3.2 Remove the first "flat" part: floating windows of 5? (i +/-2) and 'begin' when diff > threshold ~ 0.2. Assume that data are stored by ascending instance number
-    // install.packages("zoo") for that!
-    R["winSize"] = 5;
-    R["winStep"] = 2;
-    cmd =
-        "library(zoo);"
-        "sliding <- rollapply(myData$value, width = winSize, by = winStep, FUN = mean, align = 'left');"
-        "cutFrom <- 1;"
-        "for(i in 1:(length(sliding)-1)){"
-        "    if( abs(sliding[i] - sliding[i+1]) > 0.4){"
-        "        cat('i = ', i, '\n');"
-        "        cutFrom <- i;"
-        "        break;"
-        "    }"
-        "};"
-        "cat('cutFrom: ', cutFrom, '\n');"
-        "cutFrom <- cutFrom * winStep;"
-        "cat('finalCutFrom: ', cutFrom, '\n');";
-
-    R.parseEval(cmd);
-
-    //3.3 extract the frameNumber to use for subset (depending on spying port, portnumber might not corresponding to line number)
-    cmd =
-        "frame2cut <- myData$frameNumber[cutFrom];"
-        "cat('frame below which to cut: ', frame2cut, '\n')";
-    R.parseEval(cmd);
-
-    //3.4 do the subset
-    cmd =
-        "myCleanedData <- subset(myData, (myData$instancedata != min(myData$instancedata) | myData$frameNumber > frame2cut));"
-        "cat('myCleanedData has now ', nrow(myCleanedData), ' lines\n');"
-        "print(head(myCleanedData));";
-    R.parseEval(cmd);
-
-    //3.4 do the subset
-    cmd =
-        "print(myCleanedData$instancedata)";
-    R.parseEval(cmd);
-
-
-
-
-
-    /* ********************  So actually with the new feature of keeping the same instance number of streaming, I need to split the motor babbling into different instance by myself
-     * 1. go to the main and extract the time of the different sentence
-     * 2. split the proprioceptive babbling using time and assign the instance + "fold/unfold" of the sentence
-     * =====> in SQL for time split
-     * ********************************************************************************************************************************************************************************
-
-
-
-
-    //4. results are stored/written in ini file
 
     bOutput.addInt(1);
     return bOutput;
