@@ -176,7 +176,8 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         reply = actionCommand(sActionName, sActionArg);
     }
     else if (command.get(0).asString() == "proto"){
-        reply = protoDataToR(15366, 15370);
+        //reply = protoDataToR(15366, 15370);
+        reply = protoDataToR(15379, 15384);
         //reply = extractProtoProprio(15366, "left_arm", 15367, "fold", "thumb");
     }
     else if (command.get(0).asString() == "learn"){
@@ -198,17 +199,67 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
     return true;
 }
 
-yarp::os::Bottle learnPrimitive::extractProtoProprio(int babbling_begin, string babbling_part, int proto_instance, string proto_name, string proto_finger){
+yarp::os::Bottle learnPrimitive::extractProtoSemantic(int babbling_begin, int babbling_end){
+
+    ostringstream osRequest;
+    Bottle bProtoWords;
+
+
+    //the sentence might be checked as a SENTENCE_JOINT?
+    osRequest.str("");
+    osRequest << "CREATE EXTENSION IF NOT EXISTS tablefunc;" <<
+                 "SELECT * " <<
+                 "FROM crosstab( " <<
+                 "  'SELECT instance, role, word " <<
+                 "   FROM sentencedata " <<
+                 "   WHERE (role = ''action_joint'' or role = ''finger'') and instance > " << babbling_begin << " and instance < " << babbling_end <<
+                 "   ORDER by 1,2') " <<
+                 "AS sentencedata(instance int, action text, finger text);";
+    bProtoWords = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
+    yDebug() << "==> protoactions infos: " << bProtoWords.toString() ;
+
+    return bProtoWords;
+}
+
+yarp::os::Bottle learnPrimitive::extractAllProtoProprio(int babbling_begin, Bottle bProtoWords, string babbling_arm){
+
+    Bottle bBabblingProprio;
+    for (int i = 0; i < bProtoWords.size(); i++){
+        Bottle bProtoProprio;
+
+        int currentProtoInstance  = atoi(bProtoWords.get(i).asList()->get(0).toString().c_str());
+
+        //we need to indicate the previous protoInstance (or babbling begin) to not take into account the "noise" from other (pasar, etc.)
+        int previousProtoInstance;
+        if (i == 0) {
+            previousProtoInstance = babbling_begin;
+        } else {
+            previousProtoInstance = atoi(bProtoWords.get(i-1).asList()->get(0).toString().c_str());
+        }
+        string currentProtoName   = bProtoWords.get(i).asList()->get(1).asString();
+        string currentProtoFinger = bProtoWords.get(i).asList()->get(2).asString();
+
+        yDebug() << "==> proto instance = " << currentProtoInstance << ", proto name = " << currentProtoName << " and proto finger = " << currentProtoFinger ;
+        // --------------------------------(15366, 15367, "fold", "thumb")
+        bProtoProprio = extractSingleProtoProprio(previousProtoInstance, currentProtoInstance, babbling_arm, currentProtoName, currentProtoFinger);
+
+        bBabblingProprio.addList() = bProtoProprio ;
+    }
+
+    return bBabblingProprio;
+}
+
+yarp::os::Bottle learnPrimitive::extractSingleProtoProprio(int previousProtoInstance, int currentProtoInstance, string babbling_part, string proto_name, string proto_finger){
 
     ostringstream osRequest;
     Bottle bResult;
 
     osRequest.str("");
-    osRequest << "SELECT main.time from main WHERE instance = " << proto_instance -1;
+    osRequest << "SELECT main.time from main WHERE instance = " << previousProtoInstance;
     Bottle b_time_begin = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     osRequest.str("");
-    osRequest << "SELECT main.time from main WHERE instance = " << proto_instance;
+    osRequest << "SELECT main.time from main WHERE instance = " << currentProtoInstance;
     Bottle b_time_end = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
 
     //********************* extract the joint number =========================================================> possibly spy on several?
@@ -220,12 +271,12 @@ yarp::os::Bottle learnPrimitive::extractProtoProprio(int babbling_begin, string 
     int joint = 9;
 
     yDebug() << "time begin = " << b_time_begin.toString() << " and time_end = " << b_time_end.toString();
-    yDebug() << "proto_instance = " << proto_instance << " and proto_name = " << proto_name << " and proto finger = " << proto_finger << "and " << babbling_part;
+    yDebug() << "proto_instance = " << currentProtoInstance << " and proto_name = " << proto_name << " and proto finger = " << proto_finger << "and " << babbling_part;
 
     //*********************************************************************************** protect if bodypart not found
 
     osRequest.str("");
-    osRequest << "SELECT " << proto_instance << " AS proto_instance, '" << proto_name <<"' AS proto_name, '" << proto_finger << "' AS proto_finger, proprioceptivedata.* " <<
+    osRequest << "SELECT " << currentProtoInstance << " AS proto_instance, '" << proto_name <<"' AS proto_name, '" << proto_finger << "' AS proto_finger, proprioceptivedata.* " <<
                  "FROM   proprioceptivedata " <<
                  "WHERE proprioceptivedata.time > CAST('" << b_time_begin.toString() << "' AS TIMESTAMP) AND proprioceptivedata.time <  CAST('" << b_time_end.toString() << "' AS TIMESTAMP)" <<
                  "      AND subtype = '"<< joint << "' AND label_port = '/icub/" << babbling_part << "/state:o' " <<
@@ -239,7 +290,7 @@ yarp::os::Bottle learnPrimitive::extractProtoProprio(int babbling_begin, string 
 
 yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_end){
 
-    Bottle bOutput, bProtoWords, bProtoArm;
+    Bottle bOutput, bProtoWords, bProtoArm, bBabblingProprio;
     ostringstream osRequest;
 
     //********************* extract the arm used for the babbling
@@ -250,33 +301,11 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
 
 
     //********************* extract action and finger for each proto-action
-    osRequest.str("");
-    osRequest << "CREATE EXTENSION IF NOT EXISTS tablefunc;" <<
-                 "SELECT * " <<
-                 "FROM crosstab( " <<
-                 "  'SELECT instance, role, word " <<
-                 "   FROM sentencedata " <<
-                 "   WHERE (role = ''action_joint'' or role = ''finger'') and instance > " << babbling_begin << " and instance < " << babbling_end <<
-                 "   ORDER by 1,2') " <<
-                 "AS sentencedata(instance int, action text, finger text);";
-    bProtoWords = iCub->getABMClient()->requestFromString(osRequest.str().c_str());
-    yDebug() << "==> protoactions infos: " << bProtoWords.toString() ;
+    bProtoWords = extractProtoSemantic(babbling_begin, babbling_end);
 
     //********************* extract proprioceptive data for each proto-action
-    Bottle bBabblingProprio;
-    for (int i = 0; i < bProtoWords.size(); i++){
-        Bottle bProtoProprio;
+    bBabblingProprio = extractAllProtoProprio(babbling_begin, bProtoWords, babbling_arm);
 
-        int currentProtoInstance  = atoi(bProtoWords.get(i).asList()->get(0).toString().c_str());
-        string currentProtoName   = bProtoWords.get(i).asList()->get(1).asString();
-        string currentProtoFinger = bProtoWords.get(i).asList()->get(2).asString();
-
-        yDebug() << "==> proto instance = " << currentProtoInstance << ", proto name = " << currentProtoName << " and proto finger = " << currentProtoFinger ;
-        // --------------------------------(15366, 15367, "fold", "thumb")
-        bProtoProprio = extractProtoProprio(babbling_begin, babbling_arm, currentProtoInstance, currentProtoName, currentProtoFinger);
-
-        bBabblingProprio.addList() = bProtoProprio ;
-    }
 
     //************************************************** Preparing R Session **************************************************//
     vector<int> v_instanceBabbling, v_instanceProto, v_frame_number, v_joint;
@@ -292,7 +321,7 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
 
         for(int j = 0; j < bBabblingProprio.get(i).asList()->size(); j++){
             Bottle* currentLine = bBabblingProprio.get(i).asList()->get(j).asList();
-            yDebug() << currentLine->toString();
+            //yDebug() << currentLine->toString();
 
             // proto_instance | proto_name | proto_finger | babbling_instance | time | port | joint_nb | value | frame
             //       0              1              2               3              4      5       6          7      8
@@ -389,6 +418,14 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
 
         cmd =
             "print(head(myCleanedData[c('instanceProto', 'value','frame_number')]))";
+        R.parseEval(cmd);
+
+        //check that 15381 is not taken because of wrong recog
+        cmd =
+            "cat('============> Check the 15381 is NOT present as it is some noice/false recog \n');"
+            "mySubset <- subset(myCleanedData, myCleanedData$instanceProto == 15382);"
+            "cat('We have mySubset with ', nrow(mySubset), 'lines\n');"
+            "print(head(mySubset[c('instanceProto', 'value','frame_number')]));";
         R.parseEval(cmd);
 
     } catch(std::exception& ex) {
