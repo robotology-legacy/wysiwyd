@@ -129,16 +129,17 @@ bool Planner::updateModule() {
     if (fulfill){
         Value val;  //Likely whould be global and not local
         yInfo()<<"plan_list is " << plan_list.toString();
+        yInfo() << "current goal is " << current_goal;
+        yInfo() << "plan list size is " << plan_list.size();
         if ((current_goal.empty()) && (plan_list.size() != 0))
         {
             yDebug() << "executing "<<plan_list.toString()<<"...";
             val = plan_list.pop();
-            yDebug() << val.toString();
             current_goal = val.toString();
-            yInfo()<<"current_goal set as val.";
             // yDebug() << current_goal->toString();
             yDebug() << "new Current Goal";
         }
+
         else
         {
             // yDebug() << current_goal->toString();
@@ -181,7 +182,7 @@ bool Planner::updateModule() {
         if (knownPlan)
         {
             // execute action plan
-            for (int i = 1; i < grpPlans.find(planExe + "-totactions").asInt(); i++)
+            for (int i = 1; i < grpPlans.find(planExe + "-totactions").asInt() + 1; i++)
             {
                 yInfo() << "executing action " << i << " of plan " + planExe;
                 bool actionCompleted = false;
@@ -190,7 +191,7 @@ bool Planner::updateModule() {
                     // keep requesting to execute an action until it does get executed
                     string act = grpPlans.find(planExe + "-action" + to_string(i)).asString();
                     yInfo()<<"Sending action " + act + " to the BM.";
-                    actionCompleted = (!triggerBehavior(grpPlans.find(planExe + "-action" + i).asString()));
+                    actionCompleted = (triggerBehavior(Bottle(grpPlans.find(planExe + "-action" + i).asString())));
 
                     // wait for a second before trying again
                     if (!actionCompleted) { Time::delay(1.0); }
@@ -199,7 +200,13 @@ bool Planner::updateModule() {
 
             current_goal.clear();
             // yInfo() << "current_goal has been cleared, contents of bottle: " + current_goal->get(0).asString();
-            yInfo() << "current_goal has been cleared, contents of bottle: " + current_goal;
+            yInfo() << "current_goal has been cleared, contents of string: " + current_goal;
+
+            if ((current_goal.empty()) && (plan_list.size() == 0))
+            {
+                fulfill = 0;
+            }
+
         }
         else{
             yDebug() << "I couldn't understand the goal, or I don't have a plan to execute it...";
