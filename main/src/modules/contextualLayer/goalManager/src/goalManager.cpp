@@ -30,14 +30,17 @@ bool GoalManager::configure(yarp::os::ResourceFinder &rf)
         yWarning() << "Behavior is not reachable";
         yarp::os::Time::delay(0.5);
     }
-    yDebug()<<"Connected!";
+    yDebug() << "Connected!";
 
     port_behavior_context.open("/" + moduleName + "/target:o");
-
     yInfo()<<"created port to behaviors";
+    
     goal_need_port.open("/" + moduleName + "/goal:o");
-    yInfo()<<"created port to allostasis";
-    //allostasis_input_port = ""
+    yInfo()<<"created port to planner";
+    if (Network::connect(goal_need_port.GetName(),"/planner/rpc")) {
+        yInfo() << "planner and goalManager are connected!";
+    }
+    else { yInfo() << "planner and goalManager are NOT connected."; }
 
     yDebug()<<"clearing bottles";
     goal_list.clear();
@@ -66,8 +69,8 @@ bool GoalManager::close() {
     port_behavior_context.interrupt();
     port_behavior_context.close();
 
-    goal_need_port.interrupt();
-    goal_need_port.close();
+    // goal_need_port.interrupt();
+    // goal_need_port.close();
 
     rpc.interrupt();
     rpc.close();
@@ -81,7 +84,9 @@ bool GoalManager::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         "quit \n" +
-        "help \n";
+        "help \n" +
+        "new <goal> \n" +
+        "follow \n";
 
     reply.clear();
 
@@ -133,22 +138,22 @@ bool GoalManager::respond(const Bottle& command, Bottle& reply) {
 bool GoalManager::updateModule() {
     
     //check goals in goal list
-    if (goal_list.size() != 0){
-        //send rpc to allostasis  
-        yDebug()<<"There are "<< goal_list.size() << " goals to fulfill...";
-        Bottle &bGoal = goal_need_port.prepare();
-        bGoal.clear();
-        bGoal.addInt(1);
-        goal_need_port.write();
-        yDebug()<< "allostasis was informed...";
-    }else if(current_goal->size()==0){
-        yDebug()<<"There are "<< goal_list.size() << " goals to fulfill...";
-        Bottle &bGoal = goal_need_port.prepare();
-        bGoal.clear();
-        bGoal.addInt(0);
-        goal_need_port.write();
-        yDebug()<< "allostasis was informed...";
-    }
+    // if (goal_list.size() != 0){
+    //     //send rpc to allostasis  
+    //     yDebug()<<"There are "<< goal_list.size() << " goals to fulfill...";
+    //     Bottle &bGoal = goal_need_port.prepare();
+    //     bGoal.clear();
+    //     bGoal.addInt(1);
+    //     goal_need_port.write();
+    //     yDebug()<< "allostasis was informed...";
+    // }else if(current_goal->size()==0){
+    //     yDebug()<<"There are "<< goal_list.size() << " goals to fulfill...";
+    //     Bottle &bGoal = goal_need_port.prepare();
+    //     bGoal.clear();
+    //     bGoal.addInt(0);
+    //     goal_need_port.write();
+    //     yDebug()<< "allostasis was informed...";
+    // }
     
     //Check need to fulfill goals
     if (fulfill){
