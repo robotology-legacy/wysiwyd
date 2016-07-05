@@ -5,8 +5,8 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("ears")).asString().c_str();
     setName(moduleName.c_str());
-    goals_version = rf.check("goals",Value("false")).asBool();
-    yDebug()<< goals_version;
+    followPlans = rf.check("plans",Value("false")).asBool();
+    yDebug()<< "PLANS ENABLED: " << followPlans;
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
@@ -28,14 +28,20 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
     bShouldListen = true;
 
-    if (goals_version){
-        portToBehavior.open("/" + moduleName + "/behavior:o");
-        /*while (!Network::connect(portToBehavior.getName(),"/GoalManager/trigger:i ")) {
+    if (followPlans){
+        /*portToBehavior.open("/" + moduleName + "/behavior:o");
+        while (!Network::connect(portToBehavior.getName(),"/GoalManager/trigger:i ")) {
             yWarning() << " Behavior is not reachable";
             yarp::os::Time::delay(0.5);
         }*/
 
-        port_behavior.open("/" + moduleName + "/target:o");
+        // port to planner module
+        port_planner.open("/" + moduleName + "/target:o");
+        while (!Network::connect(port_planner.getName(),"/planner/rpc"))
+        {
+            yWarning() << "Planner is unreachable...";
+            yarp::os::Time::delay(0.5);
+        }
 
         goal_need_port.open("/" + moduleName + "/goal:o");
     }else{
@@ -102,9 +108,9 @@ bool ears::close() {
 
     portToBehavior.interrupt();
     portToBehavior.close();
-    if (goals_version){
-        port_behavior.interrupt();
-        port_behavior.close();
+    if (followPlans){
+        port_planner.interrupt();
+        port_planner.close();
 
         goal_need_port.interrupt();
         goal_need_port.close();
@@ -132,6 +138,24 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
+    }
+    else if (command.get(0).asString() == "test")
+    {
+        // sends a test bottle to planner
+        Bottle &bToTarget = port_planner.prepare();
+        bToTarget.clear();
+        Bottle bAux;
+        bAux.clear();
+        Bottle bAux2;
+        bAux2.clear();
+        bToTarget.addString("new");
+        bAux.addString("dummy2");
+        bAux2.addString("sObjectType");
+        bAux2.addString("sObject");
+        bAux.addList()=bAux2;
+        bToTarget.addList()=bAux;
+        port_planner.write();
+        yDebug() << "Sending " + bToTarget.toString();
     }
     else if (command.get(0).asString() == "listen")
     {
@@ -252,7 +276,7 @@ bool ears::updateModule() {
             sObject = "";
         } else {
             yError() << "[ears] Unknown predicate";
-            if (goals_version){
+            if (followPlans){
                     Bottle &bGoal = goal_need_port.prepare();
                     bGoal.clear();
                     bGoal.addInt(1);
@@ -261,8 +285,8 @@ bool ears::updateModule() {
             return true;
         }
         //send rpc data to goalManager
-        if (goals_version){
-            Bottle &bToTarget = port_behavior.prepare();
+        if (followPlans){
+            Bottle &bToTarget = port_planner.prepare();
             bToTarget.clear();
             Bottle bAux;
             bAux.clear();
@@ -274,7 +298,7 @@ bool ears::updateModule() {
             bAux2.addString(sObject);
             bAux.addList()=bAux2;
             bToTarget.addList()=bAux;
-            port_behavior.write();
+            port_planner.write();
             yDebug() << "Sending " + bToTarget.toString();
         }else{
             Bottle &bToTarget = portTarget.prepare();
@@ -316,6 +340,7 @@ bool ears::updateModule() {
         */
     } else {
         yDebug() << "Not bListen";
+        yarp::os::Time::delay(0.5);
     }
 
     return true;

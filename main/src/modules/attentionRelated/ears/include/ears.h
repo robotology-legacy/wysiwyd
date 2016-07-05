@@ -11,10 +11,10 @@ private:
     Port        rpc;
     Port        portToBehavior;
     Port        portToSpeechRecognizer;
-    BufferedPort<Bottle>        port_behavior;
+    BufferedPort<Bottle>        port_planner;
     BufferedPort<Bottle>        goal_need_port;
     BufferedPort<Bottle>        portTarget;
-    bool goals_version;
+    bool followPlans;
     Mutex m;
     bool bShouldListen;
 
