@@ -19,6 +19,8 @@ private:
     int fulfill;
     // Bottle* current_goal;
     string current_goal;
+    string objectType;
+    string object;
 
     // bool bShouldListen;
 

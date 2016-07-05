@@ -24,10 +24,11 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
-    // while (!Network::connect("/ears/target:o",rpc.getName())) {
-    //     yWarning() << "Behavior is not reachable";
-    //     yarp::os::Time::delay(0.5);
-    // }
+    // receive input from ears module
+ /*   while (!Network::connect("/ears/target:o",rpc.getName())) {
+        yWarning() << "ears is not reachable";
+        yarp::os::Time::delay(0.5);
+    }*/
 
     portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
     while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
@@ -80,7 +81,9 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         "quit \n" +
         "help \n" +
         "follow\n" +
-        "new <plan>\n";
+        "test <plan name>\n" +
+        "new (plan (objectType object)) \n" +
+        "close \n";
 
     reply.clear();
 
@@ -91,13 +94,29 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
     }else if (command.get(0).asString() == "help") {
         yInfo() << helpMessage;
         reply.addString(helpMessage);
-    }else if(command.get(0).asString() == "new"){
-        yInfo()<<"Received new plan to execute.";
+    }
+    else if (command.get(0).asString() == "test")
+    {
+        yInfo() << "Received new plan to execute: " << command.get(1).asString();
         plan_list.addString(command.get(1).asString());
         fulfill = 1;
-        yInfo()<<command.get(1).asString()<<" is the command given.";
+        yInfo() << command.get(1).asString() << " is the command given.";
+    }
+    else if(command.get(0).asString() == "new"){
+        // rpc command was of type "new (plan (objectType object))"
+        yInfo() << "Received input of type from ears.";
+        yInfo() << "contents of bottle in id 1: " << command.get(1).asList()->get(0).asString();
+        string planName = command.get(1).asList()->get(0).asString();
+        plan_list.addString(planName);
+        fulfill = 1;
+        objectType = command.get(1).asList()->get(1).asList()->get(0).asString();
+        object = command.get(1).asList()->get(1).asList()->get(1).asString();
+        yInfo() << "Executing plan " + planName + " on " + object + " with type " + objectType;
+        }
         // (To-Do) Check goal not in list
-
+    else if (command.get(0).asString() == "close"){
+        yInfo() << "closing module planner...";
+        close();
     }else if(command.get(0).asString() == "follow"){ //Toogle follow goals o goals accomplished
         if (command.size()==1) { fulfill=1; }
         else if (command.size()>1) { fulfill = 1; }
@@ -176,6 +195,7 @@ bool Planner::updateModule() {
                 knownPlan = true;
                 planExe = avaiPlansList.get(i).asString();
                 yInfo() << "plan is known: " + planExe;
+                break;
             }
         }
 // TESTED TILL HERE, ALL IS SO FAR WELL @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -199,8 +219,10 @@ bool Planner::updateModule() {
             }
 
             current_goal.clear();
+            objectType.clear();
+            object.clear();
             // yInfo() << "current_goal has been cleared, contents of bottle: " + current_goal->get(0).asString();
-            yInfo() << "current_goal has been cleared, contents of string: " + current_goal;
+            yInfo() << "current_goal and object properties have been cleared";
 
             if ((current_goal.empty()) && (plan_list.size() == 0))
             {
