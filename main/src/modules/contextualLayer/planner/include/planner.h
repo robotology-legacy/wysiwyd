@@ -36,7 +36,7 @@ private:
 public:
     bool configure(yarp::os::ResourceFinder &rf);
 
-    bool Planner::configurePlans(yarp::os::ResourceFinder &rf);
+    bool configurePlans(yarp::os::ResourceFinder &rf);
 
     // bool interruptModule()
     // {
