@@ -11,10 +11,12 @@ private:
     double      period;
     Port        rpc;
     Port        portToBehavior;
+    Port        toHomeo;
     BufferedPort<Bottle>        port_behavior_context;
     Bottle avaiPlansList;
     Bottle plan_list;
     Bottle grpPlans;
+    Bottle gandalf;
     int id;
     int fulfill;
     // Bottle* current_goal;
@@ -43,6 +45,10 @@ public:
     //     return true;
     // }
 
+    bool freeze_all();
+
+    bool unfreeze_all();
+    
     bool close();
 
     // double getPeriod()

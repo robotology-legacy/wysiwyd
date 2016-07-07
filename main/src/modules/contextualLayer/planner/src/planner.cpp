@@ -25,17 +25,23 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
     // receive input from ears module
- /*   while (!Network::connect("/ears/target:o",rpc.getName())) {
+    while (!Network::connect("/ears/target:o",rpc.getName())) {
         yWarning() << "ears is not reachable";
         yarp::os::Time::delay(0.5);
-    }*/
+    }
 
     portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
     while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
         yWarning() << "Behavior is not reachable";
         yarp::os::Time::delay(0.5);
     }
-    yDebug()<<"Connected!";
+    yDebug()<<"Connected to BM!";
+ 
+    toHomeo.open("/manager/toHomeostasis/rpc:o");
+    while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
+        yWarning() << "homeostasis is not reachable";
+        yarp::os::Time::delay(0.5);
+    }
 
     // port_behavior_context.open("/" + moduleName + "/target:o");
     // yInfo()<<"created port to behaviors";
@@ -73,6 +79,42 @@ bool Planner::close() {
     return true;
 }
 
+bool Planner::freeze_all()
+{
+    // Prepare command
+    gandalf.clear();
+    gandalf.addString("freeze");
+    gandalf.addString("all");
+    // Send command
+    if (!Network::isConnected(toHomeo.getName(),"/homeostasis/rpc"))
+    {
+        yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
+        yarp::os::Time::delay(0.1);
+    }
+    toHomeo.write(gandalf);
+    yInfo() << "Gandalf has spoken.";
+
+    return true;
+}
+
+bool Planner::unfreeze_all()
+{
+    // Prepare command
+    gandalf.clear();
+    gandalf.addString("unfreeze");
+    gandalf.addString("all");
+    // Send command
+    if (!Network::isConnected(toHomeo.getName(),"/homeostasis/rpc"))
+    {
+        yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
+        yarp::os::Time::delay(0.1);
+    }
+    toHomeo.write(gandalf);
+    yInfo() << "Gandalf has rescinded.";
+
+    return true;
+}
+
 
 bool Planner::respond(const Bottle& command, Bottle& reply) {
     LockGuard lg(mutex);
@@ -80,9 +122,11 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         " commands are: \n" +
         "quit \n" +
         "help \n" +
-        "follow\n" +
-        "test <plan name>\n" +
+        "follow \n" +
+        "test planName \n" +
         "new (plan (objectType object)) \n" +
+        "freeze \n" +
+        "unfreeze \n" +
         "close \n";
 
     reply.clear();
@@ -112,12 +156,25 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         objectType = command.get(1).asList()->get(1).asList()->get(0).asString();
         object = command.get(1).asList()->get(1).asList()->get(1).asString();
         yInfo() << "Executing plan " + planName + " on " + object + " with type " + objectType;
+        reply.addString("ack");
         }
         // (To-Do) Check goal not in list
     else if (command.get(0).asString() == "close"){
         yInfo() << "closing module planner...";
+        reply.addString("ack");
         close();
-    }else if(command.get(0).asString() == "follow"){ //Toogle follow goals o goals accomplished
+    }
+    else if (command.get(0).asString() == "freeze")
+    {
+        freeze_all();
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "unfreeze")
+    {
+        unfreeze_all();
+        reply.addString("ack");
+    }
+    else if(command.get(0).asString() == "follow"){ //Toogle follow goals o goals accomplished
         if (command.size()==1) { fulfill=1; }
         else if (command.size()>1) { fulfill = 1; }
         else{
@@ -153,6 +210,8 @@ bool Planner::updateModule() {
         if ((current_goal.empty()) && (plan_list.size() != 0))
         {
             yDebug() << "executing "<<plan_list.toString()<<"...";
+            yInfo() << "putting homeostasis on hold.";
+            freeze_all();
             val = plan_list.pop();
             current_goal = val.toString();
             // yDebug() << current_goal->toString();
@@ -227,6 +286,8 @@ bool Planner::updateModule() {
             if ((current_goal.empty()) && (plan_list.size() == 0))
             {
                 fulfill = 0;
+                yInfo() << "resuming homeostatic dynamics.";
+                unfreeze_all();
             }
 
         }
