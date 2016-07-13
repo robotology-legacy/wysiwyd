@@ -15,104 +15,122 @@
  * Public License for more details
  */
 
-#include <story.h>
+#ifndef _STORYGRAPH_H_
+#define _STORYGRAPH_H_
+
+#include <semanticscanner.h>
 
 namespace storygraph {
 
-    struct sActionEvt {
-        std::string predicate;
-        std::string agent;
-        std::string object;
-        std::string recipient;
-    };
-
-    struct sRelation {
-        std::string subject;
-        std::string verb;
-        std::string object;
-    };
-
+    /// An enum to distinguish type of event for Action or Result in the IGARF
     enum evtType {
         UNDEF, ACTION_EVT, IGARF_EVT
     };
 
+    /// Describes an IGARF Event
     struct sIGARF {
-        std::vector < int > vInitState;
-        std::vector < int > vGoal;
-        evtType tAction;
-        evtType tResult;
-        int iAction;
-        int iResult;
-        std::vector < int > vFinalState;
-        int iNext; // -1 if none
+        std::vector < int > vInitState; ///< The instance numbers of the relations describing the Initial State
+        std::vector < int > vGoal; ///< The instance numbers of the relations describing the Goal
+        evtType tAction; ///< The type of the Action cell
+        evtType tResult; ///< The type of the Result cell
+        int iAction; ///< The instance number of the Action cell
+        int iResult; ///< The instance number of the Result cell
+        std::vector < int > vFinalState; ///< The instance numbers of the relations describing the Final State
+        int iNext;  ///< The instance number of the Next IGARF (in temporal order). -1 if there is no next event
     };
 
+    /// Describes where a link come from or go to in the Situation Model
     struct sKeyMean {
-        int iIGARF;
-        char cPart; // I (InitState) G (Goal) A (Action) R (Result) F (FinalState)
-        int iRel; // Relation index
+        int iIGARF; ///< Instance number of the IGARF pointed at
+        char cPart; ///< I (InitState) G (Goal) A (Action) R (Result) F (FinalState)
+        int iRel; ///< Relation index, -1 if no relation is pointed at
     };
 
+    /// Describes a dicourse link
     struct sDiscourseLink {
-        sKeyMean fromEvt;
-        sKeyMean toEvt;
-        std::string word;
+        sKeyMean fromEvt; ///< The left part of the link in discourse
+        sKeyMean toEvt; ///< The right part of the link in discourse
+        std::string word; ///< Discourse Function Word attached to this link
     };
 
-    class situationModel {
+    class SituationModel {
+    private:
+        int rendering_wEvtBox; // Width of the Atom Event boxes
+        int rendering_hEvtBox;
+        int rendering_wIGARFBox;
+        int rendering_hIGARFBox;
+        int rendering_hOffset; // Horizontal Offset between IGARF boxes
+        int rendering_vOffset;
+
+        bool sentenceEnd;
+        sKeyMean lastFocus;
     public:
         std::vector < sRelation >      vRelations;
         std::vector < sActionEvt >     vActionEvts;
         std::vector < sIGARF >         vIGARF;
         std::vector < sDiscourseLink > vDiscourseLinks;
 
-        std::vector < std::string > vMeanings; // NarrativeSemanticWords, PAOR1, PAOR2, PAOR3 <o> [_-_-_-L-_], [A-P-O-_-_], [A-_-_-_-P], [_-_-_-_-_] <o>
-        bool sentenceEnd;
 
-        situationModel();
+        SituationModel();
 
-        void initializeStory(const story& base); // Imports events
-
-        // -- IGARF approach
-        void clear(); // Remove all IGARF and ActionEvt
-
-        bool sameRelation(const sRelation &r1, const sRelation &r2);
+        void initializeStory(const story& base); ///< Imports events
+        void clear(); ///< Removes all IGARF, Action Events, Relations and Discourse Links
 
         // Display
-        std::string getSentenceEvt(int i); // Produces a naïve sentence from the i-th event
-        std::string getSentenceRel(int i); // Produces a naïve sentence from the i-th relations
-        std::string dispRelations(const std::vector < int >& rels);
-        void showIGARF(int i, int level = 0); // Displays a tree view of the i-th IGARF
+        std::string getSentenceEvt(int i); ///< Produces a naïve sentence from the i-th event
+        std::string getSentenceRel(int i); ///< Produces a naïve sentence from the i-th relations
+        std::string dispRelations(const std::vector < int >& rels); ///< Displays all relations in a [Subject Verb Object] format
+        void showIGARF(int i, int level = 0); ///< Displays a tree view of the i-th IGARF
+        /**< @param level Used to set the margin recursively. You don't need to use it. **/
+
 
         // Creation - Modification
         // Create (or find) Relation, ActionEvt or IGARF event and stock them in the class vectors. Return their index.
-        int addNewActionEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = "");
-        int addOrFindRelation(sRelation rel);
-        int findRelation(sRelation rel); // -1 if not
-        int createIGARF();
-        sRelation fromValueToRelation(const yarp::os::Value& b);
+        int addNewActionEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = ""); ///< Creates a new Action Event, returns its index in vActionEvts
+        int findRelation(sRelation rel); /// Returns index of the relation in vRelations or -1 if it doesn't exist
+        int addOrFindRelation(sRelation rel); ///< Returns index of the relation in vRelations, creates it if it doesn't exist
+        int createIGARF(); ///< Creates a blank IGARF and returns its index in vIGARF
         // Modify
-        void modifEventIGARF(int iIGARF, char cPart, int iActEvt); // Modify Action (cPart = 'A') or Result (cPart = 'R')
-        void modifContentIGARF(int iIGARF, char cPart, int jIGARF); // Action or Result of iIGARF-th IGARF became jIGARF-th IGARF
-        void remContentIGARF(int iIGARF, char cPart);
-        void addRelationIGARF(int iIGARF, char cPart, int iRel); // Add the iRel-th relation to the iIGARF-th IGARF event
-        void removeRelationIGARF(int iIGARF, char cPart, int iRel); // iRel index is the index in the class vector (not IGARF vector)
-        void createFromStory(const story &s);
+        void modifEventIGARF(int iIGARF, char cPart, int iActEvt); ///< Modifies index of Action Event for Action (cPart = 'A') or Result (cPart = 'R') in an IGARF
+        void modifContentIGARF(int iIGARF, char cPart, int jIGARF); ///< Action or Result of iIGARF-th IGARF became jIGARF-th IGARF
+        void remContentIGARF(int iIGARF, char cPart); ///< Sets Action or Result to None
+        void addRelationIGARF(int iIGARF, char cPart, int iRel); ///< Adds the iRel-th relation to the iIGARF-th IGARF event
+        void removeRelationIGARF(int iIGARF, char cPart, int iRel); ///< @param iRel index in vRelations
+        void createFromStory(const story &s); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
         // Meaning
         sKeyMean createKey(int iIGARF, char cPart, int iRel);
-        void createLink(sKeyMean from, sKeyMean to, std::string word);
-        sKeyMean findEventOrRelation(std::string meaning); // Return a (-1 'A' -1) sKeyMean if not found
+        void createLink(sKeyMean from, sKeyMean to, std::string word); ///< Creates and adds a link in the vDiscourseLinks
+        // Temporary functions
+        std::pair <std::string, std::string> meaningFromKeyMean(const sKeyMean &key, int beginAt = 0); // Produces the open class word and focus hierarchy (Naïve and for English)
+        void produceBasicMeaning(); // Use discourse links to create a story
+        // Automatic link with meaning
+        sKeyMean findEventOrRelation(std::string meaning); // Return a (-1 'A' -1) sKeyMean if not found ** TO DELETE **
+        sKeyMean findEventOrRelation(std::string predicate, std::string agent, std::string object = "", std::string recipient = ""); // Return a (-1 'A' -1) sKeyMean if not found
         // Information on previous discourse function word to create a new event or relation
-        bool pointToEvent(std::string word); // Usually used for event or relation?
-        char pointToState(std::string word); // Points to Init, Goal or Final state?
-        char pointToAct(std::string word); // Points to Action or Result?
         int extractRel(std::string meaning); // Create a new relation from meaning
         int extractAction(std::string meaning); // Idem for an action event
-        sKeyMean addMeaningAndLink(std::string meaning, sKeyMean previous,
-                                   bool create = false); // From a meaning extract discourse function words and events
-                                                         // then create a link from previous to current event. Return current keyMean.
-        void endSentence(); // End a sentence, avoid next event to be automatically link to last one
-        void TESTwhenIsUsed(std::string word); // Temporary tool function. Displays all links made with the word
+        void addLinkFromMeaning(std::string meaning, bool create);
+
+        int proximityScoreAction(int i, std::set <std::string> ocw);
+        int proximityScoreRelation(int i, std::set <std::string> ocw);
+        sKeyMean findBest(std::set <std::string> ocw); // Return a (-1 'A' -1) sKeyMean if not found
+        std::string getPAOR(sKeyMean km, std::string sentence);
+        void copyOCW(sKeyMean km, std::string &predicate, std::string &agent, std::string &object, std::string &recipient); // Return a (-1 'A' -1) sKeyMean if not found
+
+        void endSentence(); ///< Ends a sentence, avoid next event to be automatically link to last one
+
+
+        // Rendering
+        void initSizes(int _rendering_wEvtBox, int _rendering_hEvtBox, int _rendering_hOffset, int _rendering_vOffset); ///< Calculates all sizes for rendering
+        void calculateSize(int currentIGARF, std::vector < int > &IGARFlevels, int level); ///< Auxiliary function to std::pair <int, int> calculateSize(int nIGARF)
+        std::pair <int, int> calculateSize(int nIGARF); ///< Returns the size of the canvas to display the IGARF
+        void writeIGARFdef(std::ofstream &fOutputint, int nIGARF); ///< Defines the IGARF appearance in the SVG file
+
+        void writeSVGIGARF(std::ofstream &fOutput, int nIGARF, int x, int y); ///< Auxiliary function: Draws the nIGARF-th at the given position in the SVG file
+        int addIGARFtoGrid(std::ofstream &fOutput, std::vector < int > &IGARFgrid, int currentIGARF, int level); ///< Auxiliary function: Draws the IGARF and its sons recursively at the corresponding level
+        void writeSVG(std::ofstream &fOutput, int nIGARF); ///< Draws the IGARF by calling the appropriate auxiliary function
 
     };
 }
+
+#endif

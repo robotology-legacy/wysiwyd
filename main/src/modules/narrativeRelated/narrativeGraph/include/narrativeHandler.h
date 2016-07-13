@@ -21,7 +21,6 @@
 
 #include <storygraph.h>
 
-
 class narrativeHandler : public yarp::os::RFModule {
 private:
 
@@ -107,11 +106,18 @@ private:
     std::string createMeaning(std::string agent, std::string predicate, std::string object = "", std::string recipient = "");
 
     // SituationModel
-    storygraph::situationModel sm;
+    storygraph::SituationModel sm; ///< Current Situation Model
+    std::set <std::string> setCCW; ///< Set of Closed Class Words
+    std::ofstream fTrainOutput; ///< File stream for LRH train
+    std::string sNarrativeFolderName;
+    std::string sNarrativeFileName;
+    std::string sSVGFolderName;
+    std::string sSVGFileName;
+    storygraph::sActionEvt context; ///< The context of last sentence, used to resolve pronouns
 
     // Meanings
     void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    void addLinkAndMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply, bool create = false);
+    void addLinkFromMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply, bool create = false);
 };
 
 

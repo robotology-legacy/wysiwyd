@@ -15,7 +15,7 @@
  * Public License for more details
  */
 
-#include "wrdac/clients/icubClient.h"
+//#include "wrdac/clients/icubClient.h"
 
 // STD
 #include <vector>
