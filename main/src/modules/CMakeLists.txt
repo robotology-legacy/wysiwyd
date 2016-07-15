@@ -31,10 +31,6 @@ if(WYSIWYD_USE_OpenCV)
     add_subdirectory(bodySchema)
 endif()
 
-if(WYSIWYD_USE_GTK2)
-    add_subdirectory(cvz)
-endif()
-
 if(WYSIWYD_USE_kinectWrapper)
     add_subdirectory(humanUnderstanding)
 endif()

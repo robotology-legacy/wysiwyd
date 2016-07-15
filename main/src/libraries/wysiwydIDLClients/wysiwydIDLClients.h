@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Ugo Pattacini
  * email:   ugo.pattacini@iit.it
@@ -25,22 +25,22 @@
 
 #include "slidingController_IDL.h"
 #include "interpersonalDistanceRegulator_IDL.h"
-#include "cvzMmcm_IDL.h"
+#include "iol2opc_IDL.h"
+#include "perspectiveTaking_IDL.h"
 
 /**
 *
 * @defgroup wysiwyd_wysiwydIDLClients IDL Client Interfaces
-* @ingroup wysiwyd_libraries 
-*  
-* This library contains all the definitions for a client to 
-* interface to the IDL services made available by WYSIWYD 
-* software. \n 
+* @ingroup wysiwyd_libraries
+*
+* This library contains all the definitions for a client to
+* interface to the IDL services made available by WYSIWYD
+* software. \n
 * Available services are listed below: \n
-* - @ref interpersonalDistanceRegulator_IDL 
-* - @ref slidingController_IDL 
-* - @ref cvz_IDL 
-* - @ref cvzMmcm_IDL 
+* - @ref interpersonalDistanceRegulator_IDL
+* - @ref slidingController_IDL
+* - @ref cvz_IDL
+* - @ref cvzMmcm_IDL
 */
 
 #endif
-
