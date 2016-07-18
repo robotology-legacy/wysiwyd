@@ -421,12 +421,33 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
         R.parseEval(cmd);
 
         //check that 15381 is not taken because of wrong recog
-        cmd =
-            "cat('============> Check the 15381 is NOT present as it is some noice/false recog \n');"
-            "mySubset <- subset(myCleanedData, myCleanedData$instanceProto == 15382);"
-            "cat('We have mySubset with ', nrow(mySubset), 'lines\n');"
-            "print(head(mySubset[c('instanceProto', 'value','frame_number')]));";
+        //cmd =
+        //    "cat('============> Check the 15381 is NOT present as it is some noice/false recog \n');"
+        //    "mySubset <- subset(myCleanedData, myCleanedData$instanceProto == 15382);"
+        //    "cat('We have mySubset with ', nrow(mySubset), 'lines\n');"
+        //    "print(head(mySubset[c('instanceProto', 'value','frame_number')]));";
+        //R.parseEval(cmd);
+
+
+        cmd = "library(ggplot2);"
+              "x11();"
+              "myQplot <- qplot(myCleanedData$frame_number, myCleanedData$value, col=as.factor(myCleanedData$instanceProto), pch = myCleanedData$protoName);"
+              "plot(myQplot);"
+              "Sys.sleep(5);cat('\nThat was an amazing plot!\n');dev.off();"
+              "filepath <- '/home/maxime/CloudStation/R/fold-unfold/plot/myplot.pdf';"
+              "x11();pdf(filepath);"
+              "print(myQplot);"
+              "cat('\nPlot saved in !\n', filepath);"
+              "dev.off();dev.off();"
+              "cat('\n');";
+
+        //parseEvalQ evluates without assignment
         R.parseEval(cmd);
+
+
+
+
+
 
     } catch(std::exception& ex) {
         yError() << "RInside: Exception caught: " << ex.what() ;
@@ -791,7 +812,7 @@ Bottle learnPrimitive::learn(){
             //it is because I need a list of arg to write the sequence but right now I only receive one string as arg by nodeNameAction. TODO : change to be generic in argument number
             bDescriptionAction.addList() = bCurrentAction ;
 
-            yInfo() << "bDescriptionAction in loop : " << bDescriptionAction.toString() ;
+            yInfo() << "bDescriptionAction in lproto_oop : " << bDescriptionAction.toString() ;
             //bReplyFromNameAction = nodeNameAction(sTypeNeeded);
             //yInfo() << "INSIDE THE LOOP : bReplyFromNameAction.get(0).asString() = " << bReplyFromNameAction.get(0).asString() ;
 
