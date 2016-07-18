@@ -4,6 +4,3 @@
 
 add_subdirectory(wysiwydIDLClients)
 add_subdirectory(wrdac)
-if(WYSIWYD_USE_GTK2)
-    add_subdirectory(cvz)
-endif()
