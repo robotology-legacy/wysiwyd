@@ -51,6 +51,8 @@
 #define EFAA_OPC_OBJECT_RTDIMY_TAG          ("rt_dim_y")
 #define EFAA_OPC_OBJECT_RTDIMZ_TAG          ("rt_dim_z")
 #define EFAA_OPC_OBJECT_SALIENCY            ("saliency")
+#define EFAA_OPC_OBJECT_VALUE               ("value")
+#define EFAA_OPC_OBJECT_CURID_TAG           ("cur_id")
 
 #define EFAA_OPC_OBJECT_ROBOTPOS_TAG        ("position_3d")
 #define EFAA_OPC_OBJECT_ROBOTPOSX_TAG       ("robot_position_x")

@@ -120,6 +120,10 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
         yInfo() << " setSaliencyEntity";
         (setSaliencyEntity(command)) ? reply.addString("setSaliencyEntity done !") : reply.addString("setSaliencyEntity failed !");
     }
+    else if (command.get(0).asString() == "setValueEntity") {
+        yInfo() << " setValueEntity";
+        (setValueEntity(command)) ? reply.addString("setValueEntity done !") : reply.addString("setValueEntity failed !");
+    }
     else if (command.get(0).asString() == "clear") {
         yInfo() << " clearing OPC";
         iCub->opc->clear();
@@ -175,6 +179,8 @@ bool opcPopulater::populateEntityRandom(Bottle bInput){
         obj->m_color[0] = Random::uniform(100, 180);
         obj->m_color[1] = Random::uniform(0, 80);
         obj->m_color[2] = Random::uniform(180, 250);
+        obj->m_value = 1.5;
+        yDebug()<<"value: "<<obj->m_value;
         iCub->opc->commit(obj);
 
         obj = NULL;
@@ -310,6 +316,47 @@ bool opcPopulater::setSaliencyEntity(Bottle bInput){
     return true;
 }
 
+bool opcPopulater::setValueEntity(Bottle bInput){
+
+    if (bInput.size() != 3)
+    {
+        yWarning() << " in opcPopulater::setValueEntity| wrong number of input";
+        return false;
+    }
+
+
+    string sName = bInput.get(1).toString();
+    double targetValue = bInput.get(2).asDouble();
+
+    iCub->opc->checkout();
+    list<Entity*> lEntities = iCub->opc->EntitiesCache();
+
+    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
+    {
+        if ((*itEnt)->name() == sName)
+        {
+            if ((*itEnt)->entity_type() == "agent")
+            {
+                Agent* temp = dynamic_cast<Agent*>(*itEnt);
+                temp->m_value = targetValue;
+            }
+            if ((*itEnt)->entity_type() == "object")
+            {
+                Object* temp = dynamic_cast<Object*>(*itEnt);
+                temp->m_value = targetValue;
+            }
+            if ((*itEnt)->entity_type() == "rtobject")
+            {
+                RTObject* temp = dynamic_cast<RTObject*>(*itEnt);
+                temp->m_value = targetValue;
+            }
+        }
+    }
+
+    iCub->opc->commit();
+
+    return true;
+}
 
 
 bool opcPopulater::populateABM(Bottle bInput)

@@ -46,6 +46,7 @@ public:
 
     bool    addUnknownEntity(Bottle bInput);
     bool    setSaliencyEntity(Bottle bInput);
+    bool    setValueEntity(Bottle bInput);
 
     bool    populateABM(Bottle bInput);
     bool    populateABMiCubStory(Bottle bInput);
