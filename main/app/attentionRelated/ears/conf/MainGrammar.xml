@@ -95,9 +95,11 @@
 
   <RULE NAME="bodypart" DYNAMIC="TRUE">
     <L>
+      <P>thumb</P>
       <P>index</P>
       <P>middle</P>
       <P>ring</P>
+      <P>little</P>
     </L>
   </RULE> 
 </GRAMMAR>
