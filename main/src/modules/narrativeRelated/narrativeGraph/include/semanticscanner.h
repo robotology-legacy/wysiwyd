@@ -44,29 +44,40 @@ namespace storygraph {
     };
     bool operator==(const sRelation& A, const sRelation& B);
     sRelation fromValueToRelation(const yarp::os::Value& b);
+    sActionEvt relToAct(const sRelation& rel);
 
     /// \namespace VocabularyHandler
     /// Encapsulates the functions which process synonyms, dfw and pronouns
     namespace VocabularyHandler {
+        // -- CCW
+        static std::set <std::string> setCCW; ///< Set of Closed Class Words
+        void addCCW(std::string word);
+        std::vector <std::string> extractOCW(const std::vector <std::string>& words);
+
         // -- Synonyms
-        static std::vector < std::set <std::string> > vSynonyms; /// A container for synonym classes
-        bool shareMeaning(std::string word, std::set <std::string> ocw); /// Checks if the word or one of its synonyms is in the ocw set provides
-        bool sameMeaning(std::string word1, std::string word2); /// Checks if two words are in the same synonym class
-        void enrichSynonyms(std::set<std::string> setWords); /// Adds a synonym class
+        static std::vector < std::set <std::string> > vSynonyms;         ///< A container for synonym classes
+        bool shareMeaning(std::string word, std::set <std::string> ocw); ///< Checks if the word or one of its synonyms is in the ocw set provides
+        bool sameMeaning(std::string word1, std::string word2);          ///< Checks if two words are in the same synonym class
+        void enrichSynonyms(std::set<std::string> setWords);             ///< Adds a synonym class
 
         // -- Pronouns
         static std::string agentPronoun, objectPronoun, recipientPronoun;
         void setPronouns(std::string agent, std::string object, std::string recipient);
+        void replacePronouns(const sActionEvt& context, sActionEvt& toReplace);
 
         // -- DFW
-        static std::set <std::string> vDFW; /// A container for DFW @todo Improve to add the usage of the dfw
-        void enrichDFW(std::string dfw); /// Adds a DFW to the known ones
+        struct sDFWUse {
+        };
+
+        static std::map <std::string, sDFWUse> vDFW; ///< A container for DFW
+        void enrichDFW(std::string dfw); ///< Adds a DFW to the known ones
+        bool isDFW(std::string word);
 
         // -- Vocabulary
         static std::set <std::string> relationPredicates;
         static std::set <std::string> actionPredicates;
-        void initVoc(std::vector<story> listStories);
-        bool isActionVoc(std::string predicate); /// Returns true if this predicate (or one of its synonyms) is a predicate for an action in the ABM
+        void initVoc(std::vector<story> listStories); ///< Scans the data extracted from the ABM to sort predicates as Relation or Action ones
+        bool isActionVoc(std::string predicate);      ///< @returns true if this predicate (or one of its synonyms) is a predicate for an action in the ABM
     }
 
     /// \struct meaningLine
@@ -77,23 +88,31 @@ namespace storygraph {
     };
 
     /// \class Meaning
-    /// Contains a sentence and constructs its meaning (+ focus) if ocw with role are given.
+    /// Contains a sentence and constructs its meaning(s) (+ focus) if ocw with role are given.
+    /// Or contains an sActionEvt and construct a focus.
     class Meaning {
     private:
         std::string sentence;
-        std::vector <meaningLine> vMeanings;
         std::vector <std::string> vOCW;
+        std::vector <meaningLine> vMeanings;
         sActionEvt currentContext;
+        bool lineWithDFW;
     public:
         Meaning();
-        Meaning(std::string _sentence, sActionEvt previousContext);
-        void extractOCW(const std::set <std::string> &setCCW); ///< Remove all ccw of the sentence, creating the vector of ocw
-        std::set < std::string > ocwSet(); ///< Returns the ocw in a set to search best event in the Situation Model: DFW are thus removed
-        void extractFocus(const std::string &predicate, const std::string &agent,
-                          const std::string &object, const std::string &recipient); ///< Adds a meaning line, replace ocw of action by '_' in vOCW
-        void DFWLine(); ///< Adds lines in the beginning for dfw
+        Meaning(std::string _sentence);
+        // Context
+        void setContext(sActionEvt context); ///< Set the context of this Meaning
+        // Sentence -> Meaning + PAOR
+        std::set < std::string > ocwSet(); ///< Removes all ccw of the sentence, creating the vector vOCW
+                                           ///< Returns the ocw in a set to search best event in the Situation Model. DFW are removed.
+        void extractFocus(const sActionEvt &a); ///< Adds a meaning line, replace ocw of action by '_' in vOCW
+        void extractOthers(); ///< Adds lines for the other ocw (dfw are added in the first line)
+        // sActionEvent -> Meaning + PAOR
+        void addDFW(std::string word);
+        void addEvent(sActionEvt a);
+        void evtToMeaning(std::string lang="en"); ///< Complete each meaningLine with naïve focus (according to the lang).
+        //
         std::string getMeaning(int minFocus = 8); ///< Returns the whole train line: "meaning1, meaning2, ... <o> focus1, focus2, ... <o>; sentence"
-        sActionEvt getContext(); ///< Returns the context (a sActionEvt) for next sentence
     };
 }
 

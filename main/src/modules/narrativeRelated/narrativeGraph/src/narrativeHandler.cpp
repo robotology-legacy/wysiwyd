@@ -70,11 +70,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     rfLRH.configure(0, NULL);
     string sclosed_class_words = rfLRH.check("closed_class_words", Value("to")).toString().c_str();
     vector <string> vCCW = split(sclosed_class_words, ',');
-    setCCW = set<string>(vCCW.begin(), vCCW.end());
+    for (string w : vCCW)
+        storygraph::VocabularyHandler::addCCW(w);
     string sdiscourse_function_words = rfLRH.check("discourse_function_words", Value("and")).toString().c_str();
     vector <string> vDFW = split(sdiscourse_function_words, ',');
     for (string w : vDFW)
-        VocabularyHandler::enrichDFW(w);
+        storygraph::VocabularyHandler::enrichDFW(w);
 
     Bottle bNarrativeGroup = rf.findGroup("narrative");
     if (!bNarrativeGroup.isNull()) {
@@ -226,17 +227,22 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " displayStories + n-back = default_all: \n" +
         " listenStory: \n" +
         " cleanMental\n" +
-        " createFromStory + instanceStory = last\n"
+        " cleanSM\n"
+        " cleanLinks\n"
+        " ABMtoSM + instanceStory = last\n"
+        " autoStructSM\n"
         " helpSM\n" +
-        " train + sentence\n" +
-        " trainFromFile + filename = trainOutput\n" +
+        " SMtoTrain + sentence\n" +
+        " SMandNarrativetoTrain + filename = trainOutput\n" +
         " learnDFW + word\n" +
-        " createLink + (instanceFromIGARF cPart instanceRel) + word + (instanceRoIGARF cPart instanceRel)\n" +
-        " linkFromMeaning + meaning\n" +
-        " createFromMeaning + meaning\n" +
+        " createLink + (instanceFromIGARF cPart instanceRel) + word + (instanceToIGARF cPart instanceRel)\n" +
+        " LRHtoSM + meaning\n" +
+        " LRHFiletoSM + filename"
+        " LRHtoBlankSM + meaning\n" +
         " period\n" +
-        " produceBasicMeaning\n" +
-        " createSVG file = svgFile + instanceIGARF = last\n" +
+        " autoLink + instanceIGARF = last"
+        " SMtoLRH + lang = en\n" +
+        " SMtoSVG file = svgFile + instanceIGARF = last\n" +
         " quit \n";
 
     yInfo() << " rpc command received: " << command.toString();
@@ -323,12 +329,24 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             reply.addString(" in narrativeHandler: command setDefaultStory: missing argument (int expected)");
         }
     }
-    else if (command.get(0).asString() == "createFromStory") {
-        yInfo(" create the situation model");
+    else if (command.get(0).asString() == "cleanSM") {
+        yInfo(" clean the situation model");
+        sm.clear();
+        yInfo(" cleaning sucessful");
+        reply.addString("cleaning sucessful");
+    }
+    else if (command.get(0).asString() == "cleanLinks") {
+        yInfo(" clean the links in the situation model");
+        sm.cleanLinks();
+        yInfo(" cleaning sucessful");
+        reply.addString("cleaning sucessful");
+    }
+    else if (command.get(0).asString() == "ABMtoSM") {
+        yInfo(" create the situation model from ABM");
         if (command.size() >= 2) {
             int i = command.get(1).asInt();
             if (i >= 0 && i < (int)listStories.size()) {
-                sm.createFromStory(listStories.at(i));
+                sm.ABMtoSM(listStories.at(i));
                 yInfo(" import and creation sucessful");
                 reply.addString("creation sucessful");
             }
@@ -338,10 +356,16 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             }
         }
         else {
-            sm.createFromStory(listStories.back());
+            sm.ABMtoSM(listStories.back());
             yInfo(" import of last story and creation sucessful");
             reply.addString("creation sucessful");
         }
+    }
+    else if (command.get(0).asString() == "autoStructSM") {
+        yInfo(" auto structuration of the situation model");
+        sm.makeStructure();
+        yInfo(" autostruct sucessful");
+        reply.addString("autostruct sucessful");
     }
     // -- Situation Model Related
     // Construction
@@ -393,15 +417,16 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "createEvt") {
         yInfo(" create an action event in the situation model");
         if (command.size() >= 3) {
-            std::string predicate = command.get(1).asString();
-            std::string agent = command.get(2).asString();
-            std::string object = "";
-            std::string recipient = "";
+            storygraph::sActionEvt a;
+            a.predicate = command.get(1).asString();
+            a.agent = command.get(2).asString();
+            a.object = "";
+            a.recipient = "";
             if (command.size() >= 4)
-                object = command.get(3).asString();
+                a.object = command.get(3).asString();
             if (command.size() >= 5)
-                recipient = command.get(4).asString();
-            int i = sm.addNewActionEvt(predicate, agent, object, recipient);
+                a.recipient = command.get(4).asString();
+            int i = sm.addNewActionEvt(a);
             yInfo(" creation sucessful of the " + to_string(i) + "-th action event");
             reply.addString(" creation sucessful of the " + to_string(i) + "-th action event");
         }
@@ -417,7 +442,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             r.subject = command.get(1).asString();
             r.verb    = command.get(2).asString();
             r.object  = command.get(3).asString();
-            int i = sm.addOrFindRelation(r);
+            int i = sm.findRelation(r, true);
             yInfo(" creation sucessful of the " + to_string(i) + "-th relation");
             reply.addString(" creation sucessful of the " + to_string(i) + "-th relation");
         }
@@ -536,35 +561,18 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     // -- LRH Related
     // Step 1: Train
-    else if (command.get(0).asString() == "train") {
+    else if (command.get(0).asString() == "SMtoTrain") {
         yInfo(" create a train from a narrative sentence");
         if (command.size() >= 2) {
-            storygraph::Meaning m(command.get(1).asString(), context);
-            m.extractOCW(setCCW);
-            storygraph::sKeyMean km = sm.findBest(m.ocwSet());
-            if (km.iIGARF != -1) {
-                string pred, ag, obj, rec;
-                sm.copyOCW(km, pred, ag, obj, rec);
-                m.extractFocus(pred, ag, obj, rec);
-                m.DFWLine();
-                cout << m.getMeaning() << endl;
-                reply.addString(m.getMeaning());
-                if (fTrainOutput.is_open())
-                    fTrainOutput << m.getMeaning() << "\n";
-                yInfo(" creation successful");
-                reply.addString(" creation successful");
-            }
-            else {
-                yInfo(" No matching event found, can't create a meaning.");
-                reply.addString(" no match found");
-            }
+            sentenceToTrain(command.get(1).asString(), reply);
+            sm.endSentence();
         }
         else {
             yInfo(" Not enough arguments");
             reply.addString("Error: Needs an argument (sentence)");
         }
     }
-    else if (command.get(0).asString() == "trainFromFile") {
+    else if (command.get(0).asString() == "SMandNarrativetoTrain") {
         yInfo(" create a train from a narrative");
         string name;
         if (command.size() > 1 && command.get(1).asString() != "")
@@ -578,26 +586,10 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             while (fNarrativeInput.good()) {
                 string s;
                 getline(fNarrativeInput, s);
-                storygraph::Meaning m(s, context);
-                m.extractOCW(setCCW);
-                storygraph::sKeyMean km = sm.findBest(m.ocwSet());
-                if (km.iIGARF != -1) {
-                    string pred, ag, obj, rec;
-                    sm.copyOCW(km, pred, ag, obj, rec);
-                    m.extractFocus(pred, ag, obj, rec);
-                    m.DFWLine();
-                    context = m.getContext();
-                    cout << m.getMeaning() << endl;
-                    if (fTrainOutput.is_open()) {
-                        fTrainOutput << m.getMeaning() << "\n";
-                        fTrainOutput.flush();
-                    }
-                }
-                else {
-                    yInfo(" No matching event found, can't create a meaning.");
-                }
+                sentenceToTrain(s, reply);
             }
             fNarrativeInput.close();
+            sm.endSentence();
             yInfo(" creation successful");
             reply.addString(" creation successful:");
         }
@@ -621,11 +613,56 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             reply.addString("Error: Needs 1 argument");
         }
     }
-    else if (command.get(0).asString() == "linkFromMeaning") {
-        addLinkFromMeaning(command, reply);
+    else if (command.get(0).asString() == "createLink") {
+        addLink(command, reply);
     }
-    else if (command.get(0).asString() == "createFromMeaning") {
-        addLinkFromMeaning(command, reply, true);
+    else if (command.get(0).asString() == "LRHtoSM") {
+        yInfo(" creating a link in the situation model");
+        if (command.size() >= 2) {
+            // Get meaning
+            string m = command.get(1).asString();
+            LRHtoSM(m, reply);
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 1 arguments");
+        }
+    }
+    else if (command.get(0).asString() == "LRHFiletoSM") {
+        string name;
+        if (command.size() > 1 && command.get(1).asString() != "") {
+            name = command.get(1).asString();
+            yInfo() << " Opening " << sNarrativeFolderName + name;
+            ifstream fNarrativeInput;
+            fNarrativeInput.open(sNarrativeFolderName + name);
+            if (fNarrativeInput.is_open()) {
+                while (fNarrativeInput.good()) {
+                    string s;
+                    getline(fNarrativeInput, s);
+                    LRHtoSM(s, reply);
+                }
+                fNarrativeInput.close();
+                sm.endSentence();
+                yInfo(" creation successful");
+                reply.addString(" creation successful:");
+            }
+        }
+        else {
+            yInfo(" narrative not found");
+            reply.addString(" narrative not found");
+        }
+    }
+    else if (command.get(0).asString() == "LRHtoBlankSM") {
+        yInfo(" creating event and/or link in the situation model");
+        if (command.size() >= 2) {
+            // Get meaning
+            string m = command.get(1).asString();
+            LRHtoSM(m, reply, true);
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 1 arguments");
+        }
     }
     else if (command.get(0).asString() == "period") {
         yInfo(" end sentence");
@@ -633,9 +670,29 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         yInfo(" sentence ended");
         reply.addString(" sentence ended");
     }
-    else if (command.get(0).asString() == "produceBasicMeaning") {
+    else if (command.get(0).asString() == "autoLink") {
+        yInfo(" create links in the SM");
+        int nIGARF;
+        if (command.size() > 1)
+            nIGARF = command.get(2).asInt();
+        else
+            nIGARF = sm.vIGARF.size() - 1;
+        if (nIGARF >= 0 && nIGARF < (int)sm.vIGARF.size()) {
+            sm.autoLink(nIGARF);
+            yInfo(" creation successful");
+            reply.addString(" creation sucessful");
+        }
+        else {
+            yInfo(" error: out of range");
+            reply.addString("Error: out of range");
+        }
+    }
+    else if (command.get(0).asString() == "SMtoLRH") {
         yInfo(" produce basic meaning using links");
-        sm.produceBasicMeaning();
+        if (command.size() > 1 && command.get(1).asString() != "")
+            sm.SMtoLRH(command.get(1).asString());
+        else
+            sm.SMtoLRH();
         yInfo(" production successful");
         reply.addString(" production sucessful");
     }
@@ -648,7 +705,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         reply.addString(" listing sucessful");
     }
     // --
-    else if (command.get(0).asString() == "createSVG") {
+    else if (command.get(0).asString() == "SMtoSVG") {
         yInfo(" create a SVG representation of an IGARF");
         string name;
         int nIGARF;
@@ -2069,7 +2126,15 @@ void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
         // Get meaning
         std::string m = command.get(2).asString();
 
+        int last = sm.vDiscourseLinks.size() - 1;
         sm.createLink(from, to, m);
+        for (int i = last; i < (int)sm.vDiscourseLinks.size(); i++) {
+            const storygraph::sDiscourseLink& lk = sm.vDiscourseLinks.at(i);
+            string link = lk.word + ": From " + lk.fromEvt.cPart + " of IGARF " + to_string(lk.fromEvt.iIGARF)
+                                  + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
+            yInfo(link);
+            reply.addString(link);
+        }
         yInfo(" creation sucessful");
         reply.addString(" creation sucessful");
     }
@@ -2079,19 +2144,55 @@ void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
     }
 }
 
-void narrativeHandler::addLinkFromMeaning(const Bottle& command, Bottle& reply, bool create) {
-    yInfo(" creating a link in the situation model");
-    if (command.size() >= 2) {
-        // Get meaning
-        string m = command.get(1).asString();
-
-        sm.addLinkFromMeaning(m, create);
-        yInfo(" creation sucessful");
-        reply.addString(" creation sucessful");
+void narrativeHandler::LRHtoSM(string m, Bottle& reply, bool create) {
+    if (m != "") {
+        if (m == ".") {
+            sm.endSentence();
+            yInfo(" (period)");
+            reply.addString("(period)");
+            return;
+        }
+        int last = sm.vDiscourseLinks.size();
+        sm.LRHtoSM(m, create);
+        // Display links created
+        for (int i = last; i < (int)sm.vDiscourseLinks.size(); i++) {
+            const storygraph::sDiscourseLink& lk = sm.vDiscourseLinks.at(i);
+            string link = lk.word + ": From " + lk.fromEvt.cPart + " of IGARF " + to_string(lk.fromEvt.iIGARF)
+                                  + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
+            yInfo(link);
+            reply.addString(link);
+        }
+        if (last == (int)sm.vDiscourseLinks.size()) {
+            yInfo(" no link");
+            reply.addString(" no link");
+        }
     }
     else {
-        yInfo(" Not enough arguments");
-        reply.addString("Error: Needs 1 arguments");
+        yInfo(" meaning is empty");
+        reply.addString(" meaning is empty");
     }
 }
 
+void narrativeHandler::sentenceToTrain(string s, Bottle& reply) {
+    if (s != "") {
+        if (s == ".") {
+            sm.endSentence();
+            yInfo(" (period)");
+            reply.addString("(period)");
+            return;
+        }
+        string trainLine = sm.SMtoTrain(s);
+        if (trainLine != "" && trainLine != "NoMatch") {
+            yInfo(" " + trainLine);
+            reply.addString(trainLine);
+            if (fTrainOutput.is_open()) {
+                fTrainOutput << trainLine << "\n";
+                fTrainOutput.flush();
+            }
+        }
+        else {
+            yInfo(" No matching event found, can't create a meaning.");
+            reply.addString(" no match found");
+        }
+    }
+}

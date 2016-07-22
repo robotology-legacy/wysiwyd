@@ -18,16 +18,16 @@ vector<string> split(const string &s, char delim) {
 }
 
 bool storygraph::operator==(const sActionEvt& A, const sActionEvt& B)  {
-    return (A.predicate == B.predicate
-         && A.agent     == B.agent
-         && A.object    == B.object
-         && A.recipient == B.recipient);
+    return (VocabularyHandler::sameMeaning(A.predicate, B.predicate)
+         && VocabularyHandler::sameMeaning(A.agent    , B.agent)
+         && VocabularyHandler::sameMeaning(A.object   , B.object)
+         && VocabularyHandler::sameMeaning(A.recipient, B.recipient));
 }
 
 bool storygraph::operator==(const sRelation& A, const sRelation& B)  {
-    return (A.subject == B.subject
-         && A.verb    == B.verb
-         && A.object  == B.object);
+    return (VocabularyHandler::sameMeaning(A.subject, B.subject)
+         && VocabularyHandler::sameMeaning(A.verb   , B.verb)
+         && VocabularyHandler::sameMeaning(A.object , B.object));
 }
 
 sRelation storygraph::fromValueToRelation(const yarp::os::Value& b) {
@@ -38,6 +38,28 @@ sRelation storygraph::fromValueToRelation(const yarp::os::Value& b) {
         n.object    = b.asList()->get(2).toString();
     }
     return n;
+}
+sActionEvt storygraph::relToAct(const sRelation& rel) {
+    sActionEvt a;
+    a.agent = rel.subject;
+    a.predicate = rel.verb;
+    a.object = rel.object;
+    a.recipient = "";
+    return a;
+}
+
+void VocabularyHandler::addCCW(string word) {
+    VocabularyHandler::setCCW.insert(word);
+}
+
+vector <string> VocabularyHandler::extractOCW(const vector <string>& words) {
+    vector <string> vOCW;
+    for (string w : words) {
+        if (VocabularyHandler::setCCW.find(w) == VocabularyHandler::setCCW.end()) {
+            vOCW.push_back(w);
+        }
+    }
+    return vOCW;
 }
 
 bool VocabularyHandler::shareMeaning(string word, std::set<string> ocw) {
@@ -70,13 +92,37 @@ void VocabularyHandler::enrichSynonyms(std::set<std::string> setWords) {
 }
 
 void VocabularyHandler::enrichDFW(std::string dfw) {
-    VocabularyHandler::vDFW.insert(dfw);
+    if (VocabularyHandler::vDFW.find(dfw) == VocabularyHandler::vDFW.end()) {
+        sDFWUse use;
+        VocabularyHandler::vDFW[dfw] = use;
+    }
+}
+
+bool VocabularyHandler::isDFW(std::string word) {
+    return (VocabularyHandler::vDFW.find(word) != VocabularyHandler::vDFW.end());
 }
 
 void VocabularyHandler::setPronouns(string agent, string object, string recipient) {
     VocabularyHandler::agentPronoun     = agent;
     VocabularyHandler::objectPronoun    = object;
     VocabularyHandler::recipientPronoun = recipient;
+}
+void VocabularyHandler::replacePronouns(const sActionEvt& context, sActionEvt& toReplace) {
+    if (toReplace.agent == VocabularyHandler::agentPronoun) {
+        toReplace.agent = context.agent;
+    }
+    if (toReplace.agent == VocabularyHandler::objectPronoun) {
+        toReplace.agent = context.object;
+    }
+    if (toReplace.object == VocabularyHandler::objectPronoun) {
+        toReplace.object = context.object;
+    }
+    if (toReplace.recipient == VocabularyHandler::objectPronoun) {
+        toReplace.recipient = context.object;
+    }
+    if (toReplace.recipient == VocabularyHandler::recipientPronoun) {
+        toReplace.recipient = context.recipient;
+    }
 }
 
 void VocabularyHandler::initVoc(std::vector<story> listStories) {
@@ -93,77 +139,104 @@ void VocabularyHandler::initVoc(std::vector<story> listStories) {
             }
         }
     }
+    actionPredicates.insert("fail");
 }
 
 bool VocabularyHandler::isActionVoc(string predicate) {
-    return (storygraph::VocabularyHandler::shareMeaning(predicate, VocabularyHandler::actionPredicates));
-}
-
-Meaning::Meaning() {}
-
-Meaning::Meaning(string _sentence, sActionEvt previousContext) {
-    sentence = _sentence;
-    currentContext = previousContext;
-}
-
-void Meaning::extractOCW(const set<string> &setCCW) {
-    vector < string > words = split(sentence, ' ');
-    for (string w : words) {
-        if (setCCW.find(w) == setCCW.end()) {
-            vOCW.push_back(w);
+    if (storygraph::VocabularyHandler::shareMeaning(predicate, VocabularyHandler::actionPredicates))
+        return true;
+    for(set<string> wordClass : VocabularyHandler::vSynonyms) {
+        if (wordClass.find(predicate) != wordClass.end()) {
+            for (string w : wordClass) {
+                if (storygraph::VocabularyHandler::shareMeaning(w, VocabularyHandler::actionPredicates))
+                    return true;
+            }
         }
     }
+    return false;
+}
+
+Meaning::Meaning() {
+    lineWithDFW = false;
+}
+
+void Meaning::setContext(sActionEvt context) {
+    currentContext = context;
+}
+
+// Sentence -> Meaning + PAOR
+Meaning::Meaning(string _sentence) {
+    sentence = _sentence;
+    lineWithDFW = false;
 }
 
 set<string> Meaning::ocwSet() {
+    vector < string > words = split(sentence, ' ');
+    vOCW = VocabularyHandler::extractOCW(words);
     set < string > ocw(vOCW.begin(), vOCW.end());
-    for (string word : VocabularyHandler::vDFW) {
-        ocw.erase(word);
+    for (auto it = VocabularyHandler::vDFW.begin(); it != VocabularyHandler::vDFW.end(); it++) {
+        ocw.erase(it->first);
+    }
+    if (ocw.find(VocabularyHandler::agentPronoun) != ocw.end()) {
+        ocw.insert(currentContext.agent);
+    }
+    if (ocw.find(VocabularyHandler::objectPronoun) != ocw.end()) {
+        ocw.insert(currentContext.object);
+    }
+    if (ocw.find(VocabularyHandler::recipientPronoun) != ocw.end()) {
+        ocw.insert(currentContext.recipient);
     }
     return ocw;
 }
 
-void Meaning::extractFocus(const string &predicate, const string &agent, const string &object, const string &recipient) {
+void Meaning::extractFocus(const sActionEvt &a) {
     meaningLine newMean;
+    bool empty = true;
     for (string &w : vOCW) {
-        if (w != "" && VocabularyHandler::sameMeaning(w, predicate)) {
+        if (w != "" && VocabularyHandler::sameMeaning(w, a.predicate)) {
+            empty = false;
             newMean.focus.push_back('P');
-            if (newMean.ocw.predicate == "")
+            if (newMean.ocw.predicate == "") {
                 newMean.ocw.predicate = w;
+            }
         }
-        else if (w != "" && (VocabularyHandler::sameMeaning(w, agent) ||
-                             (w == VocabularyHandler::agentPronoun && VocabularyHandler::sameMeaning(currentContext.agent, agent)))) {
+        else if (w != "" && (VocabularyHandler::sameMeaning(w, a.agent) ||
+                             (w == VocabularyHandler::agentPronoun && VocabularyHandler::sameMeaning(currentContext.agent, a.agent)))) {
             newMean.focus.push_back('A');
-            if (newMean.ocw.agent == "")
+            if (newMean.ocw.agent == "") {
                 newMean.ocw.agent = w;
+            }
         }
-        else if (w != "" && (VocabularyHandler::sameMeaning(w, object) ||
-                             (w == VocabularyHandler::objectPronoun && VocabularyHandler::sameMeaning(currentContext.object, object)))) {
+        else if (w != "" && (VocabularyHandler::sameMeaning(w, a.object) ||
+                             (w == VocabularyHandler::objectPronoun && VocabularyHandler::sameMeaning(currentContext.object, a.object)))) {
             newMean.focus.push_back('O');
-            if (newMean.ocw.object == "")
+            if (newMean.ocw.object == "") {
                 newMean.ocw.object = w;
+            }
         }
-        else if (w != "" && (VocabularyHandler::sameMeaning(w, recipient) ||
-                             (w == VocabularyHandler::recipientPronoun && VocabularyHandler::sameMeaning(currentContext.recipient, recipient)))) {
+        else if (w != "" && (VocabularyHandler::sameMeaning(w, a.recipient) ||
+                             (w == VocabularyHandler::recipientPronoun && VocabularyHandler::sameMeaning(currentContext.recipient, a.recipient)))) {
             newMean.focus.push_back('R');
-            if (newMean.ocw.recipient == "")
+            if (newMean.ocw.recipient == "") {
                 newMean.ocw.recipient = w;
+            }
         }
         else {
             newMean.focus.push_back('_');
         }
     }
-    currentContext.predicate   = newMean.ocw.predicate;
-    if (newMean.ocw.agent != VocabularyHandler::agentPronoun && newMean.ocw.agent != "")
-        currentContext.agent   = newMean.ocw.agent;
-    if (newMean.ocw.object != VocabularyHandler::objectPronoun && newMean.ocw.object != "")
-        currentContext.object  = newMean.ocw.object;
-    if (newMean.ocw.recipient != VocabularyHandler::recipientPronoun && newMean.ocw.recipient != "")
-        currentContext.recipient   = newMean.ocw.recipient;
-    vMeanings.push_back(newMean);
+    currentContext.predicate = newMean.ocw.predicate;
+    if (newMean.ocw.agent   != VocabularyHandler::agentPronoun && newMean.ocw.agent != "")
+        currentContext.agent = newMean.ocw.agent;
+    if (newMean.ocw.object   != VocabularyHandler::objectPronoun && newMean.ocw.object != "")
+        currentContext.object = newMean.ocw.object;
+    if (newMean.ocw.recipient   != VocabularyHandler::recipientPronoun && newMean.ocw.recipient != "")
+        currentContext.recipient = newMean.ocw.recipient;
+    if (!empty)
+        vMeanings.push_back(newMean);
 }
 
-void Meaning::DFWLine() {
+void Meaning::extractOthers() {
     for (meaningLine lm : vMeanings) {
         for (int i = 0; i < (int)lm.focus.size(); i++) {
             if (lm.focus.at(i) != '_') {
@@ -175,6 +248,7 @@ void Meaning::DFWLine() {
     bool dfwTaken = false, otherTaken = false;
     do {
         meaningLine newMean;
+        bool empty = true;
         int i = 0;
         string letters = "PAOR";
         for (string& w : vOCW) {
@@ -183,6 +257,7 @@ void Meaning::DFWLine() {
                  dfwTaken)) {
                 newMean.focus.push_back(letters[i]);
                 if (letters[i] == 'P') {
+                    empty = false;
                     newMean.ocw.predicate = w;
                     i++;
                 }
@@ -202,6 +277,7 @@ void Meaning::DFWLine() {
                     newMean.ocw.agent = "";
                     newMean.ocw.object = "";
                     newMean.ocw.recipient = "";
+                    empty = true;
                 }
                 w = "";
             }
@@ -209,9 +285,9 @@ void Meaning::DFWLine() {
                 newMean.focus.push_back('_');
             }
         }
-        if (!dfwTaken)
+        if (!dfwTaken && !empty)
             vMeanings.insert(vMeanings.begin(), newMean);
-        else
+        else if (!empty)
             vMeanings.push_back(newMean);
         if (dfwTaken)
             otherTaken = true;
@@ -219,6 +295,84 @@ void Meaning::DFWLine() {
             dfwTaken = true;
     } while (!(dfwTaken && otherTaken));
 }
+
+// sActionEvent -> Meaning + PAOR
+
+void Meaning::addDFW(string word) {
+    if (!lineWithDFW) {
+        meaningLine newLine;
+        newLine.ocw.predicate = word;
+        vMeanings.insert(vMeanings.begin(), newLine);
+        lineWithDFW = true;
+    }
+    else {
+        if (vMeanings.at(0).ocw.agent == "")
+            vMeanings.at(0).ocw.agent = word;
+        else if (vMeanings.at(0).ocw.object == "")
+            vMeanings.at(0).ocw.object = word;
+        else if (vMeanings.at(0).ocw.recipient == "")
+            vMeanings.at(0).ocw.recipient = word;
+        else
+            cerr << "Meaning::addDFW: Can't add a new DFW (line is full)" << endl;
+    }
+}
+
+void Meaning::addEvent(sActionEvt a) {
+    meaningLine newLine;
+    newLine.ocw = a;
+    vMeanings.push_back(newLine);
+}
+
+void Meaning::evtToMeaning(string lang) {
+    // First the DFW line:
+    int beginAt = 0;
+    if (lineWithDFW) {
+        beginAt += 1;
+        vMeanings.at(0).focus.push_back('P');
+        if (vMeanings.at(0).ocw.agent != "") {
+            vMeanings.at(0).focus.push_back('A');
+            beginAt += 1;
+        }
+        if (vMeanings.at(0).ocw.object != "") {
+            vMeanings.at(0).focus.push_back('O');
+            beginAt += 1;
+        }
+        if (vMeanings.at(0).ocw.recipient != "") {
+            vMeanings.at(0).focus.push_back('R');
+            beginAt += 1;
+        }
+    }
+    // Then the others
+    string basicRelationFocus = "APOR";
+    if (lang == "jap") {
+        basicRelationFocus = "AROP";
+    }
+    for (int mline = (lineWithDFW?1:0) ; mline < (int)vMeanings.size() ; mline++) {
+        // Leave spaces
+        for (int i = 0; i < beginAt; i++)
+            vMeanings.at(mline).focus.push_back('_');
+        for (char letter : basicRelationFocus) {
+            if (letter == 'P' && vMeanings.at(mline).ocw.predicate != "") {
+                vMeanings.at(mline).focus.push_back(letter);
+                beginAt += 1;
+            }
+            else if (letter == 'A' && vMeanings.at(mline).ocw.agent != "") {
+                vMeanings.at(mline).focus.push_back(letter);
+                beginAt += 1;
+            }
+            else if (letter == 'O' && vMeanings.at(mline).ocw.object != "") {
+                vMeanings.at(mline).focus.push_back(letter);
+                beginAt += 1;
+            }
+            else if (letter == 'R' && vMeanings.at(mline).ocw.recipient != "") {
+                vMeanings.at(mline).focus.push_back(letter);
+                beginAt += 1;
+            }
+        }
+    }
+}
+
+//
 
 string Meaning::getMeaning(int minFocus) {
     string sOCW, sFocus;
@@ -239,9 +393,6 @@ string Meaning::getMeaning(int minFocus) {
             sFocus += "_-";
         sFocus = sFocus.substr(0, sFocus.length() - 1) + "]";
     }
+    sOCW = sOCW.substr(0, sOCW.length() - 2); // Remove last ", "
     return sOCW + "<o> " + sFocus + " <o>; " + sentence;
-}
-
-sActionEvt Meaning::getContext() {
-    return currentContext;
 }

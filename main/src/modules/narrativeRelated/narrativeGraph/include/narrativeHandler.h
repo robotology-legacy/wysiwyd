@@ -107,17 +107,16 @@ private:
 
     // SituationModel
     storygraph::SituationModel sm; ///< Current Situation Model
-    std::set <std::string> setCCW; ///< Set of Closed Class Words
     std::ofstream fTrainOutput; ///< File stream for LRH train
     std::string sNarrativeFolderName;
     std::string sNarrativeFileName;
     std::string sSVGFolderName;
     std::string sSVGFileName;
-    storygraph::sActionEvt context; ///< The context of last sentence, used to resolve pronouns
 
     // Meanings
     void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
-    void addLinkFromMeaning(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply, bool create = false);
+    void LRHtoSM(std::string m, yarp::os::Bottle& reply, bool create = false);
+    void sentenceToTrain(std::string s, yarp::os::Bottle& reply);
 };
 
 

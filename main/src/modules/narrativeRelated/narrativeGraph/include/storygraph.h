@@ -44,7 +44,9 @@ namespace storygraph {
         int iIGARF; ///< Instance number of the IGARF pointed at
         char cPart; ///< I (InitState) G (Goal) A (Action) R (Result) F (FinalState)
         int iRel; ///< Relation index, -1 if no relation is pointed at
+                  ///< @warning It is the index in the part pointed at, not in SituationModel::vRelations.
     };
+    bool operator==(const sKeyMean& A, const sKeyMean& B);
 
     /// Describes a dicourse link
     struct sDiscourseLink {
@@ -76,7 +78,7 @@ namespace storygraph {
         void initializeStory(const story& base); ///< Imports events
         void clear(); ///< Removes all IGARF, Action Events, Relations and Discourse Links
 
-        // Display
+        // -- Display
         std::string getSentenceEvt(int i); ///< Produces a naïve sentence from the i-th event
         std::string getSentenceRel(int i); ///< Produces a naïve sentence from the i-th relations
         std::string dispRelations(const std::vector < int >& rels); ///< Displays all relations in a [Subject Verb Object] format
@@ -84,43 +86,51 @@ namespace storygraph {
         /**< @param level Used to set the margin recursively. You don't need to use it. **/
 
 
-        // Creation - Modification
+        // -- Creation - Modification
         // Create (or find) Relation, ActionEvt or IGARF event and stock them in the class vectors. Return their index.
-        int addNewActionEvt(std::string predicate, std::string agent, std::string object = "", std::string recipient = ""); ///< Creates a new Action Event, returns its index in vActionEvts
-        int findRelation(sRelation rel); /// Returns index of the relation in vRelations or -1 if it doesn't exist
-        int addOrFindRelation(sRelation rel); ///< Returns index of the relation in vRelations, creates it if it doesn't exist
-        int createIGARF(); ///< Creates a blank IGARF and returns its index in vIGARF
+        int addNewActionEvt(const sActionEvt& act); ///< Creates a new Action Event, returns its index in vActionEvts
+        int findRelation(const sRelation& rel, bool create = false); ///< @param create When true, it creates the relation when it doesn't exist.
+                                                              ///< @return Index of the relation in vRelations or -1 if it doesn't exist
+        int createIGARF(); ///< Creates a blank new IGARF and returns its index in vIGARF
         // Modify
         void modifEventIGARF(int iIGARF, char cPart, int iActEvt); ///< Modifies index of Action Event for Action (cPart = 'A') or Result (cPart = 'R') in an IGARF
         void modifContentIGARF(int iIGARF, char cPart, int jIGARF); ///< Action or Result of iIGARF-th IGARF became jIGARF-th IGARF
         void remContentIGARF(int iIGARF, char cPart); ///< Sets Action or Result to None
-        void addRelationIGARF(int iIGARF, char cPart, int iRel); ///< Adds the iRel-th relation to the iIGARF-th IGARF event
+        int addRelationIGARF(int iIGARF, char cPart, int iRel); ///< Adds the iRel-th relation to the iIGARF-th IGARF event
+                                                                ///< Return index of the relation in the state vector (for sKeyMean)
         void removeRelationIGARF(int iIGARF, char cPart, int iRel); ///< @param iRel index in vRelations
-        void createFromStory(const story &s); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
-        // Meaning
+        // Links and sKeyMean
+        void cleanLinks(); ///< Removes all links and lose focus
         sKeyMean createKey(int iIGARF, char cPart, int iRel);
+        sActionEvt getEvent(const sKeyMean& km);
         void createLink(sKeyMean from, sKeyMean to, std::string word); ///< Creates and adds a link in the vDiscourseLinks
-        // Temporary functions
-        std::pair <std::string, std::string> meaningFromKeyMean(const sKeyMean &key, int beginAt = 0); // Produces the open class word and focus hierarchy (Naïve and for English)
-        void produceBasicMeaning(); // Use discourse links to create a story
-        // Automatic link with meaning
-        sKeyMean findEventOrRelation(std::string meaning); // Return a (-1 'A' -1) sKeyMean if not found ** TO DELETE **
-        sKeyMean findEventOrRelation(std::string predicate, std::string agent, std::string object = "", std::string recipient = ""); // Return a (-1 'A' -1) sKeyMean if not found
-        // Information on previous discourse function word to create a new event or relation
-        int extractRel(std::string meaning); // Create a new relation from meaning
-        int extractAction(std::string meaning); // Idem for an action event
-        void addLinkFromMeaning(std::string meaning, bool create);
-
-        int proximityScoreAction(int i, std::set <std::string> ocw);
-        int proximityScoreRelation(int i, std::set <std::string> ocw);
-        sKeyMean findBest(std::set <std::string> ocw); // Return a (-1 'A' -1) sKeyMean if not found
-        std::string getPAOR(sKeyMean km, std::string sentence);
-        void copyOCW(sKeyMean km, std::string &predicate, std::string &agent, std::string &object, std::string &recipient); // Return a (-1 'A' -1) sKeyMean if not found
-
+        // -- ABMtoSM
+        void ABMtoSM(const story &s); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
+        void makeStructure(); ///< From all the IGARF, makes a structure with story arc, failure and consequence, etc...
+        // -- SMtoTrain and SMandNarrativeToTrain
+        int proximityScoreAction(int i, const std::set <std::string>& ocw); ///< Mesures vocabulary coherence for sActionEvt
+                                                                            ///< @param i Index of the sActionEvt in SituationModel::vActionEvts.
+                                                                            ///< @return The coherence score. It may be weighted
+                                                                            /// (Predicate is more important thant Recipient) or binary (threshold of acceptance)
+        int proximityScoreRelation(int i, const std::set <std::string>& ocw); ///< @see proximityScoreAction
+        sKeyMean findBest(const std::set <std::string>& ocw); ///< Find the sActionEvt or sRelation that share the most vocabulary
+                                                              ///< @return Returns a sKeyMean to the best event or relation or a (-1 'A' -1) sKeyMean if none has been found
+        std::string SMtoTrain(std::string sentence);
+        // -- LRHtoSM and LRHtoBlankSM
+        sActionEvt extractAction(const std::string& meaning); ///< Returns the sActionEvt describe by the meaning
+        sKeyMean findEventOrRelation(sActionEvt a); // Return a (-1 'A' -1) sKeyMean if not found
+        void LRHtoSM(const std::string& meaning, bool create); ///< Adds a link in the vDiscourseLinks from lastFocus to the event or relation describe in the meaning.
+                                                               ///< @param meaning Contains a meaning with format: "meaning1, meaning2, ... ". If the first meaning contains DFW,
+                                                               /// then they are used to make links.
+                                                               ///< @param create If true and if no known event or relation has been recognized in the meaning,
+                                                               /// then a new sActionEvt or sRelation is created and added to the SituationModel (it is integrated in an IGARF).
         void endSentence(); ///< Ends a sentence, avoid next event to be automatically link to last one
+        // -- SMtoLRH
+        void autoLink(int iIGARF);
+        void SMtoLRH(std::string lang = "en"); ///< Use discourse links to create a story.
+                                               ///< Reads the link in order of input (FIFO). Use SituationModel::meaningFromKeyMean to produce meanings.
 
-
-        // Rendering
+        // -- Rendering
         void initSizes(int _rendering_wEvtBox, int _rendering_hEvtBox, int _rendering_hOffset, int _rendering_vOffset); ///< Calculates all sizes for rendering
         void calculateSize(int currentIGARF, std::vector < int > &IGARFlevels, int level); ///< Auxiliary function to std::pair <int, int> calculateSize(int nIGARF)
         std::pair <int, int> calculateSize(int nIGARF); ///< Returns the size of the canvas to display the IGARF
