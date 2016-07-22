@@ -49,8 +49,14 @@ private:
     yarp::os::Bottle extractSingleProtoProprio(int previousProtoInstance, int currentProtoInstance, std::string babbling_part, std::string proto_name, std::string proto_finger);
     yarp::os::Bottle extractAllProtoProprio(int babbling_begin, yarp::os::Bottle bProtoWords, std::string babbling_arm);
     yarp::os::Bottle protoActionDataSplit(unsigned int instance_begin, unsigned int instance_end, string bp_arm, int bp_joint);
+    yarp::os::Bottle rAnalysis();
 
     RInside R;
+
+    vector<int> v_instanceBabbling, v_instanceProto, v_frame_number, v_joint;
+    vector<std::string> v_protoName, v_protoFinger;
+    vector<double> v_value;
+    void emptyRData();
 
     Rcpp::NumericMatrix createSquareMatrix(const int);
 

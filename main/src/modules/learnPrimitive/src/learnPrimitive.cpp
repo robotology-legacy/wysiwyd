@@ -176,8 +176,10 @@ bool learnPrimitive::respond(const Bottle& command, Bottle& reply) {
         reply = actionCommand(sActionName, sActionArg);
     }
     else if (command.get(0).asString() == "proto"){
-        //reply = protoDataToR(15366, 15370);
+        reply = protoDataToR(15366, 15370);
         reply = protoDataToR(15379, 15384);
+        reply = rAnalysis();
+        emptyRData();
         //reply = extractProtoProprio(15366, "left_arm", 15367, "fold", "thumb");
     }
     else if (command.get(0).asString() == "learn"){
@@ -307,10 +309,10 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
     bBabblingProprio = extractAllProtoProprio(babbling_begin, bProtoWords, babbling_arm);
 
 
-    //************************************************** Preparing R Session **************************************************//
-    vector<int> v_instanceBabbling, v_instanceProto, v_frame_number, v_joint;
-    vector<string> v_protoName, v_protoFinger;
-    vector<double> v_value;
+    //************************************************** Preparing R Session: global variable not used anymore **************************************************//
+    //vector<int> v_instanceBabbling, v_instanceProto, v_frame_number, v_joint;
+    //vector<string> v_protoName, v_protoFinger;
+   //vector<double> v_value;
 
 
     yDebug() << "============================================== BEFORE THE LOOP ======================================" ;
@@ -335,6 +337,15 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
             v_frame_number.push_back(atoi(currentLine->get(8).toString().c_str()));
         }
     }
+
+    bOutput.addString("ack");
+
+    return bOutput;
+}
+
+yarp::os::Bottle learnPrimitive::rAnalysis(){
+
+    Bottle bOutput;
 
     //2. data.frame or similar to be sent to R
     R["instanceProto"] = v_instanceProto;
@@ -395,8 +406,8 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
         //look at what we cut -------------> just to check, to be removed <---------------------------------------------
         cmd =
             "dataToRemove <- subset(myData, (myData$frame_number < frame2cut));"
-            "cat('dataToRemove has ', nrow(dataToRemove), ' lines\n');"
-            "print(dataToRemove[c('instanceProto', 'value','frame_number')])";
+            "cat('dataToRemove has ', nrow(dataToRemove), ' lines\n');";
+            //"print(dataToRemove[c('instanceProto', 'value','frame_number')])";
         R.parseEval(cmd);
 
         //3.4 print to check
@@ -420,6 +431,12 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
             "print(head(myCleanedData[c('instanceProto', 'value','frame_number')]))";
         R.parseEval(cmd);
 
+        /****************** write data frame into a file for R debugging ******************/
+        cmd =
+            "write.table(myCleanedData, file = '/home/maxime/CloudStation/R/fold-unfold/RInside/babblingData.txt', quote=F, row.names=F)";
+        R.parseEval(cmd);
+
+
         //check that 15381 is not taken because of wrong recog
         //cmd =
         //    "cat('============> Check the 15381 is NOT present as it is some noice/false recog \n');"
@@ -430,23 +447,64 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
 
 
         cmd = "library(ggplot2);"
-              "x11();"
-              "myQplot <- qplot(myCleanedData$frame_number, myCleanedData$value, col=as.factor(myCleanedData$instanceProto), pch = myCleanedData$protoName);"
-              "plot(myQplot);"
-              "Sys.sleep(5);cat('\nThat was an amazing plot!\n');dev.off();"
-              "filepath <- '/home/maxime/CloudStation/R/fold-unfold/plot/myplot.pdf';"
-              "x11();pdf(filepath);"
-              "print(myQplot);"
-              "cat('\nPlot saved in !\n', filepath);"
-              "dev.off();dev.off();"
-              "cat('\n');";
+              "for(babbling in as.numeric(levels(as.factor(myCleanedData$instanceBabbling)))){"
+              "     df.current.babbling <- subset(myCleanedData, myCleanedData$instanceBabbling == babbling);"
+              "     x11();"
+
+              "     myQplot <- qplot(df.current.babbling$frame_number, df.current.babbling$value, col=as.factor(df.current.babbling$instanceProto), pch = df.current.babbling$protoName);"
+              "     plot(myQplot);"
+              "     filepath <- paste('/home/maxime/CloudStation/R/fold-unfold/plot/', as.character(babbling), '.pdf', sep = '');"
+              "     pdf(filepath);"
+              "     print(myQplot);"
+              "     cat('\nPlot saved in !\n', filepath);"
+              "     cat('\n');"
+              "}";
 
         //parseEvalQ evluates without assignment
         R.parseEval(cmd);
 
 
 
+        cmd =   "df.babbling <- myCleanedData;print(head(df.babbling));"
+                "par_nrow <- 3;"        //number of row in X11() plot 1st lm proto
+                "par_ncol <- 2;"        //number of col in X11() plot 1st lm proto
+                "R2.threshold <- 0.75;" //[0:1] R2 threshold to get rid of non linear proto
 
+                "proto_number <- 0;x11();par(mfrow=c(par_nrow,par_ncol));"
+                "df.proto <- data.frame(instance=character(), proto=character(), bodypart=character(), adverb=character(), angle.rel=numeric(0), angle.abs=numeric(0), speed=numeric(0), R2=numeric(0), stringsAsFactors=FALSE);";
+        R.parseEval(cmd);
+
+        cmd=    "for(current_proto in as.numeric(levels(as.factor(df.babbling$instanceProto)))){"
+                "    df.babbling.proto <- subset(df.babbling, instanceProto==current_proto);head(df.babbling.proto);"
+
+                "    firstFrame <- df.babbling.proto$frame_number[1];frames <- df.babbling.proto$frame_number-firstFrame;"
+
+                "    lm.proto <- lm(df.babbling.proto$value ~ frames);"
+
+                //    new X11() if needed
+                "    proto_number <- proto_number +1;"
+                "    if(proto_number>(par_nrow*par_ncol)){"
+                "        proto_number <- 1;x11();par(mfrow=c(par_nrow, par_ncol));"
+                "    };"
+
+                "    plot(frames, df.babbling.proto$value, ylab = 'Angle (percentage)', main = bquote(''~.(current_proto)~.(as.character(df.babbling.proto$protoName[1]))));"
+                "    abline(lm.proto, col = 'red');"
+                "    legend('topleft', text.col = 'red', bty='n', legend=paste(' R2 = ', format(summary(lm.proto)$adj.r.squared, digits=2), '\n', 'Angle = ', format(lm.proto$coefficients[1], digits=4), ' + ', format(lm.proto$coefficients[2], digit=2), 'x Frames'));"
+                "    r2 <- summary(lm.proto)$adj.r.squared;"
+
+                "    cat('\nProto: ', current_proto, ' has an R^2 adjusted of ', r2, '\n');"
+                "    cat('Desired Angle: ', lm.proto$fitted.value[nrow(df.babbling.proto)], '\n');"
+                "    cat('Displacement: ', lm.proto$fitted.value[nrow(df.babbling.proto)]-lm.proto$coefficients[1], '\n');"
+                "    cat('Speed (angle/frame): ', format(lm.proto$coefficient[2], digit=2), '\n\n');"
+
+                "    proto.name <- as.character(current_proto);"
+
+                "    df.proto[nrow(df.proto)+1,] <- c(as.character(proto.name), as.character(df.babbling.proto$protoName[1]), as.character(df.babbling.proto$protoFinger[1]), 'none', format(lm.proto$fitted.value[nrow(df.babbling.proto)]-lm.proto$coefficients[1], digit=4), format(lm.proto$fitted.value[nrow(df.babbling.proto)], digit=4), format(lm.proto$coefficient[2], digit=4), format(r2, digit = 2));"
+                "};"
+
+                "print(df.proto);";
+
+        R.parseEval(cmd);
 
 
     } catch(std::exception& ex) {
@@ -460,6 +518,18 @@ yarp::os::Bottle learnPrimitive::protoDataToR(int babbling_begin, int babbling_e
 
     bOutput.addInt(1);
     return bOutput;
+}
+
+void learnPrimitive::emptyRData(){
+
+    v_instanceProto.clear();
+    v_protoName.clear();
+    v_protoFinger.clear();
+    v_instanceBabbling.clear();
+    v_joint.clear();
+    v_value.clear();
+    v_frame_number.clear();
+
 }
 
 //execute action, stop to go out
