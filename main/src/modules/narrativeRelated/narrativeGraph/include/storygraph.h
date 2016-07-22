@@ -66,6 +66,9 @@ namespace storygraph {
 
         bool sentenceEnd;
         sKeyMean lastFocus;
+
+        std::set < int > vRelSaid;
+        std::set < int > vActSaid;
     public:
         std::vector < sRelation >      vRelations;
         std::vector < sActionEvt >     vActionEvts;
@@ -126,6 +129,7 @@ namespace storygraph {
                                                                /// then a new sActionEvt or sRelation is created and added to the SituationModel (it is integrated in an IGARF).
         void endSentence(); ///< Ends a sentence, avoid next event to be automatically link to last one
         // -- SMtoLRH
+        void AUXautoLink(int iIGARF); // Auxiliary
         void autoLink(int iIGARF);
         void SMtoLRH(std::string lang = "en"); ///< Use discourse links to create a story.
                                                ///< Reads the link in order of input (FIFO). Use SituationModel::meaningFromKeyMean to produce meanings.

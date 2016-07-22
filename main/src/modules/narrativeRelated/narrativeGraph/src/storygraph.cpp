@@ -804,27 +804,83 @@ void SituationModel::endSentence() {
  * SMtoLRH *
  *---------*/
 
-void SituationModel::autoLink(int iIGARF) {
+void SituationModel::AUXautoLink(int iIGARF) {
     if (iIGARF < 0 || iIGARF >= (int)vIGARF.size())
         return;
     const sIGARF &igarf = vIGARF.at(iIGARF);
     sKeyMean last = createKey(-1, 'A', -1);
-    while (last.iRel < (int)igarf.vInitState.size() - 1) {
-        sKeyMean next = createKey(iIGARF, 'I', last.iRel + 1);
-        string word;
-        if (last.cPart == 'I')
-            word = "and";
-        createLink(last, next, word);
-        last = next;
+    int where = -1;
+    while (where < (int)igarf.vInitState.size() - 1 ) {
+        if (vRelSaid.find(igarf.vInitState.at(last.iRel + 1)) == vRelSaid.end()) { // This relation has not been said before
+            sKeyMean next = createKey(iIGARF, 'I', last.iRel + 1);
+            string word;
+            if (last.cPart == 'I')
+                word = "and";
+            createLink(last, next, word);
+            last = next;
+            vRelSaid.insert(igarf.vInitState.at(last.iRel));
+            where = last.iRel;
+        }
+        else {
+            where++;
+        }
     }
     if (igarf.tAction == ACTION_EVT) {
-        sKeyMean next = createKey(iIGARF, 'A', -1);
-        createLink(last, next, "so");
-        last = next;
+        if (vActSaid.find(igarf.iAction) == vActSaid.end()) {
+            sKeyMean next = createKey(iIGARF, 'A', -1);
+            createLink(last, next, "so");
+            last = next;
+            vActSaid.insert(igarf.iAction);
+        }
+    }
+    else if (igarf.tAction == IGARF_EVT) {
+        AUXautoLink(igarf.iAction);
+    }
+    if (igarf.tResult == ACTION_EVT) {
+        if (vActSaid.find(igarf.iResult) == vActSaid.end() && !(vActionEvts.at(igarf.iAction) == vActionEvts.at(igarf.iResult))) {
+            sKeyMean next = createKey(iIGARF, 'R', -1);
+            createLink(last, next, "and");
+            last = next;
+            vActSaid.insert(igarf.iResult);
+        }
+        else if (vActionEvts.at(igarf.iAction) == vActionEvts.at(igarf.iResult)) {
+            vActSaid.insert(igarf.iResult);
+        }
+    }
+    else if (igarf.tResult == IGARF_EVT) {
+        AUXautoLink(igarf.iResult);
+    }
+    last = createKey(-1, 'A', -1);
+    where = -1;
+    while (where < (int)igarf.vFinalState.size() - 1) {
+        if (vRelSaid.find(igarf.vFinalState.at(last.iRel + 1)) == vRelSaid.end()) { // This relation has not been said before
+            sKeyMean next = createKey(iIGARF, 'F', last.iRel + 1);
+            string word;
+            if (last.cPart == 'F')
+                word = "and";
+            else {
+                word = "finally";
+            }
+            createLink(last, next, word);
+            last = next;
+            vRelSaid.insert(igarf.vFinalState.at(last.iRel));
+            where = last.iRel;
+        }
+        else {
+            where++;
+        }
     }
     if (igarf.iNext != -1) {
-        autoLink(igarf.iNext);
+        AUXautoLink(igarf.iNext);
     }
+}
+
+void SituationModel::autoLink(int iIGARF) {
+    vRelSaid.clear();
+    vActSaid.clear();
+    AUXautoLink(iIGARF);
+    vRelSaid.clear();
+    vActSaid.clear();
 }
 
 void SituationModel::SMtoLRH(string lang) {
@@ -844,14 +900,16 @@ void SituationModel::SMtoLRH(string lang) {
         j--;
         // Use the last one to have meaning
         const sDiscourseLink& lk = vDiscourseLinks.at(j);
-        if (last.iIGARF != lk.fromEvt.iIGARF ||
-            last.cPart != lk.fromEvt.cPart ||
-            last.iRel != lk.fromEvt.iRel) {
-            // Tell the from event
-            Meaning m("");
-            m.addEvent(getEvent(lk.fromEvt));
-            m.evtToMeaning(lang);
-            cout << m.getMeaning() << endl;
+        if (lk.fromEvt.iIGARF != -1) {
+            if (last.iIGARF != lk.fromEvt.iIGARF ||
+                last.cPart != lk.fromEvt.cPart ||
+                last.iRel != lk.fromEvt.iRel) {
+                // Tell the from event
+                Meaning m("");
+                m.addEvent(getEvent(lk.fromEvt));
+                m.evtToMeaning(lang);
+                cout << m.getMeaning() << endl;
+            }
         }
         Meaning m("");
         m.setContext(getEvent(lk.fromEvt));

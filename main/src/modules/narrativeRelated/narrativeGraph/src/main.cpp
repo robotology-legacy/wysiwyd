@@ -386,10 +386,21 @@ first iCub wants the croco
 but when he grasps it
 he fails to take
 because it was out-of-reach
-iCub reason
-and he says Give_me_the_croco_please to Sam
-Sam thus gave the croco to iCub
+iCub reasons
+and he thus says Give_me_the_croco_please to Sam
+then Sam gave the croco to iCub
 now iCub has the croco
+iCub wants the croco
+he grasps it
+it was out-of-reach
+iCub reasons
+he says Give_me_the_croco_please to Sam
+Sam gave the croco to iCub
+iCub has the croco
+iCub wants a croco
+he asks to Sam Give_me_the_croco_please
+Sam gives a toy to iCub
+iCub have a toy
 ~~~
 Then you can run the command `SMandNarrativetoTrain` (or `SMandNarrativetoTrain otherFile.txt` if you don't want to use default)and the result should be the following in the log:
 ~~~{.log}
@@ -404,6 +415,7 @@ Then you can run the command `SMandNarrativetoTrain` (or `SMandNarrativetoTrain 
 [INFO] and , says he Give_me_the_croco_please Sam <o> [P-_-_-_-_-_-_-_][_-A-P-O-R-_-_-_] <o>; and he says Give_me_the_croco_please to Sam
 [INFO] thus , gave Sam croco iCub <o> [_-P-_-_-_-_-_-_][A-_-P-O-R-_-_-_] <o>; Sam thus gave the croco to iCub
 [INFO] now , has iCub croco <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>; now iCub has the croco
+...
 [INFO] creation successful
 ~~~
 This result is append in the default trainOuput. The LRH can use it to be trained.
@@ -412,10 +424,21 @@ first , wants iCub croco <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>; first iCub 
 but when , grasps he it <o> [P-A-_-_-_-_-_-_][_-_-A-P-O-_-_-_] <o>; but when he grasps it
 fails he take <o> [A-P-O-_-_-_-_-_] <o>; he fails to take
 because , was it out-of-reach <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>; because it was out-of-reach
-reason iCub <o> [A-P-_-_-_-_-_-_] <o>; iCub reason
-and , says he Give_me_the_croco_please Sam <o> [P-_-_-_-_-_-_-_][_-A-P-O-R-_-_-_] <o>; and he says Give_me_the_croco_please to Sam
-thus , gave Sam croco iCub <o> [_-P-_-_-_-_-_-_][A-_-P-O-R-_-_-_] <o>; Sam thus gave the croco to iCub
+reasons iCub <o> [A-P-_-_-_-_-_-_] <o>; iCub reasons
+and thus , says he Give_me_the_croco_please Sam <o> [P-_-A-_-_-_-_-_][_-A-_-P-O-R-_-_] <o>; and he thus says Give_me_the_croco_please to Sam
+then , gave Sam croco iCub <o> [P-_-_-_-_-_-_-_][_-A-P-O-R-_-_-_] <o>; then Sam gave the croco to iCub
 now , has iCub croco <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>; now iCub has the croco
+wants iCub croco <o> [A-P-O-_-_-_-_-_] <o>; iCub wants the croco
+grasps he it <o> [A-P-O-_-_-_-_-_] <o>; he grasps it
+was it out-of-reach <o> [A-P-O-_-_-_-_-_] <o>; it was out-of-reach
+reasons iCub <o> [A-P-_-_-_-_-_-_] <o>; iCub reasons
+says he Give_me_the_croco_please Sam <o> [A-P-O-R-_-_-_-_] <o>; he says Give_me_the_croco_please to Sam
+gave Sam croco iCub <o> [A-P-O-R-_-_-_-_] <o>; Sam gave the croco to iCub
+has iCub croco <o> [A-P-O-_-_-_-_-_] <o>; iCub has the croco
+wants iCub croco <o> [A-P-O-_-_-_-_-_] <o>; iCub wants a croco
+asks he Give_me_the_croco_please Sam <o> [A-P-R-O-_-_-_-_] <o>; he asks to Sam Give_me_the_croco_please
+gives Sam toy iCub <o> [A-P-O-R-_-_-_-_] <o>; Sam gives a toy to iCub
+have iCub toy <o> [A-P-O-_-_-_-_-_] <o>; iCub have a toy
 ~~~
 To know where files are taken, see @ref conf_file_sec. If there is an error check that all files exist.
 
@@ -427,32 +450,28 @@ You can improve a SM by adding link. You first give a sentence to the LRH to obt
 Then you give this meaning to the [SituationModel] so that it adds links between the events it knows.
 For example you have a new narrative (yarp/contexts/narrativeGraph/Corpus/narrative2.txt) for the same [SituationModel]:
 ~~~
-iCub said Give_me_the_croco_please to Sam
-because he failed to take it
 Sam gave the toy to iCub
 because iCub wanted it
 ~~~
 You send it to the LRH which reply:
 ~~~
-said iCub Give_me_the_croco_please Sam
-because,failed he take it
-gave Sam toy iCub
-because,wanted iCub it
+"gave Sam toy iCub,P1 A1 O1 R1"
+"because,wanted iCub it,P1 P2 A2 O2"
 ~~~
-If it is in the file yarp/contexts/narrativeGraph/Corpus/meanings.txt
+If it is in the file yarp/contexts/narrativeGraph/Corpus/meanings.txt.
 Then you can run the command `LRHFiletoSM meanings.txt` and the result should be the following in the log:
 ~~~{.log}
 command received: LRHFiletoSM meanings.txt
 [INFO] rpc command received:  LRHFiletoSM meanings.txt
 [INFO] Opening  /home/rococo/.local/share/yarp/contexts/narrativeGraph/Corpus/meanings.txt
-[INFO]: From A of IGARF -1 to A of IGARF 3
-[INFO]because: From A of IGARF 3 to A of IGARF -1
 [INFO]: From A of IGARF -1 to A of IGARF 4
 [INFO]because: From A of IGARF 4 to I of IGARF 0
 [INFO] creation successful
 ~~~
 Four links where created: two without a dfw (lines 4 and 6) and two other with "because" (lines 5 and 7).
 Use the command `listLinks` if you want to see all the links created.
+
+(You can also give meaning directly with command `LRHtoSM MEANING`)
 
 \subsection lrhToBlankSM LRH to Blank SM
 You can also create a new [SituationModel] only from a narrative.
@@ -539,13 +558,13 @@ so , failed I fly <o> [P-_-_-_-_-_-_-_][_-A-P-O-_-_-_-_] <o>;
 am I sad <o> [A-P-O-_-_-_-_-_] <o>;
 ~~~
 
-If the LRH is well trained, the result after giving him these sentences (command `production MEANING`) should be:
+The result after giving him these sentences (command `production MEANING`) should be:
 ~~~
-I wanted the moon
-and the moon is far
-so I take a ship
-the ship is broken
-so I failed to fly
+I wanted moon
+and moon is the far
+so I take the ship
+ship is broken
+so I failed the fly
 I am sad
 ~~~
 
