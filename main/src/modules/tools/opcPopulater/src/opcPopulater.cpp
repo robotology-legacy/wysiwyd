@@ -50,6 +50,15 @@ bool opcPopulater::configure(yarp::os::ResourceFinder &rf)
     cout << "Z_ag " << Z_ag << endl;
     cout << "noise " << noise << endl;
 
+    move=false;
+    spd1.push_back(0.);
+    spd1.push_back(0.);
+    spd1.push_back(0.);
+    spd2.push_back(0.);
+    spd2.push_back(0.);
+    spd2.push_back(0.);
+    iter=0;
+
     iCub->lookStop();
     iCub->home();
 
@@ -87,6 +96,14 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
         return false;
+    }
+    else if (command.get(0).asString() == "populateMoving") {
+        yInfo() << " populateMoving";
+        (populateMoving()) ? reply.addString("populateMoving done !") : reply.addString("populateMoving failed !");
+    }
+    else if (command.get(0).asString() == "populateRedBall") {
+        yInfo() << " populateRedBall";
+        (populateRedBall()) ? reply.addString("populateRedBall done !") : reply.addString("populateRedBall failed !");
     }
     else if (command.get(0).asString() == "populateSpecific1") {
         yInfo() << " populateSpecific1";
@@ -141,9 +158,46 @@ bool opcPopulater::respond(const Bottle& command, Bottle& reply) {
 
 /* Called periodically every getPeriod() seconds */
 bool opcPopulater::updateModule() {
-    return true;
-}
+    //Just for testing: 
+    if (move==true)
+    {
+        double speed = 1./10.;
+        iCub->opc->checkout();
 
+        Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("moving_1");
+        Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("moving_2");
+
+        if (iter % 30==0)
+        {
+            spd1[0]=(rand()%100)*pow(-1.,(rand()%2)+1);
+            spd1[1]=(rand()%100)*pow(-1.,(rand()%2)+1);
+            spd1[2]=(rand()%100)*pow(-1.,(rand()%2)+1);
+            spd2[0]=(rand()%100)*pow(-1.,(rand()%2)+1);
+            spd2[1]=(rand()%100)*pow(-1.,(rand()%2)+1);
+            spd2[2]=(rand()%100)*pow(-1.,(rand()%2)+1);
+            double av1 = sqrt(pow(spd1[0],2)+pow(spd1[1],2)+pow(spd1[2],2));
+            double av2 = sqrt(pow(spd2[0],2)+pow(spd2[1],2)+pow(spd2[2],2));
+            spd1[0]/=av1;
+            spd1[1]/=av1;
+            spd1[2]/=av1;
+            spd2[0]/=av2;
+            spd2[1]/=av2;
+            spd2[2]/=av2;
+        }
+        obj1->m_ego_position[0] = min(max(obj1->m_ego_position[0]+spd1[0]*period*speed,-0.2),-0.5);
+        obj1->m_ego_position[1] = min(max(obj1->m_ego_position[1]+spd1[1]*period*speed,0.0),0.5);
+        obj1->m_ego_position[2] = min(max(obj1->m_ego_position[2]+spd1[2]*period*speed,0.0),0.5);
+        obj2->m_ego_position[0] = min(max(obj2->m_ego_position[0]+spd2[0]*period*speed,-0.2),-0.5);
+        obj2->m_ego_position[1] = min(max(obj2->m_ego_position[1]+spd2[1]*period*speed,0.0),0.5);
+        obj2->m_ego_position[2] = min(max(obj2->m_ego_position[2]+spd2[2]*period*speed,0.0),0.5);
+        iCub->opc->commit(obj1);
+        iCub->opc->commit(obj2);
+
+        iter += 1;
+    }
+    return true;
+    
+}
 
 bool opcPopulater::populateEntityRandom(Bottle bInput){
 
@@ -785,6 +839,54 @@ bool opcPopulater::populateSpecific3(){
     iCub->opc->commit(obj2);
 
 
+    return true;
+}
+
+
+bool opcPopulater::populateMoving(){
+
+    iCub->opc->clear();
+
+    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("moving_1");
+    obj1->m_ego_position[0] = -0.4;
+    obj1->m_ego_position[1] = 0.25;
+    obj1->m_ego_position[2] = 0;
+    obj1->m_present = 1.0;
+    obj1->m_color[0] = Random::uniform(0, 80);
+    obj1->m_color[1] = Random::uniform(80, 180);
+    obj1->m_color[2] = Random::uniform(180, 250);
+    obj1->m_value = 0.0;
+    iCub->opc->commit(obj1);
+
+    Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("moving_2");
+    obj2->m_ego_position[0] = -0.4;
+    obj2->m_ego_position[1] = -0.25;
+    obj2->m_ego_position[2] = 0;
+    obj2->m_present = 1.0;
+    obj2->m_color[0] = Random::uniform(100, 180);
+    obj2->m_color[1] = Random::uniform(0, 80);
+    obj2->m_color[2] = Random::uniform(180, 250);
+    obj1->m_value = -1.0;
+    iCub->opc->commit(obj2);
+
+    move=true;
+
+
+    return true;
+}
+
+bool opcPopulater::populateRedBall(){
+
+    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("red_ball");
+    obj1->m_ego_position[0] = -0.4;
+    obj1->m_ego_position[1] = 0.25;
+    obj1->m_ego_position[2] = 0;
+    obj1->m_present = 0.0;
+    obj1->m_color[0] = 250;
+    obj1->m_color[1] = 0;
+    obj1->m_color[2] = 0;
+    obj1->m_value = -1.0;
+    iCub->opc->commit(obj1);
     return true;
 }
 
