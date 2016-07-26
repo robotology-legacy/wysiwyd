@@ -866,7 +866,7 @@ bool opcPopulater::populateMoving(){
     obj2->m_color[0] = Random::uniform(100, 180);
     obj2->m_color[1] = Random::uniform(0, 80);
     obj2->m_color[2] = Random::uniform(180, 250);
-    obj1->m_value = -1.0;
+    obj2->m_value = -1.0;
     iCub->opc->commit(obj2);
 
     move=true;
