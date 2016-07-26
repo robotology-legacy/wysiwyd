@@ -184,12 +184,18 @@ bool opcPopulater::updateModule() {
             spd2[1]/=av2;
             spd2[2]/=av2;
         }
-        obj1->m_ego_position[0] = min(max(obj1->m_ego_position[0]+spd1[0]*period*speed,-0.2),-0.5);
+       /* obj1->m_ego_position[0] = min(max(obj1->m_ego_position[0]+spd1[0]*period*speed,-0.2),-0.5);
         obj1->m_ego_position[1] = min(max(obj1->m_ego_position[1]+spd1[1]*period*speed,0.0),0.5);
         obj1->m_ego_position[2] = min(max(obj1->m_ego_position[2]+spd1[2]*period*speed,0.0),0.5);
         obj2->m_ego_position[0] = min(max(obj2->m_ego_position[0]+spd2[0]*period*speed,-0.2),-0.5);
         obj2->m_ego_position[1] = min(max(obj2->m_ego_position[1]+spd2[1]*period*speed,0.0),0.5);
-        obj2->m_ego_position[2] = min(max(obj2->m_ego_position[2]+spd2[2]*period*speed,0.0),0.5);
+        obj2->m_ego_position[2] = min(max(obj2->m_ego_position[2]+spd2[2]*period*speed,0.0),0.5);*/
+        obj1->m_ego_position[0] = -0.18;
+        obj1->m_ego_position[1] = 0.10;
+        obj1->m_ego_position[2] = 0.1;
+        obj2->m_ego_position[0] = -0.18;
+        obj2->m_ego_position[1] = -0.10;
+        obj2->m_ego_position[2] = 0.1;
         iCub->opc->commit(obj1);
         iCub->opc->commit(obj2);
 
