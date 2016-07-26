@@ -37,6 +37,10 @@ void OpcSensation::configure()
 
     u_entities.clear();
     k_entities.clear();
+    pf3dTrackerPort.open("/"+moduleName+"/pf3dTracker:i");
+
+    outputPPSPort.open("/"+moduleName+"/objects:o");
+
     yInfo() << "Configuration done.";
 
 }
@@ -99,6 +103,8 @@ Bottle OpcSensation::handleEntities()
     bool known_obj = false;
     bool agentPresent = false;
     Bottle temp_u_entities, temp_k_entities, temp_up_entities, temp_kp_entities, temp_p_entities;
+    Bottle u_entities, k_entities,objects;
+
     for (auto& entity : lEntities)
     {
         if (entity->name().find("unknown") == 0) {
@@ -120,7 +126,7 @@ Bottle OpcSensation::handleEntities()
         }
 
         else if (entity->name() == "partner" && entity->entity_type() == "agent") {
-            yInfo() << "I found an unknown partner: " << entity->name();
+            //yInfo() << "I found an unknown partner: " << entity->name();
             Agent* a = dynamic_cast<Agent*>(entity);
             if(a && (a->m_present==1.0)) {
                 unknown_obj = true;
@@ -139,8 +145,61 @@ Bottle OpcSensation::handleEntities()
                 if (dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
                     known_obj = true;
                     addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
+
+                    //Handle red balls
+                    if (entity->name() == "red_ball"){
+                        yDebug("Found a redBall object");
+                        if (!Network::isConnected("/pf3dTracker/data:o",("/"+moduleName+"/pf3dTracker:i").c_str())){
+                            yDebug("RedBall Port not connected...");
+                            dynamic_cast<Object*>(entity)->m_present = 0.0;
+                        }else{
+                            yDebug("RedBall Port connected...\nUpdateing position...");
+                            //update position
+                            Bottle *bot = pf3dTrackerPort.read();
+                            yDebug("RedBall Port readed");
+                            Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("red_ball");
+                            obj1->m_ego_position[0] = bot->get(0).asDouble();
+                            obj1->m_ego_position[1] = bot->get(1).asDouble();
+                            obj1->m_ego_position[2] = bot->get(2).asDouble();
+                            obj1->m_dimensions[0] = bot->get(3).asDouble();
+                            obj1->m_dimensions[1] = bot->get(4).asDouble();
+                            obj1->m_dimensions[2] = bot->get(5).asDouble();
+                            obj1->m_present = bot->get(6).asDouble();
+                            iCub->opc->commit(obj1);
+                            yDebug("opc updated...");
+                        }
+                    }
+                    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(entity->name());
+                    if (obj1->m_present == 1.0){
+                        yDebug("RedBall is present...");
+                        //change color to red
+                        obj1->m_color[0] = 250;
+                        obj1->m_color[1] = 0;
+                        obj1->m_color[2] = 0;
+                        //send data to PPS
+                        Bottle objec;
+                        objec.clear();
+                        objec.addDouble(obj1->m_ego_position[0]);          //X
+                        objec.addDouble(obj1->m_ego_position[1]);          //Y
+                        objec.addDouble(obj1->m_ego_position[2]);          //Z
+                        double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
+                        objec.addDouble(dimensions);                       //RADIUS
+                        objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
+                        objects.addList()=objec;
+                        yDebug("message sent");
+                    }else{
+                        yDebug("RedBall is present...");
+                        //change color to grey
+                        obj1->m_color[0] = 20;
+                        obj1->m_color[1] = 20;
+                        obj1->m_color[2] = 20;
+                    }
+                    yDebug("Updating OPC...");
+                    iCub->opc->commit(obj1);
+                    yDebug("Updated OPC...");
                 }
                 addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
+
             }
         }
         if (entity->entity_type() == "agent") {  // Known entities
@@ -161,6 +220,10 @@ Bottle OpcSensation::handleEntities()
     up_entities.copy( temp_up_entities);
     kp_entities.copy( temp_kp_entities);
 
+    Bottle& output=outputPPSPort.prepare();
+    output.clear();
+    output.addList()=objects;
+    outputPPSPort.write();
     Bottle out;
     out.addInt(int(unknown_obj));
     out.addList()=up_entities;
