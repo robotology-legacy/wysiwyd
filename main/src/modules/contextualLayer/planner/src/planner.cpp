@@ -46,11 +46,15 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     // port_behavior_context.open("/" + moduleName + "/target:o");
     // yInfo()<<"created port to behaviors";
 
-    yDebug()<<"clearing bottles";
+    actPt = action_list.begin();
+    prioPt = priority_list.begin();
+
+    yDebug()<<"clearing vectors";
     plan_list.clear();
-    yDebug()<<"clearing bottles";
+    priority_list.clear();
+    action_list.clear();
     // current_goal = new Bottle();
-    current_goal.clear();
+    // current_goal.clear();
     yDebug()<<"cleared all bottles";
     id=0;
     fulfill=0;
@@ -123,10 +127,11 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         "quit \n" +
         "help \n" +
         "follow \n" +
-        "test planName \n" +
-        "new (plan (objectType object)) \n" +
+        //"test planName priority \n" +
+        "new (plan priority (objectType object)) \n" +
         "freeze \n" +
         "unfreeze \n" +
+        "actions \n" +
         "close \n";
 
     reply.clear();
@@ -139,30 +144,129 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         yInfo() << helpMessage;
         reply.addString(helpMessage);
     }
-    else if (command.get(0).asString() == "test")
-    {
-        yInfo() << "Received new plan to execute: " << command.get(1).asString();
-        plan_list.addString(command.get(1).asString());
-        fulfill = 1;
-        yInfo() << command.get(1).asString() << " is the command given.";
-    }
+    // else if (command.get(0).asString() == "test")
+    // {
+    //     yInfo() << "Received new plan to execute: " << command.get(1).asString();
+    //     plan_list.push_back(command.get(1).asString());
+    //     for (int i=1; i < grpPlans.find(command.get(1).asString() + "-totactions").asInt() + 1; i++)
+    //     {
+    //         string act = grpPlans.find(command.get(1).asString() + "-action" + to_string(i)).asString();
+    //         action_list.push_back(act);
+    //         priority_list.push_back(command.get(2).asString());
+    //     }
+    //     fulfill = 1;
+    //     yInfo() << command.get(1).asString() << " is the command given.";
+    // }
     else if(command.get(0).asString() == "new"){
-        // rpc command was of type "new (plan (objectType object))"
-        yInfo() << "Received input of type from ears.";
+        // rpc command was of type "new (plan priority (objectType object))"
+        yInfo() << "Received input of type <new (plan priority (objectType object))> from ears.";
         yInfo() << "contents of bottle in id 1: " << command.get(1).asList()->get(0).asString();
-        string planName = command.get(1).asList()->get(0).asString();
-        plan_list.addString(planName);
-        fulfill = 1;
-        objectType = command.get(1).asList()->get(1).asList()->get(0).asString();
-        object = command.get(1).asList()->get(1).asList()->get(1).asString();
-        yInfo() << "Executing plan " + planName + " on " + object + " with type " + objectType;
-        reply.addString("ack");
+        bool knownPlan = false;
+        string planExe;
+        int priority;
+        for (int i = 0; i < avaiPlansList.size(); i++)
+        {
+            // iterate through list of drives to check if action plan is known
+            yInfo() << "iterating through list, action plan " << avaiPlansList.get(i).asString();
+            // yInfo()<<"current_goal is " << current_goal;
+            if (avaiPlansList.get(i).asString() == command.get(1).asList()->get(0).asString())
+            {
+                knownPlan = true;
+                planExe = avaiPlansList.get(i).asString();
+                yInfo() << "plan is known: " + planExe;
+                break;
+            }
         }
+        if (knownPlan)
+        {
+            int insertID = 0;
+            bool rankPriority = true;
+            priority = command.get(1).asList()->get(1).asInt();
+            if (priority_list.size() != 0)
+            {
+                for (int i = 0; i < priority_list.size(); i++)
+                {
+                    if (priority == 1)
+                    {
+                        yInfo() << "lowest priority - append to bottom of list";
+                        rankPriority = false;
+                    }
+                    else if (priority < priority_list[i])
+                    {
+                        insertID = i + 1;
+                    }
+                }
+            }
+            else
+            {
+                yInfo() << "new plan when initial state is empty";
+                rankPriority = false;
+            }
+            string planName = command.get(1).asList()->get(0).asString();
+            plan_list.push_back(planName);
+
+            if (!rankPriority)
+            {
+                for (int i = 1; i < grpPlans.find(planName + "-totactions").asInt() + 1; i++)
+                {
+                    string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
+                    yInfo() << "adding action " << act;
+                    action_list.push_back(act);
+                    priority_list.push_back(priority);
+                }
+                // fulfill = 1;
+            }
+            else
+            {
+                yInfo() << "insertID:" << insertID;
+                vector<string>::iterator idx = action_list.begin() + insertID;
+                vector<int>::iterator indx = priority_list.begin() + insertID;
+                for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
+                {
+                    string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
+                    yInfo() << "adding action " << act;
+                    idx = action_list.insert(idx, act);
+                    indx = priority_list.insert(indx, priority);
+                }
+                if (fulfill)
+                {
+                    actPt += grpPlans.find(planName + "-totactions").asInt();
+                    prioPt += grpPlans.find(planName + "-totactions").asInt();
+                }
+            }
+
+            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+            object = command.get(1).asList()->get(2).asList()->get(1).asString();
+
+            reply.addString("ack");
+        }
+        else
+        {
+            yInfo() << "plan name is not known! Command ignored.";
+            reply.addString("nack");
+        }
+    }
         // (To-Do) Check goal not in list
     else if (command.get(0).asString() == "close"){
         yInfo() << "closing module planner...";
         reply.addString("ack");
         close();
+    }
+    else if (command.get(0).asString() == "priorities")
+    {
+        for (vector<int>::const_iterator i = priority_list.begin(); i != priority_list.end(); ++i)
+        {
+            cout << *i << '\n';
+        }
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "actions")
+    {
+        for (vector<string>::const_iterator i = action_list.begin(); i != action_list.end(); ++i)
+        {
+            cout << *i << '\n';
+        }
+        reply.addString("ack");
     }
     else if (command.get(0).asString() == "freeze")
     {
@@ -174,19 +278,19 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         unfreeze_all();
         reply.addString("ack");
     }
-    else if(command.get(0).asString() == "follow"){ //Toogle follow goals o goals accomplished
-        if (command.size()==1) { fulfill=1; }
-        else if (command.size()>1) { fulfill = 1; }
+    else if(command.get(0).asString() == "follow"){ //Toggle follow goals o goals accomplished
+        if (command.size() == 1) { fulfill = 1; yInfo() << "fulfill " << fulfill; }
+        else if (command.size()>1) { fulfill = 1; yInfo() << "fulfill " << fulfill; }
         else{
             reply.addString("nack");
             yInfo()<<"rpc command not valid.";
             return false;
         }
         if (fulfill)
-            yInfo()<<"I need to fulfill my goals " ;
+            yInfo() << "I need to fulfill my goals " ;
         else{
-            yInfo()<<"I don't need to fulfill my goals anymore " ;
-            current_goal.clear();
+            yInfo() << "I don't need to fulfill my goals anymore " ;
+            // current_goal.clear();
         }
         reply.addString("ack");
     }
@@ -202,19 +306,15 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
 bool Planner::updateModule() {
 
     //Check need to fulfill goals
-    if (fulfill){
+    if (fulfill)
+    {
         Value val;  //Likely whould be global and not local
-        yInfo()<<"plan_list is " << plan_list.toString();
-        yInfo() << "current goal is " << current_goal;
-        yInfo() << "plan list size is " << plan_list.size();
-        if ((current_goal.empty()) && (plan_list.size() != 0))
+
+        if (action_list.size() != 0)
         {
-            yDebug() << "executing "<<plan_list.toString()<<"...";
+            yDebug() << "executing "<<action_list<<"...";
             yInfo() << "putting homeostasis on hold.";
             freeze_all();
-            val = plan_list.pop();
-            current_goal = val.toString();
-            // yDebug() << current_goal->toString();
             yDebug() << "new Current Goal";
         }
 
@@ -223,80 +323,46 @@ bool Planner::updateModule() {
             // yDebug() << current_goal->toString();
             yDebug() << "old Current Goal";
         }
+        
+        // execute action
+        bool actionCompleted = false;
 
-        // if (current_goal->size()!=0){
-        //     if (current_goal->get(1).asList()->get(0).asString() == "point"){
-        //         //Send Cpontext
-        //         Bottle &bToTarget = port_behavior_context.prepare();
-        //         bToTarget.clear();
-        //         bToTarget.append(*current_goal->get(1).asList());
-        //         port_behavior_context.write();
-        //         yDebug() << "Sending " + bToTarget.toString();
+        // keep requesting to execute an action until it does get executed
+        string act = action_list[0];
+        yInfo()<<"Sending action " + act + " to the BM.";
+        // actionCompleted = (triggerBehavior(Bottle(grpPlans.find(planExe + "-action" + i).asString())));
+        actionCompleted = triggerBehavior(Bottle(act));
+        yInfo() << "action has been completed: " << actionCompleted;
 
-        //         //Trigger behavior
-        //         Bottle behCommand;
-        //         behCommand.clear();
-        //         behCommand.addString("pointingOrder");
-        //         behCommand.addList()=*current_goal->get(1).asList();
-        //         fulfill = (int)(!triggerBehavior(behCommand));
-        //         current_goal->clear();
-
-        //     }
-        bool knownPlan = false;
-        string planExe;
-        for (int i = 0; i < avaiPlansList.size(); i++)
+        // wait for a second before trying again
+        if (!actionCompleted) { Time::delay(1.0); }
+        else
         {
-            // iterate through list of drives to check if action plan is known
-            yInfo() << "iterating through list, action plan " << avaiPlansList.get(i).asString();
-            yInfo()<<"current_goal is " << current_goal;
-            if (avaiPlansList.get(i).asString() == current_goal)
-            {
-                knownPlan = true;
-                planExe = avaiPlansList.get(i).asString();
-                yInfo() << "plan is known: " + planExe;
-                break;
-            }
+            // action has been successfully completed
+            yInfo() << "removing action " << *action_list.begin();
+            action_list.erase(actPt);
+            priority_list.erase(prioPt);
+            actPt = action_list.begin();
+            prioPt = priority_list.begin();
+
+            yInfo() << "action completed and removed";
         }
-// TESTED TILL HERE, ALL IS SO FAR WELL @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        if (knownPlan)
+
+        // current_goal.clear();
+        // objectType.clear();
+        // object.clear();
+        // yInfo() << "current_goal has been cleared, contents of bottle: " + current_goal->get(0).asString();
+
+        // if ((current_goal.empty()) && (plan_list.size() == 0))
+        if(action_list.size() == 0)
         {
-            // execute action plan
-            for (int i = 1; i < grpPlans.find(planExe + "-totactions").asInt() + 1; i++)
-            {
-                yInfo() << "executing action " << i << " of plan " + planExe;
-                bool actionCompleted = false;
-                while (!actionCompleted)
-                {
-                    // keep requesting to execute an action until it does get executed
-                    string act = grpPlans.find(planExe + "-action" + to_string(i)).asString();
-                    yInfo()<<"Sending action " + act + " to the BM.";
-                    actionCompleted = (triggerBehavior(Bottle(grpPlans.find(planExe + "-action" + i).asString())));
-
-                    // wait for a second before trying again
-                    if (!actionCompleted) { Time::delay(1.0); }
-                }
-            }
-
-            current_goal.clear();
-            objectType.clear();
-            object.clear();
-            // yInfo() << "current_goal has been cleared, contents of bottle: " + current_goal->get(0).asString();
-            yInfo() << "current_goal and object properties have been cleared";
-
-            if ((current_goal.empty()) && (plan_list.size() == 0))
-            {
-                fulfill = 0;
-                yInfo() << "resuming homeostatic dynamics.";
-                unfreeze_all();
-            }
-
-        }
-        else{
-            yDebug() << "I couldn't understand the goal, or I don't have a plan to execute it...";
+            fulfill = 0;
+            yInfo() << "resuming homeostatic dynamics.";
+            unfreeze_all();
         }
     }
     else{
-        yDebug() << "I need to fulfill goals, but I have none in my list...";
+        yDebug() << "I need to fulfill plans, but I have none in my list...";
     }
 
     return true;

@@ -14,13 +14,18 @@ private:
     Port        toHomeo;
     BufferedPort<Bottle>        port_behavior_context;
     Bottle avaiPlansList;
-    Bottle plan_list;
+    std::vector<string> plan_list;
+    std::vector<string> action_list;
+    std::vector<int> priority_list;
+    vector<string>::iterator actPt;
+    vector<int>::iterator prioPt;
     Bottle grpPlans;
     Bottle gandalf;
+    Bottle adhd;
     int id;
     int fulfill;
     // Bottle* current_goal;
-    string current_goal;
+    // string current_goal;
     string objectType;
     string object;
 
@@ -31,6 +36,7 @@ private:
 
     yarp::os::Mutex mutex;
     bool following;
+    bool review;
     Port behaviorsRPC;
     void run(Bottle args=Bottle());
 

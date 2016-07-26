@@ -150,6 +150,7 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
         bAux2.clear();
         bToTarget.addString("new");
         bAux.addString("dummy2");
+        bAux.addInt(1);
         bAux2.addString("sObjectType");
         bAux2.addString("sObject");
         bAux.addList()=bAux2;
