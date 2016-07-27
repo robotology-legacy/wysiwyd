@@ -59,6 +59,8 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         }  else if (behavior_name == "recognitionOrder") {
             behaviors.push_back(new recognitionOrder(&mut, rf, "recognitionOrder"));
             // other behaviors here
+        }  else if (behavior_name == "greeting") {
+            behaviors.push_back(new recognitionOrder(&mut, rf, "greeting"));
         }  else {
             yDebug() << "Behavior " + behavior_name + " not implemented";
             return false;

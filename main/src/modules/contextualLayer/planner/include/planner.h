@@ -14,9 +14,10 @@ private:
     Port        toHomeo;
     BufferedPort<Bottle>        port_behavior_context;
     Bottle avaiPlansList;
-    std::vector<string> plan_list;
-    std::vector<string> action_list;
-    std::vector<int> priority_list;
+    vector<Bottle> newPlan;
+    vector<string> plan_list;
+    vector<string> action_list;
+    vector<int> priority_list;
     vector<string>::iterator actPt;
     vector<int>::iterator prioPt;
     Bottle grpPlans;
@@ -36,7 +37,7 @@ private:
 
     yarp::os::Mutex mutex;
     bool following;
-    bool review;
+    bool ordering;
     Port behaviorsRPC;
     void run(Bottle args=Bottle());
 
@@ -54,6 +55,8 @@ public:
     bool freeze_all();
 
     bool unfreeze_all();
+
+    bool checkKnown(const Bottle& command, Bottle& avaiPlansList, string foundPlan);
     
     bool close();
 

@@ -119,6 +119,23 @@ bool Planner::unfreeze_all()
     return true;
 }
 
+bool Planner::checkKnown(const Bottle& command, Bottle& avaiPlansList, string foundPlan) {
+    // check if plan exists in ini file
+    for (int i = 0; i < avaiPlansList.size(); i++)
+        {
+            // iterate through list of drives to check if action plan is known
+            yInfo() << "iterating through list, action plan " << avaiPlansList.get(i).asString();
+
+            if (avaiPlansList.get(i).asString() == command.get(1).asList()->get(0).asString())
+            {
+                foundPlan = avaiPlansList.get(i).asString();
+                yInfo() << "plan is known: " + foundPlan;
+                return true;
+            }
+        }
+
+    return false;
+}
 
 bool Planner::respond(const Bottle& command, Bottle& reply) {
     LockGuard lg(mutex);
@@ -127,11 +144,12 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         "quit \n" +
         "help \n" +
         "follow \n" +
-        //"test planName priority \n" +
         "new (plan priority (objectType object)) \n" +
         "freeze \n" +
         "unfreeze \n" +
         "actions \n" +
+        "listplans \n" +
+        "stopfollow \n" +
         "close \n";
 
     reply.clear();
@@ -144,107 +162,21 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         yInfo() << helpMessage;
         reply.addString(helpMessage);
     }
-    // else if (command.get(0).asString() == "test")
-    // {
-    //     yInfo() << "Received new plan to execute: " << command.get(1).asString();
-    //     plan_list.push_back(command.get(1).asString());
-    //     for (int i=1; i < grpPlans.find(command.get(1).asString() + "-totactions").asInt() + 1; i++)
-    //     {
-    //         string act = grpPlans.find(command.get(1).asString() + "-action" + to_string(i)).asString();
-    //         action_list.push_back(act);
-    //         priority_list.push_back(command.get(2).asString());
-    //     }
-    //     fulfill = 1;
-    //     yInfo() << command.get(1).asString() << " is the command given.";
-    // }
-    else if(command.get(0).asString() == "new"){
+    else if (command.get(0).asString() == "listplans") {
+        yInfo() << "Listing available plans";
+        cout << avaiPlansList.toString() << "\n";
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "stopfollow") {
+        fulfill = 0;
+        reply.addString("ack");
+    }
+    else if (command.get(0).asString() == "new"){
         // rpc command was of type "new (plan priority (objectType object))"
         yInfo() << "Received input of type <new (plan priority (objectType object))> from ears.";
-        yInfo() << "contents of bottle in id 1: " << command.get(1).asList()->get(0).asString();
-        bool knownPlan = false;
-        string planExe;
-        int priority;
-        for (int i = 0; i < avaiPlansList.size(); i++)
-        {
-            // iterate through list of drives to check if action plan is known
-            yInfo() << "iterating through list, action plan " << avaiPlansList.get(i).asString();
-            // yInfo()<<"current_goal is " << current_goal;
-            if (avaiPlansList.get(i).asString() == command.get(1).asList()->get(0).asString())
-            {
-                knownPlan = true;
-                planExe = avaiPlansList.get(i).asString();
-                yInfo() << "plan is known: " + planExe;
-                break;
-            }
-        }
-        if (knownPlan)
-        {
-            int insertID = 0;
-            bool rankPriority = true;
-            priority = command.get(1).asList()->get(1).asInt();
-            if (priority_list.size() != 0)
-            {
-                for (int i = 0; i < priority_list.size(); i++)
-                {
-                    if (priority == 1)
-                    {
-                        yInfo() << "lowest priority - append to bottom of list";
-                        rankPriority = false;
-                    }
-                    else if (priority < priority_list[i])
-                    {
-                        insertID = i + 1;
-                    }
-                }
-            }
-            else
-            {
-                yInfo() << "new plan when initial state is empty";
-                rankPriority = false;
-            }
-            string planName = command.get(1).asList()->get(0).asString();
-            plan_list.push_back(planName);
-
-            if (!rankPriority)
-            {
-                for (int i = 1; i < grpPlans.find(planName + "-totactions").asInt() + 1; i++)
-                {
-                    string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
-                    yInfo() << "adding action " << act;
-                    action_list.push_back(act);
-                    priority_list.push_back(priority);
-                }
-                // fulfill = 1;
-            }
-            else
-            {
-                yInfo() << "insertID:" << insertID;
-                vector<string>::iterator idx = action_list.begin() + insertID;
-                vector<int>::iterator indx = priority_list.begin() + insertID;
-                for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
-                {
-                    string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
-                    yInfo() << "adding action " << act;
-                    idx = action_list.insert(idx, act);
-                    indx = priority_list.insert(indx, priority);
-                }
-                if (fulfill)
-                {
-                    actPt += grpPlans.find(planName + "-totactions").asInt();
-                    prioPt += grpPlans.find(planName + "-totactions").asInt();
-                }
-            }
-
-            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
-            object = command.get(1).asList()->get(2).asList()->get(1).asString();
-
-            reply.addString("ack");
-        }
-        else
-        {
-            yInfo() << "plan name is not known! Command ignored.";
-            reply.addString("nack");
-        }
+        ordering = true;
+        newPlan.push_back(command);
+        reply.addString("ack");
     }
         // (To-Do) Check goal not in list
     else if (command.get(0).asString() == "close"){
@@ -290,7 +222,6 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
             yInfo() << "I need to fulfill my goals " ;
         else{
             yInfo() << "I don't need to fulfill my goals anymore " ;
-            // current_goal.clear();
         }
         reply.addString("ack");
     }
@@ -305,6 +236,88 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool Planner::updateModule() {
 
+    yInfo() << "ordering status: " << ordering;
+    if (ordering)
+    {
+        for (int it = 0; it < newPlan.size(); it++)
+        {
+            bool knownPlan = false;
+            string planExe;
+            int priority;
+            Bottle command = newPlan[it];
+            knownPlan = checkKnown(command, avaiPlansList, planExe);
+
+            if (knownPlan)
+            {
+                int insertID = 0;
+                bool rankPriority = true;
+                priority = command.get(1).asList()->get(1).asInt();
+                if (priority_list.size() != 0)
+                {
+                    for (int i = 0; i < priority_list.size(); i++)
+                    {
+                        if (priority == 1)
+                        {
+                            yInfo() << "lowest priority - append to bottom of list";
+                            rankPriority = false;
+                        }
+                        else if (priority < priority_list[i])
+                        {
+                            insertID = i + 1;
+                        }
+                    }
+                }
+                else
+                {
+                    yInfo() << "new plan when initial state is empty";
+                    rankPriority = false;
+                }
+                string planName = command.get(1).asList()->get(0).asString();
+                plan_list.push_back(planName);
+
+                if (!rankPriority)
+                {
+                    for (int i = 1; i < grpPlans.find(planName + "-totactions").asInt() + 1; i++)
+                    {
+                        string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
+                        yInfo() << "adding action " << act;
+                        action_list.push_back(act);
+                        priority_list.push_back(priority);
+                    }
+
+                }
+                else
+                {
+                    yInfo() << "insertID:" << insertID;
+                    vector<string>::iterator idx = action_list.begin() + insertID;
+                    vector<int>::iterator indx = priority_list.begin() + insertID;
+                    for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
+                    {
+                        string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
+                        yInfo() << "adding action " << act;
+                        idx = action_list.insert(idx, act);
+                        indx = priority_list.insert(indx, priority);
+                    }
+                    // if (fulfill)
+                    // {
+                    //     actPt += grpPlans.find(planName + "-totactions").asInt();
+                    //     prioPt += grpPlans.find(planName + "-totactions").asInt();
+                    // }
+                }
+
+                objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+                object = command.get(1).asList()->get(2).asList()->get(1).asString();
+            }
+            else
+            {
+                yInfo() << "Plan " + command.get(1).asList()->get(0).asString() + " is not known. Use listplans to see available plans.";
+            }
+        }
+
+        newPlan.clear();
+        ordering = false;
+    }
+
     //Check need to fulfill goals
     if (fulfill)
     {
@@ -312,16 +325,15 @@ bool Planner::updateModule() {
 
         if (action_list.size() != 0)
         {
-            yDebug() << "executing "<<action_list<<"...";
+            yInfo() << "executing "<<action_list<<"...";
             yInfo() << "putting homeostasis on hold.";
             freeze_all();
-            yDebug() << "new Current Goal";
         }
 
         else
         {
-            // yDebug() << current_goal->toString();
-            yDebug() << "old Current Goal";
+            fulfill = 0;
+            yDebug() << "no actions in list, fulfill is set to 0.";
         }
         
         // execute action
@@ -330,7 +342,6 @@ bool Planner::updateModule() {
         // keep requesting to execute an action until it does get executed
         string act = action_list[0];
         yInfo()<<"Sending action " + act + " to the BM.";
-        // actionCompleted = (triggerBehavior(Bottle(grpPlans.find(planExe + "-action" + i).asString())));
         actionCompleted = triggerBehavior(Bottle(act));
         yInfo() << "action has been completed: " << actionCompleted;
 
@@ -340,20 +351,12 @@ bool Planner::updateModule() {
         {
             // action has been successfully completed
             yInfo() << "removing action " << *action_list.begin();
-            action_list.erase(actPt);
-            priority_list.erase(prioPt);
-            actPt = action_list.begin();
-            prioPt = priority_list.begin();
+            action_list.erase(action_list.begin());
+            priority_list.erase(priority_list.begin());
 
             yInfo() << "action completed and removed";
         }
 
-        // current_goal.clear();
-        // objectType.clear();
-        // object.clear();
-        // yInfo() << "current_goal has been cleared, contents of bottle: " + current_goal->get(0).asString();
-
-        // if ((current_goal.empty()) && (plan_list.size() == 0))
         if(action_list.size() == 0)
         {
             fulfill = 0;
@@ -378,7 +381,6 @@ bool Planner::triggerBehavior(Bottle cmd)
     portToBehavior.write(cmd,reply);
     if (reply.get(0).asString() == "ack")
     {
-        // current_goal->clear();
         return true;
     }
     else
