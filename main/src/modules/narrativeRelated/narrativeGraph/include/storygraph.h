@@ -70,6 +70,8 @@ namespace storygraph {
         std::set < int > vRelSaid;
         std::set < int > vActSaid;
     public:
+        int instanceBegin; /// ABM instance of the first event
+
         std::vector < sRelation >      vRelations;
         std::vector < sActionEvt >     vActionEvts;
         std::vector < sIGARF >         vIGARF;

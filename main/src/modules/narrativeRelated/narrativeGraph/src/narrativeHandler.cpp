@@ -77,7 +77,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     for (string w : vDFW)
         storygraph::VocabularyHandler::enrichDFW(w);
 
-    Bottle bNarrativeGroup = rf.findGroup("narrative");
+    Bottle &bNarrativeGroup = rf.findGroup("narrative");
     if (!bNarrativeGroup.isNull()) {
         // Train output
         string trainOuputFileName = rfLRH.findFileByName(bNarrativeGroup.check("trainOutput", Value("Corpus/trainOutput.txt")).toString());
@@ -113,7 +113,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     }
 
     // Rendering
-    Bottle bSizes = rf.findGroup("rendering");
+    Bottle &bSizes = rf.findGroup("rendering");
     if (!bSizes.isNull()) {
         sSVGFolderName = rf.findPath(bSizes.check("svgFolder", Value("situationModels")).asString()) + "/";
         sSVGFileName = bSizes.check("svgFile", Value("situationModel.svg")).toString();
@@ -123,6 +123,10 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         int vOffset = bSizes.check("vOffset", Value( 70)).asInt();
         sm.initSizes(wEvtBox, hEvtBox, hOffset, vOffset);
     }
+
+    yInfo() << "Rendering options:\n"
+        << " sSVGFolderName: " << sSVGFolderName << "\n"
+        << " sSVGFileName: " << sSVGFileName;
 
     cursorStories = 0;
 
@@ -165,12 +169,15 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         if (iTry > 1)
         {
             yInfo() << "\t" << "narrativeHandler failed to connect to mentalOPC";
+            break;
         }
         mentalOPC->isVerbose = false;
     }
-    mentalOPC->checkout();
-    mentalOPC->update();
 
+    if (mentalOPC->isConnected()){
+        mentalOPC->checkout();
+        mentalOPC->update();
+    }
 
 
 
@@ -707,12 +714,13 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     // --
     else if (command.get(0).asString() == "SMtoSVG") {
         yInfo(" create a SVG representation of an IGARF");
-        string name;
+        string name = to_string(sm.instanceBegin);
+        name += "_";
         int nIGARF;
         if (command.size() > 1 && command.get(1).asString() != "")
-            name = command.get(1).asString();
+            name += command.get(1).asString();
         else
-            name = sSVGFileName;
+            name += sSVGFileName;        
         if (command.size() > 2)
             nIGARF = command.get(2).asInt();
         else

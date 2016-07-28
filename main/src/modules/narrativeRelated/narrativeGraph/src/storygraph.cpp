@@ -358,6 +358,8 @@ void SituationModel::ABMtoSM(const story &sto) {
     // Get events
     vector < evtStory > vEvents = sto.vEvents;
 
+    instanceBegin = sto.viInstances[0];
+
     // Step 1 : Considering begin and end of activities, create events and relations
     for (unsigned int i = 0; i < vEvents.size(); i++) {
         const evtStory &currentEvt = vEvents.at(i);
