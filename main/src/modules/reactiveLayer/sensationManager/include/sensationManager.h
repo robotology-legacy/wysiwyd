@@ -20,8 +20,9 @@ class SensationManager: public RFModule
 private:
     vector<Sensation*> sensations;
     // vector<Port*> to_homeo_rpc;
-
+    Bottle sensationList;
     string moduleName;
+    Port rpc_in_port;
 
     double period;
 
@@ -39,6 +40,7 @@ public:
     }
 
     bool updateModule();
+    bool respond(const Bottle& cmd, Bottle& reply);
 
     bool close();
 

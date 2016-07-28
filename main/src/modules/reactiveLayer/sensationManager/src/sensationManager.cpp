@@ -19,7 +19,7 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(0.1)).asDouble();
 
     Bottle grp = rf.findGroup("SENSATIONS");
-    Bottle sensationList = *grp.find("sensations").asList();  
+    sensationList = *grp.find("sensations").asList();  
     for (int i = 0; i < sensationList.size(); i++)
     {
         string sensation_name = sensationList.get(i).asString();
@@ -37,7 +37,8 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
 
     // for(std::vector<Behavior*>::iterator it = behaviors.begin(); it != behaviors.end(); ++it) {
     // }
-
+    rpc_in_port.open("/" + moduleName + "/rpc");
+    attach(rpc_in_port);
     yInfo("Init done");
 
     return true;
@@ -53,3 +54,40 @@ bool SensationManager::updateModule()
 
 
 }
+
+bool SensationManager::respond(const Bottle& cmd, Bottle& reply)
+{
+    yInfo() << "RPC received in allostaticController";
+    yDebug() << cmd.toString();
+    
+    reply.clear();
+    bool rpl;
+    if (cmd.get(0).asString() == "help" )
+    {   string help = "\n";
+        help += " ['is' + entity_name + entity_tag]  : Turns on/off manual mode (for manual control of drives) \n";
+        reply.addString(help);
+    }
+    else if (cmd.get(0).asString() == "is") {
+        string entity_name = cmd.get(1).asString();
+        for (int i = 0; i < sensationList.size(); i++)
+        {
+            string sensation_name = sensationList.get(i).asString();
+            // behavior_names.push_back(behavior_name);
+            if (sensation_name == "opcSensation") {
+                rpl = dynamic_cast<OpcSensation*>(sensations[i])->get_property(cmd.get(1).asString(),cmd.get(2).asString());
+                reply.addString("ack");
+                reply.addInt(rpl);
+                return true;
+            }
+        }
+        if (reply.size()==0)
+        {    
+            reply.addString("nack");
+        }
+    } else {
+        reply.addString("nack");
+        reply.addString("Unknown rpc command");
+    }
+    return true;
+}
+
