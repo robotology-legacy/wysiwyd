@@ -29,6 +29,7 @@ private:
     Bottle adhd;
     int id;
     int fulfill;
+    int attemptCnt;
     // Bottle* current_goal;
     // string current_goal;
     string objectType;

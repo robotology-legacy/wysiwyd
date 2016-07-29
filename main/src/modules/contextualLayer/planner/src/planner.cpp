@@ -63,6 +63,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     yDebug()<<"cleared all bottles";
     id=0;
     fulfill=0;
+    attemptCnt = 0;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
     
@@ -407,15 +408,29 @@ bool Planner::updateModule() {
             else { stateCheck = false; }
 
             // wait for a second before trying again
-            if (!actionCompleted) { Time::delay(1.0); }
+            if (!actionCompleted || !stateCheck)
+            {
+                attemptCnt += 1;
+                if (attemptCnt > 2)
+                {
+                    yInfo() << "reached threshold for action attempts.";
+                    iCub->say("I have tried too many times and failed for " + action_list[0] + ". Do it yourself or help me.");
+                    // remove action and/or plan?
+                }
+                Time::delay(1.0);
+            }
             else if (actionCompleted && stateCheck)
             {
                 // action has been successfully completed
                 yInfo() << "removing action " << *action_list.begin();
                 action_list.erase(action_list.begin());
                 priority_list.erase(priority_list.begin());
+                plan_list.erase(plan_list.begin());
+                object_list.erase(object_list.begin());
+                type_list.erase(type_list.begin());
+                attemptCnt = 0;
 
-                yInfo() << "action completed and removed";
+                yInfo() << "action completed and removed from lists.";
             }
 
             if(action_list.size() == 0)
