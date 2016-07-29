@@ -1,5 +1,6 @@
 # SAM_Sheffield
 
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 The devel branch of SAM_Sheffield contains untested code and is used for development. This branch also includes SAM_Demos and SAM_models
 
 ##Features
@@ -18,6 +19,8 @@ interactionSAMModel also allows for great flexibility in the method of data coll
 
 Setting a model to any one of these data collection methods and also specifying the buffer lengths is done within sensory_level_config.ini
 
+=======
+>>>>>>> New version of samSupervisor with rpc interface and README
 ##How to use:
 
 Everything is accessed via **samSupervisor** which is installed to **WYSIWYD_DIR**.
@@ -26,6 +29,7 @@ Connect with samSupervisor via `/sam/rpc:i` and issue help for a list of all pos
 
 -`check_all`: 		Check data and config.ini availabilities for that model, as well as current status (Training or Loaded) and check if model is curently up to date
 
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 -`check <modelName>`: 		Check the same points as above but for a single model
 
 -`close <modelName>`: 		Terminates a currently loaded interaction process for the particular model
@@ -45,6 +49,23 @@ Connect with samSupervisor via `/sam/rpc:i` and issue help for a list of all pos
 -`list_callSigns`:		Compiles a list of currently active callSigns. Where callSigns are the messages that loaded models respond to
 
 When a model is loaded, to retrieve a classification of a generation from the model, issue the respective command in the list_callSigns list. There is a timeout of 10 seconds for the response so as not to block the operation of samSupervisor
+=======
+-`check <modelName>`: 	Check the same points as above but for a single model
+
+-`close <modelName>`: 	Terminates a currently loaded interaction process for the particular model
+
+-`delete <modelName>`: 	Physically deletes the trained model for `<modelName>`
+
+-`help`: 		Provides a list of available commands
+
+-`load <modelName>`: 	Launches an interaction process for the corresponding model
+
+-`quit`: 		Terminates samSupervisor
+
+-`train` <modelName>:	Launches a training process for the corresponding model
+
+-`list_callSigns`:	Compiles a list of currently active callSigns. Where callSigns are the messages that loaded models respond to
+>>>>>>> New version of samSupervisor with rpc interface and README
 
 
 ##Prerequisites to use samSupervisor:
@@ -86,16 +107,28 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 
 ####SAM_Core: 
 - Includes the base classes for SAM_Core and SAM_Driver
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 - Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR      
 
 ####SAM_Drivers:
 - This folder contains all developed drivers. 
 - These drivers are accessed via the generic trainModel and interactionModel classes which are called from samSupervisor
+=======
+- Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR
+>>>>>>> New version of samSupervisor with rpc interface and README
 
 ####SAM_Demos:
 - Includes standalone SAM demos which do not require samSupervisor to run.
 - These display the use of various functionalities of SAM
 
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
+=======
+####SAM_Drivers:
+- This folder contains all developed drivers. 
+- These drivers are accessed via the generic trainModel and interactionModel classes which are called from samSupervisor. 
+- Please look at the exampleDriver class to develop your own driver
+
+>>>>>>> New version of samSupervisor with rpc interface and README
 ####Utils:
 - This folder contains bits and bobs of functionality mostly related to the recording or labelling of datasets
 

@@ -2,7 +2,7 @@
 #include "wrdac/subsystems/subSystem_ABM.h"
 
 bool AllostaticController::interruptModule()
-{
+{\
     yDebug() << "Interrupt rpc port";
     rpc_in_port.interrupt();
 
@@ -17,6 +17,7 @@ bool AllostaticController::interruptModule()
     for(auto& outputM_port : outputM_ports)
     {
         outputM_port->interrupt();
+
     }
 
     yDebug() << "Interrupt AllostaticDrive ports";

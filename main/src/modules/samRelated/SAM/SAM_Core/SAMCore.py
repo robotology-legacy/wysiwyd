@@ -504,7 +504,11 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
     # else:
     #     SAMObjPruned['modelPath'] = fileName + '_model.pickle'
     #     mm.model.pickle(SAMObjPruned['modelPath'])
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     folderPath = os.path.join('/', *fileName.split('/')[:-1])
+=======
+    folderPath = os.path.join('/',*fileName.split('/')[:-1])
+>>>>>>> New version of samSupervisor with rpc interface and README
     fileName = fileName.split('/')[-1]
 
     if economy:
@@ -512,8 +516,12 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
         #if file exists delete
         if(os.path.isfile(os.path.join(folderPath,SAMObjPruned['modelPath']))):
             os.remove(os.path.join(folderPath,SAMObjPruned['modelPath']))
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         if mm.model:
             mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
+=======
+        mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
+>>>>>>> New version of samSupervisor with rpc interface and README
     else:
         SAMObjPruned['modelPath'] = fileName + '_model.pickle'
         mm.model.pickle(os.path.join(folderPath,SAMObjPruned['modelPath']))

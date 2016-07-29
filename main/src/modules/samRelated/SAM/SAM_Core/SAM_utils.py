@@ -1,3 +1,4 @@
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 # """"""""""""""""""""""""""""""""""""""""""""""
 # The University of Sheffield
 # WYSIWYD Project
@@ -447,6 +448,11 @@ def gp_narx(m, x_start, N, Uts, ws, Ydebug=None):
 
 
 def random_data_split(Y, percentage=[0.5, 0.5]):
+=======
+import numpy as np
+
+def random_data_split(Y, percentage=[0.5,0.5]):
+>>>>>>> New version of samSupervisor with rpc interface and README
     N = Y.shape[0]
     N_1 = np.ceil(N*percentage[0])
     N_2 = np.floor(N*percentage[1])
@@ -457,7 +463,12 @@ def random_data_split(Y, percentage=[0.5, 0.5]):
     return Y[inds_1,:], Y[inds_2,:], inds_1, inds_2
 
 
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 class SURFProcessor:
+=======
+
+class SURFProcessor():
+>>>>>>> New version of samSupervisor with rpc interface and README
     def __init__(self, imgHNew, imgWNew,n_clusters=20,SURFthresh=500,crop_thresholds=(40,160,40,160),magnify=1):
         self.imgHNew = imgHNew
         self.imgWNew = imgWNew
@@ -514,6 +525,11 @@ class SURFProcessor:
 
         return np.sqrt(np.array(features))
 
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
+=======
+
+
+>>>>>>> New version of samSupervisor with rpc interface and README
     def make_SURF_BoW(self,Y,normalize=True,imgHNew=None, imgWNew=None,n_clusters=None,SURFthresh=None,crop_thresholds=None):
         if imgHNew is None: imgHNew = self.imgHNew;
         if imgWNew is None: imgWNew = self.imgWNew;
@@ -570,6 +586,11 @@ class SURFProcessor:
         self._is_trained = True
         return Z.copy(), descriptors, desclabels, c_trainFit
 
+<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
+=======
+
+
+>>>>>>> New version of samSupervisor with rpc interface and README
     def make_SURF_BoW_test(self,Ytest):
         # SURF for test data
         assert(self._is_trained, "First you have to do a train BoW.")
