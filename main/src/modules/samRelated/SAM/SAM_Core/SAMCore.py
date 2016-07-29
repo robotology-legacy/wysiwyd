@@ -190,8 +190,7 @@ class LFM(object):
                 print('# SNR: ' + str(snr))
             if warning and snr < 8:
                 print(' WARNING! SNR is small!')
-
-        if self.type == 'mrd':
+        elif self.type == 'mrd':
             snr = []
             for i in range(len(self.model.bgplvms)):
                 snr.append(self.model.bgplvms[i].Y.var()/self.model.bgplvms[i].Gaussian_noise.variance.values[0])
@@ -199,6 +198,8 @@ class LFM(object):
                     print('# SNR view ' + str(i) + ': ' + str(snr[-1]))
                 if warning and snr[-1] < 8:
                     print(' WARNING! SNR for view ' + str(i) + ' is small!!')
+        else:
+            snr = None
         return snr
         
     def visualise(self, which_indices=None, plot_scales=True):
