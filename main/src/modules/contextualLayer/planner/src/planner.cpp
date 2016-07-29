@@ -43,6 +43,12 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
         yarp::os::Time::delay(0.5);
     }
 
+    getState.open("/planner/state:i");
+    while (!Network::connect(getState.getName(), "/sensationManager/rpc")) {
+        yWarning() << "state is unreachable.";
+        yarp::os::Time::delay(0.5);
+    }
+
     // port_behavior_context.open("/" + moduleName + "/target:o");
     // yInfo()<<"created port to behaviors";
 
@@ -50,7 +56,6 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     prioPt = priority_list.begin();
 
     yDebug()<<"clearing vectors";
-    plan_list.clear();
     priority_list.clear();
     action_list.clear();
     // current_goal = new Bottle();
@@ -236,9 +241,9 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
 /* Called periodically every getPeriod() seconds */
 bool Planner::updateModule() {
 
-    yInfo() << "ordering status: " << ordering;
     if (ordering)
     {
+        yInfo() << "checking the order of insertion";
         for (int it = 0; it < newPlan.size(); it++)
         {
             bool knownPlan = false;
@@ -246,67 +251,103 @@ bool Planner::updateModule() {
             int priority;
             Bottle command = newPlan[it];
             knownPlan = checkKnown(command, avaiPlansList, planExe);
+            string planName = command.get(1).asList()->get(0).asString();
+            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+            object = command.get(1).asList()->get(2).asList()->get(1).asString();
 
             if (knownPlan)
             {
-                int insertID = 0;
-                bool rankPriority = true;
-                priority = command.get(1).asList()->get(1).asInt();
-                if (priority_list.size() != 0)
+                // determine which parts of plan needs to be executed depending on state of object
+                int stepID;
+                bool assumption;
+                // obtain state of object of interest
+                Bottle bot;
+                Bottle rep;
+                bot.addString("Input of object:");
+                getState.write(bot,rep);
+                string state;
+                state = rep.get(0).asString();
+
+                for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
                 {
-                    for (int i = 0; i < priority_list.size(); i++)
+                    if (grpPlans.find(planName + "-" + to_string(i) + "pre").asString() == state)
                     {
-                        if (priority == 1)
+                        stepID = i;
+                        assumption = true;
+                    }
+
+                    else { assumption = false; }
+                }
+
+                if (assumption)
+                {
+                    // check if necessary to rank actions according to priority
+                    int insertID = 0;
+                    bool rankPriority = true;
+                    priority = command.get(1).asList()->get(1).asInt();
+                    if (priority_list.size() != 0)
+                    {
+                        for (int i = 0; i < priority_list.size(); i++)
                         {
-                            yInfo() << "lowest priority - append to bottom of list";
-                            rankPriority = false;
-                        }
-                        else if (priority < priority_list[i])
-                        {
-                            insertID = i + 1;
+                            if (priority == 1)
+                            {
+                                yInfo() << "lowest priority - append to bottom of list";
+                                rankPriority = false;
+                                break;
+                            }
+                            else if (priority < priority_list[i])
+                            {
+                                insertID = i + 1;
+                            }
                         }
                     }
+                    else
+                    {
+                        yInfo() << "new plan when initial state is empty";
+                        rankPriority = false;
+                    }
+
+                    // insert actions into action_list and priority_list
+                    if (!rankPriority)
+                    {
+                        for (int i = stepID; i < grpPlans.find(planName + "-totactions").asInt() + 1; i++)
+                        {
+                            string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
+                            yInfo() << "adding action " << act;
+                            action_list.push_back(act);
+                            priority_list.push_back(priority);
+                            plan_list.push_back(planName);
+                            object_list.push_back(object);
+                            type_list.push_back(objectType);
+                            actionPos_list.push_back(i);
+                        }
+
+                    }
+                    else
+                    {
+                        yInfo() << "insertID:" << insertID;
+                        vector<string>::iterator idx = action_list.begin() + insertID;
+                        vector<int>::iterator indx = priority_list.begin() + insertID;
+                        for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
+                        {
+                            string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
+                            yInfo() << "adding action " << act;
+                            idx = action_list.insert(idx, act);
+                            indx = priority_list.insert(indx, priority);
+                        }
+                        // if (fulfill)
+                        // {
+                        //     actPt += grpPlans.find(planName + "-totactions").asInt();
+                        //     prioPt += grpPlans.find(planName + "-totactions").asInt();
+                        // }
+                    }
+
                 }
                 else
                 {
-                    yInfo() << "new plan when initial state is empty";
-                    rankPriority = false;
+                    yWarning() << "Unexpected state of object, unable to handle plan.";
+                    yarp::os::Time::delay(1.5);
                 }
-                string planName = command.get(1).asList()->get(0).asString();
-                plan_list.push_back(planName);
-
-                if (!rankPriority)
-                {
-                    for (int i = 1; i < grpPlans.find(planName + "-totactions").asInt() + 1; i++)
-                    {
-                        string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
-                        yInfo() << "adding action " << act;
-                        action_list.push_back(act);
-                        priority_list.push_back(priority);
-                    }
-
-                }
-                else
-                {
-                    yInfo() << "insertID:" << insertID;
-                    vector<string>::iterator idx = action_list.begin() + insertID;
-                    vector<int>::iterator indx = priority_list.begin() + insertID;
-                    for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
-                    {
-                        string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
-                        yInfo() << "adding action " << act;
-                        idx = action_list.insert(idx, act);
-                        indx = priority_list.insert(indx, priority);
-                    }
-                    // if (fulfill)
-                    // {
-                    //     actPt += grpPlans.find(planName + "-totactions").asInt();
-                    //     prioPt += grpPlans.find(planName + "-totactions").asInt();
-                    // }
-                }
-
-                objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
-                object = command.get(1).asList()->get(2).asList()->get(1).asString();
             }
             else
             {
@@ -322,10 +363,11 @@ bool Planner::updateModule() {
     if (fulfill)
     {
         Value val;  //Likely whould be global and not local
+        bool skip = 0;
 
         if (action_list.size() != 0)
         {
-            yInfo() << "executing "<<action_list<<"...";
+            // yInfo() << "executing "<<action_list<<"...";
             yInfo() << "putting homeostasis on hold.";
             freeze_all();
         }
@@ -334,34 +376,54 @@ bool Planner::updateModule() {
         {
             fulfill = 0;
             yDebug() << "no actions in list, fulfill is set to 0.";
+            skip = 1;
         }
         
-        // execute action
-        bool actionCompleted = false;
-
-        // keep requesting to execute an action until it does get executed
-        string act = action_list[0];
-        yInfo()<<"Sending action " + act + " to the BM.";
-        actionCompleted = triggerBehavior(Bottle(act));
-        yInfo() << "action has been completed: " << actionCompleted;
-
-        // wait for a second before trying again
-        if (!actionCompleted) { Time::delay(1.0); }
-        else
+        if (!skip)
         {
-            // action has been successfully completed
-            yInfo() << "removing action " << *action_list.begin();
-            action_list.erase(action_list.begin());
-            priority_list.erase(priority_list.begin());
+            // execute action
+            bool actionCompleted = false;
 
-            yInfo() << "action completed and removed";
-        }
+            // keep requesting to execute an action until it does get executed
+            string act = action_list[0];
+            yInfo()<<"Sending action " + act + " to the BM.";
+            actionCompleted = triggerBehavior(Bottle(act));
+            yInfo() << "action has been completed: " << actionCompleted;
 
-        if(action_list.size() == 0)
-        {
-            fulfill = 0;
-            yInfo() << "resuming homeostatic dynamics.";
-            unfreeze_all();
+            // check for completed state
+            string planName = plan_list[0];
+            string stateOI = grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asString();
+            bool stateCheck;
+            Bottle bot;
+            Bottle rep;
+            bot.addString("is");
+            bot.addString(object);
+            bot.addString(stateOI);
+            getState.write(bot,rep);
+            string state;
+            state = rep.get(0).asString();
+            
+            if (stateOI == state) { stateCheck = true; }
+            else { stateCheck = false; }
+
+            // wait for a second before trying again
+            if (!actionCompleted) { Time::delay(1.0); }
+            else if (actionCompleted && stateCheck)
+            {
+                // action has been successfully completed
+                yInfo() << "removing action " << *action_list.begin();
+                action_list.erase(action_list.begin());
+                priority_list.erase(priority_list.begin());
+
+                yInfo() << "action completed and removed";
+            }
+
+            if(action_list.size() == 0)
+            {
+                fulfill = 0;
+                yInfo() << "resuming homeostatic dynamics.";
+                unfreeze_all();
+            }
         }
     }
     else{

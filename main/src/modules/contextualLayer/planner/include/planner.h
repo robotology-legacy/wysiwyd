@@ -12,12 +12,16 @@ private:
     Port        rpc;
     Port        portToBehavior;
     Port        toHomeo;
+    Port        getState;
     BufferedPort<Bottle>        port_behavior_context;
     Bottle avaiPlansList;
     vector<Bottle> newPlan;
     vector<string> plan_list;
     vector<string> action_list;
+    vector<string> object_list;
+    vector<string> type_list;
     vector<int> priority_list;
+    vector<int> actionPos_list;
     vector<string>::iterator actPt;
     vector<int>::iterator prioPt;
     Bottle grpPlans;
