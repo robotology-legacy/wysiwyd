@@ -25,10 +25,10 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
     // receive input from ears module
-    while (!Network::connect("/ears/target:o",rpc.getName())) {
-        yWarning() << "ears is not reachable";
-        yarp::os::Time::delay(0.5);
-    }
+    //while (!Network::connect("/ears/target:o",rpc.getName())) {
+    //    yWarning() << "ears is not reachable";
+    //    yarp::os::Time::delay(0.5);
+    //}
 
     portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
     while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
@@ -38,10 +38,10 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     yDebug()<<"Connected to BM!";
  
     toHomeo.open("/manager/toHomeostasis/rpc:o");
-    while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
+    /* while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
         yWarning() << "homeostasis is not reachable";
         yarp::os::Time::delay(0.5);
-    }
+    }*/
 
     getState.open("/planner/state:i");
     while (!Network::connect(getState.getName(), "/sensationManager/rpc")) {
@@ -97,10 +97,10 @@ bool Planner::freeze_all()
     gandalf.addString("all");
     // Send command
     if (!Network::isConnected(toHomeo.getName(),"/homeostasis/rpc"))
-    {
-        yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
-        yarp::os::Time::delay(0.1);
-    }
+    //{
+    //    yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
+    //    yarp::os::Time::delay(0.1);
+    //}
     toHomeo.write(gandalf);
     yInfo() << "Gandalf has spoken.";
 
@@ -244,7 +244,6 @@ bool Planner::updateModule() {
 
     if (ordering)
     {
-        yInfo() << "checking the order of insertion";
         for (int it = 0; it < newPlan.size(); it++)
         {
             bool knownPlan = false;
@@ -258,23 +257,40 @@ bool Planner::updateModule() {
 
             if (knownPlan)
             {
+                yInfo() << "plan known.";
                 // determine which parts of plan needs to be executed depending on state of object
                 int stepID;
                 bool assumption;
-                // obtain state of object of interest
+                // check valid pre-action state of object of interest
                 Bottle bot;
                 Bottle rep;
-                bot.addString("Input of object:");
-                getState.write(bot,rep);
-                string state;
-                state = rep.get(0).asString();
+                bool state;
 
                 for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
                 {
-                    if (grpPlans.find(planName + "-" + to_string(i) + "pre").asString() == state)
+                    state = true;
+                    Bottle preconds = *grpPlans.find(planName + "-" + to_string(i) + "pre").asList();
+                    for (int i = 0; i < preconds.size(); i++)
+                    {
+                        getState.write(*preconds.get(i).asList()->get(1).asList(), rep);
+                        bool indiv;
+                        string attach = preconds.get(i).asList()->get(0).asString();
+                        if (attach == "not")
+                        {
+                            indiv = !rep.get(0).asInt();
+                        }
+                        else
+                        {
+                            indiv = rep.get(0).asInt();
+                        }
+                        state = state && indiv;
+                    }
+
+                    if (state)
                     {
                         stepID = i;
                         assumption = true;
+                        break;
                     }
 
                     else { assumption = false; }
@@ -325,9 +341,7 @@ bool Planner::updateModule() {
 
                     }
                     else
-                    {
-                        yInfo() << "insertID:" << insertID;
-                        vector<string>::iterator idx = action_list.begin() + insertID;
+                    {   vector<string>::iterator idx = action_list.begin() + insertID;
                         vector<int>::iterator indx = priority_list.begin() + insertID;
                         for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
                         {
@@ -364,7 +378,7 @@ bool Planner::updateModule() {
     if (fulfill)
     {
         Value val;  //Likely whould be global and not local
-        bool skip = 0;
+        int skip = 0;
 
         if (action_list.size() != 0)
         {
@@ -385,7 +399,7 @@ bool Planner::updateModule() {
             // execute action
             bool actionCompleted = false;
 
-            // keep requesting to execute an action until it does get executed
+            // request for BM to execute an action, waits for reply
             string act = action_list[0];
             yInfo()<<"Sending action " + act + " to the BM.";
             actionCompleted = triggerBehavior(Bottle(act));
@@ -393,22 +407,45 @@ bool Planner::updateModule() {
 
             // check for completed state
             string planName = plan_list[0];
-            string stateOI = grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asString();
-            bool stateCheck;
-            Bottle bot;
-            Bottle rep;
-            bot.addString("is");
-            bot.addString(object);
-            bot.addString(stateOI);
-            getState.write(bot,rep);
-            string state;
-            state = rep.get(0).asString();
-            
-            if (stateOI == state) { stateCheck = true; }
-            else { stateCheck = false; }
+            Bottle stateOI = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asList();
+
+            yInfo() << "checking for post condition fulfillment.";
+            int stateCheck = 1;
+            for (int i = 0; i < stateOI.size(); i++)
+            {
+                Bottle bot;
+                Bottle rep;
+                bot.clear();
+                rep.clear();
+                bot = *stateOI.get(i).asList()->get(1).asList();
+                getState.write(bot, rep);
+
+                if (stateOI.get(i).asList()->get(0).asString() == "not")
+                {
+                    stateCheck = (!rep.get(0).asInt()) && stateCheck;
+                }
+                else
+                {
+                    stateCheck = (rep.get(0).asInt()) && stateCheck;
+                }
+            }
 
             // wait for a second before trying again
-            if (!actionCompleted || !stateCheck)
+            if (actionCompleted && stateCheck)
+            {
+                // action has been successfully completed
+                yInfo() << "removing action " << *action_list.begin();
+                action_list.erase(action_list.begin());
+                priority_list.erase(priority_list.begin());
+                plan_list.erase(plan_list.begin());
+                object_list.erase(object_list.begin());
+                type_list.erase(type_list.begin());
+                actionPos_list.erase(actionPos_list.begin());
+                attemptCnt = 0;
+
+                yInfo() << "action completed and removed from lists.";
+            }
+            else
             {
                 attemptCnt += 1;
                 if (attemptCnt > 2)
@@ -419,20 +456,8 @@ bool Planner::updateModule() {
                 }
                 Time::delay(1.0);
             }
-            else if (actionCompleted && stateCheck)
-            {
-                // action has been successfully completed
-                yInfo() << "removing action " << *action_list.begin();
-                action_list.erase(action_list.begin());
-                priority_list.erase(priority_list.begin());
-                plan_list.erase(plan_list.begin());
-                object_list.erase(object_list.begin());
-                type_list.erase(type_list.begin());
-                attemptCnt = 0;
 
-                yInfo() << "action completed and removed from lists.";
-            }
-
+            // check again if all actions in the list have been completed
             if(action_list.size() == 0)
             {
                 fulfill = 0;
