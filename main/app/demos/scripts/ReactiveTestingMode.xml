@@ -1,0 +1,35 @@
+<application>
+    <name>ReactiveLayer Test Mode</name>
+
+    <module>
+      <name>sensationManager</name>
+      <parameters>--from test.ini</parameters>
+	  <node>jy</node>
+	<tag>sensationManager</tag>
+   </module>
+   <module>
+      <name>ears</name>
+      <parameters></parameters>
+      <node>jy</node>
+    <tag>ears</tag>
+   </module>
+   <module>
+      <name>homeostasis</name>
+      <parameters></parameters>
+      <node>jy</node>
+    <tag>homeostasis</tag>
+   </module>
+   <module>
+      <name>allostaticController</name>
+      <parameters>--from test.ini</parameters>
+      <node>jy</node>
+    <tag>allostaticController</tag>
+   </module>
+   <module>
+      <name>behaviorManager</name>
+      <parameters>--from test.ini</parameters>
+      <node>jy</node>
+    <tag>behaviorManager</tag>
+   </module>
+
+</application>

@@ -21,6 +21,10 @@ private:
     std::string moduleName;
     double period;
 
+    double stress;
+    yarp::os::BufferedPort<yarp::os::Bottle> stressPort;
+
+
     //vector< yarp::os::BufferedPort<yarp::os::Bottle> *> output_ports;
     //vector< yarp::os::BufferedPort<yarp::os::Bottle> *> input_ports;
     vector< yarp::os::BufferedPort<Bottle> * > input_ports;
