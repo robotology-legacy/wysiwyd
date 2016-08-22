@@ -854,28 +854,28 @@ bool opcPopulater::populateMoving(){
     iCub->opc->clear();
 
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("moving_1");
-    obj1->m_ego_position[0] = -0.4;
-    obj1->m_ego_position[1] = 0.25;
+    obj1->m_ego_position[0] = -0.3;
+    obj1->m_ego_position[1] = 0.05;
     obj1->m_ego_position[2] = 0;
     obj1->m_present = 1.0;
-    obj1->m_color[0] = Random::uniform(0, 80);
-    obj1->m_color[1] = Random::uniform(80, 180);
-    obj1->m_color[2] = Random::uniform(180, 250);
+    obj1->m_color[0] = 20;
+    obj1->m_color[1] = 20;
+    obj1->m_color[2] = 20;
     obj1->m_value = 0.0;
     iCub->opc->commit(obj1);
 
     Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("moving_2");
-    obj2->m_ego_position[0] = -0.4;
-    obj2->m_ego_position[1] = -0.25;
+    obj2->m_ego_position[0] = -0.3;
+    obj2->m_ego_position[1] = -0.05;
     obj2->m_ego_position[2] = 0;
     obj2->m_present = 1.0;
-    obj2->m_color[0] = Random::uniform(100, 180);
-    obj2->m_color[1] = Random::uniform(0, 80);
-    obj2->m_color[2] = Random::uniform(180, 250);
+    obj2->m_color[0] = 200;
+    obj2->m_color[1] = 20;
+    obj2->m_color[2] = 20;
     obj2->m_value = -1.0;
     iCub->opc->commit(obj2);
 
-    move=true;
+    //move=true;
 
 
     return true;
