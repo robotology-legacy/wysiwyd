@@ -231,6 +231,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " setNarrator + name: \n" +
         " askNarrate + instanceStory = default_value: \n" +
         " narrate + instanceStory = default_value: \n" +
+        " displayKnownStories \n" +
         " displayStories + n-back = default_all: \n" +
         " listenStory: \n" +
         " cleanMental\n" +
@@ -241,6 +242,8 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " helpSM\n" +
         " SMtoTrain + sentence\n" +
         " SMandNarrativetoTrain + filename = trainOutput\n" +
+        " SMtoLRH + lang = en\n" +
+        " SMtoSVG file = svgFile + instanceIGARF = last\n" +
         " learnDFW + word\n" +
         " createLink + (instanceFromIGARF cPart instanceRel) + word + (instanceToIGARF cPart instanceRel)\n" +
         " LRHtoSM + meaning\n" +
@@ -248,13 +251,12 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " LRHtoBlankSM + meaning\n" +
         " period\n" +
         " autoLink + instanceIGARF = last"
-        " SMtoLRH + lang = en\n" +
-        " SMtoSVG file = svgFile + instanceIGARF = last\n" +
         " quit \n";
 
     yInfo() << " rpc command received: " << command.toString();
 
     reply.clear();
+    reply.addVocab(Vocab::encode("many"));
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
@@ -273,6 +275,11 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "cleanMental"){
         cleanMental();
+    }
+    else if (command.get(0).asString() == "displayKnownStories"){
+        for (unsigned int ii = 0; ii < listStories.size(); ii++){
+            cout << "story: " << ii << " -- instance start: " << listStories[ii].viInstances[0] << " -- size: " << listStories[ii].viInstances.size() <<  endl;
+        }
     }
     else if (command.get(0).asString() == "listeningStory"){
         listeningStory();

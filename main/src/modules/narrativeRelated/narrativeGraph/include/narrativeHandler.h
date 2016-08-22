@@ -67,8 +67,7 @@ private:
     void addNarrationToStory(story &target, bool overWrite = false);
     void recordNarrationABM(story &target);
     void listeningStory();
-
-
+    
     std::string GrammarNarration; // the file for the grammar narration
     std::string GrammarYesNo;
     bool shouldSpeak;

@@ -570,7 +570,7 @@ void SituationModel::makeStructure() {
             }
         }
     }
-
+    cout << "Story from instance: " << instanceBegin << endl;
     showIGARF(head);
 }
 
