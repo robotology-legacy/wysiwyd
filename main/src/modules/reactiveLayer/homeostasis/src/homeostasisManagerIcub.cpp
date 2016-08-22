@@ -481,7 +481,6 @@ bool HomeostaticModule::updateModule()
     }
     Bottle& output=stressPort.prepare();
     output.clear();
-    output.addDouble(stress);
     double k = 15.;
     double th = -0.55;
     stress = 1./(1.+exp(-k*(-stress+th)));
