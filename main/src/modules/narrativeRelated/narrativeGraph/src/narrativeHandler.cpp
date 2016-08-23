@@ -58,6 +58,8 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
     researchWindows = rf.find("researchWindows").asInt() == 1;
+    Bottle *bNarration = rf.find("listScenario").asList();
+    initializeScenarios(*bNarration, rf);
 
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
@@ -81,7 +83,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     if (!bNarrativeGroup.isNull()) {
         // Train output
         string trainOuputFileName = rfLRH.findFileByName(bNarrativeGroup.check("trainOutput", Value("Corpus/trainOutput.txt")).toString());
-        fTrainOutput.open (trainOuputFileName, ofstream::out | ofstream::app);
+        fTrainOutput.open(trainOuputFileName, ofstream::out | ofstream::app);
         if (!fTrainOutput.is_open())
             yWarning() << "Train Ouput file not found.";
         else
@@ -118,9 +120,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
         sSVGFolderName = rf.findPath(bSizes.check("svgFolder", Value("situationModels")).asString()) + "/";
         sSVGFileName = bSizes.check("svgFile", Value("situationModel.svg")).toString();
         int wEvtBox = bSizes.check("wEvtBox", Value(160)).asInt();
-        int hEvtBox = bSizes.check("hEvtBox", Value( 80)).asInt();
-        int hOffset = bSizes.check("hOffset", Value( 40)).asInt();
-        int vOffset = bSizes.check("vOffset", Value( 70)).asInt();
+        int hEvtBox = bSizes.check("hEvtBox", Value(80)).asInt();
+        int hOffset = bSizes.check("hOffset", Value(40)).asInt();
+        int vOffset = bSizes.check("vOffset", Value(70)).asInt();
         sm.initSizes(wEvtBox, hEvtBox, hOffset, vOffset);
     }
 
@@ -191,6 +193,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     counter = 0;
     findStories();
 
+
     storygraph::VocabularyHandler::initVoc(listStories);
 
     //    narrationToMeaning();
@@ -229,7 +232,8 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
         " commands are: \n" +
         " setNarrator + name: \n" +
-        " askNarrate + instanceStory = default_value: \n" +
+        " addHumanNarration + instanceStory (default_value) + type (speech - default, text, auto) + scenario (if auto. default 1) \n" +
+        " displayKnownNarrations \n" +
         " narrate + instanceStory = default_value: \n" +
         " displayKnownStories \n" +
         " displayStories + n-back = default_all: \n" +
@@ -278,19 +282,35 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "displayKnownStories"){
         for (unsigned int ii = 0; ii < listStories.size(); ii++){
-            cout << "story: " << ii << " -- instance start: " << listStories[ii].viInstances[0] << " -- size: " << listStories[ii].viInstances.size() <<  endl;
+            cout << "story: " << ii << " -- instance start: " << listStories[ii].viInstances[0] << " -- size: " << listStories[ii].viInstances.size() << endl;
         }
     }
     else if (command.get(0).asString() == "listeningStory"){
         listeningStory();
     }
-    else if (command.get(0).asString() == "askNarrate"){
+    else if (command.get(0).asString() == "displayKnownNarrations"){
+        for (map<int, vector<string>>::iterator itMp = listAutoScenarios.begin(); itMp != listAutoScenarios.end(); itMp++){
+            cout << endl << "Narration number: " << itMp->first << endl;
+            for (vector<string>::iterator itLi = itMp->second.begin(); itLi != itMp->second.end(); itLi++){
+                cout << "\t" << *itLi << endl;
+            }
+        }
+    }
+    else if (command.get(0).asString() == "addHumanNarration"){
         int iIns = storyToNarrate;
-        if (command.size() == 2) {
+        int iScena = 1;
+        string sModality = "speech";
+
+        if (command.size() > 1) {
             iIns = command.get(1).asInt();
         }
-
-        if (askNarrate(iIns)){
+        if (command.size() > 2){
+            sModality = command.get(2).asString();
+        }
+        if (command.size() > 3){
+            iScena = command.get(3).asInt();
+        }
+        if (addHumanNarration(iIns, sModality, iScena)){
             reply.addString("ack");
         }
         else{
@@ -385,25 +405,25 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     // Construction
     else if (command.get(0).asString() == "helpSM") {
         string help = string(getName().c_str()) +
-                " situation model commands are: \n" +
-                " listActionEvts\n" +
-                " listRels\n" +
-                " listIGARF\n" +
-                " createEvt + predicate + agent + object = \"\" + recipient = \"\"\n" +
-                " getRel + subject + verb + object\n" +
-                " createIGARF\n" +
-                " showIGARF + instanceIGARF\n" +
-                " changeEvtIGARF + instanceIGARF + cPart + instanceEvt\n" +
-                " changeCntIGARF + instanceIGARF + cPart + instanceSubIGARF\n" +
-                " removeCntIGARF + instanceIGARF + cPart\n" +
-                " addRelIGARF + instanceIGARF + cPart + instanceRel\n" +
-                " remRelIGARF + instanceIGARF + cPart + instanceRel\n";
+            " situation model commands are: \n" +
+            " listActionEvts\n" +
+            " listRels\n" +
+            " listIGARF\n" +
+            " createEvt + predicate + agent + object = \"\" + recipient = \"\"\n" +
+            " getRel + subject + verb + object\n" +
+            " createIGARF\n" +
+            " showIGARF + instanceIGARF\n" +
+            " changeEvtIGARF + instanceIGARF + cPart + instanceEvt\n" +
+            " changeCntIGARF + instanceIGARF + cPart + instanceSubIGARF\n" +
+            " removeCntIGARF + instanceIGARF + cPart\n" +
+            " addRelIGARF + instanceIGARF + cPart + instanceRel\n" +
+            " remRelIGARF + instanceIGARF + cPart + instanceRel\n";
         reply.addString(help);
         cout << help << endl;
     }
     else if (command.get(0).asString() == "listActionEvts") {
         yInfo(" list events of the situation model");
-        for(unsigned int i = 0; i < sm.vActionEvts.size(); i++) {
+        for (unsigned int i = 0; i < sm.vActionEvts.size(); i++) {
             std::cout << "[" << i << "] " << sm.getSentenceEvt(i) << std::endl;
             reply.addString(sm.getSentenceEvt(i));
         }
@@ -412,7 +432,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "listRels") {
         yInfo(" list relations of the situation model");
-        for(unsigned int i = 0; i < sm.vRelations.size(); i++) {
+        for (unsigned int i = 0; i < sm.vRelations.size(); i++) {
             std::cout << "[" << i << "] " << sm.getSentenceRel(i) << std::endl;
             reply.addString(sm.getSentenceRel(i));
         }
@@ -421,7 +441,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "listIGARF") {
         yInfo(" list IGARF events of the situation model ");
-        for(unsigned int i = 0; i < sm.vIGARF.size(); i++) {
+        for (unsigned int i = 0; i < sm.vIGARF.size(); i++) {
             sm.showIGARF(i);
             std::cout << std::endl;
         }
@@ -454,8 +474,8 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         if (command.size() >= 4) {
             storygraph::sRelation r;
             r.subject = command.get(1).asString();
-            r.verb    = command.get(2).asString();
-            r.object  = command.get(3).asString();
+            r.verb = command.get(2).asString();
+            r.object = command.get(3).asString();
             int i = sm.findRelation(r, true);
             yInfo(" creation sucessful of the " + to_string(i) + "-th relation");
             reply.addString(" creation sucessful of the " + to_string(i) + "-th relation");
@@ -495,83 +515,83 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         addLink(command, reply);
     }
     else if (command.get(0).asString() == "changeEvtIGARF") {
-            yInfo(" change an IGARF event in the situation model");
-            if (command.size() >= 4) {
-                int  iIGARF = command.get(1).asInt();
-                char cPart  = command.get(2).asString()[0];
-                int  iAct   = command.get(3).asInt();
+        yInfo(" change an IGARF event in the situation model");
+        if (command.size() >= 4) {
+            int  iIGARF = command.get(1).asInt();
+            char cPart = command.get(2).asString()[0];
+            int  iAct = command.get(3).asInt();
 
-                sm.modifEventIGARF(iIGARF, cPart, iAct);
-                yInfo(" modification sucessful");
-                reply.addString(" modification sucessful");
-            }
-            else {
-                yInfo(" Not enough arguments");
-                reply.addString("Error: Needs 3 arguments");
-            }
+            sm.modifEventIGARF(iIGARF, cPart, iAct);
+            yInfo(" modification sucessful");
+            reply.addString(" modification sucessful");
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 3 arguments");
+        }
     }
     else if (command.get(0).asString() == "changeCntIGARF") {
-            yInfo(" change an IGARF content in the situation model");
-            if (command.size() >= 4) {
-                int  iIGARF = command.get(1).asInt();
-                char cPart  = command.get(2).asString()[0];
-                int  jIGARF   = command.get(3).asInt();
+        yInfo(" change an IGARF content in the situation model");
+        if (command.size() >= 4) {
+            int  iIGARF = command.get(1).asInt();
+            char cPart = command.get(2).asString()[0];
+            int  jIGARF = command.get(3).asInt();
 
-                sm.modifContentIGARF(iIGARF, cPart, jIGARF);
-                yInfo(" modification sucessful");
-                reply.addString(" modification sucessful");
-            }
-            else {
-                yInfo(" Not enough arguments");
-                reply.addString("Error: Needs 3 arguments");
-            }
+            sm.modifContentIGARF(iIGARF, cPart, jIGARF);
+            yInfo(" modification sucessful");
+            reply.addString(" modification sucessful");
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 3 arguments");
+        }
     }
     else if (command.get(0).asString() == "removeCntIGARF") {
-            yInfo(" remove an IGARF content in the situation model");
-            if (command.size() >= 3) {
-                int  iIGARF = command.get(1).asInt();
-                char cPart  = command.get(2).asString()[0];
+        yInfo(" remove an IGARF content in the situation model");
+        if (command.size() >= 3) {
+            int  iIGARF = command.get(1).asInt();
+            char cPart = command.get(2).asString()[0];
 
-                sm.remContentIGARF(iIGARF, cPart);
-                yInfo(" removal sucessful");
-                reply.addString(" removal sucessful");
-            }
-            else {
-                yInfo(" Not enough arguments");
-                reply.addString("Error: Needs 2 arguments");
-            }
+            sm.remContentIGARF(iIGARF, cPart);
+            yInfo(" removal sucessful");
+            reply.addString(" removal sucessful");
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 2 arguments");
+        }
     }
     else if (command.get(0).asString() == "addRelIGARF") {
-            yInfo(" add a relation to an IGARF event in the situation model");
-            if (command.size() >= 4) {
-                int  iIGARF = command.get(1).asInt();
-                char cPart  = command.get(2).asString()[0];
-                int  iRel   = command.get(3).asInt();
+        yInfo(" add a relation to an IGARF event in the situation model");
+        if (command.size() >= 4) {
+            int  iIGARF = command.get(1).asInt();
+            char cPart = command.get(2).asString()[0];
+            int  iRel = command.get(3).asInt();
 
-                sm.addRelationIGARF(iIGARF, cPart, iRel);
-                yInfo(" addition sucessful");
-                reply.addString(" addition sucessful");
-            }
-            else {
-                yInfo(" Not enough arguments");
-                reply.addString("Error: Needs 3 arguments");
-            }
+            sm.addRelationIGARF(iIGARF, cPart, iRel);
+            yInfo(" addition sucessful");
+            reply.addString(" addition sucessful");
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 3 arguments");
+        }
     }
     else if (command.get(0).asString() == "remRelIGARF") {
-            yInfo(" remove a relation to an IGARF event in the situation model");
-            if (command.size() >= 4) {
-                int  iIGARF = command.get(1).asInt();
-                char cPart  = command.get(2).asString()[0];
-                int  iRel   = command.get(3).asInt();
+        yInfo(" remove a relation to an IGARF event in the situation model");
+        if (command.size() >= 4) {
+            int  iIGARF = command.get(1).asInt();
+            char cPart = command.get(2).asString()[0];
+            int  iRel = command.get(3).asInt();
 
-                sm.removeRelationIGARF(iIGARF, cPart, iRel);
-                yInfo(" removal sucessful");
-                reply.addString(" removal sucessful");
-            }
-            else {
-                yInfo(" Not enough arguments");
-                reply.addString("Error: Needs 3 arguments");
-            }
+            sm.removeRelationIGARF(iIGARF, cPart, iRel);
+            yInfo(" removal sucessful");
+            reply.addString(" removal sucessful");
+        }
+        else {
+            yInfo(" Not enough arguments");
+            reply.addString("Error: Needs 3 arguments");
+        }
     }
     // -- LRH Related
     // Step 1: Train
@@ -711,9 +731,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         reply.addString(" production sucessful");
     }
     else if (command.get(0).asString() == "listLinks") {
-        for(storygraph::sDiscourseLink lk : sm.vDiscourseLinks) {
+        for (storygraph::sDiscourseLink lk : sm.vDiscourseLinks) {
             cout << lk.word << ": From " << lk.fromEvt.cPart << " of IGARF " << lk.fromEvt.iIGARF
-                 << " to " << lk.toEvt.cPart << " of IGARF " << lk.toEvt.iIGARF << endl;
+                << " to " << lk.toEvt.cPart << " of IGARF " << lk.toEvt.iIGARF << endl;
         }
         yInfo(" listing sucessful");
         reply.addString(" listing sucessful");
@@ -727,7 +747,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         if (command.size() > 1 && command.get(1).asString() != "")
             name += command.get(1).asString();
         else
-            name += sSVGFileName;        
+            name += sSVGFileName;
         if (command.size() > 2)
             nIGARF = command.get(2).asInt();
         else
@@ -748,8 +768,8 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "isActionVoc") {
         bool is = storygraph::VocabularyHandler::isActionVoc(command.get(1).asString());
-        reply.addString(is?"yes":"no");
-        yInfo(is?" yes":" no");
+        reply.addString(is ? "yes" : "no");
+        yInfo(is ? " yes" : " no");
     }
     else{
         reply.addString(helpMessage);
@@ -1426,7 +1446,7 @@ void narrativeHandler::sayNarrationSimple(story target){
     else{
         if (target.sentenceStory.size() > iThresholdSentence){
             iCub->opc->checkout();
-            cout << endl << "begin display narration of story: " << counter << " with " << target.vEvents.size() << " events and " << target.sentenceStory.size() << " sentence." << endl;
+            cout << endl << "begin display narration of story: " << counter - 1 << " with " << target.vEvents.size() << " events and " << target.sentenceStory.size() << " sentence." << endl;
             for (auto itSt : target.sentenceStory){
                 iCub->opc->checkout();
                 iCub->lookAtPartner();
@@ -2049,16 +2069,36 @@ bool narrativeHandler::narrate(int iIns){
     return true;
 }
 
-bool narrativeHandler::askNarrate(int iInstance){
-    yInfo(" BEGIN askNarrate");
+bool narrativeHandler::addHumanNarration(int iStory, string sModality, int iScena){
+    yInfo(" BEGIN addHumanNarration");
+
+    yInfo() << " Parameters are: modality - " << sModality << " / iScena - " << iScena;
 
     findStories();
+    bool found = false;
 
-    for (auto target : listStories){
-        if (target.viInstances[0] == iInstance){
-            target.displayNarration();
+    if (iStory >= 0 && iStory < (int)listStories.size()) {
+        story &target = listStories.at(iStory);
+        found = true;
+        target.displayNarration();
+
+        if (sModality == "speech"){
             addNarrationToStory(target);
         }
+        else if (sModality == "text"){
+            addTextNarration(target);
+        }
+        else if (sModality == "auto"){
+            addAutoNarration(target, iScena);
+        }
+        else{
+            yWarning(" in narrativeHandler::addHumanNarration - unknown type of modality (should be speech - text - auto)");
+        }
+    }
+
+
+    if (!found){
+        yWarning(" in narrativeHandler::addHumanNarration - story not found.");
     }
 
     //yInfo() << " size of narration by human: " << listStories[listStories.size() - 1].meaningStory.size();
@@ -2067,7 +2107,7 @@ bool narrativeHandler::askNarrate(int iInstance){
     //yInfo("display");
     //listStories[listStories.size() - 1].displayNarration();
 
-    yInfo(" END askNarrate");
+    yInfo(" END addHumanNarration");
     cout << endl;
 
     return true;
@@ -2131,13 +2171,13 @@ void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
         // Get the From sKeyMean
         storygraph::sKeyMean from;
         from.iIGARF = command.get(1).asList()->get(0).asInt();
-        from.cPart  = command.get(1).asList()->get(1).asString()[0];
-        from.iRel   = command.get(1).asList()->get(2).asInt();
+        from.cPart = command.get(1).asList()->get(1).asString()[0];
+        from.iRel = command.get(1).asList()->get(2).asInt();
         // Get the To sKeyMean
         storygraph::sKeyMean to;
         to.iIGARF = command.get(3).asList()->get(0).asInt();
-        to.cPart  = command.get(3).asList()->get(1).asString()[0];
-        to.iRel   = command.get(3).asList()->get(2).asInt();
+        to.cPart = command.get(3).asList()->get(1).asString()[0];
+        to.iRel = command.get(3).asList()->get(2).asInt();
         // Get meaning
         std::string m = command.get(2).asString();
 
@@ -2146,7 +2186,7 @@ void narrativeHandler::addLink(const Bottle& command, Bottle& reply) {
         for (int i = last; i < (int)sm.vDiscourseLinks.size(); i++) {
             const storygraph::sDiscourseLink& lk = sm.vDiscourseLinks.at(i);
             string link = lk.word + ": From " + lk.fromEvt.cPart + " of IGARF " + to_string(lk.fromEvt.iIGARF)
-                                  + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
+                + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
             yInfo(link);
             reply.addString(link);
         }
@@ -2173,7 +2213,7 @@ void narrativeHandler::LRHtoSM(string m, Bottle& reply, bool create) {
         for (int i = last; i < (int)sm.vDiscourseLinks.size(); i++) {
             const storygraph::sDiscourseLink& lk = sm.vDiscourseLinks.at(i);
             string link = lk.word + ": From " + lk.fromEvt.cPart + " of IGARF " + to_string(lk.fromEvt.iIGARF)
-                                  + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
+                + " to " + lk.toEvt.cPart + " of IGARF " + to_string(lk.toEvt.iIGARF);
             yInfo(link);
             reply.addString(link);
         }

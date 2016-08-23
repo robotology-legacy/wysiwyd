@@ -30,6 +30,9 @@ private:
     int cursorStories;
     void cleanMental();
 
+    std::map<int, std::vector<std::string>>  listAutoScenarios;
+    void initializeScenarios(yarp::os::Bottle bNarration, yarp::os::ResourceFinder &rf);
+
     double      period;
     bool lrh;
 
@@ -65,6 +68,9 @@ private:
     evtStory adaptMeaning(evtStory& evt);
 
     void addNarrationToStory(story &target, bool overWrite = false);
+    void addTextNarration(story &target, bool overWrite = false);    // add narration through text
+    void addAutoNarration(story &target, int iScena, bool overWrite = false);    // add a full narration (# iScena) to the story iIns
+
     void recordNarrationABM(story &target);
     void listeningStory();
     
@@ -72,7 +78,9 @@ private:
     std::string GrammarYesNo;
     bool shouldSpeak;
     bool narrate(int iIns);
-    bool askNarrate(int iIns);
+    
+    bool addHumanNarration(int iIns, std::string sModality = "speech", int iScena = 1);   // add narration through speech
+
     bool narrationToSpeech(story sto);
     bool narrationToMeaning(story& target);
     void imagineStory(story& target);

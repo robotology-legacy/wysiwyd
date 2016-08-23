@@ -108,6 +108,35 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
 }
 
 
+void narrativeHandler::addTextNarration(story &target, bool overWrite){
+    cout << " add text narration "<< endl;
+}
+
+
+void narrativeHandler::addAutoNarration(story &target, int iScena, bool overWrite){
+    cout << " add auto narration, scenario:  " << iScena << endl;
+
+    target.humanNarration = listAutoScenarios[iScena];
+
+    yInfo(" End of human narration, starting to create meaning with LRH");
+    if (true){   // to change to lrh
+        for (auto sentence : target.humanNarration){
+            removeUnderscoreString(sentence);
+            string meaning = iCub->getLRH()->SentenceToMeaning(sentence);
+            enrichMeaning(meaning, sentence);
+            target.meaningStory.push_back(meaning);
+        }
+    }
+    yInfo(" human narration meanings are:");
+    for (auto meani : target.meaningStory){
+        cout << "\t" << meani << endl;
+    }
+
+    // recording narration
+//    recordNarrationABM(target);
+
+}
+
 
 // take a meaning under the format: OCW, OCW OCW, OCW OCW, P1 P2 A2 O3 ... and return: , OCW1 OCW2 , OCW3 OCW4 OCW5 <o> [_-_-_-_-_-_-_-_][A-P-_-_-_-_-_-_][A-_-P-O-_-_-_-_] <o>
 void narrativeHandler::enrichMeaning(string &meaning, string sentence){
@@ -763,4 +792,30 @@ void narrativeHandler::listeningStory(){
     addNarrationToStory(target);
 
     narrationToMeaning(target);
+}
+
+
+
+
+
+void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &rf){
+
+    for (int ii = 0; ii < bNarrations.size(); ii++){
+        cout << "narration number: " << ii + 1 << ": " << bNarrations.get(ii).asString() << endl;
+        string currentNarration =  rf.findFileByName(bNarrations.get(ii).asString());
+
+        ifstream infile;
+        string currentLine;
+        infile.open(currentNarration);
+        vector<string>  vsNarration;
+        while (!infile.eof()){
+            getline(infile, currentLine);
+            cout << currentLine << endl;
+            vsNarration.push_back(currentLine);
+        }
+        infile.close();
+
+        listAutoScenarios[ii + 1] = vsNarration;
+        cout << endl;
+    }
 }

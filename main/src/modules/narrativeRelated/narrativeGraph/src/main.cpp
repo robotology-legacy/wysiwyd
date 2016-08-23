@@ -94,7 +94,7 @@ vOffset   70
 
  From narrativeHandler:
   - setNarrator + name
-  - askNarrate + instanceStory = default_value
+  - addHumanNarration + instanceStory = default_value
   - narrate + instanceStory = default_value
   - displayStories + n-back = default_all
   - listenStory
