@@ -231,6 +231,11 @@
         <to>/iCubGui/torso:i</to>
         <protocol>udp</protocol>
     </connection>
+    <connection>
+        <from>/homeostasis/stress:o</from>
+        <to>/visuoTactileRF/stress:i</to>
+        <protocol>udp</protocol>
+    </connection>
     <!--connection>
         <from>/skinManager/skin_events:o</from>
         <to>/iCubGui/forces</to>
