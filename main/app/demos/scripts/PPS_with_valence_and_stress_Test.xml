@@ -1,0 +1,246 @@
+<application>
+    <name>PPS_with_valence_and_stress_Test</name>
+
+    <dependencies>
+    </dependencies>
+   
+  
+    <module>
+        <name>pf3dTracker</name>
+        <parameters>--from pf3dTracker.ini</parameters>
+        <node>localhost</node>
+        <tag>PF3DTracker</tag>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /PF3DT_viewer --RefreshTime 33 --x 1400 --y 0 --w 320 --h 260 --compact</parameters>
+        <node>localhost</node>
+        <tag>PF3DTracker_viewer</tag>
+    </module>
+
+    <module> 
+        <name>visuoTactileWrapper</name>
+        <parameters>--noDoubleTouch</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+     </module>
+
+    <module>
+        <name>visuoTactileRF</name>
+        <parameters>--taxelsFile taxels1D_learnedAll.ini --rate 20</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+    <module>
+        <name>ppsAggregEventsForiCubGui</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag>aggregEvForiCubGui</tag>
+    </module>
+
+  
+    <!--module>
+        <name>yarpview</name>
+        <parameters>--name /vtRF/left --RefreshTime 33 --x 0 --y 0 --w 400 --h 400 --compact</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--name /vtRF/right --RefreshTime 33 --x 420 --y 0 --w 400 --h 400 --compact</parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+    </module-->
+     
+    <module>
+        <name>objectsPropertiesCollector</name>
+        <parameters>--name OPC --no-load-db --no-save-db</parameters>
+        <node>localhost</node>
+    </module>
+    <module>
+      <name>sensationManager</name>
+      <parameters>--from pps.ini</parameters>
+	  <node>localhost</node>
+	<tag>sensationManager</tag>
+   </module>
+   <module>
+      <name>homeostasis</name>
+      <parameters>--from pps.ini</parameters>
+      <node>localhost</node>
+    <tag>homeostasis</tag>
+   </module>
+   <module>
+      <name>allostaticController</name>
+      <parameters>--from pps.ini</parameters>
+      <node>localhost</node>
+    <tag>allostaticController</tag>
+   </module>
+   <module>
+      <name>behaviorManager</name>
+      <parameters>--from pps.ini</parameters>
+      <node>localhost</node>
+    <tag>behaviorManager</tag>
+   </module>
+
+    <module>
+        <name>guiUpdater</name>
+        <parameters>--displaySkeletons 1</parameters>
+        <node>localhost</node>
+    </module>
+    <module>
+        <name>opcPopulater</name>
+        <parameters></parameters>
+        <node>localhost</node>
+    </module>
+
+
+     <module>
+        <name>iCubGui</name>
+        <parameters>--xpos 1300 --ypos 330 --width 450 --height 550</parameters>
+        <node>localhost</node>
+    </module>
+
+    <!--module>
+        <name></name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <stdio></stdio>
+        <tag></tag>
+    </module-->
+  
+     <connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/pf3dTracker/video:i</to>
+        <protocol>udp</protocol>
+    </connection>     
+    <connection>
+        <from>/pf3dTracker/video:o</from>
+        <to>/PF3DT_viewer</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/pf3dTracker/data:o</from>
+        <to>/visuoTactileWrapper/pf3dTracker:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+     <connection>
+        <from>/opcSensation/objects:o</from>
+	    <to>/visuoTactileWrapper/sensManager:i</to>
+        <protocol>udp</protocol>
+     </connection>
+
+     <connection>
+        <from>/visuoTactileWrapper/events:o</from>
+        <to>/visuoTactileRF/events:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+     <connection>
+        <from>/skinManager/skin_events:o</from>
+        <to>/visuoTactileRF/skin_events:i</to>
+        <protocol>udp</protocol>
+    </connection>
+
+
+     <connection>
+        <from>/visuoTactileWrapper/gui:o</from>
+        <to>/iCubGui/objects</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/visuoTactileRF/pps_events_aggreg:o</from>
+	    <to>/ppsAggregEventsForiCubGui/pps_events_aggreg:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/ppsAggregEventsForiCubGui/contacts:o</from>
+	    <to>/iCubGui/forces</to>
+        <protocol>udp</protocol>
+    </connection>
+        
+      
+    <!--connection>
+        <from>/icub/camcalib/left/out</from>
+        <to>/visuoTactileRF/imageL:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/camcalib/right/out</from>
+        <to>/visuoTactileRF/imageR:i</to>
+        <protocol>udp</protocol>
+    </connection-->
+   
+   
+   
+    <connection>
+    <from>/visuoTactileRF/skinGuiForearmL:o</from>
+        <to>/skinGui/left_forearm_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+    <from>/visuoTactileRF/skinGuiForearmR:o</from>
+        <to>/skinGui/right_forearm_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+    <from>/visuoTactileRF/skinGuiHandL:o</from>
+        <to>/skinGui/left_hand_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+    <from>/visuoTactileRF/skinGuiHandR:o</from>
+        <to>/skinGui/right_hand_virtual:i</to>
+        <protocol>udp</protocol>
+    </connection>
+ 
+      <connection>
+        <from>/guiUpdater/gui:o</from>
+        <to>/iCubGui/objects</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/guiUpdater/guiBase:o</from>
+        <to>/iCubGui/base:i</to>
+        <protocol>udp</protocol>
+    </connection>
+   
+    <connection>
+        <from>/icub/head/state:o</from>
+        <to>/iCubGui/head:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/inertial</from>
+        <to>/iCubGui/inertial:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/left_arm/state:o</from>
+        <to>/iCubGui/left_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/right_arm/state:o</from>
+        <to>/iCubGui/right_arm:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <connection>
+        <from>/icub/torso/state:o</from>
+        <to>/iCubGui/torso:i</to>
+        <protocol>udp</protocol>
+    </connection>
+    <!--connection>
+        <from>/skinManager/skin_events:o</from>
+        <to>/iCubGui/forces</to>
+        <protocol>udp</protocol>
+    </connection-->
+
+
+    <!--connection>
+        <from></from>
+	<to></to>
+        <protocol>udp</protocol>
+    </connection-->
+</application>
