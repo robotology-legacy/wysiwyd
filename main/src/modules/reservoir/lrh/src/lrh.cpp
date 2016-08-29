@@ -98,15 +98,17 @@ bool LRH::configure(ResourceFinder &rf) {
     cout << "Connections done" << endl;
 
 
-    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
     // Start train mode of the reservoirs
     copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
-    std::cout << "Start Reservoirs" << std::endl;
+    cout << "Start Reservoirs" << endl;
     callReservoir(sreservoirAP.c_str(), sclosed_class_words);
     callReservoir(sreservoirNarratif.c_str(), sclosed_class_words);
-    std::cout << "Trains processed" << std::endl;
+    cout << "Trains processed" << endl;
     sMode = "test";
+
+    yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
+
 
     return bEveryThingisGood;
 }
@@ -298,7 +300,7 @@ bool LRH::callReservoir(string pythonFile, string sCCW)
     std::string l_pythonCmd("python " + pythonFile);
     std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + sMode + " " + \
             sCCW + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred + " " + sNbNeurons;
-    std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
+    cout << "l_pythonCall : " << l_pythonCall << endl;
 
     int python_return = system(l_pythonCall.c_str());
 
