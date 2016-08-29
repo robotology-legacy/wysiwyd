@@ -109,7 +109,7 @@ void narrativeHandler::addNarrationToStory(story &target, bool overWrite){
 
 
 void narrativeHandler::addTextNarration(story &target, bool overWrite){
-    cout << " add text narration "<< endl;
+    cout << " add text narration " << endl;
 }
 
 
@@ -133,7 +133,7 @@ void narrativeHandler::addAutoNarration(story &target, int iScena, bool overWrit
     }
 
     // recording narration
-//    recordNarrationABM(target);
+    //    recordNarrationABM(target);
 
 }
 
@@ -368,10 +368,10 @@ bool narrativeHandler::narrationToMeaning(story &target){
     //meaningToTest.push_back("now , have Robert hat <o> [_-_-P-_-_-_-_-_][A-P-_-O-_-_-_-_] <o>");
 
 
-//    target.humanNarration = storyToTest;
-//    target.meaningStory = meaningToTest;
+    //    target.humanNarration = storyToTest;
+    //    target.meaningStory = meaningToTest;
 
-//    target.viInstances.push_back(5000);
+    //    target.viInstances.push_back(5000);
 
     //    yInfo() << "BEGIN compareNarration: start to compare Narration from target: " << target.counter;
     for (auto& currentStory : listStories){
@@ -802,7 +802,7 @@ void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &r
 
     for (int ii = 0; ii < bNarrations.size(); ii++){
         cout << "narration number: " << ii + 1 << ": " << bNarrations.get(ii).asString() << endl;
-        string currentNarration =  rf.findFileByName(bNarrations.get(ii).asString());
+        string currentNarration = rf.findFileByName(bNarrations.get(ii).asString());
 
         ifstream infile;
         string currentLine;
@@ -817,5 +817,48 @@ void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &r
 
         listAutoScenarios[ii + 1] = vsNarration;
         cout << endl;
+    }
+}
+
+
+void narrativeHandler::checkScenarios(int iScena){
+    if (iScena == -1){
+        vector<pair<int, int>> vpiRes;
+        for (map<int, vector<string>>::iterator itMp = listAutoScenarios.begin(); itMp != listAutoScenarios.end(); itMp++){
+            cout << endl << "Narration number: " << itMp->first << endl;
+            int iSuccss = 0, iTot = 0;
+            for (vector<string>::iterator itLi = itMp->second.begin(); itLi != itMp->second.end(); itLi++){
+                //cout << "\t" << *itLi;
+//                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
+                if (iCub->getLRH()->SentenceToMeaning(*itLi) != "") { iSuccss++; }
+                iTot++;
+                //cout << "\t" << meaning << endl;
+            }
+            vpiRes.push_back(pair<int, int>(iSuccss, iTot));
+        }
+        cout << "Summary of scenarios check:" << endl;
+        int ii = 1;
+        for (vector<pair<int, int>>::iterator itV = vpiRes.begin();
+            itV != vpiRes.end();
+            itV++){
+            cout << "\tScenario: " << ii << ": " << itV->first << "/" << itV->second << endl;
+            ii++;
+        }
+    }
+    else {
+        if (iScena < listAutoScenarios.size())
+        {
+            int iSuccss = 0, iTot = 0;
+            cout << endl << "Narration number: " << iScena << endl;
+            for (vector<string>::iterator itLi = listAutoScenarios[iScena].begin();
+                itLi != listAutoScenarios[iScena].end();
+                itLi++){
+//                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
+                if (iCub->getLRH()->SentenceToMeaning(*itLi) != "") { iSuccss++; }
+                iTot++;
+            }
+            cout << "Summary of scenarios check:" << endl;
+            cout << "\tScenario: " << iScena << ": " << iSuccss << "/" << iTot << endl;
+        }
     }
 }

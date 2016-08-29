@@ -32,6 +32,7 @@ private:
 
     std::map<int, std::vector<std::string>>  listAutoScenarios;
     void initializeScenarios(yarp::os::Bottle bNarration, yarp::os::ResourceFinder &rf);
+    void checkScenarios(int iSce = -1);
 
     double      period;
     bool lrh;

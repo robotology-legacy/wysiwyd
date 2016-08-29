@@ -234,14 +234,15 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " setNarrator + name: \n" +
         " addHumanNarration + instanceStory (default_value) + type (speech - default, text, auto) + scenario (if auto. default 1) \n" +
         " displayKnownNarrations \n" +
-        " narrate + instanceStory = default_value: \n" +
+        " checkScenarios + scenario_number = all \n"
+        " narrate + instanceStory = default_value \n" +
         " displayKnownStories \n" +
-        " displayStories + n-back = default_all: \n" +
-        " listenStory: \n" +
+        " displayStories + n-back = default_all \n" +
+        " listenStory\n" +
         " cleanMental\n" +
         " cleanSM\n"
         " cleanLinks\n"
-        " ABMtoSM + instanceStory = last\n"
+        " ABMtoSM + storyNumber = last\n"
         " autoStructSM\n"
         " helpSM\n" +
         " SMtoTrain + sentence\n" +
@@ -284,6 +285,13 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         for (unsigned int ii = 0; ii < listStories.size(); ii++){
             cout << "story: " << ii << " -- instance start: " << listStories[ii].viInstances[0] << " -- size: " << listStories[ii].viInstances.size() << endl;
         }
+    } 
+    else if (command.get(0).asString() == "checkScenarios"){
+        int iScena = -1;
+        if (command.size() == 2){
+            iScena = command.get(1).asInt();
+        }
+        checkScenarios(iScena);
     }
     else if (command.get(0).asString() == "listeningStory"){
         listeningStory();
@@ -385,8 +393,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
                 reply.addString("creation sucessful");
             }
             else {
-                yInfo(" error: out of range");
-                reply.addString("Error: out of range");
+                yWarning() <<" error: out of range, max: "<<int(listStories.size()-1);
+                reply.addString("Error: out of range, max:");
+                reply.addInt(int(listStories.size())-1);
             }
         }
         else {
