@@ -243,6 +243,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " cleanSM\n"
         " cleanLinks\n"
         " ABMtoSM + storyNumber = last\n"
+        " linkNarrationScenario + iNarration + iScenario\n" +
         " autoStructSM\n"
         " helpSM\n" +
         " SMtoTrain + sentence\n" +
@@ -295,6 +296,14 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
     }
     else if (command.get(0).asString() == "listeningStory"){
         listeningStory();
+    }
+    else if (command.get(0).asString() == "linkNarrationScenario"){
+        if (command.size() != 3){
+            reply.addString("linkNarrationScenario takes 2 arguments (narration and scenario)");
+        }
+        else{
+            linkNarrationScenario(command.get(1).asInt() , command.get(2).asInt());
+        }
     }
     else if (command.get(0).asString() == "displayKnownNarrations"){
         for (map<int, vector<string>>::iterator itMp = listAutoScenarios.begin(); itMp != listAutoScenarios.end(); itMp++){

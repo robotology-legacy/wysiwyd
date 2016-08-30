@@ -829,7 +829,7 @@ void narrativeHandler::checkScenarios(int iScena){
             int iSuccss = 0, iTot = 0;
             for (vector<string>::iterator itLi = itMp->second.begin(); itLi != itMp->second.end(); itLi++){
                 //cout << "\t" << *itLi;
-//                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
+                //                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
                 if (iCub->getLRH()->SentenceToMeaning(*itLi) != "") { iSuccss++; }
                 iTot++;
                 //cout << "\t" << meaning << endl;
@@ -853,7 +853,7 @@ void narrativeHandler::checkScenarios(int iScena){
             for (vector<string>::iterator itLi = listAutoScenarios[iScena].begin();
                 itLi != listAutoScenarios[iScena].end();
                 itLi++){
-//                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
+                //                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
                 if (iCub->getLRH()->SentenceToMeaning(*itLi) != "") { iSuccss++; }
                 iTot++;
             }
@@ -861,4 +861,35 @@ void narrativeHandler::checkScenarios(int iScena){
             cout << "\tScenario: " << iScena << ": " << iSuccss << "/" << iTot << endl;
         }
     }
+}
+
+
+
+void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
+
+    // check sizes:
+    if (iNarration >= listAutoScenarios.size() || iScenario >= listStories.size()){
+        yWarning(" in narrativeHandler::linkNarrationScenario - index out or range.");
+        return;
+    }
+
+    // getting narration
+    if (iNarration < listAutoScenarios.size())
+    {
+        int iSuccss = 0, iTot = 0;
+        cout << endl << "Narration number: " << iNarration << endl;
+        for (vector<string>::iterator itLi = listAutoScenarios[iNarration].begin();
+            itLi != listAutoScenarios[iNarration].end();
+            itLi++){
+            //                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
+            if (iCub->getLRH()->SentenceToMeaning(*itLi) != "") { iSuccss++; }
+            iTot++;
+        }
+        cout << "Summary of scenarios check:" << endl;
+
+        cout << "\tScenario: " << iNarration << ": " << iSuccss << "/" << iTot << endl;
+    }
+
+    sm.ABMtoSM(listStories.at(iScenario));
+
 }
