@@ -58,8 +58,12 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
     researchWindows = rf.find("researchWindows").asInt() == 1;
+    
     Bottle *bNarration = rf.find("listScenario").asList();
     initializeScenarios(*bNarration, rf);
+
+    Bottle *bMeaning= rf.find("listMeaning").asList();
+    initializeMeaning(*bMeaning, rf);
 
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
 
@@ -200,7 +204,9 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    return true;
+    linkMeaningScenario(1, 12);
+
+    return false;
 }
 
 
@@ -234,7 +240,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " setNarrator + name: \n" +
         " addHumanNarration + instanceStory (default_value) + type (speech - default, text, auto) + scenario (if auto. default 1) \n" +
         " displayKnownNarrations \n" +
-        " checkScenarios + scenario_number = all \n"
+        " checkScenarios + scenario_number = all \n" +
         " narrate + instanceStory = default_value \n" +
         " displayKnownStories \n" +
         " displayStories + n-back = default_all \n" +
@@ -244,6 +250,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         " cleanLinks\n"
         " ABMtoSM + storyNumber = last\n"
         " linkNarrationScenario + iNarration + iScenario\n" +
+        " linkMeaningScenario + iNarration + iScenario\n" +
         " autoStructSM\n"
         " helpSM\n" +
         " SMtoTrain + sentence\n" +
@@ -302,7 +309,15 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
             reply.addString("linkNarrationScenario takes 2 arguments (narration and scenario)");
         }
         else{
-            linkNarrationScenario(command.get(1).asInt() , command.get(2).asInt());
+            linkNarrationScenario(command.get(1).asInt(), command.get(2).asInt());
+        }
+    }
+    else if (command.get(0).asString() == "linkMeaningScenario"){
+        if (command.size() != 3){
+            reply.addString("linkMeaningScenario takes 2 arguments (narration and scenario)");
+        }
+        else{
+            linkMeaningScenario(command.get(1).asInt(), command.get(2).asInt());
         }
     }
     else if (command.get(0).asString() == "displayKnownNarrations"){

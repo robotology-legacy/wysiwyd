@@ -21,6 +21,8 @@ using namespace yarp::os;
 using namespace yarp::sig;
 using namespace wysiwyd::wrdac;
 using namespace std;
+using namespace discourseform;
+using namespace storygraph;
 
 
 /*
@@ -230,7 +232,6 @@ void narrativeHandler::enrichMeaning(string &meaning, string sentence){
     //}
     int iPAOR = meaningPAOR.size();
     osMeaning << " <o> ";
-
 
     int iCurrentPAOR = 1;
     vector<string> currentProp;
@@ -797,7 +798,10 @@ void narrativeHandler::listeningStory(){
 
 
 
-
+/*
+* Get already written stories in a conf folder
+* (bypass the speech part)
+*/
 void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &rf){
 
     for (int ii = 0; ii < bNarrations.size(); ii++){
@@ -810,8 +814,10 @@ void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &r
         vector<string>  vsNarration;
         while (!infile.eof()){
             getline(infile, currentLine);
-            cout << currentLine << endl;
-            vsNarration.push_back(currentLine);
+            if (currentLine.find("#")){
+                cout << currentLine << endl;
+                vsNarration.push_back(currentLine);
+            }
         }
         infile.close();
 
@@ -821,11 +827,43 @@ void narrativeHandler::initializeScenarios(Bottle bNarrations, ResourceFinder &r
 }
 
 
+/*
+* Get already written meaning for stories in a conf folder
+* (bypass the speech part then the lrh part)
+*/
+void narrativeHandler::initializeMeaning(Bottle bMeaning, ResourceFinder &rf){
+
+    for (int ii = 0; ii < bMeaning.size(); ii++){
+        cout << "meaning number: " << ii + 1 << ": " << bMeaning.get(ii).asString() << endl;
+        string currentNarration = rf.findFileByName(bMeaning.get(ii).asString());
+
+        ifstream infile;
+        string currentLine;
+        infile.open(currentNarration);
+        vector<string>  vsMeaning;
+        while (!infile.eof()){
+            getline(infile, currentLine);
+            if (currentLine.find("#")){
+                cout << currentLine << endl;
+                vsMeaning.push_back(currentLine);
+            }
+        }
+        infile.close();
+
+        listAutoMeaning[ii + 1] = vsMeaning;
+        cout << endl;
+    }
+}
+
+/*
+* Test if the scenarios in the conf folder can be understood by lrh
+*
+*/
 void narrativeHandler::checkScenarios(int iScena){
     if (iScena == -1){
         vector<pair<int, int>> vpiRes;
         for (map<int, vector<string>>::iterator itMp = listAutoScenarios.begin(); itMp != listAutoScenarios.end(); itMp++){
-            cout << endl << "Narration number: " << itMp->first << endl;
+            cout << endl << "narration number: " << itMp->first << endl;
             int iSuccss = 0, iTot = 0;
             for (vector<string>::iterator itLi = itMp->second.begin(); itLi != itMp->second.end(); itLi++){
                 //cout << "\t" << *itLi;
@@ -849,7 +887,7 @@ void narrativeHandler::checkScenarios(int iScena){
         if (iScena < listAutoScenarios.size())
         {
             int iSuccss = 0, iTot = 0;
-            cout << endl << "Narration number: " << iScena << endl;
+            cout << endl << "narration number: " << iScena << endl;
             for (vector<string>::iterator itLi = listAutoScenarios[iScena].begin();
                 itLi != listAutoScenarios[iScena].end();
                 itLi++){
@@ -864,14 +902,20 @@ void narrativeHandler::checkScenarios(int iScena){
 }
 
 
-
+/*
+* Try to link the meaning of a narration to a SM
+*
+*/
 void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
 
     // check sizes:
-    if (iNarration >= listAutoScenarios.size() || iScenario >= listStories.size()){
+    if (iNarration > listAutoScenarios.size() || iScenario > listStories.size()){
         yWarning(" in narrativeHandler::linkNarrationScenario - index out or range.");
         return;
     }
+
+    // getting scenario
+    sm.ABMtoSM(listStories.at(iScenario));
 
     // getting narration
     if (iNarration < listAutoScenarios.size())
@@ -889,7 +933,192 @@ void narrativeHandler::linkNarrationScenario(int iNarration, int iScenario){
 
         cout << "\tScenario: " << iNarration << ": " << iSuccss << "/" << iTot << endl;
     }
+}
 
+
+/*
+* Try to link the meaning of a narration to a SM
+*
+*/
+void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
+
+    // check sizes:
+    if (iMeaning > listAutoMeaning.size() || iScenario > listStories.size()){
+        yWarning(" in narrativeHandler::linkMeaningScenario - index out or range.");
+        return;
+    }
+
+    // getting scenario
     sm.ABMtoSM(listStories.at(iScenario));
 
+    // getting narration
+    if (iMeaning <= listAutoMeaning.size())
+    {
+        cout << endl << "meaning number: " << iMeaning << endl;
+        for (vector<string>::iterator itLi = listAutoMeaning[iMeaning].begin();
+            itLi != listAutoMeaning[iMeaning].end();
+            itLi++){
+            //                string meaning = iCub->getLRH()->SentenceToMeaning(*itLi);
+            cout << *itLi << endl;
+        }
+    }
+
+    meaningDiscourse MD;
+    // creatino of the MD from the discourse
+    MD.meaningToDiscourseForm(listAutoMeaning[iMeaning]);
+
+    int indice = 0;
+    int iRank = 0;// number proposition
+    // check for each proposition, if it can be asociated to a event of the Scenario
+
+
+    //if (sm.vActionEvts.size() != sm.vRelations.size()
+    //    || sm.vRelations.size() != sm.vDiscourseLinks.size()
+    //    || sm.vDiscourseLinks.size() != sm.vIGARF.size()
+    //    || sm.vIGARF.size() != sm.vActionEvts.size()){
+    //    cout << " SIZE PROBLEM IN THE SM " << endl;
+    //    cout << "sm.vActionEvt: " << sm.vActionEvts.size() << endl;
+    //    cout << "sm.vRelations: " << sm.vRelations.size() << endl;
+    //    cout << "sm.vDiscourseLinks: " << sm.vDiscourseLinks.size() << endl;
+    //    cout << "sm.vIGARF: " << sm.vIGARF.size() << endl;
+    //}
+
+
+    //for (vector<sIGARF>::iterator currentIGARF = sm.vIGARF.begin();
+    //    currentIGARF != sm.vIGARF.end();
+    //    currentIGARF++){
+    //    cout << "------------" << endl;
+    //    cout << "iAction: " << currentIGARF->iAction << " " << sm.vActionEvts[currentIGARF->iAction].agent <<
+    //        " " << sm.vActionEvts[currentIGARF->iAction].predicate <<
+    //        " " << sm.vActionEvts[currentIGARF->iAction].object <<
+    //        " " << sm.vActionEvts[currentIGARF->iAction].recipient << endl;
+    //    cout << "iResult: " << currentIGARF->iResult <<
+    //        // " " << sm.vRelations[currentIGARF->iResult].object <<
+    //        // " " << sm.vRelations[currentIGARF->iResult].subject <<
+    //        // " " << sm.vRelations[currentIGARF->iResult].verb <<
+    //        endl;
+    //    cout << "tAction: " << currentIGARF->tAction << endl;
+    //    cout << "tResult: " << currentIGARF->tResult << endl;
+    //    cout << "iNext:   " << currentIGARF->iNext << endl;
+    //    cout << "vInitState: ";
+    //    for (vector<int>::iterator it = currentIGARF->vInitState.begin(); it != currentIGARF->vInitState.end(); it++){
+    //        cout << *it << "  ";
+    //    }
+    //    cout << endl << "vGoal:  ";
+    //    for (vector<int>::iterator it = currentIGARF->vGoal.begin(); it != currentIGARF->vGoal.end(); it++){
+    //        cout << *it << "  ";
+    //    }
+    //    cout << endl << "vFinalState:  ";
+    //    for (vector<int>::iterator it = currentIGARF->vFinalState.begin(); it != currentIGARF->vFinalState.end(); it++){
+    //        cout << *it << "  ";
+    //    }
+    //    cout << endl;
+
+
+    //}
+
+    for (vector<sIGARF>::iterator currentIGARF = sm.vIGARF.begin();
+        currentIGARF != sm.vIGARF.end();
+        currentIGARF++){
+
+        for (vector<meaningSentence>::iterator level1 = MD.meanings.vDiscourse.begin();
+            level1 != MD.meanings.vDiscourse.end();
+            level1++
+            )
+        {
+            for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
+                level2 != level1->vSentence.end();
+                level2++){
+
+                double iScore = 0;
+
+
+                // proposition level:
+
+
+                for (int iWord = 0; iWord < level2->vOCW.size(); iWord++){
+
+                    // if the Word is a predicate
+                    if (level2->vRole[iWord][0] == 'P'){
+                        // if this predicate is predicate of the action
+                        if (sm.vActionEvts[currentIGARF->iAction].predicate == level2->vOCW[iWord]){
+                            iScore += 1;
+                            cout << "*";
+                        }
+
+                        // if this predicate is verb of a initial state
+                        // for each relation, check the predicate of the relation
+                        for (vector<int>::iterator itInit = currentIGARF->vInitState.begin(); itInit != currentIGARF->vInitState.end(); itInit++){
+                            if (sm.vRelations[*itInit].verb == level2->vOCW[iWord]){
+                                iScore += 1;
+                                cout << "*";
+                            }
+                        }
+
+                        // idem for final state
+                        for (vector<int>::iterator itInit = currentIGARF->vFinalState.begin(); itInit != currentIGARF->vFinalState.end(); itInit++){
+                            if (sm.vRelations[*itInit].verb == level2->vOCW[iWord]){
+                                iScore += 0.1;
+                                cout << "8";
+                            }
+                        }
+
+                    }
+                    // end if predicate
+                }
+
+                //for (vector<string>::iterator OCW = level2->vOCW.begin();
+                //    OCW != level2->vOCW.end();
+                //    OCW++){
+
+                //    // check common action
+                //    if (sm.vActionEvts[currentIGARF->iAction].agent == *OCW
+                //        || sm.vActionEvts[currentIGARF->iAction].object == *OCW
+                //        || sm.vActionEvts[currentIGARF->iAction].predicate == *OCW
+                //        || sm.vActionEvts[currentIGARF->iAction].recipient == *OCW){
+
+                //        iScore += 1;
+                //    }
+
+                //    //check OCW with initial state
+                //    for (vector<int>::iterator itRel = currentIGARF->vInitState.begin(); itRel != currentIGARF->vInitState.end(); itRel++){
+                //        if (sm.vRelations[*itRel].object == *OCW
+                //            || sm.vRelations[*itRel].subject == *OCW
+                //            || sm.vRelations[*itRel].verb == *OCW){
+                //            iScore += 1;
+                //        }
+                //    }
+
+                //    //check OCW with initial state
+                //    for (vector<int>::iterator itRel = currentIGARF->vGoal.begin(); itRel != currentIGARF->vGoal.end(); itRel++){
+                //        if (sm.vRelations[*itRel].object == *OCW
+                //            || sm.vRelations[*itRel].subject == *OCW
+                //            || sm.vRelations[*itRel].verb == *OCW){
+                //            iScore += 1;
+                //        }
+                //    }
+
+                //    //check OCW with final state
+                //    for (vector<int>::iterator itRel = currentIGARF->vFinalState.begin(); itRel != currentIGARF->vFinalState.end(); itRel++){
+                //        if (sm.vRelations[*itRel].object == *OCW
+                //            || sm.vRelations[*itRel].subject == *OCW
+                //            || sm.vRelations[*itRel].verb == *OCW){
+                //            iScore += 0.1;
+                //        }
+                //    }
+
+
+                //}
+                level2->vLinkEvt.push_back(pair<int, double>(iRank, iScore));
+
+            }
+        }
+
+        iRank++;
+    }
+
+    MD.print();
+
 }
+
+

@@ -17,6 +17,11 @@
 
 //#include "wrdac/clients/icubClient.h"
 
+
+#ifndef _EVTSTORY_H_
+#define _EVTSTORY_H_
+
+
 // STD
 #include <vector>
 #include <string>
@@ -64,3 +69,5 @@ public:
 extern void addUnderscoreString(std::string &input);
 extern void removeUnderscoreString(std::string &input);
 extern bool isIn(std::vector<std::string> vec, std::string str);
+
+#endif

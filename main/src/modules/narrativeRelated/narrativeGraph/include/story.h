@@ -15,6 +15,9 @@
  * Public License for more details
  */
 
+#ifndef _STORY_H_
+#define _STORY_H_
+
 
 #include <evtStory.h>
 
@@ -80,3 +83,5 @@ public:
 
 
 };
+
+#endif

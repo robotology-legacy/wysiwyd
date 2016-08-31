@@ -31,7 +31,9 @@ private:
     void cleanMental();
 
     std::map<int, std::vector<std::string>>  listAutoScenarios;
+    std::map<int, std::vector<std::string>>  listAutoMeaning;
     void initializeScenarios(yarp::os::Bottle bNarration, yarp::os::ResourceFinder &rf);
+    void initializeMeaning(yarp::os::Bottle bMeaning, yarp::os::ResourceFinder &rf);
     void checkScenarios(int iSce = -1);
 
     double      period;
@@ -113,6 +115,7 @@ private:
     void createNarration(story &sto);
     std::string createMeaning(std::string agent, std::string predicate, std::string object = "", std::string recipient = "");
     void linkNarrationScenario(int iNarration, int iScenario);
+    void linkMeaningScenario(int iMeaning, int iScenario);
 
     // SituationModel
     storygraph::SituationModel sm; ///< Current Situation Model

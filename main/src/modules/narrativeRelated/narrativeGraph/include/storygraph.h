@@ -19,6 +19,7 @@
 #define _STORYGRAPH_H_
 
 #include <semanticscanner.h>
+#include <discourseform.h>
 
 namespace storygraph {
 
