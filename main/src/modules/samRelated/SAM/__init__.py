@@ -7,7 +7,6 @@ import numpy as np
 import pylab as pb
 from . import SAM_Core
 from . import SAM_Drivers
-#from . import SAM_Demos
 
 pb.ion()
 
