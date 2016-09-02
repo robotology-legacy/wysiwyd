@@ -1,4 +1,5 @@
 # Copyright (c) 2015, Andreas Damianou
+<<<<<<< 854f4746d5eb91a2612f255559418e136171cc13
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 # from .SAMDriver_speech import *
@@ -7,6 +8,9 @@ from .SAMDriver_temporalActions import *
 from .SAMDriver_temporal import *
 =======
 =======
+=======
+<<<<<<< 08e1b9b6b4f32ccd2b7b29bc5b21dee094de17b4
+>>>>>>> updated version of samSupervisor and generic train and interaction implementations
 <<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
 >>>>>>> updated SAM folder
 from .SAMDriver_faces import *
@@ -33,3 +37,10 @@ pb.ion()
 
 default_seed = 123344
 >>>>>>> updated SAM folder
+=======
+# from .SAMDriver_speech import *
+from .SAMDriver_AR import *
+from .SAMDriver_temporalActions import *
+from .SAMDriver_temporal import *
+from .SAMDriver_interaction import *
+>>>>>>> updated version of samSupervisor and generic train and interaction implementations
