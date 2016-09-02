@@ -495,16 +495,30 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
     SAMObjPruned['kernelString'] = mm.kernelString
     SAMObjPruned.update(extraDict)
 
+    # if economy:
+    #     SAMObjPruned['modelPath'] = fileName + '_model.h5'
+    #     #if file exists delete
+    #     if(os.path.isfile(SAMObjPruned['modelPath'])):
+    #         os.remove(SAMObjPruned['modelPath'])
+    #     mm.model.save(SAMObjPruned['modelPath'])
+    # else:
+    #     SAMObjPruned['modelPath'] = fileName + '_model.pickle'
+    #     mm.model.pickle(SAMObjPruned['modelPath'])
+    folderPath = os.path.join('/', *fileName.split('/')[:-1])
+    fileName = fileName.split('/')[-1]
+
     if economy:
         SAMObjPruned['modelPath'] = fileName + '_model.h5'
         #if file exists delete
-        if(os.path.isfile(SAMObjPruned['modelPath'])):
-            os.remove(SAMObjPruned['modelPath'])
-        mm.model.save(SAMObjPruned['modelPath'])
+        if(os.path.isfile(os.path.join(folderPath,SAMObjPruned['modelPath']))):
+            os.remove(os.path.join(folderPath,SAMObjPruned['modelPath']))
+        if mm.model:
+            mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
     else:
         SAMObjPruned['modelPath'] = fileName + '_model.pickle'
-        mm.model.pickle(SAMObjPruned['modelPath'])
-    output = open(fileName+'.pickle', 'wb')
+        mm.model.pickle(os.path.join(folderPath,SAMObjPruned['modelPath']))
+
+    output = open(os.path.join(folderPath,fileName) +'.pickle', 'wb')
     pickle.dump(SAMObjPruned, output)
     output.close()
 
@@ -516,12 +530,13 @@ def load_pruned_model(fileName='m_pruned', economy=False, m=None):
     in this case calling the present function will set its parameters (meaning that you still need to
     create a model but don't need to optimize it.)
     """
+    folderPath = os.path.join('/',*fileName.split('/')[:-1])
     SAMObjPruned = pickle.load(open(fileName + '.pickle','rb'))
     SAMObject=LFM()
     if economy:
         assert m is not None
         import tables
-        f = tables.open_file(SAMObjPruned['modelPath'],'r')
+        f = tables.open_file(os.path.join(folderPath,SAMObjPruned['modelPath']),'r')
         m.param_array[:] = f.root.param_array[:]
         f.close()
         m._trigger_params_changed()
