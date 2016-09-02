@@ -129,6 +129,8 @@ private:
     void addLink(const yarp::os::Bottle& cmd, yarp::os::Bottle& reply);
     void LRHtoSM(std::string m, yarp::os::Bottle& reply, bool create = false);
     void sentenceToTrain(std::string s, yarp::os::Bottle& reply);
+
+    std::string lowerKey(std::string input);
 };
 
 

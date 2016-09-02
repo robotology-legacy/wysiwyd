@@ -46,6 +46,13 @@ namespace storygraph {
         char cPart; ///< I (InitState) G (Goal) A (Action) R (Result) F (FinalState)
         int iRel; ///< Relation index, -1 if no relation is pointed at
                   ///< @warning It is the index in the part pointed at, not in SituationModel::vRelations.
+
+        std::string toString(){
+            std::ostringstream os;
+//            std::cout << "IGARF: " << iIGARF << " char: " << cPart << " iRel: " << iRel << std::endl;
+            os << "IGARF: " << iIGARF << " char: " << cPart << " iRel: " << iRel;
+            return os.str();
+        }
     };
     bool operator==(const sKeyMean& A, const sKeyMean& B);
 

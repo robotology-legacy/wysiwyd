@@ -2284,3 +2284,10 @@ void narrativeHandler::sentenceToTrain(string s, Bottle& reply) {
         }
     }
 }
+
+
+string narrativeHandler::lowerKey(string input){
+    string tmp = input;
+    transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+    return tmp;
+}
