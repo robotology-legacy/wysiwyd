@@ -504,23 +504,7 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
     # else:
     #     SAMObjPruned['modelPath'] = fileName + '_model.pickle'
     #     mm.model.pickle(SAMObjPruned['modelPath'])
-<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
-<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
-<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     folderPath = os.path.join('/', *fileName.split('/')[:-1])
-=======
-    folderPath = os.path.join('/',*fileName.split('/')[:-1])
->>>>>>> New version of samSupervisor with rpc interface and README
-=======
-<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
-    folderPath = os.path.join('/',*fileName.split('/')[:-1])
-=======
-    folderPath = os.path.join('/', *fileName.split('/')[:-1])
->>>>>>> updated SAM folder
->>>>>>> updated SAM folder
-=======
-    folderPath = os.path.join('/', *fileName.split('/')[:-1])
->>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     fileName = fileName.split('/')[-1]
 
     if economy:
@@ -528,26 +512,8 @@ def save_pruned_model(mm, fileName='m_pruned', economy=False, extraDict=dict()):
         #if file exists delete
         if(os.path.isfile(os.path.join(folderPath,SAMObjPruned['modelPath']))):
             os.remove(os.path.join(folderPath,SAMObjPruned['modelPath']))
-<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
-<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
-<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         if mm.model:
             mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
-=======
-        mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
->>>>>>> New version of samSupervisor with rpc interface and README
-=======
-<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
-        mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
-=======
-        if mm.model:
-            mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
->>>>>>> updated SAM folder
->>>>>>> updated SAM folder
-=======
-        if mm.model:
-            mm.model.save(os.path.join(folderPath,SAMObjPruned['modelPath']))
->>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     else:
         SAMObjPruned['modelPath'] = fileName + '_model.pickle'
         mm.model.pickle(os.path.join(folderPath,SAMObjPruned['modelPath']))

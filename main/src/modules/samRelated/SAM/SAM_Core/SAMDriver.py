@@ -55,15 +55,6 @@ class SAMDriver:
         self.segTestPerc = None
         self.data_labels = None
         self.paramsDict = dict()
-<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
-<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
-<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
-=======
-<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
-=======
->>>>>>> updated SAM folder
-=======
->>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         self.verbose = False
         self.model_mode = False
         self.Quser = None
@@ -80,15 +71,6 @@ class SAMDriver:
 
         self.classifiers = None
         self.classif_thresh = None
-<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
-<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
-=======
->>>>>>> New version of samSupervisor with rpc interface and README
-=======
->>>>>>> updated SAM folder
->>>>>>> updated SAM folder
-=======
->>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
         self.model_num_inducing = 0
         self.model_num_iterations = 0
@@ -137,79 +119,10 @@ class SAMDriver:
 
         return self.segTestConf
 
-<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
-<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
-<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 
     # """"""""""""""""
     # Method to train, store and load the learned model
     # Inputs:
-=======
-=======
-<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
->>>>>>> updated SAM folder
-    #""""""""""""""""
-    #Methods to create the ports for reading images from iCub eyes
-    #Inputs: None
-    #Outputs: None
-    #""""""""""""""""
-    def createPorts(self):
-        if self.isYarpRunning:
-            self.imageDataInputPort = yarp.BufferedPortImageRgb()
-            self.outputFacePrection = yarp.Port()
-            self.speakStatusPort = yarp.RpcClient();
-            self.speakStatusOutBottle = yarp.Bottle()
-            self.speakStatusInBottle = yarp.Bottle()
-            self.imageInputBottle = yarp.Bottle()
-
-    #""""""""""""""""
-    #Method to open the ports. It waits until the ports are connected
-    #Inputs: None
-    #Outputs: None
-    #""""""""""""""""
-    def openPorts(self):
-        if self.isYarpRunning:
-            print "open ports"
-            self.imageDataInputPort.open("/sam/face/imageData:i");
-            self.outputFacePrection.open("/sam/face/facePrediction:o")
-            self.speakStatusPort.open("/sam/face/speakStatus:i")
-            self.speakStatusOutBottle.addString("stat")
-
-        #print "Waiting for connection with imageDataInputPort..."
-#        while( not(yarp.Network.isConnected(self.inputImagePort,"/sam/imageData:i")) ):
-#            print "Waiting for connection with imageDataInputPort..."
-#            pass
-
-    def closePorts(self):
-        if self.isYarpRunning:
-            print "open ports"
-            self.actionDataInputPort.close();
-            self.outputActionPrediction.close()
-            self.speakStatusPort.close()
-        #self.speakStatusOutBottle.addString("stat")
-        #print "Waiting for connection with actionDataInputPort..."
-        #while( not(yarp.Network.isConnected(self.inputActionPort,"/sam/actionData:i")) ):
-        #    print "Waiting for connection with actionDataInputPort..."
-        #    pass
-
-    #""""""""""""""""
-    #Method to train, store and load the learned model to be use for the face recognition task
-    #Inputs:
-<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
->>>>>>> New version of samSupervisor with rpc interface and README
-=======
-=======
-=======
->>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
-
-    # """"""""""""""""
-    # Method to train, store and load the learned model
-    # Inputs:
-<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
->>>>>>> updated SAM folder
->>>>>>> updated SAM folder
-=======
->>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     #    - modelNumInducing:
     #    - modelNumIterations:
     #    - modelInitIterations:
@@ -241,25 +154,7 @@ class SAMDriver:
 
             kernel = None
             if Q > 100:
-<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
-<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
-<<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                 if kernelStr is not None:
-=======
-                #one could parse and execute the string kernelStr for kernel instead of line below
-                if(kernelStr is not None):
->>>>>>> New version of samSupervisor with rpc interface and README
-=======
-<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
-                #one could parse and execute the string kernelStr for kernel instead of line below
-                if(kernelStr is not None):
-=======
-                if kernelStr is not None:
->>>>>>> updated SAM folder
->>>>>>> updated SAM folder
-=======
-                if kernelStr is not None:
->>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     stringKernel = 'kernel = ' + kernelStr
                 else:
                     stringKernel = 'kernel = GPy.kern.RBF(Q, ARD=False) + GPy.kern.Bias(Q) + GPy.kern.White(Q)'
