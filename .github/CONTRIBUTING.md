@@ -69,7 +69,15 @@ This is the typical workflow to fix a bug in the `devel` branch.
   ```
 
 * Fix the bug and make one or more commits.
-* [Push the branch on your fork and create a pull request](https://help.github.com/categories/collaborating-on-projects-using-pull-requests/).
+* [Push the branch on your fork and create a pull request](https://help.github.com/categories/collaborating-on-projects-using-pull-requests/). To do so, you might want to first rebase `devel` into your new branch by following these steps (**warning**: never use `merge` to do this):
+  1. `git fetch origin` (to update your local remotes)
+  2. `git pull --rebase devel` (to update `devel`)
+  3. `git pull --rebase fix/<branch_name>` (to update your branch, but it might be not necessary)
+  4. `git checkout fix/<branch_name>`
+  5. `git rebase devel` (to introduce your modifications on top of `devel`)
+      - at this point you might need to solve possible conflicts 
+  6. `git push --force-with-lease` (to publish your modifications) 
+now you can proceed opening up the PR on GitHub with `base:devel` and `compare:feature/upf/goal` (edited
 * Wait for someone else to review your fix and merge your pull request.
 
 Likewise, one can proceed for developing a new feature, for which we use a dedicated
