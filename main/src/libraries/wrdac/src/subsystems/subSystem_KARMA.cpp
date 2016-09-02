@@ -1,14 +1,6 @@
 #include <yarp/os/all.h>
 #include "wrdac/subsystems/subSystem_KARMA.h"
 
-//void wysiwyd::wrdac::SubSystem_KARMA::appendCartesianTarget(yarp::os::Bottle &b, const yarp::sig::Vector &t)
-//{
-//    yarp::os::Bottle &sub=b.addList();
-//    sub.addString("cartesian");
-//    for (size_t i=0; i<t.length(); i++)
-//        sub.addDouble(t[i]);
-//}
-
 void wysiwyd::wrdac::SubSystem_KARMA::appendTarget(yarp::os::Bottle &b, const yarp::sig::Vector &t)
 {
     yarp::os::Bottle &sub=b;
@@ -91,7 +83,6 @@ wysiwyd::wrdac::SubSystem_KARMA::SubSystem_KARMA(const std::string &masterName) 
     visionPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/vision:i").c_str());
     finderPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/finder:rpc").c_str());
     m_type = SUBSYSTEM_KARMA;
-//    lastlyUsedHand="";
 }
 
 void wysiwyd::wrdac::SubSystem_KARMA::Close()

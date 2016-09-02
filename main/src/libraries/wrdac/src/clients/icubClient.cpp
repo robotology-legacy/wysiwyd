@@ -600,7 +600,7 @@ bool ICubClient::push(const Vector &target, const Bottle &options, std::string s
 
 // KARMA
 bool ICubClient::push(const yarp::sig::Vector &targetCenter, const double &theta, const double &radius,
-          const yarp::os::Bottle &options, std::string sName)
+                      const yarp::os::Bottle &options, std::string sName)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -612,8 +612,8 @@ bool ICubClient::push(const yarp::sig::Vector &targetCenter, const double &theta
 }
 
 bool ICubClient::draw(const yarp::sig::Vector &targetCenter, const double &theta,
-          const double &radius, const double &dist,
-          const yarp::os::Bottle &options, std::string sName)
+                      const double &radius, const double &dist,
+                      const yarp::os::Bottle &options, std::string sName)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
@@ -625,8 +625,8 @@ bool ICubClient::draw(const yarp::sig::Vector &targetCenter, const double &theta
 }
 
 bool ICubClient::vdraw(const yarp::sig::Vector &targetCenter, const double &theta,
-          const double &radius, const double &dist,
-          const yarp::os::Bottle &options, std::string sName)
+                       const double &radius, const double &dist,
+                       const yarp::os::Bottle &options, std::string sName)
 {
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
