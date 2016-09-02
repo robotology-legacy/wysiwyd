@@ -86,20 +86,20 @@ int main()
 //    iCub.home();    // Home by using ARE
     x[1] =x[1] - 0.1;
     cout<<"try to push with KARMA...";
-    bool ok = iCub.push(x,0,0.4);
+    bool ok = iCub.pushKarma(x,0,0.4);
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 
 //    iCub.home();    // Home by using ARE
     x[1] =x[1] + 0.1;
     cout<<"try to pull with KARMA...";
-    ok = iCub.draw(x,0,0.2,0.2);
+    ok = iCub.drawKarma(x,0,0.2,0.2);
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 
 //    iCub.home();    // Home by using ARE
     cout<<"try to virtual pull with KARMA...";
-    ok = iCub.vdraw(x,0,0.2,0.3);
+    ok = iCub.vdrawKarma(x,0,0.2,0.3);
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 
