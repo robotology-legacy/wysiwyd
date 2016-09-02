@@ -258,6 +258,7 @@ class SAMDriver_AR(SAMDriver):
 
     def chooseFeatures(self, handDataStruct):
         v = np.array(len(handDataStruct))
+<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         vec2 = None
         for j in range(len(self.paramsDict['featuresToUse'])):
@@ -287,6 +288,9 @@ class SAMDriver_AR(SAMDriver):
         # print str(idx) +str(len(idx))
         if len(valsPossible) > 0:  # extract features from discrete data
 =======
+=======
+<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
+>>>>>>> updated SAM folder
         for j in range(len(self.featuresToUse)):
             vec = self.formatFeatures2(handDataStruct, self.featureSections[self.featuresToUse[j]], self.featureValues[self.featuresToUse[j]])
             # Remove last index and normalise wr the sum of frames
@@ -308,7 +312,39 @@ class SAMDriver_AR(SAMDriver):
     #     print str(valsPossible) + str(len(valsPossible))
     #     print str(idx) +str(len(idx))
         if(len(valsPossible) > 0): #extract features from discrete data
+<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 >>>>>>> New version of samSupervisor with rpc interface and README
+=======
+=======
+        vec2 = None
+        for j in range(len(self.paramsDict['featuresToUse'])):
+
+            vec = self.formatFeatures2(handDataStruct, self.featureSections[self.paramsDict['featuresToUse'][j]],
+                                       self.featureValues[self.paramsDict['featuresToUse'][j]])
+
+            # Remove last index and normalise wr the sum of frames
+            if self.paramsDict['ignoreStationary'] and self.paramsDict['featuresToUse'][j] in \
+                    ['relativePositionLabel', 'selfMovementLabelL', 'selfMovementLabelK']:
+                if j == 0:
+                    vec2 = vec[:-1] / v
+                else:
+                    vec2 = np.hstack((vec2, vec[:-1] / v))
+            else:
+                if j == 0:
+                    vec2 = vec / v
+                else:
+                    vec2 = np.hstack((vec2, vec/v))
+            vec2 = np.nan_to_num(vec2)
+
+        return vec2
+
+    @staticmethod
+    def formatFeatures2(inputArr, idx, valsPossible):
+        # print str(valsPossible) + str(len(valsPossible))
+        # print str(idx) +str(len(idx))
+        if len(valsPossible) > 0:  # extract features from discrete data
+>>>>>>> updated SAM folder
+>>>>>>> updated SAM folder
             vec = np.zeros((len(valsPossible)*len(idx)))
             for b in range(len(idx)):
                 for i in range(len(inputArr)):
@@ -316,6 +352,7 @@ class SAMDriver_AR(SAMDriver):
                     vec[offset + valsPossible.index(inputArr[i][idx[b]])] += 1
     #                 print
     #         print vec
+<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         else:  # extract features from continuous data
             vec = 1
@@ -325,6 +362,9 @@ class SAMDriver_AR(SAMDriver):
     def readData(self, root_data_dir, participant_index, *args, **kw):
         # this function reads from data files and prepares a Y and an X
 =======
+=======
+<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
+>>>>>>> updated SAM folder
         else: #extract features from continuous data
             vec = 1
 
@@ -332,7 +372,19 @@ class SAMDriver_AR(SAMDriver):
     
     def readData(self, root_data_dir, participant_index):
         #this function reads from data files and prepares a Y and an X
+<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 >>>>>>> New version of samSupervisor with rpc interface and README
+=======
+=======
+        else:  # extract features from continuous data
+            vec = 1
+
+        return vec
+
+    def readData(self, root_data_dir, participant_index, *args, **kw):
+        # this function reads from data files and prepares a Y and an X
+>>>>>>> updated SAM folder
+>>>>>>> updated SAM folder
         onlyfiles = [f for f in listdir(root_data_dir) if isfile(join(root_data_dir, f))]
         dataLogList = [f for f in onlyfiles if 'data' in f]
         dataLogList.sort()
@@ -1063,6 +1115,7 @@ class SAMDriver_AR(SAMDriver):
 
         return SAMTesting.calculateData(liveLabels, confMatrix)
 
+<<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     def processLiveData(self, dataList, thisModel):
         # print 'process live data'
@@ -1075,3 +1128,17 @@ class SAMDriver_AR(SAMDriver):
         if(mode == 'testing'):
             return classification
 >>>>>>> New version of samSupervisor with rpc interface and README
+=======
+<<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
+        if(mode == 'testing'):
+            return classification
+=======
+    def processLiveData(self, dataList, thisModel):
+        # print 'process live data'
+        classification = self.sequenceProcessing(thisModel, dataList[-1].toString(), mode='live', verbose=True)
+        dataList = []
+        if classification == '':
+            classification = None
+        return classification
+>>>>>>> updated SAM folder
+>>>>>>> updated SAM folder
