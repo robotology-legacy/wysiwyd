@@ -55,12 +55,15 @@ class SAMDriver:
         self.segTestPerc = None
         self.data_labels = None
         self.paramsDict = dict()
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 =======
 <<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
 =======
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         self.verbose = False
         self.model_mode = False
         self.Quser = None
@@ -77,12 +80,15 @@ class SAMDriver:
 
         self.classifiers = None
         self.classif_thresh = None
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 =======
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
         self.model_num_inducing = 0
         self.model_num_iterations = 0
@@ -131,6 +137,7 @@ class SAMDriver:
 
         return self.segTestConf
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 
@@ -192,12 +199,17 @@ class SAMDriver:
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
     # """"""""""""""""
     # Method to train, store and load the learned model
     # Inputs:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     #    - modelNumInducing:
     #    - modelNumIterations:
     #    - modelInitIterations:
@@ -229,6 +241,7 @@ class SAMDriver:
 
             kernel = None
             if Q > 100:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                 if kernelStr is not None:
@@ -244,6 +257,9 @@ class SAMDriver:
                 if kernelStr is not None:
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                if kernelStr is not None:
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     stringKernel = 'kernel = ' + kernelStr
                 else:
                     stringKernel = 'kernel = GPy.kern.RBF(Q, ARD=False) + GPy.kern.Bias(Q) + GPy.kern.White(Q)'

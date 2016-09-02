@@ -1,11 +1,14 @@
 # SAM_Sheffield
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 =======
 <<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
 =======
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 The devel branch of SAM_Sheffield contains untested code and is used for development. This branch also includes SAM_Demos and SAM_models
 
 ##Features
@@ -24,12 +27,15 @@ interactionSAMModel also allows for great flexibility in the method of data coll
 
 Setting a model to any one of these data collection methods and also specifying the buffer lengths is done within sensory_level_config.ini
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 =======
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 ##How to use:
 
 Everything is accessed via **samSupervisor** which is installed to **WYSIWYD_DIR**.
@@ -38,6 +44,7 @@ Connect with samSupervisor via `/sam/rpc:i` and issue help for a list of all pos
 
 -`check_all`: 		Check data and config.ini availabilities for that model, as well as current status (Training or Loaded) and check if model is curently up to date
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 -`check <modelName>`: 		Check the same points as above but for a single model
@@ -82,6 +89,8 @@ When a model is loaded, to retrieve a classification of a generation from the mo
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 -`check <modelName>`: 		Check the same points as above but for a single model
 
 -`close <modelName>`: 		Terminates a currently loaded interaction process for the particular model
@@ -101,8 +110,11 @@ When a model is loaded, to retrieve a classification of a generation from the mo
 -`list_callSigns`:		Compiles a list of currently active callSigns. Where callSigns are the messages that loaded models respond to
 
 When a model is loaded, to retrieve a classification of a generation from the model, issue the respective command in the list_callSigns list. There is a timeout of 10 seconds for the response so as not to block the operation of samSupervisor
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
 
 ##Prerequisites to use samSupervisor:
@@ -144,6 +156,7 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 
 ####SAM_Core: 
 - Includes the base classes for SAM_Core and SAM_Driver
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 - Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR      
@@ -158,18 +171,24 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 <<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
 - Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 - Includes samSupervisor.py, trainSAMModel.py, interactionSAMModel.py classes which are installed into WYSIWYD_DIR      
 
 ####SAM_Drivers:
 - This folder contains all developed drivers. 
 - These drivers are accessed via the generic trainModel and interactionModel classes which are called from samSupervisor
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
 ####SAM_Demos:
 - Includes standalone SAM demos which do not require samSupervisor to run.
 - These display the use of various functionalities of SAM
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 =======
@@ -187,6 +206,8 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 =======
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 ####Utils:
 - This folder contains bits and bobs of functionality mostly related to the recording or labelling of datasets
 

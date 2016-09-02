@@ -258,6 +258,7 @@ class SAMDriver_AR(SAMDriver):
 
     def chooseFeatures(self, handDataStruct):
         v = np.array(len(handDataStruct))
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         vec2 = None
@@ -316,6 +317,8 @@ class SAMDriver_AR(SAMDriver):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         vec2 = None
         for j in range(len(self.paramsDict['featuresToUse'])):
 
@@ -343,8 +346,11 @@ class SAMDriver_AR(SAMDriver):
         # print str(valsPossible) + str(len(valsPossible))
         # print str(idx) +str(len(idx))
         if len(valsPossible) > 0:  # extract features from discrete data
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             vec = np.zeros((len(valsPossible)*len(idx)))
             for b in range(len(idx)):
                 for i in range(len(inputArr)):
@@ -352,6 +358,7 @@ class SAMDriver_AR(SAMDriver):
                     vec[offset + valsPossible.index(inputArr[i][idx[b]])] += 1
     #                 print
     #         print vec
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         else:  # extract features from continuous data
@@ -376,6 +383,8 @@ class SAMDriver_AR(SAMDriver):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         else:  # extract features from continuous data
             vec = 1
 
@@ -383,8 +392,11 @@ class SAMDriver_AR(SAMDriver):
 
     def readData(self, root_data_dir, participant_index, *args, **kw):
         # this function reads from data files and prepares a Y and an X
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         onlyfiles = [f for f in listdir(root_data_dir) if isfile(join(root_data_dir, f))]
         dataLogList = [f for f in onlyfiles if 'data' in f]
         dataLogList.sort()
@@ -1115,6 +1127,7 @@ class SAMDriver_AR(SAMDriver):
 
         return SAMTesting.calculateData(liveLabels, confMatrix)
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     def processLiveData(self, dataList, thisModel):
@@ -1133,6 +1146,8 @@ class SAMDriver_AR(SAMDriver):
         if(mode == 'testing'):
             return classification
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     def processLiveData(self, dataList, thisModel):
         # print 'process live data'
         classification = self.sequenceProcessing(thisModel, dataList[-1].toString(), mode='live', verbose=True)
@@ -1140,5 +1155,8 @@ class SAMDriver_AR(SAMDriver):
         if classification == '':
             classification = None
         return classification
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs

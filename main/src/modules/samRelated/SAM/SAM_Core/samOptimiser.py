@@ -1,4 +1,5 @@
 #!/usr/bin/env ipython
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 # """"""""""""""""""""""""""""""""""""""""""""""
@@ -28,6 +29,8 @@
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 # """"""""""""""""""""""""""""""""""""""""""""""
 # The University of Sheffield
 # WYSIWYD Project
@@ -40,8 +43,11 @@
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 import numpy as np
 import time
 import os
@@ -63,6 +69,7 @@ except:
 
 
 class modelOptClass(object):
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     def __init__(self, fName, dataDir, modelDir, driverName, mode, baseName, persistence, windowed, verbose):
@@ -76,6 +83,9 @@ class modelOptClass(object):
     def __init__(self, fName, dataDir, modelDir, driverName, mode, baseName, persistence, windowed, verbose):
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+    def __init__(self, fName, dataDir, modelDir, driverName, mode, baseName, persistence, windowed, verbose):
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         # check package is present
         try:
             import GPyOpt
@@ -83,6 +93,7 @@ class modelOptClass(object):
             self.dataDir = dataDir
             self.modelDir = modelDir
             self.driverName = driverName
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             self.baseName = baseName
@@ -94,10 +105,14 @@ class modelOptClass(object):
             self.baseName = baseName
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+            self.baseName = baseName
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             self.persistence = persistence
             self.verbose = verbose
             self.devnull = None
             self.windowed = windowed
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             if not self.windowed:
@@ -128,6 +143,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             if not self.windowed:
                 self.devnull = open('/dev/null', 'w')
             self.numEvals = 0
@@ -144,8 +161,11 @@ class modelOptClass(object):
             self.acquisitionFunction = None
             self.trainProcess = None
             self.currFiles = None
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             self.configured = self.configOptimisation()
             print self.configured[1]
         except:
@@ -162,6 +182,7 @@ class modelOptClass(object):
             if found:
                 # open and check if Optimisation section is present in config.ini
                 if (self.parser.has_section('Optimisation') == True and self.parser.has_section(
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                         self.baseName) == True):
@@ -183,11 +204,17 @@ class modelOptClass(object):
                     self.sectionBackup = dict(self.parser.items(self.baseName))
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                        self.baseName) == True):
+                    # create backup of current self.driverName section
+                    self.sectionBackup = dict(self.parser.items(self.baseName))
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
                     # load Optimisation section
                     self.sectionOpt = dict(self.parser.items('Optimisation'))
                     if len(self.sectionOpt) == 1 and 'acquisitionFunction' in self.sectionOpt:
                         return [False,
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                                 'config.ini found, Optimisation and ' + self.baseName +
@@ -211,6 +238,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 'config.ini found, Optimisation and ' + self.baseName +
                                 ' sections found but Optimisation section does not contain parameters to optimise']
                     else:
@@ -218,12 +247,16 @@ class modelOptClass(object):
                         self.modelPresent = self.copyModel('backup', 'normal')
 
                         # load performance of current model if one is available and track performance
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         self.bestError = 0
                         try:
                             if len(self.currFiles) > 0:
                                 for j in self.currFiles:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                                     if '.pickle' in j and '__L' not in j:
@@ -265,6 +298,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                     if '.pickle' in j and '__L' not in j:
                                         modelPickle = pickle.load(open(j, 'rb'))
                                         testConf = modelPickle['overallPerformance']
@@ -281,12 +316,16 @@ class modelOptClass(object):
                         except:
                             print 'testConf key not present in .pickle file'
                             self.bestError = self.penalty
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
                         # iterate over keys of sectionOpt to create domain of optimisation problem
                         self.acquisitionFunction = 'MPI'
                         self.domain = []  # list of dictionaries
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                         # armedBanditsMode = True
@@ -317,6 +356,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         # armedBanditsMode = True
                         for i, v in self.sectionOpt.iteritems():
                             if i == 'acquisitionFunction':
@@ -327,8 +368,11 @@ class modelOptClass(object):
                                 if v == 'MPI' or v == 'EI' or v == 'UCB':
                                     self.acquisitionFunction = v
                             elif i in self.sectionBackup:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 opts = v.partition('[')[-1].rpartition(']')[0]
                                 sects = opts.split(':')
                                 tempDict = dict()
@@ -351,6 +395,7 @@ class modelOptClass(object):
                                     tempDict['description'] = sects[0]
                                     self.domain.append(tempDict)
                                 elif sects[0] == 'continuous':
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                                     # armedBanditsMode = False
@@ -364,6 +409,9 @@ class modelOptClass(object):
                                     # armedBanditsMode = False
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                                    # armedBanditsMode = False
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                     lims = sects[1].split(',')
                                     tempDict['name'] = i
                                     tempDict['type'] = 'continuous'
@@ -386,6 +434,7 @@ class modelOptClass(object):
                                         tempDict['description'] = sects[0]
                                         tempDict['groupName'] = i
                                         self.domain.append(tempDict)
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                                 elif sects[0] == 'list':
@@ -418,6 +467,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 elif sects[0] == 'list':
                                     splitList = sects[1].split(',')
                                     tempDict = dict()
@@ -434,8 +485,11 @@ class modelOptClass(object):
                         # if armedBanditsMode :
                         #     for j in self.domain:
                         #         j['type'] = 'bandit'
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
                         for j in self.domain:
                             print j
@@ -444,6 +498,7 @@ class modelOptClass(object):
                         return [True, 'Optimisation configuration ready']
                 else:
                     return [False,
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                             'config.ini found at ' + self.dataDir + ' but does not contain Optimisation and/or ' +
@@ -459,6 +514,10 @@ class modelOptClass(object):
                             self.driverName + ' section']
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                            'config.ini found at ' + self.dataDir + ' but does not contain Optimisation and/or ' +
+                            self.driverName + ' section']
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             else:
                 return [False, 'config.ini not present in ' + self.dataDir]
         except:
@@ -473,6 +532,7 @@ class modelOptClass(object):
         self.currIterSettings = self.sectionBackup
         combinationDicts = dict()
         for j in range(len(x[0])):
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             if self.domain[j]['description'] == 'combination':
@@ -490,6 +550,10 @@ class modelOptClass(object):
                 if x[0][j] == 1:
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+            if self.domain[j]['description'] == 'combination':
+                if x[0][j] == 1:
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     val = True
                 else:
                     val = False
@@ -498,6 +562,7 @@ class modelOptClass(object):
                         combinationDicts[self.domain[j]['groupName']].append(self.domain[j]['name'])
                     else:
                         combinationDicts[self.domain[j]['groupName']] = [self.domain[j]['name']]
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             elif self.domain[j]['description'] == 'discreteInt':
@@ -538,6 +603,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             elif self.domain[j]['description'] == 'discreteInt':
                 self.parser.set(self.baseName, self.domain[j]['name'], str(int(x[0][j])))
             elif self.domain[j]['description'] == 'list':
@@ -554,14 +621,18 @@ class modelOptClass(object):
             self.parser.set(self.baseName, name, ','.join(val) + ',')
 
         # for t in self.parser.items(self.baseName):
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             # print t
 
         # print
         # print
         self.parser.write(open(self.dataDir + "/config.ini", 'wb'))
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         args = ' '.join([self.dataDir, self.modelDir, self.driverName, 'new', self.baseName])
@@ -575,10 +646,14 @@ class modelOptClass(object):
         args = ' '.join([self.dataDir, self.modelDir, self.driverName, 'new', self.baseName])
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+        args = ' '.join([self.dataDir, self.modelDir, self.driverName, 'new', self.baseName])
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
         cmd = self.fName + ' ' + args
         # NEW
         # cmd = trainPath + ' -- ' + args
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         if self.persistence:
@@ -592,10 +667,14 @@ class modelOptClass(object):
         if self.persistence:
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+        if self.persistence:
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             command = "bash -c \"" + cmd + "; exec bash\""
         else:
             command = "bash -c \"" + cmd + "\""
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         if self.verbose:
@@ -615,20 +694,26 @@ class modelOptClass(object):
 
         if (self.windowed):
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         if self.verbose:
             print 'cmd: ', cmd
 
         # if self.windowed:
         deleteModel(self.modelDir, 'exp')
         if True:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             self.trainProcess = subprocess.Popen(['xterm', '-e', command], shell=False)
         else:
             self.trainProcess = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
 
         ret = None
         cnt = 0
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         while ret is None:
@@ -649,17 +734,23 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         while ret is None:
             ret = self.trainProcess.poll()
             time.sleep(5)
             cnt += 1
             if cnt > 5:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 print 'Training ...'
                 cnt = 0
 
         currError = 0
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         print 'poll return:', ret
@@ -689,6 +780,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         print 'poll return:', ret
         # if len(self.currFiles) == 0:
         #     self.modelPresent = self.copyModel('backup', 'normal')
@@ -699,13 +792,17 @@ class modelOptClass(object):
                 if '.pickle' in j and '__L' not in j:
                     modelPickle = pickle.load(open(j, 'rb'))
                     testConf = modelPickle['overallPerformance']
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     np.fill_diagonal(testConf, 0)
                     currError += np.sum(testConf)
                     print 'Confusion Matrix: ', testConf
                     print
                     print 'Current cumulative error: ', currError
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                     if currError < self.bestError:
@@ -733,6 +830,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     if currError < self.bestError:
                         deleteModel(self.modelDir, 'best')
                         self.bestError = currError
@@ -742,8 +841,11 @@ class modelOptClass(object):
 
         else:
             currError = self.penalty
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             print 'Error training model'
             print 'Current cumulative error: ', currError
 
@@ -754,6 +856,7 @@ class modelOptClass(object):
 
     def copyModel(self, newName, direction):
         if os.path.isfile(self.modelDir):
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             print self.modelDir, ' model file present'
@@ -810,6 +913,8 @@ class modelOptClass(object):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             print self.modelDir, ' model file present'
             self.currFiles = [j for j in glob.glob('__'.join(self.modelDir.split('__')[:3]) + '*')
                               if 'backup' not in j and 'best' not in j]
@@ -830,8 +935,11 @@ class modelOptClass(object):
                 print
 
             if direction == 'reverse':
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 for j in range(len(backupFiles)):
                     shutil.copyfile(backupFiles[j], self.currFiles[j])
             else:
@@ -844,12 +952,15 @@ class modelOptClass(object):
             return False
 
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 =======
 <<<<<<< b809f2aecd078104d91d3f1153eadd625e488a28
 =======
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 def deleteModel(modelDir, newName):
     if os.path.isfile(modelDir):
         print modelDir, ' model file present'
@@ -858,12 +969,15 @@ def deleteModel(modelDir, newName):
             os.remove(k)
 
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 =======
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 def main():
     # Initialisation parameters:
     print optNotFound,  ' ', len(sys.argv)
@@ -873,6 +987,7 @@ def main():
         c = sys.argv[3]
         d = sys.argv[4]
         e = sys.argv[5]
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         f = sys.argv[6]
@@ -896,6 +1011,8 @@ def main():
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         f = sys.argv[6]
         per = sys.argv[7] == 'True'
         wind = sys.argv[8] == 'True'
@@ -903,8 +1020,11 @@ def main():
 
         optModel = modelOptClass(a, b, c, d, e, f, per, wind, verb)
         if optModel.configured[0]:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             myBopt = GPyOpt.methods.BayesianOptimization(f=optModel.f,  # function to optimize
                                                          domain=optModel.domain,  # box-constrains of the problem
                                                          initial_design_numdata=10,  # number data initial design
@@ -923,6 +1043,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 =======
@@ -934,3 +1055,5 @@ if __name__ == '__main__':
 =======
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs

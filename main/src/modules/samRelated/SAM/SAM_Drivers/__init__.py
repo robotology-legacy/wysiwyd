@@ -1,4 +1,5 @@
 # Copyright (c) 2015, Andreas Damianou
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 854f4746d5eb91a2612f255559418e136171cc13
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
@@ -38,9 +39,10 @@ pb.ion()
 default_seed = 123344
 >>>>>>> updated SAM folder
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 # from .SAMDriver_speech import *
 from .SAMDriver_AR import *
 from .SAMDriver_temporalActions import *
 from .SAMDriver_temporal import *
 from .SAMDriver_interaction import *
->>>>>>> updated version of samSupervisor and generic train and interaction implementations

@@ -1,5 +1,6 @@
 #!/usr/bin/env ipython
 import matplotlib.pyplot as plt
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 import SAM
@@ -58,6 +59,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 import SAM
 import sys
 import subprocess
@@ -81,8 +84,11 @@ class SamSupervisorModule(yarp.RFModule):
     def __init__(self):
         yarp.RFModule.__init__(self)
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     def configure(self, rf):
         yarp.Network.init()
         self.SIGNALS_TO_NAMES_DICT = dict((getattr(signal, n), n) \
@@ -99,6 +105,7 @@ class SamSupervisorModule(yarp.RFModule):
         else:
             self.rootPath = rf.find("root_path").asString()
             self.interactionConfPath = rf.find("config_path").asString()
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             persistence = rf.check("persistence", yarp.Value("False")).asString()
@@ -120,6 +127,11 @@ class SamSupervisorModule(yarp.RFModule):
             verbose = rf.check("verbose", yarp.Value("True")).asString()
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+            persistence = rf.check("persistence", yarp.Value("False")).asString()
+            windowed = rf.check("windowed", yarp.Value("True")).asString()
+            verbose = rf.check("verbose", yarp.Value("True")).asString()
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
             self.persistence = True if(persistence == "True") else False
             self.windowed = True if(windowed == "True") else False
@@ -134,6 +146,7 @@ class SamSupervisorModule(yarp.RFModule):
             self.modelPath = self.rootPath + '/Models'
             self.dataPath = self.rootPath + '/Data' 
             #OLD
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             # self.trainingFunctionsPath = os.environ.get("WYSIWYD_DIR")+"/bin"
@@ -155,6 +168,11 @@ class SamSupervisorModule(yarp.RFModule):
             self.trainingFunctionsPath = SAM.SAM_Drivers.__path__
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+            # self.trainingFunctionsPath = os.environ.get("WYSIWYD_DIR")+"/bin"
+            #NEW
+            self.trainingFunctionsPath = SAM.SAM_Drivers.__path__
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             self.trainingListHandles = dict() #make this a dict to have a label attached to each subprocess
             self.loadedListHandles = dict()
             self.iter = 0
@@ -177,6 +195,7 @@ class SamSupervisorModule(yarp.RFModule):
             cmd = 'ipcluster start -n 4'
             command = "bash -c \"" + cmd + "\""
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             if self.windowed:
@@ -190,12 +209,16 @@ class SamSupervisorModule(yarp.RFModule):
             if self.windowed:
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+            if self.windowed:
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 c = subprocess.Popen([self.terminal, '-e', command], shell=False)
             else:
                 c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
 
             self.trainingListHandles['Cluster'] = c
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             if len(self.uptodateModels) + len(self.updateModels) > 0:
@@ -239,6 +262,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             if len(self.uptodateModels) + len(self.updateModels) > 0:
                 if self.verbose:
                     print "Loading models according to " + self.interactionConfPath
@@ -256,8 +281,11 @@ class SamSupervisorModule(yarp.RFModule):
                 self.interactionParser.read(self.interactionConfFile)
                 self.interactionSectionList = self.interactionParser.sections()
                 if self.verbose:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     print
                     print self.dataPath
                     print self.interactionSectionList
@@ -266,6 +294,7 @@ class SamSupervisorModule(yarp.RFModule):
                     command = yarp.Bottle()
                     command.addString("load")
                     command.addString(j)
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                     if self.verbose:
@@ -287,18 +316,24 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     if self.verbose:
                         print command.toString()
                     reply = yarp.Bottle()
 
                     self.loadModel(reply, command)
                     if self.verbose:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         print reply.toString()
                         print "-----------------------------------------------"
                         print
                 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             elif len(self.noModels) > 0:
@@ -323,6 +358,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             elif len(self.noModels) > 0:
                 if self.verbose:
                     print "Models available for training."
@@ -331,12 +368,16 @@ class SamSupervisorModule(yarp.RFModule):
                 if self.verbose:
                     print "No available models to load or train"
                 # wait for a training command
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 
             return True
 
     def close(self):
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         # close ports of loaded models
@@ -352,12 +393,16 @@ class SamSupervisorModule(yarp.RFModule):
         # close ports of loaded models
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+        # close ports of loaded models
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         for j in self.rpcConnections:
             j[1].write(yarp.Bottle('EXIT'), self.inputBottle)
             j[1].close()
 
         self.supervisorPort.close()
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         for i, v in self.trainingListHandles.iteritems():
@@ -371,6 +416,9 @@ class SamSupervisorModule(yarp.RFModule):
         for i, v in self.trainingListHandles.iteritems():
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+        for i, v in self.trainingListHandles.iteritems():
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             v.send_signal(signal.SIGINT)
             v.wait()   
 
@@ -378,6 +426,7 @@ class SamSupervisorModule(yarp.RFModule):
             v[4].send_signal(signal.SIGINT)
             v[4].wait() 
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     def checkAvailabilities(self, reply):
@@ -481,6 +530,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     def checkAvailabilities(self, reply):
         # after finding the root path, go to models folder and compile list of all
         # models together with the last time they were modified
@@ -531,12 +582,16 @@ class SamSupervisorModule(yarp.RFModule):
                 loc = join(self.dataPath, f)
                 if self.verbose:
                     print "Checking " + loc + " ..."
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 try:
                     parser = SafeConfigParser()
                     found = parser.read(loc + "/config.ini")
                     if not found:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                         if self.verbose:
@@ -587,6 +642,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         if self.verbose:
                             print "config.ini not found for " + f
                         pass
@@ -609,12 +666,16 @@ class SamSupervisorModule(yarp.RFModule):
                                             print "The first function will be chosen: " + availableFuncs[0]
                                     # find latest modified date of directory and subdirectories
                                     # thus checking for addition of new data
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                     t = []
                                     for dirName, dirs, filenames in os.walk(loc):
                                         t.append(os.path.getmtime(dirName))
                                     lastMod = max(t)
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                                     if self.verbose: print "Data folder last modified: %s" % time.ctime(lastMod)
@@ -666,6 +727,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                     if self.verbose: print "Data folder last modified: %s" % time.ctime(lastMod)
                                     # format of trainableModels is: dataFolder name, corresponding training function,
                                     # date data last modified, train boolean
@@ -689,8 +752,11 @@ class SamSupervisorModule(yarp.RFModule):
                 print
             # compare models and data folders. Assuming model names = folder names
             # check if model exists
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             for f in self.trainableModels:
                 t = []
                 currModels = []
@@ -720,6 +786,7 @@ class SamSupervisorModule(yarp.RFModule):
                 print '-------------------'
                 print
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             # provide option to train now or on close
@@ -737,6 +804,10 @@ class SamSupervisorModule(yarp.RFModule):
             # if train now provide option to change experiment number or leave default
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+            # provide option to train now or on close
+            # if train now provide option to change experiment number or leave default
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             self.updateModels = [s for s in self.trainableModels if s[3] == True if s[4] != '']
             self.updateModelsNames = [s[0] for s in self.trainableModels if s[3] == True if s[4] != '']
 
@@ -766,6 +837,7 @@ class SamSupervisorModule(yarp.RFModule):
     def respond(self, command, reply):
 
         helpMessage = ["Commands are: ", "\tcheck_all", "\tcheck modelName", "\tclose modelName", \
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                        "\tdelete modelName", "\thelp", "\tload modelName",  "\toptimise modelName", "\tquit", \
@@ -783,10 +855,15 @@ class SamSupervisorModule(yarp.RFModule):
                        "\ttrain modelName", "\tlist_callSigns"]
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                       "\tdelete modelName", "\thelp", "\tload modelName",  "\toptimise modelName", "\tquit", \
+                       "\ttrain modelName", "\tlist_callSigns"]
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         b = yarp.Bottle()
         self.checkAvailabilities(b)
         reply.clear()
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         if command.get(0).asString() == "check_all":
@@ -841,6 +918,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         if command.get(0).asString() == "check_all":
             self.checkAvailabilities(reply)
         elif command.get(0).asString() == "check":
@@ -863,8 +942,11 @@ class SamSupervisorModule(yarp.RFModule):
         elif command.get(0).asString() == "optimise":
             self.optimise(reply, command)
         elif command.get(0).asString() == "list_callSigns":
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             reply.addVocab(yarp.Vocab_encode("many"))
             for e in self.rpcConnections:
                 repStr = e[0] + " Model: \t"
@@ -872,6 +954,7 @@ class SamSupervisorModule(yarp.RFModule):
                     repStr += f + "\t"
                 reply.addString(repStr)
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         elif any(command.get(0).asString() in e[3] for e in self.rpcConnections):
@@ -892,14 +975,19 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         elif any(command.get(0).asString() in e[3] for e in self.rpcConnections):
             try:
                 self.forwardCommand(command, reply)
             except utils.TimeoutError:
                 reply.addString('Failed to respond within timeout')
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         else:
             reply.addVocab(yarp.Vocab_encode("many"))
             reply.addString("Wrong command. ")
@@ -913,6 +1001,7 @@ class SamSupervisorModule(yarp.RFModule):
                 reply.addString(repStr)
         return True
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     @utils.timeout(10)
@@ -945,6 +1034,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     @utils.timeout(10)
     def forwardCommand(self, command, reply):
         for e in self.rpcConnections:
@@ -961,13 +1052,17 @@ class SamSupervisorModule(yarp.RFModule):
     def closeModel(self, reply, command):
 
         if command.size() != 2:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             reply.addString("Model name required. e.g. close Actions")
         else:
             alreadyOpen = False
             conn = -1
             for k in range(len(self.rpcConnections)):
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                 if self.rpcConnections[k][0] == command.get(1).asString():
@@ -981,10 +1076,14 @@ class SamSupervisorModule(yarp.RFModule):
                 if self.rpcConnections[k][0] == command.get(1).asString():
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                if self.rpcConnections[k][0] == command.get(1).asString():
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     alreadyOpen = True
                     conn = k
 
             print "Already open = ", alreadyOpen
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
             if self.verbose:
@@ -1004,14 +1103,19 @@ class SamSupervisorModule(yarp.RFModule):
             if(alreadyOpen):
                 self.rpcConnections[conn][1].write(yarp.Bottle('EXIT'), self.inputBottle)
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             if self.verbose:
                 print command.get(1).asString()
             if alreadyOpen:
                 self.rpcConnections[conn][1].write(yarp.Bottle('EXIT'), self.inputBottle)
                 self.rpcConnections[conn][1].interrupt()
                 time.sleep(1)
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 self.rpcConnections[conn][1].close()
                 time.sleep(1)
                 self.rpcConnections[conn][4].send_signal(signal.SIGINT)
@@ -1019,6 +1123,7 @@ class SamSupervisorModule(yarp.RFModule):
                 del self.rpcConnections[conn]
                 reply.addString(command.get(1).asString() + " model closed.")
             else:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                 reply.addString(command.get(1).asString() + " model is not running.")
@@ -1079,6 +1184,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 reply.addString(command.get(1).asString() + " model is not running.")
         return True
 
@@ -1104,13 +1211,17 @@ class SamSupervisorModule(yarp.RFModule):
                     
                     interactionFunction = [s for s in interactionFunction for g in self.functionsList if s == g]
                     if len(interactionFunction) != 0:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         j = [s for s in self.trainableModels if s[0] == command.get(1).asString()][0]
 
                         interfacePortName = self.interactionParser.get(j[0],'rpcBase') + ':o'
                         callSignList = self.interactionParser.get(j[0],'callSign').replace(' ', '').split(',')
                         
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                         # check if the model is already loaded
@@ -1131,17 +1242,23 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         # check if the model is already loaded
                         alreadyOpen = False
                         conn = -1
                         for k in range(len(self.rpcConnections)):
                             if self.rpcConnections[k][0] == j[0]:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 alreadyOpen = True
                                 conn = k
 
                         print "Loading ", interfacePortName, " with ", callSignList
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                         if alreadyOpen:
@@ -1193,6 +1310,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         if alreadyOpen:
                             if self.verbose:
                                 print "Model already open"
@@ -1217,14 +1336,18 @@ class SamSupervisorModule(yarp.RFModule):
                                 reply.addString(command.get(1).asString() + " model did not re-loaded correctly")
                         elif alreadyOpen and not correctOperation:
                             # terminate model by finding process in self.rpcConnections[4]
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                             alreadyOpen = False
                             rep = yarp.Bottle()
                             cmd = yarp.Bottle()
                             cmd.addString("close")
                             cmd.addString(command.get(1).asString())
                             self.closeModel(rep, cmd)
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                             reply.addString(command.get(1).asString() + " model terminated ")
@@ -1275,6 +1398,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                             reply.addString(command.get(1).asString() + " model terminated ")
 
                         if not alreadyOpen:
@@ -1296,12 +1421,16 @@ class SamSupervisorModule(yarp.RFModule):
                                 print "cmd = ", cmd
                                 print
                             if self.persistence:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 command = "bash -c \"" + cmd + "; exec bash\""
                             else:
                                 command = "bash -c \"" + cmd + "\""
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                             if self.windowed:
@@ -1315,11 +1444,15 @@ class SamSupervisorModule(yarp.RFModule):
                             if self.windowed:
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                            if self.windowed:
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 c = subprocess.Popen(['xterm', '-e', command], shell=False)
                             else:
                                 c = subprocess.Popen([cmd], shell=True, stdout=self.devnull, stderr=self.devnull)
 
                             self.rpcConnections.append([j[0], interfacePort, interfacePortName[:-1], callSignList, c])
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                             # pause here
@@ -1363,6 +1496,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                             # pause here
 
                             noConn = True
@@ -1381,14 +1516,18 @@ class SamSupervisorModule(yarp.RFModule):
 
                             if noConn:
                                 reply.addString("Failure to load " + str(interactionFunction[0]) + " model")
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 rep = yarp.Bottle()
                                 cmd = yarp.Bottle()
                                 cmd.addString("close")
                                 cmd.addString(self.rpcConnections[-1][0])
                                 self.closeModel(rep, cmd)
                             else:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                                 # then execute an interaction model check to verify correct startup
@@ -1409,14 +1548,19 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                                 # then execute an interaction model check to verify correct startup
                                 reply.addString(str(interactionFunction[0]) + " model loaded at " +
                                                 interfacePortName + " with call signs " + str(callSignList))
                     else:
                         reply.addString('No interaction function found in ' + command.get(1).asString() +
                                         ' model path. Skipping model')
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                 else:
                     reply.addString('Parameters "driver" and "modelBaseName" not found in config.ini')
             else:
@@ -1524,6 +1668,7 @@ class SamSupervisorModule(yarp.RFModule):
             print
 
         #OLD
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         #n = mod[1] + '.py'
@@ -1542,12 +1687,17 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         #n = mod[1] + '.py'
         #trainPath = join(self.trainingFunctionsPath, n) 
         #NEW
         trainPath = 'trainSAMModel.py'
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
         if(self.verbose):
             print 'Training ' + mod[0] + ' ...'
@@ -1564,6 +1714,7 @@ class SamSupervisorModule(yarp.RFModule):
         # #open separate ipython for training
         # #this will allow separate training across different computers in future
         #OLD
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         # if(mod[0] in self.updateModelsNames):
@@ -1592,6 +1743,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         # if(mod[0] in self.updateModelsNames):
         #      args = ' '.join([dPath, mPath, mod[1], 'update'])
         # else:
@@ -1601,12 +1754,16 @@ class SamSupervisorModule(yarp.RFModule):
            args = ' '.join([dPath, mPath, mod[1], 'update', mod[0]])
         else:
            args = ' '.join([dPath, mPath, mod[1], 'new', mod[0]])
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 		
         if(self.verbose): print 'args: ', args
 
         #OLD
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         #cmd = 'ipython ' + trainPath + ' -- ' + args
@@ -1628,6 +1785,11 @@ class SamSupervisorModule(yarp.RFModule):
         cmd = trainPath + ' -- ' + args
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+        #cmd = 'ipython ' + trainPath + ' -- ' + args
+        #NEW
+        cmd = trainPath + ' -- ' + args
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         if(self.persistence):
             command = "bash -c \"" + cmd + "; exec bash\""
         else:
@@ -1649,6 +1811,7 @@ class SamSupervisorModule(yarp.RFModule):
             print "Training Models:"
             print
 
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         # OLD
@@ -1669,13 +1832,18 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         # OLD
         # n = mod[1] + '.py'
         # trainPath = join(self.trainingFunctionsPath, n) 
         # NEW
         trainPath = 'trainSAMModel.py'
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
         if(self.verbose):
             print 'Optimising ' + mod[0] + ' ...'
@@ -1691,6 +1859,7 @@ class SamSupervisorModule(yarp.RFModule):
         # #open separate ipython for training
         # #this will allow separate training across different computers in future
         #OLD
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         #args = ' '.join([dPath, mPath, mod[1], 'new', 'False', 'False', 'True'])
@@ -1724,6 +1893,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         #args = ' '.join([dPath, mPath, mod[1], 'new', 'False', 'False', 'True'])
         #NEW
         args = ' '.join([dPath, mPath, mod[1], 'new', mod[0], 'False', 'False', 'True'])
@@ -1731,8 +1902,11 @@ class SamSupervisorModule(yarp.RFModule):
         if(self.verbose): print 'args: ', args
 
         cmd = 'samOptimiser.py ' + trainPath + ' ' + args
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         if(self.persistence):
             command = "bash -c \"" + cmd + "; exec bash\""
         else:
@@ -1749,6 +1923,7 @@ class SamSupervisorModule(yarp.RFModule):
         return 0.1
 
     def onlineModelCheck(self):
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
         # check communication with loaded models
@@ -1773,6 +1948,8 @@ class SamSupervisorModule(yarp.RFModule):
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
         # check communication with loaded models
         readyList = []
         for i, v in self.trainingListHandles.iteritems():
@@ -1780,8 +1957,11 @@ class SamSupervisorModule(yarp.RFModule):
                 ret = v.poll()
                 if ret is not None:
                     if ret == 0:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                         readyList += [i]
                         print i, 'terminated successfully'
                         b = yarp.Bottle()
@@ -1790,6 +1970,7 @@ class SamSupervisorModule(yarp.RFModule):
                         readyList += [i]
                         print i, 'terminated with ', self.SIGNALS_TO_NAMES_DICT[abs(ret)]
                 else:
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
                     # if(self.verbose): print i, "still training "
@@ -1803,10 +1984,14 @@ class SamSupervisorModule(yarp.RFModule):
                     # if(self.verbose): print i, "still training "
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+                    # if(self.verbose): print i, "still training "
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
                     pass
         
         for i in readyList:
             del self.trainingListHandles[i]
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
 
@@ -1829,6 +2014,11 @@ class SamSupervisorModule(yarp.RFModule):
         if self.iter == 10:
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+
+    def updateModule(self):
+        if self.iter == 10:
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
             self.onlineModelCheck()
             self.iter = 0
         self.iter += 1
@@ -1841,6 +2031,7 @@ if __name__ == '__main__':
     yarp.Network.init() 
     mod = SamSupervisorModule()
     rf = yarp.ResourceFinder()
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 <<<<<<< 1f58a55701ad7ae6acb758ebedcece9da3cc1ce2
 <<<<<<< 0fc049c41ac91b2dab4d5c1a55bcbea931f3c422
     rf.setVerbose(True)
@@ -1859,11 +2050,16 @@ if __name__ == '__main__':
 >>>>>>> New version of samSupervisor with rpc interface and README
 =======
 =======
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
     rf.setVerbose(True)
     rf.setDefaultContext("samSupervisor")
     rf.setDefaultConfigFile("default.ini")
     rf.configure(sys.argv)
+<<<<<<< 3657c0e778f3e2021d8d8caee04072555fb57629
 >>>>>>> updated SAM folder
 >>>>>>> updated SAM folder
+=======
+>>>>>>> Updated fix/samRelated with generic train and interactions files. Added optimiser to samSupervisor and fixed some bugs
 
     mod.runModule(rf)
