@@ -15,12 +15,6 @@
  * Public License for more details
  */
 
-//#include "modules/reservoir/lrh/include/lrh.h"
-
-//#ifdef WIN32
-//#include <windows.h>
-//#define  BOOST_ALL_NO_LIB
-//#endif
 
 #include "lrh.h"
 #include "wrdac/subsystems/subSystem_ARE.h"
@@ -55,12 +49,8 @@ bool LRH::configure(ResourceFinder &rf) {
     sreservoirNarratif = rf.findFile("reservoirNarrative");
 
     /* General parameters */
-    smax_nr_ocw = rf.check("imax_nr_ocw", Value("15")).toString().c_str();
-    smax_nr_actionrelation = rf.check("imax_nr_actionrelation", Value("5")).toString().c_str();
     selt_pred = rf.check("l_elt_pred", Value("P A O R V")).toString().c_str();
     sNbNeurons = rf.check("iNbNeurons", Value("600")).toString().c_str();
-
-    sMode = rf.check("sMode", Value("train")).toString().c_str();
 
     sHand = rf.check("hand", Value("right")).toString().c_str();
     offsetGrasp = rf.check("offsetGrasp", Value("0.02")).asDouble();
@@ -98,18 +88,11 @@ bool LRH::configure(ResourceFinder &rf) {
     cout << "Connections done" << endl;
 
 
-
-    // Start train mode of the reservoirs
-    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
-    cout << "Start Reservoirs" << endl;
-    callReservoir(sreservoirAP.c_str(), sclosed_class_words);
-    callReservoir(sreservoirNarratif.c_str(), sclosed_class_words);
-    cout << "Trains processed" << endl;
-    sMode = "test";
-
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
+    // Start train mode of the reservoirs
 
+    train();
     return bEveryThingisGood;
 }
 
@@ -131,7 +114,7 @@ bool LRH::close() {
 
 bool LRH::respond(const Bottle& command, Bottle& reply) {
     string helpMessage = string(getName().c_str()) +
-        " commands are: \n" +
+        "commands are: \n" +
         "help \n" +
         "spatial objectFocus \n" +
         "production meaning \n" +
@@ -163,6 +146,14 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ack");
         reply.addString(sentenceToMeaning(command.get(1).asString()));
     }
+    else if (command.get(0).asString() == "construal"  && command.size() == 2  && command.size() == 3) {
+        reply.addString("ack");
+        reply.addString(construal(command.get(1).asString(), command.get(2).asInt()));
+    }
+    else if (command.get(0).asString() == "train") {
+        reply.addString("ack");
+        reply.addString(train());
+    }
     else {
         reply.addString(helpMessage);
     }
@@ -171,6 +162,19 @@ bool LRH::respond(const Bottle& command, Bottle& reply) {
     handlerPort.reply(reply);
     return true;
 }
+
+
+string LRH::train(){
+    sMode = "train";
+    copyPastTrainFile(scorpusFile.c_str(), stemporaryCorpus.c_str());
+    std::cout << "Start Reservoirs" << std::endl;
+    callReservoir(sreservoirAP.c_str(), sclosed_class_words);
+    callReservoir(sreservoirNarratif.c_str(), sclosed_class_words);
+    std::cout << "Trains processed" << std::endl;
+    sMode = "test";
+    return "ok";
+}
+
 
 /* Called periodically every getPeriod() seconds */
 bool LRH::updateModule() {
@@ -299,8 +303,8 @@ bool LRH::callReservoir(string pythonFile, string sCCW)
 {
     std::string l_pythonCmd("python " + pythonFile);
     std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + sMode + " " + \
-            sCCW + " " + smax_nr_ocw + " " + smax_nr_actionrelation + " " + selt_pred + " " + sNbNeurons;
-    cout << "l_pythonCall : " << l_pythonCall << endl;
+            sCCW + " " + selt_pred + " " + sNbNeurons;
+    std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
 
     int python_return = system(l_pythonCall.c_str());
 
@@ -662,4 +666,333 @@ bool LRH::spatialRelation(string sObjectFocus)
 }
 
 
+/*
+std::tuple<char, std::string, std::string> LRH::getPAOR(int id, vector<string>)
+{
+    if (id == 0) return std::make_tuple('P', "predicat");
+    if (id == 1) return std::make_tuple('A', "agent");
+    if (id == 2) return std::make_tuple('O', "object");
+    if (id == 3) return std::make_tuple('R', "recipient");
+    if (id == 4) return std::make_tuple('V', "v");
+    if (id == 5) return std::make_tuple('W', "w");
+    throw std::invalid_argument("id");
+    //std::tie(gpa1, grade1, name1) = get_student(1);
+    //auto predicat = getPAOR(0);
+    //std::cout << "ID : 0, "
+    //          << "PAOR form : " << std::get<0>(predicat) << ", "
 
+}*/
+
+bool LRH::createVector(std::vector<std::string> seq)
+{
+    
+    std::string sPredicat,sObject,sLocation, sadverbs;
+    sPredicat = seq[0];
+    sObject   = seq[1];
+    sLocation = seq[2];
+    sadverbs  = seq[3];
+
+    // CREATE VECTOR FILE
+    //force<push(You,circle)>;moved(circle)>
+    mAssociation["put"]="placed";
+    mAssociation["take"]="got";
+    mAssociation["grasp"]="hold";
+    mAssociation["push"]="moved";
+    mAssociation["point"]="stayed";
+    
+    std::string sVector;
+    if(sLocation != " "){
+        if (sadverbs == " "){
+            sVector = "force<" + sPredicat + "(I," + sObject + "," + sLocation + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + "," + sLocation + ")>";
+        }
+        else{
+            sVector = "force<" + sPredicat + "(I," + sObject + "," + sLocation + "," + sadverbs + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + "," + sLocation + ")>";
+        }
+    }
+
+    else if(sLocation == " "){
+        if (sadverbs == " "){
+            sVector = "force<" + sPredicat + "(I," + sObject + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + ")>";
+        }
+        else
+        {
+            sVector = "force<" + sPredicat + "(I," + sObject + "," + sadverbs + ")>;result<" + mAssociation.find(sPredicat)->second + "(" + sObject + ")>";
+        }
+    }
+
+
+    cout << "sVector" << sVector << endl;
+    return 0;
+}
+
+
+std::list<int> LRH::nbCaracters(string ssequence)
+{
+    unsigned int pos = 0;
+    std::list<int> lposElements;
+    for(pos = 0; pos < ssequence.size(); ++pos)
+    {
+        if (ssequence[pos]==','){
+            lposElements.push_back(pos);
+        }
+
+    }
+    return lposElements;
+}
+
+
+std::string LRH::construal(std::string svector, int iquestion)
+{
+    cout << "################################################################" << endl;
+    int id = svector.find(";");
+    int idf = svector.size();
+    string sforce = svector.substr(6, id -7); //  => sforce=   "push(Ag1,object)"
+    string sresult = svector.substr(id +8,idf-1-(id +8)); // =>   sresult=   "move(object)"
+
+    string sverb, sagent1, sagent2, sobject, slocation, sadverb;
+    string sanswer;
+   
+    if(iquestion == 1)  // => Case "What happened"  => Result part !!
+    {
+        int i = sresult.find("(");
+        int iend = sresult.size();
+        sverb = sresult.substr(0,i); // => "move"
+        cout << "sverb : " << sverb << endl;
+
+        sresult = sresult.substr(i+1,iend-(i+1)-1); // =>  "object"
+        cout << "sresult : " << sresult << endl;
+
+        std::list<int> lposElements = nbCaracters(sresult);
+        int nb = lposElements.size();
+
+
+        if (nb == 0){            //  "object"
+            cout << "nb elements " << nb << endl;
+            sobject=sresult;
+            sanswer = "The " + sobject + " " + sverb;
+            cout << sanswer << endl;
+        }
+
+        else if(nb == 1)   //  "object,location"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                sobject=sresult.substr(0,*it);
+                cout << "sagent1 : " << sobject << endl;
+                slocation=sresult.substr(*it+1,lposElements.size()-(*it+1));
+                cout << "sobject : " << slocation << endl;
+            }
+            sanswer = "The " + sobject + " " + sverb + " to the " + slocation;
+            cout << sanswer << endl;
+        }
+    }
+    else if(iquestion == 2)  // "what did Anne do ?" => active form
+    {
+        int i = sforce.find("(");
+        int iend = sforce.size();
+        sverb = sforce.substr(0,i); // => "result"
+        cout << "sverb : " << sverb << endl;
+
+        sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
+        cout << "sforce : " << sforce << endl;
+
+        std::list<int> lposElements = nbCaracters(sforce);
+        int nb = lposElements.size();
+
+        if (nb == 0){            //  "object"
+            cout << "nb elements " << nb  << endl;
+            sobject=sforce;
+            cout << sanswer << endl;
+        }
+
+        else if(nb == 1)   //  "Ag2,object"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+                cout << tab << endl;
+            }
+
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
+            cout << "sobject : " << sobject << endl;
+            cout << "tab : " << tab[0] << endl;
+            sanswer = sagent1 + " " + sverb + "ed the " + sobject;
+            cout << sanswer << endl;
+        }
+        else if(nb == 2)   //  "Ag1,object,location"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+                cout << tab << endl;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
+            cout << "slocation : " << slocation << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
+
+            if (slocation == "left" || slocation == "right"){
+                sanswer = sagent1 + " " + sverb + "ed the " + sobject + " to the " + slocation;
+            }
+            else
+                sanswer = sagent1 + " " + sverb + "ed the " + sobject + " " + slocation;
+            cout << sanswer << endl;
+        }
+        else if(nb == 3)   //  "Ag1,object,location,adverb"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+                cout << tab << endl;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,tab[2]-tab[1]+1);
+            cout << "slocation : " << slocation << endl;
+
+            sadverb==sforce.substr(tab[2]+1,sforce.size()-tab[2]+1);
+            cout << "sadverb : " << sadverb << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << " " << tab[2] << endl;
+
+            sanswer = sagent1 + " " + sverb + "ed the " + sobject + " to the " + slocation + " " + sadverb;
+
+            cout << sanswer << endl;
+        }
+
+    }
+    else if(iquestion == 3)  // "how did that happen" => passive form
+    {
+        int i = sforce.find("(");
+        int iend = sforce.size();
+        string sverb = sforce.substr(0,i); // => "result"
+        cout << "sverb : " << sverb << endl;
+
+        sforce = sforce.substr(i+1,iend-(i+1)-1); // =>  "Ag2,object"
+        cout << "sforce : " << sforce << endl;
+
+        std::list<int> lposElements = nbCaracters(sforce);
+        int nb = lposElements.size();
+
+        if (nb == 0){            //  "object"
+            cout << "nb elements " << nb << endl;
+            string object=sforce;
+            sanswer = "The " + sobject + " has been " + sverb;
+        }
+
+        else if(nb == 1)   //  "Ag2,object"
+        {
+            cout << "nb elements " << nb << endl;
+            std::list<int>::iterator it;
+            int cpt=0;
+
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,sforce.size()-tab[0]+1);
+            cout << "sobject : " << sobject << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
+
+            sanswer = "The " + sobject + " has been " + sverb + " by me";
+            cout << sanswer << endl;
+        }
+        else if(nb == 2)   //  "Ag2,object,location"
+        {
+            cout << "nb elements " << nb;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,sforce.size()-tab[1]+1);
+            cout << "sobject : " << slocation << endl;
+
+            cout << "tab : " << tab[0] << " " << tab[1] << endl;
+
+            if (slocation == "left" || slocation == "right"){
+                sanswer = "The " + sobject + " has been " + sverb + "ed by me to the " + slocation;
+            }
+            else
+                sanswer = "The " + sobject + " has been " + sverb + "ed by me";
+
+            cout << "sanswer : " << endl;
+            cout << sanswer << endl;
+        }
+        else if(nb == 3)   //  "Ag2,object,location,adverb"
+        {
+            cout << "nb elements " << nb;
+            std::list<int>::iterator it;
+            int cpt=0;
+            int tab[lposElements.size()];
+            for(it=lposElements.begin(); it!=lposElements.end(); ++it)
+            {
+                tab[cpt]=*it;
+                cpt++;
+            }
+            sagent1=sforce.substr(0,tab[0]);
+            cout << "sagent1 : " << sagent1 << endl;
+
+            sobject=sforce.substr(tab[0]+1,tab[1]-(tab[0]+1));
+            cout << "sobject : " << sobject << endl;
+
+            slocation=sforce.substr(tab[1]+1,tab[2]-tab[1]+1);
+            cout << "sobject : " << slocation << endl;
+
+            sadverb==sforce.substr(tab[2]+1,sforce.size()-tab[2]+1);
+            cout << "sadverb : " << sadverb << endl;
+            cout << "tab : " << tab[0] << " " << tab[1] << " " << tab[2] << endl;
+
+            sanswer = "The " + sobject + " has been " + sverb + "ed by me to the " + slocation + " " + sadverb;
+
+            cout << "sanswer : " << endl;
+            cout << sanswer << endl;
+        }
+    }
+
+    cout << "##############################################################" << endl;
+    return sanswer;
+}
