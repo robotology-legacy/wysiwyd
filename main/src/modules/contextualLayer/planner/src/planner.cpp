@@ -436,11 +436,11 @@ bool Planner::updateModule() {
 
                 if (stateOI.get(i).asList()->get(0).asString() == "not")
                 {
-                    stateCheck = (!rep.get(0).asInt()) && stateCheck;
+                    stateCheck = (!rep.get(1).asInt()) && stateCheck;
                 }
                 else
                 {
-                    stateCheck = (rep.get(0).asInt()) && stateCheck;
+                    stateCheck = (rep.get(1).asInt()) && stateCheck;
                 }
             }
 
