@@ -40,7 +40,7 @@ bool LRH::configure(ResourceFinder &rf) {
     sfileResult = rf.findFile("fileResult");
     stemporaryCorpus = rf.findFile("temporaryCorpus");
     sclosed_class_words = rf.check("closed_class_words", Value("after")).toString().c_str();
-    scorpusFile = rf.findFile(rf.check("corpusFile", Value("Corpus/corpus_narratif_scenario3_XPAOR.txt")).toString());
+    scorpusFile = rf.findFile(rf.check("corpusFile", Value("Corpus/corpus.txt")).toString());
 
     /* Mode Action Performer => Meaning */
     sreservoirAP = rf.findFile("reservoirAP");
@@ -49,7 +49,7 @@ bool LRH::configure(ResourceFinder &rf) {
     sreservoirNarratif = rf.findFile("reservoirNarrative");
 
     /* General parameters */
-    selt_pred = rf.check("l_elt_pred", Value("P A O R V")).toString().c_str();
+    selt_pred = rf.check("l_elt_pred", Value("P A O R V W")).toString().c_str();
     sNbNeurons = rf.check("iNbNeurons", Value("600")).toString().c_str();
 
     sHand = rf.check("hand", Value("right")).toString().c_str();
@@ -301,9 +301,8 @@ string LRH::meaningToSentence(string meaning){
 
 bool LRH::callReservoir(string pythonFile, string sCCW)
 {
-    std::string l_pythonCmd("python " + pythonFile);
-    std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + sMode + " " + \
-            sCCW + " " + selt_pred + " " + sNbNeurons;
+    std::string l_pythonCmd("python " + pythonFile);	
+    std::string l_pythonCall = l_pythonCmd + " " + stemporaryCorpus + " " + sfileResult + " " + sMode + " " + sCCW + " " + selt_pred + " " + sNbNeurons;
     std::cout << "l_pythonCall : " << l_pythonCall << std::endl;
 
     int python_return = system(l_pythonCall.c_str());

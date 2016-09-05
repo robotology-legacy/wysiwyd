@@ -16,6 +16,7 @@
 */
 
 #include <reservoirHandler.h>
+#include "wrdac/subsystems/subSystem_ARE.h"
 
 reservoirHandler::reservoirHandler(ResourceFinder &rf)
 {
@@ -1234,7 +1235,8 @@ bool reservoirHandler::AREactions(vector<string> seq)
             if(sLocation != " ")
             {
                 Time::delay(ftime);
-                bool grasped=iCub->getARE()->take(value, bHand);
+				bool grasped=iCub->getARE()->take(value, bHand, sObject);
+
                 cout<<(grasped?"grasped!":"missed!")<<endl;
 
                 success &= grasped;
@@ -1291,12 +1293,12 @@ bool reservoirHandler::AREactions(vector<string> seq)
             Bottle bHand(sHand);
             cout << "sHand : " << sHand << endl;
 
-            bool pointed = iCub->getARE()->point(value, bHand);
+			bool pointed = iCub->getARE()->point(value, bHand);
             cout<<(pointed?"pointed!":"missed!")<<endl;
 
             success &= pointed;
             Time::delay(ftime);
-            iCub->getARE()->home(sHand);
+            iCub->home(sHand);
         }
 
         if(sLocation != " "){
@@ -2003,13 +2005,10 @@ bool reservoirHandler::spatialRelation()
 
     if (PresentRtoBefore.size()==2)
     {
-
-        double deltaX = 0.0;
-        double deltaY = 0.0;
         int iFactor;
         (PresentRtoBefore[0].name() == sObjectFocus) ? iFactor = 1 : iFactor = -1;
-        deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
-        deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
+		//double deltaX = iFactor*(PresentRtoBefore[1].m_ego_position[0] - PresentRtoBefore[0].m_ego_position[0]);
+        double deltaY = iFactor*(PresentRtoBefore[1].m_ego_position[1] - PresentRtoBefore[0].m_ego_position[1]);
 
         string sLocation;
         (deltaY>0)? sLocation = "right" : sLocation = "left";

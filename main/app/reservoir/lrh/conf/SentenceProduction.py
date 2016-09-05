@@ -679,11 +679,17 @@ class Production:
             print "sent_form_info_train : ", sent_form_info_train
             print "sent_form_info_test : ", sent_form_info_test
         train_corpus, train_meaning  = self.txt2corpus_and_meaning(train_txt=train_data_txt)
+        
+        
         if self.verbose:
             print "train_corpus : ", train_corpus
             print "train_meaning : ", train_meaning
+            
+        sdir = os.path.dirname(os.path.abspath(self.fileResult))
+        print "sdir main func : ", sdir
+        
         if self.smode =="test":
-            shelf = shelve.open('shelf_prod.db', flag='r')
+            shelf = shelve.open(sdir + '/shelf_prod.db', flag='r')
             flag = shelf.has_key("l_ocw_array_train")
             if flag:
                 test_corpus = test_data
@@ -740,7 +746,7 @@ class Production:
                     self.imax_nr_actionrelation = temp_nr_actionrelation             
             
 
-            shelf = shelve.open('shelf_prod.db', writeback=True)
+            shelf = shelve.open(sdir + '/shelf_prod.db', writeback=True)
             l_ocw_array_train, states_out_train, construction_words, internal_states_train, res, stim_mean_train, stim_sent_train, l_m_elt = \
                 self.train(sent_form_info_train, train_meaning, train_corpus, d)
 
@@ -768,13 +774,15 @@ if __name__ == '__main__':
     closed_class_words = sys.argv[4].split(',') #   ['after', 'than', 'before', 'to', 'the', 'slowly', 'quickly', 'with', 'that', 'for', 'a', 'an', 'this', 'of', 'and', 'while', 'when'] 
     l_elt_pred= sys.argv[5].split(',')     #['P','A','O','R','V']
     iNbNeurons = int(sys.argv[6]) #600
+    
+    prodSentences = Production(corpusFile, fileResult, sMode, closed_class_words, l_elt_pred, iNbNeurons, False)
 
-
-#    corpusFile = sdir + "/Corpus/Corpus2.txt"
+#    sdir = os.path.dirname(os.path.abspath(__file__))
+#    corpusFile = sdir + "/Corpus/corpus.txt"
 #    fileResult = sdir + "/Corpus/output.txt"
 #
-#    closed_class_words = ['the', 'a', 'and', 'to']
-#    l_elt_pred = ['P','A','O','R','V']
+#    closed_class_words = ['the', 'a', 'and', 'to','that']
+#    l_elt_pred = ['P','A','O','R','V','W']
 #    iNbNeurons = 1000
 #    lMode = ["train", "test"]
 #    for sMode in lMode:    

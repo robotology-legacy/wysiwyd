@@ -208,7 +208,7 @@ class Comprehension:
         return (new_corpus, l_ocw_array, construction_words)
 
 
-    def get_meaning_coding(self):
+    def get_meaning_coding_optimized(self):
         l=[]
         for spred in range (0, len(self.focus)):
             if self.verbose:
@@ -803,7 +803,6 @@ class Comprehension:
         
         if self.smode =="test":
             shelf = shelve.open(sdir + '/shelf.db', flag='r')
-            print "sdir + '/shelf.db'", sdir 
             flag = shelf.has_key("l_construction_train")
             if flag:
                 test_corpus = data               
@@ -899,23 +898,24 @@ if __name__ == '__main__':
     Comprehension(corpusFile, fileResult, sMode, closed_class_wordsAP, l_elt_pred, nbNeurons, False)
 
     
-    sdir = os.path.dirname(os.path.abspath(__file__))
-
-#    corpusFile = sdir + "/Corpus/Corpus2.txt"
-#    #corpusFile = "/mnt/data/Dropbox/Reservoir_Workspace/Corpus/Corpus.txt"
+#    sdir = os.path.dirname(os.path.abspath(__file__))
+#
+#    #corpusFile = sdir + "/Corpus/Corpus2.txt"
+#    corpusFile = "/home/anne/.local/share/yarp/contexts/lrh/conf/Corpus/corpus2.txt"
 #    fileResult = sdir + "/Corpus/output.txt"
-#    closed_class_wordsAP = ['after', 'and', 'before', 'to', 'the', 'slowly', 'quickly', 'was', 'with', 'that', 'for', 'a', 'now']
+#    closed_class_wordsAP = ['to', 'the', 'with', 'that', 'a', 'an']
 #    #closed_class_wordsAP = ['wa','wo','no','ni','ga','you','koto']  
 #    l_elt_pred = ['P','A','O','R','V','W']
 #    nbNeurons = 500
-#        
+#      
 #    
-#    lMode = ["train","test"]
+#    lMode = ["train"]
 #    for sMode in lMode:    
 #        Comprehension(corpusFile, fileResult, sMode, closed_class_wordsAP, l_elt_pred, nbNeurons, False)
 
 
     print "*********END OF PROGRAM********"
+
 
 
 
