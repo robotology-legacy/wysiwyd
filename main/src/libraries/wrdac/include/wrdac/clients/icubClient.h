@@ -98,6 +98,7 @@ namespace wysiwyd{
             SubSystem_ARE* getARE();
             SubSystem_LRH* getLRH();
             SubSystem_Speech* getSpeechClient();
+            SubSystem_KARMA* getKARMA();
 
             OPCClient*                  opc;
             Agent*                      icubAgent;
@@ -288,6 +289,47 @@ namespace wysiwyd{
             *         (Entity non existing, impossible to reach, etc.).
             */
             bool push(const yarp::sig::Vector &target, const yarp::os::Bottle &options = yarp::os::Bottle(),std::string sName="target");
+
+            /**
+            * @brief pushKarma (KARMA): push to certain position, along a direction
+            * @param targetCenter: position to push to.
+            * @param theta: angle between the y-axis (in robot FoR) and starting position of push action, defines the direction of push action
+            * @param radius: radius of the circle with center at @see targetCenter
+            * @param options
+            * @param sName
+            * @return true in case of success release, false otherwise
+            */
+            bool pushKarma(const yarp::sig::Vector &targetCenter, const double &theta, const double &radius,
+                           const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
+
+            /**
+            * @brief drawKarma (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
+            * @param targetCenter: center of a circle
+            * @param theta: angle between the y-axis (in robot FoR) and starting position of draw action.
+            * @param radius: radius of the circle with center at @see targetCenter
+            * @param dist: moving distance of draw action
+            * @param options
+            * @param sName
+            * @return true in case of success release, false otherwise
+            */
+            bool drawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
+                           const double &radius, const double &dist,
+                           const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
+
+            /**
+            * @brief vdrawKarma (KARMA): draw action, along the positive direction of the x-axis (in robot FoR)
+            * @param targetCenter: center of a circle
+            * @param theta: angle between the y-axis (in robot FoR) and starting position of draw action.
+            * @param radius: radius of the circle with center at @see targetCenter
+            * @param dist: moving distance of draw action
+            * @param options
+            * @param sName
+            * @return true in case of success release, false otherwise
+            */
+            bool vdrawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
+                            const double &radius, const double &dist,
+                            const yarp::os::Bottle &options = yarp::os::Bottle(), std::string sName="target");
+
 
             /**
             * Start tracking a given entity

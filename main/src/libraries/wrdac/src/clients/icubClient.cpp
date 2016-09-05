@@ -33,6 +33,8 @@
 #include "wrdac/subsystems/subSystem_LRH.h"
 #include "wrdac/subsystems/subSystem_slidingCtrl.h"
 
+#include "wrdac/subsystems/subSystem_KARMA.h"
+
 using namespace std;
 using namespace yarp::os;
 using namespace yarp::sig;
@@ -118,6 +120,8 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
                 subSystems[SUBSYSTEM_AGENTDETECTOR] = new SubSystem_agentDetector(fullName);
             else if (currentSS == SUBSYSTEM_BABBLING)
                 subSystems[SUBSYSTEM_BABBLING] = new SubSystem_babbling(fullName);
+            else if (currentSS == SUBSYSTEM_KARMA)
+                subSystems[SUBSYSTEM_KARMA] = new SubSystem_KARMA(fullName);
             else
                 yError() << "Unknown subsystem!";
         }
@@ -594,6 +598,46 @@ bool ICubClient::push(const Vector &target, const Bottle &options, std::string s
     return are->push(target, opt, sName);
 }
 
+// KARMA
+bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &theta, const double &radius,
+                           const yarp::os::Bottle &options, std::string sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->push(targetCenter,theta,radius,options,sName);
+}
+
+bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
+                           const double &radius, const double &dist,
+                           const yarp::os::Bottle &options, std::string sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->draw(targetCenter,theta,radius,dist,options,sName);
+}
+
+bool ICubClient::vdrawKarma(const yarp::sig::Vector &targetCenter, const double &theta,
+                            const double &radius, const double &dist,
+                            const yarp::os::Bottle &options, std::string sName)
+{
+    SubSystem_KARMA *karma = getKARMA();
+    if (karma == NULL)
+    {
+        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        return false;
+    }
+    return karma->vdraw(targetCenter,theta,radius,dist,options,sName);
+}
+
+
 bool ICubClient::look(const string &target)
 {
     if (subSystems.find("attention") != subSystems.end())
@@ -996,4 +1040,12 @@ SubSystem_LRH* ICubClient::getLRH()
         return NULL;
     else
         return (SubSystem_LRH*)subSystems[SUBSYSTEM_LRH];
+}
+
+SubSystem_KARMA* ICubClient::getKARMA()
+{
+    if (subSystems.find(SUBSYSTEM_KARMA) == subSystems.end())
+        return NULL;
+    else
+        return (SubSystem_KARMA*)subSystems[SUBSYSTEM_KARMA];
 }
