@@ -20,7 +20,7 @@ from SAM.SAM_Core import SAMTesting
 np.set_printoptions(threshold=numpy.nan)
 
 
-class SAMDriver_AR(SAMDriver):
+class SAMDriver_ARWin(SAMDriver):
 
     def __init__(self):
         SAMDriver.__init__(self)
@@ -61,10 +61,10 @@ class SAMDriver_AR(SAMDriver):
         else:
             self.paramsDict['ignoreLabels'] = ['agent_entry', 'agent_exit', 'no_agent']
 
-        if parser.has_option(trainName, 'ignoreParts'):
-            self.paramsDict['ignoreParts'] = parser.get(trainName, 'ignoreParts').split(',')
+        if parser.has_option(trainName, 'includeParts'):
+            self.paramsDict['includeParts'] = parser.get(trainName, 'includeParts').split(',')
         else:
-            self.paramsDict['ignoreParts'] = ['partner']
+            self.paramsDict['includeParts'] = ['object']
 
         if parser.has_option(trainName, 'actionsAllowedList'):
             self.paramsDict['actionsAllowedList'] = parser.get(trainName, 'actionsAllowedList').split(',')
@@ -422,7 +422,7 @@ class SAMDriver_AR(SAMDriver):
         for k in self.paramsDict['ignoreLabels']:
             ignoreInds.append(labels.index(k))
 
-        # the following block of code extracts blocks of actions from the log files
+        # the following block o code extracts blocks of actions from the log files
         dataStruct = []
         for arr in range(len(dataLogList)):
             for label in labels:

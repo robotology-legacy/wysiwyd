@@ -12,6 +12,7 @@
 import numpy as np
 from ConfigParser import SafeConfigParser
 import pickle
+from SAM.SAM_Core import samOptimiser
 from os import listdir
 from os.path import join, isdir
 import threading
@@ -301,6 +302,7 @@ def initialiseModels(argv, update, initMode='training'):
         print 'ratioData = ' + str(mySAMpy.ratioData)
 
     if initMode == 'training':
+        samOptimiser.deleteModel(modelPath, 'exp' + str(mm[0].experiment_number))
         for k in range(len(mm[0].participantList)):
             # for k = 0 check if multiple model or not
             if mm[0].participantList[k] != 'root':
@@ -367,14 +369,23 @@ class timeout(object):
         return wrapped_f
 
 
-def transformTimeSeriesToSeq(Y, timeWindow):
+def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False):
     Ntr, D = Y.shape
     blocksNumber = Ntr - timeWindow
-    X = np.zeros((blocksNumber, timeWindow * D))
+    if normalised and reduced:
+        X = np.zeros((blocksNumber, (timeWindow - 1) * D))
+    else:
+        X = np.zeros((blocksNumber, timeWindow * D))
     Ynew = np.zeros((blocksNumber, D))
     for i in range(blocksNumber):
         tmp = Y[i:i + timeWindow, :].T
+
+        if normalised:
+            tmp = np.subtract(tmp, tmp[:, 0][:, None])
+            if reduced:
+                tmp = np.delete(tmp, 0, 1)
         X[i, :] = tmp.flatten().T
+
         Ynew[i, :] = Y[i + timeWindow, :]
 
     return X, Ynew

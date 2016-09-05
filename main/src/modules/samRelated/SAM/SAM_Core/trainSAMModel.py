@@ -17,7 +17,6 @@ import sys
 import numpy
 import numpy as np
 from SAM.SAM_Core import SAMCore
-from SAM.SAM_Core import samOptimiser
 from SAM.SAM_Core import SAMTesting
 from SAM.SAM_Core.SAM_utils import initialiseModels
 np.set_printoptions(threshold=numpy.nan)
@@ -28,8 +27,6 @@ modelPath = sys.argv[2]
 driverName = sys.argv[3]
 
 mm = initialiseModels(sys.argv[1:4], sys.argv[4])
-
-samOptimiser.deleteModel(modelPath, 'exp' + str(mm[0].experiment_number))
 
 if len(mm) > 1:
     SAMTesting.calibrateMultipleModelRecall(mm)

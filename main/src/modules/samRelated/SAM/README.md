@@ -78,9 +78,14 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 
 6. Finally, modify `default.ini` in **samSupervisor** context to point to your `<FolderName>` and comment out models within `sensory_level_conf.ini` also found in the **samSupervisor** context which you do not require to run automatically when launching samSupervisor 
 
-7. `sensory_level_conf.ini` specifies which models should be loaded as sections, the names of their respective input/output ports as well as the callsigns which will trigger recall or recognition of that particular model
+7. `default.ini` has 3 options. 
+persisitence: which defines if windows opened should remain open or close auomatically upo termination. Set to true this is useful to debug training or interaction algorithms.
+windowed:     which defines if training and interaction functions should spawn a window or not
+verbose:      defines the level of verbosity of samSupervisor
 
-8. All **PORTS**, **RPCBASES**, and **CALLSIGNS** must be unique
+8. `sensory_level_conf.ini` specifies which models should be loaded as sections, the names of their respective input/output ports as well as the callsigns which will trigger recall or recognition of that particular model
+
+9. All **PORTS**, **RPCBASES**, and **CALLSIGNS** must be unique
 
 ##Breakdown of contents in SAM folder:
 
@@ -91,13 +96,3 @@ Where `<model1Name>` and `<model2Name>` will be modelled as a single model while
 ####SAM_Drivers:
 - This folder contains all developed drivers. 
 - These drivers are accessed via the generic trainModel and interactionModel classes which are called from samSupervisor
-
-####SAM_Demos:
-- Includes standalone SAM demos which do not require samSupervisor to run.
-- These display the use of various functionalities of SAM
-
-####Utils:
-- This folder contains bits and bobs of functionality mostly related to the recording or labelling of datasets
-
-####Dev:
-- This folder is used for development of new features before they are included within the other folders
