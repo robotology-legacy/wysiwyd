@@ -29,6 +29,11 @@
     </module>
 
     <module>
+        <name>karmaMotor</name>
+        <node>icub-b1</node>
+    </module>
+
+    <module>
         <name>touchDetector</name>
         <parameters></parameters>
         <node>icub-b1</node>
