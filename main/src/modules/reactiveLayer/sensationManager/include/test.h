@@ -24,6 +24,7 @@ private:
 
 public:
     void configure();
+    void configure(Bottle group);
     void publish();
     void close_ports() {
         in.interrupt();

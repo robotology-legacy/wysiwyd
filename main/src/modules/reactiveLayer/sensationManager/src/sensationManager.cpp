@@ -20,19 +20,23 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
 
     Bottle grp = rf.findGroup("SENSATIONS");
     Bottle sensationList = *grp.find("sensations").asList();  
+    vector<Bottle> args;
     for (int i = 0; i < sensationList.size(); i++)
     {
         string sensation_name = sensationList.get(i).asString();
         // behavior_names.push_back(behavior_name);
         if (sensation_name == "opcSensation") {
+            args.push_back(rf.findGroup("STATES"));
             sensations.push_back(new OpcSensation());
+
         } else if (sensation_name == "test") {
+            args.push_back(rf.findGroup("TEST"));
             sensations.push_back(new Test());
         } else{
             yDebug() << "Sensation " + sensation_name + " not implemented";
             return false;
         }
-        sensations.back()->configure();
+        sensations.back()->configure(args.back());
     }
 
     // for(std::vector<Behavior*>::iterator it = behaviors.begin(); it != behaviors.end(); ++it) {

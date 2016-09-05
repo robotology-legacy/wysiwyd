@@ -38,7 +38,31 @@ void OpcSensation::configure()
     yInfo() << "Configuration done.";
 
 }
+void OpcSensation::configure(Bottle  group)
+{
+    configure();
+    states.clear();
+    //other stuff
+    if (!group.isNull()){
+        states = group;
+    }else{
+        states.clear();
+    }
+}
+string OpcSensation::getState(Object* object){
+    Bottle *group = states.find("boxes").asList();
+    for (int i = 0; i < group->size(); i++)
+        {
+            Bottle *state = states.find(group->get(i).asString()).asList();
+            if (object->m_ego_position[0] >state->get(1).asList()->get(0).asDouble() && object->m_ego_position[0] <state->get(1).asList()->get(2).asDouble()
+                && object->m_ego_position[1] > state->get(1).asList()->get(1).asDouble() && object->m_ego_position[1] < state->get(1).asList()->get(2).asDouble() )
+            {
+                return state->get(0).asString();
+            }
 
+        }
+    return "NULL";
+}
 void OpcSensation::publish()
 {
     // should change handleTagging to handleUnknownEntities?
@@ -100,11 +124,14 @@ Bottle OpcSensation::handleEntities()
 
     for (auto& entity : lEntities)
     {
+
         if (entity->name().find("unknown") == 0) {
             if (entity->entity_type() == "object")
             {
                 // yInfo() << "I found an unknown entity: " << sName;
                 Object* o = dynamic_cast<Object*>(entity);
+                yDebug()<<"Pre";
+                string label = getState(dynamic_cast<Object*>(entity));
                 if(o && (o->m_present==1.0)) {
                     unknown_obj = true;
                     addToEntityList(u_entities, entity->entity_type(), entity->name());
@@ -133,6 +160,7 @@ Bottle OpcSensation::handleEntities()
             else if (entity->entity_type() == "object" && dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
                 known_obj = true;
                 addToEntityList(k_entities, entity->entity_type(), entity->name());
+                
             }
         }
         if (entity->entity_type() == "agent") {  // Known entities

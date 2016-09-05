@@ -25,6 +25,7 @@ private:
     yarp::os::BufferedPort<Bottle> opc_has_known_port;
     yarp::os::BufferedPort<Bottle> opc_has_agent_port;
     yarp::os::BufferedPort<Bottle> is_touched_port;
+    Bottle states;
 
     void addToEntityList(yarp::os::Bottle& list, std::string type, std::string name);
     Bottle handleEntities();
@@ -33,7 +34,9 @@ private:
 public:
 
     void configure();
+    void configure(Bottle group);
     void publish();
+    string getState(Object* object);
 
     void close_ports() {
         unknown_entities_port.interrupt();

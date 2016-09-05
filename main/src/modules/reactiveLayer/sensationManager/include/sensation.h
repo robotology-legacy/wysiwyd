@@ -12,6 +12,7 @@ class Sensation : public BufferedPort<Bottle>
 public:
 
     virtual void configure() = 0;
+    virtual void configure(Bottle group) = 0;
     virtual void publish() = 0;
     virtual void close_ports() = 0;
 

@@ -9,6 +9,8 @@ void Test::configure()
     cout<<"Configuration done."<<endl;
 
 }
+void Test::configure(Bottle group)
+{}
 
 void Test::publish()
 {
