@@ -1,0 +1,6 @@
+want iCub croco , P1 A1 O1
+take iCub croco, P1 A1 O1
+because, fail iCub take croco, laid croco outofreach, P1 P2 A2 O2 R2 P3 A3 O3
+say iCub Sam give_me_the_croco, P1 A1 O1 R1
+and, give Sam croco iCub, P1 P2 A2 O2 R2
+because, give Sam iCub croco, want iCub croco, P1 P2 A2 O2 R2 P3 A3 O3
