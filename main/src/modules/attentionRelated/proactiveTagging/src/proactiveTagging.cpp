@@ -172,6 +172,8 @@ bool proactiveTagging::respond(const Bottle& command, Bottle& reply) {
         "exploreKinematicByJoint joint bodypart [true/false] \n";
 
     reply.clear();
+    reply.addVocab(Vocab::encode("many"));
+
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");

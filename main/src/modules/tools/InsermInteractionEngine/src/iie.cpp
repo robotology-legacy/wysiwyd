@@ -61,6 +61,7 @@ bool IIE::respond(const Bottle& command, Bottle& reply) {
         "quit \n";
 
     reply.clear();
+    reply.addVocab(Vocab::encode("many"));
 
     if (command.get(0).asString() == "quit") {
         reply.addString("quitting");
