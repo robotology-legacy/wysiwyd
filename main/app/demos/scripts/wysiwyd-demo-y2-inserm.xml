@@ -340,8 +340,8 @@
     </module>
 
    <module>
-       <name>xterm</name>
-       <parameters>-e "python /home/rococo/samSupervisor.py"</parameters>
+       <name>samSupervisor.py</name>
+       <parameters></parameters>
        <node>rococo</node>
   </module>
 
