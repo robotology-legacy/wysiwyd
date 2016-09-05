@@ -22,31 +22,48 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     grpPlans = rf.findGroup("PLANS");
     avaiPlansList = *grpPlans.find("plans").asList();
 
+    bool ears = 0;
+    bool BM = 1;
+    bool homeo = 1;
+    bool SM = 1;
+
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
-    // receive input from ears module
-    while (!Network::connect("/ears/target:o",rpc.getName())) {
-       yWarning() << "ears is not reachable";
-       yarp::os::Time::delay(0.5);
+
+    if (ears)
+    {
+        while (!Network::connect("/ears/target:o",rpc.getName())) {
+            yWarning() << "ears is not reachable";
+            yarp::os::Time::delay(0.5);
+        }
     }
 
-    portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
-    while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
-        yWarning() << "Behavior is not reachable";
-        yarp::os::Time::delay(0.5);
-    }
-    yDebug()<<"Connected to BM!";
- 
-    toHomeo.open("/manager/toHomeostasis/rpc:o");
-    while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
-    yWarning() << "homeostasis is not reachable";
-    yarp::os::Time::delay(0.5);
+    if (BM)
+    {
+        portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
+        while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
+            yWarning() << "Behavior is not reachable";
+            yarp::os::Time::delay(0.5);
+        }
+        yDebug()<<"Connected to BM!";
     }
 
-    getState.open("/planner/state:i");
-    while (!Network::connect(getState.getName(), "/sensationManager/rpc")) {
-        yWarning() << "state is unreachable.";
-        yarp::os::Time::delay(0.5);
+    if (homeo)
+    {
+        toHomeo.open("/manager/toHomeostasis/rpc:o");
+        while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
+            yWarning() << "homeostasis is not reachable";
+            yarp::os::Time::delay(0.5);
+        }
+    }
+
+    if (SM)
+    {
+        getState.open("/planner/state:i");
+        while (!Network::connect(getState.getName(), "/SensationManager/rpc")) {
+            yWarning() << "state is unreachable.";
+            yarp::os::Time::delay(0.5);
+        }
     }
 
     actPt = action_list.begin();
@@ -273,11 +290,12 @@ bool Planner::updateModule() {
                         string attach = preconds.get(i).asList()->get(0).asString();
                         if (attach == "not")
                         {
-                            indiv = !rep.get(0).asInt();
+                            indiv = !rep.get(1).asInt();
+                            yDebug() << "attached to a not";
                         }
                         else
                         {
-                            indiv = rep.get(0).asInt();
+                            indiv = rep.get(1).asInt();
                         }
                         state = state && indiv;
                     }

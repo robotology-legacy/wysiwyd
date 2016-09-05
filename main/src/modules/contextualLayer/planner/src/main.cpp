@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("planner");
-    rf.setDefaultConfigFile("test.ini");
+    rf.setDefaultConfigFile("default.ini");
     rf.configure(argc, argv);
     mod.runModule(rf);
     return 0;
