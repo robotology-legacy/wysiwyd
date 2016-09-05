@@ -10,7 +10,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period", Value(0.1)).asDouble();
 
     //Create an iCub Client and check that all dependencies are here before starting
-    bool isRFVerbose = false;
+    //bool isRFVerbose = false;
     //iCub = new ICubClient(moduleName, "goalManager", "client.ini", isRFVerbose);
     //iCub->opc->isVerbose = false;
     //if (!iCub->connect())
@@ -25,10 +25,10 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
     // receive input from ears module
-    //while (!Network::connect("/ears/target:o",rpc.getName())) {
-    //    yWarning() << "ears is not reachable";
-    //    yarp::os::Time::delay(0.5);
-    //}
+    while (!Network::connect("/ears/target:o",rpc.getName())) {
+       yWarning() << "ears is not reachable";
+       yarp::os::Time::delay(0.5);
+    }
 
     portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
     while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
@@ -38,10 +38,10 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     yDebug()<<"Connected to BM!";
  
     toHomeo.open("/manager/toHomeostasis/rpc:o");
-    /* while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
-        yWarning() << "homeostasis is not reachable";
-        yarp::os::Time::delay(0.5);
-    }*/
+    while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
+    yWarning() << "homeostasis is not reachable";
+    yarp::os::Time::delay(0.5);
+    }
 
     getState.open("/planner/state:i");
     while (!Network::connect(getState.getName(), "/sensationManager/rpc")) {
@@ -49,17 +49,12 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
         yarp::os::Time::delay(0.5);
     }
 
-    // port_behavior_context.open("/" + moduleName + "/target:o");
-    // yInfo()<<"created port to behaviors";
-
     actPt = action_list.begin();
     prioPt = priority_list.begin();
 
     yDebug()<<"clearing vectors";
     priority_list.clear();
     action_list.clear();
-    // current_goal = new Bottle();
-    // current_goal.clear();
     yDebug()<<"cleared all bottles";
     id=0;
     fulfill=0;
@@ -97,10 +92,10 @@ bool Planner::freeze_all()
     gandalf.addString("all");
     // Send command
     if (!Network::isConnected(toHomeo.getName(),"/homeostasis/rpc"))
-    //{
-    //    yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
-    //    yarp::os::Time::delay(0.1);
-    //}
+    {
+       yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
+       yarp::os::Time::delay(0.1);
+    }
     toHomeo.write(gandalf);
     yInfo() << "Gandalf has spoken.";
 
@@ -252,8 +247,9 @@ bool Planner::updateModule() {
             Bottle command = newPlan[it];
             knownPlan = checkKnown(command, avaiPlansList, planExe);
             string planName = command.get(1).asList()->get(0).asString();
-            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
-            object = command.get(1).asList()->get(2).asList()->get(1).asString();
+            objectType = command.get(1).asList()->get(1).asList()->get(0).asString();
+            object = command.get(1).asList()->get(1).asList()->get(1).asString();
+            yDebug() << "information extracted as string";
 
             if (knownPlan)
             {
