@@ -24,6 +24,8 @@
 namespace wysiwyd{
 namespace wrdac{
 
+enum class ObjectArea : int {HUMAN = 1, ROBOT = 2, SHARED = 3, NOTREACHABLE = 4};
+
 /**
 * \ingroup wrdac_representations
 *
@@ -66,6 +68,11 @@ public:
     * A measurement of the object saliency [0,1]
     */
     double m_saliency;
+
+    /**
+    * Whether the object is accessible by only the robot, only the human, both or neither agent
+    */
+    ObjectArea m_objectarea;
 
     virtual bool    isType(std::string _entityType)
     {
