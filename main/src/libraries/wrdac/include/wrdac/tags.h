@@ -39,20 +39,8 @@
 #define EFAA_OPC_ENTITY_ADJECTIVE           ("adjective")
 #define EFAA_OPC_ENTITY_ACTION              ("action")
 #define EFAA_OPC_ENTITY_RELATION            ("relation")
-#define EFAA_OPC_ENTITY_CONTACT_EVENT       ("contact")
-
-//We need to clean/think about entities...
-//#define EFAA_OPC_ENTITY_TABLE               ("rt_table")
-//#define EFAA_OPC_ENTITY_ROBOT               ("robot")
-//#define EFAA_OPC_ENTITY_CURSOR              ("cursor")
-#define EFAA_OPC_ENTITY_MATH                ("math")
-//#define EFAA_OPC_ENTITY_LOCATION            ("location")
-//#define EFAA_OPC_ENTITY_EMO_ROBOT           ("emo_robot")
-//#define EFAA_OPC_ENTITY_EMO_HUMAN           ("emo_human")
-//#define EFAA_OPC_ENTITY_BODY_PART           ("body_part")
 
 #define EFAA_OPC_OBJECT_NAME_TAG            ("name")
-#define EFAA_OPC_OBJECT_RTONTABLE_TAG       ("onTable")
 #define EFAA_OPC_OBJECT_PRESENT_TAG         ("isPresent")
 #define EFAA_OPC_OBJECT_RTID_TAG            ("rt_id")
 #define EFAA_OPC_OBJECT_RTPOSX_TAG          ("rt_position_x")
@@ -63,7 +51,6 @@
 #define EFAA_OPC_OBJECT_RTDIMY_TAG          ("rt_dim_y")
 #define EFAA_OPC_OBJECT_RTDIMZ_TAG          ("rt_dim_z")
 #define EFAA_OPC_OBJECT_SALIENCY            ("saliency")
-#define EFAA_OPC_OBJECT_CURID_TAG           ("cur_id")
 
 #define EFAA_OPC_OBJECT_ROBOTPOS_TAG        ("position_3d")
 #define EFAA_OPC_OBJECT_ROBOTPOSX_TAG       ("robot_position_x")
@@ -73,20 +60,10 @@
 #define EFAA_OPC_OBJECT_ROBOTORY_TAG        ("robot_orientation_y")
 #define EFAA_OPC_OBJECT_ROBOTORZ_TAG        ("robot_orientation_z")
 
-#define EFAA_OPC_OBJECT_GRASPCONF_TAG       ("graspConfiguration")
-#define EFAA_OPC_OBJECT_GRASPCONF_UP        ("up")
-#define EFAA_OPC_OBJECT_GRASPCONF_SIDE      ("side")
-#define EFAA_OPC_OBJECT_GRASPCONF_TOP       ("top")
 #define EFAA_OPC_OBJECT_GUI_COLOR_R         ("color_r")
 #define EFAA_OPC_OBJECT_GUI_COLOR_G         ("color_g")
 #define EFAA_OPC_OBJECT_GUI_COLOR_B         ("color_b")
 #define EFAA_OPC_OBJECT_GUI_COLOR_ALPHA     ("color_aplha")
-#define EFAA_OPC_MATH_MATRIX_TAG            ("transformation_matrix")
-
-// OPC : Frames
-#define EFAA_OPC_FRAME_NAME                 ("frameName")
-#define EFAA_OPC_FRAME_MATRIX               ("frameMatrix")
-#define EFAA_OPC_FRAME_SCALE                ("frameScale")
 
 // OPC : Spatial relations
 #define EFAA_OPC_OBJECT_SPATIAL_CONTAINS    ("contains")
@@ -151,4 +128,3 @@
 #define EFAA_KINECT_CLOSEST_PLAYER         -1
 
 #endif
-
