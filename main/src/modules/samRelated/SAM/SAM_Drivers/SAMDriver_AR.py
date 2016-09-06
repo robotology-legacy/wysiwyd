@@ -628,8 +628,6 @@ class SAMDriver_AR(SAMDriver):
             print self.Y.shape
             print len(self.L)
 
-        return self.Y.shape[0]
-
     def testPerformance(self, testModel, Yall, Lall, YtestAll, LtestAll, verbose):
 
         yTrainingData = SAMTesting.formatDataFunc(Yall)

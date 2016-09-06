@@ -202,8 +202,6 @@ def singleRecall(thisModel, testInstance, verbose, visualiseInfo=None):
     #     pb.show()
     #     pb.draw()
     #     pb.waitforbuttonpress(0.1)
-    # return pp
-    # return ['push_object', np.array([1.24])]
     return [textStringOut, vv.mean()]
 
 
@@ -320,21 +318,43 @@ def testSegments(thisModel, Ysample, Lnum, verbose):
         return d
 
     print
-    cmSize = len(thisModel[0].textLabels)
-    if len(thisModel) > 1:
-        confMatrix = np.zeros((cmSize+1, cmSize+1))
-        labelList = copy.deepcopy(thisModel[0].textLabels)
-        labelList.append('unknown')
+
+    # cmSize = len(set(self.data2Labels))
+    # confMatrix = np.zeros((cmSize, cmSize))
+    # labelList = copy.deepcopy(list(set(self.data2Labels)))
+    if isinstance(Lnum[0], (int, long)):
+        useModelLabels = True
     else:
-        confMatrix = np.zeros((cmSize, cmSize))
-        labelList = copy.deepcopy(thisModel[0].textLabels)
+        useModelLabels = False
+
+    if useModelLabels:
+        cmSize = len(thisModel[0].textLabels)
+        if len(thisModel) > 1:
+            confMatrix = np.zeros((cmSize+1, cmSize+1))
+            labelList = copy.deepcopy(thisModel[0].textLabels)
+            labelList.append('unknown')
+        else:
+            confMatrix = np.zeros((cmSize, cmSize))
+            labelList = copy.deepcopy(thisModel[0].textLabels)
+    else:
+        cmSize = len(set(Lnum))
+        if len(thisModel) > 1:
+            confMatrix = np.zeros((cmSize+1, cmSize+1))
+            labelList = copy.deepcopy(list(set(Lnum)))
+            labelList.append('unknown')
+        else:
+            confMatrix = np.zeros((cmSize, cmSize))
+            labelList = copy.deepcopy(list(set(Lnum)))
 
     numItems = len(Ysample)
 
     off1 = 11
     off2 = 8
     off3 = len(str(numItems))
-    Lsample = [thisModel[0].textLabels[int(Lnum[i])] for i in range(len(Lnum))]
+    if useModelLabels:
+        Lsample = [thisModel[0].textLabels[int(Lnum[i])] for i in range(len(Lnum))]
+    else:
+        Lsample = Lnum
 
     print 'estimated time: ' + str(numItems/60) + 'mins for ' + str(numItems) + ' items'
 

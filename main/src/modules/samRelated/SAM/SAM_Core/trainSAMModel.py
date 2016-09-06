@@ -12,7 +12,6 @@
 #
 # """"""""""""""""""""""""""""""""""""""""""""""
 import warnings
-import matplotlib.pyplot as plt
 import sys
 import numpy
 import numpy as np

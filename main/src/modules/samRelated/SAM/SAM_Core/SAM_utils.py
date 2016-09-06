@@ -369,14 +369,23 @@ class timeout(object):
         return wrapped_f
 
 
-def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False):
+def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False, noY=False):
+    # TODO add parameter for number of points to skip between sampled windows
     Ntr, D = Y.shape
-    blocksNumber = Ntr - timeWindow
+    if noY:
+        blocksNumber = Ntr - timeWindow + 1
+    else:
+        blocksNumber = Ntr - timeWindow
     if normalised and reduced:
         X = np.zeros((blocksNumber, (timeWindow - 1) * D))
     else:
         X = np.zeros((blocksNumber, timeWindow * D))
-    Ynew = np.zeros((blocksNumber, D))
+
+    if not noY:
+        Ynew = np.zeros((blocksNumber, D))
+    else:
+        Ynew = None
+
     for i in range(blocksNumber):
         tmp = Y[i:i + timeWindow, :].T
 
@@ -386,7 +395,8 @@ def transformTimeSeriesToSeq(Y, timeWindow, normalised=False, reduced=False):
                 tmp = np.delete(tmp, 0, 1)
         X[i, :] = tmp.flatten().T
 
-        Ynew[i, :] = Y[i + timeWindow, :]
+        if not noY:
+            Ynew[i, :] = Y[i + timeWindow, :]
 
     return X, Ynew
 
