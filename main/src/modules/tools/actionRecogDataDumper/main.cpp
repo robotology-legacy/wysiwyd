@@ -35,7 +35,7 @@ class Recorder : public RFModule
     BufferedPort<Bottle> dumpPort;
     RpcServer rpcPort;
 
-    OPCClient opc;
+    ICubClient icubclient;
     Mutex mutex;
 
     string agentName;
@@ -46,7 +46,7 @@ class Recorder : public RFModule
 
 public:
     /*******************************************************/
-    Recorder() : opc("actionRecogDataDumper/opc") { }
+    Recorder() : icubclient("actionRecogDataDumper") { }
 
     /*******************************************************/
     bool configure(ResourceFinder &rf)
@@ -54,9 +54,9 @@ public:
         agentName=rf.check("agent-name",Value("partner")).asString();
         period=rf.check("period",Value(0.05)).asDouble();
 
-        if (!opc.connect("OPC"))
+        if (!icubclient.connect())
         {
-            yError()<<"OPC seems unavailabe!";
+            yError() << " iCubClient : Some dependencies are not running (OPC?)...";
             return false;
         }
 
@@ -69,26 +69,6 @@ public:
         gate=0;
 
         return true;
-    }
-
-    // TODO FOR DANIEL: USE ICUBCLIENT!!!
-    std::string getPartnerName()
-    {
-        string partnerName = "";
-        list<Entity*> lEntities = opc.EntitiesCacheCopy();
-        for (auto& entity : lEntities) {
-            if (entity->entity_type() == "agent") {
-                Agent* a = dynamic_cast<Agent*>(entity);
-                //We assume kinect can only recognize one skeleton at a time
-                if(a->m_present == 1.0 && a->name()!="icub") {
-                    partnerName = a->name() ;
-                    yInfo() << "Partner found: name = " << partnerName;
-                    return partnerName;
-                }
-            }
-        }
-        yWarning() << "No partner present was found!";
-        return partnerName;
     }
 
     /*******************************************************/
@@ -109,11 +89,11 @@ public:
         bDump.addString(actionTag);
         bDump.addString(objectTag);
 
-        opc.checkout();        
+        icubclient.opc->checkout();
 
         // agent body + position
-        agentName = getPartnerName();
-        if (Entity *e=opc.getEntity(agentName))
+        agentName = icubclient.getPartnerName();
+        if (Entity *e=icubclient.opc->getEntity(agentName))
         {
             if (Agent *agent=dynamic_cast<Agent*>(e))
             {
@@ -128,7 +108,7 @@ public:
         }
 
         // objects position
-        list<Entity*> lEntity=opc.EntitiesCache();
+        list<Entity*> lEntity=icubclient.opc->EntitiesCache();
         for (list<Entity*>::iterator itEnt=lEntity.begin(); itEnt!=lEntity.end(); itEnt++)
         {
             string entityName=(*itEnt)->name();
@@ -147,7 +127,7 @@ public:
             }
         }
 
-        bDump.addInt(gate);        
+        bDump.addInt(gate);
 
         dumpStamp.update(dumpTime);
         dumpPort.setEnvelope(dumpStamp);
@@ -212,8 +192,9 @@ public:
         rpcPort.close();
         dumpPort.interrupt();
         dumpPort.close();
-        opc.interrupt();
-        opc.close();
+        icubclient.opc->interrupt();
+        icubclient.opc->close();
+        icubclient.close();
         return true;
     }
 
@@ -221,7 +202,7 @@ public:
     {
         rpcPort.interrupt();
         dumpPort.interrupt();
-        opc.interrupt();
+        icubclient.opc->interrupt();
         return true;
     }
 };
