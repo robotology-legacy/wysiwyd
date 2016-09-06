@@ -261,6 +261,7 @@ protected:
     void    updateOPC();
 
     bool    configure(ResourceFinder &rf);
+    void    setBounds(Vector &bounds, string configName, double std_lower, double std_upper);
     bool    interruptModule();
     bool    close();
     bool    attach(RpcServer &source);

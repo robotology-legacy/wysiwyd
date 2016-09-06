@@ -827,6 +827,35 @@ void IOL2OPCBridge::updateOPC()
     }
 }
 
+void IOL2OPCBridge::setBounds(Vector& bounds, string configName, double std_lower, double std_upper) {
+    bounds.resize(2);
+    bounds[0]=std_lower;
+    bounds[1]=std_upper;
+    if (rf.check(configName))
+    {
+        if (Bottle *bounds=rf.find(configName).asList())
+        {
+            if (bounds->size()==2)
+            {
+                bounds[0]=bounds->get(0).asDouble();
+                bounds[1]=bounds->get(1).asDouble();
+            }
+            else
+            {
+                yWarning() << configName << " does not have correct length, using default values!";
+            }
+        }
+        else
+        {
+            yWarning() << configName << " is not a list, using default values!";
+        }
+    }
+    else
+    {
+        yWarning() << configName << " not specified, using default values!";
+    }
+}
+
 
 /**********************************************************/
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
@@ -863,35 +892,8 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcCalib.open(("/"+name+"/calib:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
-    skim_blobs_x_bounds.resize(2);
-    skim_blobs_x_bounds[0]=-0.50;
-    skim_blobs_x_bounds[1]=-0.10;
-    if (rf.check("skim_blobs_x_bounds"))
-    {
-        if (Bottle *bounds=rf.find("skim_blobs_x_bounds").asList())
-        {
-            if (bounds->size()>=2)
-            {
-                skim_blobs_x_bounds[0]=bounds->get(0).asDouble();
-                skim_blobs_x_bounds[1]=bounds->get(1).asDouble();
-            }
-        }
-    }
-
-    skim_blobs_y_bounds.resize(2);
-    skim_blobs_y_bounds[0]=-0.30;
-    skim_blobs_y_bounds[1]=+0.30;
-    if (rf.check("skim_blobs_y_bounds"))
-    {
-        if (Bottle *bounds=rf.find("skim_blobs_y_bounds").asList())
-        {
-            if (bounds->size()>=2)
-            {
-                skim_blobs_y_bounds[0]=bounds->get(0).asDouble();
-                skim_blobs_y_bounds[1]=bounds->get(1).asDouble();
-            }
-        }
-    }
+    setBounds(skim_blobs_x_bounds, "skim_blobs_x_bounds", -0.50, -0.10);
+    setBounds(skim_blobs_y_bounds, "skim_blobs_y_bounds", -0.30, -0.30);
 
     // location used to display the
     // histograms upon the closest blob
