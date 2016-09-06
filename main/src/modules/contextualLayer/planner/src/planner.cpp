@@ -10,19 +10,19 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period", Value(0.1)).asDouble();
 
     //Create an iCub Client and check that all dependencies are here before starting
-    //bool isRFVerbose = false;
-    //iCub = new ICubClient(moduleName, "goalManager", "client.ini", isRFVerbose);
-    //iCub->opc->isVerbose = false;
-    //if (!iCub->connect())
-    //{
-    //    yInfo() << " iCubClient : Some dependencies are not running...";
-    //    Time::delay(1.0);
-    //}
+    bool isRFVerbose = false;
+    iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
+    iCub->opc->isVerbose = false;
+    if (!iCub->connect())
+    {
+       yInfo() << " iCubClient : Some dependencies are not running...";
+       Time::delay(1.0);
+    }
     
     grpPlans = rf.findGroup("PLANS");
     avaiPlansList = *grpPlans.find("plans").asList();
 
-    bool ears = 0;
+    bool ears = 1;
     bool BM = 1;
     bool homeo = 1;
     bool SM = 1;
@@ -33,8 +33,8 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     if (ears)
     {
         while (!Network::connect("/ears/target:o",rpc.getName())) {
-            yWarning() << "ears is not reachable";
-            yarp::os::Time::delay(0.5);
+            yWarning() << "ears is unreachable";
+            yarp::os::Time::delay(0.8);
         }
     }
 
@@ -42,8 +42,8 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     {
         portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
         while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
-            yWarning() << "Behavior is not reachable";
-            yarp::os::Time::delay(0.5);
+            yWarning() << "BehaviorManager is unreachable";
+            yarp::os::Time::delay(0.8);
         }
         yDebug()<<"Connected to BM!";
     }
@@ -52,8 +52,8 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     {
         toHomeo.open("/manager/toHomeostasis/rpc:o");
         while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
-            yWarning() << "homeostasis is not reachable";
-            yarp::os::Time::delay(0.5);
+            yWarning() << "homeostasis is unreachable";
+            yarp::os::Time::delay(0.8);
         }
     }
 
@@ -61,18 +61,16 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     {
         getState.open("/planner/state:i");
         while (!Network::connect(getState.getName(), "/SensationManager/rpc")) {
-            yWarning() << "state is unreachable.";
-            yarp::os::Time::delay(0.5);
+            yWarning() << "sensationManager is unreachable.";
+            yarp::os::Time::delay(0.8);
         }
     }
 
     actPt = action_list.begin();
     prioPt = priority_list.begin();
 
-    yDebug()<<"clearing vectors";
     priority_list.clear();
     action_list.clear();
-    yDebug()<<"cleared all bottles";
     id=0;
     fulfill=0;
     attemptCnt = 0;
@@ -142,8 +140,6 @@ bool Planner::checkKnown(const Bottle& command, Bottle& avaiPlansList, string fo
     for (int i = 0; i < avaiPlansList.size(); i++)
         {
             // iterate through list of drives to check if action plan is known
-            yInfo() << "iterating through list, action plan " << avaiPlansList.get(i).asString();
-
             if (avaiPlansList.get(i).asString() == command.get(1).asList()->get(0).asString())
             {
                 foundPlan = avaiPlansList.get(i).asString();
@@ -189,12 +185,28 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         fulfill = 0;
         reply.addString("ack");
     }
-    else if (command.get(0).asString() == "new"){
+    else if ((command.get(0).asString() == "new")&& (command.get(1).asList()->size() != 2)){
         // rpc command was of type "new (plan priority (objectType object))"
-        yInfo() << "Received input of type <new (plan priority (objectType object))> from ears.";
         ordering = true;
         newPlan.push_back(command);
         reply.addString("ack");
+    }
+    else if ((command.get(0).asString() == "new") && (command.get(1).asList()->size() == 2)){
+        // rpc command was of type "new (plan (objectType object))"
+        ordering = true;
+        Bottle ncmd;
+        Bottle ctxt;
+        Bottle deet;
+        ctxt.addString(command.get(1).asList()->get(1).asList()->get(0).asString());
+        ctxt.addString(command.get(1).asList()->get(1).asList()->get(2).asString());
+        deet.addString(command.get(1).asList()->get(0).asString());
+        deet.addString("1");
+        deet.addList()=ctxt;
+        ncmd.addString("new");
+        ncmd.addList()=deet;
+        newPlan.push_back(ncmd);
+        reply.addString("ack");
+
     }
         // (To-Do) Check goal not in list
     else if (command.get(0).asString() == "close"){
@@ -256,7 +268,7 @@ bool Planner::updateModule() {
 
     if (ordering)
     {
-        for (int it = 0; it < newPlan.size(); it++)
+        for (unsigned int it = 0; it < newPlan.size(); it++)
         {
             bool knownPlan = false;
             string planExe;
@@ -264,50 +276,67 @@ bool Planner::updateModule() {
             Bottle command = newPlan[it];
             knownPlan = checkKnown(command, avaiPlansList, planExe);
             string planName = command.get(1).asList()->get(0).asString();
-            objectType = command.get(1).asList()->get(1).asList()->get(0).asString();
-            object = command.get(1).asList()->get(1).asList()->get(1).asString();
-            yDebug() << "information extracted as string";
+            objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
+            object = command.get(1).asList()->get(2).asList()->get(1).asString();
 
             if (knownPlan)
             {
                 yInfo() << "plan known.";
                 // determine which parts of plan needs to be executed depending on state of object
                 int stepID;
-                bool assumption;
-                // check valid pre-action state of object of interest
+                // assumption is that the action plan is complete enough that at least one set of prerequisites is met
+                bool assumption = false;
                 Bottle bot;
                 Bottle rep;
                 bool state;
 
-                for (int i = grpPlans.find(planName + "-totactions").asInt(); i > 0; i--)
+                for (int ii = grpPlans.find(planName + "-totactions").asInt(); ii > 0; ii--)
                 {
+                    string actionName = grpPlans.find(planName + "action" + to_string(ii)).asString();
+                    // checking if preconditions are met starting from last action
                     state = true;
-                    Bottle preconds = *grpPlans.find(planName + "-" + to_string(i) + "pre").asList();
+                    Bottle preconds = *grpPlans.find(planName + "-" + to_string(ii) + "pre").asList();
+                    std::list<std::pair<std::string, std::string >> lArgument;
                     for (int i = 0; i < preconds.size(); i++)
                     {
+                        Bottle* msg = preconds.get(i).asList()->get(1).asList();
                         getState.write(*preconds.get(i).asList()->get(1).asList(), rep);
                         bool indiv;
                         string attach = preconds.get(i).asList()->get(0).asString();
                         if (attach == "not")
                         {
                             indiv = !rep.get(1).asInt();
-                            yDebug() << "attached to a not";
                         }
                         else
                         {
                             indiv = rep.get(1).asInt();
                         }
                         state = state && indiv;
+
+                        // formulate step for recording in ABM
+                        string strind;
+                        if (indiv == true) { strind = "true"; }
+                        else { strind = "false"; }
+                        lArgument.push_back(std::pair<std::string, std::string>(msg->get(0).asString(), "predicate"+to_string(i)));
+                        lArgument.push_back(std::pair<std::string, std::string>(msg->get(1).asString(), "agent"+to_string(i)));
+                        lArgument.push_back(std::pair<std::string, std::string>(msg->get(2).asString(), "object"+to_string(i)));
+                        lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(i)));
                     }
+
+                    // record action selection reasoning in ABM
+                    iCub->getABMClient()->sendActivity("reasoning",
+                        actionName,
+                        "planner",  // expl: "pasar", "drives"...
+                        lArgument,
+                        true);
+                    yInfo() << actionName + " reasoning has been recorded in the ABM";
 
                     if (state)
                     {
-                        stepID = i;
+                        stepID = ii;
                         assumption = true;
                         break;
                     }
-
-                    else { assumption = false; }
                 }
 
                 if (assumption)
@@ -318,7 +347,7 @@ bool Planner::updateModule() {
                     priority = command.get(1).asList()->get(1).asInt();
                     if (priority_list.size() != 0)
                     {
-                        for (int i = 0; i < priority_list.size(); i++)
+                        for (unsigned int i = 0; i < priority_list.size(); i++)
                         {
                             if (priority == 1)
                             {
@@ -338,7 +367,7 @@ bool Planner::updateModule() {
                         rankPriority = false;
                     }
 
-                    // insert actions into action_list and priority_list
+                    // insert actions into the various lists
                     if (!rankPriority)
                     {
                         for (int i = stepID; i < grpPlans.find(planName + "-totactions").asInt() + 1; i++)
@@ -351,6 +380,19 @@ bool Planner::updateModule() {
                             object_list.push_back(object);
                             type_list.push_back(objectType);
                             actionPos_list.push_back(i);
+
+                            // log in ABM
+                            std::list<std::pair<std::string, std::string> > lArgument;
+                            lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
+                            lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
+                            lArgument.push_back(std::pair<std::string, std::string>(act, "object"));
+                            lArgument.push_back(std::pair<std::string, std::string>("bottom", "result"));
+                            iCub->getABMClient()->sendActivity("reasoning",
+                                "priority",
+                                "planner",  // expl: "pasar", "drives"...
+                                lArgument,
+                                true);
+                            yInfo() << "addition of " + act + " to bottom of list has been recorded in the ABM";
                         }
 
                     }
@@ -361,20 +403,32 @@ bool Planner::updateModule() {
                         {
                             string act = grpPlans.find(planName + "-action" + to_string(i)).asString();
                             yInfo() << "adding action " << act;
+                            idx = plan_list.insert(idx, planName);
+                            idx = object_list.insert(idx, object);
+                            idx = type_list.insert(idx, objectType);
                             idx = action_list.insert(idx, act);
+                            indx = actionPos_list.insert(indx, i);
                             indx = priority_list.insert(indx, priority);
+
+                            // log in ABM
+                            std::list<std::pair<std::string, std::string> > lArgument;
+                            lArgument.push_back(std::pair<std::string, std::string>("add_action", "predicate"));
+                            lArgument.push_back(std::pair<std::string, std::string>("priority", "agent"));
+                            lArgument.push_back(std::pair<std::string, std::string>(act, "object"));
+                            lArgument.push_back(std::pair<std::string, std::string>(to_string(insertID), "result"));
+                            iCub->getABMClient()->sendActivity("reasoning",
+                                "priority",
+                                "planner",  // expl: "pasar", "drives"...
+                                lArgument,
+                                true);
+                            yInfo() << "addition of " + act + " to index " << insertID << " of list has been recorded in the ABM";
                         }
-                        // if (fulfill)
-                        // {
-                        //     actPt += grpPlans.find(planName + "-totactions").asInt();
-                        //     prioPt += grpPlans.find(planName + "-totactions").asInt();
-                        // }
                     }
 
                 }
                 else
                 {
-                    yWarning() << "Unexpected state of object, unable to handle plan.";
+                    yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
                     yarp::os::Time::delay(1.5);
                 }
             }
@@ -419,11 +473,25 @@ bool Planner::updateModule() {
             actionCompleted = triggerBehavior(Bottle(act));
             yInfo() << "action has been completed: " << actionCompleted;
 
+            // record list of action in the ABM
+            std::list<std::pair<std::string, std::string >> lArgument;
+            for (unsigned int i = 0; i < action_list.size(); i++)
+            {
+                lArgument.push_back(std::pair<std::string, std::string>(action_list[i], "action"));
+            }
+            iCub->getABMClient()->sendActivity("reasoning",
+                "action_list",
+                "planner",  // expl: "pasar", "drives"...
+                lArgument,
+                true);
+            yInfo() << "sent action_list to ABM";
+            lArgument.clear();
+
             // check for completed state
             string planName = plan_list[0];
             Bottle stateOI = *grpPlans.find(planName + "-" + to_string(actionPos_list[0]) + "post").asList();
 
-            yInfo() << "checking for post condition fulfillment.";
+            // checking for post condition fulfillment.
             int stateCheck = 1;
             for (int i = 0; i < stateOI.size(); i++)
             {
@@ -433,21 +501,22 @@ bool Planner::updateModule() {
                 rep.clear();
                 bot = *stateOI.get(i).asList()->get(1).asList();
                 getState.write(bot, rep);
+                int indiv;
 
                 if (stateOI.get(i).asList()->get(0).asString() == "not")
                 {
-                    stateCheck = (!rep.get(1).asInt()) && stateCheck;
+                    indiv = !rep.get(1).asInt();
                 }
                 else
                 {
-                    stateCheck = (rep.get(1).asInt()) && stateCheck;
+                    indiv = rep.get(1).asInt();
                 }
+
+                stateCheck = indiv && stateCheck;
             }
 
-            // wait for a second before trying again
             if (actionCompleted && stateCheck)
             {
-                // action has been successfully completed
                 yInfo() << "removing action " << *action_list.begin();
                 action_list.erase(action_list.begin());
                 priority_list.erase(priority_list.begin());
@@ -462,12 +531,26 @@ bool Planner::updateModule() {
             else
             {
                 attemptCnt += 1;
+
+                // log in ABM
+                std::list<std::pair<std::string, std::string> > lArgument;
+                lArgument.push_back(std::pair<std::string, std::string>("keep_action", "predicate"));
+                lArgument.push_back(std::pair<std::string, std::string>("iCub", "agent"));
+                lArgument.push_back(std::pair<std::string, std::string>(action_list[0], "object"));
+                iCub->getABMClient()->sendActivity("reasoning",
+                    "iCub",
+                    "planner",  // expl: "pasar", "drives"...
+                    lArgument,
+                    true);
+                yInfo() << action_list[0] + " failure and reattempt has been recorded in the ABM";
+
                 if (attemptCnt > 2)
                 {
                     yInfo() << "reached threshold for action attempts.";
-                    iCub->say("I have tried too many times and failed for " + action_list[0] + ". Do it yourself or help me.");
+                    iCub->say("I have tried too many times and failed to do " + action_list[0] + ". Do it yourself or help me.");
                     // remove action and/or plan?
                 }
+                // wait for a second before trying again
                 Time::delay(1.0);
             }
 
