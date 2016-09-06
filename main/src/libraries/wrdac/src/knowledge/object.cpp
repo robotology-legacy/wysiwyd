@@ -129,11 +129,13 @@ Bottle Object::asBottle()
     bSub.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
     bSub.addDouble(m_present);
     b.addList() = bSub;
+    bSub.clear();
 
     //ObjectArea
     bSub.addString("object_area");
     bSub.addInt(static_cast<int>(m_objectarea));
     b.addList() = bSub;
+    bSub.clear();
 
     return b;
 }
