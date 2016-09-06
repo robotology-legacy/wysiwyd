@@ -777,9 +777,24 @@ void IOL2OPCBridge::updateOPC()
                     Vector x_filtered,dim_filtered;
                     it.second.filt(x,x_filtered,dim,dim_filtered);
 
-                    obj->m_ego_position=calibPosition(x_filtered);
+                    Vector objpos;
+                    objpos=calibPosition(x_filtered);
+                    obj->m_ego_position=objpos;
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
+
+                    if ((objpos[0]>human_area_x_bounds[0]) && (objpos[0]<human_area_x_bounds[1]) &&
+                        (objpos[1]>human_area_y_bounds[0]) && (objpos[1]<human_area_y_bounds[1])) {
+                        obj->m_objectarea = ObjectArea::HUMAN;
+                    } else if ((objpos[0]>shared_area_x_bounds[0]) && (objpos[0]<shared_area_x_bounds[1]) &&
+                               (objpos[1]>shared_area_y_bounds[0]) && (objpos[1]<shared_area_y_bounds[1])) {
+                        obj->m_objectarea = ObjectArea::SHARED;
+                    } else if ((objpos[0]>robot_area_x_bounds[0]) && (objpos[0]<robot_area_x_bounds[1]) &&
+                               (objpos[1]>robot_area_y_bounds[0]) && (objpos[1]<robot_area_y_bounds[1])) {
+                        obj->m_objectarea = ObjectArea::ROBOT;
+                    } else {
+                        obj->m_objectarea = ObjectArea::NOTREACHABLE;
+                    }
 
                     bObjNameLoc.addString(obj->name());
                     bObjNameLoc.addString(obj->m_ego_position.toString());
@@ -827,6 +842,35 @@ void IOL2OPCBridge::updateOPC()
     }
 }
 
+void IOL2OPCBridge::setBounds(ResourceFinder &rf, Vector& bounds, string configName, double std_lower, double std_upper) {
+    bounds.resize(2);
+    bounds[0]=std_lower;
+    bounds[1]=std_upper;
+    if (rf.check(configName))
+    {
+        if (Bottle *rf_bounds=rf.find(configName).asList())
+        {
+            if (rf_bounds->size()==2)
+            {
+                bounds[0]=rf_bounds->get(0).asDouble();
+                bounds[1]=rf_bounds->get(1).asDouble();
+            }
+            else
+            {
+                yWarning() << configName << " does not have correct length, using default values!";
+            }
+        }
+        else
+        {
+            yWarning() << configName << " is not a list, using default values!";
+        }
+    }
+    else
+    {
+        yWarning() << configName << " not specified, using default values!";
+    }
+}
+
 
 /**********************************************************/
 bool IOL2OPCBridge::configure(ResourceFinder &rf)
@@ -863,35 +907,14 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcCalib.open(("/"+name+"/calib:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
-    skim_blobs_x_bounds.resize(2);
-    skim_blobs_x_bounds[0]=-0.50;
-    skim_blobs_x_bounds[1]=-0.10;
-    if (rf.check("skim_blobs_x_bounds"))
-    {
-        if (Bottle *bounds=rf.find("skim_blobs_x_bounds").asList())
-        {
-            if (bounds->size()>=2)
-            {
-                skim_blobs_x_bounds[0]=bounds->get(0).asDouble();
-                skim_blobs_x_bounds[1]=bounds->get(1).asDouble();
-            }
-        }
-    }
-
-    skim_blobs_y_bounds.resize(2);
-    skim_blobs_y_bounds[0]=-0.30;
-    skim_blobs_y_bounds[1]=+0.30;
-    if (rf.check("skim_blobs_y_bounds"))
-    {
-        if (Bottle *bounds=rf.find("skim_blobs_y_bounds").asList())
-        {
-            if (bounds->size()>=2)
-            {
-                skim_blobs_y_bounds[0]=bounds->get(0).asDouble();
-                skim_blobs_y_bounds[1]=bounds->get(1).asDouble();
-            }
-        }
-    }
+    setBounds(rf, skim_blobs_x_bounds,  "skim_blobs_x_bounds",  -0.70, -0.10);
+    setBounds(rf, skim_blobs_y_bounds,  "skim_blobs_y_bounds",  -0.30, -0.30);
+    setBounds(rf, human_area_x_bounds,  "human_area_x_bounds",  -0.70, -0.50);
+    setBounds(rf, human_area_y_bounds,  "human_area_y_bounds",  -0.30, -0.30);
+    setBounds(rf, shared_area_x_bounds, "shared_area_x_bounds", -0.50, -0.35);
+    setBounds(rf, shared_area_y_bounds, "shared_area_y_bounds", -0.30, -0.30);
+    setBounds(rf, robot_area_x_bounds,  "robot_area_x_bounds",  -0.35, -0.10);
+    setBounds(rf, robot_area_y_bounds,  "robot_area_y_bounds",  -0.30, -0.30);
 
     // location used to display the
     // histograms upon the closest blob

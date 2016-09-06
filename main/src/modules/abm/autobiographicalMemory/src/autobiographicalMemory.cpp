@@ -229,7 +229,7 @@ Bottle  autobiographicalMemory::load(Bottle bInput)
     /****************************** object Table ***************************/
     //herits from entity
     *ABMDataBase << "DROP TABLE IF EXISTS object CASCADE;";
-    *ABMDataBase << "CREATE TABLE object(  presence boolean NOT NULL,  position real [],  orientation real[],  dimension real[],  color int[], saliency real, CONSTRAINT object_pkey PRIMARY KEY (instance, opcid),  UNIQUE (instance, opcid),  FOREIGN KEY (instance, opcid) REFERENCES contentopc (instance, opcid)) INHERITS (entity) WITH (OIDS=FALSE);";
+    *ABMDataBase << "CREATE TABLE object(  presence boolean NOT NULL,  position real [],  orientation real[],  dimension real[],  color int[], saliency real, objectarea text, CONSTRAINT object_pkey PRIMARY KEY (instance, opcid),  UNIQUE (instance, opcid),  FOREIGN KEY (instance, opcid) REFERENCES contentopc (instance, opcid)) INHERITS (entity) WITH (OIDS=FALSE);";
     *ABMDataBase << "ALTER TABLE object OWNER TO postgres;";
 
     /****************************** rtobject Table ***************************/

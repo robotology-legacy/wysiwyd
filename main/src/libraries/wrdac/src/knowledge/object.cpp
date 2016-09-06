@@ -35,6 +35,7 @@ Object::Object():Entity()
     m_color.resize(3,255.0);
     m_saliency = 0.0;
     m_present = 0.0;
+    m_objectarea = ObjectArea::NOTREACHABLE;
 
     // by default, place object 25cm in front of the robot
     // to avoid collisions when pointing to an object
@@ -50,6 +51,7 @@ Object::Object(const Object &b):Entity(b)
     this->m_ego_position = b.m_ego_position;
     this->m_present = b.m_present;
     this->m_saliency = b.m_saliency;
+    this->m_objectarea = b.m_objectarea;
 }
 
 Bottle Object::asBottle()
@@ -125,8 +127,15 @@ Bottle Object::asBottle()
 
     //Present
     bSub.addString(EFAA_OPC_OBJECT_PRESENT_TAG);
-    bSub.addDouble(this->m_present);
+    bSub.addDouble(m_present);
     b.addList() = bSub;
+    bSub.clear();
+
+    //ObjectArea
+    bSub.addString("object_area");
+    bSub.addInt(static_cast<int>(m_objectarea));
+    b.addList() = bSub;
+    bSub.clear();
 
     return b;
 }
@@ -148,7 +157,9 @@ bool Object::fromBottle(const Bottle &b)
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_R) ||
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) ||
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_B) ||
-        !b.check(EFAA_OPC_OBJECT_PRESENT_TAG))
+        !b.check(EFAA_OPC_OBJECT_PRESENT_TAG) ||
+        !b.check("object_area")
+       )
     {
         return false;
     }
@@ -167,6 +178,8 @@ bool Object::fromBottle(const Bottle &b)
     m_color[2] = b.find(EFAA_OPC_OBJECT_GUI_COLOR_B).asDouble();
     m_saliency = b.find(EFAA_OPC_OBJECT_SALIENCY).asDouble();
     m_present = b.find(EFAA_OPC_OBJECT_PRESENT_TAG).asDouble();
+    m_objectarea = static_cast<ObjectArea>(b.find("object_area").asInt());
+
     return true;
 }
 
@@ -186,6 +199,8 @@ string Object::toString()
     oss<< m_saliency<<endl;
     oss<<"present : \t";
     oss<< m_present<<endl;
+    oss<<"object area : \t";
+    oss<< static_cast<int>(m_objectarea)<<endl;
     return oss.str();
 }
 

@@ -24,6 +24,8 @@
 namespace wysiwyd{
 namespace wrdac{
 
+enum class ObjectArea : int {HUMAN = 1, ROBOT = 2, SHARED = 3, NOTREACHABLE = 4};
+
 /**
 * \ingroup wrdac_representations
 *
@@ -67,6 +69,11 @@ public:
     */
     double m_saliency;
 
+    /**
+    * Whether the object is accessible by only the robot, only the human, both or neither agent
+    */
+    ObjectArea m_objectarea;
+
     virtual bool    isType(std::string _entityType)
     {
         if (_entityType == EFAA_OPC_ENTITY_OBJECT) {
@@ -86,6 +93,21 @@ public:
     *@return The transformed vector (x y z)
     */
     yarp::sig::Vector getSelfRelativePosition(const yarp::sig::Vector &vInitialRoot);
+
+    std::string objectAreaAsString() {
+        if(m_objectarea==ObjectArea::HUMAN) {
+            return "HumanOnly";
+        } else if(m_objectarea==ObjectArea::ROBOT) {
+            return "RobotOnly";
+        } else if(m_objectarea==ObjectArea::SHARED) {
+            return "Shared";
+        } else if(m_objectarea==ObjectArea::NOTREACHABLE) {
+            return "NotReachable";
+        } else {
+            yError() << "Something went wrong in objectAreaAsString()";
+            return "NULL";
+        }
+    }
 };
 
 }} //namespaces
