@@ -36,7 +36,6 @@ set(folder_source src/functions.cpp
 
 
 set(folder_header include/wrdac/functions.h
-                  include/wrdac/helpers.h
                   include/wrdac/tags.h
                   include/wrdac/knowledge/action.h         
                   include/wrdac/knowledge/adjective.h      
