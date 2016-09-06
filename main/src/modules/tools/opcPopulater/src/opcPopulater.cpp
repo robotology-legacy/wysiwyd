@@ -196,13 +196,13 @@ bool opcPopulater::updateModule() {
         obj2->m_ego_position[0] = -0.18;
         obj2->m_ego_position[1] = -0.10;
         obj2->m_ego_position[2] = 0.1;
+
         iCub->opc->commit(obj1);
         iCub->opc->commit(obj2);
 
         iter += 1;
     }
     return true;
-    
 }
 
 bool opcPopulater::populateEntityRandom(Bottle bInput){
@@ -854,9 +854,10 @@ bool opcPopulater::populateMoving(){
     iCub->opc->clear();
 
     Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("moving_1");
-    obj1->m_ego_position[0] = -0.3;
-    obj1->m_ego_position[1] = 0.05;
-    obj1->m_ego_position[2] = 0;
+    obj1->m_ego_position[0] = -0.18;
+    obj1->m_ego_position[1] = 0.10;
+    obj1->m_ego_position[2] = 0.1;
+
     obj1->m_present = 1.0;
     obj1->m_color[0] = 20;
     obj1->m_color[1] = 20;
@@ -865,9 +866,10 @@ bool opcPopulater::populateMoving(){
     iCub->opc->commit(obj1);
 
     Object* obj2 = iCub->opc->addOrRetrieveEntity<Object>("moving_2");
-    obj2->m_ego_position[0] = -0.3;
-    obj2->m_ego_position[1] = -0.05;
-    obj2->m_ego_position[2] = 0;
+    obj2->m_ego_position[0] = -0.18;
+    obj2->m_ego_position[1] = -0.10;
+    obj2->m_ego_position[2] = 0.1;
+
     obj2->m_present = 1.0;
     obj2->m_color[0] = 200;
     obj2->m_color[1] = 20;
