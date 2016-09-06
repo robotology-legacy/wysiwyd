@@ -374,7 +374,7 @@ Bottle opcEars::insertOPC(string sName)
     osContent << "INSERT INTO contentopc( type , instance , opcid , subtype) VALUES ";
     osEntity << "INSERT INTO entities(opcid, name, instance) VALUES ";
     osObject << "INSERT INTO object(opcid, name, instance, presence, position, orientation, dimension, color, saliency) VALUES ";
-    osRTObject << "INSERT INTO rtobject(opcid, name, instance, presence, position, orientation, dimension, color, rtposition, saliency) VALUES ";
+    osRTObject << "INSERT INTO rtobject(opcid, name, instance, presence, position, orientation, dimension, color, rtposition, saliency, objectarea) VALUES ";
     osAgent << "INSERT INTO agent(opcid, name, instance, presence, position, orientation, dimension, color, saliency) VALUES ";
     osAdjective << "INSERT INTO adjective(opcid, name, instance, quality) VALUES ";
     osAction << "INSERT INTO action(opcid, name, instance, argument) VALUES ";
