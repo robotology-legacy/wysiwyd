@@ -1,8 +1,8 @@
-/* 
+/*
  * Copyright (C) 2014 WYSIWYD Consortium, European Commission FP7 Project ICT-612139
  * Authors: Stéphane Lallée
  * email:   stephane.lallee@gmail.com
- * website: http://efaa.upf.edu/ 
+ * website: http://efaa.upf.edu/
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
  * later version published by the Free Software Foundation.
@@ -21,7 +21,8 @@
 
 #include "entity.h"
 
-namespace wysiwyd{namespace wrdac{
+namespace wysiwyd{
+namespace wrdac{
 
 /**
 * \ingroup wrdac_representations
@@ -29,47 +30,51 @@ namespace wysiwyd{namespace wrdac{
 * Represent any physical entity (including objects and agents) that can be stored within the OPC.
 */
 class Object: public Entity
-{friend class OPCClient;
+{
+    friend class OPCClient;
+
 public:
-                    Object();
-                    Object(const Object &b);
+    Object();
+    Object(const Object &b);
+
     /**
     * Position of the Object, in the initial ego-centered reference frame of the agent mainting the OPC (initial root of the iCub when navigation is calibrated).
     */
-    yarp::sig::Vector            m_ego_position;
-    
+    yarp::sig::Vector m_ego_position;
+
     /**
     * Orientation of the Object, in the initial ego-centered reference frame of the agent mainting the OPC (initial root of the iCub when navigation is calibrated).
     */
-    yarp::sig::Vector            m_ego_orientation;
-    
+    yarp::sig::Vector m_ego_orientation;
+
     /**
     * Dimensions of the Object, in meters.
     */
-    yarp::sig::Vector            m_dimensions;
+    yarp::sig::Vector m_dimensions;
 
     /**
     * Mean color of the object (r,g,b) used mainly for debugging/displaying purposes.
     */
-    yarp::sig::Vector            m_color;
+    yarp::sig::Vector m_color;
 
     /**
     * Is the object present in the scene
-    */          
-    double              m_present;
+    */
+    double m_present;
 
     /**
     * A measurement of the object saliency [0,1]
-    */  
-    double          m_saliency;
+    */
+    double m_saliency;
 
     virtual bool    isType(std::string _entityType)
-        {
-            if (_entityType == EFAA_OPC_ENTITY_OBJECT)
-                return true;
-            else
-                return this->Entity::isType(_entityType);
+    {
+        if (_entityType == EFAA_OPC_ENTITY_OBJECT) {
+            return true;
+        } else {
+            return this->Entity::isType(_entityType);
         }
+    }
 
     virtual yarp::os::Bottle asBottle();
     virtual bool             fromBottle(const yarp::os::Bottle &b);

@@ -27,7 +27,7 @@ using namespace yarp::dev;
 using namespace wysiwyd::wrdac;
 
 Object::Object():Entity()
-{    
+{
     m_entity_type = EFAA_OPC_ENTITY_OBJECT;
     m_ego_position.resize(3,0.0);
     m_ego_orientation.resize(3,0.0);
@@ -35,7 +35,7 @@ Object::Object():Entity()
     m_color.resize(3,255.0);
     m_saliency = 0.0;
     m_present = 0.0;
-    
+
     // by default, place object 25cm in front of the robot
     // to avoid collisions when pointing to an object
     m_ego_position[0] = -0.25;
@@ -76,6 +76,7 @@ Bottle Object::asBottle()
     bSub.addList().read(m_ego_position);
     b.addList() = bSub;
     bSub.clear();
+
     //Orientation
     bSub.addString(EFAA_OPC_OBJECT_ROBOTORX_TAG);
     bSub.addDouble(m_ego_orientation[0]);
@@ -89,6 +90,7 @@ Bottle Object::asBottle()
     bSub.addDouble(m_ego_orientation[2]);
     b.addList() = bSub;
     bSub.clear();
+
     //Dimension
     bSub.addString(EFAA_OPC_OBJECT_RTDIMX_TAG);
     bSub.addDouble(m_dimensions[0]);
@@ -134,17 +136,17 @@ bool Object::fromBottle(const Bottle &b)
     if (!this->Entity::fromBottle(b))
         return false;
 
-    if (!b.check(EFAA_OPC_OBJECT_ROBOTPOSX_TAG) || 
+    if (!b.check(EFAA_OPC_OBJECT_ROBOTPOSX_TAG) ||
         !b.check(EFAA_OPC_OBJECT_ROBOTPOSY_TAG) ||
         !b.check(EFAA_OPC_OBJECT_ROBOTPOSZ_TAG) ||
-        !b.check(EFAA_OPC_OBJECT_RTDIMX_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_RTDIMY_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_RTDIMZ_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_ROBOTORX_TAG) || 
-        !b.check(EFAA_OPC_OBJECT_ROBOTORY_TAG) || 
+        !b.check(EFAA_OPC_OBJECT_RTDIMX_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_RTDIMY_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_RTDIMZ_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_ROBOTORX_TAG) ||
+        !b.check(EFAA_OPC_OBJECT_ROBOTORY_TAG) ||
         !b.check(EFAA_OPC_OBJECT_ROBOTORZ_TAG) ||
-        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_R) || 
-        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) || 
+        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_R) ||
+        !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) ||
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_B) ||
         !b.check(EFAA_OPC_OBJECT_PRESENT_TAG))
     {
@@ -169,7 +171,7 @@ bool Object::fromBottle(const Bottle &b)
 }
 
 string Object::toString()
-{    
+{
     std::ostringstream oss;
     oss<< this->Entity::toString();
     oss<<"self xyz : \t";
@@ -179,7 +181,7 @@ string Object::toString()
     oss<<"size : \t \t";
     oss<< m_dimensions.toString(3,3)<<endl;
     oss<<"color : \t";
-    oss<< m_color.toString(3,3)<<endl;    
+    oss<< m_color.toString(3,3)<<endl;
     oss<<"saliency : \t";
     oss<< m_saliency<<endl;
     oss<<"present : \t";
@@ -188,7 +190,7 @@ string Object::toString()
 }
 
 Vector Object::getSelfRelativePosition(const Vector &vInitialRoot)
-{    
+{
     Vector targetAbsolute(4,1.0);
     targetAbsolute.setSubvector(0,vInitialRoot);
     Vector targetRelative(4,1.0);
