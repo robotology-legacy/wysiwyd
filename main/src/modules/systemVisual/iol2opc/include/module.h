@@ -234,6 +234,13 @@ protected:
     Vector skim_blobs_y_bounds;
     Vector histObjLocation;
 
+    Vector human_area_x_bounds;
+    Vector human_area_y_bounds;
+    Vector robot_area_x_bounds;
+    Vector robot_area_y_bounds;
+    Vector shared_area_x_bounds;
+    Vector shared_area_y_bounds;
+
     CvPoint clickLocation;
 
     friend class RtLocalization;

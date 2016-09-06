@@ -892,8 +892,14 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcCalib.open(("/"+name+"/calib:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
-    setBounds(skim_blobs_x_bounds, "skim_blobs_x_bounds", -0.50, -0.10);
-    setBounds(skim_blobs_y_bounds, "skim_blobs_y_bounds", -0.30, -0.30);
+    setBounds(skim_blobs_x_bounds,  "skim_blobs_x_bounds",  -0.70, -0.10);
+    setBounds(skim_blobs_y_bounds,  "skim_blobs_y_bounds",  -0.30, -0.30);
+    setBounds(human_area_x_bounds,  "human_area_x_bounds",  -0.70, -0.50);
+    setBounds(human_area_y_bounds,  "human_area_y_bounds",  -0.30, -0.30);
+    setBounds(shared_area_x_bounds, "shared_area_x_bounds", -0.50, -0.35);
+    setBounds(shared_area_y_bounds, "shared_area_y_bounds", -0.30, -0.30);
+    setBounds(robot_area_x_bounds,  "robot_area_x_bounds",  -0.35, -0.10);
+    setBounds(robot_area_y_bounds,  "robot_area_y_bounds",  -0.30, -0.30);
 
     // location used to display the
     // histograms upon the closest blob
