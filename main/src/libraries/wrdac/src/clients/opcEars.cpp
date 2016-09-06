@@ -158,24 +158,27 @@ Bottle opcEars::insertEntity(Entity *A)
         OA.fromBottle(bA);
 
         if (OA.m_present==1.0)
-            osEntity << " , TRUE , '{ ";
+            osEntity << " , TRUE , ";
         else
-            osEntity << " , FALSE , '{ ";
+            osEntity << " , FALSE , ";
 
         //  Insert position
-        osEntity << OA.m_ego_position[0] << " , " << OA.m_ego_position[1] << " , " << OA.m_ego_position[2] << " }' , '{ ";
+        osEntity << "'{ " << OA.m_ego_position[0] << " , " << OA.m_ego_position[1] << " , " << OA.m_ego_position[2] << " }' , ";
 
         // Insert orientation
-        osEntity << OA.m_ego_orientation[0] << " , " << OA.m_ego_orientation[1] << " , " << OA.m_ego_orientation[2] << " }' , '{ ";
+        osEntity << "'{ " << OA.m_ego_orientation[0] << " , " << OA.m_ego_orientation[1] << " , " << OA.m_ego_orientation[2] << " }' , ";
 
         // Insert dimension
-        osEntity << OA.m_dimensions[0] << " , " << OA.m_dimensions[1] << " , " << OA.m_dimensions[2] << " }' , '{ ";
+        osEntity << "'{ " << OA.m_dimensions[0] << " , " << OA.m_dimensions[1] << " , " << OA.m_dimensions[2] << " }' , ";
 
         //Insert color
-        osEntity << OA.m_color[0] << " , " << OA.m_color[1] << " , " << OA.m_color[2] << " }' ,  ";
+        osEntity << "'{ " << OA.m_color[0] << " , " << OA.m_color[1] << " , " << OA.m_color[2] << " }' ,  ";
 
         // Insert Saliency
-        osEntity << OA.m_saliency << " ) ";
+        osEntity << OA.m_saliency << " , ";
+
+        // Insert Object area
+        osEntity << OA.objectAreaAsString() << " ) ";
 
         bOutput.addString(osEntity.str().c_str());
     }
