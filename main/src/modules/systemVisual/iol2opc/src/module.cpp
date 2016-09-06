@@ -777,9 +777,24 @@ void IOL2OPCBridge::updateOPC()
                     Vector x_filtered,dim_filtered;
                     it.second.filt(x,x_filtered,dim,dim_filtered);
 
-                    obj->m_ego_position=calibPosition(x_filtered);
+                    Vector objpos;
+                    objpos=calibPosition(x_filtered);
+                    obj->m_ego_position=objpos;
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
+
+                    if ((objpos[0]>human_area_x_bounds[0]) && (objpos[0]<human_area_x_bounds[1]) &&
+                        (objpos[1]>human_area_y_bounds[0]) && (objpos[1]<human_area_y_bounds[1])) {
+                        obj->m_objectarea = ObjectArea::HUMAN;
+                    } else if ((objpos[0]>shared_area_x_bounds[0]) && (objpos[0]<shared_area_x_bounds[1]) &&
+                               (objpos[1]>shared_area_y_bounds[0]) && (objpos[1]<shared_area_y_bounds[1])) {
+                        obj->m_objectarea = ObjectArea::SHARED;
+                    } else if ((objpos[0]>robot_area_x_bounds[0]) && (objpos[0]<robot_area_x_bounds[1]) &&
+                               (objpos[1]>robot_area_y_bounds[0]) && (objpos[1]<robot_area_y_bounds[1])) {
+                        obj->m_objectarea = ObjectArea::ROBOT;
+                    } else {
+                        obj->m_objectarea = ObjectArea::NOTREACHABLE;
+                    }
 
                     bObjNameLoc.addString(obj->name());
                     bObjNameLoc.addString(obj->m_ego_position.toString());
