@@ -27,8 +27,8 @@
 
 #include <iCub/ctrl/math.h>
 #include <iCub/optimization/calibReference.h>
-
-#include <wrdac/helpers.h>
+#include <wrdac/tags.h>
+#include <wrdac/functions.h>
 
 using namespace std;
 using namespace yarp::os;

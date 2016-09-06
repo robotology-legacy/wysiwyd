@@ -65,6 +65,11 @@
 #define EFAA_OPC_OBJECT_GUI_COLOR_B         ("color_b")
 #define EFAA_OPC_OBJECT_GUI_COLOR_ALPHA     ("color_aplha")
 
+// OPC : Frames
+#define EFAA_OPC_FRAME_NAME                 ("frameName")
+#define EFAA_OPC_FRAME_MATRIX               ("frameMatrix")
+#define EFAA_OPC_FRAME_SCALE                ("frameScale")
+
 // OPC : Spatial relations
 #define EFAA_OPC_OBJECT_SPATIAL_CONTAINS    ("contains")
 #define EFAA_OPC_OBJECT_SPATIAL_CONTAINED   ("isContained")
