@@ -22,20 +22,26 @@ bool SensationManager::configure(yarp::os::ResourceFinder &rf)
     period = rf.check("period",Value(0.1)).asDouble();
 
     Bottle grp = rf.findGroup("SENSATIONS");
-    sensationList = *grp.find("sensations").asList();  
-    for (int i = 0; i < sensationList.size(); i++)
-    {
-        string sensation_name = sensationList.get(i).asString();
-        // behavior_names.push_back(behavior_name);
-        if (sensation_name == "opcSensation") {
-            sensations.push_back(new OpcSensation());
-        } else if (sensation_name == "test") {
-            sensations.push_back(new Test());
-        } else{
-            yDebug() << "Sensation " + sensation_name + " not implemented";
-            return false;
+
+    if (!grp.isNull()){
+        Bottle sensationList = *grp.find("sensations").asList();  
+        for (int i = 0; i < sensationList.size(); i++)
+        {
+            string sensation_name = sensationList.get(i).asString();
+            // behavior_names.push_back(behavior_name);
+            if (sensation_name == "opcSensation") {
+                sensations.push_back(new OpcSensation());
+            } else if (sensation_name == "test") {
+                sensations.push_back(new Test());
+            } else{
+                yDebug() << "Sensation " + sensation_name + " not implemented";
+                return false;
+            }
+            sensations.back()->configure();
         }
-        sensations.back()->configure();
+    }else{
+        yError()<<"Didn't find any sensation. Please revise your configuration files...";
+        return 0;
     }
 
     // for(std::vector<Behavior*>::iterator it = behaviors.begin(); it != behaviors.end(); ++it) {

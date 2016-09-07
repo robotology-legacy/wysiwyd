@@ -7,13 +7,9 @@ void OpcSensation::configure()
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName,"sensation","client.ini",isRFVerbose);
     iCub->opc->isVerbose = false;
-    char rep = 'n';
-    while (rep!='y'&&!iCub->connect())
+    while (!iCub->connect())
     {
         cout<<"iCubClient : Some dependencies are not running..."<<endl;
-        //cout<<"Continue? y,n"<<endl;
-        //cin>>rep;
-        break; //to debug
         Time::delay(1.0);
     }
 
