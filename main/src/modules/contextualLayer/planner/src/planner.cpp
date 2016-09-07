@@ -23,9 +23,9 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     avaiPlansList = *grpPlans.find("plans").asList();
 
     bool ears = 1;
-    bool BM = 1;
     bool homeo = 1;
     bool SM = 1;
+    bool BM = 1;
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
@@ -306,12 +306,15 @@ bool Planner::updateModule() {
                         if (attach == "not")
                         {
                             indiv = !rep.get(1).asInt();
+                            yDebug() << "response is:" << indiv;
                         }
                         else
                         {
                             indiv = rep.get(1).asInt();
+                            yDebug() << "response is:" << indiv;
                         }
                         state = state && indiv;
+                        yDebug() << "state is:" << state;
 
                         // formulate step for recording in ABM
                         string strind;
@@ -321,9 +324,10 @@ bool Planner::updateModule() {
                         lArgument.push_back(std::pair<std::string, std::string>(msg->get(1).asString(), "agent"+to_string(i)));
                         lArgument.push_back(std::pair<std::string, std::string>(msg->get(2).asString(), "object"+to_string(i)));
                         lArgument.push_back(std::pair<std::string, std::string>(strind, "result"+to_string(i)));
+                        yDebug() << "lArgument formed for condition";
                     }
 
-                    // record action selection reasoning in ABM
+                    record action selection reasoning in ABM
                     iCub->getABMClient()->sendActivity("reasoning",
                         actionName,
                         "planner",  // expl: "pasar", "drives"...
