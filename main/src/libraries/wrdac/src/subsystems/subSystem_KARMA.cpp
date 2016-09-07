@@ -74,23 +74,23 @@ bool wysiwyd::wrdac::SubSystem_KARMA::connect()
     else
         yWarning()<<"KARMA didn't connect to tool dimensions solver";
 
+    openCartesianClient();
+
     return ret;
 }
 
-wysiwyd::wrdac::SubSystem_KARMA::SubSystem_KARMA(const std::string &masterName) : SubSystem(masterName)
+wysiwyd::wrdac::SubSystem_KARMA::SubSystem_KARMA(const std::string &masterName, const std::string &robot) : SubSystem(masterName)
 {
     SubABM = new SubSystem_ABM(m_masterName+"/from_KARMA");
     SubATT = new SubSystem_Attention(m_masterName+"/from_KARMA");
 
-    robot = "icub";
+    this->robot = robot;
 
     stopPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/stop:i").c_str());
     rpcPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/rpc").c_str());
     visionPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/vision:i").c_str());
     finderPort.open(("/" + masterName + "/" + SUBSYSTEM_KARMA + "/finder:rpc").c_str());
     m_type = SUBSYSTEM_KARMA;
-
-    // Cartesian interface
 }
 
 void wysiwyd::wrdac::SubSystem_KARMA::Close()
@@ -335,10 +335,8 @@ bool wysiwyd::wrdac::SubSystem_KARMA::vdraw(const yarp::sig::Vector &targetCente
     return bReturn;
 }
 
-bool wysiwyd::wrdac::SubSystem_KARMA::setRobot(const std::string &robotName)
+bool wysiwyd::wrdac::SubSystem_KARMA::openCartesianClient()
 {
-    robot = robotName;
-
     std::string name = "KARMA";
 
     Property optionL("(device cartesiancontrollerclient)");

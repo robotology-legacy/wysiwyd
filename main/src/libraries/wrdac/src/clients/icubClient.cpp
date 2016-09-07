@@ -52,7 +52,7 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     if (rfClient.check("robot"))
     {
         robot = rfClient.find("robot").asString();
-        yInfo("Module name set to %s", robot.c_str());
+        yInfo("Robot name set to %s", robot.c_str());
     }
     else
     {
@@ -132,7 +132,7 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
             else if (currentSS == SUBSYSTEM_BABBLING)
                 subSystems[SUBSYSTEM_BABBLING] = new SubSystem_babbling(fullName);
             else if (currentSS == SUBSYSTEM_KARMA)
-                subSystems[SUBSYSTEM_KARMA] = new SubSystem_KARMA(fullName);
+                subSystems[SUBSYSTEM_KARMA] = new SubSystem_KARMA(fullName, robot);
             else
                 yError() << "Unknown subsystem!";
         }
@@ -619,7 +619,6 @@ bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &
         yError() << "[iCubClient] Called pushKarma() but KARMA subsystem is not available.";
         return false;
     }
-//    karma->setRobot(robot);
     return karma->push(targetCenter,theta,radius,options,sName);
 }
 
@@ -633,7 +632,6 @@ bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &
         yError() << "[iCubClient] Called drawKarma() but KARMA subsystem is not available.";
         return false;
     }
-//    karma->setRobot(robot);
     return karma->draw(targetCenter,theta,radius,dist,options,sName);
 }
 
@@ -1060,10 +1058,5 @@ SubSystem_KARMA* ICubClient::getKARMA()
     if (subSystems.find(SUBSYSTEM_KARMA) == subSystems.end())
         return NULL;
     else
-    {
-        SubSystem_KARMA *karma = (SubSystem_KARMA*)subSystems[SUBSYSTEM_KARMA];
-        karma->setRobot(robot);
-        return karma;
-
-    }
+        return (SubSystem_KARMA*)subSystems[SUBSYSTEM_KARMA];
 }

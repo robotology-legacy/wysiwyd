@@ -91,7 +91,7 @@ namespace wysiwyd {
             * Default constructor.
             * @param masterName stem-name used to open up ports.
             */
-            SubSystem_KARMA(const std::string &masterName);
+            SubSystem_KARMA(const std::string &masterName, const std::string &robot);
 
             /**
             * Clean up resources.
@@ -143,7 +143,7 @@ namespace wysiwyd {
                       const yarp::os::Bottle &options = yarp::os::Bottle(),
                       const std::string &sName="target");
 
-            bool setRobot(const std::string&);
+            bool openCartesianClient();
 
             /**
             * Destructor.
