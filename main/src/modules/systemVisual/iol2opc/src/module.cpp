@@ -293,32 +293,6 @@ bool IOL2OPCBridge::get3DPositionAndDimensions(const CvRect &bbox,
 
 
 /**********************************************************/
-Vector IOL2OPCBridge::calibPosition(const Vector &x)
-{
-    Vector y=x;
-
-    // apply 3D correction
-    if (rpcCalib.getOutputCount()>0)
-    {
-        yarp::os::Bottle cmd,reply;
-        cmd.addString("get_location_nolook");
-        cmd.addString(calib_entry);
-        cmd.addDouble(y[0]);
-        cmd.addDouble(y[1]);
-        cmd.addDouble(y[2]);
-        rpcCalib.write(cmd,reply);
-        y[0]=reply.get(1).asDouble();
-        y[1]=reply.get(2).asDouble();
-        y[2]=reply.get(3).asDouble();
-    }
-    else
-        yError("Unable to connect to calibrator");
-
-    return y;
-}
-
-
-/**********************************************************/
 void IOL2OPCBridge::acquireImage()
 {
     // grab resources
@@ -778,7 +752,7 @@ void IOL2OPCBridge::updateOPC()
                     it.second.filt(x,x_filtered,dim,dim_filtered);
 
                     Vector objpos;
-                    objpos=calibPosition(x_filtered);
+                    objpos=x_filtered;
                     obj->m_ego_position=objpos;
                     obj->m_dimensions=dim_filtered;
                     obj->m_present=1.0;
@@ -904,7 +878,6 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     rpcPort.open(("/"+name+"/rpc").c_str());
     rpcClassifier.open(("/"+name+"/classify:rpc").c_str());
     rpcGet3D.open(("/"+name+"/get3d:rpc").c_str());
-    rpcCalib.open(("/"+name+"/calib:rpc").c_str());
     getClickPort.open(("/"+name+"/getClick:i").c_str());
 
     setBounds(rf, skim_blobs_x_bounds,  "skim_blobs_x_bounds",  -0.70, -0.10);
@@ -999,7 +972,6 @@ bool IOL2OPCBridge::interruptModule()
     rpcClassifier.interrupt();
     getClickPort.interrupt();
     rpcGet3D.interrupt();
-    rpcCalib.interrupt();
     opc->interrupt();
     yDebug() << "Interrupt finished";
 
@@ -1042,8 +1014,6 @@ bool IOL2OPCBridge::close()
     getClickPort.close();
     rpcGet3D.interrupt();
     rpcGet3D.close();
-    rpcCalib.interrupt();
-    rpcCalib.close();
     opc->interrupt();
     opc->close();
 
