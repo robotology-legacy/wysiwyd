@@ -56,7 +56,9 @@ namespace storygraph {
 
         // -- Synonyms
         static std::vector < std::set <std::string> > vSynonyms;         ///< A container for synonym classes
+        bool shareMeaning(std::string word, std::vector <std::string> ocw); ///< Checks if the word or one of its synonyms is in the ocw set provides
         bool shareMeaning(std::string word, std::set <std::string> ocw); ///< Checks if the word or one of its synonyms is in the ocw set provides
+        bool shareMeaning(std::string word, std::string ocw); ///< Checks if the word or one of its synonyms is the ocw
         bool sameMeaning(std::string word1, std::string word2);          ///< Checks if two words are in the same synonym class
         void enrichSynonyms(std::set<std::string> setWords);             ///< Adds a synonym class
 

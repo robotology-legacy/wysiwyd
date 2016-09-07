@@ -204,7 +204,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    linkMeaningScenario(1, 12);
+    linkMeaningScenario(2,3);
 
     return false;
 }

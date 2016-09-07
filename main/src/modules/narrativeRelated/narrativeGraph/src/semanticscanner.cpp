@@ -62,13 +62,41 @@ vector <string> VocabularyHandler::extractOCW(const vector <string>& words) {
     return vOCW;
 }
 
-bool VocabularyHandler::shareMeaning(string word, std::set<string> ocw) {
+bool VocabularyHandler::shareMeaning(string word, vector<string> ocw) {
+    if (find(ocw.begin(), ocw.end(), word) != ocw.end())
+        return true;
+    for (set<string> wordClass : VocabularyHandler::vSynonyms) {
+        if (wordClass.find(word) != wordClass.end()) { // If the current classWord is of our word
+            for (string s : wordClass) {
+                if (find(ocw.begin(), ocw.end(), s) != ocw.end())
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool VocabularyHandler::shareMeaning(string word, set<string> ocw) {
     if (ocw.find(word) != ocw.end())
         return true;
-    for(set<string> wordClass : VocabularyHandler::vSynonyms) {
+    for (set<string> wordClass : VocabularyHandler::vSynonyms) {
         if (wordClass.find(word) != wordClass.end()) { // If the current classWord is of our word
-            for(string s : wordClass) {
+            for (string s : wordClass) {
                 if (ocw.find(s) != ocw.end())
+                    return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool VocabularyHandler::shareMeaning(string word, string ocw) {
+    if (word == ocw)
+        return true;
+    for (set<string> wordClass : VocabularyHandler::vSynonyms) {
+        if (wordClass.find(word) != wordClass.end()) { // If the current classWord is of our word
+            for (string s : wordClass) {
+                if (s == ocw)
                     return true;
             }
         }

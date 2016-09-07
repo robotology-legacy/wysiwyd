@@ -620,7 +620,7 @@ void narrativeHandler::imagineStory(story& target)
                     }
                 }
                 bIcubInvolved |= (stmp == "iCub" || stmp == "icub");
-                bNewTemp.addString(stmp);
+                bNewTemp.addString("iCub");
             }
             bNewOpc.addList() = bNewTemp;
 
@@ -950,6 +950,10 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
     bool display = false;
 
+
+    listStories.at(iScenario).displayNarration();
+
+
     // getting scenario
     sm.ABMtoSM(listStories.at(iScenario));
 
@@ -1013,7 +1017,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
             level2 != level1->vSentence.end();
             level2++){
             if (true){
-                cout << endl << "Sentence: [ ";
+                cout << "===============" << endl << "Sentence: [ ";
                 for (int iWord = 0; iWord < level2->vOCW.size(); iWord++){
 
                     cout << level2->vOCW[iWord] << " ";
@@ -1021,240 +1025,47 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                 cout << "]" << endl;
             }
 
-            cout << "\t result find: " << (sm.findBest(set<string>(level2->vOCW.begin(), level2->vOCW.end())).toString()) << endl;
+            vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW);
 
+            for (int kk = 0; kk < vkTmp.size(); kk++)
+            {
+                sKeyMean kTmp = vkTmp[kk];
+                cout << "\t result find: " << (kTmp.toString()) << endl;
+                if (kTmp.iIGARF != -1){
+                    if (kTmp.cPart == 'A'){
+                        cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
+                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
+                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
+                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
 
-            //int iRank = 0;// number IGARF
-
-            //for (vector<sIGARF>::iterator currentIGARF = sm.vIGARF.begin();
-            //    currentIGARF != sm.vIGARF.end();
-            //    currentIGARF++){
-
-            //    int scoreI = 0;
-            //    int scoreG = 0;
-            //    int scoreA = 0;
-            //    int scoreR = 0;
-            //    int scoreF = 0;
-
-            //    if (display){
-            //        cout << "Current IGARF: \n" << "Action: [" << currentIGARF->iAction << "] ";
-            //        cout << "-> [" << sm.vActionEvts[currentIGARF->iAction].predicate
-            //            << "-" << sm.vActionEvts[currentIGARF->iAction].agent
-            //            << "-" << sm.vActionEvts[currentIGARF->iAction].object
-            //            << "-" << sm.vActionEvts[currentIGARF->iAction].recipient << "]";
-            //        cout << " result type:" << currentIGARF->tResult << " - result number:" << currentIGARF->iResult << endl;
-            //        cout << "init : ";
-            //        for (vector<int>::iterator itRel = currentIGARF->vInitState.begin(); itRel != currentIGARF->vInitState.end(); itRel++){
-            //            cout << " [" << sm.vRelations[*itRel].subject << "-" << sm.vRelations[*itRel].verb << "-" << sm.vRelations[*itRel].object << "] ";
-            //        }
-            //        cout << endl;
-            //        cout << "Final : ";
-            //        for (vector<int>::iterator itRel = currentIGARF->vFinalState.begin(); itRel != currentIGARF->vFinalState.end(); itRel++){
-            //            cout << " [" << sm.vRelations[*itRel].subject << "-" << sm.vRelations[*itRel].verb << "-" << sm.vRelations[*itRel].object << "] ";
-            //        }
-            //        cout << endl;
-
-            //        if (currentIGARF->tResult == ACTION_EVT){
-            //            cout << "Result: ";
-            //            cout << "[" << sm.vActionEvts[currentIGARF->iResult].predicate << "-"
-            //                << sm.vActionEvts[currentIGARF->iResult].agent << "-"
-            //                << sm.vActionEvts[currentIGARF->iResult].object << "-"
-            //                << sm.vActionEvts[currentIGARF->iResult].recipient << "]" << endl;
-            //        }
-            //    }
-            //    // proposition level:
-
-
-            //    for (int iWord = 0; iWord < level2->vOCW.size(); iWord++){
-
-            //        //                    cout <<endl << "[" << iWord << "]" << " " << sm.vRelations.size() << "/" << currentIGARF->vFinalState.size() << " ";
-            //        // if the Word is a predicate
-            //        if (level2->vRole[iWord][0] == 'P'){
-            //            //cout << "start, ";
-            //            // if this predicate is verb of a initial state
-            //            // for each relation, check the predicate of the relation
-            //            for (vector<int>::iterator itInit = currentIGARF->vInitState.begin(); itInit != currentIGARF->vInitState.end(); itInit++){
-            //                if (lowerKey(sm.vRelations[*itInit].verb) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreI += 1;
-            //                }
-            //            }
-            //            //cout << " I,";
-
-
-            //            // Goal
-            //            for (vector<int>::iterator itGoal = currentIGARF->vGoal.begin(); itGoal != currentIGARF->vGoal.end(); itGoal++){
-            //                if (lowerKey(sm.vRelations[*itGoal].verb) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreG += 1;
-            //                }
-            //            }
-            //            //cout << " G,";
-
-
-            //            // if this predicate is predicate of the action
-            //            if (lowerKey(sm.vActionEvts[currentIGARF->iAction].predicate) == lowerKey(level2->vOCW[iWord])){
-            //                scoreA += 1;
-            //            }
-            //            //cout << " A,";
-
-            //            // to do
-            //            // idem for result is there is one
-            //            // if result is an action
-            //            //cout << currentIGARF->tResult;
-            //            if (currentIGARF->tResult == ACTION_EVT){
-            //                //cout << "Result: ";
-            //                //cout << "[" << sm.vActionEvts[currentIGARF->iResult].predicate << "-"
-            //                //    << sm.vActionEvts[currentIGARF->iResult].agent << "-"
-            //                //    << sm.vActionEvts[currentIGARF->iResult].object << "-"
-            //                //    << sm.vActionEvts[currentIGARF->iResult].recipient << "]" << endl;
-            //                if (lowerKey(sm.vActionEvts[currentIGARF->iResult].predicate) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreR += 1;
-            //                }
-            //            }
-            //            // or a relation
-            //            //else if (currentIGARF->tResult == 2){
-            //            //    if (lowerKey(sm.vRelations[currentIGARF->iResult].verb) == lowerKey(level2->vOCW[iWord])){
-            //            //        scoreR += 1;
-            //            //    }
-            //            //}
-
-            //            //cout << " R,";
-
-            //            // idem for final state
-            //            for (vector<int>::iterator itFinal = currentIGARF->vFinalState.begin(); itFinal != currentIGARF->vFinalState.end(); itFinal++){
-            //                if (lowerKey(sm.vRelations[*itFinal].verb) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreF += 1;
-            //                    // cout << " [" << sm.vRelations[*itFinal].verb << "-" << level2->vOCW[iWord] << "]";
-            //                }
-            //            }
-            //            //cout << " F!" << endl;
-
-            //        }
-            //        // end if predicate
-
-            //        // if the Word is a agent
-            //        if (level2->vRole[iWord][0] == 'A'){
-            //            // for each relation, check the agent of the relation
-            //            for (vector<int>::iterator itInit = currentIGARF->vInitState.begin(); itInit != currentIGARF->vInitState.end(); itInit++){
-            //                if (lowerKey(sm.vRelations[*itInit].subject) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreI += 1;
-            //                }
-            //            }
-
-            //            // Goal
-            //            for (vector<int>::iterator itGoal = currentIGARF->vGoal.begin(); itGoal != currentIGARF->vGoal.end(); itGoal++){
-            //                if (lowerKey(sm.vRelations[*itGoal].subject) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreG += 1;
-            //                }
-            //            }
-
-
-            //            // if this agent is agent of the action
-            //            if (lowerKey(sm.vActionEvts[currentIGARF->iAction].agent) == lowerKey(level2->vOCW[iWord])){
-            //                scoreA += 1;
-            //            }
-
-            //            // to do
-            //            // idem for result is there is one
-            //            // if result is an action
-            //            if (currentIGARF->tResult == ACTION_EVT){
-            //                if (lowerKey(sm.vActionEvts[currentIGARF->iResult].agent) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreR += 1;
-            //                }
-            //            }
-            //            // or a relation
-            //            //else if (currentIGARF->tResult == 2){
-            //            //    if (lowerKey(sm.vRelations[currentIGARF->iResult].subject) == lowerKey(level2->vOCW[iWord])){
-            //            //        scoreR += 1;
-            //            //    }
-            //            //}
-
-            //            // idem for final state
-            //            for (vector<int>::iterator itFinal = currentIGARF->vFinalState.begin(); itFinal != currentIGARF->vFinalState.end(); itFinal++){
-            //                if (lowerKey(sm.vRelations[*itFinal].subject) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreF += 1;
-            //                    // cout << " [" << sm.vRelations[*itFinal].subject << "-" << level2->vOCW[iWord] << "]";
-
-            //                }
-            //            }
-
-            //        }
-            //        // end if agent
-
-            //        // if the Word is a object
-            //        if (level2->vRole[iWord][0] == 'O'){
-            //            // for each relation, check the object of the relation
-            //            for (vector<int>::iterator itInit = currentIGARF->vInitState.begin(); itInit != currentIGARF->vInitState.end(); itInit++){
-            //                if (lowerKey(sm.vRelations[*itInit].object) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreI += 1;
-            //                }
-            //            }
-
-            //            // Goal
-            //            for (vector<int>::iterator itGoal = currentIGARF->vGoal.begin(); itGoal != currentIGARF->vGoal.end(); itGoal++){
-            //                if (lowerKey(sm.vRelations[*itGoal].object) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreG += 1;
-            //                }
-            //            }
-
-
-            //            // if this agent is agent of the action
-            //            if (lowerKey(sm.vActionEvts[currentIGARF->iAction].object) == lowerKey(level2->vOCW[iWord])){
-            //                scoreA += 1;
-            //            }
-
-            //            // to do
-            //            // idem for result is there is one
-            //            // if result is an action
-            //            if (currentIGARF->tResult == ACTION_EVT){
-            //                if (lowerKey(sm.vActionEvts[currentIGARF->iResult].object) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreR += 1;
-            //                }
-            //            }
-            //            // or a relation
-            //            //else if (currentIGARF->tResult == 2){
-            //            //    if (lowerKey(sm.vRelations[currentIGARF->iResult].object) == lowerKey(level2->vOCW[iWord])){
-            //            //        scoreR += 1;
-            //            //    }
-            //            //}
-
-
-            //            // idem for final state
-            //            for (vector<int>::iterator itFinal = currentIGARF->vFinalState.begin(); itFinal != currentIGARF->vFinalState.end(); itFinal++){
-            //                if (lowerKey(sm.vRelations[*itFinal].object) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreF += 1;
-            //                    //    cout << " [" << sm.vRelations[*itFinal].object << "-" << level2->vOCW[iWord] << "]";
-            //                }
-            //            }
-
-            //        }
-            //        // end if object
-
-            //        // if the Word is a recipient 
-            //        if (level2->vRole[iWord][0] == 'R'){
-            //            // if this recipient is recipient of the action
-            //            if (lowerKey(sm.vActionEvts[currentIGARF->iAction].recipient) == lowerKey(level2->vOCW[iWord])){
-            //                scoreA += 1;
-            //            }
-
-            //            // if result is an action
-            //            if (currentIGARF->tResult == ACTION_EVT){
-            //                if (lowerKey(sm.vActionEvts[currentIGARF->iResult].recipient) == lowerKey(level2->vOCW[iWord])){
-            //                    scoreR += 1;
-            //                }
-            //            }
-            //        }
-
-            //        // end if object
-            //    }
-            //    scoreIGARF tmp = scoreIGARF(scoreI, scoreG, scoreA, scoreR, scoreF);
-            //    iRank++;
-            //    level2->vLinkEvt.push_back(pair<int, scoreIGARF>(sm.findBest(), tmp));
-            //}
-
+                    }
+                    else if (kTmp.cPart == 'G'){
+                        cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
+                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
+                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
+                    }
+                    else if (kTmp.cPart == 'I'){
+                        cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
+                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
+                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
+                    }
+                    else if (kTmp.cPart == 'F'){
+                        cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
+                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
+                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
+                    }
+                    else if (kTmp.cPart == 'R'){
+                        cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
+                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
+                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
+                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
+                    }
+                }
+            }
         }
     }
 
-    MD.print();
+    //MD.print();
 
 }
 

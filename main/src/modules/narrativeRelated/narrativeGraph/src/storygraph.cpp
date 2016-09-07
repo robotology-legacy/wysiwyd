@@ -6,17 +6,17 @@ using namespace storygraph;
 using namespace std;
 
 void margin(int level) {
-    for(int i = 0; i < level; i++)
+    for (int i = 0; i < level; i++)
         cout << "| ";
 }
 
 bool storygraph::operator==(const sKeyMean& A, const sKeyMean& B) {
     return (A.iIGARF == B.iIGARF &&
-            A.cPart  == B.cPart &&
-            A.iRel   == B.iRel);
+        A.cPart == B.cPart &&
+        A.iRel == B.iRel);
 }
 
-SituationModel::SituationModel() {clear();}
+SituationModel::SituationModel() { clear(); }
 
 void SituationModel::clear() {
     vRelations.clear();
@@ -35,9 +35,9 @@ string SituationModel::getSentenceEvt(int i) {
         return "";
 
     return vActionEvts.at(i).agent + " " +
-           vActionEvts.at(i).predicate + " " +
-           vActionEvts.at(i).object + " " +
-           vActionEvts.at(i).recipient;
+        vActionEvts.at(i).predicate + " " +
+        vActionEvts.at(i).object + " " +
+        vActionEvts.at(i).recipient;
 }
 
 string SituationModel::getSentenceRel(int i) {
@@ -59,7 +59,7 @@ void line(int level) {
     char prevC = cout.fill();
     margin(level);
     cout.fill('-');
-    cout.width(79 - 2*level);
+    cout.width(79 - 2 * level);
     cout << right << "-" << endl;
     cout.fill(prevC);
 }
@@ -208,8 +208,8 @@ void SituationModel::remContentIGARF(int iIGARF, char cPart) {
     }
 }
 
-int find(std::vector < int > &vInt, int elt) {
-    for(int i = 0; i < (int)vInt.size(); i++) {
+int find(vector < int > &vInt, int elt) {
+    for (int i = 0; i < (int)vInt.size(); i++) {
         if (vInt.at(i) == elt)
             return i;
     }
@@ -323,7 +323,7 @@ sActionEvt SituationModel::getEvent(const sKeyMean& km) {
     }
     const sIGARF &igarf = vIGARF.at(km.iIGARF);
     if (km.cPart == 'A' || km.cPart == 'R') {
-        return (km.cPart == 'A') ? vActionEvts.at(igarf.iAction):vActionEvts.at(igarf.iResult);
+        return (km.cPart == 'A') ? vActionEvts.at(igarf.iAction) : vActionEvts.at(igarf.iResult);
     }
     else if (km.cPart == 'I') {
         const sRelation& r = vRelations.at(igarf.vInitState.at(km.iRel));
@@ -377,8 +377,8 @@ void SituationModel::ABMtoSM(const story &sto) {
             newEvent.tAction = ACTION_EVT;
             storygraph::sActionEvt action;
             action.predicate = currentEvt.predicate;
-            action.agent     = currentEvt.agent;
-            action.object    = currentEvt.object;
+            action.agent = currentEvt.agent;
+            action.object = currentEvt.object;
             action.recipient = currentEvt.recipient;
             newEvent.iAction = addNewActionEvt(action);
 
@@ -394,12 +394,12 @@ void SituationModel::ABMtoSM(const story &sto) {
             if (hasEnd) {
                 sActionEvt result;
                 result.predicate = endCurrent.predicate;
-                result.agent     = endCurrent.agent;
-                result.object    = endCurrent.object;
+                result.agent = endCurrent.agent;
+                result.object = endCurrent.object;
                 result.recipient = endCurrent.recipient;
                 if (findValue(endCurrent.vArgument, "status") == "failed") {
                     result.predicate = "fail";
-                    result.object    = currentEvt.predicate;
+                    result.object = currentEvt.predicate;
                     result.recipient = "";
 
                     if (findValue(endCurrent.vArgument, "reason") == "outofreach") {
@@ -417,14 +417,15 @@ void SituationModel::ABMtoSM(const story &sto) {
                 // > Goal
                 if (findValue(endCurrent.vArgument, "goal") != "") {
                     // Extract the goal relation
-                    std::string goal = findValue(endCurrent.vArgument, "goal");
+                    string goal = findValue(endCurrent.vArgument, "goal");
                     size_t pos = goal.find("predicate") + 10;
-                    std::string pred = goal.substr(pos, goal.find(")", pos) - pos);
+                    string pred = goal.substr(pos, goal.find(")", pos) - pos);
                     pos = goal.find("agent") + 6;
-                    std::string agent = goal.substr(pos, goal.find(")", pos) - pos);
+                    string agent = goal.substr(pos, goal.find(")", pos) - pos);
                     pos = goal.find("object") + 7;
-                    std::string object = goal.substr(pos, goal.find(")", pos) - pos);
+                    string object = goal.substr(pos, goal.find(")", pos) - pos);
                     sRelation g;
+                    if (agent == "icub") agent = "iCub";
                     g.subject = agent;
                     g.verb = pred;
                     g.object = object;
@@ -464,9 +465,9 @@ void SituationModel::makeStructure() {
             !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) && isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState)) ||
             i == N - 1) {
             if (!(vIGARF.at(i).tResult == ACTION_EVT &&
-                  VocabularyHandler::sameMeaning(vActionEvts.at(vIGARF.at(i).iResult).predicate, "fail")) && // Not a failure
+                VocabularyHandler::sameMeaning(vActionEvts.at(vIGARF.at(i).iResult).predicate, "fail")) && // Not a failure
                 !(isRelationsBInA(vIGARF.at(i).vInitState, vIGARF.at(i).vFinalState) &&
-                  isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState))) { // Final and init state are differents
+                isRelationsBInA(vIGARF.at(i).vFinalState, vIGARF.at(i).vInitState))) { // Final and init state are differents
                 //vIGARF.at(i).vGoal = vIGARF.at(i).vFinalState;
             }
             if (lastOfChain == -1)
@@ -536,7 +537,7 @@ void SituationModel::makeStructure() {
     bool change = true;
     while (change) {
         change = false;
-        for(int i = 0; i < (int)vIGARF.size(); i++) {
+        for (int i = 0; i < (int)vIGARF.size(); i++) {
             if (vIGARF.at(i).vGoal.empty()) {
                 if (vIGARF.at(i).tResult == IGARF_EVT && !vIGARF.at(vIGARF.at(i).iResult).vGoal.empty()) {
                     vIGARF.at(i).vGoal = vIGARF.at(vIGARF.at(i).iResult).vGoal;
@@ -553,7 +554,7 @@ void SituationModel::makeStructure() {
     change = true;
     while (change) {
         change = false;
-        for(int i = 0; i < (int)vIGARF.size(); i++) {
+        for (int i = 0; i < (int)vIGARF.size(); i++) {
             if (!vIGARF.at(i).vGoal.empty()) {
                 if (vIGARF.at(i).tAction == IGARF_EVT && vIGARF.at(vIGARF.at(i).iAction).vGoal.empty()) {
                     vIGARF.at(vIGARF.at(i).iAction).vGoal = vIGARF.at(i).vGoal;
@@ -577,85 +578,155 @@ void SituationModel::makeStructure() {
 /*-------------------------------------*
  * SMtoTrain and SMandNarrativeToTrain *
  *-------------------------------------*/
-int SituationModel::proximityScoreAction(int i, const set <string>& ocw) {
+int SituationModel::proximityScoreAction(int i, const vector<string>& ocw) {
     if (i < 0 || i >= (int)vActionEvts.size())
         return -1;
     const sActionEvt& e = vActionEvts.at(i);
     int score = 0;
+
+
+    // if ocw has only 1 element:
+    // check if predicate is predicate
+    if (VocabularyHandler::shareMeaning(e.predicate, ocw[0]))
+    {
+        score += 10;
+    }
+
+    // if at least 2 element
+    if (ocw.size() > 1){
+        if (VocabularyHandler::shareMeaning(e.agent, ocw[1]))
+            score += 8;
+    }
+
+    // if at least 3 element
+    if (ocw.size() > 2){
+        if (VocabularyHandler::shareMeaning(e.object, ocw[2]))
+            score += 6;
+    }
+
+    // if at least 4 element
+    if (ocw.size() > 3){
+        if (VocabularyHandler::shareMeaning(e.recipient, ocw[3]))
+            score += 4;
+    }
+
+
     if (VocabularyHandler::shareMeaning(e.predicate, ocw))
         score += 5;
     if (VocabularyHandler::shareMeaning(e.agent, ocw))
         score += 4;
-    if (e.object == "" || VocabularyHandler::shareMeaning(e.object, ocw))
+    if (e.object != "" && VocabularyHandler::shareMeaning(e.object, ocw))
         score += 2;
-    if (e.recipient == "" || VocabularyHandler::shareMeaning(e.recipient, ocw))
+    if (e.recipient != "" && VocabularyHandler::shareMeaning(e.recipient, ocw))
         score += 1;
-    return (score == 12) ? 1 : 0; // Binary return, if all the words in the sActionEvt don't need to be in ocw, it is best to return score
+
+    return score;// (score == 12) ? 1 : 0; // Binary return, if all the words in the sActionEvt don't need to be in ocw, it is best to return score
 }
 
-int SituationModel::proximityScoreRelation(int i, const set <string>& ocw) {
+int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     if (i < 0 || i >= (int)vRelations.size())
         return -1;
     const sRelation& r = vRelations.at(i);
     int score = 0;
+
+
+    // if ocw has only 1 element:
+    // check if predicate is predicate
+    if (VocabularyHandler::shareMeaning(r.verb, ocw[0]))
+    {
+        score += 10;
+    }
+
+    // if at least 2 element
+    if (ocw.size() > 1){
+        if (VocabularyHandler::shareMeaning(r.subject, ocw[1]))
+            score += 8;
+    }
+
+    // if at least 3 element
+    if (ocw.size() > 2){
+        if (VocabularyHandler::shareMeaning(r.object, ocw[2]))
+            score += 6;
+    }
+
     if (VocabularyHandler::shareMeaning(r.verb, ocw))
         score += 5;
     if (VocabularyHandler::shareMeaning(r.subject, ocw))
         score += 4;
     if (VocabularyHandler::shareMeaning(r.object, ocw))
         score += 2;
-    return (score == 11) ? 1 : 0; // See proximityScoreAction(..)
+
+    return score;// (score == 11) ? 1 : 0; // See proximityScoreAction(..)
 }
 
-sKeyMean SituationModel::findBest(const set<string>& ocw) {
+vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw) {
     int score_max = 0;
-    sKeyMean km = createKey(-1, 'A', -1);
+    vector<sKeyMean>  vkmBest;
+    bool equal = false;
+    sKeyMean km = createKey(-1, 'Z', -1);
     for (int i = 0; i < (int)vActionEvts.size(); i++) {
         int s = proximityScoreAction(i, ocw);
-        if (s > score_max) {
+        if (s >= score_max && s > 0) {
+            equal = (s == score_max);
             score_max = s;
             // Search this event in the IGARF
             for (int j = 0; j < (int)vIGARF.size(); j++) {
                 if (vIGARF.at(j).tAction == ACTION_EVT && vIGARF.at(j).iAction == i) {
                     km = createKey(j, 'A', -1);
+                    if (!equal) vkmBest.clear();
+                    vkmBest.push_back(km);
                 }
                 else if (vIGARF.at(j).tResult == ACTION_EVT && vIGARF.at(j).iResult == i) {
                     km = createKey(j, 'R', -1);
+                    if (!equal) vkmBest.clear();
+                    vkmBest.push_back(km);
                 }
             }
         }
     }
     for (int i = 0; i < (int)vRelations.size(); i++) {
         int s = proximityScoreRelation(i, ocw);
-        if (s > score_max) {
+        if (s >= score_max && s > 0) {
+            equal = (s == score_max);
             score_max = s;
             for (int j = 0; j < (int)vIGARF.size(); j++) {
                 for (int k = 0; k < (int)vIGARF.at(j).vInitState.size(); k++) {
                     if (vIGARF.at(j).vInitState.at(k) == i) {
                         km = createKey(j, 'I', k);
+                        if (!equal) vkmBest.clear();
+                        vkmBest.push_back(km);
                     }
                 }
                 for (int k = 0; k < (int)vIGARF.at(j).vGoal.size(); k++) {
                     if (vIGARF.at(j).vGoal.at(k) == i) {
                         km = createKey(j, 'G', k);
+                        if (!equal) vkmBest.clear();
+                        vkmBest.push_back(km);
                     }
                 }
                 for (int k = 0; k < (int)vIGARF.at(j).vFinalState.size(); k++) {
                     if (vIGARF.at(j).vFinalState.at(k) == i) {
                         km = createKey(j, 'F', k);
+                        if (!equal) vkmBest.clear();
+                        vkmBest.push_back(km);
                     }
                 }
             }
         }
     }
-    return km;
+
+    if (vkmBest.size() > 1){// && score_max != 0) {
+        cout << "several best target: " << vkmBest.size() << endl;
+    }
+    cout << " **score: " << score_max << "** "<<endl;
+    return vkmBest;
 }
 
 string SituationModel::SMtoTrain(string sentence) {
     if (sentence != "") {
         Meaning m(sentence);
         m.setContext(getEvent(lastFocus));
-        sKeyMean km = findBest(m.ocwSet());
+        sKeyMean km;// = findBest(m.ocwSet());
         if (km.iIGARF != -1) {
             m.extractFocus(getEvent(km));
             m.extractOthers();
@@ -739,8 +810,8 @@ void SituationModel::LRHtoSM(const string& meaning, bool create) {
     int meaningLine = 0; // Where is the meaning containing Action or Relation
     if (lines.size() > 1 &&
         ((dfws.size() > 0 &&
-          VocabularyHandler::isDFW(dfws.at(0))) || // VocabularyHandler know this DFW...
-          dfws.size() < 2)) { // ... or there is just one word so it can't be a verbal meaning (Predicate Agent is a minimum)
+        VocabularyHandler::isDFW(dfws.at(0))) || // VocabularyHandler know this DFW...
+        dfws.size() < 2)) { // ... or there is just one word so it can't be a verbal meaning (Predicate Agent is a minimum)
         meaningLine = 1; // First line contains DFW
     }
 
@@ -761,7 +832,7 @@ void SituationModel::LRHtoSM(const string& meaning, bool create) {
             // Create an event
             current.cPart = 'A';
             if (lastFocus.iIGARF != -1 &&
-               (vIGARF.at(lastFocus.iIGARF).tAction == UNDEF))
+                (vIGARF.at(lastFocus.iIGARF).tAction == UNDEF))
                 current.iIGARF = lastFocus.iIGARF;
             else
                 current.iIGARF = createIGARF();
@@ -812,7 +883,7 @@ void SituationModel::AUXautoLink(int iIGARF) {
     const sIGARF &igarf = vIGARF.at(iIGARF);
     sKeyMean last = createKey(-1, 'A', -1);
     int where = -1;
-    while (where < (int)igarf.vInitState.size() - 1 ) {
+    while (where < (int)igarf.vInitState.size() - 1) {
         if (vRelSaid.find(igarf.vInitState.at(last.iRel + 1)) == vRelSaid.end()) { // This relation has not been said before
             sKeyMean next = createKey(iIGARF, 'I', last.iRel + 1);
             string word;
@@ -893,7 +964,7 @@ void SituationModel::SMtoLRH(string lang) {
         bool cont = true;
         while (j < (int)vDiscourseLinks.size() && cont) {
             if (!(vDiscourseLinks.at(j).fromEvt == vDiscourseLinks.at(i).fromEvt &&
-                  vDiscourseLinks.at(j).toEvt   == vDiscourseLinks.at(i).toEvt)) {
+                vDiscourseLinks.at(j).toEvt == vDiscourseLinks.at(i).toEvt)) {
                 cont = false;
                 j--;
             }
@@ -916,7 +987,7 @@ void SituationModel::SMtoLRH(string lang) {
         Meaning m("");
         m.setContext(getEvent(lk.fromEvt));
         // Adds all the DFW of the links collected
-        for (int k = i; k <= j ; k++) {
+        for (int k = i; k <= j; k++) {
             if (vDiscourseLinks.at(k).word != "")
                 m.addDFW(vDiscourseLinks.at(k).word);
         }
@@ -934,16 +1005,16 @@ void SituationModel::SMtoLRH(string lang) {
  *-----------*/
 
 void SituationModel::initSizes(int _rendering_wEvtBox, int _rendering_hEvtBox, int _rendering_hOffset, int _rendering_vOffset) {
-    rendering_wEvtBox   = _rendering_wEvtBox;
-    rendering_wIGARFBox = 20 + (rendering_wEvtBox + 10)*5;
-    rendering_hEvtBox   = _rendering_hEvtBox;
+    rendering_wEvtBox = _rendering_wEvtBox;
+    rendering_wIGARFBox = 20 + (rendering_wEvtBox + 10) * 5;
+    rendering_hEvtBox = _rendering_hEvtBox;
     rendering_hIGARFBox = _rendering_hEvtBox + 20;
-    rendering_hOffset   = _rendering_hOffset;
-    rendering_vOffset   = _rendering_vOffset;
+    rendering_hOffset = _rendering_hOffset;
+    rendering_vOffset = _rendering_vOffset;
 }
 
 void SituationModel::calculateSize(int currentIGARF, vector < int > &IGARFlevels, int level) {
-    if (currentIGARF < 0 || currentIGARF > (int)vIGARF.size() - 1)
+    if (currentIGARF < 0 || currentIGARF >(int)vIGARF.size() - 1)
         return;
     const sIGARF &evt = vIGARF.at(currentIGARF);
     if (level > (int)IGARFlevels.size() - 1)
@@ -951,10 +1022,10 @@ void SituationModel::calculateSize(int currentIGARF, vector < int > &IGARFlevels
     else
         IGARFlevels.at(level)++;
     if (evt.tAction == IGARF_EVT) {
-        calculateSize(evt.iAction, IGARFlevels, level+1);
+        calculateSize(evt.iAction, IGARFlevels, level + 1);
     }
     if (evt.tResult == IGARF_EVT) {
-        calculateSize(evt.iResult, IGARFlevels, level+1);
+        calculateSize(evt.iResult, IGARFlevels, level + 1);
     }
     calculateSize(evt.iNext, IGARFlevels, level);
 }
@@ -964,85 +1035,85 @@ pair <int, int> SituationModel::calculateSize(int nIGARF) {
     calculateSize(nIGARF, IGARFlevels, 0);
     int width = 0;
     int depth = IGARFlevels.size();
-    for(int m : IGARFlevels) {
+    for (int m : IGARFlevels) {
         if (m > width)
             width = m;
     }
     return pair <int, int>(width*(rendering_wIGARFBox + rendering_hOffset) + 40, depth*(rendering_hIGARFBox + rendering_vOffset) + 40);
 }
 
-void SituationModel::writeIGARFdef(std::ofstream &fOutput, int nIGARF) {
-    string outColour = "#16A086", inColour ="#9BBB58", lineColour = "#297FB8";
+void SituationModel::writeIGARFdef(ofstream &fOutput, int nIGARF) {
+    string outColour = "#16A086", inColour = "#9BBB58", lineColour = "#297FB8";
     string boxSize = "height=\"" + to_string(rendering_hEvtBox) + "px\" width=\"" + to_string(rendering_wEvtBox) + "px\"";
     pair <int, int> size = calculateSize(nIGARF);
     fOutput << "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
-            << "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\"" << endl
-            << "\"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">" << endl
-            << "<svg width=\"" << size.first << "px\" height=\"" << size.second << "px\" xml:lang=\"en\"" << endl
-            << "xmlns=\"http://www.w3.org/2000/svg\"" << endl
-            << "xmlns:xlink=\"http://www.w3.org/1999/xlink\">" << endl
-            << "  <title>Test IGARF</title>" << endl
-            << "  <desc>Automatically IGARF representation</desc>" << endl
-            << "  " << endl
-            << "  <defs>" << endl
-            << "   <style type=\"text/css\"><![CDATA[" << endl
-            << "   .box {" << endl
-            << "     font-family: sans-serif;" << endl
-            << "     font-size: 16px;" << endl
-            << "   }" << endl
-            << "   .arrow {" << endl
-            << "     stroke: " << lineColour << ";" << endl
-            << "     stroke-width: 4px;" << endl
-            << "     marker-end: url(#Triangle);" << endl
-            << "     fill: none;" << endl
-            << "   }" << endl
-            << "   .igarf {" << endl
-            << "     stroke: " << outColour << ";" << endl
-            << "     stroke-width: 10px;" << endl
-            << "     fill: none;" << endl
-            << "   }" << endl
-            << "   .zoom {" << endl
-            << "     fill: " << outColour << ";" << endl
-            << "     fill-opacity: 0.3;" << endl
-            << "   }" << endl
-            << "   .event {" << endl
-            << "     stroke: " << outColour << ";" << endl
-            << "     stroke-width: 3px;" << endl
-            << "     fill: " << inColour << ";" << endl
-            << "     fill-opacity: 0.8;" << endl
-            << "   }" << endl
-            << "   .next {" << endl
-            << "     fill: " << inColour << ";" << endl
-            << "     fill-opacity: 0.8;" << endl
-            << "   }" << endl
-            << "   ]]></style>" << endl
-            << "    <marker id=\"Triangle\"" << endl
-            << "      viewBox=\"0 0 10 10\" refX=\"2\" refY=\"5\" " << endl
-            << "      markerUnits=\"strokeWidth\"" << endl
-            << "      markerWidth=\"4\" markerHeight=\"3\"" << endl
-            << "      orient=\"auto\"" << endl
-            << "      fill=\"" << lineColour << "\">" << endl
-            << "      <path d=\"M 0 0 L 10 5 L 0 10 L 2 5 z\" />" << endl
-            << "    </marker>" << endl
-            << "    <g id=\"igarfBox\">" << endl
-            << "      <rect x=\"0px\" y=\"0px\" height=\""<< rendering_hIGARFBox <<"px\" width=\""<< rendering_wIGARFBox <<"px\" class=\"igarf\"/>" << endl
-            << "      <rect x=\"10px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
-            << "      <rect x=\"" << rendering_wEvtBox + 20 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
-            << "      <rect x=\"" << (rendering_wEvtBox + 10)*2 + 10 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
-            << "      <rect x=\"" << (rendering_wEvtBox + 10)*3 + 10 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
-            << "      <rect x=\"" << (rendering_wEvtBox + 10)*4 + 10 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
-            << "      <rect x=\"" << rendering_wIGARFBox - 10 << "px\" y=\"" << rendering_hIGARFBox/2 - 30 << "px\" height=\"60px\" width=\"20px\" class=\"next\"/>" << endl
-            << "    </g>" << endl
-            << "  </defs>" << endl;
+        << "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20010904//EN\"" << endl
+        << "\"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">" << endl
+        << "<svg width=\"" << size.first << "px\" height=\"" << size.second << "px\" xml:lang=\"en\"" << endl
+        << "xmlns=\"http://www.w3.org/2000/svg\"" << endl
+        << "xmlns:xlink=\"http://www.w3.org/1999/xlink\">" << endl
+        << "  <title>Test IGARF</title>" << endl
+        << "  <desc>Automatically IGARF representation</desc>" << endl
+        << "  " << endl
+        << "  <defs>" << endl
+        << "   <style type=\"text/css\"><![CDATA[" << endl
+        << "   .box {" << endl
+        << "     font-family: sans-serif;" << endl
+        << "     font-size: 16px;" << endl
+        << "   }" << endl
+        << "   .arrow {" << endl
+        << "     stroke: " << lineColour << ";" << endl
+        << "     stroke-width: 4px;" << endl
+        << "     marker-end: url(#Triangle);" << endl
+        << "     fill: none;" << endl
+        << "   }" << endl
+        << "   .igarf {" << endl
+        << "     stroke: " << outColour << ";" << endl
+        << "     stroke-width: 10px;" << endl
+        << "     fill: none;" << endl
+        << "   }" << endl
+        << "   .zoom {" << endl
+        << "     fill: " << outColour << ";" << endl
+        << "     fill-opacity: 0.3;" << endl
+        << "   }" << endl
+        << "   .event {" << endl
+        << "     stroke: " << outColour << ";" << endl
+        << "     stroke-width: 3px;" << endl
+        << "     fill: " << inColour << ";" << endl
+        << "     fill-opacity: 0.8;" << endl
+        << "   }" << endl
+        << "   .next {" << endl
+        << "     fill: " << inColour << ";" << endl
+        << "     fill-opacity: 0.8;" << endl
+        << "   }" << endl
+        << "   ]]></style>" << endl
+        << "    <marker id=\"Triangle\"" << endl
+        << "      viewBox=\"0 0 10 10\" refX=\"2\" refY=\"5\" " << endl
+        << "      markerUnits=\"strokeWidth\"" << endl
+        << "      markerWidth=\"4\" markerHeight=\"3\"" << endl
+        << "      orient=\"auto\"" << endl
+        << "      fill=\"" << lineColour << "\">" << endl
+        << "      <path d=\"M 0 0 L 10 5 L 0 10 L 2 5 z\" />" << endl
+        << "    </marker>" << endl
+        << "    <g id=\"igarfBox\">" << endl
+        << "      <rect x=\"0px\" y=\"0px\" height=\"" << rendering_hIGARFBox << "px\" width=\"" << rendering_wIGARFBox << "px\" class=\"igarf\"/>" << endl
+        << "      <rect x=\"10px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
+        << "      <rect x=\"" << rendering_wEvtBox + 20 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
+        << "      <rect x=\"" << (rendering_wEvtBox + 10) * 2 + 10 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
+        << "      <rect x=\"" << (rendering_wEvtBox + 10) * 3 + 10 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
+        << "      <rect x=\"" << (rendering_wEvtBox + 10) * 4 + 10 << "px\" y=\"10px\" " << boxSize << " class=\"event\"/>" << endl
+        << "      <rect x=\"" << rendering_wIGARFBox - 10 << "px\" y=\"" << rendering_hIGARFBox / 2 - 30 << "px\" height=\"60px\" width=\"20px\" class=\"next\"/>" << endl
+        << "    </g>" << endl
+        << "  </defs>" << endl;
 }
 
 void SituationModel::writeSVGIGARF(ofstream &fOutput, int nIGARF, int x, int y) {
-    if (nIGARF < 0 || nIGARF > (int)vIGARF.size() - 1)
+    if (nIGARF < 0 || nIGARF >(int)vIGARF.size() - 1)
         return;
     const sIGARF &evt = vIGARF.at(nIGARF);
 
     fOutput << "  <g transform=\"translate(" << x << " " << y << ")\" class=\"box\">" << endl
-            << "    <use xlink:href=\"#igarfBox\"/>" << endl;
+        << "    <use xlink:href=\"#igarfBox\"/>" << endl;
 
     // InitState
     int offset = 10;
@@ -1050,8 +1121,8 @@ void SituationModel::writeSVGIGARF(ofstream &fOutput, int nIGARF, int x, int y) 
     for (int iRel : evt.vInitState) {
         const sRelation& r = vRelations.at(iRel);
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "      " << r.subject << " " << r.verb << " " << r.object << endl
-                << "      </tspan>" << endl;
+            << "      " << r.subject << " " << r.verb << " " << r.object << endl
+            << "      </tspan>" << endl;
     }
     fOutput << "    </text>" << endl;
 
@@ -1061,8 +1132,8 @@ void SituationModel::writeSVGIGARF(ofstream &fOutput, int nIGARF, int x, int y) 
     for (int iRel : evt.vGoal) {
         const sRelation& r = vRelations.at(iRel);
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "      " << r.subject << " " << r.verb << " " << r.object << endl
-                << "      </tspan>" << endl;
+            << "      " << r.subject << " " << r.verb << " " << r.object << endl
+            << "      </tspan>" << endl;
     }
     fOutput << "    </text>" << endl;
 
@@ -1072,17 +1143,17 @@ void SituationModel::writeSVGIGARF(ofstream &fOutput, int nIGARF, int x, int y) 
         fOutput << "    <text transform=\"translate(" << offset << " 7)\">" << endl;
         const sActionEvt& a = vActionEvts.at(evt.iAction);
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        A: " << a.agent << endl
-                << "      </tspan>" << endl;
+            << "        A: " << a.agent << endl
+            << "      </tspan>" << endl;
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        P: " << a.predicate << endl
-                << "      </tspan>" << endl;
+            << "        P: " << a.predicate << endl
+            << "      </tspan>" << endl;
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        O: " << a.object << endl
-                << "      </tspan>" << endl;
+            << "        O: " << a.object << endl
+            << "      </tspan>" << endl;
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        R: " << a.recipient << endl
-                << "      </tspan>" << endl;
+            << "        R: " << a.recipient << endl
+            << "      </tspan>" << endl;
         fOutput << "    </text>" << endl;
     }
 
@@ -1092,17 +1163,17 @@ void SituationModel::writeSVGIGARF(ofstream &fOutput, int nIGARF, int x, int y) 
         fOutput << "    <text transform=\"translate(" << offset << " 7)\">" << endl;
         const sActionEvt& a = vActionEvts.at(evt.iResult);
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        A: " << a.agent << endl
-                << "      </tspan>" << endl;
+            << "        A: " << a.agent << endl
+            << "      </tspan>" << endl;
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        P: " << a.predicate << endl
-                << "      </tspan>" << endl;
+            << "        P: " << a.predicate << endl
+            << "      </tspan>" << endl;
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        O: " << a.object << endl
-                << "      </tspan>" << endl;
+            << "        O: " << a.object << endl
+            << "      </tspan>" << endl;
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "        R: " << a.recipient << endl
-                << "      </tspan>" << endl;
+            << "        R: " << a.recipient << endl
+            << "      </tspan>" << endl;
         fOutput << "    </text>" << endl;
     }
 
@@ -1112,8 +1183,8 @@ void SituationModel::writeSVGIGARF(ofstream &fOutput, int nIGARF, int x, int y) 
     for (int iRel : evt.vFinalState) {
         const sRelation& r = vRelations.at(iRel);
         fOutput << "      <tspan x=\"10px\" dy=\"18px\">" << endl
-                << "      " << r.subject << " " << r.verb << " " << r.object << endl
-                << "      </tspan>" << endl;
+            << "      " << r.subject << " " << r.verb << " " << r.object << endl
+            << "      </tspan>" << endl;
     }
     fOutput << "    </text>" << endl;
 
@@ -1121,7 +1192,7 @@ void SituationModel::writeSVGIGARF(ofstream &fOutput, int nIGARF, int x, int y) 
 }
 
 int SituationModel::addIGARFtoGrid(ofstream &fOutput, vector < int > &IGARFgrid, int currentIGARF, int level) {
-    if (currentIGARF < 0 || currentIGARF > (int)vIGARF.size() - 1)
+    if (currentIGARF < 0 || currentIGARF >(int)vIGARF.size() - 1)
         return -1;
     if (level > (int)IGARFgrid.size() - 1)
         IGARFgrid.push_back(0);
@@ -1135,34 +1206,34 @@ int SituationModel::addIGARFtoGrid(ofstream &fOutput, vector < int > &IGARFgrid,
         if (level < (int)IGARFgrid.size() - 1)
             beginAt = IGARFgrid.at(level + 1) + 1;
         int endAt = addIGARFtoGrid(fOutput, IGARFgrid, evt.iAction, level + 1);
-        int xactLeft    = 20 + where*(rendering_wIGARFBox + rendering_hOffset) + (rendering_wEvtBox + 10)*2 + 10;
-        int yactBottom  = 30 + rendering_hEvtBox + level*(rendering_hIGARFBox + rendering_vOffset);
-        int xactRight   = xactLeft + rendering_wEvtBox;
-        int xigarfLeft  = 20 + beginAt*(rendering_wIGARFBox + rendering_hOffset);
-        int yigarfTop   = 20 + (level + 1)*(rendering_hIGARFBox + rendering_vOffset);
+        int xactLeft = 20 + where*(rendering_wIGARFBox + rendering_hOffset) + (rendering_wEvtBox + 10) * 2 + 10;
+        int yactBottom = 30 + rendering_hEvtBox + level*(rendering_hIGARFBox + rendering_vOffset);
+        int xactRight = xactLeft + rendering_wEvtBox;
+        int xigarfLeft = 20 + beginAt*(rendering_wIGARFBox + rendering_hOffset);
+        int yigarfTop = 20 + (level + 1)*(rendering_hIGARFBox + rendering_vOffset);
         int xigarfRight = 20 + endAt*(rendering_wIGARFBox + rendering_hOffset) + rendering_wIGARFBox;
-        fOutput << "  <path d=\"M " << xactLeft  << "," << yactBottom << " L " << xigarfLeft  << "," << yigarfTop << " L " << xigarfRight << "," << yigarfTop << " L " << xactRight << "," << yactBottom << "\" class=\"zoom\"/>" << endl
-                << "  <path d=\"M " << xactLeft  << "," << yactBottom << " L " << xigarfLeft  << "," << yigarfTop << "\" class=\"arrow\"/>" << endl
-                << "  <path d=\"M " << xactRight << "," << yactBottom << " L " << xigarfRight << "," << yigarfTop << "\" class=\"arrow\"/>" << endl;
+        fOutput << "  <path d=\"M " << xactLeft << "," << yactBottom << " L " << xigarfLeft << "," << yigarfTop << " L " << xigarfRight << "," << yigarfTop << " L " << xactRight << "," << yactBottom << "\" class=\"zoom\"/>" << endl
+            << "  <path d=\"M " << xactLeft << "," << yactBottom << " L " << xigarfLeft << "," << yigarfTop << "\" class=\"arrow\"/>" << endl
+            << "  <path d=\"M " << xactRight << "," << yactBottom << " L " << xigarfRight << "," << yigarfTop << "\" class=\"arrow\"/>" << endl;
     }
     if (evt.tResult == IGARF_EVT) {
         int beginAt = 0;
         if (level < (int)IGARFgrid.size() - 1)
             beginAt = IGARFgrid.at(level + 1) + 1;
         int endAt = addIGARFtoGrid(fOutput, IGARFgrid, evt.iResult, level + 1);
-        int xactLeft    = 20 + where*(rendering_wIGARFBox + rendering_hOffset) + (rendering_wEvtBox + 10)*3 + 10;
-        int yactBottom  = 30 + rendering_hEvtBox + level*(rendering_hIGARFBox + rendering_vOffset);
-        int xactRight   = xactLeft + rendering_wEvtBox;
-        int xigarfLeft  = 20 + beginAt*(rendering_wIGARFBox + rendering_hOffset);
-        int yigarfTop   = 20 + (level + 1)*(rendering_hIGARFBox + rendering_vOffset);
+        int xactLeft = 20 + where*(rendering_wIGARFBox + rendering_hOffset) + (rendering_wEvtBox + 10) * 3 + 10;
+        int yactBottom = 30 + rendering_hEvtBox + level*(rendering_hIGARFBox + rendering_vOffset);
+        int xactRight = xactLeft + rendering_wEvtBox;
+        int xigarfLeft = 20 + beginAt*(rendering_wIGARFBox + rendering_hOffset);
+        int yigarfTop = 20 + (level + 1)*(rendering_hIGARFBox + rendering_vOffset);
         int xigarfRight = 20 + endAt*(rendering_wIGARFBox + rendering_hOffset) + rendering_wIGARFBox;
-        fOutput << "  <path d=\"M " << xactLeft  << "," << yactBottom << " L " << xigarfLeft  << "," << yigarfTop << " L " << xigarfRight << "," << yigarfTop << " L " << xactRight << "," << yactBottom << "\" class=\"zoom\"/>" << endl
-                << "  <path d=\"M " << xactLeft  << "," << yactBottom << " L " << xigarfLeft  << "," << yigarfTop << "\" class=\"arrow\"/>" << endl
-                << "  <path d=\"M " << xactRight << "," << yactBottom << " L " << xigarfRight << "," << yigarfTop << "\" class=\"arrow\"/>" << endl;
+        fOutput << "  <path d=\"M " << xactLeft << "," << yactBottom << " L " << xigarfLeft << "," << yigarfTop << " L " << xigarfRight << "," << yigarfTop << " L " << xactRight << "," << yactBottom << "\" class=\"zoom\"/>" << endl
+            << "  <path d=\"M " << xactLeft << "," << yactBottom << " L " << xigarfLeft << "," << yigarfTop << "\" class=\"arrow\"/>" << endl
+            << "  <path d=\"M " << xactRight << "," << yactBottom << " L " << xigarfRight << "," << yigarfTop << "\" class=\"arrow\"/>" << endl;
     }
     if (evt.iNext != -1) {
         int x = 20 + where*(rendering_wIGARFBox + rendering_hOffset) + rendering_wIGARFBox;
-        int y = 20 + level*(rendering_hIGARFBox + rendering_vOffset) + rendering_hIGARFBox/2;
+        int y = 20 + level*(rendering_hIGARFBox + rendering_vOffset) + rendering_hIGARFBox / 2;
         fOutput << "  <path d=\"M " << x << "," << y << " l " << rendering_hOffset - 5 << ",0\" class=\"arrow\"/>" << endl;
     }
     addIGARFtoGrid(fOutput, IGARFgrid, evt.iNext, level);

@@ -121,12 +121,12 @@ namespace storygraph {
         void ABMtoSM(const story &s); ///< Uses a story (its vector of evtStory) to automatically generate a Situation Model
         void makeStructure(); ///< From all the IGARF, makes a structure with story arc, failure and consequence, etc...
         // -- SMtoTrain and SMandNarrativeToTrain
-        int proximityScoreAction(int i, const std::set <std::string>& ocw); ///< Mesures vocabulary coherence for sActionEvt
+        int proximityScoreAction(int i, const std::vector <std::string>& ocw); ///< Mesures vocabulary coherence for sActionEvt
                                                                             ///< @param i Index of the sActionEvt in SituationModel::vActionEvts.
                                                                             ///< @return The coherence score. It may be weighted
                                                                             /// (Predicate is more important thant Recipient) or binary (threshold of acceptance)
-        int proximityScoreRelation(int i, const std::set <std::string>& ocw); ///< @see proximityScoreAction
-        sKeyMean findBest(const std::set <std::string>& ocw); ///< Find the sActionEvt or sRelation that share the most vocabulary
+        int proximityScoreRelation(int i, const std::vector <std::string>& ocw); ///< @see proximityScoreAction
+        std::vector<sKeyMean> findBest(const std::vector <std::string>& ocw); ///< Find the sActionEvt or sRelation that share the most vocabulary
                                                               ///< @return Returns a sKeyMean to the best event or relation or a (-1 'A' -1) sKeyMean if none has been found
         std::string SMtoTrain(std::string sentence);
         // -- LRHtoSM and LRHtoBlankSM
