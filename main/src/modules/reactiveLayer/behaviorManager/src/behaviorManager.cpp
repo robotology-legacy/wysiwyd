@@ -77,10 +77,10 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
-        yWarning() << "Ears is not reachable";
-        yarp::os::Time::delay(0.5);
-    }
+    // while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
+    //     yWarning() << "Ears is not reachable";
+    //     yarp::os::Time::delay(0.5);
+    // }
 
     // id = 0;
     for(auto& beh : behaviors) {
