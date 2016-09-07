@@ -37,13 +37,17 @@ using namespace yarp::os;
 int main(int argc, char * argv[])
 {
     srand(time(NULL));
-    Network::init();
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
     HomeostaticModule mod;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("homeostasis");
     rf.setDefaultConfigFile("default.ini");
     rf.configure( argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }

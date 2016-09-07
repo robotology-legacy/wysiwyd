@@ -24,14 +24,18 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
 
-    Network::init();
     verbRec mod;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("verbRec");
     rf.setDefaultConfigFile("verbRec.ini");
     rf.configure(argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }

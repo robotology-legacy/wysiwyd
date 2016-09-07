@@ -24,14 +24,17 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
-
-    Network::init();
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
     CFFT mod;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("audioPreprocessing");
     rf.setDefaultConfigFile("audioPreprocessing.ini");
     rf.configure( argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }

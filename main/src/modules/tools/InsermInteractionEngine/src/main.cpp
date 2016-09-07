@@ -24,14 +24,17 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
-
-    Network::init();
+    yarp::os::Network yarp;
+    if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
     IIE mod;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("IIE");
     rf.setDefaultConfigFile("iie.ini");
     rf.configure(argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }
