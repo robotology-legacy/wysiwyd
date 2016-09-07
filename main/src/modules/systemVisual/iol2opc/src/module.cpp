@@ -853,7 +853,6 @@ bool IOL2OPCBridge::configure(ResourceFinder &rf)
     period=rf.check("period",Value(0.1)).asDouble();
     empty=rf.check("empty");
     object_persistence=(rf.check("object_persistence",Value("off")).asString()=="on");
-    calib_entry=rf.check("calib_entry",Value("iol-right")).asString();
 
     opc=new OPCClient(name);
     if (!opc->connect(rf.check("opcName",Value("OPC")).asString().c_str()))

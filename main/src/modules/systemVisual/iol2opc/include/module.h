@@ -209,7 +209,6 @@ protected:
     double period;
     bool empty;
     bool object_persistence;
-    string calib_entry;    
 
     double presence_timeout;
     string tracker_type;

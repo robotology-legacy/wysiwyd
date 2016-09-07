@@ -472,11 +472,6 @@
         <protocol>tcp</protocol>
     </connection>
     <connection>
-        <from>/iol2opc/calib:rpc</from>
-        <to>/iolReachingCalibration/rpc</to>
-        <protocol>tcp</protocol>
-    </connection>
-    <connection>
         <from>/actionsRenderingEngine/wbd:rpc</from>
         <to>/wholeBodyDynamics/rpc:i</to>
         <protocol>tcp</protocol>
