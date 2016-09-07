@@ -1687,7 +1687,6 @@ bool opcPopulater::populateScenario2(){
     lArgument.push_back(pair<string, string>(sRobert, "agent"));
     lArgument.push_back(pair<string, string>("remove", "predicate"));
     lArgument.push_back(pair<string, string>(sBox, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "remove",
@@ -1883,7 +1882,6 @@ bool opcPopulater::populateScenario3(){
     lArgument.push_back(pair<string, string>(sAgent, "agent"));
     lArgument.push_back(pair<string, string>("remove", "predicate"));
     lArgument.push_back(pair<string, string>(sBox, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "remove",
@@ -2407,7 +2405,6 @@ bool opcPopulater::populateScenario6(){
     lArgument.push_back(pair<string, string>(sRobert, "agent"));
     lArgument.push_back(pair<string, string>("remove", "predicate"));
     lArgument.push_back(pair<string, string>(sBox, "object"));
-    lArgument.push_back(pair<string, string>("iCub", "recipient"));
 
     iCub->getABMClient()->sendActivity("action",
         "remove",
