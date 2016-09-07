@@ -31,10 +31,6 @@
 
 #define SUBSYSTEM_KARMA       "KARMA"
 
-using namespace yarp::dev;
-using namespace yarp::os;
-using namespace yarp::sig;
-
 namespace wysiwyd {
     namespace wrdac {
 
@@ -64,13 +60,13 @@ namespace wysiwyd {
             yarp::os::RpcClient finderPort;
 
             //testing Cartesian interface
-            PolyDriver driverL;
-            PolyDriver driverR;
-            PolyDriver driverHL;
-            PolyDriver driverHR;
+            yarp::dev::PolyDriver driverL;
+            yarp::dev::PolyDriver driverR;
+            yarp::dev::PolyDriver driverHL;
+            yarp::dev::PolyDriver driverHR;
 
-            ICartesianControl *iCartCtrlL;
-            ICartesianControl *iCartCtrlR;
+            yarp::dev::ICartesianControl *iCartCtrlL;
+            yarp::dev::ICartesianControl *iCartCtrlR;
 
             /********************************************************************************/
             void appendTarget(yarp::os::Bottle& b, const yarp::sig::Vector &tCenter);

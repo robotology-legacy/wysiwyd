@@ -1,6 +1,10 @@
 #include <yarp/os/all.h>
 #include "wrdac/subsystems/subSystem_KARMA.h"
 
+using namespace yarp::dev;
+using namespace yarp::os;
+using namespace yarp::sig;
+
 void wysiwyd::wrdac::SubSystem_KARMA::appendTarget(yarp::os::Bottle &b, const yarp::sig::Vector &t)
 {
     yarp::os::Bottle &sub=b;
