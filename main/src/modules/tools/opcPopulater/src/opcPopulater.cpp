@@ -389,32 +389,15 @@ bool opcPopulater::setValueEntity(Bottle bInput){
     double targetValue = bInput.get(2).asDouble();
 
     iCub->opc->checkout();
-    list<Entity*> lEntities = iCub->opc->EntitiesCache();
 
-    for (list<Entity*>::iterator itEnt = lEntities.begin(); itEnt != lEntities.end(); itEnt++)
-    {
-        if ((*itEnt)->name() == sName)
-        {
-            if ((*itEnt)->entity_type() == "agent")
-            {
-                Agent* temp = dynamic_cast<Agent*>(*itEnt);
-                temp->m_value = targetValue;
-            }
-            if ((*itEnt)->entity_type() == "object")
-            {
-                Object* temp = dynamic_cast<Object*>(*itEnt);
-                temp->m_value = targetValue;
-            }
-            if ((*itEnt)->entity_type() == "rtobject")
-            {
-                RTObject* temp = dynamic_cast<RTObject*>(*itEnt);
-                temp->m_value = targetValue;
-            }
-        }
+    Entity *e = iCub->opc->getEntity(sName);
+    if (e && (e->entity_type() == "agent" || e->entity_type() == "object" || e->entity_type() == "rtobject")) {
+        Object* temp = dynamic_cast<Object*>(e);
+        temp->m_value = targetValue;
+        iCub->opc->commit();
+    }else{
+        yWarning()<<"Trying to change value of the non-object entity: "<<sName<<". Please check!";
     }
-
-    iCub->opc->commit();
-
     return true;
 }
 
