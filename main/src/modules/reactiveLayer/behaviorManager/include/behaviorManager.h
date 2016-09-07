@@ -38,8 +38,6 @@ private:
 
     int behavior_to_trigger;
 
-    bool onPlannerMode;
-
     Mutex mut;
     Bottle behaviorList;
     string behavior_name;

@@ -131,7 +131,7 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
         reply.addString("quitting");
         return false;
     }
-    else if (command.get(0).asString() == "test")
+    else if (command.get(0).asString() == "dummy")
     {
         // sends a test bottle to planner
         Bottle &bToTarget = port_planner.prepare();
