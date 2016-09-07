@@ -164,8 +164,7 @@ bool Object::fromBottle(const Bottle &b)
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_G) ||
         !b.check(EFAA_OPC_OBJECT_GUI_COLOR_B) ||
         !b.check(EFAA_OPC_OBJECT_PRESENT_TAG) ||
-        !b.check("object_area")
-       )
+        !b.check("object_area")               ||
         !b.check(EFAA_OPC_OBJECT_VALUE))
     {
         return false;
