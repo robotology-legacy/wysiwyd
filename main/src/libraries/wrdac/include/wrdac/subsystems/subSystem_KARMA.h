@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
+#include <yarp/dev/all.h>
 
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
@@ -51,10 +52,21 @@ namespace wysiwyd {
             SubSystem_Attention* SubATT;
             bool ATTconnected;
 
+            std::string robot;
+
             yarp::os::RpcClient stopPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient visionPort;
             yarp::os::RpcClient finderPort;
+
+            //testing Cartesian interface
+            yarp::dev::PolyDriver driverL;
+            yarp::dev::PolyDriver driverR;
+            yarp::dev::PolyDriver driverHL;
+            yarp::dev::PolyDriver driverHR;
+
+            yarp::dev::ICartesianControl *iCartCtrlL;
+            yarp::dev::ICartesianControl *iCartCtrlR;
 
             /********************************************************************************/
             void appendTarget(yarp::os::Bottle& b, const yarp::sig::Vector &tCenter);
@@ -62,6 +74,7 @@ namespace wysiwyd {
             void appendDouble(yarp::os::Bottle& b, const double &v);
 
             /********************************************************************************/
+            bool prepare();
 
 
             /********************************************************************************/
@@ -75,7 +88,7 @@ namespace wysiwyd {
             * Default constructor.
             * @param masterName stem-name used to open up ports.
             */
-            SubSystem_KARMA(const std::string &masterName);
+            SubSystem_KARMA(const std::string &masterName, const std::string &robot);
 
             /**
             * Clean up resources.
@@ -126,6 +139,8 @@ namespace wysiwyd {
                       const double radius, const double dist,
                       const yarp::os::Bottle &options = yarp::os::Bottle(),
                       const std::string &sName="target");
+
+            bool openCartesianClient();
 
             /**
             * Destructor.

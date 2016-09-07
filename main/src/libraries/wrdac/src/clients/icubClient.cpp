@@ -49,6 +49,17 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     rfClient.setDefaultConfigFile(clientConfigFile.c_str());
     rfClient.configure(0, NULL);
 
+    if (rfClient.check("robot"))
+    {
+        robot = rfClient.find("robot").asString();
+        yInfo("Robot name set to %s", robot.c_str());
+    }
+    else
+    {
+        robot = "icub";
+        yInfo("Robot name set to default, i.e. %s", robot.c_str());
+    }
+
     if (bLoadPostures){
         yarp::os::ResourceFinder rfPostures;
         rfPostures.setVerbose(isRFVerbose);
@@ -121,7 +132,7 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
             else if (currentSS == SUBSYSTEM_BABBLING)
                 subSystems[SUBSYSTEM_BABBLING] = new SubSystem_babbling(fullName);
             else if (currentSS == SUBSYSTEM_KARMA)
-                subSystems[SUBSYSTEM_KARMA] = new SubSystem_KARMA(fullName);
+                subSystems[SUBSYSTEM_KARMA] = new SubSystem_KARMA(fullName, robot);
             else
                 yError() << "Unknown subsystem!";
         }
@@ -605,7 +616,7 @@ bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
     {
-        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        yError() << "[iCubClient] Called pushKarma() but KARMA subsystem is not available.";
         return false;
     }
     return karma->push(targetCenter,theta,radius,options,sName);
@@ -618,7 +629,7 @@ bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
     {
-        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        yError() << "[iCubClient] Called drawKarma() but KARMA subsystem is not available.";
         return false;
     }
     return karma->draw(targetCenter,theta,radius,dist,options,sName);
@@ -631,7 +642,7 @@ bool ICubClient::vdrawKarma(const yarp::sig::Vector &targetCenter, const double 
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
     {
-        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        yError() << "[iCubClient] Called vdrawKarma() but KARMA subsystem is not available.";
         return false;
     }
     return karma->vdraw(targetCenter,theta,radius,dist,options,sName);
