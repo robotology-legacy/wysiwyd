@@ -49,6 +49,17 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     rfClient.setDefaultConfigFile(clientConfigFile.c_str());
     rfClient.configure(0, NULL);
 
+    if (rfClient.check("robot"))
+    {
+        robot = rfClient.find("robot").asString();
+        yInfo("Module name set to %s", robot.c_str());
+    }
+    else
+    {
+        robot = "icub";
+        yInfo("Module name set to default, i.e. %s", robot.c_str());
+    }
+
     if (bLoadPostures){
         yarp::os::ResourceFinder rfPostures;
         rfPostures.setVerbose(isRFVerbose);
@@ -605,9 +616,10 @@ bool ICubClient::pushKarma(const yarp::sig::Vector &targetCenter, const double &
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
     {
-        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        yError() << "[iCubClient] Called pushKarma() but KARMA subsystem is not available.";
         return false;
     }
+//    karma->setRobot(robot);
     return karma->push(targetCenter,theta,radius,options,sName);
 }
 
@@ -618,9 +630,10 @@ bool ICubClient::drawKarma(const yarp::sig::Vector &targetCenter, const double &
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
     {
-        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        yError() << "[iCubClient] Called drawKarma() but KARMA subsystem is not available.";
         return false;
     }
+//    karma->setRobot(robot);
     return karma->draw(targetCenter,theta,radius,dist,options,sName);
 }
 
@@ -631,7 +644,7 @@ bool ICubClient::vdrawKarma(const yarp::sig::Vector &targetCenter, const double 
     SubSystem_KARMA *karma = getKARMA();
     if (karma == NULL)
     {
-        yError() << "[iCubClient] Called push() but KARMA subsystem is not available.";
+        yError() << "[iCubClient] Called vdrawKarma() but KARMA subsystem is not available.";
         return false;
     }
     return karma->vdraw(targetCenter,theta,radius,dist,options,sName);
@@ -1047,5 +1060,10 @@ SubSystem_KARMA* ICubClient::getKARMA()
     if (subSystems.find(SUBSYSTEM_KARMA) == subSystems.end())
         return NULL;
     else
-        return (SubSystem_KARMA*)subSystems[SUBSYSTEM_KARMA];
+    {
+        SubSystem_KARMA *karma = (SubSystem_KARMA*)subSystems[SUBSYSTEM_KARMA];
+        karma->setRobot(robot);
+        return karma;
+
+    }
 }

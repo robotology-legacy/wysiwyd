@@ -48,15 +48,6 @@ int main()
         return -1;
     }
 
-    RpcClient port;
-    port.open("/create_object");
-    if (!Network::connect(port.getName().c_str(),"/icubSim/world"))
-    {
-        cout<<"Unable to connect to the World!"<<endl;
-        port.close();
-        return -1;
-    }
-
     // object location in the iCub frame
     Vector x(4);
     x[0]=-0.35;
@@ -73,33 +64,17 @@ int main()
     Vector wx=T*x;
     x.pop_back();
 
-    // create a static object in the simulated world
-    Bottle cmd,reply;
-    double radius=0.025;
-    cmd.addString("world"); cmd.addString("mk"); cmd.addString("ssph");
-    cmd.addDouble(radius);
-    cmd.addDouble(wx[0]); cmd.addDouble(wx[1]); cmd.addDouble(wx[2]);
-    cmd.addDouble(1.0);   cmd.addDouble(0.0);   cmd.addDouble(0.0);
-    port.write(cmd,reply);
-    port.close();
-
-//    iCub.home();    // Home by using ARE
+    iCub.home();    // Home by using ARE
     x[1] =x[1] - 0.1;
     cout<<"try to push with KARMA...";
-    bool ok = iCub.pushKarma(x,0,0.4);
+    bool ok = iCub.pushKarma(x,0,0.2);
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 
-//    iCub.home();    // Home by using ARE
+    iCub.home();    // Home by using ARE
     x[1] =x[1] + 0.1;
     cout<<"try to pull with KARMA...";
     ok = iCub.drawKarma(x,0,0.2,0.2);
-    cout<<(ok?"success":"failed")<<endl;
-    Time::delay(4.0);
-
-//    iCub.home();    // Home by using ARE
-    cout<<"try to virtual pull with KARMA...";
-    ok = iCub.vdrawKarma(x,0,0.2,0.3);
     cout<<(ok?"success":"failed")<<endl;
     Time::delay(4.0);
 

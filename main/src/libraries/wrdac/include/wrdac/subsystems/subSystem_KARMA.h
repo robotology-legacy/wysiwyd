@@ -23,12 +23,17 @@
 #include <algorithm>
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
+#include <yarp/dev/all.h>
 
 #include "wrdac/subsystems/subSystem.h"
 #include "wrdac/subsystems/subSystem_ABM.h"
 #include "wrdac/subsystems/subSystem_attention.h"
 
 #define SUBSYSTEM_KARMA       "KARMA"
+
+using namespace yarp::dev;
+using namespace yarp::os;
+using namespace yarp::sig;
 
 namespace wysiwyd {
     namespace wrdac {
@@ -51,10 +56,21 @@ namespace wysiwyd {
             SubSystem_Attention* SubATT;
             bool ATTconnected;
 
+            std::string robot;
+
             yarp::os::RpcClient stopPort;
             yarp::os::RpcClient rpcPort;
             yarp::os::RpcClient visionPort;
             yarp::os::RpcClient finderPort;
+
+            //testing Cartesian interface
+            PolyDriver driverL;
+            PolyDriver driverR;
+            PolyDriver driverHL;
+            PolyDriver driverHR;
+
+            ICartesianControl *iCartCtrlL;
+            ICartesianControl *iCartCtrlR;
 
             /********************************************************************************/
             void appendTarget(yarp::os::Bottle& b, const yarp::sig::Vector &tCenter);
@@ -62,6 +78,10 @@ namespace wysiwyd {
             void appendDouble(yarp::os::Bottle& b, const double &v);
 
             /********************************************************************************/
+            bool prepare();
+
+            void closeICartClient();
+
 
 
             /********************************************************************************/
@@ -126,6 +146,8 @@ namespace wysiwyd {
                       const double radius, const double dist,
                       const yarp::os::Bottle &options = yarp::os::Bottle(),
                       const std::string &sName="target");
+
+            bool setRobot(const std::string&);
 
             /**
             * Destructor.

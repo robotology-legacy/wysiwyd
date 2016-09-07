@@ -54,6 +54,8 @@ namespace wysiwyd{
             double xRangeMin, yRangeMin, zRangeMin;
             double xRangeMax, yRangeMax, zRangeMax;
 
+            std::string robot;
+
         public:
 
             std::map<std::string, BodyPosture> getPosturesKnown()
