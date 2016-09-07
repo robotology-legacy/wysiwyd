@@ -24,14 +24,19 @@ using namespace yarp::os;
 
 int main(int argc, char * argv[])
 {
+	yarp::os::Network yarp;
+	
+	if (!yarp.checkNetwork())
+    {
+        yError()<<"YARP network seems unavailable!";
+        return 1;
+    }
 
-    Network::init();
     Planner mod;
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("planner");
     rf.setDefaultConfigFile("default.ini");
     rf.configure(argc, argv);
-    mod.runModule(rf);
-    return 0;
+    return mod.runModule(rf);
 }

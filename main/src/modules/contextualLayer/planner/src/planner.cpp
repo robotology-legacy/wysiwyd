@@ -13,7 +13,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     bool isRFVerbose = false;
     iCub = new ICubClient(moduleName, "planner", "client.ini", isRFVerbose);
     iCub->opc->isVerbose = false;
-    if (!iCub->connect())
+    while (!iCub->connect())
     {
        yInfo() << " iCubClient : Some dependencies are not running...";
        Time::delay(1.0);
@@ -30,6 +30,10 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
 
+    portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
+    toHomeo.open("/manager/toHomeostasis/rpc:o");
+    getState.open("/planner/state:i");
+
     if (ears)
     {
         while (!Network::connect("/ears/target:o",rpc.getName())) {
@@ -40,7 +44,6 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     if (BM)
     {
-        portToBehavior.open("/" + moduleName + "/behavior/cmd:o");
         while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
             yWarning() << "BehaviorManager is unreachable";
             yarp::os::Time::delay(0.8);
@@ -50,7 +53,6 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     if (homeo)
     {
-        toHomeo.open("/manager/toHomeostasis/rpc:o");
         while (!Network::connect(toHomeo.getName(),"/homeostasis/rpc")) {
             yWarning() << "homeostasis is unreachable";
             yarp::os::Time::delay(0.8);
@@ -59,7 +61,6 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     if (SM)
     {
-        getState.open("/planner/state:i");
         while (!Network::connect(getState.getName(), "/SensationManager/rpc")) {
             yWarning() << "sensationManager is unreachable.";
             yarp::os::Time::delay(0.8);
@@ -71,8 +72,8 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 
     priority_list.clear();
     action_list.clear();
-    id=0;
-    fulfill=0;
+    id = 0;
+    fulfill = false;
     attemptCnt = 0;
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
@@ -81,7 +82,7 @@ bool Planner::configure(yarp::os::ResourceFinder &rf)
 }
 
 
-bool Planner::close() {
+bool Planner::exit() {
     if(iCub) {
         iCub->close();
         delete iCub;
@@ -90,8 +91,15 @@ bool Planner::close() {
     portToBehavior.interrupt();
     portToBehavior.close();
 
-    port_behavior_context.interrupt();
-    port_behavior_context.close();
+    toHomeo.interrupt();
+    toHomeo.close();
+
+    getState.interrupt();
+    getState.close();
+
+    // currently not in use, will be implemented when BM receives context for actions as well
+    // port_behavior_context.interrupt();
+    // port_behavior_context.close();
 
     rpc.interrupt();
     rpc.close();
@@ -101,16 +109,13 @@ bool Planner::close() {
 
 bool Planner::freeze_all()
 {
+    Bottle gandalf;
     // Prepare command
     gandalf.clear();
     gandalf.addString("freeze");
     gandalf.addString("all");
+
     // Send command
-    if (!Network::isConnected(toHomeo.getName(),"/homeostasis/rpc"))
-    {
-       yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
-       yarp::os::Time::delay(0.1);
-    }
     toHomeo.write(gandalf);
     yInfo() << "Gandalf has spoken.";
 
@@ -119,31 +124,26 @@ bool Planner::freeze_all()
 
 bool Planner::unfreeze_all()
 {
+    Bottle gandalf;
     // Prepare command
     gandalf.clear();
     gandalf.addString("unfreeze");
     gandalf.addString("all");
     // Send command
-    if (!Network::isConnected(toHomeo.getName(),"/homeostasis/rpc"))
-    {
-        yInfo() << Network::connect(toHomeo.getName(),"/homeostasis/rpc");
-        yarp::os::Time::delay(0.1);
-    }
     toHomeo.write(gandalf);
     yInfo() << "Gandalf has rescinded.";
 
     return true;
 }
 
-bool Planner::checkKnown(const Bottle& command, Bottle& avaiPlansList, string foundPlan) {
+bool Planner::checkKnown(const Bottle& command, Bottle& avaiPlansList) {
     // check if plan exists in ini file
     for (int i = 0; i < avaiPlansList.size(); i++)
         {
             // iterate through list of drives to check if action plan is known
             if (avaiPlansList.get(i).asString() == command.get(1).asList()->get(0).asString())
             {
-                foundPlan = avaiPlansList.get(i).asString();
-                yInfo() << "plan is known: " + foundPlan;
+                yInfo() << "plan is known: " + avaiPlansList.get(i).asString();
                 return true;
             }
         }
@@ -164,7 +164,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         "actions \n" +
         "listplans \n" +
         "stopfollow \n" +
-        "close \n";
+        "exit \n";
 
     reply.clear();
 
@@ -182,7 +182,7 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ack");
     }
     else if (command.get(0).asString() == "stopfollow") {
-        fulfill = 0;
+        fulfill = false;
         reply.addString("ack");
     }
     else if ((command.get(0).asString() == "new")&& (command.get(1).asList()->size() != 2)){
@@ -209,10 +209,10 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
 
     }
         // (To-Do) Check goal not in list
-    else if (command.get(0).asString() == "close"){
+    else if (command.get(0).asString() == "exit"){
         yInfo() << "closing module planner...";
         reply.addString("ack");
-        close();
+        exit();
     }
     else if (command.get(0).asString() == "priorities")
     {
@@ -241,18 +241,8 @@ bool Planner::respond(const Bottle& command, Bottle& reply) {
         reply.addString("ack");
     }
     else if(command.get(0).asString() == "follow"){ //Toggle follow goals o goals accomplished
-        if (command.size() == 1) { fulfill = 1; yInfo() << "fulfill " << fulfill; }
-        else if (command.size()>1) { fulfill = 1; yInfo() << "fulfill " << fulfill; }
-        else{
-            reply.addString("nack");
-            yInfo()<<"rpc command not valid.";
-            return false;
-        }
-        if (fulfill)
-            yInfo() << "I need to fulfill my goals " ;
-        else{
-            yInfo() << "I don't need to fulfill my goals anymore " ;
-        }
+        fulfill = true;
+        yInfo() << "fulfill has been changed to true";
         reply.addString("ack");
     }
     else {
@@ -270,11 +260,9 @@ bool Planner::updateModule() {
     {
         for (unsigned int it = 0; it < newPlan.size(); it++)
         {
-            bool knownPlan = false;
-            string planExe;
             int priority;
             Bottle command = newPlan[it];
-            knownPlan = checkKnown(command, avaiPlansList, planExe);
+            bool knownPlan = checkKnown(command, avaiPlansList);
             string planName = command.get(1).asList()->get(0).asString();
             objectType = command.get(1).asList()->get(2).asList()->get(0).asString();
             object = command.get(1).asList()->get(2).asList()->get(1).asString();
@@ -327,7 +315,7 @@ bool Planner::updateModule() {
                         yDebug() << "lArgument formed for condition";
                     }
 
-                    record action selection reasoning in ABM
+                    // record action selection reasoning in ABM
                     iCub->getABMClient()->sendActivity("reasoning",
                         actionName,
                         "planner",  // expl: "pasar", "drives"...
@@ -433,7 +421,6 @@ bool Planner::updateModule() {
                 else
                 {
                     yWarning() << "None of the sets of prerequisites are met, unable to handle plan.";
-                    yarp::os::Time::delay(1.5);
                 }
             }
             else
@@ -461,7 +448,7 @@ bool Planner::updateModule() {
 
         else
         {
-            fulfill = 0;
+            fulfill = false;
             yDebug() << "no actions in list, fulfill is set to 0.";
             skip = 1;
         }
@@ -561,7 +548,7 @@ bool Planner::updateModule() {
             // check again if all actions in the list have been completed
             if(action_list.size() == 0)
             {
-                fulfill = 0;
+                fulfill = false;
                 yInfo() << "resuming homeostatic dynamics.";
                 unfreeze_all();
             }

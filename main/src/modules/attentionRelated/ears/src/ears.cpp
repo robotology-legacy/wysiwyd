@@ -5,8 +5,8 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
 {
     string moduleName = rf.check("name", Value("ears")).asString().c_str();
     setName(moduleName.c_str());
-    followPlans = rf.check("plans",Value("false")).asBool();
-    yDebug()<< "PLANS ENABLED: " << followPlans;
+    onPlannerMode = rf.check("plans",Value("false")).asBool();
+    yDebug()<< "PLANS ENABLED: " << onPlannerMode;
 
     yInfo() << moduleName << " : finding configuration files...";
     period = rf.check("period", Value(0.1)).asDouble();
@@ -28,7 +28,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
     bShouldListen = true;
 
-    if (followPlans){
+    if (onPlannerMode){
         /*portToBehavior.open("/" + moduleName + "/behavior:o");
         while (!Network::connect(portToBehavior.getName(),"/GoalManager/trigger:i ")) {
             yWarning() << " Behavior is not reachable";
@@ -43,20 +43,13 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
             yarp::os::Time::delay(0.5);
         }
 
-        goal_need_port.open("/" + moduleName + "/goal:o");
     }else{
         portToBehavior.open("/" + moduleName + "/behavior:o");
-        while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i ")) {
+        while (!Network::connect(portToBehavior.getName(),"/BehaviorManager/trigger:i")) {
             yWarning() << " Behavior is not reachable";
             yarp::os::Time::delay(0.5);
         }
-
-        portTarget.open("/" + moduleName + "/target:o");
     }
-
-    MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
-
-    bShouldListen = true;
 
     rpc.open(("/" + moduleName + "/rpc").c_str());
     attach(rpc);
@@ -108,12 +101,11 @@ bool ears::close() {
 
     portToBehavior.interrupt();
     portToBehavior.close();
-    if (followPlans){
+
+    if (onPlannerMode){
         port_planner.interrupt();
         port_planner.close();
 
-        goal_need_port.interrupt();
-        goal_need_port.close();
     }else{
         portTarget.interrupt();
         portTarget.close();
@@ -277,16 +269,10 @@ bool ears::updateModule() {
             sObject = "";
         } else {
             yError() << "[ears] Unknown predicate";
-            if (followPlans){
-                    Bottle &bGoal = goal_need_port.prepare();
-                    bGoal.clear();
-                    bGoal.addInt(1);
-                    goal_need_port.write();
-                }
             return true;
         }
-        //send rpc data to goalManager
-        if (followPlans){
+        //send rpc data to planner
+        if (onPlannerMode){
             Bottle &bToTarget = port_planner.prepare();
             bToTarget.clear();
             Bottle bAux;
@@ -295,6 +281,7 @@ bool ears::updateModule() {
             bAux2.clear();
             bToTarget.addString("new");
             bAux.addString(sAction);
+            bAux.addInt(1);
             bAux2.addString(sObjectType);
             bAux2.addString(sObject);
             bAux.addList()=bAux2;
@@ -330,15 +317,6 @@ bool ears::updateModule() {
         portToBehavior.write(bCondition);
         */
 
-        /* -> moved to goalManager
-        //send rpc to allostasis  
-        Bottle &bGoal = goal_need_port.prepare();
-        bGoal.clear();
-        bGoal.addInt(1);
-        goal_need_port.write();
-        
-        yDebug() << "Sending " + bGoal.toString();
-        */
     } else {
         yDebug() << "Not bListen";
         yarp::os::Time::delay(0.5);
@@ -352,23 +330,23 @@ bool ears::updateModule() {
 *   Get the context path of a .grxml grammar, and return it as a string
 *
 */
-string ears::grammarToString(string sPath)
-{
-    string sOutput = "";
-    ifstream isGrammar(sPath.c_str());
+// string ears::grammarToString(string sPath)
+// {
+//     string sOutput = "";
+//     ifstream isGrammar(sPath.c_str());
 
-    if (!isGrammar)
-    {
-        yInfo() << "Error in ears::grammarToString. Couldn't open file : " << sPath << ".";
-        return "Error in ears::grammarToString. Couldn't open file";
-    }
+//     if (!isGrammar)
+//     {
+//         yInfo() << "Error in ears::grammarToString. Couldn't open file : " << sPath << ".";
+//         return "Error in ears::grammarToString. Couldn't open file";
+//     }
 
-    string sLine;
-    while (getline(isGrammar, sLine))
-    {
-        sOutput += sLine;
-        sOutput += "\n";
-    }
+//     string sLine;
+//     while (getline(isGrammar, sLine))
+//     {
+//         sOutput += sLine;
+//         sOutput += "\n";
+//     }
 
-    return sOutput;
-}
+//     return sOutput;
+// }

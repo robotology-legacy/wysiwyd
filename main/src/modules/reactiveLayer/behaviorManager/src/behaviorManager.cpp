@@ -29,6 +29,7 @@ bool BehaviorManager::close()
 bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
 {
     moduleName = rf.check("name",Value("BehaviorManager")).asString();
+    onPlannerMode = rf.check("plans",Value("false")).asBool();
     setName(moduleName.c_str());
     yInfo()<<moduleName<<": finding configuration files...";//<<endl;
     period = rf.check("period",Value(1.0)).asDouble();
@@ -77,10 +78,14 @@ bool BehaviorManager::configure(yarp::os::ResourceFinder &rf)
         Time::delay(1.0);
     }
 
-    // while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
-    //     yWarning() << "Ears is not reachable";
-    //     yarp::os::Time::delay(0.5);
-    // }
+
+    if (!onPlannerMode)
+    {
+        while (!Network::connect("/ears/behavior:o", rpc_in_port.getName())) {
+            yWarning() << "Ears is not reachable";
+            yarp::os::Time::delay(0.5);
+        }
+    }
 
     // id = 0;
     for(auto& beh : behaviors) {

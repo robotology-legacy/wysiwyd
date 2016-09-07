@@ -14,11 +14,11 @@ private:
     BufferedPort<Bottle>        port_planner;
     BufferedPort<Bottle>        goal_need_port;
     BufferedPort<Bottle>        portTarget;
-    bool followPlans;
+    bool onPlannerMode;
     Mutex m;
     bool bShouldListen;
 
-    std::string      grammarToString(std::string sPath);
+    // std::string      grammarToString(std::string sPath);
     std::string      MainGrammar;
 
 public:

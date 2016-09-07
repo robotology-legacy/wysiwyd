@@ -25,24 +25,19 @@ private:
     vector<string>::iterator actPt;
     vector<int>::iterator prioPt;
     Bottle grpPlans;
-    Bottle gandalf;
-    Bottle adhd;
     int id;
-    int fulfill;
     int attemptCnt;
-    // Bottle* current_goal;
-    // string current_goal;
+
     string objectType;
     string object;
 
     // bool bShouldListen;
 
-    std::string      grammarToString(std::string sPath);
     std::string      MainGrammar;
 
     yarp::os::Mutex mutex;
-    bool following;
     bool ordering;
+    bool fulfill;
     Port behaviorsRPC;
     void run(Bottle args=Bottle());
 
@@ -52,18 +47,13 @@ public:
 
     bool configurePlans(yarp::os::ResourceFinder &rf);
 
-    // bool interruptModule()
-    // {
-    //     return true;
-    // }
-
     bool freeze_all();
 
     bool unfreeze_all();
 
-    bool checkKnown(const Bottle& command, Bottle& avaiPlansList, string foundPlan);
+    bool checkKnown(const Bottle& command, Bottle& avaiPlansList);
     
-    bool close();
+    bool exit();
 
     // double getPeriod()
     // {
