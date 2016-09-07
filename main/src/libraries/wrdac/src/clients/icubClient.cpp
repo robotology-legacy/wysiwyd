@@ -57,7 +57,7 @@ ICubClient::ICubClient(const std::string &moduleName, const std::string &context
     else
     {
         robot = "icub";
-        yInfo("Module name set to default, i.e. %s", robot.c_str());
+        yInfo("Robot name set to default, i.e. %s", robot.c_str());
     }
 
     if (bLoadPostures){

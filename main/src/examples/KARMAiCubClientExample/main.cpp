@@ -38,7 +38,7 @@ int main()
         return -1;
     }
 
-    ICubClient iCub("KARMAiCubClientExample","icubClient","example_KARMA.ini");
+    ICubClient iCub("KARMAiCubClientExample","icubClient","example_ARE_KARMA.ini");
 
     // we connect just to ARE (skip connecting to OPC)
     // we need connect to KARMA also
