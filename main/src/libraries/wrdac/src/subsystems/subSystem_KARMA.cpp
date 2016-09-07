@@ -388,21 +388,13 @@ bool wysiwyd::wrdac::SubSystem_KARMA::openCartesianClient()
 
 }
 
-void wysiwyd::wrdac::SubSystem_KARMA::closeICartClient()
-{
-    driverL.close();
-    driverR.close();
-    driverHL.close();
-    driverHR.close();
-}
-
 wysiwyd::wrdac::SubSystem_KARMA::~SubSystem_KARMA()
 {
     delete SubABM;
     delete SubATT;
-    iCartCtrlL->stopControl();
-    iCartCtrlR->stopControl();
-    delete iCartCtrlL;
-    delete iCartCtrlR;
+    driverL.close();
+    driverR.close();
+    driverHL.close();
+    driverHR.close();
 }
 

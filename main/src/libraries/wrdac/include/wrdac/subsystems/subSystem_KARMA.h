@@ -76,9 +76,6 @@ namespace wysiwyd {
             /********************************************************************************/
             bool prepare();
 
-            void closeICartClient();
-
-
 
             /********************************************************************************/
             bool sendCmd(yarp::os::Bottle &cmd, const bool disableATT=false);
