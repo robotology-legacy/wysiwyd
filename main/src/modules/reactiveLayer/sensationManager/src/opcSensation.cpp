@@ -145,37 +145,34 @@ Bottle OpcSensation::handleEntities()
                 if (dynamic_cast<Object*>(entity)->m_present == 1.0) {  // Known entities and present!
                     known_obj = true;
                     addToEntityList(temp_kp_entities, entity->entity_type(), entity->name());
-
-                    //Handle red balls
-                    if (entity->name() == "red_ball"){
-                        yDebug("Found a redBall object");
-                        if (!Network::isConnected("/pf3dTracker/data:o",("/"+moduleName+"/pf3dTracker:i").c_str())){
-                            yDebug("RedBall Port not connected...");
-                            dynamic_cast<Object*>(entity)->m_present = 0.0;
-                        }else{
-                            yDebug("RedBall Port connected...\nUpdateing position...");
-                            //update position
-                            Bottle *bot = pf3dTrackerPort.read();
-                            yDebug("RedBall Port readed");
-                            Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>("red_ball");
-                            obj1->m_ego_position[0] = bot->get(0).asDouble();
-                            obj1->m_ego_position[1] = bot->get(1).asDouble();
-                            obj1->m_ego_position[2] = bot->get(2).asDouble();
-                            obj1->m_dimensions[0] = bot->get(3).asDouble();
-                            obj1->m_dimensions[1] = bot->get(4).asDouble();
-                            obj1->m_dimensions[2] = bot->get(5).asDouble();
-                            obj1->m_present = bot->get(6).asDouble();
-                            iCub->opc->commit(obj1);
-                            yDebug("opc updated...");
-                        }
+                    Object* obj1 = dynamic_cast<Object*>(entity);
+                //Handle red balls
+                if (entity->name() == "red_ball"){
+                    yDebug("Found a redBall object");
+                    // Set color:
+                    obj1->m_color[0] = 250;
+                    obj1->m_color[1] = 0;
+                    obj1->m_color[2] = 0;
+                    if (!Network::isConnected("/pf3dTracker/data:o",("/"+moduleName+"/pf3dTracker:i").c_str())){
+                        yDebug("RedBall Port not connected...");
+                        obj1->m_present = 0.0;
+                    }else{
+                        yDebug("RedBall Port connected...\nUpdateing position...");
+                        //update position
+                        Bottle *bot = pf3dTrackerPort.read();
+                        yDebug("RedBall Port readed");
+                        obj1->m_ego_position[0] = bot->get(0).asDouble();
+                        obj1->m_ego_position[1] = bot->get(1).asDouble();
+                        obj1->m_ego_position[2] = bot->get(2).asDouble();
+                        obj1->m_dimensions[0] = bot->get(3).asDouble();
+                        obj1->m_dimensions[1] = bot->get(4).asDouble();
+                        obj1->m_dimensions[2] = bot->get(5).asDouble();
+                        obj1->m_present = bot->get(6).asDouble();
+                        /*iCub->opc->commit(obj1);
+                        yDebug("opc updated...");*/
+                        
                     }
-                    Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(entity->name());
                     if (obj1->m_present == 1.0){
-                        yDebug("RedBall is present...");
-                        //change color to red
-                        obj1->m_color[0] = 250;
-                        obj1->m_color[1] = 0;
-                        obj1->m_color[2] = 0;
                         //send data to PPS
                         Bottle objec;
                         objec.clear();
@@ -187,46 +184,10 @@ Bottle OpcSensation::handleEntities()
                         objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
                         objects.addList()=objec;
                         yDebug("message sent");
-                    }else{
-                        yDebug("RedBall is present...");
-                        //change color to grey
-                        obj1->m_color[0] = 20;
-                        obj1->m_color[1] = 20;
-                        obj1->m_color[2] = 20;
                     }
-                    yDebug("Updating OPC...");
-                    iCub->opc->commit(obj1);
-                    yDebug("Updated OPC...");
+                    
                 }
                 addToEntityList(temp_k_entities, entity->entity_type(), entity->name());
-                Object* obj1 = iCub->opc->addOrRetrieveEntity<Object>(entity->name());
-                if (obj1->m_present == 1.0){
-                    if (entity->name() == "red_ball"){ 
-                        //change color to red
-                        obj1->m_color[0] = 250;
-                        obj1->m_color[1] = 0;
-                        obj1->m_color[2] = 0;
-                    }   
-                    //send data to PPS
-                    Bottle objec;
-                    objec.clear();
-                    objec.addDouble(obj1->m_ego_position[0]);          //X
-                    objec.addDouble(obj1->m_ego_position[1]);          //Y
-                    objec.addDouble(obj1->m_ego_position[2]);          //Z
-                    double dimensions = 0.07;//sqrt(pow(obj1->m_dimensions[0],2) + pow(obj1->m_dimensions[1],2) + pow(obj1->m_dimensions[2],2));
-                    objec.addDouble(dimensions);                       //RADIUS
-                    objec.addDouble(min(obj1->m_value,0.0)*(-1.0));    //Threat: Only negative part of value!
-                    objects.addList()=objec;
-                    yDebug("message sent");
-                }else{
-                    if (entity->name() == "red_ball"){
-                        yDebug("RedBall is present...");
-                        //change color to grey
-                        obj1->m_color[0] = 20;
-                        obj1->m_color[1] = 20;
-                        obj1->m_color[2] = 20;
-                    }
-                }
                 yDebug("Updating OPC...");
                 iCub->opc->commit(obj1);
                 yDebug("Updated OPC...");
