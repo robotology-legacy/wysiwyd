@@ -11,7 +11,6 @@ private:
     Port        rpc;
     Port        portToBehavior;
     Port        portToSpeechRecognizer;
-    BufferedPort<Bottle>        port_planner;
     BufferedPort<Bottle>        portTarget;
     bool onPlannerMode;
     Mutex m;

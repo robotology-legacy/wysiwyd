@@ -28,8 +28,7 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     bShouldListen = true;
 
     if (onPlannerMode){
-        port_planner.open("/" + moduleName + "/target:o");
-        while (!Network::connect(port_planner.getName(),"/planner/rpc"))
+        while (!Network::connect(portTarget.getName(),"/planner/rpc"))
         {
             yWarning() << "Planner is unreachable...";
             yarp::os::Time::delay(0.5);
@@ -86,17 +85,14 @@ bool ears::close() {
     portToSpeechRecognizer.interrupt();
     portToSpeechRecognizer.close();
 
-    portToBehavior.interrupt();
-    portToBehavior.close();
+    portTarget.interrupt();
+    portTarget.close();
 
-    if (onPlannerMode){
-        port_planner.interrupt();
-        port_planner.close();
+    if (!onPlannerMode){
+     portToBehavior.interrupt();
+     portToBehavior.close();
 
-    }else{
-        portTarget.interrupt();
-        portTarget.close();
-    }
+ }
 
     yDebug() << "closing rpc port";
     rpc.interrupt();
@@ -121,7 +117,7 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
     else if (command.get(0).asString() == "dummy")
     {
         // sends a test bottle to planner
-        Bottle &bToTarget = port_planner.prepare();
+        Bottle &bToTarget = portTarget.prepare();
         bToTarget.clear();
         Bottle bAux;
         bAux.clear();
@@ -134,7 +130,7 @@ bool ears::respond(const Bottle& command, Bottle& reply) {
         bAux2.addString("sObject");
         bAux.addList()=bAux2;
         bToTarget.addList()=bAux;
-        port_planner.write();
+        portTarget.write();
         yDebug() << "Sending " + bToTarget.toString();
     }
     else if (command.get(0).asString() == "listen")
@@ -260,7 +256,7 @@ bool ears::updateModule() {
         }
         //send rpc data to planner
         if (onPlannerMode){
-            Bottle &bToTarget = port_planner.prepare();
+            Bottle &bToTarget = portTarget.prepare();
             bToTarget.clear();
             Bottle bAux;
             bAux.clear();
@@ -273,7 +269,7 @@ bool ears::updateModule() {
             bAux2.addString(sObject);
             bAux.addList()=bAux2;
             bToTarget.addList()=bAux;
-            port_planner.write();
+            portTarget.write();
             yDebug() << "Sending " + bToTarget.toString();
         }else{
             Bottle &bToTarget = portTarget.prepare();
