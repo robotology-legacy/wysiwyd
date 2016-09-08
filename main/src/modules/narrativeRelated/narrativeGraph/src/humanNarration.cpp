@@ -1015,7 +1015,7 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         DFW *currentDFW;
         bool isMultiple = false; // if a sentence is multiple (with a DFW)
         int iPreposition = 0;   // get the order of the preposition in the sentence
-        int iNbPreposition = level1->vSentence.size();
+        int iNbPreposition = level1->vSentence.size();  // nb of preposition in the sentence
         bool isDFW = level1->vSentence[0].vOCW.size() == 1;
         sKeyMean singleIGARF;
         pair<sKeyMean, sKeyMean> doubleIGARF;
