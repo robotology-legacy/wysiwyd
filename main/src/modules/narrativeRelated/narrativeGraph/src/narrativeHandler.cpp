@@ -59,11 +59,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     narrator = rf.check("narrator", Value("Narrator")).asString().c_str();
     lrh = rf.find("lrh").asInt() == 1;
     researchWindows = rf.find("researchWindows").asInt() == 1;
-    
+
     Bottle *bNarration = rf.find("listScenario").asList();
     initializeScenarios(*bNarration, rf);
 
-    Bottle *bMeaning= rf.find("listMeaning").asList();
+    Bottle *bMeaning = rf.find("listMeaning").asList();
     initializeMeaning(*bMeaning, rf);
 
     shouldSpeak = rf.find("shouldSpeak").asInt() == 1;
@@ -205,9 +205,11 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
 
     yInfo() << "\n \n" << "----------------------------------------------" << "\n \n" << moduleName << " ready ! \n \n ";
 
-    linkMeaningScenario(2,3);
+    linkMeaningScenario(2, 3);
 
-    return false;
+    displayDFW();
+
+    return true;
 }
 
 
@@ -294,7 +296,7 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
         for (unsigned int ii = 0; ii < listStories.size(); ii++){
             cout << "story: " << ii << " -- instance start: " << listStories[ii].viInstances[0] << " -- size: " << listStories[ii].viInstances.size() << endl;
         }
-    } 
+    }
     else if (command.get(0).asString() == "checkScenarios"){
         int iScena = -1;
         if (command.size() == 2){
@@ -418,9 +420,9 @@ bool narrativeHandler::respond(const Bottle& command, Bottle& reply) {
                 reply.addString("creation sucessful");
             }
             else {
-                yWarning() <<" error: out of range, max: "<<int(listStories.size()-1);
+                yWarning() << " error: out of range, max: " << int(listStories.size() - 1);
                 reply.addString("Error: out of range, max:");
-                reply.addInt(int(listStories.size())-1);
+                reply.addInt(int(listStories.size()) - 1);
             }
         }
         else {
@@ -2291,4 +2293,38 @@ string narrativeHandler::lowerKey(string input){
     string tmp = input;
     transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
     return tmp;
+}
+
+
+
+void narrativeHandler::displayDFW(){
+
+    cout << endl << "Displaying DFW: " << vDFW.size() << endl;
+
+    for (vector<storygraph::DFW>::iterator itD = vDFW.begin(); itD != vDFW.end(); itD++){
+        cout << "\t" << itD->sName << endl;
+
+        if (itD->vFirstIGARF.size() == itD->vSecondIGARF.size()){
+            for (unsigned int jj = 0; jj < itD->vFirstIGARF.size(); jj++){
+                cout << itD->vFirstIGARF[jj].toString() << "\t" << itD->vSecondIGARF[jj].toString() << endl;
+            }
+
+        }
+        else{
+            cout << "\t\t first: " << endl;
+            for (vector<storygraph::sKeyMean>::iterator itI = itD->vFirstIGARF.begin();
+                itI != itD->vFirstIGARF.end();
+                itI++){
+                cout << "\t\t\t" << itI->toString() << endl;
+            }
+
+            cout << "\t\t second:" << endl;
+            for (vector<storygraph::sKeyMean>::iterator itI = itD->vSecondIGARF.begin();
+                itI != itD->vSecondIGARF.end();
+                itI++){
+                cout << "\t\t\t" << itI->toString() << endl;
+            }
+        }
+    }
+
 }

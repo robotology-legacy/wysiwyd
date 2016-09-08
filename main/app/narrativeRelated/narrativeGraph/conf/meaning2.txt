@@ -1,9 +1,8 @@
-want iCub croco , P1 A1 O1
-take iCub croco, P1 A1 O1
-because, fail iCub take croco, laid croco outofreach, P1 P2 A2 O2 R2 P3 A3 O3
-because, remove Robert box, want iCub croco, P1 P2 A2 O2 P3 A3 O3
-because, remove Robert box, cover box croco, P1 P2 A2 O2 P3 A3 O3
-because, remove Robert box, say iCub Can_you_remove_the_box_please? Robert, P1 P2 A2 O2 P3 A3 O3 R3
+and, have Sam croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
+then, take iCub croco, P1 P2 A2 O2
+because, reason iCub, want icub croco, P1 P2 A2 P3 A3 O3
+then, say iCub Give_me_the_croco_please Sam, P1 P2 A2 O2 R2
+so, give Sam mouse iCub, P1 P2 A2 O2 R2
+but, have mouse iCub, want croco iCub, P1 P2 A2 O2 P3 A3 O3
 because, have iCub croco, want iCub croco, P1 P2 A2 O2 P3 A3 O3
-because, have iCub croco, remove Robert box, P1 P2 A2 O2 P3 A3 O3
-because, fail iCub take croco, cover box croco, P1 P2 A2 O2 R2 P3 A3 O3
+because, have iCub croco, give Sam croco iCub, P1 P2 A2 O2 P3 A3 O3 R3

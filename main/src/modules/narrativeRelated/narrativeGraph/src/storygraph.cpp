@@ -724,20 +724,21 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore
 }
 
 string SituationModel::SMtoTrain(string sentence) {
-    if (sentence != "") {
-        Meaning m(sentence);
-        m.setContext(getEvent(lastFocus));
-        sKeyMean km;// = findBest(m.ocwSet());
-        if (km.iIGARF != -1) {
-            m.extractFocus(getEvent(km));
-            m.extractOthers();
-            lastFocus = km;
-            return m.getMeaning();
-        }
-        else
-            return "NoMatch";
-    }
-    else
+    //to do
+    //if (sentence != "") {
+    //    Meaning m(sentence);
+    //    m.setContext(getEvent(lastFocus));
+    //    sKeyMean km;// = findBest(m.ocwSet());
+    //    if (km.iIGARF != -1) {
+    //        m.extractFocus(getEvent(km));
+    //        m.extractOthers();
+    //        lastFocus = km;
+    //        return m.getMeaning();
+    //    }
+    //    else
+    //        return "NoMatch";
+    //}
+    //else
         return "";
 }
 
@@ -1252,3 +1253,8 @@ void SituationModel::writeSVG(ofstream &fOutput, int nIGARF) {
 }
 
 
+
+
+DFW::DFW(string name){
+    sName = name;
+}

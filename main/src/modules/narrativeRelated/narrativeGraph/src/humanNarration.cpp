@@ -1012,6 +1012,9 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
         )
     {
 
+        DFW *currentDFW;
+        bool isMultiple = false; // if a sentence is multiple (with a DFW)
+        int iPreposition = 0;   // get the order of the preposition in the sentence
 
         for (vector<meaningProposition>::iterator level2 = level1->vSentence.begin();
             level2 != level1->vSentence.end();
@@ -1027,12 +1030,37 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
 
             int iScore = 0;
             vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
+            bool isDFW = level2->vOCW.size() == 1;
+            if (isDFW){ // only one OCW: DFW
+                string nameDFW = level2->vOCW[0];
+                isMultiple = true;
+                bool found = false;
+                for (vector<DFW>::iterator itDFW = vDFW.begin(); itDFW != vDFW.end(); itDFW++){
+                    if (!found && itDFW->sName == nameDFW){
+                        found = true;
+                        currentDFW = &(*itDFW);
+                        cout << " found existing DFW: " << currentDFW->sName << endl;
+                    }
+                }
+                if (!found) {
+                    cout << " creating new DFW: " << nameDFW << endl;
+                    currentDFW = new DFW(nameDFW);
+                    vDFW.push_back(*currentDFW);
+                    currentDFW = &vDFW[vDFW.size() - 1];
+                }
+            }
+
+            sKeyMean currentIGARF;
+
             if (iScore > iThresholdScoreIGARFPAOR){
                 for (int kk = 0; kk < vkTmp.size(); kk++)
                 {
                     sKeyMean kTmp = vkTmp[kk];
                     cout << "\t result find: " << (kTmp.toString()) << endl;
                     if (kTmp.iIGARF != -1){
+                        //currentIGARF = sm.vIGARF[kTmp.iIGARF];
+                        currentIGARF = kTmp;
+
                         if (kTmp.cPart == 'A'){
                             cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
                                 << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
@@ -1064,8 +1092,23 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                     }
                 }
             }
+
+            if (!isDFW && isMultiple){
+                if (iPreposition < 2){
+                    currentDFW->vFirstIGARF.push_back(currentIGARF);
+                    cout << "filling first vector" << endl;
+                }
+                else{
+                    currentDFW->vSecondIGARF.push_back(currentIGARF);
+                    cout << "filling second vector" << endl;
+                }
+            }
+
+            iPreposition++;
         }
     }
+
+    displayDFW();
 
     //MD.print();
 

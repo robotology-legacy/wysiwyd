@@ -38,6 +38,11 @@ namespace storygraph {
         int iResult; ///< The instance number of the Result cell
         std::vector < int > vFinalState; ///< The instance numbers of the relations describing the Final State
         int iNext;  ///< The instance number of the Next IGARF (in temporal order). -1 if there is no next event
+        std::string toString() {
+            std::ostringstream os;
+            os << tAction << " " << tResult << " action: " << iAction << ", result: " << iResult << ", next: " << iNext;
+            return os.str();
+        }
     };
 
     /// Describes where a link come from or go to in the Situation Model
@@ -153,6 +158,18 @@ namespace storygraph {
         void writeSVGIGARF(std::ofstream &fOutput, int nIGARF, int x, int y); ///< Auxiliary function: Draws the nIGARF-th at the given position in the SVG file
         int addIGARFtoGrid(std::ofstream &fOutput, std::vector < int > &IGARFgrid, int currentIGARF, int level); ///< Auxiliary function: Draws the IGARF and its sons recursively at the corresponding level
         void writeSVG(std::ofstream &fOutput, int nIGARF); ///< Draws the IGARF by calling the appropriate auxiliary function
+
+    };
+
+    // class of Discourse Function Words
+    class DFW {
+    public:
+        std::string  sName;
+        DFW(std::string name);
+
+        std::vector <sKeyMean>   vFirstIGARF;
+        std::vector <sKeyMean>   vSecondIGARF;
+
 
     };
 }

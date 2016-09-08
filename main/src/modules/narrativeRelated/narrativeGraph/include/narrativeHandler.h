@@ -56,6 +56,9 @@ private:
     yarp::os::Port  Port2abmReasoning;
 
     std::vector<story> listStories;
+    std::vector <storygraph::DFW> vDFW;
+    void displayDFW();
+
 
     bool tellingStoryFromMeaning(story st);
     void initializeStories();
