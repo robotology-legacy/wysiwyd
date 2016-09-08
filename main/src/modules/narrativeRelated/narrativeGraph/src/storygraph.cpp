@@ -659,7 +659,7 @@ int SituationModel::proximityScoreRelation(int i, const vector <string>& ocw) {
     return score;// (score == 11) ? 1 : 0; // See proximityScoreAction(..)
 }
 
-vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw) {
+vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw, int &iScore) {
     int score_max = 0;
     vector<sKeyMean>  vkmBest;
     bool equal = false;
@@ -718,6 +718,7 @@ vector<sKeyMean> SituationModel::findBest(const vector<string>& ocw) {
     if (vkmBest.size() > 1){// && score_max != 0) {
         cout << "several best target: " << vkmBest.size() << endl;
     }
+    iScore = score_max;
     cout << " **score: " << score_max << "** "<<endl;
     return vkmBest;
 }

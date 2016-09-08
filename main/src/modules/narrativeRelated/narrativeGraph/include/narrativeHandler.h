@@ -42,6 +42,7 @@ private:
     double dThresholdDiffStory; // threshold in second between to action from two different stories.
     unsigned int  iThresholdSizeStory; // threshold of the number of instance in a story
     unsigned int  iThresholdSentence; // threshold of the number of sentence in a story
+    unsigned int iThresholdScoreIGARFPAOR;  // threshold of confidence or relation between an IGARF and a PAOR
 
     unsigned int  instanceStart; // min range of the research of story
     unsigned int  instanceStop;  // max range of the research of story

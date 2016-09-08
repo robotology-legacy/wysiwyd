@@ -1025,40 +1025,42 @@ void narrativeHandler::linkMeaningScenario(int iMeaning, int iScenario){
                 cout << "]" << endl;
             }
 
-            vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW);
+            int iScore = 0;
+            vector<sKeyMean> vkTmp = sm.findBest(level2->vOCW, iScore);
+            if (iScore > iThresholdScoreIGARFPAOR){
+                for (int kk = 0; kk < vkTmp.size(); kk++)
+                {
+                    sKeyMean kTmp = vkTmp[kk];
+                    cout << "\t result find: " << (kTmp.toString()) << endl;
+                    if (kTmp.iIGARF != -1){
+                        if (kTmp.cPart == 'A'){
+                            cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
+                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
+                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
+                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
 
-            for (int kk = 0; kk < vkTmp.size(); kk++)
-            {
-                sKeyMean kTmp = vkTmp[kk];
-                cout << "\t result find: " << (kTmp.toString()) << endl;
-                if (kTmp.iIGARF != -1){
-                    if (kTmp.cPart == 'A'){
-                        cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
-                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
-                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
-                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
-
-                    }
-                    else if (kTmp.cPart == 'G'){
-                        cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
-                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
-                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
-                    }
-                    else if (kTmp.cPart == 'I'){
-                        cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
-                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
-                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
-                    }
-                    else if (kTmp.cPart == 'F'){
-                        cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
-                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
-                            << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
-                    }
-                    else if (kTmp.cPart == 'R'){
-                        cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
-                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
-                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
-                            << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
+                        }
+                        else if (kTmp.cPart == 'G'){
+                            cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].subject
+                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].verb
+                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vGoal[kTmp.iRel]].object << "]" << endl;
+                        }
+                        else if (kTmp.cPart == 'I'){
+                            cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].subject
+                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].verb
+                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vInitState[kTmp.iRel]].object << "]" << endl;
+                        }
+                        else if (kTmp.cPart == 'F'){
+                            cout << "\t [" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].subject
+                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].verb
+                                << "-" << sm.vRelations[sm.vIGARF[kTmp.iIGARF].vFinalState[kTmp.iRel]].object << "]" << endl;
+                        }
+                        else if (kTmp.cPart == 'R'){
+                            cout << "\t [" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].agent
+                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].predicate
+                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].object
+                                << "-" << sm.vActionEvts[sm.vIGARF[kTmp.iIGARF].iAction].recipient << "]" << endl;
+                        }
                     }
                 }
             }

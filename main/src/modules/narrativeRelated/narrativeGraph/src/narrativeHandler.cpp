@@ -51,6 +51,7 @@ bool narrativeHandler::configure(yarp::os::ResourceFinder &rf)
     dThresholdDiffStory = rf.check("dThresholdDiffStory", Value(15.)).asDouble();
     iThresholdSizeStory = rf.check("iThresholdSizeStory", Value(6)).asInt();
     iThresholdSentence = rf.check("iThresholdSentence", Value(6)).asInt();
+    iThresholdScoreIGARFPAOR = rf.check("iThresholdScoreIGARFPAOR", Value(7)).asInt();
     instanceStart = rf.check("instanceStart", Value(0)).asInt();
     instanceStop = rf.check("instanceStop", Value(100000)).asInt();
     storyToNarrate = rf.check("storyToNarrate", Value(1770)).asInt();
