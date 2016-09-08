@@ -53,5 +53,9 @@ public:
         opc_has_agent_port.close();
         is_touched_port.interrupt();
         is_touched_port.close();
+        pf3dTrackerPort.interrupt();
+        pf3dTrackerPort.close();
+        outputPPSPort.interrupt();
+        outputPPSPort.close();
     }
 };
