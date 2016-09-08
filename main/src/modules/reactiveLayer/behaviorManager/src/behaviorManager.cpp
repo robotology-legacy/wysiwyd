@@ -1,10 +1,5 @@
 #include "behaviorManager.h"
 
-using namespace std;
-using namespace yarp::os;
-using namespace yarp::sig;
-using namespace yarp::math;
-
 bool BehaviorManager::interruptModule()
 {
     rpc_in_port.interrupt();

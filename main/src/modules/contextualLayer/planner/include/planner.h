@@ -1,5 +1,9 @@
 #include "wrdac/clients/icubClient.h"
 
+using namespace std;
+using namespace yarp::os;
+using namespace wysiwyd::wrdac;
+
 class Planner : public RFModule {
 private:
 
