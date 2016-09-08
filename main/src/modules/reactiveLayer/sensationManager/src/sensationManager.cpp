@@ -7,6 +7,9 @@ bool SensationManager::close() {
     }
     sensations.clear();
 
+    rpc_in_port.interrupt();
+    rpc_in_port.close();
+
     return true;
 }
 

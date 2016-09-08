@@ -27,13 +27,12 @@ bool ears::configure(yarp::os::ResourceFinder &rf)
     MainGrammar = rf.findFileByName(rf.check("MainGrammar", Value("MainGrammar.xml")).toString());
     bShouldListen = true;
 
-    if (onPlannerMode){
-        while (!Network::connect(portTarget.getName(),"/planner/rpc"))
-        {
+    if (onPlannerMode) {
+        while (!Network::connect(portTarget.getName(),"/planner/rpc")) {
             yWarning() << "Planner is unreachable...";
             yarp::os::Time::delay(0.5);
         }
-    }else{
+    } else {
         portToBehavior.open("/" + moduleName + "/behavior:o");
     }
 
@@ -88,11 +87,10 @@ bool ears::close() {
     portTarget.interrupt();
     portTarget.close();
 
-    if (!onPlannerMode){
-     portToBehavior.interrupt();
-     portToBehavior.close();
-
- }
+    if (!onPlannerMode) {
+        portToBehavior.interrupt();
+        portToBehavior.close();
+    }
 
     yDebug() << "closing rpc port";
     rpc.interrupt();
@@ -255,7 +253,7 @@ bool ears::updateModule() {
             // return true;
         }
         //send rpc data to planner
-        if (onPlannerMode){
+        if (onPlannerMode) {
             Bottle &bToTarget = portTarget.prepare();
             bToTarget.clear();
             Bottle bAux;
@@ -271,7 +269,7 @@ bool ears::updateModule() {
             bToTarget.addList()=bAux;
             portTarget.write();
             yDebug() << "Sending " + bToTarget.toString();
-        }else{
+        } else {
             Bottle &bToTarget = portTarget.prepare();
             bToTarget.clear();
             bToTarget.addString(sAction);
@@ -289,17 +287,6 @@ bool ears::updateModule() {
      
             yDebug() << "Sending " + bCondition.toString();
         }
-        /* -> This should go inside behaviors
-        //send rpc to behaviors  
-        Bottle bCondition;
-        bCondition.addString(sCommand);
-        bCondition.addString(sAction);
-        bCondition.addString(sObjectType);
-        bCondition.addString(sObject);
-
-        portToBehavior.write(bCondition);
-        */
-
     } else {
         yDebug() << "Not bListen";
         yarp::os::Time::delay(0.5);

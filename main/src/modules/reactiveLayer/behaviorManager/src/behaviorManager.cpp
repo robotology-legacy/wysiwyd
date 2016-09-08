@@ -190,7 +190,6 @@ bool BehaviorManager::respond(const Bottle& cmd, Bottle& reply)
                 }
 
                 Bottle args;
-                args.clear();
                 if (cmd.size()>1){
                     for (int i = 1; i < cmd.size(); i++)
                         args.addList()=*cmd.get(i).asList();

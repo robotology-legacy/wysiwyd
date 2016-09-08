@@ -5,15 +5,10 @@ using namespace yarp::os;
 using namespace yarp::sig;
 
 void Greeting::configure() {
-    // Todo: set the value beow from a config file (but we are not in a module here)
-    string name = "greeting";
-    external_port_name = "None";
     // Is there a need for another module for greetings? This is simpler than proactive tagging, can be handled within here
     // => named external port None.
     from_sensation_port_name = "/opcSensation/greeting:o";
-
-
-};
+}
 
 void Greeting::run(Bottle args) {
     yInfo() << "Greeting::run";
@@ -21,7 +16,7 @@ void Greeting::run(Bottle args) {
     // Might want to include gestures like looking at partner and waving a hand
     iCub->say("Hello, I'm iCub. What's your name?");
     int id = 0; //Should be a random
-    cout << "send rpc to salutation"<<endl;
+    yDebug() << "send rpc to salutation";
     Bottle *sensation = sensation_port_in.read();
     // Greet new partner
     Bottle cmd;

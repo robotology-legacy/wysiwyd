@@ -47,10 +47,10 @@ public:
     
     bool exit();
 
-    // double getPeriod()
-    // {
-    //     return period;
-    // }
+    double getPeriod()
+    {
+        return period;
+    }
 
 
     bool updateModule();

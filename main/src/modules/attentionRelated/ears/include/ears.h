@@ -16,7 +16,6 @@ private:
     Mutex m;
     bool bShouldListen;
 
-    // std::string      grammarToString(std::string sPath);
     std::string      MainGrammar;
 
 public:

@@ -13,6 +13,5 @@ class Greeting: public Behavior
 public:
     void configure();
     void run(Bottle args=Bottle());
-
 };
 
